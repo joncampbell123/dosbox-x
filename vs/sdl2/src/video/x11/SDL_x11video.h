@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,29 +31,23 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 
-#if SDL_VIDEO_DRIVER_X11_XCURSOR
+#ifdef SDL_VIDEO_DRIVER_X11_XCURSOR
 #include <X11/Xcursor/Xcursor.h>
 #endif
-#if SDL_VIDEO_DRIVER_X11_XDBE
+#ifdef SDL_VIDEO_DRIVER_X11_XDBE
 #include <X11/extensions/Xdbe.h>
 #endif
-#if SDL_VIDEO_DRIVER_X11_XINERAMA
-#include <X11/extensions/Xinerama.h>
-#endif
-#if SDL_VIDEO_DRIVER_X11_XINPUT2
+#ifdef SDL_VIDEO_DRIVER_X11_XINPUT2
 #include <X11/extensions/XInput2.h>
 #endif
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif
-#if SDL_VIDEO_DRIVER_X11_XSCRNSAVER
+#ifdef SDL_VIDEO_DRIVER_X11_XSCRNSAVER
 #include <X11/extensions/scrnsaver.h>
 #endif
-#if SDL_VIDEO_DRIVER_X11_XSHAPE
+#ifdef SDL_VIDEO_DRIVER_X11_XSHAPE
 #include <X11/extensions/shape.h>
-#endif
-#if SDL_VIDEO_DRIVER_X11_XVIDMODE
-#include <X11/extensions/xf86vmode.h>
 #endif
 
 #include "../../core/linux/SDL_dbus.h"
@@ -75,6 +69,7 @@
 typedef struct SDL_VideoData
 {
     Display *display;
+    Display *request_display;
     char *classname;
     pid_t pid;
     XIM im;
@@ -84,6 +79,9 @@ typedef struct SDL_VideoData
     int windowlistlength;
     XID window_group;
     Window clipboard_window;
+#ifdef SDL_VIDEO_DRIVER_X11_XFIXES
+    SDL_Window *active_cursor_confined_window;
+#endif /* SDL_VIDEO_DRIVER_X11_XFIXES */
 
     /* This is true for ICCCM2.0-compliant window managers */
     SDL_bool net_wm;
@@ -92,6 +90,7 @@ typedef struct SDL_VideoData
     Atom WM_PROTOCOLS;
     Atom WM_DELETE_WINDOW;
     Atom WM_TAKE_FOCUS;
+    Atom WM_NAME;
     Atom _NET_WM_STATE;
     Atom _NET_WM_STATE_HIDDEN;
     Atom _NET_WM_STATE_FOCUSED;
@@ -111,6 +110,7 @@ typedef struct SDL_VideoData
     Atom _NET_WM_USER_TIME;
     Atom _NET_ACTIVE_WINDOW;
     Atom _NET_FRAME_EXTENTS;
+    Atom _SDL_WAKEUP;
     Atom UTF8_STRING;
     Atom PRIMARY;
     Atom XdndEnter;
@@ -126,7 +126,7 @@ typedef struct SDL_VideoData
     SDL_Scancode key_layout[256];
     SDL_bool selection_waiting;
 
-    SDL_bool broken_pointer_grab;  /* true if XGrabPointer seems unreliable. */
+    SDL_bool broken_pointer_grab; /* true if XGrabPointer seems unreliable. */
 
     Uint32 last_mode_change_deadline;
 
@@ -134,18 +134,29 @@ typedef struct SDL_VideoData
     SDL_Point global_mouse_position;
     Uint32 global_mouse_buttons;
 
-#if SDL_VIDEO_DRIVER_X11_HAS_XKBKEYCODETOKEYSYM
+    SDL_XInput2DeviceInfo *mouse_device_info;
+
+    int xrandr_event_base;
+
+#ifdef SDL_VIDEO_DRIVER_X11_HAS_XKBKEYCODETOKEYSYM
     XkbDescPtr xkb;
 #endif
+    int xkb_event;
 
     KeyCode filter_code;
-    Time    filter_time;
+    Time filter_time;
 
-#if SDL_VIDEO_VULKAN
+#ifdef SDL_VIDEO_VULKAN
     /* Vulkan variables only valid if _this->vulkan_config.loader_handle is not NULL */
     void *vulkan_xlib_xcb_library;
     PFN_XGetXCBConnection vulkan_XGetXCBConnection;
 #endif
+
+    /* Used to interact with the on-screen keyboard */
+    SDL_bool is_steam_deck;
+    SDL_bool steam_keyboard_open;
+
+    SDL_bool is_xwayland;
 
 } SDL_VideoData;
 

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,16 +26,26 @@
 #include "SDL_thread.h"
 
 /* Need the definitions of SYS_ThreadHandle */
-#if SDL_THREADS_DISABLED
+#ifdef SDL_THREADS_DISABLED
 #include "generic/SDL_systhread_c.h"
-#elif SDL_THREAD_PTHREAD
+#elif defined(SDL_THREAD_PTHREAD)
 #include "pthread/SDL_systhread_c.h"
-#elif SDL_THREAD_WINDOWS
+#elif defined(SDL_THREAD_WINDOWS)
 #include "windows/SDL_systhread_c.h"
-#elif SDL_THREAD_PSP
+#elif defined(SDL_THREAD_PS2)
+#include "ps2/SDL_systhread_c.h"
+#elif defined(SDL_THREAD_PSP)
 #include "psp/SDL_systhread_c.h"
-#elif SDL_THREAD_STDCPP
+#elif defined(SDL_THREAD_VITA)
+#include "vita/SDL_systhread_c.h"
+#elif defined(SDL_THREAD_N3DS)
+#include "n3ds/SDL_systhread_c.h"
+#elif defined(SDL_THREAD_STDCPP)
 #include "stdcpp/SDL_systhread_c.h"
+#elif defined(SDL_THREAD_OS2)
+#include "os2/SDL_systhread_c.h"
+#elif defined(SDL_THREAD_NGAGE)
+#include "ngage/SDL_systhread_c.h"
 #else
 #error Need thread implementation for this platform
 #include "generic/SDL_systhread_c.h"
@@ -56,39 +66,44 @@ struct SDL_Thread
     SDL_threadID threadid;
     SYS_ThreadHandle handle;
     int status;
-    SDL_atomic_t state;  /* SDL_THREAD_STATE_* */
+    SDL_atomic_t state; /* SDL_THREAD_STATE_* */
     SDL_error errbuf;
     char *name;
-    size_t stacksize;  /* 0 for default, >0 for user-specified stack size. */
+    size_t stacksize; /* 0 for default, >0 for user-specified stack size. */
+    int(SDLCALL *userfunc)(void *);
+    void *userdata;
     void *data;
+    void *endfunc; /* only used on some platforms. */
 };
 
 /* This is the function called to run a thread */
-extern void SDL_RunThread(void *data);
+extern void SDL_RunThread(SDL_Thread *thread);
 
 /* This is the system-independent thread local storage structure */
-typedef struct {
+typedef struct
+{
     unsigned int limit;
-    struct {
+    struct
+    {
         void *data;
-        void (SDLCALL *destructor)(void*);
+        void(SDLCALL *destructor)(void *);
     } array[1];
 } SDL_TLSData;
 
 /* This is how many TLS entries we allocate at once */
 #define TLS_ALLOC_CHUNKSIZE 4
 
-/* Get cross-platform, slow, thread local storage for this thread.
-   This is only intended as a fallback if getting real thread-local
-   storage fails or isn't supported on this platform.
- */
-extern SDL_TLSData *SDL_Generic_GetTLSData(void);
+extern void SDL_InitTLSData(void);
+extern void SDL_QuitTLSData(void);
 
-/* Set cross-platform, slow, thread local storage for this thread.
+/* Generic TLS support.
    This is only intended as a fallback if getting real thread-local
    storage fails or isn't supported on this platform.
  */
+extern void SDL_Generic_InitTLSData(void);
+extern SDL_TLSData *SDL_Generic_GetTLSData(void);
 extern int SDL_Generic_SetTLSData(SDL_TLSData *data);
+extern void SDL_Generic_QuitTLSData(void);
 
 #endif /* SDL_thread_c_h_ */
 

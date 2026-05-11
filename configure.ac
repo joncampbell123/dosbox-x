@@ -1,5 +1,7 @@
 dnl Init.
-AC_INIT(dosbox-x,0.83.21,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,2026.05.02,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+COPYRIGHT_YEAR=`echo $PACKAGE_VERSION | cut -c1-4`
+AC_SUBST([COPYRIGHT_YEAR])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -20,7 +22,39 @@ AC_DEFUN([AC_CHECK_CPPFLAGS],
         [AC_MSG_RESULT([no]); CPPFLAGS="${temp_check_cppflags}"])
 ])# AC_CHECK_CPPFLAGS
 
+dnl LIBRARY TEST: OpenGL support
+AC_CHECK_LIB(GL, main, have_gl_lib=yes, have_gl_lib=no , )
+AC_CHECK_LIB(opengl32, main, have_opengl32_lib=yes,have_opengl32_lib=no , )
+AC_CHECK_HEADER(GL/gl.h, have_gl_h=yes , have_gl_h=no , )
+
+dnl LIBRARY TEST: Direct3D 9 header support
+AC_CHECK_HEADER(d3d9.h, have_d3d9_h=yes , have_d3d9_h=no , )
+AC_CHECK_HEADER(d3dx9math.h, have_d3dx9math_h=yes , have_d3dx9math_h=no , )
+
 dnl Utility function ============================
+
+# AC_CHECK_CFLAGS(ADDITIONAL-CFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
+#
+# checks whether the $(CC) (C compiler) accepts the ADDITIONAL-CFLAGS
+# if so, they are added to the CFLAGS
+AC_DEFUN([AC_CHECK_CFLAGS],
+[
+  AC_MSG_CHECKING([whether $CC accepts "$1"])
+cat > conftest.c << EOF
+int main(void){
+  return 0;
+}
+EOF
+if $CC $CPPFLAGS $CFLAGS -Werror -c -o conftest.o conftest.c [$1] > /dev/null 2>&1
+then
+  AC_MSG_RESULT([yes])
+  CFLAGS="${CFLAGS} [$1]"
+  [$2]
+else
+  AC_MSG_RESULT([no])
+  [$3]
+fi
+])# AC_CHECK_CFLAGS
 
 # AC_CHECK_CXXFLAGS(ADDITIONAL-CXXFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
 #
@@ -34,11 +68,12 @@ int main(){
   return 0;
 }
 EOF
-if $CXX $CPPFLAGS $CXXFLAGS -Werror -o conftest.o conftest.c++ [$1] > /dev/null 2>&1
+if $CXX $CPPFLAGS $CXXFLAGS -Werror -c -o conftest.o conftest.c++ [$1] > /dev/null 2>&1
 then
   AC_MSG_RESULT([yes])
   CXXFLAGS="${CXXFLAGS} [$1]"
-  AC_CHECK_CPPFLAGS([$1])
+  dnl AC_CHECK_CPPFLAGS([$1]) #CXXFLAGS should not be included in CPPFLAGS
+  AC_CHECK_CFLAGS([$1]) #add CFLAGS if accepts as well
   [$2]
 else
   AC_MSG_RESULT([no])
@@ -46,15 +81,96 @@ else
 fi
 ])# AC_CHECK_CXXFLAGS
 
+dnl Detect Clang
+AC_CACHE_CHECK([whether the compiler is clang],
+  [ac_cv_compiler_clang],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([[
+#ifndef __clang__
+#error not clang
+#endif
+     ]], [])],
+     [ac_cv_compiler_clang=yes],
+     [ac_cv_compiler_clang=no])])
+
+is_clang=$ac_cv_compiler_clang
+
 dnl End Utility function ============================
+
 
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
+MACOSX_DEPLOYMENT_TARGET="10.15"
+MACOSX_ARCH="ARM"
+
+case "$host_os" in
+  darwin*)
+    HOST_VERSION=`sw_vers -productVersion | cut -d. -f1,2`
+    major=`echo $HOST_VERSION | cut -d. -f1`
+    minor=`echo $HOST_VERSION | cut -d. -f2`
+    
+    version_num=`expr $major \* 100 + $minor`
+
+    if test "$version_num" -lt 1015; then
+      MACOSX_DEPLOYMENT_TARGET="$HOST_VERSION"
+    else
+      MACOSX_DEPLOYMENT_TARGET="10.15"
+    fi
+    case "$host_cpu" in
+      x86_64)
+        MACOSX_ARCH="Intel"
+        ;;
+      arm64|aarch64)
+        MACOSX_ARCH="ARM"
+        ;;
+      *)
+        MACOSX_ARCH="Unknown"
+        ;;
+    esac
+    ;;
+  *)
+    echo "Not macOS, skipping version check"
+    ;;
+esac
+
+AC_SUBST([MACOSX_DEPLOYMENT_TARGET])
+AC_SUBST([MACOSX_ARCH])
+
+AC_MSG_CHECKING([for Git commit hash])
+COMMIT_HASH=`git rev-parse --short=7 HEAD 2>/dev/null || echo "unknown"`
+AC_SUBST([COMMIT_HASH])
+AC_MSG_RESULT([$COMMIT_HASH])
+
+GITBRANCH=`git rev-parse --abbrev-ref HEAD`
+OSFREE=0
+AH_TEMPLATE(C_OSFREE,[Define to 1 to make an OSFREE version])
+if [[ x"$GITBRANCH" == x"main-osfree" ]]; then
+    AC_DEFINE(C_OSFREE,1,[Make an OSFREE build])
+fi
+
 dnl Setup for automake
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_HEADER(config.h)
+AH_BOTTOM([/*
+  Define HAS_CDIRECTLPT as 1 if C_DIRECTLPT is defined (as 1) *and* parallel
+  pass-through is available on the current platform. It is only available on
+  x86{_64} with Windows or BSD, and on Linux.
+  We cannot override the value of C_DIRECTLPT, because configure will replace
+  "#undef C_DIRECTLPT" or "#define C_DIRECTLPT 0" with "#define C_DIRECTLPT 1".
+*/
+#ifdef C_DIRECTLPT
+#if ((defined __i386__ || defined __x86_64__ || defined _M_IX86 || defined _M_X64) && \
+     (defined WIN32 || defined BSD || defined __CYGWIN__)) || \
+     /* WIN32 is not defined by default on Cygwin */ \
+    defined LINUX /* Linux, including non-x86 (e.g. Raspberry Pi) */
+#define HAS_CDIRECTLPT 1
+#endif
+#endif // C_DIRECTLPT
+#ifndef HAS_CDIRECTLPT
+#define HAS_CDIRECTLPT 0
+#endif])
 
 dnl Checks for programs.
 AC_PROG_MAKE_SET
@@ -63,6 +179,7 @@ AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_OBJCXX
 AC_PROG_INSTALL
+AC_CHECK_TOOL(AR, ar)
 AC_PROG_RANLIB
 AC_PREFIX_DEFAULT([/usr/local])
 
@@ -95,78 +212,39 @@ AC_CHECK_HEADERS([sys/socket.h  netinet/in.h pwd.h], [], [],
 #endif
 ])
 
-dnl check for the socklen_t (darwin doesn't always have it)
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-#include <stdio.h>
-#ifdef STDC_HEADERS
-# include <stdlib.h>
-# include <stddef.h>
-#else
-# ifdef HAVE_STDLIB_H
-#  include <stdlib.h>
-# endif
-#endif
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-])],[],[AC_DEFINE([socklen_t],[int],[Define to `int` if you don't have socklen_t])])
+dnl C++14 is required.
 
-dnl C++11 is mandatory in this codebase.
-dnl C++14 is optional at this time, will eventually become mandatory.
-
-dnl AC_CHECK_CXXFLAGS will prepend gnu++11 to CXXFLAGS if supported, for us.
+dnl AC_CHECK_CXXFLAGS will prepend gnu++14 to CXXFLAGS if supported, for us.
 OLDCFLAGS="$CFLAGS"
 OLDCPPFLAGS="$CPPFLAGS"
 OLDCXXFLAGS="$CXXFLAGS"
 
 AC_MSG_CHECKING([checking for C++14 support])
-AC_CHECK_CXXFLAGS([ -std=gnu++14 ], [  ], [
-    warn_cpp11=1
-])
+AC_CHECK_CXXFLAGS([ -std=gnu++14 ], [  ], 
+    AC_MSG_ERROR([ Your compiler must support C++14 or better ])
+)
 
 CXXFLAGS="$OLDCXXFLAGS"
 CPPFLAGS="$OLDCPPFLAGS"
 CFLAGS="$OLDCFLAGS"
 
-AC_MSG_CHECKING([checking for C++11 support])
-AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [
-    warn_cpp0x=1
-])
+CFLAGS="$CFLAGS -std=gnu11"; # no such "gnu14"
+CXXFLAGS="$CXXFLAGS -std=gnu++14";
 
-CXXFLAGS="$OLDCXXFLAGS"
-CPPFLAGS="$OLDCPPFLAGS"
-CFLAGS="$OLDCFLAGS"
-
-if test x$warn_cpp0x = x1; then
-    AC_MSG_ERROR([ Your compiler must support C++11 or better ])
-fi
-
-dnl Allow devs to force compile as C++11 as long as this code supports C++11 as a baseline
-AC_ARG_ENABLE(force-cxx11,AC_HELP_STRING([--enable-force-cxx11],[Force compile as C++11]),force_cxx11=yes)
-
-if test x$warn_cpp11 = x1; then
-    AC_MSG_WARN([ Your compiler does not support C++14. Currently it is optional. At some point in the future, it will be required ])
-    CFLAGS="$CFLAGS -std=gnu11";
-    CXXFLAGS="$CXXFLAGS -std=gnu++11";
-elif test x$force_cxx11 = xyes; then
-    CFLAGS="$CFLAGS -std=gnu11";
-    CXXFLAGS="$CXXFLAGS -std=gnu++11";
-else
-    AC_MSG_WARN([ DOSBox-X is still intended to support compilation as C++11. If you add new code please make sure it works as C++11 by running ./configure with --enable-force-cxx11 ])
-    CFLAGS="$CFLAGS -std=gnu11"; # no such "gnu14"
-    CXXFLAGS="$CXXFLAGS -std=gnu++14";
-fi
-
-dnl yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
+dnl Allow the SDL drawn menu to be enabled on Windows or macOS instead of their native menu system.
 AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
 AC_ARG_ENABLE(force-menu-sdldraw,AC_HELP_STRING([--enable-force-menu-sdldraw],[Force SDL drawn menus]),enable_force_menu_sdldraw=yes)
 
 dnl This is how the build script can specify a HX DOS extender target
 AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
 AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
+
+dnl This is how the build script can use libopencow for win9x unicode 
+# AH_TEMPLATE(C_OPENCOW,[Define to 1 to enable opencow])
+AC_ARG_ENABLE(opencow,AC_HELP_STRING([--enable-opencow],[Enable OpenCOW]),enable_opencow=yes)
+
+dnl Disable SDLnet for win9x builds
+AC_ARG_ENABLE(sdlnet,AC_HELP_STRING([--disable-sdlnet],[Disable SDLNet]),disable_sdl_net=yes)
 
 dnl Let me know if you're targeting Emscripten
 AH_TEMPLATE(C_EMSCRIPTEN,[Define to 1 to target Emscripten])
@@ -194,7 +272,7 @@ fi
 
 if test x$enable_emscripten = xyes; then
 	AC_DEFINE(C_EMSCRIPTEN,1,[Targeting Emscripten])
-  AC_DEFINE(C_DIRECTSERIAL, 0, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+  AC_DEFINE(C_DIRECTSERIAL, 0, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
 fi
 
 dnl Some stuff for the icon.
@@ -284,6 +362,10 @@ int x=10;if( __builtin_expect ((x==1),0) ) ;
 #switch language back
 AC_LANG_POP(C++)
 
+dnl Check for linux/kvm.h
+AH_TEMPLATE(C_HAVE_LINUX_KVM,[Define to 1 if you have linux/kvm.h and KVM virtualization])
+AC_CHECK_HEADER([linux/kvm.h], [AC_DEFINE(C_HAVE_LINUX_KVM,1)])
+
 dnl Check for mach_vm_remap (Darwin)
 AH_TEMPLATE(C_HAVE_MACH_VM_REMAP,[Define to 1 if you have the mach_vm_remap function])
 AC_CHECK_HEADER([mach/mach.h], [
@@ -314,6 +396,15 @@ AC_CHECK_HEADER([sys/mman.h], [
 AC_CHECK_FUNC([mmap],[AC_DEFINE(C_HAVE_MMAP,1)])
 ])
 
+dnl Check for duktape
+AH_TEMPLATE(C_HAVE_DUKTAPE,[Define to 1 if you have the DukTape ECMAScript library])
+AC_CHECK_HEADER([duktape.h], [
+AC_CHECK_LIB(duktape, duk_create_heap, [
+AC_DEFINE(C_HAVE_DUKTAPE,1)
+HAVE_DUKTAPE=1
+])
+])
+
 dnl Check for realpath. Used on Linux
 AC_CHECK_FUNCS([realpath])
 
@@ -322,14 +413,14 @@ AH_TEMPLATE(C_SET_PRIORITY,[Define to 1 if you have setpriority support])
 AC_MSG_CHECKING(for setpriority support)
 AC_LINK_IFELSE([AC_LANG_SOURCE([
 #include <sys/resource.h>
-int main(int argc,char * argv[]) {
+int main(int argc,char **argv) {
 	return setpriority (PRIO_PROCESS, 0,PRIO_MIN+PRIO_MAX);
 };
 ])],AC_MSG_RESULT(yes);AC_DEFINE(C_SET_PRIORITY,1),AC_MSG_RESULT(no))
 
 dnl Some target detection and actions for them
 case "$host" in
-    *-*-darwin*)
+    *-*-darwin* | *-*-openbsd*)
        dnl El Capitan's refusal to allow sudo make install to /usr/include, and the failure of most open source to
        dnl include from /usr/local/include is irritating and tiresome...
        CFLAGS="$CFLAGS -I/usr/local/include"
@@ -349,11 +440,13 @@ else
     esac
 fi
 
-dnl Some needed libaries for OS2
-dnl perharps join this with the other target depended checks. move them upwards
+dnl Some needed libraries for OS2
+dnl perhaps join this with the other target depended checks. move them upwards
+AM_CONDITIONAL(OS2, test x$host = xi386-pc-os2-emx)
 if test x$host = xi386-pc-os2-emx ; then
-    CXXFLAGS="$CXXFLAGS -Zmt"
-    LDFLAGS="$LDFLAGS -Zomf -Zmt"
+    CXXFLAGS="$CXXFLAGS -DOS2 -march=pentium4 -idirafter /@unixroot/usr/include/os2tk45"
+    CFLAGS="$CFLAGS -DOS2 -march=pentium4 -idirafter /@unixroot/usr/include/os2tk45"
+    LDFLAGS="$LDFLAGS -Zomf -Zhigh-mem -lcx"
 fi
 
 dnl I would like to know of any concerns given by the C++ compiler.
@@ -362,12 +455,16 @@ AC_CHECK_CXXFLAGS([ -Wall ])
 AC_CHECK_CXXFLAGS([ -Wextra ])
 AC_CHECK_CXXFLAGS([ -Wunused ])
 AC_CHECK_CXXFLAGS([ -pedantic ])
+AC_CHECK_CXXFLAGS([ -Wno-error=format-security ])     # imfc.cpp and later versions of GCC, see https://github.com/joncampbell123/dosbox-x/issues/4436
+AC_CHECK_CXXFLAGS([ -Wno-error=incompatible-pointer-types ]) # required to compile speexdsp/fftwrap.c with GCC 14
 #AC_CHECK_CXXFLAGS([ -Wconversion ])      DO NOT ENABLE. THIS WARNING IS WAY TOO PEDANTIC TO BE USEFUL, EXCEPT FOR SPECIFIC CASES
 #AC_CHECK_CXXFLAGS([ -Wsign-conversion ])
 AC_CHECK_CXXFLAGS([ -Wlogical-op ])
 AC_CHECK_CXXFLAGS([ -Wsign-promo ])
 AC_CHECK_CXXFLAGS([ -Wconversion-null ])
 #AC_CHECK_CXXFLAGS([ -Woverloaded-virtual ])    NOT TOO USEFUL
+AC_CHECK_CXXFLAGS([ -Wsuggest-override ])
+AC_CHECK_CXXFLAGS([ -Wnon-virtual-dtor ])
 AC_CHECK_CXXFLAGS([ -Wno-deprecated-declarations ])
 
 dnl Let GCC 7.3.x know that the "fall through" switch cases in this codebase
@@ -381,10 +478,12 @@ dnl other
 AC_CHECK_CXXFLAGS([ -Wno-missing-field-initializers ])
 AC_CHECK_CXXFLAGS([ -Wno-format-zero-length ])
 
-dnl Clang/LLVM warning: don't care the address of a member may be unaligned, unless targeting ARM!
-AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
-dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
-AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
+if test "x$is_clang" = xyes; then
+  dnl Clang/LLVM warning: don't care the address of a member may be unaligned, unless targeting ARM!
+  AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
+  dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
+  AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
+fi
 
 dnl Some stuff for the icon and other makefile platform stuff.
 dnl Slightly double with the above, but that deals more with compiled features.
@@ -408,6 +507,22 @@ esac
        AM_CONDITIONAL(MACOSX, test "x$DBPLATFORM" = "xmac")
        AC_SUBST(WINDRES)
 
+AC_ARG_ENABLE([sdl2],
+  [AS_HELP_STRING([--enable-sdl2],[Build DOSBox-X using SDL2])],
+  [enable_sdl2=yes],
+  [enable_sdl2=no]
+)
+
+AC_ARG_ENABLE([sdl3],
+  [AS_HELP_STRING([--enable-sdl3],[Build DOSBox-X using SDL3])],
+  [enable_sdl3=yes],
+  [enable_sdl3=no]
+)
+
+dnl LIBRARY TEST: SDL 3.x
+SDL3_VERSION=3.5.0
+AM_PATH_SDL3($SDL3_VERSION)
+
 dnl LIBRARY TEST: SDL 2.x
 SDL2_VERSION=2.0.5
 AM_PATH_SDL2($SDL2_VERSION)
@@ -417,26 +532,158 @@ SDL_VERSION=1.2.0
 AM_PATH_SDL($SDL_VERSION)
 
 dnl LIBRARY USE: SDL selection
-if test -n "$SDL2_LIBS"; then
-    LIBS="$LIBS $SDL2_LIBS"
-    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+
+if test x"$enable_sdl3" = xyes; then
+    AC_MSG_NOTICE([--enable-sdl3 specified, trying SDL3])
+    if test -n "$SDL3_LIBS"; then
+        SDL_STRING="SDL3"
+        LIBS="$LIBS $SDL3_LIBS"
+        CPPFLAGS="$CPPFLAGS $SDL3_CFLAGS"
+        AC_MSG_NOTICE([Building with SDL3])
+    else
+        AC_MSG_ERROR([--enable-sdl3 was specified, but SDL3 was not found])
+    fi
+elif test x"$enable_sdl2" = xyes; then
+    AC_MSG_NOTICE([--enable-sdl2 specified, trying SDL2])
+    if test -n "$SDL2_LIBS"; then
+        SDL_STRING="SDL2"
+        LIBS="$LIBS $SDL2_LIBS"
+        CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+        AC_MSG_NOTICE([Building with SDL2])
+    else
+        AC_MSG_ERROR([--enable-sdl2 was specified, but SDL2 was not found])
+    fi
 else
-  if test -n "$SDL_LIBS"; then
-    LIBS="$LIBS $SDL_LIBS"
-    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-  else
-    AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
-  fi
+    AC_MSG_CHECKING([for SDL1])
+
+    if test -n "$SDL_LIBS"; then
+        AC_MSG_RESULT([yes])
+        SDL_STRING="SDL1"
+        LIBS="$LIBS $SDL_LIBS"
+        CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+
+    else
+        AC_MSG_RESULT([no])
+        AC_MSG_NOTICE([SDL1 not found, falling back to SDL2])
+
+        AC_MSG_CHECKING([for SDL2])
+        if test -n "$SDL2_LIBS"; then
+            AC_MSG_RESULT([yes])
+            SDL_STRING="SDL2"
+            LIBS="$LIBS $SDL2_LIBS"
+            CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+        else
+            AC_MSG_RESULT([no])
+            AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
+        fi
+    fi
 fi
+
+AC_SUBST([SDL_STRING])
+
+AH_TEMPLATE(C_GAMELINK,[Define to 1 to enable game link headless mode])
+AC_CHECK_LIB(rt, main, have_rt_lib=yes, have_rt_lib=no , )
+AC_ARG_ENABLE(gamelink,AC_HELP_STRING([--disable-gamelink],[Disable headless game link output mode (only for SDL2)]),,enable_gamelink=yes)
+AC_MSG_CHECKING(whether gamelink is enabled) 
+if test x$enable_gamelink = xyes; then
+  if test "x$SDL_STRING" = "xSDL2"; then
+    AC_MSG_RESULT(yes)
+    C_GAMELINK=1
+    AC_DEFINE(C_GAMELINK,1)
+  else
+    AC_MSG_RESULT(no (requires SDL2))
+  fi
+else
+  AC_MSG_RESULT(no)
+fi
+
+AM_CONDITIONAL([C_GAMELINK], [test "x$C_GAMELINK" = x1])
+
+dnl FEATURE: Whether to use OpenGL
+AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
+AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),enable_opengl=$enableval,enable_opengl=yes)
+AC_MSG_CHECKING(whether opengl display output will be enabled)
+
+# We need to do this before any other AC_CHECK_LIB runs just to make sure
+# linking doesn't fail if SDL is using OpenGL
+if test x$enable_opengl = xyes; then
+case "$host" in
+    *-*-darwin*)
+       AC_MSG_RESULT(yes)
+       LIBS="$LIBS -framework OpenGL"
+       AC_DEFINE(C_OPENGL,1)
+       ;;
+    *)
+       pkg-config --exists gl; RES=$?
+       if test x$RES = x0; then
+         AC_MSG_RESULT(yes)
+         CFLAGS="$CFLAGS "`pkg-config gl --cflags`
+         CPPFLAGS="$CPPFLAGS "`pkg-config gl --cflags`
+         LIBS="$LIBS "`pkg-config gl --libs`
+         AC_DEFINE(C_OPENGL,1)
+       elif test x$have_gl_h = xyes -a x$have_gl_lib = xyes ; then
+         AC_MSG_RESULT(yes)
+         LIBS="$LIBS -lGL"
+         AC_DEFINE(C_OPENGL,1)
+       elif test x$have_gl_h = xyes -a x$have_opengl32_lib = xyes ; then
+         AC_MSG_RESULT(yes)
+         LIBS="$LIBS -lopengl32"
+         AC_DEFINE(C_OPENGL,1)
+       else
+         AC_MSG_RESULT(no)
+       fi
+       ;;
+esac
+fi
+
+dnl ==========================================
+dnl Check for Metal support (macOS only)
+dnl ==========================================
+
+AC_MSG_CHECKING([for Metal support])
+
+have_metal=no
+
+case "$host_os" in
+  darwin*)
+    AC_LANG_PUSH([Objective C++])
+    save_LIBS="$LIBS"
+    LIBS="$LIBS -framework Metal -framework QuartzCore"
+
+    AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM([[
+        #import <Metal/Metal.h>
+      ]], [[
+        id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+        return (device == nil);
+      ]])],
+      [have_metal=yes],
+      [have_metal=no]
+    )
+
+    LIBS="$save_LIBS"
+    AC_LANG_POP
+    ;;
+esac
+
+if test "x$have_metal" = "xyes"; then
+  AC_DEFINE([C_METAL], [1], [Define if Metal is available])
+  METAL_LIBS="-framework Metal -framework QuartzCore"
+  AC_SUBST(METAL_LIBS)
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+AM_CONDITIONAL([C_METAL], [test "x$have_metal" = "xyes"])
 
 # FIXME: Arrggh we need the WHOLE PATH
 pwd=`realpath $srcdir`
 if [[ -z "$pwd" ]]; then pwd=`pwd`; fi
 
-CFLAGS="$CFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
+#CFLAGS="$CFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
 LDFLAGS="$LDFLAGS -L$pwd/vs/sdlnet/linux-host/lib"
 CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
-CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
+#CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
 
 if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
@@ -444,10 +691,10 @@ case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        LIBS="$LIBS -lwinmm -ldsound -limm32 -lole32 -loleaut32 -lversion -lsetupapi"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
-       dnl FEATURE: Whether to support direct parallel port passthrough
-       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       dnl FEATURE: Whether to support direct parallel port pass-through
+       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel pass-through support (Win32, Linux and BSD).])
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        ;;
     *-*-darwin*)
        dnl We have a problem here: both Mac OS X and Darwin report 
@@ -455,48 +702,47 @@ case "$host" in
        dnl to do more to distinguish them.
        dnl For now I am lazy and do not add proper detection code.
        macosx=1
-       if test x$warn_cpp11 = x1; then
-           OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++14";
-       else
-           OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
-       fi
+       OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++14";
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
-       LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit -framework IOKit"
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit -framework IOKit "
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        ;;
     *-*-linux*)
        AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
        CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
-       dnl FEATURE: Whether to support direct parallel port passthrough
-       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       LIBS="$LIBS -lrt" # uses shm_* functions which requires librt on Linux
+       dnl FEATURE: Whether to support direct parallel port pass-through
+       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel pass-through support (Win32, Linux and BSD).])
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        ;;
     *-*-haiku*)
        AC_DEFINE(HAIKU, 1, [Compiling on Haiku])
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
+       LIBS="$LIBS -lnetwork -lbsd -lbe"
        ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
+       dnl FEATURE: Whether to support direct parallel port pass-through
+       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel pass-through support (Win32, Linux and BSD).])
        dnl Disabled directserial for now. It doesn't do anything without
        dnl specifying an extra ifdef in directserial_posix.*
        dnl directserial detection should be rewritten to test for the needed
        dnl functions and headers. I currently do not know 
        dnl which ones are needed for BSD
        AC_DEFINE(BSD, 1, [Compiling on BSD])
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
-       ;;
-    *-*-haiku*)
-       AC_DEFINE(BSD, 1, [Compiling on BSD])
-       LIBS="$LIBS -lbsd -lnetwork"
-       CXXFLAGS="$CXXFLAGS -D_BSD_SOURCE"
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        ;;
     *-*-os2-emx*)
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
+       dnl If we have SDL2, we need to link the multimedia extensions.
+       if test "x$SDL_STRING" = "xSDL2"; then
+         LIBS="$LIBS -lmmpm2"
+       fi
        ;;
     *-*-riscos*)
        AC_DEFINE(RISCOS, 1, [Compiling on RISC OS])
@@ -504,9 +750,31 @@ case "$host" in
        CXXFLAGS="$CXXFLAGS -D_GLIBCXX_USE_C99=1"
        ;;
 esac
+
+dnl Fix for FreeBSD not automatically linking to pthread for std::thread
+case "$host" in
+    *-*-freebsd*)
+       LIBS="$LIBS -lpthread"
+    ;;
+esac
+
+dnl OpenBSD/i386 and NetBSD/i386 require linking to libi386.a for i386_iopl() (for initPassthroughIO()).
+dnl OpenBSD/x86_64 requires linking to libamd64.a for amd64_iopl(). NetBSD/x86_64 requires linking to libx86_64.a for x86_64_iopl().
+case "$host" in
+    i*86-*-openbsd* | i*86-*-netbsd*)
+       LIBS="$LIBS -li386"
+       ;;
+    x86_64-*-openbsd*)
+       LIBS="$LIBS -lamd64"
+       ;;
+    x86_64-*-netbsd*)
+       LIBS="$LIBS -lx86_64"
+       ;;
+esac
 fi
 
 AM_CONDITIONAL(MACOSX, test x"$macosx" = x"1")
+AM_CONDITIONAL(DUKTAPE, test x"$HAVE_DUKTAPE" = x"1")
 AM_CONDITIONAL(EMSCRIPTEN, test x"$enable_emscripten" = x"yes")
 
 dnl The target cpu checks for dynamic cores
@@ -537,13 +805,19 @@ case "$host_cpu" in
     c_targetcpu="m68k"
     c_unalignedmemory=yes
     ;;
+   loongarch64*)
+    AC_DEFINE(C_TARGETCPU,LOONGARCH64)
+    AC_MSG_RESULT(LoongArch)
+    c_targetcpu="loongarch64"
+    c_unalignedmemory=yes
+    ;;
    armv7*)
     AC_DEFINE(C_TARGETCPU,ARMV7LE)
     AC_MSG_RESULT(ARMv7 Little Endian)
     c_targetcpu="arm"
     c_unalignedmemory=yes
     ;;
-   armv6l)
+   armv6*)
     AC_DEFINE(C_TARGETCPU,ARMV4LE)
     AC_MSG_RESULT(ARMv6 Little Endian)
     c_targetcpu="arm"
@@ -568,7 +842,7 @@ case "$host_cpu" in
     ;;
 esac
 
-dnl TODO: Need GCC to know this code is using C++ lamda functions
+dnl TODO: Need GCC to know this code is using C++ lambda functions
 
 dnl LIBRARY TEST: ALSA
 AM_PATH_ALSA(0.9.0, AC_DEFINE(HAVE_ALSA,1,[Define to 1 to use ALSA for MIDI]) , : )
@@ -587,14 +861,15 @@ case "$host" in
     ;;
 esac
 
-dnl LIBRARY TEST: ncurses
+
+dnl LIBRARY TEST: curses
 AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
-AC_CHECK_LIB(curses, initscr, have_curses_lib=yes, , )
-AC_CHECK_LIB(ncurses, initscr, have_ncurses_lib=yes, , )
-AC_CHECK_LIB(pdcurses, initscr, have_pdcurses_lib=yes, , )
+AC_CHECK_LIB(curses, initscr, curses_lib=curses, , )
+AC_CHECK_LIB(ncurses, initscr, curses_lib=ncurses, , )
+AC_CHECK_LIB(pdcurses, initscr, curses_lib=pdcurses, , )
 # Check if this system's ncurses uses a separate tinfo library
 AC_CHECK_LIB(tinfo, nodelay,
-	     if test x$have_ncurses_lib = xyes ; then
+	     if test x$curses_lib = xncurses ; then
 	       LIBS="$LIBS -ltinfo";
 	     fi)
 
@@ -615,14 +890,52 @@ AC_CHECK_HEADER(slirp/libslirp.h,have_slirp_h=yes,)
 AC_CHECK_LIB(slirp, slirp_input, have_slirp_lib=yes, ,-lz)
 
 dnl LIBRARY TEST: libiconv
-dnl This may be provided by glibc itself, -liconv may not be needed.
 AC_CHECK_HEADER(iconv.h,have_iconv_h=yes,)
-AC_CHECK_LIB(iconv, libiconv_open, have_iconv_lib=yes, ,-liconv)
+dnl TEST: check if iconv uses const char
+AC_MSG_CHECKING([whether iconv uses const char**])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include <iconv.h>
+size_t iconv(iconv_t, const char **restrict, size_t *restrict, char **restrict, size_t *restrict);
+])], AC_DEFINE(ICONV_CONST_CHAR, 1) AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+AH_TEMPLATE(ICONV_CONST_CHAR,[Whether iconv uses const char**])
 
-dnl LIBRARY TEST: SDLnet
-AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
-AC_CHECK_LIB(SDL2_net, SDLNet_Init, have_sdl2_net_lib=yes, , )
-AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
+dnl Determine networking library
+case "$host" in
+  *-*-cygwin* | *-*-mingw*)
+    SDLNETLIB="-lws2_32 -liphlpapi"
+    ;;
+  sparc*-*-solaris*)
+    SDLNETLIB="-lsocket -lnsl"
+    ;;
+  *-*-qnx*)
+    SDLNETLIB="-lsocket"
+    ;;
+  *-*-haiku*)
+    SDLNETLIB="-lnetwork"
+    ;;
+  *)
+    SDLNETLIB=""
+    ;;
+esac
+
+have_sdl_net_h=no
+have_sdl_net_lib=no
+
+AC_CHECK_HEADERS([SDL_net.h], [have_sdl_net_h=yes])
+AC_CHECK_LIB([SDL_net], [SDLNet_Init], [have_sdl_net_lib=yes],,[$SDLNETLIB])
+
+dnl Check SDL2_net using headers + library first
+have_sdl2_net_h=no
+have_sdl2_net_lib=no
+
+if test "x$SDL_STRING" = "xSDL2"; then
+  AC_CHECK_HEADERS([SDL2/SDL_net.h], [have_sdl2_net_h=yes])
+  AC_CHECK_LIB([SDL2_net], [SDLNet_Init], [have_sdl2_net_lib=yes], [have_sdl2_net_lib=no],[$SDLNETLIB])
+fi
+
+if test x$enable_hx = xyes; then
+  SDLNETLIB=""
+fi
 
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <SDL_config.h>
@@ -661,7 +974,7 @@ AM_CONDITIONAL(C_FREETYPE, test "x$enable_freetype" = "xyes")
 if test x$enable_freetype = xyes; then
   AC_MSG_CHECKING(for freetype)
   if test x$INTERNAL_FREETYPE = x1; then
-    # CFLAGS and LDFLAGS were already updated by build-macosx
+    # CFLAGS and LDFLAGS were already updated by build-macos
     AC_DEFINE(C_FREETYPE,1)
     AC_MSG_RESULT(yes)
   else
@@ -749,7 +1062,7 @@ if test x$alsa_midi = xtrue ; then
 fi
 
 dnl FEATURE: MT32 (MUNT) emulation
-AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
+AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation])
 AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
 AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
 
@@ -768,6 +1081,14 @@ if test x$enable_mt32 = xyes ; then
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
       ;;
+    aarch64)
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(C_MT32,1)
+      ;;
+    loongarch64)
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(C_MT32,1)
+      ;;
     *)
       enable_mt32=no
       AC_MSG_RESULT(no)
@@ -779,22 +1100,37 @@ else
 fi 
 AM_CONDITIONAL(C_MT32, test "x$enable_mt32" = "xyes")
 
+dnl On some Linux platforms, std::atomic needs a helper library
+case "$host" in
+  *-*-linux*)
+    case "$host_cpu" in
+      x86_64 | amd64)
+        ;;
+      i?86)
+        ;;
+      *)
+        AC_MSG_CHECKING(whether -latomic is needed)
+        AC_LINK_IFELSE([AC_LANG_SOURCE([
+          #include <atomic>
+          #include <cstdint>
+          std::atomic<std::int64_t> v;
+            int main() {
+              return v;
+            }
+        ])],STD_ATOMIC_NEED_LIBATOMIC=no,STD_ATOMIC_NEED_LIBATOMIC=yes)
+        AC_MSG_RESULT($STD_ATOMIC_NEED_LIBATOMIC)
+        if test "x$STD_ATOMIC_NEED_LIBATOMIC" = xyes; then
+          LIBS="$LIBS -latomic"
+        fi
+        ;;
+    esac
+    ;;
+esac
+
 dnl NASM (Netwide Assembler)
 AC_PATH_PROG([NASM], [nasm])
 if test -z "$ac_cv_path_NASM"; then
     AC_MSG_WARN([NASM (netwide assembler) not found, you will not be able to compile the external x86 .asm files if they are modified])
-fi
-
-dnl LNKDOS16 (16-bit MS-DOS linker, DOSLIB project)
-dnl To be fair to others compiling this code, search the PATH.
-dnl If not found, let the developer know that they can git clone DOSLIB
-dnl and use GNU Make + GCC to compile lnkdos16 in tool/linker in DOSLIB,
-dnl then include the Linux binary in the PATH variable so this script can find it.
-AC_PATH_PROG([LNKDOS16], [lnkdos16])
-if test -z "$ac_cv_path_LNKDOS16"; then
-    AC_MSG_WARN([LNKDOS16 (DOSLIB 16-bit linker) not found, you will not be able to compile the external x86 .asm files if they are modified.])
-    AC_MSG_WARN([LNKDOS16 can be found in the DOSLIB project under tool/linker. Compile it using GNU make and GCC and then either install it])
-    AC_MSG_WARN([on your system or run this configure script again with PATH directed at the compiled binary in the linux-host directory.])
 fi
 
 dnl FEATURE: DEBUG and HEAVY DEBUG options (debugger)
@@ -803,20 +1139,8 @@ AH_TEMPLATE(C_HEAVY_DEBUG,[Define to 1 to enable heavy debugging, also have to e
 AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[Enable debug mode]),[
    if test x$enable_debug = xno; then
      AC_MSG_RESULT([Debugger not enabled])
-   elif test x$have_ncurses_lib = xyes -a x$have_curses_h = xyes ; then
-     LIBS="$LIBS -lncurses"
-     AC_DEFINE(C_DEBUG,1)
-     if test x$enable_debug = xheavy ; then 
-       AC_DEFINE(C_HEAVY_DEBUG,1)
-     fi
-   elif test x$have_curses_lib = xyes -a x$have_curses_h = xyes ; then
-     LIBS="$LIBS -lcurses"
-     AC_DEFINE(C_DEBUG,1)
-     if test x$enable_debug = xheavy ; then 
-       AC_DEFINE(C_HEAVY_DEBUG,1)
-     fi
-   elif test x$have_pdcurses_lib = xyes -a x$have_curses_h = xyes ; then
-     LIBS="$LIBS -lpdcurses"
+   elif test x$curses_lib != x -a x$have_curses_h = xyes; then
+     LIBS="$LIBS -l$curses_lib"
      AC_DEFINE(C_DEBUG,1)
      if test x$enable_debug = xheavy ; then 
        AC_DEFINE(C_HEAVY_DEBUG,1)
@@ -825,17 +1149,6 @@ AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[Enable debug mode]),[
      AC_MSG_ERROR([Can't find curses, which is required for debug mode])
    fi
 ],)
-
-dnl FEATURE: Whether to use inline functions for memory access
-AH_TEMPLATE(C_CORE_INLINE,[Define to 1 to use inlined memory functions in cpu core])
-AC_ARG_ENABLE(core-inline,AC_HELP_STRING([--disable-core-inline],[Disable inlined memory handling in CPU Core]),,enable_core_inline=yes)
-AC_MSG_CHECKING(whether memory handling in the CPU Core will be inlined)
-if test x$enable_core_inline = xyes ; then
-    AC_MSG_RESULT(yes)
-    AC_DEFINE(C_CORE_INLINE,1)
-else
-    AC_MSG_RESULT(no)
-fi
 
 dnl automake 1.14 and upwards rewrite the host to have always 64 bit unless i386 as host is passed
 dnl this can make building a 32 bit executable a bit tricky, as dosbox relies on the host to select the
@@ -882,6 +1195,13 @@ if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then
 elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64 -o x$c_targetcpu = xarm; then
    AC_DEFINE(C_DYNREC,1)
    AC_MSG_RESULT(yes)
+
+   case "$host" in
+      *-*-openbsd*)
+         AC_MSG_WARN([DOSBox-X will be linked with "wxneeded" to support dynrec core on OpenBSD])
+         LDFLAGS="-Wl,-z,wxneeded $LDFLAGS"
+      ;;
+   esac
 else
    AC_MSG_RESULT(no)
 fi
@@ -929,43 +1249,26 @@ fi
 
 dnl FEATURE: Whether to support SDL net, and emulate modem and IPX connections
 AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
+AH_TEMPLATE(C_SDL2_NET,[Indicate whether SDL2_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
 
-dnl enable SDL2 net if SDL2
-if test -n "$SDL2_LIBS"; then
-  case "$host" in
-    *-*-cygwin* | *-*-mingw32*)
-       if test x$have_sdl_net_h = xyes; then
-         have_sdl_net_lib=yes
-       fi
-    ;;
-  esac
- if test x$have_sdl2_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-  LIBS="$LIBS -lSDL2_net"
+if test x$disable_sdl_net = xyes ; then
+  AC_MSG_WARN([SDL_net is disabled in parameters])
+elif test x$have_sdl2_net_lib = xyes ; then
+  AC_DEFINE(C_SDL2_NET,1)
+  AC_DEFINE(C_MODEM,1)
+  AC_DEFINE(C_IPX,1)
+  LIBS="$LIBS -lSDL2_net $SDLNETLIB"
+  AC_MSG_NOTICE([Using SDL2_net (SDL2): internal modem and IPX enabled])
+elif test x$have_sdl_net_lib = xyes ; then
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
-  have_sdl_net=yes
- elif test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-  LIBS="$LIBS -lSDL_net"
-  AC_DEFINE(C_SDL_NET,1)
-  AC_DEFINE(C_MODEM,1)
-  AC_DEFINE(C_IPX,1)
-  have_sdl_net=yes
- else
-  AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
- fi
+  LIBS="$LIBS -lSDL_net $SDLNETLIB"
+  AC_MSG_NOTICE([Using SDL_net (SDL1): internal modem and IPX enabled])
 else
- if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-  LIBS="$LIBS -lSDL_net"
-  AC_DEFINE(C_SDL_NET,1)
-  AC_DEFINE(C_MODEM,1)
-  AC_DEFINE(C_IPX,1)
-  have_sdl_net=yes
- else 
-  AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
- fi
+  AC_MSG_WARN([Can't find SDL_net or SDL2_net, internal modem and IPX disabled])
 fi
 
 dnl FEATURE: Whether to support libz, and enable snapshots
@@ -980,21 +1283,21 @@ AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
 AC_ARG_ENABLE(screenshots,AC_HELP_STRING([--disable-screenshots],[Disable screenshots and movie recording]),,enable_screenshots=yes)
 AC_MSG_CHECKING([whether screenshots will be enabled])
-if test x$enable_screenshots = xyes; then 
-    if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
+if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
     LIBS="$LIBS -lpng -lz"
     AC_DEFINE(C_LIBPNG,1)
-    AC_DEFINE(C_SSHOT,1)
-    AC_MSG_RESULT([yes])
-  else
-    AC_MSG_RESULT([no, can't find libpng.])
-  fi
+    if test x$enable_screenshots = xyes; then 
+        AC_DEFINE(C_SSHOT,1)
+        AC_MSG_RESULT([yes])
+    else
+        AC_MSG_RESULT([no])
+    fi
 else
-  AC_MSG_RESULT([no])
+    AC_MSG_ERROR([Can't find libpng, install or try building the in-tree code])
 fi
 
-dnl FEATURE: Whether to use libpcap, and enable ethernet passthrough
-AH_TEMPLATE(C_PCAP,[Define to 1 to enable ethernet passthrough, requires libpcap])
+dnl FEATURE: Whether to use libpcap, and enable ethernet pass-through
+AH_TEMPLATE(C_PCAP,[Define to 1 to enable ethernet pass-through, requires libpcap])
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        CFLAGS="$CFLAGS -I$pwd/vs/pcap"
@@ -1006,7 +1309,7 @@ case "$host" in
          LIBS="$LIBS -lpcap";
          AC_DEFINE(C_PCAP,1)
        else
-         AC_MSG_WARN([Can't find libpcap, ethernet passthrough disabled])
+         AC_MSG_WARN([Can't find libpcap, ethernet pass-through disabled])
        fi
     ;;
 esac
@@ -1014,7 +1317,7 @@ esac
 dnl FEATURE: Whether to use libslirp, and enable userspace TCP/IP emulation
 AH_TEMPLATE(C_SLIRP, [Define to 1 to enable userspace TCP/IP emulation, requires libslirp])
 AC_ARG_ENABLE(libslirp,AC_HELP_STRING([--disable-libslirp],[Disable libslirp support]),enable_libslirp=$enableval,enable_libslirp=yes)
-if test x$enable_libslirp == xyes ; then
+if test x$enable_libslirp = xyes ; then
   case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        if test x$have_slirp_h = xyes; then
@@ -1026,19 +1329,17 @@ if test x$enable_libslirp == xyes ; then
     have_slirp=yes
     AC_DEFINE(C_SLIRP,1)
     LIBS="$LIBS "`pkg-config slirp --libs`
-    CFLAGS="$CFLAGS "`pkg-config slirp --cflags`
-    CPPFLAGS="$CPPFLAGS "`pkg-config slirp --cflags`
+    CFLAGS="$CFLAGS -DLIBSLIRP_STATIC "`pkg-config slirp --cflags`
+    CPPFLAGS="$CPPFLAGS -DLIBSLIRP_STATIC "`pkg-config slirp --cflags`
+    case "$host" in
+      *-*-cygwin* | *-*-mingw32*)
+         LIBS="$LIBS -lintl"
+      ;;
+    esac
   else
     have_slirp=no
     AC_MSG_WARN([Can't find libslirp, userspace TCP/IP emulation disabled])
   fi
-  case "$host" in
-    *-*-cygwin* | *-*-mingw32*)
-       if test x$have_slirp = xyes; then
-         LIBS="$LIBS -lintl -liconv"
-       fi
-    ;;
-  esac
 fi
 
 if test x$enable_x11 != xno; then
@@ -1085,6 +1386,13 @@ dnl FEATURE: Whether to use Fluidsynth
 AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable libfluidsynth MIDI synthesis])
 AC_ARG_ENABLE(libfluidsynth,AC_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),enable_libfluidsynth=$enableval,enable_libfluidsynth=yes)
 if test x$enable_libfluidsynth = xyes; then
+    case "$host" in
+        *-*-linux*)
+        if test x$have_fluidsynth_h = xyes; then
+          have_fluidsynth_lib=yes
+        fi
+      ;;
+    esac
     if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
       LIBS="$LIBS -lfluidsynth"
       AC_DEFINE(C_FLUIDSYNTH,1)
@@ -1099,42 +1407,14 @@ AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec s
 if test x$enable_ffmpeg = xyes; then
     if test x$have_ffmpeg = xyes; then
         if test x$have_avcodec_h = xyes; then
-            CFLAGS="$CFLAGS "`pkg-config libavcodec --cflags`
-            CPPFLAGS="$CPPFLAGS "`pkg-config libavcodec --cflags`
-            LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale "`pkg-config libavcodec --libs`
+            PKGS="libavcodec libavformat libavutil libswscale libswresample"
+            CFLAGS="$CFLAGS "`pkg-config $PKGS --cflags`
+            CPPFLAGS="$CPPFLAGS "`pkg-config $PKGS --cflags`
+            LIBS=`pkg-config $PKGS --libs`" $LIBS"
             AC_MSG_RESULT(yes)
             AC_DEFINE(C_AVCODEC,1)
         fi
     fi
-fi
-
-dnl FEATURE: Whether to use OpenGL
-AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
-AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),enable_opengl=$enableval,enable_opengl=yes)
-AC_MSG_CHECKING(whether opengl display output will be enabled)
-
-# test
-if test x$enable_opengl = xyes; then
-case "$host" in
-    *-*-darwin*)
-       AC_MSG_RESULT(yes)
-       LIBS="$LIBS -framework OpenGL"
-       AC_DEFINE(C_OPENGL,1)
-       ;;
-    *)
-       if test x$have_gl_h = xyes -a x$have_gl_lib = xyes ; then
-         AC_MSG_RESULT(yes)
-         LIBS="$LIBS -lGL"
-         AC_DEFINE(C_OPENGL,1)
-       elif test x$have_gl_h = xyes -a x$have_opengl32_lib = xyes ; then
-         AC_MSG_RESULT(yes)
-         LIBS="$LIBS -lopengl32"
-         AC_DEFINE(C_OPENGL,1)
-       else
-         AC_MSG_RESULT(no)
-       fi
-       ;;
-esac
 fi
 
 dnl FEATURE: Whether to use Direct3D 9 output
@@ -1172,9 +1452,44 @@ fi
 
 AM_CONDITIONAL(C_DIRECT3D, test x"$do_d3d" = x"1")
 
-AH_TEMPLATE(C_ICONV,[Define to 1 to use GNU libiconv])
+if test "x$SDL_STRING" = "xSDL2"; then 
+dnl FEATURE: Direct3D11 support on Windows
+AC_MSG_CHECKING([for D3D11 support])
+
+AC_LANG_PUSH([C++])
+
+AC_CHECK_HEADERS([d3d11.h dxgi.h], [have_d3d11_h=yes], [have_d3d11_h=no])
+AC_CHECK_HEADERS([d3dcompiler.h], [have_d3dcompiler_h=yes], [have_d3dcompiler_h=no])
+
+D3D11_LIBS=""
+
+if test "x$have_d3d11_h" = "xyes"; then
+  LIBS="$LIBS -ld3d11 -ldxgi"
+  AC_DEFINE([C_DIRECT3D], [1], [Define if D3D11 is available])
+  AC_MSG_RESULT([D3D11 support detected])
+else
+  AC_MSG_RESULT([D3D11 support not found])
+fi
+
+if test "x$have_d3d11_h" = "xyes" -a "x$have_d3dcompiler_h" = "xyes"; then
+  LIBS="$LIBS -ld3dcompiler_47"
+else
+  AC_MSG_RESULT([D3D compiler not found])
+fi
+
+AC_LANG_POP([C++])
+fi
+
+AH_TEMPLATE(C_ICONV,[Define to 1 to use iconv])
 if test x$have_iconv_h = xyes; then
     AC_DEFINE(C_ICONV,1)
+    AC_MSG_CHECKING([whether we must link against -liconv])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+    #include <iconv.h>
+    iconv_t wrap_open(const char *tocode, const char *fromcode) {
+      return iconv_open(tocode, fromcode);
+    }]])],
+    AC_MSG_RESULT(no), [AC_MSG_RESULT(yes);LIBS="$LIBS -liconv"])
 fi
 
 dnl placeholder
@@ -1196,6 +1511,31 @@ case "$host" in
 esac
 fi
 
+dnl LIBRARY USE: opencow
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+    if test x$enable_opencow = xyes; then
+      LIBS="-lopencow $LIBS -lstdc++ -lopencow" #need to put at the first, also better at the last too.
+      LDFLAGS="$LDFLAGS -Wl,--allow-multiple-definition "
+      if test -n "$SDL_LIBS"; then
+        LIBS="${LIBS//-luser32/-lopencow -luser32}"
+        #SDL_LIBS="${SDL_LIBS//-luser32/\-lopencow -luser32}"
+      fi
+    fi
+    ;;
+esac
+
+dnl BUILD: whether to enable universal binary support
+if test x"$macosx" = x"1" && test x"$host_cpu" = x"arm"; then
+  AC_ARG_ENABLE(universal,AC_HELP_STRING([--enable-universal],[Enable macOS universal binary support]),
+    [enable_universal=$enableval],
+    [enable_universal=no])
+else
+  enable_universal=no
+fi
+
+AM_CONDITIONAL(MACOS_UNIVERSAL, [ test x$enable_universal = xyes ])
+
 AC_CONFIG_FILES([ 
 Makefile
 src/Makefile
@@ -1205,6 +1545,7 @@ src/cpu/core_normal/Makefile
 src/debug/Makefile
 src/dos/Makefile
 src/fpu/Makefile
+src/gamelink/Makefile
 src/gui/Makefile
 src/hardware/Makefile
 src/hardware/mame/Makefile
@@ -1216,7 +1557,7 @@ src/ints/Makefile
 src/libs/Makefile
 src/libs/zmbv/Makefile
 src/libs/gui_tk/Makefile
-src/libs/porttalk/Makefile
+src/libs/passthroughio/Makefile
 src/libs/mt32/Makefile
 src/libs/xBRZ/Makefile
 src/libs/fluidsynth/Makefile
@@ -1237,6 +1578,3 @@ AC_OUTPUT
 
 # HACK: it's a script...
 chmod +x make-rpm.sh
-
-# HACK: Write all PACKAGE defines to vs/config_package.h so Windows builds are kept in sync
-grep -E 'PACKAGE|VERSION' config.h > $srcdir/vs/config_package.h

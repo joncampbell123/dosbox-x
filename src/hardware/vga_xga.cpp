@@ -27,6 +27,15 @@
 #include "callback.h"
 #include "cpu.h"		// for 0x3da delay
 
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
+#define S3_VALIDATE_VIRGE_PORTS
+
+#ifdef S3_VALIDATE_VIRGE_PORTS
+#include <assert.h>
+#endif
+
 #ifdef _MSC_VER
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
 #else
@@ -74,7 +83,7 @@ struct XGAStatus {
 		bool newline;
 		bool wait;
 		uint16_t cmd;
-		uint16_t curx, cury;
+		uint16_t curx, cury, curdx, curdy;
 		uint16_t x1, y1, x2, y2, sizex, sizey;
 		uint32_t data; /* transient data passed by multiple calls */
 		Bitu datasize;
@@ -82,7 +91,199 @@ struct XGAStatus {
 		bool bswap16; /* bit 12 of the CMD register (S3 86C928, Trio32/Trio64/Trio64V+): For any 16-bit word, swap hi/lo bytes (including both 16-bit words in 32-bit transfer) */
 	} waitcmd;
 
+	/* S3 Virge state */
+	struct XGA_VirgeState {
+		struct reggroup {
+			uint32_t src_base;               /* +00D4 */
+			uint32_t dst_base;               /* +00D8 */
+			uint32_t right_clip;             /* +00DC [LO WORD] "position of last pixel to be drawn" which means left <= x <= right inclusive, right? */
+			uint32_t left_clip;              /* +00DC [HI WORD] */
+			uint32_t bottom_clip;            /* +00E0 [LO WORD] "position of last pixel to be drawn" which means top <= y <= bottom inclusive, right? */
+			uint32_t top_clip;               /* +00E0 [HI WORD] */
+			uint32_t src_stride;             /* +00E4 [LO WORD] */
+			uint32_t dst_stride;             /* +00E4 [HI WORD] */
+			uint64_t mono_pat;               /* +00E8, +00EC */
+			uint32_t mono_pat_bgcolor;       /* +00F0 */
+			uint32_t mono_pat_fgcolor;       /* +00F4 */
+			uint32_t src_bgcolor;            /* +00F8 */
+			uint32_t src_fgcolor;            /* +00FC */
+			uint32_t command_set;            /* +0100 */
+			uint32_t rect_width;             /* +0104 [LO WORD] */
+			uint32_t rect_height;            /* +0104 [HI WORD] */
+			uint32_t rect_src_x;             /* +0108 [LO WORD] */
+			uint32_t rect_src_y;             /* +0108 [HI WORD] */
+			uint32_t rect_dst_x;             /* +010C [LO WORD] */
+			uint32_t rect_dst_y;             /* +010C [HI WORD] */
+			int32_t  lindrawend0;            /* +016C [LO WORD] first pixel */
+			int32_t  lindrawend1;            /* +016C [HI WORD] last pixel */
+			int32_t  lindrawxdelta;          /* +0170 */
+			int32_t  lindrawstartx;          /* +0174 */
+			uint32_t lindrawstarty;          /* +0178 */
+			uint32_t lindrawcounty;          /* +017C bit 31 is direction */
+
+			void set__src_base(uint32_t val); /* +00D4 */
+			void set__dst_base(uint32_t val); /* +00D8 */
+			void set__src_dest_stride_00e4(uint32_t val); /* +00E4 */
+			void set__mono_pat_dword(unsigned int idx,uint32_t val); /* +00E8, +00EC */
+			void set__mono_pat_bgcolor(uint32_t val); /* +00F0 */
+			void set__mono_pat_fgcolor(uint32_t val); /* +00F4 */
+			void set__src_bgcolor(uint32_t val); /* +00F8 */
+			void set__src_fgcolor(uint32_t val); /* +00FC */
+			void set__command_set(uint32_t val); /* +0100 */
+			void set__rect_width_height_0104(uint32_t val); /* +0104 */
+			void set__rect_src_xy_0108(uint32_t val); /* +0108 */
+			void set__rect_dst_xy_010c(uint32_t val); /* +010C */
+			void set__left_right_clip_00dc(uint32_t val); /* +00DC */
+			void set__top_bottom_clip_00e0(uint32_t val); /* +00E0 */
+			void set__lindrawend_016c(uint32_t val); /* +016C */
+			void set__lindrawxdelta_0170(uint32_t val); /* +0170 */
+			void set__lindrawstartx_0174(uint32_t val); /* +0174 */
+			void set__lindrawstartx_0178(uint32_t val); /* +0178 */
+			void set__lindrawcounty_017c(uint32_t val); /* +017C */
+
+			uint32_t command_execute_on_register; /* if command set bit 0 set, writing this register will execute command */
+		};
+		struct reggroup                  bitblt; /* 0xA400-0xA7FF */
+		struct reggroup                  line2d; /* 0xA800-0xABFF */
+		struct reggroup                  poly2d; /* 0xAC00-0xAFFF */
+
+		/* ViRGE image transfer register */
+		struct reggroup*                 imgxferport;
+		void                             (*imgxferportfunc)(uint32_t val);
+
+		/* BitBlt state */
+		struct BitBltState {
+			uint32_t                 startx;
+			uint32_t                 starty;
+			uint32_t                 stopy;
+			uint32_t                 src_stride;
+			uint32_t                 src_xrem;
+			uint32_t                 src_drem;
+			uint64_t                 itf_buffer; /* we shift in 32 bits at a time, making this 64-bit simplifies code */
+			uint8_t                  itf_buffer_bytecount;
+			uint8_t                  itf_buffer_initskip;
+		} bitbltstate;
+
+		union colorpat_t {
+			/* NTS: extra 4 bytes so a typecast to pat8 to read 24 bits does not overread the buffer */
+			uint8_t                  pat8[68];    /* +A100-A13C 8bpp */
+			uint16_t                 pat16[68];   /* +A100-A17C 16bpp */
+			uint8_t                  pat24[68*3]; /* +A100-A1BC 24bpp */
+			uint32_t                 raw[48];     /* raw DWORD access for I/O handler, ((64*3)/4) == 48 */
+		};
+
+		colorpat_t                       colorpat;
+		unsigned int                     truecolor_bypp; /* ViRGE cards seem to prefer 24bpp? Windows drivers act like it */
+		uint32_t                         truecolor_mask;
+
+		inline struct reggroup &bitblt_validate_port(const uint32_t port) {
+#ifdef S3_VALIDATE_VIRGE_PORTS
+			assert((port&0xFC00) == 0xA400);
+#endif
+			return bitblt;
+		}
+
+		inline struct reggroup &line2d_validate_port(const uint32_t port) {
+#ifdef S3_VALIDATE_VIRGE_PORTS
+			assert((port&0xFC00) == 0xA800);
+#endif
+			return line2d;
+		}
+
+		inline struct reggroup &poly2d_validate_port(const uint32_t port) {
+#ifdef S3_VALIDATE_VIRGE_PORTS
+			assert((port&0xFC00) == 0xAC00);
+#endif
+			return poly2d;
+		}
+	} virge;
 } xga;
+
+void XGAStatus::XGA_VirgeState::reggroup::set__src_base(uint32_t val) {
+	src_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem source data for 2D operations */
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__dst_base(uint32_t val) {
+	dst_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem source data for 2D operations */
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__src_dest_stride_00e4(uint32_t val) {
+	src_stride = val & 0x0FF8; /* bits [11:3] byte stride */
+	dst_stride = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__mono_pat_dword(unsigned int idx,uint32_t val) {
+	/* idx == 0, low 32 bits.
+	 * idx == 1, high 32 bits.
+	 * This trick only works if the host processor is little Endian */
+	((uint32_t*)(&mono_pat))[idx&1] = val;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__mono_pat_bgcolor(uint32_t val) {
+	mono_pat_bgcolor = val & 0x00FFFFFFul;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__mono_pat_fgcolor(uint32_t val) {
+	mono_pat_fgcolor = val & 0x00FFFFFFul;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__src_bgcolor(uint32_t val) {
+	src_bgcolor = val & 0x00FFFFFFul;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__src_fgcolor(uint32_t val) {
+	src_fgcolor = val & 0x00FFFFFFul;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__command_set(uint32_t val) {
+	command_set = val;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__rect_width_height_0104(uint32_t val) {
+	rect_height = val & 0x07FF;
+	rect_width = ((val >> 16ul) & 0x07FF) + 1; /* <- What? But then the height field is THE number of pixels. Why? */
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__rect_src_xy_0108(uint32_t val) {
+	rect_src_y = val & 0x07FF;
+	rect_src_x = (val >> 16ul) & 0x07FF;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__rect_dst_xy_010c(uint32_t val) {
+	rect_dst_y = val & 0x07FF;
+	rect_dst_x = (val >> 16ul) & 0x07FF;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__left_right_clip_00dc(uint32_t val) {
+	right_clip = val & 0x07FF;
+	left_clip = (val >> 16ul) & 0x07FF;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__top_bottom_clip_00e0(uint32_t val) {
+	bottom_clip = val & 0x07FF;
+	top_clip = (val >> 16ul) & 0x07FF;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__lindrawend_016c(uint32_t val) {
+	lindrawend0 = (int32_t)((int16_t)((val >> 16lu) & 0xFFFFu));
+	lindrawend1 = (int32_t)((int16_t)(val & 0xFFFFu));
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__lindrawxdelta_0170(uint32_t val) {
+	lindrawxdelta = (int32_t)val;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__lindrawstartx_0174(uint32_t val) {
+	lindrawstartx = (int32_t)val;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__lindrawstartx_0178(uint32_t val) {
+	lindrawstarty = val & 0x3FFFu; /* bits [10:0] */
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__lindrawcounty_017c(uint32_t val) {
+	lindrawcounty = val & 0x80003FFFu; /* bit [31], bits [10:0] */
+}
 
 void XGA_Write_Multifunc(Bitu val, Bitu len) {
     (void)len;//UNUSED
@@ -154,6 +355,13 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 	   one is actually 24-bit. Without this step there may be some graphics corruption (mainly,
 	   during windows dragging. */
 	switch(XGA_COLOR_MODE) {
+		case M_LIN4:
+			{
+				uint8_t shf = ((memaddr^1u)&1u)*4u;
+				if (GCC_UNLIKELY((memaddr/2) >= vga.mem.memsize)) break;
+				vga.mem.linear[memaddr/2] = (vga.mem.linear[memaddr/2] & (0xF0 >> shf)) + ((c&0xF) << shf);
+			}
+			break;
 		case M_LIN8:
 			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
 			vga.mem.linear[memaddr] = (uint8_t)c;
@@ -173,11 +381,12 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 		default:
 			break;
 	}
-
 }
 
 Bitu XGA_PointMask() {
 	switch(XGA_COLOR_MODE) {
+		case M_LIN4:
+			return 0xFul;
 		case M_LIN8:
 			return 0xFFul;
 		case M_LIN15:
@@ -195,19 +404,23 @@ Bitu XGA_GetPoint(Bitu x, Bitu y) {
 	uint32_t memaddr = (uint32_t)((y * XGA_SCREEN_WIDTH) + x);
 
 	switch(XGA_COLOR_MODE) {
-	case M_LIN8:
-		if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
-		return vga.mem.linear[memaddr];
-	case M_LIN15:
-	case M_LIN16:
-		if (GCC_UNLIKELY(memaddr*2 >= vga.mem.memsize)) break;
-		return ((uint16_t*)(vga.mem.linear))[memaddr];
-	case M_LIN32:
-		if (GCC_UNLIKELY(memaddr*4 >= vga.mem.memsize)) break;
-		return ((uint32_t*)(vga.mem.linear))[memaddr];
-	default:
-		break;
+		case M_LIN4:
+			if (GCC_UNLIKELY((memaddr/2) >= vga.mem.memsize)) break;
+			return (vga.mem.linear[memaddr/2] >> (((memaddr&1)^1)*4)) & 0xF;
+		case M_LIN8:
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return vga.mem.linear[memaddr];
+		case M_LIN15:
+		case M_LIN16:
+			if (GCC_UNLIKELY(memaddr*2 >= vga.mem.memsize)) break;
+			return ((uint16_t*)(vga.mem.linear))[memaddr];
+		case M_LIN32:
+			if (GCC_UNLIKELY(memaddr*4 >= vga.mem.memsize)) break;
+			return ((uint32_t*)(vga.mem.linear))[memaddr];
+		default:
+			break;
 	}
+
 	return 0;
 }
 
@@ -275,6 +488,7 @@ void XGA_DrawLineVector(Bitu val) {
 	Bitu srcval;
 	Bitu destval;
 	Bitu dstdata;
+	bool skiplast;
 	Bits i;
 
 	Bits dx, sx, sy;
@@ -322,6 +536,14 @@ void XGA_DrawLineVector(Bitu val) {
 			break;
 	}
 
+	/* Do we skip drawing the last pixel? (bit 2), Trio64 documentation.
+	 * This is needed to correctly draw polylines in Windows */
+	skiplast = (val >> 2) & 1;
+	if (skiplast) {
+		if (dx > 0) dx--;
+		else return;
+	}
+
 	for (i=0;i<=dx;i++) {
 		Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
 		switch (mixmode) {
@@ -367,6 +589,7 @@ void XGA_DrawLineVector(Bitu val) {
 	xga.cury = (uint16_t)yat;
 }
 
+/* NTS: The Windows 3.1 driver does not use this XGA command for horizontal and vertical lines */
 void XGA_DrawLineBresenham(Bitu val) {
 	Bits xat, yat;
 	Bitu srcval;
@@ -374,126 +597,152 @@ void XGA_DrawLineBresenham(Bitu val) {
 	Bitu dstdata;
 	Bits i;
 	Bits tmpswap;
+	bool skiplast;
 	bool steep;
 
-#define SWAP(a,b) tmpswap = a; a = b; b = tmpswap;
+#define SWAP(a,b) { tmpswap = a; a = b; b = tmpswap; }
 
-	Bits dx, sx, dy, sy, e, dmajor, dminor,destxtmp;
+	Bits dx, sx, dy, sy, e, dmajor, dminor, destxtmp;
 
 	// Probably a lot easier way to do this, but this works.
 
+	/* S3 Trio64 documentation: The "desty" register is both a destination Y for BitBlt (hence the name)
+	 * and "Line Parameter Axial Step Constant" for line drawing, in case the name of the variable is
+	 * confusing here. The "desty" variable name exists as inherited from DOSBox SVN source code.
+	 *
+	 * lpast = 2 * min(abs(dx),abs(dy)) */
 	dminor = (Bits)((int16_t)xga.desty);
 	if(xga.desty&0x2000) dminor |= ~((Bits)0x1fff);
 	dminor >>= 1;
 
-	destxtmp=(Bits)((int16_t)xga.destx);
+	/* S3 Trio64 documentation: The "destx" register is both a destination X for BitBlt (hence the name)
+	 * and "Line Parameter Diagonal Step Constant" for line drawing, in case the name of the variable is
+	 * confusing here. The "destx" variable name exists as inherited from DOSBox SVN source code.
+	 *
+	 * lpdst = 2 * min(abs(dx),abs(dy)) - max(abs(dx),abs(dy)) */
+	destxtmp = (Bits)((int16_t)xga.destx);
 	if(xga.destx&0x2000) destxtmp |= ~((Bits)0x1fff);
 
-
 	dmajor = -(destxtmp - (dminor << (Bits)1)) >> (Bits)1;
-	
+
 	dx = dmajor;
-	if((val >> 5) & 0x1) {
-        sx = 1;
-	} else {
+	if ((val >> 5) & 0x1)
+		sx = 1;
+	else
 		sx = -1;
-	}
+
 	dy = dminor;
-	if((val >> 7) & 0x1) {
-        sy = 1;
-	} else {
+	if ((val >> 7) & 0x1)
+		sy = 1;
+	else
 		sy = -1;
-	}
+
+	/* Do we skip drawing the last pixel? (bit 2), Trio64 documentation.
+	 * This is needed to correctly draw polylines in Windows */
+	skiplast = (val >> 2) & 1;
+
+	/* S3 Trio64 documentation:
+	 * if x1 < x2: 2 * min(abs(dx),abs(dy)) - max(abs(dx),abs(dy))
+	 * if x1 >= x2: 2 * min(abs(dx),abs(dy)) - max(abs(dx),abs(dy)) - 1 */
 	e = (Bits)((int16_t)xga.ErrTerm);
-	if(xga.ErrTerm&0x2000) e |= ~((Bits)0x1fff); /* sign extend 13-bit error term */
+	if (xga.ErrTerm&0x2000) e |= ~((Bits)0x1fff); /* sign extend 13-bit error term */
+
 	xat = xga.curx;
 	yat = xga.cury;
 
-	if((val >> 6) & 0x1) {
+	if ((val >> 6) & 0x1) {
 		steep = false;
 		SWAP(xat, yat);
 		SWAP(sx, sy);
 	} else {
 		steep = true;
 	}
-    
-//	LOG_MSG("XGA: Bresenham: ASC %ld, LPDSC %ld, sx %ld, sy %ld, err %ld, steep %ld, length %ld, dmajor %ld, dminor %ld, xstart %ld, ystart %ld",
-//		dx, dy, sx, sy, e, (unsigned long)steep, (unsigned long)xga.MAPcount, dmajor, dminor, xat, yat);
 
-	for (i=0;i<=xga.MAPcount;i++) { 
-			Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
-			switch (mixmode) {
-				case 0x00: /* FOREMIX always used */
-					mixmode = xga.foremix;
-					switch((mixmode >> 5) & 0x03) {
-						case 0x00: /* Src is background color */
-							srcval = xga.backcolor;
-							break;
-						case 0x01: /* Src is foreground color */
-							srcval = xga.forecolor;
-							break;
-						case 0x02: /* Src is pixel data from PIX_TRANS register */
-							//srcval = tmpval;
-							LOG_MSG("XGA: DrawRect: Wants data from PIX_TRANS register");
-							srcval = 0;
-							break;
-						case 0x03: /* Src is bitmap data */
-							LOG_MSG("XGA: DrawRect: Wants data from srcdata");
-							//srcval = srcdata;
-							srcval = 0;
-							break;
-						default:
-							LOG_MSG("XGA: DrawRect: Shouldn't be able to get here!");
-							srcval = 0;
-							break;
-					}
+#if 0
+	LOG_MSG("XGA: Bresenham: ASC %ld, LPDSC %ld, sx %ld, sy %ld, err %ld, steep %ld, length %ld, dmajor %ld, dminor %ld, xstart %ld, ystart %ld, skiplast %u",
+		(signed long)dx, (signed long)dy, (signed long)sx, (signed long)sy, (signed long)e,
+		(signed long)steep, (signed long)xga.MAPcount, (signed long)dmajor, (signed long)dminor,
+		(signed long)xat, (signed long)yat, skiplast?1:0);
+#endif
 
-					if(steep) {
-						dstdata = XGA_GetPoint((Bitu)xat,(Bitu)yat);
-					} else {
-						dstdata = XGA_GetPoint((Bitu)yat,(Bitu)xat);
-					}
+	const Bits run = xga.MAPcount - (skiplast ? 1 : 0);
 
-					destval = XGA_GetMixResult(mixmode, srcval, dstdata);
+	for (i=0;i<=run;i++) {
+		Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
 
-					if(steep) {
-						XGA_DrawPoint((Bitu)xat,(Bitu)yat, destval);
-					} else {
-						XGA_DrawPoint((Bitu)yat,(Bitu)xat, destval);
-					}
+		switch (mixmode) {
+			case 0x00: /* FOREMIX always used */
+				mixmode = xga.foremix;
+				switch((mixmode >> 5) & 0x03) {
+					case 0x00: /* Src is background color */
+						srcval = xga.backcolor;
+						break;
+					case 0x01: /* Src is foreground color */
+						srcval = xga.forecolor;
+						break;
+					case 0x02: /* Src is pixel data from PIX_TRANS register */
+						//srcval = tmpval;
+						LOG_MSG("XGA: DrawRect: Wants data from PIX_TRANS register");
+						srcval = 0;
+						break;
+					case 0x03: /* Src is bitmap data */
+						LOG_MSG("XGA: DrawRect: Wants data from srcdata");
+						//srcval = srcdata;
+						srcval = 0;
+						break;
+					default:
+						LOG_MSG("XGA: DrawRect: Shouldn't be able to get here!");
+						srcval = 0;
+						break;
+				}
 
-					break;
-				default: 
-					LOG_MSG("XGA: DrawLine: Needs mixmode %x", (int)mixmode);
-					break;
-			}
-			while (e > 0) {
-				yat += sy;
-				e -= (dx << 1);
-			}
-			xat += sx;
-			e += (dy << 1);
+				if (steep)
+					dstdata = XGA_GetPoint((Bitu)xat,(Bitu)yat);
+				else
+					dstdata = XGA_GetPoint((Bitu)yat,(Bitu)xat);
+
+				destval = XGA_GetMixResult(mixmode, srcval, dstdata);
+
+				if (steep)
+					XGA_DrawPoint((Bitu)xat,(Bitu)yat, destval);
+				else
+					XGA_DrawPoint((Bitu)yat,(Bitu)xat, destval);
+
+				break;
+			default: 
+				LOG_MSG("XGA: DrawLine: Needs mixmode %x", (int)mixmode);
+				break;
+		}
+
+		while (e > 0) {
+			yat += sy;
+			e -= (dx << 1);
+		}
+
+		xat += sx;
+		e += (dy << 1);
 	}
 
-	if(steep) {
+	if (steep) {
 		xga.curx = (uint16_t)xat;
 		xga.cury = (uint16_t)yat;
 	} else {
 		xga.curx = (uint16_t)yat;
 		xga.cury = (uint16_t)xat;
 	}
-	//	}
-	//}
-	
+#undef SWAP
 }
 
 void XGA_DrawRectangle(Bitu val) {
-	uint32_t xat, yat;
+	uint32_t xat, yat, xrun;
 	Bitu srcval;
 	Bitu destval;
 	Bitu dstdata;
+	bool skiplast;
 
 	Bits srcx, srcy, dx, dy;
+
+	skiplast = (val >> 2) & 1;
 
 	dx = -1;
 	dy = -1;
@@ -503,9 +752,16 @@ void XGA_DrawRectangle(Bitu val) {
 
 	srcy = xga.cury;
 
+	/* Undocumented, but seen with Windows 3.1 drivers: Horizontal lines are drawn with this XGA command and "skip last pixel" set, else they are one pixel too wide */
+	xrun = xga.MAPcount;
+	if (skiplast) {
+		if (xrun > 0u) xrun--;
+		else return;
+	}
+
 	for(yat=0;yat<=xga.MIPcount;yat++) {
 		srcx = xga.curx;
-		for(xat=0;xat<=xga.MAPcount;xat++) {
+		for(xat=0;xat<=xrun;xat++) {
 			Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
 			switch (mixmode) {
 				case 0x00: /* FOREMIX always used */
@@ -558,7 +814,7 @@ bool XGA_CheckX(void) {
 	
 	if((xga.waitcmd.curx<2048) && xga.waitcmd.curx > (xga.waitcmd.x2)) {
 		xga.waitcmd.curx = xga.waitcmd.x1;
-		xga.waitcmd.cury++;
+		xga.waitcmd.cury += xga.waitcmd.curdy;
 		xga.waitcmd.cury&=0x0fff;
 		newline = true;
 		xga.waitcmd.newline = true;
@@ -570,7 +826,7 @@ bool XGA_CheckX(void) {
 			uint16_t realxend=4096-xga.waitcmd.x2;
 			if(realx==realxend) {
 				xga.waitcmd.curx = xga.waitcmd.x1;
-				xga.waitcmd.cury++;
+				xga.waitcmd.cury += xga.waitcmd.curdy;
 				xga.waitcmd.cury&=0x0fff;
 				newline = true;
 				xga.waitcmd.newline = true;
@@ -580,7 +836,7 @@ bool XGA_CheckX(void) {
 		} else { // else overlapping
 			if(realx==xga.waitcmd.x2) {
 				xga.waitcmd.curx = xga.waitcmd.x1;
-				xga.waitcmd.cury++;
+				xga.waitcmd.cury += xga.waitcmd.curdy;
 				xga.waitcmd.cury&=0x0fff;
 				newline = true;
 				xga.waitcmd.newline = true;
@@ -590,7 +846,7 @@ bool XGA_CheckX(void) {
 			}
 		}
 	} else {
-        xga.waitcmd.newline = false;
+		xga.waitcmd.newline = false;
 	}
 	return newline;
 }
@@ -603,12 +859,17 @@ void XGA_DrawWaitSub(Bitu mixmode, Bitu srcval) {
 	//LOG_MSG("XGA: DrawPattern: Mixmode: %x srcval: %x", mixmode, srcval);
 
 	XGA_DrawPoint(xga.waitcmd.curx, xga.waitcmd.cury, destval);
-	xga.waitcmd.curx++;
+	xga.waitcmd.curx += xga.waitcmd.curdx;
 	xga.waitcmd.curx&=0x0fff;
 	XGA_CheckX();
 }
 
 void XGA_DrawWait(Bitu val, Bitu len) {
+	if (s3Card >= S3_ViRGE) {
+		if (xga.virge.imgxferport != NULL && xga.virge.imgxferportfunc != NULL)
+			xga.virge.imgxferportfunc((uint32_t)val);
+	}
+
 	if(!xga.waitcmd.wait) return;
 	Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
 	Bitu srcval;
@@ -648,11 +909,12 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 							}
 							break;
 						case 0x40 | M_LIN8: // 32 bit
-                            for(int i = 0; i < 4; i++)
+							for(int i = 0; i < 4; i++)
 								XGA_DrawWaitSub(mixmode, (val>>(8*i))&0xff);
 							break;
 						case (0x20 | M_LIN32):
-							if(len!=4) { // Win 3.11 864 'hack?'
+							if(len!=4) { // In case of two 16-bit transfers, first combine both WORDs into a 32-bit DWORD and then operate
+								// Needed for Windows 3.1 with S386c928 drivers, and Windows NT/2000 to display 16x16 radio buttons and icons properly
 								if(xga.waitcmd.datasize == 0) {
 									// set it up to wait for the next word
 									xga.waitcmd.data = (uint32_t)val;
@@ -691,30 +953,29 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 					Bitu chunksize;
 					Bitu chunks;
 					switch(xga.waitcmd.buswidth&0x60) {
-						case 0x0:
+						case 0x0: // 8 bit
 							chunksize=8;
 							chunks=1;
 							break;
 						case 0x20: // 16 bit
 							chunksize=16;
 							if(len==4) chunks=2;
-							else chunks = 1;
+							else chunks=1;
 							break;
 						case 0x40: // 32 bit
-							chunksize=16;
-							if(len==4) chunks=2;
-							else chunks = 1;
+							chunksize=32;
+							chunks=1;
 							break;
-						case 0x60: // undocumented guess (but works)
+						case 0x60: // 32 bits, byte alignment
 							chunksize=8;
-							chunks=4;
+							chunks=len;
 							break;
 						default:
 							chunksize=0;
 							chunks=0;
 							break;
 					}
-					
+
 					for(Bitu k = 0; k < chunks; k++) { // chunks counter
 						xga.waitcmd.newline = false;
 						for(Bitu n = 0; n < chunksize; n++) { // pixels
@@ -736,10 +997,10 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 									srcval=0;
 									break;
 							}
-                            XGA_DrawWaitSub(mixmode, srcval);
+							XGA_DrawWaitSub(mixmode, srcval);
 
 							if((xga.waitcmd.cury<2048) &&
-							  (xga.waitcmd.cury >= xga.waitcmd.y2)) {
+							   (xga.waitcmd.cury >= xga.waitcmd.y2)) {
 								xga.waitcmd.wait = false;
 								k=1000; // no more chunks
 								break;
@@ -813,16 +1074,11 @@ void XGA_BlitRect(Bitu val) {
 			dstdata = XGA_GetPoint((Bitu)tarx, (Bitu)tary);
 
 			if(mixselect == 0x3) {
-				if(srcdata == xga.forecolor) {
+				/* Explanation in XGA_DrawPattern */
+				if ((srcdata&xga.readmask) == xga.readmask)
 					mixmode = xga.foremix;
-				} else {
-					if(srcdata == xga.backcolor) {
-						mixmode = xga.backmix;
-					} else {
-						/* Best guess otherwise */
-						mixmode = 0x67; /* Source is bitmap data, mix mode is src */
-					}
-				}
+				else
+					mixmode = xga.backmix;
 			}
 
 			switch((mixmode >> 5) & 0x03) {
@@ -919,11 +1175,30 @@ void XGA_DrawPattern(Bitu val) {
 			dstdata = XGA_GetPoint((Bitu)tarx, (Bitu)tary);
 			
 
-			if(mixselect == 0x3) {
-				// TODO lots of guessing here but best results this way
-				/*if(srcdata == xga.forecolor)*/ mixmode = xga.foremix;
-				// else 
-				if(srcdata == xga.backcolor || srcdata == 0) 
+			if (mixselect == 0x3) {
+				/* S3 Trio32/Trio64 Integrated Graphics Accelerators, section 13.2 Bitmap Access Through The Graphics Engine.
+				 *
+				 * [https://jon.nerdgrounds.com/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]
+				 *
+				 * "If bits 7-6 are set to 11b, the current display bit map is selected as the mask bit source. The Read Mask"
+				 * "register (AAE8H) is set up to indicate the active planes. When all bits of the read-enabled planes for a"
+				 * "pixel are a 1, the mask bit 'ONE' is generated. If anyone of the read-enabled planes is a 0, then a mask"
+				 * "bit 'ZERO' is generated. If the mask bit is 'ONE', the Foreground Mix register is used. If the mask bit is"
+				 * "'ZERO', the Background Mix register is used."
+				 *
+				 * Notice that when an application in Windows 3.1 draws a black rectangle, I see foreground=0 background=ff
+				 * and in this loop, srcdata=ff and readmask=ff. While the original DOSBox SVN "guess" code here would
+				 * misattribute that to the background color (and erroneously draw a white rectangle), what should actually
+				 * happen is that we use the foreground color because (srcdata&readmask)==readmask (all bits 1).
+				 *
+				 * This fixes visual bugs when running Windows 3.1 and Microsoft Creative Writer, and navigating to the
+				 * basement and clicking around in the dark to reveal funny random things, leaves white rectangles on the
+				 * screen where the image was when you released the mouse. Creative Writer clears the image by drawing a
+				 * BLACK rectangle, while the DOSBox SVN "guess" mistakenly chose the background color and therefore a
+				 * WHITE rectangle. */
+				if ((srcdata&xga.readmask) == xga.readmask)
+					mixmode = xga.foremix;
+				else
 					mixmode = xga.backmix;
 			}
 
@@ -973,7 +1248,7 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 #if XGA_SHOW_COMMAND_TRACE == 1
 					LOG_MSG("XGA: Drawing Bresenham line");
 #endif
-                    XGA_DrawLineBresenham(val);
+					XGA_DrawLineBresenham(val);
 				} else {
 #if XGA_SHOW_COMMAND_TRACE == 1
 					LOG_MSG("XGA: Drawing vector line");
@@ -999,6 +1274,13 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 				xga.waitcmd.wait = true;
 				xga.waitcmd.curx = xga.curx;
 				xga.waitcmd.cury = xga.cury;
+
+				/* Windows will always use 101b (+X +Y) to draw left to right, top to bottom.
+				 * Apparently there is an MS-DOS CAD program out there that wants to draw
+				 * (+X -Y) left to right, bottom to top. */
+				xga.waitcmd.curdx = ((val>>5)&1) ? 1 : uint16_t(~0u)/*equiv -1*/;
+				xga.waitcmd.curdy = ((val>>7)&1) ? 1 : uint16_t(~0u)/*equiv -1*/;
+
 				xga.waitcmd.x1 = xga.curx;
 				xga.waitcmd.y1 = xga.cury;
 				xga.waitcmd.x2 = (uint16_t)((xga.curx + xga.MAPcount)&0x0fff);
@@ -1150,6 +1432,8 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 
 void XGA_SetDualReg(uint32_t& reg, Bitu val) {
 	switch(XGA_COLOR_MODE) {
+	case M_LIN4:
+		reg = (uint8_t)(val&0xf); break;
 	case M_LIN8:
 		reg = (uint8_t)(val&0xff); break;
 	case M_LIN15:
@@ -1171,6 +1455,8 @@ void XGA_SetDualReg(uint32_t& reg, Bitu val) {
 
 Bitu XGA_GetDualReg(uint32_t reg) {
 	switch(XGA_COLOR_MODE) {
+	case M_LIN4:
+		return (uint8_t)(reg&0xf);
 	case M_LIN8:
 		return (uint8_t)(reg&0xff);
 	case M_LIN15: case M_LIN16:
@@ -1194,11 +1480,864 @@ extern Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 extern void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 extern Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 
+uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel,uint8_t rop) {
+	switch (rop) {
+		/* S3 ViRGE Integrated 3D Accelerator Appendix A Listing of Raster Operations */
+		case 0x00/*0           */: return 0;
+		case 0x0A/*DPna        */: return (~patpixel) & dstpixel;
+		case 0x22/*DSna        */: return (~srcpixel) & dstpixel;
+		case 0x55/*Dn          */: return ~dstpixel;
+		case 0x5A/*DPx         */: return dstpixel ^ patpixel;
+		case 0x66/*DSx         */: return dstpixel ^ srcpixel;
+		case 0x69/*PDSxxn      */: return ~(srcpixel ^ dstpixel ^ patpixel);
+		case 0x88/*DSa         */: return dstpixel & srcpixel;
+		case 0xA5/*PDxn        */: return ~(patpixel ^ dstpixel);
+		case 0xAA/*D           */: return dstpixel;
+		case 0xB8/*PSDPxax     */: return ((dstpixel ^ patpixel) & srcpixel) ^ patpixel;
+		case 0xBB/*DSno        */: return (~srcpixel) | dstpixel;
+		case 0xC0/*PSa         */: return patpixel & srcpixel;
+		case 0xCC/*S           */: return srcpixel;
+		case 0xE2/*DSPDxax     */: return ((patpixel ^ dstpixel) & srcpixel) ^ dstpixel;
+		case 0xEE/*DSo         */: return dstpixel | srcpixel;
+		case 0xF0/*P           */: return patpixel;
+		case 0xFF/*1           */: return 0xFFFFFFFF;
+		default:
+			LOG_MSG("ViRGE ROP %02x unimpl",(unsigned int)rop);
+			break;
+	};
+
+	return srcpixel;
+}
+
+uint32_t XGA_VirgePatPixelMono(unsigned int x,unsigned int y) {
+	const uint8_t rb = ((unsigned char*)(&xga.virge.bitblt.mono_pat))[y&7]; /* WARNING: Only works on little Endian CPUs */
+	return (rb & (0x80 >> (x & 7))) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+}
+
+uint32_t XGA_VirgePatPixel(unsigned int x,unsigned int y) {
+	switch((xga.virge.bitblt.command_set >> 2u) & 7u) {
+		case 0: // 8 bit/pixel
+			return xga.virge.colorpat.pat8[((y&7u)<<3u)+(x&7u)];
+		case 1: // 16 bits/pixel
+			return xga.virge.colorpat.pat16[((y&7u)<<3u)+(x&7u)];
+		case 2: // 24/32 bits/pixel
+			return *((uint32_t*)(&xga.virge.colorpat.pat8[(((y&7u)<<3u)+(x&7u))*3u])) & 0xFFFFFF;
+		default:
+			break;
+	}
+
+	return 0;
+}
+
+uint32_t XGA_ReadSourceVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y) {
+	uint32_t memaddr;
+
+	switch((rset.command_set >> 2u) & 7u) {
+		case 0: // 8 bit/pixel
+			memaddr = (uint32_t)((y * rset.src_stride) + x) + rset.src_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return vga.mem.linear[memaddr];
+			break;
+		case 1: // 16 bits/pixel
+			memaddr = (uint32_t)((y * rset.src_stride) + (x*2)) + rset.src_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return *((uint16_t*)(vga.mem.linear+memaddr));
+			break;
+		case 2: // 24/32 bits/pixel
+			memaddr = (uint32_t)((y * rset.src_stride) + (x*xga.virge.truecolor_bypp)) + rset.src_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return *((uint32_t*)(vga.mem.linear+memaddr)) & xga.virge.truecolor_mask;
+			break;
+		default:
+			break;
+	}
+
+	return 0;
+}
+
+uint32_t XGA_ReadDestVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y) {
+	uint32_t memaddr;
+
+	switch((rset.command_set >> 2u) & 7u) {
+		case 0: // 8 bit/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + x) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return vga.mem.linear[memaddr];
+			break;
+		case 1: // 16 bits/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + (x*2)) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return *((uint16_t*)(vga.mem.linear+memaddr));
+			break;
+		case 2: // 24/32 bits/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + (x*xga.virge.truecolor_bypp)) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return *((uint32_t*)(vga.mem.linear+memaddr)) & xga.virge.truecolor_mask;
+			break;
+		default:
+			break;
+	}
+
+	return 0;
+}
+
+void XGA_DrawVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y,uint32_t c) {
+	uint32_t memaddr;
+
+	if (!(rset.command_set & 0x20)) return; /* bit 5 draw enable == 0 means don't update screen */
+
+	/* Need to zero out all unused bits in modes that have any (15-bit or "32"-bit -- the last
+	   one is actually 24-bit. Without this step there may be some graphics corruption (mainly,
+	   during windows dragging. */
+	switch((rset.command_set >> 2u) & 7u) {
+		case 0: // 8 bit/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + x) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			vga.mem.linear[memaddr] = (uint8_t)c;
+			break;
+		case 1: // 16 bits/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + (x*2)) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			*((uint16_t*)(vga.mem.linear+memaddr)) = (uint16_t)(c&0xffff);
+			break;
+		case 2: // 24/32 bits/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + (x*xga.virge.truecolor_bypp)) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			if (xga.virge.truecolor_mask == 0xFFFFFFFFu) {
+				*((uint32_t*)(vga.mem.linear+memaddr)) = (uint32_t)c;
+			}
+			else {
+				vga.mem.linear[memaddr+0] = (uint8_t)c;
+				vga.mem.linear[memaddr+1] = (uint8_t)(c >> 8u);
+				vga.mem.linear[memaddr+2] = (uint8_t)(c >> 16u);
+			}
+			break;
+		default:
+			break;
+	}
+}
+
+inline void XGA_DrawVirgePixelCR(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y,uint32_t c) {
+	if (rset.command_set & 2) { /* clip enable */
+		if (x >= rset.left_clip && x <= rset.right_clip && y >= rset.top_clip && y <= rset.bottom_clip)
+			XGA_DrawVirgePixel(rset,x,y,c);
+	}
+	else {
+		XGA_DrawVirgePixel(rset,x,y,c);
+	}
+}
+
+void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
+	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
+	uint8_t valbytes = 4;
+	unsigned int x,y;
+	uint8_t msk;
+
+//	LOG_MSG("BitBlt write %08x",(unsigned int)val);
+
+	if (xga.virge.bitbltstate.itf_buffer_initskip > 0) {
+		assert(valbytes >= xga.virge.bitbltstate.itf_buffer_initskip);
+		valbytes -= xga.virge.bitbltstate.itf_buffer_initskip;
+		val >>= (uint64_t)(8u * xga.virge.bitbltstate.itf_buffer_initskip);
+		xga.virge.bitbltstate.itf_buffer_initskip = 0;
+	}
+
+	assert(xga.virge.bitbltstate.itf_buffer_bytecount <= 4u); /* we should be flushing data */
+
+	if (xga.virge.bitbltstate.itf_buffer_bytecount > 0) {
+		xga.virge.bitbltstate.itf_buffer |= ((uint64_t)val) << (8u * xga.virge.bitbltstate.itf_buffer_bytecount);
+		xga.virge.bitbltstate.itf_buffer_bytecount += valbytes;
+	}
+	else {
+		xga.virge.bitbltstate.itf_buffer = (uint64_t)val;
+		xga.virge.bitbltstate.itf_buffer_bytecount = valbytes;
+	}
+
+	/* shifted in, write it out now */
+	x = xga.virge.bitblt.rect_dst_x;
+	y = xga.virge.bitblt.rect_dst_y;
+
+	if (xga.virge.imgxferport->command_set & 0x40) {
+		/* mono image bitmap */
+		assert(xga.virge.bitbltstate.src_xrem != 0);
+		while (xga.virge.bitbltstate.itf_buffer_bytecount > 0) {
+#if 0
+			LOG_MSG("BitBlt mono t=%u x=%u y=%u srm=%u/%u sw=%u patb=%02x srcb=%02x ctrl=%08x",
+				(xga.virge.imgxferport->command_set & 0x200) ? 1 : 0,
+				x,y,xga.virge.bitbltstate.src_xrem,xga.virge.bitbltstate.src_stride,
+				xga.virge.bitblt.rect_width,
+				pb,(uint8_t)xga.virge.bitbltstate.itf_buffer & 0xFFu,
+				xga.virge.bitblt.command_set);
+#endif
+
+			msk = 0x80u;
+			if (xga.virge.imgxferport->command_set & 0x100) { /* mono pattern, mono bitmap */
+				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
+					do {
+						if (xga.virge.bitbltstate.src_drem > 0) {
+							if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
+								srcpixel = xga.virge.bitblt.src_fgcolor;
+								dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+								patpixel = XGA_VirgePatPixelMono(x,y);
+								mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+								XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+							}
+							xga.virge.bitbltstate.src_drem--;
+						}
+
+						msk >>= 1u;
+						x++;
+					} while (msk != 0u);
+				}
+				else {
+					do {
+						if (xga.virge.bitbltstate.src_drem > 0) {
+							srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
+							dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+							patpixel = XGA_VirgePatPixelMono(x,y);
+							mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+							XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+							xga.virge.bitbltstate.src_drem--;
+						}
+
+						msk >>= 1u;
+						x++;
+					} while (msk != 0u);
+				}
+			}
+			else { /* color pattern, mono bitmap */
+				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
+					do {
+						if (xga.virge.bitbltstate.src_drem > 0) {
+							if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
+								srcpixel = xga.virge.bitblt.src_fgcolor;
+								dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+								patpixel = XGA_VirgePatPixel(x,y);
+								mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+								XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+							}
+							xga.virge.bitbltstate.src_drem--;
+						}
+
+						msk >>= 1u;
+						x++;
+					} while (msk != 0u);
+				}
+				else {
+					do {
+						if (xga.virge.bitbltstate.src_drem > 0) {
+							srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
+							dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+							patpixel = XGA_VirgePatPixel(x,y);
+							mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+							XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+							xga.virge.bitbltstate.src_drem--;
+						}
+
+						msk >>= 1u;
+						x++;
+					} while (msk != 0u);
+				}
+			}
+
+			xga.virge.bitbltstate.itf_buffer >>= (uint64_t)8;
+			xga.virge.bitbltstate.itf_buffer_bytecount--;
+			xga.virge.bitbltstate.src_xrem--;
+
+			if (xga.virge.bitbltstate.src_xrem == 0) {
+				if (y == xga.virge.bitbltstate.stopy) {
+					xga.virge.bitbltstate.itf_buffer_bytecount = 0;
+					xga.virge.bitbltstate.itf_buffer = 0;
+					xga.virge.imgxferportfunc = NULL;
+					xga.virge.imgxferport = NULL;
+					break;
+				}
+				else {
+					xga.virge.bitbltstate.src_drem = xga.virge.bitblt.rect_width;
+					xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
+					x = xga.virge.bitbltstate.startx;
+					y++;
+				}
+			}
+		}
+	}
+	else {
+		uint32_t bypmsk = 0x000000FF;
+		unsigned char bypp = 1;
+
+		switch((xga.virge.bitblt.command_set >> 2u) & 7u) {
+			case 1: bypp = 2u; bypmsk = 0x0000FFFF; break; // 16 bits/pixel
+			case 2: bypp = xga.virge.truecolor_bypp; bypmsk = xga.virge.truecolor_mask; break; // 24/32 bits/pixel
+			default: break;
+		}
+
+		/* color image bitmap */
+		assert(xga.virge.bitbltstate.src_xrem != 0);
+		while (xga.virge.bitbltstate.itf_buffer_bytecount >= bypp) {
+#if 0
+			LOG_MSG("BitBlt color t=%u x=%u y=%u srm=%u/%u sw=%u patb=%02x srcb=%02x ctrl=%08x",
+				(xga.virge.imgxferport->command_set & 0x200) ? 1 : 0,
+				x,y,xga.virge.bitbltstate.src_xrem,xga.virge.bitbltstate.src_stride,
+				xga.virge.bitblt.rect_width,
+				pb,(uint8_t)xga.virge.bitbltstate.itf_buffer & 0xFFu,
+				xga.virge.bitblt.command_set);
+#endif
+
+			if (xga.virge.imgxferport->command_set & 0x100) { /* mono pattern, color bitmap */
+				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
+					// TODO
+					LOG_MSG("BitBlt Color transparent mono pattern unimpl");
+				}
+				else {
+					if (xga.virge.bitbltstate.src_drem > 0) {
+						srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
+						dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+						patpixel = XGA_VirgePatPixelMono(x,y);
+						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+						xga.virge.bitbltstate.src_drem--;
+					}
+
+					x++;
+				}
+			}
+			else { /* color pattern, color bitmap */
+				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
+					// TODO
+					LOG_MSG("BitBlt Color transparent color pattern unimpl");
+				}
+				else {
+					if (xga.virge.bitbltstate.src_drem > 0) {
+						srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
+						dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+						patpixel = XGA_VirgePatPixel(x,y);
+						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+						xga.virge.bitbltstate.src_drem--;
+					}
+
+					x++;
+				}
+			}
+
+			xga.virge.bitbltstate.itf_buffer >>= (uint64_t)(8u * bypp);
+			xga.virge.bitbltstate.itf_buffer_bytecount -= bypp;
+			xga.virge.bitbltstate.src_xrem -= bypp;
+
+			if (xga.virge.bitbltstate.src_xrem < bypp) {
+				if (y == xga.virge.bitbltstate.stopy) {
+					xga.virge.bitbltstate.itf_buffer_bytecount = 0;
+					xga.virge.bitbltstate.itf_buffer = 0;
+					xga.virge.imgxferportfunc = NULL;
+					xga.virge.imgxferport = NULL;
+					break;
+				}
+				else {
+					if (xga.virge.bitbltstate.src_xrem > 0) {
+						if (xga.virge.bitbltstate.src_xrem > xga.virge.bitbltstate.itf_buffer_bytecount) {
+							xga.virge.bitbltstate.src_xrem -= xga.virge.bitbltstate.itf_buffer_bytecount;
+							xga.virge.bitbltstate.itf_buffer_initskip = xga.virge.bitbltstate.src_xrem;
+							break;
+						}
+						else {
+							xga.virge.bitbltstate.itf_buffer >>= (uint64_t)(8u * xga.virge.bitbltstate.src_xrem);
+							xga.virge.bitbltstate.itf_buffer_bytecount -= xga.virge.bitbltstate.src_xrem;
+						}
+					}
+
+					xga.virge.bitbltstate.src_drem = xga.virge.bitblt.rect_width;
+					xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
+					x = xga.virge.bitbltstate.startx;
+					y++;
+				}
+			}
+		}
+	}
+
+	xga.virge.bitblt.rect_dst_x = x;
+	xga.virge.bitblt.rect_dst_y = y;
+}
+
+void XGA_ViRGE_BitBlt(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
+
+	if (rset.command_set & 0x80) { /* data will be coming in from the image transfer port */
+		xga.virge.imgxferport = &rset;
+		xga.virge.imgxferportfunc = XGA_ViRGE_BitBlt_xferport;
+
+		xga.virge.bitbltstate.itf_buffer = 0;
+		xga.virge.bitbltstate.itf_buffer_bytecount = 0;
+		xga.virge.bitbltstate.itf_buffer_initskip = (rset.command_set >> 12u) & 3u;
+		xga.virge.bitbltstate.startx = rset.rect_dst_x;
+		xga.virge.bitbltstate.starty = rset.rect_dst_y;
+		xga.virge.bitbltstate.stopy = rset.rect_dst_y + rset.rect_height - 1u;
+		if (rset.command_set & 0x40) {
+			/* mono image */
+			xga.virge.bitbltstate.src_stride = (rset.rect_width + 7u) / 8u;
+		}
+		else {
+			/* color image */
+			xga.virge.bitbltstate.src_stride = rset.rect_width;
+			switch((rset.command_set >> 2u) & 7u) {
+				case 1: xga.virge.bitbltstate.src_stride *= 2u; break; // 16 bits/pixel
+				case 2: xga.virge.bitbltstate.src_stride *= xga.virge.truecolor_bypp; break; // 24/32 bits/pixel
+				default: break;
+			}
+		}
+
+		switch((rset.command_set >> 10u) & 3u) {
+			case 1: xga.virge.bitbltstate.src_stride = (xga.virge.bitbltstate.src_stride + 1u) & (~1u); break; // WORD align
+			case 2: xga.virge.bitbltstate.src_stride = (xga.virge.bitbltstate.src_stride + 3u) & (~3u); break; // DWORD align
+			default: break;
+		}
+
+		xga.virge.bitbltstate.src_drem = xga.virge.bitblt.rect_width;
+		xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
+
+		if (xga.virge.bitbltstate.src_stride == 0) {
+			xga.virge.imgxferport = NULL;
+			xga.virge.imgxferportfunc = NULL;
+		}
+	}
+	else { /* source data is video memory */
+		xga.virge.imgxferport = NULL;
+		xga.virge.imgxferportfunc = NULL;
+
+		if (xga.virge.bitblt.command_set & 0x200) { /* transparent */
+			LOG_MSG("BitBlt VRAM to VRAM transparent");
+		}
+		else {
+			unsigned int sxa,sya;
+			unsigned int rx,ry;
+			unsigned int dx,dy;
+			unsigned int ex,ey;
+			unsigned int sx,sy;
+			unsigned int x,y;
+
+			if (xga.virge.bitblt.rect_width != 0 && xga.virge.bitblt.rect_height != 0) {
+				if (!(xga.virge.bitblt.command_set & (1u << 25u))) {
+					/* X-negative */
+					rx = -1;
+					dx = xga.virge.bitblt.rect_dst_x;
+					ex = xga.virge.bitblt.rect_dst_x - (xga.virge.bitblt.rect_width - 1);
+					if ((int)ex < 0) ex = 0;
+				}
+				else {
+					rx = 1;
+					dx = xga.virge.bitblt.rect_dst_x;
+					ex = xga.virge.bitblt.rect_dst_x + (xga.virge.bitblt.rect_width - 1);
+				}
+
+				if (!(xga.virge.bitblt.command_set & (1u << 26u))) {
+					/* Y-negative */
+					ry = -1;
+					dy = xga.virge.bitblt.rect_dst_y;
+					ey = xga.virge.bitblt.rect_dst_y - (xga.virge.bitblt.rect_height - 1);
+					if ((int)ey < 0) ey = 0;
+				}
+				else {
+					ry = 1;
+					dy = xga.virge.bitblt.rect_dst_y;
+					ey = xga.virge.bitblt.rect_dst_y + (xga.virge.bitblt.rect_height - 1);
+				}
+
+				sxa = xga.virge.bitblt.rect_src_x - xga.virge.bitblt.rect_dst_x;
+				sya = xga.virge.bitblt.rect_src_y - xga.virge.bitblt.rect_dst_y;
+
+				sy = dy + sya;
+				y = dy;
+				do {
+					sx = dx + sxa;
+					x = dx;
+					do {
+						srcpixel = XGA_ReadSourceVirgePixel(xga.virge.bitblt,sx,sy);
+						dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+
+						if (xga.virge.bitblt.command_set & 0x100)
+							patpixel = XGA_VirgePatPixelMono(x,y);
+						else
+							patpixel = XGA_VirgePatPixel(x,y);
+
+						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+
+						if (x == ex) break;
+						sx += rx;
+						x += rx;
+					} while (1);
+
+					if (y == ey) break;
+					sy += ry;
+					y += ry;
+				} while (1);
+			}
+		}
+	}
+}
+
+void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
+	unsigned int bex,bey,enx,eny;/*inclusive*/
+	unsigned int x,y;
+	unsigned char rb;
+
+	if (rset.rect_width == 0 || rset.rect_height == 0)
+		return;
+
+	bex = rset.rect_dst_x;
+	bey = rset.rect_dst_y;
+	enx = bex + rset.rect_width - 1;
+	eny = bey + rset.rect_height -1;
+
+	if (rset.command_set & 2) { /* hardware clipping enable */
+		if (bex < rset.left_clip)
+			bex = rset.left_clip;
+		if (bey < rset.top_clip)
+			bey = rset.top_clip;
+		if (enx > rset.right_clip)
+			enx = rset.right_clip;
+		if (eny > rset.bottom_clip)
+			eny = rset.bottom_clip;
+	}
+
+	// NTS: I don't know if the monochrome pattern is being drawn properly because I can't get Windows 3.1
+	//      to use this case for anything other than solid color rectangles. I don't know if I am reading
+	//      out the monochrome pattern correctly here. --J.C.
+
+	// NTS: always use mono pattern as documented by S3.
+	//      Command set MP bit must be set anyway.
+	for (y=bey;y <= eny;y++) {
+		rb = ((unsigned char*)(&rset.mono_pat))[(y-rset.rect_dst_y)&7]; /* WARNING: Only works on little Endian CPUs */
+		if (bex != rset.rect_dst_x) {
+			unsigned char r = (bex - rset.rect_dst_x) & 7;
+			if (r != 0) rb = (rb << r) | (rb >> (8 - r));
+		}
+
+		if (rset.command_set & 0x200) { /* TP - Transparent */
+			for (x=bex;x <= enx;x++) {
+				if (rb & 0x80) {
+					srcpixel = rset.mono_pat_fgcolor;
+					dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+					patpixel = rset.mono_pat_fgcolor/*See notes*/;
+					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+					XGA_DrawVirgePixel(rset,x,y,mixpixel);
+				}
+				rb = (rb << 1u) | (rb >> 7u);
+			}
+		}
+		else {
+			for (x=bex;x <= enx;x++) {
+				srcpixel = (rb & 0x80) ? rset.mono_pat_fgcolor : rset.mono_pat_bgcolor;
+				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+				patpixel = rset.mono_pat_fgcolor/*See notes*/;
+				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+				XGA_DrawVirgePixel(rset,x,y,mixpixel);
+				rb = (rb << 1u) | (rb >> 7u);
+			}
+		}
+	}
+
+	/* NTS: From the S3 datasheet "Command Set Register": "The full range of 256 ROPs are available for BitBlt. Other operations like Rectangle, Line, etc.
+	 *      can only use a subset of the ROPs that does not have a source. When a ROP contains a pattern, the pattern must be mono and the hardware forces
+	 *      the pattern value to the pattern foreground color regardless of the values programmed in the Mono Pattern registers."
+	 *
+	 *      True to this statement, Windows 3.1 Virge drivers like to issue XGA rectangle commands with the ROP set to 0xF0 (pattern fill) when drawing
+	 *      solid color rectangles. */
+
+	rset.rect_dst_x = enx + 1;
+	rset.rect_dst_y = eny + 1;
+}
+
+void XGA_ViRGE_BitBlt_Execute(bool commandwrite) {
+	auto &rset = xga.virge.bitblt;
+
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
+
+	if (commandwrite)
+		rset.command_execute_on_register = 0;
+
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		case 0x00: /* 2D BitBlt */
+			XGA_ViRGE_BitBlt(rset);
+			break;
+		case 0x02: /* 2D Rectangle Fill */
+			XGA_ViRGE_DrawRect(rset);
+			break;
+		case 0x0F: /* NOP */
+			break;
+		default:
+			LOG(LOG_VGA,LOG_DEBUG)("BitBlt unhandled command %08x",(unsigned int)rset.command_set);
+			break;
+	}
+}
+
+void XGA_ViRGE_BitBlt_Execute_deferred(void) {
+	auto &rset = xga.virge.bitblt;
+
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		case 0x00: /* 2D BitBlt */
+		case 0x02: /* 2D Rectangle Fill */
+			rset.command_execute_on_register = 0x010C; /* A50C, etc */
+			break;
+		default:
+			if (rset.command_set & (1u << 31u))
+				LOG(LOG_VGA,LOG_DEBUG)("BitBlt execute 3D unhandled command %08x def",(unsigned int)rset.command_set);
+			else
+				LOG(LOG_VGA,LOG_DEBUG)("BitBlt execute 2D unhandled command %08x def",(unsigned int)rset.command_set);
+			rset.command_execute_on_register = 0;
+			break;
+	};
+}
+
+struct VIRGELineDDA {
+	int32_t		xf,xdelta;	/* 1<<20 X delta and fractional */
+
+	void		adv(void);
+	int		read_xtr(void);
+};
+
+void VIRGELineDDA::adv(void) {
+	xf += xdelta;
+}
+
+int VIRGELineDDA::read_xtr(void) {
+	return xf >> 20;
+}
+
+void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
+	int y,x,ycount,xend,xto,xdir,xstart;
+	unsigned int safety;
+	VIRGELineDDA ldda;
+
+	/* HACK: Why doesn't the Windows 98 S3 ViRGE driver set the stride for the line2d register set?
+	 *       I'm beginning to wonder if all dest/source offset and stride registers are really just
+	 *       tied together into one set in the back. This hack is needed to make sure lines and
+	 *       curves aren't jumbled up at the top of the screen when drawn. */
+	rset.src_stride = xga.virge.bitblt.src_stride;
+	rset.dst_stride = xga.virge.bitblt.dst_stride;
+	rset.src_base = xga.virge.bitblt.src_base;
+	rset.dst_base = xga.virge.bitblt.dst_base;
+
+	xdir = (rset.lindrawcounty & 0x80000000u) ? 1/*left to right*/ : -1/*right to left*/;
+	ycount = (int)(rset.lindrawcounty & 0x1FFFu); /* bits [10:0] */
+	y = (int)(rset.lindrawstarty & 0x1FFFu); /* bits [10:0] */
+	ldda.xf = rset.lindrawstartx; /* S11.20 fixed point signed, 1.0 = 1 << 20 */
+	ldda.xdelta = rset.lindrawxdelta; /* S11.20 fixed point signed, 1.0 = 1 << 20      -(dX / dY) */
+	xend = (int)rset.lindrawend1;/*last pixel*/
+	xstart = (int)rset.lindrawend0;/*first pixel*/
+
+	// unused for now
+	(void)safety;
+
+	/* S3 ViRGE Integrated 3D Accelerator [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%20Integrated%203D%20Accelerator%20%281996%2d08%29%2epdf]
+	 * PDF page 238 Line Draw X Start Register.
+	 *
+	 * For X major line, +XDELTA, value = (x1 << 20) + (XDELTA/2)
+	 * For X major line, -XDELTA, value = (x1 << 20) + (XDELTA/2) + ((1 << 20) - 1)
+	 * For Y major line, value = x1 << 20
+	 *
+	 * NTS: Windows 3.1 S3 ViRGE drivers use (x1 << 20) + (1 << 19) equiv (x1 + 0.5) for Y major lines.
+	 *
+	 * Line Draw X Delta Register: XDELTA = -(changeInX << 20) / changeInY
+	 *
+	 * Also notice that based on how this line rendering works, is it vital to turn on
+	 * clipping and set the clip region to the area you intend for the line to sit within,
+	 * else when changeInX is large and changeInY is small, the line segment will extend
+	 * some pixels past the end pixel. So in reality the XDELTA and start X registers
+	 * describe horizontal line segments that extend slightly past the clipping region.
+	 * At least that's how the Windows 3.1 treats this hardware acceleration function. */
+
+	x = xstart;
+#if 0//DEBUG
+	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw xdir=%d src_base=%x dst_base=%x ycount=%d y=%d xf=%d(%.3f) xdelta=%d(%.3f) xstart=%d xend=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
+		xdir,rset.src_base,rset.dst_base,ycount,y,ldda.xf,(double)ldda.xf / (1<<20),ldda.xdelta,(double)ldda.xdelta / (1<<20),xstart,xend,x,rset.command_set,
+		rset.left_clip,rset.right_clip,rset.top_clip,rset.bottom_clip,
+		rset.src_stride,rset.dst_stride);
+#endif
+
+	/* NTS: Drawing completely horizontal lines according to S3 documentation:
+	 *      - Set XDELTA to 0, as if changeInY == 0
+	 *
+	 *      Drawing completely horizontal lines, Windows 3.1 style (ViRGE drivers);
+	 *      - Set ycount == 1, XDELTA to (xend + 1 - xstart) without the 20-bit shift, which
+	 *        is then a value that is very close to zero, but not quite you lazy hack of a driver.
+	 *        xstart <= x <= xend are the extents of the horizontal line to draw.
+	 *
+	 *      Note that small to zero XDELTA values ALSO represent a vertical or near vertical line,
+	 *      so that value alone isn't enough to determine if we're being asked to draw horizontal
+	 *      lines, however when Windows 3.1 does it, ycount == 1, XDELTA is some small value,
+	 *      XF is right in the middle of xstart-xend, and xstart-end are far wider than one pixel.
+	 *      Not sure by what logic or special case S3 would have handled horizontal lines here.
+	 *      Based on driver behavior, if the intent was to draw a 1-pixel high vertical line,
+	 *      then the xstart/xend values would equal (xf >> 20) without any additional room. */
+
+	if (ycount <= 1) {
+		do {
+			if ((xdir > 0 && x > xend) || (xdir < 0 && x < xend)) break;
+			srcpixel = 0;
+			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+			patpixel = rset.mono_pat_fgcolor/*See notes*/;
+			mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+			XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+			x += xdir;
+		} while (1);
+	}
+	else if (ldda.xdelta >= -(1 << 20) && ldda.xdelta <= (1 << 20)) { // Y-major
+		/* NTS: xstart/xend must be considered to render Y-major lines correctly when the guest driver
+		 *      wants to draw a line but omit the last pixel when drawing line segments of a polygon or shape.
+		 *      This is needed to correctly render the shape in progress for example when drawing circles or
+		 *      rounded rectangles in Microsoft Word (uses XOR raster operation), and to render curves in
+		 *      Windows 98 correctly (Curves And Colors screen saver). Without the option to NOT render the
+		 *      last pixel, XOR-based poly lines will be missing pixels, since the overlapping pixels cancel
+		 *      each other out. */
+
+		/* check: xstart skip last pixel, when drawing a line going downard, with XGA hardware that only draws upward */
+		x = ldda.read_xtr();
+		if ((xdir > 0 && x < xstart) || (xdir < 0 && x > xstart)) {
+			ldda.adv();
+			ycount--;
+			y--;
+		}
+
+		while (ycount > 0) {
+			x = ldda.read_xtr();
+			if (ycount == 1) { /* check: xend skip last pixel, when drawing a line going upward */
+				if ((xdir > 0 && x > xend) || (xdir < 0 && x < xend)) {
+					break;
+				}
+			}
+
+			srcpixel = 0;
+			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+			patpixel = rset.mono_pat_fgcolor/*See notes*/;
+			mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+			XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+			ldda.adv();
+			y--;
+
+			/* lines are drawn bottom-up */
+			ycount--;
+		}
+	}
+	else if (ldda.xdelta >= 0) { // X-major going to the left (draws bottom up, remember?)
+		while (ycount > 0) {
+			xto = ldda.read_xtr();
+			while (x <= xto) {
+				if (x >= xstart && x <= xend) {
+					srcpixel = 0;
+					dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+					patpixel = rset.mono_pat_fgcolor/*See notes*/;
+					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+					XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+				}
+
+				x++;
+			}
+			ldda.adv();
+			y--;
+
+			/* lines are drawn bottom-up */
+			ycount--;
+		}
+	}
+	else { // X-major going to the right, xdelta < 0 (draws bottom up, remember?)
+		std::swap(xstart,xend);
+		while (ycount > 0) {
+			xto = ldda.read_xtr();
+			while (x >= xto) {
+				if (x >= xstart && x <= xend) {
+					srcpixel = 0;
+					dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+					patpixel = rset.mono_pat_fgcolor/*See notes*/;
+					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+					XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+				}
+
+				x--;
+			}
+			ldda.adv();
+			y--;
+
+			/* lines are drawn bottom-up */
+			ycount--;
+		}
+	}
+}
+
+void XGA_ViRGE_Line2D_Execute(bool commandwrite) {
+	auto &rset = xga.virge.line2d;
+
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
+
+	if (commandwrite)
+		rset.command_execute_on_register = 0;
+
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		case 0x03: /* 2D Line Draw */
+			XGA_ViRGE_DrawLine(rset);
+			break;
+		case 0x0F: /* NOP */
+			break;
+		default:
+			LOG(LOG_VGA,LOG_DEBUG)("Line2D unhandled command %08x",(unsigned int)rset.command_set);
+			break;
+	}
+}
+
+void XGA_ViRGE_Line2D_Execute_deferred(void) {
+	auto &rset = xga.virge.line2d;
+
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		case 0x03: /* 2D Line Draw */
+			rset.command_execute_on_register = 0x017C; /* A97C, etc */
+			break;
+		default:
+			if (rset.command_set & (1u << 31u))
+				LOG(LOG_VGA,LOG_DEBUG)("Line2D execute 3D unhandled command %08x def",(unsigned int)rset.command_set);
+			else
+				LOG(LOG_VGA,LOG_DEBUG)("Line2D execute 2D unhandled command %08x def",(unsigned int)rset.command_set);
+			rset.command_execute_on_register = 0;
+			break;
+	};
+}
+
+void XGA_ViRGE_Poly2D_Execute(void) {
+	auto &rset = xga.virge.poly2d;
+
+	if (rset.command_set & (1u << 31u))
+		LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 3D unhandled command %08x",(unsigned int)rset.command_set);
+	else
+		LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 2D unhandled command %08x",(unsigned int)rset.command_set);
+}
+
+void XGA_ViRGE_Poly2D_Execute_deferred(void) {
+	auto &rset = xga.virge.poly2d;
+
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		default:
+			if (rset.command_set & (1u << 31u))
+				LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 3D command %08x def",(unsigned int)rset.command_set);
+			else
+				LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 2D command %08x def",(unsigned int)rset.command_set);
+			rset.command_execute_on_register = 0;
+			break;
+	};
+}
+
 void XGA_Write(Bitu port, Bitu val, Bitu len) {
-//	LOG_MSG("XGA: Write to port %x, val %8x, len %x", port,val, len);
+//	LOG_MSG("XGA: Write to port %x, val %8x, len %x", (unsigned int)port, (unsigned int)val, (unsigned int)len);
 
 #if 0
-	// streams procesing debug
+	// streams processing debug
 	if (port >= 0x8180 && port <= 0x81FF)
 		LOG_MSG("XGA streams processing: Write to port %x, val %8x, len %x",(unsigned int)port,(unsigned int)val,(unsigned int)len);
 #endif
@@ -1309,7 +2448,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 		// Commonly used in Windows 3.1 through ME for the hardware YUV overlay,
 		// such as playing MPEG files in ActiveMovie or XingMPEG.
 		// S3 Trio64V+ and ViRGE cards have this.
-		// Vision868 cards have a different register set for the same.
+		// Vision868 and Vision968 cards have a different register set for the same.
 
 		case 0x8180: // S3 Trio64V+ streams processor, Primary Stream Control (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
@@ -1444,7 +2583,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 		case 0x81EC: // S3 Trio64V+ streams processor, Streams FIFO and RAS Controls (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
 				/* bits [4:0] should be a value from 0 to 24 to shift priority between primary and secondary.
-				 * The larger the value, the more slots alloted to secondary layer.
+				 * The larger the value, the more slots allotted to secondary layer.
 				 * Allocation is out of 24 slots, therefore values larger than 24 are invalid. */
 				uint8_t thr = val & 0x1Fu;
 				if (thr > 24u) thr -= 16u; // assume some kind of odd malfunction happens on real hardware, check later
@@ -1544,15 +2683,229 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			if(len==1) vga_write_p3d5(0,val,1);
 			else E_Exit("unimplemented XGA MMIO");
 			break;
+		case 0xa4d4:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_base(val);
+			else goto default_case;
+			break;
+		case 0xa8d4:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__src_base(val);
+			else goto default_case;
+			break;
+		case 0xacd4:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__src_base(val);
+			else goto default_case;
+			break;
+		case 0xa4d8:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__dst_base(val);
+			else goto default_case;
+			break;
+		case 0xa8d8:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__dst_base(val);
+			else goto default_case;
+			break;
+		case 0xacd8:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__dst_base(val);
+			else goto default_case;
+			break;
+		case 0xa4dc:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__left_right_clip_00dc(val);
+			else goto default_case;
+			break;
+		case 0xa8dc:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__left_right_clip_00dc(val);
+			else goto default_case;
+			break;
+		case 0xacdc:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__left_right_clip_00dc(val);
+			else goto default_case;
+			break;
+		case 0xa4e0:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__top_bottom_clip_00e0(val);
+			else goto default_case;
+			break;
+		case 0xa8e0:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__top_bottom_clip_00e0(val);
+			else goto default_case;
+			break;
+		case 0xace0:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__top_bottom_clip_00e0(val);
+			else goto default_case;
+			break;
+		case 0xa4e4:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_dest_stride_00e4(val);
+			else goto default_case;
+			break;
+		case 0xa8e4:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__src_dest_stride_00e4(val);
+			else goto default_case;
+			break;
+		case 0xace4:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__src_dest_stride_00e4(val);
+			else goto default_case;
+			break;
+		case 0xa4e8:
+		case 0xa4ec:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__mono_pat_dword((port>>2u)&1u,val);
+			else goto default_case;
+			break;
+		case 0xace8:
+		case 0xacec:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__mono_pat_dword((port>>2u)&1u,val);
+			else goto default_case;
+			break;
+		case 0xa4f0:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__mono_pat_bgcolor(val);
+			else goto default_case;
+			break;
+		case 0xacf0:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__mono_pat_bgcolor(val);
+			else goto default_case;
+			break;
+		case 0xa4f4:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__mono_pat_fgcolor(val);
+			else goto default_case;
+			break;
+		case 0xa8f4:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__mono_pat_fgcolor(val);
+			else goto default_case;
+			break;
+		case 0xacf4:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__mono_pat_fgcolor(val);
+			else goto default_case;
+			break;
+		case 0xa4f8:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_bgcolor(val);
+			else goto default_case;
+			break;
+		case 0xa4fc:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_fgcolor(val);
+			else goto default_case;
+			break;
+		case 0xa500:
+			if (s3Card >= S3_ViRGE) {
+				auto &rg = xga.virge.bitblt_validate_port(port);
+				rg.set__command_set(val);
+				if (rg.command_set & 1) XGA_ViRGE_BitBlt_Execute_deferred();
+				else XGA_ViRGE_BitBlt_Execute(true);
+			}
+			else goto default_case;
+			break;
+		case 0xa900:
+			if (s3Card >= S3_ViRGE) {
+				auto &rg = xga.virge.line2d_validate_port(port);
+				rg.set__command_set(val);
+				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
+				else XGA_ViRGE_Line2D_Execute(true);
+			}
+			else goto default_case;
+			break;
+		case 0xA96C:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawend_016c(val);
+			else goto default_case;
+			break;
+		case 0xA970:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawxdelta_0170(val);
+			else goto default_case;
+			break;
+		case 0xA974:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawstartx_0174(val);
+			else goto default_case;
+			break;
+		case 0xA978:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawstartx_0178(val);
+			else goto default_case;
+			break;
+		case 0xA97C:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawcounty_017c(val);
+			else goto default_case;
+			break;
+		case 0xad00:
+			if (s3Card >= S3_ViRGE) {
+				auto &rg = xga.virge.poly2d_validate_port(port);
+				rg.set__command_set(val);
+				if (rg.command_set & 1) XGA_ViRGE_Poly2D_Execute_deferred();
+				else XGA_ViRGE_Poly2D_Execute();
+			}
+			else goto default_case;
+			break;
+		case 0xa504:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__rect_width_height_0104(val);
+			else goto default_case;
+			break;
+		case 0xa904:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__rect_width_height_0104(val);
+			else goto default_case;
+			break;
+		case 0xad04:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__rect_width_height_0104(val);
+			else goto default_case;
+			break;
+		case 0xa508:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__rect_src_xy_0108(val);
+			else goto default_case;
+			break;
+		case 0xa908:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__rect_src_xy_0108(val);
+			else goto default_case;
+			break;
+		case 0xad08:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__rect_src_xy_0108(val);
+			else goto default_case;
+			break;
+		case 0xa50c:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__rect_dst_xy_010c(val);
+			else goto default_case;
+			break;
+		case 0xa90c:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__rect_dst_xy_010c(val);
+			else goto default_case;
+			break;
+		case 0xad0c:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__rect_dst_xy_010c(val);
+			else goto default_case;
+			break;
 		default:
+		default_case:
 			if(port <= 0x4000) {
 				//LOG_MSG("XGA: Wrote to port %4x with %08x, len %x", port, val, len);
 				xga.waitcmd.newline = false;
 				XGA_DrawWait(val, len);
 				
 			}
+			else if (port >= 0xA100 && port < 0xA1C0 && s3Card >= S3_ViRGE) {
+				/* color pattern registers */
+				const unsigned int i = (port-0xA100u)>>2u;
+				assert(i < 48);
+				xga.virge.colorpat.raw[i] = (uint32_t)val;
+			}
 			else LOG_MSG("XGA: Wrote to port %x with %x, len %x", (int)port, (int)val, (int)len);
 			break;
+	}
+
+	if (s3Card >= S3_ViRGE) {
+		switch (port&0xFC00) {
+			case 0xA400:
+				{
+					auto &rset = xga.virge.bitblt_validate_port(port);
+					if (rset.command_execute_on_register != 0 && rset.command_execute_on_register == (port&0x3FF))
+						XGA_ViRGE_BitBlt_Execute(false);
+				}
+				break;
+			case 0xA800:
+				{
+					auto &rset = xga.virge.line2d_validate_port(port);
+					if (rset.command_execute_on_register != 0 && rset.command_execute_on_register == (port&0x3FF))
+						XGA_ViRGE_Line2D_Execute(false);
+				}
+				break;
+			case 0xAC00:
+				{
+					auto &rset = xga.virge.poly2d_validate_port(port);
+					if (rset.command_execute_on_register != 0 && rset.command_execute_on_register == (port&0x3FF))
+						XGA_ViRGE_Poly2D_Execute();
+				}
+				break;
+		}
 	}
 }
 
@@ -1616,11 +2969,23 @@ void VGA_SetupXGA(void) {
 
 	memset(&xga, 0, sizeof(XGAStatus));
 
+	/* FIXME: ViRGE cards like 24bpp rather than 32bpp? Or is that just Windows driver laziness? Leave the option open for 32bpp ViRGE acceleration. */
+	if (s3Card >= S3_ViRGE && s3Card <= S3_ViRGEVX) {
+		xga.virge.truecolor_bypp = 3;
+		xga.virge.truecolor_mask = 0xFFFFFF;
+	}
+	else {
+		xga.virge.truecolor_bypp = 4;
+		xga.virge.truecolor_mask = 0xFFFFFFFF;
+	}
+
 	xga.scissors.y1 = 0;
 	xga.scissors.x1 = 0;
 	xga.scissors.y2 = 0xFFF;
 	xga.scissors.x2 = 0xFFF;
-	
+
+	if (svgaCard != SVGA_S3Trio) return;
+
 	IO_RegisterWriteHandler(0x42e8,&XGA_Write,IO_MB | IO_MW | IO_MD);
 	IO_RegisterReadHandler(0x42e8,&XGA_Read,IO_MB | IO_MW | IO_MD);
 

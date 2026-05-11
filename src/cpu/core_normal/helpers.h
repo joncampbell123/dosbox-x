@@ -16,9 +16,32 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/* Magic limit value that disables segment limit checks */
+/* 8086/80186/286 cores: Magic limit is 64KB - 1 */
+/* All other cores (386 and up): Magic limit is 4GB - 1 */
+#if CPU_CORE <= CPU_ARCHTYPE_286
+#define EANoSegmentLimitMagic 0xFFFFul
+#else
+#define EANoSegmentLimitMagic 0xFFFFFFFFul
+#endif
 
 #define GetEAa												\
-	PhysPt eaa=EALookupTable[rm]();					
+	PhysPt eaa=EALookupTable[rm]();									\
+	(void)eaa
+
+#define GetEAa8086												\
+	PhysPt eaa=EATable8086[rm]();									\
+	(void)eaa
+
+#define GetEAaNDEF											\
+	PhysPt eaa;											\
+	(void)eaa
+
+#define GetEAaN												\
+	eaa=EALookupTable[rm]();
+
+#define GetEAaN8086												\
+	eaa=EATable8086[rm]();
 
 #define GetRMEAa											\
 	GetRM;													\
@@ -132,12 +155,22 @@
 #define EAXId(inst)															\
 	{ inst(reg_eax,Fetchd(),LoadRd,SaveRd);}
 
+
 #define FPU_ESC(code) {														\
 	uint8_t rm=Fetchb();														\
 	if (rm >= 0xc0) {															\
 		FPU_ESC ## code ## _Normal(rm);										\
 	} else {																\
 		GetEAa;FPU_ESC ## code ## _EA(rm,eaa);								\
+	}																		\
+}
+
+#define FPU_ESC_SIZE(code, op16) {														\
+	uint8_t rm=Fetchb();														\
+	if (rm >= 0xc0) {															\
+		FPU_ESC ## code ## _Normal(rm);										\
+	} else {																\
+		GetEAa;FPU_ESC ## code ## _EA(rm,eaa,op16);								\
 	}																		\
 }
 

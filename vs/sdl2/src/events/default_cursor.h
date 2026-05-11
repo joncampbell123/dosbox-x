@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,7 @@
 #define DEFAULT_CHOTX   0
 #define DEFAULT_CHOTY   0
 
-/* Added a real MacOS cursor, at the request of Luc-Olivier de Charrière */
+/* Added a real MacOS cursor, at the request of Luc-Olivier de CharriÃ¨re */
 #define USE_MACOS_CURSOR
 
 #ifdef USE_MACOS_CURSOR
@@ -111,4 +111,5 @@ static const unsigned char default_cmask[] = {
 };
 
 #endif /* USE_MACOS_CURSOR */
+
 /* vi: set ts=4 sw=4 expandtab: */

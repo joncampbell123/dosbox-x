@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright 2002-2018 by
+# Copyright (C) 2002-2023 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -18,7 +18,7 @@ rm -f config.mk builds/unix/unix-def.mk builds/unix/unix-cc.mk
 # respect GNUMAKE environment variable for backward compatibility
 if test "x$GNUMAKE" = x; then
   if test "x$MAKE" = x; then
-    if test "x`make -v 2>/dev/null | egrep 'GNU|makepp'`" = x; then
+    if test "x`make -v 2>/dev/null | sed -n -e '/GNU/p' -e '/makepp/p'`" = x; then
       MAKE=gmake
     else
       MAKE=make
@@ -28,7 +28,7 @@ else
   MAKE=$GNUMAKE
 fi
 
-if test "x`$MAKE -v 2>/dev/null | egrep 'GNU|makepp'`" = x; then
+if test "x`$MAKE -v 2>/dev/null | sed -n -e '/GNU/p' -e '/makepp/p'`" = x; then
   echo "GNU make (>= 3.81) or makepp (>= 2.0) is required to build FreeType2." >&2
   echo "Please try" >&2
   echo >&2
@@ -93,9 +93,11 @@ fi
 inode_src=`ls -id $abs_ft2_dir | awk '{print $1}'`
 inode_dst=`ls -id $abs_curr_dir | awk '{print $1}'`
 
-if test $inode_src -ne $inode_dst; then
-  if test ! -d reference; then
-    mkdir reference
+if test $inode_src != $inode_dst; then
+  if test ! -d docs; then
+    mkdir docs
+    echo "Copying documentation assets"
+    cp -R $abs_ft2_dir/docs/markdown $abs_curr_dir/docs
   fi
   if test ! -r $abs_curr_dir/modules.cfg; then
     echo "Copying \`modules.cfg'"
@@ -105,7 +107,7 @@ if test $inode_src -ne $inode_dst; then
   echo "TOP_DIR        := $abs_ft2_dir"           > Makefile
   echo "OBJ_DIR        := $abs_curr_dir"         >> Makefile
   echo "OBJ_BUILD      := \$(OBJ_DIR)"           >> Makefile
-  echo "DOC_DIR        := \$(OBJ_DIR)/reference" >> Makefile
+  echo "DOC_DIR        := \$(OBJ_DIR)/docs"      >> Makefile
   echo "FT_LIBTOOL_DIR := \$(OBJ_DIR)"           >> Makefile
   echo "ifndef FT2DEMOS"                         >> Makefile
   echo "  include \$(TOP_DIR)/Makefile"          >> Makefile

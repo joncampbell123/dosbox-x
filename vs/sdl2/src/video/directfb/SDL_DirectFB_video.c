@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,13 +20,14 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_DIRECTFB
+#ifdef SDL_VIDEO_DRIVER_DIRECTFB
 
 /*
  * #include "SDL_DirectFB_keyboard.h"
  */
 #include "SDL_DirectFB_modes.h"
 #include "SDL_DirectFB_opengl.h"
+#include "SDL_DirectFB_vulkan.h"
 #include "SDL_DirectFB_window.h"
 #include "SDL_DirectFB_WM.h"
 
@@ -60,12 +61,12 @@
 static int DirectFB_VideoInit(_THIS);
 static void DirectFB_VideoQuit(_THIS);
 
-static int DirectFB_Available(void);
-static SDL_VideoDevice *DirectFB_CreateDevice(int devindex);
+static SDL_VideoDevice *DirectFB_CreateDevice(void);
 
 VideoBootStrap DirectFB_bootstrap = {
     "directfb", "DirectFB",
-    DirectFB_Available, DirectFB_CreateDevice
+    DirectFB_CreateDevice,
+    NULL /* no ShowMessageBox implementation */
 };
 
 static const DirectFBSurfaceDrawingFlagsNames(drawing_flags);
@@ -74,25 +75,14 @@ static const DirectFBAccelerationMaskNames(acceleration_mask);
 
 /* DirectFB driver bootstrap functions */
 
-static int
-DirectFB_Available(void)
-{
-    if (!SDL_DirectFB_LoadLibrary())
-        return 0;
-    SDL_DirectFB_UnLoadLibrary();
-    return 1;
-}
-
-static void
-DirectFB_DeleteDevice(SDL_VideoDevice * device)
+static void DirectFB_DeleteDevice(SDL_VideoDevice * device)
 {
     SDL_DirectFB_UnLoadLibrary();
     SDL_DFB_FREE(device->driverdata);
     SDL_DFB_FREE(device);
 }
 
-static SDL_VideoDevice *
-DirectFB_CreateDevice(int devindex)
+static SDL_VideoDevice *DirectFB_CreateDevice(void)
 {
     SDL_VideoDevice *device;
 
@@ -122,13 +112,14 @@ DirectFB_CreateDevice(int devindex)
     device->MaximizeWindow = DirectFB_MaximizeWindow;
     device->MinimizeWindow = DirectFB_MinimizeWindow;
     device->RestoreWindow = DirectFB_RestoreWindow;
-    device->SetWindowGrab = DirectFB_SetWindowGrab;
+    device->SetWindowMouseGrab = DirectFB_SetWindowMouseGrab;
+    device->SetWindowKeyboardGrab = DirectFB_SetWindowKeyboardGrab;
     device->DestroyWindow = DirectFB_DestroyWindow;
     device->GetWindowWMInfo = DirectFB_GetWindowWMInfo;
 
     /* !!! FIXME: implement SetWindowBordered */
 
-#if SDL_DIRECTFB_OPENGL
+#ifdef SDL_DIRECTFB_OPENGL
     device->GL_LoadLibrary = DirectFB_GL_LoadLibrary;
     device->GL_GetProcAddress = DirectFB_GL_GetProcAddress;
     device->GL_MakeCurrent = DirectFB_GL_MakeCurrent;
@@ -146,6 +137,13 @@ DirectFB_CreateDevice(int devindex)
     device->shape_driver.SetWindowShape = DirectFB_SetWindowShape;
     device->shape_driver.ResizeWindowShape = DirectFB_ResizeWindowShape;
 
+#ifdef SDL_VIDEO_VULKAN
+    device->Vulkan_LoadLibrary = DirectFB_Vulkan_LoadLibrary;
+    device->Vulkan_UnloadLibrary = DirectFB_Vulkan_UnloadLibrary;
+    device->Vulkan_GetInstanceExtensions = DirectFB_Vulkan_GetInstanceExtensions;
+    device->Vulkan_CreateSurface = DirectFB_Vulkan_CreateSurface;
+#endif
+
     device->free = DirectFB_DeleteDevice;
 
     return device;
@@ -155,8 +153,7 @@ DirectFB_CreateDevice(int devindex)
     return (0);
 }
 
-static void
-DirectFB_DeviceInformation(IDirectFB * dfb)
+static void DirectFB_DeviceInformation(IDirectFB * dfb)
 {
     DFBGraphicsDeviceDescription desc;
     int n;
@@ -202,13 +199,12 @@ static int readBoolEnv(const char *env_name, int def_val)
 
     stemp = SDL_getenv(env_name);
     if (stemp)
-        return atoi(stemp);
+        return SDL_atoi(stemp);
     else
         return def_val;
 }
 
-static int
-DirectFB_VideoInit(_THIS)
+static int DirectFB_VideoInit(_THIS)
 {
     IDirectFB *dfb = NULL;
     DFB_DeviceData *devdata = NULL;
@@ -262,13 +258,12 @@ DirectFB_VideoInit(_THIS)
 
     devdata->dfb = dfb;
     devdata->firstwin = NULL;
-    devdata->grabbed_window = NULL;
 
     _this->driverdata = devdata;
 
     DirectFB_InitModes(_this);
 
-#if SDL_DIRECTFB_OPENGL
+#ifdef SDL_DIRECTFB_OPENGL
     DirectFB_GL_Initialize(_this);
 #endif
 
@@ -284,8 +279,7 @@ DirectFB_VideoInit(_THIS)
     return -1;
 }
 
-static void
-DirectFB_VideoQuit(_THIS)
+static void DirectFB_VideoQuit(_THIS)
 {
     DFB_DeviceData *devdata = (DFB_DeviceData *) _this->driverdata;
 
@@ -297,7 +291,7 @@ DirectFB_VideoQuit(_THIS)
     SDL_DFB_RELEASE(devdata->events);
     SDL_DFB_RELEASE(devdata->dfb);
 
-#if SDL_DIRECTFB_OPENGL
+#ifdef SDL_DIRECTFB_OPENGL
     DirectFB_GL_Shutdown(_this);
 #endif
 
@@ -324,7 +318,9 @@ static const struct {
     { DSPF_YUY2, SDL_PIXELFORMAT_YUY2 },                /* 16 bit YUV (4 byte/ 2 pixel, macropixel contains CbYCrY [31:0]) */
     { DSPF_UYVY, SDL_PIXELFORMAT_UYVY },                /* 16 bit YUV (4 byte/ 2 pixel, macropixel contains YCbYCr [31:0]) */
     { DSPF_RGB555, SDL_PIXELFORMAT_RGB555 },            /* 16 bit RGB (2 byte, nothing @15, red 5@10, green 5@5, blue 5@0) */
+#if (DFB_VERSION_ATLEAST(1,5,0))
     { DSPF_ABGR, SDL_PIXELFORMAT_ABGR8888 },            /* 32 bit ABGR (4  byte, alpha 8@24, blue 8@16, green 8@8, red 8@0) */
+#endif
 #if (ENABLE_LUT8)
     { DSPF_LUT8, SDL_PIXELFORMAT_INDEX8 },              /* 8 bit LUT (8 bit color and alpha lookup from palette) */
 #endif
@@ -379,8 +375,7 @@ static const struct {
     { DSPF_UNKNOWN, SDL_PIXELFORMAT_YVYU },                        /**< Packed mode: Y0+V0+Y1+U0 (1 pla */
 };
 
-Uint32
-DirectFB_DFBToSDLPixelFormat(DFBSurfacePixelFormat pixelformat)
+Uint32 DirectFB_DFBToSDLPixelFormat(DFBSurfacePixelFormat pixelformat)
 {
     int i;
 
@@ -392,8 +387,7 @@ DirectFB_DFBToSDLPixelFormat(DFBSurfacePixelFormat pixelformat)
     return SDL_PIXELFORMAT_UNKNOWN;
 }
 
-DFBSurfacePixelFormat
-DirectFB_SDLToDFBPixelFormat(Uint32 format)
+DFBSurfacePixelFormat DirectFB_SDLToDFBPixelFormat(Uint32 format)
 {
     int i;
 

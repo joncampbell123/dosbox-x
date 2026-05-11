@@ -20,7 +20,37 @@
 #ifndef DOSBOX_DOSBOX_H
 #define DOSBOX_DOSBOX_H
 
+#if !defined (WIN32)
+/* for mkdir_p, needed by emscripten */
+#include <sys/stat.h>
+#endif
+#include <algorithm>
+#include <functional>
+#include <map>
+#include <sstream>
+#include <vector>
+
+#include "clockdomain.h"
 #include "config.h"
+
+/* HACK: To make SDL3 porting easier, define SDL2 to prevent SDL1 code from compiling */
+#if defined(C_SDL3) && !defined(C_SDL2)
+# define C_SDL2 1
+#endif
+
+/* allow for OS-free builds where the MS-DOS emulation is disabled and
+ * you have to provide your own boot disks to run MS-DOS or whatever you like. */
+#ifdef C_OSFREE
+# define OSFREE 1
+#endif
+
+#if defined(OS2) && defined(C_SDL2)
+#undef VERSION
+#endif
+
+#if defined(C_HAVE_LINUX_KVM) && (C_TARGETCPU == X86 || C_TARGETCPU == X86_64)
+# define C_HAVE_LINUX_KVM_X86
+#endif
 
 #if defined(C_ICONV)
 /* good */
@@ -71,19 +101,18 @@
 // TODO: The autoconf script should test the size of long double
 #if defined(_MSC_VER)
 // Microsoft C++ sizeof(long double) == sizeof(double)
-#elif defined(__arm__)
+#elif defined(__arm__) || defined(__aarch64__)
 // ARMv7 (Raspberry Pi) does not have long double, sizeof(long double) == sizeof(double)
+// ARM 64 has a quadruple-precision float instead of the 80-bit extended precision one used by x87
 #else
 // GCC, other compilers, have sizeof(long double) == 10 80-bit IEEE
-# define HAS_LONG_DOUBLE		1
+#define HAS_LONG_DOUBLE		1
 #endif
 
 GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * format,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
 
 typedef Bits cpu_cycles_count_t;
 typedef Bitu cpu_cycles_countu_t;
-
-#include "clockdomain.h"
 
 class Config;
 class Section;
@@ -110,12 +139,20 @@ enum MachineType {
     MCH_MDA
 };
 
+enum HerculesCard {
+	HERC_GraphicsCard,
+	HERC_GraphicsCardPlus,
+	HERC_InColor
+};
+
 enum SVGACards {
 	SVGA_None,
 	SVGA_S3Trio,
 	SVGA_TsengET4K,
 	SVGA_TsengET3K,
-	SVGA_ParadisePVGA1A
+	SVGA_ParadisePVGA1A,
+	SVGA_ATI,
+	SVGA_DOSBoxIG                // special "integrated graphics" emulator accelerated card
 };
 
 enum S3Card {
@@ -123,6 +160,8 @@ enum S3Card {
     S3_86C928,                       // 86C928 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%2086C928%20GUI%20Accelerator%20%281992%2d09%29%2epdf]
     S3_Vision864,                    // Vision864 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision864%20Graphics%20Accelerator%20%281994%2d10%29%2epdf]
     S3_Vision868,                    // Vision868 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision868%20Multimedia%20Accelerator%20%281995%2d04%29%2epdf]
+    S3_Vision964,                    // Vision964 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision964%20Graphics%20Accelerator%20%281995%2d01%29%2epdf]
+    S3_Vision968,                    // Vision968 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Vision968%20Multimedia%20Accelerator%20%281995%2d04%29%2epdf]
     S3_Trio32,                       // Trio32 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]
     S3_Trio64,                       // Trio64 [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]
     S3_Trio64V,                      // Trio64V+ [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio64V%2b%20Integrated%20Graphics%20and%20Video%20Accelerator%20%281995%2d07%29%2epdf]
@@ -133,11 +172,24 @@ enum S3Card {
     S3_ViRGEVX                       // ViRGE VX [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%E2%88%95VX%20Integrated%203D%20Accelerator%20(1996-06).pdf]
 };
 
+enum ATICard {
+	ATI_EGAVGAWonder,            // ATI 18800 EGA/VGA Wonder
+	ATI_VGAWonder,               // ATI 28800-1 VGA Wonder
+	ATI_VGAWonderPlus,           // ATI 28800-2 VGA Wonder+
+	ATI_VGAWonderXL,             // ATI 28800-4 VGA WonderXL
+	ATI_VGAWonderXL24,           // ATI 28800-6 VGA Wonder
+	ATI_Mach8,                   // ATI 38800-1
+	ATI_Mach32,                  // ATI 68800-3
+	ATI_Mach64                   // ATI 88800GX
+};
+
 typedef Bitu				(LoopHandler)(void);
 
 extern Config*				control;
 extern SVGACards			svgaCard;
+extern ATICard				atiCard;
 extern S3Card				s3Card;
+extern HerculesCard			hercCard;
 extern MachineType			machine;
 extern bool             SDLNetInited, uselfn;
 extern bool				mono_cga;
@@ -149,8 +201,9 @@ extern bool				sse2_available;
 extern bool				avx2_available;
 #endif
 
-void					MSG_Add(const char*,const char*); //add messages to the internal languagefile
-const char*				MSG_Get(char const *);     //get messages from the internal languagefile
+void                    MSG_Add(const char*,const char*);      // Add messages to the internal languagefile
+const char*             MSG_Get(char const *);                 // Get messages from the internal languagefile
+std::string             formatString(const char* format, ...); // Generates a formatted string using a format specifier and variable arguments.
 
 void					DOSBOX_RunMachine();
 void					DOSBOX_SetLoop(LoopHandler * handler);
@@ -200,36 +253,37 @@ enum {
 
 extern uint32_t guest_msdos_LoL;
 extern uint16_t guest_msdos_mcb_chain;
+extern uint32_t guest_msdos_dev_chain;
 extern int boothax;
 
 /* C++11 user-defined literal, to help with byte units */
 typedef unsigned long long bytecount_t;
 
-static inline constexpr bytecount_t operator "" _bytes(const bytecount_t x) {
+static inline constexpr bytecount_t operator""_bytes(const bytecount_t x) {
     return x;
 }
 
-static inline constexpr bytecount_t operator "" _parabytes(const bytecount_t x) { /* AKA bytes per segment increment in real mode */
+static inline constexpr bytecount_t operator""_parabytes(const bytecount_t x) { /* AKA bytes per segment increment in real mode */
     return x << bytecount_t(4u);
 }
 
-static inline constexpr bytecount_t operator "" _kibibytes(const bytecount_t x) {
+static inline constexpr bytecount_t operator""_kibibytes(const bytecount_t x) {
     return x << bytecount_t(10u);
 }
 
-static inline constexpr bytecount_t operator "" _pagebytes(const bytecount_t x) { /* bytes per 4KB page in protected mode */
+static inline constexpr bytecount_t operator""_pagebytes(const bytecount_t x) { /* bytes per 4KB page in protected mode */
     return x << bytecount_t(12u);
 }
 
-static inline constexpr bytecount_t operator "" _mibibytes(const bytecount_t x) {
+static inline constexpr bytecount_t operator""_mibibytes(const bytecount_t x) {
     return x << bytecount_t(20u);
 }
 
-static inline constexpr bytecount_t operator "" _gibibytes(const bytecount_t x) {
+static inline constexpr bytecount_t operator""_gibibytes(const bytecount_t x) {
     return x << bytecount_t(30u);
 }
 
-static inline constexpr bytecount_t operator "" _tebibytes(const bytecount_t x) {
+static inline constexpr bytecount_t operator""_tebibytes(const bytecount_t x) {
     return x << bytecount_t(40u);
 }
 
@@ -263,17 +317,22 @@ static inline constexpr bytecount_t _tebibytes(const bytecount_t x) {
     return x << bytecount_t(40u);
 }
 
+enum {
+	PREVCAP_NONE=0,
+	PREVCAP_BLANK,
+	PREVCAP_INVISIBLE
+};
+
+extern unsigned int preventcap;
+
+bool CheckPreventCap(void);
+void ApplyPreventCap(void);
+void ApplyPreventCapMenu(void);
+
 #endif /* DOSBOX_DOSBOX_H */
 
 #ifndef SAVE_STATE_H_INCLUDED
 #define SAVE_STATE_H_INCLUDED
-
-#include <sstream>
-#include <map>
-#include <algorithm>
-#include <functional>
-#include <vector>
-
 
 #define WRITE_POD(x,y) \
 	stream.write(reinterpret_cast<const char*>( (x) ), sizeof( (y) ) );
@@ -306,6 +365,7 @@ public:
     //initialization: register relevant components on program startup
     struct Component
     {
+        virtual ~Component() noexcept = default;
         virtual void getBytes(std::ostream& stream) = 0;
         virtual void setBytes(std::istream& stream) = 0;
     };
@@ -317,25 +377,10 @@ private:
     SaveState(const SaveState&);
     SaveState& operator=(const SaveState&);
 
-    class RawBytes
-    {
-    public:
-        RawBytes() : dataExists(false), isCompressed(false) {}
-        void set(const std::string& stream);
-        std::string get() const; //throw (Error)
-        void compress() const;   //throw (Error)
-        bool dataAvailable() const;
-    private:
-        bool dataExists; //determine whether set method (even with empty string) was called
-        mutable bool isCompressed; //design for logical not binary const
-        mutable std::string bytes; //
-    };
-
     struct CompData
     {
-        CompData(Component& cmp) : comp(cmp), rawBytes(MAX_PAGE*SLOT_COUNT) {}
+        CompData(Component& cmp) : comp(cmp) {}
         Component& comp;
-        std::vector<RawBytes> rawBytes;
     };
 
     typedef std::map<std::string, CompData> CompEntry;
@@ -364,21 +409,22 @@ public:
     }
 
     template <class T>
-    void registerPOD(T& pod) //register POD for serializatioin
+    void registerPOD(T& pod) //register POD for serialization
     {
         podRef.push_back(POD(pod));
     }
 
 protected:
-    virtual void getBytes(std::ostream& stream)
+    void getBytes(std::ostream& stream) override
     {
-        std::for_each(podRef.begin(), podRef.end(), std::bind1st(WriteGlobalPOD(), &stream));
+        for (auto& x : podRef) { WriteGlobalPOD(stream, x); }
     }
 
-    virtual void setBytes(std::istream& stream)
+    void setBytes(std::istream& stream) override
     {
-        std::for_each(podRef.begin(), podRef.end(), std::bind1st(ReadGlobalPOD(), &stream));
+        for (auto& x : podRef) { ReadGlobalPOD(stream, x); }
     }
+
 
 private:
     struct POD
@@ -389,21 +435,15 @@ private:
         size_t size;
     };
 
-    struct WriteGlobalPOD : public std::binary_function<std::ostream*, POD, void>
+    static inline void WriteGlobalPOD(std::ostream& stream, const POD& data)
     {
-        void operator()(std::ostream* stream, const POD& data) const
-        {
-            stream->write(static_cast<const char*>(data.address), data.size);
-        }
-    };
+        stream.write(static_cast<const char*>(data.address), data.size);
+    }
 
-    struct ReadGlobalPOD : public std::binary_function<std::istream*, POD, void>
+    static inline void ReadGlobalPOD(std::istream& stream, POD& data)
     {
-        void operator()(std::istream* stream, const POD& data) const
-        {
-            stream->read(static_cast<char*>(data.address), data.size);
-        }
-    };
+        stream.read(static_cast<char*>(data.address), data.size);
+    }
 
     std::vector<POD> podRef;
 };
@@ -443,3 +483,16 @@ void readString(std::istream& stream, std::string& data)
     stream.read(&data[0], stringSize * sizeof(std::string::value_type));
 }
 #endif //SAVE_STATE_H_INCLUDED
+
+#if defined (WIN32)
+int _wmkdir_p(const wchar_t *pathname);
+#else
+int mkdir_p(const char *pathname, mode_t mode);
+#endif
+
+#if defined(C_HAVE_DUKTAPE)
+# include "duktape.h"
+
+extern duk_context *js_heap;
+#endif
+

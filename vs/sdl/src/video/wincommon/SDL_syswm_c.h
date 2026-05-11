@@ -32,7 +32,7 @@ extern void WIN_SetWMCaption(_THIS, const char *title, const char *icon);
 extern int WIN_IconifyWindow(_THIS);
 extern SDL_GrabMode WIN_GrabInput(_THIS, SDL_GrabMode mode);
 extern int WIN_GetWMInfo(_THIS, SDL_SysWMinfo *info);
-#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(SDL_WIN32_HX_DOS)
 /* Functions to IM */
 extern int WIN_GetIMInfo(_THIS, SDL_SysIMinfo *info);
 #endif

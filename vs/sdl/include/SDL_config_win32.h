@@ -175,9 +175,13 @@ typedef unsigned int uintptr_t;
 #define SDL_VIDEO_DRIVER_WINDIB	1
 
 /* Enable OpenGL support */
-#ifndef _WIN32_WCE
-#define SDL_VIDEO_OPENGL	1
-#define SDL_VIDEO_OPENGL_WGL	1
+#if defined(__WIN32__) && (defined(__arm__) || defined(__arm64__) || defined(_M_ARM) || defined(_M_ARM64))
+/* no */
+#else
+# ifndef _WIN32_WCE
+#  define SDL_VIDEO_OPENGL	1
+#  define SDL_VIDEO_OPENGL_WGL	1
+# endif
 #endif
 
 /* Disable screensaver */

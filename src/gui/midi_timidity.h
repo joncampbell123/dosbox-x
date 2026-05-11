@@ -14,13 +14,16 @@
  *      entirely and remove the #include and it would have no effect on
  *      DOSBox-X. --J.C. */
 
-#ifdef C_SDL_NET
+#if (defined(C_SDL_NET) && C_SDL_NET) || (defined(C_SDL2_NET) && C_SDL2_NET)
 //#ifdef C_TIMIDITY
 
 #include "logging.h"
 #include "SDL.h"
+#if defined(C_SDL2_NET) && C_SDL2_NET
+#include <SDL2/SDL_net.h>
+#else
 #include "SDL_net.h"
-
+#endif
 #define SEQ_MIDIPUTC 5
 
 #define TIMIDITY_LOW_DELAY
@@ -235,7 +238,7 @@ int MidiHandler_timidity::timidity_ctl_command(char * buff, const char *fmt, ...
 	va_list ap;
 
 	if (fmt != NULL) {
-		/* if argumends are present, write them to control connection */
+		/* if arguments are present, write them to control connection */
 		va_start(ap, fmt);
 		len = vsnprintf(buff, BUFSIZ-1, fmt, ap); /* leave one byte for \n */
 		va_end(ap);

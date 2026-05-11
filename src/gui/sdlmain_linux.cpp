@@ -16,6 +16,35 @@
 # if C_X11_EXT_XKBRULES
 #  include <X11/extensions/XKBrules.h>
 # endif
+
+/* X11 Error handler.
+ * Apparently it is possible with SDL2 to resize the window in such a way that
+ * SDL2 doesn't yet pick up on it, and then SDL2 blits too much to the window
+ * and causes an X11 BadValue error. This is very unlikely but the more the
+ * window resizes, or is resized by the user, the more likely it can occur.
+ *
+ * This can happen at any time. */
+int X11_ErrorHandler(Display *disp,XErrorEvent *xev) {
+	char errmsg[512];
+
+	errmsg[0] = 0;
+	XGetErrorText(disp,xev->error_code,errmsg,sizeof(errmsg));
+
+	fprintf(stderr,"WARNING: X11 error event: '%s'\n",errmsg);
+	fprintf(stderr,"type=%u resid=%lxh serial=%lxh error_code=%lu request_code=%lu minor_code=%lu\n",
+		(unsigned int)xev->type,
+		(unsigned long)xev->resourceid,
+		(unsigned long)xev->serial,
+		(unsigned long)xev->error_code,
+		(unsigned long)xev->request_code,
+		(unsigned long)xev->minor_code);
+
+	return 0; // ignored anyway
+}
+
+void X11_ErrorHandlerInstall(void) {
+	XSetErrorHandler(X11_ErrorHandler);
+}
 #endif
 
 void UpdateWindowDimensions(Bitu width, Bitu height);
@@ -211,7 +240,7 @@ void Linux_JPXKBFix(void) {
 }
 
 unsigned int Linux_GetKeyboardLayout(void) {
-    unsigned int ret = DKM_US;
+    unsigned int ret = DKM_NON_US; // a non-US keyboard
 
     SDL_SysWMinfo wminfo;
     memset(&wminfo,0,sizeof(wminfo));
@@ -225,7 +254,7 @@ unsigned int Linux_GetKeyboardLayout(void) {
 #  if C_X11_XKB
 #   if C_X11_EXT_XKBRULES
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
-            XkbRF_VarDefsRec vd = {0};
+            XkbRF_VarDefsRec vd = { nullptr };
             XkbStateRec state = {0};
 
             XkbGetState(wminfo.info.x11.display, XkbUseCoreKbd, &state);
@@ -449,7 +478,20 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
     attr.x = x - attr.x;
     attr.y = y - attr.y;
 
-    if ((xr_screen=XRRGetScreenResources(display, DefaultRootWindow(display))) != NULL) {
+    xr_screen = XRRGetScreenResourcesCurrent(display, DefaultRootWindow(display));
+
+    if (xr_screen != NULL && xr_screen->noutput == 0)
+    {
+        XRRFreeScreenResources(xr_screen);
+        xr_screen = NULL;
+    }
+
+    if (xr_screen == NULL)
+    {
+        xr_screen = XRRGetScreenResources(display, DefaultRootWindow(display));
+    }
+
+    if (xr_screen != NULL) {
         /* Look for a valid CRTC, don't assume the first is valid (as the StackOverflow example does) */
         for (int c=0;c < xr_screen->ncrtc;c++) {
             XRRCrtcInfo *chk = XRRGetCrtcInfo(display, xr_screen, xr_screen->crtcs[c]);

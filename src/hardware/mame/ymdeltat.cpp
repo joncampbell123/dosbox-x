@@ -18,7 +18,7 @@
 **  - fixed BRDY flag implementation.
 **
 ** 24-07-2003 Jarek Burczynski, Frits Hilderink:
-**  - fixed delault value for control2 in YM_DELTAT_ADPCM_Reset
+**  - fixed default value for control2 in YM_DELTAT_ADPCM_Reset
 **
 ** 22-07-2003 Jarek Burczynski, Frits Hilderink:
 **  - fixed external memory support
@@ -222,7 +222,7 @@ value:   START, REC, MEMDAT, REPEAT, SPOFF, x,x,RESET   meaning:
 		if (portstate & 0x20) /* do we access external memory? */
 		{
 			now_addr = start << 1;
-			memread = 2;    /* two dummy reads needed before accesing external memory via register $08*/
+			memread = 2;    /* two dummy reads needed before accessing external memory via register $08*/
 
 			/* if yes, then let's check if ADPCM memory is mapped and big enough */
 			if (!memory)

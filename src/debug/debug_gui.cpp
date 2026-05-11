@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <errno.h>
 #include <fstream>
@@ -55,7 +56,7 @@ bool logBuffSuppressConsoleNeedUpdate = false;
 int debuggerrun = 0;
 int log_dev_con = 0;
 
-_LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
+_LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{nullptr,LOG_NORMAL}};
 FILE* debuglog = NULL;
 
 #if C_DEBUG
@@ -256,7 +257,7 @@ void DBGUI_DrawDebugOutputLine(int y,std::string line) {
 
     /* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
     wattrset(dbg.win_out,0);
-    mvwprintw(dbg.win_out, y, 0, const_cast<char*>(line.c_str()));
+    mvwprintw(dbg.win_out, y, 0, "%s", const_cast<char*>(line.c_str()));
 
     if (ellipsisEnd) {
         wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
@@ -588,14 +589,25 @@ void DEBUG_FlushInput(void) {
 
 void DBGUI_StartUp(void) {
 	mainMenu.get_item("show_console").check(true).enable(false).refresh_item(mainMenu);
+	mainMenu.get_item("clear_console").check(false).enable(false).refresh_item(mainMenu);
 
 	LOG(LOG_MISC,LOG_DEBUG)("DEBUG GUI startup");
 	/* Start the main window */
-	dbg.win_main=initscr();
 
 #ifdef WIN32
-    /* Tell Windows 10 we DONT want a thin tall console window that fills the screen top to bottom.
-       It's a nuisance especially when the user attempts to move the windwo up to the top to see
+    if(!AttachConsole(ATTACH_PARENT_PROCESS)) { // Make sure console window is opened
+        AllocConsole();
+    }
+    freopen("CONIN$", "r", stdin);
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+#endif
+
+    dbg.win_main=initscr();
+
+#ifdef WIN32
+    /* Tell Windows 10 we DON'T want a thin tall console window that fills the screen top to bottom.
+       It's a nuisance especially when the user attempts to move the window up to the top to see
        the status, only for Windows to auto-maximize. 30 lines is enough, thanks. */
     {
         if (dbg.win_main) {
@@ -666,7 +678,23 @@ void DEBUG_ShowMsg(char const* format,...) {
 	va_list msg;
 	size_t len;
 
-    if (format==NULL || (log_dev_con == 2 && !logging_con) || control->opt_test) return;
+	/* SDLmain() sets control first thing at startup and zeros the pointer at shutdown.
+	 * control == NULL means we're being called outside SDLmain() when everything has
+	 * likely been shut down around us. Don't do it. */
+	if (control == NULL) {
+		fprintf(stderr,"BUG: DEBUG_ShowMsg() called before or after main() with nothing fully initialized.\n");
+		fprintf(stderr,"  Message was: ");
+		{
+			va_list va;
+			va_start(va,format);
+			vfprintf(stderr,format,va);
+			va_end(va);
+		}
+		fprintf(stderr,"\n");
+		return;
+	}
+
+    if (format==NULL || (log_dev_con == 2 && !logging_con) || control->opt_nolog) return;
     in_debug_showmsg = true;
 
     // in case of runaway error from the CPU core, user responsiveness can be helpful
@@ -881,7 +909,11 @@ void LOG::Init() {
 	}
 	else {
 		LOG_MSG("Logging: No logfile was given. All further logging will be discarded.");
-		debuglog=0;
+		debuglog=nullptr;
+	}
+	if (control->opt_nolog && !control->opt_test) {
+		// If the user says no log, that means NO LOGGING AT ALL. [https://github.com/joncampbell123/dosbox-x/issues/4405]
+		control->opt_nolog = true;
 	}
 
 	const char* debugstr = sect->Get_string("debuggerrun");
@@ -978,7 +1010,7 @@ void LOG::SetupConfigSection(void) {
 		"fatal",
 		"never",		/* <- this means NEVER EVER log anything */
 
-		0};
+		nullptr};
 
 	/* Register the log section */
 	Section_prop * sect=control->AddSection_prop("log",Null_Init);
@@ -1004,7 +1036,7 @@ void LOG::SetupConfigSection(void) {
     Pbool = sect->Add_bool("fileio",Property::Changeable::Always,false);
     Pbool->Set_help("Log file I/O through INT 21h");
 
-	const char* debuggerrunopt[] = { "debugger", "normal", "watch", 0};
+	const char* debuggerrunopt[] = { "debugger", "normal", "watch", nullptr };
 	Pstring = sect->Add_string("debuggerrun",Property::Changeable::OnlyAtStart,"debugger");
 	Pstring->Set_help("The run mode when the DOSBox-X Debugger starts.");
 	Pstring->Set_values(debuggerrunopt);

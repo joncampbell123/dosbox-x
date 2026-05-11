@@ -24,8 +24,10 @@
 #include "inout.h"
 #include "mem.h"
 
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
 extern unsigned int vbe_window_granularity;
-extern unsigned int vbe_window_size;
 
 typedef struct SVGA_PVGA1A_DATA_t {
 	Bitu PR0A;
@@ -57,12 +59,7 @@ static void bank_setup_pvga1a() {
 	} else {
 		// Single bank config is straightforward
 		vga.svga.bank_read = vga.svga.bank_write = (uint8_t)pvga1a.PR0A;
-
-		if (vbe_window_granularity > 0)
-			vga.svga.bank_size = vbe_window_granularity; /* allow different sizes for dev testing */
-		else
-			vga.svga.bank_size = 4*1024;
-
+		vga.svga.bank_size = vbe_window_granularity; /* allow different sizes for dev testing */
 		VGA_SetupHandlers();
 	}
 }
@@ -189,8 +186,6 @@ void DetermineMode_PVGA1A() {
 	// merge them.
 	if (vga.attr.mode_control & 1) {
 		if (vga.gfx.mode & 0x40) VGA_SetMode((pvga1a.biosMode<=0x13)?M_VGA:M_LIN8);
-		else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
-		else if ((vga.gfx.miscellaneous & 0x0c)==0x0c) VGA_SetMode(M_CGA2);
 		else VGA_SetMode((pvga1a.biosMode<=0x13)?M_EGA:M_LIN4);
 	} else {
 		VGA_SetMode(M_TEXT);
@@ -215,6 +210,9 @@ bool AcceptsMode_PVGA1A(Bitu mode) {
 void SVGA_Setup_ParadisePVGA1A(void) {
 	svga.write_p3cf = &write_p3cf_pvga1a;
 	svga.read_p3cf = &read_p3cf_pvga1a;
+
+	vga.max_svga_width = 2048; // GUESS
+	vga.max_svga_height = 1024;
 
 	svga.set_video_mode = &FinishSetMode_PVGA1A;
 	svga.determine_mode = &DetermineMode_PVGA1A;

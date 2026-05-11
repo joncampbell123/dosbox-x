@@ -43,12 +43,14 @@ char *rtrim(char *str);
 char *trim(char * str);
 char * upcase(char * str);
 char * lowcase(char * str);
+std::vector<std::string> split(const std::string& str, char split_char);
 char * StripArg(char *&cmd);
 bool ScanCMDBool(char * cmd,char const * const check);
 char * ScanCMDRemain(char * cmd);
 char * StripWord(char *&line);
 Bits ConvDecWord(char * word);
 Bits ConvHexWord(char * word);
+bool check_last_split_char(const char *name, size_t len, char split);
 
 enum {
 	UTF8ERR_INVALID=-1,

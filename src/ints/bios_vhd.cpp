@@ -1,6 +1,6 @@
 /*
 *
-*  Copyright (c) 2018 Shane Krueger
+*  Copyright (c) 2018 Shane Krueger. Fixes and upgrades (c) 2023-26 maxpat78.
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -18,7 +18,11 @@
 */
 
 #include <assert.h>
-
+#include <stdlib.h>
+#include <time.h>
+#if defined(__linux__)
+#include <linux/limits.h>
+#endif
 #include "dosbox.h"
 #include "callback.h"
 #include "bios.h"
@@ -30,6 +34,15 @@
 #include "mapper.h"
 #include "SDL.h"
 
+extern bool int13_enable_48bitLBA;
+
+#if defined(__linux__) && !defined(__GLIBC__)
+// msul libc does not need 64 suffix to work with files > 2 GiB 
+#define fopen64 fopen
+#define fseeko64 fseeko
+#define ftello64 ftello
+#endif
+
 /*
 * imageDiskVHD supports fixed, dynamic, and differential VHD file formats
 *
@@ -37,7 +50,6 @@
 *
 * Notes:
 * - create instance using Open()
-* - code assumes that c/h/s values stored within VHD file are accurate, and does not scan the MBR
 * - VHDs with 511 byte footers are not yet supported
 * - VHDX files are not supported
 * - checksum values are verified; and the backup header is used if the footer cannot be found or has an invalid checksum
@@ -49,11 +61,68 @@
 *
 */
 
-imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool readOnly, imageDisk** disk) {
-	return Open(fileName, readOnly, disk, 0);
+// returns the path of "base" in a form relative to "child"
+char* calc_relative_path(const char* base, const char* child) {
+#ifndef WIN32
+    char abs_base[PATH_MAX];
+    char abs_child[PATH_MAX];
+#else
+    char abs_base[MAX_PATH];
+    char abs_child[MAX_PATH];
+#endif
+    char * p = abs_base, * q = abs_child, * r = abs_base, * x, * y, * z;
+    uint32_t n = 0;
+
+    if(!base || !child) return 0;
+
+    // retrieves the corresponding absolute paths
+#ifndef WIN32
+    realpath(base, abs_base);
+    realpath(child, abs_child);
+#else
+    _fullpath(abs_base, base, MAX_PATH);
+    _fullpath(abs_child, child, MAX_PATH);
+#endif
+    if(!*abs_base || !*abs_child) return 0;
+
+    // strips common subpath, if any, and records last base slash
+    while (*p == *q) {
+        if (*p == '/' || *p == '\\') r = p;
+        p++; q++;
+    }
+    // ensures p always points to last path component
+    if (p - r > 1) p = r + 1;
+    // returns base if they don't share anything
+    if (!strcmp(p, abs_base)) return strdup(base);
+    x = q;
+    // counts slashes
+    while(*x) {
+        if(*x == '/' || *x == '\\') n++;
+        x++;
+    }
+    // allocates space for the resulting string and premits any needed ".\" or "..\"
+    if (n == 0) {
+        z = y = (char *)malloc(strlen(p) + 2 + 1);
+        strcpy(z, ".\\");
+        z += 2;
+    } else {
+        z = y = (char*)malloc(strlen(p) + n * 3 + 1); // n * strlen("..\\")
+        while(n--) {
+            strcpy(z, "..\\");
+            z += 3;
+        }
+    }
+    // finally adds base relative pathname
+    strcpy(z, p);
+    LOG_MSG("%s is base %s relative to child %s", y, base, child);
+    return y;
 }
 
-FILE * fopen_lock(const char * fname, const char * mode);
+imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool readOnly, imageDisk** disk) {
+	return Open(fileName, readOnly, disk, nullptr);
+}
+
+FILE * fopen_lock(const char * fname, const char * mode, bool &readonly);
 imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool readOnly, imageDisk** disk, const uint8_t* matchUniqueId) {
 	//validate input parameters
 	if (fileName == NULL) return ERROR_OPENING;
@@ -62,7 +131,8 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	assert(sizeof(VHDFooter) == 512);
 	assert(sizeof(DynamicHeader) == 1024);
 	//open file and clear C++ buffering
-	FILE* file = fopen_lock(fileName, readOnly ? "rb" : "rb+");
+	bool roflag = readOnly;
+	FILE* file = fopen_lock(fileName, readOnly ? "rb" : "rb+", roflag);
 	if (!file) return ERROR_OPENING;
 	setbuf(file, NULL);
 	//check that length of file is > 512 bytes
@@ -91,36 +161,49 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	}
 	//check that uniqueId matches
 	if (matchUniqueId && memcmp(matchUniqueId, footer.uniqueId, 16)) { fclose(file); return INVALID_MATCH; }
-	//calculate disk size
-	uint64_t calcDiskSize = (uint64_t)footer.geometry.cylinders * (uint64_t)footer.geometry.heads * (uint64_t)footer.geometry.sectors * (uint64_t)512;
-	if (!calcDiskSize) { fclose(file); return INVALID_DATA; }
-	//if fixed image, return plain imageDisk rather than imageDiskVFD
+
+    //set up imageDiskVHD here
+    imageDiskVHD* vhd = new imageDiskVHD();
+    vhd->footerPosition = footerPosition;
+    vhd->footer = footer;
+    vhd->vhdType = footer.diskType;
+    vhd->originalFooter = originalfooter;
+    vhd->cylinders = footer.geometry.cylinders; // temporary geometry
+    vhd->heads = footer.geometry.heads;
+    vhd->sectors = footer.geometry.sectors;
+    vhd->sector_size = 512;
+    vhd->diskSizeK = footer.currentSize / 1024;
+    vhd->image_length = footer.currentSize;
+    vhd->diskimg = file;
+    vhd->diskname = fileName;
+    vhd->hardDrive = true;
+    vhd->active = true; 
+    //use delete vhd from now on to release the disk image upon failure
+
+    //if fixed image, store a plain imageDisk also
 	if (footer.diskType == VHD_TYPE_FIXED) {
 		//make sure that the image size is at least as big as the geometry
-		if (calcDiskSize > footerPosition) {
+		if (footer.currentSize > footerPosition) {
 			fclose(file);
 			return INVALID_DATA;
 		}
-		*disk = new imageDisk(file, fileName, footer.geometry.cylinders, footer.geometry.heads, footer.geometry.sectors, 512, true);
-		return OPEN_SUCCESS;
+        Bitu sizes[4];
+        uint8_t buf[512];
+        if(fseeko64(file, 0, SEEK_SET)) { fclose(file); return INVALID_DATA; }
+        if(fread(&buf, sizeof(uint8_t), 512, file) != 512) { fclose(file); return INVALID_DATA; }
+        //detect real DOS geometry (MBR, BPB or default X-255-63)
+        uint64_t lba = imageDiskVHD::scanMBR(buf, sizes, footer.currentSize);
+        //load boot sector
+        if(fseeko64(file, lba, SEEK_SET)) { fclose(file); return INVALID_DATA; }
+        if(fread(&buf, sizeof(uint8_t), 512, file) != 512) { fclose(file); return INVALID_DATA; }
+        imageDiskVHD::DetectGeometry(buf, sizes, footer.currentSize);
+        vhd->cylinders = sizes[3];
+        vhd->heads = sizes[2];
+        vhd->sectors = sizes[1];
+        vhd->fixedDisk = new imageDisk(file, fileName, vhd->cylinders, vhd->heads, vhd->sectors, 512, true);
+        *disk = vhd;
+        return !readOnly && roflag ? UNSUPPORTED_WRITE : OPEN_SUCCESS;
 	}
-
-	//set up imageDiskVHD here
-	imageDiskVHD* vhd = new imageDiskVHD();
-	vhd->footerPosition = footerPosition;
-	vhd->footer = footer;
-	vhd->vhdType = footer.diskType;
-	vhd->originalFooter = originalfooter;
-	vhd->cylinders = footer.geometry.cylinders;
-	vhd->heads = footer.geometry.heads;
-	vhd->sectors = footer.geometry.sectors;
-	vhd->sector_size = 512;
-	vhd->diskSizeK = calcDiskSize / 1024;
-	vhd->diskimg = file;
-	vhd->diskname = fileName;
-	vhd->hardDrive = true;
-	vhd->active = true;
-	//use delete vhd from now on to release the disk image upon failure
 
 	//if not dynamic or differencing, fail
 	if (footer.diskType != VHD_TYPE_DYNAMIC && footer.diskType != VHD_TYPE_DIFFERENCING) {
@@ -129,7 +212,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	}
 	//read dynamic disk header (applicable for dynamic and differencing types)
 	DynamicHeader dynHeader;
-	if (fseeko64(file, (off_t)footer.dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
+	if (fseeko64(file, footer.dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
 	if (fread(&dynHeader, sizeof(uint8_t), 1024, file) != 1024) { delete vhd; return INVALID_DATA; }
 	//swap byte order and validate checksum
 	dynHeader.SwapByteOrder();
@@ -147,11 +230,11 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 				//load the platform data, if there is any
 				uint64_t dataOffset = dynHeader.parentLocatorEntry[i].platformDataOffset;
 				uint32_t dataLength = dynHeader.parentLocatorEntry[i].platformDataLength;
-				uint8_t* buffer = 0;
+				uint8_t * buffer = nullptr;
 				if (dataOffset && dataLength && ((uint64_t)dataOffset + dataLength) <= footerPosition) {
-					if (fseeko64(file, (off_t)dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
+					if (fseeko64(file, dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
 					buffer = (uint8_t*)malloc(dataLength + 2);
-					if (buffer == 0) { delete vhd; return INVALID_DATA; }
+					if (!buffer) { delete vhd; return INVALID_DATA; }
 					if (fread(buffer, sizeof(uint8_t), dataLength, file) != dataLength) { free(buffer); delete vhd; return INVALID_DATA; }
 					buffer[dataLength] = 0; //append null character, just in case
 					buffer[dataLength + 1] = 0; //two bytes, because this might be UTF-16
@@ -169,7 +252,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 			}
 		}
 		//check and see if we were successful in opening a file
-		if (vhd->parentDisk == 0) { delete vhd; return ERROR_OPENING_PARENT; }
+		if (!vhd->parentDisk) { delete vhd; return ERROR_OPENING_PARENT; }
 	}
 
 	//calculate sectors per block
@@ -180,7 +263,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 		+ 7) / 8) /* convert to bytes and round up to nearest byte; 4096/8 = 512 bytes required */
 		+ 511) / 512); /* convert to sectors and round up to nearest sector; 512/512 = 1 sector */
 	//check that the BAT is large enough for the disk
-	uint32_t tablesRequired = (uint32_t)((calcDiskSize + (dynHeader.blockSize - 1)) / dynHeader.blockSize);
+	uint32_t tablesRequired = (uint32_t)((footer.currentSize + (dynHeader.blockSize - 1)) / dynHeader.blockSize);
 	if (dynHeader.maxTableEntries < tablesRequired) { delete vhd; return INVALID_DATA; }
 	//check that the BAT is contained within the file
 	if (((uint64_t)dynHeader.tableOffset + ((uint64_t)dynHeader.maxTableEntries * (uint64_t)4)) > footerPosition) { delete vhd; return INVALID_DATA; }
@@ -191,16 +274,29 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	vhd->blockMapSize = blockMapSectors * 512;
 	vhd->sectorsPerBlock = sectorsPerBlock;
 	vhd->currentBlockDirtyMap = (uint8_t*)malloc(vhd->blockMapSize);
-	if (vhd->currentBlockDirtyMap == 0) { delete vhd; return INVALID_DATA; }
+	if (!vhd->currentBlockDirtyMap) { delete vhd; return INVALID_DATA; }
 
 	//try loading the first block
-	if (!vhd->loadBlock(0)) { 
-		delete vhd; 
-		return INVALID_DATA; 
+	if (!vhd->loadBlock(0)) {
+		delete vhd;
+		return INVALID_DATA;
 	}
 
-	*disk = vhd;
-	return OPEN_SUCCESS;
+    if(vhd->cylinders == 0 || vhd->heads == 0 || vhd->sectors == 0) {
+        Bitu sizes[4];
+        vhd->DetectGeometry(sizes, vhd->image_length); /* Derive geometry from image_length if geometry in VHD footer is not valid */
+        vhd->cylinders = sizes[3];
+        vhd->heads = sizes[2];
+        vhd->sectors = sizes[1];
+        vhd->sector_size = sizes[0];
+    }
+    vhd->Set_Geometry(vhd->heads, vhd->cylinders, vhd->sectors, vhd->sector_size);
+    vhd->LBA = vhd->getLBA(); /* Initialize LBA value */
+    if(!int13_enable_48bitLBA && (vhd->LBA > 0x0FFFFFFF))
+        LOG_MSG("Warning: Disk size (%lf GiB) exceeds 128GiB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)vhd->image_length / (1024.0 * 1024 * 1024));
+
+    *disk = vhd;
+	return !readOnly && roflag ? UNSUPPORTED_WRITE : OPEN_SUCCESS;
 }
 
 int iso8859_1_encode(int utf32code) {
@@ -253,6 +349,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 
 	switch (entry.platformCode) {
 	case 0x57327275:
+		LOG_MSG("TryOpenParent (W2ru) %s", childFileName);
 		//Unicode relative pathname (UTF-16) on Windows
 
 #if defined (WIN32) || defined(OS2)
@@ -275,6 +372,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 		return imageDiskVHD::Open(str.c_str(), true, disk, uniqueId);
 
 	case 0x57326B75:
+		LOG_MSG("TryOpenParent (W2ku) %s", childFileName);
 		//Unicode absolute pathname (UTF-16) on Windows
 
 #if defined (WIN32) || defined(OS2)
@@ -282,7 +380,6 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 #else
 		// Linux
 		// Todo: convert absolute pathname to something applicable for Linux
-		break;
 #endif
 
 		//convert byte order, and UTF-16 to ASCII, and change backslashes to slashes if on Linux
@@ -301,6 +398,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 }
 
 uint8_t imageDiskVHD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+    if(vhdType == VHD_TYPE_FIXED) return fixedDisk->Read_AbsoluteSector(sectnum, data);
 	uint32_t blockNumber = sectnum / sectorsPerBlock;
 	uint32_t sectorOffset = sectnum % sectorsPerBlock;
 	if (!loadBlock(blockNumber)) return 0x05; //can't load block
@@ -309,11 +407,12 @@ uint8_t imageDiskVHD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 		uint32_t bitNum = sectorOffset % 8;
 		bool hasData = currentBlockDirtyMap[byteNum] & (1 << (7 - bitNum));
 		if (hasData) {
-			if (fseeko64(diskimg, (off_t)(((uint64_t)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
+			if (fseeko64(diskimg, (((uint64_t)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
 			if (fread(data, sizeof(uint8_t), 512, diskimg) != 512) return 0x05; //can't read
 			return 0;
 		}
 	}
+    //NOTE: should come first?
 	if (parentDisk) {
 		return parentDisk->Read_AbsoluteSector(sectnum, data);
 	}
@@ -323,44 +422,88 @@ uint8_t imageDiskVHD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 	}
 }
 
+bool imageDiskVHD::is_zeroed_sector(const void* data) {
+    const auto* p = static_cast<const uint8_t*>(data);
+    return std::all_of(p, p + 512, [](uint8_t b) { return b == 0; });
+}
+
+bool imageDiskVHD::is_block_allocated(uint32_t blockNumber) {
+    if(currentBlockAllocated) return true;
+    if(parentDisk && ((imageDiskVHD*) parentDisk)->is_block_allocated(blockNumber)) return true;
+    return false;
+}
+
 uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
+    if(vhdType == VHD_TYPE_FIXED) return fixedDisk->Write_AbsoluteSector(sectnum, data);
 	uint32_t blockNumber = sectnum / sectorsPerBlock;
 	uint32_t sectorOffset = sectnum % sectorsPerBlock;
-	if (!loadBlock(blockNumber)) return 0x05; //can't load block
+    if(!loadBlock(blockNumber)) {
+        return 0x05; //can't load block
+    }
 	if (!currentBlockAllocated) {
-		if (!copiedFooter) {
-			//write backup of footer at start of file (should already exist, but we never checked to be sure it is readable or matches the footer we used)
-			if (fseeko64(diskimg, (off_t)0, SEEK_SET)) return 0x05;
-			if (fwrite(&originalFooter, sizeof(uint8_t), 512, diskimg) != 512) return 0x05;
+        //an unallocated block is kept virtual until zeroed
+        if(is_zeroed_sector(data)) {
+            if(vhdType != VHD_TYPE_DIFFERENCING) return 0;
+            if(!is_block_allocated(blockNumber)) return 0;
+        }
+
+        if(!copiedFooter) {
+            //write backup of footer at start of file (should already exist, but we never checked to be sure it is readable or matches the footer we used)
+            if(fseeko64(diskimg, 0, SEEK_SET)) {
+                return 0x05;
+            }
+            if(fwrite(&originalFooter, sizeof(uint8_t), 512, diskimg) != 512) {
+                return 0x05;
+            }
 			copiedFooter = true;
 			//flush the data to disk after writing the backup footer
-			if (fflush(diskimg)) return 0x05;
+            if(fflush(diskimg)) {
+                return 0x05;
+            }
 		}
 		//calculate new location of footer, and round up to nearest 512 byte increment "just in case"
-		uint64_t newFooterPosition = (((footerPosition - 512ull + blockMapSize + dynamicHeader.blockSize) + 511ull) / 512ull) * 512ull;
+        uint64_t newFooterPosition = (((footerPosition + blockMapSize + dynamicHeader.blockSize) + 511ull) / 512ull) * 512ull;
 		//attempt to extend the length appropriately first (on some operating systems this will extend the file)
-		if (fseeko64(diskimg, (off_t)newFooterPosition + 512, SEEK_SET)) return 0x05;
+        if(fseeko64(diskimg, newFooterPosition + 512, SEEK_SET)) {
+                return 0x05;
+        }
 		//now write the footer
-		if (fseeko64(diskimg, (off_t)newFooterPosition, SEEK_SET)) return 0x05;
-		if (fwrite(&originalFooter, sizeof(uint8_t), 512, diskimg) != 512) return 0x05;
+        if(fseeko64(diskimg, newFooterPosition, SEEK_SET)) {
+            return 0x05;
+        }
+        if(fwrite(&originalFooter, sizeof(uint8_t), 512, diskimg) != 512) {
+            return 0x05;
+        }
 		//save the new block location and new footer position
 		uint32_t newBlockSectorNumber = (uint32_t)((footerPosition + 511ul) / 512ul);
 		footerPosition = newFooterPosition;
 		//clear the dirty flags for the new footer position
 		for (uint32_t i = 0; i < blockMapSize; i++) currentBlockDirtyMap[i] = 0;
 		//write the dirty map
-		if (fseeko64(diskimg, (off_t)(newBlockSectorNumber * 512ull), SEEK_SET)) return 0x05;
-		if (fwrite(currentBlockDirtyMap, sizeof(uint8_t), blockMapSize, diskimg) != blockMapSize) return 0x05;
+        if(fseeko64(diskimg, (newBlockSectorNumber * 512ull), SEEK_SET)) {
+            return 0x05;
+        }
+        if(fwrite(currentBlockDirtyMap, sizeof(uint8_t), blockMapSize, diskimg) != blockMapSize) {
+            return 0x05;
+        }
 		//flush the data to disk after expanding the file, before allocating the block in the BAT
-		if (fflush(diskimg)) return 0x05;
+        if(fflush(diskimg)) {
+            return 0x05;
+        }
 		//update the BAT
-		if (fseeko64(diskimg, (off_t)(dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) return 0x05;
+        if(fseeko64(diskimg, (dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) {
+            return 0x05;
+        }
 		uint32_t newBlockSectorNumberBE = SDL_SwapBE32(newBlockSectorNumber);
-		if (fwrite(&newBlockSectorNumberBE, sizeof(uint8_t), 4, diskimg) != 4) return false;
+        if(fwrite(&newBlockSectorNumberBE, sizeof(uint8_t), 4, diskimg) != 4) {
+            return 0x05;
+        }
 		currentBlockAllocated = true;
 		currentBlockSectorOffset = newBlockSectorNumber;
 		//flush the data to disk after allocating a block
-		if (fflush(diskimg)) return 0x05;
+        if(fflush(diskimg)) {
+            return 0x05;
+        }
 	}
 	//current block has now been allocated
 	uint32_t byteNum = sectorOffset / 8;
@@ -369,22 +512,34 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) 
 	//if the sector hasn't been marked as dirty, mark it as dirty
 	if (!hasData) {
 		currentBlockDirtyMap[byteNum] |= 1 << (7 - bitNum);
-		if (fseeko64(diskimg, (off_t)(currentBlockSectorOffset * 512ull), SEEK_SET)) return 0x05; //can't seek
-		if (fwrite(currentBlockDirtyMap, sizeof(uint8_t), blockMapSize, diskimg) != blockMapSize) return 0x05;
+        if(fseeko64(diskimg, (currentBlockSectorOffset * 512ull), SEEK_SET)) {
+            return 0x05; //can't seek
+        }
+        if(fwrite(currentBlockDirtyMap, sizeof(uint8_t), blockMapSize, diskimg) != blockMapSize) {
+            return 0x05;
+        }
 	}
 	//current sector has now been marked as dirty
 	//write the sector
-	if (fseeko64(diskimg, (off_t)(((uint64_t)currentBlockSectorOffset + (uint64_t)blockMapSectors + (uint64_t)sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
-	if (fwrite(data, sizeof(uint8_t), 512, diskimg) != 512) return 0x05; //can't write
+    if(fseeko64(diskimg, (((uint64_t)currentBlockSectorOffset + (uint64_t)blockMapSectors + (uint64_t)sectorOffset) * 512ull), SEEK_SET)) {
+        return 0x05; //can't seek
+    }
+    if(fwrite(data, sizeof(uint8_t), 512, diskimg) != 512) {
+        return 0x05; //can't write
+    }
 	return 0;
+}
+
+imageDiskVHD::VHDTypes imageDiskVHD::GetVHDType(void) const {
+	return footer.diskType;
 }
 
 imageDiskVHD::VHDTypes imageDiskVHD::GetVHDType(const char* fileName) {
 	imageDisk* disk;
 	if (Open(fileName, true, &disk)) return VHD_TYPE_NONE;
-    const imageDiskVHD* vhd = dynamic_cast<imageDiskVHD*>(disk);
-	VHDTypes ret = VHD_TYPE_FIXED; //fixed if an imageDisk was returned
-	if (vhd) ret = vhd->footer.diskType; //get the actual type if an imageDiskVHD was returned
+	const imageDiskVHD* vhd = dynamic_cast<imageDiskVHD*>(disk);
+	VHDTypes ret = VHD_TYPE_FIXED;
+	if (vhd) ret = vhd->footer.diskType; //get the actual type
 	delete disk;
 	return ret;
 }
@@ -392,7 +547,7 @@ imageDiskVHD::VHDTypes imageDiskVHD::GetVHDType(const char* fileName) {
 bool imageDiskVHD::loadBlock(const uint32_t blockNumber) {
 	if (currentBlock == blockNumber) return true;
 	if (blockNumber >= dynamicHeader.maxTableEntries) return false;
-	if (fseeko64(diskimg, (off_t)(dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) return false;
+	if (fseeko64(diskimg, (dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) return false;
 	uint32_t blockSectorOffset;
 	if (fread(&blockSectorOffset, sizeof(uint8_t), 4, diskimg) != 4) return false;
 	blockSectorOffset = SDL_SwapBE32(blockSectorOffset);
@@ -401,7 +556,7 @@ bool imageDiskVHD::loadBlock(const uint32_t blockNumber) {
 		currentBlockAllocated = false;
 	}
 	else {
-		if (fseeko64(diskimg, (off_t)(blockSectorOffset * (uint64_t)512), SEEK_SET)) return false;
+		if (fseeko64(diskimg, (blockSectorOffset * (uint64_t)512), SEEK_SET)) return false;
 		currentBlock = 0xFFFFFFFFul;
 		currentBlockAllocated = true;
 		currentBlockSectorOffset = blockSectorOffset;
@@ -414,12 +569,16 @@ bool imageDiskVHD::loadBlock(const uint32_t blockNumber) {
 imageDiskVHD::~imageDiskVHD() {
 	if (currentBlockDirtyMap) {
 		free(currentBlockDirtyMap);
-		currentBlockDirtyMap = 0;
+		currentBlockDirtyMap = nullptr;
 	}
 	if (parentDisk) {
 		parentDisk->Release();
-		parentDisk = 0;
+		parentDisk = nullptr;
 	}
+    if(fixedDisk) {
+        delete fixedDisk;
+        fixedDisk = nullptr;
+    }
 }
 
 void imageDiskVHD::VHDFooter::SwapByteOrder() {
@@ -463,6 +622,20 @@ bool imageDiskVHD::VHDFooter::IsValid() {
 		checksum == CalculateChecksum());
 }
 
+void imageDiskVHD::VHDFooter::SetDefaults() {
+    memset(this, 0, 512);
+    memcpy(cookie, "conectix", 8);
+    features = 2;
+    fileFormatVersion = 0x10000;
+    dataOffset = 512;
+    time_t T;
+    time(&T);
+    timeStamp = mktime(gmtime(&T)) - 946681200; // ss from 1/1/2000 UTC
+    memcpy(creatorApp, "DBox", 4);
+    creatorVersion = 0x10000;
+    creatorHostOS = 0x5769326B; // Wi2k
+}
+
 void imageDiskVHD::DynamicHeader::SwapByteOrder() {
 	dataOffset = SDL_SwapBE64(dataOffset);
 	tableOffset = SDL_SwapBE64(tableOffset);
@@ -483,7 +656,7 @@ void imageDiskVHD::DynamicHeader::SwapByteOrder() {
 	}
 	//parent guid might need the byte order swapped also
 	//however, for our purposes (comparing to the parent guid on differential disks),
-	//  it doesn't matter so long as we are consistent
+	//it doesn't matter so long as we are consistent
 }
 
 uint32_t imageDiskVHD::DynamicHeader::CalculateChecksum() {
@@ -503,9 +676,530 @@ uint32_t imageDiskVHD::DynamicHeader::CalculateChecksum() {
 }
 
 bool imageDiskVHD::DynamicHeader::IsValid() {
-	return (
-		memcmp(cookie, "cxsparse", 8) == 0 &&
-		headerVersion >= 0x00010000 &&
-		headerVersion <= 0x0001FFFF &&
-		checksum == CalculateChecksum());
+    return (
+        memcmp(cookie, "cxsparse", 8) == 0 &&
+        headerVersion >= 0x00010000 &&
+        headerVersion <= 0x0001FFFF &&
+        checksum == CalculateChecksum());
+}
+
+void imageDiskVHD::DynamicHeader::SetDefaults() {
+    memset(this, 0, 1024);
+    memcpy(cookie, "cxsparse", 8);
+    dataOffset = 0xFFFFFFFFFFFFFFFF;
+    tableOffset = 1536;
+    headerVersion = 0x10000;
+    blockSize = (2 << 20);
+}
+
+//fills a buffer with a random 16-bytes UUID
+void imageDiskVHD::mk_uuid(uint8_t* buf) {
+    srand(time(NULL));
+    for(uint16_t* r = (uint16_t*)buf; r < (uint16_t*)(buf + 16); r++)
+        *r = rand();
+}
+//updates UUID (i.e. for a merged parent disk)
+bool imageDiskVHD::UpdateUUID() {
+    mk_uuid((uint8_t*)footer.uniqueId);
+    footer.checksum = footer.CalculateChecksum();
+    footer.SwapByteOrder();
+    memcpy(&originalFooter, &footer, 512);
+    footer.SwapByteOrder();
+    if (fseeko64(diskimg, footerPosition, SEEK_SET)) return false;
+    if (fwrite(&originalFooter, 1, 512, diskimg) != 512) return false;
+    if(vhdType != VHD_TYPE_FIXED) {
+        if(fseeko64(diskimg, 0, SEEK_SET)) return false;
+        if(fwrite(&originalFooter, 1, 512, diskimg) != 512) return false;
+    }
+    return true;
+}
+
+//computates pseudo CHS geometry according to MS VHD specification
+void imageDiskVHD::SizeToCHS(uint64_t size, uint16_t* c, uint8_t* h, uint8_t* s)
+{
+    uint32_t sectors = size / 512;
+    uint32_t spt, hh;
+    uint32_t cth, cyls;
+
+    if(sectors > 65535 * 16 * 255)
+        sectors = 65535 * 16 * 255;
+    if(sectors >= 65535 * 16 * 63) {
+        spt = 255;
+        hh = 16;
+        cth = sectors / spt;
+    }
+    else {
+        spt = 17;
+        cth = sectors / spt;
+        hh = (cth + 1023) / 1024;
+        if(hh < 4) hh = 4;
+        if(cth >= hh * 1024 || hh > 16) {
+            spt = 31;
+            hh = 16;
+            cth = sectors / spt;
+        }
+        if(cth >= hh * 1024) {
+            spt = 63;
+            hh = 16;
+            cth = sectors / spt;
+        }
+    }
+    cyls = cth / hh;
+    *c = (uint16_t) cyls;
+    *h = (uint8_t) hh;
+    *s = (uint8_t) spt;
+}
+
+//creates a Dynamic VHD image
+uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
+    LOG_MSG("CreateDynamic filename=\"%s\"", filename);
+    uint32_t STATUS = OPEN_SUCCESS;
+    if(filename == NULL) return ERROR_OPENING;
+    if(size < 3145728 || size > 2190433320960) // 2040GB is the Windows 11 mounter limit
+        return UNSUPPORTED_SIZE;
+    FILE* vhd = fopen(filename, "wb");
+    if(!vhd) return ERROR_OPENING;
+
+    //setup footer
+    VHDFooter footer;
+    footer.SetDefaults();
+    footer.originalSize = footer.currentSize = size;
+    SizeToCHS(size, &footer.geometry.cylinders, &footer.geometry.heads, &footer.geometry.sectors);
+    footer.diskType = VHD_TYPE_DYNAMIC;
+    mk_uuid((uint8_t*)footer.uniqueId);
+    footer.checksum = footer.CalculateChecksum();
+    footer.SwapByteOrder();
+
+    //write footer copy
+    if (fwrite(&footer, 1, 512, vhd) != 512) STATUS = ERROR_WRITING;
+
+    //setup dynamic header
+    DynamicHeader header;
+    header.SetDefaults();
+    uint32_t dwMaxTableEntries = (size + (header.blockSize - 1)) / header.blockSize;
+    header.maxTableEntries = dwMaxTableEntries;
+    header.checksum = header.CalculateChecksum();
+    header.SwapByteOrder();
+
+    //write dynamic header
+    if (fwrite(&header, 1, 1024, vhd) != 1024) STATUS = ERROR_WRITING;
+
+    //creates the empty BAT (max 4MB) - must span sectors
+    uint8_t sect[512];
+    memset(sect, 255, 512);
+    uint32_t table_size = (4 * dwMaxTableEntries + 511) / 512 * 512;
+    while(table_size && STATUS == OPEN_SUCCESS) {
+        if(fwrite(sect, 1, 512, vhd) != 512) {
+            STATUS = ERROR_WRITING;
+            break;
+        }
+        table_size -= 512;
+    }
+
+    //write main footer
+    if(fwrite(&footer, 1, 512, vhd) != 512) STATUS = ERROR_WRITING;
+    fclose(vhd);
+    return STATUS;
+}
+
+//creates a Differencing VHD image
+uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* basename) {
+    LOG_MSG("CreateDifferencing filename=\"%s\" basename=\"%s\"", filename, basename);
+    if(filename == NULL || basename == NULL) return ERROR_OPENING;
+    imageDiskVHD* base_vhd;
+    if(Open(basename, true, (imageDisk**)&base_vhd) != OPEN_SUCCESS) return ERROR_OPENING_PARENT;
+    FILE* vhd = fopen(filename, "wb");
+    if(!vhd) {
+        delete base_vhd;
+        return ERROR_OPENING;
+    }
+    uint32_t STATUS = OPEN_SUCCESS;
+
+    //clone parent's VHD structures
+    VHDFooter footer;
+    memcpy(&footer, &base_vhd->footer, 512);
+    DynamicHeader header;
+    if(base_vhd->vhdType != VHD_TYPE_FIXED) {
+        memcpy(&header, &base_vhd->dynamicHeader, 1024);
+    }
+    else {
+        footer.dataOffset = 512;
+        header.SetDefaults();
+        header.maxTableEntries = (base_vhd->diskSizeK + 2047) / 2048;
+    }
+    //update
+    footer.diskType = VHD_TYPE_DIFFERENCING;
+    memcpy(header.parentUniqueId, footer.uniqueId, 16);
+    mk_uuid((uint8_t*)footer.uniqueId);
+    header.parentTimeStamp = footer.timeStamp;
+    time_t T;
+    time(&T);
+    footer.timeStamp = (uint32_t)T - 946681200;
+    footer.checksum = footer.CalculateChecksum();
+    footer.SwapByteOrder();
+
+    //write footer copy
+    if(fwrite(&footer, 1, 512, vhd) != 512) STATUS = ERROR_WRITING;
+
+    //BAT size
+    uint32_t table_size = (4 * header.maxTableEntries + 511) / 512 * 512;
+
+    //Locators - Windows 11 wants at least the relative W2ru locator, or won't mount!
+#if defined (WIN32)
+    char absBasePathName[MAX_PATH];
+    _fullpath(absBasePathName, basename, MAX_PATH);
+#else
+    char absBasePathName[PATH_MAX];
+    realpath(basename, absBasePathName);
+#endif
+    uint32_t len1 = strlen(absBasePathName);
+    uint32_t plat1 = (2 * len1 + 511) / 512 * 512;
+    header.parentLocatorEntry[0].platformCode = 0x57326B75; //W2ku (absolute)
+    header.parentLocatorEntry[0].platformDataLength = 2 * len1;
+    header.parentLocatorEntry[0].platformDataSpace = plat1;
+    header.parentLocatorEntry[0].platformDataOffset = 1536 + table_size;
+
+    // path of parent relative to child
+    char* relpath = calc_relative_path(basename, filename);
+
+    uint32_t len2 = strlen(relpath);
+    uint32_t plat2 = (2 * len2 + 511) / 512 * 512;
+    header.parentLocatorEntry[1].platformCode = 0x57327275; // W2ru (relative)
+    header.parentLocatorEntry[1].platformDataLength = 2 * len2;
+    header.parentLocatorEntry[1].platformDataSpace = plat2;
+    header.parentLocatorEntry[1].platformDataOffset = header.parentLocatorEntry[0].platformDataOffset + plat1;
+
+    //write dynamic Header
+    header.checksum = header.CalculateChecksum();
+    header.SwapByteOrder();
+    if(fwrite(&header, 1, 1024, vhd) != 1024) STATUS = ERROR_WRITING;
+
+    //write BAT sectors
+    uint8_t sect[512];
+    memset(sect, 255, 512);
+    while(table_size && STATUS == OPEN_SUCCESS) {
+        if(fwrite(sect, 1, 512, vhd) != 512) {
+            STATUS = ERROR_WRITING;
+            break;
+        }
+        table_size -= 512;
+    }
+    //write Parent Locator sectors
+    uint16_t* w_basename = (uint16_t*)malloc(plat1);
+    memset(w_basename, 0, plat1);
+    for(uint32_t i = 0; i < len1; i++)
+        //dirty hack to quickly convert ASCII -> UTF-16 *LE* and fix slashes
+        w_basename[i] = SDL_SwapLE16(absBasePathName[i] == '/' ? (uint16_t)'\\' : (uint16_t)absBasePathName[i]);
+    if(fwrite(w_basename, 1, plat1, vhd) != plat1) STATUS = ERROR_WRITING;
+
+    w_basename = (uint16_t*)realloc(w_basename, plat2);
+    memset(w_basename, 0, plat2);
+    for(uint32_t i = 0; i < len2; i++)
+        //dirty hack to quickly convert ASCII -> UTF-16 *LE* and fix slashes
+        w_basename[i] = SDL_SwapLE16(relpath[i] == '/' ? (uint16_t)'\\' : (uint16_t)relpath[i]);
+    if(fwrite(w_basename, 1, plat2, vhd) != plat2) STATUS = ERROR_WRITING;
+ 
+    //write footer copy
+    if(fwrite(&footer, 1, 512, vhd) != 512) STATUS = ERROR_WRITING;
+
+    delete base_vhd;
+    fclose(vhd);
+    free(w_basename);
+    free(relpath);
+    return STATUS;
+}
+
+//converts a raw hard disk image into a Fixed VHD
+uint32_t imageDiskVHD::ConvertFixed(const char* filename) {
+    if(filename == NULL) return ERROR_OPENING;
+    FILE* vhd = fopen(filename, "r+b");
+    if(vhd == NULL) return ERROR_OPENING;
+    fseeko64(vhd, 0, SEEK_END);
+    uint64_t size = ftello64(vhd);
+    if(size < 3145728 || size > 2190433320960) {
+        LOG_MSG("Bad VHD size: valid range 3 MB - 2040 GB");
+        fclose(vhd);
+        return UNSUPPORTED_SIZE;
+    }
+
+    uint32_t STATUS = OPEN_SUCCESS;
+    uint32_t c=0, h=0, s=0;
+
+    //we create the VHD pseudo-geometry, since loader parses MBR & BPB
+    SizeToCHS(size, (uint16_t*)&c, (uint8_t*)&h, (uint8_t*)&s);
+
+    //new VHD Footer initialization
+    VHDFooter footer;
+    footer.SetDefaults();
+    footer.dataOffset = 0xFFFFFFFFFFFFFFFF;
+    footer.originalSize = footer.currentSize = size;
+    footer.geometry.cylinders = (uint16_t)c;
+    footer.geometry.heads = (uint8_t)h;
+    footer.geometry.sectors = (uint8_t)s;
+    footer.diskType = VHD_TYPE_FIXED;
+    mk_uuid((uint8_t*)footer.uniqueId);
+    footer.checksum = footer.CalculateChecksum();
+    footer.SwapByteOrder();
+
+    if(fseeko64(vhd, 0, SEEK_END)) STATUS = ERROR_WRITING;
+    if(fwrite(&footer, 1, 512, vhd) != 512) STATUS = ERROR_WRITING;
+    fclose(vhd);
+    return STATUS;
+}
+
+uint32_t imageDiskVHD::GetInfo(VHDInfo* info) {
+    uint32_t STATUS = 0;
+    if(info == NULL) info = new VHDInfo();
+    info->vhdType = vhdType;
+    info->vhdSizeMB = (float)diskSizeK / 1024.0;
+    info->diskname = diskname;
+    if(vhdType != VHD_TYPE_FIXED) {
+        info->blockSize = dynamicHeader.blockSize;
+        info->totalBlocks = dynamicHeader.maxTableEntries;
+        fseeko64(diskimg, dynamicHeader.tableOffset, SEEK_SET);
+        for(int i = 0; i < info->totalBlocks; i++) {
+            uint32_t n;
+            if(fread(&n, 1, 4, diskimg) != 4) return ERROR_OPENING;
+            if(n != 0xFFFFFFFF) info->allocatedBlocks++;
+        }
+    }
+    else {
+        info->blockSize = info->totalBlocks = info->allocatedBlocks = 0;
+    }
+    if(vhdType == VHD_TYPE_DIFFERENCING) {
+        info->parentInfo = new VHDInfo();
+        STATUS = ((imageDiskVHD*)parentDisk)->GetInfo(info->parentInfo);
+    }
+    return STATUS;
+}
+
+uint32_t imageDiskVHD::GetInfo(const char* filename, VHDInfo** info) {
+    imageDiskVHD* vhd;
+    if (filename == NULL)
+        return ERROR_OPENING;
+    if(imageDiskVHD::Open(filename, true, (imageDisk**)&vhd) != imageDiskVHD::OPEN_SUCCESS) {
+        return ERROR_OPENING;
+    }
+    *info = new VHDInfo();
+    uint32_t ret = vhd->GetInfo(*info);
+    delete vhd;
+    return ret;
+}
+
+//merge a Differencing disk to its parent
+bool imageDiskVHD::MergeSnapshot(uint32_t* totalSectorsMerged, uint32_t* totalBlocksUpdated) {
+    if(totalSectorsMerged == NULL || totalBlocksUpdated == NULL) return false;
+    if(vhdType != VHD_TYPE_DIFFERENCING) {
+        LOG_MSG("VHD is not Differencing, can't merge!");
+        return false;
+    }
+    std::string name = parentDisk->diskname;
+    parentDisk->Release();
+    parentDisk = nullptr;
+    if(Open(name.c_str(), false, &parentDisk) != OPEN_SUCCESS) {
+        LOG_MSG("Couldn't re-open parent in RW mode!");
+        return false;
+    }
+    parentDisk->Addref();
+    //scan BAT
+    uint32_t sectorsPerBlock = dynamicHeader.blockSize / 512;
+    *totalSectorsMerged = 0;
+    *totalBlocksUpdated = 0;
+    for(uint32_t block = 0; block < dynamicHeader.maxTableEntries; block++) {
+        uint32_t n;
+        fseeko64(diskimg, dynamicHeader.tableOffset+block*4, SEEK_SET);
+        if(fread(&n, 1, 4, diskimg) != 4) { return false; }
+        if(n == 0xFFFFFFFF) continue;
+        loadBlock(block);
+        bool blockUpdated = false;
+        //scan bitmap
+        for(uint32_t sector = 0; sector < sectorsPerBlock; sector++) {
+            uint32_t byteNum = sector / 8;
+            uint32_t bitNum = sector % 8;
+            bool hasData = currentBlockDirtyMap[byteNum] & (1 << (7 - bitNum));
+            if(hasData) {
+                uint8_t data[512];
+                if(fseeko64(diskimg, (((uint64_t)currentBlockSectorOffset + blockMapSectors + sector) * 512ull), SEEK_SET)) return false;
+                if(fread(data, sizeof(uint8_t), 512, diskimg) != 512) return false;
+                uint32_t absoluteSector = block * sectorsPerBlock + sector;
+                //LOG_MSG("Merging sector %d", absoluteSector);
+                (*totalSectorsMerged)++;
+                blockUpdated = true;
+                if(parentDisk->Write_AbsoluteSector(absoluteSector, data)) {
+                    LOG_MSG("Couldn't update parent's sector %d, merging aborted!", absoluteSector);
+                    return false;
+                }
+            }
+        }
+        if(blockUpdated) (*totalBlocksUpdated)++;
+    }
+    LOG_MSG("Merged %d sectors in %d blocks", *totalSectorsMerged, *totalBlocksUpdated);
+    if (! ((imageDiskVHD*)parentDisk)->UpdateUUID() )
+        LOG_MSG("Warning: parent UUID not updated, invalid children might remain!");
+    return true;
+}
+
+//creates a snapshot of current VHD state, with a random name
+uint32_t imageDiskVHD::CreateSnapshot() {
+    uint8_t buf[16];
+    mk_uuid(buf);
+    char name[255];
+    sprintf(name, "{%08x-%08x-%08x-%08x}.vhd", *((uint32_t*)(buf)), *((uint32_t*)(buf+4)), *((uint32_t*)(buf+8)), *((uint32_t*)(buf+12)));
+    uint32_t ret = CreateDifferencing(name, diskname.c_str());
+    return ret;
+}
+
+//scans MBR & BPB for real disk geometry or returns a default X-255-63 geometry
+void imageDiskVHD::DetectGeometry(Bitu sizes[]) {
+    uint8_t buf[512];
+
+    //load and check MBR
+    Read_AbsoluteSector(0, buf);
+    uint64_t lba = scanMBR(buf, sizes, footer.currentSize);
+    if(lba < 512 || lba >(footer.currentSize - 512)) {
+        LOG_MSG("Bad CHS partition start in MBR");
+        lba = 0;
+    }
+
+    if(lba) {
+        //load FAT boot sector and scan BPB
+        Read_AbsoluteSector(lba / 512, buf);
+        DetectGeometry(buf, sizes, footer.currentSize);
+    }
+    else {
+        LBA = image_length / (sector_size ? sector_size : 512);
+        DetectGeometry(sizes, footer.currentSize);
+    }
+
+}
+
+void imageDiskVHD::DetectGeometry(uint8_t* buf, Bitu sizes[], uint64_t currentSize) {
+        //scan BPB
+        uint16_t s2 = *((uint16_t*)(buf + 0x18));
+        uint16_t h2 = *((uint16_t*)(buf + 0x1A));
+        if(!s2 || !h2 || s2 > 63 || h2 > 255) {
+            LOG_MSG("Bad geometry detected in FAT BPB, using MBR");
+        }
+        else {
+            sizes[0] = 512;
+            sizes[1] = s2;
+            sizes[2] = h2;
+            sizes[3] = currentSize / 512 / s2 / h2;
+        }
+}
+
+void imageDiskVHD::DetectGeometry(Bitu sizes[], uint64_t currentSize) {
+    if(!sizes) return;
+
+    const uint16_t sector_size = 512;
+    uint64_t totalSectors = currentSize / sector_size;
+
+    uint32_t sectorsPerTrack;
+    uint32_t heads;
+    uint32_t cylinders;
+    uint32_t cylinderTimesHeads = 0;
+
+    if(totalSectors > 65535ULL * 16ULL * 255ULL)
+        totalSectors = 65535ULL * 16ULL * 255ULL; // cap total sectors to max supported by CHS
+
+    if(totalSectors > 65535ULL * 16ULL * 63ULL) {
+        sectorsPerTrack = 255;
+        heads = 16;
+        cylinders = (uint32_t)(totalSectors / (heads * sectorsPerTrack));
+    }
+    else {
+        sectorsPerTrack = 63;
+        cylinderTimesHeads = (uint32_t)(totalSectors / sectorsPerTrack);
+        cylinders = (uint32_t)(totalSectors / sectorsPerTrack);
+        heads = (cylinderTimesHeads + 1023) / 1024;
+    }
+
+    cylinderTimesHeads = totalSectors / sectorsPerTrack;
+
+    if(heads < 4) heads = 4;
+    if(heads > 16 || (cylinderTimesHeads >= (heads * 1024))) {
+        heads = 16;
+    }
+
+    sizes[3] = (uint16_t)(cylinderTimesHeads / heads); // cylinders
+    sizes[2] = heads;
+    sizes[1] = sectorsPerTrack;
+    sizes[0] = sector_size;
+}
+
+//scans a MBR and returns
+//0 for failure
+//1 for GPT partition
+//absolute starting address for success
+//sizes contains recorded geometry or default one
+uint64_t imageDiskVHD::scanMBR(uint8_t* mbr, Bitu sizes[], uint64_t disksize) {
+    bool partFound = false;
+    uint32_t c, h, s;
+    uint32_t heads, spc;
+    uint8_t* part;
+
+    //default DOS geometry
+    sizes[0] = 512; //default sector size
+    sizes[1] = 63;  //default (max) sectors per track/cylinder
+    sizes[2] = 255; //default (max) heads per track/cylinder
+    sizes[3] = disksize / 512 / 255 / 63;
+
+    //check MBR
+    if(mbr[510] != 0x55 || mbr[511] != 0xAA) {
+        LOG_MSG("Invalid MBR, no signature");
+        return 0;
+    }
+    //search for the first non-empty partition
+    for(part = mbr + 0x1BE; part < mbr + 0x1FE; part += 16) {
+        uint8_t partType = *((uint8_t*)(part + 4));
+        if(partType == 0) continue;
+        partFound = true;
+        break;
+    }
+    if(!partFound) {
+        LOG_MSG("No partition in use in MBR");
+        return 0;
+    }
+    //partition end
+    h = (unsigned)*(part + 5);
+    s = (unsigned)*(part + 6) & 0x3F;
+    c = (((unsigned)*(part + 6) & 0xC0) << 2) | *(part + 7);
+    //since a MBR partition *should* be aligned to a cylinder boundary,
+    //the last sector CHS reveals total heads and sectors per cylinder
+    spc = s;
+    heads = h + 1;
+    if(heads > 255 || spc > 63) {
+        LOG_MSG("Bad CHS partition end in MBR");
+        return 0;
+    }
+
+    // partition start (0,1,1... what?)
+    h = (unsigned)*(part + 1);
+    s = (unsigned)*(part + 2) & 0x3F;
+    c = (unsigned)*(part + 2) & 0xC0 | *(part + 3);
+    uint64_t lba = ((c * heads + h) * spc + s - 1) * 512;
+    if(lba < 1) {
+        LOG_MSG("Bad CHS partition start in MBR");
+        lba = 0;
+    }
+    //prefer LBA, if present (PC-DOS 2.0+ FDISK)
+    if(*((uint32_t*)(part + 8))) {
+        uint64_t lba2 = SDL_SwapLE32(*((uint32_t*)(part + 8))) * 512;
+        if(lba2 < 1) {
+            LOG_MSG("Bad LBA partition start in MBR");
+            lba2 = 0;
+        }
+        if(!lba && !lba2) return 0;
+
+        if(lba != lba2) {
+            LOG_MSG("CHS and LBA partition start differ, choosing LBA");
+            if(!lba || lba2) lba = lba2;
+        }
+    }
+    sizes[0] = 512;
+    sizes[1] = spc;
+    sizes[2] = heads;
+    sizes[3] = disksize / 512 / spc / heads;
+
+    return lba;
 }

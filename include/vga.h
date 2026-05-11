@@ -163,7 +163,7 @@ inline MonochromeColor& operator++(MonochromeColor& color)
     return color;
 }
 
-typedef struct {
+struct VGA_Draw {
 	bool resizing;
 	Bitu width;
 	Bitu height;
@@ -173,7 +173,7 @@ typedef struct {
 	Bitu bytes_skip;
 	uint8_t *linear_base;
 	Bitu linear_mask;
-    Bitu planar_mask;
+	Bitu planar_mask;
 	Bitu address_add;
 	Bitu line_length;
 	Bitu address_line_total;
@@ -182,8 +182,9 @@ typedef struct {
 	Bitu vblank_skip;
 	Bitu lines_done;
 	Bitu split_line;
+	Bitu hsync_events;
 	Bitu byte_panning_shift;
-    Bitu render_step,render_max;
+	Bitu render_step,render_max;
 	struct {
 		double framestart;
 		double vrstart, vrend;		// V-retrace
@@ -209,330 +210,33 @@ typedef struct {
 	} cursor;
 	Drawmode mode;
 	bool has_split;
+	bool must_draw_again;
+	bool must_complete_frame;
 	bool vret_triggered;
 	bool vga_override;
+	bool modeswitch_set;
 	bool doublescan_set;
 	bool doublescan_effect;
 	bool char9_set;
 	Bitu bpp;
 	double clock;
 	double oscclock;
+
+	/* memory write checker will do:
+	 *
+	 * if ((addr-draw_base_planar) < draw_base_size)
+	 *   ...
+	 *
+	 * memory write checking must be as simple as possible because mem write code is called VERY OFTEN */
+    unsigned int draw_base_planar = 0;
+    unsigned int draw_base_size = 0;
+
 	uint8_t cga_snow[80];			// one bit per horizontal column where snow should occur
 
 	/*Color and brightness for monochrome display*/
 	MonochromeColor monochrome_pal;
 	uint8_t monochrome_bright;
-} VGA_Draw;
-
-/* enable switch for the "alternative video system" */
-extern bool vga_alt_new_mode;
-
-/* NTS: Usage of this general struct will vary between the various video modes.
- *
- *      MDA/Hercules/CGA/PCjr/Tandy: Video hardware is based on the 6845 which
- *      counts horizontal AND vertical timing based on character cells. The
- *      fact that vertical timing is based on character cells is the reason
- *      why changing character cell height requires reprogramming the vertical
- *      timings. Most video modes are not entirely a multiple of the character
- *      cell height, which is why the 6845 has a "vertical adjust" to add to
- *      the total. For example, CGA produces a video signal with NTSC timing
- *      by programming enough character cells vertically with a vertical adjust
- *      to bring video output to the 262 scanlines required by one field of
- *      NTSC video, or 524 scanlines per frame. This isn't quite NTSC since
- *      CGA does not emit the half-a-scanline needed for interlaced (to produce
- *      262.5 lines per field or 525 scanlines per frame) but it happens to
- *      work with most TV sets (although incompatible with Happauge video
- *      capture cards).
- *
- *      Note that the CGA is not the only 80s hardware to emit non-interlaced
- *      NTSC, most video game consoles of the time period do as well. Your
- *      old Nintendo Entertainment System does it too.
- *
- *      Because of the character cell-based vertical timing, CGA emulation here
- *      will probably not rely so much on vert.total as it will on counting
- *      scan lines of the character cell.
- *
- *
- *      EGA/VGA/SVGA: Horizontal timing is based on character cells (which
- *      varies according to the mode and configuration). Vertical timing is
- *      based on scanlines, which is why it is easy to change character cell
- *      height without having to reprogram vertical timing.
- *
- *      Because of that, VGA emulation will count vertical timing entirely by
- *      vert.current and vert.total.
- *
- *
- *      MCGA: Not sure. This is weird hardware. Needs more study. It looks a
- *      lot like the marriage of CGA with a VGA DAC and a 256-color mode tied
- *      to 64KB of memory, and a CRTC that emulates a 6845 but generally ignores
- *      some horizontal and vertical values and hacks others and possibly
- *      carries video line doubling circuitry in order to produce 400-line video
- *      from 200-line video timings (except the 640x480 2-color mode).
- *
- *
- *      NEC PC-98: Two instances of this C++ class will be used in parallel,
- *      with the same dot clock, to emulate the text and graphics "layers" of
- *      PC-98 video. Both instances will generally have the same horizontal
- *      and vertical timing but they don't have to, in which case the VGA
- *      render code will generate the gibberish that would occur on real
- *      hardware when the two are not synchronized.
- */
-typedef struct VGA_Experimental_Model_1_t {
-    template <typename T> struct pix_char_t {
-        T                       pixels;
-        T                       chars;
-
-        pix_char_t() { }
-        pix_char_t(const T val) : pixels(val), chars(val) { }
-    };
-
-    template <typename T> struct start_end_t {
-        T                       start;
-        T                       end;
-
-        start_end_t() { }
-        start_end_t(const T val) : start(val), end(val) { }
-        start_end_t(const unsigned int val) : start(val), end(val) { }
-    };
-
-    /* pixel 0 is start of display area.
-     * next scanline starts when current == total before drawing next pixel.
-     */
-    struct general_dim {
-        // CRTC counter address (H) / CRTC counter address at start of line (V)
-        unsigned int                                crtc_addr = 0;
-
-        // CRTC counter address to add per character clock (H) / per scan line (V)
-        unsigned int                                crtc_addr_add = 0;
-
-        // current position in pixels within scan line (H) / number of scan line (V)
-        pix_char_t<unsigned int>                    current = 0;
-
-        // total pixels in scan line (H) / total scan lines (V)
-        pix_char_t<unsigned int>                    total = 0;
-
-        // first pixel (H) / scan line (V) that active display STARTs, ENDs (start == 0 usually)
-        start_end_t< pix_char_t<unsigned int> >     active = 0;
-
-        // first pixel (H) / scan line (V) that blanking BEGINs, ENDs
-        start_end_t< pix_char_t<unsigned int> >     blank = 0;
-
-        // first pixel (H) / scan line (V) that retrace BEGINs, ENDs
-        start_end_t< pix_char_t<unsigned int> >     retrace = 0;
-
-        // largest horizontal active.end value during the entire frame (H) for demos like DoWhackaDo.
-        // largest vertical active.end value during the entire frame (V).
-        // reset to active.end at start of active display. (H/V)
-        pix_char_t<unsigned int>                    active_max = 0;
-
-        // start of scan line (H) / frame (V) PIC full index time
-        pic_tickindex_t                             time_begin = 0;
-
-        // length of scan line (H) / length of frame (V)
-        pic_tickindex_t                             time_duration = 0;
-
-        // current pixel position (H) / scan line (V) within character cell
-        unsigned char                               current_char_pixel = 0;
-
-        // width (H) / scan lines (V) of a character cell
-        unsigned char                               char_pixels = 0;
-
-        // bit mask for character row compare
-        unsigned char                               char_pixel_mask = 0;
-
-        bool                                        blank_enable = false;           // blank enable
-        bool                                        display_enable = false;         // display enable (active area)
-        bool                                        retrace_enable = false;         // retrace enable
-    };
-
-    // NTS: If start < end, cell starts with enable = false. at start of line,
-    //      toggle enable (true) when line == start, then toggle enable (false) when
-    //      line == end, then draw.
-    //
-    //      If start >= end, cell starts with enable = true, at start of line,
-    //      toggle enable (false) when line == start, then toggle enable (true) when
-    //      line == end, then draw.
-
-    bool                        cursor_enable = false;  // if set, show cursor
-
-    unsigned char               cursor_start = 0;       // cursor starts on this line (toggle cursor enable)
-    unsigned char               cursor_end = 0;         // cursor stops on this line (first line to toggle again to disable)
-
-    unsigned int                crtc_cursor_addr = 0;   // crtc address to display cursor at
-
-    unsigned int                crtc_mask = 0;      // draw from memory ((addr & mask) + add)
-    unsigned int                crtc_add = 0;       // NTS: For best results crtc_add should only change bits that are masked off
-
-    inline unsigned int crtc_addr_fetch(void) const {
-        return (horz.crtc_addr & crtc_mask) + crtc_add;
-    }
-
-    inline unsigned int crtc_addr_fetch_and_advance(void) {
-        const unsigned int ret = crtc_addr_fetch();
-        horz.crtc_addr += horz.crtc_addr_add;
-        return ret;
-    }
-
-    unsigned int                raster_scanline = 0;    // actual scan line out to display
-
-    unsigned char               doublescan_count = 0;   // VGA doublescan counter
-    unsigned char               doublescan_max = 0;     // Advance scanline at this count
-
-    // NTS: horz.char_pixels == 8 for CGA/MDA/etc and EGA/VGA text, but EGA/VGA can select 9 pixels/char.
-    //      VGA 320x200x256-color mode will have 4 pixels/char. A hacked version of 320x200x256-color mode
-    //      in which the 8BIT bit is cleared (which makes it a sort of 640x200x256-color-ish mode that
-    //      reveals the intermediate register states normally hidden) will have 8 pixels/char.
-    //
-    //      MCGA 320x200x256-color will have horz.char_pixels == 8. A register dump from real hardware shows
-    //      that Mode 13 has the same horizontal timings as every other mode (as if 320x200 CGA graphics!).
-    //      This is very different from VGA where 320x200x256 is programmed as if a 640x200 graphics mode.
-    //
-    //      PC-98 will render as if horz.char_pixels == 8 on the text layer. It may set horz.char_pixels == 16
-    //      on some text cells if the hardware is to render a double-wide character. The graphics layer is
-    //      generally programmed into WORDs mode which means horz.char_pixels == 16 at all times. If it is
-    //      ever programmed into byte mode then it will set horz.char_pixels == 8.
-
-    struct dotclock_t {
-        double                  rate_invmult = 0;
-        double                  rate_mult = 0;
-        double                  rate = 0;
-        pic_tickindex_t         base = 0;
-        signed long long        ticks = 0;
-        signed long long        ticks_prev = 0;
-
-        void reset(const pic_tickindex_t now) {
-            ticks = ticks_prev = 0;
-            base = now;
-        }
-
-        // do not call unless all ticks processed
-        void set_rate(const double new_rate,const pic_tickindex_t now) {
-            if (rate != new_rate) {
-                update(now);
-                rebase();
-
-                if ((rate <= 0) || (fabs(now - base) > (0.5 * rate_invmult)))
-                    base = now;
-
-                if (new_rate > 0) {
-                    rate_invmult = 1000 / new_rate; /* Hz -> ms */
-                    rate_mult = new_rate / 1000; /* ms -> Hz */
-                    rate = new_rate;
-                }
-                else {
-                    rate_invmult = 0;
-                    rate_mult = 0;
-                    rate = 0;
-                }
-
-                update(now);
-                ticks_prev = ticks;
-            }
-        }
-
-        inline pic_tickindex_t ticks2pic_relative(const signed long long t,const pic_tickindex_t now) const {
-            return (t * rate_invmult) + (base - now);/* group float operations to maintain precision */
-        }
-
-        inline pic_tickindex_t ticks2pic(const signed long long t) const {
-            return (t * rate_invmult) + base;
-        }
-
-        inline signed long long pic2ticks(const pic_tickindex_t now) const {
-            /* typecasting rounds down to 0 apparently. floor() is slower. */
-            return (signed long long)((now - base) * rate_mult);
-        }
-
-        // inline and minimal for performance!
-        inline void update(const pic_tickindex_t now) {
-            /* NTS: now = PIC_FullIndex() which is time in ms (1/1000 of a sec) */
-            ticks = pic2ticks(now);
-        }
-
-        // retrival of tick count and reset of counter
-        inline signed long long delta_peek(void) const {
-            return ticks - ticks_prev;
-        }
-
-        inline signed long long delta_get(void) {
-            signed long long ret = delta_peek();
-            ticks_prev = ticks;
-            return ret;
-        }
-
-        // rebase of the counter.
-        // call this every so often (but not too often) in order to prevent floating point
-        // precision loss over time as the numbers get larger and larger.
-        void rebase(void) {
-            if (rate_mult > 0) {
-                base += ticks * rate_invmult;
-                ticks = ticks_prev = 0;
-            }
-        }
-    };
-
-    /* integer fraction.
-     * If you need more precision (4.1:3 instead of 4:3) just scale up the values (4.1:3 -> 41:30) */
-    struct int_fraction_t {
-        unsigned int            numerator = 0;
-        unsigned int            denominator = 0;
-
-        int_fraction_t() { }
-        int_fraction_t(const unsigned int n,const unsigned int d) : numerator(n), denominator(d) { }
-    };
-
-    /* 2D display dimensions */
-    struct dimensions_t {
-        unsigned int            width = 0;
-        unsigned int            height = 0;
-
-        dimensions_t() { }
-        dimensions_t(const unsigned int w,const unsigned int h) : width(w), height(h) { }
-    };
-
-    /* 2D coordinate */
-    struct int_point2d_t {
-        int                     x = 0;
-        int                     y = 0;
-
-        int_point2d_t() { }
-        int_point2d_t(const int nx,const int ny) : x(nx), y(ny) { }
-    };
-
-    // use the dot clock to map advancement of emulator time to dot clock ticks.
-    // apply the dot clock ticks against the horizontal and vertical current position
-    // to emulate the raster of the video output over time.
-    //
-    // if anything changes dot clock rate, process all ticks and advance hardware
-    // state, then set the rate and process all dot clock ticks after that point
-    // at the new rate.
-
-    dotclock_t                  dotclock;
-    general_dim                 horz,vert;
-
-    // monitor emulation
-    dimensions_t                monitor_display;                // image sent to GFX (may include overscan, blanking, etc)
-    int_point2d_t               monitor_start_point;            // pixel(x)/scanline(y) counter of the CRTC that is start of line(x)/frame(y)
-    int_fraction_t              monitor_aspect_ratio = {4,3};   // display aspect ratio of the video frame
-
-    // The GFX/scaler system will be sent a frame of dimensions monitor_display.
-    // The start of the frame will happen when the CRTC pixel count matches the monitor_start_point.
-    // monitor_start_point will be set to 0,0 if DOSBox-X is set only to show active area.
-    // it will be set to match on the first clock/scanline of the non-blanking area (overscan), upper left corner if set to do so.
-    // it will be set to some point of the blanking area if asked to do so to approximate how a VGA monitor centers the image.
-    // finally, a debug mode will be offered to show the ENTIRE frame (htotal/vtotal) with markings for retrace if wanted by the user.
-
-    // Pointers to draw from. This represents CRTC character clock 0.
-    uint8_t*                      draw_base = NULL;
-
-    template <typename T> inline const T* drawptr(const size_t offset) const {
-        return (const T*)draw_base + offset; /* equiv T* ptr = (T*)draw_base; return &ptr[offset]; */
-    }
-
-    template <typename T> inline T* drawptr_rw(const size_t offset) const {
-        return (T*)draw_base + offset; /* equiv T* ptr = (T*)draw_base; return &ptr[offset]; */
-    }
-} VGA_Draw_2;
+};
 
 typedef struct {
 	uint8_t curmode;
@@ -689,11 +393,11 @@ typedef struct {
 		uint8_t			evf;				// [15:15] EVF Enable Vertical Filtering
 
 		// (MM81EC Stream FIFO and RAS Controls)
-		uint8_t			fifo_alloc_ps;		// Interpretation of [4:0], where 5 bits are number of slots alloted to secondary stream.
+		uint8_t			fifo_alloc_ps;		// Interpretation of [4:0], where 5 bits are number of slots allotted to secondary stream.
 											// N = secondary stream slots	 This value is set to 24 - N
 		uint8_t			fifo_alloc_ss;		// Interpretation of [4:0], set to N (up to 24)
-		uint8_t			fifo_ss_threshhold;	// Threshhold at which FIFO refill of secondary stream is triggered (low water point). Must be <= alloc_ss
-		uint8_t			fifo_ps_threshhold;	// Threshhold at which FIFO refill of primary stream is triggered (low water point). Must be <= alloc_ps
+		uint8_t			fifo_ss_threshhold;	// Threshold at which FIFO refill of secondary stream is triggered (low water point). Must be <= alloc_ss
+		uint8_t			fifo_ps_threshhold;	// Threshold at which FIFO refill of primary stream is triggered (low water point). Must be <= alloc_ps
 		uint8_t			ras_rl;				// [15:15] RL RAS Low Time Control
 		uint8_t			ras_rp;				// [16:16] RP RAS Pre-Charge Control
 		uint8_t			edo_wsctl;			// [18:18] EDO Memory Wait State Control
@@ -728,6 +432,25 @@ typedef struct {
 	uint8_t mode_control;
 	uint8_t enable_bits;
 	bool blend;
+
+	// Plus and InColor
+	uint8_t xMode;
+	uint8_t underline;
+	uint8_t strikethrough;
+
+	// InColor
+	uint8_t exception;
+	uint8_t planemask_protect;
+	uint8_t planemask_visible;
+	uint8_t maskpolarity;
+	uint8_t write_mode;
+	uint8_t dont_care;
+	uint8_t bgcolor;
+	uint8_t fgcolor;
+	uint8_t latchprotect;
+	uint8_t palette_index;
+	uint8_t palette[16];
+	uint32_t latch;
 } VGA_HERC;
 
 typedef struct {
@@ -871,6 +594,7 @@ typedef struct {
 	uint8_t	bank_read;
 	uint8_t	bank_write;
 	Bitu	bank_size;
+	uint16_t bank_mask;
 } VGA_SVGA;
 
 typedef union CGA_Latch {
@@ -896,6 +620,8 @@ typedef struct VGA_Memory_t {
     uint32_t    memsize = 0;
     uint32_t    memmask = 0;
     uint32_t    memmask_crtc = 0;       // in CRTC-visible units (depends on byte/word/dword mode)
+    uint32_t    memsize_original = 0;	// memsize prior to rounding up to a power of 2
+    uint32_t    vbe_memsize = 0;        // memory size reported through the VBE
 } VGA_Memory;
 
 typedef struct {
@@ -905,13 +631,89 @@ typedef struct {
 	PageHandler *handler;
 } VGA_LFB;
 
-static const size_t VGA_Draw_2_elem = 2;
+enum {
+	VGACMPLX_MAP_MASK=(1u << 0u), // at least one bit is clear in the sequencer map mask register, problem for chained 256-color mode
+	VGACMPLX_NON_EXTENDED=(1u << 1u), // the extended memory bit is cleared in the sequencer register
+	VGACMPLX_ODDEVEN=(1u << 2u), // Odd/Even addressing mode set in sequencer register
+	VGACMPLX_BITMASK=(1u << 3u), // Bit mask in graphics controller is not 0xFF
+	VGACMPLX_COLORDONTCARE=(1u << 4u), // At least one bit set in the color don't care graphics controller register
+	VGACMPLX_WRITEMODE=(1u << 5u), // Graphics controller write mode is not zero
+	VGACMPLX_READMODE=(1u << 6u), // Graphics controller read mode is not zero
+	VGACMPLX_ROPROT=(1u << 7u), // Graphics controller raster op is nonzero or data rotate nonzero
+	VGACMPLX_SETRESET=(1u << 8u) // Graphics controller set/reset enable is nonzero
+};
+
+// optimization tracking, the "complexity" of the arrangement.
+typedef struct VGA_Complexity_t {
+	unsigned int	flags = 0;
+
+	INLINE unsigned int setf(unsigned int flag) {
+		const unsigned int pf = flags;
+		flags |= flag;
+		return pf ^ flags;
+	}
+	INLINE unsigned int clearf(unsigned int flag) {
+		const unsigned int pf = flags;
+		flags &= ~flag;
+		return pf ^ flags;
+	}
+	INLINE unsigned int setf(unsigned int flag,bool cond) {
+		if (cond)
+			return setf(flag);
+		else
+			return clearf(flag);
+	}
+} VGA_Complexity;
+
+typedef struct VGA_Override_t {
+	bool			enable = false;
+	bool			start_sum = false;
+	uint32_t		start = ~uint32_t(0u);
+} VGA_Override;
+
+enum VGA_DOSBoxIG_VidFormat {
+	DBIGVF_NONE=0,          // none (blank screen)
+	DBIGVF_1BPP=1,		// 1bpp monochrome
+	DBIGVF_4BPP=2,		// 4bpp packed 16-color
+	DBIGVF_8BPP=3,		// 8bpp packed 256-color
+	DBIGVF_15BPP=4,		// 16bpp R:G:B 1:5:5:5
+	DBIGVF_16BPP=5,		// 16bpp R:G:B 5:6:5
+	DBIGVF_24BPP8=6,	// 24bpp RGB
+	DBIGVF_32BPP8=7,	// 32bpp XRGB 8:8:8:8
+	DBIGVF_32BPP10=8,	// 32bpp XRGB 2:10:10:10
+	DBIGVF_1BPP4PLANE=9	// 1bpp planar
+};
+
+typedef struct VGA_DOSBoxIG {
+	bool                    svga = false; /* override VGA output with DOSBoxIG SVGA graphics */
+	bool                    vga_reg_lockout = false; /* lock out standard VGA registers except 3BAh/3DAh and DAC registers */
+	bool                    vga_3da_lockout = false; /* lock out port 3BAh/3DAh */
+	bool                    vga_dac_lockout = false; /* lock out DAC registers */
+	bool			vga_acpal_bypass = false; /* VGA DAC bypass AC palette */
+	bool			override_refresh = false; /* force a refresh rate */
+	bool			vesa_bios_lockout = false; /* disable VESA BIOS modesetting (for Windows driver) */
+	bool			force_A0000 = false; /* force VGA memory map to A0000-AFFFF */
+	unsigned int            width = 16;
+	unsigned int            height = 16;
+	unsigned int		bytes_per_scanline = 0;
+	unsigned int            wa_total = 0,ha_total = 0; /* additional cols/rows to add to get htotal/vtotal */
+	uint16_t		dar_width = 0,dar_height = 0; /* display aspect ratio, if nonzero */
+	uint32_t                vratefp16 = 0; /* video sync rate as a fixed point 16.16 number */
+	uint32_t		display_offset = 0; /* offset in video memory to display */
+	uint32_t		rbank_offset = 0; /* offset of 64KB bank window in video memory */
+	uint32_t		wbank_offset = 0; /* offset of 64KB bank window in video memory */
+	uint8_t                 vidformat = 0; /* video pixel format (VGA_DOSBoxIG_VidFormat) */
+	uint8_t			hpel = 0; /* horizontal pan */
+	uint8_t			vpel = 0; /* vertical pan */
+	uint8_t			hscale = 0; /* horizontal pixel duplication */
+	uint8_t			vscale = 0; /* vertical pixel duplication */
+	uint32_t		ctlreg = 0; /* raw data written to CTL register */
+} VGA_DOSBoxIG;
 
 typedef struct VGA_Type_t {
     VGAModes mode = {};                              /* The mode the vga system is in */
     VGAModes lastmode = {};
     uint8_t misc_output = 0;
-    VGA_Draw_2 draw_2[VGA_Draw_2_elem];         /* new parallel video emulation. PC-98 mode will use both, all others only the first. */
     VGA_Draw draw = {};
     VGA_Config config = {};
     VGA_Internal internal = {};
@@ -930,6 +732,10 @@ typedef struct VGA_Type_t {
     VGA_OTHER other = {};
     VGA_Memory mem;
     VGA_LFB lfb = {};
+    VGA_Complexity complexity = {};
+    VGA_Override overopts = {};
+    VGA_DOSBoxIG dosboxig = {};
+    unsigned int max_svga_width = 0,max_svga_height = 0;
 } VGA_Type;
 
 
@@ -1045,8 +851,21 @@ void SVGA_Setup_TsengET3K(void);
 void SVGA_Setup_ParadisePVGA1A(void);
 void SVGA_Setup_Driver(void);
 
+void SVGA_Setup_ATI(void);
+bool VGA_IsCaptureEnabled(void);
+void VGA_UpdateCapturePending(void);
+bool VGA_CaptureHasNextFrame(void);
+void VGA_CaptureStartNextFrame(void);
+void VGA_CaptureMarkError(void);
+bool VGA_CaptureValidateCurrentFrame(void);
+void SD3_Reset(bool enable);
+void SetClock_S3(Bitu which,Bitu target);
+
 // Amount of video memory required for a mode, implemented in int10_modes.cpp
 Bitu VideoModeMemSize(Bitu mode);
+bool VGA_DetermineMode_IsDCGA(void);
+void VGA_DetermineMode_StandardVGA(void);
+void VGA_DetermineMode_S3(void);
 
 extern uint32_t ExpandTable[256];
 extern uint32_t FillTable[16];
@@ -1059,6 +878,9 @@ extern uint32_t TXT_FG_Table[16];
 extern uint32_t TXT_BG_Table[16];
 extern uint32_t Expand16Table[4][16];
 extern uint32_t Expand16BigTable[0x10000];
+
+extern int hack_lfb_yadjust;
+extern int hack_lfb_xadjust;
 
 void VGA_DAC_UpdateColorPalette();
 
@@ -1080,6 +902,28 @@ extern unsigned char GFX_bpp;
 extern unsigned char *pc98_pgraph_current_display_page;
 /* current CPU page (controlled by A6h) */
 extern unsigned char *pc98_pgraph_current_cpu_page;
+
+extern int                          vga_memio_delay_ns;
+extern bool                         enable_supermegazeux_256colortext;
+extern bool                         vga_memio_lfb_delay;
+extern bool                         gdc_5mhz_mode;
+extern bool                         gdc_5mhz_mode_initial;
+extern bool                         enable_pc98_egc;
+extern bool                         enable_pc98_grcg;
+extern bool                         enable_pc98_16color;
+extern bool                         enable_pc98_256color;
+extern bool                         enable_pc98_256color_planar;
+extern bool                         enable_pc98_188usermod;
+extern bool                         GDC_vsync_interrupt;
+extern uint8_t                      GDC_display_plane;
+extern bool                         pc98_256kb_boundary;
+extern bool                         want_fm_towns;
+extern bool                         enveten;
+
+extern bool enable_pci_vga;
+
+extern unsigned int vbe_window_granularity;
+extern unsigned int vbe_window_size;
 
 /* functions to help cleanup memory map access instead of hardcoding offsets.
  * your C++ compiler should be smart enough to inline these into the body of this function. */
@@ -1142,5 +986,27 @@ static inline unsigned char *pc98_vram_256bank_from_window(const unsigned int b)
 }
 
 #define VRAM98_TEXT         ( pc98_vram_text() )
+
+#ifdef VGA_INTERNAL
+#define gfx(blah) vga.gfx.blah
+#define seq(blah) vga.seq.blah
+#define crtc(blah) vga.crtc.blah
+#endif
+
+#define IS_RESET ((vga.seq.reset&0x3)!=0x3)
+#define IS_SCREEN_ON ((vga.seq.clocking_mode&0x20)==0)
+
+bool J3_IsCga4Dcga();
+void UpdateCGAFromSaveState(void);
+void INT10_PC98_CurMode_Relocate(void);
+unsigned int VGA_ComplexityCheck_ODDEVEN(void);
+void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
+uint32_t GetReportedVideoMemorySize(void);
+extern void VGA_TweakUserVsyncOffset(float val);
+void VGA_UnsetupMisc(void);
+void VGA_UnsetupAttr(void);
+void VGA_UnsetupDAC(void);
+void VGA_UnsetupGFX(void);
+void VGA_UnsetupSEQ(void);
 
 #endif

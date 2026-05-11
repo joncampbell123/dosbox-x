@@ -35,6 +35,10 @@
 #ifdef OS2
 # define INCL_DOS
 # define INCL_WIN
+# define INCL_DOSERRORS
+# define INCL_WINDIALOGS
+# include <os2.h>
+# include <SDL_syswm.h>
 #endif
 
 #if defined(WIN32)
@@ -43,43 +47,57 @@
 #endif
 #endif
 
+#ifndef O_BINARY
+# define O_BINARY 0
+#endif
+
 int socknum=-1;
 int posx = -1;
 int posy = -1;
 int initgl = 0;
 int transparency=0;
-int switchoutput=-1;
 int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
 int middleunlock = 1;
-unsigned long endtick = 0;
-bool rtl = false;
-bool selmark = false;
-extern int enablelfn;
-extern int autosave_second;
-extern bool swapad;
+unsigned int maincp = 0;
+extern bool testerr;
 extern bool blinking;
-extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
 extern bool ticksLocked;
 extern bool isJPkeyboard;
 extern bool enable_autosave;
-extern bool noremark_save_state;
 extern bool use_quick_reboot;
-extern bool force_load_state;
-extern bool force_conversion, gbk, chinasea;
-extern bool pc98_force_ibm_layout, clearline;
-extern bool ttfswitch, switch_output_from_ttf;
+extern bool showdbcs, skipdraw;
+extern bool noremark_save_state;
+extern bool ctrlbrk, dpi_aware_enable;
+extern bool force_load_state, force_conversion;
+extern bool pc98_force_ibm_layout, gbk, chinasea;
 extern bool inshell, enable_config_as_shell_commands;
-bool tooutttf = false;
+extern bool switchttf, ttfswitch, switch_output_from_ttf;
+extern bool finish_prepare;
+bool checkmenuwidth = false;
 bool dos_kernel_disabled = true;
+bool dos_kernel_shutdown_mcb = true;
 bool winrun=false, use_save_file=false;
-bool usesystemcursor = false, enableime = false;
-bool maximize = false, direct_mouse_clipboard=false;
+bool maximize = false, tooutttf = false;
+bool tonoime = false, enableime = false;
+bool usesystemcursor = false, rtl = false, selmark = false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindowTransparency(int trans);
+void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), refreshExtChar(void), Add_VFiles(bool usecp), SetAlpha(double alpha), SetWindowTransparency(int trans);
+void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_menu(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
+extern int tryconvertcp, Reflect_Menu(void);
+bool kana_input = false; // true if a half-width kana was typed
+
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+#define IS_OLDMACOS 1 /* FIX_ME: Tested on El Capitan (10.11). If this macro is required for Sierra (10.12), change to 101300 */
+#endif
+
+#ifndef LINUX
+char* convert_escape_newlines(const char* aMessage);
+char* revert_escape_newlines(const char* aMessage);
+#endif
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -126,7 +144,6 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindo
 #include "mapper.h"
 #include "sdlmain.h"
 #include "zipfile.h"
-#include "shell.h"
 #include "glidedef.h"
 #include "bios_disk.h"
 #include "inout.h"
@@ -136,7 +153,7 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindo
 #include "../dos/drives.h"
 #include "../ints/int10.h"
 #if !defined(HX_DOS)
-#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(OS2) && !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 #include "whereami.c"
 #endif
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
@@ -144,9 +161,9 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindo
 #if C_DEBUG
 #include "display2.cpp"
 #endif
-#if defined(USE_TTF)
-#include "sdl_ttf.c"
-#include "DOSBoxTTF.h"
+
+#if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
+#include "libs/passthroughio/passthroughio.h" // for dropPrivileges()
 #endif
 
 #if defined(LINUX) && defined(HAVE_ALSA)
@@ -157,8 +174,60 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindo
 # include <shobjidl.h>
 #endif
 
+#include <string>
+#if defined(_WIN32)
+#include <direct.h>
+#define getcwd _getcwd
+#else
+#include <unistd.h>
+#endif
+#include <limits.h>
+
+#include <output/output_direct3d11.h>
+#include <output/output_direct3d.h>
+#include <output/output_opengl.h>
+#include <output/output_surface.h>
+#include <output/output_tools.h>
+#include <output/output_ttf.h>
+#include <output/output_tools_xbrz.h>
+static bool init_output = false;
+bool switch_to_d3d11_on_startup = false;
+bool switch_to_metal_on_startup = false;
+
+/* #include <output/output_metal.h> */ // includes Objective-C code
+#if C_METAL
+void metal_init();
+void OUTPUT_Metal_Select();
+Bitu OUTPUT_Metal_GetBestMode(Bitu flags);
+bool OUTPUT_Metal_StartUpdate(uint8_t*& pixels, Bitu& pitch);
+void OUTPUT_Metal_EndUpdate(const uint16_t* changedLines);
+Bitu OUTPUT_Metal_SetSize(void);
+void OUTPUT_Metal_Shutdown();
+void OUTPUT_Metal_CheckSourceResolution();
+#endif
+
 #if defined(WIN32)
 #include "resource.h"
+#if !defined(HX_DOS)
+
+#ifndef PATH_MAX
+    #if defined(WIN32)
+        #define PATH_MAX MAX_PATH
+    #else
+        #define PATH_MAX 4096 /* LINUX sets to 4096, while this varies from 260 to 4096 depending on platforms */
+    #endif
+#endif
+
+BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
+    (void)hMon;
+    (void)dcMon;
+	xyp* xy = reinterpret_cast<xyp*>(lParam);
+	curscreen++;
+	if (sdl.displayNumber==curscreen) monrect=*pRcMon;
+	return TRUE;
+
+}
+#endif
 #endif
 
 #if defined(WIN32) && defined(__MINGW32__) /* MinGW does not have IID_ITaskbarList3 */
@@ -192,7 +261,6 @@ typedef enum PROCESS_DPI_AWARENESS {
 # include "Commdlg.h"
 # include "windows.h"
 # include "Shellapi.h"
-# include "shell.h"
 # include <cstring>
 # include <fstream>
 # if defined(__MINGW32__) && !defined(HX_DOS)
@@ -209,27 +277,28 @@ typedef enum PROCESS_DPI_AWARENESS {
 #include "fpu.h"
 #include "cross.h"
 #include "keymap.h"
-
-#ifdef _MSC_VER
-# define MIN(a,b) ((a) < (b) ? (a) : (b))
-# define MAX(a,b) ((a) > (b) ? (a) : (b))
-#else
-# define MIN(a,b) std::min(a,b)
-# define MAX(a,b) std::max(a,b)
+#include "voodoo.h"
+#if C_OPENGL
+#include "../hardware/voodoo_types.h"
+#include "../hardware/voodoo_data.h"
+#include "../hardware/voodoo_opengl.h"
 #endif
 
-#if !defined(C_SDL2) && !defined(RISCOS)
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
+#endif
+
 # include "SDL_version.h"
+#if !defined(C_SDL2) && !defined(RISCOS) && !defined(OS2)
 # ifndef SDL_DOSBOX_X_SPECIAL
 #  warning It is STRONGLY RECOMMENDED to compile the DOSBox-X code using the SDL 1.x library provided in this source repository.
-#if !defined(__FreeBSD__)
 #  error You can ignore this by commenting out this error, but you will encounter problems if you use the unmodified SDL 1.x library.
-#endif
 # endif
 #endif
 
 #include "sdlmain.h"
 #include "build_timestamp.h"
+#include "version_string.h"
 
 #if C_OPENGL
 namespace gl2 {
@@ -284,23 +353,20 @@ void macosx_GetWindowDPI(ScreenSizeInfo &info);
 int macosx_yesno(const char *title, const char *message);
 int macosx_yesnocancel(const char *title, const char *message);
 std::string macosx_prompt_folder(const char *default_folder);
-void GetClipboard(std::string* result);
-bool SetClipboard(std::string value);
 #endif
 
-static bool PasteClipboardNext();
+#if defined(C_HAVE_DUKTAPE)
+duk_context *js_heap = NULL;
+#endif
+
 #if C_DIRECT3D
 void d3d_init(void);
 #endif
-void ShutDownMemHandles(Section * sec);
-void resetFontSize(), decreaseFontSize();
-void GFX_ReleaseMouse(), makestdcp950table();
+void ShutDownMemHandles(Section * sec), GFX_ReleaseMouse();
+void resetFontSize(), increaseFontSize(), decreaseFontSize();
 void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight);
 void MAPPER_CheckEvent(SDL_Event * event), MAPPER_CheckKeyboardLayout(), MAPPER_ReleaseAllKeys();
 bool isDBCSCP(), InitCodePage();
-int GetNumScreen();
-extern SHELL_Cmd cmd_list[];
-extern uint8_t lead[6];
 
 SDL_Block sdl;
 Bitu frames = 0;
@@ -310,79 +376,30 @@ unsigned int sendkeymap=0;
 std::string configfile = "";
 std::string strPasteBuffer = "";
 ScreenSizeInfo screen_size_info;
-void RebootLanguage(std::string filename, bool confirm=false);
-bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+void FormFeed(bool pressed), PrintText(bool pressed);
+void DOSBOX_UnlockSpeed2(bool pressed), DEBUG_Enable_Handler(bool pressed);
 int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
+bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && defined(C_SDL2)
 static std::string ime_text = "";
 extern bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 extern bool IME_GetEnable();
 #endif
 
-#if defined(USE_TTF)
-Render_ttf ttf;
-bool char512 = true;
-bool showbold = true;
-bool showital = true;
-bool showline = true;
-bool showsout = false;
-bool dbcs_sbcs = true;
-bool printfont = true;
-bool autoboxdraw = true;
-bool halfwidthkana = true;
-bool ttf_dosv = false;
-int outputswitch = -1;
-int wpType = 0;
-int wpVersion = 0;
-int wpBG = -1, wpFG = 7;
-bool wpExtChar = false;
+int NonUserResizeCounter = 0;
 
-static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
-static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
-extern bool resetreq, enable_dbcs_tables;
-extern uint8_t ccount;
-extern uint16_t cpMap[512];
-static SDL_Color ttf_fgColor = {0, 0, 0, 0};
-static SDL_Color ttf_bgColor = {0, 0, 0, 0};
-static SDL_Rect ttf_textRect = {0, 0, 0, 0};
-static SDL_Rect ttf_textClip = {0, 0, 0, 0};
-
-typedef struct {
-	uint8_t red;
-	uint8_t green;
-	uint8_t blue;
-	uint8_t alpha;		// unused
-} alt_rgb;
-alt_rgb altBGR0[16], altBGR1[16];
-int blinkCursor = -1;
-static int prev_sline = -1;
-static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
-static bool blinkstate = false;
-bool colorChanged = false, justChanged = false;
-#endif
 #if defined(WIN32) && !defined(HX_DOS)
-int curscreen;
-RECT monrect;
-typedef struct {
-	int	x, y;
-} xyp;
-BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
-	xyp* xy = reinterpret_cast<xyp*>(lParam);
-	curscreen++;
-	if (sdl.displayNumber==curscreen) monrect=*pRcMon;
-	return TRUE;
-
-}
 enum class CornerPreference {
     Default    = 0,
     DoNotRound = 1,
     Round      = 2,
     RoundSmall = 3,
 };
+
+typedef HRESULT(WINAPI* PFNSETWINDOWATTRIBUTE)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+
 bool UpdateWindows11RoundCorners(HWND hWnd, CornerPreference cornerPreference) {
-    typedef HRESULT(WINAPI *PFNSETWINDOWATTRIBUTE)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
     enum DWMWINDOWATTRIBUTE {
         DWMWA_WINDOW_CORNER_PREFERENCE = 33
     };
@@ -404,631 +421,113 @@ bool UpdateWindows11RoundCorners(HWND hWnd, CornerPreference cornerPreference) {
     }
     return false;
 }
+
+# ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#  define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+# endif
+
+
+bool HostDarkMode()
+{
+    // Uh, hey, Microsoft. Have you ever thought of providing a damn API function to just tell me whether Dark Mode or Light Mode
+    // is active? It could be a BOOL or an enumeration or something. Then you wouldn't have to support random GitHub projects that
+    // have to import unnamed ordinals from UXTHEME.DLL just to figure it out. While you're at it, why not provide a way for a
+    // Win32 program like myself to say "Hey, I want everything in this program to support Dark Mode, instead of having to hack
+    // every single window to try to get it to render Dark Mode".
+    return false;
+}
+
+bool AllowDarkMode(HWND hwnd, BOOL enable) {
+    {
+        // NTS: Contrary to first impressions, DWMWA_USE_IMMERSIVE_DARK_MODE does not match your title bar to the system
+        //      theme. No, that would make sense. Instead, DWMWA_USE_IMMERSIVE_DARK_MODE makes your title bar dark AT ALL TIMES.
+        //      To know if you should set this attribute, you have to detect Dark Mode. And Microsoft doesn't provide a damn API
+        //      to detect API. They do document some roundabout way involving WinRT to read a color and compute whether it is
+        //      dark or light and therefore Dark Mode, but there's no "Is Dark Mode" active API nor any kind of enumeration on
+        //      what mode is active.
+        //
+        //      So, we can enable dark mode for the title bar, but if we're going to enable it to match the system, we have to
+        //      determine if it is active, and that's not available right now because it's too complicated to figure it out. So,
+        //      no dark mode right now.
+        HMODULE hDwmApi = ::LoadLibrary("dwmapi.dll");
+        if(hDwmApi) {
+            auto* pfnSetWindowAttribute = reinterpret_cast<PFNSETWINDOWATTRIBUTE>(GetProcAddress(hDwmApi, "DwmSetWindowAttribute"));
+            if(pfnSetWindowAttribute) {
+                // FIXME: Why doesn't this affect the menu bar and dropdown menus from it?
+                // What's the point of a dark title bar when there's this bright white menu below it?
+                BOOL val = enable && HostDarkMode();
+                HRESULT res = pfnSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &val, sizeof(val));
+                return res == S_OK;
+            }
+            ::FreeLibrary(hDwmApi);
+        }
+    }
+
+    return false;
+}
 #endif
+
+#if defined(WIN32)
+static BOOL WINAPI ConsoleEventHandler(DWORD event) {
+    switch (event) {
+    case CTRL_SHUTDOWN_EVENT:
+    case CTRL_LOGOFF_EVENT:
+    case CTRL_CLOSE_EVENT:
+    case CTRL_BREAK_EVENT:
+        raise(SIGTERM);
+        return TRUE;
+    case CTRL_C_EVENT:
+    default: //pass to the next handler
+        return FALSE;
+    }
+}
+#endif
+
 extern int bootdrive, resolveopt;
 extern int dos_clipboard_device_access;
-extern bool bootguest, bootfast, bootvm, addovl;
-extern bool sync_time, manualtime, morelen, loadlang;
-extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
-void VFILE_Remove(const char *name,const char *dir = "");
-void GLIDE_ShutDown(Section* sec), GLIDE_PowerOn(Section* sec);
-void VOODOO_Destroy(Section* /*sec*/), VOODOO_OnPowerOn(Section* /*sec*/);
+extern int aspect_ratio_x, aspect_ratio_y;
+extern bool sync_time, loadlang, addovl;
+extern bool bootguest, bootfast, bootvm;
 
-void MenuBrowseFolder(char drive, std::string drive_type);
-void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple);
-void MenuBootDrive(char drive);
-void MenuUnmountDrive(char drive);
-void MenuBrowseProgramFile(void);
-void DOSBox_SetSysMenu(void);
-void SetGameState_Run(int value);
-size_t GetGameState_Run(void);
+std::string dosboxpath="";
+std::string GetDOSBoxXPath(bool withexe=false) {
+    std::string full;
+#if defined(HX_DOS) || defined(_WIN32_WINDOWS) /*wai_* is problematic */ || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+    char exepath[MAX_PATH];
+    GetModuleFileName(NULL, exepath, sizeof(exepath));
+    full=std::string(exepath);
+#elif defined(OS2) /* No WAI */
+    char exepath[CCHMAXPATH];
+    PPIB pib;
+    APIRET rc;
 
-bool save_slot_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"slot",4)&&isdigit(*(mname+4)))
-        SetGameState_Run(page*10+std::stoi(mname+4));
-    return true;
-}
-
-#if defined(WIN32)
-void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
-bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    full = std::string("");
+    rc = DosGetInfoBlocks(NULL, &pib);
+    if (rc == NO_ERROR) {
+        rc = DosQueryModuleName(pib->pib_hmte, CCHMAXPATH, (PCHAR)&exepath);
+        if (rc == NO_ERROR) {
+            full = std::string(exepath);
+        }
     }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-	char root[4]="A:\\";
-	root[0]=drive+'A';
-    MenuMountDrive(drive+'A', root);
-
-    return true;
-}
-
-#endif
-
-bool drive_mounthd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    MenuBrowseFolder(drive+'A', "LOCAL");
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-
-    return true;
-}
-
-bool drive_mountcd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    MenuBrowseFolder(drive+'A', "CDROM");
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-
-    return true;
-}
-
-bool drive_mountfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    MenuBrowseFolder(drive+'A', "FLOPPY");
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-
-    return true;
-}
-
-bool drive_mountfro_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-
-    const char *mname = menuitem->get_name().c_str();
-    int drive = mname[6] - 'A';
-    mountfro[drive] = !mountfro[drive];
-    mainMenu.get_item("drive_" + std::string(1, drive + 'A') + "_mountfro").check(mountfro[drive]).refresh_item(mainMenu);
-
-    return true;
-}
-
-bool drive_mountarc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    MenuBrowseImageFile(drive+'A', true, false, false);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-
-    return true;
-}
-
-bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    MenuBrowseImageFile(drive+'A', false, false, false);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-
-    return true;
-}
-
-bool drive_mountimgs_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    MenuBrowseImageFile(drive+'A', false, false, true);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-
-    return true;
-}
-
-bool drive_mountiro_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-
-    const char *mname = menuitem->get_name().c_str();
-    int drive = mname[6] - 'A';
-    mountiro[drive] = !mountiro[drive];
-    mainMenu.get_item("drive_" + std::string(1, drive + 'A') + "_mountiro").check(mountiro[drive]).refresh_item(mainMenu);
-
-    return true;
-}
-
-bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive != 0 && drive != 2 && drive != 3) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    MenuBrowseImageFile(drive+'A', false, true, false);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-
-    return true;
-}
-
-bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    MenuUnmountDrive(drive+'A');
-
-    return true;
-}
-
-void swapInDrive(int drive, int position=0);
-bool drive_swap_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    if (drive < DOS_DRIVES && Drives[drive]) {
-        LOG(LOG_DOSMISC,LOG_DEBUG)("Triggering swap on drive %c",drive+'A');
-        swapInDrive(drive);
-    }
-
-    return true;
-}
-
-bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    if (drive < DOS_DRIVES && Drives[drive]) {
-        LOG(LOG_DOSMISC,LOG_DEBUG)("Triggering rescan on drive %c",drive+'A');
-        Drives[drive]->EmptyCache();
-    }
-
-    return true;
-}
-
-int statusdrive=-1;
-bool drive_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    statusdrive=drive;
-    GUI_Shortcut(31);
-    statusdrive=-1;
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-
-    return true;
-}
-
-bool drive_boot_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    /* menu item has name "drive_A_" ... */
-    int drive;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strncmp(mname,"drive_",6)) {
-        drive = mname[6] - 'A';
-        if (drive != 0 && drive != 2 && drive != 3) return false;
-    }
-    else {
-        return false;
-    }
-
-    if (dos_kernel_disabled) return true;
-
-    MenuBootDrive(drive+'A');
-
-    return true;
-}
-
-const DOSBoxMenu::callback_t drive_callbacks[] = {
-#if defined(WIN32)
-    drive_mountauto_menu_callback,
-#endif
-    drive_mounthd_menu_callback,
-    drive_mountcd_menu_callback,
-    drive_mountfd_menu_callback,
-    drive_mountfro_menu_callback,
-    NULL,
-    drive_mountarc_menu_callback,
-    drive_mountimg_menu_callback,
-    drive_mountimgs_menu_callback,
-    drive_mountiro_menu_callback,
-    NULL,
-    drive_unmount_menu_callback,
-    drive_rescan_menu_callback,
-    drive_swap_menu_callback,
-    drive_info_menu_callback,
-    NULL,
-    drive_boot_menu_callback,
-    drive_bootimg_menu_callback,
-    NULL
-};
-
-bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
-#if !defined(HX_DOS)
-    bool fs=sdl.desktop.fullscreen;
-    if (fs) GFX_SwitchFullScreen();
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    bool ret=tinyfd_messageBox(aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-    return ret;
 #else
-    return true;
+    int length = wai_getExecutablePath(NULL, 0, NULL);
+    char *exepath = (char*)malloc(length + 1);
+    wai_getExecutablePath(exepath, length, NULL);
+    exepath[length] = 0;
+    full=std::string(exepath);
+    free(exepath);
 #endif
-}
-
-void MEM_A20_Enable(bool enabled);
-bool MEM_A20_Enabled(void);
-bool a20gate_on_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    bool bef = MEM_A20_Enabled();
-    MEM_A20_Enable(!bef);
-    bool aft = MEM_A20_Enabled();
-    if (bef != aft)
-        mainMenu.get_item("enable_a20gate").check(MEM_A20_Enabled()).refresh_item(mainMenu);
+    if (withexe)
+        dosboxpath=full;
     else {
-        std::string msg = "The A20 gate may be locked and cannot be "+std::string(bef?"disabled":"enabled")+".";
-        systemmessagebox("Warning",msg.c_str(),"ok", "info", 1);
+        size_t found=full.find_last_of("/\\");
+        if (found!=std::string::npos)
+            dosboxpath=full.substr(0, found+1);
+        else
+            dosboxpath="";
     }
-    return true;
+    return dosboxpath;
 }
-
-void Get_IDECD_drives(std::vector<int> &v), MenuBrowseCDImage(char drive, int num), MenuBrowseFDImage(char drive, int num, int type);
-bool change_currentcd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    std::vector<int> v = {};
-    if (dos_kernel_disabled) Get_IDECD_drives(v);
-    int num=0;
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    for (unsigned int idrive=2; idrive<DOS_DRIVES; idrive++) {
-        if (dos_kernel_disabled && std::find(v.begin(), v.end(), idrive) == v.end()) continue;
-        if (dynamic_cast<const isoDrive*>(Drives[idrive]) == NULL) continue;
-        MenuBrowseCDImage('A'+idrive, ++num);
-    }
-#if !defined(HX_DOS)
-    if (!num) tinyfd_messageBox("Error","No CD drive is currently available.","ok","error", 1);
-#endif
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    return true;
-}
-
-bool change_currentfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    int num=0;
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    for (unsigned int idrive=0; idrive<2; idrive++) {
-        if (Drives[idrive]) {
-            fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[idrive]);
-            if (fdp == NULL || fdp->opts.bytesector || fdp->opts.cylsector || fdp->opts.headscyl || fdp->opts.cylinders) continue;
-            MenuBrowseFDImage('A'+idrive, ++num, fdp->opts.mounttype);
-        } else if (imageDiskList[idrive])
-            MenuBrowseFDImage('A'+idrive, ++num, -1);
-    }
-#if !defined(HX_DOS)
-    if (!num) tinyfd_messageBox("Error","No floppy drive is currently available.","ok","error", 1);
-#endif
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    return true;
-}
-
-bool make_diskimage_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    if(control->SecureMode()) {
-#if !defined(HX_DOS)
-        GFX_ReleaseMouse();
-        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
-#endif
-    } else
-        GUI_Shortcut(37);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    return true;
-}
-
-bool list_drivenum_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GUI_Shortcut(32);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    return true;
-}
-
-std::string GetIDEInfo();
-bool list_ideinfo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GUI_Shortcut(33);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    return true;
-}
-
-#if C_PRINTER
-bool PRINTER_isInited();
-void PrintScreen(const char *text, uint16_t len);
-bool print_screen_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (!PRINTER_isInited()) {
-        systemmessagebox("Error","Printer support is not enabled in the configuration.","ok", "error", 1);
-        return false;
-    }
-    if (!CurMode||CurMode->type!=M_TEXT) {
-        systemmessagebox("Error","The current DOS screen is not in text mode.","ok", "error", 1);
-        return false;
-    }
-    uint16_t len=0;
-    const char* text = Mouse_GetSelected(0,0,(int)(currentWindowWidth-1-sdl.clip.x),(int)(currentWindowHeight-1-sdl.clip.y),(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
-    if (len) PrintScreen(text, len);
-    return true;
-}
-#endif
-
-const char *drive_opts[][2] = {
-#if defined(WIN32)
-	{ "mountauto",              "Auto-mount Windows drive" },
-#endif
-	{ "mounthd",                "Mount folder as hard drive" },
-	{ "mountcd",                "Mount folder as CD drive" },
-	{ "mountfd",                "Mount folder as floppy drive" },
-	{ "mountfro",               "Option: mount folder read-only" },
-	{ "div1",                   "--" },
-	{ "mountarc",               "Mount an archive file (ZIP/7Z)" },
-	{ "mountimg",               "Mount a disk or CD image file" },
-	{ "mountimgs",              "Mount multiple disk/CD images" },
-	{ "mountiro",               "Option: mount images read-only" },
-    { "div2",                   "--" },
-    { "unmount",                "Unmount drive" },
-    { "rescan",                 "Rescan drive" },
-    { "swap",                   "Swap disk" },
-    { "info",                   "Drive information" },
-    { "div3",                   "--" },
-    { "boot",                   "Boot from drive" },
-    { "bootimg",                "Boot from disk image" },
-    { NULL, NULL }
-};
-
-void LoadMapFile(bool bPressed) {
-    if (!bPressed) return;
-    void Load_mapper_file();
-    Load_mapper_file();
-}
-
-void QuickLaunch(bool bPressed) {
-    if (!bPressed) return;
-    if (dos_kernel_disabled) return;
-    MenuBrowseProgramFile();
-}
-
-const char *scaler_menu_opts[][2] = {
-    { "none",                   "None" },
-    { "normal2x",               "Normal 2X" },
-    { "normal3x",               "Normal 3X" },
-    { "normal4x",               "Normal 4X" },
-    { "normal5x",               "Normal 5X" },
-    { "hardware_none",          "Hardware None" },
-    { "hardware2x",             "Hardware 2X" },
-    { "hardware3x",             "Hardware 3X" },
-    { "hardware4x",             "Hardware 4X" },
-    { "hardware5x",             "Hardware 5X" },
-    { "gray",                   "Grayscale" },
-    { "gray2x",                 "Grayscale 2X" },
-    { "tv2x",                   "TV 2X" },
-    { "tv3x",                   "TV 3X" },
-    { "scan2x",                 "Scan 2X" },
-    { "scan3x",                 "Scan 3X" },
-    { "rgb2x",                  "RGB 2X" },
-    { "rgb3x",                  "RGB 3X" },
-    { "advmame2x",              "Advanced MAME 2X" },
-    { "advmame3x",              "Advanced MAME 3X" },
-    { "hq2x",                   "HQ 2X" },
-    { "hq3x",                   "HQ 3X" },
-    { "advinterp2x",            "Advanced Interpolation 2X" },
-    { "advinterp3x",            "Advanced Interpolation 3X" },
-    { "2xsai",                  "2xSai" },
-    { "super2xsai",             "Super2xSai" },
-    { "supereagle",             "SuperEagle" },
-#if C_XBRZ
-    { "xbrz",                   "xBRZ" },
-    { "xbrz_bilinear",          "xBRZ Bilinear" },
-#endif
-    { NULL, NULL }
-};
 
 #if defined(WIN32) && !defined(C_SDL2)
 bool isVirtualBox = false; /* OpenGL never works with Windows XP inside VirtualBox */
@@ -1068,11 +567,11 @@ const char *DKM_to_descriptive_string(const unsigned int dkm) {
     return "";
 }
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 ITaskbarList3 *winTaskbarList = NULL;
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 void WindowsTaskbarUpdatePreviewRegion(void) {
     if (winTaskbarList != NULL) {
         /* Windows 7/8/10: Tell the taskbar which part of our window contains the DOS screen */
@@ -1085,7 +584,7 @@ void WindowsTaskbarUpdatePreviewRegion(void) {
 
         /* NTS: The MSDN documentation is misleading. Apparently, despite 30+ years of Windows SDK
                 behavior where the "client area" is the area below the menu bar and inside the frame,
-                ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
+                ITaskbarList3's idea of the "client area" is the area inside the frame INCLUDING
                 the menu bar. Why? */
         if (GetMenu(GetHWND()) != NULL) {
             MENUBARINFO mb;
@@ -1115,7 +614,7 @@ void WindowsTaskbarResetPreviewRegion(void) {
 
         /* NTS: The MSDN documentation is misleading. Apparently, despite 30+ years of Windows SDK
                 behavior where the "client area" is the area below the menu bar and inside the frame,
-                ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
+                ITaskbarList3's idea of the "client area" is the area inside the frame INCLUDING
                 the menu bar. Why? */
         if (GetMenu(GetHWND()) != NULL) {
             MENUBARINFO mb;
@@ -1234,26 +733,30 @@ bool setSizeButNotResize() {
     return (userResizeWindowWidth > 0 && userResizeWindowHeight > 0);
 }
 
-int NonUserResizeCounter = 0;
-
 Bitu time_limit_ms = 0;
 
+#if !defined(OSFREE)
 extern bool keep_umb_on_boot;
+#endif
 extern bool keep_private_area_on_boot;
 bool guest_machine_power_on = false;
 
-std::string custom_savedir, savefilename = "";
+std::string custom_savedir;
 
 void SHELL_Run();
 void DisableINT33();
+#if !defined(OSFREE)
 void EMS_DoShutDown();
+#endif
 void XMS_DoShutDown();
 void DOS_DoShutDown();
 void GUS_DOS_Shutdown();
 void SBLASTER_DOS_Shutdown();
 void DOS_ShutdownDevices(void);
+#if !defined(OSFREE)
 void RemoveEMSPageFrame(void);
 void RemoveUMBBlock();
+#endif
 void DOS_GetMemory_unmap();
 void VFILE_Shutdown(void);
 void PROGRAMS_Shutdown(void);
@@ -1266,42 +769,21 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
+void SHELL_MessagesInit(void);
 void CopyClipboard(int all);
 void CopyAllClipboard(bool bPressed);
 void PasteClipboard(bool bPressed);
 void PasteClipStop(bool bPressed);
 void QuickEdit(bool bPressed);
+void ClipKeySelect(int sym);
+bool isModifierApplied(void);
+bool PasteClipboardNext(void);
+void CONFIGSHELL_Init(void);
+void CONFIGSHELL_Run(void);
 
 #if C_DYNAMIC_X86
 void CPU_Core_Dyn_X86_Shutdown(void);
 #endif
-
-std::string dosboxpath="";
-std::string GetDOSBoxXPath(bool withexe=false) {
-    std::string full;
-#if defined(HX_DOS) || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
-    char exepath[MAX_PATH];
-    GetModuleFileName(NULL, exepath, sizeof(exepath));
-    full=std::string(exepath);
-#else
-    int length = wai_getExecutablePath(NULL, 0, NULL);
-    char *exepath = (char*)malloc(length + 1);
-    wai_getExecutablePath(exepath, length, NULL);
-    exepath[length] = 0;
-    full=std::string(exepath);
-    free(exepath);
-#endif
-    if (withexe)
-        dosboxpath=full;
-    else {
-        size_t found=full.find_last_of("/\\");
-        if (found!=string::npos)
-            dosboxpath=full.substr(0, found+1);
-        else
-            dosboxpath="";
-    }
-    return dosboxpath;
-}
 
 void UpdateWindowMaximized(bool flag) {
     menu.maxwindow = flag;
@@ -1313,6 +795,8 @@ void UpdateWindowDimensions(Bitu width, Bitu height)
     currentWindowHeight = height;
 }
 
+static double dim_width=0, dim_height=0, dpi_width=0, dpi_height=0;
+
 void PrintScreenSizeInfo(void) {
 #if 1
     const char *method = "?";
@@ -1323,10 +807,12 @@ void PrintScreenSizeInfo(void) {
         case METHOD_XRANDR:     method = "XRandR";      break;
         case METHOD_WIN98BASE:  method = "Win98base";   break;
         case METHOD_COREGRAPHICS:method = "CoreGraphics";break;
-        default:                                                        break;
+        default: break;
     }
 
-    LOG_MSG("Screen report: Method '%s' (%.3f x %.3f pixels) at (%.3f x %.3f) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
+    if(dim_width != screen_size_info.screen_dimensions_pixels.width || dim_height != screen_size_info.screen_dimensions_pixels.height
+        || dpi_width != screen_size_info.screen_dpi.width || dpi_height != screen_size_info.screen_dpi.height) {
+        LOG_MSG("Screen report: Method '%s' (%.3f x %.3f pixels) at (%.3f x %.3f) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
             method,
 
             screen_size_info.screen_dimensions_pixels.width,
@@ -1343,6 +829,11 @@ void PrintScreenSizeInfo(void) {
 
             screen_size_info.screen_dpi.width,
             screen_size_info.screen_dpi.height);
+            dim_width = screen_size_info.screen_dimensions_pixels.width;
+            dim_height = screen_size_info.screen_dimensions_pixels.height;
+            dpi_width = screen_size_info.screen_dpi.width;
+            dpi_height = screen_size_info.screen_dpi.height;
+        }
 #endif
 }
 
@@ -1350,7 +841,7 @@ void PrintScreenSizeInfo(void) {
 void Windows_GetWindowDPI(ScreenSizeInfo &info) {
     info.clear();
 
-# if !defined(HX_DOS)
+# if !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     HMONITOR mon;
     HWND hwnd;
 
@@ -1430,6 +921,38 @@ void UpdateWindowDimensions(void)
     void Linux_GetWindowDPI(ScreenSizeInfo &info);
     Linux_GetWindowDPI(/*&*/screen_size_info);
 #endif
+#if defined(OS2)
+    HWND hwnd = 0;
+    RECTL rect;
+    if (sdl.window != NULL) {
+        SDL_SysWMinfo wmi;
+        memset(&wmi, 0, sizeof(wmi));
+        SDL_VERSION(&wmi.version);
+        if (SDL_GetWindowWMInfo(sdl.window, &wmi)) {
+            hwnd = wmi.info.os2.hwnd;
+            if (hwnd != 0) {
+                WinQueryWindowRect(hwnd, &rect);
+                UpdateWindowDimensions(rect.xRight - rect.xLeft, rect.yTop - rect.yBottom);
+
+                // Get the screen size via the desktop window.
+                WinQueryWindowRect(HWND_DESKTOP, &rect);
+                // We just set DPI to 96dpi.
+                screen_size_info.screen_dpi.width = 96.0;
+                screen_size_info.screen_dpi.height = 96.0;
+
+                // DPI calculation pulled from sdlmain_linux.cpp and rearranged to calculate mm dimensions
+                screen_size_info.screen_dimensions_pixels.width = rect.xRight - rect.xLeft;
+                screen_size_info.screen_dimensions_pixels.height = rect.yTop - rect.yBottom;
+                screen_size_info.screen_dimensions_mm.width =
+                    ((((double)screen_size_info.screen_dimensions_pixels.width) * 25.4) /
+                    ((double)screen_size_info.screen_dpi.width));
+                screen_size_info.screen_dimensions_mm.height =
+                    ((((double)screen_size_info.screen_dimensions_pixels.height) * 25.4) /
+                    ((double)screen_size_info.screen_dpi.height));
+            }
+        }
+    }
+#endif
     PrintScreenSizeInfo();
 }
 
@@ -1442,7 +965,7 @@ void                        GUI_LoadFonts();
 void                        GUI_Run(bool);
 
 const char*                 titlebar = NULL;
-extern const char*              RunningProgram;
+extern const char*          RunningProgram;
 extern bool                 CPU_CycleAutoAdjust;
 extern                      cpu_cycles_count_t CPU_CyclePercUsed;
 #if !(ENVIRON_INCLUDED)
@@ -1458,20 +981,12 @@ bool                        startup_state_capslock = false; // Global for keyboa
 bool                        startup_state_scrlock = false; // Global for keyboard initialisation
 int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1, paste_speed=20, wheel_key=0, mbutton=3;
 bool wheel_guest = false, clipboard_dosapi = true, clipboard_biospaste =
-#if defined (WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
-false;
-#else
+//#if defined (WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
+//false;
+//#else
 true;
-#endif
+//#endif
 const char *modifier;
-
-#if defined(WIN32) && !defined(C_SDL2)
-extern "C" void SDL1_hax_SetMenu(HMENU menu);
-#endif
-
-#ifdef WIN32
-# include <windows.h>
-#endif
 
 #ifdef WIN32
 # define STDOUT_FILE                TEXT("stdout.txt")
@@ -1480,7 +995,7 @@ extern "C" void SDL1_hax_SetMenu(HMENU menu);
 #elif defined(MACOSX)
 # define DEFAULT_CONFIG_FILE            "/Library/Preferences/DOSBox Preferences"
 #elif defined(HAIKU)
-#define DEFAULT_CONFIG_FILE "~/config/settings/dosbox-x/dosbox-x.conf"
+#define DEFAULT_CONFIG_FILE             "~/config/settings/dosbox-x/dosbox-x.conf"
 #else /*linux freebsd*/
 # define DEFAULT_CONFIG_FILE            "/.dosboxrc"
 #endif
@@ -1488,10 +1003,6 @@ extern "C" void SDL1_hax_SetMenu(HMENU menu);
 #if C_SET_PRIORITY
 # include <sys/resource.h>
 # define PRIO_TOTAL             (PRIO_MAX-PRIO_MIN)
-#endif
-
-#ifdef OS2
-# include <os2.h>
 #endif
 
 #if defined(WIN32)
@@ -1550,7 +1061,7 @@ Bitu GUI_JoystickCount(void) {
 }
 
 #if !defined(MACOSX)
-/* TODO: should move to it's own file ================================================ */
+/* TODO: should move to its own file ================================================ */
 static unsigned char logo[32*32*4]= {
 #include "dosbox_logo.h"
 };
@@ -1581,7 +1092,7 @@ bool GFX_SDLUsingWinDIB(void) {
 }
 #endif
 
-void GFX_SetIcon(void) 
+void GFX_SetIcon(void)
 {
 #if !defined(MACOSX)
     /* Set Icon (must be done before any sdl_setvideomode call) */
@@ -1596,7 +1107,7 @@ void GFX_SetIcon(void)
     hIcon1 = (HICON) LoadImage( GetModuleHandle(NULL), MAKEINTRESOURCE(dosbox_ico), IMAGE_ICON,
         16,16,LR_DEFAULTSIZE);
 
-    SendMessage(GetHWND(), WM_SETICON, ICON_SMALL, (LPARAM) hIcon1 ); 
+    SendMessage(GetHWND(), WM_SETICON, ICON_SMALL, (LPARAM) hIcon1 );
 #endif
 }
 
@@ -1624,28 +1135,22 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 
     bool showbasic = section->Get_bool("showbasic");
     if (showbasic) {
-        if (CPU_CycleAutoAdjust) {
-            sprintf(title,"%s%sDOSBox-X %s: %d%%",
-                dosbox_title.c_str(),dosbox_title.empty()?"":" - ",
-                VERSION,(int)internal_cycles);
-        }
-        else {
-            sprintf(title,"%s%sDOSBox-X %s: %d cycles/ms",
-                dosbox_title.c_str(),dosbox_title.empty()?"":" - ",
-                VERSION,(int)internal_cycles);
-        }
-    } else
-        sprintf(title,"%s%sDOSBox-X", dosbox_title.c_str(),dosbox_title.empty()?"":" - ");
+        sprintf(title,"%s%sDOSBox-X %s", dosbox_title.c_str(),dosbox_title.empty()?"":" - ", VERSION);
 
-    {
-        const char *what = (titlebar != NULL && *titlebar != 0) ? titlebar : RunningProgram;
-
+        const char *what = RunningProgram;
         if (what != NULL && *what != 0) {
             char *p = title + strlen(title); // append to end of string
 
-            sprintf(p,"%c %s",showbasic?',':':', what);
+            sprintf(p,": %s - ", what);
         }
-    }
+
+        char *p = title + strlen(title); // append to end of string
+        if (CPU_CycleAutoAdjust && menu.hidecycles && !menu.showrt)
+            sprintf(p,"%d%%", (int)internal_cycles);
+        else
+            sprintf(p,"%d cycles/ms", (int)internal_cycles);
+    } else
+        sprintf(title,"%s%sDOSBox-X", dosbox_title.c_str(),dosbox_title.empty()?"":" - ");
 
     if (!menu.hidecycles) {
         char *p = title + strlen(title); // append to end of string
@@ -1659,6 +1164,12 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
         sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
     }
 
+    if (titlebar != NULL && *titlebar != 0) {
+        char *p = title + strlen(title); // append to end of string
+
+        sprintf(p,": %s",titlebar);
+    }
+
     if (sdl.mouse.locked) {
         std::string get_mapper_shortcut(const char *name);
         std::string key=get_mapper_shortcut("capmouse");
@@ -1666,6 +1177,7 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
     }
 
     if (paused) strcat(title," PAUSED");
+    if (ticksLocked) strcat(title, " TURBO");
 #if C_DEBUG
     if (IsDebuggerActive()) strcat(title," DEBUGGER");
 #endif
@@ -1677,25 +1189,193 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 }
 
 bool warn_on_mem_write = false;
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) ;
+
+#ifdef WIN32
+#ifdef __cplusplus
+extern "C" {
+#endif
+    int tinyfd_messageBoxW(
+        wchar_t const* aTitle, /* NULL or "" */
+        wchar_t const* aMessage, /* NULL or ""  may contain \n and \t */
+        wchar_t const* aDialogType, /* "ok" "okcancel" "yesno" "yesnocancel" */
+        wchar_t const* aIconType, /* "info" "warning" "error" "question" */
+        int aDefaultButton);
+#ifdef __cplusplus
+}
+#endif
+bool CodePageGuestToHostUTF16(uint16_t* d/*CROSS_LEN*/, const char* s/*CROSS_LEN*/);
+void SanitizeUTF16Newlines(uint16_t* utf16Message, size_t maxLen) {
+    for(size_t i = 0; i < maxLen && utf16Message[i] != 0; ++i) {
+        if(utf16Message[i] == 0x25D9) {
+            utf16Message[i] = 0x000A;
+        }
+    }
+}
+#elif defined(MACOSX)
+std::string replaceNewlineWithEscaped(const std::string& input) {
+    std::string output;
+    for (size_t i = 0; i < input.length(); ++i) {
+        if (input[i] == '\'') {  // Close, escape and open
+            output += "'\\''";
+        }
+        else if (input[i] == '\n'){
+            output += "\\n";   // '\n' needs to be replaced to "\\n" 
+            i++;
+        }
+        //else if (input[i] == '\"'){
+        //    output += "\\\"";   // '"' needs to be replaced to "\\\"" 
+        //    i++;
+        //}
+        else {
+            output += input[i];
+        }
+    }
+    return output;
+}
+#else
+std::string replaceNewlineWithEscaped(const std::string& input) {
+    std::string output;
+    size_t i = 0;
+
+    while(i < input.length()) {
+        if(input[i] == '\\') {
+            if(input[i + 1] != 'n') output += '\\'; // "\n" needs to be escaped to "\\n" 
+        }
+        else if(input[i] == '\n') {
+            output += "\\\\n";   // '\n' needs to be replaced to "\\n" 
+            i++;
+        }
+        else if(input[i] == '`') {
+            output += "\\`";  // '`' needs to be replaced to "\\`" 
+            i++;
+        }
+        else if(input[i] == '"') {
+            output += "\\\"";  // '"' needs to be replaced to "\\\"" 
+            i++;
+        }
+        else {
+            output += input[i];
+            i++;
+        }
+    }
+
+    return output;
+}
+#endif
+
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
+#if !defined(HX_DOS)
+    std::string lTitleString = aTitle ? aTitle : "";
+    std::string lDialogString = aMessage ? aMessage : "";
+    std::string lDialogTypeStr = aDialogType ? aDialogType : "ok";
+    std::string lIconTypeStr = aIconType ? aIconType : "info";
+
+    std::replace(lTitleString.begin(), lTitleString.end(), '\"', ' ');
+    std::replace(lDialogString.begin(), lDialogString.end(), '\"', ' ');
+    std::replace(lDialogTypeStr.begin(), lDialogTypeStr.end(), '\"', ' ');
+    std::replace(lIconTypeStr.begin(), lIconTypeStr.end(), '\"', ' ');
+
+    bool fs=sdl.desktop.fullscreen;
+    if (fs) GFX_SwitchFullScreen();
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GFX_ReleaseMouse();
+
+#ifndef WIN32
+    size_t aMessageLength = strlen(aMessage);
+    size_t aTitleLength = strlen(aTitle);
+    char* lMessage = (char*)malloc((aMessageLength * 2 + 1) * sizeof(char));  // DBCS may expand to 3 to 4 bytes when converted to UTF-8
+    char* lTitle = (char*)malloc((aTitleLength * 2 + 1) * sizeof(char));  // DBCS may expand to 3 to 4 bytes when converted to UTF-8
+    lDialogString = replaceNewlineWithEscaped(lDialogString); // String may include "\n" which needs to be escaped to "\\n" 
+    CodePageGuestToHostUTF8(lMessage, lDialogString.c_str());
+    lTitleString = replaceNewlineWithEscaped(lTitleString); // String may include "\n" which needs to be escaped to "\\n" 
+    CodePageGuestToHostUTF8(lTitle, lTitleString.c_str());
+    bool result=tinyfd_messageBox(lTitle, lMessage, aDialogType, aIconType, aDefaultButton);
+    free(lMessage);
+    free(lTitle);
+#else
+    size_t msgLen = lDialogString.length() + 1;
+    size_t titleLen = lTitleString.length() + 1;
+    size_t typeLen = lDialogTypeStr.length() + 1;
+    size_t iconLen = lIconTypeStr.length() + 1;
+
+    uint16_t* utf16Message = (uint16_t*)malloc(msgLen * 2);
+    uint16_t* utf16Title = (uint16_t*)malloc(titleLen * 2);
+    uint16_t* utf16Type = (uint16_t*)malloc(typeLen * 2);
+    uint16_t* utf16Icon = (uint16_t*)malloc(iconLen * 2);
+
+    if(!utf16Message || !utf16Title || !utf16Type || !utf16Icon) {
+        free(utf16Message); free(utf16Title); free(utf16Type); free(utf16Icon);
+        return false;
+    }
+
+    CodePageGuestToHostUTF16(utf16Message, lDialogString.c_str());
+    CodePageGuestToHostUTF16(utf16Title, lTitleString.c_str());
+    CodePageGuestToHostUTF16(utf16Type, lDialogTypeStr.c_str());
+    CodePageGuestToHostUTF16(utf16Icon, lIconTypeStr.c_str());
+
+    SanitizeUTF16Newlines(utf16Message, msgLen);
+    int result = tinyfd_messageBoxW(
+        (wchar_t const*)utf16Title,
+        (wchar_t const*)utf16Message,
+        (wchar_t const*)utf16Type,
+        (wchar_t const*)utf16Icon,
+        aDefaultButton
+    );
+
+    free(utf16Message);
+    free(utf16Title);
+    free(utf16Type);
+    free(utf16Icon);
+#endif
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    if (fs&&!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
+    return result;
+#else
+    return true;
+#endif
+}
 
 bool CheckQuit(void) {
 #if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     std::string warn = section->Get_string("quit warning");
+    bool quit = section->Get_bool("allow quit after warning");
     if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-    if (warn == "true")
-        return systemmessagebox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
-    else if (warn == "false")
+    if (warn == "true") {
+        if (!quit) {
+            systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_DISABLED"),"ok", "warning", 1);
+            return false;
+        } else
+            return systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_CONFIRM"),"yesno", "question", 1);
+    } else if (warn == "false")
         return true;
-    if (dos_kernel_disabled&&strcmp(RunningProgram, "DOSBOX-X"))
-        return systemmessagebox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
+    if (dos_kernel_disabled&&strcmp(RunningProgram, "DOSBOX-X")) {
+        if (!quit) {
+            systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_GUEST_DISABLED"),"ok", "warning", 1);
+            return false;
+        } else
+            return systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_GUEST_CONFIRM"),"yesno", "question", 1);
+    }
     if (warn == "autofile")
         for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
-            if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0)
-                return systemmessagebox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
+            if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&DeviceInfoFlags::Device) == 0) {
+                if (!quit) {
+                    systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_FILE_OPEN_DISABLED"),"ok", "warning", 1);
+                    return false;
+                } else
+                    return systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_FILE_OPEN_CONFIRM"),"yesno", "question", 1);
+            }
         }
-    else if (RunningProgram&&strcmp(RunningProgram, "DOSBOX-X")&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS"))
-        return systemmessagebox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
+    else if (RunningProgram&&strcmp(RunningProgram, "DOSBOX-X")&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS")) {
+        if (!quit) {
+            systemmessagebox("Quit DOSBox-X warning",MSG_Get("QUIT_PROGRAM_DISABLED"),"ok", "warning", 1);
+            return false;
+        } else
+            return systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_PROGRAM_CONFIRM"),"yesno", "question", 1);
+    }
 #endif
     return true;
 }
@@ -1752,7 +1432,7 @@ void BlankDisplay(void) {
         LOG_MSG("FIXME: BlankDisplay() not implemented for OpenGL mode");
     }
     else {
-        SDL_FillRect(sdl.surface,0,0);
+        SDL_FillRect(sdl.surface, nullptr, 0);
 #if defined(C_SDL2)
         SDL_UpdateWindowSurface(sdl.window);
 #else
@@ -1821,7 +1501,7 @@ bool pause_on_vsync = false;
 static bool IsFullscreen() {
     if (sdl.window == NULL) return false;
     uint32_t windowFlags = SDL_GetWindowFlags(sdl.window);
-    if (windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) return true;
+    if (windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP || windowFlags & SDL_WINDOW_FULLSCREEN) return true;
     return false;
 }
 #endif
@@ -1857,16 +1537,75 @@ static SDL_FingerID touchscreen_finger_lock = no_finger_id;
 static SDL_TouchID touchscreen_touch_lock = no_touch_id;
 #endif
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+int menuwidth_atleast(int width) {
+    HMENU hMenu = mainMenu.getWinMenu();
+    int count = GetMenuItemCount(hMenu);
+    int tWidth = 0;
+    RECT r;
+    for(int idx = 0; idx < count; ++idx) {
+        if (GetMenuItemRect(GetHWND(), hMenu, idx, &r)) {
+            int res=MapWindowPoints(NULL, GetHWND(), (LPPOINT)&r, 2);
+            tWidth += r.right - r.left;
+        }
+    }
+    tWidth += GetSystemMetrics(SM_CXBORDER)*2+(TTF_using()?24:60);
+    unsigned int maxWidth = 0, maxHeight = 0;
+    GetMaxWidthHeight(&maxWidth, &maxHeight);
+    return tWidth>width && tWidth<=maxWidth ? tWidth : -1;
+}
+#endif
+
 void HideMenu_mapper_shortcut(bool pressed) {
     if (!pressed) return;
 
-    void ToggleMenu(bool pressed);
     ToggleMenu(true);
 
     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+#if defined(USE_TTF) && DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    int last = 0;
+    while (TTF_using() && !sdl.desktop.fullscreen && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width+ttf.offX*2+GetSystemMetrics(SM_CXBORDER)*2)>0 && ttf.pointsize>last) {
+        last = ttf.pointsize;
+        increaseFontSize();
+    }
+#endif
 }
 
-void PauseWithInterrupts_mapper_shortcut(bool pressed);
+void CALLBACK_Idle(void);
+
+void PauseWithInterruptsEnabled(Bitu /*val*/) {
+    /* we can ONLY do this when the CPU is either in real mode or v86 mode.
+     * doing this from protected mode will only crash the game.
+     * also require that interrupts are enabled before pausing. */
+    if (cpu.pmode) {
+        if (!(reg_flags & FLAG_VM)) {
+            PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
+            return;
+        }
+    }
+
+    if (!(reg_flags & FLAG_IF)) {
+        PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
+        return;
+    }
+
+    while (pausewithinterrupts_enable) CALLBACK_Idle();
+}
+
+void PauseWithInterrupts_mapper_shortcut(bool pressed) {
+    if (!pressed) return;
+
+    if (!pausewithinterrupts_enable) {
+        pausewithinterrupts_enable = true;
+        PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
+    }
+    else {
+        pausewithinterrupts_enable = false;
+    }
+
+    mainMenu.get_item("mapper_pauseints").check(pausewithinterrupts_enable).refresh_item(mainMenu);
+}
+
 void PauseDOSBoxLoop(Bitu /*unused*/) {
     bool paused = true;
     SDL_Event event;
@@ -1875,7 +1614,7 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
     mainMenu.get_item("mapper_pause").check(true).refresh_item(mainMenu);
 
     MAPPER_ReleaseAllKeys();
-
+    GFX_ReleaseMouse();
     GFX_SetTitle(-1,-1,-1,true);
 //  KEYBOARD_ClrBuffer();
     GFX_LosingFocus();
@@ -1905,6 +1644,11 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
 #if C_EMSCRIPTEN
         emscripten_sleep(0);
         SDL_PollEvent(&event);
+#elif C_GAMELINK
+        // Keep GameLink ticking over.
+        SDL_Delay(100);
+        OUTPUT_GAMELINK_Transfer();
+        SDL_PollEvent(&event);
 #else
         SDL_WaitEvent(&event);    // since we're not polling, cpu usage drops to 0.
 #endif
@@ -1923,7 +1667,7 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
         }
         if (event.type==SDL_SYSWMEVENT && msg == WM_COMMAND && (LOWORD(wparam) == ID_WIN_SYSMENU_PAUSE || LOWORD(wparam) == (mainMenu.get_item("mapper_pause").get_master_id()+DOSBoxMenu::winMenuMinimumID))) {
             paused=false;
-            GFX_SetTitle(-1,-1,-1,false);   
+            GFX_SetTitle(-1,-1,-1,false);
             break;
         }
         if (event.type == SDL_SYSWMEVENT && msg == WM_SYSCOMMAND && LOWORD(wparam) == ID_WIN_SYSMENU_PAUSE) {
@@ -1954,7 +1698,7 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
                 /* On macs, all apps exit when pressing cmd-q */
                 KillSwitch(true);
                 break;
-            } 
+            }
 #endif
         case SDL_MOUSEMOTION:
 #if defined(C_SDL2)
@@ -2039,20 +1783,20 @@ SDL_Window* GFX_GetSDLWindow(void) {
     return sdl.window;
 }
 
-SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType) 
+SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType)
 {
     static SCREEN_TYPES lastType = SCREEN_SURFACE;
     if (sdl.renderer) {
         SDL_DestroyRenderer(sdl.renderer);
-        sdl.renderer=0;
+        sdl.renderer = nullptr;
     }
     if (sdl.texture.pixelFormat) {
         SDL_FreeFormat(sdl.texture.pixelFormat);
-        sdl.texture.pixelFormat = 0;
+        sdl.texture.pixelFormat = nullptr;
     }
     if (sdl.texture.texture) {
         SDL_DestroyTexture(sdl.texture.texture);
-        sdl.texture.texture=0;
+        sdl.texture.texture = nullptr;
     }
     sdl.window_desired_width = width;
     sdl.window_desired_height = height;
@@ -2073,7 +1817,7 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 #if C_OPENGL
     if (sdl_opengl.context) {
         SDL_GL_DeleteContext(sdl_opengl.context);
-        sdl_opengl.context=0;
+        sdl_opengl.context = nullptr;
     }
 #endif
 
@@ -2082,14 +1826,26 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
      */
     if (!sdl.window
             || (lastType != screenType)
+            || ( screenType == SCREEN_OPENGL && ( !GFX_IsFullscreen() && ( SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_FULLSCREEN )))
 //          || (currWidth != width) || (currHeight != height)
 //          || (glwindow != (0 != (SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_OPENGL)))
 //          || (fullscreen && (0 == (SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_FULLSCREEN)))
 //          || (fullscreen != (SDL_WINDOW_FULLSCREEN == (SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_FULLSCREEN)))
 //          || (fullscreen && ((width != currWidth) || (height != currHeight)))
        ) {
+        /* Save window position before destroying it */
+        int saved_x = SDL_WINDOWPOS_UNDEFINED;
+        int saved_y = SDL_WINDOWPOS_UNDEFINED;
+        uint32_t saved_flags = 0;
+
         lastType = screenType;
         if (sdl.window) {
+            const uint32_t fs_flags =
+                SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP;
+            saved_flags = SDL_GetWindowFlags(sdl.window);
+            if(!(saved_flags & SDL_WINDOW_FULLSCREEN)) {
+                SDL_GetWindowPosition(sdl.window, &saved_x, &saved_y);
+            }
             SDL_DestroyWindow(sdl.window);
         }
 
@@ -2103,6 +1859,15 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
                                       | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
         if (sdl.window) {
             GFX_SetTitle(-1, -1, -1, false); //refresh title.
+            if(saved_flags & SDL_WINDOW_MAXIMIZED) {
+                SDL_MaximizeWindow(sdl.window);
+            }
+            else if(posx < 0 || posy < 0)
+                SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+            else if(saved_x != SDL_WINDOWPOS_UNDEFINED && saved_y != SDL_WINDOWPOS_UNDEFINED &&
+                !(saved_flags & SDL_WINDOW_MAXIMIZED)) {
+                SDL_SetWindowPosition(sdl.window, saved_x, saved_y); // restore position.
+            }
         }
         sdl.surface = SDL_GetWindowSurface(sdl.window);
         SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
@@ -2130,14 +1895,29 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
      * On Android, desktop res is the only way.
      */
     SDL_SetWindowResizable(sdl.window, SDL2_resize_enable ? SDL_TRUE : SDL_FALSE);
+    SDL_WindowFlags flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+#if C_SDL2
+	/*
+	 * When modeswitching _is_ enabled let's go with sane values.
+	 */
+	bool p_modeswitch = vga.draw.modeswitch_set;
+	if(p_modeswitch) {
+		flags = SDL_WINDOW_FULLSCREEN;
+		width = sdl.draw.width;
+		height = sdl.draw.height;
+	}
+#endif
+
     if (GFX_IsFullscreen()) {
         SDL_DisplayMode displayMode;
         SDL_GetWindowDisplayMode(sdl.window, &displayMode);
+
         displayMode.w = width;
         displayMode.h = height;
         SDL_SetWindowDisplayMode(sdl.window, &displayMode);
 
-        SDL_SetWindowFullscreen(sdl.window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        SDL_SetWindowFullscreen(sdl.window, flags);
     } else {
         SDL_SetWindowFullscreen(sdl.window, 0);
 
@@ -2195,22 +1975,13 @@ static SDL_Window * GFX_SetSDLOpenGLWindow(uint16_t width, uint16_t height) {
 # endif
 #endif
 
-#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-unsigned int SDLDrawGenFontTextureUnitPerRow = 16;
-unsigned int SDLDrawGenFontTextureRows = 16;
-unsigned int SDLDrawGenFontTextureWidth = SDLDrawGenFontTextureUnitPerRow * 8;
-unsigned int SDLDrawGenFontTextureHeight = SDLDrawGenFontTextureRows * 16;
-bool SDLDrawGenFontTextureInit = false;
-GLuint SDLDrawGenFontTexture = (GLuint)(~0UL), SDLDrawGenDBCSFontTexture = (GLuint)(~0UL);
-#endif
-
 #if !defined(C_SDL2)
 /* Reset the screen with current values in the sdl structure */
-Bitu GFX_GetBestMode(Bitu flags) 
+Bitu GFX_GetBestMode(Bitu flags)
 {
     Bitu retFlags = 0;
 
-    switch (sdl.desktop.want_type) 
+    switch (sdl.desktop.want_type)
     {
         case SCREEN_SURFACE:
             retFlags = OUTPUT_SURFACE_GetBestMode(flags);
@@ -2282,15 +2053,13 @@ void GFX_ForceRedrawScreen(void) {
     GFX_Start();
 #if defined(USE_TTF)
     if (TTF_using() && CurMode->type==M_TEXT) ttf.inUse = true;
-    if (ttf.inUse) {
-       void GFX_EndTextLines(bool force);
+    if (ttf.inUse)
        GFX_EndTextLines(true);
-    }
 #endif
 }
 
 void GFX_ResetScreen(void) {
-    fullscreen_switch=false; 
+    fullscreen_switch=false;
 	if(glide.enabled) {
 		GLIDE_ResetScreen(true);
 		return;
@@ -2308,9 +2077,7 @@ void GFX_ResetScreen(void) {
     GFX_Start();
     CPU_Reset_AutoAdjust();
     fullscreen_switch=true;
-#if !defined(C_SDL2)
-    if (!sdl.desktop.fullscreen) DOSBox_RefreshMenu(); // for menu
-#endif
+    DOSBox_RefreshMenu(); // for menu
 }
 
 void GFX_ForceFullscreenExit(void) {
@@ -2336,7 +2103,7 @@ unsigned int GFX_GetBShift() {
     return sdl.surface->format->Bshift;
 }
 
-void GFX_LogSDLState(void) 
+void GFX_LogSDLState(void)
 {
     LOG(LOG_MISC,LOG_DEBUG)("SDL video mode: %ux%u (clip %ux%u with upper-left at %ux%u) %ubpp",
         (unsigned)sdl.surface->w,(unsigned)sdl.surface->h,
@@ -2369,561 +2136,18 @@ void GFX_LogSDLState(void)
 
 void GFX_TearDown(void) {
     if (sdl.updating)
-        GFX_EndUpdate( 0 );
+        GFX_EndUpdate(nullptr);
 
     if (sdl.blit.surface) {
         SDL_FreeSurface(sdl.blit.surface);
-        sdl.blit.surface=0;
+        sdl.blit.surface = nullptr;
     }
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-void MenuShadeRect(int x,int y,int w,int h) {
-    if (OpenGL_using()) {
-#if C_OPENGL
-        glShadeModel (GL_FLAT);
-        glBlendFunc(GL_ONE, GL_SRC_ALPHA);
-        glDisable (GL_DEPTH_TEST);
-        glDisable (GL_LIGHTING);
-        glEnable(GL_BLEND);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_ALPHA_TEST);
-        glDisable(GL_FOG);
-        glDisable(GL_SCISSOR_TEST);
-        glDisable(GL_STENCIL_TEST);
-        glDisable(GL_TEXTURE_2D);
-
-        glColor4ub(0, 0, 0, 64);
-        glBegin(GL_QUADS);
-        glVertex2i(x  ,y  );
-        glVertex2i(x+w,y  );
-        glVertex2i(x+w,y+h);
-        glVertex2i(x  ,y+h);
-        glEnd();
-
-        glBlendFunc(GL_ONE, GL_ZERO);
-        glEnable(GL_TEXTURE_2D);
-#endif
-    }
-    else {
-        if (x < 0) {
-            w += x;
-            x = 0;
-        }
-        if (y < 0) {
-            h += y;
-            y = 0;
-        }
-        if ((x+w) > sdl.surface->w)
-            w = sdl.surface->w - x;
-        if ((y+h) > sdl.surface->h)
-            h = sdl.surface->h - y;
-        if (w <= 0 || h <= 0)
-            return;
-
-        if (sdl.surface->format->BitsPerPixel == 32) {
-            unsigned char *scan;
-            uint32_t mask;
-
-            mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
-                ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
-                ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
-
-            assert(sdl.surface->pixels != NULL);
-
-            scan  = (unsigned char*)sdl.surface->pixels;
-            scan += y * sdl.surface->pitch;
-            scan += x * 4;
-            while (h-- > 0) {
-                uint32_t *row = (uint32_t*)scan;
-                scan += sdl.surface->pitch;
-                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
-            }
-        }
-        else if (sdl.surface->format->BitsPerPixel == 16) {
-            unsigned char *scan;
-            uint16_t mask;
-
-            mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
-                ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
-                ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
-
-            assert(sdl.surface->pixels != NULL);
-
-            scan  = (unsigned char*)sdl.surface->pixels;
-            scan += y * sdl.surface->pitch;
-            scan += x * 2;
-            while (h-- > 0) {
-                uint16_t *row = (uint16_t*)scan;
-                scan += sdl.surface->pitch;
-                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
-            }
-        }
-        else {
-            /* TODO */
-        }
-    }
-}
-
-void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
-    if (OpenGL_using()) {
-#if C_OPENGL
-        glShadeModel (GL_FLAT);
-        glBlendFunc(GL_ONE, GL_ZERO);
-        glDisable (GL_DEPTH_TEST);
-        glDisable (GL_LIGHTING);
-        glDisable(GL_BLEND);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_ALPHA_TEST);
-        glDisable(GL_FOG);
-        glDisable(GL_SCISSOR_TEST);
-        glDisable(GL_STENCIL_TEST);
-        glDisable(GL_TEXTURE_2D);
-
-        glColor3ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF);
-        glBegin(GL_QUADS);
-        glVertex2i(x  ,y  );
-        glVertex2i(x+w,y  );
-        glVertex2i(x+w,y+h);
-        glVertex2i(x  ,y+h);
-        glEnd();
-
-        glBlendFunc(GL_ONE, GL_ZERO);
-        glEnable(GL_TEXTURE_2D);
-#endif
-    }
-    else {
-        if (x < 0) {
-            w += x;
-            x = 0;
-        }
-        if (y < 0) {
-            h += y;
-            y = 0;
-        }
-        if ((x+w) > sdl.surface->w)
-            w = sdl.surface->w - x;
-        if ((y+h) > sdl.surface->h)
-            h = sdl.surface->h - y;
-        if (w <= 0 || h <= 0)
-            return;
-
-        if (sdl.surface->format->BitsPerPixel == 32) {
-            unsigned char *scan;
-
-            assert(sdl.surface->pixels != NULL);
-
-            scan  = (unsigned char*)sdl.surface->pixels;
-            scan += y * sdl.surface->pitch;
-            scan += x * 4;
-            while (h-- > 0) {
-                uint32_t *row = (uint32_t*)scan;
-                scan += sdl.surface->pitch;
-                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint32_t)color;
-            }
-        }
-        else if (sdl.surface->format->BitsPerPixel == 16) {
-            unsigned char *scan;
-
-            assert(sdl.surface->pixels != NULL);
-
-            scan  = (unsigned char*)sdl.surface->pixels;
-            scan += y * sdl.surface->pitch;
-            scan += x * 2;
-            while (h-- > 0) {
-                uint16_t *row = (uint16_t*)scan;
-                scan += sdl.surface->pitch;
-                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint16_t)color;
-            }
-        }
-        else {
-            /* TODO */
-        }
-    }
-}
-
-extern uint8_t int10_font_14[256 * 14];
-extern uint8_t int10_font_16[256 * 16];
-extern bool font_14_init, font_16_init;
-uint8_t *GetDbcsFont(Bitu code);
-void UpdateSDLDrawDBCSTexture(Bitu code);
-unsigned char prevc = 0;
-
-void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
-    static const unsigned int fontHeight = 16;
-    unsigned char *scan, *bmp = NULL;
-
-    if (x < 0 || y < 0 ||
-        (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
-        (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
-        return;
-
-    if (check)
-        prevc = 0;
-    else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
-        if (isKanji1(c) && prevc == 0) {
-            prevc = c;
-            return;
-        } else if (isKanji2(c) && prevc > 1) {
-#if C_OPENGL
-            if (OpenGL_using())
-                UpdateSDLDrawDBCSTexture(prevc*0x100+c);
-            else
-#endif
-                bmp = GetDbcsFont(prevc*0x100+c);
-            prevc = 1;
-        } else if (prevc < 0x81)
-            prevc = 0;
-    } else
-        prevc = 0;
-
-    if (OpenGL_using()) {
-#if C_OPENGL
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
-            glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
-            glPushMatrix();
-            glMatrixMode (GL_TEXTURE);
-            glLoadIdentity ();
-            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
-            glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glEnable(GL_TEXTURE_2D);
-            glEnable(GL_ALPHA_TEST);
-            glEnable(GL_BLEND);
-        }
-
-        for (int i=0; i<(prevc?2:1); i++) {
-            unsigned int tx = ((prevc?i:c) % 16u) * 8u;
-            unsigned int ty = ((prevc?i:c) / 16u) * 16u;
-
-            /* MenuDrawText() has prepared OpenGL state for us */
-            glBegin(GL_QUADS);
-            // lower left
-            glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i((int)x,  (int)y                );
-            // lower right
-            glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i((int)x+8,(int)y                );
-            // upper right
-            glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i((int)x+8,(int)y+(int)fontHeight);
-            // upper left
-            glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i((int)x,  (int)y+(int)fontHeight);
-            glEnd();
-            x += (int)mainMenu.fontCharWidth;
-        }
-
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
-            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            glBlendFunc(GL_ONE, GL_ZERO);
-            glDisable(GL_ALPHA_TEST);
-            glEnable(GL_TEXTURE_2D);
-            glPopMatrix();
-            glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
-        }
-#endif
-    }
-    else {
-        assert(sdl.surface->pixels != NULL);
-
-        if (x < 0 || y < 0)
-            return;
-        if ((x + 8) > sdl.surface->w)
-            return;
-        if ((y + (int)fontHeight) > sdl.surface->h)
-            return;
-
-        for (int i=0; i<(prevc?2:1); i++) {
-            if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&prevc!=1)
-                bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
-            else if (prevc!=1)
-                bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
-
-            scan  = (unsigned char*)sdl.surface->pixels;
-            scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
-            scan += (unsigned int)x * (((unsigned int)sdl.surface->format->BitsPerPixel+7u)/8u);
-
-            for (unsigned int row=0;row < fontHeight;row++) {
-                unsigned char rb = bmp[prevc==1?(row*2+i):row];
-
-                if (sdl.surface->format->BitsPerPixel == 32) {
-                    uint32_t *dp = (uint32_t*)scan;
-                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                        if (rb & colm) *dp = (uint32_t)color;
-                        dp++;
-                    }
-                }
-                else if (sdl.surface->format->BitsPerPixel == 16) {
-                    uint16_t *dp = (uint16_t*)scan;
-                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                        if (rb & colm) *dp = (uint16_t)color;
-                        dp++;
-                    }
-                }
-
-                scan += (size_t)sdl.surface->pitch;
-            }
-            x += (int)mainMenu.fontCharWidth;
-        }
-    }
-    prevc = 0;
-}
-
-void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
-    static const unsigned int fontHeight = 16;
-    unsigned char *scan, *bmp = NULL;
-
-    if (x < 0 || y < 0 ||
-        (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
-        (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
-        return;
-
-    if (check)
-        prevc = 0;
-    else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
-        if (isKanji1(c) && prevc == 0) {
-            prevc = c;
-            return;
-        } else if (isKanji2(c) && prevc > 1) {
-#if C_OPENGL
-            if (OpenGL_using())
-                UpdateSDLDrawDBCSTexture(prevc*0x100+c);
-            else
-#endif
-                bmp = GetDbcsFont(prevc*0x100+c);
-            prevc = 1;
-        } else
-            prevc = 0;
-    } else
-        prevc = 0;
-
-    if (OpenGL_using()) {
-#if C_OPENGL
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
-            glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
-            glPushMatrix();
-            glMatrixMode (GL_TEXTURE);
-            glLoadIdentity ();
-            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
-            glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glEnable(GL_TEXTURE_2D);
-            glEnable(GL_ALPHA_TEST);
-            glEnable(GL_BLEND);
-        }
-
-        for (int i=0; i<(prevc?2:1); i++) {
-            unsigned int tx = ((prevc?i:c) % 16u) * 8u;
-            unsigned int ty = ((prevc?i:c) / 16u) * 16u;
-
-            /* MenuDrawText() has prepared OpenGL state for us */
-            glBegin(GL_QUADS);
-            // lower left
-            glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i(x,      y                    );
-            // lower right
-            glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i(x+(8*2),y                    );
-            // upper right
-            glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i(x+(8*2),y+((int)fontHeight*2));
-            // upper left
-            glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i(x,      y+((int)fontHeight*2));
-            glEnd();
-            x += (int)mainMenu.fontCharWidth;
-        }
-
-        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
-            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            glBlendFunc(GL_ONE, GL_ZERO);
-            glDisable(GL_ALPHA_TEST);
-            glEnable(GL_TEXTURE_2D);
-            glPopMatrix();
-            glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
-        }
-#endif
-    }
-    else {
-        assert(sdl.surface->pixels != NULL);
-
-        if (x < 0 || y < 0)
-            return;
-        if ((x + 16) > sdl.surface->w)
-            return;
-        if ((y + ((int)fontHeight * 2)) > sdl.surface->h)
-            return;
-
-        for (int i=0; i<(prevc?2:1); i++) {
-            if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&!prevc)
-                bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
-            else if (prevc!=1)
-                bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
-
-            scan  = (unsigned char*)sdl.surface->pixels;
-            scan += y * sdl.surface->pitch;
-            scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
-
-            for (unsigned int row=0;row < (fontHeight*2);row++) {
-                unsigned char rb = bmp[prevc==1?((row>>1U)*2+i):(row>>1U)];
-
-                if (sdl.surface->format->BitsPerPixel == 32) {
-                    uint32_t *dp = (uint32_t*)scan;
-                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                        if (rb & colm) {
-                            *dp++ = (uint32_t)color;
-                            *dp++ = (uint32_t)color;
-                        }
-                        else {
-                            dp += 2;
-                        }
-                    }
-                }
-                else if (sdl.surface->format->BitsPerPixel == 16) {
-                    uint16_t *dp = (uint16_t*)scan;
-                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                        if (rb & colm) {
-                            *dp++ = (uint16_t)color;
-                            *dp++ = (uint16_t)color;
-                        }
-                        else {
-                            dp += 2;
-                        }
-                    }
-                }
-
-                scan += (size_t)sdl.surface->pitch;
-            }
-            x += (int)mainMenu.fontCharWidth;
-        }
-    }
-    prevc = 0;
-}
-
-void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
-    bool use0 = false;
-#if C_OPENGL
-    if (OpenGL_using()) {
-        if (check&&(text[0]&0xFF)==0xFB) {
-            use0 = true;
-            UpdateSDLDrawDBCSTexture(0);
-        }
-        glBindTexture(GL_TEXTURE_2D,use0?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
-
-        glPushMatrix();
-
-        glMatrixMode (GL_TEXTURE);
-        glLoadIdentity ();
-        glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
-
-        glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_ALPHA_TEST);
-        glEnable(GL_BLEND);
-    }
-#endif
-
-    prevc = 0;
-    while (*text != 0) {
-        if (mainMenu.fontCharScale >= 2)
-            MenuDrawTextChar2x(x,y,use0?0:(unsigned char)*text,color,check);
-        else
-            MenuDrawTextChar(x,y,use0?0:(unsigned char)*text,color,check);
-        text++;
-    }
-    if (prevc>1) {
-        if (mainMenu.fontCharScale >= 2)
-            MenuDrawTextChar2x(x,y,prevc,color,true);
-        else
-            MenuDrawTextChar(x,y,prevc,color,true);
-    }
-    prevc = 0;
-#if C_OPENGL
-    if (OpenGL_using()) {
-        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-        glBlendFunc(GL_ONE, GL_ZERO);
-        glDisable(GL_ALPHA_TEST);
-        glEnable(GL_TEXTURE_2D);
-
-        glPopMatrix();
-
-        glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
-    }
-#endif
-}
-
-void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
-    (void)menu;//UNUSED
-
-    int cp = dos.loaded_codepage;
-    if (!cp) InitCodePage();
-
-    Bitu bgcolor = GFX_GetRGB(63, 63, 63);
-    Bitu fgcolor = GFX_GetRGB(191, 191, 191);
-    Bitu fgshortcolor = GFX_GetRGB(127, 127, 191);
-    Bitu fgcheckcolor = GFX_GetRGB(191, 191, 127);
-
-    if (type >= separator_type_id) {
-        /* separators never change visual state on hover/select */
-    }
-    else if (!status.enabled) {
-        if (itemHover)
-            bgcolor = GFX_GetRGB(79, 79, 79);
-
-        fgcolor = GFX_GetRGB(144, 144, 144);
-        fgshortcolor = GFX_GetRGB(63, 63, 144);
-        fgcheckcolor = GFX_GetRGB(144, 144, 63);
-    }
-    else if (itemHilight) {
-        bgcolor = GFX_GetRGB(0, 0, 63);
-        fgcolor = GFX_GetRGB(255, 255, 255);
-        fgshortcolor = GFX_GetRGB(191, 191, 255);
-    }
-    else if (itemHover) {
-        bgcolor = GFX_GetRGB(127, 127, 127);
-        fgcolor = GFX_GetRGB(255, 255, 255);
-        fgshortcolor = GFX_GetRGB(191, 191, 255);
-    }
-
-    itemHoverDrawn = itemHover;
-    itemHilightDrawn = itemHilight;
-
-    if (SDL_MUSTLOCK(sdl.surface))
-        SDL_LockSurface(sdl.surface);
-
-    MenuDrawRect(screenBox.x, screenBox.y, screenBox.w, screenBox.h, bgcolor);
-    if (checkBox.w != 0 && checkBox.h != 0) {
-        const char *str = status.checked ? "\xFB" : " ";
-
-        MenuDrawText(screenBox.x+checkBox.x, screenBox.y+checkBox.y, str, fgcheckcolor, true);
-    }
-    if (textBox.w != 0 && textBox.h != 0)
-        MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
-    if (shortBox.w != 0 && shortBox.h != 0)
-        MenuDrawText(screenBox.x+shortBox.x, screenBox.y+shortBox.y, shortcut_text.c_str(), fgshortcolor);
-
-    if (type == submenu_type_id && borderTop/*not toplevel*/)
-        MenuDrawText((int)((int)screenBox.x+(int)screenBox.w - (int)mainMenu.fontCharWidth - 1), (int)((int)screenBox.y+(int)textBox.y), "\x10", fgcheckcolor);
-
-    if (type == separator_type_id)
-        MenuDrawRect((int)screenBox.x, (int)screenBox.y + ((int)screenBox.h/2), (int)screenBox.w, 1, fgcolor);
-    else if (type == vseparator_type_id)
-        MenuDrawRect((int)screenBox.x + ((int)screenBox.w/2), (int)screenBox.y, 1, (int)screenBox.h, fgcolor);
-
-    if (SDL_MUSTLOCK(sdl.surface))
-        SDL_UnlockSurface(sdl.surface);
-    dos.loaded_codepage = cp;
-}
-
-void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu,bool updateScreen) {
-    for (auto &id : disp_list) {
-        DOSBoxMenu::item &item = menu.get_item(id);
-
-        item.drawMenuItem(menu);
-        if (updateScreen) item.updateScreenFromItem(menu);
-    }
-}
-
 bool DOSBox_isMenuVisible(void);
-
+void MenuShadeRect(int x,int y,int w,int h);
+void MenuDrawRect(int x,int y,int w,int h,Bitu color);
 void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
     if (!menu.needsRedraw() || (sdl.updating && !OpenGL_using())) {
         return;
@@ -2969,118 +2193,22 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
 #endif
     }
 }
-#endif
 
-void RENDER_Reset(void);
-
-#if defined(USE_TTF)
-bool firstsize = true;
-void AdjustIMEFontSize();
-static Bitu OUTPUT_TTF_SetSize() {
-    bool text=CurMode&&(CurMode->type==0||CurMode->type==2||CurMode->type==M_TEXT||IS_PC98_ARCH);
-    if (text) {
-        sdl.clip.x = sdl.clip.y = 0;
-        sdl.draw.width = sdl.clip.w = ttf.cols*ttf.width;
-        sdl.draw.height = sdl.clip.h = ttf.lins*ttf.height;
-        ttf.inUse = true;
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-        if (mainMenu.isVisible() && !ttf.fullScrn) {
-            sdl.clip.y += mainMenu.menuBox.h;
-            // hack
-            ttf.offX = sdl.clip.x;
-            ttf.offY = sdl.clip.y;
-        }
-#endif
-    } else
-        ttf.inUse = false;
-#if defined(C_SDL2)
-    int bx = 0, by = 0;
-    if (sdl.displayNumber>0) {
-        int displays = SDL_GetNumVideoDisplays();
-        SDL_Rect bound;
-        for( int i = 1; i <= displays; i++ ) {
-            bound = SDL_Rect();
-            SDL_GetDisplayBounds(i-1, &bound);
-            if (i == sdl.displayNumber) {
-                bx = bound.x;
-                by = bound.y;
-                break;
-            }
-        }
-        SDL_DisplayMode dm;
-        if (SDL_GetDesktopDisplayMode(sdl.displayNumber?sdl.displayNumber-1:0,&dm) == 0) {
-            bx += (dm.w - sdl.draw.width - sdl.clip.x)/2;
-            by += (dm.h - sdl.draw.height - sdl.clip.y)/2;
-        }
-    }
-#endif
-    if (ttf.inUse && ttf.fullScrn) {
-        unsigned int maxWidth, maxHeight;
-        GetMaxWidthHeight(&maxWidth, &maxHeight);
-#if defined(C_SDL2)
-        GFX_SetResizeable(false);
-        sdl.window = GFX_SetSDLSurfaceWindow(maxWidth, maxHeight);
-        sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
-        if (sdl.displayNumber==0) SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-        else SDL_SetWindowPosition(sdl.window, bx, by);
-#else
-        sdl.surface = SDL_SetVideoMode(maxWidth, maxHeight, 32, SDL_SWSURFACE|
-#if defined(WIN32)
-        SDL_NOFRAME
-#else
-        SDL_FULLSCREEN
-#endif
-        );
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
-        if (sdl.displayNumber>0) {
-            xyp xy={0};
-            xy.x=-1;
-            xy.y=-1;
-            curscreen=0;
-            EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
-            HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
-            MONITORINFO info;
-            info.cbSize = sizeof(MONITORINFO);
-            GetMonitorInfo(monitor, &info);
-            MoveWindow(GetHWND(), info.rcMonitor.left, info.rcMonitor.top, info.rcMonitor.right-info.rcMonitor.left, info.rcMonitor.bottom-info.rcMonitor.top, true);
-        }
-#endif
-#endif
-    } else {
-#if defined(C_SDL2)
-        GFX_SetResizeable(false);
-        sdl.window = GFX_SetSDLSurfaceWindow(sdl.draw.width + sdl.clip.x, sdl.draw.height + sdl.clip.y);
-        sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
-        if (firstsize && (posx < 0 || posy < 0) && text) {
-            firstsize=false;
-            if (sdl.displayNumber==0) SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-            else SDL_SetWindowPosition(sdl.window, bx, by);
-        }
-#else
-        sdl.surface = SDL_SetVideoMode(sdl.draw.width + sdl.clip.x, sdl.draw.height + sdl.clip.y, 32, SDL_SWSURFACE);
-#endif
-    }
-	if (!sdl.surface)
-		E_Exit("SDL: Failed to create surface");
-	SDL_ShowCursor(!ttf.fullScrn);
-	sdl.active = true;
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    mainMenu.screenWidth = (size_t)sdl.surface->w;
-    mainMenu.screenHeight = (size_t)sdl.surface->h;
-    mainMenu.updateRect();
-    mainMenu.setRedraw();
-#endif
-
-	AdjustIMEFontSize();
-
-    return GFX_CAN_32 | GFX_SCALING;
+void drawmenu(Bitu) {
+    if (menu_gui && menu.toggle) GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 }
 #endif
 
-Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback) 
+void RENDER_Reset(void);
+void UpdateUserCursorScreenDimensions(void);
+
+Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback)
 {
+
+#if C_DIRECT3D && defined(C_SDL2)
+    //if(sdl.desktop.type == SCREEN_DIRECT3D11) sdl.desktop.want_type = SCREEN_DIRECT3D11;
+#endif
+
     if ((width == 0 || height == 0) && !TTF_using()) {
         E_Exit("GFX_SetSize with width=%d height=%d zero dimensions not allowed",(int)width,(int)height);
         return 0;
@@ -3088,7 +2216,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     bool diff = width != sdl.draw.width || height != sdl.draw.height;
 
     if (sdl.updating)
-        GFX_EndUpdate( 0 );
+        GFX_EndUpdate(nullptr);
 
     sdl.must_redraw_all = true;
 
@@ -3120,7 +2248,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
     if (sdl.blit.surface) {
         SDL_FreeSurface(sdl.blit.surface);
-        sdl.blit.surface=0;
+        sdl.blit.surface = nullptr;
     }
 
     switch (sdl.desktop.want_type) {
@@ -3134,12 +2262,27 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
             break;
 #endif
 
-#if C_DIRECT3D
-        case SCREEN_DIRECT3D: 
-            retFlags = OUTPUT_DIRECT3D_SetSize();
+#if C_GAMELINK
+        case SCREEN_GAMELINK:
+            retFlags = OUTPUT_GAMELINK_SetSize();
             break;
 #endif
 
+#if C_DIRECT3D
+        case SCREEN_DIRECT3D:
+            retFlags = OUTPUT_DIRECT3D_SetSize();
+            break;
+#if defined(C_SDL2)
+        case SCREEN_DIRECT3D11:
+            retFlags = OUTPUT_DIRECT3D11_SetSize();
+            break;
+#endif
+#endif
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+        case SCREEN_METAL:
+            retFlags = OUTPUT_Metal_SetSize();
+            break;
+#endif
 #if defined(USE_TTF)
         case SCREEN_TTF:
             break;
@@ -3163,19 +2306,26 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
             LOG_MSG("SDL: Failed everything including falling back to surface in GFX_GetSize"); // completely failed it seems
     }
 
+#if C_GAMELINK
+    if (!OUTPUT_GAMELINK_InitTrackingMode() && sdl.desktop.want_type == SCREEN_GAMELINK) {
+        OUTPUT_SURFACE_Select();
+        retFlags = OUTPUT_SURFACE_SetSize();
+    }
+#endif
+
     // we have selected an actual desktop type
     sdl.desktop.type = sdl.desktop.want_type;
 
     GFX_LogSDLState();
 
-    if (retFlags) 
+    if (retFlags)
         GFX_Start();
 
     if (!sdl.mouse.autoenable && !sdl.mouse.locked)
         SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
 
 #if defined(C_SDL2)
-    if (diff && posx < 0 && posy < 0) {
+    if (diff && posx < 0 && posy < 0 && !(posx == -2 && posy == -2)) {
         if (sdl.displayNumber==0)
             SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
         else {
@@ -3200,16 +2350,32 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
         }
     }
 #endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if ((!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && ((machine != MCH_CGA && !IS_VGA_ARCH && !IS_PC98_ARCH && height == 350) || height == 400))) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
+        RECT r;
+        bool res = GetWindowRect(GetHWND(), &r);
+        unsigned int maxWidth, maxHeight;
+        GetMaxWidthHeight(&maxWidth, &maxHeight);
+        int tWidth = menuwidth_atleast(r.right-r.left);
+        if (tWidth>0 && tWidth>maxWidth) tWidth = maxWidth;
+        int tHeight = r.bottom-r.top-height<0?(r.bottom-r.top):(double)(tWidth-((r.right-r.left-width)<0?0:(r.right-r.left-width)))*height/width+(r.bottom-r.top-height);
+        if (tHeight>0 && tHeight>maxHeight) tHeight = maxHeight;
+        if (res && tWidth>0 && tHeight>0) {
+            MoveWindow(GetHWND(), r.left, r.top, tWidth, tHeight, true);
+            LOG_MSG("SDL: Window size enlarged for the menus\n");
+        }
+    }
+#endif
     UpdateWindowDimensions();
-
-#if defined(WIN32) && !defined(HX_DOS)
+    UpdateUserCursorScreenDimensions();
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     WindowsTaskbarUpdatePreviewRegion();
 #endif
 
     return retFlags;
 }
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 // WARNING: Not recommended, there is danger you cannot exit emulator because mouse+keyboard are taken
 static bool enable_hook_everything = false;
 #endif
@@ -3220,7 +2386,7 @@ static bool enable_hook_everything = false;
 // danger you become trapped in the DOSBox-X emulator!
 static bool enable_hook_special_keys = true;
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 // Whether or not to hook Num/Scroll/Caps lock in order to give the guest OS full control of the
 // LEDs on the keyboard (i.e. the LEDs do not change until the guest OS changes their state).
 // This flag also enables code to set the LEDs to guest state when setting mouse+keyboard capture,
@@ -3228,7 +2394,7 @@ static bool enable_hook_special_keys = true;
 static bool enable_hook_lock_toggle_keys = true;
 #endif
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 // and this is where we store host LED state when capture is set.
 static bool on_capture_num_lock_was_on = true; // reasonable guess
 static bool on_capture_scroll_lock_was_on = false;
@@ -3236,7 +2402,7 @@ static bool on_capture_caps_lock_was_on = false;
 #endif
 
 static bool exthook_enabled = false;
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 static HHOOK exthook_winhook = NULL;
 
 #if !defined(__MINGW32__)
@@ -3397,7 +2563,7 @@ void DoExtendedKeyboardHook(bool enable) {
     if (exthook_enabled == enable)
         return;
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     if (enable) {
         if (!exthook_winhook) {
             exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), 0);
@@ -3511,7 +2677,8 @@ void GFX_CaptureMouse(bool capture) {
 #else
         SDL_WM_GrabInput(SDL_GRAB_OFF);
 #endif
-        if (sdl.mouse.autoenable || !sdl.mouse.autolock) SDL_ShowCursor(SDL_ENABLE);
+        if (vmware_mouse) SDL_ShowCursor(SDL_DISABLE);
+        else if (sdl.mouse.autoenable || !sdl.mouse.autolock) SDL_ShowCursor(SDL_ENABLE);
     }
         mouselocked=sdl.mouse.locked;
 
@@ -3575,7 +2742,7 @@ void CaptureMouseNotifyWin32(bool lck)
     break;
     case AUTOLOCK_FEEDBACK_FLASH:
     {
-# if !defined(HX_DOS)
+# if !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         const auto cnt = lck ? 4 : 2;
         const auto tim = lck ? 80 : 40;
         const auto wnd = GetHWND();
@@ -3613,12 +2780,20 @@ void CaptureMouseNotify(bool capture)
 }
 
 static void CaptureMouse(bool pressed) {
-    if (!pressed)
+    if (!pressed || is_paused || sdl.desktop.want_type == SCREEN_GAMELINK)
         return;
 
     CaptureMouseNotify();
     GFX_CaptureMouse();
 }
+
+#if defined(C_SDL2)
+static void CaptureKeyboard(bool pressed) {
+    if (pressed) {
+        GFX_KeyboardCapture(!sdl.capture_keyboard);
+    }
+}
+#endif
 
 #if defined (WIN32)
 STICKYKEYS stick_keys = {sizeof(STICKYKEYS), 0};
@@ -3627,7 +2802,7 @@ void sticky_keys(bool restore){
     if (!inited){
         inited = true;
         SystemParametersInfo(SPI_GETSTICKYKEYS, sizeof(STICKYKEYS), &stick_keys, 0);
-    } 
+    }
     if (restore) {
         SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &stick_keys, 0);
         return;
@@ -3705,13 +2880,13 @@ void res_init(void) {
 
     int width = 1024;
     int height = 768;
-    
+
     // fullresolution == desktop -> get/set desktop size
     auto sdlSection = control->GetSection("sdl");
     auto sdlSectionProp = static_cast<Section_prop*>(sdlSection);
     auto fullRes = sdlSectionProp->Get_string("fullresolution");
     if (!strcmp(fullRes, "desktop")) GetDesktopResolution(&width, &height);
-    
+
     if (!sdl.desktop.full.width) {
         sdl.desktop.full.width=width;
     }
@@ -3745,659 +2920,8 @@ void res_input(bool type, const char * res) {
     }
 }
 
-#if defined(USE_TTF)
-void GFX_SelectFontByPoints(int ptsize);
-bool lastmenu = true, initttf = false;
-int lastfontsize = 0;
-void setVGADAC() {
-    if (ttf.inUse&&CurMode&&IS_VGA_ARCH) {
-        std::map<uint8_t,int> imap;
-        for (uint8_t i = 0; i < 0x10; i++) {
-            IO_ReadB(mem_readw(BIOS_VIDEO_PORT)+6);
-            IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
-            imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
-            IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].red*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].green*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].blue*63/255);
-        }
-    }
-}
-
-/* NTS: EGA/VGA etc have at least 16 DOS colors. Check also CGA etc. */
-bool setColors(const char *colorArray, int n) {
-    if (IS_PC98_ARCH) return false;
-    if (!colorChanged)
-        for (uint8_t i = 0; i < 0x10; i++) {
-            altBGR1[i].red=rgbColors[i].red;
-            altBGR1[i].green=rgbColors[i].green;
-            altBGR1[i].blue=rgbColors[i].blue;
-        }
-    const char* nextRGB = colorArray;
-	uint8_t * altPtr = (uint8_t *)altBGR1;
-	int rgbVal[3] = {-1,-1,-1};
-	for (int colNo = 0; colNo < (n>-1?1:16); colNo++) {
-		if (n>-1) altPtr+=4*n;
-		if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
-			for (int i = 0; i< 3; i++) {
-				if (rgbVal[i] < 0 || rgbVal[i] > 255)
-					return false;
-				altPtr[i] = rgbVal[i];
-			}
-			while (*nextRGB != ')')
-				nextRGB++;
-			nextRGB++;
-		} else if (sscanf(nextRGB, " #%6x", &rgbVal[0]) == 1) {							// Hexadecimal
-			if (rgbVal[0] < 0)
-				return false;
-			for (int i = 0; i < 3; i++) {
-				altPtr[2-i] = rgbVal[0]&255;
-				rgbVal[0] >>= 8;
-			}
-			nextRGB = strchr(nextRGB, '#') + 7;
-		} else
-			return false;
-		altPtr += 4;
-	}
-	for (int i = n>-1?n:0; i < (n>-1?n+1:16); i++) {
-		altBGR0[i].blue = (altBGR1[i].blue*2 + 128)/4;
-		altBGR0[i].green = (altBGR1[i].green*2 + 128)/4;
-		altBGR0[i].red = (altBGR1[i].red*2 + 128)/4;
-	}
-    setVGADAC();
-    colorChanged=justChanged=true;
-	return true;
-}
-
-bool readTTFStyle(unsigned long& size, void*& font, FILE * fh) {
-    long pos = ftell(fh);
-    if (pos != -1L) {
-        size = pos;
-        font = malloc((size_t)size);
-        if (font && !fseek(fh, 0, SEEK_SET) && fread(font, 1, (size_t)size, fh) == (size_t)size) {
-            fclose(fh);
-            return true;
-        }
-    }
-    return false;
-}
-
-std::string failName="";
-bool readTTF(const char *fName, bool bold, bool ital) {
-	FILE * ttf_fh = NULL;
-	std::string exepath = "";
-	char ttfPath[1024];
-
-	strcpy(ttfPath, fName);													// Try to load it from working directory
-	strcat(ttfPath, ".ttf");
-	ttf_fh = fopen(ttfPath, "rb");
-	if (!ttf_fh) {
-		strcpy(ttfPath, fName);
-		ttf_fh = fopen(ttfPath, "rb");
-	}
-    if (!ttf_fh) {
-        exepath=GetDOSBoxXPath();
-        if (exepath.size()) {
-            strcpy(strrchr(strcpy(ttfPath, exepath.c_str()), CROSS_FILESPLIT)+1, fName);	// Try to load it from where DOSBox-X was started
-            strcat(ttfPath, ".ttf");
-            ttf_fh = fopen(ttfPath, "rb");
-            if (!ttf_fh) {
-                strcpy(strrchr(strcpy(ttfPath, exepath.c_str()), CROSS_FILESPLIT)+1, fName);
-                ttf_fh = fopen(ttfPath, "rb");
-            }
-        }
-    }
-    if (!ttf_fh) {
-        std::string config_path;
-        Cross::GetPlatformConfigDir(config_path);
-        struct stat info;
-        if (!stat(config_path.c_str(), &info) && (info.st_mode & S_IFDIR)) {
-            strcpy(ttfPath, config_path.c_str());
-            strcat(ttfPath, fName);
-            strcat(ttfPath, ".ttf");
-            ttf_fh = fopen(ttfPath, "rb");
-            if (!ttf_fh) {
-                strcpy(ttfPath, config_path.c_str());
-                strcat(ttfPath, fName);
-                ttf_fh = fopen(ttfPath, "rb");
-            }
-        }
-    }
-    if (!ttf_fh) {
-        std::string basedir = static_cast<Section_prop *>(control->GetSection("printer"))->Get_string("fontpath");
-        if (basedir.back()!='\\' && basedir.back()!='/') basedir += CROSS_FILESPLIT;
-        strcpy(ttfPath, basedir.c_str());
-        strcat(ttfPath, fName);
-        strcat(ttfPath, ".ttf");
-        ttf_fh = fopen(ttfPath, "rb");
-        if (!ttf_fh) {
-            strcpy(ttfPath, basedir.c_str());
-            strcat(ttfPath, fName);
-            ttf_fh = fopen(ttfPath, "rb");
-        }
-    }
-    if (!ttf_fh) {
-        char fontdir[300];
-#if defined(WIN32)
-        strcpy(fontdir, "C:\\WINDOWS\\fonts\\");
-        struct stat wstat;
-        if(stat(fontdir,&wstat) || !(wstat.st_mode & S_IFDIR)) {
-            char dir[MAX_PATH];
-            if (GetWindowsDirectory(dir, MAX_PATH)) {
-                strcpy(fontdir, dir);
-                strcat(fontdir, "\\fonts\\");
-            }
-        }
-#elif defined(LINUX)
-        strcpy(fontdir, "/usr/share/fonts/");
-#elif defined(MACOSX)
-        strcpy(fontdir, "/Library/Fonts/");
-#else
-        strcpy(fontdir, "/fonts/");
-#endif
-        strcpy(ttfPath, fontdir);
-        strcat(ttfPath, fName);
-        strcat(ttfPath, ".ttf");
-        ttf_fh = fopen(ttfPath, "rb");
-        if (!ttf_fh) {
-            strcpy(ttfPath, fontdir);
-            strcat(ttfPath, fName);
-            ttf_fh = fopen(ttfPath, "rb");
-#if defined(LINUX) || defined(MACOSX)
-            if (!ttf_fh) {
-#if defined(LINUX)
-                strcpy(fontdir, "/usr/share/fonts/truetype/");
-#else
-                strcpy(fontdir, "/System/Library/Fonts/");
-#endif
-                strcpy(ttfPath, fontdir);
-                strcat(ttfPath, fName);
-                strcat(ttfPath, ".ttf");
-                ttf_fh = fopen(ttfPath, "rb");
-                if (!ttf_fh) {
-                    strcpy(ttfPath, fontdir);
-                    strcat(ttfPath, fName);
-                    ttf_fh = fopen(ttfPath, "rb");
-                    if (!ttf_fh) {
-                        std::string in;
-#if defined(LINUX)
-                        in = "~/.fonts/";
-#else
-                        in = "~/Library/Fonts/";
-#endif
-                        Cross::ResolveHomedir(in);
-                        strcpy(ttfPath, in.c_str());
-                        strcat(ttfPath, fName);
-                        strcat(ttfPath, ".ttf");
-                        ttf_fh = fopen(ttfPath, "rb");
-                        if (!ttf_fh) {
-                            strcpy(ttfPath, in.c_str());
-                            strcat(ttfPath, fName);
-                            ttf_fh = fopen(ttfPath, "rb");
-                        }
-                    }
-                }
-            }
-#endif
-        }
-    }
-    if (ttf_fh) {
-        if (!fseek(ttf_fh, 0, SEEK_END)) {
-            if (bold && ital && readTTFStyle(ttfSizebi, ttfFontbi, ttf_fh))
-                return true;
-            else if (bold && !ital && readTTFStyle(ttfSizeb, ttfFontb, ttf_fh))
-                return true;
-            else if (!bold && ital && readTTFStyle(ttfSizei, ttfFonti, ttf_fh))
-                return true;
-            else if (readTTFStyle(ttfSize, ttfFont, ttf_fh))
-                return true;
-        }
-        fclose(ttf_fh);
-    }
-    if (!failName.size()||failName.compare(fName)) {
-        failName=std::string(fName);
-        bool alllower=true;
-        for (size_t i=0; i<strlen(fName); i++) {if ((unsigned char)fName[i]>0x7f) alllower=false;break;}
-        std::string message=alllower?("Could not load font file: "+std::string(fName)+(strlen(fName)<5||strcasecmp(fName+strlen(fName)-4, ".ttf")?".ttf":"")):"Could not load the specified font file.";
-        systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
-    }
-	return false;
-}
-
-void SetBlinkRate(Section_prop* section) {
-    const char * blinkCstr = section->Get_string("blinkc");
-    unsigned int num=-1;
-    if (!strcasecmp(blinkCstr, "false")||!strcmp(blinkCstr, "-1")) blinkCursor = -1;
-    else if (1==sscanf(blinkCstr,"%u",&num)&&num>=0&&num<=7) blinkCursor = num;
-    else blinkCursor = IS_PC98_ARCH?6:4; // default cursor blinking is slower on PC-98 systems
-}
-
-int lastset=0;
-void CheckTTFLimit() {
-    ttf.lins = MAX(24, MIN(IS_VGA_ARCH?txtMaxLins:60, (int)ttf.lins));
-    ttf.cols = MAX(40, MIN(IS_VGA_ARCH?txtMaxCols:160, (int)ttf.cols));
-    if (ttf.cols*ttf.lins>16384) {
-        if (lastset==1) {
-            ttf.lins=16384/ttf.cols;
-            SetVal("ttf", "lins", std::to_string(ttf.lins));
-        } else if (lastset==2) {
-            ttf.cols=16384/ttf.lins;
-            SetVal("ttf", "cols", std::to_string(ttf.cols));
-        } else {
-            ttf.lins = 25;
-            ttf.cols = 80;
-        }
-    }
-}
-
-void SetOutputSwitch(const char *outputstr) {
-#if C_DIRECT3D
-        if (!strcasecmp(outputstr, "direct3d"))
-            switchoutput = 6;
-        else
-#endif
-#if C_OPENGL
-        if (!strcasecmp(outputstr, "openglpp"))
-            switchoutput = 5;
-        else if (!strcasecmp(outputstr, "openglnb"))
-            switchoutput = 4;
-        else if (!strcasecmp(outputstr, "opengl")||!strcasecmp(outputstr, "openglnq"))
-            switchoutput = 3;
-        else
-#endif
-        if (!strcasecmp(outputstr, "surface"))
-            switchoutput = 0;
-        else
-            switchoutput = -1;
-}
-
-#define MIN_PTSIZE 9
-bool firstset=true;
-void OUTPUT_TTF_Select(int fsize=-1) {
-    if (!initttf&&TTF_Init()) {											// Init SDL-TTF
-        std::string message = "Could not init SDL-TTF: " + std::string(SDL_GetError());
-        systemmessagebox("Error", message.c_str(), "ok","error", 1);
-        sdl.desktop.want_type = SCREEN_SURFACE;
-        return;
-    }
-    int fontSize = 0;
-    int winPerc = 0;
-    if (fsize==3)
-        winPerc = 100;
-    else if (fsize>=MIN_PTSIZE)
-        fontSize = fsize;
-    else {
-        Section_prop * ttf_section=static_cast<Section_prop *>(control->GetSection("ttf"));
-        const char * fName = ttf_section->Get_string("font");
-        const char * fbName = ttf_section->Get_string("fontbold");
-        const char * fiName = ttf_section->Get_string("fontital");
-        const char * fbiName = ttf_section->Get_string("fontboit");
-        LOG_MSG("SDL: TTF activated %s", fName);
-        force_conversion = true;
-        int cp = dos.loaded_codepage;
-        bool trysgf = false;
-        if (!*fName) {
-            std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
-            if (IS_PC98_ARCH||mtype.substr(0, 4)=="pc98"||InitCodePage()&&isDBCSCP()) trysgf = true;
-        }
-        force_conversion = false;
-        dos.loaded_codepage = cp;
-        if (trysgf) failName = "SarasaGothicFixed";
-        if ((!*fName&&!trysgf)||!readTTF(*fName?fName:failName.c_str(), false, false)) {
-            ttfFont = DOSBoxTTFbi;
-            ttfFontb = NULL;
-            ttfFonti = NULL;
-            ttfFontbi = NULL;
-            ttfSize = sizeof(DOSBoxTTFbi);
-            ttfSizeb = ttfSizei = ttfSizebi = 0;
-            ttf.DOSBox = true;
-            std::string message="";
-            if (*fbName)
-                message="A valid ttf.font setting is required for the ttf.fontbold setting: "+std::string(fbName);
-            else if (*fiName)
-                message="A valid ttf.font setting is required for the ttf.fontital setting: "+std::string(fiName);
-            else if (*fbiName)
-                message="A valid ttf.font setting is required for the ttf.fontboit setting: "+std::string(fbiName);
-            if (fsize==0&&message.size())
-                systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
-        } else {
-            if (!*fbName||!readTTF(fbName, true, false)) {
-                ttfFontb = NULL;
-                ttfSizeb = 0;
-            }
-            if (!*fiName||!readTTF(fiName, false, true)) {
-                ttfFonti = NULL;
-                ttfSizei = 0;
-            }
-            if (!*fbiName||!readTTF(fbiName, true, true)) {
-                ttfFontbi = NULL;
-                ttfSizebi = 0;
-            }
-        }
-        const char * colors = ttf_section->Get_string("colors");
-        if (*colors) {
-            if (!setColors(colors,-1)) {
-                LOG_MSG("Incorrect color scheme: %s", colors);
-                //setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
-            }
-        } else if (IS_EGAVGA_ARCH) {
-            alt_rgb *rgbcolors = (alt_rgb*)render.pal.rgb;
-            std::string str = "";
-            char value[30];
-            for (int i = 0; i < 16; i++) {
-                sprintf(value,"#%02x%02x%02x",rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
-                str+=std::string(value)+" ";
-            }
-            if (str.size()) setColors(str.c_str(),-1);
-        }
-        SetBlinkRate(ttf_section);
-        const char *wpstr=ttf_section->Get_string("wp");
-        wpType=0;
-        wpVersion=0;
-        if (strlen(wpstr)>1) {
-            if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
-            else if (!strncasecmp(wpstr, "WS", 2)) wpType=2;
-            else if (!strncasecmp(wpstr, "XY", 2)) wpType=3;
-            else if (!strncasecmp(wpstr, "FE", 2)) wpType=4;
-            if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
-        }
-        wpBG = ttf_section->Get_int("wpbg");
-        wpFG = ttf_section->Get_int("wpfg");
-        if (wpFG<0) wpFG = 7;
-        winPerc = ttf_section->Get_int("winperc");
-        if (winPerc>100||(fsize==2&&GFX_IsFullscreen())||(fsize!=1&&fsize!=2&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen")))) winPerc=100;
-        else if (winPerc<25) winPerc=25;
-        if (fsize==1&&winPerc==100) winPerc=60;
-        fontSize = ttf_section->Get_int("ptsize");
-        char512 = ttf_section->Get_bool("char512");
-        showbold = ttf_section->Get_bool("bold");
-        showital = ttf_section->Get_bool("italic");
-        showline = ttf_section->Get_bool("underline");
-        showsout = ttf_section->Get_bool("strikeout");
-        printfont = ttf_section->Get_bool("printfont");
-        dbcs_sbcs = ttf_section->Get_bool("autodbcs");
-        autoboxdraw = ttf_section->Get_bool("autoboxdraw");
-        halfwidthkana = ttf_section->Get_bool("halfwidthkana");
-        ttf_dosv = ttf_section->Get_bool("dosvfunc");
-        SetOutputSwitch(ttf_section->Get_string("outputswitch"));
-        rtl = ttf_section->Get_bool("righttoleft");
-        ttf.lins = ttf_section->Get_int("lins");
-        ttf.cols = ttf_section->Get_int("cols");
-        if (fsize&&!IS_PC98_ARCH&&!IS_EGAVGA_ARCH) ttf.lins = 25;
-        if ((!CurMode||CurMode->type!=M_TEXT)&&!IS_PC98_ARCH) {
-            if (ttf.cols<1) ttf.cols=80;
-            if (ttf.lins<1) ttf.lins=25;
-            CheckTTFLimit();
-        } else if (firstset) {
-            bool alter_vmode=false;
-            uint16_t c=0, r=0;
-            if (IS_PC98_ARCH) {
-                c=80;
-                r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
-            } else {
-                c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-                r=(uint16_t)(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
-            }
-            if (ttf.lins<1||ttf.cols<1)	{
-                if (ttf.cols<1)
-                    ttf.cols = c;
-                else {
-                    ttf.cols = MAX(40, MIN(txtMaxCols, (int)ttf.cols));
-                    if (ttf.cols != c) alter_vmode = true;
-                }
-                if (ttf.lins<1)
-                    ttf.lins = r;
-                else {
-                    ttf.lins = MAX(24, MIN(txtMaxLins, (int)ttf.lins));
-                    if (ttf.lins != r) alter_vmode = true;
-                }
-            } else {
-                CheckTTFLimit();
-                if (ttf.cols != c || ttf.lins != r) alter_vmode = true;
-            }
-            if (alter_vmode) {
-                for (Bitu i = 0; ModeList_VGA[i].mode <= 7; i++) {								// Set the cols and lins in video mode 2,3,7
-                    ModeList_VGA[i].twidth = ttf.cols;
-                    ModeList_VGA[i].theight = ttf.lins;
-                }
-                if (!IS_PC98_ARCH) {
-                    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
-                    if (IS_EGAVGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
-                }
-            }
-            firstset=false;
-        } else {
-            uint16_t c=0, r=0;
-            if (IS_PC98_ARCH) {
-                c=80;
-                r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
-            } else {
-                c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-                r=(uint16_t)(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
-            }
-            ttf.cols=c;
-            ttf.lins=r;
-        }
-    }
-
-    if (winPerc == 100) {
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-        lastmenu = menu.toggle;
-        menu.toggle=false;
-        NonUserResizeCounter=1;
-        SDL1_hax_SetMenu(NULL);
-        void RENDER_CallBack( GFX_CallBackFunctions_t function );
-        RENDER_CallBack( GFX_CallBackReset );
-#endif
-#if defined (WIN32)
-        DOSBox_SetSysMenu();
-#endif
-        ttf.fullScrn = true;
-    } else
-        ttf.fullScrn = false;
-
-    unsigned int maxWidth, maxHeight;
-    GetMaxWidthHeight(&maxWidth, &maxHeight);
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    maxHeight -= mainMenu.menuBarHeightBase * 2;
-#endif
-
-#if defined(WIN32)
-    if (!ttf.fullScrn) {																			// 3D borders
-        maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
-        maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
-    }
-#endif
-    int	curSize = fontSize>=MIN_PTSIZE?fontSize:30;													// no clear idea what would be a good starting value
-    int lastGood = -1;
-    int trapLoop = 0;
-
-    if (fontSize<MIN_PTSIZE) {
-        while (curSize != lastGood) {
-            GFX_SelectFontByPoints(curSize);
-            if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight) {				// if it fits on screen
-                lastGood = curSize;
-                float coveredPerc = float(100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight);
-                if (trapLoop++ > 4 && coveredPerc <= winPerc)										// we can get into a +/-/+/-... loop!
-                    break;
-                curSize = (int)(curSize*sqrt((float)winPerc/coveredPerc));							// rounding down is ok
-                if (curSize < MIN_PTSIZE)															// minimum size = 9
-                    curSize = MIN_PTSIZE;
-            } else if (--curSize < MIN_PTSIZE)														// silly, but OK, one never can tell..
-                E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
-        }
-        if (ttf.DOSBox && curSize > MIN_PTSIZE)														// make it even for DOSBox-X internal font (a bit nicer)
-            curSize &= ~1;
-    }
-    GFX_SelectFontByPoints(curSize);
-    if (fontSize>=MIN_PTSIZE && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100)
-        E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
-    resetreq=false;
-    sdl.desktop.want_type = SCREEN_TTF;
-}
-#endif
-
-void change_output(int output) {
-    GFX_Stop();
-    Section * sec = control->GetSection("sdl");
-    Section_prop * section=static_cast<Section_prop *>(sec);
-    sdl.overscan_width=(unsigned int)section->Get_int("overscan");
-    UpdateOverscanMenu();
-    sdl.desktop.isperfect = false; /* Reset before selection */
-
-    switch (output) {
-    case 0:
-        OUTPUT_SURFACE_Select();
-        break;
-    case 1:
-        OUTPUT_SURFACE_Select();
-        break;
-    case 2: /* do nothing */
-        break;
-    case 3:
-#if C_OPENGL
-        change_output(2);
-        OUTPUT_OPENGL_Select(GLBilinear);
-#endif
-        break;
-    case 4:
-#if C_OPENGL
-        change_output(2);
-        OUTPUT_OPENGL_Select(GLNearest);
-#endif
-        break;
-    case 5:
-#if C_OPENGL
-        change_output(2);
-        OUTPUT_OPENGL_Select(GLPerfect);
-#endif
-        break;
-#if C_DIRECT3D
-    case 6:
-        OUTPUT_DIRECT3D_Select();
-        d3d_init();
-        break;
-#endif
-    case 7:
-        break;
-    case 8:
-        // do not set want_type
-        break;
-    case 9:
-#if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) {
-            OUTPUT_DIRECT3D_Select();
-            d3d_init();
-        }
-#endif
-        break;
-#if defined(USE_TTF)
-    case 10:
-        OUTPUT_TTF_Select();
-    case 11:
-        sdl.desktop.want_type = SCREEN_TTF;
-        ttf.inUse = true;
-        break;
-#endif
-
-    default:
-        LOG_MSG("SDL: Unsupported output device %d, switching back to surface",output);
-        OUTPUT_SURFACE_Select();
-        break;
-    }
-
-#if C_OPENGL
-    if (sdl.desktop.want_type != SCREEN_OPENGL) mainMenu.get_item("load_glsl_shader").enable(false).refresh_item(mainMenu);
-#endif
-#if C_DIRECT3D
-    if (sdl.desktop.want_type != SCREEN_DIRECT3D) mainMenu.get_item("load_d3d_shader").enable(false).refresh_item(mainMenu);
-#endif
-#if defined(USE_TTF)
-    if (sdl.desktop.want_type != SCREEN_TTF) {
-        mainMenu.get_item("load_ttf_font").enable(false).refresh_item(mainMenu);
-        resetreq = false;
-        ttf.inUse = false;
-    }
-#endif
-
-    const char* windowresolution=section->Get_string("windowresolution");
-    if (windowresolution && *windowresolution) 
-    {
-        char res[100];
-        safe_strncpy( res,windowresolution, sizeof( res ));
-        windowresolution = lowcase (res);//so x and X are allowed
-        if (strcmp(windowresolution,"original")) 
-        {
-            if (output == 0) 
-            {
-                std::string tmp("windowresolution=original");
-                sec->HandleInputline(tmp);
-            }
-        }
-    }
-    res_init();
-
-    if (sdl.draw.callback)
-        (sdl.draw.callback)( GFX_CallBackReset );
-#ifdef C_OPENGL
-        mainMenu.get_item("load_glsl_shader").enable(sdl.desktop.want_type==SCREEN_OPENGL&&initgl==2).refresh_item(mainMenu);
-#endif
-#ifdef C_DIRECT3D
-        mainMenu.get_item("load_d3d_shader").enable(sdl.desktop.want_type==SCREEN_DIRECT3D).refresh_item(mainMenu);
-#endif
-#ifdef USE_TTF
-        mainMenu.get_item("load_ttf_font").enable(sdl.desktop.want_type==SCREEN_TTF).refresh_item(mainMenu);
-#endif
-#if defined(USE_TTF)
-    if ((output==9||output==10)&&ttf.inUse) {
-        resetFontSize();
-        resetreq = true;
-    }
-#if defined(WIN32) && !defined(HX_DOS)
-    HMENU sysmenu = GetSystemMenu(GetHWND(), TRUE);
-    if (sysmenu != NULL) {
-        EnableMenuItem(sysmenu, ID_WIN_SYSMENU_TTFINCSIZE, MF_BYCOMMAND|(TTF_using()?MF_ENABLED:MF_DISABLED));
-        EnableMenuItem(sysmenu, ID_WIN_SYSMENU_TTFDECSIZE, MF_BYCOMMAND|(TTF_using()?MF_ENABLED:MF_DISABLED));
-    }
-#endif
-    mainMenu.get_item("mapper_incsize").enable(TTF_using()).refresh_item(mainMenu);
-    mainMenu.get_item("mapper_decsize").enable(TTF_using()).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_resetcolor").enable(TTF_using()).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_showsout").enable(TTF_using()).check(showsout).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_wpno").enable(TTF_using()).check(!wpType).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_wpwp").enable(TTF_using()).check(wpType==1).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_wpfe").enable(TTF_using()).check(wpType==4).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_blinkc").enable(TTF_using()).check(blinkCursor>-1).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_right_left").enable(TTF_using()).check(rtl).refresh_item(mainMenu);
-#if C_PRINTER
-    mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont).refresh_item(mainMenu);
-#endif
-    mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950?chinasea:(gbk&&chinasea))).refresh_item(mainMenu);
-#endif
-
-    if (output != 7) GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
-    GFX_LogSDLState();
-
-    UpdateWindowDimensions();
-}
-
 #if !defined(HX_DOS) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" void SDL_hax_SetFSWindowPosition(int x,int y,int w,int h);
-#endif
-
-#if defined(USE_TTF)
-void ResetTTFSize(Bitu /*val*/) {
-    resetFontSize();
-}
 #endif
 
 void modeSwitched(bool full) {
@@ -4426,9 +2950,9 @@ void GFX_SwitchFullScreen(void)
     if (ttf.inUse) {
         if (ttf.fullScrn) {
             sdl.desktop.fullscreen = false;
-            if (lastfontsize>0)
-                OUTPUT_TTF_Select(lastfontsize);
-            else
+            //if (lastfontsize>0)
+            //    OUTPUT_TTF_Select(lastfontsize); /* certain lastfontsize will crash DOSBox-X */
+            //else
                 OUTPUT_TTF_Select(1);
             resetFontSize();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
@@ -4437,9 +2961,9 @@ void GFX_SwitchFullScreen(void)
 #if defined(C_SDL2)
             if (posx >= 0 && posy >= 0)
                 SDL_SetWindowPosition(sdl.window, posx, posy);
-            else if (sdl.displayNumber==0)
+            else if (sdl.displayNumber==0 && !(posx == -2 && posy == -2))
                 SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-            else {
+            else if (posx != -2 || posy != -2) {
                 int bx = 0, by = 0;
                 int displays = SDL_GetNumVideoDisplays();
                 SDL_Rect bound;
@@ -4459,6 +2983,8 @@ void GFX_SwitchFullScreen(void)
                 }
                 SDL_SetWindowPosition(sdl.window, bx, by);
             }
+            else if(posx == -2 && posy == -2)
+                SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #endif
             resetreq = true;
             GFX_ResetScreen();
@@ -4472,6 +2998,10 @@ void GFX_SwitchFullScreen(void)
             resetFontSize();
         }
         modeSwitched(sdl.desktop.fullscreen);
+        SetVal("sdl", "fullscreen", sdl.desktop.fullscreen?"true":"false");
+        bool is_showmenu=static_cast<Section_prop *>(control->GetSection("SDL"))->Get_bool("showmenu");
+        if(sdl.desktop.fullscreen || !is_showmenu) DOSBox_NoMenu();
+        else DOSBox_SetMenu();
         return;
     }
 #endif
@@ -4513,7 +3043,7 @@ void GFX_SwitchFullScreen(void)
 
                Frankly I wish I knew how to fix the SDL1 Quartz code to use whatever abracadabra magic code is required
                to enumerate these extra HDTV modes so this hack isn't necessary, except that experience says this hack is
-               always necesary because it might not always work.
+               always necessary because it might not always work.
 
                This magic hidden super secret API bullshit is annoying. You're worse than Microsoft with this stuff, Apple --J.C. */
             {
@@ -4568,7 +3098,7 @@ void GFX_SwitchFullScreen(void)
 
     // if we're going fullscreen and current scaler exceeds screen size,
     // cancel the fullscreen change -> fixes scaler crashes
-    // TODO this will need further changes to accomodate different outputs (e.g. stretched)
+    // TODO this will need further changes to accommodate different outputs (e.g. stretched)
     if (full)
     {
         int width, height;
@@ -4611,7 +3141,7 @@ void GFX_SwitchFullScreen(void)
 }
 
 static void SwitchFullScreen(bool pressed) {
-    if (!pressed)
+    if (!pressed || sdl.desktop.want_type == SCREEN_GAMELINK)
         return;
 
     GFX_LosingFocus();
@@ -4651,7 +3181,8 @@ void GFX_PreventFullscreen(bool lockout) {
         DOSBox_SetSysMenu();
 #if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
         SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
-        int Reflect_Menu(void);
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 #endif
@@ -4694,17 +3225,17 @@ void GFX_ReleaseSurfacePtr(void) {
     if (GFX_GetSurfacePtrLock) {
         if (SDL_MUSTLOCK(sdl.surface))
             SDL_UnlockSurface(sdl.surface);
- 
+
         GFX_GetSurfacePtrLock = false;
     }
 }
 
-bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch) 
+bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
 {
     if (!sdl.active || sdl.updating)
         return false;
 
-    switch (sdl.desktop.type) 
+    switch (sdl.desktop.type)
     {
         case SCREEN_SURFACE:
             return OUTPUT_SURFACE_StartUpdate(pixels, pitch);
@@ -4714,11 +3245,25 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
             return OUTPUT_OPENGL_StartUpdate(pixels, pitch);
 #endif
 
+#if C_GAMELINK
+        case SCREEN_GAMELINK:
+            return OUTPUT_GAMELINK_StartUpdate(pixels, pitch);
+#endif
+
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
             return OUTPUT_DIRECT3D_StartUpdate(pixels, pitch);
+#if defined(C_SDL2)
+        case SCREEN_DIRECT3D11:
+            return OUTPUT_DIRECT3D11_StartUpdate(pixels, pitch);
+            break;
 #endif
-
+#endif
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+        case SCREEN_METAL:
+            return OUTPUT_Metal_StartUpdate(pixels, pitch);
+            break;
+#endif
         default:
             break;
     }
@@ -4748,334 +3293,31 @@ void GFX_OpenGLRedrawScreen(void) {
 #endif
 }
 
-#if defined(USE_TTF)
-static int charSet;
-void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
-    charSet = 0;
-    if (!wpType) return;
-    uint8_t colorBG = *pcolorBG, colorFG = *pcolorFG;
-    int style = 0;
-    if (CurMode->mode == 7) {														// Mono (Hercules)
-        style = showline && (colorFG&7) == 1 ? TTF_STYLE_UNDERLINE : TTF_STYLE_NORMAL;
-        if ((colorFG&0xa) == colorFG && (colorBG&15) == 0)
-            colorFG = 8;
-        else if (colorFG&7)
-            colorFG |= 7;
-    }
-    else if (wpType == 1) {															// WordPerfect
-        if (showital && colorFG == 0xe && (colorBG&15) == (wpBG > -1 ? wpBG : 1)) {
-            style = TTF_STYLE_ITALIC;
-            colorFG = wpFG;
-        }
-        else if (showline && (colorFG == 1 || colorFG == wpFG+8) && (colorBG&15) == 7) {
-            style = TTF_STYLE_UNDERLINE;
-            colorBG = wpBG > -1 ? wpBG : 1;
-            colorFG = colorFG == 1 ? wpFG : (wpFG+8);
-        }
-        else if (showsout && colorFG == 0 && (colorBG&15) == 3) {
-            style = TTF_STYLE_STRIKETHROUGH;
-            colorBG = wpBG > -1 ? wpBG : 1;
-            colorFG = wpFG;
-        }
-    } else if (wpType == 2) {														// WordStar
-        if (colorBG&8) {
-            if (showline && colorBG&1)
-                style |= TTF_STYLE_UNDERLINE;
-            if (showital && colorBG&2)
-                style |= TTF_STYLE_ITALIC;
-            if (showsout && colorBG&4)
-                style |= TTF_STYLE_STRIKETHROUGH;
-            if (style)
-                colorBG = wpBG > -1 ? wpBG : 0;
-        }
-    } else if (wpType == 3) {														// XyWrite
-        if (showital && (colorFG == 10 || colorFG == 14) && colorBG != 12 && !(!showline && colorBG == 3)) {
-            style = TTF_STYLE_ITALIC;
-            if (colorBG == 3) {
-                style |= TTF_STYLE_UNDERLINE;
-                colorBG = wpBG > -1 ? wpBG : 1;
-            }
-            colorFG = colorFG == 10 ? wpFG : (wpFG+8);
-        }
-        else if (showline && (colorFG == 3 || colorFG == 0xb)) {
-            style = TTF_STYLE_UNDERLINE;
-            colorFG = colorFG == 3 ? wpFG : (wpFG+8);
-        }
-        else if (!showsout || colorBG != 4)
-            style = TTF_STYLE_NORMAL;
-        if (showsout && colorBG == 4 && colorFG != 12 && colorFG != 13) {
-            style |= TTF_STYLE_STRIKETHROUGH;
-            colorBG = wpBG > -1 ? wpBG : (wpVersion < 4 ? 0 : 1);
-            if (colorFG != wpFG+8) colorFG = wpFG;
-        }
-    } else if (wpType == 4 && colorFG == wpFG) {									// FastEdit
-        if (colorBG == 1 || colorBG == 5 || colorBG == 6 || colorBG == 7 || colorBG == 11 || colorBG == 12 || colorBG == 13 || colorBG == 15)
-            colorFG += 8;
-        if (colorBG == 2 || colorBG == 5) {
-            if (showital) style |= TTF_STYLE_ITALIC;
-        } else if (colorBG == 3 || colorBG == 6) {
-            if (showline) style |= TTF_STYLE_UNDERLINE;
-        } else if (colorBG == 4 || colorBG == 7) {
-            if (showsout) style |= TTF_STYLE_STRIKETHROUGH;
-        } else if (colorBG == 8 || colorBG == 11) {
-            style |= (showital?TTF_STYLE_ITALIC:0) | (showline?TTF_STYLE_UNDERLINE:0);
-        } else if (colorBG == 9 || colorBG == 12) {
-            style |= (showital?TTF_STYLE_ITALIC:0) | (showsout?TTF_STYLE_STRIKETHROUGH:0);
-        } else if (colorBG == 10 || colorBG == 13) {
-            style |= (showline?TTF_STYLE_UNDERLINE:0) | (showsout?TTF_STYLE_STRIKETHROUGH:0);
-        } else if (colorBG == 14 || colorBG == 15) {
-            style |= (showital?TTF_STYLE_ITALIC:0) | (showline?TTF_STYLE_UNDERLINE:0) | (showsout?TTF_STYLE_STRIKETHROUGH:0);
-        }
-        colorBG = wpBG;
-    }
-    if (char512 && wpType == 1) {
-        if (wpExtChar && (colorFG&8)) {	// WordPerfect high bit = second character set (if 512char active)
-            charSet = 1;
-            colorFG &= 7;
-        }
-    }
-    if (showbold && (colorFG == wpFG+8 || (wpType == 1 && (wpVersion < 1 || wpVersion > 5 ) && colorFG == 3 && (colorBG&15) == (wpBG > -1 ? wpBG : 1)))) {
-        if (ttf.SDL_fontbi != 0 || !(style&TTF_STYLE_ITALIC) || wpType == 4) style |= TTF_STYLE_BOLD;
-        if ((ttf.SDL_fontbi != 0 && (style&TTF_STYLE_ITALIC)) || (ttf.SDL_fontb != 0 && !(style&TTF_STYLE_ITALIC)) || wpType == 4) colorFG = wpFG;
-    }
-    if (style)
-        TTF_SetFontStyle(ttf.SDL_font, style);
-    else
-        TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_NORMAL);
-    *pcolorBG = colorBG;
-    *pcolorFG = colorFG;
-}
-
-void GFX_EndTextLines(bool force=false) {
-    if (!force&&!IS_PC98_ARCH&&((!CurMode||CurMode->type!=M_TEXT))) return;
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    if (!ttf.fullScrn) {
-        mainMenu.setRedraw();
-        GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
-    }
-#endif
-    static uint8_t bcount = 0;
-	Uint16 unimap[txtMaxCols+1];							// max+1 charaters in a line
-	int xmin = ttf.cols;									// keep track of changed area
-	int ymin = ttf.lins;
-	int xmax = -1;
-	int ymax = -1;
-	ttf_cell *curAC = curAttrChar;							// pointer to old/current buffer
-	ttf_cell *newAC = newAttrChar;							// pointer to new/changed buffer
-
-	if (ttf.fullScrn && (ttf.offX || ttf.offY)) {
-        unsigned int maxWidth, maxHeight;
-        GetMaxWidthHeight(&maxWidth, &maxHeight);
-        SDL_Rect *rect = &sdl.updateRects[0];
-        rect->x = 0; rect->y = 0; rect->w = maxWidth; rect->h = ttf.offY;
-#if defined(C_SDL2)
-        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
-#else
-        SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
-#endif
-        rect->w = ttf.offX; rect->h = maxHeight;
-#if defined(C_SDL2)
-        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
-#else
-        SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
-#endif
-        rect->x = 0; rect->y = sdl.draw.height + ttf.offY; rect->w = maxWidth; rect->h = maxHeight - sdl.draw.height - ttf.offY;
-#if defined(C_SDL2)
-        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
-#else
-        SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
-#endif
-        rect->x = sdl.draw.width + ttf.offX; rect->y = 0; rect->w = maxWidth - sdl.draw.width - ttf.offX; rect->h = maxHeight;
-#if defined(C_SDL2)
-        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
-#else
-        SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
-#endif
-    }
-
-	if (ttf.cursor < ttf.cols*ttf.lins)	// hide/restore (previous) cursor-character if we had one
-
-//		if (cursor_enabled && (vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15))
-//		if (ttf.cursor != vga.draw.cursor.address>>1 || (vga.draw.cursor.enabled !=  cursor_enabled) || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15)
-		if ((ttf.cursor != vga.draw.cursor.address>>1) || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15) {
-			curAC[ttf.cursor] = newAC[ttf.cursor];
-            curAC[ttf.cursor].chr ^= 0xf0f0;	// force redraw (differs)
-        }
-
-	ttf_textClip.h = ttf.height;
-	ttf_textClip.y = 0;
-	for (unsigned int y = 0; y < ttf.lins; y++) {
-		bool draw = false;
-		ttf_textRect.y = ttf.offY+y*ttf.height;
-		for (unsigned int x = 0; x < ttf.cols; x++) {
-			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && (justChanged || draw)) || force) && !(newAC[x].skipped)) {
-				draw = true;
-				xmin = min((int)x, xmin);
-				ymin = min((int)y, ymin);
-				ymax = y;
-
-				bool dw = false;
-				const int x1 = x;
-				uint8_t colorBG = newAC[x].bg;
-				uint8_t colorFG = newAC[x].fg;
-				processWP(&colorBG, &colorFG);
-                if (newAC[x].selected) {
-                    uint8_t color = colorBG;
-                    colorBG = colorFG;
-                    colorFG = color;
-                }
-				ttf_textRect.x = ttf.offX+(rtl?(ttf.cols-x-1):x)*ttf.width;
-				ttf_bgColor.r = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].red:rgbColors[colorBG].red;
-				ttf_bgColor.g = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
-				ttf_bgColor.b = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue;
-				ttf_fgColor.r = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].red:rgbColors[colorFG].red;
-				ttf_fgColor.g = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
-				ttf_fgColor.b = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue;
-
-                if (newAC[x].unicode) {
-                    dw = newAC[x].doublewide;
-                    unimap[x-x1] = newAC[x].chr;
-                    curAC[x] = newAC[x];
-                    x++;
-
-                    if (dw) {
-                        curAC[x] = newAC[x];
-                        x++;
-                        if (rtl) ttf_textRect.x -= ttf.width;
-                    }
-                }
-                else {
-                    uint8_t ascii = newAC[x].chr&255;
-                    if(ttf_dosv && ascii == 0x5c)
-                        ascii = 0x9d;
-                    curAC[x] = newAC[x];
-                    if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH && !IS_JEGA_ARCH && dos.loaded_codepage != 864 && dos.loaded_codepage != 874 && !(dos.loaded_codepage == 932 && halfwidthkana) && (dos.loaded_codepage<1250 || dos.loaded_codepage>1258) && !(altcp && dos.loaded_codepage == altcp) && !(customcp && dos.loaded_codepage == customcp)) {	// special: shade characters 176-178 unless PC-98
-                        ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
-                        ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
-                        ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
-                        unimap[x-x1] = ' ';							// shaded space
-                    } else {
-                        unimap[x-x1] = cpMap[ascii+charSet*256];
-                    }
-
-                    x++;
-                }
-
-                {
-                    unimap[x-x1] = 0;
-                    xmax = max((int)(x-1), xmax);
-
-                    SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor, ttf.width*(dw?2:1));
-                    ttf_textClip.w = (x-x1)*ttf.width;
-                    SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
-                    SDL_FreeSurface(textSurface);
-                    x--;
-                }
-			}
-		}
-		curAC += ttf.cols;
-		newAC += ttf.cols;
-	}
-    if (!force) justChanged = false;
-    // NTS: Additional fix is needed for the cursor in PC-98 mode; also expect further cleanup
-	bcount++;
-	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline <= 16 && blinkCursor) {	// Draw cursor?
-		unsigned int newPos = (unsigned int)(vga.draw.cursor.address>>1);
-		if (newPos < ttf.cols*ttf.lins) {								// If on screen
-			int y = newPos/ttf.cols;
-			int x = newPos%ttf.cols;
-			if (IS_JEGA_ARCH) {
-                ccount++;
-                if (ccount>=0x20) {
-                    ccount=0;
-                    vga.draw.cursor.count++;
-                }
-			} else
-				vga.draw.cursor.count++;
-
-			if (blinkCursor>-1)
-				vga.draw.cursor.blinkon = (vga.draw.cursor.count & 1<<blinkCursor) ? true : false;
-
-			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline || ((blinkstate != vga.draw.cursor.blinkon) && blinkCursor>-1)) {				// If new position or shape changed, forse draw
-				if (blinkCursor>-1 && blinkstate == vga.draw.cursor.blinkon) {
-					vga.draw.cursor.count = 4;
-					vga.draw.cursor.blinkon = true;
-				}
-				prev_sline = vga.draw.cursor.sline;
-				xmin = min(x, xmin);
-				xmax = max(x, xmax);
-				ymin = min(y, ymin);
-				ymax = max(y, ymax);
-			}
-			blinkstate = vga.draw.cursor.blinkon;
-			ttf.cursor = newPos;
-//			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax  && (GetTickCount()&0x400))	// If overdrawn previuosly (or new shape)
-			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax && !newAttrChar[ttf.cursor].skipped) {							// If overdrawn previuosly (or new shape)
-				uint8_t colorBG = newAttrChar[ttf.cursor].bg;
-				uint8_t colorFG = newAttrChar[ttf.cursor].fg;
-				processWP(&colorBG, &colorFG);
-
-				/* Don't do this in PC-98 mode, the bright pink cursor in EDIT.COM looks awful and not at all how the cursor is supposed to look --J.C. */
-				if (!IS_PC98_ARCH && blinking && colorBG&8) {
-					colorBG-=8;
-					if ((bcount/8)%2)
-						colorFG=colorBG;
-				}
-				bool dw = newAttrChar[ttf.cursor].unicode && newAttrChar[ttf.cursor].doublewide;
-				ttf_bgColor.r = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].red:rgbColors[colorBG].red;
-				ttf_bgColor.g = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
-				ttf_bgColor.b = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue;
-				ttf_fgColor.r = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].red:rgbColors[colorFG].red;
-				ttf_fgColor.g = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
-				ttf_fgColor.b = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue;
-				unimap[0] = newAttrChar[ttf.cursor].unicode?newAttrChar[ttf.cursor].chr:cpMap[newAttrChar[ttf.cursor].chr&255];
-                if (dw) {
-                    unimap[1] = newAttrChar[ttf.cursor].chr;
-                    unimap[2] = 0;
-                    xmax = max(x+1, xmax);
-                } else
-                    unimap[1] = 0;
-				// first redraw character
-				SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor, ttf.width*(dw?2:1));
-				ttf_textClip.w = ttf.width*(dw?2:1);
-				ttf_textRect.x = ttf.offX+(rtl?(ttf.cols-x-(dw?2:1)):x)*ttf.width;
-				ttf_textRect.y = ttf.offY+y*ttf.height;
-				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
-				SDL_FreeSurface(textSurface);
-				if ((vga.draw.cursor.blinkon || blinkCursor<0)) {
-                    // second reverse lower lines
-                    textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor, ttf.width*(dw?2:1));
-                    ttf_textClip.y = (ttf.height*(vga.draw.cursor.sline>15?15:vga.draw.cursor.sline))>>4;
-                    ttf_textClip.h = ttf.height - ttf_textClip.y;								// for now, cursor to bottom
-                    ttf_textRect.y = ttf.offY+y*ttf.height + ttf_textClip.y;
-                    SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
-                    SDL_FreeSurface(textSurface);
-				}
-			}
-		}
-	}
-	if (xmin <= xmax) {												// if any changes
-        SDL_Rect *rect = &sdl.updateRects[0];
-        rect->x = ttf.offX+(rtl?(ttf.cols-xmax-1):xmin)*ttf.width; rect->y = ttf.offY+ymin*ttf.height; rect->w = (xmax-xmin+1)*ttf.width; rect->h = (ymax-ymin+1)*ttf.height;
-#if defined(C_SDL2)
-        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
-#else
-        SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
-#endif
-    }
-}
-#endif
-
 void GFX_EndUpdate(const uint16_t *changedLines) {
 #if C_EMSCRIPTEN
     emscripten_sleep(0);
 #endif
-
+#if C_OPENGL
+    bool actually_updating = false;
+#endif
     /* don't present our output if 3Dfx is in OpenGL mode */
     if (sdl.desktop.prevent_fullscreen)
         return;
 
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+    if(sdl.desktop.type == SCREEN_METAL) {
+        sdl.updating = false;
+        goto switch_type;
+    }
+    else
+#endif
 #if C_DIRECT3D
+#if defined(C_SDL2)
+    if(sdl.desktop.type == SCREEN_DIRECT3D11) {
+        sdl.updating = false;
+        goto switch_type;
+    }
+#endif
     // we may have to do forced update in D3D case
     if (d3d && d3d->getForceUpdate());
     else
@@ -5083,7 +3325,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     if (((sdl.desktop.type != SCREEN_OPENGL) || !RENDER_GetForceUpdate()) && !sdl.updating)
         return;
 #if C_OPENGL
-    bool actually_updating = sdl.updating;
+    actually_updating = sdl.updating;
 #endif
     sdl.updating = false;
 #if defined(USE_TTF)
@@ -5093,7 +3335,8 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     }
 #endif
 
-    switch (sdl.desktop.type) 
+switch_type:
+    switch (sdl.desktop.type)
     {
         case SCREEN_SURFACE:
             OUTPUT_SURFACE_EndUpdate(changedLines);
@@ -5116,17 +3359,36 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
             break;
 #endif
 
+#if C_GAMELINK
+        case SCREEN_GAMELINK:
+            OUTPUT_GAMELINK_EndUpdate(changedLines);
+            break;
+#endif
+
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
             OUTPUT_DIRECT3D_EndUpdate(changedLines);
             break;
+#if defined(C_SDL2)
+        case SCREEN_DIRECT3D11:
+            OUTPUT_DIRECT3D11_EndUpdate(changedLines);
+            break;
 #endif
-
+#endif
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+        case SCREEN_METAL:
+            OUTPUT_Metal_EndUpdate(changedLines);
+            break;
+#endif
         default:
             break;
     }
 
-    if (changedLines != NULL) 
+#if C_GAMELINK
+    OUTPUT_GAMELINK_Transfer();
+#endif
+
+    if (changedLines != NULL)
     {
         sdl.must_redraw_all = false;
 
@@ -5134,7 +3396,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
         sdl.surface->flags &= ~((unsigned int)SDL_HAX_NOREFRESH);
 #endif
 
-        if (changedLines != NULL && sdl.deferred_resize) 
+        if (changedLines != NULL && sdl.deferred_resize)
         {
             sdl.deferred_resize = false;
 #if !defined(C_SDL2)
@@ -5142,7 +3404,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
             GFX_RedrawScreen(sdl.draw.width, sdl.draw.height);
 #endif
         }
-        else if (sdl.gfx_force_redraw_count > 0) 
+        else if (sdl.gfx_force_redraw_count > 0)
         {
             void RENDER_CallBack( GFX_CallBackFunctions_t function );
             RENDER_CallBack(GFX_CallBackRedraw);
@@ -5176,7 +3438,7 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
 
 #if C_OPENGL
         case SCREEN_OPENGL:
-# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* macOS Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* macOS Intel builds use a weird RGBA order (alpha in the low 8 bits) */
             //USE BGRA
             return (((unsigned long)blue << 24ul) | ((unsigned long)green << 16ul) | ((unsigned long)red <<  8ul)) | (255ul <<  0ul);
 # else
@@ -5185,11 +3447,21 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
 # endif
 #endif
 
-#if C_DIRECT3D
-        case SCREEN_DIRECT3D:
-            return SDL_MapRGB(sdl.surface->format, red, green, blue);
+#if C_GAMELINK
+        case SCREEN_GAMELINK:
+            return (((unsigned long)blue <<  0ul) | ((unsigned long)green <<  8ul) | ((unsigned long)red << 16ul)) | (255ul << 24ul);
 #endif
 
+#if C_DIRECT3D
+        case SCREEN_DIRECT3D:
+#if defined(C_SDL2)
+        case SCREEN_DIRECT3D11:
+#endif
+#endif
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+        case SCREEN_METAL: // pixelFormat = MTLPixelFormatBGRA8Unorm
+#endif
+            return SDL_MapRGB(sdl.surface->format, red, green, blue);
         default:
             break;
     }
@@ -5198,11 +3470,21 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
 
 void GFX_Stop() {
     if (sdl.updating)
-        GFX_EndUpdate( 0 );
+        GFX_EndUpdate(nullptr);
     sdl.active=false;
 }
 
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+static uint8_t im_x, im_y;
+#endif
+
 void GFX_Start() {
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+	if(dos.im_enable_flag) {
+		SDL_SetIMValues(SDL_IM_ENABLE, 1, NULL);
+		im_x = -1;
+	}
+#endif
     sdl.active=true;
 }
 
@@ -5227,17 +3509,30 @@ static void GUI_ShutDown(Section * /*sec*/) {
         case SCREEN_DIRECT3D:
             OUTPUT_DIRECT3D_Shutdown();
             break;
+#if defined(C_SDL2)
+        case SCREEN_DIRECT3D11:
+            OUTPUT_DIRECT3D11_Shutdown();
+            break;
 #endif
-
+#endif
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+        case SCREEN_METAL:
+            OUTPUT_Metal_Shutdown();
+            break;
+#endif
         default:
                 break;
     }
+
+    #if C_GAMELINK
+    OUTPUT_GAMELINK_Shutdown();
+    #endif
 }
 
 static void SetPriority(PRIORITY_LEVELS level) {
 
 #if C_SET_PRIORITY
-// Do nothing if priorties are not the same and not root, else the highest
+// Do nothing if priorities are not the same and not root, else the highest
 // priority can not be set as users can only lower priority (not restore it)
 
     if((sdl.priority.focus != sdl.priority.nofocus ) &&
@@ -5263,7 +3558,7 @@ static void SetPriority(PRIORITY_LEVELS level) {
         SetPriorityClass(GetCurrentProcess(),HIGH_PRIORITY_CLASS);
         break;
 #elif C_SET_PRIORITY
-/* Linux use group as dosbox-x has mulitple threads under linux */
+/* Linux use group as dosbox-x has multiple threads under linux */
     case PRIORITY_LEVEL_PAUSE:  // if DOSBox-X is paused, assume idle priority
     case PRIORITY_LEVEL_LOWEST:
         setpriority (PRIO_PGRP, 0,PRIO_MAX);
@@ -5287,7 +3582,7 @@ static void SetPriority(PRIORITY_LEVELS level) {
 }
 
 static void OutputString(Bitu x,Bitu y,const char * text,uint32_t color,uint32_t color2,SDL_Surface * output_surface) {
-    uint32_t * draw=(uint32_t*)(((uint8_t *)output_surface->pixels)+((y)*output_surface->pitch))+x;
+    uint32_t * draw=(uint32_t*)(((uint8_t *)output_surface->pixels)+(y*output_surface->pitch))+x;
     while (*text) {
         uint8_t * font=&int10_font_14[(*text)*14];
         Bitu i,j;
@@ -5307,7 +3602,7 @@ static void OutputString(Bitu x,Bitu y,const char * text,uint32_t color,uint32_t
 
 void ResetSystem(bool pressed) {
     if (!pressed) return;
-	
+
 	if (is_paused) {
 		is_paused = false;
 		mainMenu.get_item("mapper_pause").check(false).refresh_item(mainMenu);
@@ -5346,235 +3641,61 @@ void RebootGuest(bool pressed) {
 	throw int(3);
 }
 
-#if defined(USE_TTF)
-extern int eurAscii;
-extern bool enable_dbcs_tables;
-extern uint16_t cpMap_PC98[256];
-void initcodepagefont();
-bool forceswk=false;
-std::map<int, int> lowboxdrawmap {
-    {1, 218}, {2, 191}, {3, 192}, {4, 217}, {5, 179}, {6, 196}, {0xe, 178},
-    {0x10, 197}, {0x14, 177}, {0x15, 193}, {0x16, 194}, {0x17, 180}, {0x19, 195}, {0x1a, 176},
-};
-uint16_t cpMap_AX[32] = {
-	0x0020, 0x00b6, 0x2195, 0x2194, 0x2191, 0x2193, 0x2192, 0x2190, 0x2500, 0x2502, 0x250c, 0x2510, 0x2518, 0x2514, 0x251c, 0x252c,
-	0x2524, 0x2534, 0x253c, 0x2550, 0x2551, 0x2554, 0x2557, 0x255d, 0x255a, 0x2560, 0x2566, 0x2563, 0x2569, 0x256c, 0x00ab, 0x00bb
-};
-int setTTFCodePage() {
-    int cp = dos.loaded_codepage;
-    if (IS_PC98_ARCH) {
-        static_assert(sizeof(cpMap[0])*256 >= sizeof(cpMap_PC98), "sizeof err 1");
-        static_assert(sizeof(cpMap[0]) == sizeof(cpMap_PC98[0]), "sizeof err 2");
-        memcpy(cpMap,cpMap_PC98,sizeof(cpMap[0])*256);
-        return 0;
+void LoadMapFile(bool bPressed) {
+    if (!bPressed) return;
+    void Load_mapper_file();
+    Load_mapper_file();
+}
+
+void QuickLaunch(bool bPressed) {
+    if (!bPressed) return;
+    if (dos_kernel_disabled) return;
+    MenuBrowseProgramFile();
+}
+
+void SendKey(std::string key) {
+    if (key == "sendkey_winlogo") {
+        KEYBOARD_AddKey(KBD_lwindows, true);
+        KEYBOARD_AddKey(KBD_lwindows, false);
+    } else if (key == "sendkey_winmenu") {
+        KEYBOARD_AddKey(KBD_rwinmenu, true);
+        KEYBOARD_AddKey(KBD_rwinmenu, false);
+    } else if (key == "sendkey_alttab") {
+        KEYBOARD_AddKey(KBD_leftalt, true);
+        KEYBOARD_AddKey(KBD_tab, true);
+        KEYBOARD_AddKey(KBD_leftalt, false);
+        KEYBOARD_AddKey(KBD_tab, false);
+    } else if (key == "sendkey_ctrlesc") {
+        KEYBOARD_AddKey(KBD_leftctrl, true);
+        KEYBOARD_AddKey(KBD_esc, true);
+        KEYBOARD_AddKey(KBD_leftctrl, false);
+        KEYBOARD_AddKey(KBD_esc, false);
+    } else if (key == "sendkey_ctrlbreak") {
+        KEYBOARD_AddKey(KBD_leftctrl, true);
+        KEYBOARD_AddKey(KBD_pause, true);
+        KEYBOARD_AddKey(KBD_leftctrl, false);
+        KEYBOARD_AddKey(KBD_pause, false);
+    } else if (key == "sendkey_cad") {
+        KEYBOARD_AddKey(KBD_leftctrl, true);
+        KEYBOARD_AddKey(KBD_leftalt, true);
+        KEYBOARD_AddKey(KBD_delete, true);
+        KEYBOARD_AddKey(KBD_leftctrl, false);
+        KEYBOARD_AddKey(KBD_leftalt, false);
+        KEYBOARD_AddKey(KBD_delete, false);
     }
-
-    if (cp) {
-        LOG_MSG("Loaded system codepage: %d\n", cp);
-        char text[2];
-        uint16_t uname[4], wcTest[256];
-        for (int i = 0; i < 256; i++) {
-            text[0]=i;
-            text[1]=0;
-            uname[0]=0;
-            uname[1]=0;
-            if (cp == 932 && (halfwidthkana || IS_JEGA_ARCH)) forceswk=true;
-            if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = 437;
-            if (CodePageGuestToHostUTF16(uname,text)) {
-                wcTest[i] = uname[1]==0?uname[0]:i;
-                if (cp == 932 && lowboxdrawmap.find(i)!=lowboxdrawmap.end() && TTF_GlyphIsProvided(ttf.SDL_font, wcTest[i]))
-                    cpMap[i] = wcTest[i];
-            }
-            forceswk=false;
-            if (cp == 932 || cp == 936 || cp == 949 || cp == 950) dos.loaded_codepage = cp;
-        }
-        uint16_t unimap;
-        int notMapped = 0;
-        for (int y = ((customcp&&dos.loaded_codepage==customcp)||(altcp&&dos.loaded_codepage==altcp)?0:8); y < 16; y++)
-            for (int x = 0; x < 16; x++) {
-                unimap = wcTest[y*16+x];
-                if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {
-                    cpMap[y*16+x] = 0;
-                    notMapped++;
-                    LOG_MSG("Unmapped character: %3d - %4x", y*16+x, unimap);
-                } else
-                    cpMap[y*16+x] = unimap;
-            }
-        if (eurAscii != -1 && TTF_GlyphIsProvided(ttf.SDL_font, 0x20ac))
-            cpMap[eurAscii] = 0x20ac;
-        initcodepagefont();
-#if defined(WIN32) && !defined(HX_DOS)
-        DOSBox_SetSysMenu();
-#endif
-        if(IS_JEGA_ARCH) memcpy(cpMap,cpMap_AX,sizeof(cpMap[0])*32);
-        if (cp == 932 && halfwidthkana) resetFontSize();
-        if (cp == 936) mainMenu.get_item("ttf_extcharset").check(gbk).refresh_item(mainMenu);
-        else if (cp == 950) mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
-        else mainMenu.get_item("ttf_extcharset").check(gbk&&chinasea).refresh_item(mainMenu);
-        return notMapped;
-    } else
-        return -1;
 }
 
-FT_Face GetTTFFace() {
-    if (ttf.inUse && ttfFont && ttfSize) {
-        TTF_Font *font = TTF_OpenFontRW(SDL_RWFromConstMem(ttfFont, (int)ttfSize), 1, ttf.pointsize);
-        return font?font->face:NULL;
-    } else
-        return NULL;
+void Sendkeymapper(bool pressed) {
+    if (!pressed) return;
+    if (sendkeymap==1) SendKey("sendkey_winlogo");
+    else if (sendkeymap==2) SendKey("sendkey_winmenu");
+    else if (sendkeymap==3) SendKey("sendkey_alttab");
+    else if (sendkeymap==4) SendKey("sendkey_ctrlesc");
+    else if (sendkeymap==5) SendKey("sendkey_ctrlbreak");
+    else SendKey("sendkey_cad");
 }
-
-void GFX_SelectFontByPoints(int ptsize) {
-	bool initCP = true;
-	if (ttf.SDL_font != 0) {
-		TTF_CloseFont(ttf.SDL_font);
-		initCP = false;
-	}
-	if (ttf.SDL_fontb != 0) TTF_CloseFont(ttf.SDL_fontb);
-	if (ttf.SDL_fonti != 0) TTF_CloseFont(ttf.SDL_fonti);
-	if (ttf.SDL_fontbi != 0) TTF_CloseFont(ttf.SDL_fontbi);
-	SDL_RWops *rwfont = SDL_RWFromConstMem(ttfFont, (int)ttfSize);
-	ttf.SDL_font = TTF_OpenFontRW(rwfont, 1, ptsize);
-    if (ttfSizeb>0) {
-        SDL_RWops *rwfont = SDL_RWFromConstMem(ttfFontb, (int)ttfSizeb);
-        ttf.SDL_fontb = TTF_OpenFontRW(rwfont, 1, ptsize);
-    } else
-        ttf.SDL_fontb = NULL;
-    if (ttfSizei>0) {
-        SDL_RWops *rwfont = SDL_RWFromConstMem(ttfFonti, (int)ttfSizei);
-        ttf.SDL_fonti = TTF_OpenFontRW(rwfont, 1, ptsize);
-    } else
-        ttf.SDL_fonti = NULL;
-    if (ttfSizebi>0) {
-        SDL_RWops *rwfont = SDL_RWFromConstMem(ttfFontbi, (int)ttfSizebi);
-        ttf.SDL_fontbi = TTF_OpenFontRW(rwfont, 1, ptsize);
-    } else
-        ttf.SDL_fontbi = NULL;
-    ttf.pointsize = ptsize;
-	TTF_GlyphMetrics(ttf.SDL_font, 65, NULL, NULL, NULL, NULL, &ttf.width);
-	ttf.height = TTF_FontAscent(ttf.SDL_font)-TTF_FontDescent(ttf.SDL_font);
-	if (ttf.fullScrn) {
-        unsigned int maxWidth, maxHeight;
-        GetMaxWidthHeight(&maxWidth, &maxHeight);
-		ttf.offX = (maxWidth-ttf.width*ttf.cols)/2;
-		ttf.offY = (maxHeight-ttf.height*ttf.lins)/2;
-	}
-	else
-		ttf.offX = ttf.offY = 0;
-	if (initCP) setTTFCodePage();
-}
-
-void resetFontSize() {
-	if (ttf.inUse) {
-		GFX_SelectFontByPoints(ttf.pointsize);
-		GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
-		wmemset((wchar_t*)curAttrChar, -1, ttf.cols*ttf.lins);
-		if (ttf.fullScrn) {																// smaller content area leaves old one behind
-			SDL_FillRect(sdl.surface, NULL, 0);
-            SDL_Rect *rect = &sdl.updateRects[0];
-            rect->x = 0; rect->y = 0; rect->w = 0; rect->h = 0;
-#if defined(C_SDL2)
-            SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
-#else
-            SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
-#endif
-		}
-		GFX_EndTextLines(true);
-	}
-}
-
-void decreaseFontSize() {
-	int dec=ttf.DOSBox ? 2 : 1;
-	if (ttf.inUse && ttf.pointsize >= MIN_PTSIZE + dec) {
-		GFX_SelectFontByPoints(ttf.pointsize - dec);
-		GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
-		wmemset((wchar_t*)curAttrChar, -1, ttf.cols*ttf.lins);
-		if (ttf.fullScrn) {																// smaller content area leaves old one behind
-            ttf.fullScrn = false;
-            resetFontSize();
-        } else
-            GFX_EndTextLines(true);
-	}
-}
-
-void increaseFontSize() {
-	int inc=ttf.DOSBox ? 2 : 1;
-	if (ttf.inUse) {																	// increase fontsize
-        unsigned int maxWidth, maxHeight;
-        GetMaxWidthHeight(&maxWidth, &maxHeight);
-#if defined(WIN32)
-		if (!ttf.fullScrn) {															// 3D borders
-			maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
-			maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
-		}
-#endif
-		GFX_SelectFontByPoints(ttf.pointsize + inc);
-		if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight) {		// if it fits on screen
-			GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
-			wmemset((wchar_t*)curAttrChar, -1, ttf.cols*ttf.lins);						// force redraw of complete window
-			GFX_EndTextLines(true);
-		} else
-			GFX_SelectFontByPoints(ttf.pointsize - inc);
-	}
-}
-
-void TTF_IncreaseSize(bool pressed) {
-    if (!pressed||ttf.fullScrn) return;
-    increaseFontSize();
-    return;
-}
-
-void TTF_DecreaseSize(bool pressed) {
-    if (!pressed||ttf.fullScrn) return;
-    decreaseFontSize();
-    return;
-}
-#endif
 
 bool has_GUI_StartUp = false;
-
-std::string GetDefaultOutput() {
-    static std::string output = "surface";
-#if defined(USE_TTF)
-# if 0 /* TODO: If someone wants to compile DOSBox-X to default to TTF, change this to "# if 1" or "# if defined(...)" here */
-    std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
-    if (mtype.substr(0, 3) == "vga" || mtype.substr(0, 4) == "svga" || mtype.substr(0, 4) == "vesa" || mtype.substr(0, 4) == "pc98")
-        return "ttf";
-# endif
-#endif
-#if defined(WIN32)
-# if defined(HX_DOS)
-    output = "surface"; /* HX-DOS should stick to surface */
-# elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
-    /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
-    output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */
-# elif C_DIRECT3D
-    output = "direct3d";
-# elif C_OPENGL && !defined(C_SDL2)
-    output = isVirtualBox ? "surface" : "opengl";
-# elif C_OPENGL
-    output = "opengl";
-# else
-    output = "surface";
-# endif
-#elif defined(C_OPENGL) && !(defined(MACOSX) && defined(C_SDL2))
-    /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
-            than the CG bitmap-based "surface" output.
-
-            On my dev system, "top" shows a 20% CPU load doing 1:1 CG Bitmap output to the screen
-            on a High DPI setup, while ignoring High DPI and rendering through Cocoa at 2x size
-            pegs the CPU core DOSBox-X is running on at 100% and emulation stutters.
-
-            So for the best experience, default to OpenGL.
-
-            Note that "surface" yields good performance with SDL2 and macOS because SDL2 doesn't
-            use the CGBitmap system, it uses OpenGL or Metal underneath automatically. */
-    output = "opengl";
-#else
-    output = "surface";
-#endif
-    return output;
-}
 
 static void GUI_StartUp() {
     DOSBoxMenu::item *item;
@@ -5727,7 +3848,7 @@ static void GUI_StartUp() {
         int sdl_h = vidinfo->current_h;
         int win_w = GetSystemMetrics(SM_CXSCREEN);
         int win_h = GetSystemMetrics(SM_CYSCREEN);
-        if (sdl_w != win_w && sdl_h != win_h) 
+        if (sdl_w != win_w && sdl_h != win_h)
             LOG_MSG("Windows DPI/blurry apps scaling detected as it might be a large screen.\n"
 				"Please see the DOSBox-X documentation for more details.\n");
         }
@@ -5766,7 +3887,7 @@ static void GUI_StartUp() {
         sdl.desktop.full.height=height;
     }
     sdl.mouse.autoenable=section->Get_bool("autolock");
-    if (!sdl.mouse.autoenable) SDL_ShowCursor(SDL_DISABLE);
+    if (!sdl.mouse.autoenable && sdl.desktop.want_type != SCREEN_GAMELINK) SDL_ShowCursor(SDL_DISABLE);
     sdl.mouse.autolock=false;
 
     const std::string feedback = section->Get_string("autolock_feedback");
@@ -5806,6 +3927,11 @@ static void GUI_StartUp() {
     sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
 
 #if defined(C_SDL2)
+    // Because we have the option of a dedicated keyboard shortcut to exit
+    // fullscreen, we don't need an Alt+Tab escape hatch. This lets us
+    // block it along with everything else, so you can use it in Windows etc.
+    SDL_SetHint(SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED, "0");
+
     // Apply raw mouse input setting
     SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, section->Get_bool("raw_mouse_input") ? "0" : "1", SDL_HINT_OVERRIDE);
 #endif
@@ -5846,8 +3972,15 @@ static void GUI_StartUp() {
     item->set_text("Quit from DOSBox-X");
 #endif
 
-    MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Capture mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
-    item->set_text("Capture mouse");
+    if (sdl.desktop.want_type != SCREEN_GAMELINK) {
+        MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Capture mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
+        item->set_text("Capture mouse");
+    }
+
+#if defined(C_SDL2)
+    MAPPER_AddHandler(CaptureKeyboard,MK_f11,MMOD1,"capkeyboard","Capture keyboard", &item);
+    item->set_text("Capture keyboard");
+#endif
 
 #if defined(C_SDL2) || defined(WIN32) || defined(MACOSX)
     MAPPER_AddHandler(QuickEdit,MK_nothing, 0,"fastedit", "Quick edit mode", &item);
@@ -5863,6 +3996,14 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(PasteClipStop,MK_nothing, 0,"pasteend", "Stop clipboard paste", &item);
     item->set_text("Stop clipboard pasting");
 
+#if C_PRINTER
+    MAPPER_AddHandler(&FormFeed, MK_f2 , MMOD1, "ejectpage", "Send form-feed", &item);
+    item->set_text("Send form-feed");
+
+    MAPPER_AddHandler(&PrintText, MK_nothing, 0, "printtext", "Print text screen", &item);
+    item->set_text("Print DOS text screen");
+#endif
+
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause emulation");
 
     MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "Pause with interrupt", &item);
@@ -5872,27 +4013,45 @@ static void GUI_StartUp() {
     pause_menu_item_tag = mainMenu.get_item("mapper_pause").get_master_id() + DOSBoxMenu::nsMenuMinimumID;
 #endif
 
-    MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "Configuration tool", &item);
-    item->set_text("Configuration tool");
+    if (sdl.desktop.want_type != SCREEN_GAMELINK) {
+        MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "Configuration tool", &item);
+        item->set_text("Configuration tool");
 
-    MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&item);
-    item->set_accelerator(DOSBoxMenu::accelerator('m'));
-    item->set_description("Bring up the mapper UI");
-    item->set_text("Mapper editor");
+        MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&item);
+        item->set_accelerator(DOSBoxMenu::accelerator('m'));
+        item->set_description("Bring up the mapper UI");
+        item->set_text("Mapper editor");
 
-    MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Toggle fullscreen", &item);
-    item->set_text("Toggle fullscreen");
+        MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Toggle fullscreen", &item);
+        item->set_text("Toggle fullscreen");
 
-    MAPPER_AddHandler(&GUI_ResetResize, MK_backspace, MMODHOST, "resetsize", "Reset window size", &item);
-    item->set_text("Reset window size");
+        MAPPER_AddHandler(&GUI_ResetResize, MK_backspace, MMODHOST, "resetsize", "Reset window size", &item);
+        item->set_text("Reset window size");
+    }
 
 #if defined(USE_TTF)
+    void DBCSSBCS_mapper_shortcut(bool pressed);
+    MAPPER_AddHandler(&DBCSSBCS_mapper_shortcut, MK_nothing, 0, "dbcssbcs", "CJK: Switch between DBCS/SBCS modes", &item);
+    item->set_text("CJK: Switch between DBCS/SBCS modes");
+
+    void AutoBoxDraw_mapper_shortcut(bool pressed);
+    MAPPER_AddHandler(&AutoBoxDraw_mapper_shortcut, MK_nothing, 0, "autoboxdraw", "CJK: Auto-detect box-drawing characters", &item);
+    item->set_text("CJK: Auto-detect box-drawing characters");
+
     MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "incsize", "Increase TTF size", &item);
     item->set_text("Increase TTF font size");
 
     MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "decsize", "Decrease TTF size", &item);
     item->set_text("Decrease TTF font size");
+
+    void ResetColors_mapper_shortcut(bool pressed);
+    MAPPER_AddHandler(&ResetColors_mapper_shortcut, MK_nothing, 0, "resetcolor", "Reset color scheme", &item);
+    item->set_text("Reset TTF color scheme");
 #endif
+
+    void GEN_PowerButton(bool pressed);
+    MAPPER_AddHandler(&GEN_PowerButton,MK_nothing,0,"pwrbutton","APM power button", &item);
+    item->set_text("APM power button");
 
     MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "Toggle menu bar", &item);
     item->set_text("Hide/show menu bar");
@@ -5924,13 +4083,20 @@ static void GUI_StartUp() {
 
     usesystemcursor = section->Get_bool("usesystemcursor");
 
+#if C_GAMELINK
+    sdl.gamelink.enable = section->Get_bool("gamelink master");
+    sdl.gamelink.snoop = section->Get_bool("gamelink snoop");
+    sdl.gamelink.loadaddr = section->Get_int("gamelink load address");
+#endif
+
+
 #if C_XBRZ
     // initialize xBRZ parameters and check output type for compatibility
     xBRZ_Initialize();
 
     if (sdl_xbrz.enable) {
         // xBRZ requirements
-        if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq")  && (output != "openglnb") && (output != "openglpp"))
+        if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq")  && (output != "openglnb") && (output != "openglpp") && (output != "ttf") && (output != "gamelink"))
             output = "surface";
     }
 #endif
@@ -5941,6 +4107,9 @@ static void GUI_StartUp() {
 #if !C_DIRECT3D
        || output == "direct3d"
 #endif
+#if !C_GAMELINK
+       || output == "gamelink"
+#endif
 #if !defined(USE_TTF)
        || output == "ttf"
 #endif
@@ -5948,7 +4117,7 @@ static void GUI_StartUp() {
         if (output == "overlay" || output == "ddraw")
             LOG_MSG("The %s output has been removed.", output.c_str());
         else
-            LOG_MSG("The %s output is not enabled.", output == "ttf" ? "TrueType font (TTF)":"Direct3D");
+            LOG_MSG("The %s output is not enabled.", output == "ttf" ? "TrueType font (TTF)":output.c_str());
 #if C_DIRECT3D
         output = "direct3d";
 #elif C_OPENGL
@@ -5961,16 +4130,22 @@ static void GUI_StartUp() {
 
     // FIXME: this selection of output is duplicated in change_output:
     sdl.desktop.isperfect = false; /* Reset before selection */
-    if (output == "surface") 
+    if (output == "surface")
     {
+#if C_DIRECT3D
+        if(!init_output) OUTPUT_DIRECT3D_Select();
+#elif C_OPENGL && defined(MACOSX) // JC: This is breaking SDL1 on Linux! Limit this to MAC OS! Windows users may use this if needed.
+        if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to TTF (required for macOS builds)
+#endif
         OUTPUT_SURFACE_Select();
+        init_output = true;
 #if C_OPENGL
-    } 
-    else if (output == "opengl" || output == "openglhq") 
+    }
+    else if (output == "opengl" || output == "openglhq")
     {
         OUTPUT_OPENGL_Select(GLBilinear);
     }
-    else if (output == "openglnb") 
+    else if (output == "openglnb")
     {
         OUTPUT_OPENGL_Select(GLNearest);
     }
@@ -5978,26 +4153,77 @@ static void GUI_StartUp() {
     {
         OUTPUT_OPENGL_Select(GLPerfect);
 #endif
+#if C_GAMELINK
+    }
+    else if (output == "gamelink")
+    {
+        OUTPUT_GAMELINK_Select();
+#endif
 #if C_DIRECT3D
-    } 
-    else if (output == "direct3d") 
+    }
+    else if (output == "direct3d")
     {
         OUTPUT_DIRECT3D_Select();
 #if LOG_D3D
         LOG_MSG("SDL: Direct3D activated");
 #endif
+#if defined(C_SDL2)
+    }
+    else if(output == "direct3d11")
+    {
+        if(!init_output) {
+            switch_to_d3d11_on_startup = true;
+            OUTPUT_SURFACE_Select();
+            init_output = true;
+        }
+        else {
+            OUTPUT_DIRECT3D11_Select();
+            d3d11_init();
+            sdl.desktop.want_type = SCREEN_DIRECT3D11;
+            switch_to_d3d11_on_startup = false;
+        }
+#endif
+#endif
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+    }
+    else if(output == "metal")
+    {
+        if(!init_output) {
+            switch_to_metal_on_startup = true;
+#if C_OPENGL
+            OUTPUT_OPENGL_Select(GLBilinear);
+#else
+            OUTPUT_SURFACE_Select();
+#endif
+            init_output = true;
+        }
+        else {
+            OUTPUT_Metal_Select();
+            metal_init();
+            sdl.desktop.want_type = SCREEN_METAL;
+            switch_to_metal_on_startup = false;
+        }
 #endif
     }
 #if defined(USE_TTF)
     else if (output == "ttf")
     {
+        LOG_MSG("SDL(sdlmain.cpp): TTF activated");
+#if ((WIN32 && !defined(C_SDL2)) || MACOSX) && C_OPENGL
+        if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to TTF (required for Windows & macOS builds)
+#endif
         OUTPUT_TTF_Select(0);
+        init_output = true;
     }
 #endif
-    else 
+    else
     {
         LOG_MSG("SDL: Unsupported output device %s, switching back to surface",output.c_str());
+#if MACOSX && C_OPENGL
+        if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to surface (required for macOS builds)
+#endif
         OUTPUT_SURFACE_Select(); // should not reach there anymore
+        init_output = true;
     }
 
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
@@ -6008,7 +4234,13 @@ static void GUI_StartUp() {
     posy = -1;
     const char* windowposition = section->Get_string("windowposition");
     LOG_MSG("Configured windowposition: %s", windowposition);
-    if (windowposition && *windowposition) {
+    if(windowposition && !strcmp(windowposition, "-"))
+#if defined (WIN32) && !defined(C_SDL2)
+        posx = posy = -1;
+#else
+        posx = posy = -2;
+#endif
+    else if (windowposition && *windowposition && strcmp(windowposition, ",")) {
         char result[100];
         safe_strncpy(result, windowposition, sizeof(result));
         char* y = strchr(result, ',');
@@ -6023,7 +4255,7 @@ static void GUI_StartUp() {
     // SDL_VIDEO_WINDOW_POS environment variable then "windowposition" setting should have no effect.
     // SDL2 position is set later, using SDL_SetWindowPosition()
 #if !defined(C_SDL2)
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     MONITORINFO info;
     if (sdl.displayNumber>0) {
         xyp xy={0};
@@ -6049,13 +4281,13 @@ static void GUI_StartUp() {
 #else
         setenv("SDL_VIDEO_WINDOW_POS",(std::to_string(posx)+","+std::to_string(posy)).c_str(),0);
 #endif
-#if defined(WIN32) && !defined(HX_DOS)
-    } else if (sdl.displayNumber>0) {
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+    } else if (sdl.displayNumber>0 && !(posx == -2 && posy == -2)) {
         safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
         safe_strcat(pos, (std::to_string(info.rcMonitor.left+200)+","+std::to_string(info.rcMonitor.top+200)).c_str());
         SDL_putenv(pos);
 #endif
-    } else
+    } else if (posx != -2 || posy != -2)
         putenv((char*)"SDL_VIDEO_CENTERED=center");
 #endif
 
@@ -6096,6 +4328,26 @@ static void GUI_StartUp() {
 #if defined(C_SDL2)
     SDL_SetWindowTitle(sdl.window,"DOSBox-X");
     if (posx >= 0 && posy >= 0) {
+#if WIN32
+        HWND hwnd = GetHWND();
+        HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO info;
+        info.cbSize = sizeof(info);
+        GetMonitorInfo(monitor, &info);
+
+        int x = info.rcWork.left;
+        int y = info.rcWork.top;
+
+        SetWindowPos(
+            hwnd, nullptr,
+            x, y,
+            0, 0,
+            SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE
+        );
+
+        SDL_GetWindowPosition(sdl.window, &x, &y); // get (0,0) position
+        SDL_SetWindowPosition(sdl.window, posx, y + posy);
+#else
         if (sdl.displayNumber>0) {
             int displays = SDL_GetNumVideoDisplays();
             SDL_Rect bound;
@@ -6110,9 +4362,14 @@ static void GUI_StartUp() {
             }
         }
         SDL_SetWindowPosition(sdl.window, posx, posy);
+#endif
     }
 #else
     SDL_WM_SetCaption("DOSBox-X",VERSION);
+#endif
+
+#if defined(C_SDL2)
+    GFX_KeyboardCapture(section->Get_bool("keyboard_capture"));
 #endif
 
     /* Please leave the Splash screen stuff in working order in DOSBox-X. We spend a lot of time making DOSBox-X. */
@@ -6121,15 +4378,22 @@ static void GUI_StartUp() {
 #if defined(WIN32) && !defined(HX_DOS)
     if (section->Get_bool("forcesquarecorner") && UpdateWindows11RoundCorners(GetHWND(), CornerPreference::DoNotRound))
         LOG_MSG("SDL: Windows 11 round corners will be disabled.");
+    AllowDarkMode(GetHWND(), TRUE);
 #endif
     transparency = 0;
     SetWindowTransparency(section->Get_int("transparency"));
     UpdateWindowDimensions();
+    ApplyPreventCap();
 }
 
 void Mouse_AutoLock(bool enable) {
-    if (sdl.mouse.autolock == enable)
+#if C_GAMELINK
+    if (sdl.desktop.type == SCREEN_GAMELINK) {
+        // store the 'want mouse' state
+        sdl.gamelink.want_mouse = enable;
         return;
+    }
+#endif // C_GAMELINK
 
     sdl.mouse.autolock=enable;
     if (sdl.mouse.autoenable) sdl.mouse.requestlock=enable;
@@ -6144,16 +4408,38 @@ bool Mouse_IsLocked()
     return sdl.mouse.locked;
 }
 
+#if defined(C_SDL2)
+void GFX_KeyboardCapture(bool enable) {
+    if (sdl.window) {
+        SDL_SetWindowKeyboardGrab(sdl.window, enable ? SDL_TRUE : SDL_FALSE);
+
+        // Make sure we're using the true value of the current grabbed state.
+        bool grabbed = SDL_GetWindowKeyboardGrab(sdl.window) == SDL_TRUE;
+        sdl.capture_keyboard = grabbed;
+
+        if (grabbed)
+            LOG_MSG("Capturing keyboard");
+        else
+            LOG_MSG("Releasing keyboard");
+    }
+
+    // Make sure our menu item is refreshed, to ensure the checkmark value next
+    // to the item is up-to-date.
+    if (mainMenu.item_exists("mapper_capkeyboard"))
+            mainMenu.get_item("mapper_capkeyboard").check(sdl.capture_keyboard).refresh_item(mainMenu);
+}
+#endif
+
 static void RedrawScreen(uint32_t nWidth, uint32_t nHeight) {
     (void)nWidth;//UNUSED
     (void)nHeight;//UNUSED
 //  int width;
 //  int height;
 #ifdef __WIN32__
-//   width=sdl.clip.w; 
+//   width=sdl.clip.w;
 //   height=sdl.clip.h;
 #else
-//  width=sdl.draw.width; 
+//  width=sdl.draw.width;
 //  height=sdl.draw.height;
 #endif
     void RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -6175,7 +4461,7 @@ static void RedrawScreen(uint32_t nWidth, uint32_t nHeight) {
         RENDER_CallBack( GFX_CallBackReset);
         return;
     }
-    Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl")); 
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
     if ((!strcmp(section->Get_string("windowresolution"),"original") || (!strcmp(section->Get_string("windowresolution"),"desktop"))) && (render.src.dblw && render.src.dblh)) {
         switch (render.scale.op) {
             case scalerOpNormal:
@@ -6233,6 +4519,18 @@ bool GFX_MustActOnResize() {
 
 #if defined(C_SDL2)
 void GFX_HandleVideoResize(int width, int height) {
+
+    /* don't act if 3Dfx OpenGL emulation is active */
+    if (GFX_GetPreventFullscreen()) {
+#if C_OPENGL
+        if (new_width == width && new_height == height) return;
+        new_width = width;
+        new_height = height;
+        voodoo_ogl_update_dimensions();
+#endif
+        return;
+    }
+
     /* Maybe a screen rotation has just occurred, so we simply resize.
        There may be a different cause for a forced resized, though.    */
     if (sdl.desktop.full.display_res && IsFullscreen()) {
@@ -6310,10 +4608,18 @@ static void HandleVideoResize(void * event) {
      * especially if 3Dfx voodoo emulation is active. */
     if (!(sdl.surface->flags & SDL_RESIZABLE)) return;
 
-    /* don't act if 3Dfx OpenGL emulation is active */
-    if (GFX_GetPreventFullscreen()) return;
-
     SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
+
+    /* don't act if 3Dfx OpenGL emulation is active */
+    if (GFX_GetPreventFullscreen()) {
+#if C_OPENGL
+        if (new_width == ResizeEvent->w && new_height == ResizeEvent->h) return;
+        new_width = ResizeEvent->w;
+        new_height = ResizeEvent->h;
+        voodoo_ogl_update_dimensions();
+#endif
+        return;
+    }
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
@@ -6358,83 +4664,6 @@ bool user_cursor_locked = false;
 MOUSE_EMULATION user_cursor_emulation = MOUSE_EMULATION_NEVER;
 int user_cursor_x = 0,user_cursor_y = 0;
 int user_cursor_sw = 640,user_cursor_sh = 480;
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &menu,int x,int y) {
-    for (auto &id : disp_list) {
-        DOSBoxMenu::item &item = menu.get_item(id);
-        if (x >= item.screenBox.x && y >= item.screenBox.y) {
-            int sx = x - item.screenBox.x;
-            int sy = y - item.screenBox.y;
-            int adj = (this != &menu.display_list && item.get_type() == DOSBoxMenu::submenu_type_id) ? 2 : 0;
-            if (sx < (item.screenBox.w+adj) && sy < item.screenBox.h)
-                return id;
-        }
-    }
-
-    return unassigned_item_handle;
-}
-
-bool skipdraw=false;
-void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
-    (void)menu;//UNUSED
-    if (!OpenGL_using()) {
-        SDL_Rect uprect = screenBox;
-
-        SDL_rect_cliptoscreen(uprect);
-
-#if defined(C_SDL2)
-        if (!Direct3D_using() || !skipdraw)
-        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
-#else
-        SDL_UpdateRects( sdl.surface, 1, &uprect );
-#endif
-    }
-}
-
-void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
-    (void)menu;//UNUSED
-    if (!OpenGL_using()) {
-        SDL_Rect uprect = popupBox;
-
-        uprect.w += DOSBoxMenu::dropshadowX;
-        uprect.h += DOSBoxMenu::dropshadowY;
-        SDL_rect_cliptoscreen(uprect);
-
-#if defined(C_SDL2)
-        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
-#else
-        SDL_UpdateRects( sdl.surface, 1, &uprect );
-#endif
-    }
-}
-
-void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
-    (void)menu;//UNUSED
-    Bitu bordercolor = GFX_GetRGB(31, 31, 31);
-    Bitu bgcolor = GFX_GetRGB(63, 63, 63);
-
-    if (popupBox.w <= 1 || popupBox.h <= 1)
-        return;
-
-    MenuDrawRect(popupBox.x, popupBox.y, popupBox.w, popupBox.h, bgcolor);
-
-    if (borderTop)
-        MenuDrawRect(popupBox.x, popupBox.y, popupBox.w, 1, bordercolor);
-
-    MenuDrawRect(popupBox.x, popupBox.y + popupBox.h - 1, popupBox.w, 1, bordercolor);
-
-    MenuDrawRect(popupBox.x, popupBox.y, 1, popupBox.h, bordercolor);
-    MenuDrawRect(popupBox.x + popupBox.w - 1, popupBox.y, 1, popupBox.h, bordercolor);
-
-    if (type == DOSBoxMenu::submenu_type_id) {
-        MenuShadeRect((int)popupBox.x + (int)popupBox.w, (int)popupBox.y + (int)DOSBoxMenu::dropshadowY,
-                      (int)DOSBoxMenu::dropshadowX, (int)popupBox.h);
-        MenuShadeRect((int)popupBox.x + (int)DOSBoxMenu::dropshadowX, (int)popupBox.y + (int)popupBox.h,
-                      (int)popupBox.w - (int)DOSBoxMenu::dropshadowX, (int)DOSBoxMenu::dropshadowY);
-    }
-}
-#endif
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
 void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id) {
@@ -6494,6 +4723,8 @@ void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id)
 }
 #endif
 
+extern bool video_debug_overlay;
+
 uint8_t Mouse_GetButtonState(void);
 
 bool GFX_CursorInOrNearScreen(int wx,int wy) {
@@ -6508,13 +4739,23 @@ bool GFX_CursorInOrNearScreen(int wx,int wy) {
     return  (wx >= minx && wx < maxx) && (wy >= miny && wy < maxy);
 }
 
+void UpdateUserCursorScreenDimensions(void) {
+	user_cursor_sw     = sdl.clip.w;
+	user_cursor_sh     = sdl.clip.h;
+
+	if (video_debug_overlay && vga.draw.width < render.src.width) {
+		user_cursor_sw     = (vga.draw.width*user_cursor_sw)/render.src.width;
+		user_cursor_sh     = (vga.draw.height*user_cursor_sh)/render.src.height;
+	}
+}
+
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     bool inputToScreen = false;
 
     /* limit mouse input to whenever the cursor is on the screen, or near the edge of the screen. */
     if (is_paused)
         inputToScreen = false;
-    else if (sdl.mouse.locked || Mouse_GetButtonState() != 0)
+    else if (vmware_mouse || sdl.mouse.locked || Mouse_GetButtonState() != 0)
         inputToScreen = true;
     else {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
@@ -6551,7 +4792,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 # endif
 #endif
         }
- 
+
         return;
     }
     else {
@@ -6582,7 +4823,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
 #endif
             SDL_ShowCursor(SDL_ENABLE);
- 
+
         return;
     }
 
@@ -6590,8 +4831,8 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     user_cursor_y      = motion->y - sdl.clip.y;
     user_cursor_locked = sdl.mouse.locked;
     user_cursor_emulation = sdl.mouse.emulation;
-    user_cursor_sw     = sdl.clip.w;
-    user_cursor_sh     = sdl.clip.h;
+
+    UpdateUserCursorScreenDimensions();
 
     auto xrel = static_cast<float>(motion->xrel) * sdl.mouse.xsensitivity / 100.0f;
     auto yrel = static_cast<float>(motion->yrel) * sdl.mouse.ysensitivity / 100.0f;
@@ -6613,10 +4854,10 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         const auto isdown = Mouse_GetButtonState() != 0;
 
 #if defined(C_SDL2)
-        if (!sdl.mouse.locked)
+        if (!vmware_mouse && !sdl.mouse.locked)
 #else
         /* SDL1 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not (Windows, Linux/X11) */
-        if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
+        if (!vmware_mouse && !sdl.mouse.locked && !sdl.desktop.fullscreen)
 #endif
             SDL_ShowCursor((isdown || inside) ? SDL_DISABLE : SDL_ENABLE);
     }
@@ -6628,14 +4869,15 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         /* Show only when DOS app is not using mouse */
 
 #if defined(C_SDL2)
-        if (!sdl.mouse.locked)
+        if (!vmware_mouse && !sdl.mouse.locked)
 #else
         /* SDL1 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not (Windows, Linux/X11) */
-        if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
+        if (!vmware_mouse && !sdl.mouse.locked && !sdl.desktop.fullscreen)
 #endif
             SDL_ShowCursor(((!inside) || ((MOUSE_IsHidden()) && !(MOUSE_IsBeingPolled() || MOUSE_HasInterruptSub()))) ? SDL_ENABLE : SDL_DISABLE);
     }
     Mouse_CursorMoved(xrel, yrel, x, y, emu);
+    VMWARE_MousePosition(motion->x, motion->y);
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
@@ -6694,80 +4936,12 @@ void MenuFreeScreen(void) {
 }
 #endif
 
-#if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
-bool isModifierApplied() {
-    return direct_mouse_clipboard || !strcmp(modifier,"none") ||
-    ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"rctrl")) && sdl.rctrlstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"shift") || !strcmp(modifier,"lshift")) && sdl.lshiftstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"shift") || !strcmp(modifier,"rshift")) && sdl.rshiftstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"ctrlalt") || !strcmp(modifier,"lctrlalt")) && sdl.lctrlstate==SDL_KEYDOWN && sdl.laltstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"ctrlalt") || !strcmp(modifier,"rctrlalt")) && sdl.rctrlstate==SDL_KEYDOWN && sdl.raltstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"ctrlshift") || !strcmp(modifier,"lctrlshift")) && sdl.lctrlstate==SDL_KEYDOWN && sdl.lshiftstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"ctrlshift") || !strcmp(modifier,"rctrlshift")) && sdl.rctrlstate==SDL_KEYDOWN && sdl.rshiftstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"altshift") || !strcmp(modifier,"laltshift")) && sdl.laltstate==SDL_KEYDOWN && sdl.lshiftstate==SDL_KEYDOWN) ||
-    ((!strcmp(modifier,"altshift") || !strcmp(modifier,"raltshift")) && sdl.raltstate==SDL_KEYDOWN && sdl.rshiftstate==SDL_KEYDOWN);
-}
-
-void ClipKeySelect(int sym) {
-    if (sym==SDLK_ESCAPE) {
-        if (mbutton==4 && selsrow>-1 && selscol>-1) {
-            Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
-            selmark = false;
-            selsrow = selscol = selerow = selecol = -1;
-        } else if (mouse_start_x >= 0 && mouse_start_y >= 0 && fx >= 0 && fy >= 0) {
-            Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,sdl.clip.w,sdl.clip.h, false);
-            mouse_start_x = mouse_start_y = -1;
-            mouse_end_x = mouse_end_y = -1;
-            fx = fy = -1;
-        }
-        return;
-    }
-    if (mbutton!=4 || (CurMode->type!=M_TEXT && !IS_DOSV && !IS_PC98_ARCH)) return;
-    if (sym==SDLK_HOME) {
-        if (selsrow==-1 || selscol==-1) {
-            int p=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-            selscol = CURSOR_POS_COL(p);
-            selsrow = CURSOR_POS_ROW(p);
-        } else {
-            if (selsrow>-1 && selscol>-1) Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
-            if (selmark) {
-                selscol = selecol;
-                selsrow = selerow;
-            }
-        }
-        selmark = true;
-        selecol = selscol;
-        selerow = selsrow;
-        Mouse_Select(selscol, selsrow, selecol, selerow, -1, -1, true);
-    } else if (sym==SDLK_END) {
-        if (selmark) {
-            if (selsrow>-1 && selscol>-1 && selerow > -1 && selecol > -1) {
-                Mouse_Select(selscol, selsrow, selecol, selerow, -1, -1, false);
-                CopyClipboard(1);
-            }
-            selmark = false;
-            selsrow = selscol = selerow = selecol = -1;
-        }
-    } else if (sym==SDLK_LEFT || sym==SDLK_RIGHT || sym==SDLK_UP || sym==SDLK_DOWN) {
-        if (selsrow==-1 || selscol==-1) {
-            int p=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-            selscol = CURSOR_POS_COL(p);
-            selsrow = CURSOR_POS_ROW(p);
-            selerow = selecol = -1;
-            selmark = false;
-        } else
-            Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, false);
-        if (sym==SDLK_LEFT && (selmark?selecol:selscol)>0) (selmark?selecol:selscol)--;
-        else if (sym==SDLK_RIGHT && (selmark?selecol:selscol)<(IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS))-1) (selmark?selecol:selscol)++;
-        else if (sym==SDLK_UP && (selmark?selerow:selsrow)>0) (selmark?selerow:selsrow)--;
-        else if (sym==SDLK_DOWN && (selmark?selerow:selsrow)<(IS_PC98_ARCH?(real_readb(0x60,0x113)&0x01?25:20)-1:(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24))) (selmark?selerow:selsrow)++;
-        Mouse_Select(selscol, selsrow, selmark?selecol:selscol, selmark?selerow:selsrow, -1, -1, true);
+static void HandleMouseWheel(bool normal, int amount) {
+    if (amount != 0) {
+        Mouse_WheelMoved(normal ? -amount : amount);
+        if (vmware_mouse) VMWARE_MouseWheel(normal ? -amount : amount);
     }
 }
-#endif
 
 static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEvent * motion) {
 #if !defined(WIN32)
@@ -6775,6 +4949,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 #endif
     bool inputToScreen = false;
     bool inMenu = false;
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
+    std::string munlock;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
     if (GFX_GetPreventFullscreen()) {
@@ -6850,7 +5026,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                             (int)mainMenu.menuBox.w,
                             (int)DOSBoxMenu::dropshadowY - 1/*menubar border*/);
 
-                    mainMenu.setRedraw();                  
+                    mainMenu.setRedraw();
                     GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 
                     for (auto i=popup_stack.begin();i!=popup_stack.end();i++) {
@@ -6940,7 +5116,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                                 x = (Sint32)(event.tfinger.x * currentWindowWidth);
                                 y = (Sint32)(event.tfinger.y * currentWindowHeight);
-                                
+
                                 memset(&event.button,0,sizeof(event.button));
                                 event.type = SDL_MOUSEBUTTONUP;
                                 event.button.x = x;
@@ -7159,8 +5335,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                             glClear(GL_COLOR_BUFFER_BIT);
 
                             GFX_OpenGLRedrawScreen();
-  
-                            mainMenu.setRedraw();                  
+
+                            mainMenu.setRedraw();
                             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 #endif
                         }
@@ -7230,7 +5406,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 #if C_OPENGL
                     glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
                     glClear(GL_COLOR_BUFFER_BIT);
-        
+
                     GFX_OpenGLRedrawScreen();
 
                     mainMenu.setRedraw();
@@ -7294,30 +5470,34 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 			break;
 		} else
 #endif
-        if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
+        if (sdl.mouse.requestlock && !vmware_mouse && !sdl.mouse.locked && mouse_notify_mode == 0) {
             CaptureMouseNotify();
             GFX_CaptureMouse();
             // Don't pass click to mouse handler
             break;
         }
-        if (((middleunlock == 1 && !sdl.mouse.autoenable) || (middleunlock == 2 && sdl.mouse.autoenable) || middleunlock == 3) && sdl.mouse.autolock && mouse_notify_mode == 0 && button->button == SDL_BUTTON_MIDDLE) {
+        munlock = section->Get_string("middle_unlock");
+        if (((munlock == "manual" && !sdl.mouse.autoenable) || (munlock == "auto" && sdl.mouse.autoenable) || munlock == "both") && mouse_notify_mode == 0 && button->button == SDL_BUTTON_MIDDLE) {
             GFX_CaptureMouse();
             break;
         }
         switch (button->button) {
         case SDL_BUTTON_LEFT:
             Mouse_ButtonPressed(0);
+            VMWARE_MouseButtonPressed(0);
             break;
         case SDL_BUTTON_RIGHT:
             Mouse_ButtonPressed(1);
+            VMWARE_MouseButtonPressed(1);
             break;
         case SDL_BUTTON_MIDDLE:
             Mouse_ButtonPressed(2);
+            VMWARE_MouseButtonPressed(2);
             break;
 #if !defined(C_SDL2)
         case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
 			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
                 if (wheel_key<4) {
                     INPUT ip = {0};
                     ip.type = INPUT_KEYBOARD;
@@ -7343,12 +5523,14 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
                     KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_left:(wheel_key==3||wheel_key==6?KBD_pageup:KBD_up), false);
                 }
-			} else
-				Mouse_ButtonPressed(100-1);
+			} else {
+                Mouse_ButtonPressed(100-1);
+                HandleMouseWheel(true, 1);
+            }
 			break;
         case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
 			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
                 if (wheel_key<4) {
                     INPUT ip = {0};
                     ip.type = INPUT_KEYBOARD;
@@ -7374,8 +5556,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
                     KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), false);
                 }
-			} else
-				Mouse_ButtonPressed(100+1);
+			} else {
+                Mouse_ButtonPressed(100+1);
+                HandleMouseWheel(false, 1);
+            }
             break;
 #endif
         }
@@ -7385,12 +5569,18 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && mouse_start_x >= 0 && mouse_start_y >= 0) {
 			mouse_end_x=motion->x;
 			mouse_end_y=motion->y;
-			if (mouse_start_x == mouse_end_x && mouse_start_y == mouse_end_y)
+			if (mouse_start_x == mouse_end_x && mouse_start_y == mouse_end_y) {
 				PasteClipboard(true);
-			else {
-				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5)
+#ifdef USE_TTF
+				if (ttf.inUse) resetFontSize();
+#endif
+			} else {
+				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5) {
 					PasteClipboard(true);
-				else
+#ifdef USE_TTF
+					if (ttf.inUse) resetFontSize();
+#endif
+				} else
 					CopyClipboard(0);
 				if (fx >= 0 && fy >= 0)
 					Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,sdl.clip.w,sdl.clip.h, false);
@@ -7407,12 +5597,15 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
         switch (button->button) {
         case SDL_BUTTON_LEFT:
             Mouse_ButtonReleased(0);
+            VMWARE_MouseButtonReleased(0);
             break;
         case SDL_BUTTON_RIGHT:
             Mouse_ButtonReleased(1);
+            VMWARE_MouseButtonReleased(1);
             break;
         case SDL_BUTTON_MIDDLE:
             Mouse_ButtonReleased(2);
+            VMWARE_MouseButtonReleased(2);
             break;
 #if !defined(C_SDL2)
         case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
@@ -7442,126 +5635,11 @@ bool GFX_IsFullscreen(void) {
     return sdl.desktop.fullscreen;
 }
 
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
-{
-	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F || key.keysym.sym >= 0x111 && key.keysym.sym <= 0x119) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))) {
-		// BS, <-, ->, PgUp, PgDn, etc.
-		return true;
-	}
-	if(key.keysym.scancode == 0x01 || key.keysym.scancode == 0x1d || key.keysym.scancode == 0x2a || key.keysym.scancode == 0x36 || key.keysym.scancode == 0x38) {
-		// ESC, shift,  control, alt
-		return true;
-	}
-	if(key.keysym.scancode >= 0x3b && key.keysym.scancode <= 0x44) {
-		// function
-		return true;
-	}
-	if(key.keysym.mod & (KMOD_CTRL|KMOD_ALT)) {
-		// ctrl+, alt+
-		return true;
-	}
-	if((key.keysym.mod & 0x03) != 0 && key.keysym.scancode == 0x39) {
-		// shift + space
-		return true;
-	}
-	return false;
-}
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
-static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
-{
-	if(key.keysym.scancode == 0x29 || (key.keysym.scancode >= 0x49 && key.keysym.scancode <= 0x52) || (key.keysym.scancode >= 0xe0 && key.keysym.scancode <= 0xe6) || (strPasteBuffer.length() && key.keysym.sym >= 0x20)) {
-		// ESC, shift, control, alt, PgUp, PgDn, etc.
-		return true;
-	} else if((key.keysym.mod & 0x03) != 0 && key.keysym.scancode == 0x2c) {
-		// shift + space
-		return true;
-	} else if(key.keysym.mod & (KMOD_CTRL|KMOD_ALT)) {
-		// ctrl+, alt+
-		return true;
-	}
-	return false;
-}
-#endif
-
 bool sdl_wait_on_error() {
     return sdl.wait_on_error;
 }
 
-void* GetSetSDLValue(int isget, std::string& target, void* setval) {
-    if (target == "wait_on_error") {
-        if (isget) return (void*) sdl.wait_on_error;
-        else sdl.wait_on_error = setval;
-    }
-    else if (target == "opengl.kind") {
-#if C_OPENGL
-        if (isget) return (void*) sdl_opengl.kind;
-        else sdl_opengl.kind = (GLKind)(intptr_t)setval;
-#else
-        if (isget) return (void*) 0;
-#endif
-/*
-    } else if (target == "draw.callback") {
-        if (isget) return (void*) sdl.draw.callback;
-        else sdl.draw.callback = *static_cast<GFX_CallBack_t*>(setval);
-    } else if (target == "desktop.full.width") {
-        if (isget) return (void*) sdl.desktop.full.width;
-        else sdl.desktop.full.width = *static_cast<uint16_t*>(setval);
-    } else if (target == "desktop.full.height") {
-        if (isget) return (void*) sdl.desktop.full.height;
-        else sdl.desktop.full.height = *static_cast<uint16_t*>(setval);
-    } else if (target == "desktop.full.fixed") {
-        if (isget) return (void*) sdl.desktop.full.fixed;
-        else sdl.desktop.full.fixed = setval;
-    } else if (target == "desktop.window.width") {
-        if (isget) return (void*) sdl.desktop.window.width;
-        else sdl.desktop.window.width = *static_cast<uint16_t*>(setval);
-    } else if (target == "desktop.window.height") {
-        if (isget) return (void*) sdl.desktop.window.height;
-        else sdl.desktop.window.height = *static_cast<uint16_t*>(setval);
-*/
-    } else if (target == "desktop.fullscreen") {
-        if (isget) return (void*) sdl.desktop.fullscreen;
-        else sdl.desktop.fullscreen = setval;
-    } else if (target == "desktop.doublebuf") {
-        if (isget) return (void*) sdl.desktop.doublebuf;
-        else sdl.desktop.doublebuf = setval;
-/*
-    } else if (target == "desktop.type") {
-        if (isget) return (void*) sdl.desktop.type;
-        else sdl.desktop.type = *static_cast<SCREEN_TYPES*>(setval);
-*/
-    } else if (target == "desktop.want_type") {
-        if (isget) return (void*) sdl.desktop.want_type;
-        else sdl.desktop.want_type = *static_cast<SCREEN_TYPES*>(setval);
-/*
-    } else if (target == "surface") {
-        if (isget) return (void*) sdl.surface;
-        else sdl.surface = static_cast<SDL_Surface*>(setval);
-    } else if (target == "overlay") {
-        if (isget) return (void*) sdl.overlay;
-        else sdl.overlay = static_cast<SDL_Overlay*>(setval);
-*/
-    } else if (target == "mouse.autoenable") {
-        if (isget) return (void*) sdl.mouse.autoenable;
-        else sdl.mouse.autoenable = setval;
-/*
-    } else if (target == "overscan_width") {
-        if (isget) return (void*) sdl.overscan_width;
-        else sdl.overscan_width = *static_cast<Bitu*>(setval);
-*/
-#if defined (WIN32)
-    } else if (target == "using_windib") {
-        if (isget) return (void*) sdl.using_windib;
-        else sdl.using_windib = setval;
-#endif
-    }
-
-    return NULL;
-}
-
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
-static uint8_t im_x, im_y;
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 static uint32_t last_ticks;
 void SetIMPosition() {
 	uint8_t x, y;
@@ -7584,33 +5662,48 @@ void SetIMPosition() {
         last_ticks = GetTicks();
         im_x = x;
         im_y = y;
-#if defined(LINUX)
+#if defined(LINUX) || defined(MACOSX)
         y++;
 #endif
         uint8_t height = IS_PC98_ARCH?16:real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
         uint8_t width = CurMode && DOSV_CheckCJKVideoMode() ? CurMode->cwidth : (height / 2);
         SDL_Rect rect;
+        rect.h = 0;
 #if defined(USE_TTF)
         if (ttf.inUse) {
             rect.x = x * ttf.width;
             rect.y = y * ttf.height + (ttf.height - TTF_FontAscent(ttf.SDL_font)) / 2;
+#if defined(MACOSX)
+            rect.h = ttf.height;
+#endif
         } else {
 #endif
-            rect.x = x * width;
-            rect.y = y * height - (J3_IsJapanese()?2:(IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
+            double sx = sdl.clip.w>0&&sdl.draw.width>0?((double)sdl.clip.w/sdl.draw.width):1;
+            double sy = sdl.clip.h>0&&sdl.draw.height>0?((double)sdl.clip.h/sdl.draw.height):1;
+            rect.x = x * width * sx;
+            rect.y = y * height * sy - (J3_IsJapanese()?2:(IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
             rect.y += mainMenu.menuBarHeight;
+#endif
+#if defined(MACOSX)
+            rect.h = height;
 #endif
 #if defined(USE_TTF)
         }
 #endif
         if(IS_PC98_ARCH)
+#if defined(MACOSX)
+            rect.y += 2;
+#else
             rect.y--;
+#endif
 #if defined(C_SDL2)
         rect.w = 0;
-        rect.h = 0;
         SDL_SetTextInputRect(&rect);
 #else
+#if defined(MACOSX)
+        SDL_SetIMValues(SDL_IM_FONT_SIZE, rect.h, NULL);
+#endif
         SDL_SetIMPosition(rect.x, rect.y);
 #endif
 	}
@@ -7747,7 +5840,7 @@ void GFX_EventsMouseWin32()
 
 /**
  * \brief Processes mouse movements when outside the window.
- * 
+ *
  * This method will send an extra mouse event to the SDL pump
  * when some relative movement has occurred.
  */
@@ -7763,10 +5856,12 @@ void GFX_EventsMouse()
 #endif
 }
 
+bool eatRestoredWindow = false;
+
 /* DOSBox SVN revision 4176:4177: For Linux/X11, Xorg 1.20.1
  * will make spurious focus gain and loss events when locking the mouse in windowed mode.
  *
- * This has not been tested with DOSBox-X yet becaus I do not run Xorg 1.20.1, yet */
+ * This has not been tested with DOSBox-X yet because I do not run Xorg 1.20.1, yet */
 #if defined(LINUX)
 #define SDL_XORG_FIX 1
 #else
@@ -7810,7 +5905,12 @@ void GFX_Events() {
         }
     }
 #endif
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+
+#if C_GAMELINK
+    if (sdl.desktop.type == SCREEN_GAMELINK) OUTPUT_GAMELINK_InputEvent();
+#endif
+
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
        static uint32_t poll98_delay = 0;
        uint32_t time = GetTicks();
@@ -7828,6 +5928,18 @@ void GFX_Events() {
 #endif
 
     while (SDL_PollEvent(&event)) {
+#if defined(C_SDL2)
+        /* SDL2 hack: There seems to be a problem where calling the SetWindowSize function,
+           even for the same size, still causes a resize event, and sometimes for no apparent
+           reason, will cause an endless feed of Windows Restored events. */
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESTORED) {
+            if (eatRestoredWindow) continue;
+        }
+        else {
+            eatRestoredWindow = false;
+        }
+#endif
+
         switch (event.type) {
 #if defined(WIN32) && !defined(HX_DOS)
         case SDL_SYSWMEVENT:
@@ -7837,13 +5949,26 @@ void GFX_Events() {
                     break;
                 case WM_SYSCOMMAND:
                     switch (event.syswm.msg->msg.win.wParam) {
+                        case ID_WIN_SYSMENU_RESTOREMENU:
+                            /* prevent removing the menu in 3Dfx mode */
+                            if (!GFX_GetPreventFullscreen()) {
+                                DOSBox_SetMenu();
+                                mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+                            }
+                            break;
                         case ID_WIN_SYSMENU_TOGGLEMENU:
                             /* prevent removing the menu in 3Dfx mode */
                             if (!GFX_GetPreventFullscreen())
                             {
-                                void ToggleMenu(bool pressed);
                                 ToggleMenu(true);
                                 mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+#if defined(USE_TTF) && DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                                int last = 0;
+                                while (TTF_using() && !sdl.desktop.fullscreen && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width+ttf.offX*2+GetSystemMetrics(SM_CXBORDER)*2)>0 && ttf.pointsize>last) {
+                                    last = ttf.pointsize;
+                                    increaseFontSize();
+                                }
+#endif
                             }
                             break;
                         case ID_WIN_SYSMENU_MAPPER:
@@ -7876,6 +6001,7 @@ void GFX_Events() {
                 default:
                     break;
             }
+            break;
 #endif
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
@@ -7887,11 +6013,13 @@ void GFX_Events() {
                 continue;
             case SDL_WINDOWEVENT_RESTORED:
                 GFX_ResetScreen();
+                eatRestoredWindow = true;
                 continue;
             case SDL_WINDOWEVENT_RESIZED:
                 GFX_HandleVideoResize(event.window.data1, event.window.data2);
                 continue;
             case SDL_WINDOWEVENT_EXPOSED:
+                if (sdl.desktop.type == SCREEN_GAMELINK) break;
                 if (sdl.draw.callback) sdl.draw.callback( GFX_CallBackRedraw );
                 continue;
             case SDL_WINDOWEVENT_LEAVE:
@@ -7908,6 +6036,7 @@ void GFX_Events() {
 #endif
                 break;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
+                if (sdl.desktop.type == SCREEN_GAMELINK) break;
                 if (IsFullscreen() && !sdl.mouse.locked)
                     GFX_CaptureMouse();
                 SetPriority(sdl.priority.focus);
@@ -7917,6 +6046,7 @@ void GFX_Events() {
 #endif
                 break;
             case SDL_WINDOWEVENT_FOCUS_LOST:
+                if (sdl.desktop.type == SCREEN_GAMELINK) break;
                 if (sdl.mouse.locked) {
                     CaptureMouseNotify();
                     GFX_CaptureMouse();
@@ -7999,6 +6129,7 @@ void GFX_Events() {
             }
             break;
         case SDL_MOUSEMOTION:
+            if (sdl.desktop.type == SCREEN_GAMELINK) break;
 #if defined(C_SDL2)
             if (touchscreen_finger_lock == no_finger_id &&
                 touchscreen_touch_lock == no_touch_id &&
@@ -8011,6 +6142,7 @@ void GFX_Events() {
             break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
+            if (sdl.desktop.type == SCREEN_GAMELINK) break;
 #if defined(C_SDL2)
             if (touchscreen_finger_lock == no_finger_id &&
                 touchscreen_touch_lock == no_touch_id &&
@@ -8025,6 +6157,7 @@ void GFX_Events() {
         case SDL_FINGERDOWN:
         case SDL_FINGERUP:
         case SDL_FINGERMOTION:
+            if (sdl.desktop.type == SCREEN_GAMELINK) break;
             HandleTouchscreenFinger(&event.tfinger);
             break;
 #endif
@@ -8032,6 +6165,7 @@ void GFX_Events() {
             if (CheckQuit()) throw(0);
             break;
 		case SDL_MOUSEWHEEL:
+            if (sdl.desktop.type == SCREEN_GAMELINK) break;
 			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
 				if(event.wheel.y > 0) {
 #if defined (WIN32) && !defined(HX_DOS)
@@ -8088,14 +6222,16 @@ void GFX_Events() {
                         KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), false);
                     }
 				}
-			}
+			} else
+                HandleMouseWheel(event.wheel.direction == SDL_MOUSEWHEEL_NORMAL, event.wheel.y);
 			break;
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
         case SDL_TEXTEDITING:
-            if (ime_text.size() && !strlen(event.text.text)) endtick = GetTicks();
+            if (sdl.desktop.type == SCREEN_GAMELINK) break;
             ime_text = event.edit.text;
             break;
         case SDL_TEXTINPUT:
+            if (sdl.desktop.type == SCREEN_GAMELINK) break;
             {
                 int len = strlen(event.text.text);
                 if(ime_text == event.text.text || len > 1) {
@@ -8105,9 +6241,16 @@ void GFX_Events() {
                             for(int no = 0 ; buff[no] != 0 ; no++) {
                                 if (IS_PC98_ARCH || isDBCSCP()) {
                                     if(dos.loaded_codepage == 932 && isKanji1(buff[no]) && isKanji2(buff[no + 1])) {
+#if defined(MACOSX)
+                                        if (buff[no] == 0x81 && buff[no + 1] == 0x40) no++;
+                                        else
+#endif
+                                        {
                                         BIOS_AddKeyToBuffer(0xf100 | buff[no++]);
                                         BIOS_AddKeyToBuffer(0xf000 | buff[no]);
+                                        }
                                     } else {
+                                        kana_input = true;
                                         BIOS_AddKeyToBuffer(buff[no]);
                                     }
                                 } else {
@@ -8119,11 +6262,13 @@ void GFX_Events() {
                     }
                     SetIMPosition();
                 }
+                ime_text = "";
             }
             break;
 #endif
         case SDL_KEYDOWN:
         case SDL_KEYUP:
+            if (sdl.desktop.type == SCREEN_GAMELINK) break;
 #if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
@@ -8134,23 +6279,23 @@ void GFX_Events() {
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
             if(dos.im_enable_flag) {
-#if defined (WIN32)
+#if defined(MACOSX)
                 if(event.type == SDL_KEYDOWN && IME_GetEnable()) {
                     // Enter, BS, TAB, <-, ->
-                    if(event.key.keysym.sym == 0x0d || event.key.keysym.sym == 0x08 || event.key.keysym.sym == 0x09 || event.key.keysym.scancode == 0x4f || event.key.keysym.scancode == 0x50) {
+                    if(event.key.keysym.sym == 0x0d || event.key.keysym.sym == 0x08 || event.key.keysym.sym == 0x09 || (event.key.keysym.scancode >= 0x4f && event.key.keysym.scancode <= 0x52)) {
                         if(ime_text.size() != 0) {
                             break;
                         }
-                    } else if((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && ime_text.size() == 0) {
-                        if (dos.loaded_codepage == 932) {
-                            // Zenkaku space
-                            BIOS_AddKeyToBuffer(0xf100 | 0x81);
-                            BIOS_AddKeyToBuffer(0xf000 | 0x40);
-                        } else if (GetTicks() - endtick >= 50)
-                            BIOS_AddKeyToBuffer(0x20);
-                        break;
-                    } else if(!CheckEnableImmOnKey(event.key)) {
-                        break;
+                    } else {
+                        if(event.key.keysym.scancode == 0x2c && ime_text.size() == 0 && dos.loaded_codepage == 932) {
+                            if((event.key.keysym.mod & 0x03) == 0) {
+                                // Zenkaku space
+                                BIOS_AddKeyToBuffer(0xf100 | 0x81);
+                                BIOS_AddKeyToBuffer(0xf000 | 0x40);
+                                break;
+                            }
+                        }
+                        else break;
                     }
                 }
 #endif
@@ -8172,7 +6317,9 @@ void GFX_Events() {
             }
 #endif
         default:
+            if (sdl.desktop.type == SCREEN_GAMELINK) break;
             gfx_in_mapper = true;
+            if (ticksLocked && event.type == SDL_KEYDOWN && static_cast<Section_prop *>(control->GetSection("cpu"))->Get_bool("stop turbo on key")) DOSBOX_UnlockSpeed2(true);
             MAPPER_CheckEvent(&event);
             gfx_in_mapper = false;
         }
@@ -8191,7 +6338,7 @@ void GFX_Events() {
         }
     }
 #endif
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
        static uint32_t poll98_delay = 0;
        uint32_t time = GetTicks();
@@ -8212,7 +6359,7 @@ void GFX_Events() {
         /* DOSBox SVN revision 4176:4177: For Linux/X11, Xorg 1.20.1
          * will make spurious focus gain and loss events when locking the mouse in windowed mode.
          *
-         * This has not been tested with DOSBox-X yet becaus I do not run Xorg 1.20.1, yet */
+         * This has not been tested with DOSBox-X yet because I do not run Xorg 1.20.1, yet */
 #if SDL_XORG_FIX
         // Special code for broken SDL with Xorg 1.20.1, where pairs of inputfocus gain and loss events are generated
         // when locking the mouse in windowed mode.
@@ -8269,6 +6416,13 @@ void GFX_Events() {
                             {
                                 if (menu.toggle) DOSBox_NoMenu(); else DOSBox_SetMenu();
                                 mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+#if defined(USE_TTF) && DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                                int last = 0;
+                                while (TTF_using() && !sdl.desktop.fullscreen && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width+ttf.offX*2+GetSystemMetrics(SM_CXBORDER)*2)>0 && ttf.pointsize>last) {
+                                    last = ttf.pointsize;
+                                    increaseFontSize();
+                                }
+#endif
                             }
                             break;
 #if !defined(HX_DOS)
@@ -8313,7 +6467,7 @@ void GFX_Events() {
                             GFX_CaptureMouse();
                         SetPriority(sdl.priority.focus);
                         CPU_Disable_SkipAutoAdjust();
-                        if (strcmp(RunningProgram, "LOADLIN")) {
+                        if (strcmp(RunningProgram, "LOADLIN") && IsSafeToMemIOOnBehalfOfGuest()) {
                             BIOS_SynchronizeNumLock();
                             BIOS_SynchronizeCapsLock();
                             BIOS_SynchronizeScrollLock();
@@ -8465,12 +6619,19 @@ void GFX_Events() {
 #if defined(WIN32)
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
-            if (((event.key.keysym.sym==SDLK_TAB)) &&
+            if ((event.key.keysym.sym==SDLK_TAB) &&
                 ((sdl.laltstate==SDL_KEYDOWN) || (sdl.raltstate==SDL_KEYDOWN))) { MAPPER_LosingFocus(); break; }
             // This can happen as well.
-            if (((event.key.keysym.sym == SDLK_TAB )) && (event.key.keysym.mod & KMOD_ALT)) break;
+            if ((event.key.keysym.sym == SDLK_TAB) && (event.key.keysym.mod & KMOD_ALT)) break;
             // ignore tab events that arrive just after regaining focus. (likely the result of alt-tab)
             if ((event.key.keysym.sym == SDLK_TAB) && (GetTicks() - sdl.focus_ticks < 2)) break;
+            if (GetACP() == 932 && GetKeyboardType(0) != 7) {
+                // If the Windows code page is 932 and you are using a non-Japanese keyboard
+                if(event.key.keysym.scancode == 0x0d) event.key.keysym.sym = SDLK_EQUALS;
+                else if(event.key.keysym.scancode == 0x2b) event.key.keysym.sym = SDLK_BACKSLASH;
+                else if(event.key.keysym.scancode == 0x27) event.key.keysym.sym = SDLK_SEMICOLON;
+                else if(event.key.keysym.scancode == 0x28) event.key.keysym.sym = SDLK_QUOTE;
+            }
 #if !defined(HX_DOS) && defined(SDL_DOSBOX_X_SPECIAL)
 			int onoff;
 			if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
@@ -8482,9 +6643,6 @@ void GFX_Events() {
 								break;
 							}
 						}
-					} else if(!CheckEnableImmOnKey(event.key)) {
-						sdl.ime_ticks = 0;
-						break;
 					}
 				}
 			}
@@ -8492,7 +6650,7 @@ void GFX_Events() {
 			if(event.key.keysym.scancode == 0 && event.key.keysym.sym == 0) {
 				int len;
 				char chars[10];
-				if(len = SDL_FlushIMString(NULL)) {
+				if((len = SDL_FlushIMString(NULL))) {
 					uint16_t *buff = (uint16_t *)malloc((len + 1)*sizeof(uint16_t)), uname[2];
 					SDL_FlushIMString(buff);
 					SetIMPosition();
@@ -8519,14 +6677,76 @@ void GFX_Events() {
 			}
 #endif
 #endif
-#if defined (MACOSX)
+#if defined (MACOSX) &&  defined(SDL_DOSBOX_X_SPECIAL)
+			bool ime_key;
+			int onoff;
+			if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
+				if(onoff != 0 && event.type == SDL_KEYDOWN) {
+					if(event.key.keysym.sym == 0x0d) {
+						if(sdl.ime_ticks != 0) {
+							if(GetTicks() - sdl.ime_ticks < 10) {
+								sdl.ime_ticks = 0;
+								break;
+							}
+						}
+					}
+				}
+			}
+			ime_key = false;
+			sdl.ime_ticks = 0;
+			if(event.key.keysym.scancode == 0 && event.key.keysym.sym == 0) {
+				int len;
+				if(len = SDL_FlushIMString(NULL)) {
+					int flag = 0;
+					unsigned char *buff = (unsigned char *)malloc((len + 2));
+
+					SDL_FlushIMString(buff);
+					for(int no = 0 ; no < len ; no++) {
+						if(flag == 0) {
+							if(isKanji1(buff[no])) {
+								flag = 1;
+								BIOS_AddKeyToBuffer(0xf000 | buff[no]);
+							} else {
+								if(buff[no] == 0x1c) {
+									event.key.keysym.scancode = 0x7b;
+									event.key.keysym.sym = SDLK_LEFT;
+									ime_key = true;
+								} else if(buff[no] == 0x1d) {
+									event.key.keysym.scancode = 0x7c;
+									event.key.keysym.sym = SDLK_RIGHT;
+									ime_key = true;
+								} else if(buff[no] == 0x1e) {
+									event.key.keysym.scancode = 0x7e;
+									event.key.keysym.sym = SDLK_UP;
+									ime_key = true;
+								} else if(buff[no] == 0x1f) {
+									event.key.keysym.scancode = 0x7d;
+									event.key.keysym.sym = SDLK_DOWN;
+									ime_key = true;
+								} else if(buff[no] == 0x08) {
+									event.key.keysym.scancode = 0x33;
+									event.key.keysym.sym = SDLK_BACKSPACE;
+									ime_key = true;
+								} else {
+									BIOS_AddKeyToBuffer(buff[no]);
+								}
+							}
+						} else {
+							BIOS_AddKeyToBuffer(0xf100 | buff[no]);
+							flag = 0;
+						}
+					}
+					free(buff);
+					sdl.ime_ticks = GetTicks();
+				}
+			}
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
             /* On macs CMD-Q is the default key to close an application */
             if (event.key.keysym.sym == SDLK_q && (event.key.keysym.mod == KMOD_RMETA || event.key.keysym.mod == KMOD_LMETA) ) {
                 KillSwitch(true);
                 break;
-            } 
+            }
 #endif
         default:
 #if defined(WIN32) && !defined(HX_DOS) && defined(SDL_DOSBOX_X_SPECIAL)
@@ -8541,7 +6761,14 @@ void GFX_Events() {
                 }
             }
 #endif
+            if (ticksLocked && event.type == SDL_KEYDOWN && static_cast<Section_prop *>(control->GetSection("cpu"))->Get_bool("stop turbo on key")) DOSBOX_UnlockSpeed2(true);
             MAPPER_CheckEvent(&event);
+#if defined (MACOSX) &&  defined(SDL_DOSBOX_X_SPECIAL)
+            if(ime_key) {
+                event.type = SDL_KEYUP;
+                MAPPER_CheckEvent(&event);
+            }
+#endif
         }
     }
 #endif
@@ -8589,8 +6816,9 @@ void SDL_SetupConfigSection() {
                       "  (output=surface does not!)");
     Pstring->SetBasic(true);
 
-    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "");
-    Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200). If empty, the window will be centered.");
+    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "-");
+    Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200).\n"
+                      "The window will be centered with \",\" (or empty), and will be in the original position with \"-\".");
     Pstring->SetBasic(true);
 
     const char* outputs[] = {
@@ -8598,19 +6826,28 @@ void SDL_SetupConfigSection() {
 #if C_OPENGL
         "opengl", "openglnb", "openglhq", "openglpp",
 #endif
-        "ddraw", "direct3d",
-        0 };
+#if C_GAMELINK
+        "gamelink",
+#endif
+        "ddraw",
+#if C_DIRECT3D
+        "direct3d", "direct3d11",
+#endif
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+        "metal",
+#endif
+        nullptr };
 
     Pint = sdl_sec->Add_int("display", Property::Changeable::Always, 0);
     Pint->Set_help("Specify a screen/display number to use for a multi-screen setup (0 = default).");
     Pint->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
-    Pstring->Set_help("What video system to use for output (openglnb = OpenGL nearest; openglpp = OpenGL perfect; ttf = TrueType font output).");
+    Pstring->Set_help("What video system to use for output (surface = software (SDL_Surface); openglnb = OpenGL nearest; openglpp = OpenGL perfect; ttf = TrueType font output).");
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
 
-    Pstring = sdl_sec->Add_string("videodriver",Property::Changeable::WhenIdle, "");
+    Pstring = sdl_sec->Add_string("videodriver",Property::Changeable::OnlyAtStart, "");
     Pstring->Set_help("Forces a video driver (e.g. windib/windows, directx, x11, fbcon, dummy, etc) for the SDL library to use.");
     Pstring->SetBasic(true);
 
@@ -8624,7 +6861,7 @@ void SDL_SetupConfigSection() {
     Pbool->Set_help("If set, the DOSBox-X window will be maximized at start (SDL2 and Windows SDL1 builds only; use fullscreen for TTF output).");
     Pbool->SetBasic(true);
 
-    Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always, false);
+    Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::WhenIdle, false);
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
     Pbool->SetBasic(true);
 
@@ -8641,7 +6878,7 @@ void SDL_SetupConfigSection() {
     Pstring->Set_values(unlocks);
     Pstring->SetBasic(true);
 
-	const char* clipboardbutton[] = { "none", "middle", "right", "arrows", 0};
+	const char* clipboardbutton[] = { "none", "middle", "right", "arrows", nullptr };
 	Pstring = sdl_sec->Add_string("clip_mouse_button",Property::Changeable::Always, "right");
 	Pstring->Set_values(clipboardbutton);
 	Pstring->Set_help("Select the mouse button or use arrow keys for the shared clipboard copy/paste function.\n"
@@ -8650,14 +6887,14 @@ void SDL_SetupConfigSection() {
 		"For \"arrows\", press Home key (or Fn+Shift+Left on Mac laptops) to start selection, and End key (or Fn+Shift+Right on Mac laptops) to end selection.");
     Pstring->SetBasic(true);
 
-	const char* clipboardmodifier[] = { "none", "ctrl", "lctrl", "rctrl", "alt", "lalt", "ralt", "shift", "lshift", "rshift", "ctrlalt", "ctrlshift", "altshift", "lctrlalt", "lctrlshift", "laltshift", "rctrlalt", "rctrlshift", "raltshift", 0};
+	const char* clipboardmodifier[] = { "none", "ctrl", "lctrl", "rctrl", "alt", "lalt", "ralt", "shift", "lshift", "rshift", "ctrlalt", "ctrlshift", "altshift", "lctrlalt", "lctrlshift", "laltshift", "rctrlalt", "rctrlshift", "raltshift", nullptr };
 	Pstring = sdl_sec->Add_string("clip_key_modifier",Property::Changeable::Always, "shift");
 	Pstring->Set_values(clipboardmodifier);
 	Pstring->Set_help("Change the keyboard modifier for the shared clipboard copy/paste function using a mouse button or arrow keys.\n"
 		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
     Pstring->SetBasic(true);
 
-	const char* truefalsedefaultopt[] = { "true", "false", "1", "0", "default", 0};
+	const char* truefalsedefaultopt[] = { "true", "false", "1", "0", "default", nullptr };
 	Pstring = sdl_sec->Add_string("clip_paste_bios",Property::Changeable::WhenIdle, "default");
 	Pstring->Set_values(truefalsedefaultopt);
 	Pstring->Set_help("Specify whether to use BIOS keyboard functions for the clipboard pasting instead of the keystroke method.\n"
@@ -8712,6 +6949,18 @@ void SDL_SetupConfigSection() {
         "Putting a minus sign in front will disable the conversion for guest systems.");
     Pint->SetBasic(true);
 
+#if defined(C_SDL2)
+    Pbool = sdl_sec->Add_bool("keyboard_capture", Property::Changeable::Always, false);
+    Pbool->Set_help("Capture the keyboard, inhibiting window manager shortcuts.\n"
+        "Be warned, enabling this runs the risk of getting trapped inside "
+        "DOSBox-X, however it can be useful for passing combinations like Alt+F4 "
+        "through to DOS applications that use them, like WordPerfect.\n"
+        "Note that if another application attempts to grab the keyboard, DOSBox-X "
+        "will lose its grab over the keyboard. Additionally, not all shortcuts "
+        "can be inhibited on all platforms, for example Ctrl+Alt+Del on Windows.");
+    Pbool->SetBasic(true);
+#endif
+
     Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
     Pbool->Set_help("Wait before closing the console if DOSBox-X has an error.");
     Pbool->SetBasic(true);
@@ -8722,11 +6971,11 @@ void SDL_SetupConfigSection() {
                      "  pause is only valid for the second entry.");
     Pmulti->SetBasic(true);
 
-    const char* actt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", 0};
+    const char* actt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", nullptr };
     Pstring = Pmulti->GetSection()->Add_string("active",Property::Changeable::Always,"higher");
     Pstring->Set_values(actt);
 
-    const char* inactt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", 0};
+    const char* inactt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", nullptr };
     Pstring = Pmulti->GetSection()->Add_string("inactive",Property::Changeable::Always,"normal");
     Pstring->Set_values(inactt);
 
@@ -8743,12 +6992,21 @@ void SDL_SetupConfigSection() {
     Pbool = sdl_sec->Add_bool("forcesquarecorner", Property::Changeable::OnlyAtStart, true);
     Pbool->Set_help("If set, DOSBox-X will force square corners (instead of round corners) for the DOSBox-X window when running in Windows 11.");
 
-	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
+	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", nullptr };
     Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Avoid usage of symkeys, in favor of scancodes. Might not work on all operating systems.\n"
         "If set to \"auto\" (default), it is enabled when using non-US keyboards in SDL1 builds.");
     Pstring->SetBasic(true);
+
+#if C_GAMELINK
+    Pbool = sdl_sec->Add_bool("gamelink master", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("Allow Game Link connections e.g. from Grid Cartographer; required for output=gamelink, otherwise optional.");
+    Pbool = sdl_sec->Add_bool("gamelink snoop", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("Connect to an existing Game Link session and output link data instead of sending own data. Compares memory contents to find a suitable memory offset of peeks.");
+    Pint = sdl_sec->Add_int("gamelink load address", Property::Changeable::Always, 0);
+    Pbool->Set_help("Configure the original load address of the software (when running in plain DOSBox) so that gamelink accesses are adjusted for different load addresses.");
+#endif
 
     Pint = sdl_sec->Add_int("overscan",Property::Changeable::Always, 0);
     Pint->SetMinMax(0,10);
@@ -8774,666 +7032,6 @@ void SDL_SetupConfigSection() {
 //  Pint = sdl_sec->Add_int("overscancolor",Property::Changeable::Always, 0);
 //  Pint->SetMinMax(0,1000);
 //  Pint->Set_help("Value of overscan color.");
-}
-
-#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
-#define DIRECTINPUT_VERSION 0x0800
-#include <dinput.h>
-#ifndef DIK_PAUSE
-#define DIK_PAUSE   0xC5
-#endif
-#ifndef DIK_OEM_102
-#define DIK_OEM_102 0x56    /* < > | on UK/Germany keyboards */
-#endif
-#else
-#define UINT unsigned int
-#endif
-#if defined(C_SDL2)
-#define SDLKey SDL_Keycode
-#define SDLMod SDL_Keymod
-#endif
-static SDLKey aryScanCodeToSDLKey[0x100];
-static bool   bScanCodeMapInited = false;
-static void PasteInitMapSCToSDLKey()
-{
-    /* Map the DIK scancodes to SDL keysyms */
-    for (unsigned int i = 0; i<SDL_arraysize(aryScanCodeToSDLKey); ++i)
-        aryScanCodeToSDLKey[i] = SDLK_UNKNOWN;
-
-    /* Defined DIK_* constants */
-#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
-    aryScanCodeToSDLKey[DIK_ESCAPE] = SDLK_ESCAPE;
-    aryScanCodeToSDLKey[DIK_1] = SDLK_1;
-    aryScanCodeToSDLKey[DIK_2] = SDLK_2;
-    aryScanCodeToSDLKey[DIK_3] = SDLK_3;
-    aryScanCodeToSDLKey[DIK_4] = SDLK_4;
-    aryScanCodeToSDLKey[DIK_5] = SDLK_5;
-    aryScanCodeToSDLKey[DIK_6] = SDLK_6;
-    aryScanCodeToSDLKey[DIK_7] = SDLK_7;
-    aryScanCodeToSDLKey[DIK_8] = SDLK_8;
-    aryScanCodeToSDLKey[DIK_9] = SDLK_9;
-    aryScanCodeToSDLKey[DIK_0] = SDLK_0;
-    aryScanCodeToSDLKey[DIK_MINUS] = SDLK_MINUS;
-    aryScanCodeToSDLKey[DIK_EQUALS] = SDLK_EQUALS;
-    aryScanCodeToSDLKey[DIK_BACK] = SDLK_BACKSPACE;
-    aryScanCodeToSDLKey[DIK_TAB] = SDLK_TAB;
-    aryScanCodeToSDLKey[DIK_Q] = SDLK_q;
-    aryScanCodeToSDLKey[DIK_W] = SDLK_w;
-    aryScanCodeToSDLKey[DIK_E] = SDLK_e;
-    aryScanCodeToSDLKey[DIK_R] = SDLK_r;
-    aryScanCodeToSDLKey[DIK_T] = SDLK_t;
-    aryScanCodeToSDLKey[DIK_Y] = SDLK_y;
-    aryScanCodeToSDLKey[DIK_U] = SDLK_u;
-    aryScanCodeToSDLKey[DIK_I] = SDLK_i;
-    aryScanCodeToSDLKey[DIK_O] = SDLK_o;
-    aryScanCodeToSDLKey[DIK_P] = SDLK_p;
-    aryScanCodeToSDLKey[DIK_LBRACKET] = SDLK_LEFTBRACKET;
-    aryScanCodeToSDLKey[DIK_RBRACKET] = SDLK_RIGHTBRACKET;
-    aryScanCodeToSDLKey[DIK_RETURN] = SDLK_RETURN;
-    aryScanCodeToSDLKey[DIK_LCONTROL] = SDLK_LCTRL;
-    aryScanCodeToSDLKey[DIK_A] = SDLK_a;
-    aryScanCodeToSDLKey[DIK_S] = SDLK_s;
-    aryScanCodeToSDLKey[DIK_D] = SDLK_d;
-    aryScanCodeToSDLKey[DIK_F] = SDLK_f;
-    aryScanCodeToSDLKey[DIK_G] = SDLK_g;
-    aryScanCodeToSDLKey[DIK_H] = SDLK_h;
-    aryScanCodeToSDLKey[DIK_J] = SDLK_j;
-    aryScanCodeToSDLKey[DIK_K] = SDLK_k;
-    aryScanCodeToSDLKey[DIK_L] = SDLK_l;
-    aryScanCodeToSDLKey[DIK_SEMICOLON] = SDLK_SEMICOLON;
-    aryScanCodeToSDLKey[DIK_APOSTROPHE] = SDLK_QUOTE;
-    aryScanCodeToSDLKey[DIK_GRAVE] = SDLK_BACKQUOTE;
-    aryScanCodeToSDLKey[DIK_LSHIFT] = SDLK_LSHIFT;
-    aryScanCodeToSDLKey[DIK_BACKSLASH] = SDLK_BACKSLASH;
-    aryScanCodeToSDLKey[DIK_OEM_102] = SDLK_LESS;
-    aryScanCodeToSDLKey[DIK_Z] = SDLK_z;
-    aryScanCodeToSDLKey[DIK_X] = SDLK_x;
-    aryScanCodeToSDLKey[DIK_C] = SDLK_c;
-    aryScanCodeToSDLKey[DIK_V] = SDLK_v;
-    aryScanCodeToSDLKey[DIK_B] = SDLK_b;
-    aryScanCodeToSDLKey[DIK_N] = SDLK_n;
-    aryScanCodeToSDLKey[DIK_M] = SDLK_m;
-    aryScanCodeToSDLKey[DIK_COMMA] = SDLK_COMMA;
-    aryScanCodeToSDLKey[DIK_PERIOD] = SDLK_PERIOD;
-    aryScanCodeToSDLKey[DIK_SLASH] = SDLK_SLASH;
-    aryScanCodeToSDLKey[DIK_RSHIFT] = SDLK_RSHIFT;
-    aryScanCodeToSDLKey[DIK_MULTIPLY] = SDLK_KP_MULTIPLY;
-    aryScanCodeToSDLKey[DIK_LMENU] = SDLK_LALT;
-    aryScanCodeToSDLKey[DIK_SPACE] = SDLK_SPACE;
-    aryScanCodeToSDLKey[DIK_CAPITAL] = SDLK_CAPSLOCK;
-    aryScanCodeToSDLKey[DIK_F1] = SDLK_F1;
-    aryScanCodeToSDLKey[DIK_F2] = SDLK_F2;
-    aryScanCodeToSDLKey[DIK_F3] = SDLK_F3;
-    aryScanCodeToSDLKey[DIK_F4] = SDLK_F4;
-    aryScanCodeToSDLKey[DIK_F5] = SDLK_F5;
-    aryScanCodeToSDLKey[DIK_F6] = SDLK_F6;
-    aryScanCodeToSDLKey[DIK_F7] = SDLK_F7;
-    aryScanCodeToSDLKey[DIK_F8] = SDLK_F8;
-    aryScanCodeToSDLKey[DIK_F9] = SDLK_F9;
-    aryScanCodeToSDLKey[DIK_F10] = SDLK_F10;
-#if defined(C_SDL2)
-    aryScanCodeToSDLKey[DIK_NUMLOCK] = SDLK_NUMLOCKCLEAR;
-    aryScanCodeToSDLKey[DIK_SCROLL] = SDLK_SCROLLLOCK;
-#else
-    aryScanCodeToSDLKey[DIK_NUMLOCK] = SDLK_NUMLOCK;
-    aryScanCodeToSDLKey[DIK_SCROLL] = SDLK_SCROLLOCK;
-#endif
-    aryScanCodeToSDLKey[DIK_SUBTRACT] = SDLK_KP_MINUS;
-    aryScanCodeToSDLKey[DIK_ADD] = SDLK_KP_PLUS;
-#if defined(C_SDL2)
-    aryScanCodeToSDLKey[DIK_NUMPAD7] = SDLK_KP_7;
-    aryScanCodeToSDLKey[DIK_NUMPAD8] = SDLK_KP_8;
-    aryScanCodeToSDLKey[DIK_NUMPAD9] = SDLK_KP_9;
-    aryScanCodeToSDLKey[DIK_NUMPAD4] = SDLK_KP_4;
-    aryScanCodeToSDLKey[DIK_NUMPAD5] = SDLK_KP_5;
-    aryScanCodeToSDLKey[DIK_NUMPAD6] = SDLK_KP_6;
-    aryScanCodeToSDLKey[DIK_NUMPAD1] = SDLK_KP_1;
-    aryScanCodeToSDLKey[DIK_NUMPAD2] = SDLK_KP_2;
-    aryScanCodeToSDLKey[DIK_NUMPAD3] = SDLK_KP_3;
-    aryScanCodeToSDLKey[DIK_NUMPAD0] = SDLK_KP_0;
-#else
-    aryScanCodeToSDLKey[DIK_NUMPAD7] = SDLK_KP7;
-    aryScanCodeToSDLKey[DIK_NUMPAD8] = SDLK_KP8;
-    aryScanCodeToSDLKey[DIK_NUMPAD9] = SDLK_KP9;
-    aryScanCodeToSDLKey[DIK_NUMPAD4] = SDLK_KP4;
-    aryScanCodeToSDLKey[DIK_NUMPAD5] = SDLK_KP5;
-    aryScanCodeToSDLKey[DIK_NUMPAD6] = SDLK_KP6;
-    aryScanCodeToSDLKey[DIK_NUMPAD1] = SDLK_KP1;
-    aryScanCodeToSDLKey[DIK_NUMPAD2] = SDLK_KP2;
-    aryScanCodeToSDLKey[DIK_NUMPAD3] = SDLK_KP3;
-    aryScanCodeToSDLKey[DIK_NUMPAD0] = SDLK_KP0;
-#endif
-    aryScanCodeToSDLKey[DIK_DECIMAL] = SDLK_KP_PERIOD;
-    aryScanCodeToSDLKey[DIK_F11] = SDLK_F11;
-    aryScanCodeToSDLKey[DIK_F12] = SDLK_F12;
-
-    aryScanCodeToSDLKey[DIK_F13] = SDLK_F13;
-    aryScanCodeToSDLKey[DIK_F14] = SDLK_F14;
-    aryScanCodeToSDLKey[DIK_F15] = SDLK_F15;
-
-    aryScanCodeToSDLKey[DIK_NUMPADEQUALS] = SDLK_KP_EQUALS;
-    aryScanCodeToSDLKey[DIK_NUMPADENTER] = SDLK_KP_ENTER;
-    aryScanCodeToSDLKey[DIK_RCONTROL] = SDLK_RCTRL;
-    aryScanCodeToSDLKey[DIK_DIVIDE] = SDLK_KP_DIVIDE;
-#if defined(C_SDL2)
-    aryScanCodeToSDLKey[DIK_SYSRQ] = SDLK_PRINTSCREEN;
-#else
-    aryScanCodeToSDLKey[DIK_SYSRQ] = SDLK_PRINT;
-#endif
-    aryScanCodeToSDLKey[DIK_RMENU] = SDLK_RALT;
-    aryScanCodeToSDLKey[DIK_PAUSE] = SDLK_PAUSE;
-    aryScanCodeToSDLKey[DIK_HOME] = SDLK_HOME;
-    aryScanCodeToSDLKey[DIK_UP] = SDLK_UP;
-    aryScanCodeToSDLKey[DIK_PRIOR] = SDLK_PAGEUP;
-    aryScanCodeToSDLKey[DIK_LEFT] = SDLK_LEFT;
-    aryScanCodeToSDLKey[DIK_RIGHT] = SDLK_RIGHT;
-    aryScanCodeToSDLKey[DIK_END] = SDLK_END;
-    aryScanCodeToSDLKey[DIK_DOWN] = SDLK_DOWN;
-    aryScanCodeToSDLKey[DIK_NEXT] = SDLK_PAGEDOWN;
-    aryScanCodeToSDLKey[DIK_INSERT] = SDLK_INSERT;
-    aryScanCodeToSDLKey[DIK_DELETE] = SDLK_DELETE;
-#if defined(C_SDL2)
-    aryScanCodeToSDLKey[DIK_LWIN] = SDLK_LGUI;
-    aryScanCodeToSDLKey[DIK_RWIN] = SDLK_RGUI;
-#else
-    aryScanCodeToSDLKey[DIK_LWIN] = SDLK_LMETA;
-    aryScanCodeToSDLKey[DIK_RWIN] = SDLK_RMETA;
-#endif
-    aryScanCodeToSDLKey[DIK_APPS] = SDLK_MENU;
-#elif defined(C_SDL2)
-    aryScanCodeToSDLKey['1'] = SDLK_KP_1;
-    aryScanCodeToSDLKey['2'] = SDLK_KP_2;
-    aryScanCodeToSDLKey['3'] = SDLK_KP_3;
-    aryScanCodeToSDLKey['4'] = SDLK_KP_4;
-    aryScanCodeToSDLKey['5'] = SDLK_KP_5;
-    aryScanCodeToSDLKey['6'] = SDLK_KP_6;
-    aryScanCodeToSDLKey['7'] = SDLK_KP_7;
-    aryScanCodeToSDLKey['8'] = SDLK_KP_8;
-    aryScanCodeToSDLKey['9'] = SDLK_KP_9;
-    aryScanCodeToSDLKey['0'] = SDLK_KP_0;
-    aryScanCodeToSDLKey[0xFF] = SDLK_LALT;
-#else
-    aryScanCodeToSDLKey['1'] = SDLK_KP1;
-    aryScanCodeToSDLKey['2'] = SDLK_KP2;
-    aryScanCodeToSDLKey['3'] = SDLK_KP3;
-    aryScanCodeToSDLKey['4'] = SDLK_KP4;
-    aryScanCodeToSDLKey['5'] = SDLK_KP5;
-    aryScanCodeToSDLKey['6'] = SDLK_KP6;
-    aryScanCodeToSDLKey['7'] = SDLK_KP7;
-    aryScanCodeToSDLKey['8'] = SDLK_KP8;
-    aryScanCodeToSDLKey['9'] = SDLK_KP9;
-    aryScanCodeToSDLKey['0'] = SDLK_KP0;
-    aryScanCodeToSDLKey[0xFF] = SDLK_LALT;
-#endif
-    bScanCodeMapInited = true;
-
-}
-
-// Just in case, to keep us from entering an unexpected KB state
-const  size_t      kPasteMinBufExtra = 4;
-/// Sightly inefficient, but who cares
-static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLMod keymods)
-{
-    const SDLKey sdlkey = aryScanCodeToSDLKey[uiScanCode & 0xFF];
-    if (sdlkey == SDLK_UNKNOWN)
-        return;
-
-    SDL_Event evntKeyStroke = { 0 };
-    evntKeyStroke.type = bDepressed ? SDL_KEYDOWN : SDL_KEYUP;
-#if defined(C_SDL2)
-    evntKeyStroke.key.keysym.scancode = SDL_GetScancodeFromKey(sdlkey);
-#else
-    evntKeyStroke.key.keysym.scancode = uiScanCode & 0xFF;
-#endif
-    evntKeyStroke.key.keysym.sym = sdlkey;
-    evntKeyStroke.key.keysym.mod = keymods;
-#if !defined(C_SDL2)
-    evntKeyStroke.key.keysym.unicode = 0;
-#endif
-    evntKeyStroke.key.state = bDepressed ? SDL_PRESSED : SDL_RELEASED;
-    SDL_PushEvent(&evntKeyStroke);
-}
-
-static bool PasteClipboardNext() {
-    if (strPasteBuffer.length() == 0)
-        return false;
-    if(clipboard_biospaste) {
-        if (strPasteBuffer[0]==13) {
-            KEYBOARD_AddKey(KBD_enter, true);
-            KEYBOARD_AddKey(KBD_enter, false);
-        } else
-            BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
-		strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-		return true;
-	}
-
-    if (!bScanCodeMapInited)
-        PasteInitMapSCToSDLKey();
-
-    const char cKey = strPasteBuffer[0];
-#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
-    SHORT shVirKey = VkKeyScan(cKey); // If it fails then MapVirtK will also fail, so no bail yet
-    UINT uiScanCode = MapVirtualKey(LOBYTE(shVirKey), MAPVK_VK_TO_VSC);
-    if (uiScanCode)
-    {
-        const bool   bModShift = ((shVirKey & 0x0100) != 0);
-        const bool   bModCntrl = ((shVirKey & 0x0200) != 0);
-        const bool   bModAlt = ((shVirKey & 0x0400) != 0);
-        const SDLMod sdlmModsOn = SDL_GetModState();
-        const bool   bModShiftOn = ((sdlmModsOn & (KMOD_LSHIFT | KMOD_RSHIFT)) > 0);
-        const bool   bModCntrlOn = ((sdlmModsOn & (KMOD_LCTRL | KMOD_RCTRL)) > 0);
-        const bool   bModAltOn = ((sdlmModsOn & (KMOD_LALT | KMOD_RALT)) > 0);
-        const UINT   uiScanCodeShift = MapVirtualKey(VK_SHIFT, MAPVK_VK_TO_VSC);
-        const UINT   uiScanCodeCntrl = MapVirtualKey(VK_CONTROL, MAPVK_VK_TO_VSC);
-        const UINT   uiScanCodeAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
-        const SDLMod sdlmMods = (SDLMod)((sdlmModsOn & ~(KMOD_LSHIFT | KMOD_RSHIFT |
-            KMOD_LCTRL | KMOD_RCTRL |
-            KMOD_LALT | KMOD_RALT)) |
-            (bModShiftOn ? KMOD_LSHIFT : 0) |
-            (bModCntrlOn ? KMOD_LCTRL : 0) |
-            (bModAltOn ? KMOD_LALT : 0));
-
-        /// \note Currently pasteing a character is a two step affair, because if
-        ///       you do it too quickly DI can miss a key press/release.
-        // Could be made more efficient, but would require tracking of more state,
-        // so let's forgot that for now...
-        size_t sStrokesRequired = 2; // At least the key & up/down
-        if (bModShift != bModShiftOn) sStrokesRequired += 2; // To press/release Shift
-        if (bModCntrl != bModCntrlOn) sStrokesRequired += 2; // To press/release Control
-        if (bModAlt != bModAltOn) sStrokesRequired += 2; // To press/release Alt
-        /// \fixme Should check if key is already pressed or not so it can toggle press
-        ///        but since we don't actually have any mappings from VK/SC to DI codes
-        ///        (which SDL (can) use(s) internally as actually scancodes), we can't
-        ///        actually check that ourselves, sadly...
-        if (KEYBOARD_BufferSpaceAvail() < (sStrokesRequired + kPasteMinBufExtra))
-            return false;
-
-        if (bModShift != bModShiftOn) GenKBStroke(uiScanCodeShift, !bModShiftOn, sdlmMods);
-        if (bModCntrl != bModCntrlOn) GenKBStroke(uiScanCodeCntrl, !bModCntrlOn, sdlmMods);
-        if (bModAlt != bModAltOn) GenKBStroke(uiScanCodeAlt, !bModAltOn, sdlmMods);
-        GenKBStroke(uiScanCode, true, sdlmMods);
-        GenKBStroke(uiScanCode, false, sdlmMods);
-        if (bModShift != bModShiftOn) GenKBStroke(uiScanCodeShift, bModShiftOn, sdlmMods);
-        if (bModCntrl != bModCntrlOn) GenKBStroke(uiScanCodeCntrl, bModCntrlOn, sdlmMods);
-        if (bModAlt != bModAltOn) GenKBStroke(uiScanCodeAlt, bModAltOn, sdlmMods);
-        //putchar(cKey); // For debugging dropped strokes
-    } else {
-		const UINT   uiScanCodeAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
-#else
-    {
-		//UINT uiScanCode = cKey; UNUSED
-		const UINT   uiScanCodeAlt = 0xFF;
-#endif
-		if (KEYBOARD_BufferSpaceAvail() < (10+kPasteMinBufExtra)) // For simplicity, we just mimic Alt+<3 digits>
-			return false;
-
-#if !defined(WIN32) || (defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-        if (strPasteBuffer[0]==13) {
-            KEYBOARD_AddKey(KBD_enter, true);
-            KEYBOARD_AddKey(KBD_enter, false);
-            strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-            return true;
-        }
-#endif
-		const SDLMod sdlmModsOn = SDL_GetModState();
-		const bool bModShiftOn = ((sdlmModsOn & (KMOD_LSHIFT|KMOD_RSHIFT)) > 0);
-		const bool bModCntrlOn = ((sdlmModsOn & (KMOD_LCTRL|KMOD_RCTRL )) > 0);
-		const bool bModAltOn = ((sdlmModsOn&(KMOD_LALT|KMOD_RALT)) > 0);
-		const SDLMod sdlmMods = (SDLMod)((sdlmModsOn&~(KMOD_LSHIFT|KMOD_RSHIFT|KMOD_LCTRL|KMOD_RCTRL|KMOD_LALT|KMOD_RALT)) |
-												 (bModShiftOn ? KMOD_LSHIFT : 0) |
-												 (bModCntrlOn ? KMOD_LCTRL  : 0) |
-												 (bModAltOn   ? KMOD_LALT   : 0));
-
-		if (!bModAltOn)                                                // Alt down if not already down
-			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
-
-		uint8_t ansiVal = cKey;
-		unsigned int ct = 0;
-		for (int i = 100; i; i /= 10) {
-			int numKey = ansiVal/i;                                    // High digit of Alt+ASCII number combination
-			if (!numKey) ct++;
-			ansiVal %= i;
-#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
-			UINT uiScanCode = MapVirtualKey(numKey+VK_NUMPAD0, MAPVK_VK_TO_VSC);
-#else
-			UINT uiScanCode = numKey+'0';
-#endif
-			GenKBStroke(uiScanCode, true, sdlmMods);
-			GenKBStroke(uiScanCode, false, sdlmMods);
-		}
-		GenKBStroke(uiScanCodeAlt, false, sdlmMods);                // Alt up
-		if (ct%2) {
-			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
-#if defined(WIN32) && (!defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR))
-			UINT uiScanCode = MapVirtualKey(0+VK_NUMPAD0, MAPVK_VK_TO_VSC);
-#else
-			UINT uiScanCode = 0+'0';
-#endif
-			GenKBStroke(uiScanCode, true, sdlmMods);
-			GenKBStroke(uiScanCode, false, sdlmMods);
-			GenKBStroke(uiScanCodeAlt, false, sdlmMods);
-		}
-		if (bModAltOn)                                                // Alt down if is was already down
-			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
-    }
-    // Pop head. Could be made more efficient, but this is neater.
-    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length()); // technically -1, but it clamps by itself anyways...
-    return true;
-}
-
-// added emendelson from dbDos; improved by Wengier
-#if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
-extern uint8_t* clipAscii;
-extern uint32_t clipSize;
-extern void Unicode2Ascii(const uint16_t* unicode);
-
-void PasteClipboard(bool bPressed)
-{
-    if (!bPressed) return;
-    SDL_SysWMinfo wmiInfo;
-    SDL_VERSION(&wmiInfo.version);
-
-    if (SDL_GetWMInfo(&wmiInfo) != 1||!OpenClipboard(wmiInfo.window)) return;
-    if (!IsClipboardFormatAvailable(CF_UNICODETEXT)) {CloseClipboard();return;}
-
-    HANDLE hContents = GetClipboardData(CF_UNICODETEXT);
-    if (!hContents) {CloseClipboard();return;}
-
-    uint16_t *szClipboard = (uint16_t *)GlobalLock(hContents);
-    if (szClipboard)
-    {
-		clipSize=0;
-		Unicode2Ascii(szClipboard);
-        unsigned long j=0;
-        for (size_t i = 0; i < clipSize; ++i) if (clipAscii[i] == 9) j++;
-        // Create a copy of the string, and filter out Linefeed characters (ASCII '10')
-        char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + j*3 + 1));
-        char* szFilterNextChar = szFilteredText;
-        for (size_t i = 0; i < clipSize; ++i)
-            if (clipAscii[i] == 9) // Tab to spaces
-                for (int k=0; k<4; k++) {
-                    *szFilterNextChar = ' ';
-                    ++szFilterNextChar;
-                }
-            else if (clipAscii[i] != 0x0A) // Skip linefeeds
-            {
-                *szFilterNextChar = clipAscii[i];
-                ++szFilterNextChar;
-            }
-        *szFilterNextChar = '\0'; // Cap it.
-
-        strPasteBuffer.append(szFilteredText);
-        GlobalUnlock(hContents);
-		clipSize=0;
-    }
-    CloseClipboard();
-}
-/// TODO: add menu items here 
-#else // end emendelson from dbDOS; improved by Wengier
-#if defined(WIN32) // SDL2, MinGW / Added by Wengier
-extern uint8_t* clipAscii;
-extern uint32_t clipSize;
-extern void Unicode2Ascii(const uint16_t* unicode);
-void PasteClipboard(bool bPressed) {
-	if (!bPressed||!OpenClipboard(NULL)) return;
-    if (!IsClipboardFormatAvailable(CF_UNICODETEXT)) {CloseClipboard();return;}
-    HANDLE hContents = GetClipboardData(CF_UNICODETEXT);
-    if (!hContents) {CloseClipboard();return;}
-    uint16_t *szClipboard = (uint16_t *)GlobalLock(hContents);
-    if (szClipboard)
-    {
-		clipSize=0;
-		Unicode2Ascii(szClipboard);
-        unsigned long j=0;
-        for (size_t i = 0; i < clipSize; ++i) if (clipAscii[i] == 9) j++;
-        char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + j*3 + 1));
-        char* szFilterNextChar = szFilteredText;
-        for (size_t i = 0; i < clipSize; ++i)
-            if (clipAscii[i] == 9) // Tab to spaces
-                for (int k=0; k<4; k++) {
-                    *szFilterNextChar = ' ';
-                    ++szFilterNextChar;
-                }
-            else if (clipAscii[i] != 0x0A) // Skip linefeeds
-            {
-                *szFilterNextChar = clipAscii[i];
-                ++szFilterNextChar;
-            }
-        *szFilterNextChar = '\0'; // Cap it.
-
-        strPasteBuffer.append(szFilteredText);
-        GlobalUnlock(hContents);
-		clipSize=0;
-    }
-	CloseClipboard();
-}
-#elif defined(C_SDL2) || defined(MACOSX)
-typedef char host_cnv_char_t;
-char *CodePageHostToGuest(const host_cnv_char_t *s);
-void PasteClipboard(bool bPressed) {
-	if (!bPressed) return;
-    char *text;
-#if defined(C_SDL2)
-    text = SDL_GetClipboardText();
-#else
-    std::string clip="";
-    GetClipboard(&clip);
-    text = new char[clip.size()+1];
-    strcpy(text, clip.c_str());
-#endif
-    if (text==NULL) return;
-    std::string result="", pre="";
-    for (unsigned int i=0; i<strlen(text); i++) {
-        if (swapad&&text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
-        if (text[i]==9) result+="    ";
-        else if (text[i]<0) {
-            char c=text[i];
-            int n=1;
-            if ((c & 0xe0) == 0xc0) n=2;
-            else if ((c & 0xf0) == 0xe0) n=3;
-            else if ((c & 0xf8) == 0xf0) n=4;
-            pre="";
-            bool exit=false;
-            for (int k=0; k<n; k++) {
-                if (n>2&&i>=strlen(text)) {exit=true;break;}
-                else if (i>=strlen(text)) {i++;break;}
-                if (text[i]>=0) {exit=true;break;}
-                pre+=std::string(1, text[i]);
-                i++;
-            }
-            if (exit) continue;
-            const char* asc = CodePageHostToGuest(pre.c_str());
-            result+=asc!=NULL?std::string(asc):(n>2?"":pre);
-            i--;
-        } else {
-            const char* asc = CodePageHostToGuest(std::string(1, text[i]).c_str());
-            result+=asc != NULL?std::string(asc):std::string(1, text[i]);
-        }
-    }
-    delete text;
-    strPasteBuffer.append(result.c_str());
-}
-#elif defined(LINUX) && C_X11
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-typedef char host_cnv_char_t;
-char *CodePageHostToGuest(const host_cnv_char_t *s);
-void paste_utf8_prop(Display *dpy, Window w, Atom p)
-{
-    Atom da, incr, type;
-    int di;
-    unsigned long size, dul;
-    unsigned char *prop_ret = NULL;
-
-    XGetWindowProperty(dpy, w, p, 0, 0, False, AnyPropertyType, &type, &di, &dul, &size, &prop_ret);
-    XFree(prop_ret);
-
-    incr = XInternAtom(dpy, "INCR", False);
-    if (type == incr) return;
-
-    XGetWindowProperty(dpy, w, p, 0, size, False, AnyPropertyType, &da, &di, &dul, &dul, &prop_ret);
-    char *text=(char *)prop_ret;
-    std::string result="", pre="";
-    for (unsigned int i=0; i<strlen(text); i++) {
-        if (swapad&&text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
-        if (text[i]==9) result+="    ";
-        else if (swapad&&text[i]==0x0A) continue;
-        else if (text[i]<0) {
-            char c=text[i];
-            int n=1;
-            if ((c & 0xe0) == 0xc0) n=2;
-            else if ((c & 0xf0) == 0xe0) n=3;
-            else if ((c & 0xf8) == 0xf0) n=4;
-            pre="";
-            bool exit=false;
-            for (int k=0; k<n; k++) {
-                if (n>2&&i>=strlen(text)) {exit=true;break;}
-                else if (i>=strlen(text)) {i++;break;}
-                if (text[i]>=0) {exit=true;break;}
-                pre+=std::string(1, text[i]);
-                i++;
-            }
-            if (exit) continue;
-            const char* asc = CodePageHostToGuest(pre.c_str());
-            result+=asc!=NULL?std::string(asc):(n>2?"":pre);
-            i--;
-        } else {
-            const char* asc = CodePageHostToGuest(std::string(1, text[i]).c_str());
-            result+=asc != NULL?std::string(asc):std::string(1, text[i]);
-        }
-    }
-    strPasteBuffer.append(result.c_str());
-    fflush(stdout);
-    XFree(prop_ret);
-    XDeleteProperty(dpy, w, p);
-}
-
-void PasteClipboard(bool bPressed) {
-	if (!bPressed) return;
-    Display *dpy;
-    Window owner, target_window, root;
-    int screen;
-    Atom sel, target_property, utf8;
-    XEvent ev;
-    XSelectionEvent *sev;
-
-    dpy = XOpenDisplay(NULL);
-    if (!dpy) return;
-
-    screen = DefaultScreen(dpy);
-    root = RootWindow(dpy, screen);
-
-    sel = XInternAtom(dpy, "CLIPBOARD", False);
-    utf8 = XInternAtom(dpy, "UTF8_STRING", False);
-
-    owner = XGetSelectionOwner(dpy, sel);
-    if (owner == None) return;
-
-    target_window = XCreateSimpleWindow(dpy, root, -10, -10, 1, 1, 0, 0, 0);
-    target_property = XInternAtom(dpy, "PENGUIN", False);
-    XConvertSelection(dpy, sel, utf8, target_property, target_window,
-                      CurrentTime);
-    for (;;) {
-        XNextEvent(dpy, &ev);
-        switch (ev.type) {
-            case SelectionNotify:
-                sev = (XSelectionEvent*)&ev.xselection;
-                if (sev->property == None) return;
-                else {
-                    paste_utf8_prop(dpy, target_window, target_property);
-                    return;
-                }
-                break;
-        }
-    }
-}
-#else
-void PasteClipboard(bool bPressed) {
-	if (!bPressed) return;
-    // stub
-}
-#endif
-#endif
-
-#ifdef WIN32
-void CopyClipboardW(int all) {
-	uint16_t len=0;
-	const char* text = (char *)(all==2?Mouse_GetSelected(0,0,(int)(currentWindowWidth-1-sdl.clip.x),(int)(currentWindowHeight-1-sdl.clip.y),(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
-	if (OpenClipboard(NULL)&&EmptyClipboard()) {
-		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
-		LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));
-		if (buffer!=NULL) {
-			int reqsize = MultiByteToWideChar(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), 0, text, len+1, NULL, 0);
-			if (reqsize>0 && MultiByteToWideChar(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), 0, text, len+1, buffer, reqsize)==reqsize) {
-				GlobalUnlock(clipbuffer);
-				SetClipboardData(CF_UNICODETEXT,clipbuffer);
-			}
-		}
-		CloseClipboard();
-	}
-}
-
-static BOOL WINAPI ConsoleEventHandler(DWORD event) {
-    switch (event) {
-    case CTRL_SHUTDOWN_EVENT:
-    case CTRL_LOGOFF_EVENT:
-    case CTRL_CLOSE_EVENT:
-    case CTRL_BREAK_EVENT:
-        raise(SIGTERM);
-        return TRUE;
-    case CTRL_C_EVENT:
-    default: //pass to the next handler
-        return FALSE;
-    }
-}
-#endif
-
-#if defined(C_SDL2) || defined(MACOSX)
-bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-void CopyClipboard(int all) {
-#ifdef WIN32
-    if (!isDBCSCP()) {
-        CopyClipboardW(all);
-        return;
-    }
-#endif
-	uint16_t len=0;
-	char* text = (char *)(all==2?Mouse_GetSelected(0,0,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
-#ifndef WIN32
-    unsigned int k=0;
-    for (unsigned int i=0; i<len; i++)
-        if (text[i]&&text[i]!=13)
-            text[k++]=text[i];
-    text[k]=0;
-#endif
-    std::string result="";
-    std::istringstream iss(text);
-    char temp[4096];
-    morelen=true;
-    for (std::string token; std::getline(iss, token); ) {
-        if (CodePageGuestToHostUTF8(temp,token.c_str()))
-            result+=temp;
-        else
-            result+=token;
-        result+=std::string(1, 10);
-    }
-    morelen=false;
-    if (result.size()&&result.back()==10) result.pop_back();
-#if defined(C_SDL2)
-    SDL_SetClipboardText(result.c_str());
-#else
-    SetClipboard(result);
-#endif
-}
-#elif defined (WIN32)
-void CopyClipboard(int all) {
-    CopyClipboardW(all);
-}
-#endif
-
-void PasteClipStop(bool bPressed) {
-    if (!bPressed) return;
-    strPasteBuffer = "";
 }
 
 void SDL_OnSectionPropChange(Section *x) {
@@ -9476,7 +7074,7 @@ static void show_warning(char const * const message) {
     uint32_t bmask = 0x0000ff00;
 #else
     uint32_t rmask = 0x000000ff;
-    uint32_t gmask = 0x0000ff00;                    
+    uint32_t gmask = 0x0000ff00;
     uint32_t bmask = 0x00ff0000;
 #endif
     SDL_Surface* splash_surf = SDL_CreateRGBSurface(SDL_SWSURFACE, 640, 400, 32, rmask, gmask, bmask, 0);
@@ -9485,17 +7083,17 @@ static void show_warning(char const * const message) {
     int x = 120,y = 20;
     std::string m(message),m2;
     std::string::size_type a,b,c,d;
-   
+
     while(m.size()) { //Max 50 characters. break on space before or on a newline
         c = m.find('\n');
         d = m.rfind(' ',50);
         if(c>d) a=b=d; else a=b=c;
-        if( a != std::string::npos) b++; 
+        if( a != std::string::npos) b++;
         m2 = m.substr(0,a); m.erase(0,b);
         OutputString((unsigned int)x,(unsigned int)y,m2.c_str(),0xffffffffu,0,splash_surf);
         y += 20;
     }
-   
+
     SDL_BlitSurface(splash_surf, NULL, sdl.surface, NULL);
 #if defined(C_SDL2)
     SDL_UpdateWindowSurface(sdl.window);
@@ -9503,12 +7101,15 @@ static void show_warning(char const * const message) {
     SDL_Flip(sdl.surface);
 #endif
     SDL_Delay(12000);
+    ApplyPreventCap();
 }
-   
+
 static void launcheditor(std::string edit) {
+    if (control->configfiles.size() && control->configfiles.front().size())
+        execlp(edit.c_str(),edit.c_str(),control->configfiles.front().c_str(),(char*) 0);
     std::string path,file;
-    Cross::CreatePlatformConfigDir(path);
-    Cross::GetPlatformConfigName(file);
+    path = Cross::CreatePlatformConfigDir();
+    file = Cross::GetPlatformConfigName();
     path += file;
     FILE* f = fopen(path.c_str(),"r");
     if(!f && !control->PrintConfig(path.c_str())) {
@@ -9548,7 +7149,7 @@ static void launchcaptures(std::string const& edit) {
         exit(1);
     } else {
         path = "";
-        Cross::CreatePlatformConfigDir(path);
+        path = Cross::CreatePlatformConfigDir();
         path += file;
         Cross::CreateDir(path);
         stat(path.c_str(),&cstat);
@@ -9578,7 +7179,7 @@ static void launchsaves(std::string const& edit) {
         exit(1);
     } else {
         path = "";
-        Cross::CreatePlatformConfigDir(path);
+        path = Cross::CreatePlatformConfigDir();
         path += file;
         Cross::CreateDir(path);
         stat(path.c_str(),&cstat);
@@ -9595,10 +7196,10 @@ static void launchsaves(std::string const& edit) {
 
 static void printconfiglocation() {
     std::string path,file;
-    Cross::CreatePlatformConfigDir(path);
-    Cross::GetPlatformConfigName(file);
+    path =Cross::CreatePlatformConfigDir();
+    file = Cross::GetPlatformConfigName();
     path += file;
-     
+
     FILE* f = fopen(path.c_str(),"r");
     if(!f && !control->PrintConfig(path.c_str())) {
         printf("tried creating %s. but failed",path.c_str());
@@ -9617,8 +7218,8 @@ static void eraseconfigfile() {
         show_warning("Warning: dosbox-x.conf (or dosbox.conf) exists in current working directory.\nThis will override the configuration file at runtime.\n");
     }
     std::string path,file;
-    Cross::GetPlatformConfigDir(path);
-    Cross::GetPlatformConfigName(file);
+    path = Cross::GetPlatformConfigDir();
+    file = Cross::GetPlatformConfigName();
     path += file;
     f = fopen(path.c_str(),"r");
     if (!f) exit(0);
@@ -9637,7 +7238,7 @@ static void erasemapperfile() {
     }
 
     std::string path,file=MAPPERFILE;
-    Cross::GetPlatformConfigDir(path);
+    path = Cross::GetPlatformConfigDir();
     path += file;
     FILE* f = fopen(path.c_str(),"r");
     if (!f) exit(0);
@@ -9701,7 +7302,7 @@ bool DEBUG_IsDebuggerConsoleVisible(void);
 #endif
 
 void DOSBox_ShowConsole() {
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     COORD crd;
     HWND hwnd;
@@ -9776,9 +7377,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "?" || optname == "h" || optname == "help") {
             DOSBox_ShowConsole();
 
-            fprintf(stderr,"\ndosbox-x [name] [options]\n");
             fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-%s The DOSBox-X Team.\n",VERSION,SDL_STRING,COPYRIGHT_END_YEAR);
             fprintf(stderr,"DOSBox-X project maintainer: joncampbell123 (The Great Codeholio)\n\n");
+            fprintf(stderr,"dosbox-x [name] [options]\n\n");
             fprintf(stderr,"Options can be started with either \"-\" or \"/\" (e.g. \"-help\" or \"/help\"):\n\n");
             fprintf(stderr,"  -?, -h, -help                           Show this help screen\n");
             fprintf(stderr,"  -v, -ver, -version                      Display DOSBox-X version information\n");
@@ -9811,20 +7412,19 @@ bool DOSBOX_parse_argv() {
 #if C_DEBUG
             fprintf(stderr,"  -display2 <color>                       Enable standard & monochrome dual-screen mode with <color>\n");
 #endif
-            fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
+            fprintf(stderr,"  -lang (or -langcp) <message file>       Use specific message file instead of language= setting\n");
+            fprintf(stderr,"  -machine <type>                         Start DOSBox-X with a specific machine <type>\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (do not signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode (no drive mounting etc)\n");
             fprintf(stderr,"  -prerun                                 If [name] is given, run it before AUTOEXEC.BAT config section\n");
 #if defined(WIN32) && !defined(HX_DOS) || defined(MACOSX) || defined(LINUX)
-            fprintf(stderr,"  -hostrun                                Enable START command, CLIP$ device and long filename support\n");
-#endif
-#if defined(WIN32) && !defined(HX_DOS)
-            fprintf(stderr,"                                          Windows programs can be launched directly to run on the host\n");
+            fprintf(stderr,"  -hostrun                                Enable running host program via START command and LFN support\n");
 #endif
             fprintf(stderr,"  -noconfig                               Do not execute CONFIG.SYS config section\n");
             fprintf(stderr,"  -noautoexec                             Do not execute AUTOEXEC.BAT config section\n");
             fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
             fprintf(stderr,"  -silent                                 Run DOSBox-X silently and exit after executing AUTOEXEC.BAT.\n");
+            fprintf(stderr,"  -o <option string>                      Provide command-line option(s) for [name] if specified.\n");
             fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
             fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
             fprintf(stderr,"  -set <section property=value>           Set the config option (overriding the config file).\n");
@@ -9858,13 +7458,21 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
             fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n");
-            fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n\n");
+            fprintf(stderr,"  -nolog                                  Do not log anything to log file\n");
+            fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n");
+            fprintf(stderr,"  -print-ticks                            (Debug) Print emulator time and SDL_GetTicks()\n");
+            fprintf(stderr,"  -force-gfx-hardware                     Force render scaler system to act as if GFX_HARDWARE\n");
+            fprintf(stderr,"\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();
 #endif
 
             return 0;
+        }
+        else if (optname == "o") {
+            if (!control->cmdline->NextOptArgv(tmp)) return false;
+            control->opt_o.push_back(tmp);
         }
         else if (optname == "c") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
@@ -9874,11 +7482,14 @@ bool DOSBOX_parse_argv() {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
             control->opt_set.push_back(tmp);
         }
-        else if (optname == "alt-vga") {
-            control->opt_alt_vga_render = true;
-        }
         else if (optname == "log-con") {
             control->opt_log_con = true;
+        }
+        else if (optname == "nolog") {
+            control->opt_nolog = true;
+        }
+        else if (optname == "machine") {
+            if (!control->cmdline->NextOptArgv(control->opt_machine)) return false;
         }
         else if (optname == "time-limit") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
@@ -9886,6 +7497,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "break-start") {
             control->opt_break_start = true;
+        }
+        else if (optname == "force-gfx-hardware") {
+            control->opt_force_gfx_hardware = true;
         }
         else if (optname == "silent") {
             putenv(const_cast<char*>("SDL_AUDIODRIVER=dummy"));
@@ -9895,16 +7509,15 @@ bool DOSBOX_parse_argv() {
             control->opt_nomenu = true;
             control->opt_fastlaunch = true;
         }
-#if C_DEBUG
-        else if (optname == "tests" || optname == "gtest_list_tests") {
+        else if (optname == "test" || optname == "tests" || optname == "gtest_list_tests") {
             putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
             control->opt_test = true;
+            control->opt_nolog = true;
             control->opt_noconsole = false;
             control->opt_console = true;
             control->opt_nomenu = true;
             control->opt_fastlaunch = true;
         }
-#endif
         else if (optname == "exit") {
             control->opt_exit = true;
         }
@@ -10082,6 +7695,10 @@ bool DOSBOX_parse_argv() {
             control->opt_earlydebug = true;
             control->opt_console = true;
         }
+        else if (optname == "print-ticks") {
+            control->opt_print_ticks = true;
+            control->opt_console = true;
+        }
         else if (optname == "socket") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
             socknum = std::stoi(tmp);
@@ -10110,7 +7727,7 @@ bool DOSBOX_parse_argv() {
         const char *ext = strrchr(tmp.c_str(),'.'); /* if it looks like a file... with an extension */
         if (rescp) {
             if (rescp == 2 || (ext != NULL && rescp == 1 && (!strcasecmp(ext,".zip") || !strcasecmp(ext,".7z")))) {
-                control->auto_bat_additional.push_back("@mount c: \""+tmp+"\"");
+                control->auto_bat_additional.push_back("@mount c: \""+tmp+"\" -nl");
                 control->cmdline->EatCurrentArgv();
                 continue;
             } else if (ext != NULL && rescp == 1 && (!strcasecmp(ext,".bat") || !strcasecmp(ext,".exe") || !strcasecmp(ext,".com"))) { /* .BAT files given on the command line trigger automounting C: to run it */
@@ -10154,6 +7771,8 @@ void TIMER_Init();
 void CMOS_Init();
 void VGA_Init();
 void CPU_Init();
+void Weitek_Init();
+void CPU_PreInit();
 void ISAPNP_Cfg_Init();
 #if C_FPU
 void FPU_Init();
@@ -10171,6 +7790,7 @@ void DEBUG_Init();
 #endif
 void SBLASTER_Init();
 void GUS_Init();
+void IMFC_Init();
 void INNOVA_Init();
 void PCSPEAKER_Init();
 void TANDYSOUND_Init();
@@ -10187,9 +7807,13 @@ void PARALLEL_Init();
 void DONGLE_Init();
 void DOS_Init();
 void XMS_Init();
+#if !defined(OSFREE)
 void EMS_Init();
+#endif
 void MOUSE_Init();
+#if !defined(OSFREE)
 void DOS_KeyboardLayout_Init();
+#endif
 void CDROM_Image_Init();
 void MSCDEX_Init();
 void DRIVES_Init();
@@ -10198,6 +7822,7 @@ void IDE_Init();
 void NE2K_Init();
 void FDC_Primary_Init();
 void AUTOEXEC_Init();
+void DOS_InitClock();
 
 #if defined(WIN32)
 // NTS: I intend to add code that not only indicates High DPI awareness but also queries the monitor DPI
@@ -10240,8 +7865,10 @@ void Windows_DPI_Awareness_Init() {
 
 bool VM_Boot_DOSBox_Kernel() {
     if (!dos_kernel_disabled) {
+#if !defined(OSFREE)
         RemoveEMSPageFrame();
         RemoveUMBBlock();
+#endif
         DisableINT33();
         DOS_GetMemory_unmap();
         VFILE_Shutdown();
@@ -10249,16 +7876,18 @@ bool VM_Boot_DOSBox_Kernel() {
         DOS_UninstallMisc();
         SBLASTER_DOS_Shutdown();
         GUS_DOS_Shutdown();
+#if !defined(OSFREE)
         EMS_DoShutDown();
+#endif
         XMS_DoShutDown();
         DOS_DoShutDown();
 
         DispatchVMEvent(VM_EVENT_DOS_SURPRISE_REBOOT); // <- apparently we rebooted without any notification (such as jmp'ing to FFFF:0000)
 
         dos_kernel_disabled = true;
+        dos_kernel_shutdown_mcb = true;
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
     }
@@ -10271,11 +7900,12 @@ bool VM_Boot_DOSBox_Kernel() {
 
         /* DOS kernel init */
         dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
+	dos_kernel_shutdown_mcb = false;
         void DOS_Startup(Section* sec);
         DOS_Startup(NULL);
+        maincp = 0;
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 
@@ -10289,17 +7919,28 @@ bool VM_Boot_DOSBox_Kernel() {
 
         DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
 
+        /* Date/time */
+        DOS_InitClock();
+
+#if !defined(OSFREE)
         /* keyboard mapping, at this point in CONFIG.SYS parsing, right? */
         void DOS_KeyboardLayout_Startup(Section* sec);
         DOS_KeyboardLayout_Startup(NULL);
+#endif
 
         /* Most MS-DOS installations have a DEVICE=C:\HIMEM.SYS somewhere near the top of their CONFIG.SYS */
         void XMS_Startup(Section *sec);
         XMS_Startup(NULL);
 
+#if !defined(OSFREE)
         /* And then after that, usually a DEVICE=C:\EMM386.EXE just after HIMEM.SYS */
         void EMS_Startup(Section* sec);
         EMS_Startup(NULL);
+#endif
+
+        SHELL_MessagesInit();
+        CONFIGSHELL_Init();
+        CONFIGSHELL_Run();
 
         DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
         SHELL_Init(); // <- NTS: this will change CPU instruction pointer!
@@ -10341,1334 +7982,45 @@ bool VM_PowerOn() {
     return true;
 }
 
+#if defined(LINUX) && C_X11
+# include <X11/Xlib.h>
+# include <X11/Xatom.h>
+# include "SDL_syswm.h"
+#endif
+
 #if !defined(C_EMSCRIPTEN)
 void update_capture_fmt_menu(void);
 #endif
 
-bool capture_fmt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem);
-
-void update_pc98_clock_pit_menu(void) {
-    Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-
-    int pc98rate = pc98_section->Get_int("pc-98 timer master frequency");
-    if (pc98rate > 6) pc98rate /= 2;
-    if (pc98rate == 0) pc98rate = 5; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
-    else if (pc98rate < 5) pc98rate = 4;
-    else pc98rate = 5;
-
-    mainMenu.get_item("dos_pc98_pit_4mhz").check(pc98rate == 4).refresh_item(mainMenu);
-    mainMenu.get_item("dos_pc98_pit_5mhz").check(pc98rate == 5).refresh_item(mainMenu);
-}
-
-bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    void TIMER_OnPowerOn(Section*);
-    void TIMER_OnEnterPC98_Phase2_UpdateBDA(void);
-
-    const char *ts = menuitem->get_name().c_str();
-    if (!strncmp(ts,"dos_pc98_pit_",13))
-        ts += 13;
-    else
-        return true;
-
-    std::string tmp = "pc-98 timer master frequency=";
-
-    {
-        char tmp1[64];
-        sprintf(tmp1,"%d",atoi(ts));
-        tmp += tmp1;
-    }
-
-    Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-    pc98_section->HandleInputline(tmp.c_str());
-
-    TIMER_OnPowerOn(NULL);
-    TIMER_OnEnterPC98_Phase2_UpdateBDA();
-
-    update_pc98_clock_pit_menu();
-    return true;
-}
-
-void update_dos_ems_menu(void) {
-    Section_prop * dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
-    const char *ems = dos_section->Get_string("ems");
-    if (ems == NULL) return;
-    mainMenu.get_item("dos_ems_true").check(!strcmp(ems, "true")||!strcmp(ems, "1")).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_ems_board").check(!strcmp(ems, "emsboard")).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_ems_emm386").check(!strcmp(ems, "emm386")).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_ems_false").check(!strcmp(ems, "false")||!strcmp(ems, "0")).enable(true).refresh_item(mainMenu);
-}
-
-bool dos_ems_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    std::string tmp="";
-    const char *mname = menuitem->get_name().c_str();
-    if (!strcmp(mname, "dos_ems_true")) tmp="ems=true";
-    else if (!strcmp(mname, "dos_ems_board")) tmp="ems=emsboard";
-    else if (!strcmp(mname, "dos_ems_emm386")) tmp="ems=emm386";
-    else if (!strcmp(mname, "dos_ems_false")) tmp="ems=false";
-    if (tmp.size()) {
-        Section_prop * dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
-        dos_section->HandleInputline(tmp.c_str());
-        EMS_DoShutDown();
-        void EMS_Startup(Section* sec);
-        EMS_Startup(NULL);
-        update_dos_ems_menu();
-    }
-    return true;
-}
-
-bool dos_debug_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    const auto &ts = menuitem->get_name();
-
-    if (ts == "debug_logint21") {
-        log_int21 = !log_int21;
-        mainMenu.get_item("debug_logint21").check(log_int21).refresh_item(mainMenu);
-    }
-    else if (ts == "debug_logfileio") {
-        log_fileio = !log_fileio;
-        mainMenu.get_item("debug_logfileio").check(log_fileio).refresh_item(mainMenu);
-    }
-
-    return true;
-}
-
-void SetScaleForced(bool forced);
-void OutputSettingMenuUpdate(void);
-
-bool scaler_forced_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    SetScaleForced(!render.scale.forced);
-    return true;
-}
-
-void MENU_swapstereo(bool enabled);
-bool MENU_get_swapstereo(void);
-
-bool mixer_swapstereo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MENU_swapstereo(!MENU_get_swapstereo());
-    return true;
-}
-
-void MENU_mute(bool enabled);
-bool MENU_get_mute(void);
-
-bool mixer_mute_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MENU_mute(!MENU_get_mute());
-    return true;
-}
-
-bool mixer_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(20);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-    return true;
-}
-
-bool sb_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(21);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-    return true;
-}
-
-bool midi_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(22);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-    return true;
-}
-
-bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    int cyclemu = 0;
-    const char *mname = menuitem->get_name().c_str();
-    if (!strcmp(mname, "cpu88-4"))
-        cyclemu = 240;
-    else if (!strcmp(mname, "cpu286-8"))
-        cyclemu = 750;
-    else if (!strcmp(mname, "cpu286-12"))
-        cyclemu = 1510;
-    else if (!strcmp(mname, "cpu286-25"))
-        cyclemu = 3300;
-    else if (!strcmp(mname, "cpu386-25"))
-        cyclemu = 4595;
-    else if (!strcmp(mname, "cpu386-33"))
-        cyclemu = 6075;
-    else if (!strcmp(mname, "cpu486-33"))
-        cyclemu = 12010;
-    else if (!strcmp(mname, "cpu486-66"))
-        cyclemu = 23880;
-    else if (!strcmp(mname, "cpu486-100"))
-        cyclemu = 33445;
-    else if (!strcmp(mname, "cpu486-133"))
-        cyclemu = 47810;
-    else if (!strcmp(mname, "cpu586-60"))
-        cyclemu = 31545;
-    else if (!strcmp(mname, "cpu586-66"))
-        cyclemu = 35620;
-    else if (!strcmp(mname, "cpu586-75"))
-        cyclemu = 43500;
-    else if (!strcmp(mname, "cpu586-90"))
-        cyclemu = 52000;
-    else if (!strcmp(mname, "cpu586-100"))
-        cyclemu = 60000;
-    else if (!strcmp(mname, "cpu586-120"))
-        cyclemu = 74000;
-    else if (!strcmp(mname, "cpu586-133"))
-        cyclemu = 80000;
-    else if (!strcmp(mname, "cpu586-166"))
-        cyclemu = 97240;
-    else if (!strcmp(mname, "cpuak6-166"))
-        cyclemu = 110000;
-    else if (!strcmp(mname, "cpuak6-200"))
-        cyclemu = 130000;
-    else if (!strcmp(mname, "cpuak6-300"))
-        cyclemu = 193000;
-    if (cyclemu>0) {
-        Section* sec = control->GetSection("cpu");
-        if (sec) {
-            double perc = static_cast<Section_prop *>(sec)->Get_int("cycle emulation percentage adjust");
-            cyclemu*=(int)((100+perc)/100);
-            std::string tmp("cycles="+std::to_string(cyclemu));
-            sec->HandleInputline(tmp);
-        }
-    }
-    return true;
-}
-
-bool dos_mouse_enable_int33_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    extern bool Mouse_Drv;
-    Mouse_Drv = !Mouse_Drv;
-    mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
-    return true;
-}
-
-bool dos_mouse_y_axis_reverse_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    extern bool Mouse_Vertical;
-    Mouse_Vertical = !Mouse_Vertical;
-    mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
-    return true;
-}
-
-bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(28);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-    return true;
-}
-
-void dos_ver_menu(bool start) {
-    mainMenu.get_item("dos_ver_330").check(dos.version.major==3&&dos.version.minor==30).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_ver_500").check(dos.version.major==5&&dos.version.minor==00).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_ver_622").check(dos.version.major==6&&dos.version.minor==22).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_ver_710").check(dos.version.major==7&&dos.version.minor==10).enable(true).refresh_item(mainMenu);
-    if (start || enablelfn != -2) uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
-}
-
-bool dos_ver_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    const char *mname = menuitem->get_name().c_str();
-    if (!strcmp(mname, "dos_ver_330")) {
-        dos.version.major = 3;
-        dos.version.minor = 30;
-    } else if (!strcmp(mname, "dos_ver_500")) {
-        dos.version.major = 5;
-        dos.version.minor = 0;
-    } else if (!strcmp(mname, "dos_ver_622")) {
-        dos.version.major = 6;
-        dos.version.minor = 22;
-    } else if (!strcmp(mname, "dos_ver_710")) {
-        dos.version.major = 7;
-        dos.version.minor = 10;
-    }
-    dos_ver_menu(false);
-    return true;
-}
-
-bool dos_ver_edit_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(19);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-    return true;
-}
-
-bool dos_lfn_auto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    enablelfn = -1;
-	uselfn = dos.version.major>6 || winrun;
-    mainMenu.get_item("dos_lfn_auto").check(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_lfn_enable").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("dos_lfn_disable").check(false).refresh_item(mainMenu);
-    return true;
-}
-
-bool dos_lfn_enable_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    enablelfn = 1;
-	uselfn = true;
-    mainMenu.get_item("dos_lfn_auto").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("dos_lfn_enable").check(true).refresh_item(mainMenu);
-    mainMenu.get_item("dos_lfn_disable").check(false).refresh_item(mainMenu);
-    return true;
-}
-
-bool dos_lfn_disable_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    enablelfn = 0;
-	uselfn = false;
-    mainMenu.get_item("dos_lfn_auto").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("dos_lfn_enable").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("dos_lfn_disable").check(true).refresh_item(mainMenu);
-    return true;
-}
-
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
-extern bool winautorun, startwait, startquiet, starttranspath;
-bool dos_win_autorun_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    winautorun = !winautorun;
-    mainMenu.get_item("dos_win_autorun").check(winautorun).refresh_item(mainMenu);
-    return true;
-}
-
-bool dos_win_transpath_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    starttranspath = !starttranspath;
-    mainMenu.get_item("dos_win_transpath").check(starttranspath).refresh_item(mainMenu);
-    return true;
-}
-
-bool dos_win_wait_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    startwait = !startwait;
-    mainMenu.get_item("dos_win_wait").check(startwait).refresh_item(mainMenu);
-    return true;
-}
-
-bool dos_win_quiet_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    startquiet = !startquiet;
-    mainMenu.get_item("dos_win_quiet").check(startquiet).refresh_item(mainMenu);
-    return true;
-}
-#endif
-
-bool wheel_move_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    const char *mname = menuitem->get_name().c_str();
-    if (!strcmp(mname, "wheel_none")) wheel_key = 0;
-    else if (!strcmp(mname, "wheel_updown")) wheel_key = 1;
-    else if (!strcmp(mname, "wheel_leftright")) wheel_key = 2;
-    else if (!strcmp(mname, "wheel_pageupdown")) wheel_key = 3;
-    else if (!strcmp(mname, "wheel_ctrlupdown")) wheel_key = 4;
-    else if (!strcmp(mname, "wheel_ctrlleftright")) wheel_key = 5;
-    else if (!strcmp(mname, "wheel_ctrlpageupdown")) wheel_key = 6;
-    else if (!strcmp(mname, "wheel_ctrlwz")) wheel_key = 7;
-    mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_ctrlwz").check(wheel_key==7).refresh_item(mainMenu);
-    mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
-    return true;
-}
-
-bool wheel_guest_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    wheel_guest = !wheel_guest;
-    mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
-    return true;
-}
-
-extern bool                         gdc_5mhz_mode_initial;
-
-bool vid_pc98_5mhz_gdc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (IS_PC98_ARCH) {
-        void gdc_5mhz_mode_update_vars(void);
-        extern bool gdc_5mhz_mode;
-        extern bool gdc_clock_1;
-        extern bool gdc_clock_2;
-
-        gdc_5mhz_mode = !gdc_5mhz_mode;
-        gdc_5mhz_mode_update_vars();
-
-        // this is the user's command to change GDC setting, so it should appear
-        // as if the initial setting in the dip switches
-        gdc_5mhz_mode_initial = gdc_5mhz_mode;
-
-        gdc_clock_1 = gdc_5mhz_mode;
-        gdc_clock_2 = gdc_5mhz_mode;
-
-        Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-        if (gdc_5mhz_mode)
-            pc98_section->HandleInputline("pc-98 start gdc at 5mhz=1");
-        else
-            pc98_section->HandleInputline("pc-98 start gdc at 5mhz=0");
-
-        mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
-    }
-
-    return true;
-}
-
-bool vid_pc98_200scanline_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (IS_PC98_ARCH) {
-        extern bool pc98_allow_scanline_effect;
-
-        pc98_allow_scanline_effect = !pc98_allow_scanline_effect;
-
-        Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-        if (pc98_allow_scanline_effect)
-            pc98_section->HandleInputline("pc-98 allow scanline effect=1");
-        else
-            pc98_section->HandleInputline("pc-98 allow scanline effect=0");
-
-        mainMenu.get_item("pc98_allow_200scanline").check(pc98_allow_scanline_effect).refresh_item(mainMenu);
-    }
-
-    return true;
-}
-
-bool vid_pc98_4parts_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (IS_PC98_ARCH) {
-        extern bool pc98_allow_4_display_partitions;
-        void updateGDCpartitions4(bool enable);
-
-        updateGDCpartitions4(!pc98_allow_4_display_partitions);
-
-        Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-        if (pc98_allow_4_display_partitions)
-            pc98_section->HandleInputline("pc-98 allow 4 display partition graphics=1");
-        else
-            pc98_section->HandleInputline("pc-98 allow 4 display partition graphics=0");
-
-        mainMenu.get_item("pc98_allow_4partitions").check(pc98_allow_4_display_partitions).refresh_item(mainMenu);
-    }
-
-    return true;
-}
-
-bool vid_pc98_enable_188user_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    void gdc_egc_enable_update_vars(void);
-//    extern bool enable_pc98_egc;
-//    extern bool enable_pc98_grcg;
-//    extern bool enable_pc98_16color;
-    extern bool enable_pc98_188usermod;
-
-    if(IS_PC98_ARCH) {
-        enable_pc98_188usermod = !enable_pc98_188usermod;
-        gdc_egc_enable_update_vars();
-
-        Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-        if (enable_pc98_188usermod)
-            pc98_section->HandleInputline("pc-98 enable 188 user cg=1");
-        else
-            pc98_section->HandleInputline("pc-98 enable 188 user cg=0");
-
-        mainMenu.get_item("pc98_enable_188user").check(enable_pc98_188usermod).refresh_item(mainMenu);
-    }
-    
-    return true;
-}
-
-bool vid_pc98_enable_egc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    void gdc_egc_enable_update_vars(void);
-    extern bool enable_pc98_egc;
-    extern bool enable_pc98_grcg;
-    extern bool enable_pc98_16color;
-//    extern bool enable_pc98_188usermod;
-
-    if(IS_PC98_ARCH) {
-        enable_pc98_egc = !enable_pc98_egc;
-        gdc_egc_enable_update_vars();
-
-        Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-        if (enable_pc98_egc) {
-            pc98_section->HandleInputline("pc-98 enable egc=1");
-
-            if(!enable_pc98_grcg) { //Also enable GRCG if GRCG is disabled when enabling EGC
-                enable_pc98_grcg = !enable_pc98_grcg;
-                mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00));   
-                pc98_section->HandleInputline("pc-98 enable grcg=1");
-            }
-        }
-        else
-            pc98_section->HandleInputline("pc-98 enable egc=0");
-
-        mainMenu.get_item("pc98_enable_egc").check(enable_pc98_egc).refresh_item(mainMenu);
-        mainMenu.get_item("pc98_enable_grcg").check(enable_pc98_grcg).refresh_item(mainMenu);
-    }
-    
-    return true;
-}
-
-bool vid_pc98_enable_grcg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    extern bool enable_pc98_grcg;
-    extern bool enable_pc98_egc;
-    void gdc_grcg_enable_update_vars(void);
-
-    if(IS_PC98_ARCH) {
-        enable_pc98_grcg = !enable_pc98_grcg;
-        gdc_grcg_enable_update_vars();
-
-        Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-        if (enable_pc98_grcg)
-            pc98_section->HandleInputline("pc-98 enable grcg=1");
-        else
-            pc98_section->HandleInputline("pc-98 enable grcg=0");
-
-        if ((!enable_pc98_grcg) && enable_pc98_egc) { // Also disable EGC if switching off GRCG
-            void gdc_egc_enable_update_vars(void);
-            enable_pc98_egc = !enable_pc98_egc;
-            gdc_egc_enable_update_vars();   
-            pc98_section->HandleInputline("pc-98 enable egc=0");
-        }
-
-        mainMenu.get_item("pc98_enable_egc").check(enable_pc98_egc).refresh_item(mainMenu);
-        mainMenu.get_item("pc98_enable_grcg").check(enable_pc98_grcg).refresh_item(mainMenu);
-    }
-
-    return true;
-}
-
-bool vid_pc98_enable_analog_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    //NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode? 
-    extern bool enable_pc98_16color;
-    void gdc_16color_enable_update_vars(void);
-
-    if(IS_PC98_ARCH) {
-        enable_pc98_16color = !enable_pc98_16color;
-        gdc_16color_enable_update_vars();
-
-        Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-        if (enable_pc98_16color)
-            pc98_section->HandleInputline("pc-98 enable 16-color=1");
-        else
-            pc98_section->HandleInputline("pc-98 enable 16-color=0");
-
-        mainMenu.get_item("pc98_enable_analog").check(enable_pc98_16color).refresh_item(mainMenu);
-    }
-
-    return true;
-}
-
-bool vid_pc98_enable_analog256_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    //NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode? 
-    extern bool enable_pc98_256color;
-    void gdc_16color_enable_update_vars(void);
-
-    if(IS_PC98_ARCH) {
-        enable_pc98_256color = !enable_pc98_256color;
-        gdc_16color_enable_update_vars();
-
-        Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-        if (enable_pc98_256color)
-            pc98_section->HandleInputline("pc-98 enable 256-color=1");
-        else
-            pc98_section->HandleInputline("pc-98 enable 256-color=0");
-
-        mainMenu.get_item("pc98_enable_analog256").check(enable_pc98_256color).refresh_item(mainMenu);
-    }
-
-    return true;
-}
-
-bool vid_pc98_cleartext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    void pc98_clear_text(void);
-    if (IS_PC98_ARCH) pc98_clear_text();
-    return true;
-}
-
-#ifdef C_D3DSHADERS
-extern bool informd3d;
-bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    OPENFILENAME ofn;
-    char filenamebuf[300] = { 0 };
-    char cwd[1024]; /* to prevent the dialog box from browsing relative to the Documents folder */
-
-    GetCurrentDirectory(sizeof(cwd) - 16,cwd);
-
-    std::string forced_setting;
-    std::string o_cwd = cwd; /* GetOpenFileName() will change the current working directory! */
-
-    strcat(cwd, "\\shaders"); /* DOSBox "D3D patch" compat: File names are assumed to exist relative to <cwd>\shaders */
-
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
-    assert(section != NULL);
-    {
-        Prop_multival* prop = section->Get_multival("pixelshader");
-        const char *path = prop->GetSection()->Get_string("type");
-        forced_setting = prop->GetSection()->Get_string("force");
-
-        if (path != NULL && strcmp(path, "none") != 0) {
-            filenamebuf[sizeof(filenamebuf) - 1] = 0;
-            strncpy(filenamebuf, path, sizeof(filenamebuf) - 1);
-        }
-    }
-
-    memset(&ofn, 0, sizeof(ofn));
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hwndOwner = GetHWND();
-    ofn.lpstrFilter =
-        "D3D shaders\0"                 "*.fx\0"
-        "\0"                            "\0";
-    ofn.nFilterIndex = 1;
-    ofn.lpstrFile = filenamebuf;
-    ofn.nMaxFile = sizeof(filenamebuf);
-    ofn.lpstrTitle = "Select D3D shader";
-    ofn.lpstrInitialDir = cwd;
-    ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_LONGNAMES;
-
-    if (GetOpenFileName(&ofn)) {
-        /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the pixelshader setting unless it's just
-           the same base path it was given: <cwd>\shaders in which case just cut it
-           down to the filename. */
-        const char* name = ofn.lpstrFile;
-
-        /* filenames in Windows are case insensitive so do the comparison the same */
-        if (!strncasecmp(name, cwd, strlen(cwd))) {
-            name += strlen(cwd);
-            while (*name == '\\') name++;
-        }
-
-        /* the shader set included with the source code includes none.fx which is empty.
-           if that was chosen then just change it to "none" so the D3D shader code does
-           not waste it's time. */
-        {
-            const char* n = strrchr(name, '\\');
-            if (n == NULL) n = name;
-
-            if (!strcasecmp(n, "none.fx"))
-                name = "none";
-        }
-
-        /* SetVal just forces the interpreter to parse name=value and pixelshader is a multivalue. */
-        std::string tmp = name;
-        tmp += " ";
-        tmp += forced_setting;
-        SetVal("render", "pixelshader", tmp);
-
-        /* GetOpenFileName() probably changed the current directory.
-           This must be done before reinit of GFX because pixelshader might be relative path. */
-        SetCurrentDirectory(o_cwd.c_str());
-        informd3d=true;
-        /* force reinit */
-        GFX_ForceRedrawScreen();
-        informd3d=false;
-    }
-    else {
-        /* GetOpenFileName() probably changed the current directory */
-        SetCurrentDirectory(o_cwd.c_str());
-    }
-
-    return true;
-}
-#endif
-
-#ifdef C_OPENGL
-extern bool reloadshader;
-extern std::string shader_src;
-std::string LoadGLShader(Section_prop * section);
-bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
-    assert(section != NULL);
-    //Prop_path *sh = section->Get_path("glshader");
-
-#if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    if(getcwd(Temp_CurrentDir, 512) == NULL) {
-        LOG(LOG_GUI, LOG_ERROR)("vid_select_glsl_shader_menu_callback failed to get the current working directory.");
-        return false;
-    }
-    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"glshaders"+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.glsl","*.GLSL"};
-    const char *lFilterDescription = "OpenGL shader files (*.glsl)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select OpenGL shader",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
-
-    if (lTheOpenFileName) {
-        /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the GLSL shader setting unless it's just
-           the same base path it was given: <cwd>\shaders in which case just cut it
-           down to the filename. */
-        const char* name = lTheOpenFileName;
-        std::string tmp = "";
-
-        /* filenames in Windows are case insensitive so do the comparison the same */
-        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
-            name += cwd.size();
-            while (*name == CROSS_FILESPLIT) name++;
-        }
-
-        /* the shader set included with the source code includes none.glsl which is empty.
-           if that was chosen then just change it to "none" so the GLSL shader code does
-           not waste it's time. */
-        {
-            const char* n = strrchr(name, CROSS_FILESPLIT);
-            if (n == NULL) n = name;
-            else n++;
-
-            if (!strcasecmp(n, "none.glsl"))
-                tmp = "default";
-            else if (!strcasecmp(n, "advinterp2x.glsl") || !strcasecmp(n, "advinterp3x.glsl") ||
-                !strcasecmp(n, "advmame2x.glsl") || !strcasecmp(n, "advmame3x.glsl") ||
-                !strcasecmp(n, "rgb2x.glsl") || !strcasecmp(n, "rgb3x.glsl") ||
-                !strcasecmp(n, "scan2x.glsl") || !strcasecmp(n, "scan3x.glsl") ||
-                !strcasecmp(n, "tv2x.glsl") || !strcasecmp(n, "tv3x.glsl") ||
-                !strcasecmp(n, "sharp.glsl") || !strcasecmp(n, "default.glsl")) {
-                    tmp = n;
-                    tmp.erase(tmp.size()-5, string::npos);
-            } else {
-                std::string localname = name;
-                if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
-                    tmp = localname;
-                else
-                    tmp = name;
-            }
-        }
-
-        if (tmp.size()) {
-            SetVal("render", "glshader", tmp);
-            LoadGLShader(section);
-
-            /* force reinit */
-            GFX_ForceRedrawScreen();
-        }
-    }
-    if(chdir(Temp_CurrentDir) == -1) {
-        LOG(LOG_GUI, LOG_ERROR)("vid_select_glsl_shader_menu_callback failed to change directories.");
-        return false;
-    }
-#endif
-
-    return true;
-}
-#endif
-
-#ifdef USE_TTF
-void UpdateDefaultPrinterFont();
-void ttf_reset() {
-    OUTPUT_TTF_Select(2);
-    resetFontSize();
-}
-
-bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-#if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    if(getcwd(Temp_CurrentDir, 512) == NULL) {
-        LOG(LOG_GUI, LOG_ERROR)("vid_select_ttf_font_menu_callback failed to get the current working directory.");
-        return false;
-    }
-    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.ttf","*.TTF","*.ttc","*.TTC","*.otf","*.OTF","*.fon","*.FON"};
-    const char *lFilterDescription = "TrueType font files (*.ttf, *.ttc, *.otf, *.fon)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select TrueType font",cwd.c_str(),8,lFilterPatterns,lFilterDescription,0);
-
-    if (lTheOpenFileName) {
-        /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the TrueType font setting unless it's just
-           the same base path it was given: <cwd>\shaders in which case just cut it
-           down to the filename. */
-        const char* name = lTheOpenFileName;
-
-        /* filenames in Windows are case insensitive so do the comparison the same */
-        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
-            name += cwd.size();
-            while (*name == CROSS_FILESPLIT) name++;
-        }
-
-        if (*name) {
-            std::string localname = name;
-            if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
-                SetVal("ttf", "font", localname.c_str());
-            else
-                SetVal("ttf", "font", name);
-            ttf_reset();
-#if C_PRINTER
-            if (TTF_using() && printfont) UpdateDefaultPrinterFont();
-#endif
-        }
-    }
-    if(chdir(Temp_CurrentDir) == -1) {
-        LOG(LOG_GUI, LOG_ERROR)("vid_select_ttf_font_menu_callback failed to change directories.");
-        return false;
-    }
-#endif
-
-    return true;
-}
-#endif
-
-void Load_mapper_file() {
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
-    assert(section != NULL);
-
-#if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    if(getcwd(Temp_CurrentDir, 512) == NULL) {
-        LOG(LOG_GUI, LOG_ERROR)("Load_mapper_file failed to get the current working directory.");
-        return;
-    }
-    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.map","*.MAP"};
-    const char *lFilterDescription = "Mapper files (*.map)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select mapper file",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
-
-    if (lTheOpenFileName) {
-        /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the mapper file setting unless it's just
-           the same base path it was given: <cwd>\shaders in which case just cut it
-           down to the filename. */
-        const char* name = lTheOpenFileName;
-
-        /* filenames in Windows are case insensitive so do the comparison the same */
-        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
-            name += cwd.size();
-            while (*name == CROSS_FILESPLIT) name++;
-        }
-
-        if (*name) {
-            Prop_path* pp;
-#if defined(C_SDL2)
-            pp = section->Get_path("mapperfile_sdl2");
-#else
-            pp = section->Get_path("mapperfile_sdl1");
-#endif
-            std::string localname = name;
-            if (pp->realpath=="")
-                SetVal("sdl", "mapperfile", !FileDirExistCP(name) && FileDirExistUTF8(localname, name) ? localname.c_str() : name);
-            else {
-#if defined(C_SDL2)
-                SetVal("sdl", "mapperfile_sdl2", !FileDirExistCP(name) && FileDirExistUTF8(localname, name) ? localname.c_str() : name);
-#else
-                SetVal("sdl", "mapperfile_sdl1", !FileDirExistCP(name) && FileDirExistUTF8(localname, name) ? localname.c_str() : name);
-#endif
-            }
-            void ReloadMapper(Section_prop *sec, bool init);
-            ReloadMapper(section,true);
-        }
-    }
-    if(chdir(Temp_CurrentDir) == -1) {
-        LOG(LOG_GUI, LOG_ERROR)("Load_mapper_file failed to change directories.");
-    }
-#endif
-}
-
-void Restart_config_file() {
-#if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    if(getcwd(Temp_CurrentDir, 512) == NULL) {
-        LOG(LOG_GUI, LOG_ERROR)("Restart_config_file failed to get the current working directory.");
-        return;
-    }
-    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.conf","*.CONF","*.cfg","*.CFG"};
-    const char *lFilterDescription = "DOSBox-X config files (*.conf, *.cfg)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select config file",cwd.c_str(),4,lFilterPatterns,lFilterDescription,0);
-
-    if (lTheOpenFileName) {
-        /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the config file setting unless it's just
-           the same base path it was given: <cwd>\shaders in which case just cut it
-           down to the filename. */
-        const char* name = lTheOpenFileName;
-
-        /* filenames in Windows are case insensitive so do the comparison the same */
-        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
-            name += cwd.size();
-            while (*name == CROSS_FILESPLIT) name++;
-        }
-
-        if (*name) {
-            void RebootConfig(std::string filename, bool confirm=false);
-            std::string localname = name;
-            if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
-                RebootConfig(localname.c_str(), true);
-            else
-                RebootConfig(name, true);
-        }
-    }
-    if(chdir(Temp_CurrentDir) == -1) {
-        LOG(LOG_GUI, LOG_ERROR)("Restart_config_file failed to change directories.");
-    }
-#endif
-}
-
-void Restart_language_file() {
-#if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    if(getcwd(Temp_CurrentDir, 512) == NULL) {
-        LOG(LOG_GUI, LOG_ERROR)("Restart_language_file failed to get the current working directory.");
-        return;
-    }
-    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.lng","*.LNG","*.txt","*.TXT"};
-    const char *lFilterDescription = "DOSBox-X language files (*.lng, *.txt)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select language file",cwd.c_str(),4,lFilterPatterns,lFilterDescription,0);
-
-    if (lTheOpenFileName) {
-        /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the language file setting unless it's just
-           the same base path it was given: <cwd>\shaders in which case just cut it
-           down to the filename. */
-        const char* name = lTheOpenFileName;
-
-        /* filenames in Windows are case insensitive so do the comparison the same */
-        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
-            name += cwd.size();
-            while (*name == CROSS_FILESPLIT) name++;
-        }
-
-        if (*name) {
-            std::string localname = name;
-            if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
-                RebootLanguage(localname.c_str(), true);
-            else
-                RebootLanguage(name, true);
-        }
-    }
-    if(chdir(Temp_CurrentDir) == -1) {
-        LOG(LOG_GUI, LOG_ERROR)("Restart_language_file failed to change directories.");
-    }
-#endif
-}
-
-bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    void pc98_clear_graphics(void);
-    if (IS_PC98_ARCH) pc98_clear_graphics();
-    return true;
-}
-
-bool voodoo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
-    if (section == NULL) return false;
-    const char *voodoostr = section->Get_string("voodoo_card");
-    bool voodooon = strcasecmp(voodoostr, "false");
-    SetVal("voodoo", "voodoo_card", voodooon?"false":"auto");
-    VOODOO_Destroy(section);
-    VOODOO_OnPowerOn(section);
-    mainMenu.get_item("3dfx_voodoo").check(!voodooon).refresh_item(mainMenu);
-    return true;
-}
-
-bool glide_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
-    if (section == NULL) return false;
-    bool glideon = addovl;
-    SetVal("voodoo", "glide", glideon?"false":"true");
-    addovl=false;
-    GLIDE_ShutDown(section);
-    GLIDE_PowerOn(section);
-    if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
-    else {
-        VFILE_Remove("GLIDE2X.OVL","SYSTEM");
-        if (!glideon) systemmessagebox("Warning", "Glide passthrough cannot be enabled. Check the Glide wrapper installation.", "ok","warning", 1);
-    }
-    mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
-    return true;
-}
-
-bool overscan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
-    char tmp[64];
-
-    sprintf(tmp,"%d",f);
-    SetVal("sdl", "overscan", tmp);
-    change_output(8);
-    return true;
-}
-
-void UpdateOverscanMenu(void) {
-    for (size_t i=0;i <= 10;i++) {
-        char tmp[64];
-        sprintf(tmp,"overscan_%zu",i);
-        mainMenu.get_item(tmp).check(sdl.overscan_width == i).refresh_item(mainMenu);
-    }
-}
-
-bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-#if !defined(C_SDL2)
-    const char *val = menuitem->get_name().c_str();
-    if (!strncmp(val,"vsync_",6))
-        val += 6;
-    else
-        return true;
-
-    SetVal("vsync", "vsyncmode", val);
-
-    void change_output(int output);
-    change_output(9);
-
-    VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr);
-    void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
-    VGA_VsyncUpdateMode(VGA_Vsync_Decode(val));
-#endif
-    return true;
-}
-
-bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-#if !defined(C_SDL2)
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(17);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-#endif
-    return true;
-}
-
-bool refresh_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(30);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-    return true;
-}
-
-bool toOutput(const char *what) {
-    bool reset=false;
-#if defined(USE_TTF)
-    if (TTF_using()) reset=true;
-#endif
-
-    if (!strcmp(what,"surface")) {
-        if (sdl.desktop.want_type == SCREEN_SURFACE) return false;
-        if (window_was_maximized&&!GFX_IsFullscreen()) {
-            change_output(0);
-#if defined(WIN32)
-            ShowWindow(GetHWND(), SW_MAXIMIZE);
-#endif
-        } else
-            change_output(0);
-        RENDER_Reset();
-    }
-    else if (!strcmp(what,"opengl")) {
-#if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear) return false;
-        if (window_was_maximized&&!GFX_IsFullscreen()) {
-            change_output(3);
-#if defined(WIN32)
-            ShowWindow(GetHWND(), SW_MAXIMIZE);
-#endif
-        } else
-            change_output(3);
-#endif
-    }
-    else if (!strcmp(what,"openglnb")) {
-#if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest) return false;
-        if (window_was_maximized&&!GFX_IsFullscreen()) {
-            change_output(4);
-#if defined(WIN32)
-            ShowWindow(GetHWND(), SW_MAXIMIZE);
-#endif
-        } else
-            change_output(4);
-#endif
-    }
-    else if (!strcmp(what,"openglpp")) {
-#if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect) return false;
-        if (window_was_maximized&&!GFX_IsFullscreen()) {
-            change_output(5);
-#if defined(WIN32)
-            ShowWindow(GetHWND(), SW_MAXIMIZE);
-#endif
-        } else
-            change_output(5);
-#endif
-    }
-    else if (!strcmp(what,"direct3d")) {
-#if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) return false;
-#if C_OPENGL && defined(C_SDL2)
-        if (sdl.desktop.want_type == SCREEN_OPENGL)
-            GFX_SetSDLWindowMode(currentWindowWidth, currentWindowHeight, SCREEN_SURFACE);
-#endif
-        if (window_was_maximized&&!GFX_IsFullscreen()) {
-            change_output(6);
-#if defined(WIN32)
-            ShowWindow(GetHWND(), SW_MAXIMIZE);
-#endif
-        } else
-            change_output(6);
-#endif
-    }
-    else if (!strcmp(what,"ttf")) {
-#if defined(USE_TTF)
-        if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return false;
-#if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
-        if (sdl.desktop.want_type == SCREEN_SURFACE) {
-            sdl_opengl.framebuf = calloc(sdl.draw.width*sdl.draw.height, 4);
-            sdl.desktop.type = SCREEN_OPENGL;
-        }
-#endif
-        bool switchfull = false;
-        if (GFX_IsFullscreen()) {
-            switchfull = true;
-            GFX_SwitchFullScreen();
-        } else if (window_was_maximized) {
-#if defined(WIN32)
-            ShowWindow(GetHWND(), SW_RESTORE);
-#elif defined(C_SDL2)
-            SDL_RestoreWindow(sdl.window);
-#endif
-        }
-#if !defined(C_SDL2)
-        putenv((char*)"SDL_VIDEO_CENTERED=center");
-#endif
-        firstset=false;
-        change_output(10);
-        if (!GFX_IsFullscreen() && switchfull) {
-            switchfull = false;
-            ttf.fullScrn = false;
-            GFX_SwitchFullScreen();
-        } else if (!GFX_IsFullscreen() && ttf.fullScrn) {
-            ttf.fullScrn = false;
-            reset = true;
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-            if (!control->opt_nomenu && static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("showmenu")) DOSBox_SetMenu();
-#endif
-        }
-#endif
-    }
-    if (reset) RENDER_Reset();
-    OutputSettingMenuUpdate();
-    return true;
-}
-
-bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-
-    const char *what = menuitem->get_name().c_str();
-
-    if (!strncmp(what,"output_",7))
-        what += 7;
-    else
-        return true;
-
-    if (toOutput(what)) SetVal("sdl", "output", what);
-    return true;
-}
-
-bool clear_screen() {
-    if (CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)
-        return false;
-    if (CurMode->type==M_TEXT || dos_kernel_disabled) {
-        const auto rows = (IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS):24);
-        const auto cols = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
-        INT10_ScrollWindow(0, 0, rows, static_cast<uint8_t>(cols), -rows, 0x7, 0xff);
-        INT10_SetCursorPos(0, 0, 0);
-    } else if (IS_PC98_ARCH) {
-        char msg[]="\033[2J";
-        uint16_t s = (uint16_t)strlen(msg);
-        DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
-    } else {
-        uint16_t oldax=reg_ax;
-        reg_ax=(uint16_t)CurMode->mode;
-        CALLBACK_RunRealInt(0x10);
-        if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_FillScreen();
-        reg_ax = oldax;
-    }
-    clearline=true;
-    return true;
-}
-
-void show_prompt() {
-    if (!dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
-        DOS_Shell temp;
-        temp.exit = true;
-        temp.ShowPrompt();
-    }
-}
-
-bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    const char *mname = menuitem->get_name().c_str();
-    if (!clear_screen()) return true;
-    show_prompt();
-    return true;
-}
-
-#include "inout.h"
-bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    const char *mname = menuitem->get_name().c_str();
-    uint16_t oldax=reg_ax, oldbx=reg_bx;
-    if (IS_PC98_ARCH||machine==MCH_CGA||(CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)) {
-        systemmessagebox("Warning", "High intensity is not supported for the current video mode.", "ok","warning", 1);
-        return true;
-    }
-    if (!strcmp(mname, "text_background"))
-        reg_bl = 0;
-    else
-        reg_bl = 1;
-	reg_ax = 0x1003;
-    reg_bh = 0;
-	CALLBACK_RunRealInt(0x10);
-    reg_ax = oldax;
-    reg_bx = oldbx;
-    return true;
-}
-
-int GetNumScreen() {
-    int numscreen = 1;
-#if defined(C_SDL2)
-    numscreen = SDL_GetNumVideoDisplays();
-#elif defined(WIN32) && !defined(HX_DOS)
-    xyp xy={0};
-    xy.x=-1;
-    xy.y=-1;
-    curscreen=0;
-    EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
-    numscreen = curscreen;
-#elif defined(MACOSX)
-    CGDisplayCount nDisplays;
-    CGGetActiveDisplayList(0,0, &nDisplays);
-    numscreen = (int)nDisplays;
-#elif defined(LINUX) && C_X11
-    Display *dpy = XOpenDisplay(NULL);
-    if (dpy) numscreen = XScreenCount(dpy);
-#endif
-    return numscreen;
-}
-
 void SetWindowTransparency(int trans) {
-    if (trans == transparency) return;
+    if (trans == -1) trans = transparency;
+    else if (trans == transparency) return;
     double alpha = (double)(100-trans)/100;
 #if defined(C_SDL2)
     SDL_SetWindowOpacity(sdl.window,alpha);
-#elif defined(WIN32) && !defined(HX_DOS)
+#elif defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     SetWindowLong(GetHWND(), GWL_EXSTYLE, GetWindowLong(GetHWND(), GWL_EXSTYLE) | WS_EX_LAYERED);
     SetLayeredWindowAttributes(GetHWND(), 0, 255 * alpha, LWA_ALPHA);
+#elif defined(MACOSX)
+    SetAlpha(alpha);
 #elif defined(LINUX) && C_X11
-    Display *dpy = XOpenDisplay(NULL);
-    if (!dpy) return;
+    Display *dpy;
+    Window window;
+    SDL_SysWMinfo wminfo;
+    memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+    if (SDL_GetWMInfo(&wminfo) >= 0) {
+        dpy = wminfo.info.x11.display;
+        if (!dpy) return;
+        if (wminfo.info.x11.wmwindow) window = wminfo.info.x11.wmwindow;
+    } else {
+        dpy = XOpenDisplay(NULL);
+        if (!dpy) return;
+        window = DefaultRootWindow(dpy);
+    }
     unsigned long opacity = (unsigned long)(0xFFFFFFFFul * alpha);
     Atom atom = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
-    XChangeProperty(dpy, DefaultRootWindow(dpy), atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&opacity, 1L);
+    XChangeProperty(dpy, window, atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&opacity, 1L);
 #endif
     transparency = trans;
 }
@@ -11707,812 +8059,19 @@ void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight) {
     *pmaxHeight = maxHeight;
 }
 
-#if defined(USE_TTF)
-void ttf_setlines(int cols, int lins) {
-    if (cols>0) SetVal("ttf", "cols", std::to_string(cols));
-    if (lins>0) SetVal("ttf", "lins", std::to_string(lins));
-    firstset=true;
-    ttf_reset();
-    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
-    if (IS_EGAVGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
-    vga.draw.address_add = ttf.cols * 2;
-}
-#endif
-
-bool setlines(const char *mname) {
-    uint16_t oldax=reg_ax, oldbx=reg_bx, oldcx=reg_cx;
-    if (!strcmp(mname, "line_80x25")) {
-        reg_ax = 0x0003;
-        CALLBACK_RunRealInt(0x10);
-#if defined(USE_TTF)
-        if (ttf.inUse) ttf_setlines(80, 25);
-#endif
-    } else if (!strcmp(mname, "line_80x43")) {
-        reg_ax = 0x0019;
-        CALLBACK_RunRealInt(0x10);
-#if defined(USE_TTF)
-        if (ttf.inUse) ttf_setlines(80, 43);
-#endif
-    } else if (!strcmp(mname, "line_80x50")) {
-        reg_ax = 0x1202;
-        reg_bl = 0x30;
-        CALLBACK_RunRealInt(0x10);
-        reg_ax = 3;
-        CALLBACK_RunRealInt(0x10);
-        reg_ax = 0x1112;
-        CALLBACK_RunRealInt(0x10);
-        reg_ax = 0x100;
-        reg_cx = 0x808;
-        CALLBACK_RunRealInt(0x10);
-#if defined(USE_TTF)
-        if (ttf.inUse) ttf_setlines(80, 50);
-#endif
-    } else if (!strcmp(mname, "line_80x60")) {
-        reg_ax = 0x0043;
-        CALLBACK_RunRealInt(0x10);
-#if defined(USE_TTF)
-        if (ttf.inUse) ttf_setlines(80, 60);
-#endif
-    } else if (!strcmp(mname, "line_132x25")) {
-        reg_ax = 0x0055;
-        CALLBACK_RunRealInt(0x10);
-#if defined(USE_TTF)
-        if (ttf.inUse) ttf_setlines(132, 25);
-#endif
-    } else if (!strcmp(mname, "line_132x43")) {
-        reg_ax = 0x0054;
-        CALLBACK_RunRealInt(0x10);
-#if defined(USE_TTF)
-        if (ttf.inUse) ttf_setlines(132, 43);
-#endif
-    } else if (!strcmp(mname, "line_132x50")) {
-        reg_ax = 0x0055;
-        CALLBACK_RunRealInt(0x10);
-        reg_ax = 0x1112;
-        CALLBACK_RunRealInt(0x10);
-        reg_ax = 0x100;
-        reg_cx = 0x808;
-        CALLBACK_RunRealInt(0x10);
-#if defined(USE_TTF)
-        if (ttf.inUse) ttf_setlines(132, 50);
-#endif
-    } else if (!strcmp(mname, "line_132x60")) {
-        reg_ax = 0x0064;
-        CALLBACK_RunRealInt(0x10);
-#if defined(USE_TTF)
-        if (ttf.inUse) ttf_setlines(132, 60);
-#endif
-    } else
-        return false;
-    reg_ax = oldax;
-    reg_bx = oldbx;
-    reg_cx = oldcx;
-    return true;
-}
-
-#if defined(USE_TTF)
-int oldblinkc=-1;
-bool ttf_blinking_cursor_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (blinkCursor>-1) {
-        oldblinkc=blinkCursor;
-        blinkCursor=-1;
-        SetVal("ttf", "blinkc", "false");
-        mainMenu.get_item("ttf_blinkc").check(false).refresh_item(mainMenu);
-    } else {
-        blinkCursor=oldblinkc>-1?oldblinkc:(IS_PC98_ARCH?6:4);
-        SetVal("ttf", "blinkc", "true");
-        mainMenu.get_item("ttf_blinkc").check(true).refresh_item(mainMenu);
-    }
-    resetFontSize();
-    return true;
-}
-
-bool ttf_right_left_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    rtl=!rtl;
-    SetVal("ttf", "righttoleft", rtl?"true":"false");
-    mainMenu.get_item("ttf_right_left").check(rtl).refresh_item(mainMenu);
-    resetFontSize();
-    return true;
-}
-
-bool ttf_dbcs_sbcs_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (!isDBCSCP()) {
-        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
-        return true;
-    }
-    dbcs_sbcs=!dbcs_sbcs;
-    SetVal("ttf", "autodbcs", dbcs_sbcs?"true":"false");
-    mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
-    resetFontSize();
-    return true;
-}
-
-bool ttf_auto_boxdraw_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (!isDBCSCP()) {
-        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
-        return true;
-    }
-    autoboxdraw=!autoboxdraw;
-    SetVal("ttf", "autoboxdraw", autoboxdraw?"true":"false");
-    mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
-    resetFontSize();
-    return true;
-}
-
-bool ttf_halfwidth_katakana_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (!isDBCSCP()||dos.loaded_codepage!=932) {
-        systemmessagebox("Warning", "This function is only available for the Japanese code page (932).", "ok","warning", 1);
-        return true;
-    }
-    halfwidthkana=!halfwidthkana;
-    SetVal("ttf", "halfwidthkana", halfwidthkana?"true":"false");
-    mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana).refresh_item(mainMenu);
-    setTTFCodePage();
-    resetFontSize();
-    return true;
-}
-
-bool ttf_extend_charset_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (!isDBCSCP()||(dos.loaded_codepage!=936&&dos.loaded_codepage!=950)) {
-        systemmessagebox("Warning", "This function is only available for the Chinese code pages (936 or 950).", "ok","warning", 1);
-        return true;
-    }
-    if (dos.loaded_codepage==936) {
-        gbk=!gbk;
-        SetVal("ttf", "gbk", gbk?"true":"false");
-        mainMenu.get_item("ttf_extcharset").check(gbk).refresh_item(mainMenu);
-    } else if (dos.loaded_codepage==950) {
-        chinasea=!chinasea;
-        if (!chinasea) makestdcp950table();
-        SetVal("ttf", "chinasea", chinasea?"true":"false");
-        mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
-    }
-    resetFontSize();
-    return true;
-}
-
-#if C_PRINTER
-bool ttf_print_font_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    printfont=!printfont;
-    SetVal("ttf", "printfont", printfont?"true":"false");
-    mainMenu.get_item("ttf_printfont").check(printfont).refresh_item(mainMenu);
-    UpdateDefaultPrinterFont();
-    return true;
-}
-#endif
-
-void ttf_reset_colors() {
-    SetVal("ttf", "colors", "");
-    setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
-}
-
-bool ttf_reset_colors_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    ttf_reset_colors();
-    return true;
-}
-
-bool ttf_style_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    const char *mname = menuitem->get_name().c_str();
-    if (!strcmp(mname, "ttf_showbold")) {
-        showbold=!showbold;
-        SetVal("ttf", "bold", showbold?"true":"false");
-        mainMenu.get_item(mname).check(showbold).refresh_item(mainMenu);
-    } else if (!strcmp(mname, "ttf_showital")) {
-        showital=!showital;
-        SetVal("ttf", "italic", showital?"true":"false");
-        mainMenu.get_item(mname).check(showital).refresh_item(mainMenu);
-    } else if (!strcmp(mname, "ttf_showline")) {
-        showline=!showline;
-        SetVal("ttf", "underline", showline?"true":"false");
-        mainMenu.get_item(mname).check(showline).refresh_item(mainMenu);
-    } else if (!strcmp(mname, "ttf_showsout")) {
-        showsout=!showsout;
-        SetVal("ttf", "strikeout", showsout?"true":"false");
-        mainMenu.get_item(mname).check(showsout).refresh_item(mainMenu);
-    } else
-        return true;
-    resetFontSize();
-    return true;
-}
-
-bool ttf_wp_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    const char *mname = menuitem->get_name().c_str();
-    if (!strcmp(mname, "ttf_wpno")) {
-        SetVal("ttf", "wp", "");
-        wpType=0;
-    } else if (!strcmp(mname, "ttf_wpwp")) {
-        SetVal("ttf", "wp", "wp");
-        wpType=1;
-    } else if (!strcmp(mname, "ttf_wpws")) {
-        SetVal("ttf", "wp", "ws");
-        wpType=2;
-    } else if (!strcmp(mname, "ttf_wpxy")) {
-        SetVal("ttf", "wp", "xy");
-        wpType=3;
-    } else if (!strcmp(mname, "ttf_wpfe")) {
-        SetVal("ttf", "wp", "fe");
-        wpType=4;
-    } else
-        return true;
-    mainMenu.get_item("ttf_wpno").check(!wpType).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_wpfe").check(wpType==4).refresh_item(mainMenu);
-    resetFontSize();
-    return true;
-}
-#endif
-
-bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    clear_screen();
-    const char *mname = menuitem->get_name().c_str();
-    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
-        return true;
-    if (!setlines(mname)) return true;
-    show_prompt();
-    return true;
-}
-
-bool MENU_SetBool(std::string secname, std::string value);
-
-bool vga_9widetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MENU_SetBool("render", "char9");
-    return true;
-}
-
-bool doublescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MENU_SetBool("render", "doublescan");
-    return true;
-}
-
-bool scaler_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-
-    const char *scaler = menuitem->get_name().c_str();
-    if (!strncmp(scaler,"scaler_set_",11))
-        scaler += 11;
-    else
-        abort();
-
-    auto value = std::string(scaler) + (render.scale.forced ? " forced" : "");
-    SetVal("render", "scaler", value);
-
-    void RENDER_UpdateFromScalerSetting(void);
-    RENDER_UpdateFromScalerSetting();
-
-    void RENDER_UpdateScalerMenu(void);
-    RENDER_UpdateScalerMenu();
-
-    void RENDER_CallBack( GFX_CallBackFunctions_t function );
-    RENDER_CallBack(GFX_CallBackReset);
-
-    return true;
-}
-
-void CALLBACK_Idle(void);
-
-void PauseWithInterruptsEnabled(Bitu /*val*/) {
-    /* we can ONLY do this when the CPU is either in real mode or v86 mode.
-     * doing this from protected mode will only crash the game.
-     * also require that interrupts are enabled before pausing. */
-    if (cpu.pmode) {
-        if (!(reg_flags & FLAG_VM)) {
-            PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
-            return;
-        }
-    }
-
-    if (!(reg_flags & FLAG_IF)) {
-        PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
-        return;
-    }
-
-    while (pausewithinterrupts_enable) CALLBACK_Idle();
-}
-
-void PauseWithInterrupts_mapper_shortcut(bool pressed) {
-    if (!pressed) return;
-
-    if (!pausewithinterrupts_enable) {
-        pausewithinterrupts_enable = true;
-        PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
-    }
-    else {
-        pausewithinterrupts_enable = false;
-    }
-
-    mainMenu.get_item("mapper_pauseints").check(pausewithinterrupts_enable).refresh_item(mainMenu);
-}
-
-bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-
-    int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
-    char tmp1[64], tmp2[64];
-
-    sprintf(tmp1,"%d",f);
-    SetVal("render", "frameskip", tmp1);
-    for (unsigned int i=0;i<=10;i++) {
-        sprintf(tmp2,"frameskip_%u",i);
-        mainMenu.get_item(tmp2).check((unsigned int)f==i).refresh_item(mainMenu);
-    }
-    return true;
-}
-
-bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-#if !defined(C_EMSCRIPTEN) && defined(WIN32) && !defined(HX_DOS)
-#if C_DEBUG
-    if (DEBUG_IsDebuggerConsoleVisible())
-        return true;
-#endif
-    HWND hwnd = GetConsoleWindow();
-    if (hwnd == NULL)
-        DOSBox_ShowConsole();
-    else if (IsWindowVisible(hwnd))
-        ShowWindow(hwnd, SW_HIDE);
-    else
-        ShowWindow(hwnd, SW_SHOW);
-    mainMenu.get_item("show_console").check(IsWindowVisible(hwnd)).refresh_item(mainMenu);
-#endif
-    return true;
-}
-
-bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-#if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    if(getcwd(Temp_CurrentDir, 512) == NULL) {
-        LOG(LOG_GUI, LOG_ERROR)("Restart_config_file failed to get the current working directory.");
-        return false;
-    }
-    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.log","*.LOG"};
-    const char *lFilterDescription = "Log files (*.log)";
-    char const * lTheSaveFileName = tinyfd_saveFileDialog("Save log file...","",2,lFilterPatterns,lFilterDescription);
-    if (lTheSaveFileName==NULL) return false;
-#if C_DEBUG
-    bool savetologfile(const char *name);
-    if (!savetologfile(lTheSaveFileName)) systemmessagebox("Warning", ("Cannot save to the file: "+std::string(lTheSaveFileName)).c_str(), "ok","warning", 1);
-#endif
-    if(chdir(Temp_CurrentDir) == -1) {
-        LOG(LOG_GUI, LOG_ERROR)("save_logas_menu_callback failed to change directories.");
-        return false;
-    }
-#endif
-    return true;
-}
-
-bool show_logtext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GUI_Shortcut(40);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    return true;
-}
-
-bool show_codetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GUI_Shortcut(41);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    return true;
-}
-
-bool wait_on_error_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    sdl.wait_on_error = !sdl.wait_on_error;
-    mainMenu.get_item("wait_on_error").check(sdl.wait_on_error).refresh_item(mainMenu);
-    return true;
-}
-
-#if C_DEBUG
-extern bool tohide;
-extern int debugrunmode, debuggerrun;
-void DEBUG_Enable_Handler(bool pressed);
-bool IsDebuggerActive(void), IsDebuggerRunwatch(void), IsDebuggerRunNormal(void);
-bool debugger_rundebug_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    debugrunmode=0;
-    mainMenu.get_item("debugger_rundebug").check(true).refresh_item(mainMenu);
-    mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
-    if (IsDebuggerActive()||IsDebuggerRunwatch()||IsDebuggerRunNormal()) {
-        tohide=false;
-        DEBUG_Enable_Handler(true);
-        tohide=true;
-    }
-    return true;
-}
-
-bool debugger_runnormal_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    debugrunmode=1;
-    mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
-    mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
-    if (IsDebuggerActive()||IsDebuggerRunwatch()||IsDebuggerRunNormal()) {
-        tohide=false;
-        DEBUG_Enable_Handler(true);
-        tohide=true;
-    }
-    return true;
-}
-
-bool debugger_runwatch_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    debugrunmode=2;
-    mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
-    if (IsDebuggerActive()||IsDebuggerRunwatch()||IsDebuggerRunNormal()) {
-        tohide=false;
-        DEBUG_Enable_Handler(true);
-        tohide=true;
-    }
-    return true;
-}
-#endif
-
-bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    sdl.mouse.autoenable = !sdl.mouse.autoenable;
-    mainMenu.get_item("auto_lock_mouse").check(sdl.mouse.autoenable).refresh_item(mainMenu);
-    return true;
-}
-
-#if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
-bool arrow_keys_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    mbutton = 4;
-    mainMenu.get_item("clipboard_right").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("clipboard_middle").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("clipboard_arrows").check(true).refresh_item(mainMenu);
-    return true;
-}
-
-bool right_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    mbutton = 3;
-    mainMenu.get_item("clipboard_right").check(true).refresh_item(mainMenu);
-    mainMenu.get_item("clipboard_middle").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("clipboard_arrows").check(false).refresh_item(mainMenu);
-    return true;
-}
-
-bool middle_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    mbutton = 2;
-    mainMenu.get_item("clipboard_right").check(false).refresh_item(mainMenu);
-    mainMenu.get_item("clipboard_middle").check(true).refresh_item(mainMenu);
-    mainMenu.get_item("clipboard_arrows").check(false).refresh_item(mainMenu);
-    return true;
-}
-
-bool screen_to_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    CopyClipboard(2);
-    return true;
-}
-
-void QuickEdit(bool bPressed)
-{
-    if (!bPressed) return;
-    direct_mouse_clipboard = !direct_mouse_clipboard;
-    mainMenu.get_item("mapper_fastedit").check(direct_mouse_clipboard).refresh_item(mainMenu);
-}
-
-void CopyAllClipboard(bool bPressed) {
-    if (!bPressed) return;
-    CopyClipboard(2);
-}
-#else
-void CopyAllClipboard(bool bPressed) {
-    if (!bPressed) return;
-    // STUB
-}
-#endif
-
-bool dos_clipboard_api_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    clipboard_dosapi = !clipboard_dosapi;
-    if (control->SecureMode()) clipboard_dosapi = false;
-    mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).refresh_item(mainMenu);
-    return true;
-}
-
-bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (dos_clipboard_device_access == 4) dos_clipboard_device_access=1;
-    else if (dos_clipboard_device_access) dos_clipboard_device_access=4;
-    mainMenu.get_item("clipboard_device").check(dos_clipboard_device_access==4&&!control->SecureMode()).refresh_item(mainMenu);
-    return true;
-}
-
-bool clipboard_bios_paste_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    clipboard_biospaste = !clipboard_biospaste;
-    mainMenu.get_item("clipboard_biospaste").check(clipboard_biospaste).refresh_item(mainMenu);
-    return true;
-}
-
-bool pc98_force_uskb_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    pc98_force_ibm_layout = !pc98_force_ibm_layout;
-    mainMenu.get_item("pc98_use_uskb").check(pc98_force_ibm_layout).refresh_item(mainMenu);
-    return true;
-}
-
-bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    std::string doubleBufString = std::string("desktop.doublebuf");
-    SetVal("sdl", "fulldouble", (GetSetSDLValue(1, doubleBufString, 0)) ? "false" : "true"); res_init();
-    mainMenu.get_item("doublebuf").check(!!GetSetSDLValue(1, doubleBufString, 0)).refresh_item(mainMenu);
-    return true;
-}
-
-bool quick_reboot_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    use_quick_reboot = !use_quick_reboot;
-    mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
-    return true;
-}
-
-bool sync_host_datetime_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (!sync_time) sync_time=true;
-    else if (!manualtime) sync_time=false;
-    manualtime=false;
-    mainMenu.get_item("sync_host_datetime").check(sync_time).refresh_item(mainMenu);
-    return true;
-}
-
-bool shell_config_commands_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    enable_config_as_shell_commands = !enable_config_as_shell_commands;
-    mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).refresh_item(mainMenu);
-    return true;
-}
-
-bool enable_autosave_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    enable_autosave = !enable_autosave;
-    mainMenu.get_item("enable_autosave").check(enable_autosave).refresh_item(mainMenu);
-    return true;
-}
-
-bool noremark_savestate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    noremark_save_state = !noremark_save_state;
-    mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
-    return true;
-}
-
-bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    force_load_state = !force_load_state;
-    mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
-    return true;
-}
-
-bool browse_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    const char *mname = menuitem->get_name().c_str();
-    if (!strcmp(mname, "browsesavefile")&&!use_save_file) return false;
-
-#if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    if(getcwd(Temp_CurrentDir, 512) == NULL) {
-        LOG(LOG_GUI, LOG_ERROR)("browse_save_file_menu_callback failed to get the current working directory.");
-        return false;
-    }
-    const char *lFilterPatterns[] = {"*.sav","*.SAV"};
-    const char *lFilterDescription = "Save files (*.sav)";
-    char const * lTheSaveFileName = tinyfd_saveFileDialog("Select a save file","",2,lFilterPatterns,lFilterDescription);
-    if (lTheSaveFileName!=NULL) {
-        savefilename = std::string(lTheSaveFileName);
-        mainMenu.get_item("usesavefile").set_text("Use save file"+(savefilename.size()?" ("+savefilename+")":"")).refresh_item(mainMenu);
-    }
-    if(chdir(Temp_CurrentDir) == -1) {
-        LOG(LOG_GUI, LOG_ERROR)("browse_save_file_menu_callback failed to change to the current working directory.");
-        return false;
-    }
-#endif
-    return true;
-}
-
-bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (use_save_file) use_save_file=false;
-    else if (savefilename.size()) use_save_file=true;
-    else {
-        browse_save_file_menu_callback(menu, menuitem);
-        if (savefilename.size()) use_save_file=true;
-    }
-    mainMenu.get_item("usesavefile").check(use_save_file).refresh_item(mainMenu);
-    mainMenu.get_item("browsesavefile").enable(use_save_file).refresh_item(mainMenu);
-    std::string slot="";
-    for (int i=0; i<=9; i++) {
-        slot="slot"+std::to_string(i);
-        mainMenu.get_item(slot).enable(!use_save_file).refresh_item(mainMenu);
-    }
-    return true;
-}
-
-bool auto_save_setting_menu_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(29);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    return true;
-}
-
-void refresh_slots() {
-    std::string text=mainMenu.get_item("current_page").get_text();
-    std::size_t found = text.find(":");
-    if (found!=std::string::npos) text = text.substr(0, found);
-    mainMenu.get_item("current_page").set_text(text+": "+to_string(page+1)+"/10").refresh_item(mainMenu);
-	for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
-		char name[6]="slot0";
-		name[4]='0'+i;
-		std::string command=SaveState::instance().getName(page*SaveState::SLOT_COUNT+i);
-		std::string str=std::string(MSG_Get("SLOT"))+" "+to_string(page*SaveState::SLOT_COUNT+i+1)+(command==""?"":" "+command);
-		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
-	}
-}
-
-bool refresh_slots_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    refresh_slots();
-    return true;
-}
-
-bool remove_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    SaveState::instance().removeState(GetGameState_Run());
-    return true;
-}
-
-bool last_autosave_slot_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    void LastAutoSaveSlot_Run(void);
-    LastAutoSaveSlot_Run();
-    return true;
-}
-
-bool first_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    if (page>0) {
-        char name[6]="slot0";
-        name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
-        mainMenu.get_item(name).check(false).refresh_item(mainMenu);
-        page=0;
-        if (GetGameState_Run()/SaveState::SLOT_COUNT==page) {
-            name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
-            mainMenu.get_item(name).check(true).refresh_item(mainMenu);
-        }
-        refresh_slots_menu_callback(menu, menuitem);
-    }
-    return true;
-}
-
-bool last_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    if (page<SaveState::MAX_PAGE-1) {
-        char name[6]="slot0";
-        name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
-        mainMenu.get_item(name).check(false).refresh_item(mainMenu);
-        page=SaveState::MAX_PAGE-1;
-        if (GetGameState_Run()/SaveState::SLOT_COUNT==page) {
-            name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
-            mainMenu.get_item(name).check(true).refresh_item(mainMenu);
-        }
-        refresh_slots_menu_callback(menu, menuitem);
-    }
-    return true;
-}
-
-bool prev_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-	char name[6]="slot0";
-	name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
-	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
-    page=(page+SaveState::MAX_PAGE-1)%SaveState::MAX_PAGE;
-    if (GetGameState_Run()/SaveState::SLOT_COUNT==page) {
-        name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
-        mainMenu.get_item(name).check(true).refresh_item(mainMenu);
-    }
-    refresh_slots_menu_callback(menu, menuitem);
-    return true;
-}
-
-bool next_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-	char name[6]="slot0";
-	name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
-	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
-    page=(page+1)%SaveState::MAX_PAGE;
-    if (GetGameState_Run()/SaveState::SLOT_COUNT==page) {
-        name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
-        mainMenu.get_item(name).check(true).refresh_item(mainMenu);
-    }
-    refresh_slots_menu_callback(menu, menuitem);
-    return true;
-}
-
 #if defined(LINUX)
 bool x11_on_top = false;
 #endif
 
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX)
 bool macosx_on_top = false;
 #endif
 
 bool is_always_on_top(void) {
-#if defined(_WIN32) && !defined(C_SDL2)
+#if defined(_WIN32)
     DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
     return !!(dwExStyle & WS_EX_TOPMOST);
-#elif defined(MACOSX) && !defined(C_SDL2)
+#elif defined(MACOSX)
     return macosx_on_top;
 #elif defined(LINUX)
     return x11_on_top;
@@ -12521,374 +8080,10 @@ bool is_always_on_top(void) {
 #endif
 }
 
-#if defined(_WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
-#endif
-#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
-#endif
-#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
-#endif
-
-void toggle_always_on_top(void) {
-    bool cur = is_always_on_top();
-#if defined(_WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-    sdl1_hax_set_topmost(!cur);
-#elif defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-    sdl1_hax_set_topmost(macosx_on_top = (!cur));
-#elif defined(LINUX)
-    void LinuxX11_OnTop(bool f);
-    LinuxX11_OnTop(x11_on_top = (!cur));
-#else
-    (void)cur;
-#endif
-}
-
-void BlankDisplay(void);
-
-bool refreshtest_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)menuitem;
-    (void)xmenu;
-
-    BlankDisplay();
-
-#if defined(USE_TTF)
-    if (TTF_using()) resetFontSize();
-#endif
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    mainMenu.setRedraw();
-    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
-#endif
-
-    return true;
-}
-
-bool generatenmi_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)menuitem;
-    (void)xmenu;
-
-    CPU_Raise_NMI();
-
-    return true;
-}
-
-Bitu int2fdbg_hook_callback = 0;
-bool int2fhook_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)menuitem;
-    (void)xmenu;
-
-#if C_DEBUG
-    if (int2fdbg_hook_callback == 0) {
-        void Int2fhook();
-        Int2fhook();
-        systemmessagebox("Success", "The INT 2Fh hook has been successfully set.", "ok","info", 1);
-    } else
-        systemmessagebox("Warning", "The INT 2Fh hook was already set up.", "ok","warning", 1);
-#endif
-
-    return true;
-}
-
-bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)xmenu;//UNUSED
-    (void)menuitem;//UNUSED
-    menu.showrt = !(menu.hidecycles = !menu.hidecycles);
-    GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
-    mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
-    return true;
-}
-
-bool restartinst_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)xmenu;//UNUSED
-    (void)menuitem;//UNUSED
-    RebootLanguage("", true);
-    return true;
-}
-
-bool restartconf_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)xmenu;//UNUSED
-    (void)menuitem;//UNUSED
-    Restart_config_file();
-    return true;
-}
-
-bool restartlang_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)xmenu;//UNUSED
-    (void)menuitem;//UNUSED
-    Restart_language_file();
-    return true;
-}
-
-bool alwaysontop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    toggle_always_on_top();
-    mainMenu.get_item("alwaysontop").check(is_always_on_top()).refresh_item(mainMenu);
-    return true;
-}
-
-bool highdpienable_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    void RENDER_CallBack( GFX_CallBackFunctions_t function );
-
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-    dpi_aware_enable = !dpi_aware_enable;
-    if (!control->opt_disable_dpi_awareness) {
-        sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
-        RENDER_CallBack(GFX_CallBackReset);
-    }
-#endif
-
-    mainMenu.get_item("highdpienable").check(dpi_aware_enable).refresh_item(mainMenu);
-    return true;
-}
-
-void SendKey(std::string key) {
-    if (key == "sendkey_winlogo") {
-        KEYBOARD_AddKey(KBD_lwindows, true);
-        KEYBOARD_AddKey(KBD_lwindows, false);
-    } else if (key == "sendkey_winmenu") {
-        KEYBOARD_AddKey(KBD_rwinmenu, true);
-        KEYBOARD_AddKey(KBD_rwinmenu, false);
-    } else if (key == "sendkey_alttab") {
-        KEYBOARD_AddKey(KBD_leftalt, true);
-        KEYBOARD_AddKey(KBD_tab, true);
-        KEYBOARD_AddKey(KBD_leftalt, false);
-        KEYBOARD_AddKey(KBD_tab, false);
-    } else if (key == "sendkey_ctrlesc") {
-        KEYBOARD_AddKey(KBD_leftctrl, true);
-        KEYBOARD_AddKey(KBD_esc, true);
-        KEYBOARD_AddKey(KBD_leftctrl, false);
-        KEYBOARD_AddKey(KBD_esc, false);
-    } else if (key == "sendkey_ctrlbreak") {
-        KEYBOARD_AddKey(KBD_leftctrl, true);
-        KEYBOARD_AddKey(KBD_pause, true);
-        KEYBOARD_AddKey(KBD_leftctrl, false);
-        KEYBOARD_AddKey(KBD_pause, false);
-    } else if (key == "sendkey_cad") {
-        KEYBOARD_AddKey(KBD_leftctrl, true);
-        KEYBOARD_AddKey(KBD_leftalt, true);
-        KEYBOARD_AddKey(KBD_delete, true);
-        KEYBOARD_AddKey(KBD_leftctrl, false);
-        KEYBOARD_AddKey(KBD_leftalt, false);
-        KEYBOARD_AddKey(KBD_delete, false);
-    }
-}
-
-void Sendkeymapper(bool pressed) {
-    if (!pressed) return;
-    if (sendkeymap==1) SendKey("sendkey_winlogo");
-    else if (sendkeymap==2) SendKey("sendkey_winmenu");
-    else if (sendkeymap==3) SendKey("sendkey_alttab");
-    else if (sendkeymap==4) SendKey("sendkey_ctrlesc");
-    else if (sendkeymap==5) SendKey("sendkey_ctrlbreak");
-    else SendKey("sendkey_cad");
-}
-
-bool sendkey_mapper_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    if (menuitem->get_name()=="sendkey_mapper_winlogo") sendkeymap=1;
-    else if (menuitem->get_name()=="sendkey_mapper_winmenu") sendkeymap=2;
-    else if (menuitem->get_name()=="sendkey_mapper_alttab") sendkeymap=3;
-    else if (menuitem->get_name()=="sendkey_mapper_ctrlesc") sendkeymap=4;
-    else if (menuitem->get_name()=="sendkey_mapper_ctrlbreak") sendkeymap=5;
-    else if (menuitem->get_name()=="sendkey_mapper_cad") sendkeymap=0;
-    mainMenu.get_item("sendkey_mapper_winlogo").check(menuitem->get_name()=="sendkey_mapper_winlogo").refresh_item(mainMenu);
-    mainMenu.get_item("sendkey_mapper_winmenu").check(menuitem->get_name()=="sendkey_mapper_winmenu").refresh_item(mainMenu);
-    mainMenu.get_item("sendkey_mapper_alttab").check(menuitem->get_name()=="sendkey_mapper_alttab").refresh_item(mainMenu);
-    mainMenu.get_item("sendkey_mapper_ctrlesc").check(menuitem->get_name()=="sendkey_mapper_ctrlesc").refresh_item(mainMenu);
-    mainMenu.get_item("sendkey_mapper_ctrlbreak").check(menuitem->get_name()=="sendkey_mapper_ctrlbreak").refresh_item(mainMenu);
-    mainMenu.get_item("sendkey_mapper_cad").check(menuitem->get_name()=="sendkey_mapper_cad").refresh_item(mainMenu);
-    return true;
-}
-
-bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    SendKey(menuitem->get_name());
-    return true;
-}
-
-void update_all_shortcuts();
-bool hostkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    if (menuitem->get_name()=="hostkey_ctrlalt") hostkeyalt=1;
-    else if (menuitem->get_name()=="hostkey_ctrlshift") hostkeyalt=2;
-    else if (menuitem->get_name()=="hostkey_altshift") hostkeyalt=3;
-    else hostkeyalt=0;
-    mainMenu.get_item("hostkey_ctrlalt").check(hostkeyalt==1).refresh_item(mainMenu);
-    mainMenu.get_item("hostkey_ctrlshift").check(hostkeyalt==2).refresh_item(mainMenu);
-    mainMenu.get_item("hostkey_altshift").check(hostkeyalt==3).refresh_item(mainMenu);
-    mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).refresh_item(mainMenu);
-    update_all_shortcuts();
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    mainMenu.rebuild();
-#endif
-#if defined(WIN32) && !defined(HX_DOS)
-    DOSBox_SetSysMenu();
-#endif
-    return true;
-}
-
-bool help_open_url_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    std::string url="";
-    if (menuitem->get_name() == "help_homepage")
-        url="https://dosbox-x.com/";
-    else if (menuitem->get_name() == "help_wiki")
-        url="https://dosbox-x.com/wiki";
-    else if (menuitem->get_name() == "help_issue")
-        url="https://github.com/joncampbell123/dosbox-x/issues";
-    if (url.size()) {
-#if defined(WIN32)
-      ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
-#elif defined(LINUX)
-      int ret = system(("xdg-open "+url).c_str());
-      return WIFEXITED(ret) && WEXITSTATUS(ret);
-#elif defined(MACOSX)
-      int ret = system(("open "+url).c_str());
-      return WIFEXITED(ret) && WEXITSTATUS(ret);
-#endif
-    }
-
-    return true;
-}
-
-bool help_intro_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(34);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    return true;
-}
-
-bool help_about_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(35);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    return true;
-}
-
-bool toscale=true;
-std::string helpcmd="";
-bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const menuitem) {
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    bool switchfs=false;
-#if defined(C_SDL2)
-    int x=-1, y=-1;
-#endif
-    if (!GFX_IsFullscreen()&&!window_was_maximized) {
-        switchfs=true;
-#if defined(C_SDL2)
-        SDL_GetWindowPosition(sdl.window, &x, &y);
-#endif
-        GFX_SwitchFullScreen();
-    }
-    toscale=false;
-    helpcmd = menuitem->get_name().substr(8);
-    GUI_Shortcut(36);
-    toscale=true;
-    helpcmd = "";
-    if (switchfs) {
-        GFX_SwitchFullScreen();
-#if defined(C_SDL2)
-        if (x>-1&&y>-1) SDL_SetWindowPosition(sdl.window, x, y);
-#endif
-    }
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    return true;
-}
-
-extern std::string niclist;
-bool help_nic_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GUI_Shortcut(38);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    return true;
-}
-
-extern std::string prtlist;
-bool help_prt_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GUI_Shortcut(39);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    return true;
-}
-
-
-void SetCyclesCount_mapper_shortcut_RunInternal(void) {
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
-    GUI_Shortcut(16);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-}
-
-void SetCyclesCount_mapper_shortcut_RunEvent(Bitu /*val*/) {
-    KEYBOARD_ClrBuffer();   //Clear buffer
-    GFX_LosingFocus();      //Release any keys pressed (buffer gets filled again).
-    SetCyclesCount_mapper_shortcut_RunInternal();
-}
-
-void SetCyclesCount_mapper_shortcut(bool pressed) {
-    if (!pressed) return;
-    PIC_AddEvent(SetCyclesCount_mapper_shortcut_RunEvent, 0.0001f); //In case mapper deletes the key object that ran it
-}
-
-void AspectRatio_mapper_shortcut(bool pressed) {
-    if (!pressed) return;
-
-    if (!GFX_GetPreventFullscreen()) {
-        SetVal("render", "aspect", render.aspect ? "false" : "true");
-    }
-}
-
-void OutputSettingMenuUpdate(void) {
-    mainMenu.get_item("output_surface").check(sdl.desktop.want_type == SCREEN_SURFACE).refresh_item(mainMenu);
-#if C_DIRECT3D
-    mainMenu.get_item("output_direct3d").check(sdl.desktop.want_type == SCREEN_DIRECT3D).refresh_item(mainMenu);
-#endif
-#if C_OPENGL
-    mainMenu.get_item("output_opengl").check(sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear).refresh_item(mainMenu);
-    mainMenu.get_item("output_openglnb").check(sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest).refresh_item(mainMenu);
-    mainMenu.get_item("output_openglpp").check(sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect).refresh_item(mainMenu);
-#endif
-#if defined(USE_TTF)
-    mainMenu.get_item("output_ttf").check(sdl.desktop.want_type == SCREEN_TTF).refresh_item(mainMenu);
-#endif
-}
-
 bool custom_bios = false;
+size_t custom_bios_image_size = 0;
+Bitu custom_bios_image_offset = 0;
+unsigned char *custom_bios_image = NULL;
 
 // OK why isn't this being set for Linux??
 #ifndef SDL_MAIN_NOEXCEPT
@@ -12898,6 +8093,7 @@ bool custom_bios = false;
 #if defined(WIN32) && !defined(HX_DOS)
 #include "Shlobj.h"
 int CALLBACK FolderBrowserCallback(HWND h_Dlg, UINT uMsg, LPARAM lParam, LPARAM lpData) {
+    (void)lParam;
     if (uMsg == BFFM_INITIALIZED)
         SendMessageW(h_Dlg, BFFM_SETEXPANDED, TRUE, lpData);
     return 0;
@@ -12909,6 +8105,11 @@ std::wstring win32_prompt_folder(const char *default_folder) {
     const size_t size = default_folder == NULL? 0 : strlen(default_folder)+1;
     wchar_t* wfolder = default_folder == NULL ? NULL : new wchar_t[size];
     if (default_folder != NULL) mbstowcs (wfolder, default_folder, size);
+
+    //fix memory leaks
+    std::wstring wsfolder = wfolder ? wfolder : L"";
+    if(wfolder) delete[] wfolder;
+    wfolder = &wsfolder[0];
 
 #if 0 // Browse for folder using SHBrowseForFolder, which works on Windows XP and higher
     WCHAR szDir[MAX_PATH];
@@ -12996,7 +8197,7 @@ std::wstring win32_prompt_folder(const char *default_folder) {
     of.lpstrFilter = L"DOSBox-X configuration file\0" L"dosbox-x.conf;dosbox.conf\0";
     if (GetOpenFileNameW(&of)) {
         if (of.nFileOffset >= sizeof(tmp)) return std::wstring();
-        while (of.nFileOffset > 0 && tmp[of.nFileOffset - 1] == '/' || tmp[of.nFileOffset - 1] == '\\') of.nFileOffset--;
+        while ((of.nFileOffset > 0 && tmp[of.nFileOffset - 1] == '/') || tmp[of.nFileOffset - 1] == '\\') of.nFileOffset--;
         if (of.nFileOffset == 0) return std::wstring();
         res = std::wstring(tmp, (size_t)of.nFileOffset);
     }
@@ -13006,18 +8207,156 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
-void DISP2_Init(uint8_t color);
+void CPU_OnReset(Section* sec);
+
+#if defined(C_HAVE_DUKTAPE)
+static void jsc_print_multiline_string(enum LOG_SEVERITIES lsev,const char *prefix,const char *s) {
+	std::string prefixspc;
+	std::string r;
+	int line = 0;
+
+	prefixspc.resize(strlen(prefix));
+	for (size_t i=0;i < prefixspc.length();i++) prefixspc[i] = ' ';
+
+	while (*s) {
+		if (*s == '\n') {
+			LOG(LOG_MISC,lsev)("%s: %s",line == 0 ? prefix : prefixspc.c_str(),r.c_str());
+			r.clear();
+			line++;
+		}
+		else if (*s >= ' ' || *s < 0) {
+			r += *s;
+		}
+
+		s++;
+	}
+
+	if (!r.empty())
+		LOG(LOG_MISC,lsev)("%s: %s",line == 0 ? prefix : prefixspc.c_str(),r.c_str());
+}
+
+/* console.log(...)
+ * _emu.log(...) */
+static duk_ret_t jsc_console_log(duk_context *ctx) {
+	std::string r;
+	const char *s;
+	int line = 0;
+
+	duk_idx_t tp = duk_get_top(ctx);
+	for (duk_idx_t i=0;i < tp;i++) {
+		if (!r.empty()) r += " ";
+
+		s = duk_to_string(ctx,i);
+		if (s) {
+			while (*s) {
+				if (*s == '\n') {
+					LOG(LOG_MISC,LOG_NORMAL)("%s: %s",line == 0 ? "console.log()" : "             ",r.c_str());
+					r.clear();
+					line++;
+				}
+				else if (*s >= ' ' || *s < 0) {
+					r += *s;
+				}
+
+				s++;
+			}
+		}
+	}
+
+	if (!r.empty())
+		LOG(LOG_MISC,LOG_NORMAL)("%s: %s",line == 0 ? "console.log()" : "             ",r.c_str());
+
+	return 0;
+}
+
+void jsc_load_file(const char *jskey,const char *script) {
+	/* eval("...") -> [js_idx] object */
+	duk_push_string(js_heap,"_emu._js");
+	duk_eval(js_heap);
+	if (!duk_is_object(js_heap,-1)) {
+		duk_pop(js_heap);
+		return;
+	}
+
+	duk_idx_t js_idx = duk_get_top(js_heap) - duk_idx_t(1);
+	char *tmp = NULL;
+	off_t sz = 0;
+	int fd = -1;
+
+	fd = open(script,O_RDONLY|O_BINARY);
+	if (fd >= 0) {
+		sz = lseek(fd,0,SEEK_END);
+		if (sz > 0 && sz <= (16*1024*1024) && lseek(fd,0,SEEK_SET) == 0)
+			tmp = (char*)malloc((size_t)sz + 1);
+
+		if (tmp) {
+			int r = read(fd,tmp,sz);
+			if (r < 0) r = 0;
+			tmp[r] = 0;
+
+			LOG(LOG_MISC,LOG_DEBUG)("Loading %s %s",jskey,script);
+
+			/* in:
+			 *    <string>
+			 * out:
+			 *    <function> */
+			duk_push_string(js_heap, script);
+			duk_compile_lstring_filename(js_heap,0,tmp,(duk_size_t)r);
+
+			duk_push_string(js_heap,jskey);//key
+			duk_dup(js_heap,-2);//value
+			duk_put_prop(js_heap,js_idx);//[js_idx].[jskey] = [function]
+			duk_pop(js_heap);//discard function
+
+			free((void*)tmp);
+		}
+
+		close(fd);
+	}
+
+	duk_pop(js_heap);//discard [js_idx] object
+}
+
+void jsc_run(const char *jskey) {
+	duk_push_string(js_heap,(std::string("_emu._js['")+jskey+"']").c_str());
+	duk_eval(js_heap);
+	if (duk_is_callable(js_heap,-1)) {
+		LOG(LOG_MISC,LOG_DEBUG)("JS calling %s",jskey);
+		if (duk_pcall(js_heap,0)) {
+			if (duk_is_error(js_heap,-1)) {
+				LOG(LOG_MISC,LOG_ERROR)("JS error in %s",jskey);
+
+				duk_dup(js_heap,-1);
+				jsc_print_multiline_string(LOG_ERROR,"JS error",duk_safe_to_string(js_heap,-1));
+				duk_pop(js_heap);
+
+				duk_dup(js_heap,-1);
+				jsc_print_multiline_string(LOG_DEBUG,"JS error stack",duk_safe_to_stacktrace(js_heap,-1));
+				duk_pop(js_heap);
+			}
+		}
+	}
+	duk_pop(js_heap);//discard retval or whatever was not a function. will be an error object if JS error
+}
+#endif
+
+void DISP2_Init(uint8_t color), DISP2_Shut();
 //extern void UI_Init(void);
 void grGlideShutdown(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
+#if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
+    dropPrivilegesTemp();
+#endif
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
+    bool saved_opt_test;
 
     control=&myconf;
 
 #if defined(WIN32) && !defined(HX_DOS)
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 #endif
+
 
     /* -- parse command line arguments */
     if (!DOSBOX_parse_argv()) return 1;
@@ -13142,9 +8481,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
     // initialize some defaults in SDL structure here
-    sdl.srcAspect.x = 4; sdl.srcAspect.y = 3; 
+    sdl.srcAspect.x = aspect_ratio_x>0?aspect_ratio_x:4;
+    sdl.srcAspect.y = aspect_ratio_y>0?aspect_ratio_y:3;
     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
+
+    std::string exepath = GetDOSBoxXPath(true);
 
 #if defined(MACOSX)
     /* The resource system of DOSBox-X relies on being able to locate the Resources subdirectory
@@ -13169,21 +8511,38 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 MacOSXResPath = std::string(ref,(size_t)(s-ref)) + "/Resources";
             }
         }
+        if (!MacOSXResPath.size() && exepath.size()) {
+            char *path = (char*)malloc(exepath.size() + 1);
+            if (path) {
+                strcpy(path, exepath.c_str());
+                const char *s = strrchr(path,'/');
+                if (s != NULL) {
+                    if (s > path) s--;
+                    while (s > path && *s != '/') s--;
+                    if (!strncasecmp(s,"/MacOS/",7)) {
+                        MacOSXResPath = std::string(path,(size_t)(s-path)) + "/Resources";
+                        struct stat st;
+                        if (stat(MacOSXResPath.c_str(), &st)) MacOSXResPath = "";
+                    }
+                }
+                free(path);
+            }
+        }
     }
 #endif
 
     configfile = "";
+    exepath = GetDOSBoxXPath();
     std::string workdiropt = "default";
     std::string workdirdef = "";
-    std::string exepath=GetDOSBoxXPath();
     struct stat st;
     if (!control->opt_defaultconf && control->config_file_list.empty() && stat("dosbox-x.conf", &st) && stat("dosbox.conf", &st)) {
         /* load the global config file first */
         std::string tmp,config_path,config_combined;
 
         /* -- Parse configuration files */
-        Cross::GetPlatformConfigDir(config_path);
-        Cross::GetPlatformConfigName(tmp);
+        config_path = Cross::GetPlatformConfigDir();
+        tmp = Cross::GetPlatformConfigName();
 
         if (exepath.size()) {
             control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
@@ -13197,6 +8556,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         config_combined = config_path + tmp;
         if (!control->configfiles.size() && stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode))
             control->ParseConfigFile(config_combined.c_str());
+
         if (control->configfiles.size()) configfile = control->configfiles.front();
 
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -13220,7 +8580,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         usecfgdir = false;
     } else if (workdiropt == "userconfig") {
         std::string config_path;
-        Cross::GetPlatformConfigDir(config_path);
+        config_path = Cross::GetPlatformConfigDir();
         if (config_path.size()) {
             if (chdir(config_path.c_str()) == -1) {
                 LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'userconfig'.");
@@ -13242,22 +8602,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         usecfgdir = true;
     }
 
-    /* default do not prompt if -conf, -userconf, -defaultconf, or -defaultdir is used */
-    if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || control->opt_userconf || control->opt_defaultconf || control->opt_used_defaultdir || control->opt_fastlaunch || control->opt_test || workdiropt == "noprompt")) {
+    /* default do not prompt if -set, -conf, -userconf, -defaultconf, or -defaultdir is used */
+    if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || !control->opt_set.empty() || control->opt_userconf || control->opt_defaultconf || control->opt_used_defaultdir || control->opt_fastlaunch || control->opt_test || workdiropt == "noprompt")) {
         control->opt_promptfolder = 0;
     }
 
     int workdirsave = 0;
     std::string workdirsaveas = "";
+
 #if defined(MACOSX) || defined(LINUX) || (defined(WIN32) && !defined(HX_DOS))
     {
-        char cwd[512] = {0};
-        if(getcwd(cwd, sizeof(cwd) - 1) == NULL) {
-            LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
-        }
-
-#if !defined(MACOSX)
         if(control->opt_promptfolder < 0) {
+#if !defined(MACOSX)
             struct stat st;
 
             /* if dosbox.conf or dosbox-x.conf already exists in the current working directory, then skip folder prompt */
@@ -13266,8 +8622,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     control->opt_promptfolder = 0;
                 }
             }
-        }
 #endif
+            std::string res_path;
+            res_path = Cross::GetPlatformResDir();
+            if(stat((res_path + "dosbox-x.conf").c_str(), &st) == 0) {
+                if(S_ISREG(st.st_mode)) {
+                    control->opt_promptfolder = 0;
+                }
+            }
+        }
 
 #if defined(WIN32)
         /* A Windows application cannot detect with isatty() if run from the command prompt.
@@ -13275,8 +8638,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (control->opt_promptfolder < 0)
             control->opt_promptfolder = 1;
 #else
-        if (control->opt_promptfolder < 0)
-            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd,"/")) ? 1 : 0;
+        std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
+        if (control->opt_promptfolder < 0 && getcwd(cwd.get(), PATH_MAX) != nullptr)
+            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd.get(), "/")) ? 1 : 0;
 #endif
         if (control->opt_promptfolder == 1 && workdiropt == "default" && workdirdef.size()) {
             control->opt_promptfolder = 0;
@@ -13307,12 +8671,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 E_Exit("Can't init SDL %s",SDL_GetError());
 #endif
 
-            char folder[512], *default_folder=folder;
-            std::string dir = workdirdef.empty()?(exepath.size()?exepath:""):workdirdef;
-            if (dir.size()&&dir.size()<512)
-                strcpy(default_folder, dir.c_str());
-            else
-                default_folder = NULL;
+            std::unique_ptr<char[]> folder(new char[PATH_MAX]);
+            char* default_folder = nullptr;
+
+            std::string dir = workdirdef.empty() ? (!exepath.empty() ? exepath : "") : workdirdef;
+            if (!dir.empty() && dir.size() < PATH_MAX) {
+                std::strncpy(folder.get(), dir.c_str(), PATH_MAX);
+                folder[PATH_MAX-1] = '\0'; // Null terminate just in case
+                default_folder = folder.get();
+            }
             const char *confirmstr = "Do you want to use the selected folder as the DOSBox-X working directory in future sessions?\n\nIf you select Yes, DOSBox-X will not prompt for a folder again.\nIf you select No, DOSBox-X will always prompt for a folder when it runs.\nIf you select Cancel, DOSBox-X will ask this question again next time.";
             const char *quitstr = "You have not selected a valid path. Do you want to run DOSBox-X with the current path as the DOSBox-X working directory?\n\nDOSBox-X will exit if you select No.";
 #if defined(MACOSX)
@@ -13392,11 +8759,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
     }
 #endif
-
+    std::string tmp, config_path, res_path, config_combined;
+    /* -- Parse configuration files */
+    config_path = Cross::GetPlatformConfigDir();
+    res_path = Cross::GetPlatformResDir();
+    tmp = Cross::GetPlatformConfigName();
+    config_combined = config_path + tmp;
     {
-        std::string tmp,config_path,config_combined;
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         {
             DISPLAY_DEVICE dd;
             unsigned int i = 0;
@@ -13431,15 +8802,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         }
 
-        /* -- Parse configuration files */
-        Cross::GetPlatformConfigDir(config_path);
-
         /* -- -- first the user config file */
         if (control->opt_userconf || workdirsave>0) {
-            tmp.clear();
-            Cross::GetPlatformConfigDir(config_path);
-            Cross::GetPlatformConfigName(tmp);
-            config_combined = config_path + tmp;
 
             LOG(LOG_MISC,LOG_DEBUG)("Loading config file according to -userconf from %s",config_combined.c_str());
             control->ParseConfigFile(config_combined.c_str());
@@ -13453,10 +8817,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                         tsec->HandleInputline("working directory option=autoprompt");
                 }
                 //Try to create the userlevel configfile.
-                tmp.clear();
-                Cross::CreatePlatformConfigDir(config_path);
-                Cross::GetPlatformConfigName(tmp);
-                config_combined = config_path + tmp;
+                config_path = Cross::CreatePlatformConfigDir();
 
                 LOG(LOG_MISC,LOG_DEBUG)("Attempting to write config file according to -userconf, to %s",config_combined.c_str());
                 if (control->PrintConfig(config_combined.c_str())) {
@@ -13494,25 +8855,41 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
     if (!control->opt_defaultconf) {
         /* -- -- if none found, use dosbox-x.conf or dosbox.conf */
-        if (!control->configfiles.size()) control->ParseConfigFile("dosbox-x.conf");
-        if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
-        if (!control->configfiles.size()) {
-            std::string exepath=GetDOSBoxXPath();
-            if (exepath.size()) {
-                control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
-                if (!control->configfiles.size()) control->ParseConfigFile((exepath + "dosbox.conf").c_str());
+        std::string cur_dir;
+        std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
+        if(getcwd(cwd.get(), PATH_MAX) != nullptr) {
+            cur_dir = std::string(cwd.get()) + CROSS_FILESPLIT;
+        }
+        else {
+            cur_dir.clear();
+        }
+        const std::string config_paths[] = {
+            cur_dir + "dosbox-x.conf",
+            cur_dir + "dosbox.conf",
+            exepath.empty() ? "" : exepath + "dosbox-x.conf",
+            exepath.empty() ? "" : exepath + "dosbox.conf",
+            res_path.empty() ? "": res_path + "dosbox-x.conf", /* resource level conf */
+            config_path.empty() ? "" : config_path + "dosbox-x.conf", /* user level conf */
+            config_combined /* user level conf (default name)*/
+        };
+
+        for (const auto& path : config_paths) {
+            if (!control->configfiles.size() && !path.empty()) {
+                LOG(LOG_MISC, LOG_NORMAL)("Trying config: %s\n", path.c_str());
+                control->ParseConfigFile(path.c_str());
             }
         }
-
-        /* -- -- if none found, use userlevel conf */
-        if (!control->configfiles.size()) control->ParseConfigFile((config_path + "dosbox-x.conf").c_str());
-        if (!control->configfiles.size()) {
-            tmp.clear();
-            Cross::GetPlatformConfigName(tmp);
-            control->ParseConfigFile((config_path + tmp).c_str());
+        /* -- -- if none found, create userlevel conf */
+        if(!control->configfiles.size()) {
+            if(!config_combined.empty()){
+                control->PrintConfig(config_combined.c_str());
+                control->ParseConfigFile(config_combined.c_str()); // Load the conf file created above
+                if(control->configfiles.size()) LOG_MSG("CONFIG: Created and loaded user config file %s", config_combined.c_str());
+            } else LOG_MSG("CONFIG: Warning: User config file not found. Try specifying it with -conf option or put it in the current directory.");
         }
 
         if (control->configfiles.size()) {
+            LOG_MSG("CONFIG: Loaded config file: %s", control->configfiles.front().c_str());
             if (control->opt_eraseconf&&control->config_file_list.empty()) {
                 LOG_MSG("Erase config file: %s\n", control->configfiles.front().c_str());
                 unlink(control->configfiles.front().c_str());
@@ -13699,21 +9076,26 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			if (!strlen(pvars[0].c_str())) continue;
 			if (pvars[0][0]=='%'||pvars[0][0]=='\0'||pvars[0][0]=='#'||pvars[0][0]=='\n') continue;
 
-
+			Section* sec = control->GetSectionFromProperty(pvars[0].c_str());
 			// attempt to split off the first word
 			std::string::size_type spcpos = pvars[0].find_first_of(' ');
 			if (spcpos>1&&pvars[0].c_str()[spcpos-1]==',')
 				spcpos=pvars[0].find_first_of(' ', spcpos+1);
 
 			std::string::size_type equpos = pvars[0].find_first_of('=');
+            if (equpos != std::string::npos) {
+                std::string p = pvars[0];
+                p.erase(equpos);
+                sec = control->GetSectionFromProperty(p.c_str());
+            }
 
-			if ((equpos != std::string::npos) && 
-				((spcpos == std::string::npos) || (equpos < spcpos))) {
+			if ((equpos != std::string::npos) &&
+				((spcpos == std::string::npos) || (equpos < spcpos) || sec)) {
 				// If we have a '=' possibly before a ' ' split on the =
 				pvars.insert(pvars.begin()+1,pvars[0].substr(equpos+1));
 				pvars[0].erase(equpos);
 				// As we had a = the first thing must be a property now
-				Section* sec=control->GetSectionFromProperty(pvars[0].c_str());
+				sec=control->GetSectionFromProperty(pvars[0].c_str());
 				if (!sec&&pvars[0].size()>4&&!strcasecmp(pvars[0].substr(0, 4).c_str(), "ttf.")) {
 					pvars[0].erase(0,4);
 					sec = control->GetSectionFromProperty(pvars[0].c_str());
@@ -13731,7 +9113,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					pvars[0].erase(spcpos);
 				}
 				// check if the first parameter is a section or property
-				Section* sec = control->GetSection(pvars[0].c_str());
+				sec = control->GetSection(pvars[0].c_str());
 				if (!sec) {
 					// not a section: little duplicate from above
 					sec=control->GetSectionFromProperty(pvars[0].c_str());
@@ -13756,9 +9138,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					// is this a property?
 					Section* sec2 = control->GetSectionFromProperty(pvars[1].c_str());
 					if (!sec2) {
-						// not a property, 
+						// not a property,
 						Section* sec3 = control->GetSectionFromProperty(pvars[0].c_str());
-						if (sec3) {
+						if (sec3 && !(equpos != std::string::npos && spcpos != std::string::npos && equpos > spcpos)) {
 							// section and property name are identical
 							pvars.insert(pvars.begin(),pvars[0]);
 						} // else has been checked above already
@@ -13803,7 +9185,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         } else if (workdiropt == "userconfig") {
             std::string config_path;
-            Cross::GetPlatformConfigDir(config_path);
+            config_path = Cross::GetPlatformConfigDir();
             if(config_path.size()) {
                 if(chdir(config_path.c_str()) == -1) {
                     LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'userconfig'.");
@@ -13823,12 +9205,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         }
 
-        char cwd[512] = {0};
-        if(getcwd(cwd, sizeof(cwd) - 1))
-            LOG_MSG("DOSBox-X's working directory: %s\n", cwd);
-        else
-            LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
-
+        {
+            std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
+            if(getcwd(cwd.get(), PATH_MAX))
+                LOG_MSG("DOSBox-X's working directory: %s\n", cwd.get());
+            else
+                LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
+        }
     const char *imestr = section->Get_string("ime");
     enableime = !strcasecmp(imestr, "true") || !strcasecmp(imestr, "1");
     if (!strcasecmp(imestr, "auto")) {
@@ -13838,12 +9221,21 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             force_conversion = true;
             int cp=dos.loaded_codepage;
             if (InitCodePage() && isDBCSCP()) enableime = true;
+            else if (control->opt_langcp) tonoime = true;
             force_conversion = false;
             dos.loaded_codepage=cp;
+#if defined (WIN32)
+            if (!enableime&&!tonoime) {
+                const Section_prop* section = static_cast<Section_prop*>(control->GetSection("dos"));
+                const char * layoutname=section->Get_string("keyboardlayout");
+                WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
+                if (!strcmp(layoutname, "jp") || !strcmp(layoutname, "ko") || !strcmp(layoutname, "cn") || !strcmp(layoutname, "tw") || !strcmp(layoutname, "hk") || !strcmp(layoutname, "zh") || !strcmp(layoutname, "zhs") || !strcmp(layoutname, "zht") || (!strcmp(layoutname, "auto") && (cur_kb_layout == 1028 || cur_kb_layout == 1041 || cur_kb_layout == 1042 || cur_kb_layout == 2052 || cur_kb_layout == 3076))) enableime = true;
+            }
+#endif
         }
     }
-#if defined(WIN32) && !defined(HX_DOS)
-        if (!enableime) ImmDisableIME((DWORD)(-1));
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+        if (!enableime&&!tonoime) ImmDisableIME((DWORD)(-1));
 #endif
     }
 
@@ -13855,7 +9247,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* -- initialize logging first, so that higher level inits can report problems to the log file */
         LOG::Init();
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(C_HAVE_DUKTAPE)
+	LOG(LOG_MISC,LOG_NORMAL)("Initializing ECMA heap");
+	js_heap = duk_create_heap(NULL,NULL,NULL,NULL,NULL);//TODO: fatal exit handler that we can direct towards E_Exit()
+	if (!js_heap) E_Exit("Unable to initialize ECMA heap");//TODO: or maybe this emulator can run without ECMAScript even if compiled
+#endif
+
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         {
             DISPLAY_DEVICE dd;
             unsigned int i = 0;
@@ -13873,29 +9271,21 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
         /* -- Welcome to DOSBox-X! */
-        LOG_MSG("DOSBox-X version %s ("
-#if defined(WIN32)
-                "Windows"
-#elif defined(HX_DOS)
-                "DOS"
-#elif defined(LINUX)
-                "Linux"
-#elif defined(MACOSX)
-                "macOS"
-#else
-                ""
-#endif
-        " %s)",VERSION,SDL_STRING);
-        LOG(LOG_MISC,LOG_NORMAL)(("Copyright 2011-%s The DOSBox-X Team. Project maintainer: joncampbell123 (The Great Codeholio). DOSBox-X published under GNU GPL."),std::string(COPYRIGHT_END_YEAR).c_str());
+        LOG_MSG("DOSBox-X version %s Commit %s (%s %s %d-bit)",VERSION, GIT_COMMIT_HASH, OS_PLATFORM_LONG, SDL_STRING, OS_BIT_INT);
+        LOG(LOG_MISC,LOG_NORMAL)("Copyright 2011-%s The DOSBox-X Team. Project maintainer: joncampbell123 (The Great Codeholio). DOSBox-X published under GNU GPL.",std::string(COPYRIGHT_END_YEAR).c_str());
 
 #if defined(MACOSX)
         LOG_MSG("macOS EXE path: %s",MacOSXEXEPath.c_str());
         LOG_MSG("macOS Resource path: %s",MacOSXResPath.c_str());
 #endif
 
+#if defined(OSFREE)
+	LOG_MSG("DOSBox-X OS-Free build -- Built-in MS-DOS emulation is not available");
+#endif
+
         /* -- [debug] setup console */
 #if C_DEBUG
-# if defined(WIN32) && !defined(HX_DOS)
+# if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         /* Can't disable the console with debugger enabled */
         if (control->opt_noconsole) {
             LOG(LOG_MISC,LOG_DEBUG)("-noconsole: hiding Win32 console window");
@@ -13915,7 +9305,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             int id, major, minor;
 
             DOSBox_CheckOS(id, major, minor);
-            if (id == 1) menu.compatible=true;
+            //if (id == 1) menu.compatible=true; //?
 
             /* use all variables to shut up the compiler about unused vars */
             LOG(LOG_MISC,LOG_DEBUG)("DOSBox-X CheckOS results: id=%u major=%u minor=%u",id,major,minor);
@@ -13929,39 +9319,40 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         putenv(const_cast<char*>("SDL_DISABLE_LOCK_KEYS=1"));
         LOG(LOG_GUI,LOG_DEBUG)("SDL 1.2.14 hack: SDL_DISABLE_LOCK_KEYS=1");
 #endif
-
         std::string videodriver = static_cast<Section_prop *>(control->GetSection("sdl"))->Get_string("videodriver");
         if (videodriver.size()) {
             videodriver = "SDL_VIDEODRIVER="+videodriver;
             putenv((char *)videodriver.c_str());
         }
-
-#ifdef WIN32
-        /* hack: Encourage SDL to use windib if not otherwise specified */
-        if (getenv("SDL_VIDEODRIVER") == NULL) {
+        else {
+            const char* env_driver = getenv("SDL_VIDEODRIVER");
+            if(!env_driver || !*env_driver) {
+#if defined(LINUX)
+                putenv("SDL_VIDEODRIVER=x11"); // default to x11 (xwayland) on Linux
+#elif defined(WIN32)
+                /* hack: Encourage SDL to use windib if not otherwise specified */
 #if defined(C_SDL2)
-            LOG(LOG_GUI, LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windows because environ variable is not set");
-            putenv("SDL_VIDEODRIVER=windows");
+                LOG(LOG_GUI, LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windows because environ variable is not set");
+                putenv("SDL_VIDEODRIVER=windows");
 #else
-            LOG(LOG_GUI,LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windib because environ variable is not set");
-            putenv("SDL_VIDEODRIVER=windib");
+                LOG(LOG_GUI, LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windib because environ variable is not set");
+                putenv("SDL_VIDEODRIVER=windib");
 #endif
-            sdl.using_windib=true;
-        }
+                sdl.using_windib = true;
 #endif
-
+            }
 #if defined(WIN32) && defined(C_SDL2)
-        /* HACK: WASAPI output on Windows 10 isn't working... */
-        if (getenv("SDL_AUDIODRIVER") == NULL) {
-            LOG(LOG_GUI, LOG_DEBUG)("Win32: using directsound audio driver");
-            putenv("SDL_AUDIODRIVER=directsound");
-        }
-        if (getenv("SDL_WINDOWS_NO_CLOSE_ON_ALT_F4") == NULL)
-            putenv("SDL_WINDOWS_NO_CLOSE_ON_ALT_F4=1");
+            /* HACK: WASAPI output on Windows 10 isn't working... */
+            if(getenv("SDL_AUDIODRIVER") == NULL) {
+                LOG(LOG_GUI, LOG_DEBUG)("Win32: using directsound audio driver");
+                putenv("SDL_AUDIODRIVER=directsound");
+            }
+            if(getenv("SDL_WINDOWS_NO_CLOSE_ON_ALT_F4") == NULL)
+                putenv("SDL_WINDOWS_NO_CLOSE_ON_ALT_F4=1");
 #endif
 
-        sdl.init_ignore = true;
-
+            sdl.init_ignore = true;
+        }
     {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         assert(section != NULL);
@@ -14039,12 +9430,37 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         qz_set_match_monitor_cb();
 #endif
 
+	CheckPreventCap();
+	LOG_MSG("Prevent capture: %u",preventcap);
+
         /* -- SDL init */
         if (SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_NOPARACHUTE) >= 0)
             sdl.inited = true;
         else
             E_Exit("Can't init SDL %s",SDL_GetError());
-
+#if defined(C_SDL2)
+        SDL_version sdl_version;
+        SDL_GetVersion(&sdl_version);
+        const char* vdrv = SDL_GetCurrentVideoDriver();
+        const char* adrv = SDL_GetCurrentAudioDriver();
+        videodriver = vdrv ? vdrv : "(unknown)";
+        std::string audiodriver = adrv ? adrv : "(unknown)";
+        LOG_MSG("SDL: version %d.%d.%d, Video %s, Audio %s",
+            sdl_version.major, sdl_version.minor, sdl_version.patch,
+            videodriver.c_str(), audiodriver.c_str());
+#if defined(LINUX)
+        if(videodriver == "wayland") {
+            LOG_MSG(
+                "WARNING: SDL is using the Wayland video driver. \n"
+                "Fullscreen mode switching and display mode changes may be unstable.\n"
+                "If you encounter crashes, try setting videodriver option to \"x11\" or \"SDL_VIDEODRIVER=x11\"."
+            );
+        }
+#endif //defined (LINUX)
+#endif //defined (C_SDL2)
+#if defined(__MINGW32__) && defined(C_DEBUG)
+        LOG_MSG("EXPERIMENTAL: Debugger enabled for MinGW build, DOSBox-X crashes depending on the terminal software you use. Launching from command prompt (cmd.exe) is recommended.");
+#endif
         /* -- -- decide whether to show menu in GUI */
         if (control->opt_nogui || menu.compatible)
             menu.gui=false;
@@ -14065,7 +9481,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         KeyboardLayoutDetect();
         SetMapperKeyboardLayout(host_keyboard_layout);
 
-        /* -- -- Initialise Joystick and CD-ROM seperately. This way we can warn when it fails instead of exiting the application */
+        /* -- -- Initialise Joystick and CD-ROM separately. This way we can warn when it fails instead of exiting the application */
         LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
         glide.fullscreen = &sdl.desktop.fullscreen;
         if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0) {
@@ -14078,7 +9494,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
 #if defined(C_SDL2)
-        if (Compat_SDL_CDROMInit() < 0) {
+        if (SDL_CDROMInit() < 0) {
 #else
         if (SDL_InitSubSystem(SDL_INIT_CDROM) < 0) {
 #endif
@@ -14146,586 +9562,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
          * Init functions are called low-level first to high level last,
          * because some init functions rely on others. */
 
-#if !defined(C_SDL2)
-# if defined(WIN32)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
-# endif
 #endif
 
-        /* stock top-level menu items */
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MainMenu");
-            item.set_text("Main");
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MainSendKey");
-                item.set_text("Send special key");
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MainHostKey");
-                item.set_text("Select host key");
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"WheelToArrow");
-                item.set_text("Mouse wheel movements");
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"SharedClipboard");
-                item.set_text("Shared clipboard functions");
-            }
-        }
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuMenu");
-            item.set_text("CPU");
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuCoreMenu");
-                item.set_text("CPU core");
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuTypeMenu");
-                item.set_text("CPU type");
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuSpeedMenu");
-                item.set_text("Emulate CPU speed");
-            }
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu88-4").set_text("8088 XT 4.77MHz (~240 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu286-8").set_text("286 8MHz (~750 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu286-12").set_text("286 12MHz (~1510 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu286-25").set_text("286 25MHz (~3300 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu386-25").set_text("386DX 25MHz (~4595 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu386-33").set_text("386DX 33MHz (~6075 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-33").set_text("486DX 33MHz (~12010 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-66").set_text("486DX2 66MHz (~23880 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-100").set_text("486DX4 100MHz (~33445 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-133").set_text("486DX5 133MHz (~47810 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-60").set_text("Pentium 60MHz (~31545 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-66").set_text("Pentium 66MHz (~35620 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-75").set_text("Pentium 75MHz (~43500 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-90").set_text("Pentium 90MHz (~52000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-100").set_text("Pentium 100MHz (~60000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-120").set_text("Pentium 120MHz (~74000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-133").set_text("Pentium 133MHz (~80000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-166").set_text("Pentium 166MHz MMX (~97240 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuak6-166").set_text("AMD K6 166MHz (~110000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuak6-200").set_text("AMD K6 200MHz (~130000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuak6-300").set_text("AMD K6-2 300MHz (~193000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
-        }
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoMenu");
-            item.set_text("Video");
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoFrameskipMenu");
-                item.set_text("Frameskip");
-        
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"frameskip_0").set_text("Off").
-                    set_callback_function(video_frameskip_common_menu_callback);
+        AllocCallback1();
 
-                for (unsigned int f=1;f <= 10;f++) {
-                    char tmp1[64],tmp2[64];
-
-                    sprintf(tmp1,"frameskip_%u",f);
-                    sprintf(tmp2,"%u frame",f);
-
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,tmp1).set_text(tmp2).
-                        set_callback_function(video_frameskip_common_menu_callback);
-                }
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoScalerMenu");
-                item.set_text("Scaler");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"scaler_forced").set_text("Force scaler").
-                    set_callback_function(scaler_forced_menu_callback);
-
-                for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
-                    const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
-
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(scaler_menu_opts[i][1]).
-                        set_callback_function(scaler_set_menu_callback);
-                }
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refresh_rate").set_text("Refresh rate...").
-                    set_callback_function(refresh_rate_menu_callback);
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOutputMenu");
-                item.set_text("Output");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_surface").set_text("Surface").
-                    set_callback_function(output_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_direct3d").set_text("Direct3D").
-                    set_callback_function(output_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_opengl").set_text("OpenGL").
-                    set_callback_function(output_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglnb").set_text("OpenGL nearest").
-                    set_callback_function(output_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglpp").set_text("OpenGL perfect").
-                    set_callback_function(output_menu_callback);
-#if defined(USE_TTF)
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_ttf").set_text("TrueType font").
-                    set_callback_function(output_menu_callback);
-#endif
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublescan").set_text("Doublescan").
-                    set_callback_function(doublescan_menu_callback);
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoVsyncMenu");
-                item.set_text("V-Sync");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_on").set_text("On").
-                    set_callback_function(vsync_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_force").set_text("Force").
-                    set_callback_function(vsync_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_host").set_text("Host").
-                    set_callback_function(vsync_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_off").set_text("Off").
-                    set_callback_function(vsync_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_set_syncrate").set_text("Set syncrate").
-                    set_callback_function(vsync_set_syncrate_menu_callback);
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOverscanMenu");
-                item.set_text("Overscan");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"overscan_0").set_text("Off").
-                    set_callback_function(overscan_menu_callback);
-
-                for (size_t i=1;i <= 10;i++) {
-                    char tmp1[64],tmp2[64];
-
-                    sprintf(tmp1,"overscan_%zu",i);
-                    sprintf(tmp2,"%zu",i);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,tmp1).set_text(tmp2).
-                        set_callback_function(overscan_menu_callback);
-                }
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoTextmodeMenu");
-                item.set_text("Text-mode");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clear_screen").set_text("Clear the screen").
-                    set_callback_function(clear_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vga_9widetext").set_text("Allow 9-pixel wide fonts").
-                    set_callback_function(vga_9widetext_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"text_background").set_text("High intensity: background color").
-                    set_callback_function(intensity_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"text_blinking").set_text("High intensity: blinking text").
-                    set_callback_function(intensity_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x25").set_text("Screen: 80 columns x 25 lines").
-                    set_callback_function(lines_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x43").set_text("Screen: 80 columns x 43 lines").
-                    set_callback_function(lines_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x50").set_text("Screen: 80 columns x 50 lines").
-                    set_callback_function(lines_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x60").set_text("Screen: 80 columns x 60 lines").
-                    set_callback_function(lines_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x25").set_text("Screen: 132 columns x 25 lines").
-                    set_callback_function(lines_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x43").set_text("Screen: 132 columns x 43 lines").
-                    set_callback_function(lines_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x50").set_text("Screen: 132 columns x 50 lines").
-                    set_callback_function(lines_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x60").set_text("Screen: 132 columns x 60 lines").
-                    set_callback_function(lines_menu_callback);
-            }
-#if defined(USE_TTF)
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoTTFMenu");
-                item.set_text("TTF options");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_resetcolor").set_text("Reset TTF color scheme").
-                    set_callback_function(ttf_reset_colors_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showbold").set_text("Display bold text in TTF").
-                    set_callback_function(ttf_style_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showital").set_text("Display italic text in TTF").
-                    set_callback_function(ttf_style_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showline").set_text("Display underlined text in TTF").
-                    set_callback_function(ttf_style_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showsout").set_text("Display strikeout text in TTF").
-                    set_callback_function(ttf_style_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpno").set_text("TTF word processor: None").
-                    set_callback_function(ttf_wp_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpwp").set_text("TTF word processor: WordPerfect").
-                    set_callback_function(ttf_wp_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpws").set_text("TTF word processor: WordStar").
-                    set_callback_function(ttf_wp_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpxy").set_text("TTF word processor: XyWrite").
-                    set_callback_function(ttf_wp_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpfe").set_text("TTF word processor: FastEdit").
-                    set_callback_function(ttf_wp_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_blinkc").set_text("Display TTF blinking cursor").
-                    set_callback_function(ttf_blinking_cursor_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_right_left").set_text("Display text from right to left").
-                    set_callback_function(ttf_right_left_callback);
-#if C_PRINTER
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_printfont").set_text("Use current TTF font for printing").
-                    set_callback_function(ttf_print_font_callback);
-#endif
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_dbcs_sbcs").set_text("CJK: Switch between DBCS/SBCS modes").
-                    set_callback_function(ttf_dbcs_sbcs_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_autoboxdraw").set_text("CJK: Auto-detect box-drawing characters").
-                    set_callback_function(ttf_auto_boxdraw_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_halfwidthkana").set_text("CJK: Allow half-width Japanese Katakana").
-                    set_callback_function(ttf_halfwidth_katakana_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_extcharset").set_text("CJK: Enable extended Chinese character set").
-                    set_callback_function(ttf_extend_charset_callback);
-            }
-#endif
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoPC98Menu");
-                item.set_text("PC-98 options");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_5mhz_gdc").set_text("5MHz GDC clock").
-                    set_callback_function(vid_pc98_5mhz_gdc_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_allow_200scanline").set_text("Allow 200-line scanline effect").
-                    set_callback_function(vid_pc98_200scanline_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_allow_4partitions").set_text("Allow 4 display partitions in graphics layer").
-                    set_callback_function(vid_pc98_4parts_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_egc").set_text("Enable EGC").
-                    set_callback_function(vid_pc98_enable_egc_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_grcg").set_text("Enable GRCG").
-                    set_callback_function(vid_pc98_enable_grcg_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_analog").set_text("Enable analog display").
-                    set_callback_function(vid_pc98_enable_analog_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_analog256").set_text("Enable analog 256-color display").
-                    set_callback_function(vid_pc98_enable_analog256_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_188user").set_text("Enable 188+ user CG cells").
-                    set_callback_function(vid_pc98_enable_188user_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_text").set_text("Clear text layer").
-                    set_callback_function(vid_pc98_cleartext_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_graphics").set_text("Clear graphics layer").
-                    set_callback_function(vid_pc98_graphics_menu_callback);
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"Video3dfxMenu");
-                item.set_text("3dfx emulation");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_voodoo").set_text("Internal Voodoo card").
-                    set_callback_function(voodoo_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_glide").set_text("Glide passthrough").
-                    set_callback_function(glide_menu_callback);
-            }
-#ifdef C_D3DSHADERS
-            {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_d3d_shader").set_text("Select Direct3D pixel shader...").
-                    set_callback_function(vid_select_pixel_shader_menu_callback);
-            }
-#endif
-#ifdef C_OPENGL
-            {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_glsl_shader").set_text("Select OpenGL (GLSL) shader...").
-                    set_callback_function(vid_select_glsl_shader_menu_callback);
-            }
-#endif
-#ifdef USE_TTF
-            {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_ttf_font").set_text("Select TrueType font (TTF/OTF)...").
-                    set_callback_function(vid_select_ttf_font_menu_callback);
-            }
-#endif
-        }
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"SoundMenu");
-            item.set_text("Sound");
-
-            {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_swapstereo").set_text("Swap stereo").
-                    set_callback_function(mixer_swapstereo_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_mute").set_text("Mute").
-                    set_callback_function(mixer_mute_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_info").set_text("Show sound mixer volumes").
-                    set_callback_function(mixer_info_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sb_info").set_text("Show Sound Blaster configuration").
-                    set_callback_function(sb_device_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"midi_info").set_text("Show MIDI device configuration").
-                    set_callback_function(midi_device_menu_callback);
-            }
-        }
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSMenu");
-            item.set_text("DOS");
-
-            {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_a20gate").set_text("Enable A20 gate").
-                    set_callback_function(a20gate_on_menu_callback).check(MEM_A20_Enabled());
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"change_currentcd").set_text("Change current CD image...").
-                    set_callback_function(change_currentcd_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"change_currentfd").set_text("Change current floppy image...").
-                    set_callback_function(change_currentfd_menu_callback);
-            }
-
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSMouseMenu");
-                item.set_text("Mouse emulation");
-
-                {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_mouse_enable_int33").set_text("Internal Emulation").
-                        set_callback_function(dos_mouse_enable_int33_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_mouse_y_axis_reverse").set_text("Y-axis Reverse").
-                        set_callback_function(dos_mouse_y_axis_reverse_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_mouse_sensitivity").set_text("Sensitivity").
-                        set_callback_function(dos_mouse_sensitivity_menu_callback);
-                }
-            }
-
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSVerMenu");
-                item.set_text("Reported DOS version");
-
-                {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_330").set_text("3.30").
-                        set_callback_function(dos_ver_set_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_500").set_text("5.00").
-                        set_callback_function(dos_ver_set_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_622").set_text("6.22").
-                        set_callback_function(dos_ver_set_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_710").set_text("7.10").
-                        set_callback_function(dos_ver_set_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_edit").set_text("Edit").
-                        set_callback_function(dos_ver_edit_menu_callback);
-                }
-            }
-
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSLFNMenu");
-                item.set_text("Long filename support");
-
-                {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_auto").set_text("Auto per reported DOS version").
-                        set_callback_function(dos_lfn_auto_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_enable").set_text("Enable long filename emulation").
-                        set_callback_function(dos_lfn_enable_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_disable").set_text("Disable long filename emulation").
-                        set_callback_function(dos_lfn_disable_menu_callback);
-                }
-            }
-
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSPC98Menu");
-                item.set_text("PC-98 PIT master clock");
-
-                {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_4mhz").set_text("4MHz/8MHz PIT master clock").
-                        set_callback_function(dos_pc98_clock_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_5mhz").set_text("5MHz/10MHz PIT master clock").
-                        set_callback_function(dos_pc98_clock_menu_callback);
-                }
-            }
-
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSEMSMenu");
-                item.set_text("Expanded memory (EMS)");
-
-                {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ems_true").set_text("Enable EMS emulation").
-                        set_callback_function(dos_ems_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ems_board").set_text("EMS board emulation").
-                        set_callback_function(dos_ems_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ems_emm386").set_text("EMM386 emulation").
-                        set_callback_function(dos_ems_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ems_false").set_text("Disable EMS emulation").
-                        set_callback_function(dos_ems_menu_callback);
-                }
-            }
-
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSWinMenu");
-                item.set_text("Host system applications");
-
-                {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_autorun").set_text("Launch to run on the Windows host").
-                        set_callback_function(dos_win_autorun_menu_callback)
-#if defined(LINUX) || defined(MACOSX)
-                    .enable(false)
-#endif
-                    ;
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_transpath").set_text("Translate paths to host system paths").
-                        set_callback_function(dos_win_transpath_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_wait").set_text("Wait for the application if possible").
-                        set_callback_function(dos_win_wait_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_quiet").set_text("Quiet mode - no start messages").
-                        set_callback_function(dos_win_quiet_menu_callback);
-                }
-            }
-#endif
-        }
-#if !defined(C_EMSCRIPTEN)
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
-            item.set_text("Capture");
-        }
-#endif
-# if (C_SSHOT)
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureFormatMenu");
-            item.set_text("Capture format");
-
-            {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_avi_zmbv").set_text("AVI + ZMBV").
-                    set_callback_function(capture_fmt_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_mpegts_h264").set_text("MPEG-TS + H.264").
-                    set_callback_function(capture_fmt_menu_callback).
-#  if (C_AVCODEC)
-                enable(true);
-#  else
-                enable(false);
-#  endif
-            }
-        }
-# endif
-		{
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"saveoptionmenu");
-            item.set_text("Save/load options");
-        }
-		{
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"saveslotmenu");
-            item.set_text("Select save slot");
-		}
-        {
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enable_autosave").set_text("Enable auto-saving state").set_callback_function(enable_autosave_menu_callback).enable(false);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"noremark_savestate").set_text("No remark when saving state").set_callback_function(noremark_savestate_menu_callback).check(noremark_save_state);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("No warning when loading state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"lastautosaveslot").set_text("Select last auto-saved slot").set_callback_function(last_autosave_slot_menu_callback).enable(false);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "usesavefile").set_text("Use save file instead of save slot").set_callback_function(use_save_file_menu_callback).check(use_save_file);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "autosavecfg").set_text("Auto-save settings...").set_callback_function(auto_save_setting_menu_callback);
-            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "browsesavefile").set_text("Browse save file...").set_callback_function(browse_save_file_menu_callback).enable(use_save_file);
-            {
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"current_page").set_text("Current page: 1/10").enable(false).set_callback_function(refresh_slots_menu_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"prev_page").set_text("Previous page").set_callback_function(prev_page_menu_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"next_page").set_text("Next page").set_callback_function(next_page_menu_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"first_page").set_text("Go to first page").set_callback_function(first_page_menu_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"last_page").set_text("Go to last page").set_callback_function(last_page_menu_callback);
-				char name[6]="slot0";
-				for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
-					name[4]='0'+i;
-					std::string str=std::string(MSG_Get("SLOT"))+" "+to_string(page*SaveState::SLOT_COUNT+i+1);
-					mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(str.c_str()).set_callback_function(save_slot_callback);
-				}
-            }
-            if (page!=GetGameState_Run()/SaveState::SLOT_COUNT) {
-                page=(unsigned int)(GetGameState_Run()/SaveState::SLOT_COUNT);
-                refresh_slots();
-            }
-			char name[6]="slot0";
-			name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
-			mainMenu.get_item(name).check(true).refresh_item(mainMenu);
-		}
-
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DriveMenu");
-            item.set_text("Drive");
-
-            for (char c='A';c <= 'Z';c++) {
-                mountfro[c-'A']=false;
-                mountiro[c-'A']=false;
-                std::string dmenu = "Drive";
-                dmenu += c;
-
-                std::string dmenut;
-                dmenut = c;
-
-                DOSBoxMenu::item &ditem = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,dmenu.c_str());
-                ditem.set_text(dmenut.c_str());
-
-                for (size_t i=0;drive_opts[i][0] != NULL;i++) {
-                    const std::string name = std::string("drive_") + c + "_" + drive_opts[i][0];
-                    if ((!strcmp(drive_opts[i][0], "boot")||!strcmp(drive_opts[i][0], "bootimg")||!strcmp(drive_opts[i][0], "div3"))&&(c!='A'&&c!='C'&&c!='D'))
-                        continue;
-                    if (!strcmp(drive_opts[i][1], "--"))
-                        mainMenu.alloc_item(DOSBoxMenu::separator_type_id,name);
-                    else
-                        mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(drive_opts[i][1]).set_callback_function(drive_callbacks[i]);
-                }
-            }
-        }
-
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpMenu");
-            item.set_text("Help");
-
-            {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_intro").set_text("Introduction").
-                    set_callback_function(help_intro_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_homepage").set_text("DOSBox-X homepage").
-                    set_callback_function(help_open_url_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_wiki").set_text("DOSBox-X Wiki guide").
-                    set_callback_function(help_open_url_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_issue").set_text("DOSBox-X support").
-                    set_callback_function(help_open_url_callback);
-#if C_PCAP
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_nic").set_text("List network interfaces").
-                    set_callback_function(help_nic_callback);
-#endif
-#if C_PRINTER && defined(WIN32)
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_prt").set_text("List printer devices").
-                    set_callback_function(help_prt_callback);
-#endif
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
-                    set_callback_function(help_about_callback);
-#if !defined(C_EMSCRIPTEN)
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
-#endif
-#if C_DEBUG
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_codetext").set_text("Show code overview").set_callback_function(show_codetext_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_logtext").set_text("Show logging text").set_callback_function(show_logtext_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"save_logas").set_text("Save logging as...").set_callback_function(save_logas_menu_callback);
-
-                debugrunmode = debuggerrun;
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_rundebug").set_text("Debugger option: Run debugger").set_callback_function(debugger_rundebug_menu_callback).check(debugrunmode==0);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_runnormal").set_text("Debugger option: Run normal").set_callback_function(debugger_runnormal_menu_callback).check(debugrunmode==1);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_runwatch").set_text("Debugger option: Run watch").set_callback_function(debugger_runwatch_menu_callback).check(debugrunmode==2);
-#endif
-            }
-
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpCommandMenu");
-                item.set_text("DOS commands");
-
-                {
-                    uint32_t cmd_index=0;
-                    while (cmd_list[cmd_index].name) {
-                        if (!cmd_list[cmd_index].flags)
-                            mainMenu.alloc_item(DOSBoxMenu::item_type_id,("command_"+std::string(cmd_list[cmd_index].name)).c_str()).set_text(cmd_list[cmd_index].name).set_callback_function(help_command_callback);
-                        cmd_index++;
-                    }
-                    cmd_index=0;
-                    while (cmd_list[cmd_index].name) {
-                        if (cmd_list[cmd_index].flags && strcmp(cmd_list[cmd_index].name, "CHDIR") && strcmp(cmd_list[cmd_index].name, "ERASE") && strcmp(cmd_list[cmd_index].name, "LOADHIGH") && strcmp(cmd_list[cmd_index].name, "MKDIR") && strcmp(cmd_list[cmd_index].name, "RMDIR") && strcmp(cmd_list[cmd_index].name, "RENAME") && strcmp(cmd_list[cmd_index].name, "DX-CAPTURE") && strcmp(cmd_list[cmd_index].name, "DEBUGBOX"))
-                            mainMenu.alloc_item(DOSBoxMenu::item_type_id,("command_"+std::string(cmd_list[cmd_index].name)).c_str()).set_text(cmd_list[cmd_index].name).set_callback_function(help_command_callback);
-                        cmd_index++;
-                    }
-                }
-            }
-
-            {
-#if C_DEBUG
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DebugMenu");
-                item.set_text("Debug");
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"HelpDebugMenu")
-#else
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpDebugMenu");
-                item
-#endif
-                .set_text("Logging console");
-
-                {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_generatenmi").set_text("Generate NMI interrupt").set_callback_function(generatenmi_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_int2fhook").set_text("Hook INT 2Fh calls").set_callback_function(int2fhook_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logint21").set_text("Log INT 21h calls").
-                        set_callback_function(dos_debug_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logfileio").set_text("Log file I/O").
-                        set_callback_function(dos_debug_menu_callback);
-                }
-            }
-        }
-
-        if (control->opt_startui)
-            GUI_Run(false);
         if (control->opt_editconf.length() != 0)
             launcheditor(control->opt_editconf);
         if (control->opt_opencaptures.length() != 0)
@@ -14742,7 +9584,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             /* Some extra SDL Functions */
             Section_prop* sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
 
-            if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
+            if ((control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) && sdl.desktop.want_type != SCREEN_GAMELINK) {
                 LOG(LOG_MISC, LOG_DEBUG)("Going fullscreen immediately, during startup");
 
 #if defined(WIN32)
@@ -14777,6 +9619,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         CAPTURE_Init();
         IO_Init();
         HARDWARE_Init();
+        CPU_PreInit();
         Init_AddressLimitAndGateMask(); /* <- need to init address mask so Init_RAM knows the maximum amount of RAM possible */
         Init_MemoryAccessArray(); /* <- NTS: In DOSBox-X this is the "cache" of devices that responded to memory access */
         Init_A20_Gate(); // FIXME: Should be handled by motherboard!
@@ -14809,6 +9652,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item->set_text("Send special key");
         }
         CPU_Init();
+        Weitek_Init();
 #if C_FPU
         FPU_Init();
 #endif
@@ -14822,6 +9666,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         DISNEY_Init();
         GUS_Init();
         IDE_Init();
+        IMFC_Init();
         INNOVA_Init();
         BIOS_Init();
         INT10_Init();
@@ -14833,9 +9678,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         PARALLEL_Init();
         NE2K_Init();
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
+	ApplyPreventCapMenu();
 
         /* If PCjr emulation, map cartridge ROM */
         if (machine == MCH_PCJR)
@@ -14844,13 +9690,49 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* let's assume motherboards are sane on boot because A20 gate is ENABLED on first boot */
         MEM_A20_Enable(true);
 
+#if C_DEBUG
+        {
+            DOSBoxMenu::item *item;
+            /* Add some keyhandlers */
+            MAPPER_AddHandler(DEBUG_Enable_Handler,
+#if defined(MACOSX)
+            // MacOS     NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
+            // which is not easy to input on a modern mac laptop
+            MK_f12
+#else
+            MK_pause
+#endif
+            ,MMOD2,"debugger","Show debugger",&item);
+            item->set_text("Start DOSBox-X Debugger");
+
+#if defined(MACOSX) || defined(LINUX)
+            /* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
+               So the debugger interface is useless UNLESS the user has started us from a terminal
+               (whether over SSH or from the Terminal app).
+
+               Linux/X11 also does not have a console we can allocate on a whim. You either run
+               this program from XTerm for the debugger, or not. */
+            bool allow = true;
+
+            if (!isatty(0) || !isatty(1) || !isatty(2))
+                allow = false;
+
+            mainMenu.get_item("mapper_debugger").enable(allow).refresh_item(mainMenu);
+#endif
+        }
+#endif
+
         /* OS init now */
         DOS_Init();
         DRIVES_Init();
+#if !defined(OSFREE)
         DOS_KeyboardLayout_Init();
+#endif
         MOUSE_Init(); // FIXME: inits INT 15h and INT 33h at the same time. Also uses DOS_GetMemory() which is why DOS_Init must come first
         XMS_Init();
+#if !defined(OSFREE)
         EMS_Init();
+#endif
         AUTOEXEC_Init();
 #if C_IPX
         IPX_Init();
@@ -14867,70 +9749,24 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* finally, the mapper */
         MAPPER_Init();
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_mapper").set_text("Mapper-defined").set_callback_function(hostkey_preset_menu_callback);
-
-        /* stop at this point, and show the mapper, if instructed */
-        if (control->opt_startmapper) {
-            LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
-            MAPPER_RunInternal();
-        }
-
-        /* more */
-        std::string doubleBufString = std::string("desktop.doublebuf");
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartinst").set_text("Restart DOSBox-X instance").set_callback_function(restartinst_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartconf").set_text("Restart DOSBox-X with config file...").set_callback_function(restartconf_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartlang").set_text("Restart DOSBox-X with language file...").set_callback_function(restartlang_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
-#if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_middle").set_text("Via middle mouse button").set_callback_function(middle_mouse_clipboard_menu_callback).check(mbutton==2);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_arrows").set_text("Via arrow keys (Home=start, End=end)").set_callback_function(arrow_keys_clipboard_menu_callback).check(mbutton==4);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"screen_to_clipboard").set_text("Copy all text on the DOS screen").set_callback_function(screen_to_clipboard_menu_callback);
-#endif
-        if (control->SecureMode()) clipboard_dosapi = false;
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
-        if (IS_PC98_ARCH) clipboard_biospaste = true;
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_biospaste").set_text("Use BIOS function for clipboard pasting").set_callback_function(clipboard_bios_paste_menu_callback).check(clipboard_biospaste).enable(!IS_PC98_ARCH);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Send menu key").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Send Alt+Tab").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Send Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlbreak").set_text("Send Ctrl+Break").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Send Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_ctrlalt").set_text("Ctrl+Alt").set_callback_function(hostkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_ctrlshift").set_text("Ctrl+Shift").set_callback_function(hostkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_altshift").set_text("Alt+Shift").set_callback_function(hostkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winlogo").set_text("Mapper \"Send special key\": logo key").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winmenu").set_text("Mapper \"Send special key\": menu key").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_alttab").set_text("Mapper \"Send special key\": Alt+Tab").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_ctrlesc").set_text("Mapper \"Send special key\": Ctrl+Esc").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_ctrlbreak").set_text("Mapper \"Send special key\": Ctrl+Break").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_cad").set_text("Mapper \"Send special key\": Ctrl+Alt+Del").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_none").set_text("Do not convert to arrow keys").set_callback_function(wheel_move_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_updown").set_text("Convert to up/down arrows").set_callback_function(wheel_move_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_leftright").set_text("Convert to left/right arrows").set_callback_function(wheel_move_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_pageupdown").set_text("Convert to PgUp/PgDn keys").set_callback_function(wheel_move_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlupdown").set_text("Convert to Ctrl+up/down arrows").set_callback_function(wheel_move_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlleftright").set_text("Convert to Ctrl+left/right arrows").set_callback_function(wheel_move_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlpageupdown").set_text("Convert to Ctrl+PgUp/PgDn keys").set_callback_function(wheel_move_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlwz").set_text("Convert to Ctrl+W/Z keys").set_callback_function(wheel_move_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_guest").set_text("Enable for guest systems also").set_callback_function(wheel_guest_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sync_host_datetime").set_text("Synchronize host date/time").set_callback_function(sync_host_datetime_menu_callback).check(sync_time);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"make_diskimage").set_text("Create blank disk image...").set_callback_function(make_diskimage_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_drivenum").set_text("Show mounted drive numbers").set_callback_function(list_drivenum_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_ideinfo").set_text("Show IDE disk or CD status").set_callback_function(list_ideinfo_menu_callback);
-#if C_PRINTER
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"print_textscreen").set_text("Print DOS text screen").set_callback_function(print_screen_menu_callback);
-#endif
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_use_uskb").set_text("Use US keyboard layout").set_callback_function(pc98_force_uskb_menu_callback).check(pc98_force_ibm_layout);
+        AllocCallback2();
         MSG_Init();
+
+        /* stop at this point, and show the configuration tool/mapper editor, if instructed */
+        if (control->opt_startui) {
+            LOG(LOG_MISC,LOG_DEBUG)("Running Configuration Tool, during startup, as instructed");
+            int cp=dos.loaded_codepage;
+            if (!cp) InitCodePage();
+            GUI_Run(false);
+            dos.loaded_codepage=cp;
+        }
+        if (control->opt_startmapper) {
+            LOG(LOG_MISC,LOG_DEBUG)("Running Mapper Editor, during startup, as instructed");
+            int cp=dos.loaded_codepage;
+            if (!cp) InitCodePage();
+            MAPPER_RunInternal();
+            dos.loaded_codepage=cp;
+        }
 
         char name[6]="slot0";
         if (!control->opt_silent)
@@ -14971,7 +9807,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         bool MENU_get_mute(void);
         mainMenu.get_item("mixer_mute").check(MENU_get_mute()).refresh_item(mainMenu);
 
-        mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
+        mainMenu.get_item("mapper_fscaler").check(render.scale.forced).refresh_item(mainMenu);
         mainMenu.get_item("3dfx_voodoo").check(strcasecmp(static_cast<Section_prop *>(control->GetSection("voodoo"))->Get_string("voodoo_card"), "false")).refresh_item(mainMenu);
         mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
 
@@ -14994,9 +9830,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("line_132x50").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_132x60").enable(!IS_PC98_ARCH);
 #if defined(USE_TTF)
+        mainMenu.get_item("mapper_aspratio").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_1_1").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_3_2").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_4_3").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_16_9").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_16_10").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_18_10").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_original").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_set").enable(!TTF_using());
         mainMenu.get_item("mapper_incsize").enable(TTF_using());
         mainMenu.get_item("mapper_decsize").enable(TTF_using());
-        mainMenu.get_item("ttf_resetcolor").enable(TTF_using());
+        mainMenu.get_item("mapper_resetcolor").enable(TTF_using());
         mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold);
         mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital);
         mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline);
@@ -15011,13 +9856,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if C_PRINTER
         mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont);
 #endif
-        mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH);
-        mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH);
+        mainMenu.get_item("mapper_dbcssbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH);
+        mainMenu.get_item("mapper_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH);
         mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH);
-        mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950?chinasea:(gbk&&chinasea)));
+        refreshExtChar();
 #endif
 #if C_PRINTER
-        mainMenu.get_item("print_textscreen").enable(!IS_PC98_ARCH);
+        mainMenu.get_item("mapper_printtext").enable(!IS_PC98_ARCH);
 #endif
         mainMenu.get_item("pc98_5mhz_gdc").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_allow_200scanline").enable(IS_PC98_ARCH);
@@ -15051,6 +9896,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
+        mainMenu.get_item("clear_console").check(false).enable(showconsole_init).refresh_item(mainMenu);
         if (control->opt_display2) {
             mainMenu.get_item("show_console").enable(false).refresh_item(mainMenu);
             mainMenu.get_item("wait_on_error").enable(false).refresh_item(mainMenu);
@@ -15062,6 +9908,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("mapper_speedlock2").check(ticksLocked).refresh_item(mainMenu);
 
         OutputSettingMenuUpdate();
+        aspect_ratio_menu();
         update_pc98_clock_pit_menu();
 #if !defined(C_EMSCRIPTEN)
         update_capture_fmt_menu();
@@ -15069,6 +9916,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* The machine just "powered on", and then reset finished */
         if (!VM_PowerOn()) E_Exit("VM failed to power on");
+
+#if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
+        /*
+          Drop root privileges after they are no longer needed, which is a good
+          practice if the executable is setuid root.
+          dropPrivilegesTemp() is called by PARPORTS::PARPORTS() after
+          constructing CDirectLPT instances, but only if the constant
+          HAS_CDIRECTLPT is non-zero. dropPrivileges() should be called
+          regardless (if initPassthroughIO() is used anywhere else).
+        */
+        dropPrivileges(); // Ignore whether we could actually drop privileges.
+#endif
 
         /* go! */
         sdl.init_ignore = false;
@@ -15097,7 +9956,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.screenHeight = (unsigned int)sdl.surface->h;
         mainMenu.updateRect();
 #endif
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         /* Windows 7 taskbar extension support */
         {
             HRESULT hr;
@@ -15175,10 +10034,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-        int Reflect_Menu(void);
         Reflect_Menu();
 #endif
 
+        bool run_bios;
         bool reboot_dos;
         bool run_machine;
         bool wait_debugger;
@@ -15186,15 +10045,69 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         bool dos_kernel_shutdown;
 
 fresh_boot:
+        run_bios = false;
         reboot_dos = false;
         run_machine = false;
         wait_debugger = false;
         reboot_machine = false;
         dos_kernel_shutdown = false;
-        guest_msdos_mcb_chain = (uint16_t)(~0u);
+	guest_msdos_mcb_chain = (uint16_t)(~0u);
+	guest_msdos_dev_chain = (uint16_t)(~0u);
 
 #if C_DEBUG
         if (control->opt_test) ::testing::InitGoogleTest(&argc, argv);
+#endif
+
+#if defined(C_HAVE_DUKTAPE)
+	if (js_heap) {
+		duk_idx_t global_idx = duk_get_top(js_heap);
+		duk_push_global_object(js_heap);
+
+		duk_idx_t emu_idx = duk_push_object(js_heap);
+		duk_idx_t js_idx = duk_push_object(js_heap);
+
+		duk_push_string(js_heap,"emulator");//key
+		duk_push_string(js_heap,"DOSBox-X");//value
+		duk_put_prop(js_heap,emu_idx);//[emu_idx].emulator = "DOSBox-X"
+
+		duk_push_string(js_heap,"version");//key
+		duk_push_string(js_heap,VERSION);//value
+		duk_put_prop(js_heap,emu_idx);//[emu_idx].version = ...
+
+		duk_push_string(js_heap,"_js");//key
+		duk_dup(js_heap,js_idx);//value
+		duk_put_prop(js_heap,emu_idx);//[emu_idx]._js = ...
+
+		duk_push_string(js_heap,"_emu");//key
+		duk_dup(js_heap,emu_idx);//value
+		duk_put_prop(js_heap,global_idx);//[global_idx]._emu = [emu_idx]
+
+		duk_idx_t console_idx = duk_push_object(js_heap);
+
+		{
+			duk_idx_t console_log_idx = duk_push_c_function(js_heap,jsc_console_log,DUK_VARARGS);
+
+			duk_push_string(js_heap,"log");//key
+			duk_dup(js_heap,console_log_idx);//value
+			duk_put_prop(js_heap,console_idx);//[console_idx].log = [console_log_idx]
+
+			duk_push_string(js_heap,"log");//key
+			duk_dup(js_heap,console_log_idx);//value
+			duk_put_prop(js_heap,emu_idx);//[emu_idx].log = [console_log_idx]
+		}
+
+		duk_push_string(js_heap,"console");//key
+		duk_dup(js_heap,console_idx);//value
+		duk_put_prop(js_heap,global_idx);//[global_idx].console = [console_idx]
+
+		Section_prop *section = static_cast<Section_prop *>(control->GetSection("script"));
+		{
+			const char *script = section->Get_string("startup.js");
+			if (script && *script) jsc_load_file("startup.js",script);
+		}
+
+		jsc_run("startup.js");
+	}
 #endif
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
@@ -15237,6 +10150,12 @@ fresh_boot:
             else if (x == 8) { /* Booting to a BIOS, shutting down DOSBox-X BIOS */
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot into BIOS image");
 
+                run_bios = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+            }
+            else if (x == 9) { /* BIOS caught a JMP to F000:FFF0 without any other hardware reset signal */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation detected JMP to BIOS POST routine");
+
                 reboot_machine = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
@@ -15252,15 +10171,17 @@ fresh_boot:
             throw;
         }
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 
+        checkmenuwidth = ctrlbrk = false;
         if (dos_kernel_shutdown) {
-
+            tryconvertcp = 0;
             inshell = false;
-            if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
+            maincp = dos.loaded_codepage;
+            if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&!IS_J3100&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
+            if (ticksLocked && !static_cast<Section_prop *>(control->GetSection("cpu"))->Get_bool("turbo")) DOSBOX_UnlockSpeed2(true);
 
             /* NTS: we take different paths depending on whether we're just shutting down DOS
              *      or doing a hard reboot. */
@@ -15282,11 +10203,13 @@ fresh_boot:
             else
                 DispatchVMEvent(VM_EVENT_DOS_EXIT_BEGIN);
 
+#if !defined(OSFREE)
             /* older shutdown code */
             RemoveEMSPageFrame();
 
             /* remove UMB block */
             if (!keep_umb_on_boot) RemoveUMBBlock();
+#endif
 
             /* disable INT 33h mouse services. it can interfere with guest OS paging and control of the mouse */
             DisableINT33();
@@ -15305,19 +10228,29 @@ fresh_boot:
                 real_writed(0,0x03*4,(uint32_t)BIOS_DEFAULT_HANDLER_LOCATION);
             }
 
+            if (Voodoo_OGL_Active())
+                Voodoo_Output_Enable(false);
+
             grGlideShutdown();
+
             /* shutdown DOSBox-X's virtual drive Z */
             VFILE_Shutdown();
-
             /* shutdown the programs */
             PROGRAMS_Shutdown();        /* FIXME: Is this safe? Or will this cause use-after-free bug? */
+
+            unsigned int cpbak = dos.loaded_codepage;
+            dos.loaded_codepage = maincp;
+            Add_VFiles(false);
+            dos.loaded_codepage = cpbak;
 
             /* remove environment variables for some components */
             DOS_UninstallMisc();
             SBLASTER_DOS_Shutdown();
             GUS_DOS_Shutdown();
+#if !defined(OSFREE)
             /* disable Expanded Memory. EMM is a DOS API, not a BIOS API */
             EMS_DoShutDown();
+#endif
             /* and XMS, also a DOS API */
             XMS_DoShutDown();
             /* and the DOS API in general */
@@ -15330,12 +10263,15 @@ fresh_boot:
              * do not attempt to manipulate now-defunct parts of the kernel
              * such as the environment block */
             dos_kernel_disabled = true;
+            dos_kernel_shutdown_mcb = true;
 
             std::string core(static_cast<Section_prop *>(control->GetSection("cpu"))->Get_string("core"));
             if (!strcmp(RunningProgram, "LOADLIN") && core == "auto") {
                 cpudecoder=&CPU_Core_Normal_Run;
                 mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+#if (C_DYNAMIC_X86) || (C_DYNREC)
                 mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
+#endif
             }
 
             /* new code: fire event */
@@ -15344,21 +10280,19 @@ fresh_boot:
             else
                 DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
 
-#if defined(WIN32) && !defined(C_SDL2)
-            int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
             Reflect_Menu();
 #endif
         }
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 
 #if defined(USE_TTF)
         if (ttfswitch || switch_output_from_ttf) {
             tooutttf = true;
-            ttfswitch = switch_output_from_ttf = false;
+            showdbcs = switchttf = ttfswitch = switch_output_from_ttf = false;
             mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
         }
 #endif
@@ -15398,19 +10332,65 @@ fresh_boot:
             goto fresh_boot;
         }
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
+        finish_prepare = false;
+        if (run_bios) {
+            LOG_MSG("Running a custom BIOS");
 
-        if (reboot_machine) {
+            boothax = BOOTHAX_NONE;
+            guest_msdos_LoL = 0;
+            guest_msdos_mcb_chain = 0;
+            guest_msdos_dev_chain = 0;
+
+            void CPU_Snap_Back_Forget();
+            /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
+            CPU_Snap_Back_To_Real_Mode();
+            CPU_Snap_Back_Forget();
+
+            /* TODO: Should we tell the system? */
+
+            /* force the mapper to let go of all keys so that the host key is not stuck (Issue #1320) */
+            MAPPER_ReleaseAllKeys();
+            void MAPPER_LosingFocus(void);
+            MAPPER_LosingFocus();
+
+            if (custom_bios) {
+                if (custom_bios_image && custom_bios_image_size != 0 && custom_bios_image_offset != 0) {
+		    memcpy(GetMemBase()+custom_bios_image_offset,custom_bios_image,custom_bios_image_size);
+                }
+
+		if (custom_bios_image) delete[] custom_bios_image;
+
+                /* need to relocate BIOS allocations */
+                void ROMBIOS_InitForCustomBIOS(void);
+                ROMBIOS_InitForCustomBIOS();
+            }
+
+            CPU_OnReset(NULL);
+
+#if C_DEBUG
+            if (boot_debug_break) {
+                boot_debug_break = false;
+
+                Bitu DEBUG_EnableDebugger(void);
+                DEBUG_EnableDebugger();
+            }
+#endif
+
+            /* run again */
+            goto fresh_boot;
+        }
+        else if (reboot_machine) {
             LOG_MSG("Rebooting the system\n");
 
             boothax = BOOTHAX_NONE;
             guest_msdos_LoL = 0;
             guest_msdos_mcb_chain = 0;
+            guest_msdos_dev_chain = 0;
 
-            void CPU_Snap_Back_Forget();
+	    void CPU_Snap_Back_Forget();
             /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
             CPU_Snap_Back_To_Real_Mode();
             CPU_Snap_Back_Forget();
@@ -15475,8 +10455,7 @@ fresh_boot:
             goto fresh_boot;
         }
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 
@@ -15488,99 +10467,112 @@ fresh_boot:
         CPU_Snap_Back_To_Real_Mode();
         CPU_Snap_Back_Forget();
 
+        void CALLBACK_Dump(void);
+        CALLBACK_Dump();
+
+        /* GUI font registry shutdown */
+#if !defined(C_SDL2)
+        GUI::Font::registry_freeall();
+#endif
+        DOS_ShutdownDrives();
+        DOS_ShutdownFiles();
+        DOS_ShutdownDevices();
+        CALLBACK_Shutdown();
+#if C_DYNAMIC_X86
+        CPU_Core_Dyn_X86_Shutdown();
+#endif
+        FreeBIOSDiskList();
+        MAPPER_Shutdown();
+        VFILE_Shutdown();
+        PROGRAMS_Shutdown();
+        TIMER_ShutdownTickHandlers();
+#if C_DEBUG
+        DEBUG_ShutDown(NULL);
+#endif
+
+        sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
+
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+        if (!control->opt_silent) {
+                SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
+                SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
+        }
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
+        if (!control->opt_silent) {
+                SDL_StopTextInput();
+        }
+#endif
+
+        //Force visible mouse to end user. Somehow this sometimes doesn't happen
+#if defined(C_SDL2)
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+#else
+        SDL_WM_GrabInput(SDL_GRAB_OFF);
+#endif
+        SDL_ShowCursor(SDL_ENABLE);
+
+        /* Exit functions */
+        if (machine != MCH_AMSTRAD) // FIXME
+                while (!exitfunctions.empty()) {
+                        Function_wrapper &ent = exitfunctions.front();
+
+                        LOG(LOG_MISC,LOG_DEBUG)("Calling exit function (%p) '%s'",(void*)((uintptr_t)ent.function),ent.name.c_str());
+                        ent.function(NULL);
+                        exitfunctions.pop_front();
+                }
+
+#if defined(C_HAVE_DUKTAPE)
+	if (js_heap) {
+		LOG(LOG_MISC,LOG_NORMAL)("Freeing ECMA heap");
+		duk_destroy_heap(js_heap);
+		js_heap = NULL;
+	}
+#endif
+
+        LOG::Exit();
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU && defined(WIN32) && !defined(HX_DOS) && (!defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL) || defined(C_SDL2))
+        ShowWindow(GetHWND(), SW_HIDE);
+        SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+        void sdl_hax_macosx_setmenu(void *nsMenu);
+        sdl_hax_macosx_setmenu(NULL);
+#endif
+#if C_DEBUG
+        DISP2_Shut();
+#endif
+
+#if defined(C_SDL2)
+        SDL_CDROMQuit();
+#endif
+        SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
+
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+        if (winTaskbarList != NULL) {
+                winTaskbarList->Release();
+                winTaskbarList = NULL;
+        }
+#endif
+
+        mainMenu.unbuild();
+        mainMenu.clear_all_menu_items();
+
+#if defined(LINUX) && defined(HAVE_ALSA)
+        // force ALSA to release global cache, so that it's one less leak reported by Valgrind
+        snd_config_update_free_global();
+#endif
+
+	/* the return statement below needs control->opt_test, save it before Config
+	 * goes out of context and is deleted */
+	saved_opt_test = control->opt_test;
+
         /* NTS: The "control" object destructor is called here because the "myconf" object leaves scope.
          * The destructor calls all section destroy functions here. After this point, all sections have
          * freed resources. */
+        control = NULL; /* any deref past this point and you deserve to segfault */
     }
-
-    void CALLBACK_Dump(void);
-    CALLBACK_Dump();
-
-    /* GUI font registry shutdown */
-#if !defined(C_SDL2)
-    GUI::Font::registry_freeall();
-#endif
-    DOS_ShutdownDrives();
-    DOS_ShutdownFiles();
-    DOS_ShutdownDevices();
-    CALLBACK_Shutdown();
-#if C_DYNAMIC_X86
-    CPU_Core_Dyn_X86_Shutdown();
-#endif
-    FreeBIOSDiskList();
-    MAPPER_Shutdown();
-    VFILE_Shutdown();
-    PROGRAMS_Shutdown();
-    TIMER_ShutdownTickHandlers();
-#if C_DEBUG
-    DEBUG_ShutDown(NULL);
-#endif
-
-    sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
-
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-    if (!control->opt_silent) {
-        SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
-        SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
-    }
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
-    if (!control->opt_silent) {
-        SDL_StopTextInput();
-    }
-#endif
-
-    //Force visible mouse to end user. Somehow this sometimes doesn't happen
-#if defined(C_SDL2)
-    SDL_SetRelativeMouseMode(SDL_FALSE);
-#else
-    SDL_WM_GrabInput(SDL_GRAB_OFF);
-#endif
-    SDL_ShowCursor(SDL_ENABLE);
-
-    /* Exit functions */
-    if (machine != MCH_AMSTRAD) // FIXME
-    while (!exitfunctions.empty()) {
-        Function_wrapper &ent = exitfunctions.front();
-
-        LOG(LOG_MISC,LOG_DEBUG)("Calling exit function (%p) '%s'",(void*)((uintptr_t)ent.function),ent.name.c_str());
-        ent.function(NULL);
-        exitfunctions.pop_front();
-    }
-
-    LOG::Exit();
-
-#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-# if !defined(HX_DOS)
-    ShowWindow(GetHWND(), SW_HIDE);
-    SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */
-# endif
-#endif
-#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
-    void sdl_hax_macosx_setmenu(void *nsMenu);
-    sdl_hax_macosx_setmenu(NULL);
-#endif
-
-#if defined(C_SDL2)
-	Compat_SDL_CDROMQuit();
-#endif
-    SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
-
-#if defined(WIN32) && !defined(HX_DOS)
-    if (winTaskbarList != NULL) {
-        winTaskbarList->Release();
-        winTaskbarList = NULL;
-    }
-#endif
-
-    mainMenu.unbuild();
-    mainMenu.clear_all_menu_items();
-
-#if defined(LINUX) && defined(HAVE_ALSA)
-    // force ALSA to release global cache, so that it's one less leak reported by Valgrind
-    snd_config_update_free_global();
-#endif
-
-    return 0;
+    return saved_opt_test&&testerr?1:0;
 }
 
 void GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen) {

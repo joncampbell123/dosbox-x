@@ -25,8 +25,11 @@
 #include "pic.h"
 #include "fpu.h"
 
+extern bool do_lds_wraparound;
+
 #define PRE_EXCEPTION { }
 
+#define CPU_OMIT_8086
 #define CPU_CORE CPU_ARCHTYPE_386
 
 extern bool ignore_opcode_63;
@@ -84,6 +87,10 @@ extern Bitu cycle_count;
     core.prefixes|=PREFIX_REP;              \
     core.rep_zero=_ZERO;                    \
     goto restart_opcode;
+
+#define REMEMBER_PREFIX(_x) last_prefix = (_x)
+
+static uint8_t last_prefix;
 
 typedef PhysPt (*GetEAHandler)(void);
 
@@ -158,24 +165,25 @@ bool CPU_SYSEXIT();
  *      Because of this, the simple core cannot be used to execute directly
  *      from ROM provided by an adapter since that requires memory I/O callbacks. */
 Bits CPU_Core_Simple_Run(void) {
-    HostPt safety_limit;
+	HostPt safety_limit;
 
-    /* simple core is incompatible with paging */
-    if (paging.enabled)
-        return CPU_Core_Normal_Run();
+	/* simple core is incompatible with paging */
+	if (paging.enabled)
+		return CPU_Core_Normal_Run();
 
-    safety_limit = (HostPt)((size_t)MemBase + ((size_t)MEM_TotalPages() * (size_t)4096) - (size_t)16384); /* safety margin */
+	safety_limit = (HostPt)((size_t)MemBase + ((size_t)MEM_TotalPages() * (size_t)4096) - (size_t)16384); /* safety margin */
 
-    LOADIP;
-    if (core.cseip >= safety_limit) /* beyond the safety limit, use the normal core */
-        return CPU_Core_Normal_Run();
+	LOADIP;
+	if (core.cseip >= safety_limit) /* beyond the safety limit, use the normal core */
+		return CPU_Core_Normal_Run();
 
-    while (CPU_Cycles-->0) {
-        LOADIP;
+	while (CPU_Cycles-->0) {
+		LOADIP;
 
-        /* Simple core optimizes for non-paged linear memory access and can break (segfault) if beyond end of memory */
+		/* Simple core optimizes for non-paged linear memory access and can break (segfault) if beyond end of memory */
         if (core.cseip >= safety_limit) break;
 
+        last_prefix=MP_NONE;
         core.opcode_index=cpu.code.big*0x200u;
         core.prefixes=cpu.code.big;
         core.ea_table=&EATable[cpu.code.big*256u];

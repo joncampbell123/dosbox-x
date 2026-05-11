@@ -1,19 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # I'm sick and tired of all the churn the three versions of autoconf
 # are causing in this repo. Stop committing the configure scripts
 # and just autoregen.
 ./autogen.sh || exit 1
 
-echo Compiling DOSBox-X
+echo "Compiling DOSBox-X"
 chmod +x configure
 
 # for sdl-config
-export PATH=$GCCSDK_INSTALL_ENV/bin:$PATH
-export CPPFLAGS=-I$GCCSDK_INSTALL_ENV/include
-export LDFLAGS="-L$GCCSDK_INSTALL_ENV/lib -static"
+PATH=${GCCSDK_INSTALL_ENV}/bin:$PATH
+CPPFLAGS=-I${GCCSDK_INSTALL_ENV}/include
+LDFLAGS="-L${GCCSDK_INSTALL_ENV}/lib -static"
+export PATH CPPFLAGS LDFLAGS
 
-./configure --host=arm-unknown-riscos --enable-core-inline "$@"
+./configure --host=arm-unknown-riscos "${@}"
 make -j3 || exit 1
 elf2aif src/dosbox-x !DosBox-X/dosbox-x,ff8
 cp contrib/fonts/FREECG98.BMP !DosBox-X/resources/freecg98.bmp,69c

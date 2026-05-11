@@ -275,11 +275,17 @@
 #else
 		{
 			int16_t bound_min, bound_max;
-			GetRMrw;GetEAa;
-			bound_min=(int16_t)LoadMw(eaa);
-			bound_max=(int16_t)LoadMw(eaa+2u);
-			if ( (((int16_t)*rmrw) < bound_min) || (((int16_t)*rmrw) > bound_max) ) {
-				EXCEPTION(5);
+			GetRMrw;
+			if (rm < 0xc0) { // r/m = memory
+				GetEAa;
+				bound_min=(int16_t)LoadMw(eaa);
+				bound_max=(int16_t)LoadMw(eaa+2u);
+				if ( (((int16_t)*rmrw) < bound_min) || (((int16_t)*rmrw) > bound_max) ) {
+					EXCEPTION(5);
+				}
+			}
+			else { // r/m = register, which is an illegal encoding
+				goto illegal_opcode;
 			}
 		}
 		break;
@@ -337,6 +343,7 @@
         goto illegal_opcode;
 #endif
 #if CPU_CORE >= CPU_ARCHTYPE_386
+		REMEMBER_PREFIX(MP_66);
 		core.opcode_index=(cpu.code.big^0x1u)*0x200u;
 		goto restart_opcode;
 #endif
@@ -348,6 +355,7 @@
         goto illegal_opcode;
 #endif
 #if CPU_CORE >= CPU_ARCHTYPE_386
+		REMEMBER_PREFIX(MP_NONE);
 		DO_PREFIX_ADDR();
 #endif
 	CASE_W(0x68)												/* PUSH Iw */
@@ -905,7 +913,9 @@
 #endif
 	CASE_W(0xc2)												/* RETN Iw */
 		{
+#if CPU_CORE < CPU_ARCHTYPE_80186
         opcode_c2:
+#endif
 			uint32_t old_esp = reg_esp;
 
 			try {
@@ -924,19 +934,51 @@
 		reg_eip=Pop_16();
 		continue;
 	CASE_W(0xc4)												/* LES */
-		{	
+		{
+			GetEAaNDEF;
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
-			GetEAa;
+#ifndef CPU_OMIT_8086
+			if (do_lds_wraparound && !cpu.code.big/*8086 table is missing latter half for 32-bit!*/) {
+				/* stack underflow 64KB wraparound? [https://github.com/joncampbell123/dosbox-x/issues/5621] */
+				GetEAaN8086; /* 8086 version that also sets last_ea86_offset */
+				if (last_ea86_offset > (0x10000u-4u)) {
+					if (CPU_SetSegGeneral(es,LoadMw(eaa+2-0x10000))) RUNEXCEPTION();
+					*rmrw=LoadMw(eaa);
+					break;
+				}
+			}
+			else {
+				GetEAaN;
+			}
+#else
+			GetEAaN;
+#endif
 			if (CPU_SetSegGeneral(es,LoadMw(eaa+2))) RUNEXCEPTION();
 			*rmrw=LoadMw(eaa);
 			break;
 		}
 	CASE_W(0xc5)												/* LDS */
-		{	
+		{
+			GetEAaNDEF;
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
-			GetEAa;
+#ifndef CPU_OMIT_8086
+			if (do_lds_wraparound && !cpu.code.big/*8086 table is missing latter half for 32-bit!*/) {
+				/* stack underflow 64KB wraparound? [https://github.com/joncampbell123/dosbox-x/issues/5621] */
+				GetEAaN8086; /* 8086 version that also sets last_ea86_offset */
+				if (last_ea86_offset > (0x10000u-4u)) {
+					if (CPU_SetSegGeneral(ds,LoadMw(eaa+2-0x10000))) RUNEXCEPTION();
+					*rmrw=LoadMw(eaa);
+					break;
+				}
+			}
+			else {
+				GetEAaN;
+			}
+#else
+			GetEAaN;
+#endif
 			if (CPU_SetSegGeneral(ds,LoadMw(eaa+2))) RUNEXCEPTION();
 			*rmrw=LoadMw(eaa);
 			break;
@@ -986,14 +1028,18 @@
 #endif
 	CASE_W(0xca)												/* RETF Iw */
 		{
+#if CPU_CORE < CPU_ARCHTYPE_80186
         opcode_ca:
+#endif
 			Bitu words=Fetchw();
 			FillFlags();
 			CPU_RET(false,words,GETIP);
 			continue;
 		}
 	CASE_W(0xcb)												/* RETF */
+#if CPU_CORE < CPU_ARCHTYPE_80186
         opcode_cb:
+#endif
 		FillFlags();
 		CPU_RET(false,0,GETIP);
 		continue;
@@ -1082,7 +1128,7 @@
 		break;
 	CASE_B(0xd9)												/* FPU ESC 1 */
 		if (enable_fpu) {
-			FPU_ESC(1);
+			FPU_ESC_SIZE(1, !(core.opcode_index&OPCODE_SIZE));
 		}
 		else {
 			uint8_t rm=Fetchb();
@@ -1118,7 +1164,7 @@
 		break;
 	CASE_B(0xdd)												/* FPU ESC 5 */
 		if (enable_fpu) {
-			FPU_ESC(5);
+			FPU_ESC_SIZE(5, !(core.opcode_index&OPCODE_SIZE));
 		}
 		else {
 			uint8_t rm=Fetchb();
@@ -1266,7 +1312,10 @@
 		IO_WriteW(reg_dx,reg_ax);
 		break;
 	CASE_B(0xf0)												/* LOCK */
+#if CPU_CORE < CPU_ARCHTYPE_80186
         opcode_f0:
+#endif
+		REMEMBER_PREFIX(MP_NONE);
 // todo: make an option to show this
 //		LOG(LOG_CPU,LOG_NORMAL)("CPU:LOCK"); /* FIXME: see case D_LOCK in core_full/load.h */
 		break;
@@ -1282,9 +1331,11 @@
         goto opcode_f0;
 #endif
 	CASE_B(0xf2)												/* REPNZ */
+		REMEMBER_PREFIX(MP_F2);
 		DO_PREFIX_REP(false);	
 		break;		
 	CASE_B(0xf3)												/* REPZ */
+		REMEMBER_PREFIX(MP_F3);
 		DO_PREFIX_REP(true);	
 		break;		
 	CASE_B(0xf4)												/* HLT */
@@ -1393,63 +1444,52 @@
 		SETFLAGBIT(CF,true);
 		break;
 	CASE_B(0xfa)												/* CLI */
-do_cli:	if (CPU_CLI()) RUNEXCEPTION();
+		if (CPU_CLI()) RUNEXCEPTION();
 		break;
 	CASE_B(0xfb)												/* STI */
+		//      It turns out on a 486 that STI+CLI (right next to each other) does not
+		//      trigger the CPU to process interrupts. Like this:
+		//
+		//      STI
+		//      CLI
+		//
+		//      The FM music driver for the PC-98 version of Peret em Heru appears to have
+		//      STI+CLI sequences for some reason in certain subroutines within the FM
+		//      music interrupt handler, which should not be trigger points to process
+		//      interrupts because the FM interrupt is non-reentrant and Peret is also
+		//      calling another entry point to the FM driver from IRQ 2 (vsync). If
+		//      IRQ 2 is processed while the FM interrupt is processing at the STI, the
+		//      stack switch will overwrite the first and the FM interrupt will return
+		//      by stale data and crash.
+		//
+		//      [https://github.com/joncampbell123/dosbox-x/issues/1162]
+		//
+		// NTS: The prior fix that set CPU_Cycles = 4 causes the normal core to get stuck
+		//      and never break out (hanging DOSBox-X) when running PC-98 game Night Slave,
+		//      so that isn't a long-term option.
+		//
+		//      Capping CPU_Cycles = 2 seems to break Commander Keen games because of the
+		//      way the video vsync and wait loop works. It waits for retrace/vsync with
+		//      interrupts disabled, then on vertical retrace, briefly enables interrupts
+		//      to allow them to run by jumping to a STI + JMP short $+2 + CLI sequence.
+		//      Note the code deliberately uses a JMP short delay to avoid STI + CLI and
+		//      make sure interrupts process.
+		//
+		// NTS: New idea: On STI, force the core to execute another instruction immediately.
+		//      If there isn't enough CPU cycles, then break out of the loop. If CLI follows
+		//      immediately, then it will undo the effects of STI without a chance to process
+		//      interrupts.
 		if (CPU_STI()) RUNEXCEPTION();
-#if CPU_PIC_CHECK
 		if (GETFLAG(IF) && PIC_IRQCheck) {
-            // NTS: Do not immmediately break execution, but set the cycle count to a minimal
-            //      value so that if a CLI follows immediately the interrupt will be ignored.
-            //
-            //      It turns out on a 486 that STI+CLI (right next to each other) does not
-            //      trigger the CPU to process interrupts. Like this:
-            //
-            //      STI
-            //      CLI
-            //
-            //      The FM music driver for the PC-98 version of Peret em Heru appears to have
-            //      STI+CLI sequences for some reason in certain subroutines within the FM
-            //      music interrupt handler, which should not be trigger points to process
-            //      interrupts because the FM interrupt is non-reentrant and Peret is also
-            //      calling another entry point to the FM driver from IRQ 2 (vsync). If
-            //      IRQ 2 is processed while the FM interrupt is processing at the STI, the
-            //      stack switch will overwrite the first and the FM interrupt will return
-            //      by stale data and crash.
-            //
-            //      [https://github.com/joncampbell123/dosbox-x/issues/1162]
-            //
-            // NTS: The prior fix that set CPU_Cycles = 4 causes the normal core to get stuck
-            //      and never break out (hanging DOSBox-X) when running PC-98 game Night Slave,
-            //      so that isn't a long-term option.
-            //
-            //      Capping CPU_Cycles = 2 seems to break Commander Keen games because of the
-            //      way the video vsync and wait loop works. It waits for retrace/vsync with
-            //      interrupts disabled, then on vertical retrace, briefly enables interrupts
-            //      to allow them to run by jumping to a STI + JMP short $+2 + CLI sequence.
-            //      Note the code deliberately uses a JMP short delay to avoid STI + CLI and
-            //      make sure interrupts process.
-            {
-                uint8_t b = FetchPeekb();
-                if (b == 0xFAu) {
-                    /* if the next opcode is CLI, then do CLI right here before the normal core
-                     * has any chance to break and handle interrupts */
-                    FetchDiscardb(); // discard opcode we peeked, and then go execute it
-                    CPU_Cycles--; // we're executing another instruction, which should eat one CPU cycle
-                    goto do_cli;
-                }
-            }
-            // otherwise, break for interrupt handling as normal
-            if (CPU_Cycles > 1) {
-                CPU_CycleLeft += CPU_Cycles - 1;
-                CPU_Cycles = 1;
-            }
-            else {
-                goto decode_end;
-            }
-        }
-#endif
-		break;
+			// FORCE another instruction decode before allowing interrupt processing
+			CPU_CycleLeft += CPU_Cycles - 1;
+			CPU_Cycles = 1;
+			SAVEIP;
+			continue;
+		}
+		else {
+			break;
+		}
 	CASE_B(0xfc)												/* CLD */
 		SETFLAGBIT(DF,false);
 		cpu.direction=1;

@@ -46,7 +46,7 @@
 	if (!(inst.prefix & PREFIX_REP)) {
 		count=1;
 	} else {
-		/* we allow the user to cap our count as a way of making REP string operations interruptable (and at what granularity) */
+		/* we allow the user to cap our count as a way of making REP string operations interruptible (and at what granularity) */
 		/* NTS: This condition is less important now that the loops themselves break when CPU_Cycles <= 0. when this code was
 		 *      initially implemented the string ops stubbornly counted through the bytes regardless of pending interrupts and
 		 *      it caused problems with code that needed fine timing i.e. demos that played music through the LPT DAC while

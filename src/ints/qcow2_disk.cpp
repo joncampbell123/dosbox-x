@@ -23,6 +23,13 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
+#if defined(__linux__) && !defined(__GLIBC__)
+// msul libc does not need 64 suffix to work with files > 2 GiB 
+#define fopen64 fopen
+#define fseeko64 fseeko
+#define ftello64 ftello
+#endif
+
 using namespace std;
 
 
@@ -69,7 +76,7 @@ using namespace std;
 		if (header.backing_file_offset != 0 && header.backing_file_size != 0){
 			char* backing_file_name = new char[header.backing_file_size + 1];
 			backing_file_name[header.backing_file_size] = 0;
-			fseeko64(file, (off_t)header.backing_file_offset, SEEK_SET);
+			fseeko64(file, header.backing_file_offset, SEEK_SET);
             size_t readResult = fread(backing_file_name, header.backing_file_size, 1, file);
             if (readResult != 1) {
                 LOG(LOG_IO, LOG_ERROR) ("Reading error in QCow2Image constructor\n");
@@ -270,7 +277,7 @@ using namespace std;
 //Read data of arbitrary length that is present in the image file.
 	uint8_t QCow2Image::read_allocated_data(uint64_t file_offset, uint8_t* data, uint64_t data_size)
 	{
-		if (0 != fseeko64(file, (off_t)file_offset, SEEK_SET)){
+		if (0 != fseeko64(file, file_offset, SEEK_SET)){
 			return 0x05;
 		}
 		if (1 != fread(data, data_size, 1, file)){
@@ -386,7 +393,7 @@ using namespace std;
 
 //Write data of arbitrary length to the image file.
 	uint8_t QCow2Image::write_data(uint64_t file_offset, const uint8_t* data, uint64_t data_size){
-		if (0 != fseeko64(file, (off_t)file_offset, SEEK_SET)){
+		if (0 != fseeko64(file, file_offset, SEEK_SET)){
 			return 0x05;
 		}
 		if (1 != fwrite(data, data_size, 1, file)){
@@ -433,7 +440,7 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, const char *imgName, uint32_t imgSizeK, uint32_t sectorSizeBytes, bool isHardDisk) : imageDisk(qcow2File, (const char*)imgName, imgSizeK, isHardDisk), qcowImage(qcow2Header, qcow2File, (const char*) imgName, sectorSizeBytes){
+	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, const char *imgName, uint64_t imgSize, uint32_t sectorSizeBytes, bool isHardDisk) : imageDisk(qcow2File, (const char*)imgName, imgSize, isHardDisk), qcowImage(qcow2Header, qcow2File, (const char*) imgName, sectorSizeBytes){
 	}
 
 

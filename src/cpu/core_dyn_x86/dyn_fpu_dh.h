@@ -71,8 +71,8 @@ static void FPU_FNINIT_DH(void){
 	dyn_dh_fpu.cw = 0x37f;
 }
 
-static void FPU_FSTENV_DH(PhysPt addr){
-	if(!cpu.code.big) {
+static void FPU_FSTENV_DH(PhysPt addr, bool op16){
+	if (op16) {
 		mem_writew(addr+0,(uint16_t)dyn_dh_fpu.cw);
 		mem_writew(addr+2,(uint16_t)dyn_dh_fpu.temp.m2);
 		mem_writew(addr+4,dyn_dh_fpu.temp.m3);
@@ -84,8 +84,8 @@ static void FPU_FSTENV_DH(PhysPt addr){
 	}
 }
 
-static void FPU_FLDENV_DH(PhysPt addr){
-	if(!cpu.code.big) {
+static void FPU_FLDENV_DH(PhysPt addr, bool op16){
+	if (op16) {
 		dyn_dh_fpu.cw = (uint32_t)mem_readw(addr);
 		dyn_dh_fpu.temp.m1 = dyn_dh_fpu.cw|0x3f;
 		dyn_dh_fpu.temp.m2 = (uint32_t)mem_readw(addr+2);
@@ -99,8 +99,8 @@ static void FPU_FLDENV_DH(PhysPt addr){
 	}
 }
 
-static void FPU_FSAVE_DH(PhysPt addr){
-	if (!cpu.code.big) {
+static void FPU_FSAVE_DH(PhysPt addr, bool op16){
+	if (op16) {
 		mem_writew(addr,(uint16_t)dyn_dh_fpu.cw);
 		addr+=2;
 		mem_writeb(addr++,dyn_dh_fpu.temp_state[0x04]);
@@ -123,8 +123,8 @@ static void FPU_FSAVE_DH(PhysPt addr){
 	}
 }
 
-static void FPU_FRSTOR_DH(PhysPt addr){
-	if (!cpu.code.big) {
+static void FPU_FRSTOR_DH(PhysPt addr, bool op16){
+	if (op16) {
 		dyn_dh_fpu.cw = (uint32_t)mem_readw(addr);
 		dyn_dh_fpu.temp_state[0x00] = mem_readb(addr++)|0x3f;
 		dyn_dh_fpu.temp_state[0x01] = mem_readb(addr++);
@@ -206,7 +206,7 @@ static void dh_fpu_esc1(){
 			dyn_call_function_pagefault_check((void*)&FPU_FST_32,"%Drd",DREG(EA));
 			break;
 		case 0x04: /* FLDENV */
-			dyn_call_function_pagefault_check((void*)&FPU_FLDENV_DH,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FLDENV_DH,"%Drd%Ib", DREG(EA), !decode.big_op);
 			dh_fpu_mem(0xd9);
 			break;
 		case 0x05: /* FLDCW */
@@ -215,7 +215,7 @@ static void dh_fpu_esc1(){
 			break;
 		case 0x06: /* FSTENV */
 			dh_fpu_mem(0xd9);
-			dyn_call_function_pagefault_check((void*)&FPU_FSTENV_DH,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FSTENV_DH,"%Drd%Ib", DREG(EA), !decode.big_op);
 			break;
 		case 0x07:  /* FNSTCW*/
 			dyn_call_function_pagefault_check((void*)&FPU_FNSTCW_DH,"%Drd",DREG(EA));
@@ -348,12 +348,12 @@ static void dh_fpu_esc5(){
 			dyn_call_function_pagefault_check((void*)&FPU_FST_64,"%Drd",DREG(EA));
 			break;
 		case 0x04:	/* FRSTOR */
-			dyn_call_function_pagefault_check((void*)&FPU_FRSTOR_DH,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FRSTOR_DH,"%Drd%Ib",DREG(EA), !decode.big_op);
 			dh_fpu_mem(0xdd, decode.modrm.reg, &(dyn_dh_fpu.temp_state[0]));
 			break;
 		case 0x06:	/* FSAVE */
 			dh_fpu_mem(0xdd, decode.modrm.reg, &(dyn_dh_fpu.temp_state[0]));
-			dyn_call_function_pagefault_check((void*)&FPU_FSAVE_DH,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FSAVE_DH,"%Drd%Ib",DREG(EA), !decode.big_op);
 			cache_addw(0xE3DB);
 			break;
 		case 0x07:   /* FNSTSW */

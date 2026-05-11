@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#define VGA_INTERNAL
 
 #include <string.h>
 #include <math.h>
@@ -28,8 +29,17 @@
 #include "render.h"
 #include "mapper.h"
 #include "control.h"
+#include "../ints/int10.h"
 
-#define crtc(blah) vga.crtc.blah
+#include <output/output_ttf.h>
+
+#if defined(USE_TTF)
+void ttf_switch_on(bool ss = true);
+void ttf_switch_off(bool ss = true);
+#endif
+
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
 
 static Bitu read_cga(Bitu /*port*/,Bitu /*iolen*/);
 static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/);
@@ -138,6 +148,93 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		vga.other.lightpen &= 0xff00;
 		vga.other.lightpen |= (uint8_t)val;
 		break;
+	case 0x14:	/* Hercules InColor and HGC+: xMode */
+		if (hercCard == HERC_InColor || hercCard == HERC_GraphicsCardPlus) {
+			// HGC+ and InColor bit 0 controls whether the RAM font at B4000h is drawn in text mode, and bit 2 the 48k RAMfont mode.
+			const uint8_t chg = vga.herc.xMode ^ (uint8_t)val;
+			if (chg & 2/*bit 1: change 80/90 column mode*/) VGA_StartResize();
+			vga.herc.xMode = (uint8_t)val;
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x15:	/* Hercules InColor and HGC+ */
+		if (hercCard == HERC_InColor || hercCard == HERC_GraphicsCardPlus) {
+			vga.herc.underline = (uint8_t)val;
+			vga.crtc.underline_location = (uint8_t)val & 0xFu;
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x16:	/* Hercules InColor and HGC+ */
+		if (hercCard == HERC_InColor || hercCard == HERC_GraphicsCardPlus) {
+			vga.herc.strikethrough = (uint8_t)val;
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x17:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			if (vga.herc.exception != (uint8_t)val) {
+				vga.herc.exception = (uint8_t)val;
+				for (uint8_t i=0;i<0x10;i++)
+					VGA_ATTR_SetPalette(i,i);
+			}
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x18:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.planemask_protect = (uint8_t)((val >> 4u) & 0xFu);
+			vga.herc.planemask_visible = (uint8_t)(val & 0xFu);
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x19:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.maskpolarity = (val & 0x40u) ? 0xFFu : 0x00u;
+			vga.herc.write_mode = (val >> 4u) & 3u;
+			vga.herc.dont_care = (val & 0xFu);
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x1A:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.fgcolor = (uint8_t)(val & 0xFu);
+			vga.herc.bgcolor = (uint8_t)((val >> 4u) & 0xFu);
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x1B:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.latchprotect = (uint8_t)val;
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x1C:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.palette[vga.herc.palette_index] = (uint8_t)val & 63u;
+			VGA_ATTR_SetPalette(vga.herc.palette_index,vga.herc.palette_index);
+			if (++vga.herc.palette_index >= 0x10) vga.herc.palette_index = 0;
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	unhandled:
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:Write %X to illegal index %x",(int)val,(int)vga.other.index);
 	}
@@ -180,6 +277,15 @@ static Bitu read_crtc_data_other(Bitu /*port*/,Bitu /*iolen*/) {
 		return (uint8_t)(vga.other.lightpen >> 8u);
 	case 0x11:	/* Light Pen Low */
 		return (uint8_t)(vga.other.lightpen & 0xffu);
+	case 0x1C:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.palette_index = 0;
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	unhandled:
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:Read from illegal index %x",vga.other.index);
 	}
@@ -587,8 +693,14 @@ static Bitu read_cga(Bitu port,Bitu /*iolen*/) {
     return ~0UL;
 }
 
+bool J3_IsCga4Dcga();
+
 static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/) {
     Bitu changed;
+
+	if(J3_IsCga4Dcga()) {
+		return;
+	}
 
 	switch (port) {
 	case 0x3d8:
@@ -804,7 +916,7 @@ static void write_tandy_reg(uint8_t val) {
 		}
 		break;
 	case 0x1:	/* Palette mask */
-		vga.tandy.palette_mask = val;
+		vga.tandy.palette_mask = val; // FIXME: Wait... does this apply always in every mode or just the CGA compatible modes?
 		tandy_update_palette();
 		break;
 	case 0x2:	/* Border color */
@@ -830,6 +942,27 @@ static void write_tandy_reg(uint8_t val) {
 		} else
 			LOG(LOG_VGAMISC,LOG_NORMAL)("Unhandled Write %2X to tandy reg %X",val,vga.tandy.reg_index);
 	}
+}
+
+/* You're not SUPPOSED to read Tandy registers 3D8, 3DE, 3DF, they're documented WRITE ONLY! */
+static Bitu read_tandy(Bitu port,Bitu /*iolen*/) {
+	LOG(LOG_VGAMISC,LOG_DEBUG)("DOS applications are NOT SUPPOSED to read Tandy register %x",(unsigned int)port);
+
+	switch (port) {
+		/* "Troubadours" does not switch into Tandy 320x200 16-color by calling INT 10h.
+		 * Instead, it has it's own hand-written code to modify registers directly.
+		 * For whatever reason, it modifies 3DD and 3DF by reading, modifying, and writing
+		 * the registers EVEN THOUGH Tandy documents the registers as write only.
+		 * Returning the last written value doesn't work, because the modified values
+		 * come out incorrect. 3DFh after modification comes out to 0xFF which maps the
+		 * video RAM to B800h as repeating 16KB banks for example. The game works correctly
+		 * if this code provides 0x00, not 0xFF, when it reads these specific registers. */
+		case 0x3DD:
+		case 0x3DF:
+			return 0;
+	}
+
+	return ~0u;
 }
 
 static void write_tandy(Bitu port,Bitu val,Bitu /*iolen*/) {
@@ -868,8 +1001,7 @@ static void write_tandy(Bitu port,Bitu val,Bitu /*iolen*/) {
 		// The remapped range is 32kB instead of 16. Therefore CPU_PG bit 0
 		// appears to be ORed with CPU A14 (to preserve some sort of
 		// backwards compatibility?), resulting in odd pages being mapped
-		// as 2x16kB. Implemeted in vga_memory.cpp Tandy handler.
-
+		// as 2x16kB. Implemented in vga_memory.cpp Tandy handler.
 		vga.tandy.line_mask = (uint8_t)(val >> 6);
 		vga.tandy.draw_bank = val & ((vga.tandy.line_mask&2) ? 0x6 : 0x7);
 		vga.tandy.mem_bank = (val >> 3) & 7;
@@ -956,27 +1088,33 @@ void HercBlend(bool pressed) {
 	VGA_SetupDrawing(0);
 }
 
-void Herc_Palette(void) {	
+void Herc_Palette(void) {
+	if (hercCard == HERC_InColor) return;
+
 	switch (herc_pal) {
 	case MonochromeColor::White:
 		VGA_DAC_SetEntry(0x7,0x2a,0x2a,0x2a);
+		VGA_DAC_SetEntry(0x8,0x15,0x15,0x15);
 		VGA_DAC_SetEntry(0xf,0x3f,0x3f,0x3f);
 		break;
 	case MonochromeColor::Amber:
 		VGA_DAC_SetEntry(0x7,0x34,0x20,0x00);
+		VGA_DAC_SetEntry(0x8,0x20,0x13,0x00);
 		VGA_DAC_SetEntry(0xf,0x3f,0x34,0x00);
 		break;
 	case MonochromeColor::Gray:
 		VGA_DAC_SetEntry(0x7,0x2c,0x2d,0x2c);
+		VGA_DAC_SetEntry(0x8,0x17,0x18,0x17);
 		VGA_DAC_SetEntry(0xf,0x3f,0x3f,0x3b);
 		break;
 	case MonochromeColor::Green:
 		VGA_DAC_SetEntry(0x7,0x00,0x26,0x00);
+		VGA_DAC_SetEntry(0x8,0x00,0x12,0x00);
 		VGA_DAC_SetEntry(0xf,0x00,0x3f,0x00);
 		break;
 	}
-	VGA_DAC_CombineColor(1,0x7);
-	VGA_DAC_CombineColor(2,0xf);
+
+	VGA_DAC_UpdateColorPalette();
 }
 
 void Mono_CGA_Palette(void) {	
@@ -999,13 +1137,19 @@ static void write_hercules(Bitu port,Bitu val,Bitu /*iolen*/) {
 			// already set
 			if (!(val&0x2)) {
 				vga.herc.mode_control &= ~0x2;
-				VGA_SetMode(M_HERC_TEXT);
+#if defined(USE_TTF)
+                ttf_switch_on(false); // Enable TTF output if output=ttf
+#endif
+                VGA_SetMode(M_HERC_TEXT);
 			}
 		} else {
 			// not set, can only set if protection bit is set
 			if ((val & 0x2) && (vga.herc.enable_bits & 0x1)) {
 				vga.herc.mode_control |= 0x2;
-				VGA_SetMode(M_HERC_GFX);
+#if defined(USE_TTF)
+                ttf_switch_off(false); // Disable TTF output when switching to graphics mode
+#endif
+                VGA_SetMode(M_HERC_GFX);
 			}
 		}
 		if (vga.herc.mode_control&0x80) {
@@ -1016,7 +1160,10 @@ static void write_hercules(Bitu port,Bitu val,Bitu /*iolen*/) {
 		} else {
 			if ((val & 0x80) && (vga.herc.enable_bits & 0x2)) {
 				vga.herc.mode_control |= 0x80;
-				vga.tandy.draw_base = &vga.mem.linear[32*1024];
+				if (hercCard == HERC_InColor)
+					vga.tandy.draw_base = &vga.mem.linear[32*1024*4/*planar memory*/];
+				else
+					vga.tandy.draw_base = &vga.mem.linear[32*1024];
 			}
 		}
 		vga.draw.blinking = (val&0x20)!=0;
@@ -1053,37 +1200,49 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 
 	double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
 	uint8_t retval=0x72; // Hercules ident; from a working card (Winbond W86855AF)
-					// Another known working card has 0x76 ("KeysoGood", full-length)
+	// Another known working card has 0x76 ("KeysoGood", full-length)
 
-    if (machine == MCH_HERC) {
-        /* NTS: Vertical retrace bit is hercules-specific, as documented.
-         *      DOSLIB uses this to detect MDA vs Hercules.
-         *
-         *      This (and DOSLIB) will be revised when I get around to
-         *      plugging in my old MDA in one machine and Hercules card
-         *      in another machine to double-check ---J.C. */
-        if (timeInFrame < vga.draw.delay.vrstart ||
-                timeInFrame > vga.draw.delay.vrend) retval |= 0x80;
-    }
-    else {
-        retval |= 0x80; // bit 7 always set on MDA (right??)
-    }
+	if (machine == MCH_HERC) {
+		/* NTS: Vertical retrace bit is hercules-specific, as documented.
+		 *      DOSLIB uses this to detect MDA vs Hercules.
+		 *
+		 *      This (and DOSLIB) will be revised when I get around to
+		 *      plugging in my old MDA in one machine and Hercules card
+		 *      in another machine to double-check ---J.C. */
+		if (timeInFrame < vga.draw.delay.vrstart ||
+			timeInFrame > vga.draw.delay.vrend) retval |= 0x80;
+	}
+	else {
+		retval |= 0x80; // bit 7 always set on MDA (right??)
+	}
 
 	double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
 	if (timeInLine >= vga.draw.delay.hrstart &&
 		timeInLine <= vga.draw.delay.hrend) retval |= 0x1;
 
-    if (machine == MCH_HERC) {
-        // 688 Attack sub checks bit 3 - as a workaround have the bit enabled
-        // if no sync active (corresponds to a completely white screen)
-        if ((retval&0x81)==0x80) retval |= 0x8;
-    }
+	if (machine == MCH_HERC) {
+		// 688 Attack sub checks bit 3 - as a workaround have the bit enabled
+		// if no sync active (corresponds to a completely white screen)
+		if ((retval&0x81)==0x80) retval |= 0x8;
+	}
+
+	switch (hercCard) {
+		case HERC_GraphicsCardPlus:
+			retval &= 0x8F;
+			retval |= 0x10;
+			break;
+		case HERC_InColor:
+			retval &= 0x8F;
+			retval |= 0x50;
+			break;
+		default:
+			break;
+	}
 
 	return retval;
 }
 
 extern int eurAscii;
-extern uint8_t int10_font_08[256 * 8], int10_font_14[256 * 14], int10_font_16[256 * 16];
 uint8_t euro_08[8] = {
   0x3c, 0x66, 0xfc, 0x60, 0xf8, 0x66, 0x3c, 0x00,
 };
@@ -1097,14 +1256,16 @@ uint8_t euro_16[16] = {
 };
 
 void VGA_SetupOther(void) {
-    if (eurAscii>32 && eurAscii<256) {
-        for (int i=eurAscii*8;i<(eurAscii+1)*8;i++)
-            int10_font_08[i]=euro_08[i%8];
-        for (int i=eurAscii*14;i<(eurAscii+1)*14;i++)
-            int10_font_14[i]=euro_14[i%14];
-        for (int i=eurAscii*16;i<(eurAscii+1)*16;i++)
-            int10_font_16[i]=euro_16[i%16];
-    }
+	if (eurAscii>32 && eurAscii<256) {
+		for (int i=eurAscii*8;i<(eurAscii+1)*8;i++)
+			int10_font_08[i]=euro_08[i%8];
+		for (int i=eurAscii*14;i<(eurAscii+1)*14;i++)
+			int10_font_14[i]=euro_14[i%14];
+		for (int i=eurAscii*16;i<(eurAscii+1)*16;i++)
+			int10_font_16[i]=euro_16[i%16];
+		for (int i=eurAscii*16;i<(eurAscii+1)*16;i++)
+			int10_font_16_mcga[i]=euro_16[i%16];
+	}
 	memset( &vga.tandy, 0, sizeof( vga.tandy ));
 	vga.attr.disabled = 0;
 	vga.config.bytes_skip=0;
@@ -1158,6 +1319,18 @@ void VGA_SetupOther(void) {
 	}
 	if (machine==MCH_TANDY) {
 		write_tandy( 0x3df, 0x0, 0 );
+
+		// according to Tandy SX documentation a lot of registers are write-only
+		IO_RegisterReadHandler(0x3d4,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3d5,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3d8,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3d9,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3db,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3dc,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3dd,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3de,read_tandy,IO_MB);
+		IO_RegisterReadHandler(0x3df,read_tandy,IO_MB);
+
 		IO_RegisterWriteHandler(0x3d8,write_tandy,IO_MB);
 		IO_RegisterWriteHandler(0x3d9,write_tandy,IO_MB);
 		IO_RegisterWriteHandler(0x3da,write_tandy,IO_MB);

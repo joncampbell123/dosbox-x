@@ -41,7 +41,7 @@ codes to SDLK_* scan codes. Filling in the correct SDLK_* values given the
 current keyboard locale is an important first step in getting your keyboard
 layout to work.
 
-The general rule is to try and pick the SDLK_* code according to the unshifted
+The general rule is to try to pick the SDLK_* code according to the unshifted
 unmodded character it would type. On US keyboards for example, the '1' key
 enters '1' unshifted and '!' shifted.
 

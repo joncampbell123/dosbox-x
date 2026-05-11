@@ -27,14 +27,18 @@
 #include "render.h"
 #include <assert.h>
 
-extern bool gbk;
 extern int maxfcb;
+extern bool gbk, chinasea;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
+#if !defined(OSFREE)
+extern uint16_t desired_ems_segment;
+#endif
+extern bool private_segment_write_protect;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
 
-void CALLBACK_DeAllocate(Bitu in);
+void CALLBACK_DeAllocate(Bitu in), makestdcp950table(), makeseacp951table();
 
 std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
 
@@ -73,6 +77,11 @@ void DOS_GetMemory_reset() {
 	dos_memseg = 0;
 }
 
+void DOS_FreeTableMemory()
+{
+    dos_memseg = DOS_PRIVATE_SEGMENT;
+}
+
 void DOS_GetMemory_reinit() {
     DOS_GetMemory_unmapped = false;
     DOS_GetMemory_reset();
@@ -89,47 +98,83 @@ void DOS_GetMemory_unmap() {
 	}
 }
 
+#if !defined(OSFREE)
 bool DOS_User_Wants_UMBs() {
     const Section_prop* section = static_cast<Section_prop*>(control->GetSection("dos"));
     return section->Get_bool("umb");
 }
+#endif
+
+#if !defined(OSFREE)
+bool EMS_Active(void);
+void Update_Get_Desired_Segment(void);
+#endif
+
+/* Some DOS games and demoscene stuff has fast and loose VRAM rendering code that can spill
+ * past video RAM into whatever follows in C0000h. If the DOSBox private area is there, then
+ * that sloppiness will corrupt whatever data structures and interrupts we put there and
+ * cause crashes. To prevent that, we allow write-protecting the area (DOSBox-X can still
+ * write to it using phys_writeb). */
+void DOS_Private_UMB_Lock(const bool lock) {
+	if (DOS_PRIVATE_SEGMENT >= 0xA000) {
+		if (lock)
+			MEM_map_ROM_physmem((Bitu)DOS_PRIVATE_SEGMENT<<4u,((Bitu)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
+		else
+			MEM_map_RAM_physmem((Bitu)DOS_PRIVATE_SEGMENT<<4u,((Bitu)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
+	}
+}
 
 void DOS_GetMemory_Choose() {
 	if (DOS_PRIVATE_SEGMENT == 0) {
-        /* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
-        /* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
-        DOS_PRIVATE_SEGMENT=(uint16_t)VGA_BIOS_SEG_END;
-        DOS_PRIVATE_SEGMENT_END= (uint16_t)(DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size);
+		/* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
+		/* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
+		DOS_PRIVATE_SEGMENT=(uint16_t)VGA_BIOS_SEG_END;
 
-        if (IS_PC98_ARCH) {
-            bool PC98_FM_SoundBios_Enabled(void);
+#if !defined(OSFREE)
+		if (desired_ems_segment == 0) Update_Get_Desired_Segment();
 
-            /* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
-             * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
-            unsigned int limit = 0xD000;
+		if (DOS_PRIVATE_SEGMENT == desired_ems_segment) {
+			DOS_PRIVATE_SEGMENT += 0x1000; // FIXME
+		}
+#endif
 
-            if (PC98_FM_SoundBios_Enabled()) {
-                // TODO: What about sound BIOSes larger than 16KB?
-                if (limit > 0xCC00)
-                    limit = 0xCC00;
-            }
+		DOS_PRIVATE_SEGMENT_END= (uint16_t)(DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size);
 
-            if (DOS_User_Wants_UMBs()) {
-                // leave room for UMBs, things are cramped a bit in PC-98 mode
-                if (limit > 0xC600)
-                    limit = 0xC600;
-            }
+#if !defined(OSFREE)
+		if (IS_PC98_ARCH && (desired_ems_segment == 0xD000)) {
+			bool PC98_FM_SoundBios_Enabled(void);
 
-            if (DOS_PRIVATE_SEGMENT_END > limit)
-                DOS_PRIVATE_SEGMENT_END = limit;
+			/* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
+			 * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
+			unsigned int limit = 0xD000;
 
-            if (DOS_PRIVATE_SEGMENT >= DOS_PRIVATE_SEGMENT_END)
-                E_Exit("Insufficient room in upper memory area for private area");
-        }
+			if (PC98_FM_SoundBios_Enabled()) {
+				// TODO: What about sound BIOSes larger than 16KB?
+				if (limit > 0xCC00)
+					limit = 0xCC00;
+			}
+
+			if (DOS_User_Wants_UMBs()) {
+				// leave room for UMBs, things are cramped a bit in PC-98 mode
+				if (limit > 0xC600)
+					limit = 0xC600;
+			}
+
+			if (DOS_PRIVATE_SEGMENT_END > limit)
+				DOS_PRIVATE_SEGMENT_END = limit;
+
+			if (DOS_PRIVATE_SEGMENT >= DOS_PRIVATE_SEGMENT_END)
+				E_Exit("Insufficient room in upper memory area for private area");
+		}
+#endif
 
 		if (DOS_PRIVATE_SEGMENT >= 0xA000) {
 			memset(GetMemBase()+((Bitu)DOS_PRIVATE_SEGMENT<<4u),0x00,(Bitu)(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4u);
-			MEM_map_RAM_physmem((Bitu)DOS_PRIVATE_SEGMENT<<4u,((Bitu)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
+
+			if (private_segment_write_protect)
+				MEM_map_ROM_physmem((Bitu)DOS_PRIVATE_SEGMENT<<4u,((Bitu)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
+			else
+				MEM_map_RAM_physmem((Bitu)DOS_PRIVATE_SEGMENT<<4u,((Bitu)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
 		}
 
 		LOG(LOG_DOSMISC,LOG_DEBUG)("DOS private segment set to 0x%04x-0x%04x",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
@@ -174,7 +219,7 @@ static Bitu DOS_CaseMapFunc(void) {
 
 static uint8_t country_info[0x22] = {
 /* Date format      */  0x00, 0x00,
-/* Currencystring   */  0x24, 0x00, 0x00, 0x00, 0x00,
+/* Currency string  */  0x24, 0x00, 0x00, 0x00, 0x00,
 /* Thousands sep    */  0x2c, 0x00,
 /* Decimal sep      */  0x2e, 0x00,
 /* Date sep         */  0x2d, 0x00,
@@ -184,13 +229,13 @@ static uint8_t country_info[0x22] = {
 /* Time format      */  0x00,
 /* Casemap          */  0x00, 0x00, 0x00, 0x00,
 /* Data sep         */  0x2c, 0x00,
-/* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00,
-/* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00
+/* Reserved 5       */  0x00, 0x00, 0x00, 0x00, 0x00,
+/* Reserved 5       */  0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 static uint8_t country_info_pc98[0x22] = {
 /* Date format      */  0x02, 0x00,
-/* Currencystring   */  0x5C, 0x00, 0x00, 0x00, 0x00,
+/* Currency string  */  0x5C, 0x00, 0x00, 0x00, 0x00,
 /* Thousands sep    */  0x2c, 0x00,
 /* Decimal sep      */  0x2e, 0x00,
 /* Date sep         */  0x2d, 0x00,
@@ -200,8 +245,8 @@ static uint8_t country_info_pc98[0x22] = {
 /* Time format      */  0x01,
 /* Casemap          */  0x00, 0x00, 0x00, 0x00,
 /* Data sep         */  0x2c, 0x00,
-/* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00,
-/* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00
+/* Reserved 5       */  0x00, 0x00, 0x00, 0x00, 0x00,
+/* Reserved 5       */  0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 extern bool enable_dbcs_tables;
@@ -215,6 +260,7 @@ PhysPt DOS_Get_DPB(unsigned int dos_drive) {
     return PhysMake(dos.tables.dpb,dos_drive*dos.tables.dpb_size);
 }
 
+#if !defined(OSFREE)
 void SetupDBCSTable() {
     if (enable_dbcs_tables) {
         if (!dos.tables.dbcs) dos.tables.dbcs=RealMake(DOS_GetMemory(12,"dos.tables.dbcs"),0);
@@ -238,7 +284,7 @@ void SetupDBCSTable() {
             mem_writeb(Real2Phys(dos.tables.dbcs)+2,0x81);   // low/high DBCS pair
             mem_writeb(Real2Phys(dos.tables.dbcs)+3,0xFE);
             mem_writed(Real2Phys(dos.tables.dbcs)+4,0);
-        } else if (IS_CDOSV || dos.loaded_codepage == 950) { // Traditional Chinese
+        } else if (IS_TDOSV || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) { // Traditional Chinese
             mem_writew(Real2Phys(dos.tables.dbcs)+0,0x0004);
             mem_writeb(Real2Phys(dos.tables.dbcs)+2,0x81);   // low/high DBCS pair
             mem_writeb(Real2Phys(dos.tables.dbcs)+3,0xFE);
@@ -250,7 +296,10 @@ void SetupDBCSTable() {
     else {
         dos.tables.dbcs=0;
     }
+    if(dos.loaded_codepage == 950 && !chinasea) makestdcp950table();
+    else if(dos.loaded_codepage == 951 && chinasea) makeseacp951table();
 }
+#endif
 
 uint16_t seg_win_startup_info;
 
@@ -264,11 +313,24 @@ void DOS_SetupTables(void) {
 	/* create SDA */
 	DOS_SDA(DOS_SDA_SEG,0).Init();
 
-	/* Some weird files >20 detection routine */
-	/* Possibly obselete when SFT is properly handled */
-	real_writed(DOS_CONSTRING_SEG,0x0a,0x204e4f43);
-	real_writed(DOS_CONSTRING_SEG,0x1a,0x204e4f43);
-	real_writed(DOS_CONSTRING_SEG,0x2a,0x204e4f43);
+	/* For Tandy emulation, put the string "Tandy" somewhere in the DOS kernel.
+	 * "The Train: Escape to Normandy" apparently detects Tandy hardware by
+	 * whether or not the string "Tandy" appears in the first 64KB of base
+	 * memory. [https://github.com/joncampbell123/dosbox-x/issues/5918].
+	 *
+	 * It does a REPNE SCASB in FFFF:0000 for the string "Tandy", which on the
+	 * older hardware, wraps around to the base memory and finds it that way.
+	 * Of course if you're on a 286 Tandy and the HMA is enabled, this isn't
+	 * going to work, but, that's what the game does. */
+	if(machine == MCH_TANDY) {
+		seg = DOS_GetMemory(8,"Tandy signature");
+		real_writeb(seg,0x00,'T');
+		real_writeb(seg,0x01,'a');
+		real_writeb(seg,0x02,'n');
+		real_writeb(seg,0x03,'d');
+		real_writeb(seg,0x04,'y');
+		real_writeb(seg,0x05,0);
+	}
 
 	/* create a CON device driver */
 	if(IS_DOSV) {
@@ -325,9 +387,13 @@ void DOS_SetupTables(void) {
 	real_writed(seg,0x00,0x005c3a43);
 	dos_infoblock.SetCurDirStruct(RealMake(seg,0));
 
-    /* Allocate DBCS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
-    SetupDBCSTable();
+	/* Allocate DBCS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
+	dos.tables.dbcs = 0;
+#if !defined(OSFREE)
+	SetupDBCSTable();
+#endif
 
+#if !defined(OSFREE)
 	/* FILENAME CHARACTER TABLE */
 	if (enable_filenamechar) {
 		dos.tables.filenamechar=RealMake(DOS_GetMemory(2,"dos.tables.filenamechar"),0);
@@ -355,9 +421,13 @@ void DOS_SetupTables(void) {
 		mem_writeb(Real2Phys(dos.tables.filenamechar)+0x16,0x3b);
 		mem_writeb(Real2Phys(dos.tables.filenamechar)+0x17,0x2c);
 	}
-	else {
+	else
+#endif
+	{
 		dos.tables.filenamechar = 0;
 	}
+
+#if !defined(OSFREE)
 	/* COLLATING SEQUENCE TABLE + UPCASE TABLE*/
 	// 256 bytes for col table, 128 for upcase, 4 for number of entries
 	if (enable_collating_uppercase) {
@@ -368,7 +438,9 @@ void DOS_SetupTables(void) {
 		mem_writew(Real2Phys(dos.tables.upcase),0x80);
 		for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,(uint8_t)0x80+i);
 	}
-	else {
+	else
+#endif
+	{
 		dos.tables.collatingseq = 0;
 		dos.tables.upcase = 0;
 	}
@@ -381,7 +453,12 @@ void DOS_SetupTables(void) {
 
 	/* Create a fake DPB */
 	dos.tables.dpb=DOS_GetMemory(((DOS_DRIVES*dos.tables.dpb_size)+15u)/16u,"dos.tables.dpb");
-    dos.tables.mediaid_offset=0x17;	//Media ID offset in DPB (MS-DOS 4.x-6.x)
+
+	if (dos.version.major >= 4)
+		dos.tables.mediaid_offset=0x17;	//Media ID offset in DPB (MS-DOS 4.x-6.x)
+	else
+		dos.tables.mediaid_offset=0x16;	//Media ID offset in DPB (MS-DOS 1.x-3.x)
+
 	dos.tables.mediaid=RealMake(dos.tables.dpb,dos.tables.mediaid_offset);
 	for (i=0;i<DOS_DRIVES;i++) {
         real_writeb(dos.tables.dpb,i*dos.tables.dpb_size,(uint8_t)i);             // drive number
@@ -389,18 +466,18 @@ void DOS_SetupTables(void) {
         real_writew(dos.tables.dpb,i*dos.tables.dpb_size+2,0x0200);     // bytes per sector
         real_writew(dos.tables.dpb,i*dos.tables.dpb_size+6,0x0001);     // reserved sectors at the beginning of the drive
         mem_writew(Real2Phys(dos.tables.mediaid)+i*dos.tables.dpb_size,0u);
-        real_writew(dos.tables.dpb,i*dos.tables.dpb_size+0x1F,0xFFFF);      // number of free clusters or 0xFFFF if unknown
+        real_writew(dos.tables.dpb,i*dos.tables.dpb_size+(dos.version.major>=4?0x1F:0x1E),0xFFFF);      // number of free clusters or 0xFFFF if unknown
 
         // next DPB pointer
         if ((i+1) < DOS_DRIVES)
-            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+0x19,RealMake(dos.tables.dpb,(i+1)*dos.tables.dpb_size));
+            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+(dos.version.major>=4?0x19:0x18),RealMake(dos.tables.dpb,(i+1)*dos.tables.dpb_size));
         else
-            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+0x19,0xFFFFFFFF); // ED4.EXE (provided by Yksoft1) expects this, or else loops forever
+            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+(dos.version.major>=4?0x19:0x18),0xFFFFFFFF); // ED4.EXE (provided by Yksoft1) expects this, or else loops forever
 	}
-    dos_infoblock.SetFirstDPB(RealMake(dos.tables.dpb,0));
+	dos_infoblock.SetFirstDPB(RealMake(dos.tables.dpb,0));
 
 	/* Create Device command packet area */
-	dos.dcp = DOS_GetMemory(3, "External device command packet");
+	dos.dcp = DOS_GetMemory(dos.dcp_size_seg, "External device command packet");
 
 	/* Create a fake disk buffer head */
 	seg=DOS_GetMemory(6,"Fake disk buffer head");
@@ -427,6 +504,17 @@ void DOS_SetupTables(void) {
         host_writed(country_info + 0x12, CALLBACK_RealPointer(call_casemap));
         dos.tables.country=country_info;
     }
+
+    /* Windows 95 FORMAT.COM does not use INT 21h to determine the boot drive. It uses
+     * the List of Lists and reads it directly from this infoblock. This value matches
+     * the hardcoded "C" drive the INT 21h emulation returns.
+     *
+     * No error checking of any kind is done by FORMAT.COM either, so if this value is
+     * zero, it will try to query for "@:\\WINBOOT.SYS" which of course does not exist.
+     *
+     * I'm given the impression from DOS_FindDevice() that someone probably ran into
+     * "@:" paths and did not understand this problem, which is fair enough. */
+    dos_infoblock.SetBootDrive(3); /* Drive C: (TODO: Make configurable, or else initially set to Z: then re-set to the first drive mounted */
 
     /* PC-98 INT 1Bh device list (60:6Ch-7Bh).
      * For now, just write a fake list to satisfy any PC-98 game that

@@ -26,7 +26,8 @@
 
 #if C_MODEM
 
-# ifndef DOSBOX_SUPPORT_H
+#include <vector>
+#ifndef DOSBOX_SUPPORT_H
 #include "support.h"
 #endif
 
@@ -38,7 +39,6 @@
  #define NATIVESOCKETS
  #include <winsock2.h>
  #include <ws2tcpip.h> //for socklen_t
- //typedef int  socklen_t;
 
 //Tests for BSD/OS2/LINUX
 #elif defined HAVE_STDLIB_H && defined HAVE_SYS_TYPES_H && defined HAVE_SYS_SOCKET_H && defined HAVE_NETINET_IN_H
@@ -49,74 +49,198 @@
  #include <sys/types.h>
  #include <sys/socket.h>
  #include <netinet/in.h>
- //socklen_t should be handled by configure
 #endif
 
-#ifdef NATIVESOCKETS
- #define CAPWORD (NETWRAPPER_TCP|NETWRAPPER_TCP_NATIVESOCKET)
+// Using a non-blocking connection routine really should
+// require changes to softmodem to prevent bogus CONNECT
+// messages.  By default, we use the old blocking one.
+// This is basically how TCP behaves anyway.
+//#define ENET_BLOCKING_CONNECT
+
+#include <queue>
+#ifndef ENET_BLOCKING_CONNECT
+#include <ctime>
+#endif
+
+#if defined(C_SDL2_NET) && C_SDL2_NET
+#include <SDL2/SDL_net.h>
 #else
- #define CAPWORD NETWRAPPER_TCP
+#include <SDL_net.h>
 #endif
 
-#include "SDL_net.h"
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#define WITH_ENET_HEADER
+#endif
+#if defined(OS2)
+#undef WITH_ENET_HEADER
+#endif
 
-
+#if defined(WITH_ENET_HEADER)
+#include "enet.h"
+#endif
 
 uint32_t Netwrapper_GetCapabilities();
 
+enum SocketTypesE { SOCKET_TYPE_TCP = 0, SOCKET_TYPE_ENET, SOCKET_TYPE_COUNT };
 
-class TCPClientSocket {
-	public:
-	TCPClientSocket(TCPsocket source);
-	TCPClientSocket(const char* destination, uint16_t port);
-#ifdef NATIVESOCKETS
-	uint8_t* nativetcpstruct;
-	TCPClientSocket(int platformsocket);
-#endif
-	~TCPClientSocket();
-	
-	// return:
-	// -1: no data
-	// -2: socket closed
-	// >0: data char
-	Bits GetcharNonBlock();
-	
-	
-	bool Putchar(uint8_t data);
-	bool SendArray(uint8_t* data, Bitu bufsize);
-	bool ReceiveArray(uint8_t* data, Bitu* size);
-	bool isopen;
+// helper functions
+bool NetWrapper_InitializeSDLNet();
+bool NetWrapper_InitializeENET();
 
-	bool GetRemoteAddressString(uint8_t* buffer);
+enum class SocketState {
+	Good,  // had data and socket is open
+	Empty, // didn't have data but socket is open
+	Closed // didn't have data and socket is closed
+};
+
+// --- GENERIC NET INTERFACE -------------------------------------------------
+
+class NETClientSocket {
+public:
+	NETClientSocket();
+	virtual ~NETClientSocket();
+
+	NETClientSocket(const NETClientSocket &) = delete; // prevent copying
+	NETClientSocket &operator=(const NETClientSocket &) = delete; // prevent assignment
+
+	static NETClientSocket *NETClientFactory(SocketTypesE socketType,
+	                                         const char *destination,
+	                                         uint16_t port);
+
+	virtual SocketState GetcharNonBlock(uint8_t &val) = 0;
+	virtual bool Putchar(uint8_t val) = 0;
+	virtual bool SendArray(const uint8_t *data, size_t n) = 0;
+	virtual bool ReceiveArray(uint8_t *data, size_t &n) = 0;
+	virtual bool GetRemoteAddressString(char *buffer) = 0;
 
 	void FlushBuffer();
-	void SetSendBufferSize(Bitu bufsize);
-	
-	// buffered send functions
-	bool SendByteBuffered(uint8_t data);
-	bool SendArrayBuffered(uint8_t* data, Bitu bufsize);
+	void SetSendBufferSize(size_t n);
+	bool SendByteBuffered(uint8_t val);
 
-	private:
-	TCPsocket mysock = NULL;
-	SDLNet_SocketSet listensocketset = NULL;
+	bool isopen = false;
 
-	// Items for send buffering
-	Bitu sendbuffersize = 0;
-	Bitu sendbufferindex = 0;
-	
-	uint8_t* sendbuffer;
+private:
+	size_t sendbufferindex = 0;
+	std::vector<uint8_t> sendbuffer = {};
 };
 
-class TCPServerSocket {
-	public:
-	bool isopen;
-	TCPsocket mysock;
+class NETServerSocket {
+public:
+	NETServerSocket();
+	virtual ~NETServerSocket();
+
+	NETServerSocket(const NETServerSocket &) = delete; // prevent copying
+	NETServerSocket &operator=(const NETServerSocket &) = delete; // prevent assignment
+
+	static NETServerSocket *NETServerFactory(SocketTypesE socketType,
+	                                         uint16_t port);
+
+	virtual NETClientSocket *Accept() = 0;
+
+	bool isopen = false;
+};
+
+// --- ENET UDP NET INTERFACE ------------------------------------------------
+
+#if defined(WITH_ENET_HEADER)
+class ENETServerSocket : public NETServerSocket {
+public:
+	ENETServerSocket(uint16_t port);
+	ENETServerSocket(const ENETServerSocket &) = delete; // prevent copying
+	ENETServerSocket &operator=(const ENETServerSocket &) = delete; // prevent assignment
+
+	~ENETServerSocket();
+
+	NETClientSocket *Accept() override;
+
+private:
+	ENetHost    *host      = nullptr;
+	ENetAddress  address   = {};
+	bool         nowClient = false;
+};
+
+class ENETClientSocket : public NETClientSocket {
+public:
+	ENETClientSocket(ENetHost *host);
+	ENETClientSocket(const char *destination, uint16_t port);
+	ENETClientSocket(const ENETClientSocket &) = delete; // prevent copying
+	ENETClientSocket &operator=(const ENETClientSocket &) = delete; // prevent assignment
+
+	~ENETClientSocket();
+
+	SocketState GetcharNonBlock(uint8_t &val) override;
+	bool Putchar(uint8_t val) override;
+	bool SendArray(const uint8_t *data, size_t n) override;
+	bool ReceiveArray(uint8_t *data, size_t &n) override;
+	bool GetRemoteAddressString(char *buffer) override;
+
+private:
+	void updateState();
+
+#ifndef ENET_BLOCKING_CONNECT
+	int64_t              connectStart  = 0;
+	bool                 connecting    = false;
+#endif
+	ENetHost            *client        = nullptr;
+	ENetPeer            *peer          = nullptr;
+	ENetAddress          address       = {};
+	std::queue<uint8_t>  receiveBuffer = {};
+};
+#endif
+
+// --- TCP NET INTERFACE -----------------------------------------------------
+
+struct _TCPsocketX {
+	int ready = 0;
+#ifdef NATIVESOCKETS
+	SOCKET channel = 0;
+#endif
+	IPaddress remoteAddress = {0, 0};
+	IPaddress localAddress = {0, 0};
+	int sflag = 0;
+};
+
+class TCPClientSocket : public NETClientSocket {
+public:
+	TCPClientSocket(TCPsocket source);
+	TCPClientSocket(const char *destination, uint16_t port);
+#ifdef NATIVESOCKETS
+	TCPClientSocket(int platformsocket);
+#endif
+	TCPClientSocket(const TCPClientSocket&) = delete; // prevent copying
+	TCPClientSocket& operator=(const TCPClientSocket&) = delete; // prevent assignment
+
+	~TCPClientSocket();
+
+	SocketState GetcharNonBlock(uint8_t &val) override;
+	bool Putchar(uint8_t val) override;
+	bool SendArray(const uint8_t *data, size_t n) override;
+	bool ReceiveArray(uint8_t *data, size_t &n) override;
+	bool GetRemoteAddressString(char *buffer) override;
+
+private:
+
+#ifdef NATIVESOCKETS
+	_TCPsocketX *nativetcpstruct = nullptr;
+#endif
+
+	TCPsocket mysock = nullptr;
+	SDLNet_SocketSet listensocketset = nullptr;
+};
+
+class TCPServerSocket : public NETServerSocket {
+public:
+	TCPsocket mysock = nullptr;
+
 	TCPServerSocket(uint16_t port);
+	TCPServerSocket(const TCPServerSocket&) = delete; // prevent copying
+	TCPServerSocket& operator=(const TCPServerSocket&) = delete; // prevent assignment
+
 	~TCPServerSocket();
-	TCPClientSocket* Accept();
+
+	NETClientSocket *Accept() override;
 };
 
-
-#endif //C_MODEM
+#endif // C_MODEM
 
 #endif //# SDLNETWRAPPER_H

@@ -20,6 +20,8 @@
 #include "dosbox.h"
 #if C_DEBUG
 
+#include "../../tests/tests.h"
+
 #include <string.h>
 #include <list>
 #include <vector>
@@ -33,8 +35,11 @@ using namespace std;
 #include "debug.h"
 #include "cross.h" //snprintf
 #include "fpu.h"
+#include "bios.h"
+#include "timer.h"
 #include "video.h"
 #include "vga.h"
+#include "mmx.h"
 #include "mapper.h"
 #include "pc98_gdc.h"
 #include "callback.h"
@@ -45,7 +50,16 @@ using namespace std;
 #include "../cpu/lazyflags.h"
 #include "keyboard.h"
 #include "control.h"
-#include "../../tests/tests.h"
+
+bool Clear_SYSENTER_Debug();
+bool Toggle_BreakSYSEnter();
+bool Toggle_BreakSYSExit();
+
+/* [https://github.com/joncampbell123/dosbox-x/issues/1264] ncurses non-ASCII keys are outside ASCII range (start at octal 0400 == hex 0x100) */
+static inline int ncurses_aware_toupper(int x) {
+	if (x >= 0x00 && x <= 0xFF) return toupper(x);
+	return x;
+}
 
 #ifdef WIN32
 void WIN32_Console();
@@ -62,9 +76,11 @@ const char *egc_fgc_modes[4] = {
     "foreground",
     "(invalid)",
 };
-
-bool pc98_pegc_linear_framebuffer_enabled(void);
+char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+bool pc98_pegc_linear_framebuffer_enabled(void);
+
+bool DEBUG_HaltOnRetrace = false;
 
 extern bool                 dos_kernel_disabled;
 extern bool                 is_paused;
@@ -86,6 +102,7 @@ extern bool                         egc_enable_enable;
 extern uint8_t                      pc98_gdc_tile_counter;
 extern uint8_t                      pc98_gdc_modereg;
 extern egc_quad                     pc98_gdc_tiles;
+extern bool                         pc98_monochrome_mode;
 
 extern uint16_t                     pc98_egc_raw_values[8];
 
@@ -122,8 +139,16 @@ extern unsigned char        pc98_text_row_scroll_lines;          /* port 76h */
 extern unsigned char        pc98_text_row_scroll_count_start;    /* port 78h */
 extern unsigned char        pc98_text_row_scroll_num_lines;      /* port 7Ah */
 
+extern uint8_t                     pc98_16col_analog_rgb_palette_index;
+
+extern uint8_t                     pc98_pal_vga[256*3];    /* G R B    0x0..0xFF */
+extern uint8_t                     pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
+extern uint8_t                     pc98_pal_digital[8];    /* G R B    0x0..0x7 */
+
 extern bool logBuffSuppressConsole;
 extern bool logBuffSuppressConsoleNeedUpdate;
+
+void DEBUG_PrintGUS();
 
 // Forwards
 static void DrawCode(void);
@@ -131,12 +156,15 @@ static void DrawInput(void);
 static void DEBUG_RaiseTimerIrq(void);
 static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num);
 static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num);
+static void LogDEVS(void);
 static void LogMCBS(void);
 static void LogGDT(void);
 static void LogLDT(void);
 static void LogIDT(void);
 static void LogXMS(void);
+#if !defined(OSFREE)
 static void LogEMS(void);
+#endif
 static void LogFNKEY(void);
 static void LogPages(char* selname);
 static void LogCPUInfo(void);
@@ -154,12 +182,15 @@ void DEBUG_DrawInput(void) {
     DrawInput();
 }
 
+uint8_t GetMonthDays(uint8_t month);
+void DOS_AddDays(uint8_t days);
 void DEBUG_BeginPagedContent(void);
 void DEBUG_EndPagedContent(void);
 Bitu MEM_PageMaskActive(void);
-uint32_t MEM_get_address_bits();
 Bitu MEM_TotalPages(void);
 Bitu MEM_PageMask(void);
+void DEBUG_WarnDynamic(void);
+int CPU_IsDynamicCore(void); // cpu.cpp 0=normal, 1=dynamic, 2=dynamic core with assembler
 
 static void LogEMUMachine(void) {
     DEBUG_BeginPagedContent();
@@ -191,6 +222,8 @@ static void LogEMUMachine(void) {
             case SVGA_TsengET4K:        cardName ="Tseng ET4000";    break;
             case SVGA_TsengET3K:        cardName ="Tseng ET3000";    break;
             case SVGA_ParadisePVGA1A:   cardName ="Paradise PVGA1A"; break;
+            case SVGA_ATI:              cardName ="ATI";             break;
+            case SVGA_DOSBoxIG:         cardName ="DOSBox Integrated Graphics"; break;
         }
 
         DEBUG_ShowMsg("Machine: %s %s",m, cardName);
@@ -219,8 +252,19 @@ bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free
 
 LoopHandler *old_loop = NULL;
 
+/* see also "C operator precedence" */
+enum {
+	EXPR_BASE=0,
+	EXPR_OR,
+	EXPR_XOR,
+	EXPR_AND,
+	EXPR_BITSHIFT,
+	EXPR_ADDSUB,
+	EXPR_MULDIV
+};
+
 char* AnalyzeInstruction(char* inst, bool saveSelector);
-uint32_t GetHexValue(char* const str, char* &hex,bool *parsed=NULL);
+uint32_t GetHexValue(char* const str, char* &hex,bool *parsed=NULL,int exprge=EXPR_BASE);
 void SkipSpace(char*& hex);
 
 #if 0
@@ -241,6 +285,21 @@ public:
 };
 #endif
 
+typedef struct MEMFinder {
+	bool usePreviousValue = false;
+	uint8_t opType = 0;
+	uint8_t size = 1;
+	uint16_t iterations = 0;
+	uint16_t seg = 0;
+	uint32_t ofs = 0;
+	uint32_t range = 0;
+	uint32_t value = 0;
+	uint32_t matches = 0;
+	vector<uint8_t> tableValue;
+	vector<bool> tableTruth;
+}MEMFinder;
+
+MEMFinder* MEMFINDInstance = NULL;
 
 class DEBUG;
 
@@ -275,6 +334,13 @@ static bool debug_running = false;
 static bool check_rescroll = false;
 
 static FPU_rec oldfpu;
+static bool warn_dynamic = false;
+
+
+void VGA_DebugRedraw(void);
+
+void VGA_DebugOverrideStart(uint32_t ofs,bool sum);
+void VGA_ResetDebugOverrides(void);
 
 bool IsDebuggerActive(void) {
     return debugging;
@@ -344,7 +410,7 @@ static char* F80ToString(int regIndex, char* dest) {
 }
 
 static bool F80TestUpdate(int regIndex) {
-	if(fpu.top != oldfpu.top) { /* If the top changed then all registers rotated places, thus updated. */
+	if(fpu.sw.top != oldfpu.sw.top) { /* If the top changed then all registers rotated places, thus updated. */
 		return true;
 	}
 	
@@ -365,7 +431,8 @@ uint64_t LinMakeProt(uint16_t selector, uint32_t offset)
 
     if (cpu.gdt.GetDescriptor(selector,desc)) {
         if (selector >= 8 && desc.Type() != 0) {
-            if (offset <= desc.GetLimit())
+            if ( (!desc.GetExpandDown() && offset <= desc.GetLimit()) ||
+                 ( desc.GetExpandDown() && offset >  desc.GetLimit()) )
                 return desc.GetBase()+(uint64_t)offset;
         }
     }
@@ -375,10 +442,17 @@ uint64_t LinMakeProt(uint16_t selector, uint32_t offset)
 
 uint64_t GetAddress(uint16_t seg, uint32_t offset)
 {
-	if (cpu.pmode && !(reg_flags & FLAG_VM))
-        return LinMakeProt(seg,offset);
+	/* For the current CS, always use the cached hidden base (SegPhys(cs)).
+	 * Real x86 segment registers have a hidden descriptor cache that is only
+	 * updated when a new selector is loaded. After LMSW sets CR0.PE=1 but
+	 * before a far jump reloads CS, cpu.pmode is true yet SegValue(cs) still
+	 * holds the previous (real-mode) value, so resolving via the GDT would
+	 * read garbage. */
+	if (seg == SegValue(cs)) return SegPhys(cs)+(uint64_t)offset;
 
-	if (seg==SegValue(cs)) return SegPhys(cs)+(uint64_t)offset;
+	if (cpu.pmode && !(reg_flags & FLAG_VM))
+		return LinMakeProt(seg,offset);
+
 	return ((uint64_t)seg<<4u)+offset;
 }
 
@@ -477,7 +551,7 @@ std::vector<CDebugVar*> CDebugVar::varList;
 bool mustCompleteInstruction = false;
 bool skipFirstInstruction = false;
 
-enum EBreakpoint { BKPNT_UNKNOWN, BKPNT_PHYSICAL, BKPNT_INTERRUPT, BKPNT_MEMORY, BKPNT_MEMORY_PROT, BKPNT_MEMORY_LINEAR };
+enum EBreakpoint { BKPNT_UNKNOWN, BKPNT_PHYSICAL, BKPNT_INTERRUPT, BKPNT_MEMORY, BKPNT_MEMORY_PROT, BKPNT_MEMORY_LINEAR, BKPNT_MEMORY_FREEZE };
 
 #define BPINT_ALL 0x100
 
@@ -581,7 +655,7 @@ void CBreakpoint::Activate(bool _active)
 					DEBUG_ShowMsg("DEBUG: Internal error while deactivating breakpoint.\n");
 
 				// Check if we are the last active breakpoint at this location
-				bool otherActive = (FindOtherActiveBreakpoint(location, this) != 0);
+				bool otherActive = (FindOtherActiveBreakpoint(location, this) != nullptr);
 
 				// If so, remove 0xCC and set old value
 				if (!otherActive)
@@ -685,7 +759,7 @@ bool CBreakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 #if C_HEAVY_DEBUG
 		// Memory breakpoint support
 		else if (bp->IsActive()) {
-			if ((bp->GetType()==BKPNT_MEMORY) || (bp->GetType()==BKPNT_MEMORY_PROT) || (bp->GetType()==BKPNT_MEMORY_LINEAR)) {
+			if ((bp->GetType()==BKPNT_MEMORY) || (bp->GetType()==BKPNT_MEMORY_PROT) || (bp->GetType()==BKPNT_MEMORY_LINEAR) || (bp->GetType()==BKPNT_MEMORY_FREEZE)) {
 				// Watch Protected Mode Memoryonly in pmode
 				if (bp->GetType()==BKPNT_MEMORY_PROT) {
 					// Check if pmode is active
@@ -703,6 +777,10 @@ bool CBreakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 				if (mem_readb_checked((PhysPt)address,&value)) return false;
 				if (bp->GetValue() != value) {
 					// Yup, memory value changed
+                    if (bp->GetType()==BKPNT_MEMORY_FREEZE){
+                        mem_writeb_checked((PhysPt)address,bp->GetValue());
+                        return false;
+                    }
 					DEBUG_ShowMsg("DEBUG: Memory breakpoint %s: %04X:%04X - %02X -> %02X\n",(bp->GetType()==BKPNT_MEMORY_PROT)?"(Prot)":"",bp->GetSegment(),bp->GetOffset(),bp->GetValue(),value);
 					bp->SetValue(value);
 					return true;
@@ -776,7 +854,7 @@ bool CBreakpoint::DeleteByIndex(uint16_t index)
 
 CBreakpoint* CBreakpoint::FindPhysBreakpoint(uint16_t seg, uint32_t off, bool once)
 {
-	if (BPoints.empty()) return 0;
+	if (BPoints.empty()) return nullptr;
 #if !C_HEAVY_DEBUG
 	PhysPt adr = GetAddress(seg, off);
 #endif
@@ -797,7 +875,7 @@ CBreakpoint* CBreakpoint::FindPhysBreakpoint(uint16_t seg, uint32_t off, bool on
 			return bp;
 	}
 
-	return 0;
+	return nullptr;
 }
 
 CBreakpoint* CBreakpoint::FindOtherActiveBreakpoint(PhysPt adr, CBreakpoint* skip)
@@ -808,13 +886,13 @@ CBreakpoint* CBreakpoint::FindOtherActiveBreakpoint(PhysPt adr, CBreakpoint* ski
 		if (bp != skip && bp->GetType() == BKPNT_PHYSICAL && bp->GetLocation() == adr && bp->IsActive())
 			return bp;
 	}
-	return 0;
+	return nullptr;
 }
 
 // is there a permanent breakpoint at address ?
 bool CBreakpoint::IsBreakpoint(uint16_t seg, uint32_t off)
 {
-	return FindPhysBreakpoint(seg, off, false) != 0;
+	return FindPhysBreakpoint(seg, off, false) != nullptr;
 }
 
 bool CBreakpoint::DeleteBreakpoint(uint16_t seg, uint32_t off)
@@ -849,6 +927,8 @@ void CBreakpoint::ShowList(void)
 			DEBUG_ShowMsg("%02X. BPPM %04X:%08X (%02X)\n",nr,bp->GetSegment(),bp->GetOffset(),bp->GetValue());
 		} else if (bp->GetType()==BKPNT_MEMORY_LINEAR ) {
 			DEBUG_ShowMsg("%02X. BPLM %08X (%02X)\n",nr,bp->GetOffset(),bp->GetValue());
+        } else if (bp->GetType()==BKPNT_MEMORY_FREEZE ) {
+	        DEBUG_ShowMsg("%02X. FM %08X (%02X)\n",nr,bp->GetOffset(),bp->GetValue());
 		}
 		nr++;
 	}
@@ -856,6 +936,7 @@ void CBreakpoint::ShowList(void)
 
 bool DEBUG_Breakpoint(void)
 {
+	if (inhibit_int_breakpoint) return false; /* or else stepping over INT 21h when BPINT 21h does nothing */
 	/* First get the physical address and check for a set Breakpoint */
 	if (!CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) return false;
 	// Found. Breakpoint is valid
@@ -866,7 +947,7 @@ bool DEBUG_Breakpoint(void)
 
 bool DEBUG_IntBreakpoint(uint8_t intNum)
 {
-    if (inhibit_int_breakpoint) return false; /* or else stepping over INT 21h when BPINT 21h does nothing */
+	if (inhibit_int_breakpoint) return false; /* or else stepping over INT 21h when BPINT 21h does nothing */
 	/* First get the physical address and check for a set Breakpoint */
 	PhysPt where=(PhysPt)GetAddress(SegValue(cs),reg_eip);
 	if (!CBreakpoint::CheckIntBreakpoint(where,intNum,reg_ah,reg_al)) return false;
@@ -925,120 +1006,104 @@ static void DrawData(void) {
 	uint8_t ch;
 	uint32_t add = dataOfs;
 	uint64_t address;
-    int w,h,y;
+	int w,h,y;
 
 	/* Data win */	
-    getmaxyx(dbg.win_data,h,w);
+	getmaxyx(dbg.win_data,h,w);
 
-    if ((paging.enabled || cpu.pmode) && dbg.data_view != DBGBlock::DATV_PHYSICAL) h--;
+	if ((paging.enabled || cpu.pmode) && dbg.data_view != DBGBlock::DATV_PHYSICAL) h--;
 
 	for (y=0;y<h;y++) {
 		// Address
-        if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
-            wattrset (dbg.win_data,0);
-            mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
-        }
-        else {
-            wattrset (dbg.win_data,0);
-            mvwprintw (dbg.win_data,y,0,"     %08X ",add);
-        }
+		if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
+			wattrset (dbg.win_data,0);
+			mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
+		}
+		else {
+			wattrset (dbg.win_data,0);
+			mvwprintw (dbg.win_data,y,0,"     %08X ",add);
+		}
 
-        if (dbg.data_view == DBGBlock::DATV_PHYSICAL) {
-            for (int x=0; x<16; x++) {
-                address = add;
-
-                /* save the original page addr.
-                 * we must hack the phys page tlb to make the hardware handler map 1:1 the page for this call. */
-                PhysPt opg = paging.tlb.phys_page[address>>12];
-
-                paging.tlb.phys_page[address>>12] = (uint32_t)(address>>12);
-
-                PageHandler *ph = MEM_GetPageHandler((Bitu)(address>>12));
-
-                if (ph->flags & PFLAG_READABLE)
-	                ch = ph->GetHostReadPt((Bitu)(address>>12))[address&0xFFF];
-                else
-                    ch = ph->readb((PhysPt)address);
-
-                paging.tlb.phys_page[address>>12] = opg;
-
-                wattrset (dbg.win_data,0);
-                mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
-                if(showPrintable) {
-                    if (ch<32 || !isprint(ch)) ch='.';
-                    mvwaddch(dbg.win_data, y, 63 + x, ch);
-                } else {
+		if (dbg.data_view == DBGBlock::DATV_PHYSICAL) {
+			for (int x=0; x<16; x++) {
+				ch = physdev_readb(add);
+				wattrset (dbg.win_data,0);
+				mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
+				if(showPrintable) {
+					if (ch<32 || !isprint(ch)) ch='.';
+					mvwaddch(dbg.win_data, y, 63 + x, ch);
+				} else {
 #ifdef __PDCURSES__
-                    mvwaddrawch(dbg.win_data, y, 63 + x, ch);
+					mvwaddrawch(dbg.win_data, y, 63 + x, ch);
 #else
-                    if(ch < 32) ch = '.';
-                    mvwaddch(dbg.win_data, y, 63 + x, ch);
+					if(ch < 32) ch = '.';
+					mvwaddch(dbg.win_data, y, 63 + x, ch);
 #endif
-                }
+				}
 
-                add++;
-            }
-        }
-        else {
-            for (int x=0; x<16; x++) {
-                if (dbg.data_view == DBGBlock::DATV_SEGMENTED)
-                    address = GetAddress(dataSeg,add);
-                else
-                    address = add;
+				add++;
+			}
+		}
+		else {
+			for (int x=0; x<16; x++) {
+				if (dbg.data_view == DBGBlock::DATV_SEGMENTED)
+					address = GetAddress(dataSeg,add);
+				else
+					address = add;
 
-                if (address != mem_no_address) {
-                    if (!mem_readb_checked((PhysPt)address,&ch)) {
-                        wattrset (dbg.win_data,0);
-                        mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
-                        if(showPrintable) {
-                            if (ch<32 || !isprint(ch)) ch='.';
-                            mvwprintw (dbg.win_data,y,63+x,"%c",ch);
-                        } else mvwaddch(dbg.win_data,y,63+x,ch);
-                    }
-                    else {
-                        wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
-                        mvwprintw (dbg.win_data,y,14+3*x,"pf");
-                        mvwprintw (dbg.win_data,y,63+x,".");
-                    }
-                }
-                else {
-                    wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
-                    mvwprintw (dbg.win_data,y,14+3*x,"na");
-                    mvwprintw (dbg.win_data,y,63+x,".");
-                }
+				if (address != mem_no_address) {
+					if (!mem_readb_checked((PhysPt)address,&ch)) {
+						wattrset (dbg.win_data,0);
+						mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
+						if(showPrintable) {
+							if (ch<32 || !isprint(ch)) ch='.';
+							mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+						} else mvwaddch(dbg.win_data,y,63+x,ch);
+					}
+					else {
+						wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+						mvwprintw (dbg.win_data,y,14+3*x,"pf");
+						mvwprintw (dbg.win_data,y,63+x,".");
+					}
+				}
+				else {
+					wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+					mvwprintw (dbg.win_data,y,14+3*x,"na");
+					mvwprintw (dbg.win_data,y,63+x,".");
+				}
 
-                add++;
-            }
-        }
+				add++;
+			}
+		}
 	}
 
-    if ((paging.enabled || cpu.pmode) && dbg.data_view != DBGBlock::DATV_PHYSICAL) {
-        /* one line was set aside for this information */
-        wattrset (dbg.win_data,0);
-        if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
-            address = GetAddress(dataSeg,dataOfs);
-            if (address != mem_no_address)
-                mvwprintw (dbg.win_data,y,0," LIN=%08X ",(unsigned int)address);
-            else
-                mvwprintw (dbg.win_data,y,0," LIN=XXXXXXXX ");
-        }
-        else {
-            address = dataOfs;
-            mvwprintw (dbg.win_data,y,0,"              ");
-        }
+	if ((paging.enabled || cpu.pmode) && dbg.data_view != DBGBlock::DATV_PHYSICAL) {
+		/* one line was set aside for this information */
+		wattrset (dbg.win_data,0);
+		if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
+			address = GetAddress(dataSeg,dataOfs);
+			if (address != mem_no_address)
+				mvwprintw (dbg.win_data,y,0," LIN=%08X ",(unsigned int)address);
+			else
+				mvwprintw (dbg.win_data,y,0," LIN=XXXXXXXX ");
+		}
+		else {
+			address = dataOfs;
+			mvwprintw (dbg.win_data,y,0,"              ");
+		}
 
-        if (!mem_readb_checked((PhysPt)address,&ch)) {
-            Bitu naddr = PAGING_GetPhysicalAddress((PhysPt)address);
-            mvwprintw (dbg.win_data,y,14,"PHY=%08X ",(unsigned int)naddr);
-        }
-        else {
-            mvwprintw (dbg.win_data,y,14,"PHY=XXXXXXXX ");
-        }
+		if (!mem_readb_checked((PhysPt)address,&ch)) {
+			Bitu naddr = PAGING_GetPhysicalAddress((PhysPt)address);
+			mvwprintw (dbg.win_data,y,14,"PHY=%08X ",(unsigned int)naddr);
+		}
+		else {
+			mvwprintw (dbg.win_data,y,14,"PHY=XXXXXXXX ");
+		}
 
-        wclrtoeol(dbg.win_data);
+		wclrtoeol(dbg.win_data);
 
-        y++;
-    }
+		y++;
+	}
 
 	wrefresh(dbg.win_data);
 }
@@ -1070,6 +1135,10 @@ void DrawRegistersUpdateOld(void) {
 
 	oldcpucpl=cpu.cpl;
 }
+
+extern bool do_pse;
+
+bool CPU_IsHLTed(void);
 
 static void DrawRegisters(void) {
 	if (dbg.win_main == NULL || dbg.win_reg == NULL)
@@ -1132,38 +1201,55 @@ static void DrawRegisters(void) {
 	mvwprintw (dbg.win_reg,1,77,"%01X",GETFLAG(TF) ? 1:0);
 
 	SetColor(changed_flags&FLAG_IOPL);
-	mvwprintw (dbg.win_reg,2,72,"%01X",GETFLAG(IOPL)>>12);
+	mvwprintw (dbg.win_reg,2,72,"%01X",(unsigned int)(GETFLAG(IOPL)>>12));
 
 
 	SetColor(cpu.cpl ^ oldcpucpl);
-	mvwprintw (dbg.win_reg,2,78,"%01X",cpu.cpl);
+	mvwprintw (dbg.win_reg,2,78,"%01X",(unsigned int)cpu.cpl);
 
 	if (cpu.pmode) {
 		if (reg_flags & FLAG_VM) mvwprintw(dbg.win_reg,0,76,"VM86");
 		else if (cpu.code.big) mvwprintw(dbg.win_reg,0,76,"Pr32");
 		else mvwprintw(dbg.win_reg,0,76,"Pr16");
-		mvwprintw(dbg.win_reg,2,62,paging.enabled ? "PAGE" : "NOPG");
+		if (paging.enabled) {
+			if (do_pse)
+				mvwprintw(dbg.win_reg,2,60,"PAGEPSE");
+			else
+				mvwprintw(dbg.win_reg,2,60,"PAGE");
+		}
+		else {
+			mvwprintw(dbg.win_reg,2,60,"NOPG");
+		}
 	} else {
 		mvwprintw(dbg.win_reg,0,76,"Real");
 		mvwprintw(dbg.win_reg,2,62,"NOPG");
-    }
+	}
 
 	// Selector info, if available
 	if ((cpu.pmode) && curSelectorName[0]) {
 		char out1[200], out2[200];
 		GetDescriptorInfo(curSelectorName,out1,out2);
-		mvwprintw(dbg.win_reg,2,28,out1);
-		mvwprintw(dbg.win_reg,3,28,out2);
+		mvwprintw(dbg.win_reg, 2, 28, "%s", out1);
+		mvwprintw(dbg.win_reg, 3, 28, "%s", out2);
 	}
 
 	wattrset(dbg.win_reg,0);
-	mvwprintw(dbg.win_reg,3,60,"%u       ",cycle_count);
+
+	mvwprintw(dbg.win_reg,3,60,"cc=%-8u ",(unsigned int)cycle_count);
+	if (CPU_IsHLTed()) mvwprintw(dbg.win_reg,3,73,"HLT ");
+	else mvwprintw(dbg.win_reg,3,73,"RUN ");
+
+	mvwprintw(dbg.win_reg,4,60,"pfi=%-6.9f ",(double)PIC_FullIndex());
+
 	wrefresh(dbg.win_reg);
 }
 
 bool DEBUG_IsPagingOutput(void);
 
 static void DrawInput(void) {
+	if (dbg.win_inp == NULL)
+		return;
+
     if (!debugging) {
         if (has_colors())
         {
@@ -1265,7 +1351,12 @@ static void DrawCode(void) {
 		Bitu drawsize;
 
         if (start != mem_no_address) {
-            drawsize=size=DasmI386(dline, (PhysPt)start, disEIP, cpu.code.big);
+            Descriptor desc;
+
+            if (cpu.gdt.GetDescriptor(codeViewData.useCS, desc))
+                drawsize=size=DasmI386(dline, (PhysPt)start, disEIP, desc.saved.seg.big);
+            else
+                drawsize=size=DasmI386(dline, (PhysPt)start, disEIP, cpu.code.big);
         }
         else {
             drawsize=size=1;
@@ -1429,93 +1520,200 @@ void SkipSpace(char*& hex) {
     while (*hex == ' ') hex++;
 }
 
-uint32_t GetHexValue(char* const str, char* &hex,bool *parsed)
+extern uint32_t cpu_sep_eip;
+
+uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
 {
-    uint32_t	value = 0;
     uint32_t regval = 0;
     hex = str;
     while (*hex == ' ') hex++;
 
-    // The user can enclose a value in double quotations to enter hex values that
-    // would collide with a flag name (AC, AF, CF, and DF).
-    if (*hex == '\"') { hex++; }
-    else if (strncmp(hex, "EFLAGS", 6) == 0) { hex += 6; regval = (uint32_t)reg_flags; }
-    else if (strncmp(hex, "FLAGS", 5) == 0) { hex += 5; regval = (uint32_t)reg_flags; }
-    else if (strncmp(hex, "IOPL", 4) == 0) { hex += 4; regval = (reg_flags & FLAG_IOPL) >> 12u; }
-    else if (strncmp(hex, "CR0", 3) == 0) { hex += 3; regval = (uint32_t)cpu.cr0; }
-    else if (strncmp(hex, "CR2", 3) == 0) { hex += 3; regval = (uint32_t)paging.cr2; }
-    else if (strncmp(hex, "CR3", 3) == 0) { hex += 3; regval = (uint32_t)paging.cr3; }
-    else if (strncmp(hex, "EAX", 3) == 0) { hex += 3; regval = reg_eax; }
-    else if (strncmp(hex, "EBX", 3) == 0) { hex += 3; regval = reg_ebx; }
-    else if (strncmp(hex, "ECX", 3) == 0) { hex += 3; regval = reg_ecx; }
-    else if (strncmp(hex, "EDX", 3) == 0) { hex += 3; regval = reg_edx; }
-    else if (strncmp(hex, "ESI", 3) == 0) { hex += 3; regval = reg_esi; }
-    else if (strncmp(hex, "EDI", 3) == 0) { hex += 3; regval = reg_edi; }
-    else if (strncmp(hex, "EBP", 3) == 0) { hex += 3; regval = reg_ebp; }
-    else if (strncmp(hex, "ESP", 3) == 0) { hex += 3; regval = reg_esp; }
-    else if (strncmp(hex, "EIP", 3) == 0) { hex += 3; regval = reg_eip; }
-    else if (strncmp(hex, "AX", 2) == 0) { hex += 2; regval = reg_ax; }
-    else if (strncmp(hex, "BX", 2) == 0) { hex += 2; regval = reg_bx; }
-    else if (strncmp(hex, "CX", 2) == 0) { hex += 2; regval = reg_cx; }
-    else if (strncmp(hex, "DX", 2) == 0) { hex += 2; regval = reg_dx; }
-    else if (strncmp(hex, "SI", 2) == 0) { hex += 2; regval = reg_si; }
-    else if (strncmp(hex, "DI", 2) == 0) { hex += 2; regval = reg_di; }
-    else if (strncmp(hex, "BP", 2) == 0) { hex += 2; regval = reg_bp; }
-    else if (strncmp(hex, "SP", 2) == 0) { hex += 2; regval = reg_sp; }
-    else if (strncmp(hex, "IP", 2) == 0) { hex += 2; regval = reg_ip; }
-    else if (strncmp(hex, "AL", 2) == 0) { hex += 2; regval = reg_al; }
-    else if (strncmp(hex, "BL", 2) == 0) { hex += 2; regval = reg_bl; }
-    else if (strncmp(hex, "CL", 2) == 0) { hex += 2; regval = reg_cl; }
-    else if (strncmp(hex, "DL", 2) == 0) { hex += 2; regval = reg_dl; }
-    else if (strncmp(hex, "AH", 2) == 0) { hex += 2; regval = reg_ah; }
-    else if (strncmp(hex, "BH", 2) == 0) { hex += 2; regval = reg_bh; }
-    else if (strncmp(hex, "CH", 2) == 0) { hex += 2; regval = reg_ch; }
-    else if (strncmp(hex, "DH", 2) == 0) { hex += 2; regval = reg_dh; }
-    else if (strncmp(hex, "CS", 2) == 0) { hex += 2; regval = SegValue(cs); }
-    else if (strncmp(hex, "DS", 2) == 0) { hex += 2; regval = SegValue(ds); }
-    else if (strncmp(hex, "ES", 2) == 0) { hex += 2; regval = SegValue(es); }
-    else if (strncmp(hex, "FS", 2) == 0) { hex += 2; regval = SegValue(fs); }
-    else if (strncmp(hex, "GS", 2) == 0) { hex += 2; regval = SegValue(gs); }
-    else if (strncmp(hex, "SS", 2) == 0) { hex += 2; regval = SegValue(ss); }
-    else if (strncmp(hex, "AC", 2) == 0) { hex += 2; regval = GETFLAG(AC); }
-    else if (strncmp(hex, "AF", 2) == 0) { hex += 2; regval = GETFLAG(AF); }
-    else if (strncmp(hex, "CF", 2) == 0) { hex += 2; regval = GETFLAG(CF); }
-    else if (strncmp(hex, "DF", 2) == 0) { hex += 2; regval = GETFLAG(DF); }
-    else if (strncmp(hex, "ID", 2) == 0) { hex += 2; regval = GETFLAG(ID); }
-    else if (strncmp(hex, "IF", 2) == 0) { hex += 2; regval = GETFLAG(IF); }
-    else if (strncmp(hex, "NT", 2) == 0) { hex += 2; regval = GETFLAG(NT); }
-    else if (strncmp(hex, "OF", 2) == 0) { hex += 2; regval = GETFLAG(OF); }
-    else if (strncmp(hex, "PF", 2) == 0) { hex += 2; regval = GETFLAG(PF); }
-    else if (strncmp(hex, "SF", 2) == 0) { hex += 2; regval = GETFLAG(SF); }
-    else if (strncmp(hex, "TF", 2) == 0) { hex += 2; regval = GETFLAG(TF); }
-    else if (strncmp(hex, "VM", 2) == 0) { hex += 2; regval = GETFLAG(VM); }
-    else if (strncmp(hex, "ZF", 2) == 0) { hex += 2; regval = GETFLAG(ZF); }
+    std::string something;
+    bool hexnumber = true;
+    bool quoted = false;
+    char *start;
 
-    else if (strncmp(hex,"DTASEG", 6) == 0) { hex += 6; regval = (!dos_kernel_disabled) ? (dos.dta() >> 16u)    : 0; }
-    else if (strncmp(hex,"DTAOFF", 6) == 0) { hex += 6; regval = (!dos_kernel_disabled) ? (dos.dta() & 0xFFFFu) : 0; }
-    else if (strncmp(hex,"PSPSEG", 6) == 0) { hex += 6; regval = (!dos_kernel_disabled) ?  dos.psp()            : 0; }
+    if (parsed) *parsed = 1;
 
-    while (*hex && *hex != '\"') {
-        if ((*hex >= '0') && (*hex <= '9')) value = (value << 4u) + ((uint32_t)(*hex)) - '0';
-        else if ((*hex >= 'A') && (*hex <= 'F')) value = (value << 4u) + ((uint32_t)(*hex)) - 'A' + 10u;
-        else {
-            if (*hex == '+') { hex++; return regval + value + GetHexValue(hex, hex, parsed); }
-            else
-                if (*hex == '-') { hex++; return regval + value - GetHexValue(hex, hex, parsed); }
-                else break; // No valid char
+    // parenthesis handling (expr)
+    if (*hex == '(') {
+        bool myparsed = false;
+
+        hex++;
+        regval = GetHexValue(hex,hex,&myparsed);
+        if (!myparsed) return 0;
+
+        while (*hex == ' ') hex++;
+        if (*hex != ')') { // syntax error
+                if (parsed) *parsed = 0;
+                return 0;
         }
-        hex++;
+        hex++; /* then skip the ) */
+    }
+    else {
+        // In this code base, scan the string for alphanumeric characters, store the string,
+        // THEN process for identifiers. This is to make sure "DFE" is not confused with
+        // the DF flag, for example.
+        if (*hex == '\"') {
+            quoted = true;
+            start = ++hex; /* start = first char after quote */
+            while (*hex != 0 && *hex != '\"') {
+                if (!isxdigit(*hex)) hexnumber = false;
+                hex++;
+            }
+            something = std::string(start,(size_t)(hex-start));
+            if (*hex == '\"') hex++;
+        }
+        else {
+            start = hex;
+            while (isalpha(*hex) || isdigit(*hex) || *hex == '_') {
+                if (!isxdigit(*hex)) hexnumber = false;
+                hex++;
+            }
+            something = std::string(start,(size_t)(hex-start));
+        }
+
+        // "" is not valid
+        if (something.empty()) { if (parsed) *parsed = 0; return 0; }
+
+        // The user can enclose a value in double quotations to enter hex values that
+        // would collide with a flag name (AC, AF, CF, and DF).
+        if (!quoted) {
+                 if (something == "EFLAGS") { regval = (uint32_t)reg_flags; }
+            else if (something == "FLAGS") { regval = (uint32_t)reg_flags; }
+            else if (something == "IOPL") { regval = (reg_flags & FLAG_IOPL) >> 12u; }
+            else if (something == "CR0") { regval = (uint32_t)cpu.cr0; }
+            else if (something == "CR2") { regval = (uint32_t)paging.cr2; }
+            else if (something == "CR3") { regval = (uint32_t)paging.cr3; }
+            else if (something == "CR4") { regval = (uint32_t)cpu.cr4; }
+            else if (something == "SYSENTER") { regval = (uint32_t)cpu_sep_eip; }
+            else if (something == "EAX") { regval = reg_eax; }
+            else if (something == "EBX") { regval = reg_ebx; }
+            else if (something == "ECX") { regval = reg_ecx; }
+            else if (something == "EDX") { regval = reg_edx; }
+            else if (something == "ESI") { regval = reg_esi; }
+            else if (something == "EDI") { regval = reg_edi; }
+            else if (something == "EBP") { regval = reg_ebp; }
+            else if (something == "ESP") { regval = reg_esp; }
+            else if (something == "EIP") { regval = reg_eip; }
+            else if (something == "AX") { regval = reg_ax; }
+            else if (something == "BX") { regval = reg_bx; }
+            else if (something == "CX") { regval = reg_cx; }
+            else if (something == "DX") { regval = reg_dx; }
+            else if (something == "SI") { regval = reg_si; }
+            else if (something == "DI") { regval = reg_di; }
+            else if (something == "BP") { regval = reg_bp; }
+            else if (something == "SP") { regval = reg_sp; }
+            else if (something == "IP") { regval = reg_ip; }
+            else if (something == "AL") { regval = reg_al; }
+            else if (something == "BL") { regval = reg_bl; }
+            else if (something == "CL") { regval = reg_cl; }
+            else if (something == "DL") { regval = reg_dl; }
+            else if (something == "AH") { regval = reg_ah; }
+            else if (something == "BH") { regval = reg_bh; }
+            else if (something == "CH") { regval = reg_ch; }
+            else if (something == "DH") { regval = reg_dh; }
+            else if (something == "CS") { regval = SegValue(cs); }
+            else if (something == "DS") { regval = SegValue(ds); }
+            else if (something == "ES") { regval = SegValue(es); }
+            else if (something == "FS") { regval = SegValue(fs); }
+            else if (something == "GS") { regval = SegValue(gs); }
+            else if (something == "SS") { regval = SegValue(ss); }
+            else if (something == "AC") { regval = GETFLAG(AC); }
+            else if (something == "AF") { regval = GETFLAG(AF); }
+            else if (something == "CF") { regval = GETFLAG(CF); }
+            else if (something == "DF") { regval = GETFLAG(DF); }
+            else if (something == "ID") { regval = GETFLAG(ID); }
+            else if (something == "IF") { regval = GETFLAG(IF); }
+            else if (something == "NT") { regval = GETFLAG(NT); }
+            else if (something == "OF") { regval = GETFLAG(OF); }
+            else if (something == "PF") { regval = GETFLAG(PF); }
+            else if (something == "SF") { regval = GETFLAG(SF); }
+            else if (something == "TF") { regval = GETFLAG(TF); }
+            else if (something == "VM") { regval = GETFLAG(VM); }
+            else if (something == "ZF") { regval = GETFLAG(ZF); }
+
+            else if (something == "DTASEG") { regval = (!dos_kernel_disabled) ? (dos.dta() >> 16u)    : 0; }
+            else if (something == "DTAOFF") { regval = (!dos_kernel_disabled) ? (dos.dta() & 0xFFFFu) : 0; }
+            else if (something == "PSPSEG") { regval = (!dos_kernel_disabled) ?  dos.psp()            : 0; }
+            else if (hexnumber) { regval = (uint32_t)strtoul(something.c_str(),NULL,16/*hexadecimal*/); }
+            else { if (parsed) *parsed = 0; return 0; }
+        }
+        /* quoted */
+        else if (hexnumber) { regval = (uint32_t)strtoul(something.c_str(),NULL,16/*hexadecimal*/); }
+        else { if (parsed) *parsed = 0; return 0; }
     }
 
-    // If there is a closing quote, skip over it.
-    if (*hex == '\"') {
-        hex++;
+    /* support simple add/subtract expressions */
+    while (*hex != 0) {
+        char* beforespace = hex;
+        while (*hex == ' ') hex++;
+
+        if (*hex == '+') {
+            if (exprge >= EXPR_ADDSUB) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval += GetHexValue(hex, hex, parsed, EXPR_ADDSUB);
+        }
+        else if (*hex == '-') {
+            if (exprge >= EXPR_ADDSUB) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval -= GetHexValue(hex, hex, parsed, EXPR_ADDSUB);
+        }
+	else if (*hex == '*') {
+            if (exprge >= EXPR_MULDIV) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval *= GetHexValue(hex, hex, parsed, EXPR_MULDIV);
+        }
+        else if (*hex == '/') {
+            if (exprge >= EXPR_MULDIV) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            uint32_t r = GetHexValue(hex, hex, parsed, EXPR_MULDIV); /* whoah now, check for zero! */
+            if (r != 0) regval /= r;
+            else regval = 0;
+        }
+        else if (*hex == '%') {
+            if (exprge >= EXPR_MULDIV) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            uint32_t r = GetHexValue(hex, hex, parsed, EXPR_MULDIV); /* whoah now, check for zero! */
+            if (r != 0) regval %= r;
+            else regval = 0;
+        }
+        else if (*hex == '&') {
+            if (exprge >= EXPR_AND) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval &= GetHexValue(hex, hex, parsed, EXPR_AND);
+        }
+        else if (*hex == '^') {
+            if (exprge >= EXPR_XOR) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval ^= GetHexValue(hex, hex, parsed, EXPR_XOR);
+        }
+        else if (*hex == '|') {
+            if (exprge >= EXPR_OR) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval |= GetHexValue(hex, hex, parsed, EXPR_OR);
+        }
+        else if (hex[0] == '<' && hex[1] == '<') {
+            if (exprge >= EXPR_BITSHIFT) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex += 2;
+            uint32_t r = GetHexValue(hex, hex, parsed, EXPR_BITSHIFT);
+            if (r < 32) regval <<= r;
+            else regval = 0;
+        }
+        else if (hex[0] == '>' && hex[1] == '>') {
+            if (exprge >= EXPR_BITSHIFT) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex += 2;
+            uint32_t r = GetHexValue(hex, hex, parsed, EXPR_BITSHIFT);
+            if (r < 32) regval >>= r;
+            else regval = 0;
+        }
+        else {
+            hex = beforespace; // Rewind to avoid consuming trailing spaces
+            break; // No valid char
+        }
     }
 
-    if (parsed != NULL)
-        *parsed = (hex != str);
-
-    return regval + value;
+    return regval;
 }
 
 bool ChangeRegister(char* const str)
@@ -1586,6 +1784,94 @@ bool ChangeRegister(char* const str)
 	return true;
 }
 
+void DEBUG_PrintMMX(int which,char format) {
+    char tmp[256],*w=tmp;
+
+    if (which < 0 || which > 7) return;
+
+    MMX_reg &mmx = *reg_mmx[which];
+
+    w += sprintf(w,"mm%d(%c): H->L ",which,format); /* let the user know we're printing from little endian order highest to lowest */
+    if (format == 'B') {
+        w += sprintf(w,"%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x",
+            mmx.ub.b7,mmx.ub.b6,mmx.ub.b5,mmx.ub.b4,
+            mmx.ub.b3,mmx.ub.b2,mmx.ub.b1,mmx.ub.b0);
+    }
+    else if (format == 'W') {
+        w += sprintf(w,"%04x|%04x|%04x|%04x",
+            mmx.uw.w3,mmx.uw.w2,mmx.uw.w1,mmx.uw.w0);
+    }
+    else if (format == 'D') {
+        w += sprintf(w,"%08lx|%08lx",
+            (unsigned long)mmx.ud.d1,(unsigned long)mmx.ud.d0);
+    }
+    else if (format == 'S') {
+        w += sprintf(w,"%.20f|%.20f",
+            mmx.f32.f1.v,mmx.f32.f0.v);
+    }
+    else { /* 'Q' */
+        w += sprintf(w,"%08lx%08lx",
+            (unsigned long)mmx.ud.d1,(unsigned long)mmx.ud.d0); /* little endian combine to print 64-bit hex */
+    }
+
+    assert(w < (tmp+sizeof(tmp)));
+    DEBUG_ShowMsg("%s", tmp);
+}
+
+void DEBUG_PrintSSE(int which,char format) {
+    char tmp[1024],*w=tmp;
+
+    if (which < 0 || which > 7) return;
+
+    XMM_Reg &xmm = fpu.xmmreg[which];
+
+    w += sprintf(w,"xmm%d(%c): H->L ",which,format); /* let the user know we're printing from little endian order highest to lowest */
+    if (format == 'B') {
+        for (int i=15;i >= 0;i--) {
+            w += sprintf(w,"%02x",xmm.u8[(unsigned int)i]);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'W') {
+        for (int i=7;i >= 0;i--) {
+            w += sprintf(w,"%04x",xmm.u16[(unsigned int)i]);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'D') {
+        for (int i=3;i >= 0;i--) {
+            w += sprintf(w,"%08lx",(unsigned long)xmm.u32[(unsigned int)i]);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'Q') {
+        for (int i=3;i >= 0;i--) { /* rather than fight with printf() differences between MSVC++ and glibc just print 32-bit values anyway */
+            w += sprintf(w,"%08lx",(unsigned long)xmm.u32[(unsigned int)i]);
+            if ((i&1u) == 0 && i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'S') {
+        for (int i=3;i >= 0;i--) {
+            w += sprintf(w,"%.20f",xmm.f32[(unsigned int)i].v);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'F') {
+        for (int i=1;i >= 0;i--) {
+            w += sprintf(w,"%.30f",xmm.f64[(unsigned int)i].v);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else { /* 'X' */
+        for (int i=3;i >= 0;i--) { /* rather than fight with printf() differences between MSVC++ and glibc just print 32-bit values anyway */
+            w += sprintf(w,"%08lx",(unsigned long)xmm.u32[(unsigned int)i]);
+        }
+    }
+
+    assert(w < (tmp+sizeof(tmp)));
+    DEBUG_ShowMsg("%s", tmp);
+}
+
 void DEBUG_GUI_Rebuild(void);
 void DBGUI_NextWindowIfActiveHidden(void);
 
@@ -1595,6 +1881,35 @@ void DEBUG_EndPagedContent(void);
 std::string pc98_egc_shift_debug_status(void);
 
 static void LogFPUInfo(void);
+
+bool lookslikefloat(char* str) {
+    if (*str == 0) return false;
+
+    if (*str == '-') str++;
+    while (!(*str == 0 || *str == ' ' || *str == ',' || *str == '.')) {
+        if (!isdigit(*str)) return false;
+        str++;
+    }
+
+    if (*str != '.') return false;
+    str++;
+
+    while (!(*str == 0 || *str == ' ' || *str == ',')) {
+        if (!isdigit(*str)) return false;
+        str++;
+    }
+
+    return true;
+}
+
+void AddBPINT3(void) {
+	CBreakpoint::AddIntBreakpoint(3,BPINT_ALL,BPINT_ALL,false);
+	CBreakpoint::ActivateBreakpoints();
+}
+
+void VGA_DumpFontRamBIN(const char *filename);
+void VGA_DumpFontRamBMP(const char *filename);
+int32_t DEBUG_Run(int32_t amount,bool quickexit);
 
 bool ParseCommand(char* str) {
     std::string copy_str = str;
@@ -1690,9 +2005,286 @@ bool ParseCommand(char* str) {
 		return true;
 	}
 
+    if (command == "MEMFIND") { // Start a memory search instance with seg:ofs range
+		uint32_t valfind;
+		uint8_t valfind8;
+		uint16_t valfind16;
+		uint32_t valfind32;
+		uint32_t listedvalues = 0;
+		if (found[0] == '!'){
+			if (MEMFINDInstance != NULL){
+				DEBUG_ShowMsg("DEBUG: Memory search instance cancelled.");
+				MEMFINDInstance->tableTruth.clear();
+				MEMFINDInstance->tableValue.clear();
+				MEMFINDInstance->tableTruth.shrink_to_fit();
+				MEMFINDInstance->tableValue.shrink_to_fit();
+				delete MEMFINDInstance;
+				MEMFINDInstance = NULL;
+			} else {
+				DEBUG_ShowMsg("DEBUG: No active search instances to cancel.");
+			}
+			return true;
+		} else if (found[0] == 'L'){
+			if (MEMFINDInstance != NULL){
+				DEBUG_BeginPagedContent();
+				uint32_t j = 0;
+				for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i+=MEMFINDInstance->size){
+							switch (MEMFINDInstance->size){
+								case 1:
+									mem_readb_checked((PhysPt)(i),&valfind8);
+									valfind = valfind8;
+									break;
+								case 2:
+									mem_readw_checked((PhysPt)(i),&valfind16);
+									valfind = valfind16;
+									break;
+								case 4:
+									mem_readd_checked((PhysPt)(i),&valfind32);
+									valfind = valfind32;
+									break;
+								default:
+									mem_readb_checked((PhysPt)(i),&valfind8);
+									valfind = valfind8;
+									break;
+							}
+							if (MEMFINDInstance->tableTruth[j] == true){
+								listedvalues++;
+								DEBUG_ShowMsg("DEBUG: [MEMFIND] Address: %04X:%06X Current Value: %08X\n",MEMFINDInstance->seg,(i - (MEMFINDInstance->seg * 16)),valfind);
+							}
+							j+=MEMFINDInstance->size;
+						}
+				DEBUG_ShowMsg("DEBUG: [MEMFIND] Matched values during current instance: %06X\n",listedvalues);
+				DEBUG_EndPagedContent();
+			} else {
+				DEBUG_ShowMsg("DEBUG: No active search instances to list from.");
+			}
+			return true;
+		}
+		uint16_t seg = (uint16_t)GetHexValue(found,found); found++;
+		uint32_t ofs = GetHexValue(found,found); found++;
+		uint32_t num = GetHexValue(found,found); found++;
+		if ((MEMFINDInstance == NULL) && (num > 0)){
+			if (((seg*16)+ofs+num) > 16777215){
+				DEBUG_ShowMsg("DEBUG: Address range larger than valid size, cancelling.");
+				return true;
+			}
+			DEBUG_ShowMsg("DEBUG: Created memory search instance.");
+			MEMFINDInstance = new MEMFinder;
+		} else if ((MEMFINDInstance == NULL) && (num == 0)){
+			DEBUG_ShowMsg("DEBUG: --MEMFIND-- Start memory search instance.");
+			DEBUG_ShowMsg("DEBUG: Use MEMS to proceed through search instance.");
+			DEBUG_ShowMsg("DEBUG: Usage: MEMFIND (!/L) [seg]:[offset] [range] (B/W/D)");
+			DEBUG_ShowMsg("DEBUG: L - List entries matched in the search instance.");
+			DEBUG_ShowMsg("DEBUG: ! - Cancel memory search instance.");
+			return true;
+		} else if (MEMFINDInstance != NULL){
+			DEBUG_ShowMsg("DEBUG: Memory search instance is already active.");
+			return true;
+		}
+		switch (*found){
+			case 'B':
+				DEBUG_ShowMsg("DEBUG: 1 byte specified.");
+				MEMFINDInstance->size = 1;
+				break;
+			case 'W':
+				DEBUG_ShowMsg("DEBUG: 2 bytes specified.");
+				MEMFINDInstance->size = 2;
+				break;
+			case 'D':
+				DEBUG_ShowMsg("DEBUG: 4 bytes specified.");
+				MEMFINDInstance->size = 4;
+				break;
+			default:
+				DEBUG_ShowMsg("DEBUG: No size specified, using 1 byte.");
+				MEMFINDInstance->size = 1;
+				break;
+		}
+		DEBUG_ShowMsg("DEBUG: RAM search from %04X:%04X with range: %06X\n",seg,ofs,num);
+		MEMFINDInstance->range = num;
+		MEMFINDInstance->ofs = ofs;
+		MEMFINDInstance->seg = seg;
+		MEMFINDInstance->tableTruth.resize(num,true);
+		for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i++){
+			mem_readb_checked((PhysPt)(i),&valfind8);
+			MEMFINDInstance->tableValue.push_back(valfind8);
+		}
+		return true;
+	}
+
+	if (command == "MEMS") { // Search through MEMFIND for matching values in memory search instance
+		bool parsed;
+		uint32_t valfind;
+		uint8_t valfind8;
+		uint16_t valfind16;
+		uint32_t valfind32;
+		uint32_t value;
+		uint32_t matches = 0;
+		char opTypeStr[26];
+		if (MEMFINDInstance == NULL){
+			DEBUG_ShowMsg("DEBUG: MEMFIND Memory search is not active.\n");
+			return true;
+		}
+		switch (found[0]){
+			case '>':
+				if (found[1] == '='){
+					found+=2;
+					MEMFINDInstance->opType = 4;
+					sprintf(opTypeStr, "GREATER THAN OR EQUAL TO");
+				} else {
+					found+=1;
+					MEMFINDInstance->opType = 1;
+					sprintf(opTypeStr, "GREATER THAN");
+				}
+				break;
+			case '<':
+				if (found[1] == '='){
+					found+=2;
+					MEMFINDInstance->opType = 5;
+					sprintf(opTypeStr, "LESS THAN OR EQUAL TO");
+				} else {
+					found+=1;
+					MEMFINDInstance->opType = 2;
+					sprintf(opTypeStr, "LESS THAN");
+				}
+				break;
+			case '!':
+				found+=1;
+				MEMFINDInstance->opType = 3;
+				sprintf(opTypeStr, "NOT EQUAL TO");
+				break;
+			case '=':
+				found+=1;
+				MEMFINDInstance->opType = 0;
+				sprintf(opTypeStr, "EQUAL TO");
+			default:
+				MEMFINDInstance->opType = 0;
+				sprintf(opTypeStr, "EQUAL TO");
+				break;
+		}
+		SkipSpace(found);
+		if (*found == ' '){
+			DEBUG_ShowMsg("DEBUG: MEMS - Memory Search from MEMFIND instance.\n");
+			DEBUG_ShowMsg("DEBUG: Usage: MEMS (OPERATOR) VALUE.\n");
+			DEBUG_ShowMsg("DEBUG: Valid operators: >, >=, <, <=, !, =.\n");
+			return true;
+		} else if (*found == '\0'){
+			DEBUG_ShowMsg("DEBUG: No value was entered. Comparing with previous values.\n");
+			MEMFINDInstance->usePreviousValue = true;
+			value = 0;
+		} else {
+			value = GetHexValue(found,found,&parsed);
+			if (((value > 255) && (MEMFINDInstance->size == 1)) || ((value > 65535) && (MEMFINDInstance->size == 2))){
+				DEBUG_ShowMsg("DEBUG: Memory search failed. Value is larger than specified size range.\n");
+				return true;
+			}
+			MEMFINDInstance->value = value;
+			MEMFINDInstance->usePreviousValue = false;
+		}
+		uint32_t y = 0;	//This index is seperated from the for loop, as the for loop can start from any index while this particular index starts at 0
+		for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i+=MEMFINDInstance->size){
+			switch (MEMFINDInstance->size){
+				case 1:
+					mem_readb_checked((PhysPt)(i),&valfind8);
+					valfind = valfind8;
+					if (MEMFINDInstance->usePreviousValue == true){
+						memcpy(&value, &MEMFINDInstance->tableValue[y], 1);
+					}
+					break;
+				case 2:
+					mem_readw_checked((PhysPt)(i),&valfind16);
+					valfind = valfind16;
+					if (MEMFINDInstance->usePreviousValue == true){
+						memcpy(&value, &MEMFINDInstance->tableValue[y], 2);
+					}
+					break;
+				case 4:
+					mem_readd_checked((PhysPt)(i),&valfind32);
+					valfind = valfind32;
+					if (MEMFINDInstance->usePreviousValue == true){
+						memcpy(&value, &MEMFINDInstance->tableValue[y], 4);
+					}
+					break;
+				default:
+					mem_readb_checked((PhysPt)(i),&valfind8);
+					valfind = valfind8;
+					if (MEMFINDInstance->usePreviousValue == true){
+						memcpy(&value, &MEMFINDInstance->tableValue[y], 1);
+					}
+					break;
+			}
+			switch (MEMFINDInstance->opType){
+				case 1:
+					if ((valfind > value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+				case 2:
+					if ((valfind < value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+				case 3:
+					if ((valfind != value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+				case 4:
+					if ((valfind >= value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+				case 5:
+					if ((valfind <= value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+				default:
+					if ((valfind == value) && (MEMFINDInstance->tableTruth[y] == true)){
+						matches++;
+					} else {
+						MEMFINDInstance->tableTruth[y] = false;
+					}
+					break;
+			}
+			y+=MEMFINDInstance->size;
+		}
+		MEMFINDInstance->matches = matches;
+		MEMFINDInstance->iterations++;
+		if (MEMFINDInstance->matches == 0){
+			if (MEMFINDInstance->usePreviousValue == true){
+				DEBUG_ShowMsg("DEBUG: No more matches found when comparing %s previous value. Memory search instance finished.\n",opTypeStr);
+			} else {
+				DEBUG_ShowMsg("DEBUG: No more matches found with value %s (%06X). Memory search instance finished.\n",opTypeStr,value);
+			}
+			MEMFINDInstance->tableTruth.clear();
+			MEMFINDInstance->tableValue.clear();
+			MEMFINDInstance->tableTruth.shrink_to_fit();
+			MEMFINDInstance->tableValue.shrink_to_fit();
+			delete MEMFINDInstance;
+			MEMFINDInstance = NULL;
+		} else {
+				if (MEMFINDInstance->usePreviousValue == true){
+					DEBUG_ShowMsg("DEBUG: (%06X) addresses matching %s their previous values. Iterations: %06X\n",MEMFINDInstance->matches,opTypeStr,MEMFINDInstance->iterations);
+				} else {
+					DEBUG_ShowMsg("DEBUG: (%06X) matches found with value %s (%06X). Iterations: %06X\n",MEMFINDInstance->matches,opTypeStr,value,MEMFINDInstance->iterations);
+				}
+		}
+		return true;
+	}
+
 	if (command == "IV") { // Insert variable
 		uint16_t seg = (uint16_t)GetHexValue(found,found); found++;
-		uint32_t ofs = (uint16_t)GetHexValue(found,found); found++;
+		uint32_t ofs = GetHexValue(found,found); found++;
 		char name[16];
 		for (int i=0; i<16; i++) {
 			if (found[i] && (found[i]!=' ')) name[i] = found[i];
@@ -1765,50 +2357,154 @@ bool ParseCommand(char* str) {
 
 	if (command == "SM") { // Set memory with following values
 		uint16_t seg = (uint16_t)GetHexValue(found,found);
-        if (*found == ':') { // allow seg:off syntax
-            found++;
-            SkipSpace(found);
-        }
+		if (*found == ':') { // allow seg:off syntax
+			found++;
+			SkipSpace(found);
+		}
 		uint32_t ofs = GetHexValue(found,found); SkipSpace(found);
 		uint16_t count = 0;
-        bool parsed;
+		bool parsed;
 
-        while (*found) {
-            char prefix = 'B';
-            uint32_t value;
+		while (*found) {
+			char prefix = 'B';
+			uint32_t value;
 
-            /* allow d: w: b: prefixes */
-            if ((*found == 'B' || *found == 'W' || *found == 'D') && found[1] == ':') {
-                prefix = *found; found += 2;
-                value = GetHexValue(found,found,&parsed);
-            }
-            else {
-                value = GetHexValue(found,found,&parsed);
-            }
+			/* allow d: w: b: prefixes */
+			if ((*found == 'B' || *found == 'W' || *found == 'D') && found[1] == ':') {
+				prefix = *found; found += 2;
+				value = GetHexValue(found,found,&parsed);
+			}
+			else {
+				value = GetHexValue(found,found,&parsed);
+			}
 
-            SkipSpace(found);
-            if (!parsed) {
-                DEBUG_ShowMsg("GetHexValue parse error at %s",found);
-                break;
-            }
+			SkipSpace(found);
+			if (!parsed) {
+				DEBUG_ShowMsg("GetHexValue parse error at %s",found);
+				break;
+			}
 
-            if (prefix == 'D') {
-                mem_writed_checked((PhysPt)GetAddress(seg,ofs+count),value);
-                count += 4;
-            }
-            else if (prefix == 'W') {
-                mem_writew_checked((PhysPt)GetAddress(seg,ofs+count),value);
-                count += 2;
-            }
-            else if (prefix == 'B') {
-                mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
-                count++;
-            }
-        }
+			if (prefix == 'D') {
+				mem_writed_checked((PhysPt)GetAddress(seg,ofs+count),value);
+				count += 4;
+			}
+			else if (prefix == 'W') {
+				mem_writew_checked((PhysPt)GetAddress(seg,ofs+count),value);
+				count += 2;
+			}
+			else if (prefix == 'B') {
+				mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
+				count++;
+			}
+		}
 
-        if (count > 0)
-            DEBUG_ShowMsg("DEBUG: Memory changed (%u bytes)\n",(unsigned int)count);
+		if (count > 0)
+			DEBUG_ShowMsg("DEBUG: Memory changed (%u bytes)\n",(unsigned int)count);
 
+		return true;
+	}
+
+	if (command == "SMV") { // Set memory with following values (virtual linear address)
+		uint32_t ofs = GetHexValue(found,found); SkipSpace(found);
+		uint16_t count = 0;
+		bool parsed;
+
+		while (*found) {
+			char prefix = 'B';
+			uint32_t value;
+
+			/* allow d: w: b: prefixes */
+			if ((*found == 'B' || *found == 'W' || *found == 'D') && found[1] == ':') {
+				prefix = *found; found += 2;
+				value = GetHexValue(found,found,&parsed);
+			}
+			else {
+				value = GetHexValue(found,found,&parsed);
+			}
+
+			SkipSpace(found);
+			if (!parsed) {
+				DEBUG_ShowMsg("GetHexValue parse error at %s",found);
+				break;
+			}
+
+			if (prefix == 'D') {
+				mem_writed_checked((PhysPt)(ofs+count),value);
+				count += 4;
+			}
+			else if (prefix == 'W') {
+				mem_writew_checked((PhysPt)(ofs+count),value);
+				count += 2;
+			}
+			else if (prefix == 'B') {
+				mem_writeb_checked((PhysPt)(ofs+count),value);
+				count++;
+			}
+		}
+
+		if (count > 0)
+			DEBUG_ShowMsg("DEBUG: Memory changed (%u bytes)\n",(unsigned int)count);
+
+		return true;
+	}
+
+	if (command == "SMP") { // Set memory with following values (physical address)
+		uint32_t ofs = GetHexValue(found,found); SkipSpace(found);
+		uint16_t count = 0;
+		bool parsed;
+
+		while (*found) {
+			char prefix = 'B';
+			uint32_t value;
+
+			/* allow d: w: b: prefixes */
+			if ((*found == 'B' || *found == 'W' || *found == 'D') && found[1] == ':') {
+				prefix = *found; found += 2;
+				value = GetHexValue(found,found,&parsed);
+			}
+			else {
+				value = GetHexValue(found,found,&parsed);
+			}
+
+			SkipSpace(found);
+			if (!parsed) {
+				DEBUG_ShowMsg("GetHexValue parse error at %s",found);
+				break;
+			}
+
+			if (prefix == 'D') {
+				physdev_writed((PhysPt)(ofs+count),value);
+				count += 4;
+			}
+			else if (prefix == 'W') {
+				physdev_writew((PhysPt)(ofs+count),value);
+				count += 2;
+			}
+			else if (prefix == 'B') {
+				physdev_writeb((PhysPt)(ofs+count),value);
+				count++;
+			}
+		}
+
+		if (count > 0)
+			DEBUG_ShowMsg("DEBUG: Memory changed (%u bytes)\n",(unsigned int)count);
+
+		return true;
+	}
+
+	if (command == "BPSYSENTER") {
+		if (Toggle_BreakSYSEnter())
+			DEBUG_ShowMsg("DEBUG: Breakpoint on SYSENTER set\n");
+		else
+			DEBUG_ShowMsg("DEBUG: Breakpoint on SYSENTER cleared\n");
+		return true;
+	}
+
+	if (command == "BPSYSEXIT") {
+		if (Toggle_BreakSYSExit())
+			DEBUG_ShowMsg("DEBUG: Breakpoint on SYSEXIT set\n");
+		else
+			DEBUG_ShowMsg("DEBUG: Breakpoint on SYSEXIT cleared\n");
 		return true;
 	}
 
@@ -1880,11 +2576,27 @@ bool ParseCommand(char* str) {
         DEBUG_EndPagedContent();
 		return true;
 	}
+    
+    if (command == "FM") { // Freeze memory value at address
+		uint16_t seg = (uint16_t)GetHexValue(found,found);found++; // skip ":"
+		uint32_t ofs = GetHexValue(found,found);
+        uint8_t value;
+		CBreakpoint* bp = CBreakpoint::AddMemBreakpoint(seg,ofs);
+        Bitu address = (Bitu)GetAddress(bp->GetSegment(),bp->GetOffset());
+		mem_readb_checked((PhysPt)address,&value);
+        if (bp){ 
+            bp->SetType(BKPNT_MEMORY_FREEZE);
+            bp->SetValue(value);
+        }
+		DEBUG_ShowMsg("DEBUG: Set memory freeze at %04X:%04X with value: %02X\n",seg,ofs,value);
+		return true;
+	}
 
 	if (command == "BPDEL") { // Delete Breakpoints
 		uint8_t bpNr	= (uint8_t)GetHexValue(found,found); 
 		if ((bpNr==0x00) && (*found=='*')) { // Delete all
 			CBreakpoint::DeleteAll();
+			Clear_SYSENTER_Debug();
 			DEBUG_ShowMsg("DEBUG: Breakpoints deleted.\n");
 		} else {
 			// delete single breakpoint
@@ -1893,47 +2605,53 @@ bool ParseCommand(char* str) {
 		return true;
 	}
 
-    if (command == "RUN") {
-        DrawRegistersUpdateOld();
-        debugging = false;
-        runnormal = true;
+	if (command == "VRT") {
+		DEBUG_HaltOnRetrace = true;
+		command = "RUN";
+	}
 
-        logBuffSuppressConsole = false;
-        if (logBuffSuppressConsoleNeedUpdate) {
-            logBuffSuppressConsoleNeedUpdate = false;
-            DEBUG_RefreshPage(0);
-        }
+	if (command == "RUN") {
+		DrawRegistersUpdateOld();
+		debug_running = false;
+		debugging=false;
+		DrawCode();
+		DrawInput();
+		logBuffSuppressConsole = false;
+		if (logBuffSuppressConsoleNeedUpdate) {
+			logBuffSuppressConsoleNeedUpdate = false;
+			DEBUG_RefreshPage(0);
+		}
 
-        Bits DEBUG_NullCPUCore(void);
+		Bits DEBUG_NullCPUCore(void);
 
-        CPU_Cycles = 1;
-        inhibit_int_breakpoint = true;
-        if (cpudecoder != DEBUG_NullCPUCore)
-            (*cpudecoder)();
+		inhibit_int_breakpoint = true;
+		DEBUG_Run(1,false);
+		inhibit_int_breakpoint = false;
+		mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+		mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+		mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
 
-        inhibit_int_breakpoint = false;
+		DOSBOX_SetNormalLoop();	
+		GFX_SetTitle(-1,-1,-1,is_paused);
+		return true;
+	}
 
-        void DEBUG_DrawScreen(void);
-        DEBUG_DrawScreen();
-
-        CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
-        mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
-        mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
-        mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
-        DOSBOX_SetNormalLoop();	
-        GFX_SetTitle(-1,-1,-1,is_paused);
-        return true;
-    }
-
-    if (command == "RUNWATCH") {
-        debug_running = true;
-        runnormal = false;
-        mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
-        mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
-        mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
-        DEBUG_DrawScreen();
-        return true;
-    }
+	if (command == "RUNWATCH") {
+		auto oldcore = cpudecoder;
+		runnormal = false;
+		inhibit_int_breakpoint = true;
+		DEBUG_Run(1,true);
+		inhibit_int_breakpoint = false;
+		cpudecoder = oldcore;
+		debug_running = true;
+		debugging = true;
+		CBreakpoint::ActivateBreakpoints();
+		mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+		mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
+		mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
+		DEBUG_DrawScreen();
+		return true;
+	}
 
     if (command == "A20") {
         void MEM_A20_Enable(bool enabled);
@@ -2020,28 +2738,28 @@ bool ParseCommand(char* str) {
 
 	if (command == "D") { // Set data overview
 		dataSeg = (uint16_t)GetHexValue(found,found); SkipSpace(found);
-        if (*found == ':') { // allow seg:off syntax
-            found++;
-            SkipSpace(found);
-        }
+		if (*found == ':') { // allow seg:off syntax
+			found++;
+			SkipSpace(found);
+		}
 		dataOfs = GetHexValue(found,found); SkipSpace(found);
-        dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
+		dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
 	}
 
 	if (command == "DV") { // Set data overview
-        dataSeg = 0;
+		dataSeg = 0;
 		dataOfs = GetHexValue(found,found); SkipSpace(found);
-        dbg.set_data_view(DBGBlock::DATV_VIRTUAL);
+		dbg.set_data_view(DBGBlock::DATV_VIRTUAL);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
 	}
 
 	if (command == "DP") { // Set data overview
-        dataSeg = 0;
+		dataSeg = 0;
 		dataOfs = GetHexValue(found,found); SkipSpace(found);
-        dbg.set_data_view(DBGBlock::DATV_PHYSICAL);
+		dbg.set_data_view(DBGBlock::DATV_PHYSICAL);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
 	}
@@ -2124,11 +2842,14 @@ bool ParseCommand(char* str) {
 	if (command == "DOS") {
 		stream >> command;
 		if (command == "MCBS") LogMCBS();
-        else if (command == "KERN") LogDOSKernMem();
-        else if (command == "XMS") LogXMS();
-        else if (command == "EMS") LogEMS();
-        else if (command == "FNKEY") LogFNKEY();
-        else return false;
+		else if (command == "DEVS") LogDEVS();
+		else if (command == "KERN") LogDOSKernMem();
+		else if (command == "XMS") LogXMS();
+#if !defined(OSFREE)
+		else if (command == "EMS") LogEMS();
+#endif
+		else if (command == "FNKEY") LogFNKEY();
+		else return false;
 
 		return true;
 	}
@@ -2142,15 +2863,442 @@ bool ParseCommand(char* str) {
         return true;
     }
 
+    if (command == "MMX") { // MMX [=B|=W|=D|=Q|=S] [regindex] [command ...]
+        while (*found == ' ') found++;
+
+        char format = 'a'; /* internal: 'a' for "auto" */
+        if (*found == '=') { /* =q as quads =d as dword =w as word =b as byte */
+            found++;
+            format = *found++;
+            while (*found == ' ') found++;
+        }
+
+        int which = (*found != 0 && isxdigit(*found)) ? (int)strtol(found,&found,16) : -1; /* accept index as hexadecimal to be consistent with the rest of the debugger */
+        while (*found == ' ') found++;
+
+        /* is this an alternate command? */
+        std::string subcommand;
+        {
+            char *start = found;
+            while (*found != 0 && *found != ' ') found++;
+            subcommand = std::string(start,(size_t)(found-start));
+            while (*found == ' ') found++;
+        }
+
+	if (subcommand.empty()) {
+            if (format == 'a') format = 'Q'; // =Q is default
+            if (which >= 0 && which <= 7) {
+                DEBUG_PrintMMX(which,format);
+            }
+            else {
+                DEBUG_ShowMsg("MMX register contents:");
+                for (which=0;which < 8;which++)
+                    DEBUG_PrintMMX(which,format);
+            }
+
+            return true;
+        }
+        else if (subcommand == "SET") { /* remember this function capitalizes the entire string */
+            if (which < 0 || which > 7) return false; // regindex is REQUIRED here
+            // MMX [=B|=W|=D|=Q|=S] <regindex> SET [val,val,...]
+            //
+            // if you don't want to change a particular part of the MMX register, set val to nothing or ""
+            // i.e. to set only the low 16 bits use =W 0 ,,,val
+            static constexpr unsigned int param_max = 8;
+            bool paramexist[param_max];
+            bool paramfset[param_max];
+            double paramf[param_max];
+            uint64_t param[param_max];
+            bool hasfloat=false;
+            unsigned int pi=0;
+
+            while (*found != 0 && pi < param_max) {
+                if (*found == ',') {
+                    found++;
+                    paramexist[pi++] = false; // none specified, ok.
+                    while (*found == ' ') found++;
+                    continue; // skip space , space scan below
+                }
+                else if (found[0] == '\"' && found[1] == '\"') {
+                    found += 2;
+                    paramexist[pi++] = false; // none specified, ok.
+                }
+                else if (found[0] == 'M' && found[1] == 'M' && isxdigit(found[2])) { // i.e. "MM3", allow using other MMX registers as a value
+                    found += 2;
+                    int idx = strtol(found,&found,16);
+                    if (idx >= 0 && idx <= 7) {
+                        param[pi] = reg_mmx[idx]->q;
+                        paramexist[pi] = true;
+                        paramfset[pi] = false;
+                        pi++;
+                    }
+                    else {
+                        paramexist[pi] = false;
+                        pi++;
+                    }
+                }
+                else if (lookslikefloat(found)) {
+                    paramf[pi] = strtod(found,&found);
+                    paramexist[pi] = true;
+                    paramfset[pi] = true;
+                    hasfloat = true;
+                    pi++;
+                }
+                else {
+                    // FIXME: GetHexValue has a 32-bit datatype limit and therefore is unsuitable for 64-bit constants
+                    bool parsed = false;
+                    uint32_t r = GetHexValue(found,found,&parsed);
+                    if (!parsed) return false;
+                    param[pi] = (uint64_t)r;
+                    paramexist[pi] = true;
+                    paramfset[pi] = false;
+                    pi++;
+                }
+
+                while (*found == ' ') found++;
+
+                if (*found == ',') {
+                    found++;
+                    while (*found == ' ') found++;
+                }
+                else {
+                    break; // I guess that's the end of the value
+                }
+            }
+
+            /* if format wasn't specified, auto determine from number of parameters */
+            if (format == 'a') {
+                if (pi > 4) format = 'B';
+                else if (pi > 2) format = 'W';
+                else if (pi > 1) format = hasfloat ? 'S' : 'D';
+                else format = 'Q';
+            }
+
+            if (pi == 0) {
+                // um... I guess we're not setting anything, OK then.
+                return true;
+            }
+
+            while (pi < param_max) paramexist[pi++] = false;
+
+            // FIXME: This could be simple for() loops without copy-pasta if the MMX_reg struct had arrays
+            if (format == 'B') {
+                if (paramexist[0]) reg_mmx[which]->ub.b7 = param[0];
+                if (paramexist[1]) reg_mmx[which]->ub.b6 = param[1];
+                if (paramexist[2]) reg_mmx[which]->ub.b5 = param[2];
+                if (paramexist[3]) reg_mmx[which]->ub.b4 = param[3];
+                if (paramexist[4]) reg_mmx[which]->ub.b3 = param[4];
+                if (paramexist[5]) reg_mmx[which]->ub.b2 = param[5];
+                if (paramexist[6]) reg_mmx[which]->ub.b1 = param[6];
+                if (paramexist[7]) reg_mmx[which]->ub.b0 = param[7];
+            }
+            else if (format == 'W') {
+                if (paramexist[0]) reg_mmx[which]->uw.w3 = param[0];
+                if (paramexist[1]) reg_mmx[which]->uw.w2 = param[1];
+                if (paramexist[2]) reg_mmx[which]->uw.w1 = param[2];
+                if (paramexist[3]) reg_mmx[which]->uw.w0 = param[3];
+            }
+            else if (format == 'D') {
+                if (paramexist[0]) reg_mmx[which]->ud.d1 = param[0];
+                if (paramexist[1]) reg_mmx[which]->ud.d0 = param[1];
+            }
+            else if (format == 'S') {
+                if (paramexist[0]) {
+                    if (paramfset[0]) *((float*)(&param[0])) = (float)paramf[0]; /* which becomes u32[] */
+                    reg_mmx[which]->ud.d1 = param[0];
+                }
+                if (paramexist[1]) {
+                    if (paramfset[1]) *((float*)(&param[1])) = (float)paramf[1]; /* which becomes u32[] */
+                    reg_mmx[which]->ud.d0 = param[1];
+                }
+            }
+            else { // 'Q'
+                if (paramexist[0]) reg_mmx[which]->q = param[0];
+            }
+
+            DEBUG_PrintMMX(which,format);
+            return true;
+        }
+    }
+
+    // NTS: S = single precision float   F = double precision float   X = 128-bit unsigned integer constant
+    if (command == "SSE") { // SSE [=B|=W|=D|=Q|=X|=S|=F] [regindex] [command ...]
+        while (*found == ' ') found++;
+
+        char format = 'a'; /* internal: 'a' for "auto" */
+        if (*found == '=') { /* =q as quads =d as dword =w as word =b as byte */
+            found++;
+            format = *found++;
+            while (*found == ' ') found++;
+        }
+
+        int which = (*found != 0 && isxdigit(*found)) ? (int)strtol(found,&found,16) : -1; /* accept index as hexadecimal to be consistent with the rest of the debugger */
+        while (*found == ' ') found++;
+
+        /* is this an alternate command? */
+        std::string subcommand;
+        {
+            char *start = found;
+            while (*found != 0 && *found != ' ') found++;
+            subcommand = std::string(start,(size_t)(found-start));
+            while (*found == ' ') found++;
+        }
+
+	if (subcommand.empty()) {
+            if (format == 'a') format = 'S'; // =S is default (TODO: Wouldn't it be nice if XMM regs remembered the last datatype used with them so we can use that?)
+            if (which >= 0 && which <= 7) {
+                DEBUG_PrintSSE(which,format);
+            }
+            else {
+                DEBUG_ShowMsg("SSE register contents:");
+                for (which=0;which < 8;which++)
+                    DEBUG_PrintSSE(which,format);
+            }
+
+            return true;
+        }
+        else if (subcommand == "SET") { /* remember this function capitalizes the entire string */
+            if (which < 0 || which > 7) return false; // regindex is REQUIRED here
+            // MMX [=B|=W|=D|=Q] <regindex> SET [val,val,...]
+            //
+            // if you don't want to change a particular part of the MMX register, set val to nothing or ""
+            // i.e. to set only the low 16 bits use =W 0 ,,,val
+            static constexpr unsigned int param_max = 16;
+            bool paramexist[param_max];
+            bool paramfset[param_max];
+            double paramf[param_max];
+            XMM_Reg param[param_max];
+            bool hasfloat=false;
+            unsigned int pi=0;
+
+            while (*found != 0 && pi < param_max) {
+                if (*found == ',') {
+                    found++;
+                    paramexist[pi++] = false; // none specified, ok.
+                    while (*found == ' ') found++;
+                    continue; // skip space , space scan below
+                }
+                else if (found[0] == '\"' && found[1] == '\"') {
+                    found += 2;
+                    paramexist[pi++] = false; // none specified, ok.
+                }
+                else if (found[0] == 'X' && found[1] == 'M' && found[2] == 'M' && isxdigit(found[3])) { // i.e. "XMM3", allow using other XMM registers as a value
+                    found += 3;
+                    int idx = strtol(found,&found,16);
+                    if (idx >= 0 && idx <= 7) {
+                        param[pi] = fpu.xmmreg[idx];
+                        paramexist[pi] = true;
+                        paramfset[pi] = false;
+                        pi++;
+                    }
+                    else {
+                        paramexist[pi] = false;
+                        pi++;
+                    }
+                }
+                else if (found[0] == 'M' && found[1] == 'M' && isxdigit(found[2])) { // i.e. "MM3", allow using other MMX registers as a value
+                    found += 2;
+                    int idx = strtol(found,&found,16);
+                    if (idx >= 0 && idx <= 7) {
+                        param[pi].u64[0] = reg_mmx[idx]->q;
+                        param[pi].u64[1] = 0;
+                        paramexist[pi] = true;
+                        paramfset[pi] = false;
+                        pi++;
+                    }
+                    else {
+                        paramexist[pi] = false;
+                        pi++;
+                    }
+                }
+                else if (lookslikefloat(found)) {
+                    paramf[pi] = strtod(found,&found);
+                    paramexist[pi] = true;
+                    paramfset[pi] = true;
+                    hasfloat = true;
+                    pi++;
+                }
+                else {
+                    // FIXME: GetHexValue has a 32-bit datatype limit and therefore is unsuitable for 64-bit constants
+                    bool parsed = false;
+                    uint32_t r = GetHexValue(found,found,&parsed);
+                    if (!parsed) return false;
+                    param[pi].u32[0] = (uint64_t)r;
+                    param[pi].u32[1] = 0;
+                    param[pi].u32[2] = 0;
+                    param[pi].u32[3] = 0;
+                    paramexist[pi] = true;
+                    paramfset[pi] = false;
+                    pi++;
+                }
+
+                while (*found == ' ') found++;
+
+                if (*found == ',') {
+                    found++;
+                    while (*found == ' ') found++;
+                }
+                else {
+                    break; // I guess that's the end of the value
+                }
+            }
+
+            /* if format wasn't specified, auto determine from number of parameters */
+            if (format == 'a') {
+                if (pi > 8) format = 'B';
+                else if (pi > 4) format = 'W';
+                else if (pi > 2) format = hasfloat ? 'S' : 'D';
+                else if (pi > 1) format = hasfloat ? 'F' : 'Q';
+                else format = 'X';
+            }
+
+            if (pi == 0) {
+                // um... I guess we're not setting anything, OK then.
+                return true;
+            }
+
+            while (pi < param_max) paramexist[pi++] = false;
+
+            if (format == 'B') {
+                for (unsigned int i=0;i < 16;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u8[15-i] = param[i].u8[0];
+                }
+            }
+            else if (format == 'W') {
+                for (unsigned int i=0;i < 8;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u16[7-i] = param[i].u16[0];
+                }
+            }
+            else if (format == 'S') {
+                for (unsigned int i=0;i < 4;i++) {
+                    if (paramexist[i]) {
+                        if (paramfset[i]) param[i].f32[0].v = (float)paramf[i]; /* which becomes u32[] */
+                        fpu.xmmreg[which].u32[3-i] = param[i].u32[0];
+                    }
+                }
+            }
+            else if (format == 'D') {
+                for (unsigned int i=0;i < 4;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u32[3-i] = param[i].u32[0];
+                }
+            }
+            else if (format == 'F') {
+                for (unsigned int i=0;i < 2;i++) {
+                    if (paramexist[i]) {
+                        if (paramfset[i]) param[i].f64[0].v = paramf[i]; /* which becomes u64[] */
+                        fpu.xmmreg[which].u64[1-i] = param[i].u64[0];
+                    }
+                }
+            }
+            else if (format == 'Q') {
+                for (unsigned int i=0;i < 2;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u64[1-i] = param[i].u64[0];
+                }
+            }
+            else if (format == 'X') {
+                if (paramexist[0]) fpu.xmmreg[which] = param[0];
+            }
+
+            DEBUG_PrintSSE(which,format);
+            return true;
+        }
+    }
+
+    if (command == "GUS") {
+        std::string subcommand;
+        {
+            char *start = found;
+            while (*found != 0 && *found != ' ') found++;
+            subcommand = std::string(start,(size_t)(found-start));
+            while (*found == ' ') found++;
+        }
+
+        if (subcommand.empty()) {
+            DEBUG_BeginPagedContent();
+            DEBUG_PrintGUS();
+            DEBUG_EndPagedContent();
+            return true;
+        }
+    }
+
+    if (command == "VRD") {
+        VGA_DebugRedraw();
+        return true;
+    }
+
     if (command == "VGA") {
+        while (*found == ' ') found++;
         stream >> command;
+        while (*found != 0 && *found != ' ') found++;
+        while (*found == ' ') found++;
 
         if (IS_PC98_ARCH) {
             DEBUG_ShowMsg("VGA debugger commands not available in PC-98 mode");
             return false;
         }
 
-        if (command == "CRTC") {
+	if (command == "DS") {
+		std::string cmd2;
+		while (*found == ' ') found++;
+		stream >> cmd2;
+		while (*found != 0 && *found != ' ') found++;
+		while (*found == ' ') found++;
+
+		if (cmd2 == "START") {
+			bool sum = false;
+			if (*found == '+') { sum = true; found++; }
+			VGA_DebugOverrideStart(strtoul(found,NULL,16/*hexadecimal*/),sum);
+			VGA_DebugRedraw();
+		}
+		else if (cmd2 == "X") {
+			VGA_ResetDebugOverrides();
+			VGA_DebugRedraw();
+		}
+		else {
+			DEBUG_ShowMsg("Unknown VGA debug command");
+			return false;
+		}
+	}
+	else if (command == "FONTDUMP") { // Dump font RAM to file
+		/* Rule: If the file extension is .BIN, write the entire contents of bitplane 2 where the font resides (64KB).
+		 *       If the file extension is .BMP, write only the visible font characters in a neat 8x8 (256) matrix.
+		 *       If you run this when EGA/VGA graphics are active, you will get "jibberish" based on the graphics on
+		 *       screen, and that is your fault.
+		 * TODO: VGA 512-char mode? */
+		if (IS_PC98_ARCH) {
+			LOG_MSG("Command not available in PC-98 mode");
+			return false;
+		}
+		else if (!IS_EGAVGA_ARCH) {
+			LOG_MSG("Command requires EGA, VGA, or SVGA machine type");
+			return false;
+		}
+		else {
+			std::string filename;
+			const char *fext;
+
+			while (*found == ' ') found++;
+			while (*found != 0 && *found != ' ') filename += *found++;
+			while (*found == ' ') found++;
+
+			/* Possible parameters following the filename here */
+
+			fext = (const char*)strrchr(filename.c_str(),'.');
+			if (fext == NULL) fext = "";
+
+			if (!strcasecmp(fext,".bin")) {
+				VGA_DumpFontRamBIN(filename.c_str());
+			}
+			else if (!strcasecmp(fext,".bmp")) {
+				VGA_DumpFontRamBMP(filename.c_str());
+			}
+			else {
+				LOG_MSG("Unknown file extension '%s' in '%s'. Please use .BIN or .BMP",fext,filename.c_str());
+				return false;
+			}
+		}
+	}
+	else if (command == "CRTC") {
             DEBUG_ShowMsg("VGA CRTC info: index=%02xh readonly=%u",vga.crtc.index,vga.crtc.read_only?1:0);
             DEBUG_ShowMsg("htotal=%02xh hdend=%02xh strhb=%02xh endhb=%02xh strrt=%02xh endrt=%02xh",
                 vga.crtc.horizontal_total,              vga.crtc.horizontal_display_end,
@@ -2314,6 +3462,20 @@ bool ParseCommand(char* str) {
                 vga.config.full_not_enable_set_reset,
                 vga.config.full_enable_set_reset,
                 vga.config.full_enable_and_set_reset);
+	    {
+		    std::string s;
+
+		    if (vga.complexity.flags & VGACMPLX_MAP_MASK) s += "mapmask|";
+		    if (vga.complexity.flags & VGACMPLX_NON_EXTENDED) s += "nonextend|";
+		    if (vga.complexity.flags & VGACMPLX_ODDEVEN) s += "oddeven|";
+		    if (vga.complexity.flags & VGACMPLX_BITMASK) s += "bitmask|";
+		    if (vga.complexity.flags & VGACMPLX_COLORDONTCARE) s += "clrdontcare|";
+		    if (vga.complexity.flags & VGACMPLX_WRITEMODE) s += "wrmode|";
+		    if (vga.complexity.flags & VGACMPLX_READMODE) s += "rdmode|";
+		    if (vga.complexity.flags & VGACMPLX_ROPROT) s += "roprot|";
+		    if (vga.complexity.flags & VGACMPLX_SETRESET) s += "setreset|";
+		    DEBUG_ShowMsg("complexity-flags=0x%lx=%s",(unsigned long)vga.complexity.flags,s.c_str());
+	    }
         }
         else {
             return false;
@@ -2335,6 +3497,67 @@ bool ParseCommand(char* str) {
             DEBUG_ShowMsg("mode=%s vref=%.3fHz href=%.3fHz chrclk=%.3fHz dotclk=%.3fHz",
                 mode_texts[vga.mode],1000.0/vga.draw.delay.vtotal,1000.0/vga.draw.delay.htotal,
                 vga.draw.clock,vga.draw.oscclock);
+        }
+        else if (command == "DACPAL") {
+            std::string cpptmp;
+            char tmp[64];
+
+            DEBUG_BeginPagedContent();
+
+            cpptmp = "Current analog palette index: ";
+            sprintf(tmp,"%02xh\n",pc98_16col_analog_rgb_palette_index);
+            cpptmp += tmp;
+
+            DEBUG_ShowMsg("Digital 8-color DAC palette (RGB):");
+            for (unsigned int i=0;i < 8;i += 8) {
+                sprintf(tmp,"%02x: ",i);
+                cpptmp = tmp;
+
+                for (unsigned int c=0;c < 8;c++) {
+                    sprintf(tmp,"%01x",pc98_pal_digital[i+c]);
+                    cpptmp += tmp;
+                }
+
+                DEBUG_ShowMsg("%s",cpptmp.c_str());
+            }
+
+            DEBUG_ShowMsg("Analog 16-color DAC palette (RGB):");
+            for (unsigned int i=0;i < 16;i += 8) {
+                sprintf(tmp,"%02x: ",i);
+                cpptmp = tmp;
+
+                for (unsigned int c=0;c < 8;c++) {
+                    sprintf(tmp,"%01x%01x%01x%c",
+                        pc98_pal_analog[((i+c)*3)+1], /* R */
+                        pc98_pal_analog[((i+c)*3)+0], /* G */
+                        pc98_pal_analog[((i+c)*3)+2], /* B */
+                        c == 3 ? '-' : ' '
+                    );
+                    cpptmp += tmp;
+                }
+
+                DEBUG_ShowMsg("%s",cpptmp.c_str());
+            }
+
+            DEBUG_ShowMsg("VGA DAC palette (RGB):");
+            for (unsigned int i=0;i < 256;i += 8) {
+                sprintf(tmp,"%02x: ",i);
+                cpptmp = tmp;
+
+                for (unsigned int c=0;c < 8;c++) {
+                    sprintf(tmp,"%02x%02x%02x%c",
+                        pc98_pal_vga[((i+c)*3)+1], /* R */
+                        pc98_pal_vga[((i+c)*3)+0], /* G */
+                        pc98_pal_vga[((i+c)*3)+2], /* B */
+                        c == 3 ? '-' : ' '
+                    );
+                    cpptmp += tmp;
+                }
+
+                DEBUG_ShowMsg("%s",cpptmp.c_str());
+            }
+
+            DEBUG_EndPagedContent();
         }
         else if (command == "GRAPHICS") {
             const auto &gdc = pc98_gdc[GDC_SLAVE];
@@ -2392,10 +3615,10 @@ bool ParseCommand(char* str) {
             cpptmp.clear();
             DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u",
                 gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done);
-            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
-                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
-            DEBUG_ShowMsg("  vram-bound=%uKB",
-                pc98_256kb_boundary?256:128);
+            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u adw=%u",
+                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines,gdc.active_display_words_per_line);
+            DEBUG_ShowMsg("  vram-bound=%uKB monomode=%u",
+                pc98_256kb_boundary?256:128,pc98_monochrome_mode);
 
             /*--------------------*/
 
@@ -2419,7 +3642,7 @@ bool ParseCommand(char* str) {
 
             /*---------------------*/
             cpptmp.clear();
-            DEBUG_ShowMsg("PC-98 GRGC tiles: [%02x %02x] [%02x %02x] [%02x %02x] [%02x %02x]",
+            DEBUG_ShowMsg("PC-98 GRCG tiles: [%02x %02x] [%02x %02x] [%02x %02x] [%02x %02x]",
                 pc98_gdc_tiles[0].b[0],
                 pc98_gdc_tiles[0].b[1],
                 pc98_gdc_tiles[1].b[0],
@@ -2466,10 +3689,10 @@ bool ParseCommand(char* str) {
             /*--------------------*/
 
             cpptmp.clear();
-            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u",
-                gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done);
-            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
-                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
+            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u pitch=%u",
+                gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done,gdc.display_pitch);
+            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u adw=%u",
+                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines,gdc.active_display_words_per_line);
 
             /*--------------------*/
 
@@ -2677,6 +3900,50 @@ bool ParseCommand(char* str) {
 		return true;
 	}
 
+	if(command == "TIME") { //Current time
+		command.clear();
+		stream >> command;
+        char c=dos.tables.country[13], c1, c2;
+        uint32_t hour, min, sec;
+        if (command != "" && sscanf(command.c_str(),"%u%c%u%c%u",&hour,&c1,&min,&c2,&sec) == 5 && c1==c && c2==c && hour < 24 && min < 60 && sec < 60) {
+            uint32_t ticks=(uint32_t)(((double)(hour*3600+min*60+sec+0.2))*18.206481481);
+            mem_writed(BIOS_TIMER,ticks);
+        }
+        uint32_t ticks=mem_readd(BIOS_TIMER);
+        uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
+        mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
+        uint16_t cx=(uint16_t)(ticks >> 16u), dx=(uint16_t)(ticks & 0xffff);
+        if (add) DOS_AddDays(add);
+        ticks=((Bitu)cx<<16)|dx;
+        Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * (double)ticks);
+        time/=100;
+        sec=(uint8_t)((Bitu)time % 60); // seconds
+        time/=60;
+        min=(uint8_t)((Bitu)time % 60); // minutes
+        time/=60;
+        hour=(uint8_t)((Bitu)time % 24); // hours
+        DEBUG_ShowMsg("Internal time: %u%c%02u%c%02u\n",hour,c,min,c,sec);
+		return true;
+	}
+
+	if(command == "DATE") { //Current date
+		command.clear();
+		stream >> command;
+        char c=dos.tables.country[11], c1, c2;
+        uint32_t year,month,day;
+        int n = dos.tables.country[0]==1?sscanf(command.c_str(),"%u%c%u%c%u",&day,&c1,&month,&c2,&year):(dos.tables.country[0]==2?sscanf(command.c_str(),"%u%c%u%c%u",&year,&c1,&month,&c2,&day):sscanf(command.c_str(),"%u%c%u%c%u",&month,&c1,&day,&c2,&year));
+        if (command != "" && n == 5 && c1==c && c2==c && year>=1980 && month && month<=12 && day && (day<=GetMonthDays(month)||(month==2&&year%4==0&&day==29))) {
+            dos.date.year=year;
+            dos.date.month=month;
+            dos.date.day=day;
+        }
+//      uint32_t ticks=mem_readd(BIOS_TIMER); // unused
+        uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
+        mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
+        if (add) DOS_AddDays(add);
+        DEBUG_ShowMsg("Internal date: %s\n", FormatDate(dos.date.year, dos.date.month, dos.date.day));
+		return true;
+	}
 
 #if C_HEAVY_DEBUG
 	if (command == "HEAVYLOG") { // Create Cpu log file
@@ -2693,7 +3960,7 @@ bool ParseCommand(char* str) {
 
 #endif
 	if (command == "HELP" || command == "?") {
-        DEBUG_BeginPagedContent();
+		DEBUG_BeginPagedContent();
 		DEBUG_ShowMsg("Debugger commands (enter all values in hex or as register):\n");
 		DEBUG_ShowMsg("Commands------------------------------------------------\n");
 		DEBUG_ShowMsg("BP     [segment]:[offset] - Set breakpoint.\n");
@@ -2708,47 +3975,63 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("BPLIST                    - List breakpoints.\n");
 		DEBUG_ShowMsg("BPDEL  [bpNr] / *         - Delete breakpoint nr / all.\n");
 		DEBUG_ShowMsg("C / D  [segment]:[offset] - Set code / data view address.\n");
+		DEBUG_ShowMsg("DV [addr]                 - Set data view to linear (virtual) address\n");
+		DEBUG_ShowMsg("DP [addr]                 - Set data view to physical address\n");
 		DEBUG_ShowMsg("DOS MCBS                  - Show Memory Control Block chain.\n");
-        DEBUG_ShowMsg("DOS KERN                  - Show DOS kernel memory blocks.\n");
-        DEBUG_ShowMsg("DOS XMS                   - Show XMS memory handles.\n");
-        DEBUG_ShowMsg("DOS EMS                   - Show EMS memory handles.\n");
-        DEBUG_ShowMsg("DOS FNKEY                 - Show PC-98 FnKey mapping.\n");
-        DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
+		DEBUG_ShowMsg("DOS KERN                  - Show DOS kernel memory blocks.\n");
+		DEBUG_ShowMsg("DOS XMS                   - Show XMS memory handles.\n");
+		DEBUG_ShowMsg("DOS EMS                   - Show EMS memory handles.\n");
+		DEBUG_ShowMsg("DOS FNKEY                 - Show PC-98 FnKey mapping.\n");
+		DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
+		DEBUG_ShowMsg("CALLBACKS                 - Show callbacks of interrupts.\n");
 		DEBUG_ShowMsg("INT [nr] / INTT [nr]      - Execute / Trace into interrupt.\n");
 #if C_HEAVY_DEBUG
-		DEBUG_ShowMsg("LOG [num]                 - Write cpu log file.\n");
-		DEBUG_ShowMsg("LOGS/LOGL/LOGC [num]      - Write short/long/cs:ip-only cpu log file.\n");
-		DEBUG_ShowMsg("HEAVYLOG                  - Enable/Disable automatic cpu log when DOSBox-X exits.\n");
+		DEBUG_ShowMsg("LOG [num]                 - Write CPU log file.\n");
+		DEBUG_ShowMsg("LOGS/LOGL/LOGC [num]      - Write short/long/cs:ip-only CPU log file.\n");
+		DEBUG_ShowMsg("HEAVYLOG                  - Enable/Disable automatic CPU log when DOSBox-X exits.\n");
 		DEBUG_ShowMsg("ZEROPROTECT               - Enable/Disable zero code execution detection.\n");
 #endif
+		DEBUG_ShowMsg("ADDLOG [message]          - Add message to the log file.\n");
 		DEBUG_ShowMsg("SR [reg] [value]          - Set register value. Multiple pairs allowed.\n");
 		DEBUG_ShowMsg("SM [seg]:[off] [val] [.]..- Set memory with following values.\n");
-        DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
-	
+		DEBUG_ShowMsg("SMV [addr] [val] [.]..    - Set memory with following values at linear (virtual) address.\n");
+		DEBUG_ShowMsg("FM [seg]:[off]            - Freeze memory value at address.\n");
+		DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
 		DEBUG_ShowMsg("IV [seg]:[off] [name]     - Create var name for memory address.\n");
 		DEBUG_ShowMsg("SV [filename]             - Save var list in file.\n");
 		DEBUG_ShowMsg("LV [filename]             - Load var list from file.\n");
-		
-		DEBUG_ShowMsg("ADDLOG [message]          - Add message to the log file.\n");
 
+		DEBUG_ShowMsg("VRD                       - Redraw video.\n");
+		DEBUG_ShowMsg("VGA cmd                   - VGA related debugging commands.\n");
+		DEBUG_ShowMsg("PC98 cmd                  - PC98 related debugging commands.\n");
+		DEBUG_ShowMsg("EMU MEM/MACHINE           - Show emulator memory or machine info.\n");
 		DEBUG_ShowMsg("MEMDUMP [seg]:[off] [len] - Write memory to file memdump.txt.\n");
 		DEBUG_ShowMsg("MEMDUMPBIN [s]:[o] [len]  - Write memory to file memdump.bin.\n");
+        DEBUG_ShowMsg("MEMFIND [seg]:[off] [.].. - Start memory find search instance.\n");
+		DEBUG_ShowMsg("MEMS [operator] [value]   - Search value within instance.\n");
 		DEBUG_ShowMsg("SELINFO [segName]         - Show selector info.\n");
 
 		DEBUG_ShowMsg("INTVEC [filename]         - Writes interrupt vector table to file.\n");
 		DEBUG_ShowMsg("INTHAND [intNum]          - Set code view to interrupt handler.\n");
 
+		DEBUG_ShowMsg("MMX [=t] [reg]            - Display MMX register file (t can be B,W,D,Q)\n");
+		DEBUG_ShowMsg("MMX [=t] [reg] SET [val]  - Set MMX register (t can be B,W,D,Q), val is comma-separated\n");
+		DEBUG_ShowMsg("SSE [=t] [reg]            - Display SSE register file (t can be B,W,D,Q,X,S,F)\n");
+		DEBUG_ShowMsg("SSE [=t] [reg] SET [val]  - Set SSE register (t can be B,W,D,Q,X,S,F), val is comma-separated\n");
 		DEBUG_ShowMsg("CPU                       - Display CPU status information.\n");
-        DEBUG_ShowMsg("FPU                       - Display FPU status information.\n");
+		DEBUG_ShowMsg("FPU                       - Display FPU status information.\n");
 		DEBUG_ShowMsg("GDT                       - Lists descriptors of the GDT.\n");
 		DEBUG_ShowMsg("LDT                       - Lists descriptors of the LDT.\n");
 		DEBUG_ShowMsg("IDT                       - Lists descriptors of the IDT.\n");
 		DEBUG_ShowMsg("PAGING [page]             - Display content of page table.\n");
 		DEBUG_ShowMsg("EXTEND                    - Toggle additional info.\n");
 		DEBUG_ShowMsg("TIMERIRQ                  - Run the system timer.\n");
+		DEBUG_ShowMsg("TIME [time]               - Display or change the internal time.\n");
+		DEBUG_ShowMsg("DATE [date]               - Display or change the internal date.\n");
+		DEBUG_ShowMsg("VRT                       - Run, then enter debugger at next vertical retrace.\n");
 
-        DEBUG_ShowMsg("IN[P|W|D] [port]          - I/O port read byte/word/dword.\n");
-        DEBUG_ShowMsg("OUT[P|W|D] [port] [data]  - I/O port write byte/word/dword.\n");
+		DEBUG_ShowMsg("IN[P|W|D] [port]          - I/O port read byte/word/dword.\n");
+		DEBUG_ShowMsg("OUT[P|W|D] [port] [data]  - I/O port write byte/word/dword.\n");
 
 		DEBUG_ShowMsg("HELP                      - Help\n");
 		DEBUG_ShowMsg("Keys------------------------------------------------\n");
@@ -2763,8 +4046,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("Up/Down                   - Scroll up/down in the current window.\n");
 		DEBUG_ShowMsg("Page Up/Down              - Page up/down in the current window.\n");
 		DEBUG_ShowMsg("Home/End                  - Move to begin/end of the current window.\n");
-        DEBUG_ShowMsg("TAB/Shift+TAB             - Select next/prev window\n");
-        DEBUG_EndPagedContent();
+		DEBUG_ShowMsg("TAB/Shift+TAB             - Select next/prev window\n");
+		DEBUG_EndPagedContent();
 
 		return true;
 	}
@@ -3005,8 +4288,23 @@ void win_code_ui_up(int count) {
 extern "C" INPUT_RECORD * _pdcurses_hax_inputrecord(void);
 #endif
 
+/* NTS: DOSBox SVN and almost (or all?) forks of DOSBox
+ *      zero CPU_Cycles and CPU_CyclesLeft, which is a
+ *      perfectly fine way to enter the debugger, but
+ *      a side effect of this is that emulator time is
+ *      effectively jumped forward to the start of the
+ *      next 1ms tick. If you're debugging time-dependent
+ *      code this has the effect of code that magically
+ *      works when you debug it but crashes normally, or
+ *      code that magically breaks when you debug it but
+ *      runs fine otherwise.
+ *
+ *      See include/pic.h for how these variables affect
+ *      emulator time used everywhere else in this code,
+ *      specifically PIC_TickIndex() and PIC_FullIndex(). */
 int32_t DEBUG_Run(int32_t amount,bool quickexit) {
 	skipFirstInstruction = true;
+	CPU_CycleLeft += CPU_Cycles - amount;
 	CPU_Cycles = amount;
 	int32_t ret = (int32_t)(*cpudecoder)();
 	if (quickexit) SetCodeWinStart();
@@ -3037,10 +4335,12 @@ uint32_t DEBUG_CheckKeys(void) {
                       us if the user vertically shrinks the window (adds scrollbar instead). How do we disable
                       that behavior? */
         {
+#ifdef _MSC_VER
             INPUT_RECORD *r = _pdcurses_hax_inputrecord();
             if (r->EventType == WINDOW_BUFFER_SIZE_EVENT) {
                 resize_term(r->Event.WindowBufferSizeEvent.dwSize.Y, r->Event.WindowBufferSizeEvent.dwSize.X);
             }
+#endif
         }
 #endif
         void DEBUG_GUI_OnResize(void);
@@ -3099,7 +4399,7 @@ uint32_t DEBUG_CheckKeys(void) {
 			break;
 		}
 #endif
-		switch (toupper(key)) {
+		switch (ncurses_aware_toupper(key)) {
 		case 27:	// escape (a bit slow): Clears line. and processes alt commands.
 			key=getch();
 			if(key < 0) { //Purely escape Clear line
@@ -3107,7 +4407,7 @@ uint32_t DEBUG_CheckKeys(void) {
 				break;
 			}
 
-			switch(toupper(key)) {
+			switch(ncurses_aware_toupper(key)) {
 			case 'D' : // ALT - D: DS:SI
 				dataSeg = SegValue(ds);
 				if (cpu.pmode && !(reg_flags & FLAG_VM)) dataOfs = reg_esi;
@@ -3283,26 +4583,26 @@ uint32_t DEBUG_CheckKeys(void) {
 				codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
 				break;
 		case KEY_F(5):	// Run Program
-                DrawRegistersUpdateOld();
+				DrawRegistersUpdateOld();
 				debugging=false;
 				DrawCode();
-                DrawInput();
-                logBuffSuppressConsole = false;
-                if (logBuffSuppressConsoleNeedUpdate) {
-                    logBuffSuppressConsoleNeedUpdate = false;
-                    DEBUG_RefreshPage(0);
-                }
+				DrawInput();
+				logBuffSuppressConsole = false;
+				if (logBuffSuppressConsoleNeedUpdate) {
+					logBuffSuppressConsoleNeedUpdate = false;
+					DEBUG_RefreshPage(0);
+				}
 
-                Bits DEBUG_NullCPUCore(void);
+				Bits DEBUG_NullCPUCore(void);
 
-                inhibit_int_breakpoint = true;
+				inhibit_int_breakpoint = true;
 				ret = DEBUG_Run(1,false);
-                if(cpudecoder == DEBUG_NullCPUCore)
-                    ret = -1; /* DEBUG_Loop() must exit */
-                inhibit_int_breakpoint = false;
-                mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
-                mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
-                mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+				if(cpudecoder == DEBUG_NullCPUCore)
+					ret = -1; /* DEBUG_Loop() must exit */
+				inhibit_int_breakpoint = false;
+				mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+				mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+				mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
 
 				skipDraw = true; // don't update screen after this instruction
 				break;
@@ -3322,12 +4622,17 @@ uint32_t DEBUG_CheckKeys(void) {
 				}
 				break;
 		case KEY_F(10):	// Step over inst
-                DrawRegistersUpdateOld();
-				if (StepOver()) {
+				DrawRegistersUpdateOld();
+                if(!CPU_IsDynamicCore()) warn_dynamic = false;
+                else if(!warn_dynamic) {
+                    DEBUG_WarnDynamic();
+                    warn_dynamic = true;
+                }
+                if (StepOver()) {
 					mustCompleteInstruction = true;
 					inhibit_int_breakpoint = true;
 					ret = DEBUG_Run(1,false);
-                    inhibit_int_breakpoint = false;
+					inhibit_int_breakpoint = false;
 					mustCompleteInstruction = false;
 					skipDraw = true;
 					break;
@@ -3335,7 +4640,12 @@ uint32_t DEBUG_CheckKeys(void) {
 				// If we aren't stepping over something, do a normal step.
 				/* FALLTHROUGH */
 		case KEY_F(11):	// trace into
-                DrawRegistersUpdateOld();
+				DrawRegistersUpdateOld();
+                if(!CPU_IsDynamicCore()) warn_dynamic = false;
+                else if(!warn_dynamic) {
+                    DEBUG_WarnDynamic();
+                    warn_dynamic = true;
+                }
 				exitLoop = false;
 				mustCompleteInstruction = true;
 				ret = DEBUG_Run(1,true);
@@ -3443,6 +4753,12 @@ void DEBUG_WaitNoExecute(void) {
     cpudecoder = oldcore;
 }
 
+int GetDynamicType();
+
+#if (C_DYNAMIC_X86)
+void dyn_core_dh_debug_flush (void);
+#endif
+
 Bitu DEBUG_Loop(void) {
     if (debug_running) {
         Bitu now = SDL_GetTicks();
@@ -3463,6 +4779,14 @@ Bitu DEBUG_Loop(void) {
         uint32_t oldEIP	= reg_eip;
         PIC_runIRQs();
         SDL_Delay(1);
+
+#if (C_DYNAMIC_X86)
+	if (GetDynamicType() > 0) {
+		/* Force dynamic core to flush whatever internal FPU state to the FPU state we can see */
+		dyn_core_dh_debug_flush();
+	}
+#endif
+
         if ((oldCS!=SegValue(cs)) || (oldEIP!=reg_eip)) {
             CBreakpoint::AddBreakpoint(oldCS,oldEIP,true);
             CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
@@ -3514,6 +4838,11 @@ Bitu DEBUG_Loop(void) {
 
 void DEBUG_FlushInput(void);
 
+void DEBUG_WarnDynamic(void) {
+    DEBUG_ShowMsg("Warning: Single-stepping may not work correctly with \"Dynamic core\".");
+    DEBUG_ShowMsg("         If you encounter problems, switch the CPU core to \"Normal core\".");
+}
+
 bool tohide=true;
 static bool hidedebugger=false;
 void DEBUG_Enable_Handler(bool pressed) {
@@ -3522,12 +4851,12 @@ void DEBUG_Enable_Handler(bool pressed) {
 
     if (hidedebugger) {
         hidedebugger=false;
-#if defined(WIN32)
+#if defined(WIN32) && !defined(_WIN32_WINDOWS)
         ShowWindow(GetConsoleWindow(), SW_SHOW);
 #endif
     } else if (tohide && (runnormal||debug_running||debugging)) {
         hidedebugger=true;
-#if defined(WIN32)
+#if defined(WIN32) && !defined(_WIN32_WINDOWS)
         ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
         debugrunmode=debuggerrun;
@@ -3547,6 +4876,7 @@ void DEBUG_Enable_Handler(bool pressed) {
         DEBUG_DrawScreen();
         if (tohide&&!debugging) return;
     }
+
     if (debugging) {
         DrawRegistersUpdateOld();
         debugging=false;
@@ -3562,7 +4892,7 @@ void DEBUG_Enable_Handler(bool pressed) {
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
         DOSBOX_SetNormalLoop();	
         GFX_SetTitle(-1,-1,-1,is_paused);
-        if (tohide) return;
+//      if (tohide) return;
     }
 
 	static bool showhelp=false;
@@ -3604,15 +4934,20 @@ void DEBUG_Enable_Handler(bool pressed) {
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
 	mainMenu.get_item("mapper_debugger").check(true).refresh_item(mainMenu);
-	if (!showhelp) {
-		showhelp=true;
+    if(!CPU_IsDynamicCore()) warn_dynamic = false;
+    else if(!warn_dynamic) {
+        DEBUG_WarnDynamic();
+        warn_dynamic = true;
+    }
+    if (!showhelp) {
+        showhelp=true;
 		DEBUG_ShowMsg("***| TYPE HELP (+ENTER) TO GET AN OVERVIEW OF ALL COMMANDS |***\n");
 	}
-	KEYBOARD_ClrBuffer();
+	//KEYBOARD_ClrBuffer();
     GFX_SetTitle(-1,-1,-1,false);
     runnormal = false;
-    if (debugrunmode==1) ParseCommand("RUN");
-    else if (debugrunmode==2) ParseCommand("RUNWATCH");
+    if (debugrunmode==1) {char command[] = "RUN"; ParseCommand(command);}
+    else if (debugrunmode==2) {char command[] = "RUNWATCH"; ParseCommand(command);}
 }
 
 void DEBUG_DrawScreen(void) {
@@ -3625,6 +4960,25 @@ void DEBUG_DrawScreen(void) {
 
 static void DEBUG_RaiseTimerIrq(void) {
 	PIC_ActivateIRQ(0);
+}
+
+static void LogDEVChain(uint32_t devhdr) {
+	DOS_DEVHDR::hdr hdr;
+	char tmp[9];
+
+	while (1) {
+		MEM_BlockRead(PhysMake(devhdr >> 16,devhdr & 0xFFFFu),&hdr,sizeof(hdr));
+		memcpy(tmp,hdr.name,8); tmp[8] = 0;
+		DEBUG_ShowMsg("%04X:%04X %04X  %04X  %04X  %s",
+			devhdr >> 16,devhdr & 0xFFFFu,
+			hdr.attributes,hdr.strategy_entry,hdr.interrupt_entry,tmp);
+
+		devhdr = hdr.nextdev;
+		if (devhdr == NONEXTDEV) break;
+
+		/* Apparently in MS-DOS 5, a driver can set only the offset field to 0xFFFF and that is sufficient to end the linked list */
+		if ((devhdr&0xFFFFu) == 0xFFFFu) break;
+	}
 }
 
 // Display the content of the MCB chain starting with the MCB at the specified segment.
@@ -3657,23 +5011,25 @@ static void LogMCBChain(uint16_t mcb_segment) {
 				psp_seg_note = "";
 		}
 
-        DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",mcb_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename);
+		DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",mcb_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename);
 
 		// print a message if dataAddr is within this MCB's memory range
 		PhysPt mcbStartAddr = PhysMake(mcb_segment+1,0);
 		PhysPt mcbEndAddr = PhysMake(mcb_segment+1+mcb.GetSize(),0);
 		if (dataAddr >= mcbStartAddr && dataAddr < mcbEndAddr) {
-            DEBUG_ShowMsg("   (data addr %04hX:%04X is %u bytes past this MCB)",dataSeg,DOS_dataOfs,dataAddr - mcbStartAddr);
+			DEBUG_ShowMsg("   (data addr %04hX:%04X is %u bytes past this MCB)",dataSeg,DOS_dataOfs,dataAddr - mcbStartAddr);
 		}
 
 		// if we've just processed the last MCB in the chain, break out of the loop
-		if (mcb.GetType()==0x5a) {
-			break;
-		}
-		// else, move to the next MCB in the chain
 		mcb_segment+=mcb.GetSize()+1;
+		if (mcb.GetType()==0x5a)
+			break;
+
+		// else, move to the next MCB in the chain
 		mcb.SetPt(mcb_segment);
 	}
+
+	DEBUG_ShowMsg("   %04X  END OF CHAIN",mcb_segment);
 }
 
 #include "regionalloctracking.h"
@@ -3703,10 +5059,12 @@ static void LogBIOSMem(void) {
 Bitu XMS_GetTotalHandles(void);
 bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free,Bitu handle);
 
+#if !defined(OSFREE)
 bool EMS_GetHandle(Bitu &size,PhysPt &addr,std::string &name,Bitu handle);
 const char *EMS_Type_String(void);
 Bitu EMS_Max_Handles(void);
 bool EMS_Active(void);
+#endif
 
 static void LogFNKEY(void) {
     DEBUG_BeginPagedContent();
@@ -3717,6 +5075,7 @@ static void LogFNKEY(void) {
     DEBUG_EndPagedContent();
 }
 
+#if !defined(OSFREE)
 static void LogEMS(void) {
     Bitu h_size;
     PhysPt xh_addr;
@@ -3751,8 +5110,8 @@ static void LogEMS(void) {
     Bitu GetEMSPageFrameSize(void);
 
     DEBUG_ShowMsg("EMS page frame 0x%08lx-0x%08lx",
-        GetEMSPageFrameSegment()*16UL,
-        (GetEMSPageFrameSegment()*16UL)+GetEMSPageFrameSize()-1UL);
+        (long unsigned int)(GetEMSPageFrameSegment()*16UL),
+        (long unsigned int)((GetEMSPageFrameSegment()*16UL)+GetEMSPageFrameSize()-1UL));
     DEBUG_ShowMsg("Handle Page(p/l) Address");
 
     for (Bitu p=0;p < (GetEMSPageFrameSize() >> 14UL);p++) {
@@ -3774,19 +5133,20 @@ static void LogEMS(void) {
 
             DEBUG_ShowMsg("%6lu %4lu/%4lu %08lx-%08lx%s",(unsigned long)handle,
                 (unsigned long)p,(unsigned long)log_page,
-                (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
-                (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1,
+                (long unsigned int)((GetEMSPageFrameSegment()*16UL)+(p << 14UL)),
+                (long unsigned int)((GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1),
                 tmp);
         }
         else {
             DEBUG_ShowMsg("--     %4lu/     %08lx-%08lx",(unsigned long)p,
-                (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
-                (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1);
+                (long unsigned int)((GetEMSPageFrameSegment()*16UL)+(p << 14UL)),
+                (long unsigned int)((GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1));
         }
     }
 
     DEBUG_EndPagedContent();
 }
+#endif
 
 static void LogXMS(void) {
     Bitu phys_location;
@@ -3844,6 +5204,43 @@ static void LogDOSKernMem(void) {
     }
 
     DEBUG_EndPagedContent();
+}
+
+// Display the content of all device drivers.
+static void LogDEVS(void) {
+	if (dos_kernel_disabled) {
+		if (boothax == BOOTHAX_MSDOS) {
+			if (guest_msdos_LoL == 0 || guest_msdos_dev_chain == 0) {
+				DEBUG_ShowMsg("Cannot enumerate device list while DOS kernel is inactive, and DOSBox-X has not yet determined the DEV list of the guest MS-DOS operating system");
+				return;
+			}
+
+			DEBUG_BeginPagedContent();
+
+			try {
+				DEBUG_ShowMsg("Header    Attr  Strat Intr  Name");
+				LogDEVChain(guest_msdos_dev_chain);
+			}
+			catch (GuestPageFaultException &pf) {
+				(void)pf;//unused
+				DEBUG_ShowMsg("(Enumeration caused page fault within the guest)");
+			}
+
+			DEBUG_EndPagedContent();
+			return;
+		}
+		else {
+			DEBUG_ShowMsg("Cannot enumerate device list while DOS kernel is inactive.");
+			return;
+		}
+	}
+
+	DEBUG_BeginPagedContent();
+
+	DEBUG_ShowMsg("Header    Attr  Strat Intr  Name");
+	LogDEVChain(dos_infoblock.GetStartOfDeviceChain());
+
+	DEBUG_EndPagedContent();
 }
 
 // Display the content of all Memory Control Blocks.
@@ -3959,49 +5356,49 @@ static void LogIDT(void) {
 void LogPages(char* selname) {
     DEBUG_BeginPagedContent();
 
-	if (paging.enabled) {
-		char out1[512];
-		Bitu sel = GetHexValue(selname,selname);
-		if ((sel==0x00) && ((*selname==0) || (*selname=='*'))) {
-			for (unsigned int i=0; i<0xfffff; i++) {
-				Bitu table_addr=(paging.base.page<<12u)+(i >> 10u)*(Bitu)4u;
-				X86PageEntry table;
-				table.load=phys_readd((PhysPt)table_addr);
-				if (table.block.p) {
-					X86PageEntry entry;
-                    PhysPt entry_addr=(table.block.base<<12u)+(i & 0x3ffu)* 4u;
-					entry.load=phys_readd(entry_addr);
-					if (entry.block.p) {
-						sprintf(out1,"page %05Xxxx -> %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]",
-							i,entry.block.base,entry.block.us,table.block.us,
-							entry.block.wr,table.block.wr,entry.block.d,entry.block.a);
-                        DEBUG_ShowMsg("%s",out1);
-					}
-				}
-			}
-		} else {
-			Bitu table_addr=(paging.base.page<<12u)+(sel >> 10u)*4u;
-			X86PageEntry table;
-			table.load=phys_readd((PhysPt)table_addr);
-			if (table.block.p) {
-				X86PageEntry entry;
-				Bitu entry_addr=((Bitu)table.block.base<<12u)+(sel & 0x3ffu)*4u;
-				entry.load=phys_readd((PhysPt)entry_addr);
-				sprintf(out1,"page %05lXxxx -> %04lXxxx  flags [puw] %x:%x::%x:%x::%x:%x",
-					(unsigned long)sel,
-					(unsigned long)entry.block.base,
-					entry.block.p,table.block.p,entry.block.us,table.block.us,entry.block.wr,table.block.wr);
-                DEBUG_ShowMsg("%s",out1);
-			} else {
-				sprintf(out1,"pagetable %03X not present, flags [puw] %x::%x::%x",
-					(int)(sel >> 10),
-					(int)table.block.p,
-					(int)table.block.us,
-					(int)table.block.wr);
-                DEBUG_ShowMsg("%s",out1);
-			}
-		}
-	}
+    if (paging.enabled) {
+	    char out1[512];
+	    Bitu sel = GetHexValue(selname,selname);
+	    if ((sel==0x00) && ((*selname==0) || (*selname=='*'))) {
+		    for (unsigned int i=0; i<0xfffff; i++) {
+			    Bitu table_addr=(paging.base.page<<12u)+(i >> 10u)*(Bitu)4u;
+			    X86PageEntry table;
+			    table.load=phys_readd((PhysPt)table_addr);
+			    if (table.block.p) {
+				    X86PageEntry entry;
+				    PhysPt entry_addr=(table.block.base<<12u)+(i & 0x3ffu)* 4u;
+				    entry.load=phys_readd(entry_addr);
+				    if (entry.block.p) {
+					    sprintf(out1,"page %05Xxxx -> %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]",
+							    i,entry.block.base,entry.block.us,table.block.us,
+							    entry.block.wr,table.block.wr,entry.block.d,entry.block.a);
+					    DEBUG_ShowMsg("%s",out1);
+				    }
+			    }
+		    }
+	    } else {
+		    Bitu table_addr=(paging.base.page<<12u)+(sel >> 10u)*4u;
+		    X86PageEntry table;
+		    table.load=phys_readd((PhysPt)table_addr);
+		    if (table.block.p) {
+			    X86PageEntry entry;
+			    Bitu entry_addr=((Bitu)table.block.base<<12u)+(sel & 0x3ffu)*4u;
+			    entry.load=phys_readd((PhysPt)entry_addr);
+			    sprintf(out1,"page %05lXxxx -> %04lXxxx  flags [puw] %x:%x::%x:%x::%x:%x",
+					    (unsigned long)sel,
+					    (unsigned long)entry.block.base,
+					    entry.block.p,table.block.p,entry.block.us,table.block.us,entry.block.wr,table.block.wr);
+			    DEBUG_ShowMsg("%s",out1);
+		    } else {
+			    sprintf(out1,"pagetable %03X not present, flags [puw] %x::%x::%x",
+					    (int)(sel >> 10),
+					    (int)table.block.p,
+					    (int)table.block.us,
+					    (int)table.block.wr);
+			    DEBUG_ShowMsg("%s",out1);
+		    }
+	    }
+    }
 
     DEBUG_EndPagedContent();
 }
@@ -4020,15 +5417,24 @@ const char *FPU_tag(unsigned int i) {
 static void LogFPUInfo(void) {
     DEBUG_BeginPagedContent();
 
-    DEBUG_ShowMsg("FPU TOP=%u",fpu.top);
+    DEBUG_ShowMsg("status: %s", fpu.sw.to_string().c_str());
 
     for (unsigned int i=0;i < 8;i++) {
         unsigned int adj = STV(i);
 
-#if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
-        DEBUG_ShowMsg(" st(%u): %s val=%.9f",i,FPU_tag(fpu.tags[adj]),(double)fpu.regs_80[adj].v);
+#if C_FPU_X86 && HAS_LONG_DOUBLE
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%08x%08x)", i, FPU_tag(fpu.tags[adj]),
+                      reinterpret_cast<long double&>(fpu.p_regs[adj]), fpu.p_regs[adj].m3,
+                      fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
+#elif C_FPU_X86
+        DEBUG_ShowMsg(" st(%u): %s val=0x%04x%08x%08x", i, FPU_tag(fpu.tags[adj]),
+                      fpu.p_regs[adj].m3, fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
+#elif HAS_LONG_DOUBLE
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%016llx)", i, FPU_tag(fpu.tags[adj]),
+                      fpu.regs_80[adj].v, fpu.regs_80[adj].raw.h, (unsigned long long)fpu.regs_80[adj].raw.l);
 #else
-        DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.9f",i,FPU_tag(fpu.tags[adj]),fpu.use80[adj],fpu.regs[adj].d);
+        DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.16g (0x%016llx)", i, FPU_tag(fpu.tags[adj]),
+                      fpu.use80[adj], fpu.regs[adj].d, (unsigned long long)fpu.regs[adj].ll);
 #endif
     }
 
@@ -4089,20 +5495,20 @@ static void LogInstruction(uint16_t segValue, uint32_t eipValue,  ofstream& out)
 	char dline[200];Bitu size;
 	size = DasmI386(dline, start, reg_eip, cpu.code.big);
 	char* res = empty;
-	if (showExtend && (cpuLogType > 0) ) {
+	if (showExtend && (cpuLogType > 0)) {
 		res = AnalyzeInstruction(dline,false);
 		if (!res || !(*res)) res = empty;
 		Bitu reslen = strlen(res);
-        if (reslen < 22) {
-            memset(res + reslen, ' ', 22 - reslen);
-            res[22] = 0;
-        }
+		if (reslen < 22) {
+			memset(res + reslen, ' ', 22 - reslen);
+			res[22] = 0;
+		}
 	}
 	Bitu len = strlen(dline);
-    if (len < 30) {
-        memset(dline + len, ' ', 30 - len);
-        dline[30] = 0;
-    }
+	if (len < 30) {
+		memset(dline + len, ' ', 30 - len);
+		dline[30] = 0;
+	}
 
 	// Get register values
 
@@ -4111,7 +5517,9 @@ static void LogInstruction(uint16_t segValue, uint32_t eipValue,  ofstream& out)
 	} else if (cpuLogType == 1) {
 		out << setw(4) << SegValue(cs) << ":" << setw(8) << reg_eip << "  " << dline << "  " << res;
 	} else if (cpuLogType == 2) {
-		char ibytes[200]="";	char tmpc[200];
+		char ibytes[200]="";
+		char tstamp[128];
+		char tmpc[200];
 		for (Bitu i=0; i<size; i++) {
 			uint8_t value;
 			if (mem_readb_checked((PhysPt)(start+i),&value)) sprintf(tmpc,"%s","?? ");
@@ -4119,32 +5527,33 @@ static void LogInstruction(uint16_t segValue, uint32_t eipValue,  ofstream& out)
 			strcat(ibytes,tmpc);
 		}
 		len = strlen(ibytes);
-        if (len < 21) {
-            for (Bitu i = 0; i < 21 - len; i++) ibytes[len + i] = ' ';
-            ibytes[21] = 0;
-        }
-		out << setw(4) << SegValue(cs) << ":" << setw(8) << reg_eip << "  " << dline << "  " << res << "  " << ibytes;
+		if (len < 21) {
+			for (Bitu i = 0; i < 21 - len; i++) ibytes[len + i] = ' ';
+			ibytes[21] = 0;
+		}
+		sprintf(tstamp,"%.6f",(double)PIC_FullIndex());
+		out << tstamp << " " << setw(4) << SegValue(cs) << ":" << setw(8) << reg_eip << "  " << dline << "  " << res << "  " << ibytes;
 	}
 
 	out << " EAX:" << setw(8) << reg_eax << " EBX:" << setw(8) << reg_ebx
-	    << " ECX:" << setw(8) << reg_ecx << " EDX:" << setw(8) << reg_edx
-	    << " ESI:" << setw(8) << reg_esi << " EDI:" << setw(8) << reg_edi
-	    << " EBP:" << setw(8) << reg_ebp << " ESP:" << setw(8) << reg_esp
-	    << " DS:"  << setw(4) << SegValue(ds)<< " ES:"  << setw(4) << SegValue(es);
+		<< " ECX:" << setw(8) << reg_ecx << " EDX:" << setw(8) << reg_edx
+		<< " ESI:" << setw(8) << reg_esi << " EDI:" << setw(8) << reg_edi
+		<< " EBP:" << setw(8) << reg_ebp << " ESP:" << setw(8) << reg_esp
+		<< " DS:"  << setw(4) << SegValue(ds)<< " ES:"  << setw(4) << SegValue(es);
 
 	if(cpuLogType == 0) {
 		out << " SS:"  << setw(4) << SegValue(ss) << " C"  << (get_CF()>0)  << " Z"   << (get_ZF()>0)
-		    << " S" << (get_SF()>0) << " O"  << (get_OF()>0) << " I"  << GETFLAGBOOL(IF);
+			<< " S" << (get_SF()>0) << " O"  << (get_OF()>0) << " I"  << GETFLAGBOOL(IF);
 	} else {
 		out << " FS:"  << setw(4) << SegValue(fs) << " GS:"  << setw(4) << SegValue(gs)
-		    << " SS:"  << setw(4) << SegValue(ss)
-		    << " CF:"  << (get_CF()>0)  << " ZF:"   << (get_ZF()>0)  << " SF:"  << (get_SF()>0)
-		    << " OF:"  << (get_OF()>0)  << " AF:"   << (get_AF()>0)  << " PF:"  << (get_PF()>0)
-		    << " IF:"  << GETFLAGBOOL(IF);
+			<< " SS:"  << setw(4) << SegValue(ss)
+			<< " CF:"  << (get_CF()>0)  << " ZF:"   << (get_ZF()>0)  << " SF:"  << (get_SF()>0)
+			<< " OF:"  << (get_OF()>0)  << " AF:"   << (get_AF()>0)  << " PF:"  << (get_PF()>0)
+			<< " IF:"  << GETFLAGBOOL(IF);
 	}
 	if(cpuLogType == 2) {
 		out << " TF:" << GETFLAGBOOL(TF) << " VM:" << GETFLAGBOOL(VM) <<" FLG:" << setw(8) << reg_flags
-		    << " CR0:" << setw(8) << cpu.cr0;
+			<< " CR0:" << setw(8) << cpu.cr0;
 	}
 	out << endl;
 }
@@ -4206,18 +5615,22 @@ private:
 };
 #endif
 
-#if C_DEBUG
+#if !defined(OSFREE)
+# if C_DEBUG
 extern bool debugger_break_on_exec;
+# endif
 #endif
 
 void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off)
 {
-#if C_DEBUG
+#if !defined(OSFREE)
+# if C_DEBUG
     if (debugger_break_on_exec) {
 		CBreakpoint::AddBreakpoint(seg,off,true);
 		CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
         debugger_break_on_exec = false;
     }
+# endif
 #endif
 #if 0
 	if (pDebugcom && pDebugcom->IsActive()) {
@@ -4232,10 +5645,11 @@ Bitu DEBUG_EnableDebugger(void)
 {
 	exitLoop = true;
 
-	if (!debugging)
+	if (!debugging || (debugging && debug_running))
 		DEBUG_Enable_Handler(true);
 
-	CPU_Cycles=CPU_CycleLeft=0;
+	CPU_CycleLeft += CPU_Cycles;
+	CPU_Cycles = 0;
 	return 0;
 }
 
@@ -4312,41 +5726,13 @@ void DEBUG_ReinitCallback(void) {
 }
 
 void DEBUG_Init() {
-	DOSBoxMenu::item *item;
-
     LOG(LOG_MISC, LOG_DEBUG)("Initializing debug system");
 
-	/* Add some keyhandlers */
-	MAPPER_AddHandler(DEBUG_Enable_Handler,
-	#if defined(MACOSX)
-		// MacOS     NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
-		// which is not easy to input on a modern mac laptop
-		MK_f12
-	#else
-		MK_pause
-	#endif
-        ,MMOD2,"debugger","Show debugger",&item);
-	item->set_text("Start DOSBox-X Debugger");
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
 	/* Setup callback */
 	debugCallback=CALLBACK_Allocate();
 	CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,"debugger");
-
-#if defined(MACOSX) || defined(LINUX)
-	/* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
-	   So the debugger interface is useless UNLESS the user has started us from a terminal
-	   (whether over SSH or from the Terminal app).
-       
-       Linux/X11 also does not have a console we can allocate on a whim. You either run
-       this program from XTerm for the debugger, or not. */
-    bool allow = true;
-
-    if (!isatty(0) || !isatty(1) || !isatty(2))
-	    allow = false;
-
-    mainMenu.get_item("mapper_debugger").enable(allow).refresh_item(mainMenu);
-#endif
 
 	/* shutdown function */
 	AddExitFunction(AddExitFunctionFuncPair(DEBUG_ShutDown));
@@ -4371,14 +5757,14 @@ void CDebugVar::DeleteAll(void)
 
 CDebugVar* CDebugVar::FindVar(PhysPt pt)
 {
-	if (varList.empty()) return 0;
+	if (varList.empty()) return nullptr;
 
 	std::vector<CDebugVar*>::size_type s = varList.size();
 	for(std::vector<CDebugVar*>::size_type i = 0; i != s; i++) {
 		CDebugVar* bp = varList[i];
 		if (bp->GetAdr() == pt) return bp;
 	}
-	return 0;
+	return nullptr;
 }
 
 bool CDebugVar::SaveVars(char* name) {
@@ -4548,8 +5934,8 @@ static void DrawVariables(void) {
 		if (varchanges) {
 			unsigned int y = (unsigned int)(i / 3u);
 			unsigned int x = (i % 3u) * 26u;
-			mvwprintw(dbg.win_var, (int)y,  (int)x, dv->GetName());
-			mvwprintw(dbg.win_var, (int)y, ((int)x + DEBUG_VAR_BUF_LEN + 1) , buffer);
+			mvwprintw(dbg.win_var, (int)y,  (int)x, "%s", dv->GetName());
+			mvwprintw(dbg.win_var, (int)y, ((int)x + DEBUG_VAR_BUF_LEN + 1), "%s", buffer);
 			windowchanges = true; //Something has changed in this window
 		}
 	}

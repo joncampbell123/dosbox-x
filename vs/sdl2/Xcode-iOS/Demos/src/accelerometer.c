@@ -58,7 +58,7 @@ render(SDL_Renderer *renderer, int w, int h, double deltaTime)
         ay * SDL_IPHONE_MAX_GFORCE / SINT16_MAX * GRAVITY_CONSTANT *
         deltaMilliseconds;
 
-    speed = sqrt(shipData.vx * shipData.vx + shipData.vy * shipData.vy);
+    speed = SDL_sqrt(shipData.vx * shipData.vx + shipData.vy * shipData.vy);
 
     if (speed > 0) {
         /* compensate for friction */
@@ -118,7 +118,7 @@ initializeTextures(SDL_Renderer *renderer)
 
     /* load the ship */
     bmp_surface = SDL_LoadBMP("ship.bmp");
-    if (bmp_surface == NULL) {
+    if (!bmp_surface) {
         fatalError("could not ship.bmp");
     }
     /* set blue to transparent on the ship */
@@ -127,7 +127,7 @@ initializeTextures(SDL_Renderer *renderer)
 
     /* create ship texture from surface */
     ship = SDL_CreateTextureFromSurface(renderer, bmp_surface);
-    if (ship == 0) {
+    if (!ship) {
         fatalError("could not create ship texture");
     }
     SDL_SetTextureBlendMode(ship, SDL_BLENDMODE_BLEND);
@@ -140,12 +140,12 @@ initializeTextures(SDL_Renderer *renderer)
 
     /* load the space background */
     bmp_surface = SDL_LoadBMP("space.bmp");
-    if (bmp_surface == NULL) {
+    if (!bmp_surface) {
         fatalError("could not load space.bmp");
     }
     /* create space texture from surface */
     space = SDL_CreateTextureFromSurface(renderer, bmp_surface);
-    if (space == 0) {
+    if (!space) {
         fatalError("could not create space texture");
     }
     SDL_FreeSurface(bmp_surface);
@@ -179,7 +179,7 @@ main(int argc, char *argv[])
     printf("There are %d joysticks available\n", SDL_NumJoysticks());
     printf("Default joystick (index 0) is %s\n", SDL_JoystickName(0));
     accelerometer = SDL_JoystickOpen(0);
-    if (accelerometer == NULL) {
+    if (!accelerometer) {
         fatalError("Could not open joystick (accelerometer)");
     }
     printf("joystick number of axis = %d\n",

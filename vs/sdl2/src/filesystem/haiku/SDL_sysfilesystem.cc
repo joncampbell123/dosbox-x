@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -32,11 +32,9 @@
 
 #include "SDL_error.h"
 #include "SDL_stdinc.h"
-#include "SDL_assert.h"
 #include "SDL_filesystem.h"
 
-char *
-SDL_GetBasePath(void)
+char *SDL_GetBasePath(void)
 {
     image_info info;
     int32 cookie = 0;
@@ -70,8 +68,7 @@ SDL_GetBasePath(void)
 }
 
 
-char *
-SDL_GetPrefPath(const char *org, const char *app)
+char *SDL_GetPrefPath(const char *org, const char *app)
 {
     // !!! FIXME: is there a better way to do this?
     const char *home = SDL_getenv("HOME");

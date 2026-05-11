@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@ namespace MT32Emu {
 
 class LA32Ramp {
 private:
-	uint32_t current;
+	Bit32u current;
 	unsigned int largeTarget;
 	unsigned int largeIncrement;
 	bool descending;
@@ -35,11 +35,11 @@ private:
 
 public:
 	LA32Ramp();
-	void startRamp(uint8_t target, uint8_t increment);
-	uint32_t nextValue();
+	void startRamp(Bit8u target, Bit8u increment);
+	Bit32u nextValue();
 	bool checkInterrupt();
 	void reset();
-	bool isBelowCurrent(uint8_t target) const;
+	bool isBelowCurrent(Bit8u target) const;
 };
 
 } // namespace MT32Emu

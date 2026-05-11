@@ -25,17 +25,16 @@ THE SOFTWARE.
 */
 
 
-#include <ft2build.h>
 
-#include FT_INTERNAL_DEBUG_H
-#include FT_INTERNAL_STREAM_H
-#include FT_INTERNAL_OBJECTS_H
-#include FT_GZIP_H
-#include FT_LZW_H
-#include FT_BZIP2_H
-#include FT_ERRORS_H
-#include FT_BDF_H
-#include FT_TRUETYPE_IDS_H
+#include <freetype/internal/ftdebug.h>
+#include <freetype/internal/ftstream.h>
+#include <freetype/internal/ftobjs.h>
+#include <freetype/ftgzip.h>
+#include <freetype/ftlzw.h>
+#include <freetype/ftbzip2.h>
+#include <freetype/fterrors.h>
+#include <freetype/ftbdf.h>
+#include <freetype/ttnameid.h>
 
 #include "pcf.h"
 #include "pcfdrivr.h"
@@ -45,148 +44,114 @@ THE SOFTWARE.
 #include "pcfutil.h"
 
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_pcfread
+#define FT_COMPONENT  pcfread
 
-#include FT_SERVICE_BDF_H
-#include FT_SERVICE_FONT_FORMAT_H
-#include FT_SERVICE_PROPERTIES_H
-#include FT_DRIVER_H
+#include <freetype/internal/services/svbdf.h>
+#include <freetype/internal/services/svfntfmt.h>
+#include <freetype/internal/services/svprop.h>
+#include <freetype/ftdriver.h>
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The macro FT_COMPONENT is used in trace mode.  It is an implicit      */
-  /* parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log  */
-  /* messages during execution.                                            */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * The macro FT_COMPONENT is used in trace mode.  It is an implicit
+   * parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log
+   * messages during execution.
+   */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_pcfdriver
+#define FT_COMPONENT  pcfdriver
 
 
+  /*
+   * This file uses X11 terminology for PCF data; an `encoding' in X11 speak
+   * is the same as a `character code' in FreeType speak.
+   */
   typedef struct  PCF_CMapRec_
   {
-    FT_CMapRec    root;
-    FT_ULong      num_encodings;
-    PCF_Encoding  encodings;
+    FT_CMapRec  root;
+    PCF_Enc     enc;
 
   } PCF_CMapRec, *PCF_CMap;
 
 
   FT_CALLBACK_DEF( FT_Error )
-  pcf_cmap_init( FT_CMap     pcfcmap,   /* PCF_CMap */
+  pcf_cmap_init( FT_CMap     cmap,       /* PCF_CMap */
                  FT_Pointer  init_data )
   {
-    PCF_CMap  cmap = (PCF_CMap)pcfcmap;
-    PCF_Face  face = (PCF_Face)FT_CMAP_FACE( pcfcmap );
+    PCF_CMap  pcfcmap = (PCF_CMap)cmap;
+    PCF_Face  face    = (PCF_Face)FT_CMAP_FACE( cmap );
 
     FT_UNUSED( init_data );
 
 
-    cmap->num_encodings = face->nencodings;
-    cmap->encodings     = face->encodings;
+    pcfcmap->enc = &face->enc;
 
     return FT_Err_Ok;
   }
 
 
   FT_CALLBACK_DEF( void )
-  pcf_cmap_done( FT_CMap  pcfcmap )         /* PCF_CMap */
+  pcf_cmap_done( FT_CMap  cmap )         /* PCF_CMap */
   {
-    PCF_CMap  cmap = (PCF_CMap)pcfcmap;
+    PCF_CMap  pcfcmap = (PCF_CMap)cmap;
 
 
-    cmap->encodings     = NULL;
-    cmap->num_encodings = 0;
+    pcfcmap->enc = NULL;
   }
 
 
   FT_CALLBACK_DEF( FT_UInt )
-  pcf_cmap_char_index( FT_CMap    pcfcmap,  /* PCF_CMap */
+  pcf_cmap_char_index( FT_CMap    cmap,      /* PCF_CMap */
                        FT_UInt32  charcode )
   {
-    PCF_CMap      cmap      = (PCF_CMap)pcfcmap;
-    PCF_Encoding  encodings = cmap->encodings;
-    FT_ULong      min, max, mid;
-    FT_UInt       result    = 0;
+    PCF_Enc  enc = ( (PCF_CMap)cmap )->enc;
+
+    FT_UInt32  i = ( charcode >> 8   ) - enc->firstRow;
+    FT_UInt32  j = ( charcode & 0xFF ) - enc->firstCol;
+    FT_UInt32  h = enc->lastRow - enc->firstRow + 1;
+    FT_UInt32  w = enc->lastCol - enc->firstCol + 1;
 
 
-    min = 0;
-    max = cmap->num_encodings;
+    /* wrapped around "negative" values are also rejected */
+    if ( i >= h || j >= w )
+      return 0;
 
-    while ( min < max )
-    {
-      FT_ULong  code;
-
-
-      mid  = ( min + max ) >> 1;
-      code = (FT_ULong)encodings[mid].enc;
-
-      if ( charcode == code )
-      {
-        result = encodings[mid].glyph + 1;
-        break;
-      }
-
-      if ( charcode < code )
-        max = mid;
-      else
-        min = mid + 1;
-    }
-
-    return result;
+    return (FT_UInt)enc->offset[i * w + j];
   }
 
 
   FT_CALLBACK_DEF( FT_UInt )
-  pcf_cmap_char_next( FT_CMap    pcfcmap,   /* PCF_CMap */
+  pcf_cmap_char_next( FT_CMap     cmap,       /* PCF_CMap */
                       FT_UInt32  *acharcode )
   {
-    PCF_CMap      cmap      = (PCF_CMap)pcfcmap;
-    PCF_Encoding  encodings = cmap->encodings;
-    FT_ULong      min, max, mid;
-    FT_ULong      charcode  = *acharcode + 1;
-    FT_UInt       result    = 0;
+    PCF_Enc    enc = ( (PCF_CMap)cmap )->enc;
+    FT_UInt32  charcode = *acharcode + 1;
+
+    FT_UInt32  i = ( charcode >> 8   ) - enc->firstRow;
+    FT_UInt32  j = ( charcode & 0xFF ) - enc->firstCol;
+    FT_UInt32  h = enc->lastRow - enc->firstRow + 1;
+    FT_UInt32  w = enc->lastCol - enc->firstCol + 1;
+
+    FT_UInt  result = 0;
 
 
-    min = 0;
-    max = cmap->num_encodings;
+    /* adjust wrapped around "negative" values */
+    if ( (FT_Int32)i < 0 )
+      i = 0;
+    if ( (FT_Int32)j < 0 )
+      j = 0;
 
-    while ( min < max )
-    {
-      FT_ULong  code;
-
-
-      mid  = ( min + max ) >> 1;
-      code = (FT_ULong)encodings[mid].enc;
-
-      if ( charcode == code )
+    for ( ; i < h; i++, j = 0 )
+      for ( ; j < w; j++ )
       {
-        result = encodings[mid].glyph + 1;
-        goto Exit;
+        result = (FT_UInt)enc->offset[i * w + j];
+        if ( result != 0xFFFFU )
+          goto Exit;
       }
 
-      if ( charcode < code )
-        max = mid;
-      else
-        min = mid + 1;
-    }
-
-    charcode = 0;
-    if ( min < cmap->num_encodings )
-    {
-      charcode = (FT_ULong)encodings[min].enc;
-      result   = encodings[min].glyph + 1;
-    }
-
   Exit:
-    if ( charcode > 0xFFFFFFFFUL )
-    {
-      FT_TRACE1(( "pcf_cmap_char_next: charcode 0x%x > 32bit API" ));
-      *acharcode = 0;
-      /* XXX: result should be changed to indicate an overflow error */
-    }
-    else
-      *acharcode = (FT_UInt32)charcode;
+    *acharcode = ( ( i + enc->firstRow ) << 8 ) | ( j + enc->firstCol );
+
     return result;
   }
 
@@ -205,9 +170,9 @@ THE SOFTWARE.
 
 
   FT_CALLBACK_DEF( void )
-  PCF_Face_Done( FT_Face  pcfface )         /* PCF_Face */
+  PCF_Face_Done( FT_Face  face )    /* PCF_Face */
   {
-    PCF_Face   face = (PCF_Face)pcfface;
+    PCF_Face   pcfface = (PCF_Face)face;
     FT_Memory  memory;
 
 
@@ -216,18 +181,18 @@ THE SOFTWARE.
 
     memory = FT_FACE_MEMORY( face );
 
-    FT_FREE( face->encodings );
-    FT_FREE( face->metrics );
+    FT_FREE( pcfface->metrics );
+    FT_FREE( pcfface->enc.offset );
 
     /* free properties */
-    if ( face->properties )
+    if ( pcfface->properties )
     {
       FT_Int  i;
 
 
-      for ( i = 0; i < face->nprops; i++ )
+      for ( i = 0; i < pcfface->nprops; i++ )
       {
-        PCF_Property  prop = &face->properties[i];
+        PCF_Property  prop = &pcfface->properties[i];
 
 
         if ( prop )
@@ -238,33 +203,33 @@ THE SOFTWARE.
         }
       }
 
-      FT_FREE( face->properties );
+      FT_FREE( pcfface->properties );
     }
 
-    FT_FREE( face->toc.tables );
-    FT_FREE( pcfface->family_name );
-    FT_FREE( pcfface->style_name );
-    FT_FREE( pcfface->available_sizes );
-    FT_FREE( face->charset_encoding );
-    FT_FREE( face->charset_registry );
+    FT_FREE( pcfface->toc.tables );
+    FT_FREE( face->family_name );
+    FT_FREE( face->style_name );
+    FT_FREE( face->available_sizes );
+    FT_FREE( pcfface->charset_encoding );
+    FT_FREE( pcfface->charset_registry );
 
     /* close compressed stream if any */
-    if ( pcfface->stream == &face->comp_stream )
+    if ( face->stream == &pcfface->comp_stream )
     {
-      FT_Stream_Close( &face->comp_stream );
-      pcfface->stream = face->comp_source;
+      FT_Stream_Close( &pcfface->comp_stream );
+      face->stream = pcfface->comp_source;
     }
   }
 
 
   FT_CALLBACK_DEF( FT_Error )
   PCF_Face_Init( FT_Stream      stream,
-                 FT_Face        pcfface,        /* PCF_Face */
+                 FT_Face        face,       /* PCF_Face */
                  FT_Int         face_index,
                  FT_Int         num_params,
                  FT_Parameter*  params )
   {
-    PCF_Face  face  = (PCF_Face)pcfface;
+    PCF_Face  pcfface = (PCF_Face)face;
     FT_Error  error;
 
     FT_UNUSED( num_params );
@@ -273,10 +238,10 @@ THE SOFTWARE.
 
     FT_TRACE2(( "PCF driver\n" ));
 
-    error = pcf_load_font( stream, face, face_index );
+    error = pcf_load_font( stream, pcfface, face_index );
     if ( error )
     {
-      PCF_Face_Done( pcfface );
+      PCF_Face_Done( face );
 
 #if defined( FT_CONFIG_OPTION_USE_ZLIB )  || \
     defined( FT_CONFIG_OPTION_USE_LZW )   || \
@@ -289,7 +254,7 @@ THE SOFTWARE.
 
         /* this didn't work, try gzip support! */
         FT_TRACE2(( "  ... try gzip stream\n" ));
-        error2 = FT_Stream_OpenGzip( &face->comp_stream, stream );
+        error2 = FT_Stream_OpenGzip( &pcfface->comp_stream, stream );
         if ( FT_ERR_EQ( error2, Unimplemented_Feature ) )
           goto Fail;
 
@@ -305,7 +270,7 @@ THE SOFTWARE.
 
         /* this didn't work, try LZW support! */
         FT_TRACE2(( "  ... try LZW stream\n" ));
-        error3 = FT_Stream_OpenLZW( &face->comp_stream, stream );
+        error3 = FT_Stream_OpenLZW( &pcfface->comp_stream, stream );
         if ( FT_ERR_EQ( error3, Unimplemented_Feature ) )
           goto Fail;
 
@@ -321,7 +286,7 @@ THE SOFTWARE.
 
         /* this didn't work, try Bzip2 support! */
         FT_TRACE2(( "  ... try Bzip2 stream\n" ));
-        error4 = FT_Stream_OpenBzip2( &face->comp_stream, stream );
+        error4 = FT_Stream_OpenBzip2( &pcfface->comp_stream, stream );
         if ( FT_ERR_EQ( error4, Unimplemented_Feature ) )
           goto Fail;
 
@@ -332,12 +297,12 @@ THE SOFTWARE.
       if ( error )
         goto Fail;
 
-      face->comp_source = stream;
-      pcfface->stream   = &face->comp_stream;
+      pcfface->comp_source = stream;
+      face->stream         = &pcfface->comp_stream;
 
-      stream = pcfface->stream;
+      stream = face->stream;
 
-      error = pcf_load_font( stream, face, face_index );
+      error = pcf_load_font( stream, pcfface, face_index );
       if ( error )
         goto Fail;
 
@@ -361,14 +326,14 @@ THE SOFTWARE.
     else if ( face_index > 0 && ( face_index & 0xFFFF ) > 0 )
     {
       FT_ERROR(( "PCF_Face_Init: invalid face index\n" ));
-      PCF_Face_Done( pcfface );
+      PCF_Face_Done( face );
       return FT_THROW( Invalid_Argument );
     }
 
     /* set up charmap */
     {
-      FT_String  *charset_registry = face->charset_registry;
-      FT_String  *charset_encoding = face->charset_encoding;
+      FT_String  *charset_registry = pcfface->charset_registry;
+      FT_String  *charset_encoding = pcfface->charset_encoding;
       FT_Bool     unicode_charmap  = 0;
 
 
@@ -384,13 +349,13 @@ THE SOFTWARE.
              ( s[2] == 'o' || s[2] == 'O' ) )
         {
           s += 3;
-          if ( !ft_strcmp( s, "10646" )                      ||
-               ( !ft_strcmp( s, "8859" ) &&
-                 !ft_strcmp( face->charset_encoding, "1" ) ) )
+          if ( !ft_strcmp( s, "10646" )                         ||
+               ( !ft_strcmp( s, "8859" )                      &&
+                 !ft_strcmp( pcfface->charset_encoding, "1" ) ) )
             unicode_charmap = 1;
           /* another name for ASCII */
-          else if ( !ft_strcmp( s, "646.1991" )                 &&
-                    !ft_strcmp( face->charset_encoding, "IRV" ) )
+          else if ( !ft_strcmp( s, "646.1991" )                    &&
+                    !ft_strcmp( pcfface->charset_encoding, "IRV" ) )
             unicode_charmap = 1;
         }
       }
@@ -399,7 +364,7 @@ THE SOFTWARE.
         FT_CharMapRec  charmap;
 
 
-        charmap.face        = FT_FACE( face );
+        charmap.face        = face;
         charmap.encoding    = FT_ENCODING_NONE;
         /* initial platform/encoding should indicate unset status? */
         charmap.platform_id = TT_PLATFORM_APPLE_UNICODE;
@@ -421,7 +386,7 @@ THE SOFTWARE.
 
   Fail:
     FT_TRACE2(( "  not a PCF file\n" ));
-    PCF_Face_Done( pcfface );
+    PCF_Face_Done( face );
     error = FT_THROW( Unknown_File_Format );  /* error */
     goto Exit;
   }
@@ -512,9 +477,6 @@ THE SOFTWARE.
 
     stream = face->root.stream;
 
-    if ( glyph_index > 0 )
-      glyph_index--;
-
     metric = face->metrics + glyph_index;
 
     bitmap->rows       = (unsigned int)( metric->ascent +
@@ -601,21 +563,22 @@ THE SOFTWARE.
   }
 
 
- /*
-  *
-  *  BDF SERVICE
-  *
-  */
+  /*
+   *
+   * BDF SERVICE
+   *
+   */
 
-  static FT_Error
-  pcf_get_bdf_property( PCF_Face          face,
+  FT_CALLBACK_DEF( FT_Error )
+  pcf_get_bdf_property( FT_Face           face,       /* PCF_Face */
                         const char*       prop_name,
                         BDF_PropertyRec  *aproperty )
   {
+    PCF_Face      pcfface = (PCF_Face)face;
     PCF_Property  prop;
 
 
-    prop = pcf_find_property( face, prop_name );
+    prop = pcf_find_property( pcfface, prop_name );
     if ( prop )
     {
       if ( prop->isString )
@@ -628,14 +591,15 @@ THE SOFTWARE.
         if ( prop->value.l > 0x7FFFFFFFL          ||
              prop->value.l < ( -1 - 0x7FFFFFFFL ) )
         {
-          FT_TRACE1(( "pcf_get_bdf_property:" ));
-          FT_TRACE1(( " too large integer 0x%x is truncated\n" ));
+          FT_TRACE2(( "pcf_get_bdf_property:"
+                      " too large integer 0x%lx is truncated\n",
+                      prop->value.l ));
         }
 
         /*
-         *  The PCF driver loads all properties as signed integers.
-         *  This really doesn't seem to be a problem, because this is
-         *  sufficient for any meaningful values.
+         * The PCF driver loads all properties as signed integers.
+         * This really doesn't seem to be a problem, because this is
+         * sufficient for any meaningful values.
          */
         aproperty->type      = BDF_PROPERTY_TYPE_INTEGER;
         aproperty->u.integer = (FT_Int32)prop->value.l;
@@ -648,13 +612,16 @@ THE SOFTWARE.
   }
 
 
-  static FT_Error
-  pcf_get_charset_id( PCF_Face      face,
+  FT_CALLBACK_DEF( FT_Error )
+  pcf_get_charset_id( FT_Face       face,               /* PCF_Face */
                       const char*  *acharset_encoding,
                       const char*  *acharset_registry )
   {
-    *acharset_encoding = face->charset_encoding;
-    *acharset_registry = face->charset_registry;
+    PCF_Face  pcfface = (PCF_Face)face;
+
+
+    *acharset_encoding = pcfface->charset_encoding;
+    *acharset_registry = pcfface->charset_registry;
 
     return FT_Err_Ok;
   }
@@ -668,10 +635,10 @@ THE SOFTWARE.
 
 
   /*
-   *  PROPERTY SERVICE
+   * PROPERTY SERVICE
    *
    */
-  static FT_Error
+  FT_CALLBACK_DEF( FT_Error )
   pcf_property_set( FT_Module    module,         /* PCF_Driver */
                     const char*  property_name,
                     const void*  value,
@@ -726,16 +693,16 @@ THE SOFTWARE.
 
 #endif /* !PCF_CONFIG_OPTION_LONG_FAMILY_NAMES */
 
-    FT_TRACE0(( "pcf_property_set: missing property `%s'\n",
+    FT_TRACE2(( "pcf_property_set: missing property `%s'\n",
                 property_name ));
     return FT_THROW( Missing_Property );
   }
 
 
-  static FT_Error
+  FT_CALLBACK_DEF( FT_Error )
   pcf_property_get( FT_Module    module,         /* PCF_Driver */
                     const char*  property_name,
-                    const void*  value )
+                    void*        value )
   {
 #ifdef PCF_CONFIG_OPTION_LONG_FAMILY_NAMES
 
@@ -764,7 +731,7 @@ THE SOFTWARE.
 
 #endif /* !PCF_CONFIG_OPTION_LONG_FAMILY_NAMES */
 
-    FT_TRACE0(( "pcf_property_get: missing property `%s'\n",
+    FT_TRACE2(( "pcf_property_get: missing property `%s'\n",
                 property_name ));
     return FT_THROW( Missing_Property );
   }
@@ -777,11 +744,11 @@ THE SOFTWARE.
     (FT_Properties_GetFunc)pcf_property_get )     /* get_property */
 
 
- /*
-  *
-  *  SERVICE LIST
-  *
-  */
+  /*
+   *
+   * SERVICE LIST
+   *
+   */
 
   static const FT_ServiceDescRec  pcf_services[] =
   {

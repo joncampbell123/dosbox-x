@@ -177,7 +177,7 @@ private:
                 SDL_UnlockMutex(lock);
             }
         } else {
-            service->renderint16_t((int16_t *)MixTemp, (MT32Emu::uint32_t)len);
+            service->renderBit16s((int16_t *)MixTemp, (MT32Emu::uint32_t)len);
             chan->AddSamples_s16(len, (int16_t *)MixTemp);
         }
     }
@@ -198,7 +198,7 @@ private:
                 SDL_CondWait(framesInBufferChanged, lock);
                 SDL_UnlockMutex(lock);
             } else {
-                service->renderint16_t(audioBuffer + renderPosSnap, (MT32Emu::uint32_t)framesToRender);
+                service->renderBit16s(audioBuffer + renderPosSnap, (MT32Emu::uint32_t)framesToRender);
                 renderPos = (renderPosSnap + samplesToRender) % audioBufferSize;
                 if (renderPosSnap == playPos) {
                     SDL_LockMutex(lock);
@@ -225,11 +225,11 @@ public:
         return midiHandler_mt32;
     }
 
-	const char *GetName(void) {
+	const char *GetName(void) override {
 		return "mt32";
 	}
 
-    bool Open(const char *conf) {
+    bool Open(const char *conf) override {
         (void)conf;//UNUSED
         service = new MT32Emu::Service();
         uint32_t version = service->getLibraryVersionInt();
@@ -257,9 +257,9 @@ public:
         }
 
 		if (!load_rom_set(romDir, model)) {
-			Cross::GetPlatformResDir(romDir);
+			romDir = Cross::GetPlatformResDir();
 			if (!load_rom_set(romDir, model)) {
-					Cross::GetPlatformConfigDir(romDir);
+					romDir = Cross::GetPlatformConfigDir();
 					if (!load_rom_set(romDir, model)) {
 							delete service;
 							service = NULL;
@@ -267,7 +267,8 @@ public:
 							LOG_MSG("MT32 emulation requires the PCM and CONTROL ROM files.");
 							LOG_MSG("To eliminate this error message, check the DOSBox-X wiki.");
 							LOG_MSG("The ROM files are: CM32L_CONTROL.ROM and CM32L_PCM.ROM or MT32_CONTROL.ROM and MT32_PCM.ROM");
-							return false;
+                            sffile = "Not available";
+                            return false;
 					}
 			}
 		}
@@ -278,6 +279,9 @@ public:
         int sampleRate = section->Get_int("mt32.rate");
         service->setStereoOutputSampleRate(sampleRate);
         service->setSamplerateConversionQuality((MT32Emu::SamplerateConversionQuality)section->Get_int("mt32.src.quality"));
+        const uint32_t mt32_samplerate = 32000U;
+        const uint32_t mt32_sampleratemodes[] = { mt32_samplerate, mt32_samplerate, mt32_samplerate / 2 * 3, mt32_samplerate * 3,0 };
+        if(sampleRate != mt32_sampleratemodes[section->Get_int("mt32.analog")]) LOG_MSG("MIDI: Warning sampling rates of \"mt32.rate\" and \"mt32.analog\" settings are different. May result in incorrect pitch.");
 
         if (MT32EMU_RC_OK != (rc = service->openSynth())) {
             delete service;
@@ -301,6 +305,10 @@ public:
 
         service->setReversedStereoEnabled(section->Get_bool("mt32.reverse.stereo"));
         service->setNiceAmpRampEnabled(section->Get_bool("mt32.niceampramp"));
+        if(section->Get_bool("mt32.engage.channel1")) {
+           uint8_t channelAssignmentSysex[] = { 0x10, 0x00, 0x0d, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09 };
+            service->writeSysex(16, channelAssignmentSysex, sizeof channelAssignmentSysex);
+        }
         noise = section->Get_bool("mt32.verbose");
         renderInThread = section->Get_bool("mt32.thread");
 
@@ -322,7 +330,7 @@ public:
             framesPerAudioBuffer = (latency * sampleRate) / MILLIS_PER_SECOND;
             audioBufferSize = framesPerAudioBuffer << 1;
             audioBuffer = new int16_t[audioBufferSize];
-            service->renderint16_t(audioBuffer, (MT32Emu::uint32_t)(framesPerAudioBuffer - 1));
+            service->renderBit16s(audioBuffer, (MT32Emu::uint32_t)(framesPerAudioBuffer - 1));
             renderPos = (framesPerAudioBuffer - 1) << 1;
             playedBuffers = 1;
             lock = SDL_CreateMutex();
@@ -339,7 +347,7 @@ public:
         return true;
 	}
 
-	void Close(void) {
+	void Close(void) override {
         if (!open) return;
         chan->Enable(false);
         if (renderInThread) {
@@ -364,7 +372,7 @@ public:
         open = false;
 	}
 
-	void PlayMsg(uint8_t *msg) {
+	void PlayMsg(uint8_t *msg) override {
         if (renderInThread) {
             service->playMsgAt(SDL_SwapLE32(*(uint32_t *)msg), getMidiEventTimestamp());
         } else {
@@ -372,7 +380,7 @@ public:
         }
 	}
 
-	void PlaySysex(uint8_t *sysex, Bitu len) {
+	void PlaySysex(uint8_t *sysex, Bitu len) override {
         if (renderInThread) {
             service->playSysexAt(sysex, (MT32Emu::uint32_t)len, getMidiEventTimestamp());
         } else {
@@ -380,7 +388,7 @@ public:
         }
 	}
 
-	void ListAll(Program* base) {
+	void ListAll(Program* base) override {
 		base->WriteOut("  %s\n",mt32info.c_str());
 	}
 };

@@ -3,7 +3,7 @@
 #
 
 
-# Copyright 1996-2018 by
+# Copyright (C) 1996-2023 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -103,6 +103,7 @@ ifneq ($(findstring setup,$(MAKECMDGOALS)),)
   check_platform := 1
 endif
 
+
 # Include the automatic host platform detection rules when we need to
 # check the platform.
 #
@@ -111,6 +112,17 @@ ifdef check_platform
   all modules: setup
 
   include $(TOP_DIR)/builds/detect.mk
+
+  # For builds directly from the git repository we need to copy files
+  # from `subprojects/dlg' to `src/dlg' and `include/dlg'.
+  #
+  ifeq ($(wildcard $(TOP_DIR)/src/dlg/dlg.*),)
+    ifeq ($(wildcard $(TOP_DIR)/subprojects/dlg/*),)
+      copy_submodule: check_out_submodule
+    endif
+
+    setup: copy_submodule
+  endif
 
   # This rule makes sense for Unix only to remove files created by a run of
   # the configure script which hasn't been successful (so that no
@@ -127,12 +139,12 @@ ifdef check_platform
   ifneq ($(is_unix),)
 
     distclean:
-	  $(RM) builds/unix/config.cache
-	  $(RM) builds/unix/config.log
-	  $(RM) builds/unix/config.status
-	  $(RM) builds/unix/unix-def.mk
-	  $(RM) builds/unix/unix-cc.mk
-	  $(RM) builds/unix/freetype2.pc
+	  $(RM) $(TOP_DIR)/builds/unix/config.cache
+	  $(RM) $(TOP_DIR)/builds/unix/config.log
+	  $(RM) $(TOP_DIR)/builds/unix/config.status
+	  $(RM) $(TOP_DIR)/builds/unix/unix-def.mk
+	  $(RM) $(TOP_DIR)/builds/unix/unix-cc.mk
+	  $(RM) $(TOP_DIR)/builds/unix/freetype2.pc
 	  $(RM) nul
 
   endif # test is_unix
@@ -152,6 +164,23 @@ else
   include $(CONFIG_MK)
 
 endif # test check_platform
+
+
+.PHONY: check_out_submodule copy_submodule
+
+check_out_submodule:
+	$(info Checking out submodule in `subprojects/dlg')
+	git --git-dir=$(TOP_DIR) submodule init
+	git --git-dir=$(TOP_DIR) submodule update
+
+copy_submodule:
+	$(info Copying files from `subprojects/dlg' to `src/dlg' and `include/dlg')
+  ifeq ($(wildcard $(TOP_DIR)/include/dlg),)
+	mkdir $(subst /,$(SEP),$(TOP_DIR)/include/dlg)
+  endif
+	$(COPY) $(subst /,$(SEP),$(TOP_DIR)/subprojects/dlg/include/dlg/output.h $(TOP_DIR)/include/dlg)
+	$(COPY) $(subst /,$(SEP),$(TOP_DIR)/subprojects/dlg/include/dlg/dlg.h $(TOP_DIR)/include/dlg)
+	$(COPY) $(subst /,$(SEP),$(TOP_DIR)/subprojects/dlg/src/dlg/dlg.c $(TOP_DIR)/src/dlg)
 
 
 # We always need the list of modules in ftmodule.h.
@@ -191,13 +220,14 @@ work := $(word 2,$(work))
 patch := $(subst |,$(space),$(work))
 patch := $(firstword $(patch))
 
-ifneq ($(findstring x0x,x$(patch)x),)
-  version := $(major).$(minor)
-  winversion := $(major)$(minor)
-else
+# ifneq ($(findstring x0x,x$(patch)x),)
+#   version := $(major).$(minor)
+#   winversion := $(major)$(minor)
+# else
   version := $(major).$(minor).$(patch)
   winversion := $(major)$(minor)$(patch)
-endif
+  version_tag := VER-$(major)-$(minor)-$(patch)
+# endif
 
 
 # This target builds the tarballs.
@@ -208,7 +238,7 @@ endif
 dist:
 	-rm -rf tmp
 	rm -f freetype-$(version).tar.gz
-	rm -f freetype-$(version).tar.bz2
+	rm -f freetype-$(version).tar.xz
 	rm -f ft$(winversion).zip
 
 	for d in `find . -wholename '*/.git' -prune \
@@ -219,30 +249,26 @@ dist:
 
 	currdir=`pwd` ; \
 	for f in `find . -wholename '*/.git' -prune \
+	                 -o -name .gitattributes \
 	                 -o -name .gitignore \
+	                 -o -name .gitlab-ci.yml \
+	                 -o -name .gitmodules \
 	                 -o -name .mailmap \
 	                 -o -type d \
 	                 -o -print` ; do \
 	  ln -s $$currdir/$$f tmp/$$f ; \
 	done
 
-	@# Prevent generation of .pyc files.  Python follows (soft) links if
-	@# the link's directory is write protected, so we have temporarily
-	@# disable write access here too.
-	chmod -w src/tools/docmaker
-
 	cd tmp ; \
 	$(MAKE) devel ; \
 	$(MAKE) do-dist
-
-	chmod +w src/tools/docmaker
 
 	mv tmp freetype-$(version)
 
 	tar -H ustar -chf - freetype-$(version) \
 	| gzip -9 -c > freetype-$(version).tar.gz
 	tar -H ustar -chf - freetype-$(version) \
-	| bzip2 -c > freetype-$(version).tar.bz2
+	| xz -c > freetype-$(version).tar.xz
 
 	@# Use CR/LF for zip files.
 	zip -lr9 ft$(winversion).zip freetype-$(version)
@@ -257,6 +283,10 @@ dist:
 CONFIG_GUESS = ~/git/config/config.guess
 CONFIG_SUB   = ~/git/config/config.sub
 
+# We also use this repository to access the gnulib script that converts git
+# commit messages to a ChangeLog file.
+CHANGELOG_SCRIPT = ~/git/config/gitlog-to-changelog
+
 
 # Don't say `make do-dist'.  Always use `make dist' instead.
 #
@@ -264,14 +294,29 @@ CONFIG_SUB   = ~/git/config/config.sub
 
 do-dist: distclean refdoc
 	@# Without removing the files, `autoconf' and friends follow links.
-	rm -f builds/unix/aclocal.m4
-	rm -f builds/unix/configure.ac
-	rm -f builds/unix/configure
+	rm -f $(TOP_DIR)/builds/unix/aclocal.m4
+	rm -f $(TOP_DIR)/builds/unix/configure.ac
+	rm -f $(TOP_DIR)/builds/unix/configure
 
 	sh autogen.sh
-	rm -rf builds/unix/autom4te.cache
+	rm -rf $(TOP_DIR)/builds/unix/autom4te.cache
 
-	cp $(CONFIG_GUESS) builds/unix
-	cp $(CONFIG_SUB) builds/unix
+	cp $(CONFIG_GUESS) $(TOP_DIR)/builds/unix
+	cp $(CONFIG_SUB) $(TOP_DIR)/builds/unix
+
+	@# Generate `ChangeLog' file with commits since release 2.11.0
+	@# (when we stopped creating this file manually).
+	$(CHANGELOG_SCRIPT) \
+	  --format='%B%n' \
+	  --no-cluster \
+	  -- VER-2-11-0..$(version_tag) \
+	> ChangeLog
+
+	@# Remove intermediate files created by the `refdoc' target.
+	rm -rf $(TOP_DIR)/docs/markdown
+	rm -f $(TOP_DIR)/docs/mkdocs.yml
+
+	@# Remove more stuff related to git.
+	rm -rf $(TOP_DIR)/subprojects/dlg
 
 # EOF

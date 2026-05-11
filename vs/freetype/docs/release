@@ -1,48 +1,69 @@
 How to prepare a new release
 ----------------------------
 
-. include/freetype/freetype.h:  Update FREETYPE_MAJOR, FREETYPE_MINOR,
-  and FREETYPE_PATCH.
+. include/freetype/freetype.h: Update `FREETYPE_MAJOR`,
+  `FREETYPE_MINOR`, and `FREETYPE_PATCH`.
 
 . Update version numbers in all files where necessary (for example, do
-  a grep for both `2.3.1' and `231' for release 2.3.1).
+  a grep for both '2.10.4' and '2104' for release 2.10.4).
 
-. builds/unix/configure.raw: Update `version_info'.
+. builds/unix/configure.raw: Update `version_info`.
 
 . docs/CHANGES: Document differences to last release.
 
 . README: Update.
 
-. docs/VERSIONS.TXT: Document changed `version_info'.
+. docs/VERSIONS.TXT: Document changed `version_info`.
 
-. ChangeLog:   Announce  new  release   (both  in  the  freetype2  and
-  freetype2-demos modules).
+. Update the 'dlg' submodule with
 
-. Clone the git archive to another directory with
+    git submodule foreach git pull origin master
 
-    git clone -l -s . ../freetype2.test
+. Copy the submodule code with
 
-  or something like this and run
+    make copy_submodule
 
-    make distclean; make devel; make
-    make distclean; make devel; make multi
-    make distclean; make devel CC=g++; make CC=g++
-    make distclean; make devel CC=g++; make multi CC=g++
+  and run
+
+    make distclean && make devel && make
+    make distclean && make devel && make multi
+    make distclean && make devel CC=g++ && make CC=g++ ANSIFLAGS=""
+    make distclean && make devel CC=g++ && make multi CC=g++ ANSIFLAGS=""
 
     sh autogen.sh
-    make distclean; ./configure; make
-    make distclean; ./configure CC=g++; make
+    make distclean && ./configure CC=g++ && make ANSIFLAGS=""
 
-  in the cloned repository to test compilation with both gcc and g++.
+  to test compilation with both gcc and g++ (you might also add the `-j`
+  flag to `make` for parallel compilation).
 
-. Test C++ compilation  for freetype2-demos too  (using `git clone' as
-  above).
+  Note that it is normally not necessary to test standard C
+  compilation with the `configure`, `meson`, and `cmake` build tools
+  since this is done by the CI process of 'gitlab.freedesktop.org' for
+  every commit.
 
-. Run  src/tools/chktrcmp.py  and check  that there  are no  undefined
-  trace_XXXX macros.
+. Test C++ compilation for 'freetype-demos' too; this needs a compiled
+  FreeType library as described in the `README` file.
 
-. After pushing the new release,  tag the git repositories (freetype2,
-  freetype2-demos) with
+    make distclean && make
+    make distclean && make CC=g++ ANSIFLAGS=""
+
+. Run `src/tools/chktrcmp.py` and check that there are no undefined
+  `trace_XXXX` macros.
+
+. Update meson subproject files (for both the 'freetype' and
+  'freetype-demos' git repositories) with
+
+    meson subprojects update
+
+. Test meson compilation (for both the 'freetype' and 'freetype-demos'
+  git repositories) with
+
+    meson setup builddir && meson compile -C builddir
+
+. Commit everything.
+
+. After pushing the new release, tag the git repositories ('freetype',
+  'freetype-demos') with
 
     git tag VER-<version> -m "" -u <committer>
 
@@ -54,46 +75,47 @@ How to prepare a new release
 
     git clean -ndx
 
-  that the git directory is really clean  (and remove extraneous files
+  that the git directory is really clean (and remove extraneous files
   if necessary).
 
-. Say `make  dist' in both the  freetype2 and freetype2-demos  modules
-  to generate the .tar.gz, .tar.bz2, and .zip files.
+. Say `make dist` in both the 'freetype' and 'freetype-demos'
+  repositories to generate the `.tar.gz`, `.tar.xz`, and `.zip` files.
 
-. Create     the     doc    bundles    (freetype-doc-<version>.tar.gz,
-  freetype-doc-<version>.tar.bz2,    ftdoc<version>.zip).    This   is
+. Create the doc bundles (`freetype-doc-<version>.tar.gz`,
+  `freetype-doc-<version>.tar.xz`, `ftdoc<version>.zip`).  This is
   everything in
 
     <freetype-web git repository>/freetype2/docs
 
-  except the `reference' subdirectory.   Do *not* use option `-l' from
+  except the `reference` subdirectory.  Do *not* use option `-l` from
   zip!
 
-. Run the following script (with updated `$VERSION', `$SAVANNAH_USER',
-  and $SOURCEFORGE_USER  variables) to sign and upload the  bundles to
+. Run the following script (with updated `$VERSION`, `$SAVANNAH_USER`,
+  and `$SOURCEFORGE_USER` variables) to sign and upload the bundles to
   both Savannah and SourceForge.  The signing code has been taken from
-  the `gnupload' script (part of the automake bundle).
+  the `gnupload` script (part of the 'automake' bundle).
 
     #!/bin/sh
 
-    VERSION=2.5.1
+    VERSION=2.12.0
     SAVANNAH_USER=wl
     SOURCEFORGE_USER=wlemb
+    GPG_KEY_ID=BE6C3AAC63AD8E3F
 
     #####################################################################
 
-    GPG='/usr/bin/gpg --batch --no-tty'
+    GPG="/usr/bin/gpg --batch --no-tty --local-user $GPG_KEY_ID"
 
     version=`echo $VERSION | sed "s/\\.//g"`
 
     FREETYPE_PACKAGES="freetype-$VERSION.tar.gz \
-                       freetype-$VERSION.tar.bz2 \
+                       freetype-$VERSION.tar.xz \
                        ft$version.zip"
     FT2DEMOS_PACKAGES="ft2demos-$VERSION.tar.gz \
-                       ft2demos-$VERSION.tar.bz2 \
+                       ft2demos-$VERSION.tar.xz \
                        ftdmo$version.zip"
     FTDOC_PACKAGES="freetype-doc-$VERSION.tar.gz \
-                    freetype-doc-$VERSION.tar.bz2 \
+                    freetype-doc-$VERSION.tar.xz \
                     ftdoc$version.zip"
 
     PACKAGE_LIST="$FREETYPE_PACKAGES \
@@ -155,12 +177,13 @@ How to prepare a new release
 
     # EOF
 
-. Prepare a  README for SourceForge  and upload it  with the following
-  script (with updated `$VERSION' and $SOURCEFORGE_USER variables).
+. Prepare a `README` file for SourceForge and upload it with the
+  following script (with updated `$VERSION` and `$SOURCEFORGE_USER`
+  variables).
 
     #!/bin/sh
 
-    VERSION=2.5.1
+    VERSION=2.10.4
     SOURCEFORGE_USER=wlemb
 
     #####################################################################
@@ -170,26 +193,24 @@ How to prepare a new release
 
     # EOF
 
-. On   SourceForge,   tag   the    just   uploaded   `ftXXX.zip'   and
-  `freetype-XXX.tar.bz2'  files as the  default files to  download for
-  `Windows' and `Others', respectively.
+. On SourceForge, tag the just uploaded `ftXXX.zip` and
+  `freetype-XXX.tar.xz` files as the default files to download for
+  'Windows' and 'Others', respectively.
 
-. Copy the reference files (generated by `make dist') to
+. Trigger the automatic generation of the online API reference by
+  updating the `FT_VERSION` variable in file `.gitlab-ci.yml` of the
+  'freetype-web' repository.
 
-    <freetype-web git repository>/freetype2/docs/reference
+. Announce new release on 'freetype-announce@nongnu.org' and to
+  relevant newsgroups.  The text should include
 
-. Update the `freetype-web' repository.  `git push' then automatically
-  triggers an update  of the public web pages  within ten minutes, due
-  to a cron script (on wl@freedesktop.org) that rsyncs with
-
-    freedesktop.org://srv/freetype.freedesktop.org/www
-
-. Announce new release on freetype-announce@nongnu.org and to relevant
-  newsgroups.
+  - SHA256 checksums of all files,
+  - instructions how to verify the bundles using the `.sig` file data,
+  - the PGP public key used to sign the archives.
 
 ----------------------------------------------------------------------
 
-Copyright 2003-2018 by
+Copyright (C) 2003-2023 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file is  part of  the FreeType  project, and  may only  be used,

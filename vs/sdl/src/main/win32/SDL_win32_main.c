@@ -59,7 +59,7 @@ static void UnEscapeQuotes( char *arg )
 	char *last = NULL;
 
 	while( *arg ) {
-		if( *arg == '"' && *last == '\\' ) {
+		if( *arg == '"' && last && *last == '\\' ) {
 			char *c_curr = arg;
 			char *c_last = last;
 

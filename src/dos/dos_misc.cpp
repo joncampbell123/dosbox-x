@@ -25,6 +25,10 @@
 #include "dos_inc.h"
 #include "control.h"
 #include "support.h"
+#include "cpu.h"
+
+#include <array>
+#include <cstring>
 #include <list>
 #include <SDL.h>
 
@@ -36,12 +40,18 @@ bool ANSI_SYS_installed();
 #if defined(MACOSX)
 bool SetClipboard(std::string value);
 #endif
+#if (!defined(WIN32) && defined(C_SDL2)) || defined(MACOSX)
+typedef char host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+#endif
 
 extern bool enable_share_exe, enable_network_redirector;
 
 extern Bitu XMS_EnableA20(bool enable);
 
+#if !defined(OSFREE)
 bool enable_a20_on_windows_init = false;
+#endif
 
 static Bitu call_int2f,call_int2a;
 
@@ -102,6 +112,9 @@ extern bool i4dos, shellrun, clipboard_dosapi, swapad;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
 extern uint16_t seg_win_startup_info;
 void PasteClipboard(bool bPressed);
+#if !defined(OSFREE)
+RealPt Get_EMS_vm86control();
+#endif
 
 // INT 2F
 char regpath[CROSS_LEN+1]="C:\\WINDOWS\\SYSTEM.DAT";
@@ -132,15 +145,47 @@ static bool DOS_MultiplexFunctions(void) {
         }
         return true;
 	case 0x1216:	/* GET ADDRESS OF SYSTEM FILE TABLE ENTRY */
+		/* Apparently used by Dunkle Schatten 2 for whatever reason */
 		// reg_bx is a system file table entry, should coincide with
 		// the file handle so just use that
 		LOG(LOG_DOSMISC,LOG_ERROR)("Some BAD filetable call used bx=%X",reg_bx);
 		if(reg_bx <= DOS_FILES) CALLBACK_SCF(false);
 		else CALLBACK_SCF(true);
 		if (reg_bx<16) {
+			/* Assume the first table is valid */
 			RealPt sftrealpt=mem_readd(Real2Phys(dos_infoblock.GetPointer())+4);
 			PhysPt sftptr=Real2Phys(sftrealpt);
-			uint32_t sftofs=0x06u+reg_bx*0x3bu;
+
+			/* The SFT table is not one monolithic table, but is split across
+			 * smaller table "pieces" connected by a linked list */
+			unsigned int rel_entry = reg_bx;
+
+//DEBUG
+//			LOG_MSG("handle=%u rel=%u initsft=%08x",reg_bx,rel_entry,(unsigned int)sftrealpt);
+
+			while (1) {
+				/* DWORD +0 <next link or 0xFFFFFFFF>
+				 * WORD  +4 <number of entries in table> */
+				uint16_t tblsize = mem_readw(sftptr+4);
+
+				if (rel_entry < tblsize) break;
+
+				rel_entry -= tblsize;
+				sftrealpt = mem_readd(sftptr);
+				if (sftrealpt == 0 || (sftrealpt & 0xFFFF) == 0xFFFF/*According to RBIL, confirmed in MS-DOS: only the offset is checked for 0xFFFF to end the list*/) {
+					CALLBACK_SCF(true);
+					return true;
+				}
+				sftptr=Real2Phys(sftrealpt);
+
+//DEBUG
+//				LOG_MSG("handle=%u rel=%u nextsft=%08x",reg_bx,rel_entry,(unsigned int)sftrealpt);
+			}
+
+			uint32_t sftofs = SftHeaderSize + rel_entry*SftEntrySize;
+
+//DEBUG
+//			LOG_MSG("handle=%u rel=%u finalsft=%08x",reg_bx,rel_entry,(unsigned int)sftrealpt);
 
 			if (Files[reg_bx]) mem_writeb(sftptr+sftofs, (uint8_t)(Files[reg_bx]->refCtr));
 			else mem_writeb(sftptr+sftofs,0);
@@ -264,10 +309,11 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x1600:    /* Windows enhanced mode installation check */
         // Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode, Windows/386 2.x
         // nor Windows 95 are running, nor is XMS version 1 driver installed
-		if (!control->SecureMode() && ((reg_sp == 0xFFF6 && mem_readw(SegPhys(ss)+reg_sp) == 0x142A) || !strcmp(RunningProgram, "DOSCLIP"))) // Hack for DOSCLIP
+		if (!control->SecureMode() && ((reg_sp == 0xFFF6 && mem_readw(SegPhys(ss)+reg_sp) == 0x142A) || (reg_sp == 0xFF88 && mem_readw(SegPhys(ss)+reg_sp) == 0xFF9D) || !strcmp(RunningProgram, "DOSCLIP") || !strcmp(RunningProgram, "TOCLIP"))) // Hack for DOSCLIP/TOCLIP
 			reg_ax = 0x301;
         return true;
 	case 0x1605:	/* Windows init broadcast */
+#if !defined(OSFREE)
 		if (enable_a20_on_windows_init) {
 			/* This hack exists because Windows 3.1 doesn't seem to enable A20 first during an
 			 * initial critical period where it assumes it's on, prior to checking and enabling/disabling it.
@@ -279,6 +325,7 @@ static bool DOS_MultiplexFunctions(void) {
 			LOG_MSG("Enabling A20 gate for Windows in response to INIT broadcast");
 			XMS_EnableA20(true);
 		}
+#endif
 
 		/* TODO: Maybe future parts of DOSBox-X will do something with this */
 		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox-x.conf or b) running a builtin command in Z:\ */
@@ -316,6 +363,19 @@ static bool DOS_MultiplexFunctions(void) {
 			reg_bx = 0;
 		}
 
+#if !defined(OSFREE)
+		/* If EMS emulation is providing VCPI and it is enabled (the system is in vm86 mode),
+		 * provide Windows a callback function to control it */
+		{
+			RealPt p = Get_EMS_vm86control();
+			if (p != 0) {
+				SegSet16(ds,p >> 16u);
+				reg_si = p & 0xFFFFu;
+				LOG_MSG("DEBUG: Providing Windows our VCPI vm86 control entry point 0x%lx",(unsigned long)p);
+			}
+		}
+#endif
+
 		return false; /* pass it on to other INT 2F handlers */
 	case 0x1606:	/* Windows exit broadcast */
 		/* TODO: Maybe future parts of DOSBox-X will do something with this */
@@ -351,7 +411,7 @@ static bool DOS_MultiplexFunctions(void) {
 					reg_bx = (reg_dx & 0x16);
 					reg_dx = 0xa2ab;
 					return true;
-				case 0x0003:		// get size of data struc
+				case 0x0003:		// get size of data struct
 					if (reg_dx==0x0001) {
 						// CDS size requested
 						reg_ax = 0xb97c;
@@ -389,20 +449,32 @@ static bool DOS_MultiplexFunctions(void) {
 		return false;
 	}
 	case 0x1680:	/*  RELEASE CURRENT VIRTUAL MACHINE TIME-SLICE */
-		//TODO Maybe do some idling but could screw up other systems :)
-		return true; //So no warning in the debugger anymore
+    {
+        static const bool idle_enabled = ((Section_prop*)control->GetSection("dos"))->Get_bool("dos idle api");
+        if (idle_enabled) {
+            CPU_STI();
+            CPU_HLT(reg_eip);
+            reg_al = 0;
+        }
+		return true;
+    }
 	case 0x1689:	/*  Kernel IDLE CALL */
 	case 0x168f:	/*  Close awareness crap */
 	   /* Removing warning */
 		return true;
 	case 0x1700:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
-        {// Norton Utilities 8.0 installer checks this before continue
+        {
+			static constexpr std::array<const char*, 7> blacklisted {
+				"DEFRAG", "DISKEDIT", "NDD", "NDIAGS", "UNERASE", "UNFORMAT", "WINCHECK"
+			};
             char psp_name[9];
             DOS_MCB psp_mcb(dos.psp()-1);
             psp_mcb.GetFileName(psp_name);
-	    // NTS: DEFRAG.EXE for MS-DOS 6.22 assumes Windows is running if this call responds affirmatively, because it would mean WINOLDAP is resident.
-            if (((!strcmp(psp_name, "INSTALL") || !strcmp(psp_name, "INSTALLD")) && reg_sp >= 0xD000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1E) || !strcmp(psp_name, "DISKEDIT") || !strcmp(psp_name, "NDD") || !strcmp(psp_name, "NDIAGS") || !strcmp(psp_name, "UNERASE") || !strcmp(psp_name, "UNFORMAT") || !strcmp(psp_name,"DEFRAG")) return false;
+	    	// NTS: DEFRAG.EXE for MS-DOS 6.22 assumes Windows is running if this call responds affirmatively, because it would mean WINOLDAP is resident.
+            for (auto prog : blacklisted) if (!std::strcmp(psp_name, prog)) return false;
+            // Special case for INSTALL/INSTALLD
+            if (((!strcmp(psp_name, "INSTALL") || !strcmp(psp_name, "INSTALLD")) && reg_sp >= 0xD000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1E)) return false;
         }
 		reg_al = 1;
 		reg_ah = 1;
@@ -461,8 +533,7 @@ static bool DOS_MultiplexFunctions(void) {
             std::istringstream iss(text);
             std::string result="";
             for (std::string token; std::getline(iss, token); ) {
-                typedef char host_cnv_char_t;
-                host_cnv_char_t *CodePageGuestToHost(const char *s);
+                if (token.size() && token.back() == 13) token.pop_back();
                 char* uname = CodePageGuestToHost(token.c_str());
                 result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
             }

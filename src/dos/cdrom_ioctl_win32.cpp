@@ -17,7 +17,7 @@
  */
 
 
-#if defined (WIN32) && 0
+#if defined (WIN32)
 
 // *****************************************************************
 // Windows IOCTL functions (not suitable for 95/98/Me)
@@ -28,7 +28,7 @@
 
 #if (defined (_MSC_VER)) || (defined __MINGW64_VERSION_MAJOR)
 #include <winioctl.h>			// Ioctl stuff
-//#include <ntddcdrm.h>			// Ioctl stuff
+#include <ntddcdrm.h>			// Ioctl stuff
 #else 
 #include "ddk/ntddcdrm.h"		// Ioctl stuff
 #endif
@@ -36,6 +36,7 @@
 #include <mmsystem.h>
 
 #include "cdrom.h"
+#include "logging.h"
 
 // for a more sophisticated implementation of the mci cdda functionality
 // see the SDL sources, which the mci_ functions are based on
@@ -179,7 +180,6 @@ CDROM_Interface_Ioctl::dxPlayer CDROM_Interface_Ioctl::player = {
 CDROM_Interface_Ioctl::CDROM_Interface_Ioctl(cdioctl_cdatype ioctl_cda) {
 	pathname[0] = 0;
 	hIOCTL = INVALID_HANDLE_VALUE;
-	memset(&oldLeadOut,0,sizeof(oldLeadOut));
 	cdioctl_cda_selected = ioctl_cda;
 }
 
@@ -191,6 +191,8 @@ CDROM_Interface_Ioctl::~CDROM_Interface_Ioctl() {
 }
 
 bool CDROM_Interface_Ioctl::GetUPC(unsigned char& attr, char* upc) {
+    (void)attr;
+    (void)upc;
 	// FIXME : To Do
 	return true;
 }
@@ -573,6 +575,7 @@ void CDROM_Interface_Ioctl::dx_CDAudioCallBack(Bitu len) {
 }
 
 bool CDROM_Interface_Ioctl::SetDevice(char* path, int forceCD) {
+    (void)forceCD;
 	mci_devid = 0;
 	use_mciplay = false;
 	use_dxplay = false;
@@ -622,6 +625,10 @@ void CDROM_Interface_Ioctl::Close(void) {
 
 bool CDROM_Interface_Ioctl::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
 {
+    (void)buffer;
+    (void)raw;
+    (void)sector;
+    (void)num;
 	return false;/*TODO*/
 };
 

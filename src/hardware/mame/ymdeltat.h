@@ -61,7 +61,7 @@ struct YM_DELTAT {     /* AT: rearranged and tightened structure */
 	*/
 	void *  status_change_which_chip;   /* this chip id */
 	uint8_t   status_change_EOS_bit;      /* 1 on End Of Sample (record/playback/cycle time of AD/DA converting has passed)*/
-	uint8_t   status_change_BRDY_bit;     /* 1 after recording 2 datas (2x4bits) or after reading/writing 1 data */
+	uint8_t   status_change_BRDY_bit;     /* 1 after recording 2 data (2x4bits) or after reading/writing 1 data */
 	uint8_t   status_change_ZERO_bit;     /* 1 if silence lasts for more than 290 milliseconds on ADPCM recording */
 
 	/* neither Y8950 nor YM2608 can generate IRQ when PCMBSY bit changes, so instead of above,

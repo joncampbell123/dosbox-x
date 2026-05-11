@@ -261,37 +261,37 @@ public:
 	return lin_addr[buffer];
     }
 
-    uint8_t readb(PhysPt addr) {
+    uint8_t readb(PhysPt addr) override {
 //	LOG_MSG("Glide:Read from 0x%p", LFB_getAddr(addr));
 	return *(uint8_t *)(LFB_getAddr(addr));
     }
 
-    uint16_t readw(PhysPt addr) {
+    uint16_t readw(PhysPt addr) override {
 //	LOG_MSG("Glide:Read from 0x%p", LFB_getAddr(addr));
 	return *(uint16_t *)(LFB_getAddr(addr));
     }
 
-    uint32_t readd(PhysPt addr) {
+    uint32_t readd(PhysPt addr) override {
 //	LOG_MSG("Glide:Read from 0x%p", LFB_getAddr(addr));
 	return *(uint32_t *)(LFB_getAddr(addr));
     }
 
-    void writeb(PhysPt addr,uint8_t val) {
+    void writeb(PhysPt addr,uint8_t val) override {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
 	*(uint8_t *)(LFB_getAddr(addr))=(uint8_t)val;
     }
 
-    void writew(PhysPt addr,uint16_t val) {
+    void writew(PhysPt addr,uint16_t val) override {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
 	*(uint16_t *)(LFB_getAddr(addr))=(uint16_t)val;
     }
 
-    void writed(PhysPt addr,uint32_t val) {
+    void writed(PhysPt addr,uint32_t val) override {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
 	*(uint32_t *)(LFB_getAddr(addr))=(uint32_t)val;
     }
 
-    HostPt GetHostReadPt(Bitu phys_page) {
+    HostPt GetHostReadPt(PageNum phys_page) override {
 	Bitu buffer = (((phys_page<<12) - base_addr[0])>>12)>>GLIDE_PAGE_BITS;
 #if LOG_GLIDE
 	// This only makes sense if full lfb access is used...
@@ -301,7 +301,7 @@ public:
 	return lfb_addr[buffer]+(phys_page<<12);
     }
 
-    HostPt GetHostWritePt(Bitu phys_page) {
+    HostPt GetHostWritePt(PageNum phys_page) override {
 	Bitu buffer = (((phys_page<<12) - base_addr[0])>>12)>>GLIDE_PAGE_BITS;
 #if LOG_GLIDE
 	// This only makes sense if full lfb access is used...
@@ -478,7 +478,7 @@ void GLIDE_ResetScreen(bool update)
 	VGA_SetOverride(true);
 	GFX_Stop();
 
-	// OpenGlide will resize the window on it's own (using SDL)
+	// OpenGlide will resize the window on its own (using SDL)
 	if(glide.width && (
 #ifdef WIN32
 	// dgVoodoo needs a little help :)
@@ -498,6 +498,7 @@ void GLIDE_ResetScreen(bool update)
         sdl.surface = SDL_SetVideoMode(glide.width,glide.height,0,(glide.fullscreen[0]?SDL_FULLSCREEN:0)|SDL_ANYFORMAT);
 #endif
 	}
+    ApplyPreventCap();
 }
 
 void GLIDE_DisableScreen(void)

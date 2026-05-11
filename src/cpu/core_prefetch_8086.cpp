@@ -22,8 +22,11 @@
 #include "cpu.h"
 #include "lazyflags.h"
 #include "callback.h"
+#include "paging.h"
 #include "pic.h"
 #include "fpu.h"
+
+extern bool do_lds_wraparound;
 
 using namespace std;
 
@@ -50,37 +53,6 @@ extern bool ignore_opcode_63;
 static uint16_t last_ea86_offset;
 
 /* NTS: we special case writes to seg:ffff to emulate 8086 behavior where word read/write wraps around the 64KB segment */
-#if (!C_CORE_INLINE)
-
-#define LoadMb(off) mem_readb(off)
-
-static inline uint16_t LoadMw(Bitu off) {
-	if (last_ea86_offset == 0xffff)
-		return (mem_readb(off) | (mem_readb(off-0xffff) << 8));
-
-	return mem_readw(off);	
-}
-
-#define LoadMd(off) mem_readd(off)
-
-#define SaveMb(off,val)	mem_writeb(off,val)
-
-static void SaveMw(Bitu off,Bitu val) {
-	if (last_ea86_offset == 0xffff) {
-		mem_writeb(off,val);
-		mem_writeb(off-0xffff,val>>8);
-	}
-	else {
-		mem_writew(off,val);
-	}
-}
-
-#define SaveMd(off,val)	mem_writed(off,val)
-
-#else 
-
-#include "paging.h"
-
 #define LoadMb(off) mem_readb_inline(off)
 
 static inline uint16_t LoadMw(Bitu off) {
@@ -105,8 +77,6 @@ static void SaveMw(Bitu off,Bitu val) {
 }
 
 #define SaveMd(off,val)	mem_writed_inline(off,val)
-
-#endif
 
 extern Bitu cycle_count;
 
@@ -178,6 +148,8 @@ static struct {
 #define BaseDS		core.base_ds
 #define BaseSS		core.base_ss
 
+#define REMEMBER_PREFIX(_x)
+
 //#define PREFETCH_DEBUG
 
 #define MAX_PQ_SIZE 32
@@ -238,11 +210,11 @@ void CPU_Core8086_Prefetch_reset(void) {
 Bits CPU_Core8086_Prefetch_Run(void) {
 	bool invalidate_pq=false;
 
-    if (CPU_Cycles <= 0)
-	    return CBRET_NONE;
+	if (CPU_Cycles <= 0)
+		return CBRET_NONE;
 
-    pq_limit = (max(CPU_PrefetchQueueSize,(unsigned int)(4ul + prefetch_unit)) + prefetch_unit - 1ul) & (~(prefetch_unit-1ul));
-    pq_reload = min(pq_limit,(Bitu)8u);
+	pq_limit = (max(CPU_PrefetchQueueSize,(unsigned int)(4ul + prefetch_unit)) + prefetch_unit - 1ul) & (~(prefetch_unit-1ul));
+	pq_reload = min(pq_limit,(Bitu)8u);
 
 	while (CPU_Cycles-->0) {
 		if (invalidate_pq) {

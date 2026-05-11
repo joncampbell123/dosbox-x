@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // ** PIXEL SHADER 1.4 VERSION **
 //
 // This version of the algorithm for Pixel Shader V 1.4 is significantly different from the
-// original 2.0 version. It doesn't use any dependant texture reads
+// original 2.0 version. It doesn't use any dependent texture reads
 // Understanding the code may be quite difficult.
 //
 // ** ORIGINAL NOTES **
@@ -59,7 +59,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // For the bottom row, pixels B and H are swapped vs the top row
 // And for the right column, pixels D and F are swapped vs the left column 
 //	
-// That means, with dependant textures reads, this algorithm can be converted
+// That means, with dependent textures reads, this algorithm can be converted
 // into a fairly compact pixel shader
 //
 //
@@ -114,7 +114,7 @@ float4 SelectOffset(float3 Pos : POSITION) : COLOR
 	
 	// 0.00 = Do nothing in shader
 	// 0.25 = Invert the logical comparison
-	// 1.00 = Ingore this value
+	// 1.00 = Ignore this value
 	
 	if (Pos.x <  0.5 && Pos.y <  0.5) ret = float4(0.00, 0.25, 0.25, 1.00);
 	if (Pos.x <  0.5 && Pos.y >= 0.5) ret = float4(0.25, 1.00, 0.00, 0.25);
@@ -184,7 +184,7 @@ R TR: !(A==L || A!=R || 0000 || B==R) +-	0.25, 0.00, 1.00, 0.25
 R BR: !(0000 || A==R || B==L || B!=R) ++	1.00, 0.25, 0.25, 0.00
 
 // if greater than 0, we invert 
-// if greater then 0.5, we zero it out
+// if greater than 0.5, we zero it out
 
 1 1 0 1
 

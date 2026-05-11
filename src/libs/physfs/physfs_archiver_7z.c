@@ -12,6 +12,7 @@
 #if PHYSFS_SUPPORTS_7Z
 
 #include "physfs_lzmasdk.h"
+using namespace physfs_lzmasdk;
 
 typedef struct
 {

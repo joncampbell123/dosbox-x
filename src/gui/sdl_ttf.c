@@ -337,6 +337,7 @@ static void TTF_SetFTError(const char *msg, FT_Error error)
 int TTF_Init( void )
 {
 	int status = 0;
+    FT_Int major, minor, patch;
 
 	if ( ! TTF_initialized ) {
 		FT_Error error = FT_Init_FreeType( &library );
@@ -347,7 +348,9 @@ int TTF_Init( void )
 	}
 	if ( status == 0 ) {
 		++TTF_initialized;
-	}
+        FT_Library_Version(library, &major, &minor, &patch);
+        LOG_MSG("LOG: freetype version %d.%d.%d\n", major, minor, patch);
+    }
 	return status;
 }
 
@@ -474,7 +477,7 @@ TTF_Font* TTF_OpenFontIndexRW( SDL_RWops *src, int freesrc, int ptsize, long ind
 		error = FT_Set_Pixel_Sizes( face,
 				face->available_sizes[ptsize].height,
 				face->available_sizes[ptsize].width );
-	  	/* With non-scalale fonts, Freetype2 likes to fill many of the
+	  	/* With non-scalable fonts, Freetype2 likes to fill many of the
 		 * font metrics with the value of 0.  The size of the
 		 * non-scalable fonts must be determined differently
 		 * or sometimes cannot be determined.
@@ -1138,7 +1141,7 @@ int TTF_SizeUNICODE(TTF_Font *font, const Uint16 *text, int *w, int *h)
 		outline_delta = font->outline * 2;
 	}
 
-	/* Load each character and sum it's bounding box */
+	/* Load each character and sum its bounding box */
 	x= 0;
 	for ( ch=text; *ch; ++ch ) {
 		Uint16 c = *ch;
@@ -2033,7 +2036,7 @@ void TTF_SetFontStyle( TTF_Font* font, int style )
 	font->style = style | font->face_style;
 
 	/* Flush the cache if the style has changed.
-	 * Ignore UNDERLINE which does not impact glyph drawning.
+	 * Ignore UNDERLINE which does not impact glyph drawing.
 	 * */
 	if ( (font->style | TTF_STYLE_NO_GLYPH_CHANGE ) != ( prev_style | TTF_STYLE_NO_GLYPH_CHANGE )) {
 		Flush_Cache( font );

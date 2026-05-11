@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_WINRT
+#ifdef SDL_VIDEO_DRIVER_WINRT
 
 extern "C" {
 #include "SDL_messagebox.h"
@@ -34,23 +34,20 @@ using namespace Platform;
 using namespace Windows::Foundation;
 using namespace Windows::UI::Popups;
 
-static String ^
-WINRT_UTF8ToPlatformString(const char * str)
-{
-    wchar_t * wstr = WIN_UTF8ToString(str);
+static String ^ WINRT_UTF8ToPlatformString(const char *str) {
+    wchar_t *wstr = WIN_UTF8ToStringW(str);
     String ^ rtstr = ref new String(wstr);
     SDL_free(wstr);
     return rtstr;
 }
 
-extern "C" int
-WINRT_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonid)
+extern "C" int WINRT_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonid)
 {
-#if (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP) && (NTDDI_VERSION == NTDDI_WIN8)
+#if SDL_WINAPI_FAMILY_PHONE && (NTDDI_VERSION == NTDDI_WIN8)
     /* Sadly, Windows Phone 8 doesn't include the MessageDialog class that
      * Windows 8.x/RT does, even though MSDN's reference documentation for
      * Windows Phone 8 mentions it.
-     * 
+     *
      * The .NET runtime on Windows Phone 8 does, however, include a
      * MessageBox class.  Perhaps this could be called, somehow?
      */
@@ -58,30 +55,36 @@ WINRT_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonid)
 #else
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
 
-#if WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+#if SDL_WINAPI_FAMILY_PHONE
     const int maxbuttons = 2;
-    const char * platform = "Windows Phone 8.1+";
+    const char *platform = "Windows Phone 8.1+";
 #else
     const int maxbuttons = 3;
-    const char * platform = "Windows 8.x";
+    const char *platform = "Windows 8.x";
 #endif
 
     if (messageboxdata->numbuttons > maxbuttons) {
         return SDL_SetError("WinRT's MessageDialog only supports %d buttons, at most, on %s. %d were requested.",
-            maxbuttons, platform, messageboxdata->numbuttons);
+                            maxbuttons, platform, messageboxdata->numbuttons);
     }
 
     /* Build a MessageDialog object and its buttons */
     MessageDialog ^ dialog = ref new MessageDialog(WINRT_UTF8ToPlatformString(messageboxdata->message));
     dialog->Title = WINRT_UTF8ToPlatformString(messageboxdata->title);
     for (int i = 0; i < messageboxdata->numbuttons; ++i) {
-        UICommand ^ button = ref new UICommand(WINRT_UTF8ToPlatformString(messageboxdata->buttons[i].text));
-        button->Id = safe_cast<IntPtr>(i);
+        const SDL_MessageBoxButtonData *sdlButton;
+        if (messageboxdata->flags & SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT) {
+            sdlButton = &messageboxdata->buttons[messageboxdata->numbuttons - 1 - i];
+        } else {
+            sdlButton = &messageboxdata->buttons[i];
+        }
+        UICommand ^ button = ref new UICommand(WINRT_UTF8ToPlatformString(sdlButton->text));
+        button->Id = IntPtr((int)((size_t)(sdlButton - messageboxdata->buttons)));
         dialog->Commands->Append(button);
-        if (messageboxdata->buttons[i].flags & SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) {
+        if (sdlButton->flags & SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) {
             dialog->CancelCommandIndex = i;
         }
-        if (messageboxdata->buttons[i].flags & SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) {
+        if (sdlButton->flags & SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) {
             dialog->DefaultCommandIndex = i;
         }
     }
@@ -103,10 +106,9 @@ WINRT_ShowMessageBox(const SDL_MessageBoxData *messageboxdata, int *buttonid)
         *buttonid = messageboxdata->buttons[clicked_index].buttonid;
     }
     return 0;
-#endif /* if WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP / else */
+#endif /* if SDL_WINAPI_FAMILY_PHONE / else */
 }
 
 #endif /* SDL_VIDEO_DRIVER_WINRT */
 
 /* vi: set ts=4 sw=4 expandtab: */
-

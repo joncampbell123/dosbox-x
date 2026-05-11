@@ -1,25 +1,25 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ftccache.h                                                             */
-/*                                                                         */
-/*    FreeType internal cache interface (specification).                   */
-/*                                                                         */
-/*  Copyright 2000-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ftccache.h
+ *
+ *   FreeType internal cache interface (specification).
+ *
+ * Copyright (C) 2000-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
 #ifndef FTCCACHE_H_
 #define FTCCACHE_H_
 
-
+#include <freetype/internal/compiler-macros.h>
 #include "ftcmru.h"
 
 FT_BEGIN_HEADER
@@ -42,17 +42,17 @@ FT_BEGIN_HEADER
   /*************************************************************************/
   /*************************************************************************/
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* Each cache controls one or more cache nodes.  Each node is part of    */
-  /* the global_lru list of the manager.  Its `data' field however is used */
-  /* as a reference count for now.                                         */
-  /*                                                                       */
-  /* A node can be anything, depending on the type of information held by  */
-  /* the cache.  It can be an individual glyph image, a set of bitmaps     */
-  /* glyphs for a given size, some metrics, etc.                           */
-  /*                                                                       */
-  /*************************************************************************/
+  /**************************************************************************
+   *
+   * Each cache controls one or more cache nodes.  Each node is part of
+   * the global_lru list of the manager.  Its `data' field however is used
+   * as a reference count for now.
+   *
+   * A node can be anything, depending on the type of information held by
+   * the cache.  It can be an individual glyph image, a set of bitmaps
+   * glyphs for a given size, some metrics, etc.
+   *
+   */
 
   /* structure size should be 20 bytes on 32-bits machines */
   typedef struct  FTC_NodeRec_
@@ -72,11 +72,12 @@ FT_BEGIN_HEADER
 #define FTC_NODE_NEXT( x )  FTC_NODE( (x)->mru.next )
 #define FTC_NODE_PREV( x )  FTC_NODE( (x)->mru.prev )
 
+  /* address the hash table entries */
 #ifdef FTC_INLINE
-#define FTC_NODE_TOP_FOR_HASH( cache, hash )                      \
-        ( ( cache )->buckets +                                    \
-            ( ( ( ( hash ) &   ( cache )->mask ) < ( cache )->p ) \
-              ? ( ( hash ) & ( ( cache )->mask * 2 + 1 ) )        \
+#define FTC_NODE_TOP_FOR_HASH( cache, hash )                       \
+        ( ( cache )->buckets +                                     \
+            ( ( ( ( hash ) &   ( cache )->mask ) >= ( cache )->p ) \
+              ? ( ( hash ) & ( ( cache )->mask >> 1 ) )            \
               : ( ( hash ) &   ( cache )->mask ) ) )
 #else
   FT_LOCAL( FTC_Node* )
@@ -139,11 +140,13 @@ FT_BEGIN_HEADER
   } FTC_CacheClassRec;
 
 
-  /* each cache really implements a dynamic hash table to manage its nodes */
+  /* each cache really implements a hash table to manage its nodes    */
+  /* the number of the table entries (buckets) can change dynamically */
+  /* each bucket contains a linked lists of nodes for a given hash    */
   typedef struct  FTC_CacheRec_
   {
-    FT_UFast           p;
-    FT_UFast           mask;
+    FT_UFast           p;           /* hash table counter     */
+    FT_UFast           mask;        /* hash table index range */
     FT_Long            slack;
     FTC_Node*          buckets;
 
@@ -210,7 +213,7 @@ FT_BEGIN_HEADER
 #define FTC_CACHE_LOOKUP_CMP( cache, nodecmp, hash, query, node, error ) \
   FT_BEGIN_STMNT                                                         \
     FTC_Node             *_bucket, *_pnode, _node;                       \
-    FTC_Cache             _cache   = FTC_CACHE(cache);                   \
+    FTC_Cache             _cache   = FTC_CACHE( cache );                 \
     FT_Offset             _hash    = (FT_Offset)(hash);                  \
     FTC_Node_CompareFunc  _nodcomp = (FTC_Node_CompareFunc)(nodecmp);    \
     FT_Bool               _list_changed = FALSE;                         \
@@ -251,7 +254,7 @@ FT_BEGIN_HEADER
           goto NewNode_;                                                 \
         }                                                                \
         else                                                             \
-          _pnode = &((*_pnode)->link);                                   \
+          _pnode = &(*_pnode)->link;                                     \
       }                                                                  \
     }                                                                    \
                                                                          \
@@ -302,11 +305,11 @@ FT_BEGIN_HEADER
    *
    * Example:
    *
-   *   {
-   *     FTC_CACHE_TRYLOOP( cache )
-   *       error = load_data( ... );
-   *     FTC_CACHE_TRYLOOP_END()
-   *   }
+   * {
+   *   FTC_CACHE_TRYLOOP( cache )
+   *     error = load_data( ... );
+   *   FTC_CACHE_TRYLOOP_END()
+   * }
    *
    */
 #define FTC_CACHE_TRYLOOP( cache )                           \

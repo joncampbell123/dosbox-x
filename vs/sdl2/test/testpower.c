@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -13,13 +13,14 @@
 
 #include <stdio.h>
 #include "SDL.h"
+#include "SDL_test.h"
 
 static void
 report_power(void)
 {
     int seconds, percent;
     const SDL_PowerState state = SDL_GetPowerInfo(&seconds, &percent);
-    char *statestr = NULL;
+    const char *statestr = NULL;
 
     SDL_Log("SDL-reported power info...\n");
     switch (state) {
@@ -54,26 +55,35 @@ report_power(void)
     if (seconds == -1) {
         SDL_Log("Time left: unknown\n");
     } else {
-        SDL_Log("Time left: %d minutes, %d seconds\n", (int) (seconds / 60),
-               (int) (seconds % 60));
+        SDL_Log("Time left: %d minutes, %d seconds\n", seconds / 60, seconds % 60);
     }
 }
 
-
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
+    SDLTest_CommonState *state;
+
+    state = SDLTest_CommonCreateState(argv, 0);
+    if (!state) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDLTest_CommonCreateState failed: %s\n", SDL_GetError());
+        return 1;
+    }
+
     /* Enable standard application logging */
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 
-    if (SDL_Init(0) == -1) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Init() failed: %s\n", SDL_GetError());
+    if (!SDLTest_CommonDefaultArgs(state, argc, argv)) {
+        return 1;
+    }
+
+    if (!SDLTest_CommonInit(state)) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
         return 1;
     }
 
     report_power();
 
-    SDL_Quit();
+    SDLTest_CommonQuit(state);
     return 0;
 }
 

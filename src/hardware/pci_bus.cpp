@@ -125,6 +125,37 @@ PCI_Device::PCI_Device(uint16_t vendor, uint16_t device) {
 	host_writew(config_writemask+0x04,0x0403);	/* allow changing mem/io enable and interrupt disable */
 }
 
+class PCI_DOSBoxIGVGADevice:public PCI_Device {
+private:
+	static const uint16_t vendor=0xD05B;		// DOSBox
+	static const uint16_t device=0x6845;		// VGA device
+public:
+	PCI_DOSBoxIGVGADevice():PCI_Device(vendor,device) {
+		Bitu vmmask = bitop::rounduppow2mask(vga.mem.memsize - 1u); // vga.mem.memmask is not yet initialized here
+
+		config[0x08] = 0x00;	// revision ID
+
+		config[0x09] = 0x00;	// interface
+		config[0x0a] = 0x00;	// subclass type (vga compatible)
+		config[0x0b] = 0x03;	// class type (display controller)
+		config[0x0c] = 0x00;	// cache line size
+		config[0x0d] = 0x00;	// latency timer
+		config[0x0e] = 0x00;	// header type (other)
+
+		config[0x3c] = 0xff;	// no irq
+
+		// reset
+		config[0x04] = 0x23;	// command register (vga palette snoop, ports enabled, memory space enabled)
+		config[0x05] = 0x00;
+		config[0x06] = 0x80;	// status register (medium timing, fast back-to-back)
+		config[0x07] = 0x02;
+
+		host_writew(config_writemask+0x04,0x0023);	/* allow changing mem/io enable and VGA palette snoop */
+		host_writed(config_writemask+0x10,(uint32_t)(~vmmask));	/* BAR0: memory resource aligned to vmemsize */
+		host_writed(config+0x10,(((uint32_t)S3_LFB_BASE)&0xfffffff0) | 0x8);
+	}
+};
+
 class PCI_VGADevice:public PCI_Device {
 private:
 	static const uint16_t vendor=0x5333;		// S3
@@ -139,6 +170,10 @@ public:
 				return 0x88C0; // Vision864, 0x88C0 or 0x88C1
 			case S3_Vision868:
 				return 0x8880; // Vision868, 0x8880 or 0x8881. S3 didn't list this in their datasheet, but Windows 95 INF files listed it anyway
+			case S3_Vision964:
+				return 0x88d0; // Vision964, 0x88d0, 0x88d1, 0x88d2 or 0x88d3
+			case S3_Vision968:
+				return 0x88f0; // Vision968, 0x88f0, 0x88f1, 0x88f2 or 0x88f3
 			case S3_Trio32:
 				return 0x8810; // Trio32. 0x8810 or 0x8811
 			case S3_Trio64:
@@ -183,11 +218,13 @@ public:
 		switch (s3Card) {
 			case S3_86C928:
 			case S3_Vision864:
+			case S3_Vision964:
 			case S3_Trio32:
 			case S3_Trio64:
 				host_writed(config_writemask+0x10,0xFF800000);	/* BAR0: memory resource 8MB aligned [22:0 reserved] */
 				break;
 			case S3_Vision868:
+			case S3_Vision968:
 			case S3_Trio64V:
 			case S3_ViRGE:
 			case S3_ViRGEVX:
@@ -240,14 +277,14 @@ public:
 		}
 	}
 
-	virtual void config_write(uint8_t regnum,Bitu iolen,uint32_t value) {
+	void config_write(uint8_t regnum,Bitu iolen,uint32_t value) override {
 		if (iolen == 1) {
-            const unsigned char mask = config_writemask[regnum];
-            const unsigned char nmask = ~mask;
+			const unsigned char mask = config_writemask[regnum];
+			const unsigned char nmask = ~mask;
 
 			/* configuration write masks apply here as well */
 			config[regnum] =
-                ((unsigned char)value & mask) +
+				((unsigned char)value & mask) +
 				(config[regnum] & nmask);
 
 			switch (regnum) { /* FIXME: I hope I ported this right --J.C. */
@@ -274,7 +311,7 @@ public:
 			PCI_Device::config_write(regnum,iolen,value); /* which will break down I/O into 8-bit */
 		}
 	}
-	virtual uint32_t config_read(uint8_t regnum,Bitu iolen) {
+	uint32_t config_read(uint8_t regnum,Bitu iolen) override {
 		if (iolen == 1) {
 			switch (regnum) {
 				case 0x4c: /* FIXME: I hope I ported this right --J.C. */
@@ -340,8 +377,9 @@ static void InitializePCI(void) {
 	PCI_ReadHandler[0].Install(0xcf8,read_pci_addr,IO_MD);
 	// install PCI-register read/write handlers
 	for (Bitu ct=0;ct<4;ct++) {
-		PCI_WriteHandler[1+ct].Install(0xcfc+ct,write_pci,IO_MB);
-		PCI_ReadHandler[1+ct].Install(0xcfc+ct,read_pci,IO_MB);
+		Bitu msk = IO_MB | ((ct & 1) ? 0 : IO_MW) | ((ct & 3) ? 0 : IO_MD);;
+		PCI_WriteHandler[1+ct].Install(0xcfc+ct,write_pci,msk);
+		PCI_ReadHandler[1+ct].Install(0xcfc+ct,read_pci,msk);
 	}
 
 	callback_pci.Install(&PCI_PM_Handler,CB_IRETD,"PCI PM");
@@ -431,8 +469,27 @@ static void Deinitialize(void) {
 
 static PCI_Device *S3_PCI=NULL;
 static PCI_Device *SST_PCI=NULL;
+static PCI_Device *DOSBoxIG_PCI=NULL;
 
 extern bool enable_pci_vga;
+
+void PCI_AddSVGADOSBoxIG_Device(void) {
+	if (!pcibus_enable || !enable_pci_vga) return;
+
+	if (DOSBoxIG_PCI == NULL) {
+		if ((DOSBoxIG_PCI=new PCI_DOSBoxIGVGADevice()) == NULL)
+			return;
+
+		RegisterPCIDevice(DOSBoxIG_PCI);
+	}
+}
+
+void PCI_RemoveSVGADOSBoxIG_Device(void) {
+	if (DOSBoxIG_PCI != NULL) {
+		UnregisterPCIDevice(DOSBoxIG_PCI);
+		DOSBoxIG_PCI = NULL;
+	}
+}
 
 void PCI_AddSVGAS3_Device(void) {
 	if (!pcibus_enable || !enable_pci_vga) return;

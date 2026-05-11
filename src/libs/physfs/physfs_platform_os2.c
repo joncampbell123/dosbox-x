@@ -33,7 +33,7 @@
 static HMODULE uconvdll = 0;
 static UconvObject uconv = 0;
 static int (_System *pUniCreateUconvObject)(UniChar *, UconvObject *) = NULL;
-static int (_System *pUniFreeUconvObject)(UconvObject *) = NULL;
+static int (_System *pUniFreeUconvObject)(UconvObject) = NULL;
 static int (_System *pUniUconvToUcs)(UconvObject,void **,size_t *, UniChar**, size_t *, size_t *) = NULL;
 static int (_System *pUniUconvFromUcs)(UconvObject,UniChar **,size_t *,void **,size_t *,size_t *) = NULL;
 
@@ -172,7 +172,7 @@ static char *cvtCodepageToUtf8(const char *cpstr)
         size_t cplen = len;
         size_t unilen = len;
         size_t subs = 0;
-        UniChar *uc2ptr = __PHYSFS_smallAlloc(len * sizeof (UniChar));
+        UniChar *uc2ptr = (UniChar*)__PHYSFS_smallAlloc(len * sizeof (UniChar));
         UniChar *uc2str = uc2ptr;
 
         BAIL_IF(!uc2ptr, PHYSFS_ERR_OUT_OF_MEMORY, NULL);
@@ -268,9 +268,9 @@ static void prepUnicodeSupport(void)
     int ok = 0;                                                   
     char buf[CCHMAXPATH];
     UniChar defstr[] = { 0 };
-    if (DosLoadModule(buf, sizeof (buf) - 1, "uconv", &uconvdll) == NO_ERROR)
+    if (DosLoadModule((PSZ)buf, sizeof (buf) - 1, (PCSZ)"uconv", &uconvdll) == NO_ERROR)
     {
-        #define LOAD(x) (DosQueryProcAddr(uconvdll,0,#x,(PFN*)&p##x)==NO_ERROR)
+        #define LOAD(x) (DosQueryProcAddr(uconvdll,0,(PCSZ)#x,(PFN*)&p##x)==NO_ERROR)
         ok = LOAD(UniCreateUconvObject) &&
              LOAD(UniFreeUconvObject) &&
              LOAD(UniUconvToUcs) &&
@@ -298,12 +298,12 @@ int __PHYSFS_platformInit(void)
     return 1;  /* ready to go! */
 } /* __PHYSFS_platformInit */
 
-
 void __PHYSFS_platformDeinit(void)
 {
     if (uconvdll)
     {
-        pUniFreeUconvObject(uconv);
+        if (uconv)
+            pUniFreeUconvObject(uconv);
         uconv = 0;
         DosFreeModule(uconvdll);
         uconvdll = 0;
@@ -551,7 +551,7 @@ static HFILE openFile(const char *filename, const ULONG flags, const ULONG mode)
 
     BAIL_IF_ERRPASS(!cpfname, 0);
 
-    rc = DosOpen(cpfname, &hfile, &action, 0, FILE_NORMAL, flags, mode, NULL);
+    rc = DosOpen((PCSZ)cpfname, &hfile, &action, 0, FILE_NORMAL, flags, mode, NULL);
     allocator.Free(cpfname);
     BAIL_IF(rc != NO_ERROR, errcodeFromAPIRET(rc), 0);
 
@@ -690,9 +690,9 @@ int __PHYSFS_platformDelete(const char *path)
     int retval = 0;
 
     BAIL_IF_ERRPASS(!cppath, 0);
-    rc = DosQueryPathInfo(cppath, FIL_STANDARD, &fs, sizeof (fs));
+    rc = DosQueryPathInfo((PCSZ)cppath, FIL_STANDARD, &fs, sizeof (fs));
     GOTO_IF(rc != NO_ERROR, errcodeFromAPIRET(rc), done);
-    rc = (fs.attrFile & FILE_DIRECTORY) ? DosDeleteDir(path) : DosDelete(path);
+    rc = (fs.attrFile & FILE_DIRECTORY) ? DosDeleteDir((PCSZ)path) : DosDelete((PCSZ)path);
     GOTO_IF(rc != NO_ERROR, errcodeFromAPIRET(rc), done);
     retval = 1;  /* success */
 
@@ -730,7 +730,7 @@ int __PHYSFS_platformStat(const char *filename, PHYSFS_Stat *stat, const int fol
 
     BAIL_IF_ERRPASS(!cpfname, 0);
 
-    rc = DosQueryPathInfo(cpfname, FIL_STANDARD, &fs, sizeof (fs));
+    rc = DosQueryPathInfo((PCSZ)cpfname, FIL_STANDARD, &fs, sizeof (fs));
     GOTO_IF(rc != NO_ERROR, errcodeFromAPIRET(rc), done);
 
     if (fs.attrFile & FILE_DIRECTORY)

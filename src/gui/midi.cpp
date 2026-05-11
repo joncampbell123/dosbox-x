@@ -61,13 +61,14 @@ uint8_t MIDI_evt_len[256] = {
   0,2,3,2, 0,0,1,0, 1,0,1,1, 1,0,1,0   // 0xf0
 };
 
-MidiHandler * handler_list = 0;
+MidiHandler * handler_list = nullptr;
 
 MidiHandler::MidiHandler(){
 	next = handler_list;
 	handler_list = this;
 }
 
+bool roland_gs_sysex = true;
 MidiHandler Midi_none;
 DB_Midi midi;
 std::string sffile="Not available";
@@ -98,7 +99,7 @@ static struct {
 #include "midi_mt32.h"
 #endif
 
-#if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
+#if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 #include "midi_synth.h"
 #endif
 
@@ -520,7 +521,7 @@ void MIDI_RawOutByte(uint8_t data) {
 		midi.handler->PlayMsg(midi.rt_buf);
 		return;
 	}	 
-	/* Test for a active sysex tranfer */
+	/* Test for an active sysex transfer */
 	if (midi.status==0xf0) {
 		if (!(data&0x80)) { 
 			if (midi.sysex.used<(SYSEX_SIZE-1)) midi.sysex.buf[midi.sysex.used++] = data;
@@ -533,6 +534,27 @@ void MIDI_RawOutByte(uint8_t data) {
 			} else {
 //				LOG(LOG_ALL,LOG_NORMAL)("Play sysex; address:%02X %02X %02X, length:%4d, delay:%3d", midi.sysex.buf[5], midi.sysex.buf[6], midi.sysex.buf[7], midi.sysex.used, midi.sysex.delay);
 				midi.handler->PlaySysex(midi.sysex.buf, midi.sysex.used);
+
+				if (roland_gs_sysex) {
+					if (midi.sysex.buf[1] == 0x41/*Roland*/ && midi.sysex.buf[3] == 0x42/*GS*/ && midi.sysex.buf[4] == 0x12/*Send*/) {
+						const uint32_t addr =
+							((uint32_t)midi.sysex.buf[5] << 16) +
+							((uint32_t)midi.sysex.buf[6] <<  8) +
+							(uint32_t)midi.sysex.buf[7];
+
+						switch (addr) {
+							case 0x40007F: /* GS reset */
+								{
+									uint8_t msg[] = {0xFF};
+									midi.handler->PlayMsg(msg); /* MIDI reset */
+								}
+								break;
+							default:
+								break;
+						};
+					}
+				}
+
 				if (midi.sysex.start) {
 					if (midi.sysex.buf[5] == 0x7F) {
 						midi.sysex.delay = 290; // All Parameters reset
@@ -540,7 +562,12 @@ void MIDI_RawOutByte(uint8_t data) {
 						midi.sysex.delay = 145; // Viking Child
 					} else if (midi.sysex.buf[5] == 0x10 && midi.sysex.buf[6] == 0x00 && midi.sysex.buf[7] == 0x01) {
 						midi.sysex.delay = 30; // Dark Sun 1
-					} else midi.sysex.delay = (Bitu)(((float)(midi.sysex.used) * 1.25f) * 1000.0f / 3125.0f) + 2;
+					} else {
+						midi.sysex.delay = (Bitu)(((float)(midi.sysex.used) * 1.25f) * 1000.0f / 3125.0f) + 2;
+						if (midi.sysex.extra_delay && midi.sysex.delay < 40) {
+							midi.sysex.delay = 40;
+						}
+					}
 					midi.sysex.start = GetTicks();
 				}
 			}
@@ -585,7 +612,7 @@ public:
 		Section_prop * section = static_cast<Section_prop *>(configuration);
 		const char * dev=section->Get_string("mididevice");
 		std::string fullconf = section->Get_string("midiconfig");
-#if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
+#if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 		synthsamplerate = section->Get_int("samplerate");
 		if (synthsamplerate == 0) synthsamplerate = 44100;
 #endif
@@ -595,6 +622,8 @@ public:
 		MidiHandler * handler;
 		bool opened = false;
 
+		roland_gs_sysex = section->Get_bool("roland gs sysex");
+
 //		MAPPER_AddHandler(MIDI_SaveRawEvent,MK_f8,MMOD1|MMOD2,"caprawmidi","Cap MIDI");
 		midi.sysex.delay = 0;
 		midi.sysex.start = 0;
@@ -602,6 +631,7 @@ public:
 			midi.sysex.start = GetTicks();
 			fullconf.erase(fullconf.find("delaysysex"));
 			LOG(LOG_MISC,LOG_DEBUG)("MIDI:Using delayed SysEx processing");
+			midi.sysex.extra_delay = true;
 		}
 		trim(fullconf);
 		const char * conf = fullconf.c_str();
@@ -655,7 +685,7 @@ public:
 		}
 		if(midi.available) midi.handler->Close();
 		midi.available = false;
-		midi.handler = 0;
+		midi.handler = nullptr;
 	}
 };
 
@@ -706,7 +736,7 @@ public:
     {}
 
 private:
-    virtual void getBytes(std::ostream& stream)
+    void getBytes(std::ostream& stream) override
     {
 				if( !test ) return;
 
@@ -749,7 +779,7 @@ private:
 				}
     }
 
-    virtual void setBytes(std::istream& stream)
+    void setBytes(std::istream& stream) override
     {
 				if( !test ) return;
 

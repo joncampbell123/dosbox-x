@@ -27,6 +27,10 @@
 #include "control.h"
 #include "ide.h"
 
+char *DBCS_upcase(char *);
+
+bool wildmount = false;
+
 bool wild_match(const char *haystack, char *needle) {
 	size_t max, i;
     for (; *needle != '\0'; ++needle) {
@@ -55,6 +59,7 @@ bool wild_match(const char *haystack, char *needle) {
 
 bool WildFileCmp(const char * file, const char * wild) 
 {
+	if (!file||!wild) return false;
 	char file_name[9];
 	char file_ext[4];
     char wild_name[10];
@@ -128,7 +133,7 @@ checkext:
 
 bool LWildFileCmp(const char * file, const char * wild)
 {
-    if (!uselfn||*file == 0) return false;
+    if ((!uselfn&&!wildmount)||!file||!wild||(*file&&!*wild)||strlen(wild)>LFN_NAMELENGTH) return false;
     char file_name[256];
     char file_ext[256];
     char wild_name[256];
@@ -206,52 +211,110 @@ checkext:
 	}
 }
 
-void Set_Label(char const * const input, char * const output, bool cdrom) {
-    /* I don't know what MSCDEX.EXE does but don't put dots in the 11-char volume label for non-CD-ROM drives */
-    if (!cdrom) {
-        Bitu togo     = 11;
-        Bitu vnamePos = 0;
-        Bitu labelPos = 0;
-
-        while (togo > 0) {
-            if (input[vnamePos]==0) break;
-            //Another mscdex quirk. Label is not always uppercase. (Daggerfall)
-            output[labelPos] = toupper(input[vnamePos]);
-            labelPos++;
-            vnamePos++;
-            togo--;
-        }
-        output[labelPos] = 0;
-        if((labelPos > 0) && (output[labelPos-1] == '.') && labelPos == 9) output[labelPos-1] = 0;
-        return;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+char *CodePageHostToGuest(const host_cnv_char_t *s);
+int get_expanded_files(const std::string &path, std::vector<std::string> &paths, bool readonly) {
+    std::vector<std::string> files, names;
+    if (!path.size()) return 0;
+    char full[CROSS_LEN], pdir[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r;
+    strcpy(full, path.c_str());
+    r=strrchr_dbcs(full, CROSS_FILESPLIT);
+    if (r!=NULL) {
+        *r=0;
+        strcpy(pdir, full);
+        strcpy(pattern, r+1);
+        *r=CROSS_FILESPLIT;
+    } else {
+        strcpy(pdir, "");
+        strcpy(pattern, full);
     }
+    if (!strchr(pattern, '*')&&!strchr(pattern, '?')) return 0;
 
-	Bitu togo     = 8;
-	Bitu vnamePos = 0;
-	Bitu labelPos = 0;
-	bool point    = false;
-
-	//spacepadding the filenamepart to include spaces after the terminating zero is more closely to the specs. (not doing this now)
-	// HELLO\0' '' '
-
-	while (togo > 0) {
-		if (input[vnamePos]==0) break;
-		if (!point && (input[vnamePos]=='.')) {	togo=4; point=true; }
-
-		output[labelPos] = input[vnamePos];
-
-		labelPos++; vnamePos++;
-		togo--;
-		if ((togo==0) && !point) {
-			if (input[vnamePos]=='.') vnamePos++;
-			output[labelPos]='.'; labelPos++; point=true; togo=3;
-		}
+#if defined(WIN32)
+    HANDLE hFind;
+    WIN32_FIND_DATA fd;
+    WIN32_FIND_DATAW fdw;
+    host_cnv_char_t *host_name = CodePageGuestToHost((std::string(pdir)+"\\*.*").c_str());
+    if (host_name != NULL) hFind = FindFirstFileW(host_name, &fdw);
+    else hFind = FindFirstFile((std::string(pdir)+"\\*.*").c_str(), &fd);
+    if (hFind != INVALID_HANDLE_VALUE) {
+        do {
+            const char* temp_name = NULL;
+            if (host_name != NULL) temp_name = CodePageHostToGuest(fdw.cFileName);
+            if (!((host_name != NULL ? fdw.dwFileAttributes : fd.dwFileAttributes) & FILE_ATTRIBUTE_DIRECTORY)) {
+                if (host_name == NULL)
+                    names.emplace_back(fd.cFileName);
+                else if (temp_name != NULL)
+                    names.emplace_back(temp_name);
+            }
+        } while(host_name != NULL ? FindNextFileW(hFind, &fdw) : FindNextFile(hFind, &fd));
+        FindClose(hFind);
+    }
+#else
+    std::string homedir(pdir);
+    Cross::ResolveHomedir(homedir);
+    strcpy(pdir, homedir.c_str());
+    struct dirent *dir;
+    host_cnv_char_t *host_name = CodePageGuestToHost(pdir);
+    DIR *d = opendir(host_name != NULL ? host_name : pdir);
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            host_cnv_char_t *temp_name = CodePageHostToGuest(dir->d_name);
+#if defined(HAIKU)
+            struct stat path_stat;
+            stat(dir->d_name, &path_stat);
+            bool is_regular_file = S_ISREG(path_stat.st_mode);
+#else
+            bool is_regular_file = (dir->d_type == DT_REG);
+#endif
+            if (is_regular_file)
+                names.push_back(temp_name!=NULL?temp_name:dir->d_name);
+        }
+        closedir(d);
+    }
+#endif
+	wildmount = true;
+	for (std::string name: names) {
+		if (LWildFileCmp(name.c_str(), pattern))
+			files.push_back((readonly ? ":":"") + std::string(pdir) + std::string(1, CROSS_FILESPLIT) + name);
 	}
-	output[labelPos]=0;
+	wildmount = false;
 
-	//Remove trailing dot. except when on cdrom and filename is exactly 8 (9 including the dot) letters. MSCDEX feature/bug (fifa96 cdrom detection)
-	if((labelPos > 0) && (output[labelPos-1] == '.') && !(cdrom && labelPos ==9))
-		output[labelPos-1] = 0;
+	if (files.size()) {
+		sort(files.begin(), files.end());
+		paths.insert(paths.end(), files.begin(), files.end());
+		return files.size();
+	} else {
+		return 0;
+	}
+}
+
+void Set_Label(char const * const input, char * const output, bool cdrom) {
+    uint8_t togo = 11;
+    uint8_t vnamePos = 0;
+    uint8_t labelPos = 0;
+    char upcasebuf[12];
+    bool str_end = false; // True if end of string is detected
+    strncpy(upcasebuf, input, 11);
+    //DBCS_upcase(upcasebuf);  /* Another mscdex quirk. Label is not always uppercase. (Daggerfall) */ 
+
+    while (togo > 0) {
+        if(upcasebuf[vnamePos] == 0 && !str_end) {
+            str_end = true;
+            if(cdrom && vnamePos == 8) output[labelPos++] = '.';
+            //Add a trailing dot ('.') when on cdrom and label is exactly 8 characters, MSCDEX feature/bug (fifa96 cdrom detection)
+        }
+        else if(cdrom && vnamePos == 8 && !str_end && upcasebuf[vnamePos] != '.') {
+            output[labelPos] = '.'; // add a dot between 8th and 9th character (Descent 2 installer needs this)
+            labelPos++;
+        }
+        output[labelPos] = !str_end ? upcasebuf[vnamePos] : 0x0; // Pad empty characters with 0x00
+        labelPos++;
+        vnamePos++;
+        togo--;
+    }
+    output[labelPos] = 0;
+    return;
 }
 
 DOS_Drive::DOS_Drive() {
@@ -285,8 +348,8 @@ void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
     if (cdrom) IDE_CDROM_Detach_Ret(index,slave,drive);
     strcpy(disk->curdir,driveInfo.disks[driveInfo.currentDisk]->curdir);
     disk->Activate();
-    disk->UpdateDPB(currentDrive);
-    if (cdrom && dos_kernel_disabled) cdrom->loadImage();
+    if (!dos_kernel_disabled) disk->UpdateDPB(currentDrive);
+    else if (cdrom) cdrom->loadImage();
     driveInfo.disks[driveInfo.currentDisk] = disk;
     fatDrive *old = dynamic_cast<fatDrive*>(Drives[drive]);
     Drives[drive] = disk;
@@ -312,14 +375,14 @@ void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
         }
         if (!dos_kernel_disabled) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-            uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+            uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
             RealPt save_dta = dos.dta();
             dos.dta(dos.tables.tempdta);
             DOS_DTA dta(dos.dta());
             char root[7] = {(char)('A'+drive),':','\\','*','.','*',0};
             bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
             if (ret) {
-                dta.GetResult(name,lname,size,date,time,attr);
+                dta.GetResult(name,lname,size,hsize,date,time,attr);
                 DOS_FindNext();
             } else name[0] = 0;
             dos.dta(save_dta);
@@ -373,25 +436,37 @@ void DriveManager::CycleDisk(bool pressed) {
 }
 */
 
-void DriveManager::CycleDisks(int drive, bool notify, int position) {
+void DriveManager::CycleDisks(int drive, bool notify, unsigned int position) {
 	unsigned int numDisks = (unsigned int)driveInfos[drive].disks.size();
 	if (numDisks > 1) {
 		// cycle disk
-		unsigned int currentDisk = (unsigned int)driveInfos[drive].currentDisk;
-        const DOS_Drive* oldDisk = driveInfos[drive].disks[(unsigned int)currentDisk];
+		unsigned int currentDisk = driveInfos[drive].currentDisk;
+        const DOS_Drive* oldDisk = driveInfos[drive].disks[currentDisk];
         if (position<1)
-            currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;
+            currentDisk = (currentDisk + 1u) % numDisks;
         else if (position>numDisks)
             currentDisk = 0;
         else
             currentDisk = position - 1;
 		DOS_Drive* newDisk = driveInfos[drive].disks[currentDisk];
 		driveInfos[drive].currentDisk = currentDisk;
+		if (drive < MAX_DISK_IMAGES && imageDiskList[drive] != NULL) {
+			imageDiskList[drive]->Release();
+			imageDiskList[drive] = NULL;
+
+			if (strncmp(newDisk->GetInfo(),"fatDrive",8) == 0)
+				imageDiskList[drive] = ((fatDrive *)newDisk)->loadedDisk;
+			else
+				imageDiskList[drive] = (imageDisk *)newDisk;
+
+			if (imageDiskList[drive] != NULL) imageDiskList[drive]->Addref();
+			if ((drive == 2 || drive == 3) && imageDiskList[drive]->hardDrive) updateDPT();
+		}
 		
-		// copy working directory, acquire system resources and finally switch to next drive		
+		// copy working directory, acquire system resources and finally switch to next drive
 		strcpy(newDisk->curdir, oldDisk->curdir);
 		newDisk->Activate();
-        newDisk->UpdateDPB(currentDrive);
+		if (!dos_kernel_disabled) newDisk->UpdateDPB(currentDrive);
 		Drives[drive] = newDisk;
 		if (notify) LOG_MSG("Drive %c: disk %d of %d now active", 'A'+drive, currentDisk+1, numDisks);
 	}
@@ -409,14 +484,14 @@ void DriveManager::CycleAllCDs(void) {
 			unsigned int currentDisk = driveInfos[idrive].currentDisk;
             const DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
             if (dynamic_cast<const isoDrive*>(oldDisk) == NULL) continue;
-			currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;		
+			currentDisk = (currentDisk + 1u) % numDisks;
 			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
 			
-			// copy working directory, acquire system resources and finally switch to next drive		
+			// copy working directory, acquire system resources and finally switch to next drive
 			strcpy(newDisk->curdir, oldDisk->curdir);
 			newDisk->Activate();
-            newDisk->UpdateDPB(currentDrive);
+            if (!dos_kernel_disabled) newDisk->UpdateDPB(currentDrive);
             Drives[idrive] = newDisk;
 			LOG_MSG("Drive %c: disk %d of %d now active", 'A'+idrive, currentDisk+1, numDisks);
 		}
@@ -458,6 +533,7 @@ char * DriveManager::GetDrivePosition(int drive) {
 bool drivemanager_init = false;
 bool int13_extensions_enable = true;
 bool int13_disk_change_detect_enable = true;
+bool int13_enable_48bitLBA = true;
 
 void DriveManager::Init(Section* s) {
     const Section_prop* section = static_cast<Section_prop*>(s);
@@ -466,6 +542,7 @@ void DriveManager::Init(Section* s) {
 
 	int13_extensions_enable = section->Get_bool("int 13 extensions");
 	int13_disk_change_detect_enable = section->Get_bool("int 13 disk change detect");
+    int13_enable_48bitLBA = section->Get_bool("int 13 enable 48-bit LBA");
 
 	// setup driveInfos structure
 	currentDrive = 0;

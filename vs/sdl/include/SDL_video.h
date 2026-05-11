@@ -37,6 +37,10 @@
 extern "C" {
 #endif
 
+#if defined(__LINUX__)
+extern unsigned char sdl1_force_x11; /* If we are running under a desktop like X11 or Wayland, do NOT use any other driver, especially fbcon! */
+#endif
+
 /** @name Transparency definitions
  *  These define alpha as the opacity of a surface
  */

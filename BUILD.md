@@ -1,111 +1,164 @@
 Building DOSBox-X
 =================
 
-The page is about building the DOSBox-X source code. For instructions on installing
-and using DOSBox-X, please look at the [INSTALL](INSTALL.md) page and the [DOSBox-X Wiki](https://dosbox-x.com/wiki).
+The page is about manually building the DOSBox-X source code.
+Automated development (preview) builds intended for testing purposes for various
+platforms are also available from the [DOSBox-X Development Builds](https://dosbox-x.com/devel-build.html) page.
+Released builds are available from the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
+
+For instructions on installing and using DOSBox-X, please look at the
+[INSTALL](INSTALL.md) page and the [DOSBox-X Wiki](https://dosbox-x.com/wiki).
 
 General information on source code compilation
 ----------------------------------------------
 
 The four major operating systems and platforms of DOSBox-X are:
 
-1. Windows 10, 8, 7, Vista and XP for 32-bit and 64-bit x86/x64 and ARM
+1. Windows 11, 10, 8, 7, Vista and XP, 9x/NT4 for 32-bit and 64-bit x86/x64 and ARM
+- [Visual Studio (2017 and after)](#compiling-the-source-code-using-visual-studio-windows) for Vista and after
+- [MinGW standard and lowend builds](#compiling-the-source-code-using-mingw-windows)
 
-2. Linux (with X11) 64-bit x86/x64, and on a Raspberry Pi 3/4
+2. Linux (with X11) 64-bit x86/x64, and on a Raspberry Pi 3/4/5
+- [General procedures](#general-procedures-to-compile-the-source-code-cross-platform)
+- [Ubuntu](#to-compile-dosbox-x-in-ubuntu-tested-with-2004-and-2010)
+- [Fedora Workstation](#to-compile-dosbox-x-in-fedora-workstation)
+- [Raspberry Pi](#to-compile-dosbox-x-in-raspberry-pi)
 
-3. macOS (Mac OS X) Sierra 10.12 or higher, 64-bit Intel and ARM-based
+3. macOS (Mac OS X) High Sierra and after, Intel, ARM-based, and Universal
+- [macOS procedures](#compiling-the-source-code-in-macos-high-sierra-and-after)
 
 4. DOS (MS-DOS 5.0+ or compatible)
+- [HX-DOS](#to-compile-dosbox-x-for-dos-with-hx-dos-platform)
 
-Straight Windows builds are expected to compile using the free community edition
-of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
+The code requires a C++ compiler that can support the C++11 standard.
 
-Linux and MinGW Windows builds are expected to compile with the GNU autotools.
+DOSBox-X supports both SDL ([Simple Directmedia Library](https://www.libsdl.org/)) versions 1.x and 2.x.
 
-macOS builds are expected to compile on the terminal using GNU autotools and
-the LLVM/Clang compiler provided by XCode.
+Note that SDL1 version requires the in-tree SDL 1.x library since it has been heavily modified from 
+the original SDL 1.x source code and is thus somewhat incompatible with the stock library.
 
-In all cases, the code requires a C++ compiler that can support the C++11
-standard.
-
-Note that DOSBox-X suports both SDL 1.x and 2.x, and it is written to compile
-against the in-tree copy of the SDL 1.x (Simple Directmedia Libary), or against
-the SDL 2.x library provided by your Linux distribution.
-
-For Visual Studio and MinGW compilation, the in-tree copy of SDL is always
-used. Note that the in-tree SDL 1.x library has been heavily modified from
-the original SDL 1.x source code and is thus somewhat incompatible with the
-stock library.
-
-The modifications provide additional functions needed to improve DOSBox-X
-and fix many issues with keyboard input, window mangement, and display
-management that previously required terrible kludges within the DOSBox
+Such modifications provide additional functions needed to improve DOSBox-X and fix many issues with keyboard input,
+window management, and display management that previously required terrible kludges within the DOSBox
 and DOSBox-X source code.
 
-In Windows, the modifications also permit the emulation to run independent
-of the main window so that moving, resizing, or using menus does not cause
-emulation to pause.
+In Windows, the modifications also permit the emulation to run independent of the main window so that moving,
+resizing, or using menus does not cause emulation to pause.
 
-In macOS, the modifications provide an interface to allow DOSBox-X to
-replace and manage the macOS menu bar.
+In macOS, the modifications provide an interface to allow DOSBox-X to replace and manage the macOS menu bar.
+
+On the other hand, only a slight modification regarding IME support on Windows and macOS are added to the 
+in-tree SDL2 code, so Linux and macOS users may choose to use the original SDL2 library,
+while on Windows in-tree SDL2 code is always used.
 
 Please look at the [README.source-code-description](README.source-code-description) file for more information
 and descriptions on the source code.
 
-How to compile the source code (cross-platform)
+Compiling the source code using Visual Studio (Windows)
+-------------------------------------------------------
+
+The source code can be built with Visual Studio 2017, 2019, and 2022.
+The executables will work on 32-bit and 64-bit Windows Vista or higher.
+
+Use the ```./vs/dosbox-x.sln``` "solution" file, select 32/64-bit, SDL1/2 and build the source code.
+You will need the DirectX 2010 SDK for Direct3D9 support.
+
+By default the targeted platform is v142 (Visual Studio 2019).
+Change it to v141 (VS2017) or v143 (VS2022) accordingly to your build environment.
+
+`WindowsTargetPlatformVersion` is set to `10.0` by default, which make VS pick the latest Windows SDK version installed,
+but VS2017 requires you to explicitly set the version installed in your PC, for example `10.0.22000.0`.
+_Note that ARM builds requires versions ``10.0.22621.0`` or before._ 
+
+To build executables that will work on Windows XP, you have to change the target platform to v141 (Visual Studio 2017).
+After the build is completed, you have to patch the PE header of the executable using a tool included in the source code.
+
+```./contrib/windows/installer/PatchPE.exe path-to-your-exe-file/dosbox-x.exe```
+
+Libraries such as SDL, freetype, libpdcurses, libpng and zlib are already included,
+and as of DOSBox-X 0.83.6 support for FluidSynth MIDI Synthesizer is also included
+for Windows builds (set ``mididevice=fluidsynth`` in the [midi] section of DOSBox-X's
+configuration file (dosbox-x.conf) along with required soundfont file [e.g.
+``FluidR3_GM.sf2`` or ``GeneralUser_GS.sf2``] to use it).
+
+The slirp backend for the NE2000 network emulation is only supported by MinGW builds
+but not Visual Studio builds.
+
+Build the source code for your platform (Win32, x64, ARM and ARM64 are supported).
+
+As of 2018/06/06, Visual Studio 2017 builds (32-bit and 64-bit) explicitly require
+a processor that supports the SSE instruction set. As of version 2022.09.01, Visual
+Studio ARM/ARM64 builds require a Windows SDK that includes the OpenGL library.
+
+Visual Studio Code is supported, too.
+
+Check the [README.development-in-Windows](README.development-in-Windows) file for more information about this platform.
+
+Compiling the source code using MinGW (Windows)
 -----------------------------------------------
+Depending on the target OS to run DOSBox-X, the build environment and procedures will vary.
 
-* General Linux compile (SDL1)
+* For Windows 7 or later
+  * First install the required libraries needed.  
+    Libraries for mingw32(32-bit)
+    ```
+    pacman -S git make mingw-w64-i686-toolchain mingw-w64-i686-libslirp mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses
+    ```
+    Libraries for mingw64(64-bit)
+    ```
+    pacman -S git make mingw-w64-x86_64-toolchain mingw-w64-x86_64-libslirp mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake  mingw-w64-x86_64-ncurses
+    ```
+    Libraries for UCRT64(64-bit)
+    ```
+    pacman -S git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake mingw-w64-ucrt-x86_64-libslirp
+    ```
+  * Compile (SDL1 or SDL2, Common for 32-bit/64-bit builds)
+    ```
+    ./build-mingw
+    ```
+    ```
+    ./build-mingw-sdl2
+    ```
+* For Windows XP or later (SDL1 or SDL2, 32-bit only)
+  * Start a 32-bit toolchain from the original (MinGW not the MinGW-w64 project). 
+    Build environment for XP and later can be downloaded [here](https://github.com/joncampbell123/dosbox-x/blob/master/build-scripts/mingw/lowend-bin/i686-7.3.0-release-posix-dwarf-rt_v5-rev0%2Bnasm.7z).
+
+    As an example, the official Release and Nightly builds are built by overwriting MinGW32 environment of MSYS2 with the above environment.
+    Refer to `MinGW32_CI_lowend_build` section in [mingw32.yml](https://github.com/joncampbell123/dosbox-x/blob/master/.github/workflows/mingw32.yml) for details.
+  * Compile (SDL1 or SDL2, Common for 32-bit/64-bit builds)
+    ```
+    ./build-mingw-lowend
+    ```
+    ```
+    ./build-mingw-lowend-sdl2
+    ```
+
+* For Windows 9x/NT4 (SDL1, 32-bit only)
+  * Start a 32-bit toolchain from the original MinGW (not the MinGW-w64 project). 
+    Build environment for 9x/NT4 build can be downloaded [here](https://github.com/crazii/MINGW-toolchains-w9x/releases/download/v1.0.1-w95nt/mingw32.7z).
+
+    As an example, the official Release and Nightly builds are built by overwriting MinGW32 environment of MSYS2 with the above environment.
+    Refer to `MinGW32_CI_lowend9x_build` section in [mingw32.yml](https://github.com/joncampbell123/dosbox-x/blob/master/.github/workflows/mingw32.yml) for details.
+  * Compile
+    ```
+    ./build-mingw-lowend9x
+    ```
+
+NOTICE: Lowend builds should NOT be compiled with MinGW-w64 since they have extra dependencies which are not supported by Windows XP, Vista and 9x/NT4.
+
+## General procedures to compile the source code (cross-platform)
+* First install the required tools and libraries, such as git, gcc, g++, make, Autotools, pkg-config, nasm, libxkbfile.
+  Depending on the [options](#libraries-used-by-dosbox-x) you want, some more may be required. 
+* Download the source code from the github repository
+```
+git clone https://github.com/joncampbell123/dosbox-x.git
+cd dosbox-x
+```
+* General Linux or BSD compile (SDL1)
 ```
 ./build-debug
 sudo make install
 ```
-
-* General Linux compile (SDL2)
-```
-./build-debug-sdl2
-sudo make install
-```
-
-* macOS compile (SDL1)
-```
-./build-macosx
-```
-
-* macOS compile (SDL2)
-```
-./build-macosx-sdl2
-```
-
-* MinGW compile (using MinGW32 or MinGW64) for Windows XP or later (SDL1)
-```
-./build-mingw
-```
-
-* MinGW compile (using MinGW32 or MinGW64) for Windows XP or later (SDL1), lower-end systems that lack MMX/SSE
-```
-./build-mingw-lowend
-```
-
-* MinGW compile (using MinGW32 or MinGW64) for Windows XP or later (SDL2)
-```
-./build-mingw-sdl2
-```
-
-* MinGW compile (on Windows, using MinGW, not MinGW64) to target the DOS platform (MS-DOS or compatible with HX DOS Extender)
-```
-./build-mingw-hx-dos
-```
-
-NOTICE: Use the 32-bit toolchain from the original MinGW project for this build, not the MinGW64 project.
-        Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS Extender.
-
-macOS: If you want to make an .app bundle you can run from the Finder, compile the program as instructed then run ``make dosbox-x.app``.
-
-XCode (on macOS, from the Terminal) to target macOS
-```
-./build-debug
-```
+Alternatively you can also compile the SDL2 version by running the ``./build-debug-sdl2`` script.
 
 ## To compile DOSBox-X in Ubuntu (tested with 20.04 and 20.10):
 
@@ -155,51 +208,84 @@ Then run the following commands:
 
 After a successful compile, the RPM can be found in the releases directory.
 
-Compiling the source code using Visual Studio (Windows)
--------------------------------------------------------
+## To compile DOSBox-X in Raspberry Pi:
 
-You can build the source code with Visual Studio (2015, 2017, 2019).
-The executables will work on 32-bit and 64-bit Windows Vista or higher.
+The official Raspberry PI website has an article including build instructions from source.  
+https://www.raspberrypi.com/news/read-floppy-disks-and-cd-roms-with-raspberry-pi-5-magpimonday/
+```
+sudo apt install libtool autogen autoconf automake libncurses-dev gcc g++ make libncurses-dev nasm libsdl-net1.2-dev libsdl2-net-dev libpcap-dev libslirp-dev fluidsynth libfluidsynth-dev libavformat-dev libavcodec-dev libavcodec-extra libswscale-dev libfreetype-dev libxkbfile-dev libxrandr-dev 
+git clone https://github.com/joncampbell123/dosbox-x.git
+cd dosbox-x
+./build-debug
+```
+If you have audio problems, you may want to try the SDL2 build using `./build-debug-sdl2` script.
 
-Use the ```./vs/dosbox-x.sln``` "solution" file and build the source code.
-You will need the DirectX 2010 SDK for Direct3D9 support.
+Compiling the source code in macOS (High Sierra and after)
+----------------------------------------------------------
+macOS builds are expected to compile on the terminal using GNU autotools and the LLVM/Clang compiler provided by XCode.
+Universal macOS builds are only possible when building on a host machine powered by an Apple Silicon CPU,
+due to requiring parallel Homebrew installations running natively *and* under Rosetta 2.
 
-By default the targeted platform is v142 (Visual Studio 2019).
-For building the source code in Visual Studio 2015 or 2017,
-you may change the platform toolset to v140 or v141 respectively.
+* First install the required tools and libraries from [Homebrew](https://brew.sh/ja/) or [MacPorts](https://www.macports.org/).
+  To target older OS versions, MacPorts maybe recommended.
+  ```
+  brew install autoconf automake nasm glfw glew fluid-synth libslirp libpcap pkg-config sdl2_net
+  ```
+  ```
+  sudo port install autoconf automake nasm glfw glew fluidsynth libslirp libpcap pkgconfig libsdl2_net
+  ```
+* Compile natively for the host architecture (SDL1 or SDL2)
+  ```
+  ./build-macos
+  ```
+  ```
+  ./build-macos-sdl2
+  ```
+* _(Optional)_ Add `universal` option to build an Universal Binary on an Apple Silicon CPU (will *not* work on Intel)
+  ```
+  ./build-macos universal
+  ```
+  ```
+  ./build-macos-sdl2 universal
+  ````
+* You can build an App Bundle from the result of this build with
+  ```
+  make dosbox-x.app
+  ```
+### _(Experimental)_ Building binaries for old macOS versions (10.12 Sierra and before)
+*Old macOS versions may be built using MacPorts libraries with slightly different procedures.
+```
+  sudo port install autoconf automake nasm glfw glew fluidsynth libslirp libpcap pkgconfig libsdl2_net libpng zlib
+  ./build-macosold
+```
+Use `./build-macosold-sdl2` for SDL2 builds.
 
-Libraries such as SDL, freetype, libpdcurses, libpng and zlib are already included,
-and as of DOSBox-X 0.83.6 support for FluidSynth MIDI Synthesizer is also included
-for Windows builds (set ``mididevice=fluidsynth`` in the [midi] section of DOSBox-X's
-configuration file (dosbox-x.conf) along with required soundfont file [e.g.
-``FluidR3_GM.sf2`` or ``GeneralUser_GS.sf2``] to use it).
+## To compile DOSBox-X for DOS with HX-DOS platform
+  * Start a 32-bit toolchain from the original MinGW (not the MinGW-w64 project). 
 
-The slirp backend for the NE2000 network emulation is only supported by MinGW builds
-but not Visual Studio builds.
-
-Build the source code for your platform (Win32, x64, ARM and ARM64 are supported).
-
-As of 2018/06/06, Visual Studio 2017 builds (32-bit and 64-bit) explicitly require
-a processor that supports the SSE instruction set.
-
-Visual Studio Code is supported, too.
-
-Check the [README.development-in-Windows](README.development-in-Windows) file for more information about this platform.
+    Build environment for HX-DOS build can be downloaded [here](https://github.com/joncampbell123/dosbox-x/blob/master/build-scripts/mingw/lowend-bin/mingw-get-0.6.2-mingw32-beta-20131004-1-bin.zip).
+    As an example, the procedures of official Release and Nightly builds can be found in [hxdos.yml](https://github.com/joncampbell123/dosbox-x/blob/master/.github/workflows/hxdos.yml) as a reference.
+  * Compile  (SDL1, 32-bit only)
+  ```
+  ./build-mingw-hx-dos
+  ```
+NOTICE: HX-DOS builds should NOT be compiled with MinGW-w64 since they have extra dependencies which are not supported by the HX DOS Extender.
 
 Libraries used by DOSBox-X
 --------------------------
 
 The following libraries are used by DOSBox-X:
 
-* SDL 1.2.x or SDL 2.0.x
+* SDL 1.2.x or SDL 2.x (in-tree)
 
     The Simple DirectMedia Library available at https://www.libsdl.org
 
     The SDL1 library distributed with DOSBox-X had been heavily modified
     from the original to support for example native OS menus.
     
-    Note that only version 1.2.x (SDL1 version) and version 2.0.x
+    Note that only version 1.2.x (SDL1 version) and version 2.x
     (SDL2 version) are currently supported.
+    You may use SDL3 if combined with sdl2-compat library. 
     
     License: LGPLv2+
 
@@ -213,7 +299,7 @@ The following libraries are used by DOSBox-X:
     
     License: Public Domain
 
-* Libpng (optional)
+* Libpng (in-tree; optional)
 
     Needed for the screenshots.
     
@@ -223,7 +309,7 @@ The following libraries are used by DOSBox-X:
     
     License: zlib/libpng
 
-* Zlib
+* Zlib (in-tree)
 
     Needed by libpng, and for save-state and CHD support.
     
@@ -233,7 +319,7 @@ The following libraries are used by DOSBox-X:
     
     License: zlib
 
-* FreeType (optional)
+* FreeType (in-tree; optional)
 
     Needed for TrueType font (TTF) output and printing support.
     
@@ -267,7 +353,7 @@ The following libraries are used by DOSBox-X:
     
     License: Modified 4-clause BSD license
 
-* SDL_Net (optional)
+* SDL_Net (in-tree; optional)
 
     For Modem/IPX support.
     
@@ -275,7 +361,7 @@ The following libraries are used by DOSBox-X:
     
     License: LGPLv2+
 
-* SDL_Sound (optional)
+* SDL_Sound (in-tree; optional)
     
     For compressed audio on diskimages (cue sheets) support.
     
@@ -411,11 +497,6 @@ The DOSBox-X configure script accepts the following switches, which you can use 
 * --disable-avcodec
         
         Disables FFMPEG avcodec support
-
-* --disable-core-inline
-        
-        Disables some memory increasing inlines. This will reduces compiletime 
-        for a possible speed decrease.
 
 * --disable-fpu
         

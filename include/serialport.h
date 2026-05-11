@@ -141,6 +141,8 @@ public:
 	void log_ser(bool active, char const* format,...);
 #endif
 
+	double baud_multiplier = 1;
+
 	static bool getBituSubstring(const char* name,Bitu* data, CommandLine* cmd);
 
 	bool InstallationSuccessful;// check after constructing. If
@@ -183,7 +185,7 @@ public:
 	// CSerial requests an update of the input lines
 	virtual void updateMSR()=0;
 
-	// Control lines from prepherial to serial port
+	// Control lines from peripheral to serial port
 	bool getDTR();
 	bool getRTS();
 
@@ -197,7 +199,7 @@ public:
 	void setCD(bool value);
 	void setCTS(bool value);
 
-	// From serial port to prepherial
+	// From serial port to peripheral
 	// set output lines
 	virtual void setRTSDTR(bool rts, bool dtr)=0;
 	virtual void setRTS(bool val)=0;
@@ -223,7 +225,7 @@ public:
 	Bitu Read_MSR();
 	Bitu Read_SPR();
 	
-	// If a byte comes from loopback or prepherial, put it in here.
+	// If a byte comes from loopback or peripheral, put it in here.
 	void receiveByte(uint8_t data);
 	void receiveByteEx(uint8_t data, uint8_t error);
 
@@ -237,7 +239,7 @@ public:
 	// When done sending, notify here
 	void ByteTransmitted();
 
-	// Transmit byte to prepherial
+	// Transmit byte to peripheral
 	virtual void transmitByte(uint8_t val, bool first)=0;
 
 	// switch break state to the passed value
@@ -446,11 +448,11 @@ public:
 	// Creates a COM device that communicates with the num-th parallel port, i.e. is LPTnum
 	device_COM(class CSerial* sc);
 	virtual ~device_COM();
-	bool Read(uint8_t * data,uint16_t * size);
-	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(uint32_t * pos,uint32_t type);
-	bool Close();
-	uint16_t GetInformation(void);
+	bool Read(uint8_t * data,uint16_t * size) override;
+	bool Write(const uint8_t * data,uint16_t * size) override;
+	bool Seek(uint32_t * pos,uint32_t type) override;
+	bool Close() override;
+	uint16_t GetInformation(void) override;
 private:
 	CSerial* sclass;
 };

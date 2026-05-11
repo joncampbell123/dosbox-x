@@ -53,10 +53,14 @@
 #include <sys/mnttab.h>
 #endif
 
-#ifdef PHYSFS_PLATFORM_FREEBSD
+#if defined(PHYSFS_PLATFORM_FREEBSD) || defined(__NetBSD__)
 #include <sys/sysctl.h>
 #endif
 
+#ifdef __NetBSD__
+#include <sys/statvfs.h>
+#define statfs statvfs
+#endif
 
 #include "physfs_internal.h"
 
@@ -258,6 +262,14 @@ char *__PHYSFS_platformCalcBaseDir(const char *argv0)
         char fullpath[PATH_MAX];
         size_t buflen = sizeof (fullpath);
         int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1 };
+        if (sysctl(mib, 4, fullpath, &buflen, NULL, 0) != -1)
+            retval = __PHYSFS_strdup(fullpath);
+    }
+    #elif defined(__NetBSD__)
+    {
+        char fullpath[PATH_MAX];
+        size_t buflen = sizeof (fullpath);
+        int mib[4] = { CTL_KERN, KERN_PROC_ARGS, -1, KERN_PROC_PATHNAME };
         if (sysctl(mib, 4, fullpath, &buflen, NULL, 0) != -1)
             retval = __PHYSFS_strdup(fullpath);
     }

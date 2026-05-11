@@ -29,7 +29,7 @@
 #include "cross.h"
 #include "regs.h"
 
-extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+extern bool gbk, isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
 
 struct VFILE_Block {
 	const char * name;
@@ -41,41 +41,43 @@ struct VFILE_Block {
 	unsigned int onpos;
 	bool isdir;
 	bool hidden;
+	bool intprog;
 	VFILE_Block * next;
 };
 
 #define MAX_VFILES 500
 unsigned int vfpos=1, lfn_id[256];
-char ondirs[MAX_VFILES][CROSS_LEN],sfn[DOS_NAMELENGTH_ASCII];
-char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
+bool internal_program = false, skipintprog = false;
+char sfn[DOS_NAMELENGTH_ASCII],vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
 static VFILE_Block * first_file, * lfn_search[256], * parent_dir = NULL;
 
 extern int lfn_filefind_handle;
 extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
+extern void Add_VFiles(bool usecp), PROGRAMS_Shutdown(void);
 extern char * DBCS_upcase(char * str);
 std::string hidefiles="";
 
-/* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~9999). */
+/* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~999999). */
 void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
     char *n=lfn;
-    if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
+    if (t>strlen(n)||k==1||k==10||k==100||k==1000||k==10000||k==100000) {
         i=0;
         *sfn=0;
         while (*n == '.'||*n == ' ') n++;
         while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
         bool lead = false;
-        unsigned int m = k<10?6u:(k<100?5u:(k<1000?4:3u));
+        unsigned int m = k<10?6u:(k<100?5u:(k<1000?4u:(k<10000?3u:(k<100000?2u:1u))));
         while (*n != 0 && *n != '.' && i < m) {
             if (*n == ' ') {
                 n++;
                 lead = false;
                 continue;
             }
-            if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF)))) {
+            if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*n & 0xFF)))) {
                 if (i==m-1) break;
                 sfn[i++]=*(n++);
                 lead = true;
-            } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
+            } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|'||*n=='\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
                 sfn[i++]='_';
                 n++;
                 lead = false;
@@ -98,13 +100,26 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
         sfn[i++]='0'+(k/100);
         sfn[i++]='0'+((k%100)/10);
         sfn[i++]='0'+(k%10);
-    } else {
+    } else if (k<10000) {
         sfn[i++]='0'+(k/1000);
         sfn[i++]='0'+((k%1000)/100);
         sfn[i++]='0'+((k%100)/10);
         sfn[i++]='0'+(k%10);
+    } else if (k<100000) {
+        sfn[i++]='0'+(k/10000);
+        sfn[i++]='0'+((k%10000)/1000);
+        sfn[i++]='0'+((k%1000)/100);
+        sfn[i++]='0'+((k%100)/10);
+        sfn[i++]='0'+(k%10);
+    } else {
+        sfn[i++]='0'+(k/100000);
+        sfn[i++]='0'+((k%100000)/10000);
+        sfn[i++]='0'+((k%10000)/1000);
+        sfn[i++]='0'+((k%1000)/100);
+        sfn[i++]='0'+((k%100)/10);
+        sfn[i++]='0'+(k%10);
     }
-    if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
+    if (t>strlen(n)||k==1||k==10||k==100||k==1000||k==10000||k==100000) {
         char *p=strrchr(n, '.');
         if (p!=NULL) {
             sfn[i++]='.';
@@ -118,11 +133,11 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
                     lead = false;
                     continue;
                 }
-                if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF)))) {
+                if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*n & 0xFF)))) {
                     if (j==3) break;
                     sfn[i++]=*(n++);
                     lead = true;
-                } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
+                } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|'||*n=='\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
                     sfn[i++]='_';
                     n++;
                     lead = false;
@@ -151,9 +166,9 @@ char* VFILE_Generate_SFN(const char *name, unsigned int onpos) {
 	} else
 		strcpy(lfn, name);
 	if (!strlen(lfn)) return NULL;
-	unsigned int k=1, i, t=10000;
+	unsigned int k=1, i, t=1000000;
 	const VFILE_Block* cur_file;
-	while (k<10000) {
+	while (k<1000000) {
         GenerateSFN(lfn, k, i, t);
         cur_file = first_file;
         bool found=false;
@@ -164,7 +179,7 @@ char* VFILE_Generate_SFN(const char *name, unsigned int onpos) {
         if (!found) return sfn;
 		k++;
 	}
-	return 0;
+	return nullptr;
 }
 
 void VFILE_Shutdown(void) {
@@ -235,7 +250,8 @@ void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *d
 	VFILE_Block * new_file=new VFILE_Block;
 	new_file->name=vfsnames[vfpos];
 	new_file->lname=vfnames[vfpos];
-    vfpos++;
+	vfpos++;
+	new_file->intprog = internal_program;
 	new_file->data=data;
 	new_file->size=size;
 	new_file->date=fztime||fzdate?fzdate:DOS_PackDate(2002,10,1);
@@ -271,20 +287,40 @@ void VFILE_Remove(const char *name,const char *dir = "") {
 	}
 }
 
+uint32_t VFILE_GetCPIData(const char *filename, std::vector<uint8_t> &cpibuf) {
+    if (!*filename) return 0;
+    unsigned int onpos=0;
+    for (unsigned int i=1; i<vfpos; i++)
+        if (!strcasecmp(vfsnames[i], "CPI")||!strcasecmp(vfnames[i], "CPI")) {
+            onpos=i;
+            break;
+        }
+    if (onpos==0) return 0;
+	VFILE_Block * chan=first_file;
+	while (chan) {
+		if (onpos==chan->onpos && (strcmp(filename,chan->name) == 0 || strcmp(filename,chan->lname) == 0)) {
+            if (chan->size>65535) return 0;
+            for (size_t bct=0; bct<chan->size; bct++) cpibuf.push_back(chan->data[bct]);
+            return chan->size;
+		}
+		chan=chan->next;
+	}
+    return 0;
+}
+
 class Virtual_File : public DOS_File {
 public:
 	Virtual_File(uint8_t * in_data,uint32_t in_size);
-	bool Read(uint8_t * data,uint16_t * size);
-	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(uint32_t * new_pos,uint32_t type);
-	bool Close();
-	uint16_t GetInformation(void);
+	bool Read(uint8_t * data,uint16_t * size) override;
+	bool Write(const uint8_t * data,uint16_t * size) override;
+	bool Seek(uint32_t * new_pos,uint32_t type) override;
+	bool Close() override;
+	uint16_t GetInformation(void) override;
 private:
 	uint32_t file_size;
     uint32_t file_pos = 0;
 	uint8_t * file_data;
 };
-
 
 Virtual_File::Virtual_File(uint8_t* in_data, uint32_t in_size) : file_size(in_size), file_data(in_data) {
 	date=DOS_PackDate(2002,10,1);
@@ -336,13 +372,13 @@ bool Virtual_File::Close(){
 
 
 uint16_t Virtual_File::GetInformation(void) {
-	return 0x40;	// read-only drive
+	return DeviceInfoFlags::NotWritten;  // read-only drive
 }
 
 
 Virtual_Drive::Virtual_Drive() {
 	strcpy(info,"Internal Virtual Drive");
-	for (int i=0; i<256; i++) {lfn_id[i] = 0;lfn_search[i] = 0;}
+	for (int i=0; i<256; i++) {lfn_id[i] = 0;lfn_search[i] = nullptr;}
     const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = section->Get_string("drive z hide files");
     if (parent_dir == NULL) parent_dir = new VFILE_Block;
@@ -483,16 +519,16 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 		lfn_search[lfn_filefind_handle]=(attr & DOS_ATTR_DIRECTORY) && onpos>0?parent_dir:first_file;
 	}
 	if (attr == DOS_ATTR_VOLUME) {
-		dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+		dta.SetResult(GetLabel(),GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
 		return true;
-	} else if ((attr & DOS_ATTR_VOLUME) && !fcb_findfirst) {
-		if (WildFileCmp(GetLabel(),pattern)) {
-			dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
-			return true;
-		}
 	} else if ((attr & DOS_ATTR_DIRECTORY) && onpos>0) {
 		if (WildFileCmp(".",pattern)) {
-			dta.SetResult(".",".",0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
+			dta.SetResult(".",".",0,0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
+			return true;
+		}
+	} else if ((attr & DOS_ATTR_VOLUME) && !fcb_findfirst) {
+		if (WildFileCmp(GetLabel(),pattern)) {
+			dta.SetResult(GetLabel(),GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		}
 	}
@@ -506,7 +542,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 
     if ((lfn_filefind_handle>=LFN_FILEFIND_MAX&&search_file==parent_dir) || (lfn_filefind_handle<LFN_FILEFIND_MAX&&lfn_search[lfn_filefind_handle]==parent_dir)) {
         bool cmp=WildFileCmp("..",pattern);
-        if (cmp) dta.SetResult("..","..",0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
+        if (cmp) dta.SetResult("..","..",0,0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
         if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
             search_file=first_file;
         else
@@ -516,8 +552,8 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		while (search_file) {
-			if (pos==search_file->onpos&&((attr & DOS_ATTR_DIRECTORY)||!search_file->isdir)&&(WildFileCmp(search_file->name,pattern)||LWildFileCmp(search_file->lname,pattern))) {
-				dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,search_file->isdir?(search_file->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(search_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
+			if (!(skipintprog && search_file->intprog) && pos==search_file->onpos&&((attr & DOS_ATTR_DIRECTORY)||!search_file->isdir)&&(WildFileCmp(search_file->name,pattern)||LWildFileCmp(search_file->lname,pattern))) {
+				dta.SetResult(search_file->name,search_file->lname,search_file->size,0,search_file->date,search_file->time,search_file->isdir?(search_file->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(search_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
 				search_file=search_file->next;
 				return true;
 			}
@@ -525,8 +561,8 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 		}
 	else
 		while (lfn_search[lfn_filefind_handle]) {
-			if (pos==lfn_search[lfn_filefind_handle]->onpos&&((attr & DOS_ATTR_DIRECTORY)||!lfn_search[lfn_filefind_handle]->isdir)&&(WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)||LWildFileCmp(lfn_search[lfn_filefind_handle]->lname,pattern))) {
-				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,lfn_search[lfn_filefind_handle]->isdir?(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
+			if (!(skipintprog && search_file->intprog) && pos==lfn_search[lfn_filefind_handle]->onpos&&((attr & DOS_ATTR_DIRECTORY)||!lfn_search[lfn_filefind_handle]->isdir)&&(WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)||LWildFileCmp(lfn_search[lfn_filefind_handle]->lname,pattern))) {
+				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,0,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,lfn_search[lfn_filefind_handle]->isdir?(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
 				lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
 				return true;
 			}
@@ -534,7 +570,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 		}
 	if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
 		lfn_id[lfn_filefind_handle]=0;
-		lfn_search[lfn_filefind_handle]=0;
+		lfn_search[lfn_filefind_handle]=nullptr;
 	}
 	DOS_SetError(DOSERR_NO_MORE_FILES);
 	return false;
@@ -667,4 +703,15 @@ Bits Virtual_Drive::UnMount(void) {
 
 char const* Virtual_Drive::GetLabel(void) {
 	return "DOSBOX-X";
+}
+
+void Virtual_Drive::EmptyCache(void) {
+	while (first_file != NULL) {
+		VFILE_Block *n = first_file->next;
+		delete first_file;
+		first_file = n;
+	}
+    vfpos=1;
+    PROGRAMS_Shutdown();
+    Add_VFiles(true);
 }

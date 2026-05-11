@@ -85,13 +85,18 @@
 #define RGBtoYUV(c) _RGBtoYUV[c]
 #endif
 
-inline void conc2d(Hq2x,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
+inline void conc2d(Hq2x,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fcp1, const PTYPE * fc, const PTYPE * fcn1, const PTYPE * fcn2)
 {
 # if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
 	(void)conc2d(Hq2x,SBPP);
 # endif
 
-	if (_RGBtoYUV == 0) conc2d(InitLUTs,SBPP)();
+	(void)fcp1;
+	(void)fc;
+	(void)fcn1;
+	(void)fcn2;
+
+	if (!_RGBtoYUV) conc2d(InitLUTs,SBPP)();
 
 	uint32_t pattern = 0;
 	const uint32_t YUV4 = RGBtoYUV(C4);

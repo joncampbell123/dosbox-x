@@ -729,7 +729,7 @@ struct OpusServerInfo{
   /**The software used by the origin server (Server).
      This is <code>NULL</code> if there was no <code>Server</code> header.*/
   char        *server;
-  /**The media type of the entity sent to the recepient (Content-Type).
+  /**The media type of the entity sent to the recipient (Content-Type).
      This is <code>NULL</code> if there was no <code>Content-Type</code>
       header.*/
   char        *content_type;
@@ -1436,7 +1436,7 @@ void op_free(OggOpusFile *_of);
    Some of these functions may be used successfully on the partially open
     streams returned by op_test_callbacks() or one of the associated
     convenience functions.
-   Their documention will indicate so explicitly.*/
+   Their documentation will indicate so explicitly.*/
 /*@{*/
 
 /**Returns whether or not the stream being read is seekable.
@@ -1735,7 +1735,7 @@ int op_pcm_seek(OggOpusFile *_of,ogg_int64_t _pcm_offset) OP_ARG_NONNULL(1);
     floating-point operations, to simplify support on devices without an
     adequate FPU.
 
-   \warning HTTPS streams may be be vulnerable to truncation attacks if you do
+   \warning HTTPS streams may be vulnerable to truncation attacks if you do
     not check the error return code from op_read_float() or its associated
     functions.
    If the remote peer does not close the connection gracefully (with a TLS

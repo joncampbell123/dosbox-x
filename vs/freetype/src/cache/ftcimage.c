@@ -1,26 +1,25 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ftcimage.c                                                             */
-/*                                                                         */
-/*    FreeType Image cache (body).                                         */
-/*                                                                         */
-/*  Copyright 2000-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ftcimage.c
+ *
+ *   FreeType Image cache (body).
+ *
+ * Copyright (C) 2000-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
-#include <ft2build.h>
-#include FT_CACHE_H
+#include <freetype/ftcache.h>
 #include "ftcimage.h"
-#include FT_INTERNAL_MEMORY_H
-#include FT_INTERNAL_OBJECTS_H
+#include <freetype/internal/ftmemory.h>
+#include <freetype/internal/ftobjs.h>
 
 #include "ftccback.h"
 #include "ftcerror.h"
@@ -65,7 +64,7 @@
     FTC_INode  inode  = NULL;
 
 
-    if ( !FT_NEW( inode ) )
+    if ( !FT_QNEW( inode ) )
     {
       FTC_GNode         gnode  = FTC_GNODE( inode );
       FTC_Family        family = gquery->family;
@@ -75,6 +74,7 @@
 
       /* initialize its inner fields */
       FTC_GNode_Init( gnode, gindex, family );
+      inode->glyph = NULL;
 
       /* we will now load the glyph image */
       error = clazz->family_load_glyph( family, gindex, cache,

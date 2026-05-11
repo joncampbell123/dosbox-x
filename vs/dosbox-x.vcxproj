@@ -356,7 +356,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -372,6 +372,7 @@
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -388,7 +389,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
 if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
 copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -403,7 +404,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
       <WarningLevel>Level3</WarningLevel>
       <AdditionalOptions>/QIfist</AdditionalOptions>
       <SDLCheck>false</SDLCheck>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -419,6 +420,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -435,7 +437,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
 if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
 copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -452,7 +454,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -462,6 +464,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -478,7 +481,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
 if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
 copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -506,6 +509,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -518,8 +522,10 @@ if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
 copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
 if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
 copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -536,7 +542,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -547,6 +553,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -559,8 +566,10 @@ if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
 copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
 if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
 copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -580,7 +589,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -590,6 +599,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -606,7 +616,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
 if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
 copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -634,6 +644,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -646,8 +657,10 @@ if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
 copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
 if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
 copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -664,7 +677,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -675,6 +688,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -687,8 +701,10 @@ if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
 copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
 if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
 copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -722,6 +738,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -738,7 +755,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
 if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
 copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -770,6 +787,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -786,7 +804,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
 if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
 copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -814,6 +832,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -830,7 +849,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
 if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
 copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -859,6 +878,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -871,8 +891,10 @@ if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
 copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
 if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
 copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -901,6 +923,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -913,8 +936,10 @@ if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
 copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
 if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
 copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -945,6 +970,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -961,7 +987,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
 if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
 copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -990,6 +1016,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -1002,8 +1029,10 @@ if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
 copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
 if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
 copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -1032,6 +1061,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -1044,8 +1074,10 @@ if not exist "$(OutputPath)\scripts\" mkdir "$(OutputPath)\scripts"
 copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*.bat" "$(OutputPath)\scripts\"
 if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
 copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
+if not exist "$(OutputPath)\glshaders\" mkdir "$(OutputPath)\glshaders"
+copy "$(SolutionDir)\..\contrib\glshaders\*.*" "$(OutputPath)\glshaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath)\languages\"</Command>
+for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -1058,37 +1090,51 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
   <ItemGroup>
     <ClCompile Include="..\src\builtin\25_com.cpp" />
     <ClCompile Include="..\src\builtin\28_com.cpp" />
+    <ClCompile Include="..\src\builtin\4dos.cpp" />
     <ClCompile Include="..\src\builtin\50_com.cpp" />
     <ClCompile Include="..\src\builtin\append_exe.cpp" />
     <ClCompile Include="..\src\builtin\buffers_com.cpp" />
+    <ClCompile Include="..\src\builtin\cdplay.cpp" />
     <ClCompile Include="..\src\builtin\chkdsk_exe.cpp" />
     <ClCompile Include="..\src\builtin\cwsdpmi_exe.cpp" />
+    <ClCompile Include="..\src\builtin\cwsdpmi_exe_pc98.cpp" />
     <ClCompile Include="..\src\builtin\debug_exe.cpp" />
     <ClCompile Include="..\src\builtin\defrag_exe.cpp" />
     <ClCompile Include="..\src\builtin\device_com.cpp" />
     <ClCompile Include="..\src\builtin\dos32a_exe.cpp" />
     <ClCompile Include="..\src\builtin\dos4gw_exe.cpp" />
     <ClCompile Include="..\src\builtin\dosidle_exe.cpp" />
+    <ClCompile Include="..\src\builtin\dosmid.cpp" />
     <ClCompile Include="..\src\builtin\dsxmenu_exe_pc.cpp" />
     <ClCompile Include="..\src\builtin\dsxmenu_exe_pc98.cpp" />
     <ClCompile Include="..\src\builtin\diskcopy_exe.cpp" />
     <ClCompile Include="..\src\builtin\edit_com.cpp" />
+    <ClCompile Include="..\src\builtin\emsmagic.cpp" />
+    <ClCompile Include="..\src\builtin\eval.cpp" />
     <ClCompile Include="..\src\builtin\fc_exe.cpp" />
     <ClCompile Include="..\src\builtin\fcbs_com.cpp" />
     <ClCompile Include="..\src\builtin\files_com.cpp" />
     <ClCompile Include="..\src\builtin\fdisk_exe.cpp" />
     <ClCompile Include="..\src\builtin\find_exe.cpp" />
     <ClCompile Include="..\src\builtin\format_exe.cpp" />
+    <ClCompile Include="..\src\builtin\glide2x.cpp" />
     <ClCompile Include="..\src\builtin\hexmem16_exe.cpp" />
     <ClCompile Include="..\src\builtin\hexmem32_exe.cpp" />
+    <ClCompile Include="..\src\builtin\ipsmake.cpp" />
+    <ClCompile Include="..\src\builtin\ipspatch.cpp" />
     <ClCompile Include="..\src\builtin\lastdriv_com.cpp" />
     <ClCompile Include="..\src\builtin\mem_com.cpp" />
     <ClCompile Include="..\src\builtin\move_exe.cpp" />
+    <ClCompile Include="..\src\builtin\mpxplay.cpp" />
+    <ClCompile Include="..\src\builtin\ne2000bin.cpp" />
     <ClCompile Include="..\src\builtin\print_com.cpp" />
     <ClCompile Include="..\src\builtin\replace_exe.cpp" />
+    <ClCompile Include="..\src\builtin\shutdown.cpp" />
     <ClCompile Include="..\src\builtin\sort_exe.cpp" />
     <ClCompile Include="..\src\builtin\sys_com.cpp" />
+    <ClCompile Include="..\src\builtin\textutil.cpp" />
     <ClCompile Include="..\src\builtin\xcopy_exe.cpp" />
+    <ClCompile Include="..\src\builtin\zip.cpp" />
     <ClCompile Include="..\src\cpu\callback.cpp" />
     <ClCompile Include="..\src\cpu\core_dynrec.cpp" />
     <ClCompile Include="..\src\cpu\core_dyn_x86.cpp" />
@@ -1131,13 +1177,20 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\dos\drive_fat.cpp" />
     <ClCompile Include="..\src\dos\drive_iso.cpp" />
     <ClCompile Include="..\src\dos\drive_local.cpp" />
+    <ClCompile Include="..\src\dos\drive_overlay.cpp" />
+    <ClCompile Include="..\src\dos\drive_physfs.cpp" />
     <ClCompile Include="..\src\dos\drive_virtual.cpp" />
+    <ClCompile Include="..\src\dos\eltorito.cpp" />
     <ClCompile Include="..\src\fpu\fpu.cpp" />
+    <ClCompile Include="..\src\gamelink\gamelink.cpp" />
+    <ClCompile Include="..\src\gamelink\gamelink_term.cpp" />
     <ClCompile Include="..\src\gui\bitop.cpp" />
     <ClCompile Include="..\src\gui\ptrop.cpp" />
     <ClCompile Include="..\src\gui\zipcrc.c" />
     <ClCompile Include="..\src\gui\zipfile.cpp" />
     <ClCompile Include="..\src\hardware\8255.cpp" />
+    <ClCompile Include="..\src\hardware\imfc.cpp" />
+    <ClCompile Include="..\src\hardware\imfc_rom.c" />
     <ClCompile Include="..\src\hardware\mame\fmopl.cpp" />
     <ClCompile Include="..\src\hardware\mame\saa1099.cpp" />
     <ClCompile Include="..\src\hardware\mame\sn76496.cpp" />
@@ -1145,10 +1198,12 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\hardware\mame\ymf262.cpp" />
     <ClCompile Include="..\src\hardware\parport\printer_redir.cpp" />
     <ClCompile Include="..\src\hardware\pc98.cpp" />
+    <ClCompile Include="..\src\hardware\pc98_artic.cpp" />
     <ClCompile Include="..\src\hardware\pc98_fm.cpp" />
     <ClCompile Include="..\src\hardware\serialport\serialfile.cpp" />
     <ClCompile Include="..\src\hardware\snd_pc98\cbus\board26k.c" />
     <ClCompile Include="..\src\hardware\snd_pc98\cbus\board86.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\pcm86io.c" />
     <ClCompile Include="..\src\hardware\snd_pc98\common\parts.c" />
     <ClCompile Include="..\src\hardware\snd_pc98\generic\keydisp.c" />
     <ClCompile Include="..\src\hardware\snd_pc98\sound\adpcmc.c" />
@@ -1175,9 +1230,11 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\hardware\vga_pc98_dac.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_egc.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_gdc_draw.cpp" />
     <ClCompile Include="..\src\ints\bios_memdisk.cpp" />
     <ClCompile Include="..\src\ints\bios_vhd.cpp" />
     <ClCompile Include="..\src\ints\int_dosv.cpp" />
+    <ClCompile Include="..\src\ints\pc98_lio.cpp" />
     <ClCompile Include="..\src\libs\decoders\internal\ogg\bitwise.c" />
     <ClCompile Include="..\src\libs\decoders\internal\ogg\framing.c" />
     <ClCompile Include="..\src\libs\decoders\internal\opusfile\http.c" />
@@ -1335,11 +1392,14 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\libs\decoders\internal\speexdsp\smallft.c" />
     <ClCompile Include="..\src\libs\mt32\Analog.cpp" />
     <ClCompile Include="..\src\libs\mt32\c_interface\c_interface.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Display.cpp" />
     <ClCompile Include="..\src\libs\mt32\LA32FloatWaveGenerator.cpp" />
     <ClCompile Include="..\src\libs\mt32\MidiStreamParser.cpp" />
     <ClCompile Include="..\src\libs\mt32\SampleRateConverter.cpp" />
+    <ClCompile Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.c" />
     <ClCompile Include="..\src\libs\zmbv\zmbv.cpp" />
     <ClCompile Include="..\src\misc\iconvpp.cpp" />
+    <ClCompile Include="..\src\misc\mkdir_p.cpp" />
     <ClCompile Include="..\src\misc\shiftjis.cpp" />
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp" />
     <ClCompile Include="..\src\aviwriter\avi_writer.cpp" />
@@ -1350,6 +1410,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\aviwriter\ksdataformat.cpp" />
     <ClCompile Include="..\src\libs\mt32\LA32Ramp.cpp" />
     <ClCompile Include="..\src\libs\mt32\LA32WaveGenerator.cpp" />
+    <ClCompile Include="..\src\gui\menu_callback.cpp" />
     <ClCompile Include="..\src\gui\menu.cpp" />
     <ClCompile Include="..\src\gui\midi.cpp" />
     <ClCompile Include="..\src\libs\mt32\Part.cpp" />
@@ -1376,6 +1437,8 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\hardware\disney.cpp" />
     <ClCompile Include="..\src\hardware\dma.cpp" />
     <ClCompile Include="..\src\hardware\dongle.cpp" />
+    <ClCompile Include="..\src\hardware\esfmu\esfm.c" />
+    <ClCompile Include="..\src\hardware\esfmu\esfm_registers.c" />
     <ClCompile Include="..\src\hardware\floppy.cpp" />
     <ClCompile Include="..\src\hardware\gameblaster.cpp" />
     <ClCompile Include="..\src\hardware\gus.cpp" />
@@ -1396,7 +1459,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\hardware\ne2000.cpp" />
     <ClCompile Include="..\src\hardware\nukedopl.cpp" />
     <ClCompile Include="..\src\hardware\opl.cpp" />
-    <ClCompile Include="..\src\hardware\parport\directlpt_win32.cpp" />
+    <ClCompile Include="..\src\hardware\parport\directlpt.cpp" />
     <ClCompile Include="..\src\hardware\parport\filelpt.cpp" />
     <ClCompile Include="..\src\hardware\parport\parport.cpp" />
     <ClCompile Include="..\src\hardware\parport\printer.cpp" />
@@ -1427,6 +1490,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\hardware\RetroWaveLib\Protocol\Serial.c" />
     <ClCompile Include="..\src\hardware\RetroWaveLib\Platform\Win32_SerialPort.c" />
     <ClCompile Include="..\src\hardware\sblaster.cpp" />
+    <ClCompile Include="..\src\hardware\mic_input_win32.cpp" />
     <ClCompile Include="..\src\hardware\serialport\directserial.cpp" />
     <ClCompile Include="..\src\hardware\serialport\libserial.cpp" />
     <ClCompile Include="..\src\hardware\serialport\misc_util.cpp" />
@@ -1448,6 +1512,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\hardware\vga_misc.cpp" />
     <ClCompile Include="..\src\hardware\vga_other.cpp" />
     <ClCompile Include="..\src\hardware\vga_paradise.cpp" />
+    <ClCompile Include="..\src\hardware\vga_ati.cpp" />
     <ClCompile Include="..\src\hardware\vga_s3.cpp" />
     <ClCompile Include="..\src\hardware\vga_seq.cpp" />
     <ClCompile Include="..\src\hardware\vga_tseng.cpp" />
@@ -1475,12 +1540,14 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\ints\mouse.cpp" />
     <ClCompile Include="..\src\ints\xms.cpp" />
     <ClCompile Include="..\src\libs\gui_tk\gui_tk.cpp" />
-    <ClCompile Include="..\src\libs\porttalk\porttalk.cpp" />
+    <ClCompile Include="..\src\libs\passthroughio\passthroughio.cpp" />
+    <ClCompile Include="..\src\misc\clipboard.cpp" />
     <ClCompile Include="..\src\misc\cross.cpp" />
     <ClCompile Include="..\src\misc\ethernet.cpp" />
     <ClCompile Include="..\src\misc\messages.cpp" />
     <ClCompile Include="..\src\misc\ethernet_pcap.cpp" />
     <ClCompile Include="..\src\misc\ethernet_slirp.cpp" />
+    <ClCompile Include="..\src\misc\ethernet_nothing.cpp" />
     <ClCompile Include="..\src\misc\programs.cpp" />
     <ClCompile Include="..\src\ints\qcow2_disk.cpp" />
     <ClCompile Include="..\src\misc\regionalloctracking.cpp" />
@@ -1491,12 +1558,13 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\output\direct3d\hq2x_d3d.cpp" />
     <ClCompile Include="..\src\output\direct3d\ScalingEffect.cpp" />
     <ClCompile Include="..\src\output\output_direct3d.cpp" />
+    <ClCompile Include="..\src\output\output_direct3d11.cpp" />
+    <ClCompile Include="..\src\output\output_gamelink.cpp" />
     <ClCompile Include="..\src\output\output_opengl.cpp" />
     <ClCompile Include="..\src\output\output_surface.cpp" />
-    <ClCompile Include="..\src\output\output_surface_sdl.cpp" />
-    <ClCompile Include="..\src\output\output_surface_sdl2.cpp" />
     <ClCompile Include="..\src\output\output_tools.cpp" />
     <ClCompile Include="..\src\output\output_tools_xbrz.cpp" />
+    <ClCompile Include="..\src\output\output_ttf.cpp" />
     <ClCompile Include="..\src\shell\shell.cpp" />
     <ClCompile Include="..\src\shell\shell_batch.cpp" />
     <ClCompile Include="..\src\shell\shell_cmds.cpp" />
@@ -1565,8 +1633,10 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\include\cp852_uni.h" />
     <ClInclude Include="..\include\cp853_uni.h" />
     <ClInclude Include="..\include\cp855_uni.h" />
+    <ClInclude Include="..\include\cp856_uni.h" />
     <ClInclude Include="..\include\cp857_uni.h" />
     <ClInclude Include="..\include\cp858_uni.h" />
+    <ClInclude Include="..\include\cp859_uni.h" />
     <ClInclude Include="..\include\cp860_uni.h" />
     <ClInclude Include="..\include\cp861_uni.h" />
     <ClInclude Include="..\include\cp862_uni.h" />
@@ -1574,6 +1644,8 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\include\cp864_uni.h" />
     <ClInclude Include="..\include\cp865_uni.h" />
     <ClInclude Include="..\include\cp866_uni.h" />
+    <ClInclude Include="..\include\cp867_uni.h" />
+    <ClInclude Include="..\include\cp868_uni.h" />
     <ClInclude Include="..\include\cp869_uni.h" />
     <ClInclude Include="..\include\cp872_uni.h" />
     <ClInclude Include="..\include\cp874_uni.h" />
@@ -1648,6 +1720,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\include\util_math.h" />
     <ClInclude Include="..\include\util_pointer.h" />
     <ClInclude Include="..\include\util_units.h" />
+    <ClInclude Include="..\include\version_string.h" />
     <ClInclude Include="..\include\vga.h" />
     <ClInclude Include="..\include\video.h" />
     <ClInclude Include="..\include\voodoo.h" />
@@ -1707,6 +1780,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\src\cpu\core_normal\table_ea.h" />
     <ClInclude Include="..\src\cpu\core_normal\table_ea_8086.h" />
     <ClInclude Include="..\src\cpu\core_prefetch_buf.h" />
+    <ClInclude Include="..\src\cpu\dynamic_alloc_common.h" />
     <ClInclude Include="..\src\cpu\instructions.h" />
     <ClInclude Include="..\src\cpu\lazyflags.h" />
     <ClInclude Include="..\src\cpu\modrm.h" />
@@ -1724,6 +1798,8 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\src\fpu\fpu_instructions.h" />
     <ClInclude Include="..\src\fpu\fpu_instructions_longdouble.h" />
     <ClInclude Include="..\src\fpu\fpu_instructions_x86.h" />
+    <ClInclude Include="..\src\gamelink\gamelink.h" />
+    <ClInclude Include="..\src\gamelink\scancodes_windows.h" />
     <ClInclude Include="..\src\gui\dosbox.cga640.bmp.h" />
     <ClInclude Include="..\src\gui\dosbox.vga16.bmp.h" />
     <ClInclude Include="..\src\gui\dosbox_logo.h" />
@@ -1745,6 +1821,9 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\src\gui\render_templates_sai.h" />
     <ClInclude Include="..\src\hardware\adlib.h" />
     <ClInclude Include="..\src\hardware\dbopl.h" />
+    <ClInclude Include="..\src\hardware\esfmu\esfm.h" />
+    <ClInclude Include="..\src\hardware\hardopl.h" />
+    <ClInclude Include="..\src\hardware\mic_input_win32.h" />
     <ClInclude Include="..\src\hardware\mame\emu.h" />
     <ClInclude Include="..\src\hardware\mame\fmopl.h" />
     <ClInclude Include="..\src\hardware\mame\saa1099.h" />
@@ -1755,7 +1834,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\src\hardware\opl3duoboard\opl3duoboard.h" />
     <ClInclude Include="..\src\hardware\nukedopl.h" />
     <ClInclude Include="..\src\hardware\opl.h" />
-    <ClInclude Include="..\src\hardware\parport\directlpt_win32.h" />
+    <ClInclude Include="..\src\hardware\parport\directlpt.h" />
     <ClInclude Include="..\src\hardware\parport\filelpt.h" />
     <ClInclude Include="..\src\hardware\parport\printer.h" />
     <ClInclude Include="..\src\hardware\parport\printer_charmaps.h" />
@@ -1782,6 +1861,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\src\hardware\serialport\softmodem.h" />
     <ClInclude Include="..\src\hardware\snd_pc98\cbus\board26k.h" />
     <ClInclude Include="..\src\hardware\snd_pc98\cbus\board86.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\pcm86io.h" />
     <ClInclude Include="..\src\hardware\snd_pc98\common\parts.h" />
     <ClInclude Include="..\src\hardware\snd_pc98\common\profile.h" />
     <ClInclude Include="..\src\hardware\snd_pc98\common\wavefile.h" />
@@ -1813,8 +1893,10 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\src\libs\mt32\c_interface\cpp_interface.h" />
     <ClInclude Include="..\src\libs\mt32\c_interface\c_interface.h" />
     <ClInclude Include="..\src\libs\mt32\c_interface\c_types.h" />
+    <ClInclude Include="..\src\libs\mt32\Display.h" />
     <ClInclude Include="..\src\libs\mt32\File.h" />
     <ClInclude Include="..\src\libs\mt32\FileStream.h" />
+    <ClInclude Include="..\src\libs\mt32\globals.h" />
     <ClInclude Include="..\src\libs\mt32\LA32FloatWaveGenerator.h" />
     <ClInclude Include="..\src\libs\mt32\LA32Ramp.h" />
     <ClInclude Include="..\src\libs\mt32\LA32WaveGenerator.h" />
@@ -1834,6 +1916,8 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\src\libs\mt32\TVA.h" />
     <ClInclude Include="..\src\libs\mt32\TVF.h" />
     <ClInclude Include="..\src\libs\mt32\TVP.h" />
+    <ClInclude Include="..\src\libs\mt32\Types.h" />
+    <ClInclude Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.h" />
     <ClInclude Include="..\src\misc\ethernet_pcap.h" />
     <ClInclude Include="..\src\misc\ethernet_slirp.h" />
     <ClInclude Include="..\src\output\direct3d\d3d_components.h" />
@@ -1841,6 +1925,8 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\src\output\direct3d\hq2x_d3d.h" />
     <ClInclude Include="..\src\output\direct3d\ScalingEffect.h" />
     <ClInclude Include="..\src\output\output_direct3d.h" />
+    <ClInclude Include="..\src\output\output_direct3d11.h" />
+    <ClInclude Include="..\src\output\output_gamelink.h" />
     <ClInclude Include="..\src\output\output_opengl.h" />
     <ClInclude Include="..\src\output\output_surface.h" />
     <ClInclude Include="..\src\output\output_tools.h" />
@@ -1850,6 +1936,9 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\src\libs\xBRZ\xbrz_config.h" />
     <ClInclude Include="..\src\libs\xBRZ\xbrz_tools.h" />
     <ClInclude Include="config.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="String.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -20,6 +20,7 @@
 #include "dosbox.h"
 #if C_FPU
 
+#include <string>
 #include <math.h>
 #include <float.h>
 #include "paging.h"
@@ -52,11 +53,6 @@ uint16_t FPU_GetTag(void){
 #else
 #include "fpu_instructions.h"
 #endif
-
-/* WATCHIT : ALWAYS UPDATE REGISTERS BEFORE AND AFTER USING THEM 
-			STATUS WORD =>	FPU_SET_TOP(TOP) BEFORE a read
-			TOP=FPU_GET_TOP() after a write;
-			*/
 
 static void EATREE(Bitu _rm){
 	Bitu group=(_rm >> 3) & 7;
@@ -131,7 +127,7 @@ void FPU_ESC0_Normal(Bitu rm) {
 	}
 }
 
-void FPU_ESC1_EA(Bitu rm,PhysPt addr) {
+void FPU_ESC1_EA(Bitu rm,PhysPt addr, bool op16) {
 // floats
 	Bitu group=(rm >> 3) & 7;
 	Bitu sub=(rm & 7);
@@ -162,13 +158,13 @@ void FPU_ESC1_EA(Bitu rm,PhysPt addr) {
 		FPU_FPOP();
 		break;
 	case 0x04: /* FLDENV */
-		FPU_FLDENV(addr);
+		FPU_FLDENV(addr, op16);
 		break;
 	case 0x05: /* FLDCW */
 		FPU_FLDCW(addr);
 		break;
 	case 0x06: /* FSTENV */
-		FPU_FSTENV(addr);
+		FPU_FSTENV(addr, op16);
 		break;
 	case 0x07:  /* FNSTCW*/
 		mem_writew(addr,fpu.cw);
@@ -321,7 +317,7 @@ void FPU_ESC1_Normal(Bitu rm) {
 
 
 void FPU_ESC2_EA(Bitu rm,PhysPt addr) {
-	/* 32 bits integer operants */
+	/* 32 bits integer operands */
 	FPU_FLD_I32_EA(addr);
 	EATREE(rm);
 }
@@ -440,16 +436,16 @@ void FPU_ESC3_Normal(Bitu rm) {
 	case 0x04:
 		switch (sub) {
 		case 0x00:				//FNENI
-			if (CPU_ArchitectureType==CPU_ARCHTYPE_8086)
+			if (FPU_ArchitectureType<=FPU_ARCHTYPE_8087)
 				fpu.cw.M = false;
 			else
-				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfuntion :%d",(int)sub);
+				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfunction :%d",(int)sub);
 			break;
 		case 0x01:				//FNDIS
-			if (CPU_ArchitectureType==CPU_ARCHTYPE_8086)
+			if (FPU_ArchitectureType<=FPU_ARCHTYPE_8087)
 				fpu.cw.M = true;
 			else
-				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfuntion :%d",(int)sub);
+				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfunction :%d",(int)sub);
 			break;
 		case 0x02:				//FNCLEX FCLEX
 			FPU_FCLEX();
@@ -521,7 +517,7 @@ void FPU_ESC4_Normal(Bitu rm) {
 	}
 }
 
-void FPU_ESC5_EA(Bitu rm,PhysPt addr) {
+void FPU_ESC5_EA(Bitu rm,PhysPt addr, bool op16) {
 	Bitu group=(rm >> 3) & 7;
 	Bitu sub=(rm & 7);
 	switch(group){
@@ -557,13 +553,12 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr) {
 		FPU_FPOP();
 		break;
 	case 0x04:	/* FRSTOR */
-		FPU_FRSTOR(addr);
+		FPU_FRSTOR(addr, op16);
 		break;
 	case 0x06:	/* FSAVE */
-		FPU_FSAVE(addr);
+		FPU_FSAVE(addr, op16);
 		break;
 	case 0x07:   /*FNSTSW    NG DISAGREES ON THIS*/
-		FPU_SET_TOP(TOP);
 		mem_writew(addr,fpu.sw);
 		//seems to break all dos4gw games :)
 		break;
@@ -603,7 +598,7 @@ void FPU_ESC5_Normal(Bitu rm) {
 }
 
 void FPU_ESC6_EA(Bitu rm,PhysPt addr) {
-	/* 16 bit (word integer) operants */
+	/* 16 bit (word integer) operands */
 	FPU_FLD_I16_EA(addr);
 	EATREE(rm);
 }
@@ -622,7 +617,7 @@ void FPU_ESC6_Normal(Bitu rm) {
 		break;
 	case 0x02:  /* FCOMP5*/
 		FPU_FCOM(TOP,STV(sub));
-		break;	/* TODO IS THIS ALLRIGHT ????????? */
+		break;	/* TODO IS THIS ALRIGHT ????????? */
 	case 0x03:  /*FCOMPP*/
 		if(sub != 1) {
 			LOG(LOG_FPU,LOG_WARN)("ESC 6:Unhandled group %d subfunction %d",(int)group,(int)sub);
@@ -748,7 +743,6 @@ void FPU_ESC7_Normal(Bitu rm) {
 	case 0x04:
 		switch(sub){
 			case 0x00:     /* FNSTSW AX*/
-				FPU_SET_TOP(TOP);
 				reg_ax = fpu.sw;
 				break;
 			default:
@@ -1064,6 +1058,121 @@ void FPU_Init() {
 	FPU_FINIT();
 }
 
+static INLINE uint16_t fpu_tag_word_from_abridged(const uint8_t b) {
+	unsigned int i;
+	uint16_t r = 0;
+
+	/* yech... someone at Intel was trying to be too "clever" */
+	/* In the 8 bits they packed the valid/empty bitfield (with 8 bits reserved!) they could have just stored the 16-bit tag word instead! */
+	for (i=0;i < 8;i++) {
+		if (b & (1u << i)) {
+			/* TODO: Guessing the tag based on the FPU 80-bit value */
+			r |= TAG_Valid << (2u * i);
+		}
+		else {
+			r |= TAG_Empty << (2u * i);
+		}
+	}
+
+	return r;
+}
+
+static INLINE uint8_t fpu_tag_word_abridged(void) {
+	unsigned int i;
+	uint8_t r = 0;
+
+	for (i=0;i < 8;i++) {
+		if (fpu.tags[i] != TAG_Empty)
+			r |= 1u << i;
+	}
+
+	return r;
+}
+
+void CPU_FXSAVE(PhysPt eaa) {
+	unsigned int i;
+
+	/* Ref: [https://www.felixcloutier.com/x86/fxsave] */
+	mem_writew(eaa+0x000,fpu.cw);					/* +0x000 FPU control word */
+	mem_writew(eaa+0x002,fpu.sw);					/* +0x002 FPU status word */
+	mem_writeb(eaa+0x004,fpu_tag_word_abridged());			/* +0x004 FPU tag words, abridged to a bitfield of 1=not empty 0=empty, register order NOT from TOP */
+	mem_writeb(eaa+0x005,0x00);					/* +0x005 reserved */
+	mem_writew(eaa+0x006,0x0000);					/* +0x006 x87 FPU opcode (??) */
+	mem_writed(eaa+0x008,reg_eip);					/* +0x008 x87 FPU instruction pointer (???) */
+	mem_writew(eaa+0x00C,Segs.val[cs]);				/* +0x00C x87 FPU instruction pointer segment (???) */
+	mem_writew(eaa+0x00E,0x0000);					/* +0x00E reserved */
+	mem_writed(eaa+0x010,reg_eip);					/* +0x010 x87 FPU instruction operand (???) */
+	mem_writew(eaa+0x014,Segs.val[ds]);				/* +0x014 x87 FPU instruction operand segment (???) */
+	mem_writew(eaa+0x016,0x0000);					/* +0x016 reserved */
+	mem_writed(eaa+0x018,fpu.mxcsr);				/* +0x018 MXCSR */
+	mem_writed(eaa+0x01C,0xFFBF);					/* +0x01C MXCSR_MASK (DAZ not supported) */
+
+	/* NTS: Remember that st(i) TOP pointer is in FPU status word */
+
+	for (i=0;i < 8;i++) {
+#if C_FPU_X86
+		mem_writed(eaa+0x020+(i*16)+0,fpu.p_regs[STV(i)].m1);
+		mem_writed(eaa+0x020+(i*16)+4,fpu.p_regs[STV(i)].m2);
+		mem_writew(eaa+0x020+(i*16)+8,fpu.p_regs[STV(i)].m3);
+#elif defined(HAS_LONG_DOUBLE)
+		FPU_ST80(eaa+0x020+(i*16),STV(i));
+#else
+		FPU_ST80(eaa+0x020+(i*16),STV(i),/*&*/fpu.regs_80[STV(i)],fpu.use80[STV(i)]);
+#endif
+		mem_writed(eaa+0x020+(i*16)+0xA,0);
+		mem_writew(eaa+0x020+(i*16)+0xE,0);
+	}
+
+	if (CPU_SSE()) {
+		for (i=0;i < 8;i++) {
+			XMM_Reg &xmm = fpu.xmmreg[i];
+			mem_writed(eaa+0x0A0+(i*16)+0x0,xmm.u32[0]);
+			mem_writed(eaa+0x0A0+(i*16)+0x4,xmm.u32[1]);
+			mem_writed(eaa+0x0A0+(i*16)+0x8,xmm.u32[2]);
+			mem_writed(eaa+0x0A0+(i*16)+0xC,xmm.u32[3]);
+		}
+	}
+}
+
+void CPU_FXRSTOR(PhysPt eaa) {
+	unsigned int i;
+
+	/* Ref: [https://www.felixcloutier.com/x86/fxsave] */
+	fpu.cw = mem_readw(eaa+0x000);					/* +0x000 FPU control word */
+	fpu.sw = mem_readw(eaa+0x002);					/* +0x002 FPU status word */
+	fpu.mxcsr = mem_readd(eaa+0x018);				/* +0x018 MXCSR */
+
+	/* NTS: Remember that st(i) TOP pointer is in FPU status word */
+
+	for (i=0;i < 8;i++) {
+#if C_FPU_X86
+		fpu.p_regs[STV(i)].m1 = mem_readd(eaa+0x020+(i*16)+0);
+		fpu.p_regs[STV(i)].m2 = mem_readd(eaa+0x020+(i*16)+4);
+		fpu.p_regs[STV(i)].m3 = mem_readw(eaa+0x020+(i*16)+8);
+#elif defined(HAS_LONG_DOUBLE)
+		fpu.regs_80[STV(i)].v = FPU_FLD80(eaa+0x020+(i*16));
+#else
+		fpu.regs[STV(i)].d = FPU_FLD80(eaa+0x020+(i*16),/*&*/fpu.regs_80[STV(i)]);
+		fpu.use80[STV(i)] = true;
+#endif
+	}
+
+	{
+		uint16_t tw = fpu_tag_word_from_abridged(mem_readb(eaa+0x004));	/* +0x004 FPU tag words, abridged to a bitfield of 1=not empty 0=empty, register order NOT from TOP */
+		FPU_SetTag(tw);
+	}
+
+	if (CPU_SSE()) {
+		for (i=0;i < 8;i++) {
+			XMM_Reg &xmm = fpu.xmmreg[i];
+			xmm.u32[0] = mem_readd(eaa+0x0A0+(i*16)+0x0);
+			xmm.u32[1] = mem_readd(eaa+0x0A0+(i*16)+0x4);
+			xmm.u32[2] = mem_readd(eaa+0x0A0+(i*16)+0x8);
+			xmm.u32[3] = mem_readd(eaa+0x0A0+(i*16)+0xC);
+		}
+	}
+}
+
 #endif
 
 //save state support
@@ -1077,4 +1186,14 @@ public:
         registerPOD(fpu);
     }
 } dummy;
+}
+
+std::string FPUStatusWord::to_string() const
+{
+	return "B=" + std::to_string(B) + " C3-C0=" + std::to_string(C3) + std::to_string(C2) +
+	       std::to_string(C1) + std::to_string(C0) + " ES=" + std::to_string(ES) +
+	       " SF=" + std::to_string(SF) + " PE=" + std::to_string(PE) +
+	       " UE=" + std::to_string(UE) + " OE=" + std::to_string(OE) +
+	       " ZE=" + std::to_string(ZE) + " DE=" + std::to_string(DE) +
+	       " IE=" + std::to_string(IE) + " TOP=" + std::to_string(top);
 }

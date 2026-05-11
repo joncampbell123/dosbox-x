@@ -27,10 +27,11 @@
 
 #include "logging.h"
 #include "support.h"
+#include "drives.h"
 #include "cdrom.h"
 
 #if defined(C_SDL2)
-#include "../../vs/sdl/src/cdrom/compat_SDL_cdrom.c"
+#include "../../vs/sdl/src/cdrom/SDL_cdrom.c"
 #if defined(WIN32)
 #define SDL_CDROM_WIN32
 #include "../../vs/sdl/src/cdrom/win32/SDL_syscdrom.c"
@@ -44,6 +45,9 @@
 #include "../../vs/sdl/src/cdrom/macosx/AudioFileReaderThread.c"
 #include "../../vs/sdl/src/cdrom/macosx/CDPlayer.c"
 #include "../../vs/sdl/src/cdrom/macosx/SDLOSXCAGuard.c"
+#elif defined(OS2)
+#define SDL_CDROM_OS2
+#include "../../vs/sdl/src/cdrom/os2/SDL_syscdrom.c"
 #else
 #define SDL_CDROM_DUMMY
 #include "../../vs/sdl/src/cdrom/dummy/SDL_syscdrom.c"
@@ -56,35 +60,27 @@ CDROM_Interface_SDL::CDROM_Interface_SDL(void) {
 CDROM_Interface_SDL::~CDROM_Interface_SDL(void) {
 	CDROM_Interface_SDL::StopAudio();
 	SDL_CDClose(cd);
-	cd		= 0;
+	cd		= nullptr;
 }
 
 bool CDROM_Interface_SDL::SetDevice(char* path, int forceCD) { 
-    (void)forceCD;//UNUSED
-	char buffer[512];
-	strcpy(buffer,path);
-	upcase(buffer);
-
-	int num = SDL_CDNumDrives();
-	if ((forceCD>=0) && (forceCD<num)) {
-		driveID = forceCD;
-	        cd = SDL_CDOpen(driveID);
-	        SDL_CDStatus(cd);
-	   	return true;
+    int num = SDL_CDNumDrives();
+    if ((forceCD >= 0) && (forceCD < num)) {
+        driveID = forceCD;
+        cd = SDL_CDOpen(driveID);
+        SDL_CDStatus(cd);
+       	return true;
 	}
-	
-	const char* cdname = 0;
-	for (int i=0; i<num; i++) {
-		cdname = SDL_CDName(i);
-		if (strcmp(buffer,cdname)==0) {
-			cd = SDL_CDOpen(i);
-			SDL_CDStatus(cd);
-			driveID = i;
-			return true;
-		}
-	}
-
-	return false; 
+	for (int i=0; i < num; i++) {
+        const char* cdname = SDL_CDName(i);
+        if (strcasecmp(path, cdname) == 0) {
+            cd = SDL_CDOpen(i);
+            SDL_CDStatus(cd);
+            driveID = i;
+            return true;
+        }
+    }
+    return false; 
 }
 
 bool CDROM_Interface_SDL::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
@@ -206,7 +202,7 @@ int CDROM_GetMountType(const char* path, int forceCD) {
 
 	const char* cdName;
 	int num = SDL_CDNumDrives();
-	// If cd drive is forced then check if its in range and return 0
+	// If cd drive is forced then check if it's in range and return 0
 	if ((forceCD>=0) && (forceCD<num)) {
 		LOG(LOG_ALL,LOG_ERROR)("CDROM: Using drive %d",forceCD);
 		return 0;
@@ -221,13 +217,6 @@ int CDROM_GetMountType(const char* path, int forceCD) {
 	// Detect ISO
     struct pref_stat file_stat;
 #if defined(WIN32)
-# if defined(__MINGW32__)
-#  define ht_stat_t struct _stat
-#  define ht_stat(x,y) _wstat(x,y)
-# else
-#  define ht_stat_t struct _stat64
-#  define ht_stat(x,y) _wstat64(x,y)
-# endif
     ht_stat_t hfile_stat;
     typedef wchar_t host_cnv_char_t;
     host_cnv_char_t *CodePageGuestToHost(const char *s);
@@ -273,7 +262,7 @@ bool CDROM_Interface_Fake :: GetAudioStatus(bool& playing, bool& pause) {
 }
 
 bool CDROM_Interface_Fake :: GetMediaTrayStatus(bool& mediaPresent, bool& mediaChanged, bool& trayOpen) {
-	mediaPresent = true;
+	mediaPresent = !isEmpty;
 	mediaChanged = false;
 	trayOpen     = false;
 	return true;

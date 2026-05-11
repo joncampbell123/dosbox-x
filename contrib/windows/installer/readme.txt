@@ -1,11 +1,29 @@
 README for DOSBox-X
 ===================
 
-Welcome to DOSBox-X, a cross-platform DOS emulator with the goal of being a complete DOS emulation package.
+Welcome to DOSBox-X, a cross-platform DOS emulator with the goal of being a complete emulation package that covers all pre-2000 DOS and Windows 9x based hardware scenarios, and gives you all the options to configure the DOS virtual machine.
 
 Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.
 
 As a general-purpose DOS emulator, DOSBox-X has many useful and unique features that do not exist in other emulators like DOSBox, such as GUI menu and configuration tool, the ability to save and load state, support for more DOS commands and utilities, better compatibility with DOS applications, as well as Windows clipboard and long filename support for a tighter Windows integration. With DOSBox-X you can run most DOS applications and games reliably in a DOS virtual machine. When in the DOSBox-X command-line, you can type HELP for DOSBox-X command help. You can also open the file dosbox-x.conf for various optional settings in DOSBox-X.
+
+
+Installing DOSBox-X
+===================
+
+- Choosing the appropriate build for your Windows version
+    Windows 7 and later: Use the standard installer or portable builds (non-XP, non-lowend)
+    Windows XP:          Use the XP compatible installer or portable builds with "XP" in the file name.
+                         May work on ReactOS but support is considered experimental.
+    Windows Vista:       Use the XP installer or standard Visual Studio portable builds or MinGW 32-bit low-end portable build   
+    Windows 9x/NT4/2000: Use the MinGW lowend 9x builds (32-bit SDL1 only).
+    
+    Note: MinGW low-end builds may lack some features, currently Slirp support is known to be missing.
+          
+
+- Choosing SDL1 and SDL2 builds
+    Most packages include both SDL1 and SDL2 builds, and most features are the same for both builds. While SDL1 builds may be the default one to use, you may want to try SDL2 builds if you want certain features specific to SDL2 builds (such as the raw mouse input option, touchscreen support) or you encounter specific issue(s) with SDL1 builds (such as incorrect keys in some international keyboard layouts).
+
 
 DOSBox-X Quick Start
 ====================
@@ -18,10 +36,44 @@ To change to the drive mounted like above, type "C:". If everything went fine, D
 
 Hint: DOSBox-X supports different video output systems for different purposes. By default it uses the Direct3D output, but if you desire the pixel-perfect scaling feature for improved image quality you may want to select the openglpp output ("OpenGL perfect"). Also, if you use text-mode DOS applications and/or the DOS shell frequently you probably want to select the TrueType font (TTF) output to make the text screen look much better by using scalable TrueType fonts.
 
+Troubleshooting
+===============
+
+- Mouse doesn't work
+    Try pressing CTRL+F10 or middle button of your mouse.
+    You can also try mouse drivers such as CuteMouse or VirtualBox Mouse Driver(vbmouse).
+
+- Incorrect calculation results (Visual Studio builds Intel/ARM)
+    Floating point precision is an issue for Visual Studio builds or non-Intel CPU platforms.
+    Possible measures: 
+      o Disable FPU support (fpu=false)
+      o Change CPU core to `dynamic` (core=dynamic / core=dynamic_x86 / core=dynamic_rec)
+      o Try it on MinGW builds
+
+- A game silently crashes or fails to launch, or a log shows "Detected 'Packed file is corrupt' message"
+    Possible measures: 
+      o Run your program by `loadfix -a your_program`
+      o Run `A20GATE OFF` before launching your program
+      o Change the `exepack` option in the dosbox-x.conf to 'a20off' or 'unpack'
+
+- Joystick issues (SDL1 builds starting from 2022.12.26 to and including 2026.01.02 build)
+    SDL1 builds may work only with XInput compatible devices. If your joystick is not Xinput compatible,
+    Use the SDL2 builds
+    or use DirectInput to XInput wrappers
+      XOutput: https://github.com/csutorasa/XOutput
+      Xbox 360 controller emulator: https://www.x360ce.com/
+
+- DOSBox-X complains you're missing XInput9_1_0.dll
+    Old SDL1 versions may require XInput9_1_0.dll. You need to install the DirectX runtime in such case.
+    Windows Vista and after should already have the required DLL installed.  
+
 Further Information
 ===================
 Please visit the DOSBox-X homepage for the latest information about DOSBox-X:
 https://dosbox-x.com/ or http://dosbox-x.software/
+
+Also, some useful information such as install and build instructions can be found in the official README file
+https://github.com/joncampbell123/dosbox-x?tab=readme-ov-file#
 
 For a complete DOSBox-X user guide, including common ways to configure DOSBox-X and its usage tips, please visit the DOSBox-X Wiki:
 https://dosbox-x.com/wiki

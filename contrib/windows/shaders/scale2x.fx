@@ -51,7 +51,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // For the bottom row, pixels B and H are swapped vs the top row
 // And for the right column, pixels D and F are swapped vs the left column 
 //
-// That means, with dependant textures reads, this algorithm can be converted
+// That means, with dependent textures reads, this algorithm can be converted
 // into a fairly compact pixel shader
 //
 
@@ -105,7 +105,7 @@ VS_OUTPUT_NEW VS_New(
 {
 	VS_OUTPUT_NEW Out = (VS_OUTPUT_NEW)0;
 
-	Out.Position = mul(float4(Position, 1), WorldViewProjection);   // Matrix multipliy
+	Out.Position = mul(float4(Position, 1), WorldViewProjection);   // Matrix multiply
 	Out.CentreUV = TexCoord;
 	Out.Selector = TexCoord*SourceDims;
 
@@ -117,7 +117,7 @@ VS_OUTPUT_NEW VS_New(
 // Pixel Shader
 //
 
-// Even faster version (Uses dependant texture reads to work)
+// Even faster version (Uses dependent texture reads to work)
 float4 PS_New ( in VS_OUTPUT_NEW input ) : COLOR
 {
 //	half2 selector = frac(input.Selector);

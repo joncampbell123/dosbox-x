@@ -34,6 +34,139 @@
 #include <limits>
 #include <limits.h>
 
+#if defined(_WIN32)
+#include <direct.h>  // _mkdir
+#include <sys/stat.h>
+#include <sys/types.h>
+#define mkdir(dir, mode) _mkdir(dir)
+#define PATH_SEPARATOR '\\'
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <libgen.h>  // dirname
+#define PATH_SEPARATOR '/'
+#endif
+
+#ifndef PATH_MAX
+    #if defined(WIN32)
+        #define PATH_MAX MAX_PATH
+    #else
+        #define PATH_MAX 4096 /* LINUX sets to 4096, while this varies from 260 to 4096 depending on platforms */
+    #endif
+#endif
+
+static int get_dirname(const char* path, char* dirbuf, size_t size);
+static int dir_exists(const char* path);
+static int mkdir_recursive(const char* path);
+FILE* fopen_with_mkdir(const char* filepath, const char* mode);
+
+// Extract directory part from path (simple implementation)
+static int get_dirname(const char* path, char* dirbuf, size_t size) {
+    // Use '\\' on Windows and '/' on Linux/macOS
+    const char sep = PATH_SEPARATOR;
+    size_t len = strlen(path);
+    if(len == 0) return -1;
+
+    // Remove trailing separators
+    while(len > 0 && (path[len - 1] == sep || path[len - 1] == '/' || path[len - 1] == '\\')) {
+        len--;
+    }
+    if(len == 0) return -1;
+
+    // Find the last separator
+    size_t pos = len;
+    while(pos > 0) {
+        if(path[pos - 1] == sep || path[pos - 1] == '/' || path[pos - 1] == '\\') break;
+        pos--;
+    }
+    if(pos == 0) return -1; // No separator found (only filename)
+
+    size_t copy_len = (pos - 1 < size - 1) ? pos - 1 : size - 1;
+    memcpy(dirbuf, path, copy_len);
+    dirbuf[copy_len] = '\0';
+    return 0;
+}
+
+// Check if directory exists
+static int dir_exists(const char* path) {
+#if defined(_WIN32)
+    struct _stat info;
+    if(_stat(path, &info) != 0) return 0;
+    return (info.st_mode & _S_IFDIR) != 0;
+#else
+    struct stat info;
+    if(stat(path, &info) != 0) return 0;
+    return S_ISDIR(info.st_mode);
+#endif
+}
+
+// Create directories recursively
+int mkdir_recursive(const char* path) {
+    if(!path || *path == '\0') return -1;
+
+    size_t path_len = strlen(path);
+    char* tmp = static_cast<char*>(malloc(path_len + 1));
+    if(!tmp) return -1;
+
+    strcpy(tmp, path);
+
+    // Remove trailing separators
+    size_t len = strlen(tmp);
+    while(len > 0 && (tmp[len - 1] == '/' || tmp[len - 1] == '\\')) {
+        tmp[--len] = '\0';
+    }
+
+    for(size_t i = 1; i < len; ++i) {
+        if(tmp[i] == '/' || tmp[i] == '\\') {
+            char saved = tmp[i];
+            tmp[i] = '\0';
+
+            if(!dir_exists(tmp)) {
+                if(mkdir(tmp, 0755) != 0 && errno != EEXIST) {
+                    free(tmp);
+                    return -1;
+                }
+            }
+
+            tmp[i] = saved;
+        }
+    }
+
+    if(!dir_exists(tmp)) {
+        if(mkdir(tmp, 0755) != 0 && errno != EEXIST) {
+            free(tmp);
+            return -1;
+        }
+    }
+
+    free(tmp);
+    return 0;
+}
+
+// Open file after creating directories if needed
+FILE* fopen_with_mkdir(const char* filepath, const char* mode) {
+    size_t len = strlen(filepath);
+    char* dirbuf = (char*)malloc(len + 1);
+    if(!dirbuf) {
+        LOG_MSG("SETUP: Can't allocate buffer to create directory");
+        return NULL;
+    }
+
+    if(get_dirname(filepath, dirbuf, len + 1) == 0) {
+        if(!dir_exists(dirbuf)) {
+            if(mkdir_recursive(dirbuf) != 0) {
+                LOG_MSG("SETUP: mkdir_recursive failed: %s\n", strerror(errno));
+                free(dirbuf);
+                return NULL;
+            }
+        }
+    }
+
+    free(dirbuf);
+    return fopen(filepath, mode);
+}
+
+
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 # pragma warning(disable:4267) /* ... possible loss of data */
@@ -54,7 +187,7 @@ void Value::destroy() {
 }
 
 Value& Value::copy(Value const& in) {
-    if (this != &in) { //Selfassigment!
+    if (this != &in) { //Selfassignment!
         if (type != V_NONE && type != in.type) throw WrongType();
         destroy();
         plaincopy(in);
@@ -318,7 +451,7 @@ bool Prop_int::CheckValue(Value const& in, bool warn) {
 //  if (!suggested_values.empty() && Property::CheckValue(in,warn)) return true;
     if (!suggested_values.empty()) return Property::CheckValue(in,warn);
 
-    //No >= and <= in Value type and == is ambigious
+    //No >= and <= in Value type and == is ambiguous
     int mi = min;
     int ma = max;
     int va = static_cast<int>(Value(in));
@@ -331,7 +464,7 @@ bool Prop_int::CheckValue(Value const& in, bool warn) {
 
 bool Prop_double::SetValue(std::string const& input) {
     Value val;
-    if (!val.SetValue(input,Value::V_DOUBLE)) return false;
+    if (!val.SetValue(input.size()?input:default_value.ToString(),Value::V_DOUBLE)) return false;
     return SetVal(val,false,/*warn*/true);
 }
 
@@ -369,7 +502,7 @@ bool Prop_double::CheckValue(Value const& in, bool warn)
 
 bool Prop_int::SetValue(std::string const& input) {
     Value val;
-    if (!val.SetValue(input,Value::V_INT)) return false;
+    if (!val.SetValue(input.size()?input:default_value.ToString(),Value::V_INT)) return false;
     return SetVal(val,false,/*warn*/true);
 }
 
@@ -428,7 +561,7 @@ bool Prop_bool::SetValue(std::string const& input) {
 
 bool Prop_hex::SetValue(std::string const& input) {
     Value val;
-    if (!val.SetValue(input,Value::V_HEX)) return false;
+    if (!val.SetValue(input.size()?input:default_value.ToString(),Value::V_HEX)) return false;
     return SetVal(val,false,/*warn*/true);
 }
 
@@ -470,7 +603,7 @@ bool Prop_multival_remain::SetValue(std::string const& input,bool init) {
         if (loc != string::npos) local.erase(0,loc);
         loc = local.find_first_of(separator);
         string in = "";//default value
-        /* when i == number_of_properties add the total line. (makes more then
+        /* when i == number_of_properties add the total line. (makes more than
          * one string argument possible for parameters of cpu) */
         if (loc != string::npos && i < number_of_properties) { //separator found
             in = local.substr(0,loc);
@@ -722,7 +855,7 @@ bool Section_prop::HandleInputline(string const& gegevens) {
 	     ((val[0] == '\"'  && val[length - 1] == '\"' ) ||
 	      (val[0] == '\'' && val[length - 1] == '\''))
 	   ) val = val.substr(1,length - 2);
-    /* trim the results incase there were spaces somewhere */
+    /* trim the results in case there were spaces somewhere */
     trim(name);trim(val);
     for(it tel = properties.begin();tel != properties.end();++tel) {
         if (!strcasecmp((*tel)->propname.c_str(),name.c_str())) {
@@ -794,10 +927,11 @@ string Section_line::GetPropValue(string const& /* _property*/) const {
 bool Config::PrintConfig(char const * const configfilename,int everything,bool norem) const {
     char temp[50];
     char helpline[HELPLINE_SIZE] = { 0 };
-    FILE* outfile = fopen(configfilename,"w+t");
+    //FILE* outfile = fopen(configfilename,"w+t");
+    FILE* outfile = fopen_with_mkdir(configfilename, "w+t");
     if (outfile == NULL) return false;
 
-    /* Print start of configfile and add a return to improve readibility. */
+    /* Print start of configfile and add a return to improve readability. */
     if (!norem) {
         fprintf(outfile,MSG_Get("CONFIGFILE_INTRO"),VERSION);
         fprintf(outfile,"\n");
@@ -1081,16 +1215,22 @@ Section* Config::GetSectionFromProperty(char const * const prop) const{
 
 
 bool Config::ParseConfigFile(char const * const configfilename) {
-    LOG(LOG_MISC,LOG_DEBUG)("Attempting to load config file #%zu from %s",configfiles.size(),configfilename);
+    LOG(LOG_MISC,LOG_DEBUG)("CONFIG: Attempting to load config file #%zu from %s",configfiles.size(),configfilename);
 
     //static bool first_configfile = true;
+    if (strlen(configfilename) >= PATH_MAX) {
+        LOG_MSG("Warning: config file path %d characters is too long: %s", strlen(configfilename), configfilename);
+    }
     ifstream in(configfilename);
-    if (!in) return false;
+    if (!in) {
+        LOG(LOG_MISC,LOG_NORMAL)("CONFIG: Failed Loading %s as a config file", configfilename);
+        return false;
+    }
     const char * settings_type;
     settings_type = (configfiles.size() == 0)? "primary":"additional";
     configfiles.emplace_back(configfilename);
 
-    LOG(LOG_MISC,LOG_NORMAL)("Loading %s settings from config file %s", settings_type,configfilename);
+    LOG(LOG_MISC,LOG_NORMAL)("CONFIG: Loading %s settings from config file %s", settings_type,configfilename);
 
     //Get directory from configfilename, used with relative paths.
     current_config_dir=configfilename;
@@ -1142,7 +1282,7 @@ bool Config::ParseConfigFile(char const * const configfilename) {
 					}
 				}
             } catch(const char* message) {
-                message=0;
+                message = nullptr;
                 //EXIT with message
             }
             break;
@@ -1235,7 +1375,7 @@ bool CommandLine::FindEntry(char const * const name,cmd_it & it,bool neednext) {
 bool CommandLine::FindStringBegin(char const* const begin,std::string & value, bool remove) {
     size_t len = strlen(begin);
     for (cmd_it it = cmds.begin(); it != cmds.end();++it) {
-        if (strncmp(begin,(*it).c_str(),len)==0) {
+        if (strncasecmp(begin,(*it).c_str(),len)==0) {
             value=((*it).c_str() + len);
             if (remove) cmds.erase(it);
             return true;

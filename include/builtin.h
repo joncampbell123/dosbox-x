@@ -5,27 +5,34 @@
 #include "../src/builtin/cdplay.h"
 #include "../src/builtin/dosmid.h"
 #include "../src/builtin/mpxplay.h"
-#include "../src/builtin/ne2000.h"
+#include "../src/builtin/ne2000bin.h"
 #include "../src/builtin/glide2x.h"
 #include "../src/builtin/emsmagic.h"
 #include "../src/builtin/shutdown.h"
 #include "../src/builtin/textutil.h"
 #include "../src/builtin/4DOS_img.h"
+#include "../src/builtin/patchutil.h"
+
+extern char i4dos_data[CONFIG_SIZE];
+extern char config_data[CONFIG_SIZE];
+extern char autoexec_data[AUTOEXEC_SIZE];
 
 extern struct BuiltinFileBlob bfb_DSXMENU_EXE_PC;		// DSXMENU.EXE
 extern struct BuiltinFileBlob bfb_DSXMENU_EXE_PC98;		// DSXMENU.EXE
 
-extern struct BuiltinFileBlob bfb_CWSDPMI_EXE;		// CWSDPMI.EXE
-extern struct BuiltinFileBlob bfb_DOS32A_EXE;		// DOS32A.EXE
-extern struct BuiltinFileBlob bfb_DOS4GW_EXE;		// DOS4GW.EXE
-extern struct BuiltinFileBlob bfb_DOSIDLE_EXE;		// DOSIDLE.EXE
-extern struct BuiltinFileBlob bfb_HEXMEM16_EXE;		// HEXMEM16.EXE
-extern struct BuiltinFileBlob bfb_HEXMEM32_EXE;		// HEXMEM32.EXE
-extern struct BuiltinFileBlob bfb_REPLACE_EXE;		// REPLACE.EXE (FreeDOS)
-extern struct BuiltinFileBlob bfb_SORT_EXE;		// SORT.EXE (FreeDOS)
-extern struct BuiltinFileBlob bfb_MOVE_EXE;		// MOVE.EXE (FreeDOS)
-extern struct BuiltinFileBlob bfb_MEM_EXE;		// MEM.EXE (FreeDOS)
-extern struct BuiltinFileBlob bfb_FIND_EXE;		// FIND.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_CWSDPMI_PC98_EXE;  // CWSDPMI.EXE (PC-98 version)
+extern struct BuiltinFileBlob bfb_CWSDPMI_EXE;  // CWSDPMI.EXE
+extern struct BuiltinFileBlob bfb_DOS32A_EXE;   // DOS32A.EXE
+extern struct BuiltinFileBlob bfb_DOS4GW_EXE;   // DOS4GW.EXE
+extern struct BuiltinFileBlob bfb_DOSIDLE_EXE;  // DOSIDLE.EXE
+extern struct BuiltinFileBlob bfb_HEXMEM16_EXE; // HEXMEM16.EXE
+extern struct BuiltinFileBlob bfb_HEXMEM32_EXE; // HEXMEM32.EXE
+extern struct BuiltinFileBlob bfb_REPLACE_EXE;  // REPLACE.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_SORT_EXE;     // SORT.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_MOVE_EXE;     // MOVE.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_MEM_EXE;      // MEM.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_MEM_EXE_PC98; // MEM.EXE (FreeDOS) https://github.com/lpproj/mem.nec
+extern struct BuiltinFileBlob bfb_FIND_EXE;	    // FIND.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_DEBUG_EXE;		// DEBUG.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_PRINT_COM;		// PRINT.COM (FreeDOS)
 extern struct BuiltinFileBlob bfb_XCOPY_EXE;		// XCOPY.EXE (FreeDOS)
@@ -60,7 +67,6 @@ extern struct BuiltinFileBlob bfb_MPXPLAY_EXE;	// MPXPLAY.EXE
 extern struct BuiltinFileBlob bfb_NE2000_COM;	// NE2000.COM
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;	// GLIDE2X.OVL
 extern struct BuiltinFileBlob bfb_VGA_COM;	// VGA.COM
-extern struct BuiltinFileBlob bfb_SCANRES_COM;	// SCANRES.COM
 extern struct BuiltinFileBlob bfb_EGA_COM;	// EGA.COM
 extern struct BuiltinFileBlob bfb_CLR_COM;	// CLR.COM
 extern struct BuiltinFileBlob bfb_CGA_COM;	// CGA.COM
@@ -72,3 +78,26 @@ extern struct BuiltinFileBlob bfb_FDISK_EXE;	// FDISK.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FORMAT_EXE;	// FORMAT.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_CHKDSK_EXE;	// CHKDSK.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_SYS_COM;	// SYS.COM (FreeDOS)
+
+extern struct BuiltinFileBlob bfb_EGA_CPX;
+extern struct BuiltinFileBlob bfb_EGA2_CPX;
+extern struct BuiltinFileBlob bfb_EGA3_CPX;
+extern struct BuiltinFileBlob bfb_EGA4_CPX;
+extern struct BuiltinFileBlob bfb_EGA5_CPX;
+extern struct BuiltinFileBlob bfb_EGA6_CPX;
+extern struct BuiltinFileBlob bfb_EGA7_CPX;
+extern struct BuiltinFileBlob bfb_EGA8_CPX;
+extern struct BuiltinFileBlob bfb_EGA9_CPX;
+extern struct BuiltinFileBlob bfb_EGA10_CPX;
+extern struct BuiltinFileBlob bfb_EGA11_CPX;
+extern struct BuiltinFileBlob bfb_EGA12_CPX;
+extern struct BuiltinFileBlob bfb_EGA13_CPX;
+extern struct BuiltinFileBlob bfb_EGA14_CPX;
+extern struct BuiltinFileBlob bfb_EGA15_CPX;
+extern struct BuiltinFileBlob bfb_EGA16_CPX;
+extern struct BuiltinFileBlob bfb_EGA17_CPX;
+extern struct BuiltinFileBlob bfb_EGA18_CPI;
+extern struct BuiltinFileBlob bfb_KEYBOARD_SYS;
+extern struct BuiltinFileBlob bfb_KEYBRD2_SYS;
+extern struct BuiltinFileBlob bfb_KEYBRD3_SYS;
+extern struct BuiltinFileBlob bfb_KEYBRD4_SYS;

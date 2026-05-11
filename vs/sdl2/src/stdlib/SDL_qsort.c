@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,12 +26,13 @@
 #include "../SDL_internal.h"
 
 #include "SDL_stdinc.h"
-#include "SDL_assert.h"
 
 #if defined(HAVE_QSORT)
-void
-SDL_qsort(void *base, size_t nmemb, size_t size, int (*compare) (const void *, const void *))
+void SDL_qsort(void *base, size_t nmemb, size_t size, SDL_CompareCallback compare)
 {
+    if (!base) {
+        return;
+    }
     qsort(base, nmemb, size, compare);
 }
 
@@ -64,7 +65,7 @@ SDL_qsort(void *base, size_t nmemb, size_t size, int (*compare) (const void *, c
 
 /*
 This code came from Gareth McCaughan, under the zlib license.
-Specifically this: https://www.mccaughan.org.uk/software/qsort.c-1.14
+Specifically this: https://www.mccaughan.org.uk/software/qsort.c-1.16
 
 Everything below this comment until the HAVE_QSORT #endif was from Gareth
 (any minor changes will be noted inline).
@@ -111,7 +112,7 @@ benefit!
  * Gareth McCaughan
  */
 
-/* Copyright (c) 1998-2016 Gareth McCaughan
+/* Copyright (c) 1998-2021 Gareth McCaughan
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any
@@ -143,17 +144,27 @@ benefit!
  *   2016-02-21 v1.14 Replace licence with 2-clause BSD,
  *                    and clarify a couple of things in
  *                    comments. No code changes.
+ *   2016-03-10 v1.15 Fix bug kindly reported by Ryan Gordon
+ *                    (pre-insertion-sort messed up).
+ *                    Disable DEBUG_QSORT by default.
+ *                    Tweak comments very slightly.
+ *   2021-02-20 v1.16 Fix bug kindly reported by Ray Gardner
+ *                    (error in recursion leading to possible
+ *                    stack overflow).
+ *                    When checking alignment, avoid casting
+ *                    pointer to possibly-smaller integer.
  */
 
 /* BEGIN SDL CHANGE ... commented this out with an #if 0 block. --ryan. */
 #if 0
 #include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG_QSORT
+#undef DEBUG_QSORT
 
-static char _ID[]="<qsort.c gjm 1.14 2016-02-21>";
+static char _ID[]="<qsort.c gjm 1.16 2021-02-20>";
 #endif
 /* END SDL CHANGE ... commented this out with an #if 0 block. --ryan. */
 
@@ -163,7 +174,8 @@ static char _ID[]="<qsort.c gjm 1.14 2016-02-21>";
 #define WORD_BYTES sizeof(int)
 
 /* How big does our stack need to be? Answer: one entry per
- * bit in a |size_t|.
+ * bit in a |size_t|. (Actually, a bit less because we don't
+ * recurse all the way down to size-1 subarrays.)
  */
 #define STACK_SIZE (8*sizeof(size_t))
 
@@ -202,11 +214,12 @@ typedef struct { char * first; char * last; } stack_entry;
  *    on large datasets for locality-of-reference reasons,
  *    but it makes the code much nastier and increases
  *    bookkeeping overhead.
- * 2. We always save the shorter and get to work on the
- *    longer. This guarantees that every time we push
- *    an item onto the stack its size is <= 1/2 of that
- *    of its parent; so the stack can't need more than
- *    log_2(max-array-size) entries.
+ * 2. We always save the longer and get to work on the
+ *    shorter. This guarantees that whenever we push
+ *    a k'th entry onto the stack we are about to get
+ *    working on something of size <= N/2^k where N is
+ *    the original array size; so the stack can't need
+ *    more than log_2(max-array-size) entries.
  * 3. We choose a pivot by looking at the first, last
  *    and middle elements. We arrange them into order
  *    because it's easy to do that in conjunction with
@@ -268,8 +281,8 @@ typedef struct { char * first; char * last; } stack_entry;
           if (r>=Trunc) doRight			\
           else pop				\
         }					\
-        else if (l<=r) { pushLeft; doRight }	\
-        else if (r>=Trunc) { pushRight; doLeft }\
+        else if (l<=r) { pushRight; doLeft }	\
+        else if (r>=Trunc) { pushLeft; doRight }\
         else doLeft				\
       }
 
@@ -316,7 +329,9 @@ typedef struct { char * first; char * last; } stack_entry;
  * We find the smallest element from the first |nmemb|,
  * or the first |limit|, whichever is smaller;
  * therefore we must have ensured that the globally smallest
- * element is in the first |limit|.
+ * element is in the first |limit| (because our
+ * quicksort recursion bottoms out only once we
+ * reach subarrays smaller than |limit|).
  */
 #define PreInsertion(swapper,limit,sz)		\
   first=base;					\
@@ -361,7 +376,7 @@ typedef struct { char * first; char * last; } stack_entry;
 /* ---------------------------------------------------------------------- */
 
 static char * pivot_big(char *first, char *mid, char *last, size_t size,
-                        int compare(const void *, const void *)) {
+                        int (SDLCALL * compare)(const void *, const void *)) {
   size_t d=(((last-first)/size)>>3)*size;
 #ifdef DEBUG_QSORT
 fprintf(stderr, "pivot_big: first=%p last=%p size=%lu n=%lu\n", first, (unsigned long)last, size, (unsigned long)((last-first+1)/size));
@@ -402,14 +417,14 @@ fprintf(stderr,"-> %d %d %d @ %p %p %p\n",*(int*)m1,*(int*)m2,*(int*)m3, m1,m2,m
 /* ---------------------------------------------------------------------- */
 
 static void qsort_nonaligned(void *base, size_t nmemb, size_t size,
-           int (*compare)(const void *, const void *)) {
+           int (SDLCALL * compare)(const void *, const void *)) {
 
   stack_entry stack[STACK_SIZE];
   int stacktop=0;
   char *first,*last;
   char *pivot=malloc(size);
   size_t trunc=TRUNC_nonaligned*size;
-  assert(pivot!=0);
+  assert(pivot != NULL);
 
   first=(char*)base; last=first+(nmemb-1)*size;
 
@@ -433,14 +448,14 @@ static void qsort_nonaligned(void *base, size_t nmemb, size_t size,
 }
 
 static void qsort_aligned(void *base, size_t nmemb, size_t size,
-           int (*compare)(const void *, const void *)) {
+           int (SDLCALL * compare)(const void *, const void *)) {
 
   stack_entry stack[STACK_SIZE];
   int stacktop=0;
   char *first,*last;
   char *pivot=malloc(size);
   size_t trunc=TRUNC_aligned*size;
-  assert(pivot!=0);
+  assert(pivot != NULL);
 
   first=(char*)base; last=first+(nmemb-1)*size;
 
@@ -464,13 +479,13 @@ static void qsort_aligned(void *base, size_t nmemb, size_t size,
 }
 
 static void qsort_words(void *base, size_t nmemb,
-           int (*compare)(const void *, const void *)) {
+           int (SDLCALL * compare)(const void *, const void *)) {
 
   stack_entry stack[STACK_SIZE];
   int stacktop=0;
   char *first,*last;
   char *pivot=malloc(WORD_BYTES);
-  assert(pivot!=0);
+  assert(pivot != NULL);
 
   first=(char*)base; last=first+(nmemb-1)*WORD_BYTES;
 
@@ -499,7 +514,7 @@ fprintf(stderr, "after partitioning first=#%lu last=#%lu\n", (first-(char*)base)
       Recurse(TRUNC_words)
     }
   }
-  PreInsertion(SWAP_words,(TRUNC_words/WORD_BYTES),WORD_BYTES);
+  PreInsertion(SWAP_words,TRUNC_words/WORD_BYTES,WORD_BYTES);
   /* Now do insertion sort. */
   last=((char*)base)+nmemb*WORD_BYTES;
   for (first=((char*)base)+WORD_BYTES;first!=last;first+=WORD_BYTES) {
@@ -515,11 +530,10 @@ fprintf(stderr, "after partitioning first=#%lu last=#%lu\n", (first-(char*)base)
 
 /* ---------------------------------------------------------------------- */
 
-extern void qsortG(void *base, size_t nmemb, size_t size,
-           int (*compare)(const void *, const void *)) {
+extern void qsortG(void *base, size_t nmemb, size_t size, SDL_CompareCallback compare) {
 
   if (nmemb<=1) return;
-  if (((size_t)base|size)&(WORD_BYTES-1))
+  if (((uintptr_t)base|size)&(WORD_BYTES-1))
     qsort_nonaligned(base,nmemb,size,compare);
   else if (size!=WORD_BYTES)
     qsort_aligned(base,nmemb,size,compare);
@@ -527,8 +541,38 @@ extern void qsortG(void *base, size_t nmemb, size_t size,
     qsort_words(base,nmemb,compare);
 }
 
-
 #endif /* HAVE_QSORT */
 
-/* vi: set ts=4 sw=4 expandtab: */
+void *SDL_bsearch(const void *key, const void *base, size_t nmemb, size_t size, SDL_CompareCallback compare)
+{
+#if defined(HAVE_BSEARCH)
+    return bsearch(key, base, nmemb, size, compare);
+#else
+/* SDL's replacement:  Taken from the Public Domain C Library (PDCLib):
+   Permission is granted to use, modify, and / or redistribute at will.
+*/
+    const void *pivot;
+    size_t corr;
+    int rc;
 
+    while (nmemb) {
+        /* algorithm needs -1 correction if remaining elements are an even number. */
+        corr = nmemb % 2;
+        nmemb /= 2;
+        pivot = (const char *)base + (nmemb * size);
+        rc = compare(key, pivot);
+
+        if (rc > 0) {
+            base = (const char *)pivot + size;
+            /* applying correction */
+            nmemb -= (1 - corr);
+        } else if (rc == 0) {
+            return (void *)pivot;
+        }
+    }
+
+    return NULL;
+#endif /* HAVE_BSEARCH */
+}
+
+/* vi: set ts=4 sw=4 expandtab: */

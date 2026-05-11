@@ -3,29 +3,173 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+permissions:
+  contents: read
+
 jobs:
-  build:
-    if: github.event_name == 'workflow_dispatch' || contains('joncampbell123', github.actor) == false
-    runs-on: macos-latest
+  macOS_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-15-intel
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.9.1
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.13.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
-      - name: DOSBox-X macOS
+      - uses: actions/checkout@v6
+      - name: Install libraries
         run: |
-          brew install autoconf automake nasm
+          brew install autoconf automake nasm glfw glew coreutils sevenzip libslirp fluid-synth pkg-config libtool
+          mkdir -p package/dosbox-x
+          mkdir -p package/dosbox-x-sdl2
+          # cd vs/sdlnet && ./build-dosbox.sh
+      - name: Update build info
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# gdate -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# gdate -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# gdate -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/' || echo "unknown")
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          fi
+      - name: Build macOS SDL1
+        run: |
           top=`pwd`
-          mkdir $top/src/bin
-          ./build-macosx
+          ./build-macos
           strip $top/src/dosbox-x
-          cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl1
-          ./build-macosx-sdl2
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x
+      - name: Build macOS SDL2
+        run: |
+          top=`pwd`
+          ./build-macos-sdl2
           strip $top/src/dosbox-x
-          cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl2
-      - name: Upload release package
-        uses: actions/upload-artifact@v2
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x-sdl2
+      - name: Unit testing
+        run: |
+          top=`pwd`
+          chmod +x $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x
+          $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+          $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+      - name: Package build
+        run: |
+          top=`pwd`
+          cp $top/CHANGELOG $top/package/dosbox-x/CHANGELOG.txt
+          cp $top/COPYING $top/package/dosbox-x/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/package/dosbox-x/README.txt
+          cp $top/CHANGELOG $top/package/dosbox-x-sdl2/CHANGELOG.txt
+          cp $top/COPYING $top/package/dosbox-x-sdl2/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/package/dosbox-x-sdl2/README.txt
+          cd $top/package/
+          TIMESTAMP="${{ env.timestamp }}"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            ZIPNAME="dosbox-x-macosx-x86_64-${VERSION}.zip"
+          else
+            ZIPNAME="dosbox-x-macosx-x86_64-${TIMESTAMP}-nightly.zip"
+          fi
+          echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
+          7zz a "$top/$ZIPNAME" *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: dosbox-x-macos
-          path: ${{ github.workspace }}/src/bin/
+          name: ${{ env.ZIPNAME }}
+          path: "${{ github.workspace }}/${{ env.ZIPNAME }}"
+      - name: Upload release package
+        uses: softprops/action-gh-release@v3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ env.ZIPNAME }}
+  
+  macOS_ARM_CI_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-14
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.13.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v6
+      - name: Install libraries
+        run: |
+          brew install autoconf automake nasm glfw glew coreutils sevenzip libslirp fluid-synth pkg-config libtool
+          mkdir -p package/dosbox-x
+          mkdir -p package/dosbox-x-sdl2
+          # cd vs/sdlnet && ./build-dosbox.sh
+      - name: Update build info
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# gdate -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# gdate -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# gdate -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/' || echo "unknown")
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          fi
+      - name: Build macOS SDL1
+        run: |
+          top=`pwd`
+          ./build-macos
+          strip $top/src/dosbox-x
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x
+      - name: Build macOS SDL2
+        run: |
+          top=`pwd`
+          ./build-macos-sdl2
+          strip $top/src/dosbox-x
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x-sdl2
+      - name: Unit testing
+        run: |
+          top=`pwd`
+          chmod +x $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x
+          $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+          $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+      - name: Package build
+        run: |
+          top=`pwd`
+          cp $top/CHANGELOG $top/package/dosbox-x/CHANGELOG.txt
+          cp $top/COPYING $top/package/dosbox-x/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/package/dosbox-x/README.txt
+          cp $top/CHANGELOG $top/package/dosbox-x-sdl2/CHANGELOG.txt
+          cp $top/COPYING $top/package/dosbox-x-sdl2/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/package/dosbox-x-sdl2/README.txt
+          cd $top/package/
+          TIMESTAMP="${{ env.timestamp }}"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            ZIPNAME="dosbox-x-macosx-arm64-${VERSION}.zip"
+          else
+            ZIPNAME="dosbox-x-macosx-arm64-${TIMESTAMP}-nightly.zip"
+          fi
+          echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
+          7zz a "$top/$ZIPNAME" *
+          cd $top
+      - name: Upload preview package
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.ZIPNAME }}
+          path: "${{ github.workspace }}/${{ env.ZIPNAME }}"
+      - name: Upload release package
+        uses: softprops/action-gh-release@v3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ env.ZIPNAME }}
+

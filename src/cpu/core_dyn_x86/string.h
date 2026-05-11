@@ -18,7 +18,7 @@
 
 #include "inout.h"
 
-enum STRING_OP {
+enum STRING_OP_DYNX86 {
 	STR_OUTSB=0,STR_OUTSW,STR_OUTSD,
 	STR_INSB=4,STR_INSW,STR_INSD,
 	STR_MOVSB=8,STR_MOVSW,STR_MOVSD,
@@ -28,7 +28,7 @@ enum STRING_OP {
 	STR_CMPSB=24,STR_CMPSW,STR_CMPSD
 };
 
-static void dyn_string(STRING_OP op) {
+static void dyn_string(STRING_OP_DYNX86 op) {
 	DynReg * si_base=decode.segprefix ? decode.segprefix : DREG(DS);
 	DynReg * di_base=DREG(ES);
 	DynReg * tmp_reg;bool usesi;bool usedi;bool cmp=false;

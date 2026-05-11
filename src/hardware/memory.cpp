@@ -30,16 +30,155 @@
 #include "programs.h"
 #include "zipfile.h"
 #include "regs.h"
+#include "bitop.h"
 #ifndef WIN32
 # include <stdlib.h>
 # include <unistd.h>
 # include <stdio.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <fcntl.h>
+# if C_HAVE_MMAP
+#  include <sys/mman.h>
+# endif
+#endif
+#ifdef WIN32
+# include <winioctl.h>
 #endif
 
 #include "voodoo.h"
 #include "glidedef.h"
 
 #include <string.h>
+
+#if C_GAMELINK
+#include "../gamelink/gamelink.h"
+#endif // C_GAMELINK
+
+/* memory from file, memory mapping */
+#if C_HAVE_MMAP
+# define DO_MEMORY_FILE
+int			memory_file_fd = -1;
+#elif defined(WIN32) && !defined(HX_DOS)
+# define DO_MEMORY_FILE
+# define WIN32_MMAP
+HANDLE      memory_file_fd = INVALID_HANDLE_VALUE;
+HANDLE      memory_file_map = INVALID_HANDLE_VALUE;
+#endif
+
+std::string		memory_file;
+void*			memory_file_base = NULL;
+size_t			memory_file_size = 0;
+bool			memory_file_already_zero = false;
+
+// TODO #ifdef WIN32 and not HX_DOS, a Win32 HANDLE to the memory file and a HANDLE to the memory map object.
+// Memory mapping a file in Windows is completely different from Linux/Mac OS/etc.
+//
+// TODO: When above 4GB mapping is available, there will either be two memory mappings or the memory map will
+//       just reflect physical memory layout, not yet decided. If we're able to do sparse files on most systems
+//       the 64MB gap in memory will be empty file space that doesn't take up disk space.
+//
+// TODO: If we're going to allow the memory file as a means for cheat/hack programs to alter guest memory,
+//       then there needs to be an API here to flush modified pages to disk. Or at least provide one so that
+//       when you open the debugger, modified pages are flushed to disk for your analysis.
+
+// ACPI memory region allocation.
+// Most ACPI BIOSes actually use some region at top of memory, but the
+// design of DOSBox-X doesn't make that possible, so the ACPI tables are
+// written to a high memory region just below the top 4GB region and the
+// RSD PTR in the legacy BIOS region (0xE0000-0xFFFFF) will point at that.
+// A memory address is chosen, which must be maintained once tables are
+// generated because tables point at each other by physical memory address.
+// A fixed size region is chosen within which the tables are written.
+//
+// NTS: ACPI didn't happen until the Pentium era when it became quite rare
+//      for CPUs to have less than 32 address bits. No 26-bit 486SX limits
+//      here. For this reason, ACPI is not supported unless all 32 address
+//      bits are enabled.
+bool ACPI_enabled = false;
+bool acpi_mem_setup = false;
+uint32_t ACPI_BASE=0;
+uint32_t ACPI_REGION_SIZE=0; // power of 2
+uint32_t ACPI_version=0;
+unsigned char *ACPI_buffer=NULL;
+size_t ACPI_buffer_size=0;
+int ACPI_IRQ=-1;
+unsigned int ACPI_SMI_CMD=0;
+
+class ACPIPageHandler : public PageHandler {
+	public:
+		ACPIPageHandler() : PageHandler(PFLAG_NOCODE|PFLAG_READABLE|PFLAG_WRITEABLE) {}
+		ACPIPageHandler(Bitu flags) : PageHandler(flags) {}
+		HostPt GetHostReadPt(PageNum phys_page) override {
+			assert(ACPI_buffer != NULL);
+			assert(ACPI_buffer_size >= 4096);
+			phys_page -= (ACPI_BASE >> 12);
+			phys_page &= (ACPI_REGION_SIZE >> 12) - 1;
+			if (phys_page >= (ACPI_buffer_size >> 12)) phys_page = (ACPI_buffer_size >> 12) - 1;
+			return ACPI_buffer + (phys_page << 12);
+		}
+		HostPt GetHostWritePt(PageNum phys_page) override {
+			assert(ACPI_buffer != NULL);
+			assert(ACPI_buffer_size >= 4096);
+			phys_page -= (ACPI_BASE >> 12);
+			phys_page &= (ACPI_REGION_SIZE >> 12) - 1;
+			if (phys_page >= (ACPI_buffer_size >> 12)) phys_page = (ACPI_buffer_size >> 12) - 1;
+			return ACPI_buffer + (phys_page << 12);
+		}
+};
+
+static ACPIPageHandler acpi_mem_handler;
+
+PageHandler* acpi_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
+	(void)co;//UNUSED
+	(void)phys_page;//UNUSED
+
+	if (ACPI_buffer != NULL && ACPI_REGION_SIZE != 0 && phys_page >= (ACPI_BASE/4096) && phys_page < ((ACPI_BASE+ACPI_REGION_SIZE)/4096))
+		return &acpi_mem_handler;
+
+	return NULL;
+}
+
+void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
+
+void ACPI_mem_enable(const bool enable) {
+	if (enable && !acpi_mem_setup) {
+		if (ACPI_BASE != 0 && ACPI_REGION_SIZE != 0) {
+			MEM_SetPageHandler( ACPI_BASE/4096, ACPI_REGION_SIZE/4096, &acpi_mem_handler );
+			acpi_mem_setup = true;
+			PAGING_ClearTLB();
+		}
+	}
+	else if (!enable && acpi_mem_setup) {
+		if (ACPI_BASE != 0 && ACPI_REGION_SIZE != 0) {
+			MEM_ResetPageHandler_Unmapped( ACPI_BASE/4096, ACPI_REGION_SIZE/4096 );
+			acpi_mem_setup = false;
+			PAGING_ClearTLB();
+		}
+	}
+}
+
+void ACPI_free() {
+	if (ACPI_buffer != NULL) {
+		delete[] ACPI_buffer;
+		ACPI_buffer = NULL;
+	}
+	ACPI_buffer_size = 0;
+}
+
+bool ACPI_init() {
+	if (ACPI_buffer == NULL) {
+		if (ACPI_REGION_SIZE == 0 || ACPI_REGION_SIZE > (8ul << 20ull))
+			return false;
+
+		ACPI_buffer_size = ACPI_REGION_SIZE;
+		ACPI_buffer = new unsigned char [ACPI_buffer_size];
+		if (ACPI_buffer == NULL)
+			return false;
+	}
+
+	return (ACPI_buffer != NULL);
+}
 
 static MEM_Callout_t lfb_mem_cb = MEM_Callout_t_none;
 static MEM_Callout_t lfb_mmio_cb = MEM_Callout_t_none;
@@ -49,13 +188,15 @@ static MEM_Callout_t lfb_mmio_cb = MEM_Callout_t_none;
 
 class MEM_callout_vector : public std::vector<MEM_CalloutObject> {
 public:
-    MEM_callout_vector() : std::vector<MEM_CalloutObject>(), getcounter(0), alloc_from(0) { };
+    MEM_callout_vector() : std::vector<MEM_CalloutObject>() { };
 public:
-    unsigned int getcounter;
-    unsigned int alloc_from;
+    unsigned int getcounter = 0;
+    unsigned int alloc_from = 0;
 };
 
 static MEM_callout_vector MEM_callouts[MEM_callouts_max];
+
+extern bool isa_memory_hole_15mb;
 
 bool a20_guest_changeable = true;
 bool a20_fake_changeable = false;
@@ -72,13 +213,12 @@ extern bool VIDEO_BIOS_always_carry_14_high_font;
 extern bool VIDEO_BIOS_always_carry_16_high_font;
 
 static struct MemoryBlock {
-    MemoryBlock() : pages(0), handler_pages(0), reported_pages(0), phandlers(NULL), mhandles(NULL), mem_alias_pagemask(0), mem_alias_pagemask_active(0), address_bits(0) { }
-
-    Bitu pages;
-    Bitu handler_pages;
-    Bitu reported_pages;
-    PageHandler * * phandlers;
-    MemHandle * mhandles;
+    Bitu pages = 0;
+    Bitu handler_pages = 0;
+    Bitu reported_pages = 0;
+    Bitu reported_pages_4gb = 0;
+    PageHandler * * phandlers = NULL;
+    MemHandle * mhandles = NULL;
     struct {
         Bitu        start_page;
         Bitu        end_page;
@@ -95,25 +235,40 @@ static struct MemoryBlock {
         bool enabled;
         uint8_t controlport;
     } a20 = {};
-    uint32_t mem_alias_pagemask;
-    uint32_t mem_alias_pagemask_active;
-    uint32_t address_bits;
+    uint32_t mem_alias_pagemask = 0;
+    uint32_t mem_alias_pagemask_active = 0;
+    uint32_t address_bits = 0;
+    uint32_t hw_next_assign = 0;
 } memory;
 
 uint32_t MEM_get_address_bits() {
     return memory.address_bits;
 }
 
+uint32_t MEM_get_address_bits4GB() { /* some code cannot yet handle values larger than 32 */
+    if (memory.address_bits > 32u)
+        return 32u;
+    else
+        return memory.address_bits;
+}
+
+/* WARNING: When DOSBox-X enables emulation of more than 4GB of RAM, this MemBase and MemSize will only reflect the memory below 4GB.
+ *          Which means phys_readx/writex(), which are limited to the first 4GB anyway (32-bit addresses), cannot be used to poke at
+ *          memory above 4GB. Instead of extending MemBase and the singular allocation block to 4GB or larger, the memory above 4GB
+ *          is a different block. The reason for this is that the gap that needs to be left open for PCI devices and the ROM BIOS is
+ *          large enough that such an arrangement would lead to the waste of about 64MB of emulator memory, which is significant, while
+ *          the 384KB wasted at the 8086 1MB limit is too small to worry about. */
 HostPt MemBase = NULL;
+size_t MemSize = 0;
 
 class UnmappedPageHandler : public PageHandler {
 public:
     UnmappedPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-    uint8_t readb(PhysPt addr) {
+    uint8_t readb(PhysPt addr) override {
         (void)addr;//UNUSED
         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
     } 
-    void writeb(PhysPt addr,uint8_t val) {
+    void writeb(PhysPt addr,uint8_t val) override {
         (void)addr;//UNUSED
         (void)val;//UNUSED
     }
@@ -122,10 +277,10 @@ public:
 class IllegalPageHandler : public PageHandler {
 public:
     IllegalPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-    uint8_t readb(PhysPt addr) {
+    uint8_t readb(PhysPt addr) override {
         (void)addr;
 #if C_DEBUG
-        LOG_MSG("Warning: Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
+        LOG_MSG("Warning: Illegal read from %lx (lin=%x), CS:IP %8x:%8x",(unsigned long)PAGING_GetPhysicalAddress64(addr),addr,SegValue(cs),reg_eip);
 #else
         static Bits lcount=0;
         if (lcount<1000) {
@@ -135,11 +290,11 @@ public:
 #endif
         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
     } 
-    void writeb(PhysPt addr,uint8_t val) {
+    void writeb(PhysPt addr,uint8_t val) override {
         (void)addr;//UNUSED
         (void)val;//UNUSED
 #if C_DEBUG
-        LOG_MSG("Warning: Illegal write to %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
+        LOG_MSG("Warning: Illegal write to %lx (lin=%x), CS:IP %8x:%8x",(unsigned long)PAGING_GetPhysicalAddress64(addr),addr,SegValue(cs),reg_eip);
 #else
         static Bits lcount=0;
         if (lcount<1000) {
@@ -154,13 +309,13 @@ class RAMPageHandler : public PageHandler {
 public:
     RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
     RAMPageHandler(Bitu flags) : PageHandler(flags) {}
-    HostPt GetHostReadPt(Bitu phys_page) {
+    HostPt GetHostReadPt(PageNum phys_page) override {
         if (!a20_fast_changeable || (phys_page & (~0xFul/*64KB*/)) == 0x100ul/*@1MB*/)
             return MemBase+(phys_page&memory.mem_alias_pagemask_active)*MEM_PAGESIZE;
 
         return MemBase+phys_page*MEM_PAGESIZE;
     }
-    HostPt GetHostWritePt(Bitu phys_page) {
+    HostPt GetHostWritePt(PageNum phys_page) override {
         if (!a20_fast_changeable || (phys_page & (~0xFul/*64KB*/)) == 0x100ul/*@1MB*/)
             return MemBase+(phys_page&memory.mem_alias_pagemask_active)*MEM_PAGESIZE;
 
@@ -173,10 +328,10 @@ public:
     ROMAliasPageHandler() {
         flags=PFLAG_READABLE|PFLAG_HASROM;
     }
-    HostPt GetHostReadPt(Bitu phys_page) {
+    HostPt GetHostReadPt(PageNum phys_page) override {
         return MemBase+((phys_page&0xF)+0xF0)*MEM_PAGESIZE;
     }
-    HostPt GetHostWritePt(Bitu phys_page) {
+    HostPt GetHostWritePt(PageNum phys_page) override {
         return MemBase+((phys_page&0xF)+0xF0)*MEM_PAGESIZE;
     }
 };
@@ -186,23 +341,23 @@ public:
     ROMPageHandler() {
         flags=PFLAG_READABLE|PFLAG_HASROM;
     }
-    void writeb(PhysPt addr,uint8_t val){
+    void writeb(PhysPt addr,uint8_t val) override {
         if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
             { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
         else
-            LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
+            LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at lin=%x phys=%llx",(int)val,(int)addr,(unsigned long long)PAGING_GetPhysicalAddress64(addr));
     }
-    void writew(PhysPt addr,uint16_t val){
+    void writew(PhysPt addr,uint16_t val) override {
         if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
             { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
         else
-            LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
+            LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at lin=%x phys=%llx",(int)val,(int)addr,(unsigned long long)PAGING_GetPhysicalAddress64(addr));
     }
-    void writed(PhysPt addr,uint32_t val){
+    void writed(PhysPt addr,uint32_t val) override {
         if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
             { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
         else
-            LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
+            LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at lin=%x phys=%llx",(int)val,(int)addr,(unsigned long long)PAGING_GetPhysicalAddress64(addr));
     }
 };
 
@@ -277,8 +432,13 @@ static PageHandler *MEM_SlowPath(Bitu page) {
 
     /* TEMPORARY, REMOVE LATER. SHOULD NOT HAPPEN. */
     if (page < memory.reported_pages) {
-        LOG(LOG_MISC,LOG_WARN)("MEM_SlowPath called within system RAM at page %x",(unsigned int)page);
-        f = (PageHandler*)(&ram_page_handler);
+        if (page >= 0xf00 && page <= 0xfff && isa_memory_hole_15mb) { /* 0xF00000-0xFFFFFF (15MB-16MB) */
+            /* ignore, ISA memory hole */
+        }
+        else {
+            LOG(LOG_MISC,LOG_WARN)("MEM_SlowPath called within system RAM at page %x",(unsigned int)page);
+            f = (PageHandler*)(&ram_page_handler);
+        }
     }
 
     /* check motherboard devices (ROM BIOS, system RAM, etc.) */
@@ -301,7 +461,7 @@ static PageHandler *MEM_SlowPath(Bitu page) {
     }
 
     /* if nothing matched, assign default handler to MEM handler slot.
-     * if one device responded, assign it's handler to the MEM handler slot.
+     * if one device responded, assign its handler to the MEM handler slot.
      * if more than one responded, then do not update the MEM handler slot. */
 //    assert(iolen >= 1 && iolen <= 4);
 //    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
@@ -328,7 +488,7 @@ void MEM_FreeHandler(Bitu phys_page,Bitu page_range) {
 void MEM_CalloutObject::InvalidateCachedHandlers(void) {
     Bitu p;
 
-    /* for both the base page, as well as it's aliases, revert the pages back to "slow path" */
+    /* for both the base page, as well as its aliases, revert the pages back to "slow path" */
     for (p=m_base;p < memory.handler_pages;p += alias_mask+1)
         MEM_InvalidateCachedHandler(p,range_mask+1);
 }
@@ -445,7 +605,7 @@ void MEM_CalloutObject::Uninstall() {
  *
  * this allows us to maintain ready-made MEM callout objects to return quickly rather
  * than write more complicated code where the caller has to make an MEM_CalloutObject
- * and then call install and we have to add it's pointer to a list/vector/whatever.
+ * and then call install and we have to add its pointer to a list/vector/whatever.
  * It also avoids problems where if we have to resize the vector, the pointers become
  * invalid, because callers have only handles and they have to put all the pointers
  * back in order for us to resize the vector. */
@@ -621,7 +781,7 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
     memory.lfb_mmio.handler=mmiohandler;
     if (mmiohandler != NULL) {
         /* FIXME: Why is this hard-coded? There's more than just S3 emulation in this code's future! */
-        if (svgaCard == SVGA_S3Trio && (s3Card == S3_Trio64V || s3Card == S3_Vision868 || s3Card == S3_ViRGE || s3Card == S3_ViRGEVX)) {
+        if (svgaCard == SVGA_S3Trio && (s3Card == S3_Trio64V || s3Card == S3_Vision868 || s3Card == S3_Vision968 || s3Card == S3_ViRGE || s3Card == S3_ViRGEVX)) {
             /* 64MB BAR. According to the datasheet, this 64MB region is split into two 32MB halves,
              * the lower half "little endian" and the upper half "big endian". Within the 32MB region,
              * the low 16MB is video memory and the high 16MB is MMIO. */
@@ -653,27 +813,59 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
             (unsigned long)(page*4096),
             (unsigned long)(((page+pages)*4096)-1),
             (unsigned int)(pages*4));
-        // FIXME: Because this code emulates S3 by hardcoding the MMIO address!
-        LOG(LOG_MISC,LOG_DEBUG)("MEM: Linear framebuffer MMIO is now set to 0x%lx-0x%lx (%uKB)",
-            (unsigned long)(page*4096)+0x01000000,
-            (unsigned long)(((page+16)*4096)+0x01000000-1),
-            (unsigned int)(16*4));
+
+        if (svgaCard == SVGA_DOSBoxIG) {
+            /* TODO: Perhaps the DOSBox Integrated Device could have an MMIO region */
+        }
+        else {
+            // FIXME: Because this code emulates S3 by hardcoding the MMIO address!
+            LOG(LOG_MISC,LOG_DEBUG)("MEM: Linear framebuffer MMIO is now set to 0x%lx-0x%lx (%uKB)",
+                (unsigned long)(page*4096)+0x01000000,
+                (unsigned long)(((page+16)*4096)+0x01000000-1),
+                (unsigned int)(16*4));
+        }
     }
 
     PAGING_ClearTLB();
 }
 
+class Mem4GBPageHandler : public PageHandler {
+	public:
+		Mem4GBPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
+		Mem4GBPageHandler(Bitu flags) : PageHandler(flags) {}
+		HostPt GetHostReadPt(PageNum phys_page) override {
+			assert(memory_file_base != NULL);
+			const size_t ofs = size_t(phys_page) * size_t(4096u);
+			assert(ofs < memory_file_size);
+			return (unsigned char*)memory_file_base + ofs;
+		}
+		HostPt GetHostWritePt(PageNum phys_page) override {
+			assert(memory_file_base != NULL);
+			const size_t ofs = size_t(phys_page) * size_t(4096u);
+			assert(ofs < memory_file_size);
+			return (unsigned char*)memory_file_base + ofs;
+		}
+};
+
+static Mem4GBPageHandler mem4gb_handler;
+
 PageHandler * MEM_GetPageHandler(Bitu phys_page) {
-    phys_page &= memory.mem_alias_pagemask_active;
+	phys_page &= memory.mem_alias_pagemask_active;
 	if (glide.enabled && (phys_page>=(GLIDE_LFB>>12)) && (phys_page<(GLIDE_LFB>>12)+GLIDE_PAGES))
 		return (PageHandler*)glide.lfb_pagehandler;
-    else if (phys_page<memory.handler_pages) {
-        if (memory.phandlers[phys_page] != NULL) /*likely*/
-            return memory.phandlers[phys_page];
+	else if (phys_page<memory.handler_pages) {
+		if (memory.phandlers[phys_page] != NULL) /*likely*/
+			return memory.phandlers[phys_page];
 
-        return MEM_SlowPath(phys_page); /* will also fill in phandlers[] if zero or one matches, so the next access is very fast */
+		return MEM_SlowPath(phys_page); /* will also fill in phandlers[] if zero or one matches, so the next access is very fast */
 	}
-    return &illegal_page_handler;
+
+	if (phys_page >= 0x100000ul && phys_page < (0x100000ul+(unsigned long)memory.reported_pages_4gb)) {
+		assert(memory_file_base != NULL);
+		return &mem4gb_handler;
+	}
+
+	return &illegal_page_handler;
 }
 
 void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
@@ -698,7 +890,7 @@ void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages) {
     }
 }
 
-Bitu mem_strlen(PhysPt pt) {
+Bitu mem_strlen(LinearPt pt) {
     uint16_t x=0;
     while (x<1024) {
         if (!mem_readb_inline(pt+x)) return x;
@@ -707,24 +899,24 @@ Bitu mem_strlen(PhysPt pt) {
     return 0;       //Hope this doesn't happen
 }
 
-void mem_strcpy(PhysPt dest,PhysPt src) {
+void mem_strcpy(LinearPt dest,LinearPt src) {
     uint8_t r;
     while ( (r = mem_readb(src++)) ) mem_writeb_inline(dest++,r);
     mem_writeb_inline(dest,0);
 }
 
-void mem_memcpy(PhysPt dest,PhysPt src,Bitu size) {
+void mem_memcpy(LinearPt dest,LinearPt src,Bitu size) {
     while (size--) mem_writeb_inline(dest++,mem_readb_inline(src++));
 }
 
-void MEM_BlockRead(PhysPt pt,void * data,Bitu size) {
+void MEM_BlockRead(LinearPt pt,void * data,Bitu size) {
     uint8_t * write=reinterpret_cast<uint8_t *>(data);
     while (size--) {
         *write++=mem_readb_inline(pt++);
     }
 }
 
-void MEM_BlockWrite(PhysPt pt, const void *data, size_t size) {
+void MEM_BlockWrite(LinearPt pt, const void *data, size_t size) {
     const uint8_t* read = static_cast<const uint8_t *>(data);
     if (size==0)
         return;
@@ -751,11 +943,11 @@ void MEM_BlockWrite(PhysPt pt, const void *data, size_t size) {
         const Bitu current = (((pt>>12)+1)<<12) - pt;
         Bitu remainder = size - current;
         MEM_BlockWrite(pt, data, current);
-        MEM_BlockWrite((PhysPt)(pt + current), reinterpret_cast<uint8_t const*>(data) + current, remainder);
+        MEM_BlockWrite((LinearPt)(pt + current), reinterpret_cast<uint8_t const*>(data) + current, remainder);
     }
 }
 
-void MEM_BlockRead32(PhysPt pt,void * data,Bitu size) {
+void MEM_BlockRead32(LinearPt pt,void * data,Bitu size) {
     uint32_t * write=(uint32_t *) data;
     size>>=2;
     while (size--) {
@@ -764,7 +956,7 @@ void MEM_BlockRead32(PhysPt pt,void * data,Bitu size) {
     }
 }
 
-void MEM_BlockWrite32(PhysPt pt,void * data,Bitu size) {
+void MEM_BlockWrite32(LinearPt pt,void * data,Bitu size) {
     uint32_t * read=(uint32_t *) data;
     size>>=2;
     while (size--) {
@@ -773,11 +965,11 @@ void MEM_BlockWrite32(PhysPt pt,void * data,Bitu size) {
     }
 }
 
-void MEM_BlockCopy(PhysPt dest,PhysPt src,Bitu size) {
+void MEM_BlockCopy(LinearPt dest,LinearPt src,Bitu size) {
     mem_memcpy(dest,src,size);
 }
 
-void MEM_StrCopy(PhysPt pt,char * data,Bitu size) {
+void MEM_StrCopy(LinearPt pt,char * data,Bitu size) {
     while (size--) {
         uint8_t r=mem_readb_inline(pt++);
         if (!r) break;
@@ -788,6 +980,10 @@ void MEM_StrCopy(PhysPt pt,char * data,Bitu size) {
 
 Bitu MEM_TotalPages(void) {
     return memory.reported_pages;
+}
+
+Bitu MEM_TotalPagesAt4GB(void) {
+    return memory.reported_pages_4gb;
 }
 
 Bitu MEM_FreeLargest(void) {
@@ -1120,13 +1316,13 @@ void MEM_A20_Enable(bool enabled) {
 
 
 /* Memory access functions */
-uint16_t mem_unalignedreadw(PhysPt address) {
+uint16_t mem_unalignedreadw(LinearPt address) {
     uint16_t ret = (uint16_t)mem_readb_inline(address);
     ret       |= (uint16_t)mem_readb_inline(address+1u) << 8u;
     return ret;
 }
 
-uint32_t mem_unalignedreadd(PhysPt address) {
+uint32_t mem_unalignedreadd(LinearPt address) {
     uint32_t ret = (uint32_t)mem_readb_inline(address   );
     ret       |= (uint32_t)mem_readb_inline(address+1u) << 8u;
     ret       |= (uint32_t)mem_readb_inline(address+2u) << 16u;
@@ -1135,12 +1331,12 @@ uint32_t mem_unalignedreadd(PhysPt address) {
 }
 
 
-void mem_unalignedwritew(PhysPt address,uint16_t val) {
+void mem_unalignedwritew(LinearPt address,uint16_t val) {
     mem_writeb_inline(address,   (uint8_t)val);val>>=8u;
     mem_writeb_inline(address+1u,(uint8_t)val);
 }
 
-void mem_unalignedwrited(PhysPt address,uint32_t val) {
+void mem_unalignedwrited(LinearPt address,uint32_t val) {
     mem_writeb_inline(address,   (uint8_t)val);val>>=8u;
     mem_writeb_inline(address+1u,(uint8_t)val);val>>=8u;
     mem_writeb_inline(address+2u,(uint8_t)val);val>>=8u;
@@ -1148,7 +1344,7 @@ void mem_unalignedwrited(PhysPt address,uint32_t val) {
 }
 
 
-bool mem_unalignedreadw_checked(PhysPt address, uint16_t * val) {
+bool mem_unalignedreadw_checked(LinearPt address, uint16_t * val) {
     uint8_t rval1,rval2;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
@@ -1156,7 +1352,7 @@ bool mem_unalignedreadw_checked(PhysPt address, uint16_t * val) {
     return false;
 }
 
-bool mem_unalignedreadd_checked(PhysPt address, uint32_t * val) {
+bool mem_unalignedreadd_checked(LinearPt address, uint32_t * val) {
     uint8_t rval1,rval2,rval3,rval4;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
@@ -1166,14 +1362,14 @@ bool mem_unalignedreadd_checked(PhysPt address, uint32_t * val) {
     return false;
 }
 
-bool mem_unalignedwritew_checked(PhysPt address,uint16_t val) {
+bool mem_unalignedwritew_checked(LinearPt address,uint16_t val) {
     if (mem_writeb_checked(address,(uint8_t)(val & 0xff))) return true;
     val>>=8;
     if (mem_writeb_checked(address+1,(uint8_t)(val & 0xff))) return true;
     return false;
 }
 
-bool mem_unalignedwrited_checked(PhysPt address,uint32_t val) {
+bool mem_unalignedwrited_checked(LinearPt address,uint32_t val) {
     if (mem_writeb_checked(address,(uint8_t)(val & 0xff))) return true;
     val>>=8;
     if (mem_writeb_checked(address+1,(uint8_t)(val & 0xff))) return true;
@@ -1184,15 +1380,15 @@ bool mem_unalignedwrited_checked(PhysPt address,uint32_t val) {
     return false;
 }
 
-uint8_t mem_readb(const PhysPt address) {
+uint8_t mem_readb(const LinearPt address) {
     return mem_readb_inline(address);
 }
 
-uint16_t mem_readw(const PhysPt address) {
+uint16_t mem_readw(const LinearPt address) {
     return mem_readw_inline(address);
 }
 
-uint32_t mem_readd(const PhysPt address) {
+uint32_t mem_readd(const LinearPt address) {
     return mem_readd_inline(address);
 }
 
@@ -1201,23 +1397,23 @@ uint32_t mem_readd(const PhysPt address) {
 extern bool warn_on_mem_write;
 extern CPUBlock cpu;
 
-void mem_writeb(PhysPt address,uint8_t val) {
+void mem_writeb(LinearPt address,uint8_t val) {
 //  if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%02x\n",address,val);
     mem_writeb_inline(address,val);
 }
 
-void mem_writew(PhysPt address,uint16_t val) {
+void mem_writew(LinearPt address,uint16_t val) {
 //  if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%04x\n",address,val);
     mem_writew_inline(address,val);
 }
 
-void mem_writed(PhysPt address,uint32_t val) {
+void mem_writed(LinearPt address,uint32_t val) {
 //  if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%08x\n",address,val);
     mem_writed_inline(address,val);
 }
 
 void phys_writes(PhysPt addr, const char* string, Bitu length) {
-    for(Bitu i = 0; i < length; i++) host_writeb(MemBase+addr+i,(uint8_t)string[i]);
+    for(Bitu i = 0; i < length && (addr+i) < MemSize; i++) host_writeb(MemBase+addr+i,(uint8_t)string[i]);
 }
 
 #include "control.h"
@@ -1229,6 +1425,9 @@ void CPU_Snap_Back_Forget();
 uint16_t CPU_Pop16(void);
 
 static bool cmos_reset_type_9_sarcastic_win31_comments=true;
+
+void CPU_SetResetSignal(int x);
+bool CPU_DynamicCoreCannotUseCPPExceptions(void);
 
 void On_Software_286_int15_block_move_return(unsigned char code) {
     uint16_t vec_seg,vec_off;
@@ -1249,11 +1448,6 @@ void On_Software_286_int15_block_move_return(unsigned char code) {
         LOG_MSG("CMOS Shutdown byte 0x%02x says to do INT 15 block move reset %04x:%04x. Only weirdos like Windows 3.1 use this... NOT WELL TESTED!",code,vec_seg,vec_off);
     }
 
-#if C_DYNAMIC_X86
-    /* FIXME: The way I will be carrying this out is incompatible with the Dynamic core! */
-    if (cpudecoder == &CPU_Core_Dyn_X86_Run) E_Exit("Sorry, CMOS shutdown CPU reset method is not compatible with dynamic core");
-#endif
-
     /* set stack pointer. prepare to emulate BIOS returning from INT 15h block move, 286 style */
     CPU_SetSegGeneral(cs,0xF000);
     CPU_SetSegGeneral(ss,vec_seg);
@@ -1273,8 +1467,10 @@ void On_Software_286_int15_block_move_return(unsigned char code) {
     CPU_IRET(false,0);
 
     /* force execution change (FIXME: Is there a better way to do this?) */
-    throw int(4);
-    /* does not return */
+    if (CPU_DynamicCoreCannotUseCPPExceptions())
+        CPU_SetResetSignal(4);
+    else
+        throw int(4);
 }
 
 void On_Software_286_reset_vector(unsigned char code) {
@@ -1297,11 +1493,6 @@ void On_Software_286_reset_vector(unsigned char code) {
 
     LOG_MSG("CMOS Shutdown byte 0x%02x says to jump to reset vector %04x:%04x",code,vec_seg,vec_off);
 
-#if C_DYNAMIC_X86
-    /* FIXME: The way I will be carrying this out is incompatible with the Dynamic core! */
-    if (cpudecoder == &CPU_Core_Dyn_X86_Run) E_Exit("Sorry, CMOS shutdown CPU reset method is not compatible with dynamic core");
-#endif
-
     /* following CPU reset, and coming from the BIOS, CPU registers are trashed */
     reg_eax = 0x2010000;
     reg_ebx = 0x2111;
@@ -1319,8 +1510,10 @@ void On_Software_286_reset_vector(unsigned char code) {
     reg_eip = vec_off;
 
     /* force execution change (FIXME: Is there a better way to do this?) */
-    throw int(4);
-    /* does not return */
+    if (CPU_DynamicCoreCannotUseCPPExceptions())
+        CPU_SetResetSignal(4);
+    else
+        throw int(4);
 }
 
 void CPU_Exception_Level_Reset();
@@ -1397,12 +1590,11 @@ void On_Software_CPU_Reset() {
 
             LOG_MSG("PC-98 reset and continue: RETF to %04x:%04x",SegValue(cs),reg_ip);
 
-            // DEBUG
-//            Bitu DEBUG_EnableDebugger(void);
-  //          DEBUG_EnableDebugger();
-
             /* force execution change (FIXME: Is there a better way to do this?) */
-            throw int(4);
+            if (CPU_DynamicCoreCannotUseCPPExceptions())
+                CPU_SetResetSignal(4);
+            else
+                throw int(4);
             /* does not return */
         }
     }
@@ -1422,15 +1614,24 @@ void On_Software_CPU_Reset() {
         }
     }
 
-#if C_DYNAMIC_X86
-    /* this technique is NOT reliable when running the dynamic core! */
-    if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
-        LOG_MSG("Warning: C++ exception method is not compatible with dynamic core when emulating reset");
-    }
-#endif
+    if (CPU_DynamicCoreCannotUseCPPExceptions())
+        CPU_SetResetSignal(3);
+    else
+        throw int(3);
+}
 
-    throw int(3);
-    /* does not return */
+/* Some PC-98 code uses this register to know if the 16MB "memory hole" is open,
+ * instead pf looking at the BIOS data area. Including homebrew development like KOARMADA.EXE */
+static IO_ReadHandleObject PC98_43B_memspace_ReadHandler;
+static Bitu read_PC98_43B_memspace(Bitu /*port*/,Bitu /*iolen*/) {
+        uint8_t r = 0;
+
+        if (isa_memory_hole_15mb || MEM_TotalPages() <= 0xF00/*15MB or less*/)
+                { /* used by system */ }
+        else
+                r |= 0x04; /* normal memory space */
+
+        return r;
 }
 
 bool allow_port_92_reset = true;
@@ -1482,14 +1683,22 @@ static void write_pc98_a20(Bitu port,Bitu val,Bitu iolen) {
     }
 }
 
+#if !defined(OSFREE)
 void RemoveEMSPageFrame(void) {
     LOG(LOG_MISC,LOG_DEBUG)("Removing EMS page frame");
 
-    /* Setup rom at 0xe0000-0xf0000 */
-    for (Bitu ct=0xe0;ct<0xf0;ct++) {
-        memory.phandlers[ct] = &rom_page_handler;
+    if(IS_PC98_ARCH || IS_J3100) {
+        for (Bitu ct=0xd0;ct<0xe0;ct++) {
+            memory.phandlers[ct] = &rom_page_handler;
+        }
+    } else {
+        /* Setup rom at 0xe0000-0xf0000 */
+        for (Bitu ct=0xe0;ct<0xf0;ct++) {
+            memory.phandlers[ct] = &rom_page_handler;
+        }
     }
 }
+#endif
 
 void PreparePCJRCartRom(void) {
     LOG(LOG_MISC,LOG_DEBUG)("Preparing mapping for PCjr cartridge ROM");
@@ -1604,15 +1813,19 @@ HostPt GetMemBase(void) { return MemBase; }
 /*! \brief          REDOS.COM utility command on drive Z: to trigger restart of the DOS kernel
  */
 class REDOS : public Program {
-public:
-    /*! \brief      Program entry point, when the command is run */
-    void Run(void) {
-		if (cmd->FindExist("/?", false) || cmd->FindExist("-?", false)) {
-			WriteOut("Reboots the kernel of DOSBox-X's emulated DOS.\n\nRE-DOS\n");
-			return;
+	public:
+		/*! \brief      Program entry point, when the command is run */
+		void Run(void) override {
+			if (cmd->FindExist("/?", false) || cmd->FindExist("-?", false)) {
+				WriteOut("Reboots the kernel of DOSBox-X's emulated DOS.\n\nRE-DOS\n");
+				return;
+			}
+
+			if (CPU_DynamicCoreCannotUseCPPExceptions())
+				CPU_SetResetSignal(6);
+			else
+				throw int(6);
 		}
-        throw int(6);
-    }
 };
 
 void REDOS_ProgramStart(Program * * make) {
@@ -1626,7 +1839,7 @@ void REDOS_ProgramStart(Program * * make) {
 class A20GATE : public Program {
 public:
     /*! \brief      Program entry point, when the command is run */
-    void Run(void) {
+    void Run(void) override {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
             WriteOut("Turns on/off or changes the A20 gate mode.\n\n");
             WriteOut("A20GATE [ON | OFF | SET [off | off_fake | on | on_fake | mask | fast]]\n\n"
@@ -1718,18 +1931,30 @@ void Init_AddressLimitAndGateMask() {
     //       20 for 8086 emulation.
     memory.address_bits=(unsigned int)section->Get_int("memalias");
 
-    if (memory.address_bits == 0)
-        memory.address_bits = 32;
+    if (memory.address_bits == 0) {
+        /* TODO: We don't know the memsize yet. If memsize is 60GB or more, 40 bits, else 36 bits.
+         *       Pentium II/III systems are PSE-36 type PSE extensions.
+         *       For similar reasons for 486, if 60MB or more, 32 bits, else 26 bits.
+         *       For similar reasons for 386, if 14mB or more, 32 bits, else 24 bits. */
+        if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMII)
+            memory.address_bits = 36;
+        else if (CPU_ArchitectureType >= CPU_ARCHTYPE_386)
+            memory.address_bits = 32; /* NTS: 26 is also valid for 486SX emulation, 24 for 386SX emulation */
+        else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286)
+            memory.address_bits = 24; /* The 286 cannot address more than 16MB */
+        else
+            memory.address_bits = 20; /* The 8086 cannot address more than 1MB */
+    }
     else if (memory.address_bits < 20)
         memory.address_bits = 20;
-    else if (memory.address_bits > 32)
-        memory.address_bits = 32;
+    else if (memory.address_bits > 40)
+        memory.address_bits = 40;
 
     // TODO: This should be ...? CPU init? Motherboard init?
     /* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++
        ((1UL << 32UL) - 1UL) == 0, which is WRONG.
        But I'll never get back the 4 days I wasted chasing it down, trying to
-       figure out why DOSBox was getting stuck reopening it's own CON file handle. */
+       figure out why DOSBox was getting stuck reopening its own CON file handle. */
     memory.mem_alias_pagemask = (uint32_t)
         (((((uint64_t)1) << (uint64_t)memory.address_bits) - (uint64_t)1) >> (uint64_t)12);
 
@@ -1745,12 +1970,28 @@ void Init_AddressLimitAndGateMask() {
     LOG(LOG_MISC,LOG_DEBUG)("Memory: address_bits=%u alias_pagemask=%lx",(unsigned int)memory.address_bits,(unsigned long)memory.mem_alias_pagemask);
 }
 
+void free_mem_file();
+
 void ShutDownRAM(Section * sec) {
     (void)sec;//UNUSED
     if (MemBase != NULL) {
-        delete [] MemBase;
+        if (memory_file_base) {
+            assert(MemBase == memory_file_base);
+            free_mem_file();
+        }
+        else {
+#if C_GAMELINK
+            GameLink::FreeRAM(MemBase);
+#elif C_HAVE_MMAP
+            munmap(MemBase,MemSize);
+#else
+            delete [] MemBase;
+#endif
+        }
         MemBase = NULL;
     }
+    MemSize = 0;
+    ACPI_free();
 }
 
 void MEM_InitCallouts(void) {
@@ -1759,6 +2000,215 @@ void MEM_InitCallouts(void) {
     MEM_callouts[MEM_callouts_index(MEM_TYPE_PCI)].resize(64);
     MEM_callouts[MEM_callouts_index(MEM_TYPE_MB)].resize(64);
 }
+
+uint32_t MEM_HardwareAllocate(const char *name,uint32_t sz) {
+    uint32_t assign = 0;
+
+    if (sz != 0ul && bitop::ispowerof2(sz)) {
+        if (memory.hw_next_assign < 0xFE000000ul) {
+            memory.hw_next_assign += sz - 1ul;
+            memory.hw_next_assign &= ~(sz - 1ul);
+        }
+        if (memory.hw_next_assign < 0xFE000000ul) {
+            assign = memory.hw_next_assign;
+            memory.hw_next_assign += sz;
+            LOG(LOG_MISC,LOG_DEBUG)("Device '%s' assigned address 0x%lx-0x%lx which it may treat as minimum\n",name,(unsigned long)assign,(unsigned long)assign+(unsigned long)sz-1ul);
+        }
+    }
+
+    if (assign == 0)
+        LOG(LOG_MISC,LOG_DEBUG)("Unable to assign device '%s' a physical address of size 0x%lx\n",name,(unsigned long)sz);
+
+    return assign;
+}
+
+#ifdef DO_MEMORY_FILE
+# if C_HAVE_MMAP
+void free_mem_file() {
+	if (memory_file_base) {
+		munmap(memory_file_base,memory_file_size);
+		memory_file_base = NULL;
+	}
+	if (memory_file_fd >= 0) {
+		close(memory_file_fd);
+		memory_file_fd = -1;
+	}
+}
+
+bool alloc_mem_file() {
+	struct stat st;
+
+	assert(memory_file_fd < 0);
+	assert(memory_file_base == NULL);
+
+	if (memory_file.empty() || memory_file_size == 0)
+		return false;
+
+	if (lstat(memory_file.c_str(),&st)) {
+		if (errno != ENOENT) { /* It's OK if the file doesn't exist yet */
+			LOG_MSG("Cannot stat memory file, %s",strerror(errno));
+			return false;
+		}
+	}
+	else {
+		if (!S_ISREG(st.st_mode)) { /* Must be file! */
+			LOG_MSG("Memory file exists and it is not a file");
+			return false;
+		}
+	}
+
+	memory_file_fd = open(memory_file.c_str(),O_CREAT|O_RDWR,0600);
+	if (memory_file_fd < 0) {
+		LOG_MSG("Cannot open memory file, %s",strerror(errno));
+		return false;
+	}
+
+	if (fstat(memory_file_fd,&st)) {
+		LOG_MSG("Cannot fstat memory file I just opened??? Whut? %s",strerror(errno));
+		free_mem_file();
+		return false;
+	}
+	if (!S_ISREG(st.st_mode)) {
+		E_Exit("I was tricked into opening a non-file as a memory file. Don't do that.");
+		free_mem_file();
+		return false;
+	}
+
+	if (ftruncate(memory_file_fd,0)) {
+		LOG_MSG("Cannot truncate file to zero %s",strerror(errno));
+		free_mem_file();
+		return false;
+	}
+
+	if (ftruncate(memory_file_fd,memory_file_size)) {
+		LOG_MSG("Cannot truncate file to %lu %s",(unsigned long)memory_file_size,strerror(errno));
+		free_mem_file();
+		return false;
+	}
+
+	memory_file_base = mmap(NULL/*no particular address*/,memory_file_size,PROT_READ|PROT_WRITE,MAP_SHARED,memory_file_fd,0/*offset*/);
+	if (memory_file_base == MAP_FAILED) {
+		LOG_MSG("Unable to memory map memory file, %s",strerror(errno));
+		memory_file_base = NULL; /* MAP_FAILED might be some nonzero value, such as on Linux where it is -1 */
+		free_mem_file();
+		return false;
+	}
+
+	LOG_MSG("Using memory file '%s' as guest memory",memory_file.c_str());
+	memory_file_already_zero = true;
+	return true;
+}
+# elif defined(WIN32_MMAP)
+void free_mem_file() {
+    if(memory_file_base != NULL) {
+        if(UnmapViewOfFile(memory_file_base) == 0) E_Exit("Windows refused to unmap the file view");
+        memory_file_base = NULL;
+    }
+    if(memory_file_map != INVALID_HANDLE_VALUE && memory_file_map != 0) {
+        if(CloseHandle(memory_file_map) == 0) E_Exit("Windows refused to close the memory file, err=0x%08x",(unsigned int)GetLastError());
+        memory_file_map = INVALID_HANDLE_VALUE;
+    }
+    if(memory_file_fd != INVALID_HANDLE_VALUE) {
+        if(CloseHandle(memory_file_fd) == 0) E_Exit("Windows refused to close the memory file, err=0x%08x", (unsigned int)GetLastError());
+        memory_file_fd = INVALID_HANDLE_VALUE;
+    }
+}
+
+bool alloc_mem_file() {
+    assert(memory_file_fd == INVALID_HANDLE_VALUE);
+    assert(memory_file_map == INVALID_HANDLE_VALUE);
+    assert(memory_file_base == NULL);
+
+    if(memory_file.empty() || memory_file_size == 0)
+        return false;
+
+    DWORD attr, err;
+
+    attr = GetFileAttributesA(memory_file.c_str());
+    if(attr == INVALID_FILE_ATTRIBUTES) {
+        err = GetLastError();
+        if(err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND) {
+            /* OK */
+        }
+        else {
+            return false;
+        }
+    }
+    else if(attr & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_DEVICE)) {
+        free_mem_file();
+        return false;
+    }
+
+    memory_file_fd = CreateFile(memory_file.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS, NULL);
+    if(memory_file_fd == INVALID_HANDLE_VALUE) {
+        free_mem_file();
+        return false;
+    }
+
+    if(SetFilePointer(memory_file_fd, 0, 0, FILE_BEGIN) != 0) {
+        free_mem_file();
+        return false;
+    }
+    if(SetEndOfFile(memory_file_fd) == 0) {
+        free_mem_file();
+        return false;
+    }
+
+    {
+        FILE_SET_SPARSE_BUFFER sp;
+        DWORD retval;
+
+        sp.SetSparse = TRUE;
+        if(DeviceIoControl(memory_file_fd, FSCTL_SET_SPARSE, &sp, sizeof(sp), NULL, 0, &retval, NULL) == 0)
+            LOG_MSG("WARNING: Could not make memory file sparse");
+    }
+
+    {
+        LONG hi = (LONG)(memory_file_size >> 32ull);
+        if(SetFilePointer(memory_file_fd, (DWORD)memory_file_size, &hi, FILE_BEGIN) != (DWORD)memory_file_size) {
+            free_mem_file();
+            return false;
+        }
+    }
+    if(SetEndOfFile(memory_file_fd) == 0) {
+        free_mem_file();
+        return false;
+    }
+
+    memory_file_map = CreateFileMapping(memory_file_fd, NULL, PAGE_READWRITE, (DWORD)(memory_file_size >> 32ull), (DWORD)memory_file_size, NULL);
+    if(memory_file_map == INVALID_HANDLE_VALUE || memory_file_map == 0) {
+        const DWORD err = GetLastError();
+        free_mem_file();
+        return false;
+    }
+
+    memory_file_base = MapViewOfFile(memory_file_map, FILE_MAP_ALL_ACCESS, 0, 0, memory_file_size);
+    if(memory_file_base == NULL) {
+        const DWORD err = GetLastError();
+        free_mem_file();
+        return false;
+    }
+
+    LOG_MSG("Using memory file '%s' as guest memory", memory_file.c_str());
+    memory_file_already_zero = true;
+    return true;
+}
+# else
+void free_mem_file() {
+}
+
+bool alloc_mem_file() {
+	return false;
+}
+# endif
+#else
+void free_mem_file() {
+}
+
+bool alloc_mem_file() {
+	return false;
+}
+#endif
 
 void Init_RAM() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -1779,37 +2229,80 @@ void Init_RAM() {
     // CHECK: address mask init must have been called!
     assert(memory.mem_alias_pagemask >= 0xFF);
 
-    /* Setup the Physical Page Links */
-    Bitu memsizekb = (Bitu)section->Get_int("memsizekb");
     {
-        Bitu memsize = (Bitu)section->Get_int("memsize");
+        const char *str = section->Get_string("memory file");
+        memory_file = str;
+    }
+
+    /* Setup the Physical Page Links */
+    uint64_t memsizekb4gb = 0;
+    uint64_t memsizekb = (uint64_t)section->Get_int("memsizekb");
+    {
+        uint64_t memsize = (uint64_t)section->Get_int("memsize");
 
         if (memsizekb == 0 && memsize < 1) memsize = 1;
         else if (memsizekb != 0 && (Bits)memsize < 0) memsize = 0;
 
         /* round up memsizekb to 4KB multiple */
-        memsizekb = (memsizekb + 3ul) & (~3ul);
+        memsizekb = (memsizekb + 3ull) & (~3ull);
 
         /* roll memsize into memsizekb, simplify this code */
-        memsizekb += memsize * 1024ul;
+        memsizekb += memsize * (uint64_t)1024ull;
     }
 
     /* we can't have more memory than the memory aliasing allows */
-    if ((memory.mem_alias_pagemask+1) != 0/*32-bit integer overflow avoidance*/ &&
-        (memsizekb/4) > (memory.mem_alias_pagemask+1)) {
-        LOG_MSG("%u-bit memory aliasing limits you to %uKB",
-            (int)memory.address_bits,(int)((memory.mem_alias_pagemask+1)*4));
-        memsizekb = (memory.mem_alias_pagemask+1) * 4;
+    if ((memory.mem_alias_pagemask+1) != 0/*32-bit integer overflow avoidance*/) {
+        uint64_t maxmem;
+
+        if (memory.address_bits >= 30) /* 1GB+ */
+            maxmem = (memory.mem_alias_pagemask+1) - 0x100; /* minus 64MB */
+        else if (memory.address_bits >= 24) /* 16MB+ */
+            maxmem = (memory.mem_alias_pagemask+1) - 0x100; /* minus 1MB */
+        else
+            maxmem = (memory.mem_alias_pagemask+1) - 0x10; /* minus 64KB */
+
+        if ((memsizekb/4) > maxmem) {
+            LOG_MSG("%u-bit memory aliasing limits you to %uKB",
+                (int)memory.address_bits,(int)maxmem*4);
+            if (memory.address_bits <= 32) LOG_MSG("If you are attempting more than 4GB of RAM, you need to set memalias to a value larger than 32");
+            memsizekb = maxmem*4;
+        }
     }
 
-    /* cap at 3.5GB */
-    {
-        Bitu maxsz;
+#if defined(OSFREE)
+    /* OSFREE: It must be possible to boot the guest OS, and that requires at least 32KB of RAM (128KB for PC-98).
+     *         Whether the OS can run in such little memory is another question, what matters is there is enough
+     *         RAM for the standard boot sector loading location to exist. */
+    /* FIXME: The boot process crashes with memsizekb=128 and machine=pc98, why? */
+    if (IS_PC98_ARCH) {
+        if (memsizekb < 128) memsizekb = 128; /* 1FC0:0000 = 128KB - 1024 */
+    }
+    else {
+        if (memsizekb < 32) memsizekb = 32; /* 0000:7C00 = 32KB - 1024 */
+    }
+#endif
 
-        if (sizeof(void*) > 4) // 64-bit address space
-            maxsz = (Bitu)(3584ul * 1024ul); // 3.5GB
+    {
+        uint32_t maxsz32 = 0xF8000000ul;
+        uint64_t maxsz;
+
+        static_assert( sizeof(size_t) >= sizeof(void*), "why is size_t smaller than a pointer?" );
+
+        /* Leave 128MB of space at the top for the BIOS, S3 VGA, and Voodoo 3Dfx emulation.
+         * There was a known bug 2024/12/21 where setting the maximum memory size and installing
+         * Windows XP caused problems because XP would try to use the Voodoo 3Dfx MMIO as memory
+         * when enabled at 0xD0000000.
+         *
+         * BIOS: Given the 512KB at the top, including for ACPI structures
+         * PC-98 PEGC framebuffer: 512KB below BIOS
+         * S3 LFB and MMIO: 32MB at 32MB alignment
+         * Voodoo 3Dfx: 16MB at 16MB alignment */
+        /* 2024/12/25: We now allow 4GB or more of RAM! But, to make it work in this codebase,
+         *             it has to be divided into a region below 4GB and a region above 4GB. */
+        if (!build_memlimit_32bit()) // 64-bit address space
+            maxsz = (uint64_t)(1048576ull * 1024ull); // 1TB
         else
-            maxsz = (Bitu)(1024ul * 1024ul); // 1.0GB
+            maxsz = (uint64_t)(1024ull * 1024ull); // 1GB
 
         LOG_MSG("Max %lu sz %lu\n",(unsigned long)maxsz,(unsigned long)memsizekb);
         if (memsizekb > maxsz) {
@@ -1817,8 +2310,25 @@ void Init_RAM() {
             memsizekb = maxsz;
         }
         LOG_MSG("Final %lu\n",(unsigned long)memsizekb);
+
+        /* 4GB or more requires dividing it into below 4GB and above 4GB.
+         * This codebase for the most part is only designed for memory and MMIO
+         * below 4GB (32-bit system limits) */
+        if (memory.address_bits > 32 && memsizekb > (uint64_t)(maxsz32>>10ull)) {
+            memsizekb4gb = memsizekb - (uint64_t)(maxsz32>>10ull);
+            memsizekb = (uint64_t)(maxsz32>>10ull);
+        }
+        else {
+            memsizekb4gb = 0;
+        }
+
+        LOG_MSG("Final arrangement: Below 4GB = %lluKB, Above 4GB = %lluKB\n",
+            (unsigned long long)memsizekb,(unsigned long long)memsizekb4gb);
     }
+    memory.reported_pages_4gb = memsizekb4gb/4;
     memory.reported_pages = memory.pages = memsizekb/4;
+    memory.hw_next_assign = (uint32_t)memory.pages << 12ul;
+    LOG(LOG_MISC,LOG_DEBUG)("Hardware assignment will begin at 0x%lx",(unsigned long)memory.hw_next_assign);
 
     // FIXME: Hopefully our refactoring will remove the need for this hack
     /* if the config file asks for less than 1MB of memory
@@ -1845,11 +2355,43 @@ void Init_RAM() {
 
     /* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
      * so we then must zero the buffer. */
-    MemBase = new(std::nothrow) uint8_t[memory.pages*4096];
+    memory_file_size = size_t(memory.pages) * size_t(4096u);
+    if (memory.reported_pages_4gb > 0 && sizeof(void*) > 4) {
+        size_t noff = size_t(0x100000000ul) + (size_t(4096u) * size_t(memory.reported_pages_4gb));
+        if (memory_file_size < noff) memory_file_size = noff;
+    }
+    if (!memory_file.empty()) LOG_MSG("Memory file size will be %lluKB",(unsigned long long)memory_file_size >> 10ull);
+    if (alloc_mem_file()) {
+        MemBase = (uint8_t*)memory_file_base;
+#if C_GAMELINK
+        LOG_MSG("WARNING: Memory file overrides Game Link memory interface");
+#endif
+    }
+    else {
+        if (memory.reported_pages_4gb != 0) {
+            LOG_MSG("Memory above 4GB is not supported if not using a memory file");
+            memory.reported_pages_4gb = 0;
+            memsizekb4gb = 0;
+        }
+#if C_GAMELINK
+        MemBase = GameLink::AllocRAM(memory.pages*4096);
+#elif C_HAVE_MMAP
+        MemBase = (uint8_t*)mmap(NULL,memory.pages*4096u,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,0,0);
+        if (MemBase == (uint8_t*)MAP_FAILED) E_Exit("Failed to mmap allocate memory");
+#else // C_GAMELINK
+        MemBase = new(std::nothrow) uint8_t[memory.pages*4096];
+#endif // C_GAMELINK
+    }
+    MemSize = size_t(memory.pages*4096);
     if (!MemBase) E_Exit("Can't allocate main memory of %d KB",(int)memsizekb);
     /* Clear the memory, as new doesn't always give zeroed memory
      * (Visual C debug mode). We want zeroed memory though. */
-    memset((void*)MemBase,0,memory.reported_pages*4096);
+    if (memory_file_base && memory_file_already_zero) {
+        LOG_MSG("Host OS should treat memory map as all zeros, skipping memory clear");
+    }
+    else {
+        memset((void*)MemBase,0,memory.reported_pages*4096);
+    }
     /* the rest of "ROM" is for unmapped devices so we need to fill it appropriately */
     if (memory.reported_pages < memory.pages)
         memset((char*)MemBase+(memory.reported_pages*4096),0xFF,
@@ -1868,6 +2410,12 @@ void Init_RAM() {
         memory.phandlers[i] = ram_ptr;
     for (;i < memory.handler_pages;i++)
         memory.phandlers[i] = NULL;//&illegal_page_handler;
+
+    /* ISA 15MB memory hole? */
+    if (isa_memory_hole_15mb) {
+        for (i=0xf00;i <= 0xfff && i < memory.handler_pages;i++)
+            memory.phandlers[i] = NULL;//&illegal_page_handler;
+    }
 
     /* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
      *        what we want however is for the VGA emulation to assign illegal_page_handler for
@@ -1994,6 +2542,7 @@ void PS2Port92_OnReset(Section *sec) {
     (void)sec;//UNUSED
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
+    PC98_43B_memspace_ReadHandler.Uninstall();
     PS2_Port_92h_WriteHandler2.Uninstall();
     PS2_Port_92h_WriteHandler.Uninstall();
     PS2_Port_92h_ReadHandler.Uninstall();
@@ -2006,6 +2555,8 @@ void PS2Port92_OnReset(Section *sec) {
             PS2_Port_92h_WriteHandler.Install(0xF2,write_pc98_a20,IO_MB);
             PS2_Port_92h_ReadHandler.Install(0xF2,read_pc98_a20,IO_MB);
         }
+
+        PC98_43B_memspace_ReadHandler.Install(0x43B,read_PC98_43B_memspace,IO_MB);
     }
     else {
         // TODO: this should be handled in a motherboard init routine
@@ -2043,6 +2594,11 @@ void Init_MemHandles() {
 
     for (i = 0;i < memory.pages;i++)
         memory.mhandles[i] = 0;             //Set to 0 for memory allocation
+
+    // ISA memory hole awareness (15MB region). Block off 0xF00000-0xFFFFFF with a dummy handle.
+    if (isa_memory_hole_15mb) {
+        for (i=0xF00;i<=0xFFF && i < memory.pages;i++) memory.mhandles[i] = 0x7FFFFFFF;
+    }
 }
 
 void Init_MemoryAccessArray() {
@@ -2104,6 +2660,137 @@ Bitu MEM_PageMaskActive(void) {
     return memory.mem_alias_pagemask_active;
 }
 
+// Physical DEVICE access. This is different from phys_readb/phys_writeb because
+// those functions can only access system RAM, and is not affected by any device
+// mappings or page tables.
+
+uint8_t physdev_readb(const PhysPt64 addr) {
+	const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+	PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+	if (ph->flags & PFLAG_READABLE)
+		return *((uint8_t*)(ph->GetHostReadPt(pagenum)+((unsigned int)addr&0xFFFu)));
+
+	/* This hack is necessary because of the weird way that CPU linear addresses
+	 * make their way down to the hardware read/write callbacks */
+	const uint32_t orig = paging.tlb.phys_page[pagenum];
+	paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+	const uint8_t ch = ph->readb((PhysPt)addr); /* WARNING: 4GB wraparound here */
+	paging.tlb.phys_page[pagenum] = orig;
+	return ch;
+}
+
+uint16_t physdev_readw(const PhysPt64 addr) {
+	if (((unsigned int)addr&0xFFFu) <= 0xFFEu) {
+		const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+		PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+		if (ph->flags & PFLAG_READABLE)
+			return *((uint16_t*)(ph->GetHostReadPt(pagenum)+((unsigned int)addr&0xFFFu)));
+
+		/* This hack is necessary because of the weird way that CPU linear addresses
+		 * make their way down to the hardware read/write callbacks */
+		const uint32_t orig = paging.tlb.phys_page[pagenum];
+		paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+		const uint16_t ch = ph->readw((PhysPt)addr); /* WARNING: 4GB wraparound here */
+		paging.tlb.phys_page[pagenum] = orig;
+		return ch;
+	}
+	else {
+		return	 (uint16_t)physdev_readb(addr) +
+			((uint16_t)physdev_readb(addr+1u) << (uint16_t)8u);
+	}
+}
+
+uint32_t physdev_readd(const PhysPt64 addr) {
+	if (((unsigned int)addr&0xFFFu) <= 0xFFCu) {
+		const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+		PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+		if (ph->flags & PFLAG_READABLE)
+			return *((uint32_t*)(ph->GetHostReadPt(pagenum)+((unsigned int)addr&0xFFFu)));
+
+		/* This hack is necessary because of the weird way that CPU linear addresses
+		 * make their way down to the hardware read/write callbacks */
+		const uint32_t orig = paging.tlb.phys_page[pagenum];
+		paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+		const uint32_t ch = ph->readd((PhysPt)addr); /* WARNING: 4GB wraparound here */
+		paging.tlb.phys_page[pagenum] = orig;
+		return ch;
+	}
+	else {
+		return	 (uint32_t)physdev_readb(addr) +
+			((uint32_t)physdev_readb(addr+1u) << (uint32_t)8u) +
+			((uint32_t)physdev_readb(addr+2u) << (uint32_t)16u) +
+			((uint32_t)physdev_readb(addr+3u) << (uint32_t)24u);
+	}
+}
+
+void physdev_writeb(const PhysPt64 addr,const uint8_t val) {
+	const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+	PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+	if (ph->flags & PFLAG_WRITEABLE) {
+		*((uint8_t*)(ph->GetHostReadPt(pagenum)+((unsigned int)addr&0xFFFu))) = val;
+	}
+	else {
+		/* This hack is necessary because of the weird way that CPU linear addresses
+		 * make their way down to the hardware read/write callbacks */
+		const uint32_t orig = paging.tlb.phys_page[pagenum];
+		paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+		ph->writeb((PhysPt)addr,val); /* WARNING: 4GB wraparound here */
+		paging.tlb.phys_page[pagenum] = orig;
+	}
+}
+
+void physdev_writew(const PhysPt64 addr,const uint16_t val) {
+	if (((unsigned int)addr&0xFFFu) <= 0xFFEu) {
+		const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+		PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+		if (ph->flags & PFLAG_WRITEABLE) {
+			*((uint16_t*)(ph->GetHostWritePt(pagenum)+((unsigned int)addr&0xFFFu))) = val;
+		}
+		else {
+			/* This hack is necessary because of the weird way that CPU linear addresses
+			 * make their way down to the hardware read/write callbacks */
+			const uint32_t orig = paging.tlb.phys_page[pagenum];
+			paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+			ph->writew((PhysPt)addr,val); /* WARNING: 4GB wraparound here */
+			paging.tlb.phys_page[pagenum] = orig;
+		}
+	}
+	else {
+		physdev_writeb(addr+0u,val);
+		physdev_writeb(addr+1u,val >> 8u);
+	}
+}
+
+void physdev_writed(const PhysPt64 addr,const uint32_t val) {
+	if (((unsigned int)addr&0xFFFu) <= 0xFFCu) {
+		const PageNum pagenum = (PageNum)(addr >> (PhysPt64)12u);
+		PageHandler *ph = MEM_GetPageHandler(pagenum);
+
+		if (ph->flags & PFLAG_WRITEABLE) {
+			*((uint32_t*)(ph->GetHostWritePt(pagenum)+((unsigned int)addr&0xFFFu))) = val;
+		}
+		else {
+			/* This hack is necessary because of the weird way that CPU linear addresses
+			 * make their way down to the hardware read/write callbacks */
+			const uint32_t orig = paging.tlb.phys_page[pagenum];
+			paging.tlb.phys_page[pagenum] = (uint32_t)pagenum;
+			ph->writed((PhysPt)addr,val); /* WARNING: 4GB wraparound here */
+			paging.tlb.phys_page[pagenum] = orig;
+		}
+	}
+	else {
+		physdev_writeb(addr+0u,val);
+		physdev_writeb(addr+1u,val >> 8u);
+		physdev_writeb(addr+2u,val >> 16u);
+		physdev_writeb(addr+3u,val >> 24u);
+	}
+}
+
 //save state support
 extern void* VGA_PageHandler_Func[16];
 
@@ -2142,9 +2829,9 @@ public:
 	{}
 
 private:
-	virtual void getBytes(std::ostream& stream)
+	void getBytes(std::ostream& stream) override
 	{
-		uint8_t pagehandler_idx[0x40000];
+		uint8_t pagehandler_idx[0x40000] = {0};
 		unsigned int size_table;
 
 		// Assume 1GB maximum memory size
@@ -2188,7 +2875,7 @@ private:
 		WRITE_POD( &pagehandler_idx, pagehandler_idx );
 	}
 
-	virtual void setBytes(std::istream& stream)
+	void setBytes(std::istream& stream) override
 	{
 		uint8_t pagehandler_idx[0x40000];
 		void *old_ptrs[4];

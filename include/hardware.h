@@ -16,13 +16,13 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#pragma once
 
-#ifndef DOSBOX_HARDWARE_H
-#define DOSBOX_HARDWARE_H
+#include <stdio.h> // for FILE*, for OpenCaptureFile()
 
 class Section;
 enum OPL_Mode {
-	OPL_none,OPL_cms,OPL_opl2,OPL_dualopl2,OPL_opl3,OPL_opl3gold,OPL_hardware,OPL_hardwareCMS
+	OPL_none,OPL_opl2,OPL_dualopl2,OPL_opl3,OPL_opl3gold,OPL_hardware,OPL_hardwareCMS,OPL_esfm
 };
 #define CAPTURE_WAVE	0x01
 #define CAPTURE_OPL		0x02
@@ -30,12 +30,15 @@ enum OPL_Mode {
 #define CAPTURE_IMAGE	0x08
 #define CAPTURE_VIDEO	0x10
 #define CAPTURE_MULTITRACK_WAVE 0x20 /* like CAPTURE_WAVE, but one AVI audio track per mixer channel for pro video production */
+#define CAPTURE_RAWIMAGE	0x40
+#define CAPTURE_NETWORK		0x80
 
 extern Bitu CaptureState;
 
 void OPL_Init(Section* sec,OPL_Mode oplmode);
-void CMS_Init(Section* sec);
 void OPL_ShutDown(Section* sec);
+
+void CMS_Init(Section* sec);
 void CMS_ShutDown(Section* sec);
 
 bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma);
@@ -52,5 +55,3 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 void CAPTURE_AddMidi(bool sysex, Bitu len, uint8_t * data);
 void CAPTURE_VideoStart();
 void CAPTURE_VideoStop();
-
-#endif

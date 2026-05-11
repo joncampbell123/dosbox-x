@@ -22,7 +22,7 @@
 /* common index writing code.
  * This code originally wrote the index one struct at a type.
  * If you know anything about syscall overhead and disk I/O,
- * that's a VERY inefficent way to do it! So index read/write
+ * that's a VERY inefficient way to do it! So index read/write
  * code uses our buffer to batch the index entries into RAM
  * and write them to disk in one burst */
 unsigned char*		avi_io_buf = NULL;

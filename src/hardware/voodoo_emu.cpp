@@ -54,7 +54,7 @@
     Voodoo 2:
         2,4MB frame buffer RAM
         2,4,8,16MB texture RAM
-        90MHz clock frquency
+        90MHz clock frequency
         clears @ 2 pixels/clock (RGB and depth simultaneously)
         renders @ 1 pixel/clock
         ultrafast clears @ 16 pixels/clock
@@ -913,7 +913,7 @@ void ncc_table_update(ncc_table *n)
 {
 	int r, g, b, i;
 
-	/* generte all 256 possibilities */
+	/* generate all 256 possibilities */
 	for (i = 0; i < 256; i++)
 	{
 		int vi = (i >> 2) & 0x03;
@@ -984,7 +984,7 @@ void dacdata_r(dac_state *d, UINT8 regnum)
 
 /*************************************
  *
- *  Texuture parameter computation
+ *  Texture parameter computation
  *
  *************************************/
 
@@ -2180,7 +2180,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 	/* simple case: no pipeline */
 	if (!LFBMODE_ENABLE_PIXEL_PIPELINE(v->reg[lfbMode].u))
 	{
-		DECLARE_DITHER_POINTERS;
+		DECLARE_DITHER_POINTERS_;
 		UINT32 bufoffs;
 
 		if (LOG_LFB) LOG(LOG_VOODOO,LOG_WARN)("VOODOO.LFB:write raw mode %X (%d,%d) = %08X & %08X\n", LFBMODE_WRITE_FORMAT(v->reg[lfbMode].u), x, y, data, mem_mask);
@@ -2194,7 +2194,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 		bufoffs = scry * v->fbi.rowpixels + x;
 
 		/* compute dithering */
-		COMPUTE_DITHER_POINTERS(v->reg[fbzMode].u, y);
+		COMPUTE_DITHER_POINTERS_(v->reg[fbzMode].u, y,,);
 
 		/* loop over up to two pixels */
 		for (pix = 0; mask; pix++)
@@ -3143,8 +3143,8 @@ void fastfill(voodoo_state *v)
 		/* determine the dither pattern */
 		for (y = 0; y < 4; y++)
 		{
-			DECLARE_DITHER_POINTERS;
-			COMPUTE_DITHER_POINTERS(v->reg[fbzMode].u, y);
+			DECLARE_DITHER_POINTERS_;
+			COMPUTE_DITHER_POINTERS_(v->reg[fbzMode].u, y,,);
 			for (x = 0; x < 4; x++)
 			{
 				int r = v->reg[color1].rgb.r;
@@ -3659,7 +3659,7 @@ static raster_info *find_rasterizer(voodoo_state *v, int texcount)
 	curinfo.display = 0;
 	curinfo.polys = 0;
 	curinfo.hits = 0;
-	curinfo.next = 0;
+	curinfo.next = nullptr;
 	curinfo.shader_ready = false;
 
 	return add_rasterizer(v, &curinfo);

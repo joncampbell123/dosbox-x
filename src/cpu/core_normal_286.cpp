@@ -21,8 +21,11 @@
 #include "cpu.h"
 #include "lazyflags.h"
 #include "callback.h"
+#include "paging.h"
 #include "pic.h"
 #include "fpu.h"
+
+extern bool do_lds_wraparound;
 
 bool CPU_RDMSR();
 bool CPU_WRMSR();
@@ -44,6 +47,8 @@ static inline bool _seg_limit_check(void) {
 
 #define DoString DoString_Normal286
 
+static uint16_t last_ea86_offset;
+
 extern bool ignore_opcode_63;
 
 #if C_DEBUG
@@ -53,17 +58,6 @@ extern bool mustCompleteInstruction;
 # define mustCompleteInstruction (0)
 #endif
 
-#if (!C_CORE_INLINE)
-#define LoadMb(off) mem_readb(off)
-#define LoadMw(off) mem_readw(off)
-#define LoadMd(off) mem_readd(off)
-#define LoadMq(off) ((uint64_t)((uint64_t)mem_readd(off+4)<<32 | (uint64_t)mem_readd(off)))
-#define SaveMb(off,val)	mem_writeb(off,val)
-#define SaveMw(off,val)	mem_writew(off,val)
-#define SaveMd(off,val)	mem_writed(off,val)
-#define SaveMq(off,val) {mem_writed(off,val&0xffffffff);mem_writed(off+4,(val>>32)&0xffffffff);}
-#else 
-#include "paging.h"
 #define LoadMb(off) mem_readb_inline(off)
 #define LoadMw(off) mem_readw_inline(off)
 #define LoadMd(off) mem_readd_inline(off)
@@ -72,7 +66,6 @@ extern bool mustCompleteInstruction;
 #define SaveMw(off,val)	mem_writew_inline(off,val)
 #define SaveMd(off,val)	mem_writed_inline(off,val)
 #define SaveMq(off,val) {mem_writed_inline(off,val&0xffffffff);mem_writed_inline(off+4,(val>>32)&0xffffffff);}
-#endif
 
 extern Bitu cycle_count;
 
@@ -118,6 +111,8 @@ extern Bitu cycle_count;
 	core.prefixes|=PREFIX_REP;				\
 	core.rep_zero=_ZERO;					\
 	goto restart_opcode;
+
+#define REMEMBER_PREFIX(_x)
 
 typedef PhysPt (*GetEAHandler)(void);
 
@@ -181,13 +176,14 @@ static INLINE uint32_t Fetchd() {
 #define EALookupTable (core.ea_table)
 
 Bits CPU_Core286_Normal_Run(void) {
-    if (CPU_Cycles <= 0)
-	    return CBRET_NONE;
+	if (CPU_Cycles <= 0)
+		return CBRET_NONE;
 
 	while (CPU_Cycles-->0) {
 		LOADIP;
 		core.prefixes=0;
 		core.opcode_index=0;
+		last_ea86_offset=0;
 		core.ea_table=&EATable[0];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);
@@ -232,8 +228,8 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
-	FillFlags();
-	return CBRET_NONE;
+    FillFlags();
+    return CBRET_NONE;
 /* 8086/286 multiple prefix interrupt bug emulation.
  * If an instruction is interrupted, only the last prefix is restarted.
  * See also [https://www.pcjs.org/pubs/pc/reference/intel/8086/] and [https://www.youtube.com/watch?v=6FC-tcwMBnU] */ 

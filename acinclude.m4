@@ -1,3 +1,35 @@
+dnl AM_PATH_SDL3([MINIMUM-VERSION])
+AC_DEFUN([AM_PATH_SDL3],
+[
+AC_ARG_ENABLE(sdl3,     [  --enable-sdl3           Enable SDL 2.x],
+		    enable_sdl3enable=$enableval, enable_sdl3enable=no)
+
+  AH_TEMPLATE(C_SDL3,[Set to 1 to enable SDL 2.x support])
+
+  SDL3_CONFIG=no
+  if test x$enable_sdl3enable = xyes ; then
+    # TODO: Same override logic as SDL2 when SDL3 is in-tree
+    manual_sdl3config=no
+
+    AC_PATH_PROG(SDL3_CONFIG, sdl3-config, no)
+    AC_MSG_CHECKING(for SDL3)
+
+    # SDL3 does not provide a sdl3-config, must use pkg-config to find it
+    if test x$manual_sdl3config = xno && \
+        pkg-config --exists sdl3 ; then
+      SDL3_CFLAGS=`pkg-config sdl3 --cflags`
+      SDL3_LIBS=`pkg-config sdl3 --libs`
+      AC_DEFINE(C_SDL3,1)
+      AC_MSG_RESULT(found using pkg-config)
+    else
+      AC_MSG_RESULT(not found)
+    fi
+  fi
+
+  AC_SUBST(SDL3_CFLAGS)
+  AC_SUBST(SDL3_LIBS)
+])
+
 dnl AM_PATH_SDL2([MINIMUM-VERSION])
 AC_DEFUN([AM_PATH_SDL2],
 [
@@ -32,16 +64,26 @@ AC_ARG_ENABLE(sdl2,     [  --enable-sdl2           Enable SDL 2.x],
       PATH=vs/sdl2/linux-host/bin:$PATH
     fi
 
+    manual_sdl2config="$SDL2_CONFIG"
+
     AC_PATH_PROG(SDL2_CONFIG, sdl2-config, no)
-    min_sdl2_version=ifelse([$1], ,0.11.0,$1)
-    AC_MSG_CHECKING(for SDL2 - version >= $min_sdl2_version)
-    no_sdl2=""
-    if test "$SDL2_CONFIG" = "no" ; then
-      no_sdl2=yes
-    else
+    AC_MSG_CHECKING(for SDL2)
+
+    # Prefer pkg-config unless sdl2-config was
+    # manually specified before we looked for it
+    if test x$manual_sdl2config = xno && \
+        pkg-config --exists sdl2 ; then
+      SDL2_CFLAGS=`pkg-config sdl2 --cflags`
+      SDL2_LIBS=`pkg-config sdl2 --libs`
+      AC_DEFINE(C_SDL2,1)
+      AC_MSG_RESULT(found using pkg-config)
+    elif test x$SDL2_CONFIG != xno; then
       SDL2_CFLAGS=`$SDL2_CONFIG $sdl2conf_args --cflags`
       SDL2_LIBS=`$SDL2_CONFIG $sdl2conf_args --libs`
       AC_DEFINE(C_SDL2,1)
+      AC_MSG_RESULT(found using sdl2-config)
+    else
+      AC_MSG_RESULT(not found)
     fi
   fi
 

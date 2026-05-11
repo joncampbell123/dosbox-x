@@ -42,9 +42,6 @@
 /* Determines if the compilers supports fastcall attribute. */
 #undef C_ATTRIBUTE_FASTCALL
 
-/* Define to 1 to use inlined memory functions in cpu core */
-#define C_CORE_INLINE	1
-
 /* Indicate whether SDL_net is present */
 #define C_SDL_NET 1
 
@@ -89,8 +86,11 @@
 /* Define to 1 to enable libfluidsynth MIDI synthesis */
 #undef C_FLUIDSYNTH
 
+/* Force SDL drawn menus */
+#undef C_FORCE_MENU_SDLDRAW
+
 /* Define to 1 to enable floating point emulation */
-#define C_FPU					1
+#define C_FPU 1
 
 /* Define to 1 to use a x86/x64 assembly fpu core */
 /* FIXME: VS2015 x86_64 will not allow inline asm! */
@@ -146,8 +146,15 @@
 /* #undef C_SDL2 */
 
 /* Define to 1 to use opengl display output support */
-#if !defined(_M_ARM64) && !defined (_M_ARM)
-# define C_OPENGL 1
+#if (defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM_NT)) && defined(WIN32)
+/* do not define for ARM-based Windows, it doesn't seem to work, and Windows RT does not have it */
+#else
+#  define C_OPENGL 1
+#endif
+
+#ifdef C_SDL2
+/* Define to 1 to enable gamelink support (needs SDL2) */
+#define C_GAMELINK 1
 #endif
 
 /* Set to 1 to enable XBRZ support */
@@ -306,9 +313,6 @@
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
-/* Define to `int` if you don't have socklen_t */
-#undef socklen_t
-
 #if C_ATTRIBUTE_ALWAYS_INLINE
 #define INLINE inline __attribute__((always_inline))
 #else
@@ -383,6 +387,21 @@ typedef         double     Real64;
 /* Fuck off MSVC I don't care if some C library functions aren't POSIX compliant --J.C. */
 #if defined(WIN32)
 # pragma warning(disable:4996)
+#endif
+
+/*
+  Define HAS_CDIRECTLPT as 1 if C_DIRECTLPT is defined (as 1) *and* parallel
+  pass-through is available on the current platform. It is only available on
+  x86{_64} with Windows or BSD, and on Linux.
+*/
+#ifdef C_DIRECTLPT
+#if (defined __i386__ || defined __x86_64__ || defined _M_IX86 || defined _M_X64) && \
+    defined WIN32
+#define HAS_CDIRECTLPT 1
+#endif
+#endif // C_DIRECTLPT
+#ifndef HAS_CDIRECTLPT
+#define HAS_CDIRECTLPT 0
 #endif
 
 /* Linux-side configure script will write/rewrite this file so both Windows and Linux builds carry the same information --J.C. */

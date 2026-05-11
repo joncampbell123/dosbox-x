@@ -35,28 +35,36 @@
 #include "cross.h"
 #include "control.h"
 #include "shell.h"
+#include "menudef.h"
 #include "hardware.h"
+#include "../dos/drives.h"
 #include "mapper.h"
 #include "menu.h"
+#include "bios.h"
+#include "timer.h"
 #include "jfont.h"
 #include "render.h"
 #include "../ints/int10.h"
+#include "bios_disk.h"
 #include "sdlmain.h"
+#include "cpu.h"
 #if defined(WIN32)
 #include "windows.h"
-extern RECT monrect;
-extern int curscreen;
-typedef struct {
-	int	x, y;
-} xyp;
+RECT monrect;
+int curscreen;
 #endif
 
-Bitu call_program;
-extern const char *modifier;
-extern std::string langname, configfile;
-extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, usecon, enable_dbcs_tables;
+#include <output/output_tools.h>
+#include <output/output_ttf.h>
 
+Bitu call_program;
+extern char lastmount;
+extern const char *modifier;
+extern unsigned int sendkeymap;
+extern std::string langname, configfile, dosbox_title;
+extern int autofixwarn, enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor, msgcodepage;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, convertimg, lockmount, enable_config_as_shell_commands, lesssize, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename, internal_program, pipetmpdev, notrysgf, uselangcp, incall;
+extern bool clipboard_biospaste;
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
 static uint8_t exe_block[]={
@@ -94,9 +102,12 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
-bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
-void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void);
-void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runSerial(const char *str), runParallel(const char *str);
+uint8_t DOS_GetAnsiAttr(void);
+int setTTFMap(bool changecp);
+char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
+bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), DOS_SetAnsiAttr(uint8_t attr), GFX_GetPreventFullscreen(void), toOutput(const char *what);
+void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), clearFontCache(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void), PRINTER_Init(void), SetKEYBCP(void);
+void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runRescan(const char *str), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days), PRINTER_Shutdown(Section* sec), setAspectRatio(Section_prop * section);
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -116,7 +127,7 @@ void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main,const char *
 	uint8_t *comdata;
 	uint8_t index;
 
-	/* Copy save the pointer in the vector and save it's index */
+	/* Copy save the pointer in the vector and save its index */
 	if (internal_progs.size()>255) E_Exit("PROGRAMS_MakeFile program size too large (%d)",static_cast<int>(internal_progs.size()));
 
 	index = (uint8_t)internal_progs.size();
@@ -132,7 +143,9 @@ void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main,const char *
 	ipe->comsize = size;
 	ipe->comdata = comdata;
 	internal_progs.push_back(ipe);
+	internal_program = true;
 	VFILE_Register(name,ipe->comdata,ipe->comsize,dir);
+	internal_program = false;
 }
 
 static Bitu PROGRAMS_Handler(void) {
@@ -197,8 +210,8 @@ void Program::ChangeToLongCmd() {
 	 * can only be given on the shell ( so no int 21 4b) 
 	 * Securemode part is disabled as each of the internal command has already
 	 * protection for it. (and it breaks games like cdman)
-	 * it is also done for long arguments to as it is convient (as the total commandline can be longer then 127 characters.
-	 * imgmount with lot's of parameters
+	 * it is also done for long arguments too as it is convenient (as the total commandline can be longer than 127 characters.
+	 * imgmount with lots of parameters
 	 * Length of arguments can be ~120. but switch when above 100 to be sure
 	 */
 
@@ -210,8 +223,10 @@ void Program::ChangeToLongCmd() {
 	full_arguments.assign(""); //Clear so it gets even more save
 }
 
+bool resetcolor = false;
 static char last_written_character = 0;//For 0xA to OxD 0xA expansion
 void Program::WriteOut(const char * format,...) {
+	uint8_t attr = DOS_GetAnsiAttr();
 	char buf[2048];
 	va_list msg;
 	
@@ -227,26 +242,44 @@ void Program::WriteOut(const char * format,...) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
 		last_written_character = (char)(out = (uint8_t)buf[i]);
-		DOS_WriteFile(STDOUT,&out,&s);
+        if(isDBCSCP() && isKanji1(buf[i]) && i + 1 < size && isKanji2(buf[i + 1])) {
+            uint8_t dbchar[3] = { (uint8_t)buf[i], (uint8_t)buf[i + 1],0 };
+            s = 2;
+            DOS_WriteFile(STDOUT, dbchar, &s); // send two bytes if next character is a DBCS character
+            i++;
+            s = 1;
+            continue;
+        }
+        DOS_WriteFile(STDOUT,&out,&s);
 	}
 	dos.internal_output=false;
+	if (resetcolor && attr) DOS_SetAnsiAttr(attr);
+	resetcolor = false;
 	
 //	DOS_WriteFile(STDOUT,(uint8_t *)buf,&size);
 }
 
 void Program::WriteOut(const char *format, const char *arguments) {
-	char buf[2048];
+	char buf[2048 + CMD_MAXLINE];
 	sprintf(buf,format,arguments);
 
 	uint16_t size = (uint16_t)strlen(buf);
 	dos.internal_output=true;
 	for(uint16_t i = 0; i < size;i++) {
-		uint8_t out;uint16_t s=1;
+        uint8_t out; uint16_t s = 1;
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
 		last_written_character = (char)(out = (uint8_t)buf[i]);
-		DOS_WriteFile(STDOUT,&out,&s);
+        if(isDBCSCP() && isKanji1(buf[i]) && i + 1 < size && isKanji2(buf[i + 1])) {
+            uint8_t dbchar[3] = { (uint8_t)buf[i], (uint8_t)buf[i + 1], 0};
+            s = 2;
+            DOS_WriteFile(STDOUT, dbchar, &s); // send two bytes if next character is a DBCS character
+            i++;
+            s = 1;
+            continue;
+        }
+        DOS_WriteFile(STDOUT,&out,&s);
 	}
 	dos.internal_output=false;
 
@@ -257,8 +290,8 @@ int Program::WriteOut_NoParsing(const char * format, bool dbcs) {
 	uint16_t size = (uint16_t)strlen(format);
 	char const* buf = format;
 	char last2 = 0, last3 = 0;
-	int lastcol = 0, COLS=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-	uint8_t page=usecon?real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE):0;
+	int lastcol = 0;
+	uint8_t page=outcon?real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE):0;
 	bool lead=false;
 	dos.internal_output=true;
 	int rcount = 0;
@@ -267,15 +300,23 @@ int Program::WriteOut_NoParsing(const char * format, bool dbcs) {
 		BIOS_NCOLS;
 		if (!CURSOR_POS_COL(page)) last2=last3=0;
 		if (lead) lead = false;
-		else if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs && dbcs && isKanji1(buf[i])) lead = true;
+		else if ((IS_PC98_ARCH || isDBCSCP())
+#if defined(USE_TTF)
+            && dbcs_sbcs
+#endif
+            && dbcs && isKanji1(buf[i])) lead = true;
 		if (buf[i] == 0xA) {
 			if (last_written_character != 0xD) {out = 0xD;DOS_WriteFile(STDOUT,&out,&s);}
-			if (usecon) rcount++;
-		} else if (usecon && lead && CURSOR_POS_COL(page)==COLS-1 && !CheckBoxDrawing(last3, last2, last_written_character, buf[i])) {
+			if (outcon) rcount++;
+		} else if (outcon && lead && CURSOR_POS_COL(page)==ncols-1 && !(TTF_using()
+#if defined(USE_TTF)
+            && autoboxdraw
+#endif
+            && CheckBoxDrawing(last3, last2, last_written_character, buf[i]))) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 			out = 0xA;DOS_WriteFile(STDOUT,&out,&s);
 			rcount++;
-		} else if (usecon && !CURSOR_POS_COL(page) && lastcol == COLS-1)
+		} else if (outcon && !CURSOR_POS_COL(page) && lastcol == ncols-1)
 			rcount++;
 		lastcol=CURSOR_POS_COL(page);
 		last3=last2;last2=last_written_character;
@@ -475,6 +516,99 @@ void Program::DebugDumpEnv() {
 	}
 }
 
+bool Program::FirstEnv(const char * entry) {
+	PhysPt env_base,env_fence,env_scan,env_first,env_last;
+	bool found = false;
+
+	if (dos_kernel_disabled) {
+		LOG_MSG("BUG: Program::FirstEnv() called with DOS kernel disabled (such as OS boot).\n");
+		return false;
+	}
+
+	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
+		LOG_MSG("Warning: GetEnvCount() was not able to locate the program's environment block\n");
+		return false;
+	}
+
+	std::string bigentry(entry);
+	for (std::string::iterator it = bigentry.begin(); it != bigentry.end(); ++it) *it = toupper(*it);
+
+	env_scan = env_base;
+	while (env_scan < env_fence) {
+		/* "NAME" + "=" + "VALUE" + "\0" */
+		/* end of the block is a NULL string meaning a \0 follows the last string's \0 */
+		if (mem_readb(env_scan) == 0) break; /* normal end of block */
+
+		if (EnvPhys_StrCmp(env_scan,env_fence,bigentry.c_str()) == 0) {
+			found = true;
+			break;
+		}
+
+		if (!EnvPhys_ScanUntilNextString(env_scan,env_fence)) break;
+	}
+
+	if (found) {
+		env_first = env_scan;
+		if (!EnvPhys_ScanUntilNextString(env_scan,env_fence)) return false;
+		env_last = env_scan;
+
+#if 0//DEBUG
+		fprintf(stderr,"Env base=%x fence=%x first=%x last=%x\n",
+			(unsigned int)env_base,  (unsigned int)env_fence,
+			(unsigned int)env_first, (unsigned int)env_last);
+#endif
+
+		assert(env_first <= env_last);
+
+		/* if the variable is already at the beginning, do nothing */
+		if (env_first == env_base) return true;
+
+		{
+			std::vector<uint8_t> tmp;
+			tmp.resize(size_t(env_last-env_first));
+
+			/* save variable */
+			for (size_t i=0;i < tmp.size();i++)
+				tmp[i] = mem_readb(env_first+(PhysPt)i);
+
+			/* shift all variables prior to it forward over the variable, BACKWARDS */
+			const size_t pl = size_t(env_first - env_base);
+			assert((env_first-pl) == env_base);
+			assert((env_last-pl) >= env_base);
+			assert(env_first < env_last);
+			assert(pl != 0);
+			for (size_t i=0;i < pl;i++) mem_writeb(env_last-(i+1), mem_readb(env_first-(i+1)));
+
+			/* put the variable in at the beginning */
+			assert((env_base+tmp.size()) == (env_last-pl));
+			for (size_t i=0;i < tmp.size();i++)
+				mem_writeb(env_base+(PhysPt)i,tmp[i]);
+		}
+	}
+
+	return true;
+}
+
+bool Program::EraseEnv(void) {
+	PhysPt env_base,env_fence;
+	size_t nsl = 0,el = 0,needs;
+
+	if (dos_kernel_disabled) {
+		LOG_MSG("BUG: Program::EraseEnv() called with DOS kernel disabled (such as OS boot).\n");
+		return false;
+	}
+
+	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
+		LOG_MSG("Warning: SetEnv() was not able to locate the program's environment block\n");
+		return false;
+	}
+
+	for (PhysPt w=env_base;w < env_fence;w++)
+		mem_writeb(w,0);
+
+	return true;
+}
+
 /* NTS: "entry" string must have already been converted to uppercase */
 bool Program::SetEnv(const char * entry,const char * new_string) {
 	PhysPt env_base,env_fence,env_scan;
@@ -571,7 +705,7 @@ class CONFIG : public Program {
 public:
     /*! \brief      Program entry point, when the command is run
      */
-	void Run(void);
+	void Run(void) override;
 private:
 	void restart(const char* useconfig);
 	
@@ -580,7 +714,7 @@ private:
 		if (configdir) {
 			// write file to the default config directory
 			std::string config_path;
-			Cross::GetPlatformConfigDir(config_path);
+			config_path = Cross::GetPlatformConfigDir();
 			struct stat info;
 			if (!stat(config_path.c_str(), &info) || !(info.st_mode & S_IFDIR)) {
 #ifdef WIN32
@@ -607,9 +741,1169 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program, bool quiet), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(bool quiet), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
 bool set_ver(char *s), GFX_IsFullscreen(void);
 
+void Load_Language(std::string name) {
+    if(control->opt_lang != "") control->opt_lang = name;
+    MSG_Init();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU || DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+    mainMenu.unbuild();
+    mainMenu.rebuild();
+#endif
+    if (!GFX_GetPreventFullscreen()) {
+        if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
+    }
+#if defined(USE_TTF)
+    if (TTF_using()) resetFontSize();
+#endif
+#if 0
+    if (!uselangcp && !incall) {
+        int oldmsgcp = msgcodepage;
+        msgcodepage = dos.loaded_codepage;
+        SetKEYBCP();
+        msgcodepage = oldmsgcp;
+    }
+#endif
+}
+
+void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
+    if (!strcasecmp(pvar.c_str(), "dosbox")||!strcasecmp(pvar.c_str(), "dos")||!strcasecmp(pvar.c_str(), "dosv")||!strcasecmp(pvar.c_str(), "cpu")||!strcasecmp(pvar.c_str(), "sdl")||!strcasecmp(pvar.c_str(), "ttf")||!strcasecmp(pvar.c_str(), "render")||!strcasecmp(pvar.c_str(), "serial")||!strcasecmp(pvar.c_str(), "parallel")||!strcasecmp(pvar.c_str(), "printer")) {
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvar.c_str()));
+        if (section != NULL) {
+            if (!strcasecmp(pvar.c_str(), "dosbox")) {
+                force_nocachedir = section->Get_bool("nocachedir");
+                sync_time = section->Get_bool("synchronize time");
+                if (!strcasecmp(inputline.substr(0, 17).c_str(), "synchronize time=")) {
+                    manualtime=false;
+                    mainMenu.get_item("sync_host_datetime").check(sync_time).refresh_item(mainMenu);
+                }
+                std::string freesizestr = section->Get_string("freesizecap");
+                if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
+                else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
+                else freesizecap = 1;
+                convertimg = section->Get_bool("convertdrivefat");
+                wpcolon = section->Get_bool("leading colon write protect image");
+                lockmount = section->Get_bool("locking disk image mount");
+                if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);
+                if (!strcasecmp(inputline.substr(0, 11).c_str(), "saveremark=")) {
+                    noremark_save_state = !section->Get_bool("saveremark");
+                    mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
+                }
+                if (!strcasecmp(inputline.substr(0, 15).c_str(), "forceloadstate=")) {
+                    force_load_state = section->Get_bool("forceloadstate");
+                    mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
+                }
+                if (!strcasecmp(inputline.substr(0, 23).c_str(), "show recorded filename="))
+                    show_recorded_filename = section->Get_bool("show recorded filename");
+                if (!strcasecmp(inputline.substr(0, 6).c_str(), "title=")) {
+                    dosbox_title=section->Get_string("title");
+                    trim(dosbox_title);
+                }
+                if (!strcasecmp(inputline.substr(0, 9).c_str(), "language="))
+                    Load_Language(section->Get_string("language"));
+                if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapper send key=")) {
+                    std::string mapsendkey = section->Get_string("mapper send key");
+                    if (mapsendkey=="winlogo") sendkeymap=1;
+                    else if (mapsendkey=="winmenu") sendkeymap=2;
+                    else if (mapsendkey=="alttab") sendkeymap=3;
+                    else if (mapsendkey=="ctrlesc") sendkeymap=4;
+                    else if (mapsendkey=="ctrlbreak") sendkeymap=5;
+                    else sendkeymap=0;
+                    mainMenu.get_item("sendkey_mapper_winlogo").check(sendkeymap==1).refresh_item(mainMenu);
+                    mainMenu.get_item("sendkey_mapper_winmenu").check(sendkeymap==2).refresh_item(mainMenu);
+                    mainMenu.get_item("sendkey_mapper_alttab").check(sendkeymap==3).refresh_item(mainMenu);
+                    mainMenu.get_item("sendkey_mapper_ctrlesc").check(sendkeymap==4).refresh_item(mainMenu);
+                    mainMenu.get_item("sendkey_mapper_ctrlbreak").check(sendkeymap==5).refresh_item(mainMenu);
+                    mainMenu.get_item("sendkey_mapper_cad").check(!sendkeymap).refresh_item(mainMenu);
+                }
+            } else if (!strcasecmp(pvar.c_str(), "sdl")) {
+                modifier = section->Get_string("clip_key_modifier");
+                paste_speed = section->Get_int("clip_paste_speed");
+                const char* pastebios = section->Get_string("clip_paste_bios");
+                if(!strcasecmp(pastebios, "default") || !strcasecmp(pastebios, "true") || !strcmp(pastebios, "1")) clipboard_biospaste = true;
+                else if(!strcasecmp(pastebios, "false") || !strcmp(pastebios, "0")) clipboard_biospaste = false;
+                mainMenu.get_item("clipboard_biospaste").check(clipboard_biospaste).refresh_item(mainMenu);
+                if (!strcasecmp(inputline.substr(0, 16).c_str(), "mouse_wheel_key=")) {
+                    wheel_key = section->Get_int("mouse_wheel_key");
+                    wheel_guest=wheel_key>0;
+                    if (wheel_key<0) wheel_key=-wheel_key;
+                    mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_ctrlwz").check(wheel_key==7).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
+                }
+                if (!strcasecmp(inputline.substr(0, 12).c_str(), "sensitivity=")) {
+                    Prop_multival* p3 = static_cast<Section_prop *>(section)->Get_multival("sensitivity");
+                    sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
+                    sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
+                }
+#if C_GAMELINK
+                if (!strcasecmp(inputline.substr(0, 22).c_str(), "gamelink load address=")) {
+                    sdl.gamelink.loadaddr = section->Get_int("gamelink load address");
+                }
+#endif
+                if (!strcasecmp(inputline.substr(0, 11).c_str(), "fullscreen=")) {
+                    if (section->Get_bool("fullscreen")) {
+                        if (!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
+                    } else if (GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
+                }
+                if (!strcasecmp(inputline.substr(0, 7).c_str(), "output=")) {
+                    std::string output=section->Get_string("output");
+                    if (output == "default") output=GetDefaultOutput();
+                    GFX_LosingFocus();
+                    toOutput(output.c_str());
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                    if (!GFX_GetPreventFullscreen()) {
+                        if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
+                    }
+#endif
+#if defined(WIN32) && !defined(HX_DOS)
+                    DOSBox_SetSysMenu();
+#endif
+                }
+                if (!strcasecmp(inputline.substr(0, 13).c_str(), "transparency="))
+                    SetWindowTransparency(section->Get_int("transparency"));
+#if defined(C_SDL2)
+                if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
+#else
+                if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl1=")) ReloadMapper(section,true);
+#if !defined(HAIKU) && !defined(RISCOS)
+                if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) {
+                    Prop_path* pp;
+#if defined(C_SDL2)
+                    pp = section->Get_path("mapperfile_sdl2");
+#else
+                    pp = section->Get_path("mapperfile_sdl1");
+#endif
+                    if (pp->realpath=="") ReloadMapper(section,true);
+                }
+                if (!strcasecmp(inputline.substr(0, 13).c_str(), "usescancodes=")) {
+                    void setScanCode(Section_prop * section), loadScanCode(), MAPPER_Init();
+                    setScanCode(section);
+                    loadScanCode();
+                    GFX_LosingFocus();
+                    MAPPER_Init();
+                    load=true;
+                }
+#endif
+#endif
+                if (!strcasecmp(inputline.substr(0, 8).c_str(), "display=")) {
+                    void SetDisplayNumber(int display);
+                    int numscreen = GetNumScreen();
+                    const int display = section->Get_int("display");
+                    if (display >= 0 && display <= numscreen)
+                        SetDisplayNumber(display);
+                }
+                if (!strcasecmp(inputline.substr(0, 15).c_str(), "windowposition=")) {
+                    const char* windowposition = section->Get_string("windowposition");
+                    int GetDisplayNumber(void);
+#if defined(C_SDL2) || defined (WIN32)
+                    int posx = -1, posy = -1;
+#endif
+                    if (windowposition && *windowposition) {
+                        char result[100];
+                        safe_strncpy(result, windowposition, sizeof(result));
+                        char* y = strchr(result, ',');
+                        if (y && *y) {
+                            *y = 0;
+#if defined(C_SDL2) || defined (WIN32)
+                            posx = atoi(result);
+                            posy = atoi(y + 1);
+#endif
+                        }
+                    }
+#if defined(C_SDL2)
+                    SDL_Window* GFX_GetSDLWindow(void);
+                    SDL_SetWindowTitle(GFX_GetSDLWindow(),"DOSBox-X");
+                    if (posx < 0 || posy < 0) {
+                        SDL_DisplayMode dm;
+                        int w = 640,h = 480;
+                        SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+                        if (SDL_GetDesktopDisplayMode(GetDisplayNumber()?GetDisplayNumber()-1:0,&dm) == 0) {
+                            posx = (dm.w - w)/2;
+                            posy = (dm.h - h)/2;
+                        }
+                    }
+                    if (GetDisplayNumber()>0) {
+                        int displays = SDL_GetNumVideoDisplays();
+                        SDL_Rect bound;
+                        for( int i = 1; i <= displays; i++ ) {
+                            bound = SDL_Rect();
+                            SDL_GetDisplayBounds(i-1, &bound);
+                            if (i == GetDisplayNumber()) {
+                                posx += bound.x;
+                                posy += bound.y;
+                                break;
+                            }
+                        }
+                    }
+                    SDL_SetWindowPosition(GFX_GetSDLWindow(), posx, posy);
+#elif defined(WIN32)
+                    RECT rect;
+                    MONITORINFO info;
+                    GetWindowRect(GetHWND(), &rect);
+#if !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+                    if (GetDisplayNumber()>0) {
+                        xyp xy={0};
+                        xy.x=-1;
+                        xy.y=-1;
+                        curscreen=0;
+                        BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam);
+                        EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
+                        HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
+                        info.cbSize = sizeof(MONITORINFO);
+                        GetMonitorInfo(monitor, &info);
+                        if (posx >=0 && posy >=0) {
+                            posx+=info.rcMonitor.left;
+                            posy+=info.rcMonitor.top;
+                        } else {
+                            posx = info.rcMonitor.left+(info.rcMonitor.right-info.rcMonitor.left-(rect.right-rect.left))/2;
+                            posy = info.rcMonitor.top+(info.rcMonitor.bottom-info.rcMonitor.top-(rect.bottom-rect.top))/2;
+                        }
+                    } else
+#endif
+                    if (posx < 0 && posy < 0) {
+                        posx = (GetSystemMetrics(SM_CXSCREEN)-(rect.right-rect.left))/2;
+                        posy = (GetSystemMetrics(SM_CYSCREEN)-(rect.bottom-rect.top))/2;
+                    }
+                    MoveWindow(GetHWND(), posx, posy, rect.right-rect.left, rect.bottom-rect.top, true);
+#endif
+                }
+
+#if defined(USE_TTF)
+                if (TTF_using()) resetFontSize();
+#endif
+            } else if (!strcasecmp(pvar.c_str(), "cpu")) {
+                bool turbo = section->Get_bool("turbo");
+                if (turbo != ticksLocked) DOSBOX_UnlockSpeed2(true);
+            } else if (!strcasecmp(pvar.c_str(), "dos")) {
+                mountwarning = section->Get_bool("mountwarning");
+                if (!strcasecmp(inputline.substr(0, 15).c_str(), "autofixwarning=")) {
+                    std::string autofixwarning=section->Get_string("autofixwarning");
+                    autofixwarn=autofixwarning=="false"||autofixwarning=="0"||autofixwarning=="none"?0:(autofixwarning=="a20fix"?1:(autofixwarning=="loadfix"?2:3));
+                } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
+                    std::string lfn = section->Get_string("lfn");
+                    if (lfn=="true"||lfn=="1") enablelfn=1;
+                    else if (lfn=="false"||lfn=="0") enablelfn=0;
+                    else if (lfn=="autostart") enablelfn=-2;
+                    else enablelfn=-1;
+                    mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
+                    mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
+                    mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
+                    uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
+                } else if (!strcasecmp(inputline.substr(0, 16).c_str(), "fat32setversion=")) {
+                    std::string fat32setverstr = section->Get_string("fat32setversion");
+                    if (fat32setverstr=="auto") fat32setver=1;
+                    else if (fat32setverstr=="manual") fat32setver=0;
+                    else fat32setver=-1;
+                } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
+                    const char *ver = section->Get_string("ver");
+                    if (!*ver) {
+                        dos.version.minor=0;
+                        dos.version.major=5;
+                        dos_ver_menu(false);
+                    } else if (set_ver((char *)ver))
+                        dos_ver_menu(false);
+                } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ems=")) {
+#if !defined(OSFREE)
+                    EMS_DoShutDown();
+                    EMS_Startup(NULL);
+#endif
+                    update_dos_ems_menu();
+                } else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
+                    enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
+                    mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
+                } else if (!strcasecmp(inputline.substr(0, 18).c_str(), "dos clipboard api=")) {
+                    clipboard_dosapi = section->Get_bool("dos clipboard api");
+                    mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).refresh_item(mainMenu);
+                } else if (!strcasecmp(inputline.substr(0, 22).c_str(), "pipe temporary device=")) {
+                    pipetmpdev = section->Get_bool("pipe temporary device");
+#if defined(WIN32) && !defined(HX_DOS)
+                } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "automountall=")) {
+                    const char *automountstr = section->Get_string("automountall");
+                    if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(quiet||!strcmp(automountstr, "quiet"));
+                } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {
+                    winautorun = section->Get_bool("startcmd");
+                    mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
+#endif
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+                } else if (!strcasecmp(inputline.substr(0, 15).c_str(), "starttranspath=")) {
+                    starttranspath = section->Get_bool("starttranspath");
+                    mainMenu.get_item("dos_win_transpath").check(starttranspath).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                    true
+#else
+                    startcmd
+#endif
+                    ).refresh_item(mainMenu);
+                } else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait=")) {
+                    startwait = section->Get_bool("startwait");
+                    mainMenu.get_item("dos_win_wait").check(startwait).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                    true
+#else
+                    startcmd
+#endif
+                    ).refresh_item(mainMenu);
+                } else if (!strcasecmp(inputline.substr(0, 11).c_str(), "startquiet=")) {
+                    startquiet = section->Get_bool("startquiet");
+                    mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                    true
+#else
+                    startcmd
+#endif
+                    ).refresh_item(mainMenu);
+#endif
+                }
+            } else if (!strcasecmp(pvar.c_str(), "ttf")) {
+                void ttf_reset(void), ttf_setlines(int cols, int lins), SetBlinkRate(Section_prop* section);
+                if (!strcasecmp(inputline.substr(0, 5).c_str(), "font=")) {
+#if defined(USE_TTF)
+                    if (TTF_using()) {
+                        std::string font = section->Get_string("font");
+                        if (font.empty() && !IS_PC98_ARCH && !isDBCSCP()) notrysgf = true;
+                        ttf_reset();
+                        notrysgf = false;
+                        int missing = IS_PC98_ARCH ? 0 : setTTFMap(false);
+                        if (missing > 0 && first_shell) first_shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+
+#if C_PRINTER
+                        if (printfont) UpdateDefaultPrinterFont();
+#endif
+                    }
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ptsize=")||!strcasecmp(inputline.substr(0, 8).c_str(), "winperc=")) {
+#if defined(USE_TTF)
+                     lesssize = true;
+                     if (TTF_using()) ttf_reset();
+                     lesssize = false;
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 5).c_str(), "lins=")||!strcasecmp(inputline.substr(0, 5).c_str(), "cols=")) {
+#if defined(USE_TTF)
+                    if (TTF_using()) {
+                        bool iscol=!strcasecmp(inputline.substr(0, 5).c_str(), "cols=");
+                        if (iscol&&IS_PC98_ARCH)
+                            SetVal("render", "cols", "80");
+                        else if (!CurMode)
+                            ;
+                        else if (CurMode->type==M_TEXT || IS_PC98_ARCH) {
+                            const char *str = "\033[2J";
+                            uint16_t n = (uint16_t)strlen(str);
+                            DOS_WriteFile(STDOUT,(uint8_t *)str,&n);
+                            if (quiet && first_shell) first_shell->ShowPrompt();
+                        } else {
+                            reg_ax=CurMode->mode;
+                            CALLBACK_RunRealInt(0x10);
+                        }
+                        lastset=iscol?2:1;
+                        ttf_setlines(0, 0);
+                        lastset=0;
+                    }
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "outputswitch=")) {
+#if defined(USE_TTF)
+                    SetOutputSwitch(section->Get_string("outputswitch"));
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 7).c_str(), "colors=")) {
+#if defined(USE_TTF)
+                    if (TTF_using() && !strlen(section->Get_string("colors"))) ttf_reset_colors();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 3).c_str(), "wp=")) {
+#if defined(USE_TTF)
+                    const char *wpstr=section->Get_string("wp");
+                    wpType=wpVersion=0;
+                    if (strlen(wpstr)>1) {
+                        if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
+                        else if (!strncasecmp(wpstr, "WS", 2)) wpType=2;
+                        else if (!strncasecmp(wpstr, "XY", 3)) wpType=3;
+                        if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
+                    }
+                    mainMenu.get_item("ttf_wpno").check(!wpType).refresh_item(mainMenu);
+                    mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
+                    mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
+                    mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
+                    mainMenu.get_item("ttf_wpfe").check(wpType==4).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 5).c_str(), "wpbg=")) {
+#if defined(USE_TTF)
+                    wpBG = section->Get_int("wpbg");
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 5).c_str(), "wpfg=")) {
+#if defined(USE_TTF)
+                    wpFG = section->Get_int("wpfg");
+                    if (wpFG<0) wpFG = 7;
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 5).c_str(), "bold=")) {
+#if defined(USE_TTF)
+                    showbold = section->Get_bool("bold");
+                    mainMenu.get_item("ttf_showbold").check(showbold).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 7).c_str(), "italic=")) {
+#if defined(USE_TTF)
+                    showital = section->Get_bool("italic");
+                    mainMenu.get_item("ttf_showital").check(showital).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 10).c_str(), "underline=")) {
+#if defined(USE_TTF)
+                    showline = section->Get_bool("underline");
+                    mainMenu.get_item("ttf_showline").check(showline).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 10).c_str(), "strikeout=")) {
+#if defined(USE_TTF)
+                    showsout = section->Get_bool("strikeout");
+                    mainMenu.get_item("ttf_showsout").check(showsout).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 8).c_str(), "char512=")) {
+#if defined(USE_TTF)
+                    char512 = section->Get_bool("char512");
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 12).c_str(), "righttoleft=")) {
+#if defined(USE_TTF)
+                    rtl = section->Get_bool("righttoleft");
+                    mainMenu.get_item("ttf_right_left").check(rtl).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 10).c_str(), "printfont=")) {
+#if defined(USE_TTF) && C_PRINTER
+                    printfont = section->Get_bool("printfont");
+                    mainMenu.get_item("ttf_printfont").check(printfont).refresh_item(mainMenu);
+                    UpdateDefaultPrinterFont();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "autodbcs=")) {
+#if defined(USE_TTF)
+                    dbcs_sbcs = section->Get_bool("autodbcs");
+                    mainMenu.get_item("mapper_dbcssbcs").check(dbcs_sbcs).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 12).c_str(), "autoboxdraw=")) {
+#if defined(USE_TTF)
+                    autoboxdraw = section->Get_bool("autoboxdraw");
+                    mainMenu.get_item("mapper_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 14).c_str(), "halfwidthkana=")) {
+#if defined(USE_TTF)
+                    halfwidthkana = section->Get_bool("halfwidthkana");
+                    mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
+                    if (TTF_using()) {setTTFCodePage();resetFontSize();}
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 7).c_str(), "blinkc=")) {
+#if defined(USE_TTF)
+                    SetBlinkRate(section);
+                    mainMenu.get_item("ttf_blinkc").check(blinkCursor>-1).refresh_item(mainMenu);
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "gbk=")) {
+                    if (gbk != section->Get_bool("gbk")) {
+                        gbk = !gbk;
+                        if (enable_dbcs_tables&&dos.tables.dbcs&&(IS_PDOSV||dos.loaded_codepage==936)) mem_writeb(Real2Phys(dos.tables.dbcs)+2,gbk?0x81:0xA1);
+                        clearFontCache();
+                        if (dos.loaded_codepage!=950&&dos.loaded_codepage!=951) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==936?gbk:(gbk&&chinasea)).refresh_item(mainMenu);
+#if defined(USE_TTF)
+                        if (TTF_using() && dos.loaded_codepage==936) resetFontSize();
+#endif
+                    }
+                } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "chinasea=")) {
+                    if (chinasea != section->Get_bool("chinasea")) {
+                        chinasea = !chinasea;
+                        if (!chinasea) makestdcp950table();
+                        else makeseacp951table();
+                        clearFontCache();
+                        if (dos.loaded_codepage!=936) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:(gbk&&chinasea)).refresh_item(mainMenu);
+                        if ((TTF_using() || showdbcs) && (dos.loaded_codepage==950 || dos.loaded_codepage==951)) {
+                            MSG_Init();
+#if defined(USE_TTF)
+                            if (TTF_using()) resetFontSize();
+#endif
+                        }
+                    }
+                } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "uao=")) {
+                    if (uao != section->Get_bool("uao")) {
+                        uao = !uao;
+                        clearFontCache();
+                        if ((TTF_using() || showdbcs) && dos.loaded_codepage==951) {
+                            MSG_Init();
+                            DOSBox_SetSysMenu();
+#if defined(USE_TTF)
+                            if (TTF_using()) resetFontSize();
+#endif
+                            runRescan("-A -Q");
+                        }
+                    }
+                }
+            } else if (!strcasecmp(pvar.c_str(), "dosv")) {
+                if (!strcasecmp(inputline.substr(0, 15).c_str(), "showdbcsnodosv=")
+#if defined(USE_TTF)
+                    && !ttfswitch
+#endif
+                ) {
+                    std::string showdbcsstr = section->Get_string("showdbcsnodosv");
+#if defined(USE_TTF)
+                    showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && (loadlang || dbcs_sbcs));
+#else
+                    showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && loadlang);
+#endif
+                    if (!IS_EGAVGA_ARCH) showdbcs = false;
+                } else if (!strcasecmp(inputline.substr(0, 11).c_str(), "fepcontrol=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext1=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext2="))
+                    DOSV_SetConfig(section);
+            } else if (!strcasecmp(pvar.c_str(), "render")) {
+                if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
+#if C_OPENGL
+                    std::string LoadGLShader(Section_prop * section);
+                    LoadGLShader(section);
+                    GFX_ForceRedrawScreen();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 12).c_str(), "pixelshader="))
+                    GFX_ForceRedrawScreen();
+                else if (!strcasecmp(inputline.substr(0, 13).c_str(), "aspect_ratio=")) {
+                    setAspectRatio(section);
+                    if (render.aspect) GFX_ForceRedrawScreen();
+                }
+            } else if (!strcasecmp(pvar.c_str(), "serial")) {
+                if (!strcasecmp(inputline.substr(0, 6).c_str(), "serial") && inputline[7]=='=') {
+                    std::string val = section->Get_string("serial" + std::string(1, inputline[6])), cmd = std::string(1, inputline[6]) + " " + (val.size()?val:"dummy");
+                    runSerial(cmd.c_str());
+                }
+            } else if (!strcasecmp(pvar.c_str(), "parallel")) {
+                if (!strcasecmp(inputline.substr(0, 8).c_str(), "parallel") && inputline[9]=='=') {
+                    std::string val = section->Get_string("parallel" + std::string(1, inputline[8])), cmd = std::string(1, inputline[8]) + " " + (val.size()?val:"disabled");
+                    runParallel(cmd.c_str());
+                }
+#if C_PRINTER
+            } else if (!strcasecmp(pvar.c_str(), "printer")) {
+                PRINTER_Shutdown(NULL);
+                PRINTER_Init();
+#endif
+            }
+        }
+    }
+}
+
+#if !defined(OSFREE)
+uint8_t device_nextdrive = 0;
+#endif
+
+#if !defined(OSFREE)
+uint8_t imageDiskMSDOSBlockDevice::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+	const unsigned int max_sects = (bdevbuf_sz - 16) / sector_size;
+	if (max_sects == 0) return 0x05;
+
+	const uint16_t count = 1;
+	const uint32_t sector = sectnum;
+	const uint16_t strategy = mem_readw(devhdr+6);
+	const uint16_t intrupt = mem_readw(devhdr+8);
+	unsigned char *p_data = (unsigned char*)data;
+
+	uint16_t oldbx = reg_bx;
+	uint16_t oldds = SegValue(ds);
+	uint16_t oldes = SegValue(es);
+
+	DOS_DEVHDR::req_rwio req = {0};
+	req.hdr.record_length = sizeof(req);
+	req.hdr.unit_code = unit_code;
+	req.hdr.cmd_code = DEVFUNC_READ;
+	req.xfer_addr = RealMake(bdevbuf_seg+1,0);
+	req.count = count;
+	req.ptr_volid = RealMake(bdevbuf_seg,0);
+	if (attr & DEVATTRBLK_EXTENDED) {
+		req.start_sector = 0xFFFF;
+		req.start_sector32 = sector;
+	}
+	else {
+		if (sector > 0xFFFFu) return 0x05;
+		req.start_sector = sector;
+		req.start_sector32 = 0;
+	}
+	req.media_dpb = media_dpb;
+	MEM_BlockWrite(PhysMake(dos.dcp,0),&req,sizeof(req));
+
+	LOG(LOG_MISC,LOG_DEBUG)("Block device read devseg=%x sectnum %x devseg %x strat %x intr %x xfer=%x:%x",
+		devseg,sectnum,devseg,strategy,intrupt,
+		req.xfer_addr>>16,req.xfer_addr&0xFFFFu);
+
+	reg_bx = 0;
+	SegSet16(ds, devseg);
+	SegSet16(es, dos.dcp);
+	CALLBACK_RunRealFar(devseg, strategy);
+	CALLBACK_RunRealFar(devseg, intrupt);
+	reg_bx = oldbx;
+	SegSet16(es, oldes);
+	SegSet16(ds, oldds);
+
+	MEM_BlockRead(PhysMake(dos.dcp,0),&req,sizeof(req));
+
+	LOG(LOG_MISC,LOG_DEBUG)("--result status=%x count=%u",
+		req.hdr.status,req.count);
+
+	if (req.hdr.status & 0x8000) return 0x05;/*error*/
+	if (req.count == 0) return 0x05;/*error*/
+
+	MEM_BlockRead(PhysMake(bdevbuf_seg+1,0),p_data,sector_size);
+        return 0;
+}
+#endif
+
+#if !defined(OSFREE)
+uint8_t imageDiskMSDOSBlockDevice::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
+	const unsigned int max_sects = (bdevbuf_sz - 16) / sector_size;
+	if (max_sects == 0) return 0x05;
+
+	const uint16_t count = 1;
+	const uint32_t sector = sectnum;
+	const uint16_t strategy = mem_readw(devhdr+6);
+	const uint16_t intrupt = mem_readw(devhdr+8);
+	const unsigned char *p_data = (const unsigned char*)data;
+
+	uint16_t oldbx = reg_bx;
+	uint16_t oldds = SegValue(ds);
+	uint16_t oldes = SegValue(es);
+
+	DOS_DEVHDR::req_rwio req = {0};
+	req.hdr.record_length = sizeof(req);
+	req.hdr.unit_code = unit_code;
+	req.hdr.cmd_code = DEVFUNC_WRITE;
+	req.xfer_addr = RealMake(bdevbuf_seg+1,0);
+	req.count = count;
+	req.ptr_volid = RealMake(bdevbuf_seg,0);
+	if (attr & DEVATTRBLK_EXTENDED) {
+		req.start_sector = 0xFFFF;
+		req.start_sector32 = sector;
+	}
+	else {
+		if (sector > 0xFFFFu) return 0x05;
+		req.start_sector = sector;
+		req.start_sector32 = 0;
+	}
+	req.media_dpb = media_dpb;
+	MEM_BlockWrite(PhysMake(dos.dcp,0),&req,sizeof(req));
+	MEM_BlockWrite(PhysMake(bdevbuf_seg+1,0),p_data,sector_size);
+
+	LOG(LOG_MISC,LOG_DEBUG)("Block device write devseg=%x sectnum %x devseg %x strat %x intr %x xfer=%x:%x",
+		devseg,sectnum,devseg,strategy,intrupt,
+		req.xfer_addr>>16,req.xfer_addr&0xFFFFu);
+
+	reg_bx = 0;
+	SegSet16(ds, devseg);
+	SegSet16(es, dos.dcp);
+	CALLBACK_RunRealFar(devseg, strategy);
+	CALLBACK_RunRealFar(devseg, intrupt);
+	reg_bx = oldbx;
+	SegSet16(es, oldes);
+	SegSet16(ds, oldds);
+
+	MEM_BlockRead(PhysMake(dos.dcp,0),&req,sizeof(req));
+
+	LOG(LOG_MISC,LOG_DEBUG)("--result status=%x count=%u",
+		req.hdr.status,req.count);
+
+	if (req.hdr.status & 0x8000) return 0x05;/*error*/
+	if (req.count == 0) return 0x05;/*error*/
+
+        return 0;
+}
+#endif
+
+#if !defined(OSFREE)
+bool imageDiskMSDOSBlockDevice::detectDiskChange(void) {
+	return false;//TODO
+}
+#endif
+
+#if !defined(OSFREE)
+imageDiskMSDOSBlockDevice::imageDiskMSDOSBlockDevice() : imageDisk(ID_MSDOSBLOCKDEV) {
+}
+#endif
+
+#if !defined(OSFREE)
+imageDiskMSDOSBlockDevice::~imageDiskMSDOSBlockDevice() {
+}
+#endif
+
+#if !defined(OSFREE)
+bool DeviceLoad(const std::string &device,const std::string &devparm) {
+	bool user_wants_mcb_per_driver = false;
+	uint16_t devseg = 0,ofs,attr;
+	bool adj_mcb_base = false;
+	uint16_t stacksz = 256u;
+
+	std::string devname = device;
+	{
+		const char *s = strrchr(device.c_str(),'\\');
+		if (s && *s) {
+			s++;
+			if (*s) devname = s;
+		}
+	}
+
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("config"));
+
+	if (section->Get_bool("device driver mcb"))
+		user_wants_mcb_per_driver = true;
+
+	/* reduce our executable image down to only the PSP segment to maximize memory for the device driver load */
+	unsigned int psp_sz = 0x80 + devname.length() + 1 + devparm.length() + 3u + stacksz;
+	uint16_t psp_blocks = (psp_sz + 15u) / 16u; /* just enough for a PSP segment so DOS exit is possible -- we don't care about the command tail either */
+	uint16_t blocks = psp_blocks;
+	if (!DOS_ResizeMemory(dos.psp(),&blocks))
+		return false;
+
+	/* free the environment block associated with the PSP */
+	{
+		DOS_PSP p(dos.psp());
+		const uint16_t s = p.GetEnvironment();
+		if (s != 0) {
+			DOS_FreeMemory(s);
+			p.SetEnvironment(0);
+		}
+	}
+
+	/* relocate PSP segment to end of memory, if possible, to help load the driver image as low as possible
+	 * and try to avoid leaving behind small blocks of free memory behind */
+	{
+		uint16_t pmemstrat = DOS_GetMemAllocStrategy();
+		DOS_SetMemAllocStrategy(2/*lastfit*/);
+		uint16_t blocks = psp_blocks;
+		uint16_t newpsp = 0;
+		bool ok = DOS_AllocateMemory(&newpsp,&blocks);
+		DOS_SetMemAllocStrategy(pmemstrat);
+
+		if (ok && newpsp) {
+			LOG(LOG_MISC,LOG_DEBUG)("Relocating PSP segment from %x to %x",dos.psp(),newpsp);
+			mem_memcpy(PhysMake(newpsp,0),PhysMake(dos.psp(),0),psp_blocks << 4u);
+			DOS_FreeMemory(dos.psp());
+			dos.psp(newpsp);
+
+			/* update the pointer to the Job File Table to prevent breaking all file I/O past this point */
+			real_writew(dos.psp(),0x36,dos.psp());
+
+			DOS_MCB dev_mcb((uint16_t)(dos.psp()-1));
+			dev_mcb.SetPSPSeg(dos.psp());
+
+			CPU_SetSegGeneral(cs,dos.psp());
+			CPU_SetSegGeneral(ds,dos.psp());
+			CPU_SetSegGeneral(es,dos.psp());
+		}
+	}
+
+	/* redirect instruction pointer to PSP:0 so that CONFIG exits immediately after this function returns */
+	reg_ip = 0;
+
+	/* redirect the stack pointer */
+	CPU_SetSegGeneral(ss,dos.psp());
+	reg_esp = psp_sz - 2u;
+
+	/* allocate a new memory block to hold the device driver image. */
+	/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */
+	blocks = 0xFFFFu;
+	if (DOS_AllocateMemory(&devseg,&blocks)) E_Exit("Allocate memory: memory availability check actually allocated memory unexpectedly");
+	LOG(LOG_MISC,LOG_DEBUG)("Device driver load: %u bytes available",(unsigned int)blocks * 16u);
+
+	if (!DOS_AllocateMemory(&devseg,&blocks))
+		return false;
+
+	uint8_t devseg_mcb[16];
+	MEM_BlockRead(PhysMake(devseg-1,0),devseg_mcb,16);
+
+	/* if the allocated block is the first in the chain, and the CONFIG shell is active, and the MCB block is
+	 * owned by this program, we might be able to load over the MCB block and write a new one at the end of
+	 * the image and adjust the MCB start in order to pack the drivers together into the DOS segment like
+	 * real MS-DOS does. */
+	if (!user_wants_mcb_per_driver && first_shell && first_shell->config_shell && devseg == (dos_infoblock.GetFirstMCB()+1)) {
+		DOS_MCB mcb(devseg-1u);
+
+		/* this program must own the PSP segment (because we allocated it) */
+		if (mcb.GetPSPSeg() == 0 || mcb.GetPSPSeg() == dos.psp()) {
+			LOG(LOG_MISC,LOG_DEBUG)("Allocated memory for driver is the first in MCB chain, may adjust it forward");
+			adj_mcb_base = true;
+			devseg--; /* load overtop the MCB */
+		}
+	}
+
+	LOG(LOG_MISC,LOG_DEBUG)("Device driver load area: segment %x-%x for driver '%s'",(unsigned int)devseg,(unsigned int)(devseg+blocks-1u),device.c_str());
+
+	/* Use DOS_Execute() with special device driver flag value, which loads it like an overlay.
+	 * Contrary to what you've probably been told about device drivers, they do not have to be
+	 * flat COM type images. They can be EXE files too (MZ header with relocation table and
+	 * everything), in which case the device driver header is within the first 18 bytes of the
+	 * resident image.
+	 *
+	 * If you've ever wondered how MS-DOS allows EMM386.EXE to work as both an executable program
+	 * AND a device driver, and how DEVICE=C:\DOS\EMM386.EXE is even allowed, that is how. */
+	if (!DOS_Execute(device.c_str(),devseg | ((devseg+blocks)<<16u),DOSEXEC_DEVICEDRIVER)) {
+		if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+		return false;
+	}
+
+	/* FIXME: Apparently you are allowed to put multiple device drivers in one file.
+	 *        That would suggest that the header could have some valid next pointer
+	 *        instead of FFFF:FFFF.
+	 *
+	 *        I do not have any such driver to test with, therefore, that is not supported.
+	 *
+	 *        Guess: If it's a flat SYS file, maybe you can't do that. Maybe.
+	 *               If it's an EXE file, you could do that, because the relocation
+	 *               table could automatically set the segment value properly to
+	 *               point to the next driver. */
+	if (real_readd(devseg,0) != 0xFFFFFFFF) {
+		LOG(LOG_MISC,LOG_DEBUG)("FIXME: Device driver files with multiple drivers inside it not yet supported");
+	}
+
+	attr = real_readw(devseg,4);
+	LOG(LOG_MISC,LOG_DEBUG)("Device driver attributes: %x",attr);
+	if (attr & DEVATTR_ISCHAR) {
+		std::string blah;
+
+		if (attr & DEVATTRCHR_IOCTL_CTLSTRINGS) blah += " ctlstrings";
+		if (attr & DEVATTRCHR_IOCTL_OUTPUT_UNTIL_BUSY) blah += " outubusy";
+		if (attr & DEVATTRCHR_OPENCLOSE) blah += " openclose";
+		if (attr & DEVATTRCHR_INT29) blah += " int29";
+		if (attr & DEVATTRCHR_CLOCK) blah += " CLOCK$";
+		if (attr & DEVATTRCHR_NULL) blah += " NULL";
+		if (attr & DEVATTRCHR_CONOUT) blah += " CONOUT";
+		if (attr & DEVATTRCHR_CONIN) blah += " CONIN";
+
+		LOG(LOG_MISC,LOG_DEBUG)("Supports:%s",blah.c_str());
+	}
+	else {
+		std::string blah;
+
+		if (attr & DEVATTRBLK_IOCTL_CTLSTRINGS) blah += " ctlstrings";
+		if (attr & DEVATTRBLK_IOCTL_MEDIA_FAT_BYTE) blah += " mediafatbyte";
+		if (attr & DEVATTRBLK_OPENCLOSEREMOVABLE) blah += " opencloseremove";
+		if (attr & DEVATTRBLK_IBM_DRIVE_SHARED) blah += " ibmdriveshared";
+		if (attr & DEVATTRBLK_IOCTL_GEN) blah += " ioctl-generic";
+		if (attr & DEVATTRBLK_EXTENDED) blah += " extended>32mb";
+
+		LOG(LOG_MISC,LOG_DEBUG)("Supports:%s",blah.c_str());
+	}
+
+	/* Call strategy routine in driver so it knows where to look for structure, give it ES:BX = dos.dcp:0 */
+	ofs = real_readw(devseg,0x6);
+	reg_bx = 0; CPU_SetSegGeneral(ds,devseg);
+	CPU_SetSegGeneral(es,dos.dcp);
+	LOG(LOG_MISC,LOG_DEBUG)("Calling device driver strategy routine at %x:%x",devseg,ofs);
+	CALLBACK_RunRealFar(devseg,ofs); /* no return value */
+
+	/* INIT */
+	{
+		struct DOS_DEVHDR::req_init s;
+		memset(&s,0,sizeof(s));
+
+		if (dos.version.major >= 4)
+			s.hdr.record_length = 25;
+		else
+			s.hdr.record_length = 22;
+
+		/* init arguments */
+		/* NTS: This is also not documented by Microsoft apparently, but the init string apparently includes
+		 *      the name of the device driver. It's not just the text following the device.
+		 *
+		 *      Apparently 'DEVICE=C:\DOS\BLAH.SYS /X /Y /Z'
+		 *      will produce an init string of 'BLAH.SYS /X /Y /Z' not '/X /Y /Z'
+		 *
+		 *      RAMDRIVE.SYS is hardcoded to assume this. If we don't prepend the driver name into the init
+		 *      str the first command line switch will be silently ignored.
+		 *
+		 *      Sometimes I wonder if the MS-DOS environment was chaotic and buggy purely because so many
+		 *      programmers had to guess and hack around to figure things out like that from lack of good
+		 *      or any documentation. */
+		{
+			unsigned int i=0;
+			const char *s;
+
+			s = devname.c_str();
+			LOG(LOG_MISC,LOG_DEBUG)("Init device name '%s'",s);
+			while (*s) real_writeb(dos.psp(),0x80+(i++),*s++);
+
+			real_writeb(dos.psp(),0x80+(i++),' ');
+
+			s = devparm.c_str();
+			LOG(LOG_MISC,LOG_DEBUG)("Init str '%s'",s);
+			while (*s) real_writeb(dos.psp(),0x80+(i++),*s++);
+
+			/* \r\n terminated */
+			/* OAKCDROM.SYS requires \r\n, or else scans memory for eternity */
+			real_writeb(dos.psp(),0x80+(i++),0x0D);
+			real_writeb(dos.psp(),0x80+(i++),0x0A);
+
+			/* NULL terminator */
+			real_writeb(dos.psp(),0x80+(i++),0);
+
+			assert((0x80+i) <= (psp_sz - stacksz));
+		}
+
+		/* block device: fill in drive number so RAMDRIVE.SYS can properly claim anything but drive A: */
+		/* NTS: If a block device reports multiple units, that means it occupies consecutive drive letters.
+		 *      If we can't guarantee that, that might be a problem. Maybe. */
+		if (!(attr & DEVATTR_ISCHAR)) {
+			s.drive_num = device_nextdrive;
+
+			while (s.drive_num<DOS_DRIVES && Drives[s.drive_num]) s.drive_num++;
+
+			if (s.drive_num >= DOS_DRIVES) {
+				if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+				LOG(LOG_MISC,LOG_DEBUG)("No available drive letters for block device");
+				return false;
+			}
+		}
+
+		s.bpb_ptr = RealMake(dos.psp(),0x80);
+		s.end_ptr = RealMake(devseg+blocks,0);/*tell the driver where the current end is, perhaps as a memory size detect?*/
+		const uint32_t bpb_ptr_initial = s.bpb_ptr;
+		LOG(LOG_MISC,LOG_DEBUG)("Giving device driver in DEVINIT request initial endptr %x:%x initstr %x:%x",devseg+blocks,0,dos.psp(),0x80);
+		s.hdr.cmd_code = DEVFUNC_INIT;
+		MEM_BlockWrite(PhysMake(dos.dcp,0),&s,sizeof(s));
+
+		/* interrupt routine is not expected to accept or return register values but must preserve all registers.
+		 * if device drivers happen to assume things anyway, then, well'll deal with that later */
+		ofs = real_readw(devseg,0x8);
+		LOG(LOG_MISC,LOG_DEBUG)("Calling device driver interrupt routine (DEVINIT request) at %x:%x",devseg,ofs);
+		CALLBACK_RunRealFar(devseg,ofs); /* no return value */
+
+		/* so what did the driver do with the request? */
+		MEM_BlockRead(PhysMake(dos.dcp,0),&s,sizeof(s));
+
+		/* programming experience suggests that DOS doesn't give a damn about the status word of INIT,
+		 * but if you want to fail loading, set end_ptr == 0. If DOS did give a crap, my old SBSYS device
+		 * driver experiment from 1995 would have failed to run at all--I just realized today there's a bug
+		 * in the code that sets the error bit in status word only because AL != 0 having come from playing
+		 * audio directly to the SB DSP chip (usually 0x80)
+		 *
+		 * Some device drivers indicate failure by setting end_ptr to the first byte of their device driver,
+		 * instead of NULL, because doing so effectively means leaving behind zero bytes of memory. */
+
+		/* did the driver zero the end ptr or set it too far back? */
+		uint32_t newend_seg = s.end_ptr >> 16;
+		uint32_t newend_ofs = s.end_ptr & 0xFFFFu;
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr %x:%x",newend_seg,newend_ofs);
+
+		/* normalize the pointer to determine how many blocks to keep */
+		newend_seg += newend_ofs >> 4u;
+		newend_ofs &= 0xFu;
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr (normalized) %x:%x",newend_seg,newend_ofs);
+
+		if (newend_ofs) {
+			newend_seg++;
+			newend_ofs = 0;
+		}
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver returned new end_ptr (as segment) %x",newend_seg);
+
+		if (newend_seg == 0 || PhysMake(newend_seg,newend_ofs) == PhysMake(devseg,0)) { /* normal error out */
+			/* don't need to say anything, the driver will normally say it failed and probably why */
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates normal error out by setting the end_ptr to effectively remove itself from memory");
+			if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+			return false;
+		}
+		else if (
+			PhysMake(newend_seg,newend_ofs) < PhysMake(devseg,32)/*oh come on, keep at least 32 bytes of yourself around!*/ ||
+			PhysMake(newend_seg,newend_ofs) > PhysMake(devseg+blocks,0)/*you cannot make your driver bigger than the original size!*/) {
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates error with invalid end_ptr");
+			if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+			return false;
+		}
+
+		assert(newend_seg > devseg);
+		uint32_t drvszseg = newend_seg - devseg;
+
+		LOG(LOG_MISC,LOG_DEBUG)("Device driver will occupy %x paragraphs (%u bytes)",drvszseg,drvszseg * 16u);
+
+		if (adj_mcb_base) {
+			uint16_t nseg = devseg + drvszseg;
+			uint16_t xseg = devseg + blocks;
+
+			/* put the MCB in the new location and update the size */
+			MEM_BlockWrite(PhysMake(nseg,0),devseg_mcb,16);
+			LOG(LOG_MISC,LOG_DEBUG)("Moving MCB chain base from %x to %x",dos_infoblock.GetFirstMCB(),nseg);
+
+			DOS_MCB mcb(nseg);
+			assert(xseg >= nseg);
+			mcb.SetSize(xseg - nseg);
+			dos_infoblock.SetFirstMCB(dos.firstMCB=nseg);
+		}
+		else {
+			blocks = drvszseg;
+			if (!DOS_ResizeMemory(devseg,&blocks))
+				return false;
+		}
+
+		if (s.bpb_ptr && s.bpb_ptr != bpb_ptr_initial && !(attr & DEVATTR_ISCHAR)/*block device*/) {
+			/* the init str ptr is changed in block devices to a pointer to BPB structures. */
+			/* The MS-DOS source code provides documentation on the device driver interface,
+			 * but the unclear way it is written implies that this is a pointer to an array of BPB structures.
+			 * In reality, it's an array of BPB structure pointers (the offset field only) that point to BPB
+			 * structures. Old Microsoft shit documentation, as usual.
+			 *
+			 * But at least in the MS-DOS 4.0 source code, this is much clearer from the ASM files that make up RAMDRIVE.SYS.
+			 *
+			 * The BPB structures provided by the driver follow the exact same structure as the BPB on disk. */
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver set BPB array pointer to %04x:%04x and returned %u units",
+				s.bpb_ptr >> 16,s.bpb_ptr & 0xFFFFu,s.num_of_units);
+
+			/* adjust nextdrive by the number of units reported */
+			device_nextdrive = s.drive_num + s.num_of_units;
+
+			/* FIXME: I need a block device driver to test that provides multiple units from one driver */
+			if (s.num_of_units > 1) LOG(LOG_MISC,LOG_DEBUG)("FIXME: Multiple units from one device driver not yet supported");
+
+			/* Make a drive letter for each unit */
+			for (unsigned int i=0;i < s.num_of_units && i < 1/*<--remove this when multiple units supported*/;i++) {
+				uint16_t offset = real_readw(s.bpb_ptr>>16,(s.bpb_ptr&0xFFFFu)+(i*2));
+				if (offset == 0xFFFF) break; /* RAMDRIVE.SYS seems to fill entries past num_of_units with 0xFFFF */
+
+				uint8_t newdrv = s.drive_num + i;
+				if (newdrv < DOS_DRIVES && Drives[newdrv]) {
+					LOG(LOG_MISC,LOG_DEBUG)("Drive %c is already taken",newdrv+'A');
+					while (newdrv < DOS_DRIVES && Drives[newdrv]) newdrv++;
+
+					if (newdrv < DOS_DRIVES) {
+						LOG(LOG_MISC,LOG_DEBUG)("Attaching block device to drive %c instead",newdrv+'A');
+					}
+					else {
+						LOG(LOG_MISC,LOG_DEBUG)("There is no available drive letter for the block device");
+						continue;
+					}
+				}
+
+				/* assume the largest possible structure.
+				 * I don't have yet a device driver that uses the full structure or
+				 * that provides a disk larger than 32MB (RAMDRIVE.SYS limits itself to 32MB or less).
+				 * doing this also allows possible FAT32 support if a block device can actually support that.
+				 *
+				 * Maybe when Microsoft first defined this interface they should have designed it so the
+				 * device driver can indicate how many bytes the BPB structure occupies. */
+				FAT_BootSector::bpb_union_t bpb;
+				unsigned int bpb_sz = 13;/*assume structure according to MS-DOS 2.0 documentation that ends afer "FAT sector count"*/
+
+				LOG(LOG_MISC,LOG_DEBUG)("Reading BPB from driver at %04x:%04x (assuming up to %u bytes)",devseg,offset,(unsigned int)sizeof(bpb));
+				MEM_BlockRead(PhysMake(devseg,offset),&bpb,sizeof(bpb));
+
+				/* FIXME: MS-DOS 2.0 driver specification only mentions fields up to "number of sectors occupied by FAT".
+				 *
+				 *        RAMDRIVE.SYS fills out the BPB only up to the first 16 bits of the 32-bit "hidden sectors" field.
+				 *        In any case, anything beyond the media descriptor byte is not necessarily valid data. The BPB
+				 *        pointer it returns points directly into the in-memory image of the boot sector of the RAM disk.
+				 *
+				 *        If Microsoft had only thought while writing MS-DOS 2.0 to put a 16-bit or even 8-bit "size of struct"
+				 *        field at the beginning of the BPB struct in memory, it would be much easier to know whether structure members
+				 *        are actually there.
+				 *
+				 *        What exactly does MS-DOS expect for a BPB struct if the device driver allows >= 32MB drives?
+				 *        How does Windows 95/98/ME extend this crappy interface so block devices can handle FAT32? */
+
+				if (bpb.is_fat32() && (attr & DEVATTRBLK_EXTENDED)/*supports >=32MB*/)
+					bpb_sz = 29;/*FIXME: Assume that a FAT32 BPB in memory probably ends after the "32-bit FAT sector count" field*/
+				else if (bpb.v.BPB_TotSec16 == 0 && bpb.v.BPB_TotSec32 != 0 && (attr & DEVATTRBLK_EXTENDED)/*supports >=32MB*/)
+					bpb_sz = 25;/*FIXME: Assume that TotSec32 is valid and therefore the BPB struct ends after that field*/
+
+				/* zero out anything in the BPB past the assumed size, because it's probably structures or data specific to the device driver anyway */
+				if (bpb_sz < sizeof(bpb)) {
+					const unsigned int rem = sizeof(bpb) - bpb_sz;
+					assert((rem+bpb_sz) == sizeof(bpb));
+					memset(((char*)(&bpb))+bpb_sz,0,rem);
+				}
+
+				LOG(LOG_MISC,LOG_DEBUG)("BPB: assumed-size=%u bytes/sec=%u sec/clus=%u rsvdsec=%u numfat=%u rootent=%u totsec16=%u mtb=%02xh fatsz16=%u",
+					bpb_sz,
+					bpb.v.BPB_BytsPerSec,
+					bpb.v.BPB_SecPerClus,
+					bpb.v.BPB_RsvdSecCnt,
+					bpb.v.BPB_NumFATs,
+					bpb.v.BPB_RootEntCnt,
+					bpb.v.BPB_TotSec16,
+					bpb.v.BPB_Media,
+					bpb.v.BPB_FATSz16);
+
+				if (bpb.v.BPB_BytsPerSec >= 128 && bpb.v.BPB_BytsPerSec <= SECTOR_SIZE_MAX) {
+					imageDiskMSDOSBlockDevice *bd = new imageDiskMSDOSBlockDevice();
+					bd->attr = attr;
+					bd->unit_code = i;
+					bd->devseg = devseg;
+					bd->devhdr = PhysMake(devseg,0);
+					bd->bpbptr = PhysMake(devseg,offset);
+					bd->media_dpb = bpb.v.BPB_Media;
+					bd->sector_size = bpb.v.BPB_BytsPerSec;
+					if (bpb.v.BPB_TotSec16 == 0)
+						bd->image_length = (uint64_t)bd->sector_size * (uint64_t)bpb.v.BPB_TotSec32;
+					else
+						bd->image_length = (uint64_t)bd->sector_size * (uint64_t)bpb.v.BPB_TotSec16;
+
+					bd->diskSizeK = (bd->image_length + 1023) / 1024;
+
+					InitBdevBuf();
+					if (bd->image_length != 0) {
+						std::vector<std::string> opt;
+						DOS_Drive* nd = new fatDrive(bd,opt);
+						if ((dynamic_cast<fatDrive*>(nd))->created_successfully) {
+							DriveManager::AppendDisk(newdrv, nd);
+							DriveManager::InitializeDrive(newdrv);
+						}
+						else {
+							LOG(LOG_MISC,LOG_DEBUG)("Drive creation failed");
+							delete nd; /* releases and deletes bd */
+						}
+					}
+					else {
+						LOG(LOG_MISC,LOG_DEBUG)("Block device image length == 0, removed");
+						delete bd;
+					}
+				}
+			}
+		}
+	}
+
+	if (!adj_mcb_base) {
+		/* Success. Change ownership of the device driver MCB so it remains in memory when CONFIG exits */
+		DOS_MCB dev_mcb((uint16_t)(devseg-1));
+		dev_mcb.SetPSPSeg(0x0008/*MS-DOS*/);
+		{
+			/* use the in-memory device name to name the MCB */
+			char tmp[9];
+			MEM_BlockRead(PhysMake(devseg,0xA),tmp,8);
+			tmp[8] = 0;
+			dev_mcb.SetFileName(tmp);
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver added to device chain as '%s'",tmp);
+		}
+	}
+
+	/* attach the driver to the device chain */
+	{
+		unsigned int patience = 1024;
+		uint32_t start = dos_infoblock.GetDeviceChain();
+		uint16_t segm  = (uint16_t)(start>>16ul);
+		uint16_t offm  = (uint16_t)(start&0xFFFFu);
+		while(start != 0xFFFFFFFFul) {
+			segm  = (uint16_t)(start>>16u);
+			offm  = (uint16_t)(start&0xFFFFu);
+			start = real_readd(segm,offm);
+			if (--patience == 0) E_Exit("Device driver chain corrupt");
+		}
+		real_writed(segm,offm,(unsigned int)devseg<<16u);
+	}
+
+	return true;
+}
+#endif
+
+#if !defined(OSFREE)
+std::string config_run_var_device;
+std::string config_run_var_devparm;
+#endif
+
+#if !defined(OSFREE)
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot", "-bootconf", "-bc",
@@ -618,7 +1912,9 @@ void CONFIG::Run(void) {
 		"-startmapper",
 		"-get", "-set", "-setf",
 		"-writelang", "-wl", "-langname", "-ln",
-		"-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
+		"-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui",
+		"-device","-devparm",
+		NULL };
 /* HACK: P_ALL is in linux/wait.h */
 #if defined(P_ALL)
 #define __P_ALL P_ALL
@@ -636,22 +1932,54 @@ void CONFIG::Run(void) {
 		P_START_MAPPER,
 		P_GETPROP, P_SETPROP, P_SETFORCE,
 		P_WRITELANG, P_WRITELANG2, P_LANGNAME, P_LANGNAME2,
-		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI
+		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI,
+		P_DEVICE, P_DEVPARM
 	} presult = P_NOMATCH;
 
+	std::string device,devparm;
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	int all = section->Get_bool("show advanced options")?1:-1;
 	bool first = true, norem = false;
 	std::vector<std::string> pvars;
+	const char *rawcmd = cmd->GetRawCmdline().c_str();
+
+	/* direct path for config shell to trigger device driver load */
+	if (first_shell && first_shell->config_shell) {
+		while (*rawcmd == ' ') rawcmd++;
+		if (!strcmp(rawcmd,"\xff\xaa\xff")/*User is unlikely to type this into their dosbox.conf*/) {
+			/* read from global vars */
+			device = config_run_var_device;
+			devparm = config_run_var_devparm;
+			if (device.empty()) return;
+			DeviceLoad(device,devparm);
+			return;
+		}
+	}
+
 	if (cmd->FindExist("-setup", true)) all = 2;
 	else if (cmd->FindExist("-all", true)) all = 1;
-    else if (cmd->FindExist("-mod", true)) all = 0;
-    if (cmd->FindExist("-norem", true)) norem = true;
+	else if (cmd->FindExist("-mod", true)) all = 0;
+	if (cmd->FindExist("-norem", true)) norem = true;
 	// Loop through the passed parameters
 	while(presult != P_NOPARAMS) {
 		presult = (enum prs)cmd->GetParameterFromList(params, pvars);
 		switch(presult) {
-	
+
+		case P_DEVPARM:
+			for (const auto &p : pvars) {
+				if (!devparm.empty()) devparm += " ";
+				devparm += p;
+			}
+			break;
+
+		case P_DEVICE:
+			if (pvars.size() < 1) {
+				WriteOut("-device requires path\n");
+				return;
+			} else
+				device=pvars[0];
+			break;
+
 		case P_SETUP:
 			all = 2;
 			break;
@@ -690,13 +2018,13 @@ void CONFIG::Run(void) {
 			return;
 
 		case P_RESTART:
-            WriteOut("-restart is no longer supported\n");
+			WriteOut("-restart is no longer supported\n");
 			return;
 		
 		case P_LISTCONF: {
 			Bitu size = (Bitu)control->configfiles.size();
 			std::string config_path;
-			Cross::GetPlatformConfigDir(config_path);
+			config_path = Cross::GetPlatformConfigDir();
 			WriteOut(MSG_Get("PROGRAM_CONFIG_CONFDIR"), VERSION,config_path.c_str());
 			char cwd[512] = {0};
 			char *res = getcwd(cwd,sizeof(cwd)-1);
@@ -739,7 +2067,7 @@ void CONFIG::Run(void) {
 			if (securemode_check()) return;
 			if (pvars.size() > 0) return;
 			std::string confname;
-			Cross::GetPlatformConfigName(confname);
+			confname = Cross::GetPlatformConfigName();
 			writeconf(confname, true, all, norem);
 			if (presult==P_WRITECONF_DEFAULT_REBOOT) RebootConfig(confname);
 			break;
@@ -766,7 +2094,7 @@ void CONFIG::Run(void) {
 				Bitu size = (Bitu)control->configfiles.size();
 				if (size==0) RebootConfig("dosbox-x.conf");
 				else RebootConfig(control->configfiles.front().c_str());
-            }
+			}
 			break;
 		case P_NOPARAMS:
 			if (!first) break;
@@ -850,13 +2178,13 @@ void CONFIG::Run(void) {
 					// list the properties
 					Property* p = psec->Get_prop((int)(i++));
 					if (p==NULL) break;
-                    if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
+					if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
 					WriteOut("%s\n", p->propname.c_str());
 				}
 				if (!strcasecmp(pvars[0].c_str(), "config"))
 					WriteOut("set\ninstall\ninstallhigh\ndevice\ndevicehigh\n");
 			} else {
-				// find the property by it's name
+				// find the property by its name
 				size_t i = 0;
 				while (true) {
 					Property *p = psec->Get_prop((int)(i++));
@@ -894,7 +2222,7 @@ void CONFIG::Run(void) {
 							p->Get_help(),propvalues.c_str(),
 							p->Get_Default_Value().ToString().c_str(),
 							p->GetValue().ToString().c_str());
-						// print 'changability'
+						// print 'changeability'
 						if (p->getChange()==Property::Changeable::OnlyAtStart) {
 							WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_NOCHANGE"));
 						}
@@ -947,9 +2275,10 @@ void CONFIG::Run(void) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_GET_SYNTAX"));
 				return;
 			}
+			Section* sec = control->GetSectionFromProperty(pvars[0].c_str());
 			std::string::size_type spcpos = pvars[0].find_first_of(' ');
 			// split on the ' '
-			if (spcpos != std::string::npos) {
+			if (!sec && spcpos != std::string::npos) {
 				if (spcpos>1&&pvars[0].c_str()[spcpos-1]==',')
 					spcpos=pvars[0].find_first_of(' ', spcpos+1);
 				if (spcpos != std::string::npos) {
@@ -961,7 +2290,7 @@ void CONFIG::Run(void) {
 			case 1: {
 				// property/section only
 				// is it a section?
-				Section* sec = control->GetSection(pvars[0].c_str());
+				sec = control->GetSection(pvars[0].c_str());
 				if (sec) {
 					// list properties in section
 					int i = 0;
@@ -978,7 +2307,7 @@ void CONFIG::Run(void) {
 						// list the properties
 						Property* p = psec->Get_prop(i++);
 						if (p==NULL) break;
-                        if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
+						if (!(all>0 || (all==-1 && (p->basic() || p->modified())) || (!all && ((p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config"))) || p->modified())))) continue;
 						WriteOut("%s=%s\n", p->propname.c_str(),
 							p->GetValue().ToString().c_str());
 					}
@@ -1015,110 +2344,167 @@ void CONFIG::Run(void) {
 					if (!sec&&pvars[0].size()>4&&!strcasecmp(pvars[0].substr(0, 4).c_str(), "ttf.")) {
 						pvars[0].erase(0,4);
 						sec = control->GetSectionFromProperty(pvars[0].c_str());
+					} else if (!sec && pvars[0].size() && !strcasecmp(pvars[0].c_str(), "langcp")) {
+						pvars[0] = "language";
+						sec = control->GetSectionFromProperty(pvars[0].c_str());
 					}
 					if (!sec) {
-                        unsigned int maxWidth, maxHeight;
-                        void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), GetDrawWidthHeight(unsigned int *pdrawWidth, unsigned int *pdrawHeight);
-                        if (!strcasecmp(pvars[0].c_str(), "screenwidth")) {
-                            GetMaxWidthHeight(&maxWidth, &maxHeight);
-                            WriteOut("%d\n",maxWidth);
-                            first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "screenheight")) {
-                            GetMaxWidthHeight(&maxWidth, &maxHeight);
-                            WriteOut("%d\n",maxHeight);
-                            first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "drawwidth")) {
-                            GetDrawWidthHeight(&maxWidth, &maxHeight);
-                            WriteOut("%d\n",maxWidth);
-                            first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "drawheight")) {
-                            GetDrawWidthHeight(&maxWidth, &maxHeight);
-                            WriteOut("%d\n",maxHeight);
-                            first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
+						unsigned int maxWidth, maxHeight;
+						void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), GetDrawWidthHeight(unsigned int *pdrawWidth, unsigned int *pdrawHeight);
+						if (!strcasecmp(pvars[0].c_str(), "screenwidth")) {
+							GetMaxWidthHeight(&maxWidth, &maxHeight);
+							WriteOut("%d\n",maxWidth);
+							first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "screenheight")) {
+							GetMaxWidthHeight(&maxWidth, &maxHeight);
+							WriteOut("%d\n",maxHeight);
+							first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "drawwidth")) {
+							GetDrawWidthHeight(&maxWidth, &maxHeight);
+							WriteOut("%d\n",maxWidth);
+							first_shell->SetEnv("CONFIG",std::to_string(maxWidth).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "drawheight")) {
+							GetDrawWidthHeight(&maxWidth, &maxHeight);
+							WriteOut("%d\n",maxHeight);
+							first_shell->SetEnv("CONFIG",std::to_string(maxHeight).c_str());
 #if defined(C_SDL2)
-                        } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
-                            int w = 640,h = 480;
-                            SDL_Window* GFX_GetSDLWindow(void);
-                            SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
-                            WriteOut("%d\n",w);
-                            first_shell->SetEnv("CONFIG",std::to_string(w).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
-                            int w = 640,h = 480;
-                            SDL_Window* GFX_GetSDLWindow(void);
-                            SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
-                            WriteOut("%d\n",h);
-                            first_shell->SetEnv("CONFIG",std::to_string(h).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
+							int w = 640,h = 480;
+							SDL_Window* GFX_GetSDLWindow(void);
+							SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+							WriteOut("%d\n",w);
+							first_shell->SetEnv("CONFIG",std::to_string(w).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
+							int w = 640,h = 480;
+							SDL_Window* GFX_GetSDLWindow(void);
+							SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+							WriteOut("%d\n",h);
+							first_shell->SetEnv("CONFIG",std::to_string(h).c_str());
 #elif defined(WIN32)
-                        } else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
-                            RECT rect;
-                            GetClientRect(GetHWND(), &rect);
-                            WriteOut("%d\n",rect.right-rect.left);
-                            first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
-                            RECT rect;
-                            GetClientRect(GetHWND(), &rect);
-                            WriteOut("%d\n",rect.bottom-rect.top);
-                            first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "clientwidth")) {
+							RECT rect;
+							GetClientRect(GetHWND(), &rect);
+							WriteOut("%d\n",rect.right-rect.left);
+							first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "clientheight")) {
+							RECT rect;
+							GetClientRect(GetHWND(), &rect);
+							WriteOut("%d\n",rect.bottom-rect.top);
+							first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
 #if defined(WIN32)
-                        } else if (!strcasecmp(pvars[0].c_str(), "windowwidth")) {
-                            RECT rect;
-                            GetWindowRect(GetHWND(), &rect);
-                            WriteOut("%d\n",rect.right-rect.left);
-                            first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "windowheight")) {
-                            RECT rect;
-                            GetWindowRect(GetHWND(), &rect);
-                            WriteOut("%d\n",rect.bottom-rect.top);
-                            first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "windowwidth")) {
+							RECT rect;
+							GetWindowRect(GetHWND(), &rect);
+							WriteOut("%d\n",rect.right-rect.left);
+							first_shell->SetEnv("CONFIG",std::to_string(rect.right-rect.left).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "windowheight")) {
+							RECT rect;
+							GetWindowRect(GetHWND(), &rect);
+							WriteOut("%d\n",rect.bottom-rect.top);
+							first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
-                        } else if (!strcasecmp(pvars[0].c_str(), "hostos")) {
-                            const char *hostos =
+						} else if (!strcasecmp(pvars[0].c_str(), "system")) {
+							WriteOut("%s\n",PACKAGE);
+							first_shell->SetEnv("CONFIG",PACKAGE);
+						} else if (!strcasecmp(pvars[0].c_str(), "version")) {
+							WriteOut("%s\n",VERSION);
+							first_shell->SetEnv("CONFIG",VERSION);
+						} else if (!strcasecmp(pvars[0].c_str(), "hostos")) {
+							if (securemode_check()) return;
+							const char *hostos =
 #if defined(HX_DOS)
-                            "DOS"
+								"DOS"
 #elif defined(WIN32)
-                            "Windows"
+								"Windows"
 #elif defined(LINUX)
-                            "Linux"
+								"Linux"
 #elif defined(MACOSX)
-                            "macOS"
+								"macOS"
 #elif defined(OS2)
-                            "OS/2"
+								"OS/2"
 #else
-                            "Other"
+								"Other"
 #endif
-                            ;
-                            WriteOut("%s\n",hostos);
-                            first_shell->SetEnv("CONFIG",hostos);
-                        } else if (!strcasecmp(pvars[0].c_str(), "workdir")) {
-                            if (securemode_check()) return;
-                            char cwd[512] = {0};
-                            char *res = getcwd(cwd,sizeof(cwd)-1);
-                            WriteOut("%s\n",res==NULL?"":cwd);
-                            first_shell->SetEnv("CONFIG",res==NULL?"":cwd);
-                        } else if (!strcasecmp(pvars[0].c_str(), "programdir")) {
-                            if (securemode_check()) return;
-                            std::string GetDOSBoxXPath(bool withexe=false), exepath=GetDOSBoxXPath();
-                            WriteOut("%s\n",exepath.c_str());
-                            first_shell->SetEnv("CONFIG",exepath.c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "userconfigdir")) {
-                            if (securemode_check()) return;
-                            std::string config_path;
-                            Cross::GetPlatformConfigDir(config_path);
-                            WriteOut("%s\n",config_path.c_str());
-                            first_shell->SetEnv("CONFIG",config_path.c_str());
-                        } else if (!strcasecmp(pvars[0].c_str(), "configdir")) {
-                            if (securemode_check()) return;
-                            std::string configdir=control->configfiles.size()?control->configfiles[control->configfiles.size()-1]:"";
-                            if (configdir.size()) {
-                                std::string::size_type pos = configdir.rfind(CROSS_FILESPLIT);
-                                if(pos == std::string::npos) pos = 0;
-                                configdir.erase(pos);
-                            }
-                            WriteOut("%s\n",configdir.c_str());
-                            first_shell->SetEnv("CONFIG",configdir.c_str());
-                        } else
-                            WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
+								;
+							WriteOut("%s\n",hostos);
+							first_shell->SetEnv("CONFIG",hostos);
+						} else if (!strcasecmp(pvars[0].c_str(), "workdir")) {
+							if (securemode_check()) return;
+							char cwd[512] = {0};
+							char *res = getcwd(cwd,sizeof(cwd)-1);
+							WriteOut("%s\n",res==NULL?"":cwd);
+							first_shell->SetEnv("CONFIG",res==NULL?"":cwd);
+						} else if (!strcasecmp(pvars[0].c_str(), "programdir")) {
+							if (securemode_check()) return;
+							std::string GetDOSBoxXPath(bool withexe=false), exepath=GetDOSBoxXPath();
+							WriteOut("%s\n",exepath.c_str());
+							first_shell->SetEnv("CONFIG",exepath.c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "userconfigdir")) {
+							if (securemode_check()) return;
+							std::string config_path;
+							config_path = Cross::GetPlatformConfigDir();
+							WriteOut("%s\n",config_path.c_str());
+							first_shell->SetEnv("CONFIG",config_path.c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "configdir")) {
+							if (securemode_check()) return;
+							std::string configdir=control->configfiles.size()?control->configfiles[control->configfiles.size()-1]:"";
+							if (configdir.size()) {
+								std::string::size_type pos = configdir.rfind(CROSS_FILESPLIT);
+								if(pos == std::string::npos) pos = 0;
+								configdir.erase(pos);
+							}
+							WriteOut("%s\n",configdir.c_str());
+							first_shell->SetEnv("CONFIG",configdir.c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "cd")) {
+							uint8_t drive = DOS_GetDefaultDrive()+'A';
+							char dir[DOS_PATHLENGTH];
+							DOS_GetCurrentDir(0,dir,true);
+							WriteOut("%c:\\",drive);
+							WriteOut_NoParsing(dir, true);
+							WriteOut("\n");
+							first_shell->SetEnv("CONFIG",(std::string(1, drive)+":\\"+std::string(dir)).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "date")) {
+							uint32_t ticks=mem_readd(BIOS_TIMER);
+							uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
+							mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
+							if (add) DOS_AddDays(add);
+							const char *date = FormatDate(dos.date.year, dos.date.month, dos.date.day);
+							WriteOut("%s\n",date);
+							first_shell->SetEnv("CONFIG",date);
+						} else if (!strcasecmp(pvars[0].c_str(), "errorlevel")) {
+							WriteOut("%d\n",dos.return_code);
+							first_shell->SetEnv("CONFIG",std::to_string((unsigned int)dos.return_code).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "random")) {
+							initRand();
+							int random = rand()%32768;
+							WriteOut("%s\n",std::to_string(random).c_str());
+							first_shell->SetEnv("CONFIG",std::to_string(random).c_str());
+						} else if (!strcasecmp(pvars[0].c_str(), "time")) {
+							uint32_t hour, min, sec;
+							char c=dos.tables.country[13];
+							uint32_t ticks=mem_readd(BIOS_TIMER);
+							uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
+							mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
+							uint16_t cx=(uint16_t)(ticks >> 16u), dx=(uint16_t)(ticks & 0xffff);
+							if (add) DOS_AddDays(add);
+							ticks=((Bitu)cx<<16)|dx;
+							Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * (double)ticks);
+							time/=100;
+							sec=(uint8_t)((Bitu)time % 60); // seconds
+							time/=60;
+							min=(uint8_t)((Bitu)time % 60); // minutes
+							time/=60;
+							hour=(uint8_t)((Bitu)time % 24); // hours
+							char format[11];
+							sprintf(format,"%u%c%02u%c%02u",hour,c,min,c,sec);
+							WriteOut("%s\n",format);
+							first_shell->SetEnv("CONFIG",format);
+						} else if (!strcasecmp(pvars[0].c_str(), "lastmount")) {
+							if (lastmount) WriteOut("%c:\n",lastmount);
+							first_shell->SetEnv("CONFIG",lastmount?(std::string(1, lastmount) + ":").c_str():"");
+						} else
+							WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
 						return;
 					}
 					// it's a property name
@@ -1127,52 +2513,52 @@ void CONFIG::Run(void) {
 					first_shell->SetEnv("CONFIG",val.c_str());
 				}
 				break;
-			}
-			case 2: {
-				// section + property
-				Section* sec = control->GetSection(pvars[0].c_str());
-				if (!sec) {
-					WriteOut(MSG_Get("PROGRAM_CONFIG_SECTION_ERROR"), pvars[0].c_str());
-					return;
 				}
-				std::string val = sec->GetPropValue(pvars[1].c_str());
-				if (val == NO_SUCH_PROPERTY) {
-					if (!strcasecmp(pvars[0].c_str(), "config") && (!strcasecmp(pvars[1].c_str(), "set") || !strcasecmp(pvars[1].c_str(), "device") || !strcasecmp(pvars[1].c_str(), "devicehigh") || !strcasecmp(pvars[1].c_str(), "install") || !strcasecmp(pvars[1].c_str(), "installhigh"))) {
-						Section_prop* psec = dynamic_cast <Section_prop*>(sec);
-						const char * extra = psec->data.c_str();
-						if (extra&&strlen(extra)) {
-							std::istringstream in(extra);
-							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
-							char *cmd=cmdstr, *val=valstr, /**lin=linestr,*/ *p;
-							if (in)	for (std::string line; std::getline(in, line); ) {
-								if (line.length()>CROSS_LEN) {
-									strncpy(linestr, line.c_str(), CROSS_LEN);
-									linestr[CROSS_LEN]=0;
-								} else
-									strcpy(linestr, line.c_str());
-								p=strchr(linestr, '=');
-								if (p!=NULL) {
-									*p=0;
-									strcpy(cmd, linestr);
-									cmd=trim(cmd);
-									strcpy(val, p+1);
-									val=trim(val);
-									lowcase(cmd);
-									if (!strncasecmp(cmd, "set ", 4)&&!strcasecmp(pvars[1].c_str(), "set"))
-										WriteOut("%s=%s\n", trim(cmd+4), val);
-									else if(!strcasecmp(cmd, pvars[1].c_str()))
-										WriteOut("%s\n", val);
+			case 2: {
+					// section + property
+					sec = control->GetSection(pvars[0].c_str());
+					if (!sec) {
+						WriteOut(MSG_Get("PROGRAM_CONFIG_SECTION_ERROR"), pvars[0].c_str());
+						return;
+					}
+					std::string val = sec->GetPropValue(pvars[1].c_str());
+					if (val == NO_SUCH_PROPERTY) {
+						if (!strcasecmp(pvars[0].c_str(), "config") && (!strcasecmp(pvars[1].c_str(), "set") || !strcasecmp(pvars[1].c_str(), "device") || !strcasecmp(pvars[1].c_str(), "devicehigh") || !strcasecmp(pvars[1].c_str(), "install") || !strcasecmp(pvars[1].c_str(), "installhigh"))) {
+							Section_prop* psec = dynamic_cast <Section_prop*>(sec);
+							const char * extra = psec->data.c_str();
+							if (extra&&strlen(extra)) {
+								std::istringstream in(extra);
+								char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
+								char *cmd=cmdstr, *val=valstr, /**lin=linestr,*/ *p;
+								if (in)	for (std::string line; std::getline(in, line); ) {
+									if (line.length()>CROSS_LEN) {
+										strncpy(linestr, line.c_str(), CROSS_LEN);
+										linestr[CROSS_LEN]=0;
+									} else
+										strcpy(linestr, line.c_str());
+									p=strchr(linestr, '=');
+									if (p!=NULL) {
+										*p=0;
+										strcpy(cmd, linestr);
+										cmd=trim(cmd);
+										strcpy(val, p+1);
+										val=trim(val);
+										lowcase(cmd);
+										if (!strncasecmp(cmd, "set ", 4)&&!strcasecmp(pvars[1].c_str(), "set"))
+											WriteOut("%s=%s\n", trim(cmd+4), val);
+										else if(!strcasecmp(cmd, pvars[1].c_str()))
+											WriteOut("%s\n", val);
+									}
 								}
 							}
-						}
-					} else
-						WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());   
-					return;
+						} else
+							WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());   
+						return;
+					}
+					WriteOut("%s\n",val.c_str());
+					first_shell->SetEnv("CONFIG",val.c_str());
+					break;
 				}
-				WriteOut("%s\n",val.c_str());
-                first_shell->SetEnv("CONFIG",val.c_str());
-                break;
-			}
 			default:
 				WriteOut(MSG_Get("PROGRAM_CONFIG_GET_SYNTAX"));
 				return;
@@ -1202,27 +2588,39 @@ void CONFIG::Run(void) {
 			std::string rest;
 			if (cmd->GetStringRemain(rest)) pvars.push_back(rest);
 
+			Section* sec = control->GetSectionFromProperty(pvars[0].c_str());
 			// attempt to split off the first word
 			std::string::size_type spcpos = pvars[0].find_first_of(' ');
 			if (spcpos>1&&pvars[0].c_str()[spcpos-1]==',')
 				spcpos=pvars[0].find_first_of(' ', spcpos+1);
 
 			std::string::size_type equpos = pvars[0].find_first_of('=');
+			if (equpos != std::string::npos) {
+				std::string p = pvars[0];
+				p.erase(equpos);
+				sec = control->GetSectionFromProperty(p.c_str());
+			}
 
+			uselangcp = false;
 			if ((equpos != std::string::npos) && 
-				((spcpos == std::string::npos) || (equpos < spcpos))) {
+				((spcpos == std::string::npos) || (equpos < spcpos) || sec)) {
 				// If we have a '=' possibly before a ' ' split on the =
 				pvars.insert(pvars.begin()+1,pvars[0].substr(equpos+1));
 				pvars[0].erase(equpos);
 				// As we had a = the first thing must be a property now
-				Section* sec=control->GetSectionFromProperty(pvars[0].c_str());
+				sec=control->GetSectionFromProperty(pvars[0].c_str());
 				if (!sec&&pvars[0].size()>4&&!strcasecmp(pvars[0].substr(0, 4).c_str(), "ttf.")) {
 					pvars[0].erase(0,4);
 					sec = control->GetSectionFromProperty(pvars[0].c_str());
+				} else if (!sec && pvars[0].size() && !strcasecmp(pvars[0].c_str(), "langcp")) {
+					pvars[0] = "language";
+					sec = control->GetSectionFromProperty(pvars[0].c_str());
+					if (sec) uselangcp = true;
 				}
 				if (sec) pvars.insert(pvars.begin(),std::string(sec->GetName()));
 				else {
 					WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
+					uselangcp = false;
 					return;
 				}
 				// order in the vector should be ok now
@@ -1233,7 +2631,7 @@ void CONFIG::Run(void) {
 					pvars[0].erase(spcpos);
 				}
 				// check if the first parameter is a section or property
-				Section* sec = control->GetSection(pvars[0].c_str());
+				sec = control->GetSection(pvars[0].c_str());
 				if (!sec) {
 					// not a section: little duplicate from above
 					sec=control->GetSectionFromProperty(pvars[0].c_str());
@@ -1260,7 +2658,7 @@ void CONFIG::Run(void) {
 					if (!sec2) {
 						// not a property, 
 						Section* sec3 = control->GetSectionFromProperty(pvars[0].c_str());
-						if (sec3) {
+						if (sec3 && !(equpos != std::string::npos && spcpos != std::string::npos && equpos > spcpos)) {
 							// section and property name are identical
 							pvars.insert(pvars.begin(),pvars[0]);
 						} // else has been checked above already
@@ -1269,6 +2667,7 @@ void CONFIG::Run(void) {
 			}
 			if(pvars.size() < 3) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
+				uselangcp = false;
 				return;
 			}
 			// check if the property actually exists in the section
@@ -1278,55 +2677,56 @@ void CONFIG::Run(void) {
 					WriteOut("Cannot set property %s in section %s.\n", pvars[1].c_str(),pvars[0].c_str());
 				else
 					WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());
+				uselangcp = false;
 				return;
 			}
-            bool applynew=false;
+			bool applynew=false;
 			Property *p = static_cast<Section_prop *>(sec2)->Get_prop(pvars[1]);
 			if ((p==NULL||p->getChange()==Property::Changeable::OnlyAtStart)&&presult!=P_SETFORCE) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_NOCHANGE"));
 first_1:
 				WriteOut(MSG_Get("PROGRAM_CONFIG_APPLY_RESTART"));
 first_2:
-                uint8_t c;uint16_t n=1;
-                DOS_ReadFile (STDIN,&c,&n);
-                do switch (c) {
-                    case 'n':			case 'N':
-                    {
-                        DOS_WriteFile (STDOUT,&c, &n);
-                        DOS_ReadFile (STDIN,&c,&n);
-                        do switch (c) {
-                            case 0xD: WriteOut("\n");goto next;
-                            case 0x03: goto next;
-                            case 0x08: WriteOut("\b \b"); goto first_2;
-                        } while (DOS_ReadFile (STDIN,&c,&n));
-                    }
-                    case 'y':			case 'Y':
-                    {
-                        DOS_WriteFile (STDOUT,&c, &n);
-                        DOS_ReadFile (STDIN,&c,&n);
-                        do switch (c) {
-                            case 0xD: WriteOut("\n"); applynew = true; goto next;
-                            case 0x03: goto next;
-                            case 0x08: WriteOut("\b \b"); goto first_2;
-                        } while (DOS_ReadFile (STDIN,&c,&n));
-                    }
-                    case 0xD: WriteOut("\n"); goto first_1;
-                    case 0x03: goto next;
-                    case '\t':
-                    case 0x08:
-                        goto first_2;
-                    default:
-                    {
-                        DOS_WriteFile (STDOUT,&c, &n);
-                        DOS_ReadFile (STDIN,&c,&n);
-                        do switch (c) {
-                            case 0xD: WriteOut("\n"); goto first_1;
-                            case 0x03: goto next;
-                            case 0x08: WriteOut("\b \b"); goto first_2;
-                        } while (DOS_ReadFile (STDIN,&c,&n));
-                        goto first_2;
-                    }
-                } while (DOS_ReadFile (STDIN,&c,&n));
+				uint8_t c;uint16_t n=1;
+				DOS_ReadFile (STDIN,&c,&n);
+				do switch (c) {
+					case 'n':			case 'N':
+						{
+							DOS_WriteFile (STDOUT,&c, &n);
+							DOS_ReadFile (STDIN,&c,&n);
+							do switch (c) {
+								case 0xD: WriteOut("\n");goto next;
+								case 0x03: goto next;
+								case 0x08: WriteOut("\b \b"); goto first_2;
+							} while (DOS_ReadFile (STDIN,&c,&n));
+						}
+					case 'y':			case 'Y':
+						{
+							DOS_WriteFile (STDOUT,&c, &n);
+							DOS_ReadFile (STDIN,&c,&n);
+							do switch (c) {
+								case 0xD: WriteOut("\n"); applynew = true; goto next;
+								case 0x03: goto next;
+								case 0x08: WriteOut("\b \b"); goto first_2;
+							} while (DOS_ReadFile (STDIN,&c,&n));
+						}
+					case 0xD: WriteOut("\n"); goto first_1;
+					case 0x03: goto next;
+					case '\t':
+					case 0x08:
+						   goto first_2;
+					default:
+						   {
+							   DOS_WriteFile (STDOUT,&c, &n);
+							   DOS_ReadFile (STDIN,&c,&n);
+							   do switch (c) {
+								   case 0xD: WriteOut("\n"); goto first_1;
+								   case 0x03: goto next;
+								   case 0x08: WriteOut("\b \b"); goto first_2;
+							   } while (DOS_ReadFile (STDIN,&c,&n));
+							   goto first_2;
+						   }
+				} while (DOS_ReadFile (STDIN,&c,&n));
 			}
 next:
 			// Input has been parsed (pvar[0]=section, [1]=property, [2]=value)
@@ -1339,427 +2739,11 @@ next:
 			std::string inputline = pvars[1] + "=" + value;
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
-                if (applynew) RebootLanguage("");
-				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "dosv")||!strcasecmp(pvars[0].c_str(), "cpu")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "ttf")||!strcasecmp(pvars[0].c_str(), "render")||!strcasecmp(pvars[0].c_str(), "serial")||!strcasecmp(pvars[0].c_str(), "parallel")) {
-					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
-					if (section != NULL) {
-						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
-							force_nocachedir = section->Get_bool("nocachedir");
-                            sync_time = section->Get_bool("synchronize time");
-                            if (!strcasecmp(inputline.substr(0, 17).c_str(), "synchronize time=")) {
-                                manualtime=false;
-                                mainMenu.get_item("sync_host_datetime").check(sync_time).refresh_item(mainMenu);
-                            }
-							std::string freesizestr = section->Get_string("freesizecap");
-                            if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
-                            else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
-                            else freesizecap = 1;
-							wpcolon = section->Get_bool("leading colon write protect image");
-							lockmount = section->Get_bool("locking disk image mount");
-							if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);
-                            if (!strcasecmp(inputline.substr(0, 11).c_str(), "saveremark=")) {
-                                noremark_save_state = !section->Get_bool("saveremark");
-                                mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
-                            }
-                            if (!strcasecmp(inputline.substr(0, 15).c_str(), "forceloadstate=")) {
-                                force_load_state = section->Get_bool("forceloadstate");
-                                mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
-                            }
-						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
-							modifier = section->Get_string("clip_key_modifier");
-							paste_speed = section->Get_int("clip_paste_speed");
-							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mouse_wheel_key=")) {
-								wheel_key = section->Get_int("mouse_wheel_key");
-								wheel_guest=wheel_key>0;
-								if (wheel_key<0) wheel_key=-wheel_key;
-								mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_ctrlwz").check(wheel_key==7).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
-							}
-							if (!strcasecmp(inputline.substr(0, 12).c_str(), "sensitivity=")) {
-                                Prop_multival* p3 = static_cast<Section_prop *>(section)->Get_multival("sensitivity");
-                                sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
-                                sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
-                            }
-							if (!strcasecmp(inputline.substr(0, 11).c_str(), "fullscreen=")) {
-                                if (section->Get_bool("fullscreen")) {
-                                    if (!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
-                                } else if (GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
-                            }
-                            if (!strcasecmp(inputline.substr(0, 7).c_str(), "output=")) {
-                                bool toOutput(const char *output);
-                                std::string GetDefaultOutput();
-                                std::string output=section->Get_string("output");
-                                if (output == "default") output=GetDefaultOutput();
-                                GFX_LosingFocus();
-                                toOutput(output.c_str());
-#if defined(WIN32) && !defined(HX_DOS)
-                                void DOSBox_SetSysMenu(void);
-                                DOSBox_SetSysMenu();
-#endif
-                            }
-                            if (!strcasecmp(inputline.substr(0, 13).c_str(), "transparency="))
-                                SetWindowTransparency(section->Get_int("transparency"));
-#if defined(C_SDL2)
-							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
-#else
-							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl1=")) ReloadMapper(section,true);
-#if !defined(HAIKU) && !defined(RISCOS)
-							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) {
-                                Prop_path* pp;
-#if defined(C_SDL2)
-                                pp = section->Get_path("mapperfile_sdl2");
-#else
-                                pp = section->Get_path("mapperfile_sdl1");
-#endif
-                                if (pp->realpath=="") ReloadMapper(section,true);
-                            }
-							if (!strcasecmp(inputline.substr(0, 13).c_str(), "usescancodes=")) {
-								void setScanCode(Section_prop * section), loadScanCode(), MAPPER_Init();
-								setScanCode(section);
-								loadScanCode();
-								GFX_LosingFocus();
-								MAPPER_Init();
-								load=true;
-							}
-#endif
-#endif
-                            if (!strcasecmp(inputline.substr(0, 8).c_str(), "display=")) {
-                                void SetDisplayNumber(int display);
-                                int GetNumScreen();
-                                int numscreen = GetNumScreen();
-                                const int display = section->Get_int("display");
-                                if (display >= 0 && display <= numscreen)
-                                    SetDisplayNumber(display);
-                            }
-                            if (!strcasecmp(inputline.substr(0, 15).c_str(), "windowposition=")) {
-                                const char* windowposition = section->Get_string("windowposition");
-                                int GetDisplayNumber(void);
-#if defined(C_SDL2) || defined (WIN32)
-                                int posx = -1, posy = -1;
-#endif
-                                if (windowposition && *windowposition) {
-                                    char result[100];
-                                    safe_strncpy(result, windowposition, sizeof(result));
-                                    char* y = strchr(result, ',');
-                                    if (y && *y) {
-                                        *y = 0;
-#if defined(C_SDL2) || defined (WIN32)
-                                        posx = atoi(result);
-                                        posy = atoi(y + 1);
-#endif
-                                    }
-                                }
-#if defined(C_SDL2)
-                                SDL_Window* GFX_GetSDLWindow(void);
-                                SDL_SetWindowTitle(GFX_GetSDLWindow(),"DOSBox-X");
-                                if (posx < 0 || posy < 0) {
-                                    SDL_DisplayMode dm;
-                                    int w = 640,h = 480;
-                                    SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
-                                    if (SDL_GetDesktopDisplayMode(GetDisplayNumber()?GetDisplayNumber()-1:0,&dm) == 0) {
-                                        posx = (dm.w - w)/2;
-                                        posy = (dm.h - h)/2;
-                                    }
-                                }
-                                if (GetDisplayNumber()>0) {
-                                    int displays = SDL_GetNumVideoDisplays();
-                                    SDL_Rect bound;
-                                    for( int i = 1; i <= displays; i++ ) {
-                                        bound = SDL_Rect();
-                                        SDL_GetDisplayBounds(i-1, &bound);
-                                        if (i == GetDisplayNumber()) {
-                                            posx += bound.x;
-                                            posy += bound.y;
-                                            break;
-                                        }
-                                    }
-                                }
-                                SDL_SetWindowPosition(GFX_GetSDLWindow(), posx, posy);
-#elif defined(WIN32)
-                                RECT rect;
-                                MONITORINFO info;
-                                GetWindowRect(GetHWND(), &rect);
-#if !defined(HX_DOS)
-                                if (GetDisplayNumber()>0) {
-                                    xyp xy={0};
-                                    xy.x=-1;
-                                    xy.y=-1;
-                                    curscreen=0;
-                                    BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam);
-                                    EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
-                                    HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
-                                    info.cbSize = sizeof(MONITORINFO);
-                                    GetMonitorInfo(monitor, &info);
-                                    if (posx >=0 && posy >=0) {
-                                        posx+=info.rcMonitor.left;
-                                        posy+=info.rcMonitor.top;
-                                    } else {
-                                        posx = info.rcMonitor.left+(info.rcMonitor.right-info.rcMonitor.left-(rect.right-rect.left))/2;
-                                        posy = info.rcMonitor.top+(info.rcMonitor.bottom-info.rcMonitor.top-(rect.bottom-rect.top))/2;
-                                    }
-                                } else
-#endif
-                                if (posx < 0 && posy < 0) {
-                                    posx = (GetSystemMetrics(SM_CXSCREEN)-(rect.right-rect.left))/2;
-                                    posy = (GetSystemMetrics(SM_CYSCREEN)-(rect.bottom-rect.top))/2;
-                                }
-                                MoveWindow(GetHWND(), posx, posy, rect.right-rect.left, rect.bottom-rect.top, true);
-#endif
-                            }
-
-#if defined(USE_TTF)
-							if (TTF_using()) resetFontSize();
-#endif
-						} else if (!strcasecmp(pvars[0].c_str(), "cpu")) {
-							bool turbo = section->Get_bool("turbo");
-                            if (turbo != ticksLocked) DOSBOX_UnlockSpeed2(true);
-						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
-							mountwarning = section->Get_bool("mountwarning");
-							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
-								std::string lfn = section->Get_string("lfn");
-								if (lfn=="true"||lfn=="1") enablelfn=1;
-								else if (lfn=="false"||lfn=="0") enablelfn=0;
-								else if (lfn=="autostart") enablelfn=-2;
-								else enablelfn=-1;
-								mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
-								mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
-								mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
-								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
-							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
-								const char *ver = section->Get_string("ver");
-								if (!*ver) {
-									dos.version.minor=0;
-									dos.version.major=5;
-									dos_ver_menu(false);
-								} else if (set_ver((char *)ver))
-									dos_ver_menu(false);
-							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ems=")) {
-								EMS_DoShutDown();
-								EMS_Startup(NULL);
-								update_dos_ems_menu();
-							} else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
-								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
-								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
-                            } else if (!strcasecmp(inputline.substr(0, 18).c_str(), "dos clipboard api=")) {
-                                clipboard_dosapi = section->Get_bool("dos clipboard api");
-                                mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).refresh_item(mainMenu);
-#if defined(WIN32) && !defined(HX_DOS)
-                            } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "automountall=")) {
-                                const char *automountstr = section->Get_string("automountall");
-                                if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(this, !strcmp(automountstr, "quiet"));
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {
-								winautorun = section->Get_bool("startcmd");
-								mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
-#endif
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
-							} else if (!strcasecmp(inputline.substr(0, 15).c_str(), "starttranspath=")) {
-								starttranspath = section->Get_bool("starttranspath");
-								mainMenu.get_item("dos_win_transpath").check(starttranspath).enable(
-#if defined(WIN32) && !defined(HX_DOS)
-                                true
-#else
-                                startcmd
-#endif
-                                ).refresh_item(mainMenu);
-							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait=")) {
-								startwait = section->Get_bool("startwait");
-                                mainMenu.get_item("dos_win_wait").check(startwait).enable(
-#if defined(WIN32) && !defined(HX_DOS)
-                                true
-#else
-                                startcmd
-#endif
-                                ).refresh_item(mainMenu);
-							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "startquiet=")) {
-								startquiet = section->Get_bool("startquiet");
-								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
-#if defined(WIN32) && !defined(HX_DOS)
-                                true
-#else
-                                startcmd
-#endif
-                                ).refresh_item(mainMenu);
-#endif
-                            }
-						} else if (!strcasecmp(pvars[0].c_str(), "ttf")) {
-                            void ttf_reset(void), ttf_setlines(int cols, int lins), SetBlinkRate(Section_prop* section);
-							if (!strcasecmp(inputline.substr(0, 5).c_str(), "font=")) {
-#if defined(USE_TTF)
-                                ttf_reset();
-#if C_PRINTER
-                                if (TTF_using() && printfont) UpdateDefaultPrinterFont();
-#endif
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ptsize=")||!strcasecmp(inputline.substr(0, 8).c_str(), "winperc=")) {
-#if defined(USE_TTF)
-                                ttf_reset();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "lins=")||!strcasecmp(inputline.substr(0, 5).c_str(), "cols=")) {
-#if defined(USE_TTF)
-                                bool iscol=!strcasecmp(inputline.substr(0, 5).c_str(), "cols=");
-                                if (iscol&&IS_PC98_ARCH)
-                                    SetVal("render", "cols", "80");
-                                else if (!CurMode)
-                                    ;
-                                else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
-                                    WriteOut("\033[2J");
-                                else {
-                                    reg_ax=CurMode->mode;
-                                    CALLBACK_RunRealInt(0x10);
-                                }
-                                lastset=iscol?2:1;
-                                ttf_setlines(0, 0);
-                                lastset=0;
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 13).c_str(), "outputswitch=")) {
-                                SetOutputSwitch(section->Get_string("outputswitch"));
-							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "colors=")) {
-                                if (!strlen(section->Get_string("colors"))) ttf_reset_colors();
-							} else if (!strcasecmp(inputline.substr(0, 3).c_str(), "wp=")) {
-#if defined(USE_TTF)
-                                const char *wpstr=section->Get_string("wp");
-                                wpType=wpVersion=0;
-                                if (strlen(wpstr)>1) {
-                                    if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
-                                    else if (!strncasecmp(wpstr, "WS", 2)) wpType=2;
-                                    else if (!strncasecmp(wpstr, "XY", 3)) wpType=3;
-                                    if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
-                                }
-                                mainMenu.get_item("ttf_wpno").check(!wpType).refresh_item(mainMenu);
-                                mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
-                                mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
-                                mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
-                                mainMenu.get_item("ttf_wpfe").check(wpType==4).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "wpbg=")) {
-#if defined(USE_TTF)
-                                wpBG = section->Get_int("wpbg");
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "wpfg=")) {
-#if defined(USE_TTF)
-                                wpFG = section->Get_int("wpfg");
-                                if (wpFG<0) wpFG = 7;
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "bold=")) {
-#if defined(USE_TTF)
-                                showbold = section->Get_bool("bold");
-                                mainMenu.get_item("ttf_showbold").check(showbold).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "italic=")) {
-#if defined(USE_TTF)
-                                showital = section->Get_bool("italic");
-                                mainMenu.get_item("ttf_showital").check(showital).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "underline=")) {
-#if defined(USE_TTF)
-                                showline = section->Get_bool("underline");
-                                mainMenu.get_item("ttf_showline").check(showline).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "strikeout=")) {
-#if defined(USE_TTF)
-                                showsout = section->Get_bool("strikeout");
-                                mainMenu.get_item("ttf_showsout").check(showsout).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 8).c_str(), "char512=")) {
-#if defined(USE_TTF)
-                                char512 = section->Get_bool("char512");
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "righttoleft=")) {
-#if defined(USE_TTF)
-                                rtl = section->Get_bool("righttoleft");
-                                mainMenu.get_item("ttf_right_left").check(rtl).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "printfont=")) {
-#if defined(USE_TTF) && C_PRINTER
-                                printfont = section->Get_bool("printfont");
-                                mainMenu.get_item("ttf_printfont").check(printfont).refresh_item(mainMenu);
-                                UpdateDefaultPrinterFont();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "autodbcs=")) {
-#if defined(USE_TTF)
-                                dbcs_sbcs = section->Get_bool("autodbcs");
-                                mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "autoboxdraw=")) {
-#if defined(USE_TTF)
-                                autoboxdraw = section->Get_bool("autoboxdraw");
-                                mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "halfwidthkana=")) {
-#if defined(USE_TTF)
-                                halfwidthkana = section->Get_bool("halfwidthkana");
-                                mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
-                                if (TTF_using()) {setTTFCodePage();resetFontSize();}
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "blinkc=")) {
-#if defined(USE_TTF)
-                                SetBlinkRate(section);
-                                mainMenu.get_item("ttf_blinkc").check(blinkCursor>-1).refresh_item(mainMenu);
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "gbk=")) {
-                                if (gbk != section->Get_bool("gbk")) {
-                                    gbk = !gbk;
-                                    if (enable_dbcs_tables&&dos.tables.dbcs&&(IS_PDOSV||dos.loaded_codepage==936)) mem_writeb(Real2Phys(dos.tables.dbcs)+2,gbk?0x81:0xA1);
-                                    if (dos.loaded_codepage!=950) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==936?gbk:(gbk&&chinasea)).refresh_item(mainMenu);
-#if defined(USE_TTF)
-                                    if (TTF_using()) resetFontSize();
-#endif
-                                }
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "chinasea=")) {
-                                if (chinasea != section->Get_bool("chinasea")) {
-                                    chinasea = !chinasea;
-                                    if (!chinasea) makestdcp950table();
-                                    if (dos.loaded_codepage!=936) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==950?chinasea:(gbk&&chinasea)).refresh_item(mainMenu);
-#if defined(USE_TTF)
-                                    if (TTF_using()) resetFontSize();
-#endif
-                                }
-							}
-						} else if (!strcasecmp(pvars[0].c_str(), "dosv")) {
-                            if (!strcasecmp(inputline.substr(0, 11).c_str(), "fepcontrol=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext1=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext2="))
-                                DOSV_SetConfig(section);
-                        } else if (!strcasecmp(pvars[0].c_str(), "render")) {
-                            if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
-#if C_OPENGL
-                                std::string LoadGLShader(Section_prop * section);
-                                LoadGLShader(section);
-                                GFX_ForceRedrawScreen();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "pixelshader="))
-                                GFX_ForceRedrawScreen();
-						} else if (!strcasecmp(pvars[0].c_str(), "serial")) {
-                            if (!strcasecmp(inputline.substr(0, 6).c_str(), "serial") && inputline[7]=='=') {
-                                std::string val = section->Get_string("serial" + std::string(1, inputline[6])), cmd = std::string(1, inputline[6]) + " " + (val.size()?val:"dummy");
-                                runSerial(cmd.c_str());
-                            }
-						} else if (!strcasecmp(pvars[0].c_str(), "parallel")) {
-                            if (!strcasecmp(inputline.substr(0, 8).c_str(), "parallel") && inputline[9]=='=') {
-                                std::string val = section->Get_string("parallel" + std::string(1, inputline[8])), cmd = std::string(1, inputline[8]) + " " + (val.size()?val:"disabled");
-                                runParallel(cmd.c_str());
-                            }
-                        }
-					}
-				}
+				if (applynew) RebootLanguage("");
+				else ApplySetting(pvars[0], inputline, false);
 			} else WriteOut(MSG_Get("PROGRAM_CONFIG_VALUE_ERROR"),
 				value.c_str(),pvars[1].c_str());
+			uselangcp = false;
 			return;
 		}
 		case P_WRITELANG: case P_WRITELANG2:
@@ -1794,16 +2778,22 @@ next:
 		}
 		first = false;
 	}
+
+	if (!device.empty()) {
+		DeviceLoad(device,devparm);
+	}
+
 	return;
 }
+#endif
 
-
-static void CONFIG_ProgramStart(Program * * make) {
+#if !defined(OSFREE)
+void CONFIG_ProgramStart(Program * * make) {
 	*make=new CONFIG;
 }
+#endif
 
 void PROGRAMS_DOS_Boot(Section *) {
-	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart,"/SYSTEM/");
 }
 
 /* FIXME: Rename the function to clarify it does not init programs, it inits the callback mechanism

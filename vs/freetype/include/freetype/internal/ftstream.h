@@ -1,19 +1,19 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ftstream.h                                                             */
-/*                                                                         */
-/*    Stream handling (specification).                                     */
-/*                                                                         */
-/*  Copyright 1996-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ftstream.h
+ *
+ *   Stream handling (specification).
+ *
+ * Copyright (C) 1996-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
 #ifndef FTSTREAM_H_
@@ -21,8 +21,8 @@
 
 
 #include <ft2build.h>
-#include FT_SYSTEM_H
-#include FT_INTERNAL_OBJECTS_H
+#include <freetype/ftsystem.h>
+#include <freetype/internal/ftobjs.h>
 
 
 FT_BEGIN_HEADER
@@ -96,13 +96,13 @@ FT_BEGIN_HEADER
   /* The structure type must be set in the FT_STRUCTURE macro before       */
   /* calling the FT_FRAME_START() macro.                                   */
   /*                                                                       */
-#define FT_FIELD_SIZE( f ) \
+#define FT_FIELD_SIZE( f )                          \
           (FT_Byte)sizeof ( ((FT_STRUCTURE*)0)->f )
 
-#define FT_FIELD_SIZE_DELTA( f ) \
+#define FT_FIELD_SIZE_DELTA( f )                       \
           (FT_Byte)sizeof ( ((FT_STRUCTURE*)0)->f[0] )
 
-#define FT_FIELD_OFFSET( f ) \
+#define FT_FIELD_OFFSET( f )                         \
           (FT_UShort)( offsetof( FT_STRUCTURE, f ) )
 
 #define FT_FRAME_FIELD( frame_op, field ) \
@@ -147,11 +147,11 @@ FT_BEGIN_HEADER
 #define FT_FRAME_SKIP_BYTES( count )  { ft_frame_skip, count, 0 }
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* Integer extraction macros -- the `buffer' parameter must ALWAYS be of */
-  /* type `char*' or equivalent (1-byte elements).                         */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * Integer extraction macros -- the 'buffer' parameter must ALWAYS be of
+   * type 'char*' or equivalent (1-byte elements).
+   */
 
 #define FT_BYTE_( p, i )  ( ((const FT_Byte*)(p))[(i)] )
 
@@ -165,6 +165,21 @@ FT_BEGIN_HEADER
 #define FT_BYTE_U32( p, i, s )  ( FT_UINT32( FT_BYTE_( p, i ) ) << (s) )
 
 
+  /*
+   *    function      acts on      increases  does range   for    emits
+   *                                pointer    checking   frames  error
+   *  -------------------------------------------------------------------
+   *   FT_PEEK_XXX  buffer pointer      no         no        no     no
+   *   FT_NEXT_XXX  buffer pointer     yes         no        no     no
+   *   FT_GET_XXX   stream->cursor     yes        yes       yes     no
+   *   FT_READ_XXX  stream->pos        yes        yes        no    yes
+   */
+
+
+  /*
+   * `FT_PEEK_XXX' are generic macros to get data from a buffer position.  No
+   * safety checks are performed.
+   */
 #define FT_PEEK_SHORT( p )  FT_INT16( FT_BYTE_U16( p, 0, 8 ) | \
                                       FT_BYTE_U16( p, 1, 0 ) )
 
@@ -181,9 +196,9 @@ FT_BEGIN_HEADER
                                        FT_BYTE_U32( p, 2,  8 ) | \
                                        FT_BYTE_U32( p, 3,  0 ) )
 
-#define FT_PEEK_OFF3( p )  FT_INT32( FT_BYTE_U32( p, 0, 16 ) | \
-                                     FT_BYTE_U32( p, 1,  8 ) | \
-                                     FT_BYTE_U32( p, 2,  0 ) )
+#define FT_PEEK_OFF3( p )  ( FT_INT32( FT_BYTE_U32( p, 0, 24 ) | \
+                                       FT_BYTE_U32( p, 1, 16 ) | \
+                                       FT_BYTE_U32( p, 2,  8 ) ) >> 8 )
 
 #define FT_PEEK_UOFF3( p )  FT_UINT32( FT_BYTE_U32( p, 0, 16 ) | \
                                        FT_BYTE_U32( p, 1,  8 ) | \
@@ -205,63 +220,70 @@ FT_BEGIN_HEADER
                                           FT_BYTE_U32( p, 1,  8 ) | \
                                           FT_BYTE_U32( p, 0,  0 ) )
 
-#define FT_PEEK_OFF3_LE( p )  FT_INT32( FT_BYTE_U32( p, 2, 16 ) | \
-                                        FT_BYTE_U32( p, 1,  8 ) | \
-                                        FT_BYTE_U32( p, 0,  0 ) )
+#define FT_PEEK_OFF3_LE( p )  ( FT_INT32( FT_BYTE_U32( p, 2, 24 ) | \
+                                          FT_BYTE_U32( p, 1, 16 ) | \
+                                          FT_BYTE_U32( p, 0,  8 ) ) >> 8 )
 
 #define FT_PEEK_UOFF3_LE( p )  FT_UINT32( FT_BYTE_U32( p, 2, 16 ) | \
                                           FT_BYTE_U32( p, 1,  8 ) | \
                                           FT_BYTE_U32( p, 0,  0 ) )
 
-
+  /*
+   * `FT_NEXT_XXX' are generic macros to get data from a buffer position
+   * which is then increased appropriately.  No safety checks are performed.
+   */
 #define FT_NEXT_CHAR( buffer )       \
           ( (signed char)*buffer++ )
 
 #define FT_NEXT_BYTE( buffer )         \
           ( (unsigned char)*buffer++ )
 
-#define FT_NEXT_SHORT( buffer )                                   \
-          ( (short)( buffer += 2, FT_PEEK_SHORT( buffer - 2 ) ) )
+#define FT_NEXT_SHORT( buffer )                        \
+          ( buffer += 2, FT_PEEK_SHORT( buffer - 2 ) )
 
-#define FT_NEXT_USHORT( buffer )                                            \
-          ( (unsigned short)( buffer += 2, FT_PEEK_USHORT( buffer - 2 ) ) )
+#define FT_NEXT_USHORT( buffer )                        \
+          ( buffer += 2, FT_PEEK_USHORT( buffer - 2 ) )
 
-#define FT_NEXT_OFF3( buffer )                                  \
-          ( (long)( buffer += 3, FT_PEEK_OFF3( buffer - 3 ) ) )
+#define FT_NEXT_OFF3( buffer )                        \
+          ( buffer += 3, FT_PEEK_OFF3( buffer - 3 ) )
 
-#define FT_NEXT_UOFF3( buffer )                                           \
-          ( (unsigned long)( buffer += 3, FT_PEEK_UOFF3( buffer - 3 ) ) )
+#define FT_NEXT_UOFF3( buffer )                        \
+          ( buffer += 3, FT_PEEK_UOFF3( buffer - 3 ) )
 
-#define FT_NEXT_LONG( buffer )                                  \
-          ( (long)( buffer += 4, FT_PEEK_LONG( buffer - 4 ) ) )
+#define FT_NEXT_LONG( buffer )                        \
+          ( buffer += 4, FT_PEEK_LONG( buffer - 4 ) )
 
-#define FT_NEXT_ULONG( buffer )                                           \
-          ( (unsigned long)( buffer += 4, FT_PEEK_ULONG( buffer - 4 ) ) )
-
-
-#define FT_NEXT_SHORT_LE( buffer )                                   \
-          ( (short)( buffer += 2, FT_PEEK_SHORT_LE( buffer - 2 ) ) )
-
-#define FT_NEXT_USHORT_LE( buffer )                                            \
-          ( (unsigned short)( buffer += 2, FT_PEEK_USHORT_LE( buffer - 2 ) ) )
-
-#define FT_NEXT_OFF3_LE( buffer )                                  \
-          ( (long)( buffer += 3, FT_PEEK_OFF3_LE( buffer - 3 ) ) )
-
-#define FT_NEXT_UOFF3_LE( buffer )                                           \
-          ( (unsigned long)( buffer += 3, FT_PEEK_UOFF3_LE( buffer - 3 ) ) )
-
-#define FT_NEXT_LONG_LE( buffer )                                  \
-          ( (long)( buffer += 4, FT_PEEK_LONG_LE( buffer - 4 ) ) )
-
-#define FT_NEXT_ULONG_LE( buffer )                                           \
-          ( (unsigned long)( buffer += 4, FT_PEEK_ULONG_LE( buffer - 4 ) ) )
+#define FT_NEXT_ULONG( buffer )                        \
+          ( buffer += 4, FT_PEEK_ULONG( buffer - 4 ) )
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* Each GET_xxxx() macro uses an implicit `stream' variable.             */
-  /*                                                                       */
+#define FT_NEXT_SHORT_LE( buffer )                        \
+          ( buffer += 2, FT_PEEK_SHORT_LE( buffer - 2 ) )
+
+#define FT_NEXT_USHORT_LE( buffer )                        \
+          ( buffer += 2, FT_PEEK_USHORT_LE( buffer - 2 ) )
+
+#define FT_NEXT_OFF3_LE( buffer )                        \
+          ( buffer += 3, FT_PEEK_OFF3_LE( buffer - 3 ) )
+
+#define FT_NEXT_UOFF3_LE( buffer )                        \
+          ( buffer += 3, FT_PEEK_UOFF3_LE( buffer - 3 ) )
+
+#define FT_NEXT_LONG_LE( buffer )                        \
+          ( buffer += 4, FT_PEEK_LONG_LE( buffer - 4 ) )
+
+#define FT_NEXT_ULONG_LE( buffer )                        \
+          ( buffer += 4, FT_PEEK_ULONG_LE( buffer - 4 ) )
+
+
+  /**************************************************************************
+   *
+   * The `FT_GET_XXX` macros use an implicit 'stream' variable.
+   *
+   * Note that a call to `FT_STREAM_SEEK` or `FT_STREAM_POS` has **no**
+   * effect on `FT_GET_XXX`!  They operate on `stream->pos`, while
+   * `FT_GET_XXX` use `stream->cursor`.
+   */
 #if 0
 #define FT_GET_MACRO( type )    FT_NEXT_ ## type ( stream->cursor )
 
@@ -283,39 +305,45 @@ FT_BEGIN_HEADER
 #else
 #define FT_GET_MACRO( func, type )        ( (type)func( stream ) )
 
-#define FT_GET_CHAR()       FT_GET_MACRO( FT_Stream_GetChar, FT_Char )
-#define FT_GET_BYTE()       FT_GET_MACRO( FT_Stream_GetChar, FT_Byte )
-#define FT_GET_SHORT()      FT_GET_MACRO( FT_Stream_GetUShort, FT_Short )
-#define FT_GET_USHORT()     FT_GET_MACRO( FT_Stream_GetUShort, FT_UShort )
-#define FT_GET_OFF3()       FT_GET_MACRO( FT_Stream_GetUOffset, FT_Long )
-#define FT_GET_UOFF3()      FT_GET_MACRO( FT_Stream_GetUOffset, FT_ULong )
-#define FT_GET_LONG()       FT_GET_MACRO( FT_Stream_GetULong, FT_Long )
-#define FT_GET_ULONG()      FT_GET_MACRO( FT_Stream_GetULong, FT_ULong )
-#define FT_GET_TAG4()       FT_GET_MACRO( FT_Stream_GetULong, FT_ULong )
+#define FT_GET_CHAR()       FT_GET_MACRO( FT_Stream_GetByte, FT_Char )
+#define FT_GET_BYTE()       FT_GET_MACRO( FT_Stream_GetByte, FT_Byte )
+#define FT_GET_SHORT()      FT_GET_MACRO( FT_Stream_GetUShort, FT_Int16 )
+#define FT_GET_USHORT()     FT_GET_MACRO( FT_Stream_GetUShort, FT_UInt16 )
+#define FT_GET_UOFF3()      FT_GET_MACRO( FT_Stream_GetUOffset, FT_UInt32 )
+#define FT_GET_LONG()       FT_GET_MACRO( FT_Stream_GetULong, FT_Int32 )
+#define FT_GET_ULONG()      FT_GET_MACRO( FT_Stream_GetULong, FT_UInt32 )
+#define FT_GET_TAG4()       FT_GET_MACRO( FT_Stream_GetULong, FT_UInt32 )
 
-#define FT_GET_SHORT_LE()   FT_GET_MACRO( FT_Stream_GetUShortLE, FT_Short )
-#define FT_GET_USHORT_LE()  FT_GET_MACRO( FT_Stream_GetUShortLE, FT_UShort )
-#define FT_GET_LONG_LE()    FT_GET_MACRO( FT_Stream_GetULongLE, FT_Long )
-#define FT_GET_ULONG_LE()   FT_GET_MACRO( FT_Stream_GetULongLE, FT_ULong )
+#define FT_GET_SHORT_LE()   FT_GET_MACRO( FT_Stream_GetUShortLE, FT_Int16 )
+#define FT_GET_USHORT_LE()  FT_GET_MACRO( FT_Stream_GetUShortLE, FT_UInt16 )
+#define FT_GET_LONG_LE()    FT_GET_MACRO( FT_Stream_GetULongLE, FT_Int32 )
+#define FT_GET_ULONG_LE()   FT_GET_MACRO( FT_Stream_GetULongLE, FT_UInt32 )
 #endif
+
 
 #define FT_READ_MACRO( func, type, var )        \
           ( var = (type)func( stream, &error ), \
             error != FT_Err_Ok )
 
-#define FT_READ_BYTE( var )       FT_READ_MACRO( FT_Stream_ReadChar, FT_Byte, var )
-#define FT_READ_CHAR( var )       FT_READ_MACRO( FT_Stream_ReadChar, FT_Char, var )
-#define FT_READ_SHORT( var )      FT_READ_MACRO( FT_Stream_ReadUShort, FT_Short, var )
-#define FT_READ_USHORT( var )     FT_READ_MACRO( FT_Stream_ReadUShort, FT_UShort, var )
-#define FT_READ_OFF3( var )       FT_READ_MACRO( FT_Stream_ReadUOffset, FT_Long, var )
-#define FT_READ_UOFF3( var )      FT_READ_MACRO( FT_Stream_ReadUOffset, FT_ULong, var )
-#define FT_READ_LONG( var )       FT_READ_MACRO( FT_Stream_ReadULong, FT_Long, var )
-#define FT_READ_ULONG( var )      FT_READ_MACRO( FT_Stream_ReadULong, FT_ULong, var )
+  /*
+   * The `FT_READ_XXX' macros use implicit `stream' and `error' variables.
+   *
+   * `FT_READ_XXX' can be controlled with `FT_STREAM_SEEK' and
+   * `FT_STREAM_POS'.  They use the full machinery to check whether a read is
+   * valid.
+   */
+#define FT_READ_BYTE( var )       FT_READ_MACRO( FT_Stream_ReadByte, FT_Byte, var )
+#define FT_READ_CHAR( var )       FT_READ_MACRO( FT_Stream_ReadByte, FT_Char, var )
+#define FT_READ_SHORT( var )      FT_READ_MACRO( FT_Stream_ReadUShort, FT_Int16, var )
+#define FT_READ_USHORT( var )     FT_READ_MACRO( FT_Stream_ReadUShort, FT_UInt16, var )
+#define FT_READ_UOFF3( var )      FT_READ_MACRO( FT_Stream_ReadUOffset, FT_UInt32, var )
+#define FT_READ_LONG( var )       FT_READ_MACRO( FT_Stream_ReadULong, FT_Int32, var )
+#define FT_READ_ULONG( var )      FT_READ_MACRO( FT_Stream_ReadULong, FT_UInt32, var )
 
-#define FT_READ_SHORT_LE( var )   FT_READ_MACRO( FT_Stream_ReadUShortLE, FT_Short, var )
-#define FT_READ_USHORT_LE( var )  FT_READ_MACRO( FT_Stream_ReadUShortLE, FT_UShort, var )
-#define FT_READ_LONG_LE( var )    FT_READ_MACRO( FT_Stream_ReadULongLE, FT_Long, var )
-#define FT_READ_ULONG_LE( var )   FT_READ_MACRO( FT_Stream_ReadULongLE, FT_ULong, var )
+#define FT_READ_SHORT_LE( var )   FT_READ_MACRO( FT_Stream_ReadUShortLE, FT_Int16, var )
+#define FT_READ_USHORT_LE( var )  FT_READ_MACRO( FT_Stream_ReadUShortLE, FT_UInt16, var )
+#define FT_READ_LONG_LE( var )    FT_READ_MACRO( FT_Stream_ReadULongLE, FT_Int32, var )
+#define FT_READ_ULONG_LE( var )   FT_READ_MACRO( FT_Stream_ReadULongLE, FT_UInt32, var )
 
 
 #ifndef FT_CONFIG_OPTION_NO_DEFAULT_SYSTEM
@@ -387,11 +415,13 @@ FT_BEGIN_HEADER
 
   /* Enter a frame of `count' consecutive bytes in a stream.  Returns an */
   /* error if the frame could not be read/accessed.  The caller can use  */
-  /* the FT_Stream_Get_XXX functions to retrieve frame data without      */
+  /* the `FT_Stream_GetXXX' functions to retrieve frame data without     */
   /* error checks.                                                       */
   /*                                                                     */
-  /* You must _always_ call FT_Stream_ExitFrame() once you have entered  */
+  /* You must _always_ call `FT_Stream_ExitFrame' once you have entered  */
   /* a stream frame!                                                     */
+  /*                                                                     */
+  /* Nested frames are not permitted.                                    */
   /*                                                                     */
   FT_BASE( FT_Error )
   FT_Stream_EnterFrame( FT_Stream  stream,
@@ -401,57 +431,61 @@ FT_BEGIN_HEADER
   FT_BASE( void )
   FT_Stream_ExitFrame( FT_Stream  stream );
 
+
   /* Extract a stream frame.  If the stream is disk-based, a heap block */
   /* is allocated and the frame bytes are read into it.  If the stream  */
-  /* is memory-based, this function simply set a pointer to the data.   */
+  /* is memory-based, this function simply sets a pointer to the data.  */
   /*                                                                    */
   /* Useful to optimize access to memory-based streams transparently.   */
   /*                                                                    */
-  /* All extracted frames must be `freed' with a call to the function   */
-  /* FT_Stream_ReleaseFrame().                                          */
+  /* `FT_Stream_GetXXX' functions can't be used.                        */
+  /*                                                                    */
+  /* An extracted frame must be `freed' with a call to the function     */
+  /* `FT_Stream_ReleaseFrame'.                                          */
   /*                                                                    */
   FT_BASE( FT_Error )
   FT_Stream_ExtractFrame( FT_Stream  stream,
                           FT_ULong   count,
                           FT_Byte**  pbytes );
 
-  /* release an extract frame (see FT_Stream_ExtractFrame) */
+  /* release an extract frame (see `FT_Stream_ExtractFrame') */
   FT_BASE( void )
   FT_Stream_ReleaseFrame( FT_Stream  stream,
                           FT_Byte**  pbytes );
 
+
   /* read a byte from an entered frame */
-  FT_BASE( FT_Char )
-  FT_Stream_GetChar( FT_Stream  stream );
+  FT_BASE( FT_Byte )
+  FT_Stream_GetByte( FT_Stream  stream );
 
   /* read a 16-bit big-endian unsigned integer from an entered frame */
-  FT_BASE( FT_UShort )
+  FT_BASE( FT_UInt16 )
   FT_Stream_GetUShort( FT_Stream  stream );
 
   /* read a 24-bit big-endian unsigned integer from an entered frame */
-  FT_BASE( FT_ULong )
+  FT_BASE( FT_UInt32 )
   FT_Stream_GetUOffset( FT_Stream  stream );
 
   /* read a 32-bit big-endian unsigned integer from an entered frame */
-  FT_BASE( FT_ULong )
+  FT_BASE( FT_UInt32 )
   FT_Stream_GetULong( FT_Stream  stream );
 
   /* read a 16-bit little-endian unsigned integer from an entered frame */
-  FT_BASE( FT_UShort )
+  FT_BASE( FT_UInt16 )
   FT_Stream_GetUShortLE( FT_Stream  stream );
 
   /* read a 32-bit little-endian unsigned integer from an entered frame */
-  FT_BASE( FT_ULong )
+  FT_BASE( FT_UInt32 )
   FT_Stream_GetULongLE( FT_Stream  stream );
 
 
   /* read a byte from a stream */
-  FT_BASE( FT_Char )
-  FT_Stream_ReadChar( FT_Stream  stream,
+  FT_BASE( FT_Byte )
+  FT_Stream_ReadByte( FT_Stream  stream,
                       FT_Error*  error );
 
   /* read a 16-bit big-endian unsigned integer from a stream */
-  FT_BASE( FT_UShort )
+  FT_BASE( FT_UInt16 )
   FT_Stream_ReadUShort( FT_Stream  stream,
                         FT_Error*  error );
 
@@ -461,17 +495,17 @@ FT_BEGIN_HEADER
                          FT_Error*  error );
 
   /* read a 32-bit big-endian integer from a stream */
-  FT_BASE( FT_ULong )
+  FT_BASE( FT_UInt32 )
   FT_Stream_ReadULong( FT_Stream  stream,
                        FT_Error*  error );
 
   /* read a 16-bit little-endian unsigned integer from a stream */
-  FT_BASE( FT_UShort )
+  FT_BASE( FT_UInt16 )
   FT_Stream_ReadUShortLE( FT_Stream  stream,
                           FT_Error*  error );
 
   /* read a 32-bit little-endian unsigned integer from a stream */
-  FT_BASE( FT_ULong )
+  FT_BASE( FT_UInt32 )
   FT_Stream_ReadULongLE( FT_Stream  stream,
                          FT_Error*  error );
 

@@ -56,11 +56,12 @@
 #define PHYSFS_FILE_ATTRIBUTE_REPARSE_POINT 0x400
 #define PHYSFS_IO_REPARSE_TAG_SYMLINK    0xA000000C
 
-
+typedef wchar_t host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
 #define UTF8_TO_UNICODE_STACK(w_assignto, str) { \
     if (str == NULL) \
         w_assignto = NULL; \
-    else { \
+    else if ((w_assignto = CodePageGuestToHost(str)) == NULL) { \
         const size_t len = (PHYSFS_uint64) ((strlen(str) + 1) * 2); \
         w_assignto = (WCHAR *) __PHYSFS_smallAlloc(len); \
         if (w_assignto != NULL) \
@@ -524,9 +525,18 @@ char *__PHYSFS_platformCalcPrefDir(const char *org, const char *app)
     size_t len = 0;
     char *retval = NULL;
 
+    #if !defined(_WIN32_WINDOWS)
     if (!SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE,
                                    NULL, 0, path)))
         BAIL(PHYSFS_ERR_OS_ERROR, NULL);
+    #else
+    {
+        int len = 0;
+        if((len=GetModuleFileNameW(NULL, path, MAX_PATH)) == 0)
+           BAIL(PHYSFS_ERR_OS_ERROR, NULL);
+        while(len > 0 && path[len] != L'\\') path[len--] = L'\0';
+    }
+    #endif
 
     utf8 = unicodeToUtf8Heap(path);
     BAIL_IF_ERRPASS(!utf8, NULL);

@@ -1,4 +1,21 @@
-#!/bin/bash
+#!/bin/sh
+
+MAKE=""
+find_make()
+{
+  if test "$MAKE" = "" && \
+     command -v $1 >/dev/null && \
+     $1 --version | grep -q "GNU Make"; then
+    MAKE="$1"
+  fi
+}
+find_make make
+find_make gmake
+if test "$MAKE" = ""; then
+  echo "Couldn't find GNU Make!"
+  exit 1
+fi
+
 rm -Rfv linux-host || exit 1
 mkdir -p linux-host || exit 1
 
@@ -16,10 +33,13 @@ opts=
 
 sys=`uname -s`
 
-if [ "$sys" == "Darwin" ]; then
+if [ "$sys" = "Darwin" ]; then
 opts="--disable-video-x11"
+elif [ "$sys" != "Linux" ]; then
+# These are supported on BSDs but the SDL2 code assumes Linux
+opts="--disable-video-wayland --disable-libudev"
 fi
-if [ "$1" == "hx-dos" ]; then
+if [ "$1" = "hx-dos" ]; then
 opts="--disable-video-opengl"
 fi
 
@@ -33,7 +53,7 @@ cat >>include/SDL_config.h <<_EOF
 #endif
 _EOF
 
-if [ "$1" == "hx-dos" ]; then
+if [ "$1" = "hx-dos" ]; then
 cat >>include/SDL_config.h <<_EOF
 /* For HX-DOS, no parent window */
 #ifndef SDL_WIN32_NO_PARENT_WINDOW
@@ -46,6 +66,6 @@ cat >>include/SDL_config.h <<_EOF
 _EOF
 fi
 
-make -j || exit 1
-make install || exit 1  # will install into ./linux-host
+$MAKE -j3 || exit 1
+$MAKE install || exit 1  # will install into ./linux-host
 

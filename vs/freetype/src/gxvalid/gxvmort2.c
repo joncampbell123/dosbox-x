@@ -1,42 +1,42 @@
-/***************************************************************************/
-/*                                                                         */
-/*  gxvmort2.c                                                             */
-/*                                                                         */
-/*    TrueTypeGX/AAT mort table validation                                 */
-/*    body for type2 (Ligature Substitution) subtable.                     */
-/*                                                                         */
-/*  Copyright 2005-2018 by                                                 */
-/*  suzuki toshiya, Masatake YAMATO, Red Hat K.K.,                         */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * gxvmort2.c
+ *
+ *   TrueTypeGX/AAT mort table validation
+ *   body for type2 (Ligature Substitution) subtable.
+ *
+ * Copyright (C) 2005-2023 by
+ * suzuki toshiya, Masatake YAMATO, Red Hat K.K.,
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
-/***************************************************************************/
-/*                                                                         */
-/* gxvalid is derived from both gxlayout module and otvalid module.        */
-/* Development of gxlayout is supported by the Information-technology      */
-/* Promotion Agency(IPA), Japan.                                           */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * gxvalid is derived from both gxlayout module and otvalid module.
+ * Development of gxlayout is supported by the Information-technology
+ * Promotion Agency(IPA), Japan.
+ *
+ */
 
 
 #include "gxvmort.h"
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The macro FT_COMPONENT is used in trace mode.  It is an implicit      */
-  /* parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log  */
-  /* messages during execution.                                            */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * The macro FT_COMPONENT is used in trace mode.  It is an implicit
+   * parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log
+   * messages during execution.
+   */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_gxvmort
+#define FT_COMPONENT  gxvmort
 
 
   typedef struct  GXV_mort_subtable_type2_StateOptRec_
@@ -152,7 +152,7 @@
     GXV_32BIT_ALIGNMENT_VALIDATE( ligActionOffset );
     if ( p < lat_base )
     {
-      GXV_TRACE(( "too short offset 0x%04x: p < lat_base (%d byte rewind)\n",
+      GXV_TRACE(( "too short offset 0x%04x: p < lat_base (%ld byte rewind)\n",
                   ligActionOffset, lat_base - p ));
 
       /* FontValidator, ftxvalidator, ftxdumperfuser warn but continue */
@@ -160,7 +160,7 @@
     }
     else if ( lat_limit < p )
     {
-      GXV_TRACE(( "too large offset 0x%04x: lat_limit < p (%d byte overrun)\n",
+      GXV_TRACE(( "too large offset 0x%04x: lat_limit < p (%ld byte overrun)\n",
                   ligActionOffset, p - lat_limit ));
 
       /* FontValidator, ftxvalidator, ftxdumperfuser warn but continue */
@@ -187,17 +187,17 @@
       offset = lig_action & 0x3FFFFFFFUL;
       if ( offset * 2 < optdata->ligatureTable )
       {
-        GXV_TRACE(( "too short offset 0x%08x:"
-                    " 2 x offset < ligatureTable (%d byte rewind)\n",
+        GXV_TRACE(( "too short offset 0x%08lx:"
+                    " 2 x offset < ligatureTable (%lu byte rewind)\n",
                      offset, optdata->ligatureTable - offset * 2 ));
 
         GXV_SET_ERR_IF_PARANOID( FT_INVALID_OFFSET );
       } else if ( offset * 2 >
                   optdata->ligatureTable + optdata->ligatureTable_length )
       {
-        GXV_TRACE(( "too long offset 0x%08x:"
+        GXV_TRACE(( "too long offset 0x%08lx:"
                     " 2 x offset > ligatureTable + ligatureTable_length"
-                    " (%d byte overrun)\n",
+                    " (%lu byte overrun)\n",
                      offset,
                      optdata->ligatureTable + optdata->ligatureTable_length
                      - offset * 2 ));

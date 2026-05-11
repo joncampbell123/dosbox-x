@@ -1,4 +1,6 @@
 
+#include "dos_inc.h"
+
 #define PC98_GDC_FIFO_SIZE      32      /* taken from Neko Project II, but what is it really? */
 #define GDC_COMMAND_BYTE        0x100
 
@@ -50,6 +52,23 @@ struct PC98_GDC_state {
     void take_reset_sync_parameters(void);
     void cursor_advance(void);
 
+    void draw_reset(void);
+    void vectw(unsigned char bi);
+    void set_vectw(uint8_t ope, uint8_t dir, uint16_t dc, uint16_t d, uint16_t d2, uint16_t d1, uint16_t dm);
+    void exec(uint8_t command);
+    void prepare(void);
+    void draw_dot(uint16_t x, uint16_t y);
+    void pset(void);
+    void line(void);
+    void text(void);
+    void circle(void);
+    void box(void);
+    void set_vectl(int x1, int y1, int x2, int y2);
+    void set_mode(uint8_t mode);
+    void set_csrw(uint32_t ead, uint8_t dad);
+    void set_textw(uint16_t pattern);
+    void set_textw(uint8_t *tile, uint8_t len);
+
     void begin_frame(void);
     void next_line(void);
 
@@ -60,13 +79,50 @@ struct PC98_GDC_state {
     bool fifo_empty(void);
     uint16_t read_fifo(void);
 
+    enum {
+        RT_MULBIT   = 15,
+        RT_TABLEBIT = 12,
+        RT_TABLEMAX = (1 << RT_TABLEBIT)
+    };
+    struct VECTDIR {
+        int16_t x;
+        int16_t y;
+        int16_t x2;
+        int16_t y2;
+    };
+    static const VECTDIR vectdir[16];
+    static const PhysPt gram_base[4];
+    static uint16_t gdc_rt[RT_TABLEMAX + 1];
+
+    struct GDC_DRAW {
+        PhysPt base;
+        uint32_t ead;
+        uint16_t dc;
+        uint16_t d;
+        uint16_t d1;
+        uint16_t d2;
+        uint16_t dm;
+        uint16_t pattern;
+        uint16_t x;
+        uint16_t y;
+        uint8_t tx[8];
+        uint8_t dad;
+        uint8_t ope;
+        uint8_t dir;
+        uint8_t dgd;
+        uint8_t wg;
+        uint8_t dots;
+        uint8_t mode;
+        uint8_t zoom;
+    } draw;
+
     /* NTS:
      *
      * We're following the Neko Project II method of FIFO emulation BUT
      * I wonder if the GDC maintains two FIFOs and allows stacking params
      * in one and commands in another....? */
 
-    uint8_t                 cmd_parm_tmp[8];            /* temp storage before accepting params */
+    uint8_t                 cmd_parm_tmp[11];            /* temp storage before accepting params */
 
     uint8_t                 rfifo[PC98_GDC_FIFO_SIZE];
     uint8_t                 rfifo_read,rfifo_write;
@@ -119,6 +175,12 @@ struct PC98_GDC_state {
     bool                    idle;
 
     bool                    doublescan;                 /* 200-line as 400-line */
+
+    bool                    dbg_ev_partition;
+
+    double                  drawing_end;
+    int                     dot_count;
+    uint8_t                 drawing_status;
 };
 
 typedef union pc98_tile             egc_quad[4];
@@ -131,3 +193,53 @@ extern struct PC98_GDC_state        pc98_gdc[2];
 extern egc_quad                     pc98_gdc_tiles;
 extern uint8_t                      pc98_gdc_vramop;
 extern uint8_t                      pc98_gdc_modereg;
+
+extern uint8_t                      pc98_gdc_tile_counter;
+extern uint8_t                      pc98_gdc_modereg;
+extern uint8_t                      pc98_gdc_vramop;
+extern egc_quad                     pc98_gdc_tiles;
+
+extern uint8_t                      pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
+extern uint8_t                      pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
+extern uint8_t                      pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
+
+extern bool                         pc98_timestamp5c;
+
+extern uint8_t                      GDC_display_plane_wait_for_vsync;
+
+Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/);
+void pc98_write_9a8(Bitu port,Bitu val,Bitu iolen);
+
+void gdc_5mhz_mode_update_vars(void);
+void pc98_port6A_command_write(unsigned char b);
+void pc98_wait_write(Bitu port,Bitu val,Bitu iolen);
+void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen);
+void pc98_port68_command_write(unsigned char b);
+Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/);
+void pc98_write_9a0(Bitu port,Bitu val,Bitu iolen);
+Bitu pc98_crtc_read(Bitu port,Bitu iolen);
+Bitu pc98_a1_read(Bitu port,Bitu iolen);
+void pc98_a1_write(Bitu port,Bitu val,Bitu iolen);
+void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen);
+Bitu pc98_gdc_read(Bitu port,Bitu iolen);
+Bitu pc98_egc4a0_read(Bitu port,Bitu iolen);
+void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen);
+Bitu pc98_egc4a0_read_warning(Bitu port,Bitu iolen);
+void pc98_egc4a0_write_warning(Bitu port,Bitu val,Bitu iolen);
+
+extern const UINT8 gdc_defsyncm15[8];
+extern const UINT8 gdc_defsyncs15[8];
+
+extern const UINT8 gdc_defsyncm24[8];
+extern const UINT8 gdc_defsyncs24[8];
+
+extern const UINT8 gdc_defsyncm31[8];
+extern const UINT8 gdc_defsyncs31[8];
+
+extern const UINT8 gdc_defsyncm31_480[8];
+extern const UINT8 gdc_defsyncs31_480[8];
+
+void PC98_Set24KHz(void);
+void PC98_Set31KHz(void);
+void PC98_Set31KHz_480line(void);
+

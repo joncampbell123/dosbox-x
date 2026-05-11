@@ -1,0 +1,102 @@
+# Open Watcom makefile to build SDL2net.dll for OS/2
+# wmake -f Makefile.os2
+#
+# Remember to edit DEPS_INC and DEPS_LIB below to meet
+# your own environment!.
+
+LIBNAME = SDL2net
+MAJOR_VERSION = 2
+MINOR_VERSION = 2
+MICRO_VERSION = 0
+VERSION = $(MAJOR_VERSION).$(MINOR_VERSION).$(MICRO_VERSION)
+
+TITLENAME = $(LIBNAME) $(VERSION)
+
+LIBFILE = $(LIBNAME).lib
+DLLFILE = $(LIBNAME).dll
+LNKFILE = $(LIBNAME).lnk
+
+# change DEPS_INC in order to point to the dependency headers.
+DEPS_INC=-IC:\SDL2DEV\h\SDL2
+# change DEPS_LIB in order to point to the dependency libraries.
+DEPS_LIB=C:\SDL2DEV\lib
+
+SRCS = SDLnetTCP.c SDLnetUDP.c SDLnetselect.c SDLnet.c
+
+OBJS = $(SRCS:.c=.obj)
+
+LIBS = SDL2.lib
+
+CFLAGS_BASE = -bt=os2 -d0 -q -bm -5s -fp5 -fpi87 -sg -oeatxh -ei -j
+# warnings:
+CFLAGS_BASE+= -wx
+# newer OpenWatcom versions enable W303 by default
+CFLAGS_BASE+= -wcd=303
+# include paths:
+CFLAGS_BASE+= -I$(%WATCOM)/h/os2 -I$(%WATCOM)/h
+CFLAGS_BASE+= -I. $(DEPS_INC)
+
+CFLAGS =$(CFLAGS_BASE)
+# to build a dll:
+CFLAGS+= -bd
+# for DECLSPEC:
+CFLAGS+= -DBUILD_SDL
+
+# For the static assertions in SDLnet.c
+CFLAGS+= -DSDL_BUILD_MAJOR_VERSION=$(MAJOR_VERSION)
+CFLAGS+= -DSDL_BUILD_MINOR_VERSION=$(MINOR_VERSION)
+CFLAGS+= -DSDL_BUILD_MICRO_VERSION=$(MICRO_VERSION)
+
+all: $(LIBFILE) showinterfaces.exe chat.exe chatd.exe
+
+$(LIBFILE): $(DLLFILE)
+  @echo * Create library: $@...
+  wlib -b -n -q -c -pa -s -t -zld -ii -io $@ $(DLLFILE)
+
+$(DLLFILE): $(OBJS) $(LNKFILE)
+  @echo * Link: $@
+  wlink @$(LNKFILE)
+
+$(LNKFILE):
+  @%create $@
+  @%append $@ SYSTEM os2v2_dll INITINSTANCE TERMINSTANCE
+  @%append $@ NAME $(LIBNAME)
+  @for %i in ($(OBJS)) do @%append $@ FILE %i
+  @%append $@ OPTION QUIET
+  @%append $@ OPTION DESCRIPTION '@$#libsdl org:$(VERSION)$#@Simple DirectMedia Layer network library'
+  @%append $@ LIBPATH $(DEPS_LIB)
+  @for %i in ($(LIBS)) do @%append $@ LIB %i
+  @%append $@ OPTION MAP=$*
+  @%append $@ OPTION ELIMINATE
+  @%append $@ OPTION MANYAUTODATA
+  @%append $@ OPTION OSNAME='OS/2 and eComStation'
+  @%append $@ OPTION SHOWDEAD
+
+.c.obj:
+  wcc386 $(CFLAGS) -fo=$^@ $<
+
+showinterfaces.obj: showinterfaces.c
+  wcc386 $(CFLAGS_BASE) -fo=$^@ $<
+chat.obj: chat.c
+  wcc386 $(CFLAGS_BASE) -fo=$^@ $<
+chatd.obj: chatd.c
+  wcc386 $(CFLAGS_BASE) -fo=$^@ $<
+
+showinterfaces.exe: $(LIBFILE) showinterfaces.obj
+  wlink SYS os2v2 OP q LIBPATH $(DEPS_LIB) LIBR {$(LIBFILE) SDL2.lib} F {showinterfaces.obj} N showinterfaces.exe
+chat.exe: $(LIBFILE) chat.obj
+  wlink SYS os2v2 OP q LIBPATH $(DEPS_LIB) LIBR {$(LIBFILE) SDL2test.lib SDL2.lib} F {chat.obj} N chat.exe
+chatd.exe: $(LIBFILE) chatd.obj
+  wlink SYS os2v2 OP q LIBPATH $(DEPS_LIB) LIBR {$(LIBFILE) SDL2.lib} F {chatd.obj} N chatd.exe
+
+clean: .SYMBOLIC
+  @echo * Clean: $(TITLENAME)
+  @if exist *.obj rm *.obj
+  @if exist *.err rm *.err
+  @if exist $(LNKFILE) rm $(LNKFILE)
+
+distclean: .SYMBOLIC clean
+  @if exist $(DLLFILE) rm $(DLLFILE)
+  @if exist $(LIBFILE) rm $(LIBFILE)
+  @if exist *.map rm *.map
+  @if exist *.exe rm *.exe

@@ -319,7 +319,7 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
             {
                 SDL_keysym *key =  TranslateKey(wParam,HIWORD(lParam),&keysym,1);
 #ifdef ENABLE_IM_EVENT
-                if (!IM_Context.bCompos && (GetTickCount() - end_ticks > IME_END_CR_WAIT || key->sym != 0x0d))
+                if (wParam != VK_PROCESSKEY && !IM_Context.bCompos && (GetTickCount() - end_ticks > IME_END_CR_WAIT || key->sym != 0x0d))
 #endif
                 {
                     posted = SDL_PrivateKeyboard(SDL_PRESSED,key);

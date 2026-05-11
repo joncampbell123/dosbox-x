@@ -1,6 +1,7 @@
 
 #include "dos_inc.h"
 
+#if !defined(OSFREE)
 static const unsigned char bin_25_com[] = { 0xB8, 0x14, 0x11, 0x30, 0xDB, 0xCD, 0x10, 0xC3 };
 
 struct BuiltinFileBlob bfb_25_COM = {
@@ -24,4 +25,5 @@ struct BuiltinFileBlob bfb_25_COM_other = {
 	/*data*/			bin_25_com_other,
 	/*length*/			sizeof(bin_25_com_other)
 };
+#endif
 

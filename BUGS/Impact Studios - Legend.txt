@@ -13,7 +13,7 @@ Problem: Two parts of the demo, a rotating 3D dot object, does not
          the screen.
 
 Fix: The demo is using a combination of using the bitmask in the
-     grapics controller (register 8) and "bitplane flipping" using
+     graphics controller (register 8) and "bitplane flipping" using
      the VGA DAC pel mask (0x3C6) to draw the objects. It hides the
      "bitplane" using the Pel mask register, then sets the bitmask
      in the graphics controller so that when it draws the object,

@@ -32,6 +32,10 @@
 #define CMD_MAXLINE 4096
 #define CMD_MAXCMDS 20
 #define CMD_OLDSIZE 4096
+
+#define CONFIG_SIZE 4096
+#define AUTOEXEC_SIZE 4096
+
 extern Bitu call_shellstop;
 class DOS_Shell;
 
@@ -39,6 +43,21 @@ class DOS_Shell;
  * by "external" programs. (config) */
 extern DOS_Shell * first_shell;
 
+const std::map<int, std::string> langcp_map {
+	{437, "en_US"},
+	//{850, "de_DE"},
+    {852, "hu_HU"},
+    {857, "tr_TR"},
+	{858, "es_ES"},
+	{859, "fr_FR"},
+	{860, "pt_BR"},
+	{866, "ru_RU"},
+	{932, "ja_JP"},
+	{936, "zh_CN"},
+	{949, "ko_KR"},
+	{950, "zh_TW"},
+	{951, "zh_TW"},
+};
 
 class BatchFile {
 public:
@@ -76,13 +95,14 @@ private:
             return strcasecmp(_Left.c_str(), _Right.c_str()) < 0;
         }
     };
-    typedef std::map<std::string, std::string, less_ignore_case<std::string> > cmd_alias_map_t;
+    typedef std::map<std::string, std::string, less_ignore_case<std::string> > cmd_alias_map_t, cmd_assoc_map_t;
     cmd_alias_map_t cmd_alias;
-
+    cmd_assoc_map_t cmd_assoc;
 	uint16_t completion_index;
 	
 private:
 	void ProcessCmdLineEnvVarStitution(char * line);
+	std::string hasAssociation(const char* name);
 	static bool hasExecutableExtension(const char* name);
 
 public:
@@ -90,10 +110,14 @@ public:
 	DOS_Shell();
 	virtual ~DOS_Shell();
 
+#if defined(OSFREE)
+	bool OSFreeOperatingSystemNotFound(void);
+#endif
+
 	void Prepare(void);
     /*! \brief      Program entry point, when the command is run
      */
-	void Run(void);
+	void Run(void) override;
 
     /*! \brief      Alternate execution if /C switch is given
      */
@@ -136,11 +160,15 @@ public:
      */
 	char * Which(char * name);
 
+    /*! \brief      Command history list
+     */
+	void CMD_HISTORY(char * args);
+
     /*! \brief      Online HELP for the shell
      */
 	void CMD_HELP(char * args);
 
-    /*! \brief      Exteneded Ctrl+C switch
+    /*! \brief      Extended Ctrl+C switch
      */
 	void CMD_BREAK(char * args);
 
@@ -305,6 +333,10 @@ public:
     */
 	void CMD_ALIAS(char* args);
 
+    /*! \brief      ALIAS
+    */
+	void CMD_ASSOC(char* args);
+
     /*! \brief      VTEXT
     */
 	void CMD_VTEXT(char *args);
@@ -336,7 +368,20 @@ public:
 	bool lfnfor;
     /* Status */
     bool input_eof;                     //! STDIN has hit EOF
+    bool config_shell = false;
 };
+
+#if !defined(OSFREE)
+class DOS_ConfigShell : public DOS_Shell {
+public:
+	DOS_ConfigShell();
+	virtual ~DOS_ConfigShell();
+
+    /*! \brief      Program entry point, when the command is run
+     */
+	void Run(void) override;
+};
+#endif
 
 struct SHELL_Cmd {
 	const char * name;								/* Command name*/
@@ -347,13 +392,13 @@ struct SHELL_Cmd {
 
 /* Object to manage lines in the autoexec.bat The lines get removed from
  * the file if the object gets destroyed. The environment is updated
- * as well if the line set a a variable */
+ * as well if the line set a variable */
 class AutoexecObject{
 private:
-	bool installed;
+	bool installed = false;
 	std::string buf;
 public:
-	AutoexecObject():installed(false){ };
+	AutoexecObject() {};
 	void Install(std::string const &in);
 	void InstallBefore(std::string const &in);
 	void Uninstall();
@@ -361,5 +406,7 @@ public:
 private:
 	void CreateAutoexec(void);
 };
+
+size_t GetPauseCount();
 
 #endif

@@ -24,7 +24,7 @@
 // some configuring defines that specify the capabilities of this architecture
 // or aspects of the recompiling
 
-// protect FC_ADDR over function calls if necessaray
+// protect FC_ADDR over function calls if necessary
 // #define DRC_PROTECT_ADDR_REG
 
 // try to use non-flags generating functions if possible
@@ -660,6 +660,11 @@ static void gen_and_imm(HostReg reg,uint32_t imm) {
 		gen_mov_dword_to_reg_imm(temp2, imm);
 		cache_addd( AND_REG_LSL_IMM(reg, reg, temp2, 0) );      // and reg, reg, temp2
 	}
+}
+
+// shift right a register by an 8-bit constant
+static void gen_shr_imm(HostReg reg,uint8_t imm) {
+    cache_addd( LSR64_IMM(reg, reg, imm) );
 }
 
 

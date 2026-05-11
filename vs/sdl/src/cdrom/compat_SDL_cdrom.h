@@ -106,8 +106,8 @@ typedef struct SDL_CD {
 /*@}*/
 
 /* Compatibility functions (used separately from the SDL_InitQuit rountines) */
-extern int Compat_SDL_CDROMInit(void);
-extern void Compat_SDL_CDROMQuit(void);
+extern int SDL_CDROMInit(void);
+extern void SDL_CDROMQuit(void);
 
 /* CD-audio API functions: */
 

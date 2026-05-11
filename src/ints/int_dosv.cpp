@@ -31,13 +31,11 @@
 #include "dos_inc.h"
 #define INCJFONT 1
 #include "jfont.h"
-#if defined(LINUX)
 #include <limits.h>
-#if C_X11
+#if defined(LINUX) && C_X11
 #include <X11/Xlib.h>
 #include <X11/Xlocale.h>
 #include <X11/Xutil.h>
-#endif
 #endif
 
 #define ID_LEN 6
@@ -114,12 +112,15 @@ static bool use20pixelfont;
 extern bool autoboxdraw;
 extern bool ttf_dosv;
 #endif
+extern bool showdbcs;
 extern bool gbk, chinasea;
 extern int bootdrive;
 bool del_flag = true;
 bool yen_flag = false;
 bool jfont_init = false;
 bool getsysfont = true;
+bool getwqy14 = false;
+bool getwqy16 = false;
 uint8_t TrueVideoMode;
 void ResolvePath(std::string& in);
 void SetIMPosition();
@@ -128,31 +129,502 @@ bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
+std::string GetDOSBoxXPath(bool withexe=false);
 
 bool isKanji1(uint8_t chr) {
     if (dos.loaded_codepage == 936 || IS_PDOSV)
         return chr >= (gbk ? 0x81 : 0xa1) && chr <= 0xfe;
-    else if (dos.loaded_codepage == 950 || IS_CDOSV)
-        return chr >= 0x81 && chr <= 0xfe && !(!chinasea && chr >= 0xc7 && chr <= 0xc8);
-    else if (dos.loaded_codepage == 949 || IS_KDOSV)
+    else if (dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951 || IS_KDOSV || IS_TDOSV)
         return chr >= 0x81 && chr <= 0xfe;
     else
         return (chr >= 0x81 && chr <= 0x9f) || (chr >= 0xe0 && chr <= 0xfc);
 }
 
+bool isKanji1_gbk(uint8_t chr) {
+    if (dos.loaded_codepage != 936) return isKanji1(chr);
+    bool kk = gbk, ret = false;
+    gbk = true;
+    ret = isKanji1(chr);
+    gbk = kk;
+    return ret;
+}
+
 bool isKanji2(uint8_t chr) {
 #if defined(USE_TTF)
-    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || ((IS_DOSV || ttf_dosv) && !IS_JDOSV))
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951 || ((IS_DOSV || ttf_dosv) && !IS_JDOSV))
 #else
-    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || (IS_DOSV && !IS_JDOSV))
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951 || (IS_DOSV && !IS_JDOSV))
 #endif
         return chr >= (dos.loaded_codepage == 936 && !gbk? 0xa1 : 0x40) && chr <= 0xfe;
     else
         return (chr >= 0x40 && chr <= 0x7e) || (del_flag && chr == 0x7f) || (chr >= 0x80 && chr <= 0xfc);
 }
 
-Bitu getfontx2header(FILE *fp, fontx_h *header)
-{
+#ifdef __cplusplus
+extern "C" {
+#endif
+    bool tfd_isKanji1(uint8_t chr) {
+        return isKanji1(chr);
+    }
+    bool tfd_isKanji2(uint8_t chr) {
+        return isKanji2(chr);
+    }
+#ifdef __cplusplus
+}
+#endif
+
+
+
+static inline int Hex2Int(const char *p) {
+    if (*p <= '9')
+        return *p - '0';
+    else if (*p <= 'F')
+        return *p - 'A' + 10;
+    else
+        return *p - 'a' + 10;
+}
+
+enum type32 {
+  PCF_PROPERTIES	= (1 << 0),
+  PCF_ACCELERATORS	= (1 << 1),
+  PCF_METRICS		= (1 << 2),
+  PCF_BITMAPS		= (1 << 3),
+  PCF_INK_METRICS	= (1 << 4),
+  PCF_BDF_ENCODINGS	= (1 << 5),
+  PCF_SWIDTHS		= (1 << 6),
+  PCF_GLYPH_NAMES	= (1 << 7),
+  PCF_BDF_ACCELERATORS	= (1 << 8),
+};
+
+struct format32 {
+  uint32_t id    :24;	// one of four constants below
+  uint32_t dummy :2;	// = 0 padding
+  uint32_t scan  :2;	// read bitmap by (1 << scan) bytes
+  uint32_t bit   :1;	// 0:LSBit first, 1:MSBit first
+  uint32_t byte  :1;	// 0:LSByte first, 1:MSByte first
+  uint32_t glyph :2;	// a scanline of gryph is aligned by (1 << glyph) bytes
+  bool is_little_endian(void) { return !byte; }
+};
+
+#define PCF_DEFAULT_FORMAT     0
+#define PCF_COMPRESSED_METRICS 1
+const format32 BDF_format = { PCF_DEFAULT_FORMAT, 0, 0, 1, 1, 0 };
+
+union sv {
+  char *s;
+  int32_t v;
+};
+
+struct metric_t {
+  int16_t leftSideBearing;  // leftmost coordinate of the gryph
+  int16_t rightSideBearing; // rightmost coordinate of the gryph
+  int16_t characterWidth;   // offset to next gryph
+  int16_t ascent;           // pixels below baseline
+  int16_t descent;          // pixels above Baseline
+  uint16_t attributes;
+  uint8_t *bitmaps;         // bitmap pattern of gryph
+  int32_t swidth;           // swidth
+  sv glyphName;           // name of gryph
+
+  metric_t(void) { bitmaps = NULL; glyphName.s = NULL; }
+  int16_t widthBits(void) { return rightSideBearing - leftSideBearing; }
+  int16_t height(void) { return ascent + descent; }
+  int16_t widthBytes(format32 f) { return bytesPerRow(widthBits(), 1 << f.glyph); }
+  static int16_t bytesPerRow(int bits, int nbytes) { return nbytes == 1 ?  ((bits +  7) >> 3) : nbytes == 2 ? (((bits + 15) >> 3) & ~1) : nbytes == 4 ? (((bits + 31) >> 3) & ~3) : nbytes == 8 ? (((bits + 63) >> 3) & ~7) : 0; }
+};
+
+int32_t nTables;
+struct table_t {
+  type32 type;
+  format32 format;
+  int32_t size;
+  int32_t offset;
+} *tables;
+long read_bytes;
+format32 format;
+
+uint8_t *read_byte8s(FILE *file, uint8_t *mem, size_t size) {
+  size_t read_size =  fread(mem, 1, size, file);
+  if (read_size != size) return NULL;
+  read_bytes += size;
+  return mem;
+}
+
+char read8(FILE *file) {
+  int a = fgetc(file);
+  read_bytes ++;
+  return (char)a;
+}
+
+int make_int16(int a, int b) {
+  int value;
+  value  = (a & 0xff) << 8;
+  value |= (b & 0xff);
+  return value;
+}
+
+int read_int16(FILE *file) {
+  int a = read8(file);
+  int b = read8(file);
+  if (format.is_little_endian())
+    return make_int16(b, a);
+  else
+    return make_int16(a, b);
+}
+
+int32_t make_int32(int a, int b, int c, int d) {
+  int32_t value;
+  value  = (int32_t)(a & 0xff) << 24;
+  value |= (int32_t)(b & 0xff) << 16;
+  value |= (int32_t)(c & 0xff) <<  8;
+  value |= (int32_t)(d & 0xff);
+  return value;
+}
+
+int32_t read_int32_big(FILE *file) {
+  int a = read8(file);
+  int b = read8(file);
+  int c = read8(file);
+  int d = read8(file);
+  return make_int32(a, b, c, d);
+}
+
+int32_t read_int32_little(FILE *file) {
+  int a = read8(file);
+  int b = read8(file);
+  int c = read8(file);
+  int d = read8(file);
+  return make_int32(d, c, b, a);
+}
+
+int32_t read_int32(FILE *file) {
+  return format.is_little_endian() ? read_int32_little(file) : read_int32_big(file);
+}
+
+format32 read_format32_little(FILE *file) {
+  int32_t v = read_int32_little(file);
+  format32 f;
+  f.id     = v >> 8;
+  f.dummy  = 0;
+  f.scan   = v >> 4;
+  f.bit    = v >> 3;
+  f.byte   = v >> 2;
+  f.glyph  = v >> 0;
+  return f;
+}
+
+void bit_order_invert(uint8_t *data, int size) {
+  static const uint8_t invert[16] = { 0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15 };
+  for (int i = 0; i < size; i++)
+    data[i] = (invert[data[i] & 15] << 4) | invert[(data[i] >> 4) & 15];
+}
+
+void two_byte_swap(uint8_t *data, int size) {
+  size &= ~1;
+  for (int i = 0; i < size; i += 2) {
+    uint8_t tmp = data[i];
+    data[i] = data[i + 1];
+    data[i + 1] = tmp;
+  }
+}
+
+void four_byte_swap(uint8_t *data, int size) {
+  size &= ~3;
+  for (int i = 0; i < size; i += 4) {
+    uint8_t tmp = data[i];
+    data[i] = data[i + 3];
+    data[i + 3] = tmp;
+    tmp = data[i + 1];
+    data[i + 1] = data[i + 2];
+    data[i + 2] = tmp;
+  }
+}
+
+bool seek(FILE *file, type32 type) {
+  for (int i = 0; i < nTables; i++)
+    if (tables[i].type == type) {
+      int s = tables[i].offset - read_bytes;
+      if (s < 0)
+          return false;
+      for (; 0 < s; s--) read8(file);
+      return true;
+    }
+  return false;
+}
+
+void read_metric(FILE *file, metric_t *m, bool compressed) {
+  m->leftSideBearing  = compressed ? (int16_t)((uint8_t)read8(file) - 0x80) : read_int16(file);
+  m->rightSideBearing = compressed ? (int16_t)((uint8_t)read8(file) - 0x80) : read_int16(file);
+  m->characterWidth   = compressed ? (int16_t)((uint8_t)read8(file) - 0x80) : read_int16(file);
+  m->ascent           = compressed ? (int16_t)((uint8_t)read8(file) - 0x80) : read_int16(file);
+  m->descent          = compressed ? (int16_t)((uint8_t)read8(file) - 0x80) : read_int16(file);
+  m->attributes       = compressed ? 0 : read_int16(file);
+}
+
+bool readPCF(FILE *file, int height) {
+  if (file) rewind(file);
+  else return false;
+  read_bytes = 0;
+  int i;
+  int32_t nMetrics, version = read_int32_big(file);
+  if (read_bytes == 0) version = read_int32_big(file);
+  if (version != make_int32(1, 'f', 'c', 'p')) return false;
+  nTables = read_int32_little(file);
+  if ((tables = new table_t[nTables]) == NULL) return false;
+  for (i = 0; i < nTables; i++) {
+    tables[i].type   = (type32)read_int32_little(file);
+    tables[i].format = read_format32_little(file);
+    tables[i].size   = read_int32_little(file);
+    tables[i].offset = read_int32_little(file);
+  }
+  if (!seek(file, PCF_PROPERTIES) || !(format.id == PCF_DEFAULT_FORMAT) || !seek(file, PCF_METRICS)) return false;
+  format = read_format32_little(file);
+  metric_t *metrics;
+  switch (format.id) {
+    default:
+      return false;
+    case PCF_DEFAULT_FORMAT:
+      nMetrics = read_int32(file);
+      if ((metrics = new metric_t[nMetrics]) == NULL) return false;
+      for (i = 0; i < nMetrics; i++)
+        read_metric(file, &metrics[i], false);
+      break;
+    case PCF_COMPRESSED_METRICS:
+      nMetrics = read_int16(file);
+      if ((metrics = new metric_t[nMetrics]) == NULL) return false;
+      for (i = 0; i < nMetrics; i++)
+        read_metric(file, &metrics[i], true);
+      break;
+  }
+  if (!seek(file, PCF_BITMAPS)) return false;
+  format = read_format32_little(file);
+  if (!(format.id == PCF_DEFAULT_FORMAT)) return false;
+  int32_t nBitmaps = read_int32(file);
+  uint32_t *bitmapOffsets, bitmapSizes[4];
+  if ((bitmapOffsets = new uint32_t[nBitmaps]) == NULL) return false;
+  for (i = 0; i < nBitmaps; i++)
+    bitmapOffsets[i] = (uint32_t)read_int32(file);
+  for (i = 0; i < 4; i++)
+    bitmapSizes[i] = (uint32_t)read_int32(file);
+  uint8_t *bitmaps;
+  int32_t bitmapSize = bitmapSizes[format.glyph];
+  if ((bitmaps = new uint8_t[bitmapSize]) == NULL) return false;
+  if (read_byte8s(file, bitmaps, bitmapSize) == NULL) {delete[] bitmaps;return false;}
+  if (format.bit != BDF_format.bit) bit_order_invert(bitmaps, bitmapSize);
+  if ((format.bit == format.byte) !=  (BDF_format.bit == BDF_format.byte)) {
+    switch (1 << (BDF_format.bit == BDF_format.byte ? format.scan : BDF_format.scan)) {
+      case 1: break;
+      case 2:
+        two_byte_swap(bitmaps, bitmapSize);
+        break;
+      case 4:
+        four_byte_swap(bitmaps, bitmapSize);
+        break;
+    }
+  }
+  for (i = 0; i < nMetrics; i++) {
+    metric_t &m = metrics[i];
+    m.bitmaps = bitmaps + bitmapOffsets[i];
+  }
+  if (!seek(file, PCF_BDF_ENCODINGS)) {delete[] bitmaps;return false;}
+  format = read_format32_little(file);
+  if (!(format.id == PCF_DEFAULT_FORMAT)) {delete[] bitmaps;return false;}
+  uint16_t firstCol  = read_int16(file);
+  uint16_t lastCol   = read_int16(file);
+  uint16_t firstRow  = read_int16(file);
+  uint16_t lastRow   = read_int16(file);
+  // uint16_t defaultCh = read_int16(file);
+  fseek(file, 2L, SEEK_CUR);
+  read_bytes += 2L;
+
+  if (!(firstCol <= lastCol) || !(firstRow <= lastRow)) {delete[] bitmaps;return false;}
+  int nEncodings = (lastCol - firstCol + 1) * (lastRow - firstRow + 1);
+  uint16_t *encodings;
+  if ((encodings = new uint16_t[nEncodings]) == NULL) {delete[] bitmaps;return false;}
+  for (i = 0; i < nEncodings; i++) encodings[i] = read_int16(file);
+  if (seek(file, PCF_SWIDTHS)) {
+    format = read_format32_little(file);
+    if (!(format.id == PCF_DEFAULT_FORMAT)) {delete[] bitmaps;return false;}
+  }
+  if (seek(file, PCF_GLYPH_NAMES)) {
+    format = read_format32_little(file);
+    if (!(format.id == PCF_DEFAULT_FORMAT)) {delete[] bitmaps;return false;}
+  }
+  bool apply14 = false;
+  if (height == 16) {
+      Prop_path* pathprop = static_cast<Section_prop *>(control->GetSection("dosv"))->Get_path("fontxdbcs14");
+      if(pathprop && !pathprop->realpath.size()) apply14 = true;
+  }
+  for (i = 0; i < nEncodings; i++) {
+    if (encodings[i] == 0xffff) continue;
+    int col = i % (lastCol - firstCol + 1) + firstCol;
+    int row = i / (lastCol - firstCol + 1) + firstRow;
+    uint16_t charcode = row * 256 + col;
+    if (!(encodings[i] < nMetrics)) {delete[] bitmaps;return false;}
+    metric_t &m = metrics[encodings[i]];
+    int widthBytes = m.widthBytes(format);
+    int w = (m.widthBits() + 7) / 8;
+    w = w < 1 ? 1 : w;
+    uint8_t *b = m.bitmaps;
+    unsigned char *bitmap;
+    if ((m.height() == height || m.height() == 15) && charcode >= 0x100 && charcode <= 0xffff) {
+        bitmap = (unsigned char *)malloc(100 * sizeof(unsigned char));
+        size_t j=0;
+        for (int r = 0; r < m.height(); r++)
+          for (int c = 0; c < widthBytes; c++) {
+            if (c < w) bitmap[j++]=*b;
+            b++;
+          }
+        if (j != 30 && j != height * 2) continue;
+        char text[10];
+        uint16_t uname[4];
+        uname[0]=charcode;
+        uname[1]=0;
+        text[0] = 0;
+        text[1] = 0;
+        text[2] = 0;
+        if (CodePageHostToGuestUTF16(text,uname)) {
+            Bitu code = (text[0] & 0xff) * 0x100 + (text[1] & 0xff);
+            if ((height == 14 || (height == 16 && m.height() == 15 && apply14)) && jfont_cache_dbcs_14[code] == 0) {
+                memcpy(&jfont_dbcs_14[code * 28], bitmap, 28);
+                jfont_cache_dbcs_14[code] = 1;
+            }
+            if (height == 16 && jfont_cache_dbcs_16[code] == 0) {
+                memcpy(&jfont_dbcs_16[code * 32], bitmap, height == 15?30:32);
+                jfont_cache_dbcs_16[code] = 1;
+            }
+        }
+    }
+  }
+  delete[] bitmaps;
+  return true;
+}
+
+bool readBDF(FILE *file, int height) {
+    if (file) rewind(file);
+    else return false;
+    char linebuf[1024], *s, *p;
+    int fontboundingbox_width, fontboundingbox_height, fontboundingbox_xoff, fontboundingbox_yoff;
+    int chars, i, j, n, scanline, encoding, bbx, bby, bbw, bbh, width;
+    unsigned *width_table, *encoding_table;
+    unsigned char *bitmap;
+    fontboundingbox_width = fontboundingbox_height = fontboundingbox_xoff = fontboundingbox_yoff = chars = 0;
+    while (fgets(linebuf, sizeof(linebuf), file) && (s = strtok(linebuf, " \t\n\r"))) {
+        if (!strcasecmp(s, "FONTBOUNDINGBOX")) {
+            p = strtok(NULL, " \t\n\r");
+            fontboundingbox_width = atoi(p);
+            p = strtok(NULL, " \t\n\r");
+            fontboundingbox_height = atoi(p);
+            p = strtok(NULL, " \t\n\r");
+            fontboundingbox_xoff = atoi(p);
+            p = strtok(NULL, " \t\n\r");
+            fontboundingbox_yoff = atoi(p);
+        } else if (!strcasecmp(s, "CHARS")) {
+            p = strtok(NULL, " \t\n\r");
+            chars = atoi(p);
+            break;
+        }
+    }
+    if (fontboundingbox_width <= 0 || fontboundingbox_height <= 0 || chars <= 0) return false;
+    width_table = (unsigned *)malloc(chars * sizeof(*width_table));
+    encoding_table = (unsigned *)malloc(chars * sizeof(*encoding_table));
+    bitmap = (unsigned char *)malloc(((fontboundingbox_width + 7) / 8) * fontboundingbox_height);
+    if (!width_table || !encoding_table || !bitmap) return false;
+    scanline = encoding = -1;
+    n = bbx = bby = bbw = bbh = 0;
+    width = INT_MIN;
+    bool apply14 = false;
+    if (height == 16) {
+        Prop_path* pathprop = static_cast<Section_prop *>(control->GetSection("dosv"))->Get_path("fontxdbcs14");
+        if(pathprop && !pathprop->realpath.size()) apply14 = true;
+    }
+    while (fgets(linebuf, sizeof(linebuf), file) && (s = strtok(linebuf, " \t\n\r"))) {
+        if (!strcasecmp(s, "STARTCHAR")) {
+            p = strtok(NULL, " \t\n\r");
+        } else if (!strcasecmp(s, "ENCODING")) {
+            p = strtok(NULL, " \t\n\r");
+            encoding = atoi(p);
+        } else if (!strcasecmp(s, "DWIDTH")) {
+            p = strtok(NULL, " \t\n\r");
+            width = atoi(p);
+        } else if (!strcasecmp(s, "BBX")) {
+            p = strtok(NULL, " \t\n\r");
+            bbw = atoi(p);
+            p = strtok(NULL, " \t\n\r");
+            bbh = atoi(p);
+            p = strtok(NULL, " \t\n\r");
+            bbx = atoi(p);
+            p = strtok(NULL, " \t\n\r");
+            bby = atoi(p);
+        } else if (!strcasecmp(s, "BITMAP")) {
+            if (width == INT_MIN) return false;
+            if (bbx < 0) {
+                width -= bbx;
+                bbx = 0;
+            }
+            if (bbx + bbw > width) width = bbx + bbw;
+            width_table[n] = width;
+            encoding_table[n] = encoding;
+            ++n;
+            scanline = 0;
+            memset(bitmap, 0, ((fontboundingbox_width + 7) / 8) * fontboundingbox_height);
+        } else if (!strcasecmp(s, "ENDCHAR")) {
+            if (bbx && !(bbx < 0 || bbx > 7)) {
+                int x, y, c, o;
+                for (y = 0; y < fontboundingbox_height; ++y) {
+                    o = 0;
+                    for (x = 0; x < fontboundingbox_width; x += 8) {
+                        c = bitmap[y * ((fontboundingbox_width + 7) / 8) + x / 8];
+                        bitmap[y * ((fontboundingbox_width + 7) / 8) + x / 8] = c >> bbx | o;
+                        o = c << (8 - bbx);
+                    }
+                }
+            }
+            if ((width == height || width == 15) && encoding >= 0x100 && encoding <= 0xffff) {
+                char text[10];
+                uint16_t uname[4];
+                uname[0]=encoding;
+                uname[1]=0;
+                text[0] = 0;
+                text[1] = 0;
+                text[2] = 0;
+                if (CodePageHostToGuestUTF16(text,uname)) {
+                    Bitu code = (text[0] & 0xff) * 0x100 + (text[1] & 0xff);
+                    if ((height == 14 || (height == 16 && width == 15 && apply14)) && jfont_cache_dbcs_14[code] == 0) {
+                        memcpy(&jfont_dbcs_14[code * 28], bitmap, 28);
+                        jfont_cache_dbcs_14[code] = 1;
+                    }
+                    if (height == 16 && jfont_cache_dbcs_16[code] == 0) {
+                        memcpy(&jfont_dbcs_16[code * 32], bitmap, height == 15?30:32);
+                        jfont_cache_dbcs_16[code] = 1;
+                    }
+                }
+            }
+            scanline = -1;
+            width = INT_MIN;
+        } else if (scanline >= 0) {
+            p = s;
+            j = 0;
+            while (*p) {
+                i = Hex2Int(p);
+                ++p;
+                if (*p)
+                    i = Hex2Int(p) | i * 16;
+                else {
+                    bitmap[j + scanline * ((fontboundingbox_width + 7) / 8)] = i;
+                    break;
+                }
+                bitmap[j + scanline * ((fontboundingbox_width + 7) / 8)] = i;
+                ++j;
+                ++p;
+            }
+            ++scanline;
+        }
+    }
+    return true;
+}
+
+Bitu getfontx2header(FILE *fp, fontx_h *header) {
     fread(header->id, ID_LEN, 1, fp);
     if (strncmp(header->id, "FONTX2", ID_LEN) != 0)
         return 1;
@@ -163,16 +635,14 @@ Bitu getfontx2header(FILE *fp, fontx_h *header)
     return 0;
 }
 
-uint16_t chrtosht(FILE *fp)
-{
+uint16_t chrtosht(FILE *fp) {
 	uint16_t i, j;
 	i = (uint8_t)getc(fp);
 	j = (uint8_t)getc(fp) << 8;
 	return(i | j);
 }
 
-void readfontxtbl(fontxTbl *table, Bitu size, FILE *fp)
-{
+void readfontxtbl(fontxTbl *table, Bitu size, FILE *fp) {
     while (size > 0) {
         table->start = chrtosht(fp);
         table->end = chrtosht(fp);
@@ -181,7 +651,7 @@ void readfontxtbl(fontxTbl *table, Bitu size, FILE *fp)
     }
 }
 
-static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
+bool LoadFontxFile(const char *fname, int height, bool dbcs) {
     fontx_h head;
     fontxTbl *table;
     Bitu code;
@@ -189,6 +659,12 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 	if (!fname) return false;
 	if(*fname=='\0') return false;
 	FILE * mfile=fopen(fname,"rb");
+	std::string config_path, res_path, exepath=GetDOSBoxXPath();
+    config_path = Cross::GetPlatformConfigDir();
+    res_path = Cross::GetPlatformResDir();
+	if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
+	if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+	if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
 	if (!mfile) {
 #if defined(LINUX)
 		char *start = strrchr((char *)fname, '/');
@@ -234,7 +710,10 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
                 fclose(mfile);
                 return true;
             }
-		} else if (dos.loaded_codepage == 936 || dos.loaded_codepage == 950) {
+        } else if ((height==14||height==16) && isDBCSCP() && (readBDF(mfile, height) || readPCF(mfile, height))) {
+            fclose(mfile);
+            return true;
+        } else if (dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) {
             fseek(mfile, 0L, SEEK_END);
             long int sz = ftell(mfile);
             rewind(mfile);
@@ -337,7 +816,7 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 
 }
 
-static bool CheckEmptyData(uint8_t *data, Bitu length)
+bool CheckEmptyData(uint8_t *data, Bitu length)
 {
 	while(length > 0) {
 		if(*data++ != 0) {
@@ -400,6 +879,8 @@ static uint8_t linux_symbol_24[] = {
 
 bool CheckLinuxSymbol(Bitu code, uint8_t *buff, int width, int height)
 {
+	if (!IS_JDOSV && dos.loaded_codepage != 932)
+		return false;
 	uint8_t *src;
 	int len, offset;
 	if(width == 16 && height == 16) {
@@ -442,17 +923,17 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 	wchar_t wtext[4];
 	if((height == 24 && font_set24 == NULL) || (height == 14 && font_set14 == NULL) || (height != 24 && height != 14 && font_set16 == NULL)) return false;
 	if(code < 0x100) {
-		if(code == 0x5c && !(IS_DOSV && !IS_JDOSV)) // yen
+		if(code == 0x5c && (IS_JDOSV || dos.loaded_codepage == 932)) // yen
 			wtext[0] = 0xa5;
-		else if(code >= 0xa1 && code <= 0xdf && !(IS_DOSV && !IS_JDOSV)) // half kana
+		else if(code >= 0xa1 && code <= 0xdf && (IS_JDOSV || dos.loaded_codepage == 932)) // half kana
 			wtext[0] = 0xff61 + (code - 0xa1);
 		else
 			wtext[0] = code;
-	} else if(code == 0x8160) {
+	} else if(code == 0x8160 && (IS_JDOSV || dos.loaded_codepage == 932)) {
 		wtext[0] = 0x301c;
-	} else if(code == 0x8161) {
+	} else if(code == 0x8161 && (IS_JDOSV || dos.loaded_codepage == 932)) {
 		wtext[0] = 0x2016;
-	} else if(code == 0x817c) {
+	} else if(code == 0x817c && (IS_JDOSV || dos.loaded_codepage == 932)) {
 		wtext[0] = 0x2212;
 	} else if(CheckLinuxSymbol(code, buff, width, height)) {
 		return true;
@@ -600,21 +1081,7 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 	return false;
 }
 
-void GetDbcsFrameFont(Bitu code, uint8_t *buff)
-{
-	if(code >= 0x849f && code <= 0x84be) {
-		memcpy(buff, &frame_font_data[(code - 0x849f) * 32], 32);
-	}
-}
-
-void GetDbcs24FrameFont(Bitu code, uint8_t *buff)
-{
-	if(code >= 0x849f && code <= 0x84be) {
-		memcpy(buff, &frame_font24_data[(code - 0x849f) * 72], 72);
-	}
-}
-
-Bitu GetConvertedCode(Bitu code, int codepage) {
+int GetConvertedCode(Bitu code, int codepage, bool tounicode = false) {
     char text[10];
     uint16_t uname[4];
     uname[0]=0;
@@ -629,10 +1096,58 @@ Bitu GetConvertedCode(Bitu code, int codepage) {
             code = (text[0] & 0xff) * 0x100 + (text[1] & 0xff);
             dos.loaded_codepage = cp;
             return code;
+        } else {
+            dos.loaded_codepage = cp;
+            return tounicode?-uname[0]:0;
         }
-        dos.loaded_codepage = cp;
     }
     return 0;
+}
+
+void GetDbcsFrameFont(Bitu code, uint8_t *buff)
+{
+	if(!IS_JDOSV && dos.loaded_codepage != 932) code = GetConvertedCode(code, 932, true);
+	if(code >= 0x849f && code <= 0x84be) {
+		memcpy(buff, &frame_font_data[(code - 0x849f) * 32], 32);
+	}
+	int data[] = {0x2550, 0x2551, 0x2554, 0x2557, 0x255a, 0x255d};
+	for (int i=0; i<6; i++)
+		if ((int)code == -data[i]) {
+			memcpy(buff, &double_frame_font_data[i * 32], 32);
+			break;
+		}
+}
+
+void GetDbcs14FrameFont(Bitu code, uint8_t *buff)
+{
+	if(!IS_JDOSV && dos.loaded_codepage != 932) code = GetConvertedCode(code, 932, true);
+	if(code >= 0x849f && code <= 0x84be) {
+		memcpy(buff, &frame_font_data[(code - 0x849f) * 32 + 2], 28);
+	}
+	int data[] = {0x2550, 0x2551, 0x2554, 0x2557, 0x255a, 0x255d};
+	for (int i=0; i<6; i++)
+		if ((int)code == -data[i]) {
+			memcpy(buff, &double_frame_font_data[i * 32 + 2], 28);
+			break;
+		}
+}
+
+void GetDbcs24FrameFont(Bitu code, uint8_t *buff)
+{
+	if(!IS_JDOSV && dos.loaded_codepage != 932) code = GetConvertedCode(code, 932);
+	if(code >= 0x849f && code <= 0x84be) {
+		memcpy(buff, &frame_font24_data[(code - 0x849f) * 72], 72);
+	}
+}
+
+bool isFrameFont(int code, int height) {
+    if (!IS_JDOSV && dos.loaded_codepage != 932) code = GetConvertedCode(code, 932, true);
+	if ((height == 14 || height == 16) && (code == -0x2550 || code == -0x2551 || code == -0x2554 || code == -0x2557 || code == -0x255a || code == -0x255d)) return true;
+    return code >= 0x849f && code <= 0x84be;
+}
+
+bool isUserFont(Bitu code) {
+    return ((code >= 0x8140 && code <= 0xa0fe) || (code >= 0xc6a1 && code <= 0xc8fe) || (code >= 0xfa40 && code <= 0xfefe)) && (IS_TDOSV || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && !chinasea;
 }
 
 uint8_t *GetDbcsFont(Bitu code)
@@ -641,14 +1156,15 @@ uint8_t *GetDbcsFont(Bitu code)
 	if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (code & 0xFF) == 0x7F) code++;
 	if(jfont_cache_dbcs_16[code] == 0) {
         if (fontdata16 && fontsize16) {
-            if (dos.loaded_codepage == 936 && !(fontsize16%16) && (code/0x100)>0xa0 && (code/0x100)<0xff) {
+            if (dos.loaded_codepage == 936 && !(fontsize16%16) && (code/0x100)>0xa0 && (code/0x100)<0xff && (code%0x100)>0xa0 && (code%0x100)<0xfe) {
                 int offset = (94 * (unsigned int)((code/0x100) - 0xa0 - 1) + ((code%0x100) - 0xa0 - 1)) * 32;
                 if (offset + 32 <= fontsize16) {
                     memcpy(&jfont_dbcs_16[code * 32], fontdata16+offset, 32);
                     jfont_cache_dbcs_16[code] = 1;
                     return &jfont_dbcs_16[code * 32];
                 }
-            } if (((dos.loaded_codepage == 936 && gbk) || dos.loaded_codepage == 950) && !(fontsize16%15) && isKanji1(code/0x100)) {
+            }
+            if (((dos.loaded_codepage == 936 && gbk) || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && !(fontsize16%15) && isKanji1(code/0x100)) {
                 Bitu c = code;
                 if (dos.loaded_codepage == 936) code = GetConvertedCode(code, 950);
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
@@ -664,17 +1180,43 @@ uint8_t *GetDbcsFont(Bitu code)
                 }
             }
         }
-		if(code >= 0x849f && code <= 0x84be) {
+		if (isFrameFont(code, 16)) {
 			GetDbcsFrameFont(code, jfont_dbcs);
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
+		} else if (isUserFont(code)) {
+			return jfont_dbcs;
 		} else if(GetWindowsFont(code, jfont_dbcs, 16, 16)) {
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
 		} else {
-			if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950)) {
+			if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951)) {
+				Bitu oldcode = code;
 				code = GetConvertedCode(code, 932);
-				if (!code) return jfont_dbcs;
+				if (!code) {
+                    if (!getwqy16) {
+                        getwqy16=true;
+                        std::string config_path, res_path, exepath=GetDOSBoxXPath(), fname="wqy_12pt.bdf";
+                        config_path = Cross::GetPlatformConfigDir();
+                        res_path = Cross::GetPlatformResDir();
+                        FILE * mfile=fopen(fname.c_str(),"rb");
+                        if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
+                        if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+                        if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
+                        fname="wqy_12pt.pcf";
+                        if (!mfile) mfile=fopen(fname.c_str(),"rb");
+                        if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
+                        if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+                        if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
+                        if (!mfile) return jfont_dbcs;
+                        if (readBDF(mfile, 16) || readPCF(mfile, 16)) {
+                           fclose(mfile);
+                           if (jfont_cache_dbcs_16[oldcode] != 0) return &jfont_dbcs_16[oldcode * 32];
+                        } else
+                           fclose(mfile);
+                    }
+                    return jfont_dbcs;
+                }
 			}
 			int p = NAME_LEN+ID_LEN+3;
 			uint8_t size = JPNZN16X[p++];
@@ -707,7 +1249,7 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
     if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (code & 0xFF) == 0x7F) code++;
     if(jfont_cache_dbcs_14[code] == 0) {
         if (fontdata14 && fontsize14) {
-            if (dos.loaded_codepage == 936 && !(fontsize14%14) && (code/0x100)>0xa0 && (code/0x100)<0xff) {
+            if (dos.loaded_codepage == 936 && !(fontsize14%14) && (code/0x100)>0xa0 && (code/0x100)<0xff && (code%0x100)>0xa0 && (code%0x100)<0xfe) {
                 int offset = (94 * (unsigned int)((code/0x100) - 0xa0 - 1) + ((code%0x100) - 0xa0 - 1)) * 28;
                 if (offset + 28 <= fontsize14) {
                     memcpy(&jfont_dbcs_14[code * 28], fontdata14+offset, 28);
@@ -716,7 +1258,7 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                     return &jfont_dbcs_14[code * 28];
                 }
             }
-            if (((dos.loaded_codepage == 936 && gbk) || dos.loaded_codepage == 950) && !(fontsize14%15) && isKanji1(code/0x100)) {
+            if (((dos.loaded_codepage == 936 && gbk) || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && !(fontsize14%15) && isKanji1(code/0x100)) {
                 Bitu c = code;
                 if (dos.loaded_codepage == 936) code = GetConvertedCode(code, 950);
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
@@ -733,15 +1275,48 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                 }
             }
         }
-        if(GetWindowsFont(code, jfont_dbcs, 14, 14)) {
+        if (isFrameFont(code, 14)) {
+            GetDbcsFrameFont(code, jfont_dbcs);
+            memcpy(&jfont_dbcs_14[code * 28], jfont_dbcs, 28);
+            jfont_cache_dbcs_14[code] = 1;
+            is14 = true;
+            return jfont_dbcs;
+        } else if (isUserFont(code)) {
+            return jfont_dbcs;
+        } else if(GetWindowsFont(code, jfont_dbcs, 14, 14)) {
             memcpy(&jfont_dbcs_14[code * 28], jfont_dbcs, 28);
             jfont_cache_dbcs_14[code] = 1;
             is14 = true;
             return jfont_dbcs;
         } else {
-            if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950)) {
+            if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951)) {
+                Bitu oldcode = code;
                 code = GetConvertedCode(code, 932);
-                if (!code) return jfont_dbcs;
+                if (!code) {
+                    if (!getwqy14) {
+                        getwqy14=true;
+                        std::string config_path, res_path, exepath=GetDOSBoxXPath(), fname="wqy_11pt.bdf";
+                        config_path = Cross::GetPlatformConfigDir();
+                        res_path = Cross::GetPlatformResDir();
+                        FILE * mfile=fopen(fname.c_str(),"rb");
+                        if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
+                        if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+                        if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
+                        fname="wqy_11pt.pcf";
+                        if (!mfile) mfile=fopen(fname.c_str(),"rb");
+                        if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
+                        if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+                        if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
+                        if (!mfile) return jfont_dbcs;
+                        if (readBDF(mfile, 14) || readPCF(mfile, 14)) {
+                           fclose(mfile);
+                           if (jfont_cache_dbcs_14[oldcode] != 0) return &jfont_dbcs_14[oldcode * 28];
+                        } else
+                           fclose(mfile);
+                    }
+                    is14 = false;
+                    return GetDbcsFont(oldcode);
+                }
             }
             int p = NAME_LEN+ID_LEN+3;
             uint8_t size = SHMZN14X[p++];
@@ -778,13 +1353,13 @@ uint8_t *GetDbcs24Font(Bitu code)
 	if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (code & 0xFF) == 0x7F) code++;
 	if(jfont_cache_dbcs_24[code] == 0) {
         if (fontdata24 && fontsize24) {
-            if (dos.loaded_codepage == 936 && !(fontsize24%24) && (code/0x100)>0xa0 && (code/0x100)<0xff) {
+            if (dos.loaded_codepage == 936 && !(fontsize24%24) && (code/0x100)>0xa0 && (code/0x100)<0xff && (code%0x100)>0xa0 && (code%0x100)<0xfe) {
                 int offset = (94 * (unsigned int)((code/0x100) - 0xa0 - 1) + ((code%0x100) - 0xa0 - 1)) * 72;
                 if (offset + 72 <= fontsize24) {
                     memcpy(&jfont_dbcs_24[code * 72], fontdata24+offset, 72);
                     return &jfont_dbcs_24[code * 72];
                 }
-            } else if (dos.loaded_codepage == 950 && !(fontsize24%24) && isKanji1(code/0x100)) {
+            } else if ((dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && !(fontsize24%24) && isKanji1(code/0x100)) {
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
                 if (ser >= 472 && ser <= 5872) offset = (ser-472)*72;
                 else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*72+162030;
@@ -819,10 +1394,12 @@ uint8_t *GetDbcs24Font(Bitu code)
 				jfont_cache_dbcs_24[code] = 1;
 				return &jfont_dbcs_24[pos];
 			}
-		} else if(code >= 0x849f && code <= 0x84be) {
+		} else if (isFrameFont(code, 24)) {
 			GetDbcs24FrameFont(code, jfont_dbcs);
 			memcpy(&jfont_dbcs_24[code * 72], jfont_dbcs, 72);
 			jfont_cache_dbcs_24[code] = 1;
+		} else if (isUserFont(code)) {
+			return jfont_dbcs;
 		} else if(GetWindowsFont(code, jfont_dbcs, 24, 24)) {
 			memcpy(&jfont_dbcs_24[code * 72], jfont_dbcs, 72);
 			jfont_cache_dbcs_24[code] = 1;
@@ -858,14 +1435,14 @@ void InitFontHandle()
 		font_display = XOpenDisplay("");
 	if(font_display) {
 		if(!font_set16) {
-			if(IS_CDOSV) {
+			if(IS_TDOSV) {
 				xfont_16 = XLoadQueryFont(font_display, "-wenquanyi-*-medium-r-normal-*-16-*-*-*-*-*-iso10646-*"); 
 			}
 			font_set16 = XCreateFontSet(font_display, "-*-*-medium-r-normal--16-*-*-*", &missing_list, &missing_count, &def_string);
 			XFreeStringList(missing_list);
 		}
 		if(!font_set14) {
-			if(IS_CDOSV) {
+			if(IS_TDOSV) {
 				font_set14 = XCreateFontSet(font_display, "-wenquanyi-*-medium-r-normal--14-*-*-*", &missing_list, &missing_count, &def_string);
 			} else{
 				font_set14 = XCreateFontSet(font_display, "-*-*-medium-r-normal--14-*-*-*", &missing_list, &missing_count, &def_string);
@@ -879,7 +1456,7 @@ void InitFontHandle()
 		if(!font_window) {
 			font_window = XCreateSimpleWindow(font_display, DefaultRootWindow(font_display), 0, 0, 32, 32, 0, BlackPixel(font_display, DefaultScreen(font_display)), WhitePixel(font_display, DefaultScreen(font_display)));
 			font_pixmap = XCreatePixmap(font_display, font_window, 32, 32, DefaultDepth(font_display, 0));
-			font_gc = XCreateGC(font_display, font_pixmap, 0, 0);
+			font_gc = XCreateGC(font_display, font_pixmap, 0, nullptr);
 		}
 	}
 #endif
@@ -887,7 +1464,7 @@ void InitFontHandle()
 	if(jfont_16 == NULL || jfont_14 == NULL || jfont_24 == NULL) {
 		LOGFONT lf = { 0 };
 		lf.lfHeight = 16;
-		lf.lfCharSet = IS_KDOSV||(!IS_DOSV&&dos.loaded_codepage==949)?HANGUL_CHARSET:(IS_CDOSV||(!IS_DOSV&&dos.loaded_codepage==950)?CHINESEBIG5_CHARSET:(IS_PDOSV||(!IS_DOSV&&dos.loaded_codepage==936)?GB2312_CHARSET:SHIFTJIS_CHARSET));
+		lf.lfCharSet = IS_KDOSV||(!IS_DOSV&&dos.loaded_codepage==949)?HANGUL_CHARSET:(IS_PDOSV||(!IS_DOSV&&dos.loaded_codepage==936)?GB2312_CHARSET:(IS_TDOSV||(!IS_DOSV&&(dos.loaded_codepage==950||dos.loaded_codepage == 951))?CHINESEBIG5_CHARSET:SHIFTJIS_CHARSET));
 		lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
 		lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 		lf.lfQuality = DEFAULT_QUALITY;
@@ -902,6 +1479,13 @@ void InitFontHandle()
 #endif
 }
 
+void clearFontCache() {
+    getwqy14 = getwqy16 = false;
+    memset(jfont_cache_dbcs_16, 0, sizeof(jfont_cache_dbcs_16));
+    memset(jfont_cache_dbcs_14, 0, sizeof(jfont_cache_dbcs_14));
+    memset(jfont_cache_dbcs_24, 0, sizeof(jfont_cache_dbcs_24));
+}
+
 void ShutFontHandle() {
 #if defined(LINUX) && C_X11
     font_set16 = font_set14 = font_set24 = NULL;
@@ -909,6 +1493,7 @@ void ShutFontHandle() {
 #if defined(WIN32)
     jfont_16 = jfont_14 = jfont_24 = NULL;
 #endif
+    clearFontCache();
 }
 
 bool MakeSbcs16Font() {
@@ -1063,6 +1648,26 @@ void JFONT_Init() {
 		if(!MakeSbcs19Font())
 			LOG_MSG("MSG: SBCS 8x19 font file path is not specified.\n");
 	}
+	pathprop = section->Get_path("fontxsbcs16");
+	if(pathprop && !reinit) {
+		std::string path=pathprop->realpath;
+		ResolvePath(path);
+		if(!LoadFontxFile(path.c_str(), 16, false)) {
+			if(!MakeSbcs16Font()) {
+				LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
+#if defined(LINUX)
+				memcpy(jfont_sbcs_16, int10_font_16, 256 * 16);
+#endif
+			}
+		} else if(yen_flag && !(IS_DOSV && !IS_JDOSV)) {
+			if(!CheckEmptyData(&jfont_sbcs_16[0x7f * 16], 16))
+				memcpy(&jfont_sbcs_16[0x5c * 16], &jfont_sbcs_16[0x7f * 16], 16);
+		}
+	} else if (!reinit) {
+		if(!MakeSbcs16Font()) {
+			LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
+		}
+	}
 	pathprop = section->Get_path("fontxdbcs");
 	if(pathprop) {
 		std::string path=pathprop->realpath;
@@ -1079,26 +1684,6 @@ void JFONT_Init() {
 #if defined(USE_TTF)
 		autoboxdraw = true;
 #endif
-		pathprop = section->Get_path("fontxsbcs16");
-		if(pathprop && !reinit) {
-			std::string path=pathprop->realpath;
-			ResolvePath(path);
-			if(!LoadFontxFile(path.c_str(), 16, false)) {
-				if(!MakeSbcs16Font()) {
-					LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
-#if defined(LINUX)
-					memcpy(jfont_sbcs_16, int10_font_16, 256 * 16);
-#endif
-				}
-			} else if(yen_flag && !(IS_DOSV && !IS_JDOSV)) {
-				if(!CheckEmptyData(&jfont_sbcs_16[0x7f * 16], 16))
-					memcpy(&jfont_sbcs_16[0x5c * 16], &jfont_sbcs_16[0x7f * 16], 16);
-			}
-		} else if (!reinit) {
-			if(!MakeSbcs16Font()) {
-				LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
-			}
-		}
 		pathprop = section->Get_path("fontxdbcs24");
 		if(pathprop) {
 			std::string path=pathprop->realpath;
@@ -1137,7 +1722,7 @@ void SetTrueVideoMode(uint8_t mode)
 
 bool DOSV_CheckJapaneseVideoMode()
 {
-	if(IS_DOS_JAPANESE && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || TrueVideoMode == 0x70 || TrueVideoMode == 0x72 || TrueVideoMode == 0x78)) {
+	if(IS_DOS_JAPANESE && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || (TrueVideoMode >= 0x70 && TrueVideoMode <= 0x73) || TrueVideoMode == 0x78)) {
 		return true;
 	}
 	return false;
@@ -1145,7 +1730,10 @@ bool DOSV_CheckJapaneseVideoMode()
 
 bool DOSV_CheckCJKVideoMode()
 {
-	if(IS_DOS_CJK && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || TrueVideoMode == 0x70 || TrueVideoMode == 0x72 || TrueVideoMode == 0x78)) {
+	if(IS_DOS_CJK && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || (TrueVideoMode >= 0x70 && TrueVideoMode <= 0x73) || TrueVideoMode == 0x78)) {
+		return true;
+	}
+	if(IS_J3100 && TrueVideoMode == 0x75) {
 		return true;
 	}
 	return false;
@@ -1235,6 +1823,16 @@ static Bitu write_font24x24(void)
 	return CBRET_NONE;
 }
 
+#if defined(MACOSX) && defined(C_SDL2)
+extern bool IME_GetEnable();
+extern void IME_SetEnable(int state);
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
+#endif
 
 static Bitu mskanji_api(void)
 {
@@ -1258,7 +1856,7 @@ static Bitu mskanji_api(void)
 		real_writeb(kk_seg, kk_off + 5, 0);
 		reg_ax = 0;
 	} else if(func == 5) {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		if(mode & 0x8000) {
 			if(mode & 0x0001)
 				SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
@@ -1273,14 +1871,14 @@ static Bitu mskanji_api(void)
 					real_writew(param_seg, param_off + 2, 0x0009);
 			}
 		}
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 		if(mode & 0x8000) {
 			if(mode & 0x0001)
 				IME_SetEnable(FALSE);
 			else if(mode & 0x0002)
 				IME_SetEnable(TRUE);
 		} else {
-			if(IME_GetEnable() == NULL)
+			if(IME_GetEnable())
 				real_writew(param_seg, param_off + 2, 0x000a);
 			else
 				real_writew(param_seg, param_off + 2, 0x0009);
@@ -1324,6 +1922,9 @@ static Bitu dosv_cursor_16[] = {
 	0, 3, 5, 7, 9, 11, 13, 15
 };
 
+uint8_t StartBankSelect(Bitu &off);
+uint8_t CheckBankSelect(uint8_t select, Bitu &off);
+
 void DOSV_CursorXor24(Bitu x, Bitu y, Bitu start, Bitu end)
 {
 	IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
@@ -1333,140 +1934,35 @@ void DOSV_CursorXor24(Bitu x, Bitu y, Bitu start, Bitu end)
 	Bitu width = (real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) == 85) ? 128 : 160;
 	volatile uint8_t dummy;
 	Bitu off = (y + start) * width + (x * 12) / 8;
-	uint8_t select = 0;
-	if(svgaCard == SVGA_TsengET4K) {
-		if(off >= 0x20000) {
-			select = 0x22;
-			off -= 0x20000;
-		} else if(off >= 0x10000) {
-			select = 0x11;
-			off -= 0x10000;
-		} else {
-			select = 0x00;
-		}
-		IO_Write(0x3cd, select);
-	}
+	uint8_t select = StartBankSelect(off);
 	while(start <= end) {
 		if(dosv_cursor_stat == 2) {
-			if(x & 1) {
+			uint8_t cursor_data[2][4] = {{ 0xff, 0xff, 0xff, 0x00 }, { 0x0f, 0xff, 0xff, 0xf0 }};
+			for(uint8_t i = 0 ; i < 4 ; i++) {
 				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0x0f);
+				real_writeb(0xa000, off, cursor_data[x & 1][i]);
 				off++;
-				if(off >= 0x10000) {
-					if(select == 0x00) {
-						select = 0x11;
-					} else if(select == 0x11) {
-						select = 0x22;
-					}
-					IO_Write(0x3cd, select);
-					off -= 0x10000;
-				}
-				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0xff);
-				off++;
-				if(off >= 0x10000) {
-					if(select == 0x00) {
-						select = 0x11;
-					} else if(select == 0x11) {
-						select = 0x22;
-					}
-					IO_Write(0x3cd, select);
-					off -= 0x10000;
-				}
-				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0xff);
-				off++;
-				if(off >= 0x10000) {
-					if(select == 0x00) {
-						select = 0x11;
-					} else if(select == 0x11) {
-						select = 0x22;
-					}
-					IO_Write(0x3cd, select);
-					off -= 0x10000;
-				}
-				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0xf0);
-				off += width - 3;
-			} else {
-				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0xff);
-				off++;
-				if(off >= 0x10000) {
-					if(select == 0x00) {
-						select = 0x11;
-					} else if(select == 0x11) {
-						select = 0x22;
-					}
-					IO_Write(0x3cd, select);
-					off -= 0x10000;
-				}
-				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0xff);
-				off++;
-				if(off >= 0x10000) {
-					if(select == 0x00) {
-						select = 0x11;
-					} else if(select == 0x11) {
-						select = 0x22;
-					}
-					IO_Write(0x3cd, select);
-					off -= 0x10000;
-				}
-				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0xff);
-				off += width - 2;
+				select = CheckBankSelect(select, off);
 			}
+			off += width - 4;
 		} else {
-			if(x & 1) {
+			uint8_t cursor_data[2][2] = { { 0xff, 0xf0 }, { 0x0f, 0xff }};
+			for(uint8_t i = 0 ; i < 2 ; i++) {
 				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0x0f);
+				real_writeb(0xa000, off, cursor_data[x & 1][i]);
 				off++;
-				if(off >= 0x10000) {
-					if(select == 0x00) {
-						select = 0x11;
-					} else if(select == 0x11) {
-						select = 0x22;
-					}
-					IO_Write(0x3cd, select);
-					off -= 0x10000;
-				}
-				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0xff);
-			} else {
-				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0xff);
-				off++;
-				if(off >= 0x10000) {
-					if(select == 0x00) {
-						select = 0x11;
-					} else if(select == 0x11) {
-						select = 0x22;
-					}
-					IO_Write(0x3cd, select);
-					off -= 0x10000;
-				}
-				dummy = real_readb(0xa000, off);
-				real_writeb(0xa000, off, 0xf0);
+				select = CheckBankSelect(select, off);
 			}
-			off += width - 1;
+			off += width - 2;
 		}
-		if(svgaCard == SVGA_TsengET4K) {
-			if(off >= 0x10000) {
-				if(select == 0x00) {
-					select = 0x11;
-				} else if(select == 0x11) {
-					select = 0x22;
-				}
-				IO_Write(0x3cd, select);
-				off -= 0x10000;
-			}
-		}
+		select = CheckBankSelect(select, off);
 		start++;
 	}
 	IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x00);
 	if(svgaCard == SVGA_TsengET4K) {
 		IO_Write(0x3cd, 0);
+	} else if(svgaCard == SVGA_S3Trio) {
+		IO_Write(0x3d4, 0x6a); IO_Write(0x3d5, 0);
 	}
 }
 
@@ -1484,11 +1980,31 @@ void DOSV_CursorXor(Bitu x, Bitu y)
 			DOSV_CursorXor24(x, y, start, end);
 			return;
 		} else if(height == 19) {
-			if(start < 8) start = dosv_cursor_19[start];
-			if(end < 8) end = dosv_cursor_19[end];
+			if(end == 28) {
+				end = 18;
+				if(start >= 26) {
+					start -= 11;
+					end--;
+				} else if(start >= 3) {
+					start = 10;
+				}
+			} else {
+				if(start < 8) start = dosv_cursor_19[start];
+				if(end < 8) end = dosv_cursor_19[end];
+			}
 		} else if(height == 16) {
-			if(start < 8) start = dosv_cursor_16[start];
-			if(end < 8) end = dosv_cursor_16[end];
+			if(end == 28) {
+				end = 15;
+				if(start >= 26) {
+					start -= 14;
+					end--;
+				} else if(start >= 3) {
+					start = 8;
+				}
+			} else {
+				if(start < 8) start = dosv_cursor_16[start];
+				if(end < 8) end = dosv_cursor_16[end];
+			}
 		}
 		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
 		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, 0x0f);
@@ -1496,55 +2012,27 @@ void DOSV_CursorXor(Bitu x, Bitu y)
 
 		volatile uint8_t dummy;
 		Bitu off = (y + start) * width + x;
-		uint8_t select = 0;
-		if(svgaCard == SVGA_TsengET4K) {
-			if(off >= 0x20000) {
-				select = 0x22;
-				off -= 0x20000;
-			} else if(off >= 0x10000) {
-				select = 0x11;
-				off -= 0x10000;
-			} else {
-				select = 0x00;
-			}
-			IO_Write(0x3cd, select);
-		}
+		uint8_t select = StartBankSelect(off);
 		while(start <= end) {
 			dummy = real_readb(0xa000, off);
 			real_writeb(0xa000, off, 0xff);
 			if(dosv_cursor_stat == 2) {
 				off++;
-				if(off >= 0x10000) {
-					if(select == 0x00) {
-						select = 0x11;
-					} else if(select == 0x11) {
-						select = 0x22;
-					}
-					IO_Write(0x3cd, select);
-					off -= 0x10000;
-				}
+				select = CheckBankSelect(select, off);
 				dummy = real_readb(0xa000, off);
 				real_writeb(0xa000, off, 0xff);
 				off += width - 1;
 			} else {
 				off += width;
 			}
-			if(svgaCard == SVGA_TsengET4K) {
-				if(off >= 0x10000) {
-					if(select == 0x00) {
-						select = 0x11;
-					} else if(select == 0x11) {
-						select = 0x22;
-					}
-					IO_Write(0x3cd, select);
-					off -= 0x10000;
-				}
-			}
+			select = CheckBankSelect(select, off);
 			start++;
 		}
 		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x00);
 		if(svgaCard == SVGA_TsengET4K) {
 			IO_Write(0x3cd, 0);
+		} else if(svgaCard == SVGA_S3Trio) {
+			IO_Write(0x3d4, 0x6a); IO_Write(0x3d5, 0);
 		}
 	}
 }
@@ -1595,7 +2083,7 @@ uint8_t GetKanjiAttr(Bitu x, Bitu y)
 {
 	Bitu cx, pos;
 	uint8_t flag;
-	uint16_t seg = (IS_JEGA_ARCH) ? 0xb800 : jtext_seg;
+	uint16_t seg = IS_DOSV ? jtext_seg : 0xb800;
 	pos = y * real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) * 2;
 	cx = 0;
 	flag = 0x00;
@@ -1621,7 +2109,7 @@ uint8_t GetKanjiAttr()
 
 void INT8_DOSV()
 {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 	SetIMPosition();
 #endif
 	if(!CheckAnotherDisplayDriver() && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x72 && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x12) {
@@ -1654,7 +2142,7 @@ enum DOSV_VTEXT_MODE DOSV_GetVtextMode(Bitu no)
 
 enum DOSV_VTEXT_MODE DOSV_StringVtextMode(std::string vtext)
 {
-	if(svgaCard == SVGA_TsengET4K) {
+	if(svgaCard == SVGA_TsengET4K || svgaCard == SVGA_S3Trio) {
 		if(vtext == "xga") {
 			return DOSV_VTEXT_XGA;
 		} else if(vtext == "xga24") {
@@ -1716,8 +2204,8 @@ static uint16_t j3_cursor_x;
 static uint16_t j3_cursor_y;
 static Bitu j3_text_color;
 static Bitu j3_back_color;
-static uint16_t j3_font_offset;
 static uint16_t j3_machine_code = 0;
+uint16_t j3_font_offset = 0xca00;
 
 static uint16_t jis2shift(uint16_t jis)
 {
@@ -1847,30 +2335,30 @@ Bitu INT6F_Handler(void)
 	case 0x03:
 	case 0x04:
 	case 0x05:
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		SDL_SetIMValues(SDL_IM_ONOFF, 1, NULL);
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 		IME_SetEnable(TRUE);
 #endif
 		break;
 	case 0x0b:
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 		IME_SetEnable(FALSE);
 #endif
 		break;
 	case 0x66:
 		{
 			reg_al = 0x00;
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 			int onoff;
 			if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
 				if(onoff) {
 					reg_al = 0x01;
 				}
 			}
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 			if(IME_GetEnable()) {
 				reg_al = 0x01;
 			}
@@ -1949,7 +2437,7 @@ public:
 		flags = PFLAG_HASROM;
 		bank = 0;
 	}
-	uint8_t readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) override {
 		uint16_t code;
 		Bitu offset;
 		if(bank == 0) {
@@ -1979,7 +2467,7 @@ public:
 		}
 		return 0;
 	}
-	uint16_t readw(PhysPt addr) {
+	uint16_t readw(PhysPt addr) override {
 		uint16_t code;
 		Bitu offset;
 		if(bank == 0) {
@@ -2009,17 +2497,23 @@ public:
 		}
 		return 0;
 	}
-	uint32_t readd(PhysPt addr) {
+	uint32_t readd(PhysPt addr) override {
+        (void)addr;
 		return 0;
 	}
-	void writeb(PhysPt addr,uint8_t val){
+	void writeb(PhysPt addr,uint8_t val) override {
+        (void)addr;
 		if((val & 0x80) && val != 0xff) {
 			bank = val & 0x7f;
 		}
 	}
-	void writew(PhysPt addr,uint16_t val){
+	void writew(PhysPt addr,uint16_t val) override {
+        (void)addr;
+        (void)val;
 	}
-	void writed(PhysPt addr,uint32_t val){
+	void writed(PhysPt addr,uint32_t val) override {
+        (void)addr;
+        (void)val;
 	}
 };
 KanjiRomPageHandler kanji_rom_handler;
@@ -2090,7 +2584,7 @@ void J3_OffCursor()
 
 void INT8_J3()
 {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 	SetIMPosition();
 #endif
 
@@ -2137,7 +2631,7 @@ static Bitu back_color_list[colorMax] = {
 };
 
 static struct J3_MACHINE_LIST {
-	char *name;
+	const char *name;
 	uint16_t code;
 	enum J3_COLOR color;
 } j3_machine_list[] = {
@@ -2163,8 +2657,10 @@ uint16_t J3_GetMachineCode() {
 	return j3_machine_code;
 }
 
-void J3_SetType(std::string type) {
-	j3_machine_code = ConvHexWord((char *)type.c_str());
+void J3_SetType(std::string type, std::string back, std::string text) {
+	if(type != "default") {
+		j3_machine_code = ConvHexWord((char *)type.c_str());
+	}
 	if(j3_machine_code == 0) j3_machine_code = 0x6a74;
 	enum J3_COLOR j3_color = colorNormal;
 	for(Bitu count = 0 ; j3_machine_list[count].name != NULL ; count++) {
@@ -2174,8 +2670,16 @@ void J3_SetType(std::string type) {
 			break;
 		}
 	}
-	j3_back_color = back_color_list[j3_color];
-	j3_text_color = text_color_list[j3_color];
+	if(back.empty()) {
+		j3_back_color = back_color_list[j3_color];
+	} else {
+		j3_back_color = ConvHexWord((char *)back.c_str());
+	}
+	if(text.empty()) {
+		j3_text_color = text_color_list[j3_color];
+	} else {
+		j3_text_color = ConvHexWord((char *)text.c_str());
+	}
 }
 
 void J3_GetPalette(uint8_t no, uint8_t &r, uint8_t &g, uint8_t &b)
@@ -2216,4 +2720,9 @@ void J3_SetBiosArea(uint16_t mode)
 	} else {
 		real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_MODE, 0x00);
 	}
+}
+
+bool J3_IsCga4Dcga()
+{
+	return IS_J3100 && (TrueVideoMode == 0x04 || TrueVideoMode == 0x05);
 }

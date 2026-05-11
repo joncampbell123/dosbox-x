@@ -34,6 +34,7 @@
 
 #define FLAG_IOPL	0x00003000U
 #define FLAG_NT		0x00004000U
+#define FLAG_RF		0x00010000U
 #define FLAG_VM		0x00020000U
 #define FLAG_AC		0x00040000U
 #define FLAG_ID		0x00200000U
@@ -51,7 +52,7 @@
 
 struct Segment {
 	uint16_t val;
-	PhysPt phys;							/* The phyiscal address start in emulated machine */
+	PhysPt phys;							/* The physical address start in emulated machine */
 	PhysPt limit;
 };
 

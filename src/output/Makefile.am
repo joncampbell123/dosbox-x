@@ -7,4 +7,12 @@ SUBDIRS += direct3d
 endif
 
 noinst_LIBRARIES = liboutput.a
-liboutput_a_SOURCES = output_direct3d.cpp output_opengl.cpp output_surface.cpp output_surface_sdl2.cpp output_surface_sdl.cpp output_tools.cpp output_tools_xbrz.cpp
+liboutput_a_SOURCES = output_direct3d.cpp output_opengl.cpp output_surface.cpp output_tools.cpp output_tools_xbrz.cpp output_ttf.cpp output_direct3d11.cpp
+
+if C_GAMELINK
+liboutput_a_SOURCES += output_gamelink.cpp
+endif
+
+if C_METAL
+liboutput_a_SOURCES += output_metal.mm
+endif

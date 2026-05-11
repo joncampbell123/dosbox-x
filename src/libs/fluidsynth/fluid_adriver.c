@@ -252,7 +252,7 @@ void fluid_audio_driver_settings(fluid_settings_t* settings)
   fluid_settings_register_str(settings, "audio.driver", "oss", 0, NULL, NULL);
 #elif COREAUDIO_SUPPORT
   fluid_settings_register_str(settings, "audio.driver", "coreaudio", 0, NULL, NULL);
-#elif DSOUND_SUPPORT
+#elif DSOUND_SUPPORT && !(defined(C_SDL2) && defined(_MSC_VER) && defined(_M_IX86))
   fluid_settings_register_str(settings, "audio.driver", "dsound", 0, NULL, NULL);
 #elif SNDMAN_SUPPORT
   fluid_settings_register_str(settings, "audio.driver", "sndman", 0, NULL, NULL);

@@ -1,20 +1,20 @@
-/***************************************************************************/
-/*                                                                         */
-/*  afglobal.h                                                             */
-/*                                                                         */
-/*    Auto-fitter routines to compute global hinting values                */
-/*    (specification).                                                     */
-/*                                                                         */
-/*  Copyright 2003-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * afglobal.h
+ *
+ *   Auto-fitter routines to compute global hinting values
+ *   (specification).
+ *
+ * Copyright (C) 2003-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
 #ifndef AFGLOBAL_H_
@@ -60,8 +60,8 @@ FT_BEGIN_HEADER
 
 
   /*
-   *  Default values and flags for both autofitter globals (found in
-   *  AF_ModuleRec) and face globals (in AF_FaceGlobalsRec).
+   * Default values and flags for both autofitter globals (found in
+   * AF_ModuleRec) and face globals (in AF_FaceGlobalsRec).
    */
 
   /* index of fallback style in `af_style_classes' */
@@ -98,14 +98,14 @@ FT_BEGIN_HEADER
 
 
   /*
-   *  Note that glyph_styles[] maps each glyph to an index into the
-   *  `af_style_classes' array.
+   * Note that glyph_styles[] maps each glyph to an index into the
+   * `af_style_classes' array.
    *
    */
   typedef struct  AF_FaceGlobalsRec_
   {
     FT_Face          face;
-    FT_Long          glyph_count;    /* same as face->num_glyphs */
+    FT_UInt          glyph_count;    /* unsigned face->num_glyphs */
     FT_UShort*       glyph_styles;
 
 #ifdef FT_CONFIG_OPTION_USE_HARFBUZZ
@@ -140,8 +140,8 @@ FT_BEGIN_HEADER
 
 
   /*
-   *  model the global hints data for a given face, decomposed into
-   *  style-specific items
+   * model the global hints data for a given face, decomposed into
+   * style-specific items
    */
 
   FT_LOCAL( FT_Error )
@@ -156,9 +156,9 @@ FT_BEGIN_HEADER
                                AF_StyleMetrics  *ametrics );
 
   FT_LOCAL( void )
-  af_face_globals_free( AF_FaceGlobals  globals );
+  af_face_globals_free( void*  globals );
 
-  FT_LOCAL_DEF( FT_Bool )
+  FT_LOCAL( FT_Bool )
   af_face_globals_is_digit( AF_FaceGlobals  globals,
                             FT_UInt         gindex );
 

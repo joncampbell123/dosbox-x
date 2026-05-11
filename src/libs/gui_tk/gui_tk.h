@@ -132,6 +132,7 @@ typedef unsigned __int32 uint32_t;
 #include <vector>
 #include <typeinfo>
 #include <string>
+#include <cstring>
 #include <iostream>
 
 /// This namespace contains all GUI toolkit classes, types and functions.
@@ -205,45 +206,6 @@ const RGB YellowMask = RedMask|GreenMask;
 /// 50% grey
 const RGB Grey50 = 0xff808080;
 
-/// Background color for 3D effects. May be customized.
-extern RGB Background3D;
-
-/// Light highlight color for 3D effects. May be customized.
-extern RGB Light3D;
-
-/// Dark highlight color (shadow) for 3D effects. May be customized.
-extern RGB Shadow3D;
-
-/// Generic border color for highlights or similar. May be customized.
-extern RGB Border;
-
-/// Foreground color for regular content (mainly text). May be customized.
-extern RGB Text;
-
-/// Background color for inactive areas. May be customized.
-extern RGB Background;
-
-/// Background color for selected areas. May be customized.
-extern RGB SelectionBackground;
-
-/// Foreground color for selected areas. May be customized.
-extern RGB SelectionForeground;
-
-/// Background color for inputs / application area. May be customized.
-extern RGB EditableBackground;
-
-/// Title bar color for windows. May be customized.
-extern RGB Titlebar;
-
-/// Title bar text color for windows. May be customized.
-extern RGB TitlebarText;
-
-/// Title bar color for windows. May be customized.
-extern RGB TitlebarInactive;
-
-/// Title bar text color for windows. May be customized.
-extern RGB TitlebarInactiveText;
-
 /// Convert separate r, g, b and a values (each 0-255) to an RGB value.
 static inline RGB rgba(unsigned int r, unsigned int g, unsigned int b, unsigned int a=0) {
 	return (((r&255)<<RedShift)|((g&255)<<GreenShift)|((b&255)<<BlueShift)|((a&255)<<AlphaShift));
@@ -260,6 +222,766 @@ static inline unsigned int A(RGB val) { return ((val&Color::AlphaMask)>>Color::A
 
 }
 
+struct Theme
+    // TODO gather others colors
+{
+    uint32_t Background             = 0xFFC0C0C0;
+    uint32_t ButtonBorder           = 0xFF000000;
+    uint32_t ButtonFiller           = 0xFF808080;
+    uint32_t ButtonBevel1           = 0xFFFFFFFF;
+    uint32_t ButtonBevel2           = 0xFFC0C0C0;
+    uint32_t ButtonHeight           = 23; // must be odd
+    uint32_t ButtonContentHeight    = 15; // must be odd
+    uint32_t FocusColor             = 0xFF000000;
+    int32_t  FocusPaddingHorizontal = 2;
+    uint32_t TextColor              = 0xFF000000;
+    uint32_t Light3D                = 0xFFFCFCFC;
+    uint32_t Shadow3D               = 0xFF808080;
+    uint32_t Border                 = 0xFF000000;
+    uint32_t SelectionBackground    = 0xFF000080;
+    uint32_t SelectionForeground    = 0xFFFFFFFF;
+    uint32_t EditableBackground     = 0xFFFFFFFF;
+    uint32_t TitleBar               = 0xFFA4C8F0;
+    uint32_t TitleBarText           = 0xFF000000;
+    uint32_t TitleBarInactive       = 0xFFFFFFFF;
+    uint32_t TitleBarInactiveText   = 0xFF000000;
+    uint32_t DefaultSpacing         = 3;
+};
+
+// Windows 3.1 theme
+struct ThemeLight : Theme
+{
+    ThemeLight()
+    {
+        Background   = 0xFFC0C7C8;
+        ButtonFiller = 0xFFC0C7C8;
+        ButtonBevel1 = 0xFFFFFFFF;
+        ButtonBevel2 = 0xFF87888F;
+        FocusColor   = 0xFF87888F;
+        TitleBar     = 0xFF0000A8;
+        TitleBarText = 0xFFFFFFFF;
+    }
+};
+
+extern Theme CurrentTheme;
+
+struct ThemeWindows31
+{
+    uint32_t Desktop;
+    uint32_t ApplicationWorkspace;
+    uint32_t WindowBackground;
+    uint32_t WindowText;
+    uint32_t MenuBar;
+    uint32_t ScrollBars;
+    uint32_t ActiveTitleBar;
+    uint32_t InactiveTitleBar;
+    uint32_t ActiveTitleBarText;
+    uint32_t ActiveBorder;
+    uint32_t InactiveBorder;
+    uint32_t WindowFrame;
+    uint32_t MenuText;
+    uint32_t ButtonFace;
+    uint32_t ButtonShadow;
+    uint32_t ButtonText;
+    uint32_t DisabledText;
+    uint32_t Highlight;
+    uint32_t HighlightedText;
+    uint32_t InactiveTitleBarText;
+    uint32_t ButtonHighlight;
+};
+
+extern ThemeWindows31 DefaultTheme;
+
+struct ThemeWindows31WindowsDefault : ThemeWindows31
+{
+    static std::string GetName() { return "Windows Default"; };
+
+    ThemeWindows31WindowsDefault()
+    {
+        Desktop              = 0xFFA0A0A4;
+        ApplicationWorkspace = 0xFFFFFBF0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFFA4C8F0;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFFA4C8F0;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Arizona : ThemeWindows31
+{
+    static std::string GetName() { return "Arizona"; };
+
+    ThemeWindows31Arizona()
+    {
+        Desktop              = 0xFF004080;
+        ApplicationWorkspace = 0xFFFFFFFF;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF408080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFFF8040;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF008080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31BlackLeatherJacket : ThemeWindows31
+{
+    static std::string GetName() { return "Black Leather Jacket"; };
+
+    ThemeWindows31BlackLeatherJacket()
+    {
+        Desktop              = 0xFF000000;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF400080;
+        InactiveTitleBar     = 0xFF808080;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF808080;
+        InactiveBorder       = 0xFF808080;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFE0E0E0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Bordeaux : ThemeWindows31
+{
+    static std::string GetName() { return "Bordeaux"; };
+
+    ThemeWindows31Bordeaux()
+    {
+        Desktop              = 0xFF800040;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF800080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF8000FF;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF800080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Cinnamon : ThemeWindows31
+{
+    static std::string GetName() { return "Cinnamon"; };
+
+    ThemeWindows31Cinnamon()
+    {
+        Desktop              = 0xFF804040;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF800000;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF800000;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF800000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Designer : ThemeWindows31
+{
+    static std::string GetName() { return "Designer"; };
+
+    ThemeWindows31Designer()
+    {
+        Desktop              = 0xFF3F7C7C;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF008080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF008080;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31EmeraldCity : ThemeWindows31
+{
+    static std::string GetName() { return "Emerald City"; };
+
+    ThemeWindows31EmeraldCity()
+    {
+        Desktop              = 0xFF004040;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF008040;
+        InactiveTitleBar     = 0xFF408080;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF008040;
+        InactiveBorder       = 0xFF408080;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF008000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Fluorescent : ThemeWindows31
+{
+    static std::string GetName() { return "Fluorescent"; };
+
+    ThemeWindows31Fluorescent()
+    {
+        Desktop              = 0xFF000000;
+        ApplicationWorkspace = 0xFFFFFFFF;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFF00FF00;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFFFF00FF;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFF80FF00;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31HotDogStand : ThemeWindows31
+{
+    static std::string GetName() { return "HotDog Stand"; };
+
+    ThemeWindows31HotDogStand()
+    {
+        Desktop              = 0xFFFFFF00;
+        ApplicationWorkspace = 0xFFFFFF00;
+        WindowBackground     = 0xFFFF0000;
+        WindowText           = 0xFFFFFFFF;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000000;
+        InactiveTitleBar     = 0xFFFF0000;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFFF0000;
+        InactiveBorder       = 0xFFFF0000;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFFFFFFFF;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31LCDDefaultScreenSettings : ThemeWindows31
+{
+    static std::string GetName() { return "LCD Default Screen Settings"; };
+
+    ThemeWindows31LCDDefaultScreenSettings()
+    {
+        Desktop              = 0xFF808080;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFC0C0C0;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFC0C0C0;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF000080;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF80807F;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31LCDReversedDark : ThemeWindows31
+{
+    static std::string GetName() { return "LCD Reversed - Dark"; };
+
+    ThemeWindows31LCDReversedDark()
+    {
+        Desktop              = 0xFF000000;
+        ApplicationWorkspace = 0xFF800000;
+        WindowBackground     = 0xFF800000;
+        WindowText           = 0xFFFFFFFF;
+        MenuBar              = 0xFF808000;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF808000;
+        InactiveTitleBar     = 0xFF000080;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFF808000;
+        InactiveBorder       = 0xFF000080;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFF808000;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF80807F;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF000080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF828282;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31LCDReversedLight : ThemeWindows31
+{
+    static std::string GetName() { return "LCD Reversed - Light"; };
+
+    ThemeWindows31LCDReversedLight()
+    {
+        Desktop              = 0xFF000080;
+        ApplicationWorkspace = 0xFFFFFFFF;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF408080;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000080;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF80807F;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF408080;
+        Highlight            = 0xFF000080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Mahogany : ThemeWindows31
+{
+    static std::string GetName() { return "Mahogany"; };
+
+    ThemeWindows31Mahogany()
+    {
+        Desktop              = 0xFF404040;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF400000;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF800000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Monochrome : ThemeWindows31
+{
+    static std::string GetName() { return "Monochrome"; };
+
+    ThemeWindows31Monochrome()
+    {
+        Desktop              = 0xFFC0C0C0;
+        ApplicationWorkspace = 0xFFFFFFFF;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000000;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFF808080;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000000;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Ocean : ThemeWindows31
+{
+    static std::string GetName() { return "Ocean"; };
+
+    ThemeWindows31Ocean()
+    {
+        Desktop              = 0xFF008080;
+        ApplicationWorkspace = 0xFF008040;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF004080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF000000;
+        Highlight            = 0xFF008080;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Pastel : ThemeWindows31
+{
+    static std::string GetName() { return "Pastel"; };
+
+    ThemeWindows31Pastel()
+    {
+        Desktop              = 0xFF82FFC0;
+        ApplicationWorkspace = 0xFFFFFF80;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF80FFFF;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFFFF80C0;
+        InactiveBorder       = 0xFFFFFFFF;
+        WindowFrame          = 0xFF808080;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF00FFFF;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Patchwork : ThemeWindows31
+{
+    static std::string GetName() { return "Patchwork"; };
+
+    ThemeWindows31Patchwork()
+    {
+        Desktop              = 0xFFBB4495;
+        ApplicationWorkspace = 0xFFFAFBC1;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF80FFFF;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFF4EB164;
+        InactiveBorder       = 0xFFFFFFFF;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF00FFFF;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31PlasmaPowerSaver : ThemeWindows31
+{
+    static std::string GetName() { return "Plasma Power Saver"; };
+
+    ThemeWindows31PlasmaPowerSaver()
+    {
+        Desktop              = 0xFF000000;
+        ApplicationWorkspace = 0xFF0000FF;
+        WindowBackground     = 0xFF000000;
+        WindowText           = 0xFFFFFFFF;
+        MenuBar              = 0xFFFF00FF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFF000000;
+        ActiveBorder         = 0xFF800000;
+        InactiveBorder       = 0xFFFFFFFF;
+        WindowFrame          = 0xFFC0C0C0;
+        ScrollBars           = 0xFF0000FF;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFFFFFFFF;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Rugby : ThemeWindows31
+{
+    static std::string GetName() { return "Rugby"; };
+
+    ThemeWindows31Rugby()
+    {
+        Desktop              = 0xFFC0C0C0;
+        ApplicationWorkspace = 0xFFFFFF80;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000080;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF800000;
+        InactiveBorder       = 0xFFFFFFFF;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFF000080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31TheBlues : ThemeWindows31
+{
+    static std::string GetName() { return "The Blues"; };
+
+    ThemeWindows31TheBlues()
+    {
+        Desktop              = 0xFF004080;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF000080;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFC0C0C0;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF000080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Tweed : ThemeWindows31
+{
+    static std::string GetName() { return "Tweed"; };
+
+    ThemeWindows31Tweed()
+    {
+        Desktop              = 0xFF9E616A;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF808040;
+        InactiveTitleBar     = 0xFFC0C0C0;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF804040;
+        InactiveBorder       = 0xFFC0C0C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFE0E0E0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF808000;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Valentine : ThemeWindows31
+{
+    static std::string GetName() { return "Valentine"; };
+
+    ThemeWindows31Valentine()
+    {
+        Desktop              = 0xFFFF80C0;
+        ApplicationWorkspace = 0xFFFFFFFF;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFFFF0080;
+        InactiveTitleBar     = 0xFF800040;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFFFF80C0;
+        InactiveBorder       = 0xFFFF80C0;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFFC0C0C0;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFF808080;
+        Highlight            = 0xFFFF00FF;
+        HighlightedText      = 0xFF000000;
+        InactiveTitleBarText = 0xFFFFFFFF;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+
+struct ThemeWindows31Wingtips : ThemeWindows31
+{
+    static std::string GetName() { return "Wingtips"; };
+
+    ThemeWindows31Wingtips()
+    {
+        Desktop              = 0xFF808040;
+        ApplicationWorkspace = 0xFFC0C0C0;
+        WindowBackground     = 0xFFFFFFFF;
+        WindowText           = 0xFF000000;
+        MenuBar              = 0xFFFFFFFF;
+        MenuText             = 0xFF000000;
+        ActiveTitleBar       = 0xFF808080;
+        InactiveTitleBar     = 0xFFFFFFFF;
+        ActiveTitleBarText   = 0xFFFFFFFF;
+        ActiveBorder         = 0xFF804000;
+        InactiveBorder       = 0xFFFFFFFF;
+        WindowFrame          = 0xFF000000;
+        ScrollBars           = 0xFF808080;
+        ButtonFace           = 0xFFC0C0C0;
+        ButtonShadow         = 0xFF808080;
+        ButtonText           = 0xFF000000;
+        DisabledText         = 0xFFC0C0C0;
+        Highlight            = 0xFF808080;
+        HighlightedText      = 0xFFFFFFFF;
+        InactiveTitleBarText = 0xFF000000;
+        ButtonHighlight      = 0xFFFFFFFF;
+    }
+};
+    
 /// Identifies a mouse button.
 enum MouseButton { NoButton, Left, Right, Middle, WheelUp, WheelDown, WheelLeft, WheelRight };
 
@@ -566,6 +1288,12 @@ public:
 		virtual ~Window_Callback() {}
 };
 
+enum {
+	ONTABBING_TABTOTHIS=0, /* Key::Tab to this */
+	ONTABBING_REVTABTOTHIS, /* Shift+Key::Tab to this */
+	ONTABBING_TABFROMTHIS, /* Key::Tab to this */
+	ONTABBING_REVTABFROMTHIS /* Shift+Key::Tab to this */
+};
 
 /** \brief A Window is a rectangular sub-area of another window.
  *
@@ -580,7 +1308,7 @@ class Window : public Refcount {
 protected:
 	friend class ToplevelWindow;
 	friend class TransientWindow;
-    friend class WindowInWindow;
+	friend class WindowInWindow;
 	friend class Menu;
 
 	/// Width of the window.
@@ -598,30 +1326,33 @@ protected:
 	/// \c true if this window should be visible on screen.
 	bool visible;
 
-    /// \c true if the user should be allowed to TAB to this window.
-    bool tabbable;
+	/// \c true if the user should be allowed to TAB to this window.
+	bool tabbable;
 
 	/// Parent window.
 	Window *const parent;
 
 	/// Child window of last button-down event
-	/** It receives all drag/up/click/doubleclick events until an up event is received */
+	/** It receives all drag/up/click/double-click events until an up event is received */
 	Window  *mouseChild;
 
-    /// \c true if this window is transient (such as menu popus)
-    bool transient;
+	/// \c true if this window is transient (such as menu popus)
+	bool transient;
 
-    /// \c toplevel window
-    bool toplevel;
+	/// \c toplevel window
+	bool toplevel;
 
-    /// \c mouse is within the boundaries of the window
-    bool mouse_in_window;
+	/// \c mouse is within the boundaries of the window
+	bool mouse_in_window;
 public:
-    /// \c first element of a tabbable list
-    bool first_tabbable = false;
+	/// \c first element of a tabbable list
+	bool first_tabbable = false;
 
-    /// \c last element of a tabbable list
-    bool last_tabbable = false;
+	/// \c last element of a tabbable list
+	bool last_tabbable = false;
+
+	/// \c onTabbing should scan
+	bool scan_tabbing = false;
 protected:
 	/// Child windows.
 	/** Z ordering is done in list order. The first element is the lowermost
@@ -729,13 +1460,20 @@ public:
 	/// Mouse was double-clicked. Returns true if event was handled.
 	virtual bool mouseDoubleClicked(int x, int y, MouseButton button);
 	/// Mouse was pressed outside the bounds of the window, if this window has focus (for transient windows). Returns true if event was handled.
-    /// Transient windows by default should disappear.
+	/// Transient windows by default should disappear.
 	virtual bool mouseDownOutside(MouseButton button);
 
+    virtual bool mouseWheel(int x, int y, int wheel);
 	/// Key was pressed. Returns true if event was handled.
 	virtual bool keyDown(const Key &key);
 	/// Key was released. Returns true if event was handled.
 	virtual bool keyUp(const Key &key);
+
+    template <typename Iterator>
+    bool handleTab(const bool tab_quit, const Iterator& i, const Iterator& e) const
+    {
+        return tab_quit == false && (toplevel /*prevent TAB escape to another window*/ || i != e);
+    }
 
 	/// Put this window on top of all it's siblings. Preserves relative order.
 	/** Returns true if the window accepts the raise request. */
@@ -764,6 +1502,8 @@ public:
 		parent->setDirty();
 	}
 
+	virtual void onTabbing(const int msg);
+
 	/// Return the \p n th child
 	Window *getChild(int n) {
 		for (std::list<Window *>::const_iterator i = children.begin(); i != children.end(); ++i) {
@@ -772,9 +1512,9 @@ public:
 		return NULL;
 	}
 
-    unsigned int getChildCount(void) {
-        return (unsigned int)children.size();
-    }
+	unsigned int getChildCount(void) {
+		return (unsigned int)children.size();
+	}
 
 };
 
@@ -855,22 +1595,23 @@ public:
 		Window(parent,x,y,w,h) {}
 
     /// Mouse was moved while a button was pressed. Returns true if event was handled.
-	virtual bool mouseDragged(int x, int y, MouseButton button);
+	bool mouseDragged(int x, int y, MouseButton button) override;
 	/// Mouse was pressed. Returns true if event was handled.
-	virtual bool mouseDown(int x, int y, MouseButton button);
+	bool mouseDown(int x, int y, MouseButton button) override;
 	/// Mouse was released. Returns true if event was handled.
-	virtual bool mouseUp(int x, int y, MouseButton button);
+	bool mouseUp(int x, int y, MouseButton button) override;
 
 	/// Mouse was moved. Returns true if event was handled.
-	virtual bool mouseMoved(int x, int y);
+	bool mouseMoved(int x, int y) override;
 	/// Mouse was clicked. Returns true if event was handled.
 	/** Clicking means pressing and releasing the mouse button while not moving it. */
-	virtual bool mouseClicked(int x, int y, MouseButton button);
+	bool mouseClicked(int x, int y, MouseButton button) override;
 	/// Mouse was double-clicked. Returns true if event was handled.
-	virtual bool mouseDoubleClicked(int x, int y, MouseButton button);
+	bool mouseDoubleClicked(int x, int y, MouseButton button) override;
 
+    bool mouseWheel(int x, int y, int wheel) override;
 	/// Key was pressed. Returns true if event was handled.
-	virtual bool keyDown(const Key &key);
+	bool keyDown(const Key &key) override;
 
 	virtual void getVScrollInfo(vscrollbarlayout &vsl) const;
 	virtual void paintScrollBarArrowInBox(Drawable &dscroll,const int x,const int y,const int w,const int h,bool downArrow,bool disabled) const;
@@ -879,9 +1620,11 @@ public:
 	virtual void paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const;
 	virtual void paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const;
 	virtual void paintScrollBar3DInset(Drawable &dscroll, int x, int y, int w, int h) const;
-	virtual void paintAll(Drawable &d) const;
+	void paintAll(Drawable &d) const override;
 
-	virtual void resize(int w, int h);
+	void onTabbing(const int msg) override;
+
+	void resize(int w, int h) override;
 
     virtual void enableScrollBars(bool hs,bool vs);
     virtual void enableBorder(bool en);
@@ -902,8 +1645,8 @@ public:
              *  than 500 days. If you want callbacks to be called again, return the
              *  delay in ticks relative to the scheduled time of this
              *  callback (which may be earlier than now() ). Otherwise return 0. */
-            virtual Ticks timerExpired(Ticks time);
-            virtual ~DragTimer_Callback() {}
+            Ticks timerExpired(Ticks time) override;
+            ~DragTimer_Callback() {}
         public:
             WindowInWindow *wnd = NULL;
     };
@@ -974,19 +1717,19 @@ public:
 	template <typename STR> void setClipboard(const STR s) { this->setClipboard(String(s)); }
 
 	/// Set clipboard content.
-	virtual void setClipboard(const String &s) { clipboard = s; }
+	void setClipboard(const String &s) override { clipboard = s; }
 
 	/// Get clipboard content.
-	virtual const String& getClipboard() { return clipboard; }
+	const String& getClipboard() override { return clipboard; }
 
 	/// Do nothing.
-	virtual void resize(int w, int h);
+	void resize(int w, int h) override;
 
 	/// Do nothing.
-	virtual void move(int x, int y);
+	void move(int x, int y) override;
 
 	/// Screen has always focus.
-	virtual bool hasFocus() const { return true; }
+	bool hasFocus() const override { return true; }
 
 	/// Update the given surface with this screen's content, fully honouring the alpha channel.
 	/** \p ticks can be set to a different value depending on how much time has passed. Timing
@@ -996,26 +1739,26 @@ public:
 	Ticks update(void *surface, Ticks ticks = 1);
 
 	/// Default: clear screen.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 };
 
 
 /** \brief A 24 bit per pixel RGB framebuffer aligned to 32 bit per pixel.
  *
- *  Warning: This framebuffer type varies with CPU endiannes. It is meant as
+ *  Warning: This framebuffer type varies with CPU endianness. It is meant as
  *  a testing/debugging tool.
  */
 class ScreenRGB32le : public Screen {
 protected:
 	/// Map a single RGB triple (8 bit each) to a native pixel value.
-	virtual void rgbToSurface(RGB color, void **pixel) { RGB **p = (RGB **)pixel; **p = color; (*p)++; };
+	void rgbToSurface(RGB color, void **pixel) override { RGB **p = (RGB **)pixel; **p = color; (*p)++; };
 
 	/// Map a single surface pixel to an RGB value.
-	virtual RGB surfaceToRGB(void *pixel) { return *(RGB*)pixel; };
+	RGB surfaceToRGB(void *pixel) override { return *(RGB*)pixel; };
 public:
 	ScreenRGB32le(Size width, Size height) : Screen(width,height) {};
 
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 };
 
 
@@ -1037,10 +1780,10 @@ public:
 class ScreenSDL : public Screen {
 protected:
 	/// not used.
-	virtual void rgbToSurface(RGB color, void **pixel) { (void)color; (void)pixel; };
+	void rgbToSurface(RGB color, void **pixel) override { (void)color; (void)pixel; };
 
 	/// not used.
-	virtual RGB surfaceToRGB(void *pixel) { (void)pixel; return 0; };
+	RGB surfaceToRGB(void *pixel) override { (void)pixel; return 0; };
 
 	/// The SDL surface being drawn to.
 	SDL_Surface *surface;
@@ -1077,7 +1820,7 @@ public:
 	SDL_Surface *getSurface() { return surface; }
 
 	/// Overridden: makes background transparent by default.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Use this to update the SDL surface. The screen must not be locked.
 	Ticks update(Ticks ticks);
@@ -1478,7 +2221,7 @@ protected:
 	/// Draw character to a drawable at the current position.
 	/** \p d's current position is advanced to the position of the next character.
 	 *  The y coordinate is located at the baseline before and after the call. */
-	virtual void drawChar(Drawable *d, const Char c) const;
+	void drawChar(Drawable *d, const Char c) const override;
 
 public:
 	/// Constructor.
@@ -1492,22 +2235,22 @@ public:
 		const unsigned char *const* char_position = NULL,
 		const SpecialChar *special = NULL);
 
-	virtual ~BitmapFont();
+	~BitmapFont();
 
 	/// Retrieve total height of font in pixels.
-	virtual int getHeight() const { return height; };
+	int getHeight() const override { return height; };
 
 	/// Retrieve the ascent, i.e. the number of pixels above the base line.
-	virtual int getAscent() const { return ascent; };
+	int getAscent() const override { return ascent; };
 
 	/// Retrieve width of a character.
-	virtual int getWidth(Char c = 'M') const { return (widths != NULL?widths[c]:width); };
+	int getWidth(Char c = 'M') const override { return (widths != NULL?widths[c]:width); };
 
 	/// Convert a character to an equivalent SpecialChar. See Font::toSpecial(Char c)
-	virtual SpecialChar toSpecial(Char c) const { return (special != NULL?special[c]:Font::toSpecial(c)); }
+	SpecialChar toSpecial(Char c) const override { return (special != NULL?special[c]:Font::toSpecial(c)); }
 
 	/// Convert a character to an equivalent character. See Font::fromSpecial(SpecialChar c).
-	virtual Char fromSpecial(SpecialChar c) const { if (special == NULL) return Font::fromSpecial(c); Char i = 0; while(special[i] != c) i++; return i; }
+	Char fromSpecial(SpecialChar c) const override { if (special == NULL) return Font::fromSpecial(c); Char i = 0; while(special[i] != c) i++; return i; }
 
 };
 
@@ -1583,13 +2326,13 @@ protected:
 		Window(parent,x,y,w,h), border_left(bl), border_top(bt), border_right(br), border_bottom(bb) {}
 
 public:
-	virtual void paintAll(Drawable &d) const;
-	virtual bool mouseMoved(int x, int y);
-	virtual bool mouseDown(int x, int y, MouseButton button);
-	virtual bool mouseDragged(int x, int y, MouseButton button);
-	virtual bool mouseUp(int x, int y, MouseButton button);
-	virtual int getScreenX() const { return Window::getScreenX()+border_left; }
-	virtual int getScreenY() const { return Window::getScreenY()+border_top; }
+	void paintAll(Drawable &d) const override;
+	bool mouseMoved(int x, int y) override;
+	bool mouseDown(int x, int y, MouseButton button) override;
+	bool mouseDragged(int x, int y, MouseButton button) override;
+	bool mouseUp(int x, int y, MouseButton button) override;
+	int getScreenX() const override { return Window::getScreenX()+border_left; }
+	int getScreenY() const override { return Window::getScreenY()+border_top; }
 };
 
 /// A text label
@@ -1616,7 +2359,7 @@ public:
 
 	/// Create a text label with given position, \p text, \p font and \p color.
 	/** If \p width is given, the resulting label is a word-wrapped multiline label */
-	template <typename STR> Label(Window *parent, int x, int y, const STR text, int width = 0, const Font *font = Font::getFont("default"), RGB color = Color::Text) :
+	template <typename STR> Label(Window *parent, int x, int y, const STR text, int width = 0, const Font *font = Font::getFont("default"), RGB color = CurrentTheme.TextColor) :
 		Window(parent, x, y, (width?width:1), 1), font(font), color(color), text(text), interpret(width != 0)
 	{ Label::resize(); tabbable = false; }
 
@@ -1636,7 +2379,7 @@ public:
 	RGB getColor() { return color; }
 
 	/// Calculate label size. Parameters are ignored.
-	virtual void resize(int w = -1, int h = -1) {
+	void resize(int w = -1, int h = -1) override {
         (void)h;//UNUSED
 		if (w == -1) w = (interpret?getWidth():0);
 		else interpret = (w != 0);
@@ -1645,15 +2388,39 @@ public:
 		d.drawText(0, font->getAscent(), text, interpret, 0);
 		if (interpret) Window::resize(w, d.getY()-font->getAscent()+font->getHeight());
 		else Window::resize(d.getX(), font->getHeight());
-	}
+
+	    // override non-interpreted so as focus adapts itself better to text
+	    // one depends on the other, that's fundamentally wrong but well ...
+	    // this is good but not perfect -> we need accurate width (per char)
+        if (interpret == false)
+        {
+            auto tw = font->getWidth(this->text);
+
+            tw = tw + CurrentTheme.FocusPaddingHorizontal * 2;
+            tw = tw & 1 ? tw : tw + 1;
+
+            Window::resize(tw, static_cast<int>(CurrentTheme.ButtonContentHeight));
+        }
+    }
 
 	/// Returns \c true if this window has currently the keyboard focus.
-	virtual bool hasFocus() const { return allow_focus && Window::hasFocus(); }
+	bool hasFocus() const override { return allow_focus && Window::hasFocus(); }
 
-	/// Paint label
-	virtual void paint(Drawable &d) const { d.setColor(color); d.drawText(0, font->getAscent(), text, interpret, 0); if (hasFocus()) d.drawDotRect(0,0,width-1,height-1); }
+    /// Paint label
+    void paint(Drawable& d) const override
+    {
+        d.setColor(color);
 
-	virtual bool raise() { return false; }
+        d.drawText(CurrentTheme.FocusPaddingHorizontal + (width & 1), font->getAscent(), text, interpret, 0);
+
+        if(hasFocus())
+        {
+            d.setColor(CurrentTheme.FocusColor);
+            d.drawDotRect(0, 0, width, height);
+        }
+    }
+
+	bool raise() override { return false; }
 };
 
 
@@ -1727,7 +2494,7 @@ public:
 	}
 
 	/// Paint input.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Clear selected area.
 	void clearSelection() {
@@ -1763,16 +2530,16 @@ public:
 	const String& getText() { return text; };
 
 	/// Handle text input.
-	virtual bool keyDown(const Key &key);
+	bool keyDown(const Key &key) override;
 
 	/// Handle mouse input.
-	virtual bool mouseDown(int x, int y, MouseButton button);
+	bool mouseDown(int x, int y, MouseButton button) override;
 
 	/// Handle mouse input.
-	virtual bool mouseDragged(int x, int y, MouseButton button);
+	bool mouseDragged(int x, int y, MouseButton button) override;
 
 	/// Timer callback function
-	virtual Ticks timerExpired(Ticks time)
+	Ticks timerExpired(Ticks time) override
 	{ (void)time; blink = !blink; setDirty(); return 30; }
 
 	/// Move the cursor to the end of the text field
@@ -1830,7 +2597,7 @@ public:
 	}
 
 	/// Menu callback function
-	virtual void actionExecuted(ActionEventSource *src, const String &item) {
+	void actionExecuted(ActionEventSource *src, const String &item) override {
         (void)src;
 		if (item == String(MSG_Get("CLOSE"))) close();
 	}
@@ -1841,10 +2608,10 @@ public:
 	/// Remove a window event handler.
 	void removeCloseHandler(ToplevelWindow_Callback *handler) { closehandlers.remove(handler); }
 
-	virtual void paint(Drawable &d) const;
-	virtual bool mouseDown(int x, int y, MouseButton button);
-	virtual bool mouseDoubleClicked(int x, int y, MouseButton button);
-	virtual bool mouseUp(int x, int y, MouseButton button) {
+	void paint(Drawable &d) const override;
+	bool mouseDown(int x, int y, MouseButton button) override;
+	bool mouseDoubleClicked(int x, int y, MouseButton button) override;
+	bool mouseUp(int x, int y, MouseButton button) override {
 		if (button == Left && dragx >= 0 && dragy >= 0) {
 			dragx = dragy = -1;
 			return true;
@@ -1852,7 +2619,7 @@ public:
 		BorderedWindow::mouseUp(x,y,button);
 		return true;
 	}
-	virtual bool mouseDragged(int x, int y, MouseButton button) {
+	bool mouseDragged(int x, int y, MouseButton button) override {
 		if (button == Left && dragx >= 0 && dragy >= 0) {
 			move(x-dragx+this->x,y-dragy+this->y);
 			return true;
@@ -1860,13 +2627,13 @@ public:
 		BorderedWindow::mouseDragged(x,y,button);
 		return true;
 	}
-	virtual bool mouseMoved(int x, int y) {
+	bool mouseMoved(int x, int y) override {
 		BorderedWindow::mouseMoved(x,y);
 		return true;
 	}
 
 	/// Put window on top of all other windows without changing their relative order
-	virtual bool raise() {
+	bool raise() override {
 		Window *last = parent->children.back();
 		parent->children.remove(this);
 		parent->children.push_back(this);
@@ -1922,7 +2689,7 @@ protected:
 
 public:
 	/// Handle automatic hiding
-	virtual void focusChanged(bool gained) {
+	void focusChanged(bool gained) override {
 		Window::focusChanged(gained);
 		if (isVisible() && !gained) {
 			if (realparent->hasFocus()) raise();
@@ -1931,13 +2698,13 @@ public:
 	}
 
 	/// Handle automatic delete
-	void windowClosed(ToplevelWindow *win) {
+	void windowClosed(ToplevelWindow *win) override {
         (void)win;
 		delete this;
 	}
 
 	/// No-op
-	bool windowClosing(ToplevelWindow *win) { (void)win; return true; }
+	bool windowClosing(ToplevelWindow *win) override { (void)win; return true; }
 
 	/// Create a transient window with given position and size
 	/** \a parent is the logical parent. The true parent object is
@@ -1967,13 +2734,13 @@ public:
 		dynamic_cast<ToplevelWindow *>(last2)->removeCloseHandler(this);
 	 }
 
-	virtual void move(int x, int y) { relx = x; rely = y;
+	void move(int x, int y) override { relx = x; rely = y;
 		Window::move(x+realparent->getScreenX(),y+realparent->getScreenY()); }
-	virtual int getX() const { return x-realparent->getScreenX(); }
-	virtual int getY() const { return y-realparent->getScreenY(); }
-	virtual void setVisible(bool v) { if (v) raise(); Window::setVisible(v); }
-	virtual void windowMoved(Window *src, int x, int y) { (void)src; (void)x; (void)y; move(relx,rely); }
-    virtual bool mouseDownOutside(MouseButton button) {
+	int getX() const override { return x-realparent->getScreenX(); }
+	int getY() const override { return y-realparent->getScreenY(); }
+	void setVisible(bool v) override { if (v) raise(); Window::setVisible(v); }
+	void windowMoved(Window *src, int x, int y) override { (void)src; (void)x; (void)y; move(relx,rely); }
+    bool mouseDownOutside(MouseButton button) override {
         (void)button;
 
         if (visible) {
@@ -1985,7 +2752,7 @@ public:
     }
 
 	/// Put window on top of all other windows without changing their relative order
-	virtual bool raise() {
+	bool raise() override {
 		Window *last = parent->children.back();
 		parent->children.remove(this);
 		parent->children.push_back(this);
@@ -2013,10 +2780,10 @@ protected:
 	/// List of menu items (displayed text)
 	std::vector<String> items;
 
-    /// column support
-    unsigned int rows = 0;
-    unsigned int columns = 0;
-    std::vector<unsigned int> colx;
+	/// column support
+	unsigned int rows = 0;
+	unsigned int columns = 0;
+	std::vector<unsigned int> colx;
 
 	/// Currently selected menu item.
 	/** Can be -1 if no item is currently active. */
@@ -2031,102 +2798,104 @@ protected:
 	/// Selects menu item at position (x,y).
 	/** \a selected is set to -1 if there is no active item at that location. */
 	virtual void selectItem(int x, int y) {
-        unsigned int coli = 0;
-        int xmin,xmax,ypos = 2;
+		unsigned int coli = 0;
+		int xmin,xmax,ypos = 1;
 
 		selected = -1;
 
-        xmin = 0;
-        xmax = width;
-        if (coli < colx.size()) {
-            xmin = colx[coli++];
-            if (coli < colx.size())
-                xmax = colx[coli];
-        }
+		xmin = 0;
+		xmax = width;
+		if (coli < colx.size()) {
+			xmin = colx[coli++];
+			if (coli < colx.size())
+				xmax = colx[coli];
+		}
 
-        // mouse input should select nothing if outside the bounds of this menu
-        if (x < 3 || x >= (width-3) || y < 2 || y >= (height-2)) return;
-        selected = 0;
+		// mouse input should select nothing if outside the bounds of this menu
+		if (x < 1 || x >= (width-1) || y < 1 || y >= (height-1)) return;
+		selected = 0;
 
 		const int fheight = Font::getFont("menu")->getHeight()+2;
 		std::vector<String>::iterator i;
 		for (i = items.begin(); i != items.end(); ++i) {
-            if ((*i).size() > 0) {
-                if (*i == "|") {
-                    ypos = 2;
-                    xmin = xmax = width;
-                    if (coli < colx.size()) {
-                        xmin = colx[coli++];
-                        if (coli < colx.size())
-                            xmax = colx[coli];
-                    }
-                }
-                else {
-                    if (x >= xmin && x < xmax) {
-                        if (y >= ypos && y < (ypos+fheight))
-                            break;
-                    }
+			if ((*i).size() > 0) {
+				if (*i == "|") {
+					ypos = 1;
+					xmin = xmax = width;
+					if (coli < colx.size()) {
+						xmin = colx[coli++];
+						if (coli < colx.size())
+							xmax = colx[coli];
+					}
+				}
+				else {
+					if (x >= xmin && x < xmax) {
+						if (y >= ypos && y < (ypos+fheight))
+							break;
+					}
 
-                    ypos += fheight;
-                }
-            }
-            else {
-                if (x >= xmin && x < xmax) {
-                    if (y >= ypos && y < (ypos+12))
-                        break;
-                }
+					ypos += fheight;
+				}
+			}
+			else {
+				if (x >= xmin && x < xmax) {
+					if (y >= ypos && y < (ypos+3+1+3))
+						break;
+				}
 
-                ypos += 12;
-            }
+				ypos += 3+1+3;
+			}
 
-            selected++;
-        }
+			selected++;
+		}
 
-        if(selected > (int)items.size() - 1)
-            selected = items.size() - 1;
+		if(selected > (int)items.size() - 1)
+			selected = -1;
 
-        if(selected >= 0 && items[(unsigned int)selected].size() == 0) selected = -1;
-    }
+		if(selected >= 0 && items[(unsigned int)selected].size() == 0) selected = -1;
+	}
 
 	virtual Size getPreferredWidth() {
-		Size width = 0,px = 0;
+		Size width = 14,px = 1;
 		const Font *f = Font::getFont("menu");
 		std::vector<String>::iterator i;
-        columns = 1;
-        colx.clear();
-        colx.push_back(3+width);
-        for (i = items.begin(); i != items.end() && y > 0; ++i) {
-            if (*i == "|") {
-                colx.push_back(3+width);
-                columns++;
-                px = width;
-            }
-            else {
-                Size newwidth = (unsigned int)f->getWidth(*i) + px + 33;
-                if (newwidth > width) width = newwidth;
-            }
+		columns = 1;
+		colx.clear();
+		colx.push_back(px);
+		for (i = items.begin(); i != items.end() && y > 0; ++i) {
+			if (*i == "|") {
+				px += 1+width;
+				width = 14;
+
+				colx.push_back(px);
+				columns++;
+			}
+			else {
+				Size newwidth = (unsigned int)f->getWidth(*i) + 14;
+				if (newwidth > width) width = newwidth;
+			}
 		}
-		return width+6;
+		return px+width+1;
 	}
 
 	virtual Size getPreferredHeight() {
 		Size height = 0,py = 0,row = 0;
 		const Size h = (unsigned int)Font::getFont("menu")->getHeight()+2u;
 		std::vector<String>::iterator i;
-        rows = 0;
+		rows = 0;
 		for (i = items.begin(); i != items.end() && y > 0; ++i) {
-            if (*i == "|") {
-                py = 0;
-                row = 0;
-            }
-            else {
-                row++;
-                if (rows < row) rows = row;
-                py += ((*i).size() > 0?h:12);
-                if (height < py) height = py;
-            }
+			if (*i == "|") {
+				py = 0;
+				row = 0;
+			}
+			else {
+				row++;
+				if (rows < row) rows = row;
+				py += ((*i).size() > 0?h:3+1+3);
+				if (height < py) height = py;
+			}
 		}
-		return height+6;
+		return height+2;
 	}
 
 public:
@@ -2142,103 +2911,103 @@ public:
 	}
 
 	/// Paint button.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Highlight current item.
-	virtual bool mouseMoved(int x, int y)  {
-        if (visible) {
-            firstMouseUp = false;
-    		selectItem(x,y);
-	    	return true;
-        }
+	bool mouseMoved(int x, int y) override {
+		if (visible) {
+			firstMouseUp = false;
+			selectItem(x,y);
+			return true;
+		}
 
-        return false;
+		return false;
 	}
 
-    void mouseMovedOutside(void) {
-        if (visible && selected >= 0) {
-            firstMouseUp = false;
-            selected = -1;
-            setDirty();
-        }
-    }
+	void mouseMovedOutside(void) override {
+		if (visible && selected >= 0) {
+			firstMouseUp = false;
+			selected = -1;
+			setDirty();
+		}
+	}
 
 	/// Highlight current item.
-	virtual bool mouseDragged(int x, int y, MouseButton button)  {
-        (void)button;//UNUSED	
+	bool mouseDragged(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED	
 
-        if (visible) {
-            if (x >= 0 && x < width && y >= 0 && y < height)
-                firstMouseUp = false;
+		if (visible) {
+			if (x >= 0 && x < width && y >= 0 && y < height)
+				firstMouseUp = false;
 
-            selectItem(x,y);
-            return true;
-        }
+			selectItem(x,y);
+			return true;
+		}
 
-        return false;
+		return false;
 	}
 
-	virtual bool mouseDown(int x, int y, MouseButton button)  {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
+	bool mouseDown(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
 
-        if (visible)
-            return true;
+		if (visible)
+			return true;
 
-        return false;
-    }
+		return false;
+	}
 
-	virtual bool mouseDownOutside(MouseButton button) {
-        (void)button;//UNUSED
+	bool mouseDownOutside(MouseButton button) override {
+		(void)button;//UNUSED
 
-        if (visible) {
-            setVisible(false);
-            selected = -1;
-            return true;
-        }
+		if (visible) {
+			setVisible(false);
+			selected = -1;
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
 	/// Possibly select item.
-	virtual bool mouseUp(int x, int y, MouseButton button)  {
-        (void)button;//UNUSED
+	bool mouseUp(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
 
-        if (visible) {
-            selectItem(x,y);
-            if (firstMouseUp) firstMouseUp = false;
-            else setVisible(false);
-            execute();
-            return true;
-        }
+		if (visible) {
+			selectItem(x,y);
+			if (firstMouseUp) firstMouseUp = false;
+			else setVisible(false);
+			execute();
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
 	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key) {
-        if (visible) {
-            if (key.special == Key::Up) {
-                if (selected == 0)
-                    selected = (int)items.size() - 1;
-                else
-                    selected--;
-            }
-            else if (key.special == Key::Down) {
-                if ((size_t)(++selected) == items.size())
-                    selected = 0;
-            }
-            else if (key.special == Key::Enter) { execute(); return true; }
-            else if (key.special == Key::Escape) { setVisible(false); selected = -1; return true; }
-            else return true;
-            if (items[(unsigned int)selected].size() == 0 && items.size() > 1) return keyDown(key);
-            if (selected < 0) selected = (int)(items.size()-1);
-            if (selected >= (int)items.size()) selected = 0;
-            return true;
-        }
+	bool keyDown(const Key &key) override {
+		if (visible) {
+			if (key.special == Key::Up) {
+				if (selected == 0)
+					selected = (int)items.size() - 1;
+				else
+					selected--;
+			}
+			else if (key.special == Key::Down) {
+				if ((size_t)(++selected) == items.size())
+					selected = 0;
+			}
+			else if (key.special == Key::Enter) { execute(); return true; }
+			else if (key.special == Key::Escape) { setVisible(false); selected = -1; return true; }
+			else return true;
+			if (items[(unsigned int)selected].size() == 0 && items.size() > 1) return keyDown(key);
+			if (selected < 0) selected = (int)(items.size()-1);
+			if (selected >= (int)items.size()) selected = 0;
+			return true;
+		}
 
-        return false;
+		return false;
 	}
 
 
@@ -2257,20 +3026,20 @@ public:
 		resize(getPreferredWidth(),getPreferredHeight());
 	}
 
-	virtual void setVisible(bool v) {
-        if (!visible && v)
-            firstMouseUp = true;
+	void setVisible(bool v) override {
+		if (!visible && v)
+			firstMouseUp = true;
 
-        TransientWindow::setVisible(v);
+		TransientWindow::setVisible(v);
 		if (v) {
 			parent->mouseChild = this;
 			raise();
 		}
 
-        // NTS: Do not set selected = -1 here on hide, other code in this C++
-        //      class relies on calling setVisible() then acting on selection.
-        //      Unless of course you want to hunt down random and sporadic
-        //      segfaults. --J.C.
+		// NTS: Do not set selected = -1 here on hide, other code in this C++
+		//      class relies on calling setVisible() then acting on selection.
+		//      Unless of course you want to hunt down random and sporadic
+		//      segfaults. --J.C.
 	}
 
 	/// Execute menu item.
@@ -2278,20 +3047,20 @@ public:
 		if (selected >= 0) {
 			setVisible(false);
 
-            // FIXME: Some action callbacks including the "Close" command in
-            //        the system menu will delete this window object before
-            //        returning to this level in the call stack. Therefore,
-            //        copy selection index and clear it BEFORE calling the
-            //        callbacks.
-            unsigned int sel = (unsigned int)selected;
-            selected = -1;
+			// FIXME: Some action callbacks including the "Close" command in
+			//        the system menu will delete this window object before
+			//        returning to this level in the call stack. Therefore,
+			//        copy selection index and clear it BEFORE calling the
+			//        callbacks.
+			unsigned int sel = (unsigned int)selected;
+			selected = -1;
 
 			executeAction(items[sel]);
 
-            // WARNING: Do not access C++ class methods or variables here,
-            //          the "Close" callback may have deleted this window
-            //          out from under us! It may happen to work but
-            //          understand it becomes a use-after-free bug!
+			// WARNING: Do not access C++ class methods or variables here,
+			//          the "Close" callback may have deleted this window
+			//          out from under us! It may happen to work but
+			//          understand it becomes a use-after-free bug!
 		}
 	}
 };
@@ -2306,48 +3075,45 @@ protected:
 	bool pressed;
 
 public:
-	/// Create a button with given position and size
-	Button(Window *parent, int x, int y, int w, int h) : BorderedWindow(parent,x,y,w,h,6,5,6,5), ActionEventSource("GUI::Button"), pressed(0) {}
-
 	/// Create a text button.
 	/** If a size is specified, text is centered. Otherwise, button size is adjusted for the text. */
-	template <typename T> Button(Window *parent, int x, int y, const T text, int w = -1, int h = -1);
+	template <typename T> Button(Window *parent, int x, int y, const T text, int w = -1, int h = static_cast<int>(CurrentTheme.ButtonHeight));
 
 	/// Paint button.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Press button.
-	virtual bool mouseDown(int x, int y, MouseButton button) {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
-	
+	bool mouseDown(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
 		if (button == Left) {
-			border_left = 7; border_right = 5; border_top = 7; border_bottom = 3;
+			border_left = 7; border_top = 5; border_right = 5; border_bottom = 3;
 			pressed = true;
 		}
 		return true;
 	}
 
 	/// Release button.
-	virtual bool mouseUp(int x, int y, MouseButton button)  {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
-	
+	bool mouseUp(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
 		if (button == Left) {
-			border_left = 6; border_right = 6; border_top = 5; border_bottom = 5;
+			border_left = 6; border_top = 4; border_right = 6; border_bottom = 4;
 			pressed = false;
 		}
 		return true;
 	}
 
 	/// Handle mouse activation.
-	virtual bool mouseClicked(int x, int y, MouseButton button) {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
-	
+	bool mouseClicked(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
 		if (button == Left) {
 			executeAction();
 			return true;
@@ -2356,10 +3122,10 @@ public:
 	}
 
 	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key);
+	bool keyDown(const Key &key) override;
 
 	/// Handle keyboard input.
-	virtual bool keyUp(const Key &key);
+	bool keyUp(const Key &key) override;
 
 };
 
@@ -2401,10 +3167,10 @@ public:
 	template <typename STR> void removeItem(int index, const STR name) { menus[(unsigned int)index]->removeItem(name); }
 
 	/// Paint menubar.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Open menu.
-	virtual bool mouseDown(int x, int y, MouseButton button) {
+	bool mouseDown(int x, int y, MouseButton button) override {
         (void)button;//UNUSED
         (void)y;//UNUSED
 		int oldselected = selected;
@@ -2418,7 +3184,7 @@ public:
 	}
 
 	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key) {
+	bool keyDown(const Key &key) override {
         if (key.special == Key::Tab)
             return false;
 
@@ -2426,14 +3192,14 @@ public:
     }
 
     /// Handle keyboard input.
-    virtual bool keyUp(const Key &key) {
+    bool keyUp(const Key &key) override {
         if (key.special == Key::Tab)
             return false;
 
         return true;
     }
 
-	virtual void actionExecuted(ActionEventSource *src, const String &arg) {
+	void actionExecuted(ActionEventSource *src, const String &arg) override {
 		std::list<ActionEventSource_Callback*>::iterator i = actionHandlers.begin();
 		bool end = (i == actionHandlers.end());
 		while (!end) {
@@ -2453,17 +3219,18 @@ class Checkbox : public BorderedWindow, public ActionEventSource {
 protected:
 	/// \c true, if checkbox is currently selected.
 	bool checked;
+	bool pressed;
 
 public:
 	/// Create a checkbox with given position and size
-	Checkbox(Window *parent, int x, int y, int w, int h) : BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource("GUI::Checkbox"), checked(0) {}
+	Checkbox(Window *parent, int x, int y, int w, int h) : BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource("GUI::Checkbox"), checked(0), pressed(0) {}
 
 	/// Create a checkbox with text label.
 	/** If a size is specified, text is centered. Otherwise, checkbox size is adjusted for the text. */
 	template <typename T> Checkbox(Window *parent, int x, int y, const T text, int w = -1, int h = -1);
 
 	/// Paint checkbox.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Change checkbox state.
 	virtual void setChecked(bool checked) { this->checked = checked; }
@@ -2472,28 +3239,51 @@ public:
 	virtual bool isChecked() { return checked; }
 
 	/// Press checkbox.
-	virtual bool mouseDown(int x, int y, MouseButton button) {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED	
-		checked = !checked;
+	bool mouseDown(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED	
+
+		if (button == Left) {
+			pressed = true;
+		}
+
 		return true;
 	}
 
 	/// Release checkbox.
-	virtual bool mouseUp(int x, int y, MouseButton button)  {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED	
-		execute();
+	bool mouseUp(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
+		if (button == Left) {
+			pressed = false;
+		}
+
 		return true;
 	}
 
-	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key);
+	/// Handle mouse activation.
+	bool mouseClicked(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
+		if (button == Left) {
+			checked = !checked;
+			execute();
+			return true;
+		}
+
+		return false;
+	}
 
 	/// Handle keyboard input.
-	virtual bool keyUp(const Key &key);
+	bool keyDown(const Key &key) override;
+
+	/// Handle keyboard input.
+	bool keyUp(const Key &key) override;
 
 	/// Execute handlers.
 	virtual void execute() {
@@ -2513,17 +3303,18 @@ class Radiobox : public BorderedWindow, public ActionEventSource {
 protected:
 	/// \c true, if radio box is currently selected.
 	bool checked;
+	bool pressed;
 
 public:
 	/// Create a radio box with given position and size
-	Radiobox(Frame *parent, int x, int y, int w, int h);
+	Radiobox(Window *parent, int x, int y, int w, int h);
 
 	/// Create a radio box with text label.
 	/** If a size is specified, text is centered. Otherwise, checkbox size is adjusted for the text. */
-	template <typename T> Radiobox(Frame *parent, int x, int y, const T text, int w = -1, int h = -1);
+	template <typename T> Radiobox(Window *parent, int x, int y, const T text, int w = -1, int h = -1);
 
 	/// Paint radio box.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 	/// Change radio box state.
 	virtual void setChecked(bool checked) { this->checked = checked; }
@@ -2531,29 +3322,59 @@ public:
 	/// Get radio box state.
 	virtual bool isChecked() { return checked; }
 
-	/// Press radio box.
-	virtual bool mouseDown(int x, int y, MouseButton button) {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
-        checked = true;
+	/// Press radiobox.
+	bool mouseDown(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED	
+
+		if (button == Left) {
+			pressed = true;
+		}
+
 		return true;
 	}
 
-	/// Release checkbox.
-	virtual bool mouseUp(int x, int y, MouseButton button)  {
-        (void)button;//UNUSED
-        (void)x;//UNUSED
-        (void)y;//UNUSED
-		executeAction();
+	/// Release radiobox.
+	bool mouseUp(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
+		if (button == Left) {
+			pressed = false;
+		}
+
 		return true;
 	}
 
-	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key);
+	/// Handle mouse activation.
+	bool mouseClicked(int x, int y, MouseButton button) override {
+		(void)button;//UNUSED
+		(void)x;//UNUSED
+		(void)y;//UNUSED
+
+		if (button == Left) {
+			checked = true;
+			execute();
+			return true;
+		}
+
+		return false;
+	}
 
 	/// Handle keyboard input.
-	virtual bool keyUp(const Key &key);
+	bool keyDown(const Key &key) override;
+
+	/// Handle keyboard input.
+	bool keyUp(const Key &key) override;
+
+	/// Execute handlers.
+	virtual void execute() {
+		String arg(name);
+		if (!checked) arg.insert(arg.begin(),'!');
+		executeAction(arg);
+	}
 };
 
 /// A rectangular 3D sunken frame
@@ -2570,7 +3391,7 @@ protected:
 	String label;
 
 	/// Execute handlers.
-	virtual void actionExecuted(ActionEventSource *src, const String &arg) {
+	void actionExecuted(ActionEventSource *src, const String &arg) override {
         // HACK: Attempting to cast a String to void causes "forming reference to void" errors when building with GCC 4.7
         (void)arg.size();//UNUSED
 		for (std::list<Window *>::iterator i = children.begin(); i != children.end(); ++i) {
@@ -2590,7 +3411,7 @@ public:
 		ActionEventSource(text), selected(0), label(text) { }
 
 	/// Paint frame.
-	virtual void paint(Drawable &d) const;
+	void paint(Drawable &d) const override;
 
 };
 
@@ -2646,12 +3467,12 @@ public:
 		resize(width, sfh+close->getHeight()+border_bottom+border_top+5);
 	}
 
-	virtual bool keyDown(const GUI::Key &key) {
+	bool keyDown(const GUI::Key &key) override {
         if (GUI::ToplevelWindow::keyDown(key)) return true;
         return false;
     }
 
-	virtual bool keyUp(const GUI::Key &key) {
+	bool keyUp(const GUI::Key &key) override {
         if (GUI::ToplevelWindow::keyUp(key)) return true;
 
         if (key.special == GUI::Key::Escape) {
@@ -2666,17 +3487,17 @@ public:
 class MessageBox3 : public GUI::ToplevelWindow {
 protected:
 	Label *message;
-	Button *update, *close;
-    WindowInWindow *wiw;
+	Button *debugcmd, *close;
 public:
+	WindowInWindow *wiw;
 	/// Create a new message box
 	template <typename STR> MessageBox3(Screen *parent, int x, int y, int width, const STR title, const STR text) :
 		ToplevelWindow(parent, x, y, width, 1, title) {
 		wiw = new WindowInWindow(this, 5, 5, width-border_left-border_right-10, 70);
 		message = new Label(wiw, 0, 0, text, width-border_left-border_right-10);
-		update = new GUI::Button(this, (width-border_left-border_right-30-70*2)/2, 10, MSG_Get("UPDATE"), 70);
-		update->addActionHandler(this);
-		close = new GUI::Button(this, (width-border_left-border_right-10)/2, 10, MSG_Get("CLOSE"), 70);
+		debugcmd = new GUI::Button(this, (width-border_left-border_right-30-70*4)/2, 10, MSG_Get("DEBUGCMD"), 210);
+		debugcmd->addActionHandler(this);
+		close = new GUI::Button(this, (width-border_left-border_right+70*2)/2, 10, MSG_Get("CLOSE"), 70);
 		close->addActionHandler(this);
 		setText(text);
 
@@ -2711,18 +3532,18 @@ public:
             message->resize(msgw, message->getHeight());
         }
 
-		update->move((width-border_left-border_right-30-70*2)/2, sfh);
-		close->move((width-border_left-border_right-10)/2, sfh);
+		debugcmd->move((width-border_left-border_right-30-70*4)/2, sfh);
+		close->move((width-border_left-border_right+70*2)/2, sfh);
         wiw->resize(width-border_left-border_right-10, sfh-10);
 		resize(width, sfh+close->getHeight()+border_bottom+border_top+5);
 	}
 
-	virtual bool keyDown(const GUI::Key &key) {
+	bool keyDown(const GUI::Key &key) override {
         if (GUI::ToplevelWindow::keyDown(key)) return true;
         return false;
     }
 
-	virtual bool keyUp(const GUI::Key &key) {
+	bool keyUp(const GUI::Key &key) override {
         if (GUI::ToplevelWindow::keyUp(key)) return true;
 
         if (key.special == GUI::Key::Escape) {
@@ -2759,7 +3580,7 @@ template <typename STR> ToplevelWindow::ToplevelWindow(Screen *parent, int x, in
 }
 
 template <typename STR> Button::Button(Window *parent, int x, int y, const STR text, int w, int h) :
-	BorderedWindow(parent,x,y,w,h,6,5,6,5), ActionEventSource(text), pressed(0)
+	BorderedWindow(parent,x,y,w,h,6,4,6,4), ActionEventSource(text), pressed(0)
 {
 
 	Label *l = new Label(this,0,0,text);
@@ -2771,7 +3592,7 @@ template <typename STR> Button::Button(Window *parent, int x, int y, const STR t
 }
 
 template <typename STR> Checkbox::Checkbox(Window *parent, int x, int y, const STR text, int w, int h) :
-	BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource(text), checked(0)
+	BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource(text), checked(0), pressed(0)
 {
 	Label *l = new Label(this,0,0,text);
 	if (width < 0) resize(l->getWidth()+border_left+border_right+4,height);
@@ -2780,15 +3601,14 @@ template <typename STR> Checkbox::Checkbox(Window *parent, int x, int y, const S
 		(height-border_top-border_bottom-l->getHeight())/2);
 }
 
-template <typename STR> Radiobox::Radiobox(Frame *parent, int x, int y, const STR text, int w, int h) :
-	BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource(text), checked(0)
+template <typename STR> Radiobox::Radiobox(Window *parent, int x, int y, const STR text, int w, int h) :
+	BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource(text), checked(0), pressed(0)
 {
 	Label *l = new Label(this,0,0,text);
 	if (width < 0) resize(l->getWidth()+border_left+border_right+4,height);
 	if (height < 0) resize(width,l->getHeight()+border_top+border_bottom+4);
 	l->move((width-border_left-border_right-l->getWidth())/2,
 		(height-border_top-border_bottom-l->getHeight())/2);
-	addActionHandler(parent);
 }
 
 }

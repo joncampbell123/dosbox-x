@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -23,7 +23,7 @@
 #include "SDL_render.h"
 #include "SDL_system.h"
 
-#if SDL_VIDEO_RENDER_D3D && !SDL_RENDER_DISABLED
+#if SDL_VIDEO_RENDER_D3D
 
 #include "../../core/windows/SDL_windows.h"
 
@@ -257,7 +257,6 @@ static const DWORD D3D9_PixelShader_YUV_BT709[] = {
     0x90e40000, 0x02000001, 0x800f0800, 0x80e40000, 0x0000ffff
 };
 
-
 static const DWORD *D3D9_shaders[] = {
     D3D9_PixelShader_YUV_JPEG,
     D3D9_PixelShader_YUV_BT601,
@@ -269,6 +268,6 @@ HRESULT D3D9_CreatePixelShader(IDirect3DDevice9 *d3dDevice, D3D9_Shader shader, 
     return IDirect3DDevice9_CreatePixelShader(d3dDevice, D3D9_shaders[shader], pixelShader);
 }
 
-#endif /* SDL_VIDEO_RENDER_D3D && !SDL_RENDER_DISABLED */
+#endif /* SDL_VIDEO_RENDER_D3D */
 
 /* vi: set ts=4 sw=4 expandtab: */

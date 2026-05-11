@@ -33,6 +33,7 @@
 #define DOS_PATHLENGTH 255u
 #define DOS_TEMPSIZE 1024u
 #define DOSERR_FUNCTION_NUMBER_INVALID 1
+
 void DOS_SetError(uint16_t code);
 
 enum {
@@ -67,7 +68,7 @@ class DOS_DTA;
 
 class DOS_File {
 public:
-    DOS_File() :flags(0) { name = 0; attr = 0; date = 0; drive = 0; refCtr = 0; open = false; time = 0; hdrive = 0xff; newtime = false; };
+    DOS_File() {};
 	DOS_File(const DOS_File& orig);
 	DOS_File & operator= (const DOS_File & orig);
 	virtual ~DOS_File(){ delete [] name;};
@@ -87,30 +88,30 @@ public:
 	virtual bool	UpdateDateTimeFromHost()	{ return true; }
 	virtual uint32_t	GetSeekPos()	{ return 0xffffffff; }
 	void SetDrive(uint8_t drv) { hdrive=drv;}
-	uint8_t GetDrive(void) { return hdrive;}
+	uint8_t GetDrive(void) const { return hdrive;}
 	virtual void 	SaveState( std::ostream& stream );
 	virtual void 	LoadState( std::istream& stream, bool pop );
     virtual void    Flush(void) { }
 
 	char* name = NULL;
 	uint8_t drive = 0;
-	uint32_t flags;
-	bool open;
+	uint32_t flags = 0;
+	bool neverclose = false; /* set for CON/AUX/PRN so MS-DOS always has a console even if all JFT's closed the handles */
+	bool open = false;
 
-	uint16_t attr;
-	uint16_t time;
-	uint16_t date;
-	Bits refCtr;
+	uint16_t attr = 0;
+	uint16_t time = 0;
+	uint16_t date = 0;
+	Bits refCtr = 0;
 	bool newtime = false;
 	/* Some Device Specific Stuff */
 private:
-	uint8_t hdrive;
+	uint8_t hdrive = 0xff;
 };
 
 class DOS_Device : public DOS_File {
 public:
-	DOS_Device(const DOS_Device& orig):DOS_File(orig) {
-		devnum=orig.devnum;
+	DOS_Device(const DOS_Device& orig):DOS_File(orig), devnum(orig.devnum) {
 		open=true;
 	}
 	DOS_Device & operator= (const DOS_Device & orig) {
@@ -119,39 +120,79 @@ public:
 		open=true;
 		return *this;
 	}
-	DOS_Device():DOS_File(),devnum(0){};
+	DOS_Device():DOS_File() {};
 	virtual ~DOS_Device() {};
-	virtual bool	Read(uint8_t * data,uint16_t * size);
-	virtual bool	Write(const uint8_t * data,uint16_t * size);
-	virtual bool	Seek(uint32_t * pos,uint32_t type);
-	virtual bool	Close();
-	virtual uint16_t	GetInformation(void);
+	bool	Read(uint8_t * data,uint16_t * size) override;
+	bool	Write(const uint8_t * data,uint16_t * size) override;
+	bool	Seek(uint32_t * pos,uint32_t type) override;
+	bool	Close() override;
+	uint16_t	GetInformation(void) override;
+	virtual void	SetInformation(uint16_t info);
 	virtual bool	ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
 	virtual bool	WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
 	virtual uint8_t	GetStatus(bool input_flag);
 	void SetDeviceNumber(Bitu num) { devnum=num;}
 private:
-	Bitu devnum;
+	Bitu devnum = 0;
 };
 
-class localFile : public DOS_File {
+struct ExtDeviceData {
+    uint16_t attribute;
+    uint16_t segment;
+    uint16_t strategy;
+    uint16_t interrupt;
+};
+
+class DOS_ExtDevice : public DOS_Device {
 public:
-	localFile();
-	localFile(const char* _name, FILE * handle);
-	bool Read(uint8_t * data,uint16_t * size);
-	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(uint32_t * pos,uint32_t type);
-	bool Close();
-	bool LockFile(uint8_t mode, uint32_t pos, uint16_t size);
-	uint16_t GetInformation(void);
-	bool UpdateDateTimeFromHost(void);
+    DOS_ExtDevice(const DOS_ExtDevice& orig) :DOS_Device(orig), ext(orig.ext) {
+    }
+    DOS_ExtDevice(const char* name, uint16_t seg, uint16_t off) {
+        SetName(name);
+        ext.attribute = real_readw(seg, off + 4);
+        ext.segment = seg;
+        ext.strategy = real_readw(seg, off + 6);
+        ext.interrupt = real_readw(seg, off + 8);
+    }
+    DOS_ExtDevice& operator= (const DOS_ExtDevice& orig) {
+        DOS_Device::operator=(orig);
+        ext = orig.ext;
+        return *this;
+    }
+
+    bool	Read(uint8_t* data, uint16_t* size) override;
+    bool	Write(const uint8_t* data, uint16_t* size) override;
+    bool	Seek(uint32_t* pos, uint32_t type) override;
+    bool	Close() override;
+    uint16_t	GetInformation(void) override;
+    bool	ReadFromControlChannel(PhysPt bufptr, uint16_t size, uint16_t* retcode) override;
+    bool	WriteToControlChannel(PhysPt bufptr, uint16_t size, uint16_t* retcode) override;
+    uint8_t	GetStatus(bool input_flag) override;
+    bool CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off);
+    uint16_t CallRWIODeviceFunction(uint8_t command, uint8_t length, uint16_t seg, uint16_t offset, uint16_t size);
+private:
+    struct ExtDeviceData ext;
+
+};
+
+class LocalFile : public DOS_File {
+public:
+	LocalFile();
+	LocalFile(const char* _name, FILE * handle);
+	bool Read(uint8_t * data,uint16_t * size) override;
+	bool Write(const uint8_t * data,uint16_t * size) override;
+	bool Seek(uint32_t * pos,uint32_t type) override;
+	bool Close() override;
+	bool LockFile(uint8_t mode, uint32_t pos, uint16_t size) override;
+	uint16_t GetInformation(void) override;
+	bool UpdateDateTimeFromHost(void) override;
 	bool UpdateLocalDateTime(void);
 	void FlagReadOnlyMedium(void);
-	void Flush(void);
-	uint32_t GetSeekPos(void);
+	void Flush(void) override;
+	uint32_t GetSeekPos(void) override;
 	FILE * fhandle;
 private:
-	bool read_only_medium;
+	bool read_only_medium = false;
 	enum { NONE,READ,WRITE } last_action;
 };
 
@@ -197,7 +238,6 @@ public:
 		CFileInfo(void) {
 			orgname[0] = shortname[0] = 0;
 			isOverlayDir = isDir = false;
-			id = MAX_OPENDIRS;
 			nextEntry = shortNr = 0;
 		}
 		~CFileInfo(void) {
@@ -209,7 +249,7 @@ public:
 		char		shortname	[DOS_NAMELENGTH_ASCII];
 		bool        isOverlayDir;
 		bool		isDir;
-		uint16_t		id;
+		uint16_t		id = MAX_OPENDIRS;
 		Bitu		nextEntry;
 		Bitu		shortNr;
 		// contents
@@ -231,29 +271,29 @@ private:
 	CFileInfo*	FindDirInfo		(const char* path, char* expandedPath);
 	bool		RemoveSpaces		(char* str);
 	bool		OpenDir			(CFileInfo* dir, const char* expand, uint16_t& id);
-    char*       CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory);
+    char*       CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory, bool skipSort=false);
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
 	uint16_t		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
 
-	CFileInfo*	dirBase;
+	CFileInfo*	dirBase = NULL;
 	char		dirPath				[CROSS_LEN] = {};
 	DOS_Drive*	drive = NULL;
 	char		basePath			[CROSS_LEN] = {};
 	bool		dirFirstTime = false;
-	TDirSort	sortDirType;
-	CFileInfo*	save_dir;
+	TDirSort	sortDirType = NOSORT;
+	CFileInfo*	save_dir = NULL;
 	char		save_path			[CROSS_LEN] = {};
 	char		save_expanded		[CROSS_LEN] = {};
 
-	uint16_t		srchNr;
-	CFileInfo*	dirSearch			[MAX_OPENDIRS];
+	uint16_t		srchNr = 0;
+	CFileInfo*	dirSearch			[MAX_OPENDIRS] = {};
 	char		dirSearchName		[MAX_OPENDIRS] = {};
-	CFileInfo*	dirFindFirst		[MAX_OPENDIRS];
-	uint16_t		nextFreeFindFirst;
+	CFileInfo*	dirFindFirst		[MAX_OPENDIRS] = {};
+	uint16_t		nextFreeFindFirst = 0;
 
-	char		label				[CROSS_LEN];
-	bool		updatelabel;
+	char		label				[CROSS_LEN] = {};
+	bool		updatelabel = false;
 };
 
 class DOS_Drive {
@@ -276,8 +316,9 @@ public:
 	virtual HANDLE CreateOpenFile(char const* const name)=0;
 #endif
 	virtual bool Rename(const char * oldname,const char * newname)=0;
-	virtual bool AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters)=0;
-	virtual bool AllocationInfo32(uint32_t * _bytes_sector,uint32_t * _sectors_cluster,uint32_t * _total_clusters,uint32_t * _free_clusters) { (void)_bytes_sector; (void)_sectors_cluster; (void)_total_clusters; (void)_free_clusters; return false; }
+    virtual bool AllocationInfo(uint16_t* _bytes_sector, uint8_t* _sectors_cluster, uint16_t* _total_clusters, uint16_t* _free_clusters) = 0;
+    virtual bool AllocationInfo32(uint32_t * _bytes_sector,uint32_t * _sectors_cluster,uint32_t * _total_clusters,uint32_t * _free_clusters) { (void)_bytes_sector; (void)_sectors_cluster; (void)_total_clusters; (void)_free_clusters; return false; }
+    virtual bool AllocationInfo64(uint32_t* _bytes_sector, uint32_t* _sectors_cluster, uint64_t* _total_clusters, uint64_t* _free_clusters) { (void)_bytes_sector; (void)_sectors_cluster; (void)_total_clusters; (void)_free_clusters; return false; }
 	virtual bool FileExists(const char* name)=0;
 	virtual bool FileStat(const char* name, FileStat_Block * const stat_block)=0;
 	virtual uint8_t GetMediaByte(void)=0;
@@ -290,17 +331,16 @@ public:
 	/* these 4 may only be used by DOS_Drive_Cache because they have special calling conventions */
 	virtual void *opendir(const char *dir) { (void)dir; return NULL; };
 	virtual void closedir(void *handle) { (void)handle; };
-    virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
-    virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
-
+	virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
+	virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
 	virtual const char * GetInfo(void);
 	char * GetBaseDir(void);
 
-    bool readonly;
-    bool nocachedir;
-    bool partitionMount = false;
-	char curdir[DOS_PATHLENGTH];
-	char info[256];
+	bool readonly;
+	bool nocachedir;
+	bool partitionMount = false;
+	char curdir[DOS_PATHLENGTH]={0};
+	char info[256]={0};
 	/* Can be overridden for example in iso images */
 	virtual char const * GetLabel() {return "NOLABEL";}; 
 	virtual void SetLabel(const char *label, bool iscdrom, bool updatable) { (void)label; (void)iscdrom; (void)updatable; };
@@ -312,9 +352,9 @@ public:
 	virtual void LoadState( std::istream& stream );
 	virtual void UpdateDPB(unsigned char dos_drive) { (void)dos_drive; };
 
-    // INT 25h/INT 26h
-    virtual uint32_t GetSectorCount(void) { return 0; }
-    virtual uint32_t GetSectorSize(void) { return 0; } // LOGICAL sector size (from the FAT driver) not PHYSICAL disk sector size
+	// INT 25h/INT 26h
+	virtual uint32_t GetSectorCount(void) { return 0; }
+	virtual uint32_t GetSectorSize(void) { return 0; } // LOGICAL sector size (from the FAT driver) not PHYSICAL disk sector size
 	virtual uint8_t Read_AbsoluteSector_INT25(uint32_t sectnum, void * data) { (void)sectnum; (void)data; return 0x05; }
 	virtual uint8_t Write_AbsoluteSector_INT25(uint32_t sectnum, void * data) { (void)sectnum; (void)data; return 0x05; }
 };

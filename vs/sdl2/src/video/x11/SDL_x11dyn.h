@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,7 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 
-#if SDL_VIDEO_DRIVER_X11_HAS_XKBKEYCODETOKEYSYM
+#ifdef SDL_VIDEO_DRIVER_X11_HAS_XKBKEYCODETOKEYSYM
 #include <X11/XKBlib.h>
 #endif
 
@@ -39,7 +39,6 @@
 
 #include <X11/Xproto.h>
 #include <X11/extensions/Xext.h>
-#include <X11/extensions/extutil.h>
 
 #ifndef NO_SHARED_MEMORY
 #include <sys/ipc.h>
@@ -47,54 +46,50 @@
 #include <X11/extensions/XShm.h>
 #endif
 
-#if SDL_VIDEO_DRIVER_X11_XCURSOR
+#ifdef SDL_VIDEO_DRIVER_X11_XCURSOR
 #include <X11/Xcursor/Xcursor.h>
 #endif
-#if SDL_VIDEO_DRIVER_X11_XDBE
+#ifdef SDL_VIDEO_DRIVER_X11_XDBE
 #include <X11/extensions/Xdbe.h>
 #endif
-#if SDL_VIDEO_DRIVER_X11_XINERAMA
-#include <X11/extensions/Xinerama.h>
-#endif
-#if SDL_VIDEO_DRIVER_X11_XINPUT2
+#if defined(SDL_VIDEO_DRIVER_X11_XINPUT2) || defined(SDL_VIDEO_DRIVER_X11_XFIXES)
 #include <X11/extensions/XInput2.h>
 #endif
-#if SDL_VIDEO_DRIVER_X11_XRANDR
+#ifdef SDL_VIDEO_DRIVER_X11_XFIXES
+#include <X11/extensions/Xfixes.h>
+#endif
+#ifdef SDL_VIDEO_DRIVER_X11_XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif
-#if SDL_VIDEO_DRIVER_X11_XSCRNSAVER
+#ifdef SDL_VIDEO_DRIVER_X11_XSCRNSAVER
 #include <X11/extensions/scrnsaver.h>
 #endif
-#if SDL_VIDEO_DRIVER_X11_XSHAPE
+#ifdef SDL_VIDEO_DRIVER_X11_XSHAPE
 #include <X11/extensions/shape.h>
-#endif
-#if SDL_VIDEO_DRIVER_X11_XVIDMODE
-#include <X11/extensions/xf86vmode.h>
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* evil function signatures... */
-typedef Bool(*SDL_X11_XESetWireToEventRetType) (Display *, XEvent *, xEvent *);
-typedef int (*SDL_X11_XSynchronizeRetType) (Display *);
-typedef Status(*SDL_X11_XESetEventToWireRetType) (Display *, XEvent *, xEvent *);
+typedef Bool (*SDL_X11_XESetWireToEventRetType)(Display *, XEvent *, xEvent *);
+typedef int (*SDL_X11_XSynchronizeRetType)(Display *);
+typedef Status (*SDL_X11_XESetEventToWireRetType)(Display *, XEvent *, xEvent *);
 
 int SDL_X11_LoadSymbols(void);
 void SDL_X11_UnloadSymbols(void);
 
 /* Declare all the function pointers and wrappers... */
-#define SDL_X11_SYM(rc,fn,params,args,ret) \
-    typedef rc (*SDL_DYNX11FN_##fn) params; \
+#define SDL_X11_SYM(rc, fn, params, args, ret) \
+    typedef rc(*SDL_DYNX11FN_##fn) params;     \
     extern SDL_DYNX11FN_##fn X11_##fn;
 #include "SDL_x11sym.h"
 
 /* Annoying varargs entry point... */
 #ifdef X_HAVE_UTF8_STRING
-typedef XIC(*SDL_DYNX11FN_XCreateIC) (XIM,...);
-typedef char *(*SDL_DYNX11FN_XGetICValues) (XIC, ...);
+typedef XIC (*SDL_DYNX11FN_XCreateIC)(XIM, ...);
+typedef char *(*SDL_DYNX11FN_XGetICValues)(XIC, ...);
 extern SDL_DYNX11FN_XCreateIC X11_XCreateIC;
 extern SDL_DYNX11FN_XGetICValues X11_XGetICValues;
 #endif
@@ -107,5 +102,5 @@ extern SDL_DYNX11FN_XGetICValues X11_XGetICValues;
 }
 #endif
 
-#endif                          /* !defined SDL_x11dyn_h_ */
+#endif /* !defined SDL_x11dyn_h_ */
 /* vi: set ts=4 sw=4 expandtab: */

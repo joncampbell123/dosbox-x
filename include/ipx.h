@@ -65,7 +65,15 @@
 #endif
 
 // For Uint8 type
+#if defined(C_SDL2_NET)  && C_SDL2_NET
+#include <SDL2/SDL_net.h>
+#else
 #include "SDL_net.h"
+#endif
+
+#ifndef SDLNet_GetError
+#define SDLNet_GetError SDL_GetError
+#endif
 
 struct PackedIP {
 	Uint32 host;
@@ -142,7 +150,7 @@ public:
 	~ECBClass();
 };
 
-// The following routines may not be needed on all systems.  On my build of SDL the IPaddress structure is 8 octects 
+// The following routines may not be needed on all systems.  On my build of SDL the IPaddress structure is 8 octets 
 // and therefore screws up my IPXheader structure since it needs to be packed.
 
 void UnpackIP(PackedIP ipPack, IPaddress * ipAddr);
@@ -151,5 +159,12 @@ void PackIP(IPaddress ipAddr, PackedIP *ipPack);
 #ifdef _MSC_VER
 #pragma pack()
 #endif
+
+enum {
+	IPX_NONE=0,
+	IPX_OLD,
+	IPX_OLD_LLC,
+	IPX_8137
+};
 
 #endif

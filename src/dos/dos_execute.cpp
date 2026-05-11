@@ -29,6 +29,27 @@
 #include "debug.h"
 #include "cpu.h"
 #include "menu.h"
+#include "crc32.h"
+#if defined(OSFREE)
+#include "exepack.h"
+#include "exepackv1.h"
+#include "exepackv2.h"
+#include "exepackv3.h"
+#include "exepackv4.h"
+#endif
+
+#if defined(OSFREE)
+extern bool xms_init;
+extern bool a20_off_if_loading_low;
+#endif
+
+#if defined(OSFREE)
+Bitu XMS_EnableA20(bool enable);
+Bitu XMS_GetEnabledA20(void);
+#endif
+
+uint32_t RunningProgramHash[4] = {0,0,0,0};
+uint32_t RunningProgramLoadAddress = 0;
 
 const char * RunningProgram="DOSBOX-X";
 
@@ -68,33 +89,7 @@ unsigned int ENV_KEEPFREE = 83;
 #define LOAD    1
 #define OVERLAY 3
 
-
-
-static void SaveRegisters(void) {
-	reg_sp-=18;
-	mem_writew(SegPhys(ss)+reg_sp+ 0,reg_ax);
-	mem_writew(SegPhys(ss)+reg_sp+ 2,reg_cx);
-	mem_writew(SegPhys(ss)+reg_sp+ 4,reg_dx);
-	mem_writew(SegPhys(ss)+reg_sp+ 6,reg_bx);
-	mem_writew(SegPhys(ss)+reg_sp+ 8,reg_si);
-	mem_writew(SegPhys(ss)+reg_sp+10,reg_di);
-	mem_writew(SegPhys(ss)+reg_sp+12,reg_bp);
-	mem_writew(SegPhys(ss)+reg_sp+14,SegValue(ds));
-	mem_writew(SegPhys(ss)+reg_sp+16,SegValue(es));
-}
-
-static void RestoreRegisters(void) {
-	reg_ax=mem_readw(SegPhys(ss)+reg_sp+ 0);
-	reg_cx=mem_readw(SegPhys(ss)+reg_sp+ 2);
-	reg_dx=mem_readw(SegPhys(ss)+reg_sp+ 4);
-	reg_bx=mem_readw(SegPhys(ss)+reg_sp+ 6);
-	reg_si=mem_readw(SegPhys(ss)+reg_sp+ 8);
-	reg_di=mem_readw(SegPhys(ss)+reg_sp+10);
-	reg_bp=mem_readw(SegPhys(ss)+reg_sp+12);
-	SegSet16(ds,mem_readw(SegPhys(ss)+reg_sp+14));
-	SegSet16(es,mem_readw(SegPhys(ss)+reg_sp+16));
-	reg_sp+=18;
-}
+void RDTSC_rebase();
 
 extern bool force_sfn;
 extern uint8_t ZDRIVE_NUM;
@@ -134,22 +129,34 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 	/* Restore the SS:SP to the previous one */
 	SegSet16(ss,RealSeg(parentpsp.GetStack()));
 	reg_sp = RealOff(parentpsp.GetStack());		
-	/* Restore the old CS:IP from int 22h */
-	RestoreRegisters();
+	/* Restore registers */
+	reg_ax = real_readw(SegValue(ss),reg_sp+ 0);
+	reg_bx = real_readw(SegValue(ss),reg_sp+ 2);
+	reg_cx = real_readw(SegValue(ss),reg_sp+ 4);
+	reg_dx = real_readw(SegValue(ss),reg_sp+ 6);
+	reg_si = real_readw(SegValue(ss),reg_sp+ 8);
+	reg_di = real_readw(SegValue(ss),reg_sp+10);
+	reg_bp = real_readw(SegValue(ss),reg_sp+12);
+	SegSet16(ds,real_readw(SegValue(ss),reg_sp+14));
+	SegSet16(es,real_readw(SegValue(ss),reg_sp+16));
+	reg_sp+=18;
 	/* Set the CS:IP stored in int 0x22 back on the stack */
-	mem_writew(SegPhys(ss)+reg_sp+0,RealOff(old22));
-	mem_writew(SegPhys(ss)+reg_sp+2,RealSeg(old22));
+	real_writew(SegValue(ss),reg_sp+0,RealOff(old22));
+	real_writew(SegValue(ss),reg_sp+2,RealSeg(old22));
 	/* set IOPL=3 (Strike Commander), nested task set,
 	   interrupts enabled, test flags cleared */
-	mem_writew(SegPhys(ss)+reg_sp+4,0x7202);
+	real_writew(SegValue(ss),reg_sp+4,0x7202);
 	// Free memory owned by process
 	if (!tsr) DOS_FreeProcessMemory(pspseg);
 	DOS_UpdatePSPName();
+
+	dos.errorcode=0;
 
 	if ((!(CPU_AutoDetermineMode>>CPU_AUTODETERMINE_SHIFT)) || (cpu.pmode)) return;
 
 	CPU_AutoDetermineMode>>=CPU_AUTODETERMINE_SHIFT;
 	if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
+		RDTSC_rebase();
 		CPU_CycleAutoAdjust=false;
 		CPU_CycleLeft=0;
 		CPU_Cycles=0;
@@ -162,8 +169,8 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 #if (C_DYNAMIC_X86) || (C_DYNREC)
 	if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
 		cpudecoder=&CPU_Core_Normal_Run;
-        mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
-        mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
+		mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+		mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
 		CPU_CycleLeft=0;
 		CPU_Cycles=0;
 	}
@@ -251,11 +258,8 @@ bool DOS_ChildPSP(uint16_t segment, uint16_t size) {
 	psp.SetFCB1(RealMake(parent_psp_seg,0x5c));
 	psp.SetFCB2(RealMake(parent_psp_seg,0x6c));
 	psp.SetEnvironment(psp_parent.GetEnvironment());
+	psp.SetStack(psp_parent.GetStack());
 	psp.SetSize(size);
-	// push registers in case child PSP is terminated
-	SaveRegisters();
-	psp.SetStack(RealMakeSeg(ss,reg_sp));
-	reg_sp+=18;
 	return true;
 }
 
@@ -289,16 +293,48 @@ static void SetupCMDLine(uint16_t pspseg, const DOS_ParamBlock& block) {
  *        shell without any error message. The least we could do is return
  *        an error code so that the INT 21h EXEC call can print an informative
  *        error message! --J.C. */
-bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
+bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 	EXE_Header head;Bitu i;
 	uint16_t fhandle;uint16_t len;uint32_t pos;
 	uint16_t pspseg,envseg,loadseg,memsize=0xffff,readsize;
 	uint16_t maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
-    uint32_t headersize = 0, imagesize = 0;
+	uint32_t headersize = 0, imagesize = 0,memimagesize = 0;
 	DOS_ParamBlock block(block_pt);
+	uint32_t checksum = 0;
+	uint32_t checksum_bytes = 0;
 
-	block.LoadData();
+	/* OVERLAY: if the resident image extends past this point, fail. */
+	/*          This is only meaningful for the internal DOSEXEC_DEVICEDRIVER flag.
+	 *          Normal OVERLAY load doesn't range check at all, which is why the default is 0xFFFF! */
+	uint16_t segment_max=0xFFFF;
+
+	// FIXME: This code works but there is no file I/O error checking!
+	//        If it reads a truncated EXE or file I/O somehow fails while loading,
+	//        this code will carry on and possibly execute erroneous code!
+
+	// NTS: Confirmed from MS-DOS 4.0 source code: OVERLAY load will blindly load the EXE image to whatever
+	//      segment it is told to. It does not check that there is enough memory there. It does not check whether
+	//      it overruns one MCB into another. That would explain why some games that rely on overlay loading
+	//      tend to crash if there is insufficient memory.
+	//
+	//      You'd think that if the OVERLAY mode passed along a structure that Microsoft would have added
+	//      fields in a backwards compatible way to give OVERLAY loading a segment limit value it could use
+	//      to determine if there is enough memory!
+
+	if (flags == DOSEXEC_DEVICEDRIVER) {/*Internal value. DOS programs cannot pass this through INT 21h*/
+		/* block_pt is two 16-bit values:
+		 * low WORD is relocation segment value.
+		 * hi WORD is the highest segment of valid memory + 1 (boundary) so this function can identify if the image is too big
+		 * Take the values and then process loading as if OVERLAY */
+		block.overlay.loadseg = block_pt & 0xFFFFu;
+		block.overlay.relocation = block_pt & 0xFFFFu;
+		segment_max = block_pt >> 16u;
+		flags = OVERLAY;
+	}
+	else {
+		block.LoadData();
+	}
 	//Remove the loadhigh flag for the moment!
 	if(flags&0x80) LOG(LOG_EXEC,LOG_ERROR)("using loadhigh flag!!!!!. dropping it");
 	flags &= 0x7f;
@@ -310,17 +346,20 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	/* Check for EXE or COM File */
 	bool iscom=false;
 	if (!DOS_OpenFile(name,OPEN_READ,&fhandle)) {
-        int16_t fLen = (int16_t)strlen(name);
-        bool shellcom =(!strcasecmp(name+fLen-8, "4DOS.COM") && (fLen == 8 || *(name+fLen-9)=='\\')) || (!strcasecmp(name+fLen-11, "COMMAND.COM") && (fLen == 11 || *(name+fLen-12)=='\\')); // Trap 4DOS.COM and COMMAND.COM
-        char z4dos[]="Z:\\4DOS\\4DOS.COM", zcmd[]="Z:\\COMMAND.COM";
-        if (ZDRIVE_NUM!=25) {
-            z4dos[0]='A'+ZDRIVE_NUM;
-            zcmd[0]='A'+ZDRIVE_NUM;
-        }
-        if (!shellcom || !DOS_OpenFile(!strcasecmp(name+fLen-8, "4DOS.COM")?z4dos:zcmd,OPEN_READ,&fhandle)) {
-            DOS_SetError(DOSERR_FILE_NOT_FOUND);
-            return false;
-        }
+		int16_t fLen = (int16_t)strlen(name);
+		bool shellcom =(!strcasecmp(name+fLen-8, "4DOS.COM") && (fLen == 8 || *(name+fLen-9)=='\\')) || (!strcasecmp(name+fLen-11, "COMMAND.COM") && (fLen == 11 || *(name+fLen-12)=='\\')); // Trap 4DOS.COM and COMMAND.COM
+		char z4dos[]="Z:\\4DOS\\4DOS.COM", zcmd[]="Z:\\COMMAND.COM";
+		if (ZDRIVE_NUM!=25) {
+			z4dos[0]='A'+ZDRIVE_NUM;
+			zcmd[0]='A'+ZDRIVE_NUM;
+		}
+		if (dos.errorcode == DOSERR_ACCESS_DENIED) {
+			return false;
+		}
+		if (!shellcom || !DOS_OpenFile(!strcasecmp(name+fLen-8, "4DOS.COM")?z4dos:zcmd,OPEN_READ,&fhandle)) {
+			DOS_SetError(DOSERR_FILE_NOT_FOUND);
+			return false;
+		}
 	}
 	len=sizeof(EXE_Header);
 	if (!DOS_ReadFile(fhandle,(uint8_t *)&head,&len)) {
@@ -349,7 +388,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 				LOG(LOG_EXEC,LOG_NORMAL)("Weird header: head.pages > 1 MB");
 			head.pages&=0x07ffu;
 			headersize = head.headersize*16u;
-			imagesize = head.pages*512u-headersize; 
+			imagesize = memimagesize = head.pages*512u-headersize; 
 			if (imagesize+headersize<512u) imagesize = 512u-headersize;
 		}
 	}
@@ -379,7 +418,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 				pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
 				uint16_t dataread=0x1800;
 				DOS_ReadFile(fhandle,loadbuf,&dataread);
-				if (dataread<0x1800) maxsize=dataread;
+				if (dataread<0x1800) maxsize=((dataread+0x10)>>4)+0x20;
 				if (minsize>maxsize) minsize=maxsize;
 			}
 		} else {	/* Exe size calculated from header */
@@ -387,17 +426,17 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			if (head.maxmemory!=0) maxsize=long2para(imagesize+((unsigned int)head.maxmemory<<4u)+256u);
 			else maxsize=0xffffu;
 
-            /* Bugfix: scene.org mirrors/hornet/demos/1991/putrefac.zip Putrefaction !PF.{3}
-             *         has an EXE header that specifies a maxsize less than minsize, and a
-             *         initial stack pointer that is only valid if we use the maxsize.
-             *
-             *         This allows it to run without the SS:IP out of range error below. */
-            if (maxsize < minsize) maxsize = minsize;
+			/* Bugfix: scene.org mirrors/hornet/demos/1991/putrefac.zip Putrefaction !PF.{3}
+			 *         has an EXE header that specifies a maxsize less than minsize, and a
+			 *         initial stack pointer that is only valid if we use the maxsize.
+			 *
+			 *         This allows it to run without the SS:IP out of range error below. */
+			if (maxsize < minsize) maxsize = minsize;
 		}
 		maxfree = DOS_GetMaximumFreeSize(minsize);
 		if (maxfree<minsize) {
 			DOS_CloseFile(fhandle);
-            delete[] loadbuf;
+			delete[] loadbuf;
 			DOS_SetError(DOSERR_INSUFFICIENT_MEMORY);
 			DOS_FreeMemory(envseg);
 			return false;
@@ -408,6 +447,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			maxsize=0xffff;
 			/* resize to full extent of memory block */
 			DOS_ResizeMemory(pspseg,&maxsize);
+			memsize=maxsize;
 		}
 		loadseg=pspseg+16;
 		if (!iscom) {
@@ -420,9 +460,22 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 					E_Exit("EXE loading error, unable to load to top of block, nor able to fit into block");
 			}
 		}
-	} else loadseg=block.overlay.loadseg;
+	} else {
+		/* validate that there is enough room to fit the image (OVERLAY from DOSEXEC_DEVICEDRIVER case) */
+		loadseg=block.overlay.loadseg;
+		if ((((uint32_t)loadseg << 4u)+(uint32_t)imagesize) > ((uint32_t)segment_max << 4u)) {
+			LOG(LOG_MISC,LOG_WARN)("EXEC OVERLAY: Insufficient memory to load executable image into memory. load=%x-%x max %x",
+				loadseg << 4u,(loadseg << 4u)+imagesize-1u,segment_max << 4u);
+			delete[] loadbuf;
+			DOS_SetError(DOSERR_INSUFFICIENT_MEMORY);
+			DOS_FreeMemory(envseg);
+			DOS_CloseFile(fhandle);
+			return false;
+		}
+	}
 	/* Load the executable */
 	loadaddress=PhysMake(loadseg,0);
+	RunningProgramLoadAddress = loadaddress;
 
 	if (iscom) {	/* COM Load 64k - 256 bytes max */
 		/* how big is the COM image? make sure it fits */
@@ -434,18 +487,24 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 
 		pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
 		DOS_ReadFile(fhandle,loadbuf,&readsize);
+		checksum = crc32(checksum, loadbuf, readsize);
+		checksum_bytes += readsize;
 		MEM_BlockWrite(loadaddress,loadbuf,readsize);
 	} else {	/* EXE Load in 32kb blocks and then relocate */
 		if (imagesize > (unsigned int)(memsize*0x10)) E_Exit("DOS:Not enough memory for EXE image");
 		pos=headersize;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
 		while (imagesize>0x7FFF) {
 			readsize=0x8000;DOS_ReadFile(fhandle,loadbuf,&readsize);
+			checksum = crc32(checksum, loadbuf, readsize);
+			checksum_bytes += readsize;
 			MEM_BlockWrite(loadaddress,loadbuf,readsize);
 //			if (readsize!=0x8000) LOG(LOG_EXEC,LOG_NORMAL)("Illegal header");
 			loadaddress+=0x8000;imagesize-=0x8000;
 		}
 		if (imagesize>0) {
 			readsize=(uint16_t)imagesize;DOS_ReadFile(fhandle,loadbuf,&readsize);
+			checksum = crc32(checksum, loadbuf, readsize);
+			checksum_bytes += readsize;
 			MEM_BlockWrite(loadaddress,loadbuf,readsize);
 //			if (readsize!=imagesize) LOG(LOG_EXEC,LOG_NORMAL)("Illegal header");
 		}
@@ -461,6 +520,300 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			mem_writew(address,mem_readw(address)+relocate);
 		}
 	}
+
+#if defined(OSFREE)
+	/* is this executable EXEPACK compressed (v1 check)? */
+	/* NTS: The reason for the "versions" is that I anticipate finding variations of EXEPACK in the wild
+	 *      depending on when the EXE was made and which version of the Microsoft linker was used, etc.
+	 *      Surely they've made bug fixes to it over time, right? */
+	/* assume loadbuf is 64K large */
+	/* this code may run in virtual 8086 mode so we cannot just use MemBase+x to check */
+	if (!iscom && memimagesize >= 0x100 && memsize > 0x10) {
+		/* make sure we're staying within the allocated memory for the EXE, even if Microsoft's
+		 * EXEPACK code never checks. The linker making these does set the min/max sizes in the
+		 * EXE header correctly. */
+		const uint32_t exelimit = RunningProgramLoadAddress + ((memsize - 0x10)/*exclude PSP segment*/ * 0x10u);
+		const uint32_t exepkstart = ((uint32_t)head.initCS << 4u) + (uint32_t)head.initIP;
+		uint32_t packed_len = 0;
+		uint16_t exepacksz = 0; // size of EXEPACK code including "Packed file is corrupt"
+		uint16_t exevarssz = 0;
+		uint16_t relocofs = 0; // offset in relocated segment of packed relocation table
+		EXEPACKVARSv1 pkvars;
+		bool exepack = false;
+
+		/* look for "RB" just before the entry point */
+		/* Usually, CS:IP is set so that CS=exepack decompression and IP=0x12 aka sizeof(EXEPACKv1).
+		 * Then the code just sets DS == CS and directly access the vars. In every variant I am aware
+		 * of, the EXE starts with CS=EXEPACK code and IP=sizeof(EXEPACKVARS). For v1 variants that
+		 * means CS:IP = EXEPACK code:0x12 for example. */
+		if (exepkstart >= 2 && mem_readw(RunningProgramLoadAddress+exepkstart-2) == 0x4252/*RB*/) {
+			MEM_BlockRead(RunningProgramLoadAddress+exepkstart,loadbuf,0x180/*more than enough*/);
+
+			if (head.initIP == sizeof(EXEPACKVARSv1) && memimagesize >= sizeof(EXEPACKv1) && memcmp(loadbuf,EXEPACKv1,sizeof(EXEPACKv1)) == 0) {
+				/* Very common variant */
+				if (exepack_handling == EXEPACK_NONE) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected, doing nothing");
+				}
+				else if (exepack_handling == EXEPACK_A20OFF) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected, switching off A20 gate");
+					XMS_EnableA20(false);
+				}
+				else {
+					MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
+					pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
+					MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv1),&pkvars,sizeof(EXEPACKVARSv1));
+					packed_len = exepkstart-sizeof(EXEPACKVARSv1);
+					exevarssz = sizeof(EXEPACKVARSv1);
+					exepacksz = sizeof(EXEPACKv1); /* EXEPACK code + "Packed File is Corrupt" */
+					relocofs = 0x12D;
+					exepack = true;
+
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 1) detected");
+				}
+			}
+			else if (head.initIP == sizeof(EXEPACKVARSv2) && memimagesize >= sizeof(EXEPACKv2) && memcmp(loadbuf,EXEPACKv2,sizeof(EXEPACKv2)) == 0) {
+				/* Variant seen in Microsoft Flight Simulator 4 that removes the skip_len field */
+				if (exepack_handling == EXEPACK_NONE) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 2) detected, doing nothing");
+				}
+				else if (exepack_handling == EXEPACK_A20OFF) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 2) detected, switching off A20 gate");
+					XMS_EnableA20(false);
+				}
+				else {
+					MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv2),&pkvars,sizeof(EXEPACKVARSv2));
+					pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
+					MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv2),&pkvars,sizeof(EXEPACKVARSv2));
+					packed_len = exepkstart-sizeof(EXEPACKVARSv2);
+					exevarssz = sizeof(EXEPACKVARSv2);
+					exepacksz = sizeof(EXEPACKv2); /* EXEPACK code + "Packed File is Corrupt" */
+					relocofs = 0x125;
+					exepack = true;
+
+					/* the code below expects the v1 struct so convert in place. skip_len is missing so put it in place and move aside "RB" */
+					pkvars.skip_len = 1;
+					pkvars.signature = 0x4252;
+
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 2) detected");
+				}
+			}
+			else if (head.initIP == sizeof(EXEPACKVARSv3) && memimagesize >= sizeof(EXEPACKv3) && memcmp(loadbuf,EXEPACKv3,sizeof(EXEPACKv3)) == 0) {
+				/* Variant seen in "PGA Golf" that removes the skip_len field, and fixes the segment wraparound A20 gate issue */
+				if (exepack_handling == EXEPACK_NONE) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 3) detected, doing nothing");
+				}
+				else if (exepack_handling == EXEPACK_A20OFF) {
+					/* this variant fixes the A20 gate wraparound issue, so, there's really no point to this unless of course
+					 * the code within has similar bugs. */
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 3) detected, switching off A20 gate");
+					XMS_EnableA20(false);
+				}
+				else {
+					MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv3),&pkvars,sizeof(EXEPACKVARSv3));
+					pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
+					MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv3),&pkvars,sizeof(EXEPACKVARSv3));
+					packed_len = exepkstart-sizeof(EXEPACKVARSv3);
+					exevarssz = sizeof(EXEPACKVARSv3);
+					exepacksz = sizeof(EXEPACKv3); /* EXEPACK code + "Packed File is Corrupt" */
+					relocofs = 0x132;
+					exepack = true;
+
+					/* the code below expects the v1 struct so convert in place. skip_len is missing so put it in place and move aside "RB" */
+					pkvars.skip_len = 1;
+					pkvars.signature = 0x4252;
+
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 3) detected");
+				}
+			}
+			else if (head.initIP == sizeof(EXEPACKVARSv4) && memimagesize >= sizeof(EXEPACKv4) && memcmp(loadbuf,EXEPACKv4,sizeof(EXEPACKv4)) == 0) {
+				/* Variant seen in "Popcorn" that removes the skip_len field, and fixes the segment wraparound A20 gate issue */
+				if (exepack_handling == EXEPACK_NONE) {
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 4) detected, doing nothing");
+				}
+				else if (exepack_handling == EXEPACK_A20OFF) {
+					/* this variant fixes the A20 gate wraparound issue, so, there's really no point to this unless of course
+					 * the code within has similar bugs. */
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 4) detected, switching off A20 gate");
+					XMS_EnableA20(false);
+				}
+				else {
+					MEM_BlockRead(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv4),&pkvars,sizeof(EXEPACKVARSv4));
+					pkvars.mem_start = (RunningProgramLoadAddress >> 4u);
+					MEM_BlockWrite(RunningProgramLoadAddress+exepkstart-sizeof(EXEPACKVARSv4),&pkvars,sizeof(EXEPACKVARSv4));
+					packed_len = exepkstart-sizeof(EXEPACKVARSv4);
+					exevarssz = sizeof(EXEPACKVARSv4);
+					exepacksz = sizeof(EXEPACKv4); /* EXEPACK code + "Packed File is Corrupt" */
+					relocofs = 0x112;
+					exepack = true;
+
+					/* the code below expects the v1 struct so convert in place. skip_len is missing so put it in place and move aside "RB" */
+					pkvars.skip_len = 1;
+					pkvars.signature = 0x4252;
+
+					LOG(LOG_DOSMISC,LOG_DEBUG)("EXEPACK (variant 4) detected");
+				}
+			}
+		}
+
+		if (exepack) {
+			LOG(LOG_DOSMISC,LOG_DEBUG)("real_start=%04x:%04x exepack_size=%04x real_stack=%04x:%04x dest_len=%04x skip_len=%04x",
+				pkvars.real_CS,pkvars.real_IP,pkvars.exepack_size,
+				pkvars.real_SS,pkvars.real_SP,pkvars.dest_len,pkvars.skip_len);
+
+			LOG(LOG_DOSMISC,LOG_DEBUG)("packed_exe_length=%04x exe_limit=%05x loadaddr=%05x",packed_len,exelimit,RunningProgramLoadAddress);
+
+			/* EXEPACK code writes the base EXE segment image (excluding the PSP) to pkvars + 4 aka pkvars.mem_start */
+			/* It then sets ES=dest_len+mem_start and copies exepack_size bytes to it BACKWARDS, then RETFs to it to
+			 * continue execution of decompression with DX = skip_len. */
+			/* srcPosSegment = end of packed EXE - skip_len. Scan and skip up to 0x10 bytes of 0xFF */
+			/* dstPosSegment = first byte of EXEPACK segment - skip_len. */
+			/* then sets DS:SI where SI |= 0xFFF0 and DS -= 0xFFF. This is why when loaded below < 0x1000 with A20
+			 * enabled the Packed File is Corrupt message appears. */
+			{
+				if (pkvars.exepack_size < (exevarssz+exepacksz+0x20/*16words minsz relocation table*/) || pkvars.exepack_size > 0xF000u) {
+					LOG(LOG_DOSMISC,LOG_WARN)("EXEPACK exepack_size invalid");
+					delete[] loadbuf;
+					DOS_CloseFile(fhandle);
+					return false;
+				}
+
+				const uint32_t srcPos = RunningProgramLoadAddress+exepkstart-exevarssz;
+				const uint32_t dstPos = (pkvars.dest_len + pkvars.mem_start) << 4u;
+				LOG(LOG_DOSMISC,LOG_DEBUG)("Copying EXEPACK code to new location in memory srcPos=%x dstPos=%x",srcPos,dstPos);
+				/* copy BACKWARDS, as EXEPACK does, because it always copies the code to a higher location */
+				for (unsigned int i=0;i < pkvars.exepack_size;i++)
+					mem_writeb(dstPos+pkvars.exepack_size-1-i,mem_readb(srcPos+pkvars.exepack_size-1-i));
+			}
+
+			{
+				uint32_t srcPos = RunningProgramLoadAddress+exepkstart-exevarssz-1u;
+				uint32_t dstPos = ((pkvars.dest_len + pkvars.mem_start) << 4u) - 1u;
+				LOG(LOG_DOSMISC,LOG_DEBUG)("srcPos=%05x dstPos=%05x",srcPos,dstPos);
+
+				if (srcPos >= dstPos || srcPos >= exelimit || dstPos >= exelimit) {
+					LOG(LOG_DOSMISC,LOG_WARN)("EXEPACK invalid srcPos/dstPos");
+					delete[] loadbuf;
+					DOS_CloseFile(fhandle);
+					return false;
+				}
+
+				for (unsigned int c=0;c < 16 && mem_readb(srcPos) == 0xFF;c++) srcPos--;
+				LOG(LOG_DOSMISC,LOG_DEBUG)("srcPos=%05x after skipping padding",srcPos);
+
+				/* begin decompressing */
+				while (1) {
+					if (srcPos < RunningProgramLoadAddress) {
+						LOG(LOG_DOSMISC,LOG_WARN)("decompression read beyond start of EXE");
+						delete[] loadbuf;
+						DOS_CloseFile(fhandle);
+						return false;
+					}
+					if (dstPos < RunningProgramLoadAddress) {
+						LOG(LOG_DOSMISC,LOG_WARN)("decompression wrote beyond start of EXE");
+						delete[] loadbuf;
+						DOS_CloseFile(fhandle);
+						return false;
+					}
+					if (srcPos >= dstPos) {
+						LOG(LOG_DOSMISC,LOG_WARN)("decompression is beginning to overwrite the data to decompress");
+						delete[] loadbuf;
+						DOS_CloseFile(fhandle);
+						return false;
+					}
+
+					const uint8_t commandByte = mem_readb(srcPos--);
+
+					/* FIXME: I'm seeing EXEPACKed executables where this decompression doesn't stop at the start of the
+					 *        EXE resident image, but instead, stops at writing address 0xFF (the last byte of the PSP
+					 *        segment). Why? Did someone at Microsoft make an off-by-one error? */
+
+					switch (commandByte & ~1u) {
+						case 0xB0: {
+							/* (reading backwards) BYTE:value WORD:length */
+							const uint16_t l = mem_readw(--srcPos); srcPos--;
+							const uint8_t v = mem_readb(srcPos--);
+							if ((dstPos-l) < (RunningProgramLoadAddress-1u)) {
+								LOG(LOG_DOSMISC,LOG_WARN)("run length would have written past the EXE start srcPos=%x dstPos=%x len=%x",srcPos,dstPos,l);
+								delete[] loadbuf;
+								DOS_CloseFile(fhandle);
+								return false;
+							}
+							for (unsigned int c=0;c < l;c++)
+								mem_writeb(dstPos--,v);
+							break;
+						}
+						case 0xB2: {
+							/* (reading backwards) WORD:length */
+							const uint16_t l = mem_readw(--srcPos); srcPos--;
+							if ((dstPos-l) < (RunningProgramLoadAddress-1u) || (srcPos-l) < (RunningProgramLoadAddress-1u)) {
+								LOG(LOG_DOSMISC,LOG_WARN)("copy length would have written past the EXE start srcPos=%x dstPos=%x len=%x",srcPos,dstPos,l);
+								delete[] loadbuf;
+								DOS_CloseFile(fhandle);
+								return false;
+							}
+							for (unsigned int c=0;c < l;c++)
+								mem_writeb(dstPos--,mem_readb(srcPos--));
+							break;
+						}
+						default:
+							LOG(LOG_DOSMISC,LOG_WARN)("decompression found unknown EXEPACK command %02x, therefore, packed EXE is corrupt. srcPos=%x dstPos=%x",commandByte,srcPos,dstPos);
+							delete[] loadbuf;
+							DOS_CloseFile(fhandle);
+							return false;
+					};
+
+					if (commandByte & 1) break; /* LSB == last block */
+				}
+
+				/* Next, apply the packed relocation table.
+				 * The code just assumes an address that is the first byte past the "Packed File is Corrupt" string. */
+				uint32_t relocSrc = ((pkvars.dest_len + pkvars.mem_start) << 4u)+relocofs;
+				if ((relocSrc+0x20) < exelimit) {
+					for (unsigned int sec=0;sec < 0x10;sec++) {
+						const uint16_t count = mem_readw(relocSrc); relocSrc += 2;
+						const uint32_t segb = RunningProgramLoadAddress + (sec * 0x10000u);
+
+						if (count == 0) continue;
+
+						LOG(LOG_DOSMISC,LOG_DEBUG)("Apply packed reloations for section %x (%u relocations)",sec,count);
+
+						/* NTS: EXEPACK code does check for offset = 0xFFFF to handle it properly! */
+						for (unsigned int r=0;r < count;r++) {
+							if ((relocSrc+2) > exelimit) {
+								LOG(LOG_DOSMISC,LOG_WARN)("Relocation table unpacking read beyond exe limit in section %x entry %x relocSrc=%x",sec,r,relocSrc);
+								delete[] loadbuf;
+								DOS_CloseFile(fhandle);
+								return false;
+							}
+
+							const uint32_t of = segb+mem_readw(relocSrc); relocSrc += 2;
+							if ((of+2) > exelimit) {
+								LOG(LOG_DOSMISC,LOG_WARN)("Relocation table unpacking write beyond exe limit in section %x entry %x relocSrc=%x patchaddr=%xx",sec,r,relocSrc,of);
+								delete[] loadbuf;
+								DOS_CloseFile(fhandle);
+								return false;
+							}
+
+							mem_writew(of,mem_readw(of)+pkvars.mem_start);
+						}
+					}
+				}
+
+				/* update EXE header to reflect the real CS:IP and SS:SP */
+				head.initCS = pkvars.real_CS;
+				head.initIP = pkvars.real_IP;
+				head.initSS = pkvars.real_SS;
+				head.initSP = pkvars.real_SP;
+				LOG(LOG_DOSMISC,LOG_WARN)("Decompression done. Setting CS:IP=%04x:%04x SS:SP=%04x:%04x memsize=%04x(seg=%04x)",
+					head.initCS,head.initIP,
+					head.initSS,head.initSP,
+					memsize,
+					pkvars.mem_start+memsize);
+			}
+		}
+	}
+#endif
+
 	delete[] loadbuf;
 	DOS_CloseFile(fhandle);
 
@@ -470,12 +823,12 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		SetupPSP(pspseg,memsize,envseg);
 		SetupCMDLine(pspseg,block);
 	}
-	CALLBACK_SCF(false);		/* Carry flag cleared for caller if successfull */
-    if(flags == OVERLAY) {
-        reg_ax = 0;             // Testing with MS-DOS (6.22) shows that if INT 21 AX=4B is called with the overlay flag (AL==3), then AX and DX are 0 on return.
-        reg_dx = 0;
-        return true;			/* Everything done for overlays */
-    }
+	CALLBACK_SCF(false);		/* Carry flag cleared for caller if successful */
+	if(flags == OVERLAY) {
+		reg_ax = 0;             // Testing with MS-DOS (6.22) shows that if INT 21 AX=4B is called with the overlay flag (AL==3), then AX and DX are 0 on return.
+		reg_dx = 0;
+		return true;			/* Everything done for overlays */
+	}
 	RealPt csip,sssp;
 	if (iscom) {
 		unsigned int stack_sp = 0xfffe;
@@ -509,8 +862,8 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 
 	if ((flags == LOAD) || (flags == LOADNGO)) {
 		/* Get Caller's program CS:IP of the stack and set termination address to that */
-		RealSetVec(0x22,RealMake(mem_readw(SegPhys(ss)+reg_sp+2),mem_readw(SegPhys(ss)+reg_sp)));
-		SaveRegisters();
+		RealSetVec(0x22,RealMake(real_readw(SegValue(ss),reg_sp+2),real_readw(SegValue(ss),reg_sp)));
+		reg_sp-=18;
 		DOS_PSP callpsp(dos.psp());
 		/* Save the SS:SP on the PSP of calling program */
 		callpsp.SetStack(RealMakeSeg(ss,reg_sp));
@@ -553,7 +906,28 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		DOS_MCB pspmcb(dos.psp()-1);
 		pspmcb.SetFileName(stripname);
 		DOS_UpdatePSPName();
+		RunningProgramHash[0] = head.checksum;
+		RunningProgramHash[1] = checksum_bytes;
+		RunningProgramHash[2] = checksum;
+		RunningProgramHash[3] = 0;
+
+		/* ownership of the environment block also belongs to the program, not the parent program! (bugfix) */
+		{
+			uint16_t s = newpsp.GetEnvironment();
+			if (s != 0) {
+				DOS_MCB envmcb(s-1);
+				envmcb.SetPSPSeg(dos.psp());
+				envmcb.SetFileName(stripname);
+			}
+		}
 	}
+
+#if defined(OSFREE)
+	if (a20_off_if_loading_low && pspseg < 0x1000 && xms_init && XMS_GetEnabledA20() && !(cpu.cr0 & CR0_PROTECTION)/*not protected/vm86 mode*/) {
+		LOG(LOG_EXEC,LOG_DEBUG)("Program is being loaded below 64KB, disabling A20 gate to try to avoid some common crashes");
+		XMS_EnableA20(false);
+	}
+#endif
 
 	if (flags==LOAD) {
 		/* First word on the stack is the value ax should contain on startup */

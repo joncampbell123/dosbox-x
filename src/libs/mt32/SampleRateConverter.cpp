@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2021 Sergey V. Mikayev
+/* Copyright (C) 2015-2022 Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -96,7 +96,7 @@ void SampleRateConverter::getOutputSamples(float *buffer, unsigned int length) {
 #endif
 }
 
-void SampleRateConverter::getOutputSamples(int16_t *outBuffer, unsigned int length) {
+void SampleRateConverter::getOutputSamples(Bit16s *outBuffer, unsigned int length) {
 	static const unsigned int CHANNEL_COUNT = 2;
 
 	if (useSynthDelegate) {

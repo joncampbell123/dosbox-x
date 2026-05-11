@@ -32,6 +32,7 @@
 #include "Shellapi.h"
 #endif
 
+extern std::string pathprt;
 void ResolvePath(std::string& in);
 CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
                               :CParallel (cmd, nr,initIrq) {
@@ -74,18 +75,19 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
 		}
 	}
 	temp=0;
+	name=pathprt="";
 
 	if(cmd->FindStringBegin("dev:",str,false)) {
-		name = str.c_str();
+		name = str;
 		filetype = FILE_DEV;
 	} else if(cmd->FindStringBegin("file:",str,false)) {
         ResolvePath(str);
-		name = str.c_str();
+		name = str;
 		filetype = FILE_DEV;
         is_file = true;
 	} else if(cmd->FindStringBegin("append:",str,false)) {
         ResolvePath(str);
-		name = str.c_str();
+		name = str;
 		filetype = FILE_APPEND;
 	} else filetype = FILE_CAPTURE;
 
@@ -121,7 +123,7 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
 
 char bufput[105];
 int bufct = 0;
-static char sig1PCL[] = "\x1b%-12345X@", sig2PCL[] = "\x1b\x45", sigPS[] = "\n%!PS";
+static char sig1PCL[] = "\x1b%-12345X@", sig2PCL[] = "\x1b\x45", sigPS[] = "\n%!";
 void CFileLPT::doAction() {
     if (action1.size()||action2.size()||action3.size()) {
         bool isPCL = false;															// For now
@@ -151,6 +153,7 @@ void CFileLPT::doAction() {
                     }
             }
         }
+        if (filetype==FILE_CAPTURE && pathprt.size()) name=pathprt;
         std::string action=action1.size()&&isPS?action1:(action2.size()&&isPCL?action2:action3);
         bool fail=false;
 #if defined(WIN32)
@@ -194,6 +197,7 @@ void CFileLPT::doAction() {
             fail=system((action+" "+name).c_str())!=0;
 #endif
         }
+        if (filetype==FILE_CAPTURE) name="";
         bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
         if (fail) systemmessagebox("Error", "The requested file printing handler failed to complete.", "ok","error", 1);
     }

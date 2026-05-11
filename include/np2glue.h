@@ -27,7 +27,7 @@
 #define MAX_PATH PATH_MAX
 #endif
 
-#ifdef WIN32
+#if defined(WIN32) || defined(OS2)
 # define BYTESEX_LITTLE
 # define _G_DIR_SEPARATOR '\\'
 #elif defined(EMSCRIPTEN)
@@ -146,10 +146,6 @@ static inline void FillMemory(void *p,size_t l,unsigned char c) {
     memset(p,c,l);
 }
 #endif
-
-static inline void pcm86io_bind(void) {
-    /* dummy */
-}
 
 #ifdef __cplusplus
 extern "C" {

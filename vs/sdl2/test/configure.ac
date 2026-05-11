@@ -1,16 +1,15 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(README)
+AC_INIT
+AC_CONFIG_SRCDIR([loopwave.c])
 
 dnl Detect the canonical build and host environments
-AC_CONFIG_AUX_DIRS($srcdir/../build-scripts)
+AC_CONFIG_AUX_DIR([../build-scripts])
 AC_CANONICAL_HOST
 
 dnl Check for tools
-
 AC_PROG_CC
 
 dnl Check for compiler environment
-
 AC_C_CONST
 
 dnl We only care about this for building testnative at the moment, so these
@@ -19,10 +18,11 @@ dnl  (Haiku, for example, sets none of these.)
 ISUNIX="false"
 ISWINDOWS="false"
 ISMACOSX="false"
+ISOS2="false"
 
 dnl Figure out which math library to use
 case "$host" in
-    *-*-cygwin* | *-*-mingw32*)
+    *-*-cygwin* | *-*-mingw*)
         ISWINDOWS="true"
         EXE=".exe"
         MATHLIB=""
@@ -33,7 +33,7 @@ case "$host" in
         MATHLIB=""
         SYS_GL_LIBS="-lGL"
         ;;
-    *-*-darwin* )
+    *-*-darwin*)
         ISMACOSX="true"
         EXE=""
         MATHLIB=""
@@ -42,7 +42,7 @@ case "$host" in
     *-*-aix*)
         ISUNIX="true"
         EXE=""
-        if test x$ac_cv_prog_gcc = xyes; then
+        if test x$ac_cv_c_compiler_gnu = xyes; then
             CFLAGS="-mthreads"
         fi
         SYS_GL_LIBS=""
@@ -65,9 +65,20 @@ case "$host" in
         MATHLIB=""
         SYS_GL_LIBS="-lGLES_CM"
         ;;
-    *-*-emscripten* )
+    *-*-emscripten*)
         dnl This should really be .js, but we need to specify extra flags when compiling to js
         EXE=".bc"
+        MATHLIB=""
+        SYS_GL_LIBS=""
+        ;;
+    *-*-riscos*)
+        EXE=",e1f"
+        MATHLIB=""
+        SYS_GL_LIBS=""
+        ;;
+    *-*-os2*)
+        ISOS2="true"
+        EXE=".exe"
         MATHLIB=""
         SYS_GL_LIBS=""
         ;;
@@ -76,7 +87,9 @@ case "$host" in
         ISUNIX="true"
         EXE=""
         MATHLIB="-lm"
-        SYS_GL_LIBS="-lGL"
+        dnl Use the new libOpenGL if present.
+        AC_CHECK_LIB(OpenGL, glBegin,
+            [SYS_GL_LIBS="-lOpenGL"],[SYS_GL_LIBS="-lGL"])
         ;;
 esac
 AC_SUBST(EXE)
@@ -84,9 +97,10 @@ AC_SUBST(MATHLIB)
 AC_SUBST(ISMACOSX)
 AC_SUBST(ISWINDOWS)
 AC_SUBST(ISUNIX)
+AC_SUBST(ISOS2)
 
 dnl Check for SDL
-SDL_VERSION=2.0.0
+SDL_VERSION=2.0.18
 AM_PATH_SDL2($SDL_VERSION,
             :,
 	    AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
@@ -118,62 +132,135 @@ fi
 dnl Check for OpenGL
 AC_MSG_CHECKING(for OpenGL support)
 have_opengl=no
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
  #include "SDL_opengl.h"
-],[
-],[
-have_opengl=yes
-])
+ #ifndef SDL_VIDEO_OPENGL
+ #error SDL_VIDEO_OPENGL
+ #endif
+]],[])], [have_opengl=yes],[])
 AC_MSG_RESULT($have_opengl)
 
 dnl Check for OpenGL ES
 AC_MSG_CHECKING(for OpenGL ES support)
 have_opengles=no
-AC_TRY_COMPILE([
- #if defined (__IPHONEOS__)
-    #include <OpenGLES/ES1/gl.h>
- #else
-    #include <GLES/gl.h>
- #endif /* __QNXNTO__ */
-],[
-],[
-have_opengles=yes
-])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+ #include "SDL_opengles.h"
+ #ifndef SDL_VIDEO_OPENGL_ES
+ #error SDL_VIDEO_OPENGL_ES
+ #endif
+]],[])] ,[have_opengles=yes],[])
 AC_MSG_RESULT($have_opengles)
 
 dnl Check for OpenGL ES2
 AC_MSG_CHECKING(for OpenGL ES2 support)
 have_opengles2=no
-AC_TRY_COMPILE([
- #if defined (__IPHONEOS__)
-    #include <OpenGLES/ES2/gl.h>
-    #include <OpenGLES/ES2/glext.h>
- #else
-    #include <GLES2/gl2.h>
-    #include <GLES2/gl2ext.h>
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+ #include "SDL_opengles2.h"
+ #ifndef SDL_VIDEO_OPENGL_ES2
+ #error SDL_VIDEO_OPENGL_ES2
  #endif
-],[
-],[
-have_opengles2=yes
-])
+]],[])], [have_opengles2=yes],[])
 AC_MSG_RESULT($have_opengles2)
 
 GLLIB=""
 GLESLIB=""
 GLES2LIB=""
+OPENGLES1_TARGETS="UNUSED"
+OPENGLES2_TARGETS="UNUSED"
+OPENGL_TARGETS="UNUSED"
 if test x$have_opengles = xyes; then
     CFLAGS="$CFLAGS -DHAVE_OPENGLES"
     GLESLIB="$XPATH -lGLESv1_CM"
+    OPENGLES1_TARGETS="TARGETS"
 fi
 if test x$have_opengles2 = xyes; then
     CFLAGS="$CFLAGS -DHAVE_OPENGLES2"
     #GLES2LIB="$XPATH -lGLESv2"
+    OPENGLES2_TARGETS="TARGETS"
 fi
 if test x$have_opengl = xyes; then
     CFLAGS="$CFLAGS -DHAVE_OPENGL"
     GLLIB="$XPATH $SYS_GL_LIBS"
+    OPENGL_TARGETS="TARGETS"
 fi
 
+AC_MSG_CHECKING(for GCC -Wformat)
+have_wformat=no
+save_CFLAGS="$CFLAGS"
+CFLAGS="$save_CFLAGS -Wformat"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[int x = 0;]],[])],
+    [have_wformat=yes], [])
+AC_MSG_RESULT($have_wformat)
+CFLAGS="$save_CFLAGS"
+if test x$have_wformat = xyes; then
+    CFLAGS="$CFLAGS -DHAVE_WFORMAT"
+fi
+
+AC_MSG_CHECKING(for GCC -Wformat-overflow)
+have_wformat_overflow=no
+save_CFLAGS="$CFLAGS"
+CFLAGS="$save_CFLAGS -Wformat-overflow"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[int x = 0;]],[])],
+    [have_wformat_overflow=yes], [])
+AC_MSG_RESULT($have_wformat_overflow)
+CFLAGS="$save_CFLAGS"
+if test x$have_wformat_overflow = xyes; then
+    CFLAGS="$CFLAGS -DHAVE_WFORMAT_OVERFLOW"
+fi
+
+AC_MSG_CHECKING(for GCC -Wformat-extra-args)
+have_wformat_extra_args=no
+save_CFLAGS="$CFLAGS"
+CFLAGS="$save_CFLAGS -Wformat-extra-args"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[int x = 0;]],[])],
+    [have_wformat_extra_args=yes], [])
+AC_MSG_RESULT($have_wformat_extra_args)
+CFLAGS="$save_CFLAGS"
+if test x$have_wformat_extra_args = xyes; then
+    CFLAGS="$CFLAGS -DHAVE_WFORMAT_EXTRA_ARGS"
+fi
+
+AC_ARG_ENABLE(werror,
+[AS_HELP_STRING([--enable-werror], [treat warnings as errors [default=no]])],
+              enable_werror=$enableval, enable_werror=no)
+if test x$enable_werror = xyes; then
+    AC_MSG_CHECKING(for GCC -Werror option)
+    have_gcc_werror=no
+
+    save_CFLAGS="$CFLAGS"
+    CFLAGS="$save_CFLAGS -Werror"
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[int x = 0;]],[])],
+        [have_gcc_werror=yes], [])
+    AC_MSG_RESULT($have_gcc_werror)
+    CFLAGS="$save_CFLAGS"
+
+    if test x$have_gcc_werror = xyes; then
+        CFLAGS="$CFLAGS -Werror"
+    fi
+fi
+
+case "$host" in
+    *-ios-*|*-*-darwin* )
+        AC_MSG_CHECKING(for GCC -Wno-error=deprecated-declarations option)
+        have_gcc_wno_error_deprecated_declarations=no
+
+        save_CFLAGS="$CFLAGS"
+        CFLAGS="$save_CFLAGS -Wno-error=deprecated-declarations"
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+        int x = 0;
+        ]],[])], [have_gcc_wno_error_deprecated_declarations=yes],[])
+        AC_MSG_RESULT($have_gcc_werror)
+        CFLAGS="$save_CFLAGS"
+
+        if test x$have_gcc_wno_error_deprecated_declarations = xyes; then
+            EXTRA_CFLAGS="$EXTRA_CFLAGS -Wno-error=deprecated-declarations"
+        fi
+    	;;
+esac
+
+AC_SUBST(OPENGLES1_TARGETS)
+AC_SUBST(OPENGLES2_TARGETS)
+AC_SUBST(OPENGL_TARGETS)
 AC_SUBST(GLLIB)
 AC_SUBST(GLESLIB)
 AC_SUBST(GLES2LIB)
@@ -187,5 +274,16 @@ if test x$have_SDL_ttf = xyes; then
 fi
 AC_SUBST(SDL_TTF_LIB)
 
+dnl Really, SDL2_test should be linking against libunwind (if it found
+dnl libunwind.h when configured), but SDL2_test is a static library, so
+dnl there's no way for it to link against it. We could make SDL2 depend on
+dnl it, but we don't want all SDL2 build to suddenly gain an extra dependency,
+dnl so just assume that if it's here now, SDL2_test was probably built with it.
+PKG_CHECK_MODULES(LIBUNWIND, libunwind, have_libunwind=yes, have_libunwind=no)
+if test x$have_libunwind = xyes ; then
+   LIBS="$LIBS $LIBUNWIND_LIBS"
+fi
+
 dnl Finally create all the generated files
-AC_OUTPUT([Makefile])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT

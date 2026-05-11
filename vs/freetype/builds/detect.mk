@@ -3,7 +3,7 @@
 #
 
 
-# Copyright 1996-2018 by
+# Copyright (C) 1996-2023 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -16,7 +16,7 @@
 # This sub-Makefile is in charge of detecting the current platform.  It sets
 # the following variables:
 #
-#   BUILD_DIR    The configuration and system-specific directory.  Usually
+#   PLATFORM_DIR The configuration and system-specific directory.  Usually
 #                `builds/$(PLATFORM)' but can be different for custom builds
 #                of the library.
 #
@@ -49,8 +49,8 @@ SEP          := /
 BUILD_CONFIG := $(TOP_DIR)/builds
 
 # These two assignments must be delayed.
-BUILD_DIR    = $(BUILD_CONFIG)/$(PLATFORM)
-CONFIG_RULES = $(BUILD_DIR)/$(CONFIG_FILE)
+PLATFORM_DIR = $(BUILD_CONFIG)/$(PLATFORM)
+CONFIG_RULES = $(PLATFORM_DIR)/$(CONFIG_FILE)
 
 # We define the BACKSLASH variable to hold a single back-slash character.
 # This is needed because a line like
@@ -113,14 +113,14 @@ std_setup:
 	$(info )
 	$(info $(empty)  platform                    $(PLATFORM))
 	$(info $(empty)  compiler                    $(CC))
-	$(info $(empty)  configuration directory     $(subst /,$(SEP),$(BUILD_DIR)))
+	$(info $(empty)  configuration directory     $(subst /,$(SEP),$(PLATFORM_DIR)))
 	$(info $(empty)  configuration rules         $(subst /,$(SEP),$(CONFIG_RULES)))
 	$(info )
 	$(info If this does not correspond to your system or settings please remove the file)
 	$(info `$(CONFIG_MK)' from this directory then read the INSTALL file for help.)
 	$(info )
 	$(info Otherwise, simply type `$(MAKE)' again to build the library,)
-	$(info or `$(MAKE) refdoc' to build the API reference (this needs python >= 2.6).)
+	$(info or `$(MAKE) refdoc' to build the API reference (this needs Python >= 3.5).)
 	$(info )
 	@$(COPY) $(subst /,$(SEP),$(CONFIG_RULES) $(CONFIG_MK))
 

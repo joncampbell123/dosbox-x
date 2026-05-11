@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -48,7 +48,7 @@ const File::SHA1Digest &AbstractFile::getSHA1() {
 		return sha1Digest;
 	}
 
-	const uint8_t *data = getData();
+	const Bit8u *data = getData();
 	if (data == NULL) {
 		return sha1Digest;
 	}
@@ -60,17 +60,17 @@ const File::SHA1Digest &AbstractFile::getSHA1() {
 	return sha1Digest;
 }
 
-ArrayFile::ArrayFile(const uint8_t *useData, size_t useSize) : data(useData), size(useSize)
+ArrayFile::ArrayFile(const Bit8u *useData, size_t useSize) : data(useData), size(useSize)
 {}
 
-ArrayFile::ArrayFile(const uint8_t *useData, size_t useSize, const SHA1Digest &useSHA1Digest) : AbstractFile(useSHA1Digest), data(useData), size(useSize)
+ArrayFile::ArrayFile(const Bit8u *useData, size_t useSize, const SHA1Digest &useSHA1Digest) : AbstractFile(useSHA1Digest), data(useData), size(useSize)
 {}
 
 size_t ArrayFile::getSize() {
 	return size;
 }
 
-const uint8_t *ArrayFile::getData() {
+const Bit8u *ArrayFile::getData() {
 	return data;
 }
 

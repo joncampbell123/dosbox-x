@@ -508,7 +508,7 @@ struct FM_OPL
 				case EG_SUS:    /* sustain phase */
 
 					/* this is important behaviour:
-					one can change percusive/non-percussive modes on the fly and
+					one can change percussive/non-percussive modes on the fly and
 					the chip will remain in sustain phase - verified on real YM3812 */
 
 					if(op.eg_type)     /* non-percussive mode */
@@ -1710,7 +1710,7 @@ void FM_OPL::WriteReg(int r, int v)
 			/* BLK 2,1,0 bits -> bits 3,2,1 of kcode */
 			CH->kcode    = (CH->block_fnum&0x1c00)>>9;
 
-				/* the info below is actually opposite to what is stated in the Manuals (verifed on real YM3812) */
+				/* the info below is actually opposite to what is stated in the Manuals (verified on real YM3812) */
 			/* if notesel == 0 -> lsb of kcode is bit 10 (MSB) of fnum  */
 			/* if notesel == 1 -> lsb of kcode is bit 9 (MSB-1) of fnum */
 			if (mode&0x40)
@@ -1964,7 +1964,7 @@ static FM_OPL *OPLCreate(device_t *device, uint32_t clock, uint32_t rate, int ty
 	FM_OPL *OPL;
 	int state_size;
 
-	if (FM_OPL::LockTable(device) == -1) return 0;
+	if (FM_OPL::LockTable(device) == -1) return nullptr;
 
 	/* calculate OPL state size */
 	state_size  = sizeof(FM_OPL);
@@ -2100,7 +2100,7 @@ static unsigned char OPLRead(FM_OPL *OPL,int a)
 	return 0xff;
 }
 
-/* CSM Key Controll */
+/* CSM Key Control */
 static inline void CSMKeyControll(OPL_CH *CH)
 {
 	CH->SLOT[SLOT1].KEYON(4);
@@ -2121,7 +2121,7 @@ static int OPLTimerOver(FM_OPL *OPL,int c)
 	else
 	{   /* Timer A */
 		OPL->STATUS_SET(0x40);
-		/* CSM mode key,TL controll */
+		/* CSM mode key,TL control */
 		if( OPL->mode & 0x80 )
 		{   /* CSM mode total level latch and auto key on */
 			int ch;

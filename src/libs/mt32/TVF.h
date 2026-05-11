@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -33,25 +33,25 @@ private:
 	LA32Ramp *cutoffModifierRamp;
 	const TimbreParam::PartialParam *partialParam;
 
-	uint8_t baseCutoff;
+	Bit8u baseCutoff;
 	int keyTimeSubtraction;
 	unsigned int levelMult;
 
-	uint8_t target;
+	Bit8u target;
 	unsigned int phase;
 
-	void startRamp(uint8_t newTarget, uint8_t newIncrement, int newPhase);
+	void startRamp(Bit8u newTarget, Bit8u newIncrement, int newPhase);
 	void nextPhase();
 
 public:
 	TVF(const Partial *partial, LA32Ramp *cutoffModifierRamp);
-	void reset(const TimbreParam::PartialParam *partialParam, uint32_t basePitch);
+	void reset(const TimbreParam::PartialParam *partialParam, Bit32u basePitch);
 	// Returns the base cutoff (without envelope modification).
 	// The base cutoff is calculated when reset() is called and remains static
 	// for the lifetime of the partial.
 	// Barring bugs, the number returned is confirmed accurate
 	// (based on specs from Mok).
-	uint8_t getBaseCutoff() const;
+	Bit8u getBaseCutoff() const;
 	void handleInterrupt();
 	void startDecay();
 }; // class TVF

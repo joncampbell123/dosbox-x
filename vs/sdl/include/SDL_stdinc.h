@@ -28,7 +28,9 @@
 #define _SDL_stdinc_h
 
 #include "SDL_config.h"
-
+#if defined(__LINUX__) && !defined(SDL_VIDEO_DRIVER_X11)
+#undef ENABLE_IM_EVENT
+#endif
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>

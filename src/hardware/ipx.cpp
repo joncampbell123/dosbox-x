@@ -24,6 +24,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+#include <assert.h>
 #include "cross.h"
 #include "logging.h"
 #include "support.h"
@@ -38,13 +39,22 @@
 #include "ipx.h"
 #include "ipxserver.h"
 #include "timer.h"
+#if defined(C_SDL2_NET) && C_SDL2_NET
+#include <SDL2/SDL_net.h>
+#else
 #include "SDL_net.h"
+#endif
 #include "programs.h"
 #include "pic.h"
 #include "control.h"
 #include "setup.h"
 
 #define SOCKTABLESIZE	150 // DOS IPX driver was limited to 150 open sockets
+
+extern bool ne2k_ipx_redirect;
+
+bool NE2K_IsInit(void);
+bool NE2K_GetMacAddress(unsigned char *buf);
 
 struct ipxnetaddr {
 	Uint8 netnum[4];   // Both are big endian
@@ -92,9 +102,11 @@ Bitu ECBAmount = 0;
 
 
 ECBClass::ECBClass(uint16_t segment, uint16_t offset) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
+
 	ECBAddr = RealMake(segment, offset);
-	databuffer = 0;
-	
+	databuffer = nullptr;
+
 #ifdef IPX_DEBUGMSG
 	SerialNumber = ECBSerialNumber;
 	ECBSerialNumber++;
@@ -128,13 +140,15 @@ ECBClass::ECBClass(uint16_t segment, uint16_t offset) {
 	mysocket = getSocket();
 }
 void ECBClass::writeDataBuffer(uint8_t* buffer, uint16_t length) {
-	if(databuffer!=0) delete [] databuffer;
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
+	if (databuffer) delete[] databuffer;
 	databuffer = new uint8_t[length];
 	memcpy(databuffer,buffer,length);
 	buflen=length;
 
 }
 bool ECBClass::writeData() {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	Bitu length=buflen;
 	uint8_t* buffer = databuffer;
 	fragmentDescriptor tmpFrag;
@@ -161,27 +175,33 @@ bool ECBClass::writeData() {
 }
 
 uint16_t ECBClass::getSocket(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	return swapByte(real_readw(RealSeg(ECBAddr), RealOff(ECBAddr) + 0xa));
 }
 
 uint8_t ECBClass::getInUseFlag(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	return real_readb(RealSeg(ECBAddr), RealOff(ECBAddr) + 0x8);
 }
 
 void ECBClass::setInUseFlag(uint8_t flagval) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	iuflag = flagval;
 	real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr) + 0x8, flagval);
 }
 
 void ECBClass::setCompletionFlag(uint8_t flagval) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr) + 0x9, flagval);
 }
 
 uint16_t ECBClass::getFragCount(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	return real_readw(RealSeg(ECBAddr), RealOff(ECBAddr) + 34);
 }
 
 void ECBClass::getFragDesc(uint16_t descNum, fragmentDescriptor *fragDesc) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	uint16_t memoff = RealOff(ECBAddr) + 30 + ((descNum+1) * 6);
 	fragDesc->offset = real_readw(RealSeg(ECBAddr), memoff);
 	memoff += 2;
@@ -191,6 +211,7 @@ void ECBClass::getFragDesc(uint16_t descNum, fragmentDescriptor *fragDesc) {
 }
 
 RealPt ECBClass::getESRAddr(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	return RealMake(real_readw(RealSeg(ECBAddr),
 		RealOff(ECBAddr)+6),
 		real_readw(RealSeg(ECBAddr),
@@ -198,6 +219,7 @@ RealPt ECBClass::getESRAddr(void) {
 }
 
 void ECBClass::NotifyESR(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	uint32_t ESRval = real_readd(RealSeg(ECBAddr), RealOff(ECBAddr)+4);
 	if(ESRval || databuffer) { // databuffer: write data at realmode/v86 time
 		// LOG_IPX("ECB: SN%7d to be notified.", SerialNumber);
@@ -232,11 +254,13 @@ void ECBClass::NotifyESR(void) {
 }
 
 void ECBClass::setImmAddress(uint8_t *immAddr) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	for(uint8_t i=0;i<6;i++)
 		real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr)+28+i, immAddr[i]);
 }
 
 void ECBClass::getImmAddress(uint8_t* immAddr) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	for(uint8_t i=0;i<6;i++)
 		immAddr[i] = real_readb(RealSeg(ECBAddr), RealOff(ECBAddr)+28+i);
 }
@@ -259,7 +283,7 @@ ECBClass::~ECBClass() {
 			if(nextECB != NULL) nextECB->prevECB = prevECB;
 		}
 	}
-	if(databuffer!=0) delete [] databuffer;
+	if (databuffer) delete[] databuffer;
 }
 
 
@@ -304,10 +328,32 @@ static void OpenSocket(void) {
 	reg_dx = swapByte(sockNum);  // Convert back to big-endian
 }
 
+static void DumpAllSockets(void) {
+	/* This is called for booting the guest OS.
+	 * Managing IPX socket state in memory is not a good idea once a guest OS is running. */
+	ECBClass* tmpECB = ECBList;
+	ECBClass* tmp2ECB = ECBList;
+
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
+
+	LOG(LOG_MISC,LOG_DEBUG)("IPX: Dumping all active sockets");
+	while (tmpECB) {
+		tmp2ECB = tmpECB->nextECB;
+		tmpECB->setCompletionFlag(COMP_CANCELLED);
+		tmpECB->setInUseFlag(USEFLAG_AVAILABLE);
+		delete tmpECB;
+		tmpECB = tmp2ECB;
+	}
+
+	ECBList = NULL;
+}
+
 static void CloseSocket(void) {
 	uint16_t sockNum, i;
 	ECBClass* tmpECB = ECBList;
 	ECBClass* tmp2ECB = ECBList;
+
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 
 	sockNum = swapByte(reg_dx);
 	if(!sockInUse(sockNum)) return;
@@ -322,11 +368,16 @@ static void CloseSocket(void) {
 	--socketCount;
 	
 	// delete all ECBs of that socket
-	while(tmpECB!=0) {
+	while (tmpECB) {
 		tmp2ECB = tmpECB->nextECB;
 		if(tmpECB->getSocket()==sockNum) {
 			tmpECB->setCompletionFlag(COMP_CANCELLED);
 			tmpECB->setInUseFlag(USEFLAG_AVAILABLE);
+
+			/* If we're about to delete the head of the list, update ECBList to the next entry to avoid possible use-after-free bugs.
+			 * If the next entry is NULL, then the list is now empty. */
+			if (ECBList == tmpECB) ECBList = tmp2ECB;
+
 			delete tmpECB;
 		}
 		tmpECB = tmp2ECB;
@@ -336,6 +387,7 @@ static void CloseSocket(void) {
 //static RealPt IPXVERpointer;
 
 static bool IPX_Multiplex(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	if(reg_ax != 0x7a00) return false;
 	reg_al = 0xff;
 	SegSet16(es,RealSeg(ipx_callback));
@@ -348,9 +400,10 @@ static bool IPX_Multiplex(void) {
 
 static void IPX_AES_EventHandler(Bitu param)
 {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	ECBClass* tmpECB = ECBList;
 	ECBClass* tmp2ECB;
-	while(tmpECB!=0) {
+	while (tmpECB) {
 		tmp2ECB = tmpECB->nextECB;
 		if(tmpECB->iuflag==USEFLAG_AESCOUNT && param==(Bitu)tmpECB->ECBAddr) {
 			tmpECB->setCompletionFlag(COMP_SUCCESS);
@@ -361,13 +414,15 @@ static void IPX_AES_EventHandler(Bitu param)
 		}
 		tmpECB = tmp2ECB;
 	}
-	LOG_MSG("!!!! Rouge AES !!!!" );
+	LOG_MSG("!!!! Rogue AES !!!!" );
 }
 
 static void sendPacket(ECBClass* sendecb);
 
 static void handleIpxRequest(void) {
 	ECBClass *tmpECB;
+
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 
 	switch (reg_bx) {
 		case 0x0000:	// Open socket
@@ -564,6 +619,8 @@ static void pingSend(void) {
 	}
 }
 
+void NE2K_IncomingIPX(const unsigned char *buf,unsigned int len);
+
 static void receivePacket(uint8_t *buffer, int16_t bufSize) {
 	ECBClass *useECB;
 	ECBClass *nextECB;
@@ -571,6 +628,11 @@ static void receivePacket(uint8_t *buffer, int16_t bufSize) {
 	uint16_t useSocket = swapByte(bufword[8]);
 	IPXHeader * tmpHeader;
 	tmpHeader = (IPXHeader *)buffer;
+
+	if (ne2k_ipx_redirect) {
+		NE2K_IncomingIPX(buffer,bufSize);
+		return;
+	}
 
 	// Check to see if ping packet
 	if(useSocket == 0x2) {
@@ -621,6 +683,25 @@ void DisconnectFromServer(bool unexpected) {
 	}
 }
 
+void ethernetSendToIPX(const unsigned char *outptr, unsigned int outlen, unsigned int vari) {
+	UDPpacket outPacket;
+	Bits result;
+
+	(void)vari;
+
+	outPacket.channel = UDPChannel;
+	outPacket.data = (unsigned char*)outptr;
+	outPacket.len = outlen;
+	outPacket.maxlen = outlen;
+	// Since we're using a channel, we won't send the IP address again
+	result = SDLNet_UDP_Send(ipxClientSocket, UDPChannel, &outPacket);
+
+	if(result == 0) {
+		LOG_MSG("IPX: Could not send packet: %s", SDLNet_GetError());
+		DisconnectFromServer(true);
+	}
+}
+
 static void sendPacket(ECBClass* sendecb) {
 	uint8_t outbuffer[IPXBUFFERSIZE];
 	fragmentDescriptor tmpFrag; 
@@ -629,7 +710,9 @@ static void sendPacket(ECBClass* sendecb) {
 	uint16_t *wordptr;
 	Bits result;
 	UDPpacket outPacket;
-		
+
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
+
 	sendecb->setInUseFlag(USEFLAG_AVAILABLE);
 	packetsize = 0;
 	fragCount = sendecb->getFragCount(); 
@@ -685,7 +768,7 @@ static void sendPacket(ECBClass* sendecb) {
 	uint8_t immedAddr[6];
 	sendecb->getImmAddress(immedAddr);
 	// filter out broadcasts and local loopbacks
-	// Real implementation uses the ImmedAddr to check wether this is a broadcast
+	// Real implementation uses the ImmedAddr to check whether this is a broadcast
 
 	bool islocalbroadcast=true;
 	bool isloopback=true;
@@ -752,8 +835,10 @@ static bool pingCheck(IPXHeader * outHeader) {
 bool ConnectToServer(char const *strAddr) {
 	int numsent;
 	UDPpacket regPacket;
-	IPXHeader regHeader;
 	if(!SDLNet_ResolveHost(&ipxServConnIp, strAddr, (uint16_t)udpPort)) {
+		size_t regHeaderSz = sizeof(IPXHeader);
+		unsigned char regHeaderRaw[sizeof(IPXHeader)+12];
+		IPXHeader &regHeader = *((IPXHeader*)regHeaderRaw);
 
 		// Generate the MAC address.  This is made by zeroing out the first two
 		// octets and then using the actual IP address for the last 4 octets.
@@ -766,6 +851,7 @@ bool ConnectToServer(char const *strAddr) {
 			// Bind UDP port to address to channel
 			UDPChannel = SDLNet_UDP_Bind(ipxClientSocket,-1,&ipxServConnIp);
 			//ipxClientSocket = SDLNet_TCP_Open(&ipxServConnIp);
+			memset(&regHeader,0,sizeof(regHeader));
 			SDLNet_Write16(0xffff, regHeader.checkSum);
 			SDLNet_Write16(sizeof(regHeader), regHeader.length);
 
@@ -781,9 +867,20 @@ bool ConnectToServer(char const *strAddr) {
 			SDLNet_Write16(0x2, regHeader.src.socket);
 			regHeader.transControl = 0;
 
-			regPacket.data = (Uint8 *)&regHeader;
-			regPacket.len = sizeof(regHeader);
-			regPacket.maxlen = sizeof(regHeader);
+			if (NE2K_IsInit()) {
+				static_assert(sizeof(regHeader) == 30,"Oops");
+				static_assert(sizeof(regHeaderRaw) >= 36,"Oops");
+				if (NE2K_GetMacAddress(regHeaderRaw+30)) {
+					// Specify the MAC address we want to use (DOSBox-X server extension)
+					LOG(LOG_MISC,LOG_DEBUG)("IPX: NE2000 emulation active, using NE2000 MAC address if supported by IPX server.");
+					regHeader.transControl = (unsigned char)'M';
+					regHeaderSz += 6;
+				}
+			}
+
+			regPacket.data = (Uint8*)regHeaderRaw;
+			regPacket.len = regHeaderSz;
+			regPacket.maxlen = regHeaderSz;
 			regPacket.channel = UDPChannel;
 			// Send registration string to server.  If server doesn't get
 			// this, client will not be registered
@@ -910,7 +1007,7 @@ public:
 		}
 	}
 
-	void Run(void)
+	void Run(void) override
 	{
 		WriteOut("IPX Tunneling utility for DOSBox-X\n\n");
 		if(!cmd->GetCount()) {
@@ -1169,6 +1266,28 @@ public:
 		ipx_init = true;
 	}
 
+	void RemoveISR(void) {
+		if (old_73_vector != 0) {
+			LOG(LOG_MISC,LOG_DEBUG)("IPX: Removing ISR handler from interrupt");
+			RealSetVec(0x73,old_73_vector);
+			IO_WriteB(0xa1,IO_ReadB(0xa1)|8);	// disable IRQ11
+			old_73_vector = 0;
+		}
+
+		/* The ISR was contained in dospage.
+		 * The most likely reason for this call is that the emulator is booting a guest OS.
+		 * In that case it is pointless to hold onto dospage because DOS memory allocation has
+		 * no meaning once a guest OS is running. */
+		if (dospage != 0) {
+			LOG(LOG_MISC,LOG_DEBUG)("IPX: Freeing DOS memory used to hold ISR");
+			PhysPt phyDospage = PhysMake(dospage,0);
+			for(uint8_t i = 0;i < 32;i++)
+				phys_writeb(phyDospage+i,(uint8_t)0x00);
+
+			dospage = 0;
+		}
+	}
+
 	~IPX() {
 		// FIXME: This now gets called at DOSBox exit.
 		//        We should do this elsewhere, such as booting a guest OS or "power off"
@@ -1182,25 +1301,50 @@ public:
 		DisconnectFromServer(false);
 
 		DOS_DelMultiplexHandler(IPX_Multiplex);
-		RealSetVec(0x73,old_73_vector);
-		IO_WriteB(0xa1,IO_ReadB(0xa1)|8);	// disable IRQ11
-   
-		PhysPt phyDospage = PhysMake(dospage,0);
-		for(uint8_t i = 0;i < 32;i++)
-			phys_writeb(phyDospage+i,(uint8_t)0x00);
+		RemoveISR();
 
 		if (addipx) VFILE_Remove("IPXNET.COM","SYSTEM");
 	}
 };
 
-static IPX* test;
+static IPX* test = NULL;
+
+void IPX_DOSBeginExit(Section*) {
+	if (test != NULL) {
+		DumpAllSockets(); /* dump and notify all sockets first */
+	}
+}
+
+void IPX_DOSExit(Section*) {
+	if (test != NULL) {
+		test->RemoveISR(); /* Remove ISR but keep IPX tunnel open */
+		if ((incomingPacket.connected || isIpxServer) && NE2K_IsInit()) {
+			LOG(LOG_MISC,LOG_DEBUG)("IPX: Leaving connection open and switching on NE2000 IPX redirection");
+			ne2k_ipx_redirect = true;
+		}
+	}
+}
 
 void IPX_ShutDown(Section*) {
-	delete test;    
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
+	ne2k_ipx_redirect = false;
 }
 
 void IPX_OnReset(Section*) {
+	/* reset signal */
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
+	ne2k_ipx_redirect = false;
+}
+
+void IPX_Setup(Section*) {
 	if (test == NULL) {
+		ne2k_ipx_redirect = false;
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating IPX emulation");
 		test = new IPX(control->GetSection("ipx"));
 	}
@@ -1211,6 +1355,8 @@ void IPX_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(IPX_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IPX_OnReset));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(IPX_DOSBeginExit));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_KERNEL,AddVMEventFunctionFuncPair(IPX_DOSExit));
 }
 
 #endif

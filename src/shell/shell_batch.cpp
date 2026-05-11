@@ -30,16 +30,9 @@ BatchFile::BatchFile(DOS_Shell * host,char const * const resolved_name,char cons
 	echo=host->echo;
 	shell=host;
 	char totalname[DOS_PATHLENGTH+4];
-	DOS_Canonicalize(resolved_name,totalname); // Get fullname including drive specificiation
+	DOS_Canonicalize(resolved_name,totalname); // Get fullname including drive specification
 	cmd = new CommandLine(entered_name,cmd_line);
 	filename = totalname;
-
-	//Test if file is openable
-	if (!DOS_OpenFile(totalname,(DOS_NOT_INHERIT|OPEN_READ),&file_handle)) {
-		//TODO Come up with something better
-		E_Exit("SHELL:Can't open BatchFile %s",totalname);
-	}
-	DOS_CloseFile(file_handle);
 }
 
 BatchFile::~BatchFile() {
@@ -49,7 +42,7 @@ BatchFile::~BatchFile() {
 }
 
 bool BatchFile::ReadLine(char * line) {
-	//Open the batchfile and seek to stored postion
+	//Open the batchfile and seek to stored position
 	if (!DOS_OpenFile(filename.c_str(),(DOS_NOT_INHERIT|OPEN_READ),&file_handle)) {
 		LOG(LOG_MISC,LOG_ERROR)("ReadLine Can't open BatchFile %s",filename.c_str());
 		delete this;
@@ -66,6 +59,13 @@ emptyline:
 		n=1;
 		DOS_ReadFile(file_handle,&c,&n);
 		if (n>0) {
+			if (c==0x1a) {
+				// Stop at EOF character
+				n=0;
+				this->location=0;
+				DOS_SeekFile(file_handle,&(this->location),DOS_SEEK_END);
+				break;
+			}
 			/* Why are we filtering this ?
 			 * Exclusion list: tab for batch files 
 			 * escape for ansi
@@ -132,7 +132,7 @@ emptyline:
 				/* Not a command line number has to be an environment */
 				char * first = strchr(cmd_read,'%');
 
-				/* No env afterall. Ignore a single % */
+				/* No env after all. Ignore a single % */
 				if (!first) {
 					/* *cmd_write++ = '%';*/
 					//check if input contains cycles + max/auto  and that next character is space or empty

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,9 +20,9 @@
 */
 
 /**
- *  \file SDL_events.h
+ * # CategoryEvents
  *
- *  Include file for SDL event handling.
+ * Include file for SDL event handling.
  */
 
 #ifndef SDL_events_h_
@@ -50,9 +50,9 @@ extern "C" {
 #define SDL_PRESSED 1
 
 /**
- * \brief The types of events that can be delivered.
+ * The types of events that can be delivered.
  */
-typedef enum
+typedef enum SDL_EventType
 {
     SDL_FIRSTEVENT     = 0,     /**< Unused (do not remove) */
 
@@ -85,6 +85,8 @@ typedef enum
                                      Called on Android in onResume()
                                 */
 
+    SDL_LOCALECHANGED,  /**< The user's locale preferences have changed. */
+
     /* Display events */
     SDL_DISPLAYEVENT   = 0x150,  /**< Display state change */
 
@@ -100,6 +102,7 @@ typedef enum
     SDL_KEYMAPCHANGED,          /**< Keymap changed due to a system event such as an
                                      input language or keyboard layout change.
                                 */
+    SDL_TEXTEDITING_EXT,       /**< Extended keyboard text editing (composition) */
 
     /* Mouse events */
     SDL_MOUSEMOTION    = 0x400, /**< Mouse moved */
@@ -115,6 +118,7 @@ typedef enum
     SDL_JOYBUTTONUP,            /**< Joystick button released */
     SDL_JOYDEVICEADDED,         /**< A new joystick has been inserted into the system */
     SDL_JOYDEVICEREMOVED,       /**< An opened joystick has been removed */
+    SDL_JOYBATTERYUPDATED,      /**< Joystick battery level change */
 
     /* Game controller events */
     SDL_CONTROLLERAXISMOTION  = 0x650, /**< Game controller axis motion */
@@ -123,6 +127,12 @@ typedef enum
     SDL_CONTROLLERDEVICEADDED,         /**< A new Game controller has been inserted into the system */
     SDL_CONTROLLERDEVICEREMOVED,       /**< An opened Game controller has been removed */
     SDL_CONTROLLERDEVICEREMAPPED,      /**< The controller mapping was updated */
+    SDL_CONTROLLERTOUCHPADDOWN,        /**< Game controller touchpad was touched */
+    SDL_CONTROLLERTOUCHPADMOTION,      /**< Game controller touchpad finger was moved */
+    SDL_CONTROLLERTOUCHPADUP,          /**< Game controller touchpad finger was lifted */
+    SDL_CONTROLLERSENSORUPDATE,        /**< Game controller sensor was updated */
+    SDL_CONTROLLERUPDATECOMPLETE_RESERVED_FOR_SDL3,
+    SDL_CONTROLLERSTEAMHANDLEUPDATED,  /**< Game controller Steam handle has changed */
 
     /* Touch events */
     SDL_FINGERDOWN      = 0x700,
@@ -135,7 +145,7 @@ typedef enum
     SDL_MULTIGESTURE,
 
     /* Clipboard events */
-    SDL_CLIPBOARDUPDATE = 0x900, /**< The clipboard changed */
+    SDL_CLIPBOARDUPDATE = 0x900, /**< The clipboard or primary selection changed */
 
     /* Drag and drop events */
     SDL_DROPFILE        = 0x1000, /**< The system requests a file open */
@@ -154,7 +164,10 @@ typedef enum
     SDL_RENDER_TARGETS_RESET = 0x2000, /**< The render targets have been reset and their contents need to be updated */
     SDL_RENDER_DEVICE_RESET, /**< The device has been reset and all textures need to be recreated */
 
-    /** Events ::SDL_USEREVENT through ::SDL_LASTEVENT are for your use,
+    /* Internal events */
+    SDL_POLLSENTINEL = 0x7F00, /**< Signals the end of an event poll cycle */
+
+    /** Events SDL_USEREVENT through SDL_LASTEVENT are for your use,
      *  and should be allocated with SDL_RegisterEvents()
      */
     SDL_USEREVENT    = 0x8000,
@@ -166,7 +179,7 @@ typedef enum
 } SDL_EventType;
 
 /**
- *  \brief Fields shared by every event
+ * Fields shared by every event
  */
 typedef struct SDL_CommonEvent
 {
@@ -175,14 +188,14 @@ typedef struct SDL_CommonEvent
 } SDL_CommonEvent;
 
 /**
- *  \brief Display state change event data (event.display.*)
+ * Display state change event data (event.display.*)
  */
 typedef struct SDL_DisplayEvent
 {
-    Uint32 type;        /**< ::SDL_DISPLAYEVENT */
+    Uint32 type;        /**< SDL_DISPLAYEVENT */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 display;     /**< The associated display index */
-    Uint8 event;        /**< ::SDL_DisplayEventID */
+    Uint8 event;        /**< SDL_DisplayEventID */
     Uint8 padding1;
     Uint8 padding2;
     Uint8 padding3;
@@ -190,14 +203,14 @@ typedef struct SDL_DisplayEvent
 } SDL_DisplayEvent;
 
 /**
- *  \brief Window state change event data (event.window.*)
+ * Window state change event data (event.window.*)
  */
 typedef struct SDL_WindowEvent
 {
-    Uint32 type;        /**< ::SDL_WINDOWEVENT */
+    Uint32 type;        /**< SDL_WINDOWEVENT */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 windowID;    /**< The associated window */
-    Uint8 event;        /**< ::SDL_WindowEventID */
+    Uint8 event;        /**< SDL_WindowEventID */
     Uint8 padding1;
     Uint8 padding2;
     Uint8 padding3;
@@ -206,14 +219,14 @@ typedef struct SDL_WindowEvent
 } SDL_WindowEvent;
 
 /**
- *  \brief Keyboard button event structure (event.key.*)
+ * Keyboard button event structure (event.key.*)
  */
 typedef struct SDL_KeyboardEvent
 {
-    Uint32 type;        /**< ::SDL_KEYDOWN or ::SDL_KEYUP */
+    Uint32 type;        /**< SDL_KEYDOWN or SDL_KEYUP */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 windowID;    /**< The window with keyboard focus, if any */
-    Uint8 state;        /**< ::SDL_PRESSED or ::SDL_RELEASED */
+    Uint8 state;        /**< SDL_PRESSED or SDL_RELEASED */
     Uint8 repeat;       /**< Non-zero if this is a key repeat */
     Uint8 padding2;
     Uint8 padding3;
@@ -221,12 +234,13 @@ typedef struct SDL_KeyboardEvent
 } SDL_KeyboardEvent;
 
 #define SDL_TEXTEDITINGEVENT_TEXT_SIZE (32)
+
 /**
- *  \brief Keyboard text editing event structure (event.edit.*)
+ * Keyboard text editing event structure (event.edit.*)
  */
 typedef struct SDL_TextEditingEvent
 {
-    Uint32 type;                                /**< ::SDL_TEXTEDITING */
+    Uint32 type;                                /**< SDL_TEXTEDITING */
     Uint32 timestamp;                           /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 windowID;                            /**< The window with keyboard focus, if any */
     char text[SDL_TEXTEDITINGEVENT_TEXT_SIZE];  /**< The editing text */
@@ -234,25 +248,57 @@ typedef struct SDL_TextEditingEvent
     Sint32 length;                              /**< The length of selected editing text */
 } SDL_TextEditingEvent;
 
-
-#define SDL_TEXTINPUTEVENT_TEXT_SIZE (32)
 /**
- *  \brief Keyboard text input event structure (event.text.*)
+ * Extended keyboard text editing event structure (event.editExt.*) when text
+ * would be truncated if stored in the text buffer SDL_TextEditingEvent
+ */
+typedef struct SDL_TextEditingExtEvent
+{
+    Uint32 type;                                /**< SDL_TEXTEDITING_EXT */
+    Uint32 timestamp;                           /**< In milliseconds, populated using SDL_GetTicks() */
+    Uint32 windowID;                            /**< The window with keyboard focus, if any */
+    char* text;                                 /**< The editing text, which should be freed with SDL_free(), and will not be NULL */
+    Sint32 start;                               /**< The start cursor of selected editing text */
+    Sint32 length;                              /**< The length of selected editing text */
+} SDL_TextEditingExtEvent;
+
+/**
+ * The maximum bytes of text that can be supplied in an SDL_TextInputEvent.
+ */
+#define SDL_TEXTINPUTEVENT_TEXT_SIZE (32)
+
+/**
+ * Keyboard text input event structure (event.text.*)
+ *
+ * `text` is limited to SDL_TEXTINPUTEVENT_TEXT_SIZE bytes. If the incoming
+ * string is larger than this, SDL will split it and send it in pieces, across
+ * multiple events. The string is in UTF-8 format, and if split, SDL
+ * guarantees that it will not split in the middle of a UTF-8 sequence, so any
+ * event will only contain complete codepoints. However, if there are several
+ * codepoints that go together into a single glyph (like an emoji "thumbs up"
+ * followed by a skin color), they may be split between events.
+ *
+ * This event will never be delivered unless text input is enabled by calling
+ * SDL_StartTextInput(). Text input is enabled by default on desktop
+ * platforms, and disabled by default on mobile platforms!
+ *
+ * \sa SDL_StartTextInput
+ * \sa SDL_StopTextInput
  */
 typedef struct SDL_TextInputEvent
 {
-    Uint32 type;                              /**< ::SDL_TEXTINPUT */
+    Uint32 type;                              /**< SDL_TEXTINPUT */
     Uint32 timestamp;                         /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 windowID;                          /**< The window with keyboard focus, if any */
-    char text[SDL_TEXTINPUTEVENT_TEXT_SIZE];  /**< The input text */
+    char text[SDL_TEXTINPUTEVENT_TEXT_SIZE];  /**< The input text; UTF-8 encoded. */
 } SDL_TextInputEvent;
 
 /**
- *  \brief Mouse motion event structure (event.motion.*)
+ * Mouse motion event structure (event.motion.*)
  */
 typedef struct SDL_MouseMotionEvent
 {
-    Uint32 type;        /**< ::SDL_MOUSEMOTION */
+    Uint32 type;        /**< SDL_MOUSEMOTION */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 windowID;    /**< The window with mouse focus, if any */
     Uint32 which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
@@ -264,16 +310,16 @@ typedef struct SDL_MouseMotionEvent
 } SDL_MouseMotionEvent;
 
 /**
- *  \brief Mouse button event structure (event.button.*)
+ * Mouse button event structure (event.button.*)
  */
 typedef struct SDL_MouseButtonEvent
 {
-    Uint32 type;        /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */
+    Uint32 type;        /**< SDL_MOUSEBUTTONDOWN or SDL_MOUSEBUTTONUP */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 windowID;    /**< The window with mouse focus, if any */
     Uint32 which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
     Uint8 button;       /**< The mouse button index */
-    Uint8 state;        /**< ::SDL_PRESSED or ::SDL_RELEASED */
+    Uint8 state;        /**< SDL_PRESSED or SDL_RELEASED */
     Uint8 clicks;       /**< 1 for single-click, 2 for double-click, etc. */
     Uint8 padding1;
     Sint32 x;           /**< X coordinate, relative to window */
@@ -281,25 +327,29 @@ typedef struct SDL_MouseButtonEvent
 } SDL_MouseButtonEvent;
 
 /**
- *  \brief Mouse wheel event structure (event.wheel.*)
+ * Mouse wheel event structure (event.wheel.*)
  */
 typedef struct SDL_MouseWheelEvent
 {
-    Uint32 type;        /**< ::SDL_MOUSEWHEEL */
+    Uint32 type;        /**< SDL_MOUSEWHEEL */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 windowID;    /**< The window with mouse focus, if any */
     Uint32 which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
     Sint32 x;           /**< The amount scrolled horizontally, positive to the right and negative to the left */
     Sint32 y;           /**< The amount scrolled vertically, positive away from the user and negative toward the user */
     Uint32 direction;   /**< Set to one of the SDL_MOUSEWHEEL_* defines. When FLIPPED the values in X and Y will be opposite. Multiply by -1 to change them back */
+    float preciseX;     /**< The amount scrolled horizontally, positive to the right and negative to the left, with float precision (added in 2.0.18) */
+    float preciseY;     /**< The amount scrolled vertically, positive away from the user and negative toward the user, with float precision (added in 2.0.18) */
+    Sint32 mouseX;      /**< X coordinate, relative to window (added in 2.26.0) */
+    Sint32 mouseY;      /**< Y coordinate, relative to window (added in 2.26.0) */
 } SDL_MouseWheelEvent;
 
 /**
- *  \brief Joystick axis motion event structure (event.jaxis.*)
+ * Joystick axis motion event structure (event.jaxis.*)
  */
 typedef struct SDL_JoyAxisEvent
 {
-    Uint32 type;        /**< ::SDL_JOYAXISMOTION */
+    Uint32 type;        /**< SDL_JOYAXISMOTION */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     SDL_JoystickID which; /**< The joystick instance id */
     Uint8 axis;         /**< The joystick axis index */
@@ -311,11 +361,11 @@ typedef struct SDL_JoyAxisEvent
 } SDL_JoyAxisEvent;
 
 /**
- *  \brief Joystick trackball motion event structure (event.jball.*)
+ * Joystick trackball motion event structure (event.jball.*)
  */
 typedef struct SDL_JoyBallEvent
 {
-    Uint32 type;        /**< ::SDL_JOYBALLMOTION */
+    Uint32 type;        /**< SDL_JOYBALLMOTION */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     SDL_JoystickID which; /**< The joystick instance id */
     Uint8 ball;         /**< The joystick trackball index */
@@ -327,18 +377,18 @@ typedef struct SDL_JoyBallEvent
 } SDL_JoyBallEvent;
 
 /**
- *  \brief Joystick hat position change event structure (event.jhat.*)
+ * Joystick hat position change event structure (event.jhat.*)
  */
 typedef struct SDL_JoyHatEvent
 {
-    Uint32 type;        /**< ::SDL_JOYHATMOTION */
+    Uint32 type;        /**< SDL_JOYHATMOTION */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     SDL_JoystickID which; /**< The joystick instance id */
     Uint8 hat;          /**< The joystick hat index */
     Uint8 value;        /**< The hat position value.
-                         *   \sa ::SDL_HAT_LEFTUP ::SDL_HAT_UP ::SDL_HAT_RIGHTUP
-                         *   \sa ::SDL_HAT_LEFT ::SDL_HAT_CENTERED ::SDL_HAT_RIGHT
-                         *   \sa ::SDL_HAT_LEFTDOWN ::SDL_HAT_DOWN ::SDL_HAT_RIGHTDOWN
+                         *   \sa SDL_HAT_LEFTUP SDL_HAT_UP SDL_HAT_RIGHTUP
+                         *   \sa SDL_HAT_LEFT SDL_HAT_CENTERED SDL_HAT_RIGHT
+                         *   \sa SDL_HAT_LEFTDOWN SDL_HAT_DOWN SDL_HAT_RIGHTDOWN
                          *
                          *   Note that zero means the POV is centered.
                          */
@@ -347,36 +397,51 @@ typedef struct SDL_JoyHatEvent
 } SDL_JoyHatEvent;
 
 /**
- *  \brief Joystick button event structure (event.jbutton.*)
+ * Joystick button event structure (event.jbutton.*)
  */
 typedef struct SDL_JoyButtonEvent
 {
-    Uint32 type;        /**< ::SDL_JOYBUTTONDOWN or ::SDL_JOYBUTTONUP */
+    Uint32 type;        /**< SDL_JOYBUTTONDOWN or SDL_JOYBUTTONUP */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     SDL_JoystickID which; /**< The joystick instance id */
     Uint8 button;       /**< The joystick button index */
-    Uint8 state;        /**< ::SDL_PRESSED or ::SDL_RELEASED */
+    Uint8 state;        /**< SDL_PRESSED or SDL_RELEASED */
     Uint8 padding1;
     Uint8 padding2;
 } SDL_JoyButtonEvent;
 
 /**
- *  \brief Joystick device event structure (event.jdevice.*)
+ * Joystick device event structure (event.jdevice.*)
+ *
+ * SDL will send JOYSTICK_ADDED events for devices that are already plugged in
+ * during SDL_Init.
+ *
+ * \sa SDL_ControllerDeviceEvent
  */
 typedef struct SDL_JoyDeviceEvent
 {
-    Uint32 type;        /**< ::SDL_JOYDEVICEADDED or ::SDL_JOYDEVICEREMOVED */
+    Uint32 type;        /**< SDL_JOYDEVICEADDED or SDL_JOYDEVICEREMOVED */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Sint32 which;       /**< The joystick device index for the ADDED event, instance id for the REMOVED event */
 } SDL_JoyDeviceEvent;
 
+/**
+ * Joysick battery level change event structure (event.jbattery.*)
+ */
+typedef struct SDL_JoyBatteryEvent
+{
+    Uint32 type;        /**< SDL_JOYBATTERYUPDATED */
+    Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+    SDL_JoystickID which; /**< The joystick instance id */
+    SDL_JoystickPowerLevel level; /**< The joystick battery level */
+} SDL_JoyBatteryEvent;
 
 /**
- *  \brief Game controller axis motion event structure (event.caxis.*)
+ * Game controller axis motion event structure (event.caxis.*)
  */
 typedef struct SDL_ControllerAxisEvent
 {
-    Uint32 type;        /**< ::SDL_CONTROLLERAXISMOTION */
+    Uint32 type;        /**< SDL_CONTROLLERAXISMOTION */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     SDL_JoystickID which; /**< The joystick instance id */
     Uint8 axis;         /**< The controller axis (SDL_GameControllerAxis) */
@@ -389,36 +454,70 @@ typedef struct SDL_ControllerAxisEvent
 
 
 /**
- *  \brief Game controller button event structure (event.cbutton.*)
+ * Game controller button event structure (event.cbutton.*)
  */
 typedef struct SDL_ControllerButtonEvent
 {
-    Uint32 type;        /**< ::SDL_CONTROLLERBUTTONDOWN or ::SDL_CONTROLLERBUTTONUP */
+    Uint32 type;        /**< SDL_CONTROLLERBUTTONDOWN or SDL_CONTROLLERBUTTONUP */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     SDL_JoystickID which; /**< The joystick instance id */
     Uint8 button;       /**< The controller button (SDL_GameControllerButton) */
-    Uint8 state;        /**< ::SDL_PRESSED or ::SDL_RELEASED */
+    Uint8 state;        /**< SDL_PRESSED or SDL_RELEASED */
     Uint8 padding1;
     Uint8 padding2;
 } SDL_ControllerButtonEvent;
 
 
 /**
- *  \brief Controller device event structure (event.cdevice.*)
+ * Controller device event structure (event.cdevice.*)
+ *
+ * Joysticks that are supported game controllers receive both an
+ * SDL_JoyDeviceEvent and an SDL_ControllerDeviceEvent.
+ *
+ * SDL will send CONTROLLERDEVICEADDED events for joysticks that are already
+ * plugged in during SDL_Init() and are recognized as game controllers.
  */
 typedef struct SDL_ControllerDeviceEvent
 {
-    Uint32 type;        /**< ::SDL_CONTROLLERDEVICEADDED, ::SDL_CONTROLLERDEVICEREMOVED, or ::SDL_CONTROLLERDEVICEREMAPPED */
+    Uint32 type;        /**< SDL_CONTROLLERDEVICEADDED, SDL_CONTROLLERDEVICEREMOVED, SDL_CONTROLLERDEVICEREMAPPED, or SDL_CONTROLLERSTEAMHANDLEUPDATED */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Sint32 which;       /**< The joystick device index for the ADDED event, instance id for the REMOVED or REMAPPED event */
 } SDL_ControllerDeviceEvent;
 
 /**
- *  \brief Audio device event structure (event.adevice.*)
+ * Game controller touchpad event structure (event.ctouchpad.*)
+ */
+typedef struct SDL_ControllerTouchpadEvent
+{
+    Uint32 type;        /**< SDL_CONTROLLERTOUCHPADDOWN or SDL_CONTROLLERTOUCHPADMOTION or SDL_CONTROLLERTOUCHPADUP */
+    Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+    SDL_JoystickID which; /**< The joystick instance id */
+    Sint32 touchpad;    /**< The index of the touchpad */
+    Sint32 finger;      /**< The index of the finger on the touchpad */
+    float x;            /**< Normalized in the range 0...1 with 0 being on the left */
+    float y;            /**< Normalized in the range 0...1 with 0 being at the top */
+    float pressure;     /**< Normalized in the range 0...1 */
+} SDL_ControllerTouchpadEvent;
+
+/**
+ * Game controller sensor event structure (event.csensor.*)
+ */
+typedef struct SDL_ControllerSensorEvent
+{
+    Uint32 type;        /**< SDL_CONTROLLERSENSORUPDATE */
+    Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+    SDL_JoystickID which; /**< The joystick instance id */
+    Sint32 sensor;      /**< The type of the sensor, one of the values of SDL_SensorType */
+    float data[3];      /**< Up to 3 values from the sensor, as defined in SDL_sensor.h */
+    Uint64 timestamp_us; /**< The timestamp of the sensor reading in microseconds, if the hardware provides this information. */
+} SDL_ControllerSensorEvent;
+
+/**
+ * Audio device event structure (event.adevice.*)
  */
 typedef struct SDL_AudioDeviceEvent
 {
-    Uint32 type;        /**< ::SDL_AUDIODEVICEADDED, or ::SDL_AUDIODEVICEREMOVED */
+    Uint32 type;        /**< SDL_AUDIODEVICEADDED, or SDL_AUDIODEVICEREMOVED */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 which;       /**< The audio device index for the ADDED event (valid until next SDL_GetNumAudioDevices() call), SDL_AudioDeviceID for the REMOVED event */
     Uint8 iscapture;    /**< zero if an output device, non-zero if a capture device. */
@@ -429,11 +528,11 @@ typedef struct SDL_AudioDeviceEvent
 
 
 /**
- *  \brief Touch finger event structure (event.tfinger.*)
+ * Touch finger event structure (event.tfinger.*)
  */
 typedef struct SDL_TouchFingerEvent
 {
-    Uint32 type;        /**< ::SDL_FINGERMOTION or ::SDL_FINGERDOWN or ::SDL_FINGERUP */
+    Uint32 type;        /**< SDL_FINGERMOTION or SDL_FINGERDOWN or SDL_FINGERUP */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     SDL_TouchID touchId; /**< The touch device id */
     SDL_FingerID fingerId;
@@ -442,15 +541,16 @@ typedef struct SDL_TouchFingerEvent
     float dx;           /**< Normalized in the range -1...1 */
     float dy;           /**< Normalized in the range -1...1 */
     float pressure;     /**< Normalized in the range 0...1 */
+    Uint32 windowID;    /**< The window underneath the finger, if any */
 } SDL_TouchFingerEvent;
 
 
 /**
- *  \brief Multiple Finger Gesture Event (event.mgesture.*)
+ * Multiple Finger Gesture Event (event.mgesture.*)
  */
 typedef struct SDL_MultiGestureEvent
 {
-    Uint32 type;        /**< ::SDL_MULTIGESTURE */
+    Uint32 type;        /**< SDL_MULTIGESTURE */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     SDL_TouchID touchId; /**< The touch device id */
     float dTheta;
@@ -463,11 +563,11 @@ typedef struct SDL_MultiGestureEvent
 
 
 /**
- * \brief Dollar Gesture Event (event.dgesture.*)
+ * Dollar Gesture Event (event.dgesture.*)
  */
 typedef struct SDL_DollarGestureEvent
 {
-    Uint32 type;        /**< ::SDL_DOLLARGESTURE or ::SDL_DOLLARRECORD */
+    Uint32 type;        /**< SDL_DOLLARGESTURE or SDL_DOLLARRECORD */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     SDL_TouchID touchId; /**< The touch device id */
     SDL_GestureID gestureId;
@@ -479,13 +579,15 @@ typedef struct SDL_DollarGestureEvent
 
 
 /**
- *  \brief An event used to request a file open by the system (event.drop.*)
- *         This event is enabled by default, you can disable it with SDL_EventState().
- *  \note If this event is enabled, you must free the filename in the event.
+ * An event used to request a file open by the system (event.drop.*)
+ *
+ * This event is enabled by default, you can disable it with SDL_EventState().
+ *
+ * If this event is enabled, you must free the filename in the event.
  */
 typedef struct SDL_DropEvent
 {
-    Uint32 type;        /**< ::SDL_DROPBEGIN or ::SDL_DROPFILE or ::SDL_DROPTEXT or ::SDL_DROPCOMPLETE */
+    Uint32 type;        /**< SDL_DROPBEGIN or SDL_DROPFILE or SDL_DROPTEXT or SDL_DROPCOMPLETE */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     char *file;         /**< The file name, which should be freed with SDL_free(), is NULL on begin/complete */
     Uint32 windowID;    /**< The window that was dropped on, if any */
@@ -493,40 +595,32 @@ typedef struct SDL_DropEvent
 
 
 /**
- *  \brief Sensor event structure (event.sensor.*)
+ * Sensor event structure (event.sensor.*)
  */
 typedef struct SDL_SensorEvent
 {
-    Uint32 type;        /**< ::SDL_SENSORUPDATE */
+    Uint32 type;        /**< SDL_SENSORUPDATE */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Sint32 which;       /**< The instance ID of the sensor */
     float data[6];      /**< Up to 6 values from the sensor - additional values can be queried using SDL_SensorGetData() */
+    Uint64 timestamp_us; /**< The timestamp of the sensor reading in microseconds, if the hardware provides this information. */
 } SDL_SensorEvent;
 
 /**
- *  \brief The "quit requested" event
+ * The "quit requested" event
  */
 typedef struct SDL_QuitEvent
 {
-    Uint32 type;        /**< ::SDL_QUIT */
+    Uint32 type;        /**< SDL_QUIT */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
 } SDL_QuitEvent;
 
 /**
- *  \brief OS Specific event
- */
-typedef struct SDL_OSEvent
-{
-    Uint32 type;        /**< ::SDL_QUIT */
-    Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
-} SDL_OSEvent;
-
-/**
- *  \brief A user-defined event type (event.user.*)
+ * A user-defined event type (event.user.*)
  */
 typedef struct SDL_UserEvent
 {
-    Uint32 type;        /**< ::SDL_USEREVENT through ::SDL_LASTEVENT-1 */
+    Uint32 type;        /**< SDL_USEREVENT through SDL_LASTEVENT-1 */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     Uint32 windowID;    /**< The associated window if any */
     Sint32 code;        /**< User defined event code */
@@ -539,75 +633,107 @@ struct SDL_SysWMmsg;
 typedef struct SDL_SysWMmsg SDL_SysWMmsg;
 
 /**
- *  \brief A video driver dependent system event (event.syswm.*)
- *         This event is disabled by default, you can enable it with SDL_EventState()
+ * A video driver dependent system event (event.syswm.*)
  *
- *  \note If you want to use this event, you should include SDL_syswm.h.
+ * This event is disabled by default, you can enable it with SDL_EventState()
+ *
+ * If you want to use this event, you should include SDL_syswm.h.
  */
 typedef struct SDL_SysWMEvent
 {
-    Uint32 type;        /**< ::SDL_SYSWMEVENT */
+    Uint32 type;        /**< SDL_SYSWMEVENT */
     Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
     SDL_SysWMmsg *msg;  /**< driver dependent data, defined in SDL_syswm.h */
 } SDL_SysWMEvent;
 
 /**
- *  \brief General event structure
+ * General event structure
+ *
+ * The SDL_Event structure is the core of all event handling in SDL. SDL_Event
+ * is a union of all event structures used in SDL.
  */
 typedef union SDL_Event
 {
-    Uint32 type;                    /**< Event type, shared with all events */
-    SDL_CommonEvent common;         /**< Common event data */
-    SDL_DisplayEvent display;       /**< Window event data */
-    SDL_WindowEvent window;         /**< Window event data */
-    SDL_KeyboardEvent key;          /**< Keyboard event data */
-    SDL_TextEditingEvent edit;      /**< Text editing event data */
-    SDL_TextInputEvent text;        /**< Text input event data */
-    SDL_MouseMotionEvent motion;    /**< Mouse motion event data */
-    SDL_MouseButtonEvent button;    /**< Mouse button event data */
-    SDL_MouseWheelEvent wheel;      /**< Mouse wheel event data */
-    SDL_JoyAxisEvent jaxis;         /**< Joystick axis event data */
-    SDL_JoyBallEvent jball;         /**< Joystick ball event data */
-    SDL_JoyHatEvent jhat;           /**< Joystick hat event data */
-    SDL_JoyButtonEvent jbutton;     /**< Joystick button event data */
-    SDL_JoyDeviceEvent jdevice;     /**< Joystick device change event data */
-    SDL_ControllerAxisEvent caxis;      /**< Game Controller axis event data */
-    SDL_ControllerButtonEvent cbutton;  /**< Game Controller button event data */
-    SDL_ControllerDeviceEvent cdevice;  /**< Game Controller device event data */
-    SDL_AudioDeviceEvent adevice;   /**< Audio device event data */
-    SDL_SensorEvent sensor;         /**< Sensor event data */
-    SDL_QuitEvent quit;             /**< Quit request event data */
-    SDL_UserEvent user;             /**< Custom event data */
-    SDL_SysWMEvent syswm;           /**< System dependent window event data */
-    SDL_TouchFingerEvent tfinger;   /**< Touch finger event data */
-    SDL_MultiGestureEvent mgesture; /**< Gesture event data */
-    SDL_DollarGestureEvent dgesture; /**< Gesture event data */
-    SDL_DropEvent drop;             /**< Drag and drop event data */
+    Uint32 type;                            /**< Event type, shared with all events */
+    SDL_CommonEvent common;                 /**< Common event data */
+    SDL_DisplayEvent display;               /**< Display event data */
+    SDL_WindowEvent window;                 /**< Window event data */
+    SDL_KeyboardEvent key;                  /**< Keyboard event data */
+    SDL_TextEditingEvent edit;              /**< Text editing event data */
+    SDL_TextEditingExtEvent editExt;        /**< Extended text editing event data */
+    SDL_TextInputEvent text;                /**< Text input event data */
+    SDL_MouseMotionEvent motion;            /**< Mouse motion event data */
+    SDL_MouseButtonEvent button;            /**< Mouse button event data */
+    SDL_MouseWheelEvent wheel;              /**< Mouse wheel event data */
+    SDL_JoyAxisEvent jaxis;                 /**< Joystick axis event data */
+    SDL_JoyBallEvent jball;                 /**< Joystick ball event data */
+    SDL_JoyHatEvent jhat;                   /**< Joystick hat event data */
+    SDL_JoyButtonEvent jbutton;             /**< Joystick button event data */
+    SDL_JoyDeviceEvent jdevice;             /**< Joystick device change event data */
+    SDL_JoyBatteryEvent jbattery;           /**< Joystick battery event data */
+    SDL_ControllerAxisEvent caxis;          /**< Game Controller axis event data */
+    SDL_ControllerButtonEvent cbutton;      /**< Game Controller button event data */
+    SDL_ControllerDeviceEvent cdevice;      /**< Game Controller device event data */
+    SDL_ControllerTouchpadEvent ctouchpad;  /**< Game Controller touchpad event data */
+    SDL_ControllerSensorEvent csensor;      /**< Game Controller sensor event data */
+    SDL_AudioDeviceEvent adevice;           /**< Audio device event data */
+    SDL_SensorEvent sensor;                 /**< Sensor event data */
+    SDL_QuitEvent quit;                     /**< Quit request event data */
+    SDL_UserEvent user;                     /**< Custom event data */
+    SDL_SysWMEvent syswm;                   /**< System dependent window event data */
+    SDL_TouchFingerEvent tfinger;           /**< Touch finger event data */
+    SDL_MultiGestureEvent mgesture;         /**< Gesture event data */
+    SDL_DollarGestureEvent dgesture;        /**< Gesture event data */
+    SDL_DropEvent drop;                     /**< Drag and drop event data */
 
-    /* This is necessary for ABI compatibility between Visual C++ and GCC
-       Visual C++ will respect the push pack pragma and use 52 bytes for
-       this structure, and GCC will use the alignment of the largest datatype
-       within the union, which is 8 bytes.
+    /* This is necessary for ABI compatibility between Visual C++ and GCC.
+       Visual C++ will respect the push pack pragma and use 52 bytes (size of
+       SDL_TextEditingEvent, the largest structure for 32-bit and 64-bit
+       architectures) for this union, and GCC will use the alignment of the
+       largest datatype within the union, which is 8 bytes on 64-bit
+       architectures.
 
        So... we'll add padding to force the size to be 56 bytes for both.
+
+       On architectures where pointers are 16 bytes, this needs rounding up to
+       the next multiple of 16, 64, and on architectures where pointers are
+       even larger the size of SDL_UserEvent will dominate as being 3 pointers.
     */
-    Uint8 padding[56];
+    Uint8 padding[sizeof(void *) <= 8 ? 56 : sizeof(void *) == 16 ? 64 : 3 * sizeof(void *)];
 } SDL_Event;
+
+/* Make sure we haven't broken binary compatibility */
+SDL_COMPILE_TIME_ASSERT(SDL_Event, sizeof(SDL_Event) == sizeof(((SDL_Event *)NULL)->padding));
 
 
 /* Function prototypes */
 
 /**
- *  Pumps the event loop, gathering events from the input devices.
+ * Pump the event loop, gathering events from the input devices.
  *
- *  This function updates the event queue and internal input device state.
+ * This function updates the event queue and internal input device state.
  *
- *  This should only be run in the thread that sets the video mode.
+ * **WARNING**: This should only be run in the thread that initialized the
+ * video subsystem, and for extra safety, you should consider only doing those
+ * things on the main thread in any case.
+ *
+ * SDL_PumpEvents() gathers all the pending input information from devices and
+ * places it in the event queue. Without calls to SDL_PumpEvents() no events
+ * would ever be placed on the queue. Often the need for calls to
+ * SDL_PumpEvents() is hidden from the user since SDL_PollEvent() and
+ * SDL_WaitEvent() implicitly call SDL_PumpEvents(). However, if you are not
+ * polling or waiting for events (e.g. you are filtering them), then you must
+ * call SDL_PumpEvents() to force an event queue update.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_PollEvent
+ * \sa SDL_WaitEvent
  */
 extern DECLSPEC void SDLCALL SDL_PumpEvents(void);
 
 /* @{ */
-typedef enum
+typedef enum SDL_eventaction
 {
     SDL_ADDEVENT,
     SDL_PEEKEVENT,
@@ -615,22 +741,42 @@ typedef enum
 } SDL_eventaction;
 
 /**
- *  Checks the event queue for messages and optionally returns them.
+ * Check the event queue for messages and optionally return them.
  *
- *  If \c action is ::SDL_ADDEVENT, up to \c numevents events will be added to
- *  the back of the event queue.
+ * `action` may be any of the following:
  *
- *  If \c action is ::SDL_PEEKEVENT, up to \c numevents events at the front
- *  of the event queue, within the specified minimum and maximum type,
- *  will be returned and will not be removed from the queue.
+ * - `SDL_ADDEVENT`: up to `numevents` events will be added to the back of the
+ *   event queue.
+ * - `SDL_PEEKEVENT`: `numevents` events at the front of the event queue,
+ *   within the specified minimum and maximum type, will be returned to the
+ *   caller and will _not_ be removed from the queue.
+ * - `SDL_GETEVENT`: up to `numevents` events at the front of the event queue,
+ *   within the specified minimum and maximum type, will be returned to the
+ *   caller and will be removed from the queue.
  *
- *  If \c action is ::SDL_GETEVENT, up to \c numevents events at the front
- *  of the event queue, within the specified minimum and maximum type,
- *  will be returned and will be removed from the queue.
+ * You may have to call SDL_PumpEvents() before calling this function.
+ * Otherwise, the events may not be ready to be filtered when you call
+ * SDL_PeepEvents().
  *
- *  \return The number of events actually stored, or -1 if there was an error.
+ * This function is thread-safe.
  *
- *  This function is thread-safe.
+ * \param events destination buffer for the retrieved events.
+ * \param numevents if action is SDL_ADDEVENT, the number of events to add
+ *                  back to the event queue; if action is SDL_PEEKEVENT or
+ *                  SDL_GETEVENT, the maximum number of events to retrieve.
+ * \param action action to take; see [[#action|Remarks]] for details.
+ * \param minType minimum value of the event type to be considered;
+ *                SDL_FIRSTEVENT is a safe choice.
+ * \param maxType maximum value of the event type to be considered;
+ *                SDL_LASTEVENT is a safe choice.
+ * \returns the number of events actually stored or a negative error code on
+ *          failure; call SDL_GetError() for more information.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_PollEvent
+ * \sa SDL_PumpEvents
+ * \sa SDL_PushEvent
  */
 extern DECLSPEC int SDLCALL SDL_PeepEvents(SDL_Event * events, int numevents,
                                            SDL_eventaction action,
@@ -638,113 +784,354 @@ extern DECLSPEC int SDLCALL SDL_PeepEvents(SDL_Event * events, int numevents,
 /* @} */
 
 /**
- *  Checks to see if certain event types are in the event queue.
+ * Check for the existence of a certain event type in the event queue.
+ *
+ * If you need to check for a range of event types, use SDL_HasEvents()
+ * instead.
+ *
+ * \param type the type of event to be queried; see SDL_EventType for details.
+ * \returns SDL_TRUE if events matching `type` are present, or SDL_FALSE if
+ *          events matching `type` are not present.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_HasEvents
  */
 extern DECLSPEC SDL_bool SDLCALL SDL_HasEvent(Uint32 type);
+
+
+/**
+ * Check for the existence of certain event types in the event queue.
+ *
+ * If you need to check for a single event type, use SDL_HasEvent() instead.
+ *
+ * \param minType the low end of event type to be queried, inclusive; see
+ *                SDL_EventType for details.
+ * \param maxType the high end of event type to be queried, inclusive; see
+ *                SDL_EventType for details.
+ * \returns SDL_TRUE if events with type >= `minType` and <= `maxType` are
+ *          present, or SDL_FALSE if not.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_HasEvents
+ */
 extern DECLSPEC SDL_bool SDLCALL SDL_HasEvents(Uint32 minType, Uint32 maxType);
 
 /**
- *  This function clears events from the event queue
- *  This function only affects currently queued events. If you want to make
- *  sure that all pending OS events are flushed, you can call SDL_PumpEvents()
- *  on the main thread immediately before the flush call.
+ * Clear events of a specific type from the event queue.
+ *
+ * This will unconditionally remove any events from the queue that match
+ * `type`. If you need to remove a range of event types, use SDL_FlushEvents()
+ * instead.
+ *
+ * It's also normal to just ignore events you don't care about in your event
+ * loop without calling this function.
+ *
+ * This function only affects currently queued events. If you want to make
+ * sure that all pending OS events are flushed, you can call SDL_PumpEvents()
+ * on the main thread immediately before the flush call.
+ *
+ * \param type the type of event to be cleared; see SDL_EventType for details.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_FlushEvents
  */
 extern DECLSPEC void SDLCALL SDL_FlushEvent(Uint32 type);
+
+/**
+ * Clear events of a range of types from the event queue.
+ *
+ * This will unconditionally remove any events from the queue that are in the
+ * range of `minType` to `maxType`, inclusive. If you need to remove a single
+ * event type, use SDL_FlushEvent() instead.
+ *
+ * It's also normal to just ignore events you don't care about in your event
+ * loop without calling this function.
+ *
+ * This function only affects currently queued events. If you want to make
+ * sure that all pending OS events are flushed, you can call SDL_PumpEvents()
+ * on the main thread immediately before the flush call.
+ *
+ * \param minType the low end of event type to be cleared, inclusive; see
+ *                SDL_EventType for details.
+ * \param maxType the high end of event type to be cleared, inclusive; see
+ *                SDL_EventType for details.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_FlushEvent
+ */
 extern DECLSPEC void SDLCALL SDL_FlushEvents(Uint32 minType, Uint32 maxType);
 
 /**
- *  \brief Polls for currently pending events.
+ * Poll for currently pending events.
  *
- *  \return 1 if there are any pending events, or 0 if there are none available.
+ * If `event` is not NULL, the next event is removed from the queue and stored
+ * in the SDL_Event structure pointed to by `event`. The 1 returned refers to
+ * this event, immediately stored in the SDL Event structure -- not an event
+ * to follow.
  *
- *  \param event If not NULL, the next event is removed from the queue and
- *               stored in that area.
+ * If `event` is NULL, it simply returns 1 if there is an event in the queue,
+ * but will not remove it from the queue.
+ *
+ * As this function may implicitly call SDL_PumpEvents(), you can only call
+ * this function in the thread that set the video mode.
+ *
+ * SDL_PollEvent() is the favored way of receiving system events since it can
+ * be done from the main loop and does not suspend the main loop while waiting
+ * on an event to be posted.
+ *
+ * The common practice is to fully process the event queue once every frame,
+ * usually as a first step before updating the game's state:
+ *
+ * ```c
+ * while (game_is_still_running) {
+ *     SDL_Event event;
+ *     while (SDL_PollEvent(&event)) {  // poll until all events are handled!
+ *         // decide what to do with this event.
+ *     }
+ *
+ *     // update game state, draw the current frame
+ * }
+ * ```
+ *
+ * \param event the SDL_Event structure to be filled with the next event from
+ *              the queue, or NULL.
+ * \returns 1 if there is a pending event or 0 if there are none available.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_GetEventFilter
+ * \sa SDL_PeepEvents
+ * \sa SDL_PushEvent
+ * \sa SDL_SetEventFilter
+ * \sa SDL_WaitEvent
+ * \sa SDL_WaitEventTimeout
  */
 extern DECLSPEC int SDLCALL SDL_PollEvent(SDL_Event * event);
 
 /**
- *  \brief Waits indefinitely for the next available event.
+ * Wait indefinitely for the next available event.
  *
- *  \return 1, or 0 if there was an error while waiting for events.
+ * If `event` is not NULL, the next event is removed from the queue and stored
+ * in the SDL_Event structure pointed to by `event`.
  *
- *  \param event If not NULL, the next event is removed from the queue and
- *               stored in that area.
+ * As this function may implicitly call SDL_PumpEvents(), you can only call
+ * this function in the thread that initialized the video subsystem.
+ *
+ * \param event the SDL_Event structure to be filled in with the next event
+ *              from the queue, or NULL.
+ * \returns 1 on success or 0 if there was an error while waiting for events;
+ *          call SDL_GetError() for more information.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_PollEvent
+ * \sa SDL_PumpEvents
+ * \sa SDL_WaitEventTimeout
  */
 extern DECLSPEC int SDLCALL SDL_WaitEvent(SDL_Event * event);
 
 /**
- *  \brief Waits until the specified timeout (in milliseconds) for the next
- *         available event.
+ * Wait until the specified timeout (in milliseconds) for the next available
+ * event.
  *
- *  \return 1, or 0 if there was an error while waiting for events.
+ * If `event` is not NULL, the next event is removed from the queue and stored
+ * in the SDL_Event structure pointed to by `event`.
  *
- *  \param event If not NULL, the next event is removed from the queue and
- *               stored in that area.
- *  \param timeout The timeout (in milliseconds) to wait for next event.
+ * As this function may implicitly call SDL_PumpEvents(), you can only call
+ * this function in the thread that initialized the video subsystem.
+ *
+ * \param event the SDL_Event structure to be filled in with the next event
+ *              from the queue, or NULL.
+ * \param timeout the maximum number of milliseconds to wait for the next
+ *                available event.
+ * \returns 1 on success or 0 if there was an error while waiting for events;
+ *          call SDL_GetError() for more information. This also returns 0 if
+ *          the timeout elapsed without an event arriving.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_PollEvent
+ * \sa SDL_PumpEvents
+ * \sa SDL_WaitEvent
  */
 extern DECLSPEC int SDLCALL SDL_WaitEventTimeout(SDL_Event * event,
                                                  int timeout);
 
 /**
- *  \brief Add an event to the event queue.
+ * Add an event to the event queue.
  *
- *  \return 1 on success, 0 if the event was filtered, or -1 if the event queue
- *          was full or there was some other error.
+ * The event queue can actually be used as a two way communication channel.
+ * Not only can events be read from the queue, but the user can also push
+ * their own events onto it. `event` is a pointer to the event structure you
+ * wish to push onto the queue. The event is copied into the queue, and the
+ * caller may dispose of the memory pointed to after SDL_PushEvent() returns.
+ *
+ * Note: Pushing device input events onto the queue doesn't modify the state
+ * of the device within SDL.
+ *
+ * This function is thread-safe, and can be called from other threads safely.
+ *
+ * Note: Events pushed onto the queue with SDL_PushEvent() get passed through
+ * the event filter but events added with SDL_PeepEvents() do not.
+ *
+ * For pushing application-specific events, please use SDL_RegisterEvents() to
+ * get an event type that does not conflict with other code that also wants
+ * its own custom event types.
+ *
+ * \param event the SDL_Event to be added to the queue.
+ * \returns 1 on success, 0 if the event was filtered, or a negative error
+ *          code on failure; call SDL_GetError() for more information. A
+ *          common reason for error is the event queue being full.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_PeepEvents
+ * \sa SDL_PollEvent
+ * \sa SDL_RegisterEvents
  */
 extern DECLSPEC int SDLCALL SDL_PushEvent(SDL_Event * event);
 
+/**
+ * A function pointer used for callbacks that watch the event queue.
+ *
+ * \param userdata what was passed as `userdata` to SDL_SetEventFilter() or
+ *                 SDL_AddEventWatch, etc.
+ * \param event the event that triggered the callback.
+ * \returns 1 to permit event to be added to the queue, and 0 to disallow it.
+ *          When used with SDL_AddEventWatch, the return value is ignored.
+ *
+ * \sa SDL_SetEventFilter
+ * \sa SDL_AddEventWatch
+ */
 typedef int (SDLCALL * SDL_EventFilter) (void *userdata, SDL_Event * event);
 
 /**
- *  Sets up a filter to process all events before they change internal state and
- *  are posted to the internal event queue.
+ * Set up a filter to process all events before they change internal state and
+ * are posted to the internal event queue.
  *
- *  The filter is prototyped as:
- *  \code
- *      int SDL_EventFilter(void *userdata, SDL_Event * event);
- *  \endcode
+ * If the filter function returns 1 when called, then the event will be added
+ * to the internal queue. If it returns 0, then the event will be dropped from
+ * the queue, but the internal state will still be updated. This allows
+ * selective filtering of dynamically arriving events.
  *
- *  If the filter returns 1, then the event will be added to the internal queue.
- *  If it returns 0, then the event will be dropped from the queue, but the
- *  internal state will still be updated.  This allows selective filtering of
- *  dynamically arriving events.
+ * **WARNING**: Be very careful of what you do in the event filter function,
+ * as it may run in a different thread!
  *
- *  \warning  Be very careful of what you do in the event filter function, as
- *            it may run in a different thread!
+ * On platforms that support it, if the quit event is generated by an
+ * interrupt signal (e.g. pressing Ctrl-C), it will be delivered to the
+ * application at the next event poll.
  *
- *  There is one caveat when dealing with the ::SDL_QuitEvent event type.  The
- *  event filter is only called when the window manager desires to close the
- *  application window.  If the event filter returns 1, then the window will
- *  be closed, otherwise the window will remain open if possible.
+ * There is one caveat when dealing with the SDL_QuitEvent event type. The
+ * event filter is only called when the window manager desires to close the
+ * application window. If the event filter returns 1, then the window will be
+ * closed, otherwise the window will remain open if possible.
  *
- *  If the quit event is generated by an interrupt signal, it will bypass the
- *  internal queue and be delivered to the application at the next event poll.
+ * Note: Disabled events never make it to the event filter function; see
+ * SDL_EventState().
+ *
+ * Note: If you just want to inspect events without filtering, you should use
+ * SDL_AddEventWatch() instead.
+ *
+ * Note: Events pushed onto the queue with SDL_PushEvent() get passed through
+ * the event filter, but events pushed onto the queue with SDL_PeepEvents() do
+ * not.
+ *
+ * \param filter An SDL_EventFilter function to call when an event happens.
+ * \param userdata a pointer that is passed to `filter`.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_AddEventWatch
+ * \sa SDL_EventState
+ * \sa SDL_GetEventFilter
+ * \sa SDL_PeepEvents
+ * \sa SDL_PushEvent
  */
 extern DECLSPEC void SDLCALL SDL_SetEventFilter(SDL_EventFilter filter,
                                                 void *userdata);
 
 /**
- *  Return the current event filter - can be used to "chain" filters.
- *  If there is no event filter set, this function returns SDL_FALSE.
+ * Query the current event filter.
+ *
+ * This function can be used to "chain" filters, by saving the existing filter
+ * before replacing it with a function that will call that saved filter.
+ *
+ * \param filter the current callback function will be stored here.
+ * \param userdata the pointer that is passed to the current event filter will
+ *                 be stored here.
+ * \returns SDL_TRUE on success or SDL_FALSE if there is no event filter set.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_SetEventFilter
  */
 extern DECLSPEC SDL_bool SDLCALL SDL_GetEventFilter(SDL_EventFilter * filter,
                                                     void **userdata);
 
 /**
- *  Add a function which is called when an event is added to the queue.
+ * Add a callback to be triggered when an event is added to the event queue.
+ *
+ * `filter` will be called when an event happens, and its return value is
+ * ignored.
+ *
+ * **WARNING**: Be very careful of what you do in the event filter function,
+ * as it may run in a different thread!
+ *
+ * If the quit event is generated by a signal (e.g. SIGINT), it will bypass
+ * the internal queue and be delivered to the watch callback immediately, and
+ * arrive at the next event poll.
+ *
+ * Note: the callback is called for events posted by the user through
+ * SDL_PushEvent(), but not for disabled events, nor for events by a filter
+ * callback set with SDL_SetEventFilter(), nor for events posted by the user
+ * through SDL_PeepEvents().
+ *
+ * \param filter an SDL_EventFilter function to call when an event happens.
+ * \param userdata a pointer that is passed to `filter`.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_DelEventWatch
+ * \sa SDL_SetEventFilter
  */
 extern DECLSPEC void SDLCALL SDL_AddEventWatch(SDL_EventFilter filter,
                                                void *userdata);
 
 /**
- *  Remove an event watch function added with SDL_AddEventWatch()
+ * Remove an event watch callback added with SDL_AddEventWatch().
+ *
+ * This function takes the same input as SDL_AddEventWatch() to identify and
+ * delete the corresponding callback.
+ *
+ * \param filter the function originally passed to SDL_AddEventWatch().
+ * \param userdata the pointer originally passed to SDL_AddEventWatch().
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_AddEventWatch
  */
 extern DECLSPEC void SDLCALL SDL_DelEventWatch(SDL_EventFilter filter,
                                                void *userdata);
 
 /**
- *  Run the filter function on the current event queue, removing any
- *  events for which the filter returns 0.
+ * Run a specific filter function on the current event queue, removing any
+ * events for which the filter returns 0.
+ *
+ * See SDL_SetEventFilter() for more information. Unlike SDL_SetEventFilter(),
+ * this function does not change the filter permanently, it only uses the
+ * supplied filter until this function returns.
+ *
+ * \param filter the SDL_EventFilter function to call when an event happens.
+ * \param userdata a pointer that is passed to `filter`.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_GetEventFilter
+ * \sa SDL_SetEventFilter
  */
 extern DECLSPEC void SDLCALL SDL_FilterEvents(SDL_EventFilter filter,
                                               void *userdata);
@@ -756,24 +1143,45 @@ extern DECLSPEC void SDLCALL SDL_FilterEvents(SDL_EventFilter filter,
 #define SDL_ENABLE   1
 
 /**
- *  This function allows you to set the state of processing certain events.
- *   - If \c state is set to ::SDL_IGNORE, that event will be automatically
- *     dropped from the event queue and will not be filtered.
- *   - If \c state is set to ::SDL_ENABLE, that event will be processed
- *     normally.
- *   - If \c state is set to ::SDL_QUERY, SDL_EventState() will return the
- *     current processing state of the specified event.
+ * Set the state of processing events by type.
+ *
+ * `state` may be any of the following:
+ *
+ * - `SDL_QUERY`: returns the current processing state of the specified event
+ * - `SDL_IGNORE` (aka `SDL_DISABLE`): the event will automatically be dropped
+ *   from the event queue and will not be filtered
+ * - `SDL_ENABLE`: the event will be processed normally
+ *
+ * \param type the type of event; see SDL_EventType for details.
+ * \param state how to process the event.
+ * \returns `SDL_DISABLE` or `SDL_ENABLE`, representing the processing state
+ *          of the event before this function makes any changes to it.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_GetEventState
  */
 extern DECLSPEC Uint8 SDLCALL SDL_EventState(Uint32 type, int state);
 /* @} */
 #define SDL_GetEventState(type) SDL_EventState(type, SDL_QUERY)
 
 /**
- *  This function allocates a set of user-defined events, and returns
- *  the beginning event number for that set of events.
+ * Allocate a set of user-defined events, and return the beginning event
+ * number for that set of events.
  *
- *  If there aren't enough user-defined events left, this function
- *  returns (Uint32)-1
+ * Calling this function with `numevents` <= 0 is an error and will return
+ * (Uint32)-1.
+ *
+ * Note, (Uint32)-1 means the maximum unsigned 32-bit integer value (or
+ * 0xFFFFFFFF), but is clearer to write.
+ *
+ * \param numevents the number of events to be allocated.
+ * \returns the beginning event number, or (Uint32)-1 if there are not enough
+ *          user-defined events left.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_PushEvent
  */
 extern DECLSPEC Uint32 SDLCALL SDL_RegisterEvents(int numevents);
 

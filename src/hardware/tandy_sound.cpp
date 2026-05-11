@@ -65,8 +65,8 @@ static struct {
 	} dac;
 } tandy;
 
-static sn76496_device device_sn76496(machine_config(), 0, 0, SOUND_CLOCK );
-static ncr8496_device device_ncr8496(machine_config(), 0, 0, SOUND_CLOCK);
+static sn76496_device device_sn76496(machine_config(), nullptr, nullptr, SOUND_CLOCK );
+static ncr8496_device device_ncr8496(machine_config(), nullptr, nullptr, SOUND_CLOCK);
 
 static sn76496_base_device* activeDevice = &device_ncr8496;
 #define device (*activeDevice)
@@ -101,7 +101,7 @@ static void SN76496Update(Bitu length) {
 	int16_t* outputs = buffer;
 
 	device_sound_interface::sound_stream stream;
-	static_cast<device_sound_interface&>(device).sound_stream_update(stream, 0, &outputs, (int)length);
+	static_cast<device_sound_interface&>(device).sound_stream_update(stream, nullptr, &outputs, (int)length);
 	tandy.chan->AddSamples_m16(length, buffer);
 }
 
@@ -150,7 +150,7 @@ static void TandyDACModeChanged(void) {
 				if (tandy.dac.dma.chan) {
 					tandy.dac.dma.chan->Register_Callback(TandyDAC_DMA_CallBack);
 					tandy.dac.chan->Enable(true);
-//					LOG_MSG("Tandy DAC: playback started with freqency %f, volume %f",freq,vol);
+//					LOG_MSG("Tandy DAC: playback started with frequency %f, volume %f",freq,vol);
 				}
 			}
 		}
@@ -331,7 +331,7 @@ public:
 		/* ports from second DMA controller conflict with tandy ports at 0xC0.
 		 * Furthermore, the default I/O handlers after de-registration are needed
 		 * to ensure the SN76496 is writeable at port 0xC0 whether you're doing
-		 * normal 8-bit I/O or your a weirdo like Prince of Persia using 16-bit
+		 * normal 8-bit I/O or you're a weirdo like Prince of Persia using 16-bit
 		 * I/O to write frequency values. (bugfix for Tandy mode of Prince of
 		 * Persia). */
 		CloseSecondDMAController();

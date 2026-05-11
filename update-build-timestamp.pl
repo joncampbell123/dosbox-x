@@ -7,6 +7,7 @@ my $hour = $t[2];
 my $mday = $t[3];
 my $mon  = $t[4] + 1;
 my $year = $t[5] + 1900;
+my $yearn = $year + ($mon == 12 && $mday == 31 ? 1 : 0);
 
 my @months = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
 
@@ -19,7 +20,7 @@ open(X,">","include/build_timestamp.h") || die;
 print X "/*auto-generated*/\n";
 print X "#define UPDATED_STR \"$tmp\"\n";
 print X "#define GIT_COMMIT_HASH \"$commit\"\n";
-print X "#define COPYRIGHT_END_YEAR \"$year\"\n";
+print X "#define COPYRIGHT_END_YEAR \"$yearn\"\n";
 close(X);
 
 # why perl....
@@ -34,7 +35,7 @@ while (my $line = <FILE>) {
 	if ($line =~ /date=/) {
 		push @lines, ("          <release version=\"\@PACKAGE_VERSION\@\" date=\"" . $year . "-" . $mon . "-" . $mday . "\"/>\n");
 	} elsif ($line =~ /<!-- Copyright/) {
-		push @lines, ("<!-- Copyright 2011-$year Jonathan Campbell -->\n");
+		push @lines, ("<!-- Copyright 2011-$yearn Jonathan Campbell -->\n");
 	} else {
 		push @lines, $line;
 	}

@@ -75,6 +75,32 @@ TEST(WildFileCmp, QuestionMark)
     EXPECT_EQ(true, WildFileCmp("TEST", "???T.???"));
 }
 
+TEST(LWildFileCmp, LFNCompare)
+{
+    bool oldlfn = uselfn;
+    uselfn = true;
+    EXPECT_EQ(false, LWildFileCmp("TEST", ""));
+    EXPECT_EQ(true, LWildFileCmp("TEST.EXE", "*"));
+    EXPECT_EQ(true, LWildFileCmp("TEST", "?EST"));
+    EXPECT_EQ(false, LWildFileCmp("TEST", "???Z"));
+    EXPECT_EQ(true, LWildFileCmp("TEST.EXE", "T*T.*"));
+    EXPECT_EQ(true, LWildFileCmp("TEST.EXE", "T*T.?X?"));
+    EXPECT_EQ(true, LWildFileCmp("TEST.EXE", "T??T.E*E"));
+    EXPECT_EQ(true, LWildFileCmp("Test.exe", "*ST.E*"));
+    EXPECT_EQ(true, LWildFileCmp("Test long name", "*NAME"));
+    EXPECT_EQ(true, LWildFileCmp("Test long name", "*T*L*M*"));
+    EXPECT_EQ(true, LWildFileCmp("Test long name.txt", "T*long*.T??"));
+    EXPECT_EQ(true, LWildFileCmp("Test long name.txt", "??st*name.*t"));
+    EXPECT_EQ(true, LWildFileCmp("Test long name.txt", "Test?long?????.*t"));
+    EXPECT_EQ(true, LWildFileCmp("Test long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long.txt", "Test*long.???"));
+    EXPECT_EQ(true, LWildFileCmp("Test long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long.txt", "Test long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long.txt"));
+    EXPECT_EQ(false, LWildFileCmp("Test long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long.txt", "Test long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long.txt"));
+    EXPECT_EQ(false, LWildFileCmp("TEST", "Z*"));
+    EXPECT_EQ(false, LWildFileCmp("TEST FILE NAME", "*Y*"));
+    EXPECT_EQ(false, LWildFileCmp("TEST FILE NAME", "*F*X*"));
+	uselfn = oldlfn;
+}
+
 /**
  * Set_Labels tests. These test the conversion of a FAT/CD-ROM volume
  * label to an MS-DOS 8.3 label with a variety of edge cases & oddities.
@@ -82,7 +108,7 @@ TEST(WildFileCmp, QuestionMark)
 TEST(Set_Label, Daggerfall)
 {
     std::string output = run_Set_Label("Daggerfall", false);
-    EXPECT_EQ("DAGGERFALL", output);
+    EXPECT_EQ("Daggerfall", output);
 }
 TEST(Set_Label, DaggerfallCD)
 {
@@ -93,7 +119,7 @@ TEST(Set_Label, DaggerfallCD)
 TEST(Set_Label, LongerThan11)
 {
     std::string output = run_Set_Label("a123456789AAA", false);
-    EXPECT_EQ("A123456789A", output);
+    EXPECT_EQ("a123456789A", output);
 }
 TEST(Set_Label, LongerThan11CD)
 {
@@ -104,7 +130,7 @@ TEST(Set_Label, LongerThan11CD)
 TEST(Set_Label, ShorterThan8)
 {
     std::string output = run_Set_Label("a123456", false);
-    EXPECT_EQ("A123456", output);
+    EXPECT_EQ("a123456", output);
 }
 TEST(Set_Label, ShorterThan8CD)
 {
@@ -117,7 +143,7 @@ TEST(Set_Label, ShorterThan8CD)
 TEST(Set_Label, EqualTo8)
 {
     std::string output = run_Set_Label("a1234567", false);
-    EXPECT_EQ("A1234567", output);
+    EXPECT_EQ("a1234567", output);
 }
 TEST(Set_Label, EqualTo8CD)
 {
@@ -129,7 +155,7 @@ TEST(Set_Label, EqualTo8CD)
 TEST(Set_Label, StripEndingDot)
 {
     std::string output = run_Set_Label("a1234567.", false);
-    EXPECT_EQ("A1234567", output);
+    EXPECT_EQ("a1234567.", output);
 }
 TEST(Set_Label, NoStripEndingDotCD)
 {
@@ -141,7 +167,7 @@ TEST(Set_Label, NoStripEndingDotCD)
 TEST(Set_Label, InvalidCharsEndingDot)
 {
     std::string output = run_Set_Label("?*':&@(..", false);
-    EXPECT_EQ("?*':&@(.", output);
+    EXPECT_EQ("?*':&@(..", output);
 }
 TEST(Set_Label, InvalidCharsEndingDotCD)
 {

@@ -7,12 +7,14 @@ Igor Pavlov. http://www.7-zip.org/sdk.html
 --ryan. */
 
 
-
 /* 7zTypes.h -- Basic types
 2013-11-12 : Igor Pavlov : Public domain */
 
 #ifndef __7Z_TYPES_H
 #define __7Z_TYPES_H
+
+// Jookia: Added to avoid conflict with other LZMA libraries
+namespace physfs_lzmasdk {
 
 #ifdef _WIN32
 /* #include <windows.h> */
@@ -6028,6 +6030,8 @@ static SRes Lzma2Dec_DecodeToDic(CLzma2Dec *p, SizeT dicLimit,
   
   *status = LZMA_STATUS_FINISHED_WITH_MARK;
   return SZ_OK;
+}
+
 }
 
 #endif  /* _INCLUDE_PHYSFS_LZMASDK_H_ */

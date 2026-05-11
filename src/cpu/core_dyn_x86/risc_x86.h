@@ -42,12 +42,11 @@ class GenReg {
 public:
 	GenReg(uint8_t _index) {
 		index=_index;
-		notusable=false;dynreg=0;
 	}
-	DynReg  * dynreg;
+    DynReg* dynreg = nullptr;
 	Bitu last_used;			//Keeps track of last assigned regs 
     uint8_t index;
-	bool notusable;
+    bool notusable = false;
 	void Load(DynReg * _dynreg,bool stale=false) {
 		if (!_dynreg) return;
 		if (GCC_UNLIKELY((Bitu)dynreg)) Clear();
@@ -84,8 +83,8 @@ public:
 	}
 };
 
-static BlockReturn gen_runcode(uint8_t * code) {
-	BlockReturn retval;
+static BlockReturnDynX86 gen_runcode(uint8_t * code) {
+	BlockReturnDynX86 retval;
 #if defined (_MSC_VER)
 	__asm {
 /* Prepare the flags */
@@ -123,7 +122,7 @@ return_address:
 		"popl %%ebp							\n"
 		"popl %%ebx							\n"
 		:"=a" (retval), "=c" (tempflags)
-		:"r" (tempflags),"r" (code)
+		:"Q" (tempflags),"r" (code)
 		:"%edx","%edi","%esi","cc","memory"
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
@@ -137,7 +136,7 @@ return_address:
 		"run_return_adress:					\n"
 		"popl %%ebp							\n"
 		:"=a" (retval), "=c" (tempflags)
-		:"r" (tempflags),"r" (code)
+		:"Q" (tempflags),"r" (code)
 		:"%edx","%ebx","%edi","%esi","cc","memory"
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
@@ -564,6 +563,28 @@ nochange:
 finish:
 	if (dword) cache_addd(imm);
 	else cache_addw(imm);
+}
+
+static void gen_sop_word_imm(ShiftOps op,bool dword,DynReg * dr1,uint8_t imm) {
+	GenReg * gr1=FindDynReg(dr1,dword);
+	uint16_t tmp;
+
+	switch (op) {
+	case SHIFT_ROL:	tmp=0xc0c1; break; 
+	case SHIFT_ROR:	tmp=0xc8c1; break; 
+	case SHIFT_RCL:	tmp=0xd0c1; break; 
+	case SHIFT_RCR:	tmp=0xd8c1; break; 
+	case SHIFT_SHL:	tmp=0xe0c1; break; 
+	case SHIFT_SHR:	tmp=0xe8c1; break; 
+	case SHIFT_SAL:	tmp=0xf0c1; break; 
+	case SHIFT_SAR:	tmp=0xf8c1; break; 
+	default:
+		IllegalOption("gen_sop_word_imm");
+	}
+	dr1->flags|=DYNFLG_CHANGED;
+// nochange:
+	cache_addw(tmp+(gr1->index<<8));
+	cache_addb(imm);
 }
 
 static void gen_dop_word_imm_mem(DualOps op,bool dword,DynReg * dr1,void* data) {
@@ -1072,7 +1093,7 @@ static void gen_test_host_byte(void * data, uint8_t imm) {
 	cache_addb(imm);
 }
 
-static void gen_return(BlockReturn retcode) {
+static void gen_return(BlockReturnDynX86 retcode) {
 	gen_protectflags();
 	cache_addb(0x59);			//POP ECX, the flags
 	if (retcode==0) cache_addw(0xc033);		//MOV EAX, 0
@@ -1083,7 +1104,7 @@ static void gen_return(BlockReturn retcode) {
 	cache_addb(0xc3);			//RET
 }
 
-static void gen_return_fast(BlockReturn retcode,bool ret_exception=false) {
+static void gen_return_fast(BlockReturnDynX86 retcode,bool ret_exception=false) {
 	if (GCC_UNLIKELY(x86gen.flagsactive)) IllegalOption("gen_return_fast");
 	cache_addw(0x0d8b);			//MOV ECX, the flags
 	cache_addd((uintptr_t)&cpu_regs.flags);

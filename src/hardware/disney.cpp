@@ -77,7 +77,7 @@ static void DISNEY_disable(Bitu) {
 		disney.chan->AddSilence();
 		disney.chan->Enable(false);
 	}
-	disney.leader = 0;
+	disney.leader = nullptr;
 	disney.last_used = 0;
 	disney.state = DS_IDLE;
 	disney.interface_det = 0;
@@ -199,7 +199,7 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 	{
 		disney.data=(uint8_t)val;
 		// if data is written here too often without using the stereo
-		// mechanism we use the simple DAC machanism. 
+		// mechanism we use the simple DAC mechanism.
         if(disney.state != DS_RUNNING) {
 			disney.interface_det++;
 			if(disney.interface_det > 5)
@@ -350,7 +350,7 @@ static void DISNEY_CallBack(Bitu len) {
 			uint8_t gapfiller = 128; //Keep the middle
 			if(real_used) {
 				// fix for some stupid game; it outputs 0 at the end of the stream
-				// causing a click. So if we have at least two bytes availible in the
+				// causing a click. So if we have at least two bytes available in the
 				// buffer and the last one is a 0 then ignore that.
 				if(disney.leader->buffer[real_used-1]==0)
 					real_used--;
@@ -385,8 +385,10 @@ private:
 	//MixerObject MixerChan;
 public:
 	DISNEY(Section* configuration):Module_base(configuration) {
-		Section_prop * section=static_cast<Section_prop *>(configuration);
-		if(!section->Get_bool("disney")) return;
+// This is determined by DISNEY_Init() and DISNEY_ShoudldInit() now.
+// We may be initialized by the parallel port emulation if the user has "parallel1=disney" in their dosbox.conf
+//		Section_prop * section=static_cast<Section_prop *>(configuration);
+//		if(!section->Get_bool("disney")) return;
 
 		for(int i = 0; i < 2; i++) {
 			disney.da[i].used = 0;
@@ -421,12 +423,16 @@ public:
 
 static DISNEY* test = NULL;
 
-static void DISNEY_ShutDown(Section* sec){
-    (void)sec;//UNUSED
+void DISNEY_Close() {
     if (test) {
         delete test;
         test = NULL;
     }
+}
+
+static void DISNEY_ShutDown(Section* sec){
+    (void)sec;//UNUSED
+    DISNEY_Close();
 }
 
 Bitu DISNEY_BasePort() {

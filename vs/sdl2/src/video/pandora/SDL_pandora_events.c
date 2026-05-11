@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,15 +20,14 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_PANDORA
+#ifdef SDL_VIDEO_DRIVER_PANDORA
 
 /* Being a null driver, there's no event stream. We just define stubs for
    most of the API. */
 
 #include "../../events/SDL_events_c.h"
 
-void
-PND_PumpEvents(_THIS)
+void PND_PumpEvents(_THIS)
 {
     /* Not implemented. */
 }

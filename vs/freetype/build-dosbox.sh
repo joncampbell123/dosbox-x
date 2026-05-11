@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 rm -Rfv linux-host || exit 1
 mkdir -p linux-host || exit 1
 
@@ -15,7 +15,7 @@ cd linux-build || exit 1
 
 opts=
 
-../configure "--srcdir=$srcdir" "--prefix=$instdir" --enable-static --disable-shared --with-bzip2=no --with-harfbuzz=no --with-png=no $opts || exit 1
+../configure "--srcdir=$srcdir" "--prefix=$instdir" --enable-static --disable-shared --with-bzip2=no --with-harfbuzz=no --with-png=no --with-brotli=no $opts || exit 1
 
 make -j || exit 1
 make install || exit 1  # will install into ./linux-host

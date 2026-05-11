@@ -19,13 +19,13 @@
  *  With major works from joncampbell123 and Wengier
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <errno.h>
 #include <limits.h>
+#include <cassert>
 #if defined(MACOSX)
 #define _DARWIN_C_SOURCE
 #endif
@@ -33,11 +33,14 @@
 #include <utime.h>
 #include <sys/file.h>
 #else
-#include <fcntl.h>
-#include <sys/stat.h>
 #include <sys/utime.h>
 #include <sys/locking.h>
+#ifdef OS2
+#include <sys/time.h>
 #endif
+#endif
+#include <fcntl.h>
+#include <sys/stat.h>
 
 #include "dosbox.h"
 #include "dos_inc.h"
@@ -51,35 +54,23 @@
 #include "timer.h"
 #include "render.h"
 #include "jfont.h"
-#include "../libs/physfs/physfs.h"
-#include "../libs/physfs/physfs.c"
-#include "../libs/physfs/physfs_archiver_7z.c"
-#include "../libs/physfs/physfs_archiver_dir.c"
-#include "../libs/physfs/physfs_archiver_grp.c"
-#include "../libs/physfs/physfs_archiver_hog.c"
-#include "../libs/physfs/physfs_archiver_iso9660.c"
-#include "../libs/physfs/physfs_archiver_mvl.c"
-#include "../libs/physfs/physfs_archiver_qpak.c"
-#include "../libs/physfs/physfs_archiver_slb.c"
-#include "../libs/physfs/physfs_archiver_unpacked.c"
-#include "../libs/physfs/physfs_archiver_vdf.c"
-#include "../libs/physfs/physfs_archiver_wad.c"
-#include "../libs/physfs/physfs_archiver_zip.c"
-#include "../libs/physfs/physfs_byteorder.c"
-#include "../libs/physfs/physfs_platform_posix.c"
-#include "../libs/physfs/physfs_platform_unix.c"
-#include "../libs/physfs/physfs_platform_windows.c"
-#include "../libs/physfs/physfs_platform_winrt.cpp"
-#include "../libs/physfs/physfs_unicode.c"
+
+#if defined(EMSCRIPTEN) || defined(HAIKU)
+#include <fcntl.h>
+#endif
 
 #include "cp437_uni.h"
+#include "cp737_uni.h"
+#include "cp775_uni.h"
 #include "cp808_uni.h"
 #include "cp850_uni.h"
 #include "cp852_uni.h"
 #include "cp853_uni.h"
 #include "cp855_uni.h"
+#include "cp856_uni.h"
 #include "cp857_uni.h"
 #include "cp858_uni.h"
+#include "cp859_uni.h"
 #include "cp860_uni.h"
 #include "cp861_uni.h"
 #include "cp862_uni.h"
@@ -87,6 +78,8 @@
 #include "cp864_uni.h"
 #include "cp865_uni.h"
 #include "cp866_uni.h"
+#include "cp867_uni.h"
+#include "cp868_uni.h"
 #include "cp869_uni.h"
 #include "cp872_uni.h"
 #include "cp874_uni.h"
@@ -94,6 +87,7 @@
 #include "cp936_uni.h"
 #include "cp949_uni.h"
 #include "cp950_uni.h"
+#include "cp951_uni.h"
 #include "cp1250_uni.h"
 #include "cp1251_uni.h"
 #include "cp1252_uni.h"
@@ -103,54 +97,103 @@
 #include "cp1256_uni.h"
 #include "cp1257_uni.h"
 #include "cp1258_uni.h"
+#include "cp3021_uni.h"
+
+#if defined (WIN32)
+#include <Shellapi.h>
+#else
+#include <glob.h>
+#endif
 
 #if defined(PATH_MAX) && !defined(MAX_PATH)
 #define MAX_PATH PATH_MAX
 #endif
 
-#if defined(WIN32)
-// Windows: Use UTF-16 (wide char)
-// TODO: Offer an option to NOT use wide char on Windows if directed by config.h
-//       for people who compile this code for Windows 95 or earlier where some
-//       widechar functions are missing.
-typedef wchar_t host_cnv_char_t;
-# define host_cnv_use_wchar
-# define _HT(x) L##x
-# if defined(__MINGW32__) /* TODO: Get MinGW to support 64-bit file offsets, at least targeting Windows XP! */
-#  define ht_stat_t struct _stat
-#  define ht_stat(x,y) _wstat(x,y)
-# else
-#  define ht_stat_t struct _stat64 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
-#  define ht_stat(x,y) _wstat64(x,y)
-# endif
-# define ht_access(x,y) _waccess(x,y)
-# define ht_strdup(x) _wcsdup(x)
-# define ht_unlink(x) _wunlink(x)
-#else
-// Linux: Use UTF-8
-typedef char host_cnv_char_t;
-# define _HT(x) x
-# define ht_stat_t struct stat
-# define ht_stat(x,y) stat(x,y)
-# define ht_access(x,y) access(x,y)
-# define ht_strdup(x) strdup(x)
-# define ht_unlink(x) unlink(x)
-#endif
-
+uint16_t ldid[256];
+std::string ldir[256];
 static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
-static uint16_t ldid[256];
-static std::string ldir[256];
-static std::string hostname = "";
-extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
-extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, halfwidthkana;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), CheckDBCSCP(int32_t codepage);
+extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, uao, halfwidthkana, dbcs_sbcs, inmsg, forceswk;
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
+extern uint16_t cpMap_AX[32];
+extern uint16_t cpMap_PC98[256];
+extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
+int tryconvertcp = 0;
+bool cpwarn_once = false, ignorespecial = false, notrycp = false;
+std::string prefix_local = ".DBLOCALFILE";
+
+
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101300
+// futimens() not available in macOS 10.12 (Sierra) and before
+#include <sys/time.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <time.h>
+#include <fcntl.h>
+#include <errno.h>
+
+// POSIX defined constants（not defined in old macOS)
+#define UTIME_NOW  ((1l << 30) - 1l)
+#define UTIME_OMIT ((1l << 30) - 2l)
+
+int futimens (int fd, const struct timespec times[2]) {
+    if (!times) {
+        return futimes(fd, NULL);  // If NULL, update to current time
+    }
+
+    struct timeval tv[2];
+
+    // Retrieve current file timestamps (used for UTIME_OMIT)
+    struct stat st;
+    if (fstat(fd, &st) == -1) {
+        return -1;
+    }
+
+    // Access time
+    if (times[0].tv_nsec == UTIME_NOW) {
+        struct timeval now;
+        if (gettimeofday(&now, NULL) == -1) return -1;
+        tv[0] = now;
+    } else if (times[0].tv_nsec == UTIME_OMIT) {
+        tv[0].tv_sec  = st.st_atimespec.tv_sec;
+        tv[0].tv_usec = st.st_atimespec.tv_nsec / 1000;
+    } else {
+        tv[0].tv_sec  = times[0].tv_sec;
+        tv[0].tv_usec = times[0].tv_nsec / 1000;
+    }
+
+    // Modified time
+    if (times[1].tv_nsec == UTIME_NOW) {
+        struct timeval now;
+        if (gettimeofday(&now, NULL) == -1) return -1;
+        tv[1] = now;
+    } else if (times[1].tv_nsec == UTIME_OMIT) {
+        tv[1].tv_sec  = st.st_mtimespec.tv_sec;
+        tv[1].tv_usec = st.st_mtimespec.tv_nsec / 1000;
+    } else {
+        tv[1].tv_sec  = times[1].tv_sec;
+        tv[1].tv_usec = times[1].tv_nsec / 1000;
+    }
+
+    return futimes(fd, tv);
+}
+#endif
+
+char* GetCrossedName(const char *basedir, const char *dir) {
+	static char crossname[CROSS_LEN];
+	strcpy(crossname, basedir);
+	strcat(crossname, dir);
+	CROSS_FILENAME(crossname);
+	return crossname;
+}
 
 bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
-    const uint16_t* df = d + CROSS_LEN - 1;
-	const char *sf = s + CROSS_LEN - 1;
+    const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?4:1) - 1;
 
     while (*s != 0 && s < sf) {
         unsigned char ic = (unsigned char)(*s++);
@@ -183,12 +226,9 @@ bool String_ASCII_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
     return true;
 }
 
-extern bool forceswk;
-extern uint16_t cpMap_PC98[256];
-extern std::map<int, int> lowboxdrawmap;
 template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-    const uint16_t* df = d + CROSS_LEN - 1;
-	const char *sf = s + CROSS_LEN - 1;
+    const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?4:1) - 1;
 
     while (*s != 0 && s < sf) {
         unsigned char ic = (unsigned char)(*s++);
@@ -199,7 +239,7 @@ template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
             if (ic>=0xA1&&ic<=0xDF) wc = cpMap_PC98[ic];
             else {
                 std::map<int, int>::iterator it = lowboxdrawmap.find(ic);
-                wc = map[lowboxdrawmap.find(ic)==lowboxdrawmap.end()?ic:it->second];
+                wc = map[it==lowboxdrawmap.end()?ic:it->second];
             }
         } else
 #endif
@@ -234,14 +274,38 @@ template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
     return true;
 }
 
+uint16_t baselen = 0;
+std::list<uint16_t> bdlist = {};
 /* needed for Wengier's TTF output and CJK mode */
 template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-    const uint16_t* df = d + CROSS_LEN - 1;
-	const char *sf = s + CROSS_LEN - 1;
+    const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
+	const char *sf = s + CROSS_LEN * (morelen?4:1) - 1;
+    const char *ss = s;
 
     while (*s != 0 && s < sf) {
+        if (morelen && !(dos.loaded_codepage == 932
+#if defined(USE_TTF)
+        && halfwidthkana
+#endif
+        ) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1)))))) {
+            *d++ = cp437_to_unicode[(uint8_t)*s++];
+            continue;
+        } else if (morelen && IS_JEGA_ARCH && (uint8_t)(*s) && (uint8_t)(*s)<32) {
+            *d++ = cpMap_AX[(uint8_t)*s++];
+            continue;
+        } else if (morelen && IS_PC98_ARCH && pc98boxdrawmap.find((uint8_t)*s) != pc98boxdrawmap.end()) {
+            *d++ = cp437_to_unicode[(uint8_t)*s++];
+            continue;
+        } else if (morelen && dos.loaded_codepage == 932
+#if defined(USE_TTF)
+        && halfwidthkana
+#endif
+        && !IS_PC98_ARCH && !IS_JEGA_ARCH && lowboxdrawmap.find(*s)!=lowboxdrawmap.end()) {
+            *d++ = cp437_to_unicode[(uint8_t)lowboxdrawmap.find(*s++)->second];
+            continue;
+        }
         uint16_t ic = (unsigned char)(*s++);
-        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950) && (ic & 0x80) == 0x80)) {
+        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950 || dos.loaded_codepage==951) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
             ic <<= 8U;
             ic += (unsigned char)(*s++);
@@ -268,12 +332,48 @@ template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
 template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
 	const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
+    const char *ss = s;
 
     while (*s != 0 && s < sf) {
+        if (morelen && !(dos.loaded_codepage == 932
+#if defined(USE_TTF)
+        && halfwidthkana
+#endif
+        ) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1))))) && utf8_encode(&d,df,(uint32_t)cp437_to_unicode[(uint8_t)*s]) >= 0) {
+            s++;
+            continue;
+        } else if (morelen && IS_JEGA_ARCH && (uint8_t)(*s) && (uint8_t)(*s)<32) {
+            uint16_t oc = cpMap_AX[(uint8_t)*s];
+            if (utf8_encode(&d,df,(uint32_t)oc) >= 0) {
+                s++;
+                continue;
+            }
+        } else if (morelen && IS_PC98_ARCH && pc98boxdrawmap.find((uint8_t)*s) != pc98boxdrawmap.end()) {
+            uint16_t oc = cp437_to_unicode[(uint8_t)*s];
+            if (utf8_encode(&d,df,(uint32_t)oc) >= 0) {
+                s++;
+                continue;
+            }
+        } else if (morelen && dos.loaded_codepage == 932
+#if defined(USE_TTF)
+        && halfwidthkana
+#endif
+        && !IS_PC98_ARCH && !IS_JEGA_ARCH && lowboxdrawmap.find(*s)!=lowboxdrawmap.end()) {
+            uint16_t oc = cp437_to_unicode[(uint8_t)lowboxdrawmap.find(*s)->second];
+            if (utf8_encode(&d,df,(uint32_t)oc) >= 0) {
+                s++;
+                continue;
+            }
+        }
+
         uint16_t ic = (unsigned char)(*s++);
-        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950) && (ic & 0x80) == 0x80)) {
+        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950 || dos.loaded_codepage==951) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
-            if (morelen && !(dos.loaded_codepage==932 && (halfwidthkana || IS_PC98_ARCH || IS_JEGA_ARCH)) && (ic == 179 || ic == 186) && (s < sf && (*s == 32 || *s == 13))) {
+            if (morelen && !(dos.loaded_codepage==932 && (IS_PC98_ARCH || IS_JEGA_ARCH
+#if defined(USE_TTF)
+                || halfwidthkana
+#endif
+                )) && (ic == 179 || ic == 186) && (s < sf && (*s == 32 || *s == 13))) {
                 MT wc = cp437_to_unicode[ic];
                 if (utf8_encode(&d,df,(uint32_t)wc) < 0) return false;
                 continue;
@@ -304,6 +404,7 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
 
 // TODO: This is SLOW. Optimize.
 template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map_max) {
+    if (morelen && (MT)c<0x20 && c >= 0 && c < 256 && map[c] == cp437_to_unicode[c]) return c;
     for (size_t i=0;i < map_max;i++) {
         if ((MT)c == map[i])
             return (int)i;
@@ -332,12 +433,50 @@ template <class MT> int DBCS_From_Host_Find(int c,const MT *hitbl,const MT *rawt
 }
 
 template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-    const uint16_t *sf = s + CROSS_LEN - 1;
-    const char* df = d + CROSS_LEN - 1;
+    const uint16_t *sf = s + CROSS_LEN * (morelen?4:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?4:1) - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
         ic = (int)(*s++);
+#if defined(USE_TTF)
+        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && ((!dbcs_sbcs && !inmsg) || (ic>=0x2550 && ic<=0x2569))) {
+            *d++ = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            continue;
+        } else
+#endif
+            if (morelen && dos.loaded_codepage == 932
+#if defined(USE_TTF)
+            && halfwidthkana
+#endif
+            && !IS_PC98_ARCH && !IS_JEGA_ARCH) {
+            int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            bool found = false;
+            for (auto it = lowboxdrawmap.begin(); it != lowboxdrawmap.end(); ++it)
+                if (it->second == wc) {
+                    *d++ = it->first;
+                    found = true;
+                    break;
+                }
+            if (found) continue;
+        } else if (morelen && IS_PC98_ARCH && ic > 0xFF) {
+            int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            auto it = pc98boxdrawmap.find(wc);
+            if (it != pc98boxdrawmap.end()) {
+                *d++ = (char)0x86;
+                *d++ = it->second;
+                continue;
+            }
+        } else if (morelen && IS_JEGA_ARCH) {
+            bool found = false;
+            for (uint8_t i=1; i<32; i++)
+                if (cpMap_AX[i] == ic) {
+                    *d++ = i;
+                    found = true;
+                    break;
+                }
+            if (found) continue;
+        }
 
         int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)
@@ -368,7 +507,48 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
         int ic;
         if ((ic=utf8_decode(&s,sf)) < 0)
             return false; // non-representable
-
+#if defined(USE_TTF)
+        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && ((!dbcs_sbcs && !inmsg) || (ic>=0x2550 && ic<=0x2569))) {
+            *d++ = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            continue;
+        } else
+#endif
+            if (morelen && dos.loaded_codepage == 932
+#if defined(USE_TTF)
+            && halfwidthkana
+#endif
+            && !IS_PC98_ARCH && !IS_JEGA_ARCH) {
+            int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            uint16_t j = 0;
+            for (auto it = lowboxdrawmap.begin(); it != lowboxdrawmap.end(); ++it)
+                if (it->second == wc) {
+                    j = it->first;
+                    break;
+                }
+            if (j && utf8_encode(&d,df,(uint32_t)j) >= 0) {
+                s++;
+                continue;
+            }
+        } else if (morelen && IS_PC98_ARCH && ic > 0xFF) {
+            int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            auto it = pc98boxdrawmap.find(wc);
+            if (it != pc98boxdrawmap.end()) {
+                *d++ = (char)0x86;
+                *d++ = it->second;
+                continue;
+            }
+        } else if (morelen && IS_JEGA_ARCH) {
+            uint8_t j = 0;
+            for (uint8_t i=1; i<32; i++)
+                if (cpMap_AX[i] == ic) {
+                    j = i;
+                    break;
+                }
+            if (j && utf8_encode(&d,df,(uint32_t)j) >= 0) {
+                s++;
+                continue;
+            }
+        }
         int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)
             return false; // non-representable
@@ -391,8 +571,8 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
 }
 
 template <class MT> bool String_HOST_TO_SBCS_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-    const uint16_t *sf = s + CROSS_LEN - 1;
-    const char* df = d + CROSS_LEN - 1;
+    const uint16_t *sf = s + CROSS_LEN * (morelen?4:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?4:1) - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
@@ -436,8 +616,8 @@ template <class MT> bool String_HOST_TO_SBCS_UTF8(char *d/*CROSS_LEN*/,const cha
 }
 
 bool String_HOST_TO_ASCII_UTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
-    const uint16_t *sf = s + CROSS_LEN - 1;
-    const char* df = d + CROSS_LEN - 1;
+    const uint16_t *sf = s + CROSS_LEN * (morelen?4:1) - 1;
+    const char* df = d + CROSS_LEN * (morelen?4:1) - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
@@ -478,7 +658,22 @@ bool String_HOST_TO_ASCII_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
     return true;
 }
 
-bool cpwarn_once = false;
+bool isemptyhit(uint16_t code) {
+    switch (dos.loaded_codepage) {
+        case 932:
+            return cp932_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 936:
+            return cp936_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 949:
+            return cp949_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 950:
+            return chinasea ? cp950ext_to_unicode_hitbl[code >> 6] == 0xffff : cp950_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 951:
+            return cp951_to_unicode_hitbl[code >> 6] == 0xffff;
+        default:
+            return code > 0xff;
+    }
+}
 
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
     if (altcp && dos.loaded_codepage == altcp) return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
@@ -486,6 +681,10 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 737:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp737_to_unicode,sizeof(cp737_to_unicode)/sizeof(cp737_to_unicode[0]));
+        case 775:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp775_to_unicode,sizeof(cp775_to_unicode)/sizeof(cp775_to_unicode[0]));
         case 808:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
@@ -496,10 +695,14 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 856:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp856_to_unicode,sizeof(cp856_to_unicode)/sizeof(cp856_to_unicode[0]));
         case 857:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 859:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp859_to_unicode,sizeof(cp859_to_unicode)/sizeof(cp859_to_unicode[0]));
         case 860:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
@@ -514,6 +717,10 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+        case 867:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp867_to_unicode,sizeof(cp867_to_unicode)/sizeof(cp867_to_unicode[0]));
+        case 868:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp868_to_unicode,sizeof(cp868_to_unicode)/sizeof(cp868_to_unicode[0]));
         case 869:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
@@ -529,6 +736,11 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
         case 950:
             if (chinasea) return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 951:
+            if (chinasea && uao) return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951uaosea_to_unicode_raw,sizeof(cp951uaosea_to_unicode_raw)/sizeof(cp951uaosea_to_unicode_raw[0]));
+            if (chinasea && !uao) return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951sea_to_unicode_raw,sizeof(cp951sea_to_unicode_raw)/sizeof(cp951sea_to_unicode_raw[0]));
+            if (!chinasea && uao) return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951uao_to_unicode_raw,sizeof(cp951uao_to_unicode_raw)/sizeof(cp951uao_to_unicode_raw[0]));
+            return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
         case 1251:
@@ -547,6 +759,8 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
         case 1258:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
+        case 3021:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp3021_to_unicode,sizeof(cp3021_to_unicode)/sizeof(cp3021_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -565,6 +779,10 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 737:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp737_to_unicode,sizeof(cp737_to_unicode)/sizeof(cp737_to_unicode[0]));
+        case 775:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp775_to_unicode,sizeof(cp775_to_unicode)/sizeof(cp775_to_unicode[0]));
         case 808:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
@@ -575,10 +793,14 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 856:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp856_to_unicode,sizeof(cp856_to_unicode)/sizeof(cp856_to_unicode[0]));
         case 857:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 859:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp859_to_unicode,sizeof(cp859_to_unicode)/sizeof(cp859_to_unicode[0]));
         case 860:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
@@ -593,6 +815,10 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+        case 867:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp867_to_unicode,sizeof(cp867_to_unicode)/sizeof(cp867_to_unicode[0]));
+        case 868:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp868_to_unicode,sizeof(cp868_to_unicode)/sizeof(cp868_to_unicode[0]));
         case 869:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
@@ -608,6 +834,11 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
         case 950:
             if (chinasea) return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 951:
+            if (chinasea && uao) return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951uaosea_to_unicode_raw,sizeof(cp951uaosea_to_unicode_raw)/sizeof(cp951uaosea_to_unicode_raw[0]));
+            if (chinasea && !uao) return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951sea_to_unicode_raw,sizeof(cp951sea_to_unicode_raw)/sizeof(cp951sea_to_unicode_raw[0]));
+            if (!chinasea && uao) return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951uao_to_unicode_raw,sizeof(cp951uao_to_unicode_raw)/sizeof(cp951uao_to_unicode_raw[0]));
+            return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
         case 1251:
@@ -626,6 +857,8 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
         case 1258:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
+        case 3021:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp3021_to_unicode,sizeof(cp3021_to_unicode)/sizeof(cp3021_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -644,6 +877,10 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
     switch (dos.loaded_codepage) {
         case 437:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 737:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp737_to_unicode,sizeof(cp737_to_unicode)/sizeof(cp737_to_unicode[0]));
+        case 775:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp775_to_unicode,sizeof(cp775_to_unicode)/sizeof(cp775_to_unicode[0]));
         case 808:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
@@ -654,10 +891,14 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 856:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp856_to_unicode,sizeof(cp856_to_unicode)/sizeof(cp856_to_unicode[0]));
         case 857:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 859:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp859_to_unicode,sizeof(cp859_to_unicode)/sizeof(cp859_to_unicode[0]));
         case 860:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
@@ -672,6 +913,10 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+        case 867:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp867_to_unicode,sizeof(cp867_to_unicode)/sizeof(cp867_to_unicode[0]));
+        case 868:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp868_to_unicode,sizeof(cp868_to_unicode)/sizeof(cp868_to_unicode[0]));
         case 869:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
@@ -687,6 +932,11 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
         case 950:
             if (chinasea) return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 951:
+            if (chinasea && uao) return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951uaosea_to_unicode_raw,sizeof(cp951uaosea_to_unicode_raw)/sizeof(cp951uaosea_to_unicode_raw[0]));
+            if (chinasea && !uao) return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951sea_to_unicode_raw,sizeof(cp951sea_to_unicode_raw)/sizeof(cp951sea_to_unicode_raw[0]));
+            if (!chinasea && uao) return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951uao_to_unicode_raw,sizeof(cp951uao_to_unicode_raw)/sizeof(cp951uao_to_unicode_raw[0]));
+            return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
         case 1251:
@@ -705,6 +955,8 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
         case 1258:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
+        case 3021:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp3021_to_unicode,sizeof(cp3021_to_unicode)/sizeof(cp3021_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -723,6 +975,10 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 737:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp737_to_unicode,sizeof(cp737_to_unicode)/sizeof(cp737_to_unicode[0]));
+        case 775:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp775_to_unicode,sizeof(cp775_to_unicode)/sizeof(cp775_to_unicode[0]));
         case 808:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
         case 850:
@@ -733,10 +989,14 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 856:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp856_to_unicode,sizeof(cp856_to_unicode)/sizeof(cp856_to_unicode[0]));
         case 857:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 859:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp859_to_unicode,sizeof(cp859_to_unicode)/sizeof(cp859_to_unicode[0]));
         case 860:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
@@ -751,6 +1011,10 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp865_to_unicode,sizeof(cp865_to_unicode)/sizeof(cp865_to_unicode[0]));
         case 866:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+        case 867:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp867_to_unicode,sizeof(cp867_to_unicode)/sizeof(cp867_to_unicode[0]));
+        case 868:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp868_to_unicode,sizeof(cp868_to_unicode)/sizeof(cp868_to_unicode[0]));
         case 869:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
         case 872:
@@ -766,6 +1030,11 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
         case 950:
             if (chinasea) return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 951:
+            if (chinasea && uao) return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951uaosea_to_unicode_raw,sizeof(cp951uaosea_to_unicode_raw)/sizeof(cp951uaosea_to_unicode_raw[0]));
+            if (chinasea && !uao) return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951sea_to_unicode_raw,sizeof(cp951sea_to_unicode_raw)/sizeof(cp951sea_to_unicode_raw[0]));
+            if (!chinasea && uao) return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951uao_to_unicode_raw,sizeof(cp951uao_to_unicode_raw)/sizeof(cp951uao_to_unicode_raw[0]));
+            return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
         case 1251:
@@ -784,6 +1053,8 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
         case 1258:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
+        case 3021:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp3021_to_unicode,sizeof(cp3021_to_unicode)/sizeof(cp3021_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -798,6 +1069,15 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
 
 host_cnv_char_t *CodePageGuestToHost(const char *s) {
 #if defined(host_cnv_use_wchar)
+    uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
+    if (tryconvertcp && !notrycp && cpbak == 437 && CheckDBCSCP(cp)) {
+        dos.loaded_codepage = cp;
+        if (CodePageGuestToHostUTF16((uint16_t *)cpcnv_temp,s)) {
+            dos.loaded_codepage = cpbak;
+            return cpcnv_temp;
+        } else
+            dos.loaded_codepage = cpbak;
+    }
     if (!CodePageGuestToHostUTF16((uint16_t *)cpcnv_temp,s))
 #else
     if (!CodePageGuestToHostUTF8((char *)cpcnv_temp,s))
@@ -809,6 +1089,15 @@ host_cnv_char_t *CodePageGuestToHost(const char *s) {
 
 char *CodePageHostToGuest(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
+    uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
+    if (tryconvertcp && !notrycp && cpbak == 437 && CheckDBCSCP(cp)) {
+        dos.loaded_codepage = cp;
+        if (CodePageHostToGuestUTF16((char *)cpcnv_temp,(const uint16_t *)s)) {
+            dos.loaded_codepage = cpbak;
+            return (char *)cpcnv_temp;
+        } else
+            dos.loaded_codepage = cpbak;
+    }
     if (!CodePageHostToGuestUTF16((char *)cpcnv_temp,(const uint16_t *)s))
 #else
     if (!CodePageHostToGuestUTF8((char *)cpcnv_temp,(char *)s))
@@ -820,6 +1109,15 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
 
 char *CodePageHostToGuestL(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
+    uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
+    if (tryconvertcp && !notrycp && cpbak == 437 && CheckDBCSCP(cp)) {
+        dos.loaded_codepage = cp;
+        if (CodePageHostToGuestUTF16((char *)cpcnv_ltemp,(const uint16_t *)s)) {
+            dos.loaded_codepage = cpbak;
+            return (char *)cpcnv_ltemp;
+        } else
+            dos.loaded_codepage = cpbak;
+    }
     if (!CodePageHostToGuestUTF16((char *)cpcnv_ltemp,(const uint16_t *)s))
 #else
     if (!CodePageHostToGuestUTF8((char *)cpcnv_ltemp,(char *)s))
@@ -840,10 +1138,12 @@ int FileDirExistCP(const char *name) {
 int FileDirExistUTF8(std::string &localname, const char *name) {
     int cp = dos.loaded_codepage;
 #ifdef WIN32
-    dos.loaded_codepage = GetOEMCP();
+    dos.loaded_codepage = GetACP();
 #else
     return 0;
 #endif
+    if (dos.loaded_codepage == 950 && !chinasea) makestdcp950table();
+    if (dos.loaded_codepage == 951 && chinasea) makeseacp951table();
     if (!CodePageHostToGuestUTF8((char *)cpcnv_temp, (char *)name)) {
         dos.loaded_codepage = cp;
         return 0;
@@ -856,11 +1156,49 @@ int FileDirExistUTF8(std::string &localname, const char *name) {
 extern uint16_t fztime, fzdate;
 extern bool force_conversion, InitCodePage();
 std::string GetDOSBoxXPath(bool withexe=false);
-void drivezRegister(std::string path, std::string dir) {
+void getdrivezpath(std::string &path, std::string const& dirname) {
+    const host_cnv_char_t* host_name = CodePageGuestToHost(path.c_str());
+    if (host_name == NULL) {path = "";return;}
+    struct stat cstat;
+    ht_stat_t hstat;
+    int res=host_name == NULL?stat(path.c_str(),&cstat):ht_stat(host_name,&hstat);
+    bool ret=res==-1?false:((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR);
+    if (!ret) {
+        path = GetDOSBoxXPath();
+        if (path.size()) {
+            path += dirname;
+            host_name = CodePageGuestToHost(path.c_str());
+            res=host_name == NULL?stat(path.c_str(),&cstat):ht_stat(host_name,&hstat);
+            ret=res==-1?false:((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR);
+        }
+        if (!path.size() || !ret) {
+            path = "";
+            path = Cross::GetPlatformConfigDir();
+            path += dirname;
+            host_name = CodePageGuestToHost(path.c_str());
+            res=host_name == NULL?stat(path.c_str(),&cstat):ht_stat(host_name,&hstat);
+            ret=res==-1?false:((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR);
+            if (!ret) {
+                path = "";
+                path = Cross::GetPlatformResDir();
+                path += dirname;
+                host_name = CodePageGuestToHost(path.c_str());
+                res=host_name == NULL?stat(path.c_str(),&cstat):ht_stat(host_name,&hstat);
+                ret=res==-1?false:((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR);
+                if (!ret)
+                    path = "";
+            }
+        }
+    }
+}
+
+void drivezRegister(std::string const& path, std::string const& dir, bool usecp) {
     int cp = dos.loaded_codepage;
-    force_conversion = true;
-    InitCodePage();
-    force_conversion = false;
+    if (!usecp || !cp) {
+        force_conversion = true;
+        InitCodePage();
+        force_conversion = false;
+    }
     char exePath[CROSS_LEN];
     std::vector<std::string> names;
     if (path.size()) {
@@ -892,9 +1230,18 @@ void drivezRegister(std::string path, std::string dir) {
         if (d) {
             while ((dir = readdir(d)) != NULL) {
                 host_cnv_char_t *temp_name = CodePageHostToGuest(dir->d_name);
-                if (dir->d_type == DT_REG)
+#if defined(HAIKU)
+                struct stat path_stat;
+                stat(dir->d_name, &path_stat);
+                bool is_regular_file = S_ISREG(path_stat.st_mode);
+                bool is_directory = S_ISDIR(path_stat.st_mode);
+#else
+                bool is_regular_file = (dir->d_type == DT_REG);
+                bool is_directory = (dir->d_type == DT_DIR);
+#endif
+                if (is_regular_file)
                     names.push_back(temp_name!=NULL?temp_name:dir->d_name);
-                else if (dir->d_type == DT_DIR && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".") && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".."))
+                else if (is_directory && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".") && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".."))
                     names.push_back(std::string(temp_name != NULL ? temp_name : dir->d_name) + "/");
             }
             closedir(d);
@@ -909,6 +1256,7 @@ void drivezRegister(std::string path, std::string dir) {
     const host_cnv_char_t* host_name;
     for (std::string name: names) {
         if (!name.size()) continue;
+        if ((!strcasecmp(name.c_str(), "AUTOEXEC.BAT") || !strcasecmp(name.c_str(), "CONFIG.SYS")) && dir=="/") continue;
         if (name.back()=='/' && dir=="/") {
             ht_stat_t temp_stat;
             host_name = CodePageGuestToHost((path+CROSS_FILESPLIT+name).c_str());
@@ -917,13 +1265,19 @@ void drivezRegister(std::string path, std::string dir) {
                 host_name = CodePageGuestToHost((GetDOSBoxXPath()+path+CROSS_FILESPLIT+name).c_str());
                 res = ht_stat(host_name,&temp_stat);
             }
-            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+            if (res==0&&(ltime=
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+            _localtime64
+#else
+            localtime
+#endif
+            (&temp_stat.st_mtime))!=nullptr) {
                 fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
                 fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
             }
-            VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
+            VFILE_Register(name.substr(0, name.size()-1).c_str(), nullptr, 0, dir.c_str());
             fztime = fzdate = 0;
-            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name);
+            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name, usecp);
             continue;
         }
         FILE * f = NULL;
@@ -951,7 +1305,7 @@ void drivezRegister(std::string path, std::string dir) {
         f_data = NULL;
         if (f != NULL) {
             res=fstat(fileno(f),&temp_stat);
-            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=nullptr) {
                 fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
                 fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
             }
@@ -959,7 +1313,7 @@ void drivezRegister(std::string path, std::string dir) {
             f_size=ftell(f);
             f_data=(uint8_t*)malloc(f_size);
             fseek(f, 0, SEEK_SET);
-            fread(f_data, sizeof(char), f_size, f);
+            if (f_data) fread(f_data, sizeof(char), f_size, f);
             fclose(f);
         }
         if (f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
@@ -1009,6 +1363,9 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
     const char* temp_name = dirCache.GetExpandName(newname); // Can only be used until a new drive_cache action is performed
 	/* Test if file exists (so we need to truncate it). don't add to dirCache then */
 	bool existing_file=false;
+#   // Windows: If the file to create already exists and is hidden OR we're being asked to create a hidden file,
+    //          then CreateFile() MUST be used or Windows might deny access.
+    bool special_attributes=false;
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
@@ -1028,19 +1385,37 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		existing_file=true;
 	}
 
+#if defined(WIN32)
+    if(attributes & 2) { /* attempting to create a hidden file */
+        /* The CreateFileW path MUST be used to correctly specify the file attribute.
+           Else, a file intended to be hidden will be fully visible, or even worse,
+           an attempt to create a hidden file when the file already exists as a hidden file will fail.
+
+           Fix for "Facts of Life" by Witan, which always creates hidden file WITAN.92 */
+        special_attributes = true;
+    }
+#endif
+
     FILE * hand;
-    if (enable_share_exe && !existing_file) {
+    if (enable_share_exe && (!existing_file || special_attributes)) {
 #if defined(WIN32)
         int attribs = FILE_ATTRIBUTE_NORMAL;
         if (attributes&3) attribs = attributes&3;
-        HANDLE handle = CreateFileW(host_name, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, attribs, NULL);
+        HANDLE handle = CreateFileW(host_name, GENERIC_READ|GENERIC_WRITE, enable_share_exe?(FILE_SHARE_READ|FILE_SHARE_WRITE):0, NULL, CREATE_ALWAYS, attribs, NULL);
         if (handle == INVALID_HANDLE_VALUE) return false;
         int nHandle = _open_osfhandle((intptr_t)handle, _O_RDONLY);
         if (nHandle == -1) {CloseHandle(handle);return false;}
         hand = _wfdopen(nHandle, L"wb+");
 #else
-        int fd = open(host_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-        if (fd<0) {close(fd);return false;}
+        int fd = open(host_name,
+#if defined(O_DIRECT)
+            (file_access_tries>0 ? O_DIRECT : 0) |
+#endif
+            O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+        if (fd<0) {return false;}
+#if defined(F_NOCACHE)
+        if (file_access_tries>0) fcntl(fd, F_NOCACHE, 1);
+#endif
         hand = fdopen(fd, "wb+");
 #endif
     } else {
@@ -1054,7 +1429,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		LOG_MSG("Warning: file creation failed: %s",newname);
 		return false;
 	}
-   
+
 	if(!existing_file) {
 		strcpy(newname,basedir);
 		strcat(newname,name);
@@ -1063,7 +1438,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 	}
 
 	/* Make the 16 bit device information */
-	*file=new localFile(name,hand);
+	*file=new LocalFile(name,hand);
 	(*file)->flags=OPEN_READWRITE;
 
 	return true;
@@ -1192,19 +1567,20 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 
 	//Flush the buffer of handles for the same file. (Betrayal in Antara)
 	uint8_t i,drive=DOS_DRIVES;
-	localFile *lfp;
+	LocalFile *lfp;
 	for (i=0;i<DOS_DRIVES;i++) {
 		if (Drives[i]==this) {
 			drive=i;
 			break;
 		}
 	}
-	for (i=0;i<DOS_FILES;i++) {
-		if (Files[i] && Files[i]->IsOpen() && Files[i]->GetDrive()==drive && Files[i]->IsName(name)) {
-			lfp=dynamic_cast<localFile*>(Files[i]);
-			if (lfp) lfp->Flush();
-		}
-	}
+    if(!dos_kernel_disabled)
+        for(i = 0; i < DOS_FILES; i++) {
+            if(Files[i] && Files[i]->IsOpen() && Files[i]->GetDrive() == drive && Files[i]->IsName(name)) {
+                lfp = dynamic_cast<LocalFile*>(Files[i]);
+                if(lfp) lfp->Flush();
+            }
+        }
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
@@ -1227,7 +1603,12 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 #else
         uint16_t unix_mode = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?O_RDONLY:((flags&0xf)==OPEN_WRITE?O_WRONLY:O_RDWR);
         int fd = open(host_name, unix_mode);
-        if (fd<0 || !share(fd, unix_mode & O_ACCMODE, flags)) {close(fd);return false;}
+        if (fd < 0)
+            return false;
+        if (!share(fd, unix_mode & O_ACCMODE, flags)) {
+            close(fd);
+            return false;
+        }
         hand = fdopen(fd, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
 #endif
     } else {
@@ -1257,7 +1638,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 		return false;
 	}
 
-	*file=new localFile(name,hand);
+	*file=new LocalFile(name,hand);
 	(*file)->flags=flags;  //for the inheritance flag and maybe check for others.
 //	(*file)->SetFileName(host_name);
 	return true;
@@ -1316,11 +1697,6 @@ bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
 #endif
 }
 
-#if defined (WIN32)
-#include <Shellapi.h>
-#else
-#include <glob.h>
-#endif
 bool localDrive::FileUnlink(const char * name) {
     if (readonly) {
         DOS_SetError(DOSERR_WRITE_PROTECTED);
@@ -1351,7 +1727,7 @@ bool localDrive::FileUnlink(const char * name) {
 #else
 		FILE* file_writable = fopen(host_name,"rb+");
 #endif
-		if(!file_writable) return false; //No acces ? ERROR MESSAGE NOT SET. FIXME ?
+		if(!file_writable) return false; //No access ? ERROR MESSAGE NOT SET. FIXME ?
 		fclose(file_writable);
 
 		//File exists and can technically be deleted, nevertheless it failed.
@@ -1370,11 +1746,17 @@ bool localDrive::FileUnlink(const char * name) {
 		}
 		if(!found_file) return false;
 		if (!ht_unlink(host_name)) {
+#if !defined (WIN32)
+			remove_special_file_from_disk(name, "ATR");
+#endif
 			dirCache.DeleteEntry(newname);
 			return true;
 		}
 		return false;
 	} else {
+#if !defined (WIN32)
+		remove_special_file_from_disk(name, "ATR");
+#endif
 		dirCache.DeleteEntry(newname);
 		return true;
 	}
@@ -1386,19 +1768,24 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	strcat(tempDir,_dir);
 	CROSS_FILENAME(tempDir);
 
-	for (unsigned int i=0;i<strlen(tempDir);i++) tempDir[i]=toupper(tempDir[i]);
-    if (nocachedir) EmptyCache();
+	size_t len = strlen(tempDir);
+	bool lead = false;
+	for (unsigned int i=0;i<len;i++) {
+		if(lead) lead = false;
+		else if((IS_PC98_ARCH || isDBCSCP()) && isKanji1(tempDir[i])) lead = true;
+		else tempDir[i]=toupper(tempDir[i]);
+	}
+	if (nocachedir) EmptyCache();
 
 	if (allocation.mediaid==0xF0 ) {
 		EmptyCache(); //rescan floppie-content on each findfirst
 	}
-    
-	
-	if (tempDir[strlen(tempDir)-1]!=CROSS_FILESPLIT) {
+
+	if (!check_last_split_char(tempDir, len, CROSS_FILESPLIT)) {
 		char end[2]={CROSS_FILESPLIT,0};
 		strcat(tempDir,end);
 	}
-	
+
 	uint16_t id;
 	if (!dirCache.FindFirst(tempDir,id)) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
@@ -1411,14 +1798,14 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		ldid[lfn_filefind_handle]=id;
 		ldir[lfn_filefind_handle]=tempDir;
 	}
-	
+
 	uint8_t sAttr;
 	dta.GetSearchParams(sAttr,tempDir,false);
 
 	if (this->isRemote() && this->isRemovable()) {
 		// cdroms behave a bit different than regular drives
 		if (sAttr == DOS_ATTR_VOLUME) {
-			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		}
 	} else {
@@ -1430,13 +1817,13 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 				DOS_SetError(DOSERR_NO_MORE_FILES);
 				return false;
 			}
-            dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
 			return true;
-		} else if ((sAttr & DOS_ATTR_VOLUME)  && (*_dir == 0) && !fcb_findfirst) { 
-		//should check for a valid leading directory instead of 0
-		//exists==true if the volume label matches the searchmask and the path is valid
+		} else if ((sAttr & DOS_ATTR_VOLUME) && (*_dir == 0) && !fcb_findfirst) { 
+			//should check for a valid leading directory instead of 0
+			//exists==true if the volume label matches the searchmask and the path is valid
 			if (WildFileCmp(dirCache.GetLabel(),tempDir)) {
-                dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+				dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
 				return true;
 			}
 		}
@@ -1448,19 +1835,19 @@ char * DBCS_upcase(char * str);
 
 bool localDrive::FindNext(DOS_DTA & dta) {
 
-    char * dir_ent, *ldir_ent;
+	char * dir_ent, *ldir_ent;
 	ht_stat_t stat_block;
-    char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
-    char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
+	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
+	char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
 
-    uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH];
+	uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH+1];
 	uint8_t find_attr;
 
-    dta.GetSearchParams(srch_attr,srch_pattern,false);
+	dta.GetSearchParams(srch_attr,srch_pattern,false);
 	uint16_t id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];
 
 again:
-    if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
+	if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
 		if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
 			ldid[lfn_filefind_handle]=0;
 			ldir[lfn_filefind_handle]="";
@@ -1468,28 +1855,28 @@ again:
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
-    if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
+	if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
 
 	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:(ldir[lfn_filefind_handle]!=""?ldir[lfn_filefind_handle].c_str():"\\"));
 	strcpy(lfull_name,full_name);
-	
+
 	strcat(full_name,dir_ent);
-    strcat(lfull_name,ldir_ent);
+	strcat(lfull_name,ldir_ent);
 
 	//GetExpandName might indirectly destroy dir_ent (by caching in a new directory 
 	//and due to its design dir_ent might be lost.)
 	//Copying dir_ent first
 	strcpy(dir_entcopy,dir_ent);
-    strcpy(ldir_entcopy,ldir_ent);
+	strcpy(ldir_entcopy,ldir_ent);
 
-    char *temp_name = dirCache.GetExpandName(full_name);
+	char *temp_name = dirCache.GetExpandName(full_name);
 
-    // guest to host code page translation
-    const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
-    if (host_name == NULL) {
-        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,temp_name);
+	// guest to host code page translation
+	const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
+	if (host_name == NULL) {
+		LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,temp_name);
 		goto again;//No symlinks and such
-    }
+	}
 
 	if (ht_stat(host_name,&stat_block)!=0)
 		goto again;//No symlinks and such
@@ -1501,36 +1888,110 @@ again:
 	if (attribs != INVALID_FILE_ATTRIBUTES)
 		find_attr|=attribs&0x3f;
 #else
-	if (!(find_attr&DOS_ATTR_DIRECTORY)) find_attr|=DOS_ATTR_ARCHIVE;
+	bool isdir = find_attr & DOS_ATTR_DIRECTORY;
+	if (!isdir) find_attr|=DOS_ATTR_ARCHIVE;
 	if(!(stat_block.st_mode & S_IWUSR)) find_attr|=DOS_ATTR_READ_ONLY;
+	std::string fname = create_filename_of_special_operation(temp_name, "ATR", false);
+	if (ht_stat(fname.c_str(),&stat_block)==0) {
+		unsigned int len = stat_block.st_size;
+		if (len & 1) {
+			if (isdir)
+				find_attr|=DOS_ATTR_ARCHIVE;
+			else
+				find_attr&=~DOS_ATTR_ARCHIVE;
+		}
+		if (len & 2) find_attr|=DOS_ATTR_HIDDEN;
+		if (len & 4) find_attr|=DOS_ATTR_SYSTEM;
+	}
 #endif
- 	if (~srch_attr & find_attr & DOS_ATTR_DIRECTORY) goto again;
-	
+	if (~srch_attr & find_attr & DOS_ATTR_DIRECTORY) goto again;
+
 	/*file is okay, setup everything to be copied in DTA Block */
 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
-    uint16_t find_date,find_time;uint32_t find_size;
+	uint16_t find_date,find_time;uint32_t find_size,find_hsize;
 
 	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_entcopy);
-        if (IS_PC98_ARCH || isDBCSCP())
-            DBCS_upcase(find_name);
-        else
-            upcase(find_name);
-    }
+		if (IS_PC98_ARCH || isDBCSCP())
+			DBCS_upcase(find_name);
+		else
+			upcase(find_name);
+	}
 	strcpy(lfind_name,ldir_entcopy);
-    lfind_name[LFN_NAMELENGTH]=0;
+	lfind_name[LFN_NAMELENGTH]=0;
 
-	find_size=(uint32_t) stat_block.st_size;
-    const struct tm* time;
-	if((time=localtime(&stat_block.st_mtime))!=0){
+	find_hsize=(uint32_t) (stat_block.st_size / 0x100000000);
+	find_size=(uint32_t) (stat_block.st_size % 0x100000000);
+	const struct tm* time;
+	if((time=
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+				_localtime64
+#else
+				localtime
+#endif
+				(&stat_block.st_mtime))!=nullptr){
 		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 	} else {
 		find_time=6; 
 		find_date=4;
 	}
-	dta.SetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+	dta.SetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 	return true;
+}
+
+void localDrive::remove_special_file_from_disk(const char* dosname, const char* operation) {
+#if !defined (WIN32)
+	std::string newname = create_filename_of_special_operation(dosname, operation, true);
+	const host_cnv_char_t* host_name = CodePageGuestToHost(newname.c_str());
+	if (host_name != NULL)
+		ht_unlink(host_name);
+	else
+		unlink(newname.c_str());
+#else
+	(void)dosname;
+	(void)operation;
+#endif
+}
+
+std::string localDrive::create_filename_of_special_operation(const char* dosname, const char* operation, bool expand) {
+	std::string res(expand?dirCache.GetExpandName(GetCrossedName(basedir, dosname)):dosname);
+	std::string::size_type s = std::string::npos; //CHECK DOS or host endings.... on update_cache
+	bool lead = false;
+	for (unsigned int i=0; i<res.size(); i++) {
+		if (lead) lead = false;
+		else if ((IS_PC98_ARCH && shiftjis_lead_byte(res[i])) || (isDBCSCP() && isKanji1(res[i]))) lead = true;
+		else if (res[i]=='\\'||res[i]==CROSS_FILESPLIT) s = i;
+	}
+	if (s == std::string::npos) s = 0; else s++;
+	std::string oper = special_prefix_local + "_" + operation + "_";
+	res.insert(s,oper);
+	return res;
+}
+
+bool localDrive::add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value, bool isdir) {
+#if !defined (WIN32)
+	std::string newname = create_filename_of_special_operation(dosname, operation, true);
+	const host_cnv_char_t* host_name = CodePageGuestToHost(newname.c_str());
+	FILE* f = fopen_wrap(host_name!=NULL?host_name:newname.c_str(),"wb+");
+	if (!f) return false;
+	size_t len = 0;
+	if (isdir != !(value & DOS_ATTR_ARCHIVE)) len |= 1;
+	if (value & DOS_ATTR_HIDDEN) len |= 2;
+	if (value & DOS_ATTR_SYSTEM) len |= 4;
+	char *buf = new char[len + 1];
+	memset(buf,0,len);
+	fwrite(buf,len,1,f);
+	fclose(f);
+	delete[] buf;
+	return true;
+#else
+	(void)dosname;
+	(void)operation;
+	(void)value;
+	(void)isdir;
+	return false;
+#endif
 }
 
 bool localDrive::SetFileAttr(const char * name,uint16_t attr) {
@@ -1550,27 +2011,27 @@ bool localDrive::SetFileAttr(const char * name,uint16_t attr) {
 
 #if defined (WIN32)
 	if (!SetFileAttributesW(host_name, attr))
-		{
+	{
 		DOS_SetError((uint16_t)GetLastError());
 		return false;
-		}
+	}
 	dirCache.EmptyCache();
 	return true;
 #else
 	ht_stat_t status;
 	if (ht_stat(host_name,&status)==0) {
-		if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
-			LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,newname);
-
 		if (attr & DOS_ATTR_READ_ONLY)
 			status.st_mode &= ~(S_IWUSR|S_IWGRP|S_IWOTH);
 		else
 			status.st_mode |=  S_IWUSR;
-
 		if (chmod(host_name,status.st_mode) < 0) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}
+		if (!(attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN)) && (status.st_mode & S_IFDIR) == !(attr & DOS_ATTR_ARCHIVE))
+			remove_special_file_from_disk(name, "ATR");
+		else if (!add_special_file_to_disk(name, "ATR", attr, status.st_mode & S_IFDIR))
+			LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,newname);
 
 		return true;
 	}
@@ -1609,9 +2070,22 @@ bool localDrive::GetFileAttr(const char * name,uint16_t * attr) {
 #else
 	ht_stat_t status;
 	if (ht_stat(host_name,&status)==0) {
-		*attr=status.st_mode & S_IFDIR?0:DOS_ATTR_ARCHIVE;
-		if(status.st_mode & S_IFDIR) *attr|=DOS_ATTR_DIRECTORY;
+        bool isdir = status.st_mode & S_IFDIR;
+		*attr=isdir?0:DOS_ATTR_ARCHIVE;
+		if(isdir) *attr|=DOS_ATTR_DIRECTORY;
 		if(!(status.st_mode & S_IWUSR)) *attr|=DOS_ATTR_READ_ONLY;
+		std::string fname = create_filename_of_special_operation(name, "ATR", true);
+        if (ht_stat(fname.c_str(),&status)==0) {
+            unsigned int len = status.st_size;
+            if (len & 1) {
+                if (isdir)
+                    *attr|=DOS_ATTR_ARCHIVE;
+                else
+                    *attr&=~DOS_ATTR_ARCHIVE;
+            }
+            if (len & 2) *attr|=DOS_ATTR_HIDDEN;
+            if (len & 4) *attr|=DOS_ATTR_SYSTEM;
+        }
 		return true;
 	}
 	*attr=0;
@@ -1636,7 +2110,7 @@ std::string localDrive::GetHostName(const char * name) {
 	dirCache.ExpandName(newname);
 	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
 	ht_stat_t temp_stat;
-	hostname = host_name != NULL && ht_stat(host_name,&temp_stat)==0 ? newname : "";
+	static std::string hostname; hostname = host_name != NULL && ht_stat(host_name,&temp_stat)==0 ? newname : "";
 	return hostname;
 }
 
@@ -1781,7 +2255,7 @@ bool localDrive::TestDir(const char * dir) {
 
 	// Skip directory test, if "\"
 	size_t len = strlen(newdir);
-	if (len && (newdir[len-1]!='\\')) {
+	if (len && !check_last_split_char(newdir, len, '\\')) {
 		// It has to be a directory !
 		ht_stat_t test;
 		if (ht_stat(host_name,&test))		return false;
@@ -1803,8 +2277,9 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 	strcpy(newold,basedir);
 	strcat(newold,oldname);
 	CROSS_FILENAME(newold);
-	dirCache.ExpandName(newold);
-	
+    struct stat temp_stat;
+    if(stat(newold,&temp_stat)) dirCache.ExpandName(newold);
+
 	char newnew[CROSS_LEN];
 	strcpy(newnew,basedir);
 	strcat(newnew,newname);
@@ -1848,33 +2323,160 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 #if !defined(WIN32)
 #include <sys/statvfs.h>
 #endif
-bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters) {
-	*_bytes_sector=allocation.bytes_sector;
-	*_sectors_cluster=allocation.sectors_cluster;
-	*_total_clusters=allocation.total_clusters;
-	*_free_clusters=allocation.free_clusters;
-	if ((!allocation.total_clusters && !allocation.free_clusters) || freesizecap) {
-		bool res=false;
+
+bool localDrive::AllocationInfo64(uint32_t* _bytes_sector, uint32_t* _sectors_cluster, uint64_t* _total_clusters, uint64_t* _free_clusters) {
+    *_bytes_sector = allocation.bytes_sector;
+    *_sectors_cluster = allocation.sectors_cluster;
+    *_total_clusters = allocation.total_clusters;
+    *_free_clusters = allocation.free_clusters;
+    if((!allocation.total_clusters && !allocation.free_clusters) || freesizecap) {
+        bool res = false;
 #if defined(WIN32)
-		long unsigned int dwSectPerClust, dwBytesPerSect, dwFreeClusters, dwTotalClusters;
-		uint8_t drive=strlen(basedir)>1&&basedir[1]==':'?toupper(basedir[0])-'A'+1:0;
-		if (drive>26) drive=0;
-		char root[4]="A:\\";
-		root[0]='A'+drive-1;
-		res = GetDiskFreeSpace(drive?root:NULL, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
-		if (res) {
-			unsigned long total = dwTotalClusters * dwSectPerClust;
-			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1))))), ratio2 = ratio * dwBytesPerSect / 512;
-			*_bytes_sector = 512;
-			*_sectors_cluster = ratio;
-			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio2);
-			*_free_clusters = dwFreeClusters ? (total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio2)) : 0;
-			if (rsize) {
-				totalc=dwTotalClusters * dwSectPerClust / ratio;
-				freec=dwFreeClusters * dwSectPerClust / ratio;
-			}
+        DWORD dwSectPerClust, dwBytesPerSect, dwFreeClusters, dwTotalClusters;
+        uint64_t qwFreeClusters, qwTotalClusters;
+        uint8_t drive = strlen(basedir) > 1 && basedir[1] == ':' ? toupper(basedir[0]) - 'A' + 1 : 0;
+        if(drive > 26) drive = 0;
+        char root[4] = "A:\\";
+        root[0] = 'A' + drive - 1;
+        char* diskToQuery;
+
+        if(basedir[0] == '\\' && basedir[1] == '\\')
+            diskToQuery = basedir;
+        else
+            diskToQuery = drive ? root : NULL;
+
+        res = GetDiskFreeSpace(diskToQuery, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
+        if(dwSectPerClust * dwBytesPerSect == 0) return false;
+        ULARGE_INTEGER FreeBytesAvailableToCaller, TotalNumberOfBytes;
+        HMODULE __kernel32 = GetModuleHandleW(L"kernel32.dll");
+        auto __GetDiskFreeSpaceExA = (BOOL (WINAPI *)(LPCSTR, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER))GetProcAddress(__kernel32,"GetDiskFreeSpaceExA");
+        if (!__GetDiskFreeSpaceExA)
+            return false;
+        __GetDiskFreeSpaceExA(diskToQuery, &FreeBytesAvailableToCaller, &TotalNumberOfBytes, NULL);
+        qwTotalClusters = TotalNumberOfBytes.QuadPart / (dwSectPerClust * dwBytesPerSect);
+        qwFreeClusters = FreeBytesAvailableToCaller.QuadPart / (dwSectPerClust * dwBytesPerSect);
+
+        *_bytes_sector = dwBytesPerSect;
+        *_sectors_cluster = dwSectPerClust;
+        *_total_clusters = qwTotalClusters;
+        *_free_clusters = qwFreeClusters;
+
+        if(res) {
+            Bitu total = qwTotalClusters * dwSectPerClust;
+            int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1))))), ratio2 = ratio * dwBytesPerSect / 512;
+            if(rsize) {
+                totalc = qwTotalClusters * dwSectPerClust / ratio;
+                freec = qwFreeClusters * dwSectPerClust / ratio;
+            }
 #else
-		struct statvfs stat;
+        struct statvfs stat;
+        res = statvfs(basedir, &stat) == 0;
+        if(res) {
+            int ratio = stat.f_blocks / 65536, tmp = ratio;
+            *_bytes_sector = 512;
+            *_sectors_cluster = stat.f_frsize / 512 > 64 ? 64 : stat.f_frsize / 512;
+            if(ratio > 1) {
+                if(ratio * (*_sectors_cluster) > 64) tmp = (*_sectors_cluster + 63) / (*_sectors_cluster);
+                *_sectors_cluster = ratio * (*_sectors_cluster) > 64 ? 64 : ratio * (*_sectors_cluster);
+                ratio = tmp;
+            }
+            *_total_clusters = stat.f_blocks > 65535 ? 65535 : stat.f_blocks;
+            *_free_clusters = stat.f_bavail > 61440 ? 61440 : stat.f_bavail;
+            if(rsize) {
+                totalc = stat.f_blocks;
+                freec = stat.f_bavail;
+                if(ratio > 1) {
+                    totalc /= ratio;
+                    freec /= ratio;
+                }
+            }
+#endif
+            if((allocation.total_clusters || allocation.free_clusters) && freesizecap < 3) {
+                long diff = 0;
+                if(freesizecap == 2) diff = (freec ? freec : *_free_clusters) - allocation.initfree;
+                bool g1 = *_bytes_sector * *_sectors_cluster * *_total_clusters > allocation.bytes_sector * allocation.sectors_cluster * allocation.total_clusters;
+                bool g2 = *_bytes_sector * *_sectors_cluster * *_free_clusters > allocation.bytes_sector * allocation.sectors_cluster * allocation.free_clusters;
+                if(g1 || g2) {
+                    if(freesizecap == 2) diff *= (*_bytes_sector * *_sectors_cluster) / (allocation.bytes_sector * allocation.sectors_cluster);
+                    *_bytes_sector = allocation.bytes_sector;
+                    *_sectors_cluster = allocation.sectors_cluster;
+                    if(g1) *_total_clusters = allocation.total_clusters;
+                    if(g2) *_free_clusters = allocation.free_clusters;
+                    if(freesizecap == 2) {
+                        if(diff<0 && (-diff)>*_free_clusters)
+                            *_free_clusters = 0;
+                        else
+                            *_free_clusters += (uint16_t)diff;
+                    }
+                    if(*_total_clusters < *_free_clusters) {
+                        if(*_free_clusters > 65525)
+                            *_total_clusters = 65535;
+                        else
+                            *_total_clusters = *_free_clusters + 10;
+                    }
+                    if(rsize) {
+                        if(g1) totalc = *_total_clusters;
+                        if(g2) freec = *_free_clusters;
+                    }
+                }
+            }
+        }
+        else if(!allocation.total_clusters && !allocation.free_clusters) {
+            if(allocation.mediaid == 0xF0) {
+                *_bytes_sector = 512;
+                *_sectors_cluster = 1;
+                *_total_clusters = 2880;
+                *_free_clusters = 2880;
+            }
+            else if(allocation.bytes_sector == 2048) {
+                *_bytes_sector = 2048;
+                *_sectors_cluster = 1;
+                *_total_clusters = 65535;
+                *_free_clusters = 0;
+            }
+            else {
+                // 512*32*32765==~500MB total size
+                // 512*32*16000==~250MB total free size
+                *_bytes_sector = 512;
+                *_sectors_cluster = 32;
+                *_total_clusters = 32765;
+                *_free_clusters = 16000;
+            }
+        }
+        }
+    return true;
+ }
+
+ bool localDrive::AllocationInfo(uint16_t* _bytes_sector, uint8_t* _sectors_cluster, uint16_t* _total_clusters, uint16_t* _free_clusters) {
+     *_bytes_sector = allocation.bytes_sector;
+     *_sectors_cluster = allocation.sectors_cluster;
+     *_total_clusters = allocation.total_clusters;
+     *_free_clusters = allocation.free_clusters;
+     if((!allocation.total_clusters && !allocation.free_clusters) || freesizecap) {
+         bool res = false;
+#if defined(WIN32)
+         long unsigned int dwSectPerClust, dwBytesPerSect, dwFreeClusters, dwTotalClusters;
+         uint8_t drive = strlen(basedir) > 1 && basedir[1] == ':' ? toupper(basedir[0]) - 'A' + 1 : 0;
+         if(drive > 26) drive = 0;
+         char root[4] = "A:\\";
+         root[0] = 'A' + drive - 1;
+         if(basedir[0] == '\\' && basedir[1] == '\\')
+             res = GetDiskFreeSpace(basedir, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
+         else
+             res = GetDiskFreeSpace(drive ? root : NULL, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
+         if(res) {
+             unsigned long total = dwTotalClusters * dwSectPerClust;
+             int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1))))), ratio2 = ratio * dwBytesPerSect / 512;
+             *_bytes_sector = 512;
+             *_sectors_cluster = ratio;
+             *_total_clusters = total > 4194240 ? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio2);
+             *_free_clusters = dwFreeClusters ? (total > 4194240 ? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio2)) : 0;
+             if(rsize) {
+                 totalc = dwTotalClusters * dwSectPerClust / ratio;
+                 freec = dwFreeClusters * dwSectPerClust / ratio;
+             }
+#else
+        struct statvfs stat;
 		res = statvfs(basedir, &stat) == 0;
 		if (res) {
 			int ratio = stat.f_blocks / 65536, tmp=ratio;
@@ -1992,14 +2594,19 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 
 	/* Convert the stat to a FileStat */
     const struct tm* time;
-	if((time=localtime(&temp_stat.st_mtime))!=0) {
+	if((time=
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+    _localtime64
+#else
+    localtime
+#endif
+    (&temp_stat.st_mtime))!=nullptr) {
 		stat_block->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 		stat_block->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 	}
 	stat_block->size=(uint32_t)temp_stat.st_size;
 	return true;
 }
-
 
 uint8_t localDrive::GetMediaByte(void) {
 	return allocation.mediaid;
@@ -2049,7 +2656,9 @@ void localDrive::closedir(void *handle) {
 bool localDrive::read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) {
     host_cnv_char_t tmp[MAX_PATH+1], stmp[MAX_PATH+1];
 
+    ignorespecial = true;
     if (::read_directory_firstw((dir_information*)handle, tmp, stmp, is_directory)) {
+        ignorespecial = false;
         // guest to host code page translation
         const char* n_stemp_name = CodePageHostToGuest(stmp);
         if (n_stemp_name == NULL) {
@@ -2076,6 +2685,7 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, char* entr
 		strcpy(entry_sname,n_stemp_name);
 		return true;
     }
+    ignorespecial = false;
 
     return false;
 }
@@ -2084,7 +2694,9 @@ bool localDrive::read_directory_next(void *handle, char* entry_name, char* entry
     host_cnv_char_t tmp[MAX_PATH+1], stmp[MAX_PATH+1];
 
 next:
+    ignorespecial = true;
     if (::read_directory_nextw((dir_information*)handle, tmp, stmp, is_directory)) {
+        ignorespecial = false;
         // guest to host code page translation
         const char* n_stemp_name = CodePageHostToGuest(stmp);
         if (n_stemp_name == NULL) {
@@ -2111,11 +2723,12 @@ next:
         strcpy(entry_sname,n_stemp_name);
         return true;
     }
+    ignorespecial = false;
 
     return false;
 }
 
-localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options) {
+localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options) : special_prefix_local(prefix_local.c_str()) {
 	strcpy(basedir,startdir);
 	sprintf(info,"local directory %s",startdir);
 	allocation.bytes_sector=_bytes_sector;
@@ -2161,7 +2774,7 @@ localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sec
 
 
 //TODO Maybe use fflush, but that seemed to fuck up in visual c
-bool localFile::Read(uint8_t * data,uint16_t * size) {
+bool LocalFile::Read(uint8_t * data,uint16_t * size) {
 	if ((this->flags & 0xf) == OPEN_WRITE) {	// check if file opened in write-only mode
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
@@ -2183,11 +2796,15 @@ bool localFile::Read(uint8_t * data,uint16_t * size) {
     }
 #endif
 	if (last_action==WRITE) {
-        fseek(fhandle,ftell(fhandle),SEEK_SET);
+		if (file_access_tries>0) {
+			off_t pos = lseek(fileno(fhandle),0,SEEK_CUR);
+			if (pos>-1) lseek(fileno(fhandle),pos,SEEK_SET);
+		} else
+			fseek(fhandle,ftell(fhandle),SEEK_SET);
         if (!newtime) UpdateLocalDateTime();
     }
 	last_action=READ;
-	*size=(uint16_t)fread(data,1,*size,fhandle);
+	*size=file_access_tries>0?(uint16_t)read(fileno(fhandle),data,*size):(uint16_t)fread(data,1,*size,fhandle);
 	/* Fake harddrive motion. Inspector Gadget with soundblaster compatible */
 	/* Same for Igor */
 	/* hardrive motion => unmask irq 2. Only do it when it's masked as unmasking is realitively heavy to emulate */
@@ -2199,7 +2816,7 @@ bool localFile::Read(uint8_t * data,uint16_t * size) {
 	return true;
 }
 
-bool localFile::Write(const uint8_t * data,uint16_t * size) {
+bool LocalFile::Write(const uint8_t * data,uint16_t * size) {
 	uint32_t lastflags = this->flags & 0xf;
 	if (lastflags == OPEN_READ || lastflags == OPEN_READ_NO_MOD) {	// check if file opened in read-only mode
 		DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -2208,7 +2825,7 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
 #if defined(WIN32)
     if (file_access_tries>0) {
         HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
-        if (*size == 0)
+        if (*size == 0) {
             if (SetEndOfFile(hFile)) {
                 UpdateLocalDateTime();
                 return true;
@@ -2216,6 +2833,7 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
                 DOS_SetError((uint16_t)GetLastError());
                 return false;
             }
+        }
         uint32_t bytesWritten;
         for (int tries = file_access_tries; tries; tries--) {							// Try three times
             if (WriteFile(hFile, data, (uint32_t)*size, (LPDWORD)&bytesWritten, NULL)) {
@@ -2230,16 +2848,20 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
         return false;
     }
 #endif
-	if (last_action==READ) fseek(fhandle,ftell(fhandle),SEEK_SET);
+	if (last_action==READ) {
+		if (file_access_tries>0) {
+			off_t pos = lseek(fileno(fhandle),0,SEEK_CUR);
+			if (pos>-1) lseek(fileno(fhandle),pos,SEEK_SET);
+		} else fseek(fhandle,ftell(fhandle),SEEK_SET);
+	}
 	last_action=WRITE;
-	if(*size==0){  
-        return (!ftruncate(fileno(fhandle),ftell(fhandle)));
-    }
-    else 
-    {
-		*size=(uint16_t)fwrite(data,1,*size,fhandle);
+	if (*size==0){
+		uint32_t pos=file_access_tries>0?lseek(fileno(fhandle),0,SEEK_CUR):ftell(fhandle);
+		return !ftruncate(fileno(fhandle),pos);
+	} else {
+		*size=file_access_tries>0?(uint16_t)write(fileno(fhandle),data,*size):(uint16_t)fwrite(data,1,*size,fhandle);
 		return true;
-    }
+	}
 }
 
 #ifndef WIN32
@@ -2265,7 +2887,7 @@ bool toLock(int fd, bool is_lock, uint32_t pos, uint16_t size) {
 
 // ert, 20100711: Locking extensions
 // Wengier, 20201230: All platforms
-bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
+bool LocalFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 #if defined(WIN32)
     static bool lockWarn = true;
 	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
@@ -2287,7 +2909,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
                 }
                 Sleep(25);																// If failed, wait 25 millisecs
             }
-        else if (::UnlockFile(hFile, pos, 0, size, 0))									// This is a somewhat permanet condition!
+        else if (::UnlockFile(hFile, pos, 0, size, 0))									// This is a somewhat permanent condition!
             return true;
         DOS_SetError((uint16_t)GetLastError());
         return false;
@@ -2340,6 +2962,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 		case EINTR:
 		case ENOLCK:
 		case EAGAIN:
+		case EACCES:
 			DOS_SetError(0x21);
 			break;
 		case EBADF:
@@ -2356,7 +2979,7 @@ bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 }
 
 extern const char* RunningProgram;
-bool localFile::Seek(uint32_t * pos,uint32_t type) {
+bool LocalFile::Seek(uint32_t * pos,uint32_t type) {
 	int seektype;
 	switch (type) {
 	case DOS_SEEK_SET:seektype=SEEK_SET;break;
@@ -2369,7 +2992,7 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
 #if defined(WIN32)
     if (file_access_tries>0) {
         HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
-        int32_t dwPtr = SetFilePointer(hFile, *pos, NULL, type);
+        DWORD dwPtr = SetFilePointer(hFile, *pos, NULL, type);
         if (dwPtr == INVALID_SET_FILE_POINTER && !strcmp(RunningProgram, "BTHORNE"))	// Fix for Black Thorne
             dwPtr = SetFilePointer(hFile, 0, NULL, DOS_SEEK_END);
         if (dwPtr != INVALID_SET_FILE_POINTER) {										// If success
@@ -2380,11 +3003,16 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
         return false;
     }
 #endif
-	int ret=fseek(fhandle,*reinterpret_cast<int32_t*>(pos),seektype);
-	if (ret!=0) {
-		// Out of file range, pretend everythings ok 
+	bool fail;
+	if (file_access_tries>0) fail=lseek(fileno(fhandle),*reinterpret_cast<int32_t*>(pos),seektype)==-1;
+	else fail=fseek(fhandle,*reinterpret_cast<int32_t*>(pos),seektype)!=0;
+	if (fail) {
+		// Out of file range, pretend everything is ok
 		// and move file pointer top end of file... ?! (Black Thorne)
-		fseek(fhandle,0,SEEK_END);
+		if (file_access_tries>0)
+			lseek(fileno(fhandle),0,SEEK_END);
+		else
+			fseek(fhandle,0,SEEK_END);
 	}
 #if 0
 	fpos_t temppos;
@@ -2392,33 +3020,33 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	uint32_t * fake_pos=(uint32_t*)&temppos;
 	*pos=*fake_pos;
 #endif
-	*pos=(uint32_t)ftell(fhandle);
+	*pos=file_access_tries>0?(uint32_t)lseek(fileno(fhandle),0,SEEK_CUR):(uint32_t)ftell(fhandle);
 	last_action=NONE;
 	return true;
 }
 
-bool localFile::Close() {
+bool LocalFile::Close() {
     if (!newtime && fhandle && last_action == WRITE) UpdateLocalDateTime();
-	if (newtime && fhandle) {
+    if (newtime && fhandle) {
         // force STDIO to flush buffers on this file handle, or else fclose() will write buffered data
         // and cause mtime to reset back to current time.
         fflush(fhandle);
 
- 		// backport from DOS_PackDate() and DOS_PackTime()
-		struct tm tim = { 0 };
-		tim.tm_sec  = (time&0x1f)*2;
-		tim.tm_min  = (time>>5)&0x3f;
-		tim.tm_hour = (time>>11)&0x1f;
-		tim.tm_mday = date&0x1f;
-		tim.tm_mon  = ((date>>5)&0x0f)-1;
-		tim.tm_year = (date>>9)+1980-1900;
+        // backport from DOS_PackDate() and DOS_PackTime()
+        struct tm tim = { 0 };
+        tim.tm_sec  = (time&0x1f)*2;
+        tim.tm_min  = (time>>5)&0x3f;
+        tim.tm_hour = (time>>11)&0x1f;
+        tim.tm_mday = date&0x1f;
+        tim.tm_mon  = ((date>>5)&0x0f)-1;
+        tim.tm_year = (date>>9)+1980-1900;
         // sanitize the date in case of invalid timestamps (such as 0x0000 date/time fields)
         if (tim.tm_mon < 0) tim.tm_mon = 0;
         if (tim.tm_mday == 0) tim.tm_mday = 1;
-		//  have the C run-time library code compute whether standard time or daylight saving time is in effect.
-		tim.tm_isdst = -1;
-		// serialize time
-		mktime(&tim);
+        //  have the C run-time library code compute whether standard time or daylight saving time is in effect.
+        tim.tm_isdst = -1;
+        // serialize time
+        mktime(&tim);
 
         // change file time by file handle (while we still have it open)
         // so that we do not have to duplicate guest to host filename conversion here.
@@ -2430,6 +3058,14 @@ bool localFile::Close() {
 
         if (_futime(fileno(fhandle), &ftim)) {
             extern int errno; 
+            LOG_MSG("Set time failed (%s)", strerror(errno));
+        }
+#elif defined(OS2)
+        struct timeval ftsp[2];
+        ftsp[0].tv_sec =  ftsp[1].tv_sec =  mktime(&tim);
+        ftsp[0].tv_usec = ftsp[1].tv_usec = 0;
+        if (futimes(fileno(fhandle), ftsp)) {
+            extern int errno;
             LOG_MSG("Set time failed (%s)", strerror(errno));
         }
 #elif !defined(RISCOS) // Linux (TODO: What about Mac OS X/Darwin?)
@@ -2445,52 +3081,50 @@ bool localFile::Close() {
             LOG_MSG("Set time failed (%s)", strerror(errno));
         }
 #endif
-	}
+    }
 
-	// only close if one reference left
-	if (refCtr==1) {
-		if(fhandle) fclose(fhandle); 
-		fhandle = 0;
-		open = false;
-	}
+    // only close if one reference left
+    if (refCtr==1) {
+        if(fhandle) fclose(fhandle); 
+        fhandle = nullptr;
+        open = false;
+    }
 
-	return true;
+    return true;
 }
 
-uint16_t localFile::GetInformation(void) {
-	return read_only_medium?0x40:0;
-}
-	
-
-uint32_t localFile::GetSeekPos() {
-	return (uint32_t)ftell( fhandle );
+uint16_t LocalFile::GetInformation(void) {
+	return read_only_medium ? DeviceInfoFlags::NotWritten : 0;
 }
 
-localFile::localFile() {}
 
-localFile::localFile(const char* _name, FILE * handle) {
-	fhandle=handle;
+uint32_t LocalFile::GetSeekPos() {
+	return file_access_tries>0?(uint32_t)lseek(fileno(fhandle),0,SEEK_CUR):(uint32_t)ftell( fhandle );
+}
+
+LocalFile::LocalFile() {}
+
+LocalFile::LocalFile(const char* _name, FILE* handle) : fhandle(handle) {
 	open=true;
-	localFile::UpdateDateTimeFromHost();
+	LocalFile::UpdateDateTimeFromHost();
 
 	attr=DOS_ATTR_ARCHIVE;
 	last_action=NONE;
-	read_only_medium=false;
 
-	name=0;
+	name=nullptr;
 	SetName(_name);
 }
 
-void localFile::FlagReadOnlyMedium(void) {
+void LocalFile::FlagReadOnlyMedium(void) {
 	read_only_medium = true;
 }
 
-bool localFile::UpdateDateTimeFromHost(void) {
+bool LocalFile::UpdateDateTimeFromHost(void) {
 	if(!open) return false;
 	struct stat temp_stat;
 	fstat(fileno(fhandle),&temp_stat);
     const struct tm* ltime;
-	if((ltime=localtime(&temp_stat.st_mtime))!=0) {
+	if((ltime=localtime(&temp_stat.st_mtime))!=nullptr) {
 		time=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
 		date=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
 	} else {
@@ -2499,7 +3133,7 @@ bool localFile::UpdateDateTimeFromHost(void) {
 	return true;
 }
 
-bool localFile::UpdateLocalDateTime(void) {
+bool LocalFile::UpdateLocalDateTime(void) {
     time_t timet = ::time(NULL);
     struct tm *tm = localtime(&timet);
     tm->tm_isdst = -1;
@@ -2534,19 +3168,24 @@ bool localFile::UpdateLocalDateTime(void) {
 }
 
 
-void localFile::Flush(void) {
+void LocalFile::Flush(void) {
 #if defined(WIN32)
     if (file_access_tries>0) return;
 #endif
 	if (last_action==WRITE) {
-		fseek(fhandle,ftell(fhandle),SEEK_SET);
-        fflush(fhandle);
+		if (file_access_tries>0) {
+			off_t pos = lseek(fileno(fhandle),0,SEEK_CUR);
+			if (pos>-1) lseek(fileno(fhandle),pos,SEEK_SET);
+		} else {
+			fseek(fhandle,ftell(fhandle),SEEK_SET);
+			fflush(fhandle);
+		}
 		last_action=NONE;
         if (!newtime) UpdateLocalDateTime();
 	}
 }
 
-
+#if !defined(OSFREE)
 // ********************************************
 // CDROM DRIVE
 // ********************************************
@@ -2556,17 +3195,13 @@ int  MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUni
 bool MSCDEX_HasMediaChanged(uint8_t subUnit);
 bool MSCDEX_GetVolumeName(uint8_t subUnit, char* name);
 
-
 cdromDrive::cdromDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, int& error, std::vector<std::string> &options)
-		   :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options),
-		    subUnit(0),
-		    driveLetter('\0')
+		   :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options), driveLetter(driveLetter)
 {
 	// Init mscdex
 	error = MSCDEX_AddDrive(driveLetter,startdir,subUnit);
 	strcpy(info, "CDRom ");
 	strcat(info, startdir);
-	this->driveLetter = driveLetter;
 	// Get Volume Label
 	char name[32];
 	if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
@@ -2580,7 +3215,7 @@ bool cdromDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 		return false;
 	}
 	bool retcode = localDrive::FileOpen(file,name,flags);
-	if(retcode) (dynamic_cast<localFile*>(*file))->FlagReadOnlyMedium();
+	if(retcode) (dynamic_cast<LocalFile*>(*file))->FlagReadOnlyMedium();
 	return retcode;
 }
 
@@ -2669,2932 +3304,4 @@ Bits cdromDrive::UnMount(void) {
 	}
 	return 2;
 }
-
-PHYSFS_sint64 PHYSFS_fileLength(const char *name) {
-	PHYSFS_file *f = PHYSFS_openRead(name);
-	if (f == NULL) return 0;
-	PHYSFS_sint64 size = PHYSFS_fileLength(f);
-	PHYSFS_close(f);
-	return size;
-}
-
-/* Need to strip "/.." components and transform '\\' to '/' for physfs */
-static char *normalize(char * name, const char *basedir) {
-	int last = (int)(strlen(name)-1);
-	strreplace_dbcs(name,'\\','/');
-	while (last >= 0 && name[last] == '/') name[last--] = 0;
-	if (last > 0 && name[last] == '.' && name[last-1] == '/') name[last-1] = 0;
-	if (last > 1 && name[last] == '.' && name[last-1] == '.' && name[last-2] == '/') {
-		name[last-2] = 0;
-		char *slash = strrchr(name,'/');
-		if (slash) *slash = 0;
-	}
-	if (strlen(basedir) > strlen(name)) { strcpy(name,basedir); strreplace_dbcs(name,'\\','/'); }
-	last = (int)(strlen(name)-1);
-	while (last >= 0 && name[last] == '/') name[last--] = 0;
-	if (name[0] == 0) name[0] = '/';
-	//LOG_MSG("File access: %s",name);
-	return name;
-}
-
-class physfsFile : public DOS_File {
-public:
-	physfsFile(const char* name, PHYSFS_file * handle,uint16_t devinfo, const char* physname, bool write);
-	bool Read(uint8_t * data,uint16_t * size);
-	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(uint32_t * pos,uint32_t type);
-	bool prepareRead();
-	bool prepareWrite();
-	bool Close();
-	uint16_t GetInformation(void);
-	bool UpdateDateTimeFromHost(void);
-private:
-	PHYSFS_file * fhandle;
-	enum { READ,WRITE } last_action;
-	uint16_t info;
-	char pname[CROSS_LEN];
-};
-
-bool physfsDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters) {
-	const char *wdir = PHYSFS_getWriteDir();
-	if (wdir) {
-		bool res=false;
-#if defined(WIN32)
-		long unsigned int dwSectPerClust, dwBytesPerSect, dwFreeClusters, dwTotalClusters;
-		uint8_t drive=strlen(wdir)>1&&wdir[1]==':'?toupper(wdir[0])-'A'+1:0;
-		if (drive>26) drive=0;
-		char root[4]="A:\\";
-		root[0]='A'+drive-1;
-		res = GetDiskFreeSpace(drive?root:NULL, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
-		if (res) {
-			unsigned long total = dwTotalClusters * dwSectPerClust;
-			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1)))));
-			*_bytes_sector = (uint16_t)dwBytesPerSect;
-			*_sectors_cluster = ratio;
-			*_total_clusters = total > 4194240? 65535 : (uint16_t)(dwTotalClusters * dwSectPerClust / ratio);
-			*_free_clusters = dwFreeClusters ? (total > 4194240? 61440 : (uint16_t)(dwFreeClusters * dwSectPerClust / ratio)) : 0;
-			if (rsize) {
-				totalc=dwTotalClusters * dwSectPerClust / ratio;
-				freec=dwFreeClusters * dwSectPerClust / ratio;
-			}
-#else
-		struct statvfs stat;
-		res = statvfs(wdir, &stat) == 0;
-		if (res) {
-			int ratio = stat.f_blocks / 65536, tmp=ratio;
-			*_bytes_sector = 512;
-			*_sectors_cluster = stat.f_frsize/512 > 64? 64 : stat.f_frsize/512;
-			if (ratio>1) {
-				if (ratio * (*_sectors_cluster) > 64) tmp = (*_sectors_cluster+63)/(*_sectors_cluster);
-				*_sectors_cluster = ratio * (*_sectors_cluster) > 64? 64 : ratio * (*_sectors_cluster);
-				ratio = tmp;
-			}
-			*_total_clusters = stat.f_blocks > 65535? 65535 : stat.f_blocks;
-			*_free_clusters = stat.f_bavail > 61440? 61440 : stat.f_bavail;
-			if (rsize) {
-				totalc=stat.f_blocks;
-				freec=stat.f_bavail;
-				if (ratio>1) {
-					totalc/=ratio;
-					freec/=ratio;
-				}
-			}
 #endif
-		} else {
-            // 512*32*32765==~500MB total size
-            // 512*32*16000==~250MB total free size
-            *_bytes_sector = 512;
-            *_sectors_cluster = 32;
-            *_total_clusters = 32765;
-            *_free_clusters = 16000;
-		}
-	} else {
-        *_bytes_sector=allocation.bytes_sector;
-        *_sectors_cluster=allocation.sectors_cluster;
-        *_total_clusters=allocation.total_clusters;
-        *_free_clusters=0;
-    }
-	return true;
-}
-
-bool physfsDrive::FileExists(const char* name) {
-	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
-	normalize(newname,basedir);
-    bool result = PHYSFS_exists(newname);
-    if(result) {
-        PHYSFS_Stat statbuf;
-        BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
-        result = (statbuf.filetype != PHYSFS_FILETYPE_DIRECTORY);
-    }
-
-	return result;
-}
-
-bool physfsDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
-	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
-	normalize(newname,basedir);
-    PHYSFS_Stat statbuf;
-    BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
-    time_t mytime = statbuf.modtime;
-	/* Convert the stat to a FileStat */
-	struct tm *time;
-	if((time=localtime(&mytime))!=0) {
-		stat_block->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
-		stat_block->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
-	} else {
-		stat_block->time=DOS_PackTime(0,0,0);
-		stat_block->date=DOS_PackDate(1980,1,1);
-	}
-	stat_block->size=(uint32_t)PHYSFS_fileLength(newname);
-	return true;
-}
-
-struct opendirinfo {
-	char dir[CROSS_LEN];
-	char **files;
-	int pos;
-};
-
-/* helper functions for drive cache */
-bool physfsDrive::isdir(const char *name) {
-	char myname[CROSS_LEN];
-	strcpy(myname,name);
-	normalize(myname,basedir);
-    PHYSFS_Stat statbuf;
-    BAIL_IF_ERRPASS(!PHYSFS_stat(myname, &statbuf), false);
-    return (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY);
-}
-
-void *physfsDrive::opendir(const char *name) {
-	char myname[CROSS_LEN];
-	strcpy(myname,name);
-	normalize(myname,basedir);
-    PHYSFS_Stat statbuf;
-    BAIL_IF_ERRPASS(!PHYSFS_stat(myname, &statbuf), NULL);
-    if(statbuf.filetype != PHYSFS_FILETYPE_DIRECTORY) return NULL;
-	struct opendirinfo *oinfo = (struct opendirinfo *)malloc(sizeof(struct opendirinfo));
-	strcpy(oinfo->dir, myname);
-	oinfo->files = PHYSFS_enumerateFiles(myname);
-	if (oinfo->files == NULL) {
-        const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
-        const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
-		LOG_MSG("PHYSFS: nothing found for %s (%s)",myname,errorMessage);
-		free(oinfo);
-		return NULL;
-	}
-
-	oinfo->pos = (myname[4] == 0?0:-2);
-	return (void *)oinfo;
-}
-
-void physfsDrive::closedir(void *handle) {
-	struct opendirinfo *oinfo = (struct opendirinfo *)handle;
-	if (handle == NULL) return;
-	if (oinfo->files != NULL) PHYSFS_freeList(oinfo->files);
-	free(oinfo);
-}
-
-bool physfsDrive::read_directory_first(void* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
-	return read_directory_next(dirp, entry_name, entry_sname, is_directory);
-}
-
-bool physfsDrive::read_directory_next(void* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
-	struct opendirinfo *oinfo = (struct opendirinfo *)dirp;
-	if (!oinfo) return false;
-	if (oinfo->pos == -2) {
-		oinfo->pos++;
-		safe_strncpy(entry_name,".",CROSS_LEN);
-		safe_strncpy(entry_sname,".",DOS_NAMELENGTH+1);
-		is_directory = true;
-		return true;
-	}
-	if (oinfo->pos == -1) {
-		oinfo->pos++;
-		safe_strncpy(entry_name,"..",CROSS_LEN);
-		safe_strncpy(entry_sname,"..",DOS_NAMELENGTH+1);
-		is_directory = true;
-		return true;
-	}
-	if (!oinfo->files || !oinfo->files[oinfo->pos]) return false;
-	safe_strncpy(entry_name,oinfo->files[oinfo->pos++],CROSS_LEN);
-	*entry_sname=0;
-	is_directory = isdir(strlen(oinfo->dir)?(std::string(oinfo->dir)+"/"+std::string(entry_name)).c_str():entry_name);
-	return true;
-}
-
-static uint8_t physfs_used = 0;
-physfsDrive::physfsDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid,int &error,std::vector<std::string> &options)
-		   :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options)
-{
-	this->driveLetter = driveLetter;
-	this->mountarc = "";
-	char mp[] = "A_DRIVE";
-	mp[0] = driveLetter;
-	char newname[CROSS_LEN+1];
-	strcpy(newname,startdir);
-	CROSS_FILENAME(newname);
-	if (!physfs_used) {
-		PHYSFS_init("");
-		PHYSFS_permitSymbolicLinks(1);
-	}
-
-	physfs_used++;
-	char *lastdir = newname;
-	char *dir = strchr(lastdir+(((lastdir[0]|0x20) >= 'a' && (lastdir[0]|0x20) <= 'z')?2:0),':');
-	while (dir) {
-		*dir++ = 0;
-		if((lastdir == newname) && !strchr(dir+(((dir[0]|0x20) >= 'a' && (dir[0]|0x20) <= 'z')?2:0),':')) {
-			// If the first parameter is a directory, the next one has to be the archive file,
-			// do not confuse it with basedir if trailing : is not there!
-			int tmp = (int)(strlen(dir)-1);
-			dir[tmp++] = ':';
-			dir[tmp++] = CROSS_FILESPLIT;
-			dir[tmp] = '\0';
-		}
-		if (*lastdir) {
-            if(PHYSFS_mount(lastdir, mp, true) == 0) {
-                const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
-                const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
-                LOG_MSG("PHYSFS couldn't mount '%s': %s", lastdir, errorMessage);
-            }
-            else {
-                if (mountarc.size()) mountarc+=", ";
-                mountarc+= lastdir;
-            }
-        }
-		lastdir = dir;
-		dir = strchr(lastdir+(((lastdir[0]|0x20) >= 'a' && (lastdir[0]|0x20) <= 'z')?2:0),':');
-	}
-	error = 0;
-	if (!mountarc.size()) {error = 10;return;}
-	strcpy(basedir,"\\");
-	strcat(basedir,mp);
-	strcat(basedir,"\\");
-
-	allocation.bytes_sector=_bytes_sector;
-	allocation.sectors_cluster=_sectors_cluster;
-	allocation.total_clusters=_total_clusters;
-	allocation.free_clusters=_free_clusters;
-	allocation.mediaid=_mediaid;
-
-	dirCache.SetBaseDir(basedir, this);
-}
-
-physfsDrive::~physfsDrive(void) {
-	if(!physfs_used) {
-		LOG_MSG("PHYSFS invalid reference count!");
-		return;
-	}
-	physfs_used--;
-	if(!physfs_used) {
-		LOG_MSG("PHYSFS calling PHYSFS_deinit()");
-		PHYSFS_deinit();
-	}
-}
-
-const char *physfsDrive::getOverlaydir(void) {
-	static const char *overlaydir = PHYSFS_getWriteDir();
-	return overlaydir;
-}
-
-bool physfsDrive::setOverlaydir(const char * name) {
-	char newname[CROSS_LEN+1];
-	strcpy(newname,name);
-	CROSS_FILENAME(newname);
-	const char *oldwrite = PHYSFS_getWriteDir();
-	if (oldwrite) oldwrite = strdup(oldwrite);
-	if (!PHYSFS_setWriteDir(newname)) {
-		if (oldwrite)
-			PHYSFS_setWriteDir(oldwrite);
-        return false;
-	} else {
-        if (oldwrite) PHYSFS_unmount(oldwrite);
-        PHYSFS_mount(newname, NULL, 1);
-        dirCache.EmptyCache();
-    }
-	if (oldwrite) free((char *)oldwrite);
-    return true;
-}
-
-const char *physfsDrive::GetInfo() {
-	sprintf(info,"PhysFS directory %s", mountarc.c_str());
-	return info;
-}
-
-bool physfsDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
-	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
-	normalize(newname,basedir);
-
-	PHYSFS_file * hand;
-	if (!PHYSFS_exists(newname)) return false;
-	if ((flags&0xf) == OPEN_READ) {
-		hand = PHYSFS_openRead(newname);
-	} else {
-
-		/* open for reading, deal with writing later */
-		hand = PHYSFS_openRead(newname);
-	}
-
-	if (!hand) {
-		if((flags&0xf) != OPEN_READ) {
-			PHYSFS_file *hmm = PHYSFS_openRead(newname);
-			if (hmm) {
-				PHYSFS_close(hmm);
-				LOG_MSG("Warning: file %s exists and failed to open in write mode.",newname);
-			}
-		}
-		return false;
-	}
-
-	*file=new physfsFile(name,hand,0x202,newname,false);
-	(*file)->flags=flags;  //for the inheritance flag and maybe check for others.
-	return true;
-}
-
-bool physfsDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
-    (void)attributes;//UNUSED
-    if (!getOverlaydir()) {
-        DOS_SetError(DOSERR_ACCESS_DENIED);
-        return false;
-    }
-	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
-	normalize(newname,basedir);
-
-	/* Test if file exists, don't add to dirCache then */
-	bool existing_file=PHYSFS_exists(newname);
-
-	char *slash = strrchr(newname,'/');
-	if (slash && slash != newname) {
-		*slash = 0;
-        PHYSFS_Stat statbuf;
-        BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
-		if (statbuf.filetype != PHYSFS_FILETYPE_DIRECTORY) return false;
-		PHYSFS_mkdir(newname);
-		*slash = '/';
-	}
-
-	PHYSFS_file * hand=PHYSFS_openWrite(newname);
-	if (!hand){
-        const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
-        const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
-		LOG_MSG("Warning: file creation failed: %s (%s)",newname,errorMessage);
-		return false;
-	}
-
-	/* Make the 16 bit device information */
-	*file=new physfsFile(name,hand,0x202,newname,true);
-	(*file)->flags=OPEN_READWRITE;
-	if(!existing_file) {
-		strcpy(newname,basedir);
-		strcat(newname,name);
-		CROSS_FILENAME(newname);
-		dirCache.AddEntry(newname, true);
-		dirCache.EmptyCache();
-	}
-	return true;
-}
-
-bool physfsDrive::FileUnlink(const char * name) {
-    if (!getOverlaydir()) {
-        DOS_SetError(DOSERR_ACCESS_DENIED);
-        return false;
-    }
-	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
-	normalize(newname,basedir);
-	if (PHYSFS_delete(newname)) {
-		CROSS_FILENAME(newname);
-		dirCache.DeleteEntry(newname);
-		dirCache.EmptyCache();
-		return true;
-	};
-	return false;
-}
-
-bool physfsDrive::RemoveDir(const char * dir) {
-    if (!getOverlaydir()) {
-        DOS_SetError(DOSERR_ACCESS_DENIED);
-        return false;
-    }
-	char newdir[CROSS_LEN];
-	strcpy(newdir,basedir);
-	strcat(newdir,dir);
-	CROSS_FILENAME(newdir);
-	dirCache.ExpandName(newdir);
-	normalize(newdir,basedir);
-    PHYSFS_Stat statbuf;
-    BAIL_IF_ERRPASS(!PHYSFS_stat(newdir, &statbuf), false);
-	if ((statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY) && PHYSFS_delete(newdir)) {
-		CROSS_FILENAME(newdir);
-		dirCache.DeleteEntry(newdir,true);
-		dirCache.EmptyCache();
-		return true;
-	}
-	return false;
-}
-
-bool physfsDrive::MakeDir(const char * dir) {
-    if (!getOverlaydir()) {
-        DOS_SetError(DOSERR_ACCESS_DENIED);
-        return false;
-    }
-	char newdir[CROSS_LEN];
-	strcpy(newdir,basedir);
-	strcat(newdir,dir);
-	CROSS_FILENAME(newdir);
-	dirCache.ExpandName(newdir);
-	normalize(newdir,basedir);
-	if (PHYSFS_mkdir(newdir)) {
-		CROSS_FILENAME(newdir);
-		dirCache.CacheOut(newdir,true);
-		return true;
-	}
-	return false;
-}
-
-bool physfsDrive::TestDir(const char * dir) {
-	char newdir[CROSS_LEN];
-	strcpy(newdir,basedir);
-	strcat(newdir,dir);
-	CROSS_FILENAME(newdir);
-	dirCache.ExpandName(newdir);
-	normalize(newdir,basedir);
-    PHYSFS_Stat statbuf;
-    BAIL_IF_ERRPASS(!PHYSFS_stat(newdir, &statbuf), false);
-	return (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY);
-}
-
-bool physfsDrive::Rename(const char * oldname,const char * newname) {
-    if (!getOverlaydir()) {
-        DOS_SetError(DOSERR_ACCESS_DENIED);
-        return false;
-    }
-	char newold[CROSS_LEN];
-	strcpy(newold,basedir);
-	strcat(newold,oldname);
-	CROSS_FILENAME(newold);
-	dirCache.ExpandName(newold);
-	normalize(newold,basedir);
-
-	char newnew[CROSS_LEN];
-	strcpy(newnew,basedir);
-	strcat(newnew,newname);
-	CROSS_FILENAME(newnew);
-	dirCache.ExpandName(newnew);
-	normalize(newnew,basedir);
-    const char *dir=PHYSFS_getRealDir(newold);
-    if (dir && !strcmp(getOverlaydir(), dir)) {
-        char fullold[CROSS_LEN], fullnew[CROSS_LEN];
-        strcpy(fullold, dir);
-        strcat(fullold, newold);
-        strcpy(fullnew, dir);
-        strcat(fullnew, newnew);
-        if (rename(fullold, fullnew)==0) {
-            dirCache.EmptyCache();
-            return true;
-        }
-    } else LOG_MSG("PHYSFS: rename not supported (%s -> %s)",newold,newnew); // yuck. physfs doesn't have "rename".
-	return false;
-}
-
-bool physfsDrive::SetFileAttr(const char * name,uint16_t attr) {
-    (void)name;//UNUSED
-    (void)attr;//UNUSED
-	DOS_SetError(DOSERR_ACCESS_DENIED);
-	return false;
-}
-
-bool physfsDrive::GetFileAttr(const char * name,uint16_t * attr) {
-	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
-	normalize(newname,basedir);
-	char *last = strrchr(newname,'/');
-	if (last == NULL) last = newname-1;
-
-	*attr = 0;
-	if (!PHYSFS_exists(newname)) return false;
-	*attr=DOS_ATTR_ARCHIVE;
-    PHYSFS_Stat statbuf;
-    BAIL_IF_ERRPASS(!PHYSFS_stat(newname, &statbuf), false);
-    if(statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY)
-        *attr |= DOS_ATTR_DIRECTORY;
-    return true;
-}
-
-bool physfsDrive::GetFileAttrEx(char* name, struct stat *status) {
-	return localDrive::GetFileAttrEx(name,status);
-}
-
-unsigned long physfsDrive::GetCompressedSize(char* name) {
-	return localDrive::GetCompressedSize(name);
-}
-
-#if defined (WIN32)
-HANDLE physfsDrive::CreateOpenFile(const char* name) {
-		return localDrive::CreateOpenFile(name);
-}
-
-unsigned long physfsDrive::GetSerial() {
-		return localDrive::GetSerial();
-}
-#endif
-
-bool physfsDrive::FindNext(DOS_DTA & dta) {
-	char * dir_ent, *ldir_ent;
-	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
-
-	uint8_t srch_attr;char srch_pattern[DOS_NAMELENGTH_ASCII];
-	uint8_t find_attr;
-
-    dta.GetSearchParams(srch_attr,srch_pattern,false);
-	uint16_t id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];
-
-again:
-    if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
-		if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
-			ldid[lfn_filefind_handle]=0;
-			ldir[lfn_filefind_handle]="";
-		}
-		DOS_SetError(DOSERR_NO_MORE_FILES);
-		return false;
-	}
-    if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
-
-	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:ldir[lfn_filefind_handle].c_str());
-	strcpy(lfull_name,full_name);
-
-	strcat(full_name,dir_ent);
-    strcat(lfull_name,ldir_ent);
-
-	//GetExpandName might indirectly destroy dir_ent (by caching in a new directory
-	//and due to its design dir_ent might be lost.)
-	//Copying dir_ent first
-	dirCache.ExpandName(lfull_name);
-	normalize(lfull_name,basedir);
-
-    PHYSFS_Stat statbuf;
-    BAIL_IF_ERRPASS(!PHYSFS_stat(lfull_name, &statbuf), false);
-	if (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY) find_attr=DOS_ATTR_DIRECTORY|DOS_ATTR_ARCHIVE;
-	else find_attr=DOS_ATTR_ARCHIVE;
-	if (~srch_attr & find_attr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM)) goto again;
-
-	/*file is okay, setup everything to be copied in DTA Block */
-	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
-	uint16_t find_date,find_time;uint32_t find_size;
-	find_size=(uint32_t)PHYSFS_fileLength(lfull_name);
-    time_t mytime = statbuf.modtime;
-	struct tm *time;
-	if((time=localtime(&mytime))!=0){
-		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
-		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
-	} else {
-		find_time=6;
-		find_date=4;
-	}
-	if(strlen(dir_ent)<DOS_NAMELENGTH_ASCII){
-		strcpy(find_name,dir_ent);
-		upcase(find_name);
-	}
-	strcpy(lfind_name,ldir_ent);
-	lfind_name[LFN_NAMELENGTH]=0;
-
-	dta.SetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
-	return true;
-}
-
-bool physfsDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool /*fcb_findfirst*/) {
-	return localDrive::FindFirst(_dir,dta);
-}
-
-bool physfsDrive::isRemote(void) {
-	return localDrive::isRemote();
-}
-
-bool physfsDrive::isRemovable(void) {
-	return true;
-}
-
-Bits physfsDrive::UnMount(void) {
-	char mp[] = "A_DRIVE";
-	mp[0] = driveLetter;
-	PHYSFS_unmount(mp);
-	delete this;
-	return 0;
-}
-
-bool physfsFile::Read(uint8_t * data,uint16_t * size) {
-	if ((this->flags & 0xf) == OPEN_WRITE) {        // check if file opened in write-only mode
-		DOS_SetError(DOSERR_ACCESS_DENIED);
-		return false;
-	}
-	if (last_action==WRITE) prepareRead();
-	last_action=READ;
-    const PHYSFS_sint64 mysize = PHYSFS_readBytes(fhandle, data, *size);
-	//LOG_MSG("Read %i bytes (wanted %i) at %i of %s (%s)",(int)mysize,(int)*size,(int)PHYSFS_tell(fhandle),name,PHYSFS_getLastError());
-	*size = (uint16_t)mysize;
-	return true;
-}
-
-bool physfsFile::Write(const uint8_t * data,uint16_t * size) {
-	if (!PHYSFS_getWriteDir() || (this->flags & 0xf) == OPEN_READ) { // check if file opened in read-only mode
-		DOS_SetError(DOSERR_ACCESS_DENIED);
-		return false;
-	}
-	if (last_action==READ) prepareWrite();
-	last_action=WRITE;
-	if (*size==0) {
-		if (PHYSFS_tell(fhandle) == 0) {
-            if (PHYSFS_close(PHYSFS_openWrite(pname))) {
-                //LOG_MSG("Truncate %s (%s)",name,PHYSFS_getLastError());
-                return true;
-            }
-            else
-                return false;
-		} else {
-			LOG_MSG("PHYSFS TODO: truncate not yet implemented (%s at %i)",pname,(int)PHYSFS_tell(fhandle));
-			return false;
-		}
-	} else {
-		PHYSFS_sint64 mysize = PHYSFS_writeBytes(fhandle, data, *size);
-		//LOG_MSG("Wrote %i bytes (wanted %i) at %i of %s (%s)",(int)mysize,(int)*size,(int)PHYSFS_tell(fhandle),name,PHYSFS_getLastError());
-		*size = (uint16_t)mysize;
-		return true;
-	}
-}
-
-bool physfsFile::Seek(uint32_t * pos,uint32_t type) {
-	PHYSFS_sint64 mypos = (int32_t)*pos;
-	switch (type) {
-	case DOS_SEEK_SET:break;
-	case DOS_SEEK_CUR:mypos += PHYSFS_tell(fhandle); break;
-	case DOS_SEEK_END:mypos += PHYSFS_fileLength(fhandle)-mypos; break;
-	default:
-	//TODO Give some doserrorcode;
-		return false;//ERROR
-	}
-
-	if (!PHYSFS_seek(fhandle,mypos)) {
-		// Out of file range, pretend everythings ok
-		// and move file pointer top end of file... ?! (Black Thorne)
-		PHYSFS_seek(fhandle,PHYSFS_fileLength(fhandle));
-	};
-	//LOG_MSG("Seek to %i (%i at %x) of %s (%s)",(int)mypos,(int)*pos,type,name,PHYSFS_getLastError());
-
-	*pos=(uint32_t)PHYSFS_tell(fhandle);
-	return true;
-}
-
-bool physfsFile::prepareRead() {
-	PHYSFS_uint64 pos = PHYSFS_tell(fhandle);
-	PHYSFS_close(fhandle);
-	fhandle = PHYSFS_openRead(pname);
-	PHYSFS_seek(fhandle, pos);
-	return true; //LOG_MSG("Goto read (%s at %i)",pname,PHYSFS_tell(fhandle));
-}
-
-#ifndef WIN32
-#include <fcntl.h>
-#include <errno.h>
-#endif
-
-bool physfsFile::prepareWrite() {
-	const char *wdir = PHYSFS_getWriteDir();
-	if (wdir == NULL) {
-		LOG_MSG("PHYSFS could not fulfill write request: no write directory set.");
-		return false;
-	}
-	//LOG_MSG("Goto write (%s at %i)",pname,PHYSFS_tell(fhandle));
-	const char *fdir = PHYSFS_getRealDir(pname);
-	PHYSFS_uint64 pos = PHYSFS_tell(fhandle);
-	char *slash = strrchr(pname,'/');
-	if (slash && slash != pname) {
-		*slash = 0;
-		PHYSFS_mkdir(pname);
-		*slash = '/';
-	}
-	if (strcmp(fdir,wdir)) { /* we need COW */
-		//LOG_MSG("COW",pname,PHYSFS_tell(fhandle));
-		PHYSFS_file *whandle = PHYSFS_openWrite(pname);
-		if (whandle == NULL) {
-            const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
-            const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
-			LOG_MSG("PHYSFS copy-on-write failed: %s.",errorMessage);
-			return false;
-		}
-		char buffer[65536];
-		PHYSFS_sint64 size;
-		PHYSFS_seek(fhandle, 0);
-		while ((size = PHYSFS_readBytes(fhandle,buffer,65536)) > 0) {
-			if (PHYSFS_writeBytes(whandle, buffer, size) != size) {
-                const PHYSFS_ErrorCode err = PHYSFS_getLastErrorCode();
-                const char* errorMessage = err ? PHYSFS_getErrorByCode(err) : "Unknown error";
-				LOG_MSG("PHYSFS copy-on-write failed: %s.",errorMessage);
-				PHYSFS_close(whandle);
-				return false;
-			}
-		}
-		PHYSFS_seek(whandle, pos);
-		PHYSFS_close(fhandle);
-		fhandle = whandle;
-	} else { // megayuck - physfs on posix platforms uses O_APPEND. We illegally access the fd directly and clear that flag.
-		//LOG_MSG("noCOW",pname,PHYSFS_tell(fhandle));
-		PHYSFS_close(fhandle);
-		fhandle = PHYSFS_openAppend(pname);
-#ifndef WIN32
-		fcntl(**(int**)fhandle->opaque,F_SETFL,0);
-#endif
-		PHYSFS_seek(fhandle, pos);
-	}
-	return true;
-}
-
-bool physfsFile::Close() {
-	// only close if one reference left
-	if (refCtr==1) {
-		PHYSFS_close(fhandle);
-		fhandle = 0;
-		open = false;
-	};
-	return true;
-}
-
-uint16_t physfsFile::GetInformation(void) {
-	return info;
-}
-
-physfsFile::physfsFile(const char* _name, PHYSFS_file * handle,uint16_t devinfo, const char* physname, bool write) {
-	fhandle=handle;
-	info=devinfo;
-	strcpy(pname,physname);
-    PHYSFS_Stat statbuf;
-    if(!PHYSFS_stat(pname, &statbuf)) return;
-    time_t mytime = statbuf.modtime;
-	/* Convert the stat to a FileStat */
-	struct tm *time;
-	if((time=localtime(&mytime))!=0) {
-		this->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
-		this->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
-	} else {
-		this->time=DOS_PackTime(0,0,0);
-		this->date=DOS_PackDate(1980,1,1);
-	}
-
-	attr=DOS_ATTR_ARCHIVE;
-	last_action=(write?WRITE:READ);
-
-	open=true;
-	name=0;
-	SetName(_name);
-}
-
-bool physfsFile::UpdateDateTimeFromHost(void) {
-	if(!open) return false;
-    PHYSFS_Stat statbuf;
-    BAIL_IF_ERRPASS(!PHYSFS_stat(pname, &statbuf), false);
-    time_t mytime = statbuf.modtime;
-	/* Convert the stat to a FileStat */
-	struct tm *time;
-	if((time=localtime(&mytime))!=0) {
-		this->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
-		this->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
-	} else {
-		this->time=DOS_PackTime(0,0,0);
-		this->date=DOS_PackDate(1980,1,1);
-	}
-	return true;
-}
-
-physfscdromDrive::physfscdromDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, int& error, std::vector<std::string> &options)
-		   :physfsDrive(driveLetter,startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,error,options)
-{
-	// Init mscdex
-	if (!mountarc.size()) {error = 10;return;}
-	error = MSCDEX_AddDrive(driveLetter,startdir,subUnit);
-	this->driveLetter = driveLetter;
-	// Get Volume Label
-	char name[32];
-	if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
-}
-
-const char *physfscdromDrive::GetInfo() {
-	sprintf(info,"PhysFS CDRom %s", mountarc.c_str());
-	return info;
-}
-
-bool physfscdromDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags)
-{
-	if ((flags&0xf)==OPEN_READWRITE) {
-		flags &= ~OPEN_READWRITE;
-	} else if ((flags&0xf)==OPEN_WRITE) {
-		DOS_SetError(DOSERR_ACCESS_DENIED);
-		return false;
-	}
-	return physfsDrive::FileOpen(file,name,flags);
-}
-
-bool physfscdromDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes)
-{
-    (void)file;//UNUSED
-    (void)name;//UNUSED
-    (void)attributes;//UNUSED
-	DOS_SetError(DOSERR_ACCESS_DENIED);
-	return false;
-}
-
-bool physfscdromDrive::FileUnlink(const char * name)
-{
-    (void)name;//UNUSED
-	DOS_SetError(DOSERR_ACCESS_DENIED);
-	return false;
-}
-
-bool physfscdromDrive::RemoveDir(const char * dir)
-{
-    (void)dir;//UNUSED
-	DOS_SetError(DOSERR_ACCESS_DENIED);
-	return false;
-}
-
-bool physfscdromDrive::MakeDir(const char * dir)
-{
-    (void)dir;//UNUSED
-	DOS_SetError(DOSERR_ACCESS_DENIED);
-	return false;
-}
-
-bool physfscdromDrive::Rename(const char * oldname,const char * newname)
-{
-    (void)oldname;//UNUSED
-    (void)newname;//UNUSED
-	DOS_SetError(DOSERR_ACCESS_DENIED);
-	return false;
-}
-
-bool physfscdromDrive::GetFileAttr(const char * name,uint16_t * attr)
-{
-	bool result = physfsDrive::GetFileAttr(name,attr);
-	if (result) *attr |= DOS_ATTR_READ_ONLY;
-	return result;
-}
-
-bool physfscdromDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst)
-{
-    (void)fcb_findfirst;//UNUSED
-	// If media has changed, reInit drivecache.
-	if (MSCDEX_HasMediaChanged(subUnit)) {
-		dirCache.EmptyCache();
-		// Get Volume Label
-		char name[32];
-		if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
-	}
-	return physfsDrive::FindFirst(_dir,dta);
-}
-
-void physfscdromDrive::SetDir(const char* path)
-{
-	// If media has changed, reInit drivecache.
-	if (MSCDEX_HasMediaChanged(subUnit)) {
-		dirCache.EmptyCache();
-		// Get Volume Label
-		char name[32];
-		if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
-	}
-	physfsDrive::SetDir(path);
-}
-
-bool physfscdromDrive::isRemote(void) {
-	return true;
-}
-
-bool physfscdromDrive::isRemovable(void) {
-	return true;
-}
-
-Bits physfscdromDrive::UnMount(void) {
-	return true;
-}
-
-#define OVERLAY_DIR 1
-bool logoverlay = false;
-using namespace std;
-
-#if defined (WIN32) || defined (OS2)				/* Win 32 & OS/2*/
-#define CROSS_DOSFILENAME(blah) 
-#else
-//Convert back to DOS PATH 
-#define	CROSS_DOSFILENAME(blah) strreplace(blah,'/','\\')
-#endif
-
-char* GetCrossedName(const char *basedir, const char *dir) {
-	static char crossname[CROSS_LEN];
-	strcpy(crossname, basedir);
-	strcat(crossname, dir);
-	CROSS_FILENAME(crossname);
-	return crossname;
-}
-
-/* 
- * Wengier: Long filenames are supported in all including overlay drives.
- * Shift-JIS characters (Kana, Kanji, etc) are also supported in PC-98 mode.
- *
- * New rename for base directories (not yet supported):
- * Alter shortname in the drive_cache: take care of order and long names. 
- * update stored deleted files list in overlay. 
- */
-
-//TODO recheck directories under linux with the filename_cache (as one adds the dos name (and runs cross_filename on the other))
-
-
-//TODO Check: Maybe handle file redirection in ccc (opening the new file), (call update datetime host there ?)
-
-
-/* For rename/delete(unlink)/makedir/removedir we need to rebuild the cache. (shouldn't be needed, 
- * but cacheout/delete entry currently throw away the cached folder and rebuild it on read. 
- * so we have to ensure the rebuilding is controlled through the overlay.
- * In order to not reread the overlay directory contents, the information in there is cached and updated when
- * it changes (when deleting a file or adding one)
- */
-
-
-//directories that exist only in overlay can not be added to the drive_cache currently. 
-//Either upgrade addentry to support directories. (without actually caching stuff in! (code in testing))
-//Or create an empty directory in local drive base. 
-
-bool Overlay_Drive::RemoveDir(const char * dir) {
-	if (ovlnocachedir) {
-		dirCache.EmptyCache();
-		update_cache(true);
-	}
-	
-    if (ovlreadonly) {
-        DOS_SetError(DOSERR_WRITE_PROTECTED);
-        return false;
-    }
-
-	//DOS_RemoveDir checks if directory exists.
-#if OVERLAY_DIR
-	if (logoverlay) LOG_MSG("Overlay: trying to remove directory: %s",dir);
-#else
-	E_Exit("Overlay: trying to remove directory: %s",dir);
-#endif
-	/* Overlay: Check if folder is empty (findfirst/next, skipping . and .. and breaking on first file found ?), if so, then it is not too tricky. */
-	if (is_dir_only_in_overlay(dir)) {
-		//The simple case
-		char sdir[CROSS_LEN],odir[CROSS_LEN];
-		strcpy(sdir,dir);
-		strcpy(odir,overlaydir);
-		strcat(odir,sdir);
-		CROSS_FILENAME(odir);
-		const host_cnv_char_t* host_name = CodePageGuestToHost(odir);
-		int temp=-1;
-		if (host_name!=NULL) {
-#if defined (WIN32)
-			temp=_wrmdir(host_name);
-#else
-			temp=rmdir(host_name);
-#endif
-		}
-		if (temp) {
-			char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,dir));
-			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-				strcpy(sdir,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-				strcpy(odir,overlaydir);
-				strcat(odir,sdir);
-				CROSS_FILENAME(odir);
-				host_name = CodePageGuestToHost(odir);
-				if (host_name!=NULL) {
-#if defined (WIN32)
-					temp=_wrmdir(host_name);
-#else
-					temp=rmdir(host_name);
-#endif
-				}
-			}
-		}
-		if (temp == 0) {
-			remove_DOSdir_from_cache(dir);
-			char newdir[CROSS_LEN];
-			strcpy(newdir,basedir);
-			strcat(newdir,sdir);
-			CROSS_FILENAME(newdir);
-			dirCache.DeleteEntry(newdir,true);
-			dirCache.EmptyCache();
-			update_cache(false);
-		}
-		return (temp == 0);
-	} else {
-		uint16_t olderror = dos.errorcode; //FindFirst/Next always set an errorcode, while RemoveDir itself shouldn't touch it if successful
-		DOS_DTA dta(dos.tables.tempdta);
-		char stardotstar[4] = {'*', '.', '*', 0};
-		dta.SetupSearch(0,(0xff & ~DOS_ATTR_VOLUME),stardotstar); //Fake drive as we don't use it.
-		bool ret = this->FindFirst(dir,dta,false);// DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME);
-		if (!ret) {
-			//Path not found. Should not be possible due to removedir doing a testdir, but lets be correct
-			DOS_SetError(DOSERR_PATH_NOT_FOUND);
-			return false;
-		}
-		bool empty = true;
-		do {
-			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
-			dta.GetResult(name,lname,size,date,time,attr);
-			if (logoverlay) LOG_MSG("RemoveDir found %s",name);
-			if (empty && strcmp(".",name ) && strcmp("..",name)) 
-				empty = false; //Neither . or .. so directory not empty.
-		} while ( (ret=this->FindNext(dta)) );
-		//Always exhaust list, so drive_cache entry gets invalidated/reused.
-		//FindNext is done, restore error code to old value. DOS_RemoveDir will set the right one if needed.
-		dos.errorcode = olderror;
-
-		if (!empty) return false;
-		if (logoverlay) LOG_MSG("directory empty! Hide it.");
-		//Directory is empty, mark it as deleted and create $DBOVERLAY file.
-		//Ensure that overlap folder can not be created.
-		char odir[CROSS_LEN];
-		strcpy(odir,overlaydir);
-		strcat(odir,dir);
-		CROSS_FILENAME(odir);
-		char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,dir));
-		if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-			temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-			strcpy(odir,overlaydir);
-			strcat(odir,temp_name);
-			CROSS_FILENAME(odir);
-			rmdir(odir);
-		}
-		add_deleted_path(dir,true);
-		return true;
-	}
-}
-
-bool Overlay_Drive::MakeDir(const char * dir) {
-	if (ovlnocachedir) {
-		dirCache.EmptyCache();
-		update_cache(true);
-	}
-
-    if (ovlreadonly) {
-        DOS_SetError(DOSERR_WRITE_PROTECTED);
-        return false;
-    }
-	//DOS_MakeDir tries first, before checking if the directory already exists, so doing it here as well, so that case is handled.
-	if (TestDir(dir)) return false;
-	if (overlap_folder == dir) return false; //TODO Test
-#if OVERLAY_DIR
-	if (logoverlay) LOG_MSG("Overlay trying to make directory: %s",dir);
-#else
-	E_Exit("Overlay trying to make directory: %s",dir);
-#endif
-	/* Overlay: Create in Overlay only and add it to drive_cache + some entries else the drive_cache will try to access it. Needs an AddEntry for directories. */ 
-
-	//Check if leading dir is marked as deleted.
-	if (check_if_leading_is_deleted(dir)) return false;
-
-	//Check if directory itself is marked as deleted
-	if (is_deleted_path(dir) && localDrive::TestDir(dir)) {
-		//Was deleted before and exists (last one is safety check)
-		remove_deleted_path(dir,true);
-		return true;
-	}
-	char newdir[CROSS_LEN],sdir[CROSS_LEN],pdir[CROSS_LEN];
-	strcpy(sdir,dir);
-	char *p=strrchr_dbcs(sdir,'\\');
-	if (p!=NULL) {
-		*p=0;
-		char *temp_name=dirCache.GetExpandName(GetCrossedName(basedir,sdir));
-		if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-			strcpy(newdir,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-			strcat(newdir,"\\");
-			strcat(newdir,p+1);
-			strcpy(sdir,newdir);
-		}
-	}
-	strcpy(newdir,overlaydir);
-	strcat(newdir,sdir);
-	CROSS_FILENAME(newdir);
-	p=strrchr_dbcs(sdir,'\\');
-	int temp=-1;
-	bool madepdir=false;
-	const host_cnv_char_t* host_name;
-	if (p!=NULL) {
-		*p=0;
-		if (strlen(sdir)) {
-			strcpy(pdir,overlaydir);
-			strcat(pdir,sdir);
-			CROSS_FILENAME(pdir);
-			if (!is_deleted_path(sdir) && localDrive::TestDir(sdir)) {
-				host_name = CodePageGuestToHost(pdir);
-				if (host_name!=NULL) {
-#if defined (WIN32)
-					temp=_wmkdir(host_name);
-#else
-					temp=mkdir(host_name,0775);
-#endif
-					if (temp==0) madepdir=true;
-				}
-			}
-		}
-	}
-	temp=-1;
-	host_name = CodePageGuestToHost(newdir);
-	if (host_name!=NULL) {
-#if defined (WIN32)
-		temp=_wmkdir(host_name);
-#else
-		temp=mkdir(host_name,0775);
-#endif
-	}
-	if (temp==0) {
-		char fakename[CROSS_LEN];
-		strcpy(fakename,basedir);
-		strcat(fakename,dir);
-		CROSS_FILENAME(fakename);
-		strcpy(sdir, dir);
-		upcase(sdir);
-		dirCache.AddEntryDirOverlay(fakename,sdir,true);
-		add_DOSdir_to_cache(dir,sdir);
-		dirCache.EmptyCache();
-		update_cache(true);
-	} else if (madepdir) {
-		host_name = CodePageGuestToHost(pdir);
-		if (host_name!=NULL) {
-#if defined (WIN32)
-			_wrmdir(host_name);
-#else
-			rmdir(host_name);
-#endif
-		}
-	}
-
-	return (temp == 0);// || ((temp!=0) && (errno==EEXIST));
-}
-
-bool Overlay_Drive::TestDir(const char * dir) {
-	if (ovlnocachedir) {
-		dirCache.EmptyCache();
-		update_cache(true);
-	}
-
-	//First check if directory exist exclusively in the overlay. 
-	//Currently using the update_cache cache, alternatively access the directory itself.
-
-	//Directories are stored without a trailing backslash
-	char tempdir[CROSS_LEN];
-	strcpy(tempdir,dir);
-	size_t templen = strlen(dir);
-	if (templen && tempdir[templen-1] == '\\') tempdir[templen-1] = 0;
-
-#if OVERLAY_DIR
-	if (is_dir_only_in_overlay(tempdir)) return true;
-#endif
-
-	//Next Check if the directory is marked as deleted or one of its leading directories is.
-	//(it still might exists in the localDrive)
-
-	if (is_deleted_path(tempdir)) return false; 
-
-	// Not exclusive to overlay nor marked as deleted. Pass on to LocalDrive
-	return localDrive::TestDir(dir);
-}
-
-
-class OverlayFile: public localFile {
-public:
-	OverlayFile(const char* name, FILE * handle):localFile(name,handle){
-		overlay_active = false;
-		if (logoverlay) LOG_MSG("constructing OverlayFile: %s",name);
-	}
-	bool Write(const uint8_t * data,uint16_t * size) {
-		uint32_t f = flags&0xf;
-		if (!overlay_active && (f == OPEN_READWRITE || f == OPEN_WRITE)) {
-			if (logoverlay) LOG_MSG("write detected, switching file for %s",GetName());
-			if (*data == 0) {
-				if (logoverlay) LOG_MSG("OPTIMISE: truncate on switch!!!!");
-			}
-			uint32_t a = GetTicks();
-			bool r = create_copy();
-			if (GetTicks() - a > 2) {
-				if (logoverlay) LOG_MSG("OPTIMISE: switching took %d",GetTicks() - a);
-			}
-			if (!r) return false;
-			overlay_active = true;
-			
-		}
-		return localFile::Write(data,size);
-	}
-	bool create_copy();
-//private:
-	bool overlay_active;
-};
-
-//Create leading directories of a file being overlayed if they exist in the original (localDrive).
-//This function is used to create copies of existing files, so all leading directories exist in the original.
-
-FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const* mode) {
-	char newname[CROSS_LEN];
-	strcpy(newname,overlaydir); //TODO GOG make part of class and join in 
-	strcat(newname,dos_filename); //HERE we need to convert it to Linux TODO
-	CROSS_FILENAME(newname);
-
-#ifdef host_cnv_use_wchar
-    wchar_t wmode[8];
-    unsigned int tis;
-    for (tis=0;tis < 7 && mode[tis] != 0;tis++) wmode[tis] = (wchar_t)mode[tis];
-    assert(tis < 7); // guard
-    wmode[tis] = 0;
-#endif
-	FILE* f;
-	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
-	if (host_name!=NULL) {
-#ifdef host_cnv_use_wchar
-		f = _wfopen(host_name,wmode);
-#else
-		f = fopen_wrap(host_name,mode);
-#endif
-	}
-	else {
-		f = fopen_wrap(newname,mode);
-	}
-	//Check if a directory is part of the name:
-	char* dir = strrchr_dbcs((char *)dos_filename,'\\');
-	if (!f && dir && *dir) {
-		if (logoverlay) LOG_MSG("Overlay: warning creating a file inside a directory %s",dos_filename);
-		//ensure they exist, else make them in the overlay if they exist in the original....
-		Sync_leading_dirs(dos_filename);
-		//try again
-		char temp_name[CROSS_LEN],tmp[CROSS_LEN];
-		strcpy(tmp, dos_filename);
-		char *p=strrchr_dbcs(tmp, '\\');
-		assert(p!=NULL);
-		*p=0;
-		bool found=false;
-		for(std::vector<std::string>::iterator it = DOSdirs_cache.begin(); it != DOSdirs_cache.end(); it+=2)
-			if ((*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), tmp)) {
-				found=true;
-				strcpy(tmp, (*it).c_str());
-				break;
-			}
-		if (found) {
-			strcpy(temp_name,overlaydir);
-			strcat(temp_name,tmp);
-			strcat(temp_name,dir);
-			CROSS_FILENAME(temp_name);
-			const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
-			if (host_name!=NULL) {
-#ifdef host_cnv_use_wchar
-				f = _wfopen(host_name,wmode);
-#else
-				f = fopen_wrap(host_name,mode);
-#endif
-			}
-			else {
-				f = fopen_wrap(temp_name,mode);
-			}
-		}
-		if (!f) {
-			strcpy(temp_name,dirCache.GetExpandName(GetCrossedName(basedir,dos_filename)));
-			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-				strcpy(newname,overlaydir);
-				strcat(newname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-				CROSS_FILENAME(newname);
-			}
-			const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
-			if (host_name!=NULL) {
-#ifdef host_cnv_use_wchar
-				f = _wfopen(host_name,wmode);
-#else
-				f = fopen_wrap(host_name,mode);
-#endif
-			}
-			else {
-				f = fopen_wrap(newname,mode);
-			}
-		}
-	}
-
-	return f;
-}
-
-#ifndef BUFSIZ
-#define BUFSIZ 2048
-#endif
-
-bool OverlayFile::create_copy() {
-	//test if open/valid/etc
-	//ensure file position
-	FILE* lhandle = this->fhandle;
-	fseek(lhandle,ftell(lhandle),SEEK_SET);
-	int location_in_old_file = ftell(lhandle);
-	fseek(lhandle,0L,SEEK_SET);
-	
-	FILE* newhandle = NULL;
-	uint8_t drive_set = GetDrive();
-	if (drive_set != 0xff && drive_set < DOS_DRIVES && Drives[drive_set]){
-		Overlay_Drive* od = dynamic_cast<Overlay_Drive*>(Drives[drive_set]);
-		if (od) {
-			newhandle = od->create_file_in_overlay(GetName(),"wb+"); //todo check wb+
-		}
-	}
- 
-	if (!newhandle) return false;
-	char buffer[BUFSIZ];
-	size_t s;
-	while ( (s = fread(buffer,1,BUFSIZ,lhandle)) != 0 ) fwrite(buffer, 1, s, newhandle);
-	fclose(lhandle);
-	//Set copied file handle to position of the old one 
-	fseek(newhandle,location_in_old_file,SEEK_SET);
-	this->fhandle = newhandle;
-	//Flags ?
-	return true;
-}
-
-
-
-static OverlayFile* ccc(DOS_File* file) {
-	localFile* l = dynamic_cast<localFile*>(file);
-	if (!l) E_Exit("overlay input file is not a localFile");
-	//Create an overlayFile
-	OverlayFile* ret = new OverlayFile(l->GetName(),l->fhandle);
-	ret->flags = l->flags;
-	ret->refCtr = l->refCtr;
-	delete l;
-	return ret;
-}
-
-Overlay_Drive::Overlay_Drive(const char * startdir,const char* overlay, uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid,uint8_t &error,std::vector<std::string> &options)
-:localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options),special_prefix("$DBOVERLAY") {
-	optimize_cache_v1 = true; //Try to not reread overlay files on deletes. Ideally drive_cache should be improved to handle deletes properly.
-	//Currently this flag does nothing, as the current behavior is to not reread due to caching everything.
-#if defined (WIN32)	
-	if (strcasecmp(startdir,overlay) == 0) {
-#else 
-	if (strcmp(startdir,overlay) == 0) {
-#endif
-		//overlay directory can not be the base directory
-		error = 2;
-		return;
-	}
-
-	std::string s(startdir);
-	std::string o(overlay);
-	bool s_absolute = Cross::IsPathAbsolute(s);
-	bool o_absolute = Cross::IsPathAbsolute(o);
-	error = 0;
-	if (s_absolute != o_absolute) { 
-		error = 1;
-		return;
-	}
-	strcpy(overlaydir,overlay);
-	char dirname[CROSS_LEN] = { 0 };
-	//Determine if overlaydir is part of the startdir.
-	convert_overlay_to_DOSname_in_base(dirname);
-
-	size_t dirlen = strlen(dirname);
-	if(dirlen && dirname[dirlen - 1] == '\\') dirname[dirlen - 1] = 0;
-			
-	//add_deleted_path(dirname); //update_cache will add the overlap_folder
-	overlap_folder = dirname;
-
-	update_cache(true);
-}
-
-void Overlay_Drive::convert_overlay_to_DOSname_in_base(char* dirname ) 
-{
-	dirname[0] = 0;//ensure good return string
-	if (strlen(overlaydir) >= strlen(basedir) ) {
-		//Needs to be longer at least.
-#if defined (WIN32)
-//OS2 ?	
-		if (strncasecmp(overlaydir,basedir,strlen(basedir)) == 0) {
-#else
-		if (strncmp(overlaydir,basedir,strlen(basedir)) == 0) {
-#endif
-			//Beginning is the same.
-			char t[CROSS_LEN];
-			strcpy(t,overlaydir+strlen(basedir));
-
-			char* p = t;
-			char* b = t;
-
-			while ( (p =strchr_dbcs(p,CROSS_FILESPLIT)) ) {
-				char directoryname[CROSS_LEN]={0};
-				char dosboxdirname[CROSS_LEN]={0};
-				strcpy(directoryname,dirname);
-				strncat(directoryname,b,p-b);
-
-				char d[CROSS_LEN];
-				strcpy(d,basedir);
-				strcat(d,directoryname);
-				CROSS_FILENAME(d);
-				//Try to find the corresponding directoryname in DOSBox.
-				if(!dirCache.GetShortName(d,dosboxdirname) ) {
-					//Not a long name, assume it is a short name instead
-					strncpy(dosboxdirname,b,p-b);
-					upcase(dosboxdirname);
-				}
-
-
-				strcat(dirname,dosboxdirname);
-				strcat(dirname,"\\");
-
-				if (logoverlay) LOG_MSG("HIDE directory: %s",dirname);
-
-				b=++p;
-
-			}
-		}
-	}
-}
-
-bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
-	if (ovlnocachedir) {
-		dirCache.EmptyCache();
-		update_cache(true);
-	}
-
-    if (ovlreadonly) {
-        if ((flags&0xf) == OPEN_WRITE || (flags&0xf) == OPEN_READWRITE) {
-            DOS_SetError(DOSERR_WRITE_PROTECTED);
-            return false;
-        }
-    }
-	const host_cnv_char_t * type;
-	switch (flags&0xf) {
-	case OPEN_READ:        type = _HT("rb"); break;
-	case OPEN_WRITE:       type = _HT("rb+"); break;
-	case OPEN_READWRITE:   type = _HT("rb+"); break;
-	case OPEN_READ_NO_MOD: type = _HT("rb"); break; //No modification of dates. LORD4.07 uses this
-	default:
-		DOS_SetError(DOSERR_ACCESS_CODE_INVALID);
-		return false;
-	}
-
-	//Flush the buffer of handles for the same file. (Betrayal in Antara)
-	uint8_t i,drive = DOS_DRIVES;
-	localFile *lfp;
-	for (i=0;i<DOS_DRIVES;i++) {
-		if (Drives[i]==this) {
-			drive=i;
-			break;
-		}
-	}
-	for (i=0;i<DOS_FILES;i++) {
-		if (Files[i] && Files[i]->IsOpen() && Files[i]->GetDrive()==drive && Files[i]->IsName(name)) {
-			lfp=dynamic_cast<localFile*>(Files[i]);
-			if (lfp) lfp->Flush();
-		}
-	}
-
-
-	//Todo check name first against local tree
-	//if name exists, use that one instead!
-	//overlay file.
-	char newname[CROSS_LEN];
-	strcpy(newname,overlaydir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
-#ifdef host_cnv_use_wchar
-    FILE * hand = _wfopen(host_name,type);
-#else
-	FILE * hand = fopen_wrap(newname,type);
-#endif
-	if (!hand) {
-		char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
-		if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-			temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-			strcpy(newname,overlaydir);
-			strcat(newname,temp_name);
-			CROSS_FILENAME(newname);
-			host_name = CodePageGuestToHost(newname);
-			if (host_name != NULL) {
-#ifdef host_cnv_use_wchar
-				hand = _wfopen(host_name,type);
-#else
-				hand = fopen_wrap(newname,type);
-#endif
-			}
-		}
-	}
-	bool fileopened = false;
-	if (hand) {
-		if (logoverlay) LOG_MSG("overlay file opened %s",newname);
-		*file=new localFile(name,hand);
-		(*file)->flags=flags;
-		fileopened = true;
-	} else {
-		; //TODO error handling!!!! (maybe check if it exists and read only (should not happen with overlays)
-	}
-	bool overlayed = fileopened;
-
-	//File not present in overlay, try normal drive
-	//TODO take care of file being marked deleted.
-
-	if (!fileopened && !is_deleted_file(name)) fileopened = localDrive::FileOpen(file,name, OPEN_READ);
-
-
-	if (fileopened) {
-		if (logoverlay) LOG_MSG("file opened %s",name);
-		//Convert file to OverlayFile
-		OverlayFile* f = ccc(*file);
-		f->flags = flags; //ccc copies the flags of the localfile, which were not correct in this case
-		f->overlay_active = overlayed; //No need to switch if already in overlayed.
-		*file = f;
-	}
-	return fileopened;
-}
-
-bool Overlay_Drive::FileCreate(DOS_File * * file,const char * name,uint16_t /*attributes*/) {
-	if (ovlnocachedir) {
-		dirCache.EmptyCache();
-		update_cache(true);
-	}
-	
-    if (ovlreadonly) {
-		DOS_SetError(DOSERR_WRITE_PROTECTED);
-        return false;
-    }
-	//TODO Check if it exists in the dirCache ? // fix addentry ?  or just double check (ld and overlay)
-	//AddEntry looks sound to me.. 
-	
-	//check if leading part of filename is a deleted directory
-	if (check_if_leading_is_deleted(name)) return false;
-
-	FILE* f = create_file_in_overlay(name,"wb+");
-	if(!f) {
-		if (logoverlay) LOG_MSG("File creation in overlay system failed %s",name);
-		return false;
-	}
-	*file = new localFile(name,f);
-	(*file)->flags = OPEN_READWRITE;
-	OverlayFile* of = ccc(*file);
-	of->overlay_active = true;
-	of->flags = OPEN_READWRITE;
-	*file = of;
-	//create fake name for the drive cache
-	char fakename[CROSS_LEN];
-	strcpy(fakename,basedir);
-	strcat(fakename,name);
-	CROSS_FILENAME(fakename);
-	dirCache.AddEntry(fakename,true); //add it.
-	add_DOSname_to_cache(name);
-	remove_deleted_file(name,true);
-	return true;
-}
-
-void Overlay_Drive::add_DOSname_to_cache(const char* name) {
-	for (std::vector<std::string>::const_iterator itc = DOSnames_cache.begin(); itc != DOSnames_cache.end(); ++itc){
-		if (!strcasecmp((*itc).c_str(), name)) return;
-	}
-	DOSnames_cache.push_back(name);
-}
-
-void Overlay_Drive::remove_DOSname_from_cache(const char* name) {
-	for (std::vector<std::string>::iterator it = DOSnames_cache.begin(); it != DOSnames_cache.end(); ++it) {
-		if (!strcasecmp((*it).c_str(), name)) { DOSnames_cache.erase(it); return;}
-	}
-
-}
-
-bool Overlay_Drive::Sync_leading_dirs(const char* dos_filename){
-	const char* lastdir = strrchr_dbcs((char *)dos_filename,'\\');
-	//If there are no directories, return success.
-	if (!lastdir) return true; 
-	
-	const char* leaddir = dos_filename;
-	while ( (leaddir=strchr_dbcs((char *)leaddir,'\\')) != 0) {
-		char dirname[CROSS_LEN] = {0};
-		strncpy(dirname,dos_filename,leaddir-dos_filename);
-
-		if (logoverlay) LOG_MSG("syncdir: %s",dirname);
-		//Test if directory exist in base.
-		char dirnamebase[CROSS_LEN] ={0};
-		strcpy(dirnamebase,basedir);
-		strcat(dirnamebase,dirname);
-		CROSS_FILENAME(dirnamebase);
-		struct stat basetest;
-		if (stat(dirCache.GetExpandName(dirnamebase),&basetest) == 0 && basetest.st_mode & S_IFDIR) {
-			if (logoverlay) LOG_MSG("base exists: %s",dirnamebase);
-			//Directory exists in base folder.
-			//Ensure it exists in overlay as well
-
-			struct stat overlaytest;
-			char dirnameoverlay[CROSS_LEN] ={0};
-			strcpy(dirnameoverlay,overlaydir);
-			strcat(dirnameoverlay,dirname);
-			CROSS_FILENAME(dirnameoverlay);
-			char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,dirname));
-			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-				temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-				strcpy(dirnameoverlay,overlaydir);
-				strcat(dirnameoverlay,temp_name);
-				CROSS_FILENAME(dirnameoverlay);
-			}
-			if (stat(dirnameoverlay,&overlaytest) == 0 ) {
-				//item exist. Check if it is a folder, if not a folder =>fail!
-				if ((overlaytest.st_mode & S_IFDIR) ==0) return false;
-			} else {
-				//folder does not exist, make it
-				if (logoverlay) LOG_MSG("creating %s",dirnameoverlay);
-#if defined (WIN32)						/* MS Visual C++ */
-				int temp = mkdir(dirnameoverlay);
-#else
-				int temp = mkdir(dirnameoverlay,0775);
-#endif
-				if (temp != 0) return false;
-			}
-		}
-		leaddir = leaddir + 1; //Move to next
-	} 
-
-	return true;
-}
-
-void Overlay_Drive::update_cache(bool read_directory_contents) {
-	uint32_t a = GetTicks();
-	std::vector<std::string> specials;
-	std::vector<std::string> dirnames;
-	std::vector<std::string> filenames;
-	if (read_directory_contents) {
-		//Clear all lists
-		DOSnames_cache.clear();
-		DOSdirs_cache.clear();
-		deleted_files_in_base.clear();
-		deleted_paths_in_base.clear();
-		//Ensure hiding of the folder that contains the overlay, if it is part of the base folder.
-		add_deleted_path(overlap_folder.c_str(), false);
-	}
-
-	//Needs later to support stored renames and removals of files existing in the localDrive plane.
-	//and by taking in account if the file names are actually already renamed. 
-	//and taking in account that a file could have gotten an overlay version and then both need to be removed. 
-	//
-	//Also what about sequences were a base file gets copied to a working save game and then removed/renamed...
-	//copy should be safe as then the link with the original doesn't exist.
-	//however the working safe can be rather complicated after a rename and delete..
-
-	//Currently directories existing only in the overlay can not be added to drive cache:
-	//1. possible workaround create empty directory in base. Drawback would break the no-touching-of-base.
-	//2. double up Addentry to support directories, (and adding . and .. to the newly directory so it counts as cachedin.. and won't be recached, as otherwise
-	//   cache will realize we are faking it. 
-	//Working on solution 2.
-
-	//Random TODO: Does the root drive under DOS have . and .. ? 
-
-	//This function needs to be called after any localDrive function calling cacheout/deleteentry, as those throw away directories.
-	//either do this with a parameter stating the part that needs to be rebuild,(directory) or clear the cache by default and do it all.
-
-	std::vector<std::string>::iterator i;
-	std::string::size_type const prefix_lengh = special_prefix.length();
-	if (read_directory_contents) {
-		void* dirp = opendir(overlaydir);
-		if (dirp == NULL) return;
-		// Read complete directory
-		char dir_name[CROSS_LEN], dir_sname[CROSS_LEN];
-		bool is_directory;
-		if (read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
-			if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.emplace_back(dir_name);
-			else if (is_directory) {
-				dirnames.emplace_back(dir_name);
-				if (!strlen(dir_sname)) {
-					strcpy(dir_sname, dir_name);
-					upcase(dir_sname);
-				}
-				dirnames.emplace_back(dir_sname);
-			} else filenames.emplace_back(dir_name);
-			while (read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
-				if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.emplace_back(dir_name);
-				else if (is_directory) {
-					dirnames.emplace_back(dir_name);
-					if (!strlen(dir_sname)) {
-						strcpy(dir_sname, dir_name);
-						upcase(dir_sname);
-					}
-					dirnames.emplace_back(dir_sname);
-				} else filenames.emplace_back(dir_name);
-			}
-		}
-		closedir(dirp);
-		//parse directories to add them.
-
-		for (i = dirnames.begin(); i != dirnames.end(); i+=2) {
-			if ((*i) == ".") continue;
-			if ((*i) == "..") continue;
-			std::string testi(*i);
-			std::string::size_type ll = testi.length();
-			//TODO: Use the dirname\. and dirname\.. for creating fake directories in the driveCache.
-			if( ll >2 && testi[ll-1] == '.' && testi[ll-2] == CROSS_FILESPLIT) continue; 
-			if( ll >3 && testi[ll-1] == '.' && testi[ll-2] == '.' && testi[ll-3] == CROSS_FILESPLIT) continue;
-
-#if OVERLAY_DIR
-			char tdir[CROSS_LEN],sdir[CROSS_LEN];
-			strcpy(tdir,(*i).c_str());
-			strcpy(sdir,(*(i+1)).c_str());
-			CROSS_DOSFILENAME(tdir);
-			bool dir_exists_in_base = localDrive::TestDir(tdir);
-#endif
-
-			char dir[CROSS_LEN];
-			strcpy(dir,overlaydir);
-			strcat(dir,(*i).c_str());
-			char dirpush[CROSS_LEN],dirspush[CROSS_LEN];
-			strcpy(dirpush,(*i).c_str());
-			strcpy(dirspush,(*(i+1)).c_str());
-			if (!strlen(dirspush)) {
-				strcpy(dirspush, dirpush);
-				upcase(dirspush);
-			}
-			static char end[2] = {CROSS_FILESPLIT,0};
-			strcat(dirpush,end); //Linux ?
-			strcat(dirspush,end);
-			void* dirp = opendir(dir);
-			if (dirp == NULL) continue;
-
-#if OVERLAY_DIR
-			//Good directory, add to DOSdirs_cache if not existing in localDrive. tested earlier to prevent problems with opendir
-			if (!dir_exists_in_base) {
-				if (!strlen(sdir)) {
-					strcpy(sdir, tdir);
-					upcase(sdir);
-				}
-				add_DOSdir_to_cache(tdir,sdir);
-			}
-#endif
-
-			std::string backupi(*i);
-			// Read complete directory
-			char dir_name[CROSS_LEN], dir_sname[CROSS_LEN];
-			bool is_directory;
-			if (read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
-				if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.push_back(string(dirpush)+dir_name);
-				else if (is_directory) {
-					dirnames.push_back(string(dirpush)+dir_name);
-					if (!strlen(dir_sname)) {
-						strcpy(dir_sname, dir_name);
-						upcase(dir_sname);
-					}
-					dirnames.push_back(string(dirspush)+dir_sname);
-				} else filenames.push_back(string(dirpush)+dir_name);
-				while (read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
-					if ((strlen(dir_name) > prefix_lengh+5) && strncmp(dir_name,special_prefix.c_str(),prefix_lengh) == 0) specials.push_back(string(dirpush)+dir_name);
-					else if (is_directory) {
-						dirnames.push_back(string(dirpush)+dir_name);
-						if (!strlen(dir_sname)) {
-							strcpy(dir_sname, dir_name);
-							upcase(dir_sname);
-						}
-						dirnames.push_back(string(dirspush)+dir_sname);
-					} else filenames.push_back(string(dirspush)+dir_name);
-				}
-			}
-			closedir(dirp);
-			for(i = dirnames.begin(); i != dirnames.end(); i+=2) {
-				if ( (*i) == backupi) break; //find current directory again, for the next round.
-			}
-		}
-	}
-
-	if (read_directory_contents) {
-		for( i = filenames.begin(); i != filenames.end(); ++i) {
-			char dosname[CROSS_LEN];
-			strcpy(dosname,(*i).c_str());
-			//upcase(dosname);  //Should not be really needed, as uppercase in the overlay is a requirement...
-			CROSS_DOSFILENAME(dosname);
-			if (logoverlay) LOG_MSG("update cache add dosname %s",dosname);
-			DOSnames_cache.emplace_back(dosname);
-		}
-	}
-
-#if OVERLAY_DIR
-	for (i = DOSdirs_cache.begin(); i !=DOSdirs_cache.end(); i+=2) {
-		char fakename[CROSS_LEN],sdir[CROSS_LEN],tmp[CROSS_LEN],*p;
-		strcpy(fakename,basedir);
-		strcat(fakename,(*i).c_str());
-		CROSS_FILENAME(fakename);
-		strcpy(sdir,(*(i+1)).c_str());
-		dirCache.AddEntryDirOverlay(fakename,sdir,true);
-		if (strlen(sdir)) {
-			strcpy(tmp,(*(i+1)).c_str());
-			p=strrchr_dbcs(tmp, '\\');
-			if (p==NULL) *(i+1)=std::string(sdir);
-			else {
-				*p=0;
-				for(std::vector<std::string>::iterator it = DOSdirs_cache.begin(); it<i && it != DOSdirs_cache.end(); it+=2) {
-					if (!strcasecmp((*it).c_str(), tmp)) {
-						strcpy(tmp, (*(it+1)).c_str());
-						break;
-					}
-				}
-				strcat(tmp,"\\");
-				strcat(tmp,sdir);
-				*(i+1)=std::string(tmp);
-			}
-		}
-	}
-#endif
-
-	for (i = DOSnames_cache.begin(); i != DOSnames_cache.end(); ++i) {
-		char fakename[CROSS_LEN];
-		strcpy(fakename,basedir);
-		strcat(fakename,(*i).c_str());
-		CROSS_FILENAME(fakename);
-		dirCache.AddEntry(fakename,true);
-	}
-
-	if (read_directory_contents) {
-		for (i = specials.begin(); i != specials.end(); ++i) {
-			//Specials look like this $DBOVERLAY_YYY_FILENAME.EXT or DIRNAME[\/]$DBOVERLAY_YYY_FILENAME.EXT where 
-			//YYY is the operation involved. Currently only DEL is supported.
-			//DEL = file marked as deleted, (but exists in localDrive!)
-			std::string name(*i);
-			std::string special_dir("");
-			std::string special_file("");
-			std::string special_operation("");
-			std::string::size_type s = name.find(special_prefix);
-			if (s == std::string::npos) continue;
-			if (s) {
-				special_dir = name.substr(0,s);
-				name.erase(0,s);
-			}
-			name.erase(0,special_prefix.length()+1); //Erase $DBOVERLAY_
-			s = name.find('_');
-			if (s == std::string::npos || s == 0) continue;
-			special_operation = name.substr(0,s);
-			name.erase(0,s + 1);
-			special_file = name;
-			if (special_file.length() == 0) continue;
-			if (special_operation == "DEL") {
-				name = special_dir + special_file;
-				//CROSS_DOSFILENAME for strings:
-				while ( (s = name.find('/')) != std::string::npos) name.replace(s,1,"\\");
-				
-				add_deleted_file(name.c_str(),false);
-			} else if (special_operation == "RMD") {
-				name = special_dir + special_file;
-				//CROSS_DOSFILENAME for strings:
-				while ( (s = name.find('/')) != std::string::npos) name.replace(s,1,"\\");
-				add_deleted_path(name.c_str(),false);
-
-			} else {
-				if (logoverlay) LOG_MSG("unsupported operation %s on %s",special_operation.c_str(),(*i).c_str());
-			}
-
-		}
-	}
-	if (logoverlay) LOG_MSG("OPTIMISE: update cache took %d",GetTicks()-a);
-}
-
-bool Overlay_Drive::FindNext(DOS_DTA & dta) {
-
-	char * dir_ent, *ldir_ent;
-	ht_stat_t stat_block;
-	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
-	char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
-
-	uint8_t srch_attr;char srch_pattern[DOS_NAMELENGTH_ASCII];
-	uint8_t find_attr;
-
-	dta.GetSearchParams(srch_attr,srch_pattern,false);
-	uint16_t id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];
-
-again:
-	if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
-		if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
-			ldid[lfn_filefind_handle]=0;
-			ldir[lfn_filefind_handle]="";
-		}
-		DOS_SetError(DOSERR_NO_MORE_FILES);
-		return false;
-	}
-	if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
-
-	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:(ldir[lfn_filefind_handle]!=""?ldir[lfn_filefind_handle].c_str():"\\"));
-	strcpy(lfull_name,full_name);
-
-	strcat(full_name,dir_ent);
-    strcat(lfull_name,ldir_ent);
-	
-	//GetExpandName might indirectly destroy dir_ent (by caching in a new directory 
-	//and due to its design dir_ent might be lost.)
-	//Copying dir_ent first
-	strcpy(dir_entcopy,dir_ent);
-    strcpy(ldir_entcopy,ldir_ent);
-	
-	//First try overlay:
-	char ovname[CROSS_LEN];
-	char relativename[CROSS_LEN];
-	strcpy(relativename,srchInfo[id].srch_dir);
-	//strip off basedir: //TODO cleanup
-	strcpy(ovname,overlaydir);
-	char* prel = lfull_name + strlen(basedir);
-
-	char preldos[CROSS_LEN];
-	strcpy(preldos,prel);
-	CROSS_DOSFILENAME(preldos);
-	strcat(ovname,prel);
-	bool statok = false;
-	const host_cnv_char_t* host_name=NULL;
-	if (!is_deleted_file(preldos)) {
-		host_name = CodePageGuestToHost(ovname);
-		if (host_name != NULL) statok = ht_stat(host_name,&stat_block)==0;
-		if (!statok) {
-			char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,prel));
-			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-				temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-				strcpy(ovname,GetCrossedName(overlaydir,temp_name));
-				host_name = CodePageGuestToHost(ovname);
-				if (host_name != NULL) statok = ht_stat(host_name,&stat_block)==0;
-			}
-		}
-	}
-
-	if (statok) {
-		if (logoverlay) LOG_MSG("using overlay data for %s : %s",uselfn?lfull_name:full_name, ovname);
-	} else {
-		strcpy(preldos,prel);
-		CROSS_DOSFILENAME(preldos);
-		if (is_deleted_file(preldos)) { //dir.. maybe lower or keep it as is TODO
-			if (logoverlay) LOG_MSG("skipping deleted file %s %s %s",preldos,uselfn?lfull_name:full_name,ovname);
-			goto again;
-		}
-		const host_cnv_char_t* host_name = CodePageGuestToHost(dirCache.GetExpandName(lfull_name));
-		if (ht_stat(host_name,&stat_block)!=0) {
-			if (logoverlay) LOG_MSG("stat failed for %s . This should not happen.",dirCache.GetExpandName(uselfn?lfull_name:full_name));
-			goto again;//No symlinks and such
-		}
-	}
-
-	if(stat_block.st_mode & S_IFDIR) find_attr=DOS_ATTR_DIRECTORY;
-	else find_attr=0;
-#if defined (WIN32)
-	Bitu attribs = host_name==NULL?INVALID_FILE_ATTRIBUTES:GetFileAttributesW(host_name);
-	if (attribs != INVALID_FILE_ATTRIBUTES)
-		find_attr|=attribs&0x3f;
-#else
-	if (!(find_attr&DOS_ATTR_DIRECTORY)) find_attr|=DOS_ATTR_ARCHIVE;
-	if(!(stat_block.st_mode & S_IWUSR)) find_attr|=DOS_ATTR_READ_ONLY;
-#endif
- 	if (~srch_attr & find_attr & DOS_ATTR_DIRECTORY) goto again;
-	
-	/* file is okay, setup everything to be copied in DTA Block */
-	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
-	uint16_t find_date,find_time;uint32_t find_size;
-
-	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
-		strcpy(find_name,dir_entcopy);
-		upcase(find_name);
-	}
-	strcpy(lfind_name,ldir_entcopy);
-    lfind_name[LFN_NAMELENGTH]=0;
-
-	find_size=(uint32_t) stat_block.st_size;
-	struct tm *time;
-	if((time=localtime(&stat_block.st_mtime))!=0){
-		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
-		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
-	} else {
-		find_time=6; 
-		find_date=4;
-	}
-	dta.SetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
-	return true;
-}
-
-bool Overlay_Drive::FileUnlink(const char * name) {
-    if (ovlreadonly) {
-        DOS_SetError(DOSERR_WRITE_PROTECTED);
-        return false;
-    }
-
-//TODO check the basedir for file existence in order if we need to add the file to deleted file list.
-	uint32_t a = GetTicks();
-	if (logoverlay) LOG_MSG("calling unlink on %s",name);
-	char basename[CROSS_LEN];
-	strcpy(basename,basedir);
-	strcat(basename,name);
-	CROSS_FILENAME(basename);
-
-	char overlayname[CROSS_LEN];
-	strcpy(overlayname,overlaydir);
-	strcat(overlayname,name);
-	CROSS_FILENAME(overlayname);
-	
-	bool removed=false;
-	const host_cnv_char_t* host_name;
-	struct stat temp_stat;
-	if (stat(overlayname,&temp_stat)) {
-		char* temp_name = dirCache.GetExpandName(basename);
-		if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-			char overtmpname[CROSS_LEN];
-			temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-			strcpy(overtmpname,overlaydir);
-			strcat(overtmpname,temp_name);
-			CROSS_FILENAME(overtmpname);
-			host_name = CodePageGuestToHost(overtmpname);
-			if (host_name != NULL && ht_unlink(host_name)==0) removed=true;
-		}
-	}
-//	char *fullname = dirCache.GetExpandName(newname);
-
-	if (!removed&&unlink(overlayname)) {
-		//Unlink failed for some reason try finding it.
-		ht_stat_t status;
-		host_name = CodePageGuestToHost(overlayname);
-		if(host_name==NULL || ht_stat(host_name,&status)) {
-			//file not found in overlay, check the basedrive
-			//Check if file not already deleted 
-			if (is_deleted_file(name)) return false;
-
-			char *fullname = dirCache.GetExpandName(basename);
-			host_name = CodePageGuestToHost(fullname);
-			if (host_name==NULL || ht_stat(host_name,&status)) return false; // File not found in either, return file false.
-			//File does exist in normal drive.
-			//Maybe do something with the drive_cache.
-			add_deleted_file(name,true);
-			return true;
-//			E_Exit("trying to remove existing non-overlay file %s",name);
-		}
-		FILE* file_writable = fopen_wrap(overlayname,"rb+");
-		if(!file_writable) return false; //No access ? ERROR MESSAGE NOT SET. FIXME ?
-		fclose(file_writable);
-
-		//File exists and can technically be deleted, nevertheless it failed.
-		//This means that the file is probably open by some process.
-		//See if We have it open.
-		bool found_file = false;
-		for(Bitu i = 0;i < DOS_FILES;i++){
-			if(Files[i] && Files[i]->IsName(name)) {
-				Bitu max = DOS_FILES;
-				while(Files[i]->IsOpen() && max--) {
-					Files[i]->Close();
-					if (Files[i]->RemoveRef()<=0) break;
-				}
-				found_file=true;
-			}
-		}
-		if(!found_file) return false;
-		if (unlink(overlayname) == 0) { //Overlay file removed
-			//Mark basefile as deleted if it exists:
-			if (localDrive::FileExists(name)) add_deleted_file(name,true);
-			remove_DOSname_from_cache(name); //Should be an else ? although better safe than sorry.
-			//Handle this better
-			dirCache.DeleteEntry(basename);
-			dirCache.EmptyCache();
-			update_cache(false);
-			//Check if it exists in the base dir as well
-			
-			return true;
-		}
-		return false;
-	} else { //Removed from overlay.
-		//TODO IF it exists in the basedir: and more locations above.
-		if (localDrive::FileExists(name)) add_deleted_file(name,true);
-		remove_DOSname_from_cache(name);
-		//TODODO remove from the update_cache cache as well
-		//Handle this better
-		//Check if it exists in the base dir as well
-		dirCache.DeleteEntry(basename);
-
-		dirCache.EmptyCache();
-		update_cache(false);
-		if (logoverlay) LOG_MSG("OPTIMISE: unlink took %d",GetTicks()-a);
-		return true;
-	}
-}
-
-bool Overlay_Drive::SetFileAttr(const char * name,uint16_t attr) {
-	char overlayname[CROSS_LEN], tmp[CROSS_LEN], overtmpname[CROSS_LEN];
-	strcpy(overlayname,overlaydir);
-	strcat(overlayname,name);
-	CROSS_FILENAME(overlayname);
-	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
-	strcpy(tmp, name);
-	char *q=strrchr_dbcs(tmp, '\\');
-	if (q!=NULL) *(q+1)=0;
-	else *tmp=0;
-	char *p=strrchr_dbcs(temp_name, '\\');
-	if (p!=NULL)
-		strcat(tmp,p+1);
-	else
-		strcat(tmp,temp_name);
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir)))
-		strcpy(tmp,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-	strcpy(overtmpname,overlaydir);
-	strcat(overtmpname,tmp);
-	CROSS_FILENAME(overtmpname);
-
-	ht_stat_t status;
-	const host_cnv_char_t* host_name;
-	bool success=false;
-#if defined (WIN32)
-    host_name = CodePageGuestToHost(overtmpname);
-    if (host_name != NULL&&SetFileAttributesW(host_name, attr)) success=true;
-	if (!success) {
-		host_name = CodePageGuestToHost(overlayname);
-		if (host_name != NULL&&SetFileAttributesW(host_name, attr)) success=true;
-	}
-#else
-	if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
-		if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
-			LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,overlayname);
-
-		if (attr & DOS_ATTR_READ_ONLY)
-			status.st_mode &= ~(S_IWUSR|S_IWGRP|S_IWOTH);
-		else
-			status.st_mode |=  S_IWUSR;
-		if (chmod(overtmpname,status.st_mode) >= 0 || chmod(overlayname,status.st_mode) >= 0)
-			success=true;
-	}
-#endif
-	if (success) {
-		dirCache.EmptyCache();
-		update_cache(false);
-		return true;
-	}
-
-	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	temp_name = dirCache.GetExpandName(newname);
-	host_name = CodePageGuestToHost(temp_name);
-
-	bool created=false;
-	if (host_name != NULL && ht_stat(host_name,&status)==0 && (status.st_mode & S_IFDIR)) {
-		host_name = CodePageGuestToHost(overtmpname);
-		int temp=-1;
-		if (host_name!=NULL) {
-#if defined (WIN32)
-			temp=_wmkdir(host_name);
-#else
-			temp=mkdir(host_name,0775);
-#endif
-		}
-		if (temp==0) created=true;
-	} else {
-		FILE * hand;
-		host_name = CodePageGuestToHost(temp_name);
-#ifdef host_cnv_use_wchar
-		if (host_name!=NULL)
-			hand = _wfopen(host_name,_HT("rb"));
-		else
-#endif
-			hand = fopen_wrap(temp_name,"rb");
-		if (hand) {
-			if (logoverlay) LOG_MSG("overlay file opened %s",temp_name);
-			FILE * layfile=NULL;
-			host_name = CodePageGuestToHost(overtmpname);
-#ifdef host_cnv_use_wchar
-			if (host_name!=NULL) layfile=_wfopen(host_name,_HT("wb"));
-#endif
-			if (layfile==NULL) layfile=fopen_wrap(overlayname,"wb");
-			int numr,numw;
-			char buffer[1000];
-			while(feof(hand)==0) {
-				if((numr=(int)fread(buffer,1,1000,hand))!=1000){
-					if(ferror(hand)!=0){
-						fclose(hand);
-						fclose(layfile);
-						return false;
-					} else if(feof(hand)!=0) { }
-				}
-				if((numw=(int)fwrite(buffer,1,numr,layfile))!=numr){
-						fclose(hand);
-						fclose(layfile);
-						return false;
-				}
-			}
-			fclose(hand);
-			fclose(layfile);
-			created=true;
-		}
-	}
-	if (created) {
-#if defined (WIN32)
-		host_name = CodePageGuestToHost(overtmpname);
-		if (host_name != NULL&&SetFileAttributesW(host_name, attr)) success=true;
-		if (!success) {
-			host_name = CodePageGuestToHost(overlayname);
-			if (host_name != NULL&&SetFileAttributesW(host_name, attr)) success=true;
-		}
-#else
-		if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
-			if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
-				LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,overlayname);
-
-			if (attr & DOS_ATTR_READ_ONLY)
-				status.st_mode &= ~(S_IWUSR|S_IWGRP|S_IWOTH);
-			else
-				status.st_mode |=  S_IWUSR;
-			if (chmod(overtmpname,status.st_mode) >= 0 || chmod(overlayname,status.st_mode) >= 0)
-				success=true;
-		}
-#endif
-		if (success) {
-			dirCache.EmptyCache();
-			update_cache(false);
-			return true;
-		}
-	}
-	return false;
-}
-
-bool Overlay_Drive::GetFileAttr(const char * name,uint16_t * attr) {
-	if (ovlnocachedir) {
-		dirCache.EmptyCache();
-		update_cache(true);
-	}
-
-	char overlayname[CROSS_LEN], tmp[CROSS_LEN], overtmpname[CROSS_LEN];
-	strcpy(overlayname,overlaydir);
-	strcat(overlayname,name);
-	CROSS_FILENAME(overlayname);
-	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
-	strcpy(tmp, name);
-	char *q=strrchr_dbcs(tmp, '\\');
-	if (q!=NULL) *(q+1)=0;
-	else *tmp=0;
-	char *p=strrchr_dbcs(temp_name, '\\');
-	if (p!=NULL)
-		strcat(tmp,p+1);
-	else
-		strcat(tmp,temp_name);
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir)))
-		strcpy(tmp,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-	strcpy(overtmpname,overlaydir);
-	strcat(overtmpname,tmp);
-	CROSS_FILENAME(overtmpname);
-
-#if defined (WIN32)
-	Bitu attribs = INVALID_FILE_ATTRIBUTES;
-    const host_cnv_char_t* host_name = CodePageGuestToHost(overtmpname);
-    if (host_name != NULL) attribs = GetFileAttributesW(host_name);
-	if (attribs == INVALID_FILE_ATTRIBUTES) {
-		host_name = CodePageGuestToHost(overlayname);
-		if (host_name != NULL) attribs = GetFileAttributesW(host_name);
-	}
-	if (attribs != INVALID_FILE_ATTRIBUTES) {
-		*attr = attribs&0x3f;
-		return true;
-	}
-#else
-	ht_stat_t status;
-	if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
-		*attr=status.st_mode & S_IFDIR?0:DOS_ATTR_ARCHIVE;
-		if(status.st_mode & S_IFDIR) *attr|=DOS_ATTR_DIRECTORY;
-		if(!(status.st_mode & S_IWUSR)) *attr|=DOS_ATTR_READ_ONLY;
-		return true;
-	}
-#endif
-	//Maybe check for deleted path as well
-	if (is_deleted_file(name)) {
-		*attr = 0;
-		return false;
-	}
-	return localDrive::GetFileAttr(name,attr);
-}
-
-std::string Overlay_Drive::GetHostName(const char * name) {
-	char overlayname[CROSS_LEN];
-	strcpy(overlayname,overlaydir);
-	strcat(overlayname,name);
-	CROSS_FILENAME(overlayname);
-	ht_stat_t temp_stat;
-	const host_cnv_char_t* host_name = CodePageGuestToHost(overlayname);
-	if (host_name != NULL && ht_stat(host_name ,&temp_stat)==0) {
-        hostname = overlayname;
-        return hostname;
-    }
-	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-		strcpy(overlayname,overlaydir);
-		strcat(overlayname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-		CROSS_FILENAME(overlayname);
-		host_name = CodePageGuestToHost(overlayname);
-		if(host_name != NULL && ht_stat(host_name,&temp_stat)==0) {
-            hostname = overlayname;
-            return hostname;
-        }
-	}
-	hostname = is_deleted_file(name)? "" : localDrive::GetHostName(name);
-	return hostname;
-}
-
-void Overlay_Drive::add_deleted_file(const char* name,bool create_on_disk) {
-	char tname[CROSS_LEN];
-	strcpy(tname,basedir);
-	strcat(tname,name);
-	CROSS_FILENAME(tname);
-	char* temp_name = dirCache.GetExpandName(tname);
-	strcpy(tname, name);
-	char *q=strrchr_dbcs(tname, '\\');
-	if (q!=NULL) *(q+1)=0;
-	else *tname=0;
-	char *p=strrchr_dbcs(temp_name, '\\');
-	if (p!=NULL)
-		strcat(tname,p+1);
-	else
-		strcat(tname,temp_name);
-	if (!is_deleted_file(tname)) {
-		deleted_files_in_base.emplace_back(tname);
-		if (create_on_disk) add_special_file_to_disk(tname, "DEL");
-	}
-}
-
-void Overlay_Drive::add_special_file_to_disk(const char* dosname, const char* operation) {
-	std::string name = create_filename_of_special_operation(dosname, operation);
-	char overlayname[CROSS_LEN];
-	strcpy(overlayname,overlaydir);
-	strcat(overlayname,name.c_str());
-	CROSS_FILENAME(overlayname);
-	const host_cnv_char_t* host_name = CodePageGuestToHost(overlayname);
-	FILE* f;
-	if (host_name!=NULL) {
-#ifdef host_cnv_use_wchar
-		f = _wfopen(host_name,_HT("wb+"));
-#else
-		f = fopen_wrap(host_name,"wb+");
-#endif
-	}
-	else {
-		f = fopen_wrap(overlayname,"wb+");
-	}
-
-	if (!f) {
-		Sync_leading_dirs(dosname);
-		char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name.c_str()));
-		if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-			temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-			strcpy(overlayname,overlaydir);
-			strcat(overlayname,temp_name);
-			CROSS_FILENAME(overlayname);
-		}
-		host_name = CodePageGuestToHost(overlayname);
-		if (host_name!=NULL) {
-#ifdef host_cnv_use_wchar
-			f = _wfopen(host_name,_HT("wb+"));
-#else
-			f = fopen_wrap(host_name,"wb+");
-#endif
-		}
-		else {
-			f = fopen_wrap(overlayname,"wb+");
-		}
-	}
-	if (!f) E_Exit("Failed creation of %s",overlayname);
-	char buf[5] = {'e','m','p','t','y'};
-	fwrite(buf,5,1,f);
-	fclose(f);
-}
-
-void Overlay_Drive::remove_special_file_from_disk(const char* dosname, const char* operation) {
-	std::string name = create_filename_of_special_operation(dosname,operation);
-	char overlayname[CROSS_LEN];
-	strcpy(overlayname,overlaydir);
-	strcat(overlayname,name.c_str());
-	CROSS_FILENAME(overlayname);
-	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name.c_str()));
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-		temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-		strcpy(overlayname,overlaydir);
-		strcat(overlayname,temp_name);
-		CROSS_FILENAME(overlayname);
-	}
-	const host_cnv_char_t* host_name = CodePageGuestToHost(overlayname);
-	if ((host_name == NULL || ht_unlink(host_name) != 0) && unlink(overlayname) != 0)
-		E_Exit("Failed removal of %s",overlayname);
-}
-
-std::string Overlay_Drive::create_filename_of_special_operation(const char* dosname, const char* operation) {
-	std::string res(dosname);
-	std::string::size_type s = std::string::npos; //CHECK DOS or host endings.... on update_cache
-	bool lead = false;
-	for (unsigned int i=0; i<res.size(); i++) {
-		if (lead) lead = false;
-		else if ((IS_PC98_ARCH && shiftjis_lead_byte(res[i])) || (isDBCSCP() && isKanji1(res[i]))) lead = true;
-		else if (res[i]=='\\') s = i;
-	}
-	if (s == std::string::npos) s = 0; else s++;
-	std::string oper = special_prefix + "_" + operation + "_";
-	res.insert(s,oper);
-	return res;
-}
-
-
-bool Overlay_Drive::is_dir_only_in_overlay(const char* name) {
-	if (!name || !*name) return false;
-	if (DOSdirs_cache.empty()) return false;
-	char fname[CROSS_LEN];
-	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
-	strcpy(fname, "");
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-		strcpy(fname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-		CROSS_DOSFILENAME(fname);
-	}
-	for(std::vector<std::string>::iterator it = DOSdirs_cache.begin(); it != DOSdirs_cache.end(); it+=2) {
-		if (!strcasecmp((*it).c_str(), name)||(strlen(fname)&&!strcasecmp((*it).c_str(), fname))||((*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), name))) return true;
-	}
-	return false;
-}
-
-bool Overlay_Drive::is_deleted_file(const char* name) {
-	if (!name || !*name) return false;
-	if (deleted_files_in_base.empty()) return false;
-	char tname[CROSS_LEN],fname[CROSS_LEN];
-	strcpy(tname,basedir);
-	strcat(tname,name);
-	CROSS_FILENAME(tname);
-	char* temp_name = dirCache.GetExpandName(tname);
-	strcpy(tname, name);
-	char *q=strrchr_dbcs(tname, '\\');
-	if (q!=NULL) *(q+1)=0;
-	else *tname=0;
-	char *p=strrchr_dbcs(temp_name, '\\');
-	if (p!=NULL)
-		strcat(tname,p+1);
-	else
-		strcat(tname,temp_name);
-	strcpy(fname, "");
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-		strcpy(fname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-		CROSS_DOSFILENAME(fname);
-	}
-	for(std::vector<std::string>::iterator it = deleted_files_in_base.begin(); it != deleted_files_in_base.end(); it++) {
-		if (!strcasecmp((*it).c_str(), name)||!strcasecmp((*it).c_str(), tname)||(strlen(fname)&&!strcasecmp((*it).c_str(), fname))) return true;
-	}
-	return false;
-}
-
-void Overlay_Drive::add_DOSdir_to_cache(const char* name, const char *sname) {
-	if (!name || !*name ) return; //Skip empty file.
-	if (logoverlay) LOG_MSG("Adding name to overlay_only_dir_cache %s",name);
-	if (!is_dir_only_in_overlay(name)) {
-		DOSdirs_cache.emplace_back(name);
-		DOSdirs_cache.emplace_back(sname);
-	}
-}
-
-void Overlay_Drive::remove_DOSdir_from_cache(const char* name) {
-	char fname[CROSS_LEN];
-	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
-	strcpy(fname, "");
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-		strcpy(fname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-		CROSS_DOSFILENAME(fname);
-	}
-	for(std::vector<std::string>::iterator it = DOSdirs_cache.begin(); it != DOSdirs_cache.end(); it+=2) {
-		if (!strcasecmp((*it).c_str(), name)||(strlen(fname)&&!strcasecmp((*it).c_str(), fname))||((*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), name))) {
-			DOSdirs_cache.erase(it+1);
-			DOSdirs_cache.erase(it);
-			return;
-		}
-	}
-}
-
-void Overlay_Drive::remove_deleted_file(const char* name,bool create_on_disk) {
-	char tname[CROSS_LEN],fname[CROSS_LEN];
-	strcpy(tname,basedir);
-	strcat(tname,name);
-	CROSS_FILENAME(tname);
-	char* temp_name = dirCache.GetExpandName(tname);
-	strcpy(tname, name);
-	char *q=strrchr_dbcs(tname, '\\');
-	if (q!=NULL) *(q+1)=0;
-	else *tname=0;
-	char *p=strrchr_dbcs(temp_name, '\\');
-	if (p!=NULL)
-		strcat(tname,p+1);
-	else
-		strcat(tname,temp_name);
-	strcpy(fname, "");
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-		strcpy(fname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-		CROSS_DOSFILENAME(fname);
-	}
-	for(std::vector<std::string>::iterator it = deleted_files_in_base.begin(); it != deleted_files_in_base.end(); ++it) {
-		if (!strcasecmp((*it).c_str(), name)||!strcasecmp((*it).c_str(), tname)||(strlen(fname)&&!strcasecmp((*it).c_str(), fname))) {
-			deleted_files_in_base.erase(it);
-			if (create_on_disk) remove_special_file_from_disk(name, "DEL");
-			return;
-		}
-	}
-}
-void Overlay_Drive::add_deleted_path(const char* name, bool create_on_disk) {
-	if (!name || !*name ) return; //Skip empty file.
-	if (!is_deleted_path(name)) {
-		deleted_paths_in_base.emplace_back(name);
-		//Add it to deleted files as well, so it gets skipped in FindNext. 
-		//Maybe revise that.
-		if (create_on_disk) add_special_file_to_disk(name,"RMD");
-		add_deleted_file(name,false);
-	}
-}
-bool Overlay_Drive::is_deleted_path(const char* name) {
-	if (!name || !*name) return false;
-	if (deleted_paths_in_base.empty()) return false;
-	std::string sname(name);
-	std::string::size_type namelen = sname.length();;
-	for(std::vector<std::string>::iterator it = deleted_paths_in_base.begin(); it != deleted_paths_in_base.end(); ++it) {
-		std::string::size_type blockedlen = (*it).length();
-		if (namelen < blockedlen) continue;
-		//See if input starts with name. 
-		std::string::size_type n = sname.find(*it);
-		if (n == 0 && ((namelen == blockedlen) || *(name + blockedlen) == '\\' )) return true;
-	}
-	return false;
-}
-
-void Overlay_Drive::remove_deleted_path(const char* name, bool create_on_disk) {
-	for(std::vector<std::string>::iterator it = deleted_paths_in_base.begin(); it != deleted_paths_in_base.end(); ++it) {
-		if (!strcasecmp((*it).c_str(), name)) {
-			deleted_paths_in_base.erase(it);
-			remove_deleted_file(name,false); //Rethink maybe.
-			if (create_on_disk) remove_special_file_from_disk(name,"RMD");
-			break;
-		}
-	}
-}
-bool Overlay_Drive::check_if_leading_is_deleted(const char* name){
-	const char* dname = strrchr_dbcs((char *)name,'\\');
-	if (dname != NULL) {
-		char dirname[CROSS_LEN];
-		strncpy(dirname,name,dname - name);
-		dirname[dname - name] = 0;
-		if (is_deleted_path(dirname)) return true;
-	}
-	return false;
-}
-
-bool Overlay_Drive::FileExists(const char* name) {
-	if (ovlnocachedir) {
-		dirCache.EmptyCache();
-		update_cache(true);
-	}
-
-	char overlayname[CROSS_LEN];
-	strcpy(overlayname,overlaydir);
-	strcat(overlayname,name);
-	CROSS_FILENAME(overlayname);
-	ht_stat_t temp_stat;
-	const host_cnv_char_t* host_name = CodePageGuestToHost(overlayname);
-	if (host_name != NULL && ht_stat(host_name ,&temp_stat)==0 && (temp_stat.st_mode & S_IFDIR)==0) return true;
-	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-		strcpy(overlayname,overlaydir);
-		strcat(overlayname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-		CROSS_FILENAME(overlayname);
-		host_name = CodePageGuestToHost(overlayname);
-		if(host_name != NULL && ht_stat(host_name,&temp_stat)==0 && (temp_stat.st_mode & S_IFDIR)==0) return true;
-	}
-	
-	if (is_deleted_file(name)) return false;
-
-	return localDrive::FileExists(name);
-}
-
-bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
-    if (ovlreadonly) {
-        DOS_SetError(DOSERR_WRITE_PROTECTED);
-        return false;
-    }
-
-	//TODO with cache function!
-	//Tricky function.
-	//Renaming directories is currently not fully supported, due the drive_cache not handling that smoothly.
-	//So oldname is directory => exit unless it is only in overlay.
-	//If oldname is on overlay => simple rename.
-	//if oldname is on base => copy file to overlay with new name and mark old file as deleted. 
-	//More advanced version. keep track of the file being renamed in order to detect that the file is being renamed back. 
-	
-	char tmp[CROSS_LEN];
-	host_cnv_char_t host_nameold[CROSS_LEN], host_namenew[CROSS_LEN];
-	uint16_t attr = 0;
-	if (!GetFileAttr(oldname,&attr)) E_Exit("rename, but source doesn't exist, should not happen %s",oldname);
-	ht_stat_t temp_stat;
-	if (attr&DOS_ATTR_DIRECTORY) {
-		//See if the directory exists only in the overlay, then it should be possible.
-#if OVERLAY_DIR
-		if (localDrive::TestDir(oldname)) {
-			LOG_MSG("Overlay: renaming base directory %s to %s not yet supported", oldname,newname);
-			DOS_SetError(DOSERR_ACCESS_DENIED);
-			return false;
-		}
-#endif
-		char overlaynameold[CROSS_LEN];
-		strcpy(overlaynameold,overlaydir);
-		strcat(overlaynameold,oldname);
-		CROSS_FILENAME(overlaynameold);
-#ifdef host_cnv_use_wchar
-		wcscpy
-#else
-		strcpy
-#endif
-		(host_nameold, CodePageGuestToHost(overlaynameold));
-
-		char overlaynamenew[CROSS_LEN];
-		strcpy(overlaynamenew,overlaydir);
-		strcat(overlaynamenew,newname);
-		CROSS_FILENAME(overlaynamenew);
-#ifdef host_cnv_use_wchar
-		wcscpy
-#else
-		strcpy
-#endif
-		(host_namenew, CodePageGuestToHost(overlaynamenew));
-
-		if (ht_stat(host_nameold,&temp_stat)) {
-			char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,oldname));
-			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-				temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-				strcpy(overlaynameold,GetCrossedName(overlaydir,temp_name));
-#ifdef host_cnv_use_wchar
-				wcscpy
-#else
-				strcpy
-#endif
-				(host_nameold, CodePageGuestToHost(overlaynameold));
-			}
-			strcpy(tmp,newname);
-			char *p=strrchr_dbcs(tmp,'\\'), ndir[CROSS_LEN];
-			if (p!=NULL) {
-				*p=0;
-				temp_name=dirCache.GetExpandName(GetCrossedName(basedir,tmp));
-				if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-					strcpy(ndir,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-					strcat(ndir,"\\");
-					strcat(ndir,p+1);
-					strcpy(overlaynamenew,GetCrossedName(overlaydir,ndir));
-#ifdef host_cnv_use_wchar
-					wcscpy
-#else
-					strcpy
-#endif
-					(host_namenew, CodePageGuestToHost(overlaynamenew));
-				}
-			}
-		}
-		int temp=-1;
-#ifdef host_cnv_use_wchar
-		temp = _wrename(host_nameold,host_namenew);
-#else
-		temp = rename(host_nameold,host_namenew);
-#endif
-		if (temp==0) {
-			dirCache.EmptyCache();
-			update_cache(true);
-			return true;
-		}
-		LOG_MSG("Overlay: renaming overlay directory %s to %s not yet supported",oldname,newname); //TODO
-		DOS_SetError(DOSERR_ACCESS_DENIED);
-		return false;
-	}
-
-	uint32_t a = GetTicks();
-	//First generate overlay names.
-	char overlaynameold[CROSS_LEN];
-	strcpy(overlaynameold,overlaydir);
-	strcat(overlaynameold,oldname);
-	CROSS_FILENAME(overlaynameold);
-#ifdef host_cnv_use_wchar
-	wcscpy
-#else
-	strcpy
-#endif
-	(host_nameold, CodePageGuestToHost(overlaynameold));
-
-	char overlaynamenew[CROSS_LEN];
-	strcpy(overlaynamenew,overlaydir);
-	strcat(overlaynamenew,newname);
-	CROSS_FILENAME(overlaynamenew);
-#ifdef host_cnv_use_wchar
-	wcscpy
-#else
-	strcpy
-#endif
-	(host_namenew, CodePageGuestToHost(overlaynamenew));
-	if (ht_stat(host_nameold,&temp_stat)) {
-		char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,oldname));
-		if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-			temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-			strcpy(overlaynameold,GetCrossedName(overlaydir,temp_name));
-#ifdef host_cnv_use_wchar
-			wcscpy
-#else
-			strcpy
-#endif
-			(host_nameold, CodePageGuestToHost(overlaynameold));
-		}
-		strcpy(tmp,newname);
-		char *p=strrchr_dbcs(tmp,'\\'), ndir[CROSS_LEN];
-		if (p!=NULL) {
-			*p=0;
-			temp_name=dirCache.GetExpandName(GetCrossedName(basedir,tmp));
-			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-				strcpy(ndir,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-				strcat(ndir,"\\");
-				strcat(ndir,p+1);
-				strcpy(overlaynamenew,GetCrossedName(overlaydir,ndir));
-#ifdef host_cnv_use_wchar
-				wcscpy
-#else
-				strcpy
-#endif
-				(host_namenew, CodePageGuestToHost(overlaynamenew));
-			}
-		}
-	}
-
-	//No need to check if the original is marked as deleted, as GetFileAttr would fail if it did.
-
-	//Check if overlay source file exists
-	int temp = -1; 
-	if (ht_stat(host_nameold,&temp_stat) == 0) {
-		//Simple rename
-#ifdef host_cnv_use_wchar
-		temp = _wrename(host_nameold,host_namenew);
-#else
-		temp = rename(host_nameold,host_namenew);
-#endif
-		//TODO CHECK if base has a file with same oldname!!!!! if it does mark it as deleted!!
-		if (localDrive::FileExists(oldname)) add_deleted_file(oldname,true);
-	} else {
-		uint32_t aa = GetTicks();
-		//File exists in the basedrive. Make a copy and mark old one as deleted.
-		char newold[CROSS_LEN];
-		strcpy(newold,basedir);
-		strcat(newold,oldname);
-		CROSS_FILENAME(newold);
-		dirCache.ExpandName(newold);
-		const host_cnv_char_t* host_name = CodePageGuestToHost(newold);
-		FILE* o;
-		if (host_name!=NULL) {
-#ifdef host_cnv_use_wchar
-			o = _wfopen(host_name,_HT("rb"));
-#else
-			o = fopen_wrap(host_name,"rb");
-#endif
-		}
-		else {
-			o = fopen_wrap(newold,"rb");
-		}
-		if (!o) return false;
-		FILE* n = create_file_in_overlay(newname,"wb+");
-		if (!n) {fclose(o); return false;}
-		char buffer[BUFSIZ];
-		size_t s;
-		while ( (s = fread(buffer,1,BUFSIZ,o)) ) fwrite(buffer, 1, s, n);
-		fclose(o); fclose(n);
-
-		//File copied.
-		//Mark old file as deleted
-		add_deleted_file(oldname,true);
-		temp =0; //success
-		if (logoverlay) LOG_MSG("OPTIMISE: update rename with copy took %d",GetTicks()-aa);
-
-	}
-	if (temp ==0) {
-		//handle the drive_cache (a bit better)
-		//Ensure that the file is not marked as deleted anymore.
-		if (is_deleted_file(newname)) remove_deleted_file(newname,true);
-		dirCache.EmptyCache();
-		update_cache(true);
-		if (logoverlay) LOG_MSG("OPTIMISE: rename took %d",GetTicks()-a);
-
-	}
-	return (temp==0);
-
-}
-
-bool Overlay_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
-	if (logoverlay) LOG_MSG("FindFirst in %s",_dir);
-	
-	if (is_deleted_path(_dir)) {
-		//No accidental listing of files in there.
-		DOS_SetError(DOSERR_PATH_NOT_FOUND);
-		return false;
-	}
-	
-	if (ovlnocachedir) {
-		dirCache.EmptyCache();
-		update_cache(true);
-	}
-
-	if (*_dir) {
-		char newname[CROSS_LEN], tmp[CROSS_LEN];
-		strcpy(newname,overlaydir);
-		strcat(newname,_dir);
-		CROSS_FILENAME(newname);
-		struct stat temp_stat;
-		if (stat(newname,&temp_stat)) {
-			char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,_dir));
-			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-				temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-				return localDrive::FindFirst(temp_name,dta,fcb_findfirst);
-			}
-			strcpy(tmp, _dir);
-			bool found=false;
-			for(std::vector<std::string>::iterator it = DOSdirs_cache.begin(); it != DOSdirs_cache.end(); it+=2) {
-				if ((*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), tmp)) {
-					found=true;
-					strcpy(tmp, (*it).c_str());
-					break;
-				}
-			}
-			if (found) {
-				return localDrive::FindFirst(tmp,dta,fcb_findfirst);
-			}
-		}
-	}
-	return localDrive::FindFirst(_dir,dta,fcb_findfirst);
-}
-
-bool Overlay_Drive::FileStat(const char* name, FileStat_Block * const stat_block) {
-	if (ovlnocachedir) {
-		dirCache.EmptyCache();
-		update_cache(true);
-	}
-
-	char overlayname[CROSS_LEN], tmp[CROSS_LEN], overtmpname[CROSS_LEN];
-	strcpy(overlayname,overlaydir);
-	strcat(overlayname,name);
-	CROSS_FILENAME(overlayname);
-	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
-	const host_cnv_char_t* host_name;
-	ht_stat_t temp_stat;
-	bool success=false;
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-		strcpy(overtmpname,overlaydir);
-		strcat(overtmpname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-		CROSS_FILENAME(overtmpname);
-		host_name = CodePageGuestToHost(overtmpname);
-		if (host_name != NULL && ht_stat(host_name,&temp_stat)==0) success=true;
-	}
-	if (!success) {
-		host_name = CodePageGuestToHost(overlayname);
-		if (host_name != NULL && ht_stat(host_name,&temp_stat) == 0) success=true;
-	}
-	if (!success) {
-		strcpy(tmp,name);
-		char *p=strrchr_dbcs(tmp, '\\'), *q=strrchr_dbcs(temp_name, '\\');
-		if (p!=NULL&&q!=NULL) {
-			*p=0;
-			for(std::vector<std::string>::iterator it = DOSdirs_cache.begin(); it != DOSdirs_cache.end(); it+=2)
-				if ((*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), tmp)) {
-					strcpy(tmp, (*it).c_str());
-					break;
-				}
-			strcat(tmp, "\\");
-			strcat(tmp, q+1);
-		}
-		strcpy(overtmpname,overlaydir);
-		strcat(overtmpname,tmp);
-		CROSS_FILENAME(overtmpname);
-		host_name = CodePageGuestToHost(overtmpname);
-		if (host_name != NULL && ht_stat(host_name,&temp_stat)==0) success=true;
-	}
-	if(!success) {
-		if (is_deleted_file(name)) return false;
-		return localDrive::FileStat(name,stat_block);
-	}
-	
-	/* Convert the stat to a FileStat */
-	struct tm *time;
-	if((time=localtime(&temp_stat.st_mtime))!=0) {
-		stat_block->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
-		stat_block->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
-	} else {
-			// ... But this function is not used at the moment.
-	}
-	stat_block->size=(uint32_t)temp_stat.st_size;
-	return true;
-}
-
-Bits Overlay_Drive::UnMount(void) { 
-	delete this;
-	return 0; 
-}
-void Overlay_Drive::EmptyCache(void){
-	localDrive::EmptyCache();
-	update_cache(true);//lets rebuild it.
-}

@@ -28,6 +28,12 @@
 #include <assert.h>
 #include <limits.h>
 
+// for std::max
+#include <algorithm>
+#if defined(WIN32)
+#define NOMINMAX
+#endif
+
 #include "SDL.h"
 
 #include "dosbox.h"
@@ -46,6 +52,7 @@
 #include "render.h"
 #include "setup.h"
 #include "menu.h"
+#include "../ints/int10.h"
 
 #include "SDL_syswm.h"
 #include "sdlmain.h"
@@ -57,6 +64,13 @@
 #endif
 
 #include <map>
+#include <cctype>
+
+#include <output/output_ttf.h>
+
+#if defined(MACOSX)
+#include <Carbon/Carbon.h> 
+#endif
 
 #define BMOD_Mod1               0x0001
 #define BMOD_Mod2               0x0002
@@ -70,7 +84,7 @@
 
 #define MAXSTICKS               8
 #define MAXACTIVE               16
-#define MAXBUTTON               32
+#define MAXBUTTON               96
 #define MAXBUTTON_CAP           16
 #define MAXAXIS                 8
 #define MAXHAT                  2
@@ -97,6 +111,15 @@ class CCaptionButton;
 class CCheckButton;
 class CBindButton;
 class CModEvent;
+
+#if defined(OS2) && defined(C_SDL2)
+#undef CLR_BLACK
+#undef CLR_WHITE
+#undef CLR_RED
+#undef CLR_BLUE
+#undef CLR_GREEN
+#undef CLR_DARKGREEN
+#endif
 
 enum {
     CLR_BLACK = 0,
@@ -147,7 +170,7 @@ static struct {
     CCaptionButton*                             selected;
     CCaptionButton*                             action;
     CCaptionButton*                             dbg2;
-    CCaptionButton*                             dbg;
+    CCaptionButton*                             dbg1;
     CBindButton*                                save;
     CBindButton*                                exit;   
     CBindButton*                                cap;
@@ -170,8 +193,7 @@ struct KeyBlock {
 static DOSBoxMenu                               mapperMenu;
 #endif
 
-extern unsigned int                             hostkeyalt;
-extern uint8_t                                  int10_font_14[256 * 14];
+extern unsigned int                             hostkeyalt, maincp;
 
 std::map<std::string,std::string>               pending_string_binds;
 
@@ -183,6 +205,7 @@ Bitu                                            next_handler_ypos = 0;
 bool                                            mapper_addhandler_create_buttons = false;
 
 bool                                            isJPkeyboard = false;
+bool                                            dotype = false;
 
 //! \brief joystick autofire config option
 bool                                            autofire = false;
@@ -282,6 +305,12 @@ static KeyBlock combo_4[11] =
     {".>","period",KBD_period},                     {"/?","slash",KBD_slash},
 };
 
+static const char* LabelMod1 = "Mod1";
+static const char* LabelMod2 = "Mod2";
+static const char* LabelMod3 = "Mod3";
+static const char* LabelHost = "Host";
+static const char* LabelHold = "Hold";
+
 static bool initjoy=true;
 static int cpage=1, maxpage=1;
 
@@ -299,6 +328,7 @@ void                                            resetFontSize(void);
 #endif
 
 Bitu                                            GUI_JoystickCount(void);                // external
+bool                                            OpenGL_using(void);
 bool                                            GFX_GetPreventFullscreen(void);         // external
 void                                            GFX_ForceRedrawScreen(void);            // external
 #if defined(WIN32) && !defined(HX_DOS)
@@ -309,7 +339,18 @@ void                                            WindowsTaskbarResetPreviewRegion
 
 #if defined(MACOSX)
 void                        macosx_reload_touchbar(void);
+#if defined(C_SDL2) && C_METAL
+void OUTPUT_Metal_Shutdown();
+void change_output(int);
 #endif
+#endif
+
+#if C_DIRECT3D && C_SDL2
+void OUTPUT_DIRECT3D11_Shutdown();
+void change_output(int);
+#endif
+
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 //! \brief Base CEvent class for mapper events
 class CEvent {
@@ -423,7 +464,7 @@ protected:
     Bitu activity;
 
     //! \brief Mapper entry name
-    char entry[16];
+    char entry[20];
 
     //! \brief Current value of the event (such as joystick position)
     Bits current_value;
@@ -437,13 +478,13 @@ public:
 
     // methods below this line have sufficient documentation inherited from the base class
 
-    virtual ~CTriggeredEvent() {}
+    ~CTriggeredEvent() {}
 
-    virtual bool IsTrigger(void) {
+    bool IsTrigger(void) override {
         return true;
     }
 
-    virtual void ActivateEvent(bool ev_trigger,bool skip_action) {
+    void ActivateEvent(bool ev_trigger,bool skip_action) override {
         if (current_value>25000) {
             /* value exceeds boundary, trigger event if not active */
             if (!activity && !skip_action) Active(true);
@@ -457,7 +498,7 @@ public:
         }
     }
 
-    virtual void DeActivateEvent(bool /*ev_trigger*/) {
+    void DeActivateEvent(bool /*ev_trigger*/) override {
         if (activity > 0) activity--;
         if (!activity) Active(false);
     }
@@ -471,13 +512,13 @@ public:
 
     // methods below this line have sufficient documentation inherited from the base class
 
-    virtual ~CContinuousEvent() {}
+    ~CContinuousEvent() {}
 
-    virtual bool IsTrigger(void) {
+    bool IsTrigger(void) override {
         return false;
     }
 
-    virtual void ActivateEvent(bool ev_trigger,bool skip_action) {
+    void ActivateEvent(bool ev_trigger,bool skip_action) override {
         if (ev_trigger) {
             activity++;
             if (!skip_action) Active(true);
@@ -488,7 +529,7 @@ public:
         }
     }
 
-    virtual void DeActivateEvent(bool ev_trigger) {
+    void DeActivateEvent(bool ev_trigger) override {
         if (ev_trigger) {
             if (activity>0) activity--;
             if (activity==0) {
@@ -529,7 +570,7 @@ public:
         list=_list;
         _list->push_back(this);
         mods=flags=0;
-        event=0;
+        event = nullptr;
         active=holding=false;
         type = _type;
         value = 0;
@@ -710,7 +751,8 @@ class Typer {
 		void Start(std::vector<CEvent*>     *ext_events,
 		           std::vector<std::string> &ext_sequence,
                    const uint32_t           wait_ms,
-                   const uint32_t           pace_ms) {
+                   const uint32_t           pace_ms,
+                   bool                     choice) {
 			// Guard against empty inputs
 			if (!ext_events || ext_sequence.empty())
 				return;
@@ -719,6 +761,7 @@ class Typer {
 			m_sequence = std::move(ext_sequence);
 			m_wait_ms = wait_ms;
 			m_pace_ms = pace_ms;
+			m_choice = choice;
 			m_stop_requested = false;
 			m_instance = std::thread(&Typer::Callback, this);
 		}
@@ -731,14 +774,28 @@ class Typer {
 			Wait();
 		}
 	private:
+		CEvent *GetLShiftEvent()
+		{
+			static CEvent *lshift_event = nullptr;
+			for (auto &event : *m_events) {
+				if (std::string("key_lshift") == event->GetName()) {
+					lshift_event = event;
+					break;
+				}
+			}
+			assert(lshift_event);
+			return lshift_event;
+		}
 		void Callback() {
- 			// quit before our initial wait time
- 			if (m_stop_requested)
+			// quit before our initial wait time
+			if (m_stop_requested || (m_choice && !dotype))
 				return;
 			std::this_thread::sleep_for(std::chrono::milliseconds(m_wait_ms));
 			for (const auto &button : m_sequence) {
 				bool found = false;
 				// comma adds an extra pause, similar to the pause used in a phone number
+				if (m_choice && !dotype)
+					return;
 				if (button == ",") {
 					found = true;
 					 // quit before the pause
@@ -747,27 +804,32 @@ class Typer {
 					std::this_thread::sleep_for(std::chrono::milliseconds(m_pace_ms));
 				// Otherwise trigger the matching button if we have one
 				} else {
-					const std::string bind_name = "key_" + button;
+					const auto is_cap = button.length() == 1 && isupper(button[0]);
+					const auto maybe_lshift = is_cap ? GetLShiftEvent() : nullptr;
+					const std::string lbutton = is_cap ? std::string(1, tolower(button[0])) : button;
+					const std::string bind_name = "key_" + lbutton;
 					for (auto &event : *m_events) {
 						if (bind_name == event->GetName()) {
 							found = true;
+							if (maybe_lshift) maybe_lshift->Active(true);
 							event->Active(true);
-						        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+							std::this_thread::sleep_for(std::chrono::milliseconds(50));
 							event->Active(false);
+							if (maybe_lshift) maybe_lshift->Active(false);
 							break;
 						}
 					}
 				}
 				/*
 				*  Terminate the sequence for safety reasons if we can't find a button.
-				*  For example, we don't wan't DEAL becoming DEL, or 'rem' becoming 'rm'
+				*  For example, we don't want DEAL becoming DEL, or 'rem' becoming 'rm'
 				*/
 				if (!found) {
 					LOG_MSG("MAPPER: Couldn't find a button named '%s', stopping.",
 							button.c_str());
 					return;
 				}
-				if (m_stop_requested) // quit before the pacing delay
+				if (m_stop_requested || (m_choice && !dotype)) // quit before the pacing delay
 					return;
 				std::this_thread::sleep_for(std::chrono::milliseconds(m_pace_ms));
 			}
@@ -777,6 +839,7 @@ class Typer {
 		std::vector<CEvent*>     *m_events = nullptr;
 		uint32_t                 m_wait_ms = 0;
 		uint32_t                 m_pace_ms = 0;
+		bool                     m_choice = false;
 		bool                     m_stop_requested = false;
 };
 #endif
@@ -784,6 +847,7 @@ class Typer {
 static struct CMapper {
 #if defined(C_SDL2)
     SDL_Window*                                 window;
+    uint32_t                                    window_scale;
     SDL_Rect                                    draw_rect;
     SDL_Surface*                                draw_surface_nonpaletted;
     SDL_Surface*                                draw_surface;
@@ -825,39 +889,37 @@ static uint8_t scancode_map[MAX_SDLKEYS];
 static SDLKey sdlkey_map[]={
     /* Main block printables */
     /*00-05*/ Z, SDLK_s, SDLK_d, SDLK_f, SDLK_h, SDLK_g,
-    /*06-0B*/ SDLK_z, SDLK_x, SDLK_c, SDLK_v, SDLK_WORLD_0, SDLK_b,
+    /*06-0B*/ SDLK_z, SDLK_x, SDLK_c, SDLK_v, SDLK_BACKQUOTE /* 'Section' key */, SDLK_b,
     /*0C-11*/ SDLK_q, SDLK_w, SDLK_e, SDLK_r, SDLK_y, SDLK_t, 
     /*12-17*/ SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_6, SDLK_5, 
     /*18-1D*/ SDLK_EQUALS, SDLK_9, SDLK_7, SDLK_MINUS, SDLK_8, SDLK_0, 
     /*1E-21*/ SDLK_RIGHTBRACKET, SDLK_o, SDLK_u, SDLK_LEFTBRACKET, 
     /*22-23*/ SDLK_i, SDLK_p,
     /*24-29*/ SDLK_RETURN, SDLK_l, SDLK_j, SDLK_QUOTE, SDLK_k, SDLK_SEMICOLON, 
-    /*2A-29*/ SDLK_BACKSLASH, SDLK_COMMA, SDLK_SLASH, SDLK_n, SDLK_m, 
-    /*2F-2F*/ SDLK_PERIOD,
+    /*2A-2F*/ SDLK_BACKSLASH, SDLK_COMMA, SDLK_SLASH, SDLK_n, SDLK_m, SDLK_PERIOD,
 
     /* Spaces, controls, modifiers (dosbox uses LMETA only for
      * hotkeys, it's not really mapped to an emulated key) */
     /*30-33*/ SDLK_TAB, SDLK_SPACE, SDLK_BACKQUOTE, SDLK_BACKSPACE,
-    /*34-37*/ Z, SDLK_ESCAPE, Z, SDLK_LMETA,
+    /*34-37*/ Z, SDLK_ESCAPE, SDLK_RSUPER, SDLK_LSUPER,
     /*38-3B*/ SDLK_LSHIFT, SDLK_CAPSLOCK, SDLK_LALT, SDLK_LCTRL,
-
-    /*3C-40*/ Z, Z, Z, Z, Z,
+    /*3C-40*/ SDLK_RSHIFT, SDLK_RALT, SDLK_RCTRL, Z, SDLK_F17,
 
     /* Keypad (KP_EQUALS not supported, NUMLOCK used on what is CLEAR
      * in Mac OS X) */
     /*41-46*/ SDLK_KP_PERIOD, Z, SDLK_KP_MULTIPLY, Z, SDLK_KP_PLUS, Z,
     /*47-4A*/ SDLK_NUMLOCK /*==SDLK_CLEAR*/, Z, Z, Z,
     /*4B-4D*/ SDLK_KP_DIVIDE, SDLK_KP_ENTER, Z,
-    /*4E-51*/ SDLK_KP_MINUS, Z, Z, SDLK_KP_EQUALS,
+    /*4E-51*/ SDLK_KP_MINUS, SDLK_F18, SDLK_F19, SDLK_KP_EQUALS,
     /*52-57*/ SDLK_KP0, SDLK_KP1, SDLK_KP2, SDLK_KP3, SDLK_KP4, SDLK_KP5, 
     /*58-5C*/ SDLK_KP6, SDLK_KP7, Z, SDLK_KP8, SDLK_KP9, 
 
-    /*5D-5F*/ Z, Z, SDLK_a,
+	/*5D-5F*/ SDLK_JP_YEN, SDLK_JP_RO, SDLK_KP_COMMA,
     
     /* Function keys and cursor blocks (F13 not supported, F14 =>
      * PRINT[SCREEN], F15 => SCROLLOCK, F16 => PAUSE, HELP => INSERT) */
     /*60-64*/ SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F3, SDLK_F8,
-    /*65-6A*/ SDLK_F9, Z, SDLK_F11, Z, SDLK_F13, SDLK_PAUSE /*==SDLK_F16*/,
+    /*65-6A*/ SDLK_F9, SDLK_WORLD_17, SDLK_F11, SDLK_WORLD_18, SDLK_F13, SDLK_PAUSE /*==SDLK_F16*/,
     /*6B-70*/ SDLK_PRINT /*==SDLK_F14*/, Z, SDLK_F10, Z, SDLK_F12, Z,
     /*71-72*/ SDLK_SCROLLOCK /*==SDLK_F15*/, SDLK_INSERT /*==SDLK_HELP*/, 
     /*73-77*/ SDLK_HOME, SDLK_PAGEUP, SDLK_DELETE, SDLK_F4, SDLK_END,
@@ -960,7 +1022,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = 
     SDLK_WORLD_14, //0x64 Henkan
     SDLK_WORLD_15, //0x65 Hiragana/Katakana
     SDLK_WORLD_13, //0x66 Muhenkan
-    Z,Z,Z,Z, //0x67-0x6a
+    Z,SDLK_KP_ENTER,SDLK_RCTRL,SDLK_KP_DIVIDE, //0x67-0x6a
     Z, //SDLK_PRINTSCREEN, //0x6b
     SDLK_RALT,  //0x6c
     Z, //0x6d unknown
@@ -981,19 +1043,22 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = 
     Z, //0x82 Hanguel
     Z, //0x83 Hanja
     SDLK_JP_YEN,//0x84
-    SDLK_LMETA, //0x85
-    SDLK_RMETA, //0x86
-    SDLK_MODE,  //0x87
+    SDLK_LSUPER, //0x85
+    SDLK_RSUPER, //0x86
+    SDLK_MENU,  //0x87
     Z,Z,Z,Z,Z,Z,Z,Z //0x88-0x8f unknown
     /* 0x90-0x9f unknown */
     //Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z
 };
 
 #else // !MACOSX && !Linux
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(OS2)
 // Todo: recheck sdl mapping
 #define SDLK_JP_RO (SDLKey)0x73
 #define SDLK_JP_YEN (SDLKey)0x7d
+#if defined(OS2)
+#define SDLK_KP_COMMA SDLK_COMMA
+#endif
 #endif
 #define MAX_SCANCODES 0xdf
 static SDLKey sdlkey_map[MAX_SCANCODES] = {
@@ -1055,7 +1120,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 	SDLK_F1, SDLK_F2, SDLK_F3, SDLK_F4, SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F8, SDLK_F9, SDLK_F10,
 	/* 0x45: */
 	SDLK_NUMLOCK, //0x45 Keypad Num Lock and Clear
-	SDLK_SCROLLOCK, //0x46 Scroll-lock
+	SDLK_SCROLLOCK, //0x46 Scroll-lock and Break
 	SDLK_KP7, //0x47 Keypad 7 and Home
 	SDLK_KP8, //0x48 Keypad 8 and Up Arrow
 	SDLK_KP9, //0x49 Keypad 9 and PageUp
@@ -1074,7 +1139,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 	SDLK_LESS, //0x56 Non-US \ and |
 	SDLK_F11, //0x57
 	SDLK_F12, //0x58
-	Z, //0x59 Keypad =
+	SDLK_KP_EQUALS, //0x59 Keypad =
 	Z, Z, //0x5a-0x5b unknown
 	Z, //0x5c Keyboard International6
 	Z, Z, Z, //0x5d-0x5f unknown
@@ -1096,7 +1161,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 	SDLK_WORLD_13, //0x7b Keyboard International5 Muhenkan
 	Z, //0x7c unknown
 	SDLK_JP_YEN, //0x7d Keyboard International3 \ and |
-	Z, //0x7e Keypad Comma
+	SDLK_KP_COMMA, //0x7e Keypad Comma
 	Z, //0x7f unknown
 	/* 0x80-0x8f unknown */
 	Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z,
@@ -1120,6 +1185,8 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 
 #undef Z
 
+unsigned int Linux_GetKeyboardLayout(void); // defined in sdlmain_linux.cpp
+
 #if !defined(C_SDL2)
 void setScanCode(Section_prop * section) {
 	usescancodes = -1;
@@ -1128,12 +1195,57 @@ void setScanCode(Section_prop * section) {
 		usescancodes = 1;
 	else if (!strcasecmp(usesc, "false")||!strcmp(usesc, "0"))
 		usescancodes = 0;
+#if defined(WIN32)
+    else {
+        WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
+        if(cur_kb_layout == 1033) { /* Locale ID: en-us */
+            usescancodes = 0;
+            LOG_MSG("SDL_mapper: US keyboard detected, set usescancodes=false");
+        }
+        else {
+            usescancodes = 1;
+            LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
+        }
+    }
+#elif defined(__linux__)
+    else {
+        if(Linux_GetKeyboardLayout() == DKM_US) { /* Locale ID: en-us */
+            usescancodes = 0;
+            LOG_MSG("SDL_mapper: US keyboard detected, set usescancodes=false");
+        }
+        else {
+            usescancodes = 1;
+            LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
+        }
+    }
+#elif defined(MACOSX)
+    else {
+        char layout[128];
+        memset(layout, '\0', sizeof(layout));
+        TISInputSourceRef source = TISCopyCurrentKeyboardInputSource();
+        // get input source id - kTISPropertyInputSourceID
+        // get layout name - kTISPropertyLocalizedName
+        CFStringRef layoutID = CFStringRef(TISGetInputSourceProperty(source, kTISPropertyInputSourceID));
+        CFStringGetCString(layoutID, layout, sizeof(layout), kCFStringEncodingUTF8);
+        //LOG_MSG("SDL_mapper: %s\n", layout);
+        if(!strcasecmp(layout, "com.apple.keylayout.US")) { /* US keyboard layout */
+            usescancodes = 0;
+            LOG_MSG("SDL_mapper: US keyboard detected, set usescancodes=false");
+        }
+        else {
+            usescancodes = 1;
+            LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
+        }    
+    }
+#endif //defined(MACOSX)
 }
 void loadScanCode();
+#if !defined(OSFREE)
 const char* DOS_GetLoadedLayout(void);
+#endif
 bool load=false;
 bool prev_ret;
-#endif
+#endif // !defined(C_SDL2)
 
 bool useScanCode() {
 #if defined(C_SDL2)
@@ -1144,6 +1256,7 @@ bool useScanCode() {
 	else if (!usescancodes)
 		return false;
 	else {
+# if !defined(OSFREE)
 		const char* layout_name = DOS_GetLoadedLayout();
 		bool ret = layout_name != NULL && !IS_PC98_ARCH;
 		if (!load)
@@ -1156,6 +1269,9 @@ bool useScanCode() {
 			load=true;
 		}
 		return ret;
+# else
+		return false;
+# endif
 	}
 #endif
 }
@@ -1200,7 +1316,13 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         }
         else {
 #if defined (WIN32)
+#if(_WIN32_WINNT >= 0x0500)
+            if(keysym.win32_vk >= 0xa6 && keysym.win32_vk <= 0xb7) return SDLK_UNKNOWN; // Ignore all media keys
+#endif
             switch(keysym.scancode) {
+            case 0x46:  // Scroll Lock
+                // LOG_MSG("Scroll_lock scancode=%x, vk_key=%x", keysym.scancode, keysym.win32_vk);
+                return (keysym.win32_vk == VK_CANCEL ? SDLK_BREAK : SDLK_SCROLLOCK);
             case 0x35:  // SLASH
                 if(keysym.sym != SDLK_KP_DIVIDE) {
                     return SDLK_SLASH; // Various characters are allocated to this key in European keyboards
@@ -1228,8 +1350,8 @@ Bitu GetKeyCode(SDL_keysym keysym) {
             default:
 #elif defined (__linux__)
             switch(keysym.scancode) { // Workaround for some of the keys return incorrect virtual keycodes 
-            //case 0x56:
-            //    return SDLK_LESS;
+            case 0x5E:
+                return SDLK_LESS;    //DE Keyboard on Debian GNU/Linux 12 (bookworm) Debian 1:6.1.63-1+rpt1 (2023-11-24) aarch64 Linux 6.1.0-rpi7-rpi-v8
             case 0x60:
                 return SDLK_F12;
             case 0x61:
@@ -1256,12 +1378,6 @@ Bitu GetKeyCode(SDL_keysym keysym) {
                 return SDLK_DELETE;
             case 0x7f:
                 return SDLK_PAUSE;
-            case 0x85:
-                return SDLK_LSUPER;
-            case 0x86:
-                return SDLK_RSUPER;
-            case 0x87:
-                return SDLK_MENU;
             default:
 #endif
                 key = (keysym.scancode < MAX_SCANCODES ? sdlkey_map[keysym.scancode] : SDLK_UNKNOWN);
@@ -1280,12 +1396,16 @@ Bitu GetKeyCode(SDL_keysym keysym) {
     } else {
 #if defined (WIN32)
         /* special handling of 102-key under windows */
-        if ((keysym.sym==SDLK_BACKSLASH) && (keysym.scancode==0x56)) return (Bitu)SDLK_LESS;
+        if((keysym.sym == SDLK_BACKSLASH) && (keysym.scancode == 0x56)) return (Bitu)SDLK_LESS;
         /* special case of the \ _ key on Japanese 106-keyboards. seems to be the same code whether or not you've told Windows it's a 106-key */
         /* NTS: SDL source on Win32 maps this key (VK_OEM_102) to SDLK_LESS */
-        if (isJPkeyboard && (keysym.sym == 0) && (keysym.scancode == 0x73)) return (Bitu)SDLK_WORLD_10; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
+        else if(isJPkeyboard && (keysym.sym == 0) && (keysym.scancode == 0x73)) return (Bitu)SDLK_WORLD_10; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
         /* another hack, for the Yen \ pipe key on Japanese 106-keyboards.
            sym == 0 if English layout, sym == 0x5C if Japanese layout */
+        else if(keysym.win32_vk == VK_CANCEL) return (Bitu)SDLK_BREAK;
+#if(_WIN32_WINNT >= 0x0500)
+        else if(keysym.win32_vk >= 0xa6 && keysym.win32_vk <= 0xb7) return (Bitu)SDLK_UNKNOWN; // Ignore all media keys
+#endif
         if (isJPkeyboard && (keysym.sym == 0 || keysym.sym == 0x5C) && (keysym.scancode == 0x7D)) return (Bitu)SDLK_WORLD_11; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
         /* what is ~ ` on American keyboards is "Hankaku" on Japanese keyboards. Same scan code. */
 		if (keysym.scancode == 0x29) return (Bitu) (isJPkeyboard ? SDLK_WORLD_12 : SDLK_BACKQUOTE); //if JP106 keyboard Hankaku else Backquote(grave)  
@@ -1300,7 +1420,8 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         if ((keysym.sym == SDLK_BACKSLASH) && (keysym.scancode == 0x61)) return (Bitu)SDLK_JP_RO;
         if ((keysym.sym == SDLK_UNKNOWN) && (keysym.scancode == 0x31)) return (Bitu)SDLK_WORLD_12;
 #endif
-		return (Bitu)(keysym.sym ? keysym.sym : sdlkey_map[(keysym.scancode)]);
+        if (keysym.sym) return (Bitu) (keysym.sym < SDLK_LAST ? keysym.sym : SDLK_UNKNOWN);
+        else return (Bitu)(keysym.scancode < MAX_SCANCODES ? sdlkey_map[(keysym.scancode)] : SDLK_UNKNOWN);
     }
 }
 
@@ -1312,6 +1433,36 @@ public:
         key = _key;
     }
     virtual ~CKeyBind() {}
+
+    std::string CamelCase(const char* input)
+    {
+        auto text = std::string(input);
+
+        auto caps = true;
+
+        for(auto& c : text)
+        {
+            if(std::isalpha(c))
+            {
+                if(caps)
+                {
+                    c = std::toupper(c);
+                    caps = false;
+                }
+                else
+                {
+                    c = std::tolower(c);
+                }
+            }
+            else if(c == ' ')
+            {
+                caps = true;
+            }
+        }
+
+        return text;
+    }
+
     virtual void BindName(char * buf) override {
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
@@ -1328,7 +1479,8 @@ public:
         else if (!strcmp(r, "left shift")) r = "Left Shift";
         else if (!strcmp(r, "right shift")) r = "Right Shift";
 		//LOG_MSG("Key %s", r);
-		sprintf(buf,"Key %s",r);
+		const auto str = CamelCase(r);
+		sprintf(buf,"%s key",str.c_str());
 #endif
     }
     virtual void ConfigName(char * buf) override {
@@ -1413,8 +1565,8 @@ public:
         configname="key";
     }
     virtual ~CKeyBindGroup() { delete[] lists; }
-    CBind * CreateConfigBind(char *& buf) {
-        if (strncasecmp(buf,configname,strlen(configname))) return 0;
+    CBind * CreateConfigBind(char *& buf) override {
+        if (strncasecmp(buf,configname,strlen(configname))) return nullptr;
         StripWord(buf);char * num=StripWord(buf);
         Bitu code=(Bitu)ConvDecWord(num);
 #if defined(C_SDL2)
@@ -1428,8 +1580,8 @@ public:
 #endif
         return bind;
     }
-    CBind * CreateEventBind(SDL_Event * event) {
-        if (event->type!=SDL_KEYDOWN) return 0;
+    CBind * CreateEventBind(SDL_Event * event) override {
+        if (event->type!=SDL_KEYDOWN) return nullptr;
 #if defined(C_SDL2)
         SDL_Scancode key = event->key.keysym.scancode;
 #if defined(WIN32)
@@ -1442,7 +1594,7 @@ public:
 	return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
 #endif
     };
-    bool CheckEvent(SDL_Event * event) {
+    bool CheckEvent(SDL_Event * event) override {
         if (event->type!=SDL_KEYDOWN && event->type!=SDL_KEYUP) return false;
 #if defined(C_SDL2)
         Bitu key = event->key.keysym.scancode;
@@ -1456,7 +1608,11 @@ public:
 
 		//key = (event->key.keysym.sym ? GetKeyCode(event->key.keysym) : sdlkey_map[(Bitu)(event->key.keysym.scancode)]);
 		key = GetKeyCode(event->key.keysym);
-		assert(key < keys);
+		//assert(key < keys);
+        if(key >= keys) {
+            key = SDLK_UNKNOWN; // a test to avoid assertion failure (key < keys)
+            // LOG_MSG("assertion failed: key: %x [keysym.sym:%x keysym.scancode: %x]", key, event->key.keysym.sym, event->key.keysym.scancode);
+        }
 #endif
 //      LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
 
@@ -1537,10 +1693,10 @@ public:
         return new CKeyBind(&lists[(Bitu)_key],_key);
     }
 private:
-    const char * ConfigStart(void) {
+    const char * ConfigStart(void) override {
         return configname;
     }
-    const char * BindStart(void) {
+    const char * BindStart(void) override {
         return "Key";
     }
 protected:
@@ -1742,10 +1898,11 @@ public:
         if (hat_lists != NULL) delete[] hat_lists;
     }
 
-    CBind * CreateConfigBind(char *& buf) {
-        if (strncasecmp(configname,buf,strlen(configname))) return 0;
+    CBind * CreateConfigBind(char *& buf) override {
+        if (is_dummy) return nullptr;
+        if (strncasecmp(configname,buf,strlen(configname))) return nullptr;
         StripWord(buf);char * type=StripWord(buf);
-        CBind * bind=0;
+        CBind * bind = nullptr;
         if (!strcasecmp(type,"axis")) {
             Bitu ax=(Bitu)ConvDecWord(StripWord(buf));
             bool pos=ConvDecWord(StripWord(buf)) > 0;
@@ -1760,30 +1917,30 @@ public:
         }
         return bind;
     }
-    CBind * CreateEventBind(SDL_Event * event) {
+    CBind * CreateEventBind(SDL_Event * event) override {
         if (event->type==SDL_JOYAXISMOTION) {
-            if ((unsigned int)event->jaxis.which!=(unsigned int)stick) return 0;
+            if ((unsigned int)event->jaxis.which!=(unsigned int)stick) return nullptr;
 #if defined (REDUCE_JOYSTICK_POLLING)
-            if (event->jaxis.axis>=axes) return 0;
+            if (event->jaxis.axis>=axes) return nullptr;
 #endif
-            if (abs(event->jaxis.value)<25000) return 0;
+            if (abs(event->jaxis.value)<25000) return nullptr;
             return CreateAxisBind(event->jaxis.axis,event->jaxis.value>0);
         } else if (event->type==SDL_JOYBUTTONDOWN) {
-            if ((unsigned int)event->jbutton.which!=(unsigned int)stick) return 0;
+            if ((unsigned int)event->jbutton.which!=(unsigned int)stick) return nullptr;
 #if defined (REDUCE_JOYSTICK_POLLING)
             return CreateButtonBind(event->jbutton.button%button_wrap);
 #else
             return CreateButtonBind(event->jbutton.button);
 #endif
         } else if (event->type==SDL_JOYHATMOTION) {
-            if ((unsigned int)event->jhat.which!=(unsigned int)stick) return 0;
-            if (event->jhat.value==0) return 0;
-            if (event->jhat.value>(SDL_HAT_UP|SDL_HAT_RIGHT|SDL_HAT_DOWN|SDL_HAT_LEFT)) return 0;
+            if ((unsigned int)event->jhat.which!=(unsigned int)stick) return nullptr;
+            if (event->jhat.value==0) return nullptr;
+            if (event->jhat.value>(SDL_HAT_UP|SDL_HAT_RIGHT|SDL_HAT_DOWN|SDL_HAT_LEFT)) return nullptr;
             return CreateHatBind(event->jhat.hat,event->jhat.value);
-        } else return 0;
+        } else return nullptr;
     }
 
-    virtual bool CheckEvent(SDL_Event * event) {
+    bool CheckEvent(SDL_Event * event) override {
         SDL_JoyAxisEvent * jaxis = NULL;
         SDL_JoyButtonEvent * jbutton = NULL;
 
@@ -1940,10 +2097,10 @@ private:
         else return NULL;
         return new CJHatBind(&hat_lists[(hat<<2)+hat_dir],this,hat,value);
     }
-    const char * ConfigStart(void) {
+    const char * ConfigStart(void) override {
         return configname;
     }
-    const char * BindStart(void) {
+    const char * BindStart(void) override {
 #if defined(C_SDL2)
         if (sdl_joystick!=NULL) return SDL_JoystickNameForIndex((int)stick);
 #else
@@ -2050,7 +2207,7 @@ public:
     }
     virtual ~C4AxisBindGroup() {}
 
-    bool CheckEvent(SDL_Event * event) {
+    bool CheckEvent(SDL_Event * event) override {
         SDL_JoyAxisEvent * jaxis = NULL;
         SDL_JoyButtonEvent * jbutton = NULL;
         Bitu but = 0;
@@ -2079,7 +2236,7 @@ public:
         return false;
     }
 
-    virtual void UpdateJoystick() {
+    void UpdateJoystick() override {
         /* query SDL joystick and activate bindings */
         ActivateJoystickBoundEvents();
 
@@ -2126,7 +2283,7 @@ public:
     }
     virtual ~CFCSBindGroup() {}
 
-    bool CheckEvent(SDL_Event * event) {
+    bool CheckEvent(SDL_Event * event) override {
         SDL_JoyAxisEvent * jaxis = NULL;
         SDL_JoyButtonEvent * jbutton = NULL;
         SDL_JoyHatEvent * jhat = NULL;
@@ -2162,7 +2319,7 @@ public:
         return false;
     }
 
-    virtual void UpdateJoystick() {
+    void UpdateJoystick() override {
         /* query SDL joystick and activate bindings */
         ActivateJoystickBoundEvents();
 
@@ -2265,7 +2422,7 @@ public:
     }
     virtual ~CCHBindGroup() {}
 
-    bool CheckEvent(SDL_Event * event) {
+    bool CheckEvent(SDL_Event * event) override {
         SDL_JoyAxisEvent * jaxis = NULL;
         SDL_JoyButtonEvent * jbutton = NULL;
         SDL_JoyHatEvent * jhat = NULL;
@@ -2323,7 +2480,7 @@ public:
         return false;
     }
 
-    void UpdateJoystick() {
+    void UpdateJoystick() override {
         static unsigned const button_priority[6]={7,11,13,14,5,6};
         static unsigned const hat_priority[2][4]={{0,1,2,3},{8,9,10,12}};
 
@@ -2423,8 +2580,9 @@ public:
         invert=false;
         press=false;
         page=1;
+        SetCanClick(true);
     }
-    virtual void Draw(void) {
+    virtual void Draw(bool background, bool border) {
         uint8_t bg;
 
         if (!enabled) return;
@@ -2441,10 +2599,27 @@ public:
 #endif
         for (Bitu lines=0;lines<dy;lines++)  {
             if (lines==0 || lines==(dy-1)) {
-                for (Bitu cols=0;cols<dx;cols++) *(point+cols)=color;
+                if (border)
+                {
+                    for (Bitu cols=0;cols<dx;cols++)
+                    {
+                        *(point+cols)=color;
+                    }
+                }
             } else {
-                for (Bitu cols=1;cols<(dx-1);cols++) *(point+cols)=bg;
-                *point=color;*(point+dx-1)=color;
+                if (background)
+                {
+                    for (Bitu cols=1;cols<(dx-1);cols++)
+                    {
+                        *(point+cols)=bg;
+                    }
+                }
+
+                if (border)
+                {
+                    *point=color;
+                    *(point+dx-1)=color;
+                }
             }
 #if defined(C_SDL2)
             point+=mapper.draw_surface->w;
@@ -2453,11 +2628,40 @@ public:
 #endif
         }
     }
+    virtual void Draw(void) {
+        Draw(true, true);
+    }
     virtual bool OnTop(Bitu _x,Bitu _y) {
+#if defined(C_SDL2)
+        const auto scale = mapper.window_scale;
+        _x /= scale;
+        _y /= scale;
+#endif
         return ( enabled && (_x>=x) && (_x<x+dx) && (_y>=y) && (_y<y+dy));
     }
     virtual void BindColor(void) {}
-    virtual void Click(void) {}
+
+    virtual void Click(void)
+    {
+        if(clickable)
+        {
+            ClickImpl();
+        }
+    }
+
+    virtual void ClickImpl(void) {}
+
+    bool GetCanClick(void)
+    {
+        return clickable;
+    }
+
+    void SetCanClick(bool value)
+    {
+        clickable = value;
+        SetColor(value ? CLR_WHITE : CLR_GREY); // TODO don't hardcode
+    }
+
     uint8_t Page(uint8_t p) {
         if (p>0) page=p;
         return page;
@@ -2484,6 +2688,26 @@ protected:
     bool press;
     bool invert;
     bool enabled;
+    bool clickable;
+
+    void DrawTextAuto(const char* text, bool centered, uint8_t foreground, uint8_t background)
+    {
+        const auto size = strlen(text);
+        const auto wide = dx / 8;
+        const auto data = dx > 0 && size > wide ? std::string(text, wide - 3) + std::string("...") : std::string(text);
+
+        if(centered)
+        {
+            const auto size = data.size();
+            const auto xPos = std::max(x, (Bitu) (x + dx / 2 - size * 8 / 2));
+            const auto yPos = std::max(y, y + dy / 2 - 14 / 2);
+            DrawText(1 + xPos, yPos, data.c_str(), foreground, background);
+        }
+        else
+        {
+            DrawText(x + 2, y + 2, data.c_str(), foreground, background);
+        }
+    }
 };
 
 static CButton *press_select = NULL;
@@ -2495,8 +2719,8 @@ public:
         else {strncpy(text, _text, 99);text[99]=0;}
         invertw=0;
     }
-    virtual ~CTextButton() {}
-    void Draw(void) {
+    ~CTextButton() {}
+    void Draw(void) override {
         uint8_t fg,bg;
 
         if (!enabled) return;
@@ -2511,7 +2735,8 @@ public:
         }
 
         CButton::Draw();
-        DrawText(x+2,y+2,text,fg,bg);
+
+        DrawTextAuto(text, true, fg, bg); // TODO add the ability to center text for this class
 
 #if defined(C_SDL2)
         uint8_t * point=((uint8_t *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
@@ -2532,6 +2757,8 @@ public:
 #else
             point+=mapper.surface->pitch;
 #endif
+            // draw the borders a second time to prevent the text from overwriting them
+            CButton::Draw(false, true);
         }
     }
     void SetText(const char *_text) {
@@ -2561,11 +2788,11 @@ public:
     : CTextButton(_x,_y,_dx,_dy,_text)  { 
         event=_event;   
     }
-    virtual ~CEventButton() {}
-    void BindColor(void) {
+    ~CEventButton() {}
+    void BindColor(void) override {
         this->SetColor(event->bindlist.begin() == event->bindlist.end() ? CLR_GREY : CLR_WHITE);
     }
-    void Click(void) {
+    void ClickImpl(void) override {
         if (last_clicked) last_clicked->BindColor();
         this->SetColor(event->bindlist.begin() == event->bindlist.end() ? CLR_DARKGREEN : CLR_GREEN);
         SetActiveEvent(event);
@@ -2574,7 +2801,7 @@ public:
     CEvent *GetEvent() {
         return event;
     }
-    void RebindRedraw(void) {
+    void RebindRedraw(void) override {
         Click();//HACK!
     }
 protected:
@@ -2583,18 +2810,25 @@ protected:
 
 class CCaptionButton : public CButton {
 public:
-    CCaptionButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy) : CButton(_x,_y,_dx,_dy){
+    CCaptionButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy, bool centered) : CButton(_x,_y,_dx,_dy){
         caption[0]=0;
+        center = centered;
     }
     virtual ~CCaptionButton() {}
     void Change(const char * format,...) GCC_ATTRIBUTE(__format__(__printf__,2,3));
 
-    void Draw(void) {
-        if (!enabled) return;
-        DrawText(x+2,y+2,caption,color);
+    void Draw(void) override
+    {
+        if(!enabled)
+            return;
+
+        DrawTextAuto(caption, center, color, CLR_BLACK);
     }
+
 protected:
     char caption[128];
+private:
+    bool center;
 };
 
 void CCaptionButton::Change(const char * format,...) {
@@ -2612,12 +2846,12 @@ public:
     : CTextButton(_x,_y,_dx,_dy,_text)  { 
         type=_type;
     }
-    virtual ~CBindButton() {}
-    void Click(void) {
+    ~CBindButton() {}
+    void ClickImpl(void) override {
         switch (type) {
         case BB_Add: 
             mapper.addbind=true;
-            SetActiveBind(0);
+            SetActiveBind(nullptr);
             change_action_text(MSG_Get("PRESS_JOYSTICK_KEY"),CLR_RED);
             break;
         case BB_Del:
@@ -2629,7 +2863,7 @@ public:
                     mapper.abindit=mapper.aevent->bindlist.begin();
             }
             if (mapper.abindit!=mapper.aevent->bindlist.end()) SetActiveBind(*(mapper.abindit));
-            else SetActiveBind(0);
+            else SetActiveBind(nullptr);
             RedrawMapperBindButton(mapper.aevent);
             break;
         case BB_Next:
@@ -2675,9 +2909,9 @@ public:
         type = wmod==4?event_t:mod_event_t;
     }
 
-    virtual ~CModEvent() {}
+    ~CModEvent() {}
 
-    virtual void Active(bool yesno) {
+    void Active(bool yesno) override {
         if (notify_button != NULL)
             notify_button->SetInvert(yesno);
 
@@ -2690,7 +2924,7 @@ public:
         notify_button = n;
     }
 
-    virtual void RebindRedraw(void) {
+    void RebindRedraw(void) override {
         if (notify_button != NULL)
             notify_button->RebindRedraw();
     }
@@ -2708,26 +2942,26 @@ public:
     : CTextButton(_x,_y,_dx,_dy,_text)  { 
         type=_type;
     }
-    virtual ~CCheckButton() {}
-    void Draw(void) {
+    ~CCheckButton() {}
+    void Draw(void) override {
         if (!enabled) return;
         bool checked=false;
         std::string str = "";
         switch (type) {
         case BC_Mod1:
             checked=(mapper.abind->mods&BMOD_Mod1)>0;
-            str = checked && mod_event[1] != NULL ? mod_event[1]->GetBindMenuText() : "mod1";
-            strcpy(text, str.size()>8?"mod1":str.c_str());
+            str = checked && mod_event[1] != NULL ? mod_event[1]->GetBindMenuText() : LabelMod1;
+            strcpy(text, str.size()>8?LabelMod1:str.c_str());
             break;
         case BC_Mod2:
             checked=(mapper.abind->mods&BMOD_Mod2)>0;
-            str = checked && mod_event[2] != NULL ? mod_event[2]->GetBindMenuText() : "mod2";
-            strcpy(text, str.size()>8?"mod2":str.c_str());
+            str = checked && mod_event[2] != NULL ? mod_event[2]->GetBindMenuText() : LabelMod2;
+            strcpy(text, str.size()>8?LabelMod2:str.c_str());
             break;
         case BC_Mod3:
             checked=(mapper.abind->mods&BMOD_Mod3)>0;
-            str = checked && mod_event[3] != NULL ? mod_event[3]->GetBindMenuText() : "mod3";
-            strcpy(text, str.size()>8?"mod3":str.c_str());
+            str = checked && mod_event[3] != NULL ? mod_event[3]->GetBindMenuText() : LabelMod3;
+            strcpy(text, str.size()>8?LabelMod3:str.c_str());
             break;
         case BC_Host:
             checked=(mapper.abind->mods&BMOD_Host)>0;
@@ -2753,7 +2987,7 @@ public:
             }
         }
     }
-    void Click(void) {
+    void ClickImpl(void) override {
         switch (type) {
         case BC_Mod1:
             mapper.abind->mods^=BMOD_Mod1;
@@ -2785,9 +3019,9 @@ public:
         key=_key;
     }
 
-    virtual ~CKeyEvent() {}
+    ~CKeyEvent() {}
 
-    virtual void Active(bool yesno) {
+    void Active(bool yesno) override {
         if (MAPPER_DemoOnly()) {
             if (notify_button != NULL)
                 notify_button->SetInvert(yesno);
@@ -2804,7 +3038,7 @@ public:
         notify_button = n;
     }
 
-    virtual void RebindRedraw(void) {
+    void RebindRedraw(void) override {
         if (notify_button != NULL)
             notify_button->RebindRedraw();
     }
@@ -2822,7 +3056,7 @@ public:
 		button=_button;
         notify_button=NULL;
 	}
-	void Active(bool yesno) {
+	void Active(bool yesno) override {
 		if (yesno)
 			Mouse_ButtonPressed(button);
 		else
@@ -2833,7 +3067,7 @@ public:
         notify_button = n;
     }
 
-    virtual void RebindRedraw(void) {
+    void RebindRedraw(void) override {
         if (notify_button != NULL)
             notify_button->RebindRedraw();
     }
@@ -2859,20 +3093,20 @@ public:
         }
     }
 
-    virtual ~CJAxisEvent() {}
+    ~CJAxisEvent() {}
 
-    virtual void Active(bool /*moved*/) {
+    void Active(bool /*moved*/) override {
         if (notify_button != NULL)
             notify_button->SetPartialInvert(GetValue()/32768.0);
 
         virtual_joysticks[stick].axis_pos[axis]=(int16_t)(GetValue()*(positive?1:-1));
     }
 
-    virtual Bitu GetActivityCount(void) {
+    Bitu GetActivityCount(void) override {
         return activity|opposite_axis->activity;
     }
 
-    virtual void RepostActivity(void) {
+    void RepostActivity(void) override {
         /* caring for joystick movement into the opposite direction */
         opposite_axis->Active(true);
     }
@@ -2882,7 +3116,7 @@ public:
         notify_button = n;
     }
 
-    virtual void RebindRedraw(void) {
+    void RebindRedraw(void) override {
         if (notify_button != NULL)
             notify_button->RebindRedraw();
     }
@@ -2918,9 +3152,9 @@ public:
         notify_button=NULL;
     }
 
-    virtual ~CJButtonEvent() {}
+    ~CJButtonEvent() {}
     
-    virtual void Active(bool pressed) {
+    void Active(bool pressed) override {
         if (notify_button != NULL)
             notify_button->SetInvert(pressed);
 
@@ -2933,7 +3167,7 @@ public:
         notify_button = n;
     }
 
-    virtual void RebindRedraw(void) {
+    void RebindRedraw(void) override {
         if (notify_button != NULL)
             notify_button->RebindRedraw();
     }
@@ -2959,9 +3193,9 @@ public:
         notify_button = NULL;
     }
 
-    virtual ~CJHatEvent() {}
+    ~CJHatEvent() {}
 
-    virtual void Active(bool pressed) {
+    void Active(bool pressed) override {
         if (notify_button != NULL)
             notify_button->SetInvert(pressed);
         virtual_joysticks[stick].hat_pressed[(hat<<2)+dir]=pressed;
@@ -2971,7 +3205,7 @@ public:
         notify_button = n;
     }
 
-    virtual void RebindRedraw(void) {
+    void RebindRedraw(void) override {
         if (notify_button != NULL)
             notify_button->RebindRedraw();
     }
@@ -3016,14 +3250,14 @@ public:
         type = handler_event_t;
     }
 
-    virtual ~CHandlerEvent() {}
+    ~CHandlerEvent() {}
 
-    virtual void RebindRedraw(void) {
+    void RebindRedraw(void) override {
         if (notify_button != NULL)
             notify_button->RebindRedraw();
     }
 
-    virtual void Active(bool yesno) {
+    void Active(bool yesno) override {
         if (MAPPER_DemoOnly()) {
             if (notify_button != NULL)
                 notify_button->SetInvert(yesno);
@@ -3535,8 +3769,7 @@ CEvent *get_mapper_event_by_name(const std::string &x) {
 }
 
 unsigned char prvmc = 0;
-extern bool font_14_init;
-extern uint8_t int10_font_14_init[256 * 14];
+extern bool font_14_init, loadlang;
 uint8_t *GetDbcs14Font(Bitu code, bool &is14);
 bool isDBCSCP();
 static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcolor/*=CLR_BLACK*/) {
@@ -3545,6 +3778,8 @@ static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcol
 #else
     uint8_t * draw=((uint8_t *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
 #endif
+    unsigned int cpbak = dos.loaded_codepage;
+    if (dos_kernel_disabled&&maincp) dos.loaded_codepage = maincp;
     while (*text) {
         unsigned char c = *text;
         uint8_t * font;
@@ -3586,13 +3821,14 @@ static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcol
         text++;
         prvmc = 0;
     }
+    dos.loaded_codepage = cpbak;
     prvmc = 0;
 }
 
 void RedrawMapperEventButtons() {
-    bind_but.prevpage->SetColor(cpage==1?CLR_GREY:CLR_WHITE);
-    bind_but.nextpage->SetColor(cpage==maxpage?CLR_GREY:CLR_WHITE);
-    bind_but.pagestat->Change("%2u/%-2u",cpage,maxpage);
+    bind_but.prevpage->SetCanClick(cpage > 1);
+    bind_but.nextpage->SetCanClick(cpage < maxpage);
+    bind_but.pagestat->Change("%2u / %-2u", cpage, maxpage);
     for (std::vector<CEventButton *>::iterator it = ceventbuttons.begin(); it != ceventbuttons.end(); ++it) {
         CEventButton *button = (CEventButton *)*it;
         button->Enable(button->Page(0)==cpage);
@@ -3623,7 +3859,7 @@ static void SetActiveBind(CBind * _bind) {
     if (_bind) {
         bind_but.bind_title->Enable(true);
         char buf[256];_bind->BindName(buf);
-        bind_but.bind_title->Change("BIND:%s",buf);
+        bind_but.bind_title->Change("INPUT: %s",buf);
         bind_but.bind_title->SetColor(CLR_GREEN);
         bind_but.del->Enable(true);
         bind_but.next->Enable(true);
@@ -3648,19 +3884,21 @@ static void SetActiveEvent(CEvent * event) {
     mapper.aevent=event;
     mapper.redraw=true;
     mapper.addbind=false;
-    bind_but.event_title->Change("EVENT:%s",event ? event->GetName(): "none");
+    bind_but.event_title->Change("EVENT: %s",event ? event->GetName(): "none");
     if (!event) {
         change_action_text(MSG_Get("SELECT_EVENT"),CLR_WHITE);
         bind_but.add->Enable(false);
-        SetActiveBind(0);
+        SetActiveBind(nullptr);
     } else {
         change_action_text(MSG_Get("SELECT_DIFFERENT_EVENT"),CLR_WHITE);
         mapper.abindit=event->bindlist.begin();
         if (mapper.abindit!=event->bindlist.end()) {
             SetActiveBind(*(mapper.abindit));
-        } else SetActiveBind(0);
+        } else SetActiveBind(nullptr);
         bind_but.add->Enable(true);
     }
+
+    bind_but.cap->SetCanClick(event != nullptr);
 }
 
 #if defined(C_SDL2)
@@ -3671,7 +3909,7 @@ extern void GFX_UpdateDisplayDimensions(int width, int height);
 
 static void DrawButtons(void) {
 #if defined(C_SDL2)
-    SDL_FillRect(mapper.draw_surface,0,0);
+    SDL_FillRect(mapper.draw_surface, nullptr, 0);
 #else
     SDL_FillRect(mapper.surface,0,CLR_BLACK);
     SDL_LockSurface(mapper.surface);
@@ -3684,7 +3922,10 @@ static void DrawButtons(void) {
     SDL_BlitSurface(mapper.draw_surface, NULL, mapper.draw_surface_nonpaletted, NULL);
     SDL_BlitScaled(mapper.draw_surface_nonpaletted, NULL, mapper.surface, &mapper.draw_rect);
 //    SDL_BlitSurface(mapper.draw_surface, NULL, mapper.surface, NULL);
-    SDL_UpdateWindowSurface(mapper.window);
+    if (SDL_UpdateWindowSurface(mapper.window) != 0)
+    {
+        E_Exit("Couldn't update window surface for mapper: %s", SDL_GetError());
+    }
 #else
     SDL_UnlockSurface(mapper.surface);
     SDL_Flip(mapper.surface);
@@ -3766,327 +4007,459 @@ static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,
     mod_event[_mod] = event;
 }
 
+bool SortHandlers(CHandlerEvent* a, CHandlerEvent* b)
+{
+    auto str1 = std::string(a->ButtonName());
+    auto str2 = std::string(b->ButtonName());
+    auto sort = str1.compare(str2) < 0;
+    return sort;
+}
+
 static void CreateLayout(void) {
-    Bitu i;
-    /* Create the buttons for the Keyboard */
-#define BW 28
+
+#define DX 0
+#define DY 10
+#define MX 1
+#define MY 1
+#define BW 27
 #define BH 18
-#define DX 5
-#define PX(_X_) ((_X_)*BW + DX)
-#define PY(_Y_) (10+(_Y_)*BH)
-    AddKeyButtonEvent(PX(0),PY(0),BW,BH,"ESC","esc",KBD_esc);
-    for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(0),BW,BH,combo_f[i].title,combo_f[i].entry,combo_f[i].key);
+#define CX (BW / 2)
+#define CY (BH / 2)
+#define BU(_X_) (BW * (_X_) + MX * ((_X_) - 1))
+#define BV(_Y_) (BH * (_Y_) + MY * ((_Y_) - 1))
+#define PX(_X_) (DX + (_X_) * (BW + MX))
+#define PY(_Y_) (DY + (_Y_) * (BH + MY))
 
-    if (IS_PC98_ARCH) {
-        for (i=0;i<14;i++) AddKeyButtonEvent(PX(  i),PY(1),BW,BH,combo_1_pc98[i].title,combo_1_pc98[i].entry,combo_1_pc98[i].key);
-    }
-    else {
-        for (i=0;i<14;i++) AddKeyButtonEvent(PX(  i),PY(1),BW,BH,combo_1[i].title,combo_1[i].entry,combo_1[i].key);
-    }
+    Bitu i;
 
-    AddKeyButtonEvent(PX(0),PY(2),BW*2,BH,"TAB","tab",KBD_tab);
-    for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(2),BW,BH,combo_2[i].title,combo_2[i].entry,combo_2[i].key);
+#pragma region Keyboard
 
-    AddKeyButtonEvent(PX(14),PY(2),BW*2,BH*2,"ENTER","enter",KBD_enter);
-    
-    caps_lock_event=AddKeyButtonEvent(PX(0),PY(3),BW*2,BH,"CLCK","capslock",KBD_capslock);
-
-    if (IS_PC98_ARCH) {
-        for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(3),BW,BH,combo_3_pc98[i].title,combo_3_pc98[i].entry,combo_3_pc98[i].key);
-    }
-    else {
-        for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(3),BW,BH,combo_3[i].title,combo_3[i].entry,combo_3[i].key);
-    }
-
-    AddKeyButtonEvent(PX(0),PY(4),BW*2,BH,"SHIFT","lshift",KBD_leftshift);
-    for (i=0;i<11;i++) AddKeyButtonEvent(PX(2+i),PY(4),BW,BH,combo_4[i].title,combo_4[i].entry,combo_4[i].key);
-    AddKeyButtonEvent(PX(13),PY(4),BW*3,BH,"SHIFT","rshift",KBD_rightshift);
-
-    /* Last Row */
-    AddKeyButtonEvent(PX(0) ,PY(5),BW*2,BH,"CTRL","lctrl",KBD_leftctrl);
-    AddKeyButtonEvent(PX(2) ,PY(5),BW*1,BH,"WIN","lwindows",KBD_lwindows);
-    AddKeyButtonEvent(PX(3) ,PY(5),BW*1,BH,"ALT","lalt",KBD_leftalt);
-    AddKeyButtonEvent(PX(4) ,PY(5),BW*7,BH,"SPACE","space",KBD_space);
-    AddKeyButtonEvent(PX(11),PY(5),BW*1,BH,"ALT","ralt",KBD_rightalt);
-    AddKeyButtonEvent(PX(12),PY(5),BW*1,BH,"WIN","rwindows",KBD_rwindows);
-    AddKeyButtonEvent(PX(13),PY(5),BW*1,BH,"WMN","rwinmenu",KBD_rwinmenu);
-    AddKeyButtonEvent(PX(14),PY(5),BW*2,BH,"CTRL","rctrl",KBD_rightctrl);
-
-    /* Arrow Keys */
-#define XO 19
+#undef XO
+#undef YO
+#define XO 2
 #define YO 0
-    AddKeyButtonEvent(PX(XO+0),PY(YO),BW,BH,"PRT","printscreen",KBD_printscreen);
-    AddKeyButtonEvent(PX(XO+1),PY(YO),BW,BH,"SCL","scrolllock",KBD_scrolllock);
-    AddKeyButtonEvent(PX(XO+2),PY(YO),BW,BH,"PAU","pause",KBD_pause);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW,BH,"INS","insert",KBD_insert);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+1),BW,BH,"HOM","home",KBD_home);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW,BH,"PUP","pageup",KBD_pageup);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW,BH,"DEL","delete",KBD_delete);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"END","end",KBD_end);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"PDN","pagedown",KBD_pagedown);
-    AddKeyButtonEvent(PX(XO-2),PY(YO+3),BW,BH,"NEQ","kp_equals",KBD_kpequals);
-    AddKeyButtonEvent(PX(XO-2),PY(YO),BW,BH,"\x18 U","up",KBD_up);
-    AddKeyButtonEvent(PX(XO-3),PY(YO+1),BW,BH,"\x1B L","left",KBD_left);
-    AddKeyButtonEvent(PX(XO-2),PY(YO+1),BW,BH,"\x19 D","down",KBD_down);
-    AddKeyButtonEvent(PX(XO-1),PY(YO+1),BW,BH,"\x1A R","right",KBD_right);
+
+    if(!IS_PC98_ARCH)
+    {
+        AddKeyButtonEvent(PX(XO + 0), PY(YO), BU(1), BV(1), "F13", "f13", KBD_f13);
+        AddKeyButtonEvent(PX(XO + 1), PY(YO), BU(1), BV(1), "F14", "f14", KBD_f14);
+        AddKeyButtonEvent(PX(XO + 2), PY(YO), BU(1), BV(1), "F15", "f15", KBD_f15);
+        AddKeyButtonEvent(PX(XO + 3), PY(YO), BU(1), BV(1), "F16", "f16", KBD_f16);
+        AddKeyButtonEvent(PX(XO + 4), PY(YO), BU(1), BV(1), "F17", "f17", KBD_f17);
+        AddKeyButtonEvent(PX(XO + 5), PY(YO), BU(1), BV(1), "F18", "f18", KBD_f18);
+        AddKeyButtonEvent(PX(XO + 6), PY(YO), BU(1), BV(1), "F19", "f19", KBD_f19);
+        AddKeyButtonEvent(PX(XO + 7), PY(YO), BU(1), BV(1), "F20", "f20", KBD_f20);
+        AddKeyButtonEvent(PX(XO + 8), PY(YO), BU(1), BV(1), "F21", "f21", KBD_f21);
+        AddKeyButtonEvent(PX(XO + 9), PY(YO), BU(1), BV(1), "F22", "f22", KBD_f22);
+        AddKeyButtonEvent(PX(XO + 10), PY(YO), BU(1), BV(1), "F23", "f23", KBD_f23);
+        AddKeyButtonEvent(PX(XO + 11), PY(YO), BU(1), BV(1), "F24", "f24", KBD_f24);
+    }
+
+#undef XO
 #undef YO
+#define XO 0
+#define YO 1
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Esc", "esc", KBD_esc);
+
+    for(i = 0; i < 12; i++)
+    {
+        AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), combo_f[i].title, combo_f[i].entry, combo_f[i].key);
+    }
+
+#undef XO
+#undef YO
+#define XO 0
+#define YO 2
+
+    for(i = 0; i < 14; i++)
+    {
+        const auto block = IS_PC98_ARCH ? combo_1_pc98 : combo_1;
+        const auto width = i == 0 || i == 13 ? 2 : 1;
+        AddKeyButtonEvent(PX(XO + (i > 0 ? i + 1 : i)), PY(YO), BU(width), BV(1), block[i].title, block[i].entry, block[i].key);
+    }
+
+#undef XO
+#undef YO
+#define XO 0
+#define YO 3
+
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Tab", "tab", KBD_tab);
+
+    for(i = 0; i < 12; i++)
+    {
+        AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), combo_2[i].title, combo_2[i].entry, combo_2[i].key);
+    }
+
+    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(2), "Enter", "enter", KBD_enter);
+
+#undef XO
+#undef YO
+#define XO 0
+#define YO 4
+
+    caps_lock_event = AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Caps", "capslock", KBD_capslock);
+
+    for(i = 0; i < 12; i++)
+    {
+        const auto block = IS_PC98_ARCH ? combo_3_pc98 : combo_3;
+        AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), block[i].title, block[i].entry, block[i].key);
+    }
+
+#undef XO
+#undef YO
+#define XO 0
 #define YO 5
-	/* Mouse Buttons */
-	new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Mouse keys");
-	AddMouseButtonEvent(PX(XO+0),PY(YO),BW,BH,"L","left",0);
-	AddMouseButtonEvent(PX(XO+1),PY(YO),BW,BH,"M","middle",2);
-	AddMouseButtonEvent(PX(XO+2),PY(YO),BW,BH,"R","right",1);
+
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Shift", "lshift", KBD_leftshift);
+
+    for(i = 0; i < 11; i++)
+    {
+        AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), combo_4[i].title, combo_4[i].entry, combo_4[i].key);
+    }
+
+    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(3), BV(1), "Shift", "rshift", KBD_rightshift);
+
 #undef XO
 #undef YO
 #define XO 0
-#define YO 7
-    /* Numeric KeyPad */
-    num_lock_event=AddKeyButtonEvent(PX(XO),PY(YO),BW,BH,"NUM","numlock",KBD_numlock);
-    AddKeyButtonEvent(PX(XO+1),PY(YO),BW,BH,"/","kp_divide",KBD_kpdivide);
-    AddKeyButtonEvent(PX(XO+2),PY(YO),BW,BH,"*","kp_multiply",KBD_kpmultiply);
-    AddKeyButtonEvent(PX(XO+3),PY(YO),BW,BH,"-","kp_minus",KBD_kpminus);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW,BH,"7","kp_7",KBD_kp7);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+1),BW,BH,"8","kp_8",KBD_kp8);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW,BH,"9","kp_9",KBD_kp9);
-    AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW,BH*2,"+","kp_plus",KBD_kpplus);
-    AddKeyButtonEvent(PX(XO),PY(YO+2),BW,BH,"4","kp_4",KBD_kp4);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"5","kp_5",KBD_kp5);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"6","kp_6",KBD_kp6);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+3),BW,BH,"1","kp_1",KBD_kp1);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+3),BW,BH,"2","kp_2",KBD_kp2);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+3),BW,BH,"3","kp_3",KBD_kp3);
-    AddKeyButtonEvent(PX(XO+3),PY(YO+3),BW,BH*2,"ENT","kp_enter",KBD_kpenter);
-    if (IS_PC98_ARCH) {
-        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*1,BH,"0","kp_0",KBD_kp0);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+4),BW*1,BH,",","kp_comma",KBD_kpcomma);
-    }
-    else {
-        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*2,BH,"0","kp_0",KBD_kp0);
-    }
-    AddKeyButtonEvent(PX(XO+2),PY(YO+4),BW,BH,".","kp_period",KBD_kpperiod);
+#define YO 6
+
+    AddKeyButtonEvent(PX(XO + 00), PY(YO), BU(2), BV(1), "Ctrl", "lctrl", KBD_leftctrl);
+    AddKeyButtonEvent(PX(XO + 02), PY(YO), BU(1), BV(1), "Win", "lwindows", KBD_lwindows);
+    AddKeyButtonEvent(PX(XO + 03), PY(YO), BU(1), BV(1), "Alt", "lalt", KBD_leftalt);
+    AddKeyButtonEvent(PX(XO + 04), PY(YO), BU(7), BV(1), "Space", "space", KBD_space);
+    AddKeyButtonEvent(PX(XO + 11), PY(YO), BU(1), BV(1), "Alt", "ralt", KBD_rightalt);
+    AddKeyButtonEvent(PX(XO + 12), PY(YO), BU(1), BV(1), "Win", "rwindows", KBD_rwindows);
+    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(1), BV(1), "App", "rwinmenu", KBD_rwinmenu);
+    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(1), "Ctrl", "rctrl", KBD_rightctrl);
+
 #undef XO
 #undef YO
-#define XO 5
-#define YO 7
-    if (IS_PC98_ARCH) {
-        /* PC-98 extra keys */
-        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW*2,BH,"STOP","stop",KBD_stop);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+0),BW*2,BH,"HELP","help",KBD_help);
+#define XO 16
+#define YO 0
 
-        AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW*2,BH,"COPY","copy",KBD_copy);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW*2,BH,"KANA","kana",KBD_kana);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 0), BU(1), BV(1), "Prn", "printscreen", KBD_printscreen);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 0), BU(1), BV(1), "Scr", "scrolllock", KBD_scrolllock);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 0), BU(1), BV(1), "Brk", "pause", KBD_pause);
 
-        AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW*2,BH,"NFER","nfer",KBD_nfer);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW*2,BH,"XFER","xfer",KBD_xfer);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 2), BU(1), BV(1), "Ins", "insert", KBD_insert);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 2), BU(1), BV(1), "Hom", "home", KBD_home);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 2), BU(1), BV(1), "Pg\x18", "pageup", KBD_pageup);
 
-        AddKeyButtonEvent(PX(XO+2),PY(YO+3),BW*2,BH,"Ro / _","jp_ro",KBD_jp_ro);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 3), BU(1), BV(1), "Del", "delete", KBD_delete);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 3), BU(1), BV(1), "End", "end", KBD_end);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 3), BU(1), BV(1), "Pg\x19", "pagedown", KBD_pagedown);
 
-        AddKeyButtonEvent(PX(XO+0),PY(YO+3),BW*1,BH,"VF1","vf1",KBD_vf1);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+3),BW*1,BH,"VF2","vf2",KBD_vf2);
-        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*1,BH,"VF3","vf3",KBD_vf3);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+4),BW*1,BH,"VF4","vf4",KBD_vf4);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+4),BW*1,BH,"VF5","vf5",KBD_vf5);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 5), BU(1), BV(1), "\x18", "up", KBD_up);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 6), BU(1), BV(1), "\x1B", "left", KBD_left);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 6), BU(1), BV(1), "\x19", "down", KBD_down);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 6), BU(1), BV(1), "\x1A", "right", KBD_right);
+
+#undef XO
+#undef YO
+#define XO 19
+#define YO 2
+
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO - 1), BU(1) - 1, BV(1), "KP=", "kp_equals", KBD_kpequals);
+    if(!IS_PC98_ARCH) {
+        AddKeyButtonEvent(PX(XO + 2) - 3, PY(YO - 1), BU(1) - 1, BV(1), "KP,", "kp_comma", KBD_kpcomma);
     }
-    else {
-        /* F13-F24 block */
-        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW,BH,"F13","f13",KBD_f13);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+0),BW,BH,"F14","f14",KBD_f14);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+0),BW,BH,"F15","f15",KBD_f15);
-        AddKeyButtonEvent(PX(XO+3),PY(YO+0),BW,BH,"F16","f16",KBD_f16);
-        AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW,BH,"F17","f17",KBD_f17);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+1),BW,BH,"F18","f18",KBD_f18);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW,BH,"F19","f19",KBD_f19);
-        AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW,BH,"F20","f20",KBD_f20);
-        AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW,BH,"F21","f21",KBD_f21);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"F22","f22",KBD_f22);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"F23","f23",KBD_f23);
-        AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW,BH,"F24","f24",KBD_f24);
+    num_lock_event =
+    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 0), BU(1) - 1, BV(1), "Num", "numlock", KBD_numlock);
+    AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 0), BU(1) - 1, BV(1), "/", "kp_divide", KBD_kpdivide);
+    AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 0), BU(1) - 1, BV(1), "*", "kp_multiply", KBD_kpmultiply);
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 0), BU(1) - 1, BV(1), "-", "kp_minus", KBD_kpminus);
+
+    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 1), BU(1) - 1, BV(1), "7", "kp_7", KBD_kp7);
+    AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 1), BU(1) - 1, BV(1), "8", "kp_8", KBD_kp8);
+    AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 1), BU(1) - 1, BV(1), "9", "kp_9", KBD_kp9);
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 1), BU(1) - 1, BV(2), "+", "kp_plus", KBD_kpplus);
+                                     
+    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 2), BU(1) - 1, BV(1), "4", "kp_4", KBD_kp4);
+    AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 2), BU(1) - 1, BV(1), "5", "kp_5", KBD_kp5);
+    AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 2), BU(1) - 1, BV(1), "6", "kp_6", KBD_kp6);
+                                     
+    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 3), BU(1) - 1, BV(1), "1", "kp_1", KBD_kp1);
+    AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 3), BU(1) - 1, BV(1), "2", "kp_2", KBD_kp2);
+    AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 3), BU(1) - 1, BV(1), "3", "kp_3", KBD_kp3);
+
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 3), BU(1) - 1, BV(2), "Ent", "kp_enter", KBD_kpenter);
+
+    if(IS_PC98_ARCH) // TODO
+    {
+        AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 4), BU(1) - 1, BV(1), "0", "kp_0", KBD_kp0);
+        AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 4), BU(1) - 1, BV(1), ",", "kp_comma", KBD_kpcomma);
     }
+    else
+    {
+        AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 4), BU(2) - 2, BV(1), "0", "kp_0", KBD_kp0);
+    }
+
+    AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 4), BU(1) - 1, BV(1), ".", "kp_period", KBD_kpperiod);
+
+#pragma endregion
+
+#pragma region Mouse
+
 #undef XO
 #undef YO
 #define XO 0
-#define YO 13
-    /* Japanese keys */
-    AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW*3,BH,"HANKAKU", "jp_hankaku", KBD_jp_hankaku);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW*3,BH,"MUHENKAN","jp_muhenkan",KBD_jp_muhenkan);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW*3,BH,"HENKAN",  "jp_henkan",  KBD_jp_henkan);
-    AddKeyButtonEvent(PX(XO+3),PY(YO+0),BW*3,BH,"HIRAGANA","jp_hiragana",KBD_jp_hiragana);
-    AddKeyButtonEvent(PX(XO+6),PY(YO+0),BW*1,BH,"YEN",     "jp_yen",     KBD_jp_yen);
-    AddKeyButtonEvent(PX(XO+6),PY(YO+1),BW*1,BH,"\\",      "jp_bckslash",KBD_jp_backslash);
-    AddKeyButtonEvent(PX(XO+6),PY(YO+2),BW*1,BH,":*",      "colon",      KBD_colon);
-    AddKeyButtonEvent(PX(XO+7),PY(YO+0),BW*1,BH,"^`",      "caret",      KBD_caret);
-    AddKeyButtonEvent(PX(XO+7),PY(YO+1),BW*1,BH,"@~",      "atsign",     KBD_atsign);
-    /* Korean */
-    AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW*3,BH,"HANCHA",  "kor_hancha", KBD_kor_hancha);
-    AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW*3,BH,"HANYONG", "kor_hanyong",KBD_kor_hanyong);
+#define YO 9
+    new CTextButton(PX(XO + 0) + CX * 1, PY(YO - 1), BU(3), BV(1), "Mouse");
+    AddMouseButtonEvent(PX(XO + 0) + CX * 1, PY(YO), BU(1), BV(1), "L", "left", 0);
+    AddMouseButtonEvent(PX(XO + 1) + CX * 1, PY(YO), BU(1), BV(1), "M", "middle", 2);
+    AddMouseButtonEvent(PX(XO + 2) + CX * 1, PY(YO), BU(1), BV(1), "R", "right", 1);
+
+#pragma endregion
+
+#pragma region Joysticks
+
 #undef XO
 #undef YO
-#define XO 10
+#define XO 11
 #define YO 8
-    /* Joystick Buttons/Texts */
-    /* Buttons 1+2 of 1st Joystick */
-    AddJButtonButton(PX(XO),PY(YO),BW,BH,"1" ,0,0);
-    AddJButtonButton(PX(XO+2),PY(YO),BW,BH,"2" ,0,1);
-    /* Axes 1+2 (X+Y) of 1st Joystick */
-    CJAxisEvent * cjaxis=AddJAxisButton(PX(XO+1),PY(YO),BW,BH,"Y-",0,1,false,NULL);
-    AddJAxisButton  (PX(XO+1),PY(YO+1),BW,BH,"Y+",0,1,true,cjaxis);
-    cjaxis=AddJAxisButton  (PX(XO),PY(YO+1),BW,BH,"X-",0,0,false,NULL);
-    AddJAxisButton  (PX(XO+2),PY(YO+1),BW,BH,"X+",0,0,true,cjaxis);
 
-    if (joytype==JOY_2AXIS) {
-        /* Buttons 1+2 of 2nd Joystick */
-        AddJButtonButton(PX(XO+4),PY(YO),BW,BH,"1" ,1,0);
-        AddJButtonButton(PX(XO+4+2),PY(YO),BW,BH,"2" ,1,1);
-        /* Buttons 3+4 of 1st Joystick, not accessible */
-        AddJButtonButton_hidden(0,2);
-        AddJButtonButton_hidden(0,3);
-
-        /* Axes 1+2 (X+Y) of 2nd Joystick */
-        cjaxis= AddJAxisButton(PX(XO+4),PY(YO+1),BW,BH,"X-",1,0,false,NULL);
-                AddJAxisButton(PX(XO+4+2),PY(YO+1),BW,BH,"X+",1,0,true,cjaxis);
-        cjaxis= AddJAxisButton(PX(XO+4+1),PY(YO+0),BW,BH,"Y-",1,1,false,NULL);
-                AddJAxisButton(PX(XO+4+1),PY(YO+1),BW,BH,"Y+",1,1,true,cjaxis);
-        /* Axes 3+4 (X+Y) of 1st Joystick, not accessible */
-        cjaxis= AddJAxisButton_hidden(0,2,false,NULL);
-                AddJAxisButton_hidden(0,2,true,cjaxis);
-        cjaxis= AddJAxisButton_hidden(0,3,false,NULL);
-                AddJAxisButton_hidden(0,3,true,cjaxis);
-    } else {
-        /* Buttons 3+4 of 1st Joystick */
-        AddJButtonButton(PX(XO+4),PY(YO),BW,BH,"3" ,0,2);
-        AddJButtonButton(PX(XO+4+2),PY(YO),BW,BH,"4" ,0,3);
-        /* Buttons 1+2 of 2nd Joystick, not accessible */
-        AddJButtonButton_hidden(1,0);
-        AddJButtonButton_hidden(1,1);
-
-        /* Axes 3+4 (X+Y) of 1st Joystick */
-        cjaxis= AddJAxisButton(PX(XO+4),PY(YO+1),BW,BH,"X-",0,2,false,NULL);
-                AddJAxisButton(PX(XO+4+2),PY(YO+1),BW,BH,"X+",0,2,true,cjaxis);
-        cjaxis= AddJAxisButton(PX(XO+4+1),PY(YO+0),BW,BH,"Y-",0,3,false,NULL);
-                AddJAxisButton(PX(XO+4+1),PY(YO+1),BW,BH,"Y+",0,3,true,cjaxis);
-        /* Axes 1+2 (X+Y) of 2nd Joystick , not accessible*/
-        cjaxis= AddJAxisButton_hidden(1,0,false,NULL);
-                AddJAxisButton_hidden(1,0,true,cjaxis);
-        cjaxis= AddJAxisButton_hidden(1,1,false,NULL);
-                AddJAxisButton_hidden(1,1,true,cjaxis);
+    switch(joytype)
+    {
+    case JOY_NONE:
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        break;
+    case JOY_2AXIS:
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Joystick 1"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Joystick 2"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        break;
+    case JOY_4AXIS:
+    case JOY_4AXIS_2:
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Axis 3/4"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        break;
+    case JOY_FCS:
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Axis 3"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Hat/D-pad"));
+        break;
+    case JOY_CH:
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Axis 3/4"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Hat/D-pad"));
+        break;
+    default:
+        break;
     }
 
-    if (joytype==JOY_CH) {
-        /* Buttons 5+6 of 1st Joystick */
-        AddJButtonButton(PX(XO+8),PY(YO),BW,BH,"5" ,0,4);
-        AddJButtonButton(PX(XO+8+2),PY(YO),BW,BH,"6" ,0,5);
-    } else {
-        /* Buttons 5+6 of 1st Joystick, not accessible */
-        AddJButtonButton_hidden(0,4);
-        AddJButtonButton_hidden(0,5);
+    {
+        AddJButtonButton(PX(XO + 0), PY(YO + 1) - CY, BU(1), BV(1), "1", 0, 0);
+        AddJButtonButton(PX(XO + 2), PY(YO + 1) - CY, BU(1), BV(1), "2", 0, 1);
+
+        auto x1 = AddJAxisButton(PX(XO + 0), PY(YO + 2) - CY, BU(1), BV(1), "X-", 0, 0, false, nullptr);
+        auto x2 = AddJAxisButton(PX(XO + 2), PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 0, true, x1); (void)x2;//unused
+        auto y1 = AddJAxisButton(PX(XO + 1), PY(YO + 1) - CY, BU(1), BV(1), "Y-", 0, 1, false, nullptr);
+        auto y2 = AddJAxisButton(PX(XO + 1), PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 1, true, y1); (void)y2;//unused
     }
 
-    /* Hat directions up, left, down, right */
-    AddJHatButton(PX(XO+8+1),PY(YO),BW,BH,"UP",0,0,0);
-    AddJHatButton(PX(XO+8+0),PY(YO+1),BW,BH,"LFT",0,0,3);
-    AddJHatButton(PX(XO+8+1),PY(YO+1),BW,BH,"DWN",0,0,2);
-    AddJHatButton(PX(XO+8+2),PY(YO+1),BW,BH,"RGT",0,0,1);
+    if(joytype == JOY_2AXIS)
+    {
+        AddJButtonButton(PX(XO + 4), PY(YO + 1) - CY, BU(1), BV(1), "1", 1, 0);
+        AddJButtonButton(PX(XO + 6), PY(YO + 1) - CY, BU(1), BV(1), "2", 1, 1);
+        AddJButtonButton_hidden(0, 2);
+        AddJButtonButton_hidden(0, 3);
 
-    /* Labels for the joystick */
-    CTextButton* btn;
-    if (joytype ==JOY_2AXIS) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Joystick 1");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Joystick 2");
-        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, BH, "Disabled");
-        btn->SetColor(CLR_GREY);
-    } else if(joytype ==JOY_4AXIS || joytype == JOY_4AXIS_2) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Axis 1/2");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Axis 3/4");
-        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, BH, "Disabled");
-        btn->SetColor(CLR_GREY);
-    } else if(joytype == JOY_CH) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Axis 1/2");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Axis 3/4");
-        new CTextButton(PX(XO+8),PY(YO-1),3*BW,BH,"Hat/D-pad");
-    } else if ( joytype==JOY_FCS) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Axis 1/2");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Axis 3");
-        new CTextButton(PX(XO+8),PY(YO-1),3*BW,BH,"Hat/D-pad");
-    } else if(joytype == JOY_NONE) {
-        btn = new CTextButton(PX(XO + 0), PY(YO - 1), 3 * BW, BH, "Disabled");
-        btn->SetColor(CLR_GREY);
-        btn = new CTextButton(PX(XO + 4), PY(YO - 1), 3 * BW, BH, "Disabled");
-        btn->SetColor(CLR_GREY);
-        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, BH, "Disabled");
-        btn->SetColor(CLR_GREY);
+        auto x1 = AddJAxisButton(PX(XO + 4), PY(YO + 2) - CY, BW, BH, "X-", 1, 0, false, nullptr);
+        auto x2 = AddJAxisButton(PX(XO + 6), PY(YO + 2) - CY, BW, BH, "X+", 1, 0, true, x1); (void)x2;//unused
+        auto y1 = AddJAxisButton(PX(XO + 5), PY(YO + 1) - CY, BW, BH, "Y-", 1, 1, false, nullptr);
+        auto y2 = AddJAxisButton(PX(XO + 5), PY(YO + 2) - CY, BW, BH, "Y+", 1, 1, true, y1); (void)y2;//unused
+        auto z1 = AddJAxisButton_hidden(0, 2, false, nullptr);
+        auto z2 = AddJAxisButton_hidden(0, 3, false, nullptr);
+
+        AddJAxisButton_hidden(0, 2, true, z1);
+        AddJAxisButton_hidden(0, 3, true, z2);
     }
+    else
+    {
+        AddJButtonButton(PX(XO + 4), PY(YO + 1) - CY, BU(1), BV(1), "3", 0, 2);
+        AddJButtonButton(PX(XO + 6), PY(YO + 1) - CY, BU(1), BV(1), "4", 0, 3);
+        AddJButtonButton_hidden(1, 0);
+        AddJButtonButton_hidden(1, 1);
+
+        auto x1 = AddJAxisButton(PX(XO + 4), PY(YO + 2) - CY, BU(1), BV(1), "X-", 0, 2, false, nullptr);
+        auto x2 = AddJAxisButton(PX(XO + 6), PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 2, true, x1); (void)x2;//unused
+        auto y1 = AddJAxisButton(PX(XO + 5), PY(YO + 1) - CY, BU(1), BV(1), "Y-", 0, 3, false, nullptr);
+        auto y2 = AddJAxisButton(PX(XO + 5), PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 3, true, y1); (void)y2;//unused
+        auto z1 = AddJAxisButton_hidden(1, 0, false, nullptr);
+        auto z2 = AddJAxisButton_hidden(1, 1, false, nullptr);
+
+        AddJAxisButton_hidden(1, 0, true, z1);
+        AddJAxisButton_hidden(1, 1, true, z2);
+    }
+
+    if(joytype == JOY_CH)
+    {
+        AddJButtonButton(PX(XO +  8), PY(YO + 1) - CY, BU(1), BV(1), "5", 0, 4);
+        AddJButtonButton(PX(XO + 10), PY(YO + 1) - CY, BU(1), BV(1), "6", 0, 5);
+    }
+    else
+    {
+        AddJButtonButton_hidden(0, 4);
+        AddJButtonButton_hidden(0, 5);
+    }
+
+    AddJHatButton(PX(XO +  9), PY(YO + 1) - CY, BU(1), BV(1), "\x18", 0, 0, 0); // U
+    AddJHatButton(PX(XO +  8), PY(YO + 2) - CY, BU(1), BV(1), "\x1B", 0, 0, 3); // L
+    AddJHatButton(PX(XO +  9), PY(YO + 2) - CY, BU(1), BV(1), "\x19", 0, 0, 2); // D
+    AddJHatButton(PX(XO + 10), PY(YO + 2) - CY, BU(1), BV(1), "\x1A", 0, 0, 1); // R
+
+#pragma endregion
+
+#pragma region Japanese, Korean
+
 #undef XO
 #undef YO
-   
-    /* The modifier buttons */
-    AddModButton(PX(0),PY(17),50,BH,"Mod1",1);
-    AddModButton(PX(2),PY(17),50,BH,"Mod2",2);
-    AddModButton(PX(4),PY(17),50,BH,"Mod3",3);
-    AddModButton(PX(6),PY(17),50,BH,"Host",4);
-    /* Create Handler buttons */
-    Bitu xpos=3;Bitu ypos=11;
-    uint8_t page=cpage;
+#define XO 0
+#define YO 11
+
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 0), BU(3), BV(1), "Hankaku", "jp_hankaku", KBD_jp_hankaku);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 1), BU(3), BV(1), "Muhenkan","jp_muhenkan",KBD_jp_muhenkan);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 2), BU(3), BV(1), "Henkan",  "jp_henkan",  KBD_jp_henkan);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 3), BU(3), BV(1), "Hiragana","jp_hiragana",KBD_jp_hiragana);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 4), BU(3), BV(1), "Yen",     "jp_yen",     KBD_jp_yen);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 0), BU(1), BV(1), "\\",      "jp_bckslash",KBD_jp_backslash);
+    AddKeyButtonEvent(PX(XO + 5) + CX, PY(YO + 0), BU(1), BV(1), ":*",      "colon",      KBD_colon);
+    AddKeyButtonEvent(PX(XO + 6) + CX, PY(YO + 0), BU(1), BV(1), "^`",      "caret",      KBD_caret);
+    AddKeyButtonEvent(PX(XO + 7) + CX, PY(YO + 0), BU(1), BV(1), "@~",      "atsign",     KBD_atsign);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 3), BU(3), BV(1), "Hancha",  "kor_hancha", KBD_kor_hancha);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 4), BU(3), BV(1), "Hanyong", "kor_hanyong",KBD_kor_hanyong);
+
+#pragma endregion
+
+#pragma region Modifiers & Bindings
+
+    AddModButton(PX(0) + CX, PY(17), BU(2), BV(1), LabelMod1, 1);
+    AddModButton(PX(2) + CX, PY(17), BU(2), BV(1), LabelMod2, 2);
+    AddModButton(PX(4) + CX, PY(17), BU(2), BV(1), LabelMod3, 3);
+    AddModButton(PX(6) + CX, PY(17), BU(3), BV(1), LabelHost, 4);
+
+    bind_but.event_title = new CCaptionButton(PX(0) + CX, PY(18), 0, 0, false);
+    bind_but.bind_title  = new CCaptionButton(PX(0) + CX, PY(19), 0, 0, false);
+
+    bind_but.add  = new CBindButton(PX(0) + CX, PY(20), BU(3), BV(1), MSG_Get("ADD"), BB_Add);
+    bind_but.del  = new CBindButton(PX(3) + CX, PY(20), BU(3), BV(1), MSG_Get("DEL"), BB_Del);
+    bind_but.next = new CBindButton(PX(6) + CX, PY(20), BU(3), BV(1), MSG_Get("NEXT"), BB_Next);
+
+    bind_but.mod1 = new CCheckButton(PX(0) + CX, PY(21) + CY, BU(3), BV(1), LabelMod1, BC_Mod1);
+    bind_but.mod2 = new CCheckButton(PX(0) + CX, PY(22) + CY, BU(3), BV(1), LabelMod2, BC_Mod2);
+    bind_but.mod3 = new CCheckButton(PX(0) + CX, PY(23) + CY, BU(3), BV(1), LabelMod3, BC_Mod3);
+    bind_but.host = new CCheckButton(PX(3) + CX, PY(21) + CY, BU(3), BV(1), LabelHost, BC_Host);
+    bind_but.hold = new CCheckButton(PX(3) + CX, PY(22) + CY, BU(3), BV(1), LabelHold, BC_Hold);
+
+#pragma endregion
+
+#pragma region PC-98 extra keys
+
+    if(IS_PC98_ARCH)
+    {
+
+#undef XO
+#undef YO
+#define XO 0
+#define YO 0
+
+        AddKeyButtonEvent(PX(XO +  0), PY(YO), BU(2), BV(1), "STOP", "stop", KBD_stop);
+        AddKeyButtonEvent(PX(XO +  2), PY(YO), BU(2), BV(1), "HELP", "help", KBD_help);
+        AddKeyButtonEvent(PX(XO +  4), PY(YO), BU(2), BV(1), "COPY", "copy", KBD_copy);
+        AddKeyButtonEvent(PX(XO +  6), PY(YO), BU(2), BV(1), "KANA", "kana", KBD_kana);
+        AddKeyButtonEvent(PX(XO +  8), PY(YO), BU(2), BV(1), "NFER", "nfer", KBD_nfer);
+        AddKeyButtonEvent(PX(XO + 10), PY(YO), BU(2), BV(1), "XFER", "xfer", KBD_xfer);
+        AddKeyButtonEvent(PX(XO + 12), PY(YO), BU(2), BV(1), "RO/_", "jp_ro", KBD_jp_ro);
+
+#undef XO
+#undef YO
+#define XO 3
+#define YO 11
+
+        AddKeyButtonEvent(PX(XO + 1) + CX, PY(YO + 1), BU(1), BV(1), "VF1", "vf1", KBD_vf1);
+        AddKeyButtonEvent(PX(XO + 2) + CX, PY(YO + 1), BU(1), BV(1), "VF2", "vf2", KBD_vf2);
+        AddKeyButtonEvent(PX(XO + 3) + CX, PY(YO + 1), BU(1), BV(1), "VF3", "vf3", KBD_vf3);
+        AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 1), BU(1), BV(1), "VF4", "vf4", KBD_vf4);
+        AddKeyButtonEvent(PX(XO + 5) + CX, PY(YO + 1), BU(1), BV(1), "VF5", "vf5", KBD_vf5);
+    }
+
+#pragma endregion
+
+#pragma region Bindables
+
+#undef XO
+#undef YO
+
+    Bitu    xpos = 0;
+    Bitu    ypos = 0;
+    uint8_t page = cpage;
+
     ceventbuttons.clear();
-    for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();++hit) {
-        maxpage=page;
-        unsigned int columns = ((unsigned int)strlen((*hit)->ButtonName()) + 9U) / 10U;
-        if ((xpos+columns-1)>6) {
-            xpos=3;ypos++;
-        }
-        CEventButton *button=new CEventButton(PX(xpos*3)+(xpos==5?BW/2:0),PY(ypos),BW*3*columns+BW/2,BH,(*hit)->ButtonName(),(*hit));
+
+    std::sort(handlergroup.begin(), handlergroup.end(), SortHandlers);
+
+    for(CHandlerEventVector_it hit = handlergroup.begin(); hit != handlergroup.end(); ++hit)
+    {
+        maxpage = page;
+
+        auto button = new CEventButton(PX(10) + CX, PY(11 + ypos), BU(12), BV(1), (*hit)->ButtonName(), (*hit));
+
         ceventbuttons.push_back(button);
         (*hit)->notifybutton(button);
-        button->Enable(page==cpage);
+        button->Enable(page == cpage);
         button->Page(page);
-        xpos += columns;
-        if (xpos>6) {
-            xpos=3;ypos++;
-        }
-        if (ypos==20) {
-            ypos=11;
+
+        ypos++;
+
+        if(ypos >= 7)
+        {
+            ypos = 0;
             page++;
         }
     }
-    bind_but.prevpage=new CBindButton(280,388,130,BH,MSG_Get("PREVIOUS_PAGE"),BB_Prevpage);
-    bind_but.nextpage=new CBindButton(470,388,130,BH,MSG_Get("NEXT_PAGE"),BB_Nextpage);
-    bind_but.pagestat=new CCaptionButton(418,388,462-418,BH);
-    bind_but.pagestat->Change("%2u/%-2u",cpage,maxpage);
-    if (cpage==1) bind_but.prevpage->SetColor(CLR_GREY);
-    if (cpage==maxpage) bind_but.nextpage->SetColor(CLR_GREY);
-    next_handler_xpos = xpos;
-    next_handler_ypos = ypos;
-    /* Create some text buttons */
-//  new CTextButton(PX(6),0,124,BH,"Keyboard Layout");
-//  new CTextButton(PX(17),0,124,BH,"Joystick Layout");
 
-    bind_but.action=new CCaptionButton(180,426,0,0);
+    bind_but.prevpage =
+        new CBindButton(PX(11), PY(19) - CY - (CY / 2), BU(4), BV(1), "<-", BB_Prevpage);
 
-    bind_but.event_title=new CCaptionButton(0,350,0,0);
-    bind_but.bind_title=new CCaptionButton(0,365,0,0);
+    bind_but.pagestat = new CCaptionButton(PX(14), PY(19) - CY - (CY / 2), BU(5), BV(1), true);
 
-    /* Create binding support buttons */
-    
-    bind_but.mod1=new CCheckButton(20,410,60,BH, "mod1",BC_Mod1);
-    bind_but.mod2=new CCheckButton(20,432,60,BH, "mod2",BC_Mod2);
-    bind_but.mod3=new CCheckButton(20,454,60,BH, "mod3",BC_Mod3);
-    bind_but.host=new CCheckButton(100,410,60,BH,"host",BC_Host);
-    bind_but.hold=new CCheckButton(100,432,60,BH,"hold",BC_Hold);
+    bind_but.nextpage =
+        new CBindButton(PX(18), PY(19) - CY - (CY / 2), BU(4), BV(1), "->", BB_Nextpage);
 
-    bind_but.add=new CBindButton(20,384,50,BH,MSG_Get("ADD"),BB_Add);
-    bind_but.del=new CBindButton(70,384,50,BH,MSG_Get("DEL"),BB_Del);
-    bind_but.next=new CBindButton(120,384,50,BH,MSG_Get("NEXT"),BB_Next);
+    bind_but.pagestat->Change("%2u / %-2u", cpage, maxpage);
 
-    bind_but.save=new CBindButton(180,444,60,BH,MSG_Get("SAVE"),BB_Save);
-    bind_but.exit=new CBindButton(240,444,60,BH,MSG_Get("EXIT"),BB_Exit);
-    bind_but.cap=new CBindButton(300,444,85,BH,MSG_Get("CAPTURE"),BB_Capture);
+    bind_but.prevpage->SetCanClick(false);
 
-    bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
-    bind_but.dbg->Change("(event debug)");
+    next_handler_xpos = xpos; // TODO is this useless, commenting it out changes nothing!?
+    next_handler_ypos = ypos; // TODO is this useless, commenting it out changes nothing!?
 
-    bind_but.dbg2 = new CCaptionButton(390, 444, 250, 20); // right next to the Save button
+#pragma endregion
+
+#pragma region Capture/Save/Exit
+
+    bind_but.cap  = new CBindButton(PX(12), PY(20), BU(3), BV(1), MSG_Get("CAPTURE"), BB_Capture);
+    bind_but.save = new CBindButton(PX(15), PY(20), BU(3), BV(1), MSG_Get("SAVE"), BB_Save);
+    bind_but.exit = new CBindButton(PX(18), PY(20), BU(3), BV(1), MSG_Get("EXIT"), BB_Exit);
+    bind_but.cap->SetCanClick(false);
+
+#pragma endregion
+
+#pragma region Status/Info
+
+    // NOTE: screen budget is really tight down there, more than that and drawing crashes
+
+    bind_but.action = new CCaptionButton(PX(7), PY(22) - CY, BU(15), BV(1), false);
+    bind_but.dbg1   = new CCaptionButton(PX(7), PY(23) - CY, BU(16), BV(1), false);
+    bind_but.dbg2   = new CCaptionButton(PX(7), PY(24) - CY, BU(16), BV(1), false);
+
+    bind_but.dbg1->Change("%s", "");
     bind_but.dbg2->Change("%s", "");
 
-    bind_but.bind_title->Change("Bind Title");
+#pragma endregion
 
     mapper_addhandler_create_buttons = true;
 }
@@ -4170,12 +4543,15 @@ static struct {
     {"kp_divide",SDL_SCANCODE_KP_DIVIDE},   {"kp_multiply",SDL_SCANCODE_KP_MULTIPLY},
     {"kp_minus",SDL_SCANCODE_KP_MINUS},     {"kp_plus",SDL_SCANCODE_KP_PLUS},
     {"kp_period",SDL_SCANCODE_KP_PERIOD},   {"kp_enter",SDL_SCANCODE_KP_ENTER},
+    {"kp_equals",SDL_SCANCODE_KP_EQUALS},   {"kp_comma",SDL_SCANCODE_KP_COMMA},
 
     /* Is that the extra backslash key ("less than" key) */
     /* on some keyboards with the 102-keys layout??      */
     {"lessthan",SDL_SCANCODE_NONUSBACKSLASH},
-#if !defined(MACOSX)
-#if (defined (WIN32) || defined (__linux__))
+#if defined(MACOSX)
+    {"jp_bckslash",SDL_SCANCODE_INTERNATIONAL1},
+    {"jp_yen",SDL_SCANCODE_INTERNATIONAL3},
+#elif (defined (WIN32) || defined (__linux__))
     /* Special handling for JP Keyboards */
     {"jp_bckslash",SDL_SCANCODE_INTERNATIONAL1}, // SDL2 returns same code as SDL_SCANCODE_NONUSBACKSLASH?
     {"jp_yen",SDL_SCANCODE_INTERNATIONAL3},
@@ -4183,7 +4559,6 @@ static struct {
     {"jp_henkan", SDL_SCANCODE_INTERNATIONAL4},
     {"jp_hiragana", SDL_SCANCODE_INTERNATIONAL2},
 #endif //(defined (WIN32) || defined (__linux__))
-#endif //!defined(MACOSX)
 #if 0
 #ifdef SDL_DOSBOX_X_SPECIAL
     /* hack for Japanese keyboards with \ and _ */
@@ -4201,7 +4576,7 @@ static struct {
     {"caret", SDLK_CARET },
     {"atsign", SDLK_AT },
 #endif
-    {0,0}
+    {nullptr, 0}
 };
 #else
 
@@ -4254,6 +4629,7 @@ static struct {
      *      This default assignment should allow Apple Mac users (who's keyboards DO have one)
      *      to use theirs as a normal equals sign. */
     {"kp_equals",SDLK_KP_EQUALS},
+    {"kp_comma", SDLK_KP_COMMA},
 
 #if defined(C_SDL2)
     // TODO??
@@ -4275,11 +4651,16 @@ static struct {
     // TODO??
 #else
 #ifdef SDL_DOSBOX_X_SPECIAL
+#if defined(MACOSX)
+    {"jp_bckslash",SDLK_JP_RO},
+    {"jp_yen",SDLK_JP_YEN },
+#else
     /* hack for Japanese keyboards with \ and _ */
     {"jp_bckslash",SDLK_JP_RO}, // Same difference
-    {"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
+    //{"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
     /* hack for Japanese keyboards with Yen and | */
     {"jp_yen",SDLK_JP_YEN },
+#endif
 #endif
     /* more */
     {"jp_hankaku", SDLK_WORLD_12 },
@@ -4501,7 +4882,8 @@ static void MAPPER_SaveBinds(void) {
     char path[PATH_MAX];
     if (realpath(mapper.filename.c_str(), path) != NULL) LOG_MSG("Saved mapper file: %s", path);
 #endif
-    std::string msg = MSG_Get("MAPPER_FILE_SAVED")+std::string(": ")+mapper.filename;
+    std::string str = mapper.filename.substr(mapper.filename.find_last_of("/\\") + 1);
+    std::string msg = MSG_Get("MAPPER_FILE_SAVED")+std::string(": ")+str;
     change_action_text(msg.c_str(),CLR_WHITE);
 }
 
@@ -4624,13 +5006,21 @@ void BIND_MappingEvents(void) {
 #endif
 
         switch (event.type) {
-#if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
+#if defined(_WIN32) && !defined(HX_DOS)
         case SDL_SYSWMEVENT : {
-            switch ( event.syswm.msg->msg ) {
+            switch ( event.syswm.msg->
+#if defined(C_SDL2)
+            msg.win.
+#endif
+            msg ) {
                 case WM_COMMAND:
 # if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                     if (GetMenu(GetHWND())) {
+# if defined(C_SDL2)
+                        if (mapperMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->msg.win.wParam))) return;
+# else
                         if (mapperMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam))) return;
+# endif
                     }
 # endif
                     break;
@@ -4682,6 +5072,7 @@ void BIND_MappingEvents(void) {
                     if (mouselocked) {
                         GFX_CaptureMouse();
                         mapper_esc_count = 0;
+                        change_action_text(MSG_Get("SELECT_EVENT"), CLR_WHITE);
                     }
                     else {
                         if (event.type == SDL_KEYUP) {
@@ -4728,7 +5119,7 @@ void BIND_MappingEvents(void) {
                 tmp[tmpl] = 0;
 
                 LOG(LOG_GUI,LOG_DEBUG)("Mapper keyboard event: %s",tmp);
-                bind_but.dbg->Change("%s",tmp);
+                bind_but.dbg1->Change("%s",tmp);
 
                 tmpl = 0;
 #if defined(WIN32)
@@ -4748,7 +5139,7 @@ void BIND_MappingEvents(void) {
 #endif
 #if defined(SDL_VIDEO_DRIVER_X11)
 # if defined(C_SDL2)
-# elif defined(SDL_DOSBOX_X_SPECIAL)
+# elif defined(SDL_DOSBOX_X_SPECIAL) && defined(LINUX)
                 {
                     char *LinuxX11_KeySymName(Uint32 x);
 
@@ -4941,6 +5332,75 @@ void update_all_shortcuts() {
         if (ev != NULL) ev->update_menu_shortcut();
 }
 
+void UpdateMapperSurface()
+{
+#if defined(C_SDL2)
+    mapper.surface = SDL_GetWindowSurface(mapper.window);
+
+    if (mapper.surface == nullptr)
+    {
+        const auto error = SDL_GetError();
+
+        E_Exit("Could not initialize video mode for mapper: %s", error);
+    }
+#endif
+}
+
+void GetDisplaySize(int* w, int* h)
+{
+#if defined(C_SDL2)
+    SDL_DisplayMode mode = { };
+    SDL_GetCurrentDisplayMode(0, &mode);
+    *w = mode.w;
+    *h = mode.h;
+#endif
+}
+
+void GetWindowSize(int* w, int* h)
+{
+#if defined(C_SDL2)
+    SDL_GetWindowSize(mapper.window, w, h);
+#endif
+}
+
+void CenterWindow()
+{
+#if defined(C_SDL2)
+    int dsp_w, dsp_h, win_w, win_h;
+
+    GetDisplaySize(&dsp_w, &dsp_h);
+
+    GetWindowSize(&win_w, &win_h);
+
+    SDL_SetWindowPosition(mapper.window, dsp_w / 2 - win_w / 2, dsp_h / 2 - win_h / 2);
+#endif
+}
+
+int GetMapperRenderWidth()
+{
+    return 640;
+}
+
+int GetMapperRenderHeight()
+{
+    return 480;
+}
+
+int GetMapperScaleFactor()
+{
+#if defined(C_SDL2)
+    SDL_DisplayMode mode = { };
+
+    const auto rw = GetMapperRenderWidth();
+    const auto rh = GetMapperRenderHeight();
+    const auto sf = SDL_GetCurrentDisplayMode(0, &mode) != 0 ? 1 : std::max(1, std::min(mode.w / rw, mode.h / rh));
+
+    return sf;
+#else
+    return 1;
+#endif
+}
+
 void MAPPER_RunInternal() {
     MAPPER_ReleaseAllKeys();
 
@@ -4959,13 +5419,17 @@ void MAPPER_RunInternal() {
         DOSBoxMenu::item &item = mapperMenu.get_item("SaveMapper");
         item.set_text(MSG_Get("SAVE_MAPPER_FILE"));
     }
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU || DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+    if (loadlang) mapperMenu.unbuild();
+# endif
     mapperMenu.rebuild();
 #endif
 
     /* Sorry, the MAPPER screws up 3Dfx OpenGL emulation.
      * Remove this block when fixed. */
     if (GFX_GetPreventFullscreen()) {
-        LOG_MSG("MAPPER ui is not available while 3Dfx OpenGL emulation is running");
+        systemmessagebox("Mapper Editor", MSG_Get("MAPPEREDITOR_NOT_AVAILABLE"),"ok", "info", 1);
+        LOG_MSG("Mapper Editor is not available while 3Dfx OpenGL emulation is running");
         return;
     }
 
@@ -4984,18 +5448,27 @@ void MAPPER_RunInternal() {
     }
 
     /* Be sure that there is no update in progress */
-    GFX_EndUpdate( 0 );
+    GFX_EndUpdate(nullptr);
+
+    /* scale mapper according display resolution */
+    const auto source_w = GetMapperRenderWidth();
+    const auto source_h = GetMapperRenderHeight();
+    const auto scale_by = GetMapperScaleFactor();
+    const auto target_w = source_w * scale_by;
+    const auto target_h = source_h * scale_by;
+
 #if defined(C_SDL2)
+    mapper.window_scale = scale_by;
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(false);
-    mapper.window=GFX_SetSDLSurfaceWindow(640,480);
+    mapper.window = OpenGL_using() ? GFX_SetSDLWindowMode(target_w,target_h,SCREEN_OPENGL) : GFX_SetSDLSurfaceWindow(target_w,target_h);
     if (mapper.window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
-    mapper.surface=SDL_GetWindowSurface(mapper.window);
-    if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
-    mapper.draw_surface=SDL_CreateRGBSurface(0,640,480,8,0,0,0,0);
+    CenterWindow();
+    UpdateMapperSurface();
+    mapper.draw_surface=SDL_CreateRGBSurface(0,source_w,source_h,8,0,0,0,0);
     // Needed for SDL_BlitScaled
-    mapper.draw_surface_nonpaletted=SDL_CreateRGBSurface(0,640,480,32,0x0000ff00,0x00ff0000,0xff000000,0);
-    mapper.draw_rect=GFX_GetSDLSurfaceSubwindowDims(640,480);
+    mapper.draw_surface_nonpaletted=SDL_CreateRGBSurface(0,source_w,source_h,32,0x0000ff00,0x00ff0000,0xff000000,0);
+    mapper.draw_rect=GFX_GetSDLSurfaceSubwindowDims(target_w,target_h);
     // Sorry, but SDL_SetSurfacePalette requires a full palette.
     SDL_Palette *sdl2_map_pal_ptr = SDL_AllocPalette(256);
     SDL_SetPaletteColors(sdl2_map_pal_ptr, map_pal, 0, 7);
@@ -5005,7 +5478,7 @@ void MAPPER_RunInternal() {
         last_clicked=NULL;
     }
 #else
-    mapper.surface=SDL_SetVideoMode(640,480,8,0);
+    mapper.surface=SDL_SetVideoMode(source_w, source_h,8,0);
     if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
 
     /* Set some palette entries */
@@ -5016,14 +5489,16 @@ void MAPPER_RunInternal() {
     }
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     WindowsTaskbarResetPreviewRegion();
 #endif
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     DOSBox_SetMenu(mapperMenu);
 #endif
+    ApplyPreventCap();
 
+    UpdateMapperSurface(); // update again because of DOSBox_SetMenu
 #if defined(MACOSX)
     macosx_reload_touchbar();
 #endif
@@ -5031,7 +5506,7 @@ void MAPPER_RunInternal() {
     /* Go in the event loop */
     mapper.exit=false;  
     mapper.redraw=true;
-    SetActiveEvent(0);
+    SetActiveEvent(nullptr);
 #if defined (REDUCE_JOYSTICK_POLLING)
     SDL_JoystickEventState(SDL_ENABLE);
 #endif
@@ -5058,7 +5533,11 @@ void MAPPER_RunInternal() {
     GFX_SetResizeable(true);
 #elif C_DIRECT3D
     bool Direct3D_using(void);
-    if (Direct3D_using() && !IS_VGA_ARCH && !IS_PC98_ARCH) {
+    if (Direct3D_using()
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+        && !IS_VGA_ARCH && !IS_PC98_ARCH
+# endif
+    ) {
         change_output(0);
         change_output(6);
     }
@@ -5068,11 +5547,10 @@ void MAPPER_RunInternal() {
 #endif
     if((mousetoggle && !mouselocked) || (!mousetoggle && mouselocked)) GFX_CaptureMouse();
     SDL_ShowCursor(cursor);
-#if !defined(C_SDL2)
     DOSBox_RefreshMenu();
-#endif
+    CenterWindow();
     if(!menu_gui) GFX_RestoreMode();
-#if defined(__WIN32__) && !defined(HX_DOS)
+#if defined(__WIN32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     if(GetAsyncKeyState(0x11)) {
         INPUT ip;
 
@@ -5092,10 +5570,25 @@ void MAPPER_RunInternal() {
     }
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     WindowsTaskbarUpdatePreviewRegion();
 #endif
 
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+    if(sdl.desktop.want_type == SCREEN_METAL){
+        OUTPUT_Metal_Shutdown();
+#if defined(C_OPENGL)
+        change_output(3);
+#endif
+        change_output(14);
+    }  
+#endif
+#if C_DIRECT3D && C_SDL2
+    if(sdl.desktop.want_type == SCREEN_DIRECT3D11) {
+        OUTPUT_DIRECT3D11_Shutdown();
+        change_output(13);
+    }
+#endif
 //  KEYBOARD_ClrBuffer();
     GFX_LosingFocus();
 
@@ -5107,13 +5600,19 @@ void MAPPER_RunInternal() {
 #endif
     std::string mapper_keybind = mapper_event_keybind_string("host");
     if (mapper_keybind.empty()) mapper_keybind = "unbound";
-    mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
-
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101300
+     /* Avoid conflict in check() macro */
+     mainMenu.get_item("hostkey_mapper").check2(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
+#else
+     mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
+#endif
 #if defined(USE_TTF)
     if (!TTF_using() || ttf.inUse)
 #endif
     {
-        GFX_ForceRedrawScreen();
+        GFX_Stop();
+        if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackReset );
+        GFX_Start();
 #if defined(USE_TTF)
         if (ttf.inUse) resetFontSize();
 #endif
@@ -5177,11 +5676,9 @@ std::vector<std::string> MAPPER_GetEventNames(const std::string &prefix) {
 	return key_names;
 }
 
-void MAPPER_AutoType(std::vector<std::string> &sequence,
-                     const uint32_t wait_ms,
-                     const uint32_t pace_ms) {
+void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pace_ms, bool choice) {
 #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	mapper.typist.Start(&events, sequence, wait_ms, pace_ms);
+	mapper.typist.Start(&events, sequence, wait_ms, pace_ms, choice);
 #endif
 }
 
@@ -5243,21 +5740,63 @@ void ReloadMapper(Section_prop *section, bool init) {
 	if (mapper.filename=="") pp = section->Get_path("mapperfile");
     mapper.filename = pp->realpath;
     ResolvePath(mapper.filename);
+    bool appendmap=false;
     FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
     if (!loadfile) {
-        std::string exepath=GetDOSBoxXPath();
-        if (exepath.size()) {
+        loadfile=fopen((mapper.filename+".map").c_str(),"rt");
+        if (loadfile) appendmap=true;
+    }
+    if (!loadfile) {
+        std::string exepath=GetDOSBoxXPath(), config_path, res_path;
+        config_path = Cross::GetPlatformConfigDir();
+        res_path = Cross::GetPlatformResDir();
+        if (mapper.filename.size() && exepath.size()) {
             loadfile=fopen((exepath+mapper.filename).c_str(),"rt");
-            if (loadfile) {
-                mapper.filename = exepath+mapper.filename;
-                fclose(loadfile);
+            if (!loadfile) {
+                loadfile=fopen((exepath+mapper.filename+".map").c_str(),"rt");
+                if (loadfile) appendmap=true;
             }
-            if (control->opt_erasemapper) {
-                LOG_MSG("Erase mapper file: %s\n", (exepath+mapper.filename).c_str());
-                unlink((exepath+mapper.filename).c_str());
+            if (loadfile) {
+                mapper.filename = exepath+mapper.filename+(appendmap?".map":"");
+                fclose(loadfile);
+                if (control->opt_erasemapper) {
+                    LOG_MSG("Erase mapper file: %s\n", mapper.filename.c_str());
+                    unlink(mapper.filename.c_str());
+                }
+            }
+        }
+        if (!loadfile && mapper.filename.size() && config_path.size()) {
+            loadfile=fopen((config_path+mapper.filename).c_str(),"rt");
+            if (!loadfile) {
+                loadfile=fopen((config_path+mapper.filename+".map").c_str(),"rt");
+                if (loadfile) appendmap=true;
+            }
+            if (loadfile) {
+                mapper.filename = config_path+mapper.filename+(appendmap?".map":"");
+                fclose(loadfile);
+                if (control->opt_erasemapper) {
+                    LOG_MSG("Erase mapper file: %s\n", mapper.filename.c_str());
+                    unlink(mapper.filename.c_str());
+                }
+            }
+        }
+        if (!loadfile && mapper.filename.size() && res_path.size()) {
+            loadfile=fopen((res_path+mapper.filename).c_str(),"rt");
+            if (!loadfile) {
+                loadfile=fopen((res_path+mapper.filename+".map").c_str(),"rt");
+                if (loadfile) appendmap=true;
+            }
+            if (loadfile) {
+                mapper.filename = res_path+mapper.filename+(appendmap?".map":"");
+                fclose(loadfile);
+                if (control->opt_erasemapper) {
+                    LOG_MSG("Erase mapper file: %s\n", mapper.filename.c_str());
+                    unlink(mapper.filename.c_str());
+                }
             }
         }
     } else {
+        mapper.filename = mapper.filename+(appendmap?".map":"");
         fclose(loadfile);
         if (control->opt_erasemapper) {
             LOG_MSG("Erase mapper file: %s\n", mapper.filename.c_str());
@@ -5370,7 +5909,7 @@ void loadScanCode() {
             sdlkey_map[0x67]=SDLK_PRINT;
             sdlkey_map[0x69]=SDLK_RALT;
         }
-#else
+#else //defined(WIN32) Is this really required?
         sdlkey_map[0xc8]=SDLK_UP;
         sdlkey_map[0xd0]=SDLK_DOWN;
         sdlkey_map[0xcb]=SDLK_LEFT;
@@ -5549,8 +6088,8 @@ std::map<std::string,std::string> get_event_map() {
 }
 
 void update_bindbutton_text() {
-    if (bind_but.prevpage) bind_but.prevpage->SetText(MSG_Get("PREVIOUS_PAGE"));
-    if (bind_but.nextpage) bind_but.nextpage->SetText(MSG_Get("NEXT_PAGE"));
+    if (bind_but.prevpage) bind_but.prevpage->SetText("<-");
+    if (bind_but.nextpage) bind_but.nextpage->SetText("->");
     if (bind_but.add) bind_but.add->SetText(MSG_Get("ADD"));
     if (bind_but.del) bind_but.del->SetText(MSG_Get("DEL"));
     if (bind_but.next) bind_but.next->SetText(MSG_Get("NEXT"));

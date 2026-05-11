@@ -24,6 +24,7 @@
  * Ken Silverman's official web site: "http://www.advsys.net/ken"
  */
 
+/* WARNING: This file is not compiled directly, it is #included from other *.cpp files */
 
 #include <math.h>
 #include <stdlib.h> // rand()
@@ -99,7 +100,7 @@ static const uint8_t regbase2op[22*2] = {
 
 
 // start of the waveform
-static uint32_t waveform[8] = {
+static const uint32_t waveform[8] = {
 	WAVEPREC,
 	WAVEPREC>>1,
 	WAVEPREC,
@@ -111,7 +112,7 @@ static uint32_t waveform[8] = {
 };
 
 // length of the waveform as mask
-static uint32_t wavemask[8] = {
+static const uint32_t wavemask[8] = {
 	WAVEPREC-1,
 	WAVEPREC-1,
 	(WAVEPREC>>1)-1,
@@ -123,7 +124,7 @@ static uint32_t wavemask[8] = {
 };
 
 // where the first entry resides
-static uint32_t wavestart[8] = {
+static const uint32_t wavestart[8] = {
 	0,
 	WAVEPREC>>1,
 	0,
@@ -135,13 +136,13 @@ static uint32_t wavestart[8] = {
 };
 
 // envelope generator function constants
-static fltype attackconst[4] = {
+static const fltype attackconst[4] = {
 	(fltype)(1/2.82624),
 	(fltype)(1/2.25280),
 	(fltype)(1/1.88416),
 	(fltype)(1/1.59744)
 };
-static fltype decrelconst[4] = {
+static const fltype decrelconst[4] = {
 	(fltype)(1/39.28064),
 	(fltype)(1/31.41608),
 	(fltype)(1/26.17344),

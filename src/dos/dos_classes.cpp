@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "dosbox.h"
 #include "mem.h"
 #include "dos_inc.h"
@@ -125,13 +126,50 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	sSave(sDIB,nulString[6],(uint8_t)0x20);
 	sSave(sDIB,nulString[7],(uint8_t)0x20);
 
-	/* Create a fake SFT, so programs think there are 100 file handles */
-	uint16_t sftOffset=offsetof(sDIB,firstFileTable)+0xa2;
+	/* Create a fake SFT, so programs think there are 100 file handles.
+	 * NTS: The INFO block is only given 0x20 paragraphs (0x200 = 512 bytes) which is only enough for a 5-entry SFT table,
+	 *      however that's what MS-DOS does anyway. For any value of FILES you specify, the first SFT is 5 entries and the
+	 *      second table is N - 5 entries. Maybe this is why MS-DOS doesn't let you specify a number below, I think, 6? in
+	 *      FILES= under CONFIG.SYS.
+	 *
+	 *      The table must be 5, or else it extends into other DOS kernel structures and memory corruption might happen. */
+	if (DOS_FILES < 6) E_Exit("[dos] files= setting is too small");
+
+	/* Secondary table */
+	unsigned int tbl2_seg = DOS_GetMemory((SftHeaderSize+(SftEntrySize*(DOS_FILES-5))+0xFu)/16u,"SFT secondary table");
+
+	uint16_t sftOffset=0xCC; /* this offset is fixed according to MS-DOS 5.0, MS-DOS 6.22, Windows 95, etc. */
+
+	/* zero out the table */
+	for (unsigned int i=sftOffset;i < 0x200;i++) real_writeb(segment,i,0);
+
 	sSave(sDIB,firstFileTable,RealMake(segment,sftOffset));
-	real_writed(segment,sftOffset+0x00,RealMake(segment+0x26,0));	//Next File Table
-	real_writew(segment,sftOffset+0x04,DOS_FILES/2);	//File Table supports DOS_FILES/2 files
-	real_writed(segment+0x26,0x00,0xffffffff);		//Last File Table
-	real_writew(segment+0x26,0x04,DOS_FILES-DOS_FILES/2);	//File Table supports DOS_FILES/2 files
+	real_writed(segment,sftOffset+0x00,RealMake(tbl2_seg,0));	//Next File Table
+	real_writew(segment,sftOffset+0x04,5);				//File Table supports 5 files
+
+	if ((sftOffset+SftHeaderSize+(5*SftEntrySize)) > 0x200) E_Exit("Primary SFT is too big");
+
+	/* Windows 3.1 appears to REP SCAS for "CON" in the SFT tables and it will claim that your
+	 * version of MS-DOS is unsupported if it doesn't see it 3 times in the SFT. Why 3?
+	 * Well, think about it: CON for STDIN, CON for STDOUT, and CON for STDERR. Of course, right?
+	 *
+	 * Anyway Windows 3.1 doesn't appear to care exactly where "CON" appears, only that it appears 3 times,
+	 * so this code writes it out in a manner matching real MS-DOS and according to the Ralph Brown Interrupt List
+	 * concerning MS-DOS 4.0 to MS-DOS 6.0. Write out the other default handles for good measure. */
+	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*0)+0x20,0x204e4f43); // CON
+	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*1)+0x20,0x204e4f43); // CON
+	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*2)+0x20,0x204e4f43); // CON
+	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*3)+0x20,0x20585541); // AUX
+	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*4)+0x20,0x204e5250); // PRN
+
+	/* zero out the table */
+	for (unsigned int i=0;i < (SftHeaderSize+(SftEntrySize*(DOS_FILES-5)));i++) real_writeb(tbl2_seg,i,0);
+	real_writed(tbl2_seg,0x00,0xFFFFFFFFu);
+	real_writew(tbl2_seg,0x04,DOS_FILES-5);
+}
+
+uint16_t DOS_InfoBlock::GetFirstMCB(void) {
+	return (uint16_t)sGet(sDIB,firstMCB);
 }
 
 void DOS_InfoBlock::SetFirstMCB(uint16_t _firstmcb) {
@@ -191,6 +229,9 @@ uint32_t DOS_InfoBlock::GetDeviceChain(void) {
 	return sGet(sDIB,nulNextDriver);
 }
 
+uint32_t DOS_InfoBlock::GetStartOfDeviceChain(void) {
+	return RealMake(seg,offsetof(sDIB,nulNextDriver));
+}
 
 /* program Segment prefix */
 
@@ -257,7 +298,7 @@ void DOS_PSP::MakeNew(uint16_t mem_size) {
 	sSave(sPSP,psp_parent,dos.psp());
 	sSave(sPSP,prev_psp,0xffffffff);
 	sSave(sPSP,dos_version,0x0005);
-	/* terminate 22,break 23,crititcal error 24 address stored */
+	/* terminate 22,break 23,critical error 24 address stored */
 	SaveVectors();
 
 	/* FCBs are filled with 0 */
@@ -307,7 +348,7 @@ void DOS_PSP::CopyFileTable(DOS_PSP* srcpsp,bool createchildpsp) {
 	for (uint16_t i=0;i<20;i++) {
 		uint8_t handle = srcpsp->GetFileHandle(i);
 		if(createchildpsp)
-		{	//copy obeying not inherit flag.(but dont duplicate them)
+		{	//copy obeying not inherit flag.(but don't duplicate them)
 			bool allowCopy = true;//(handle==0) || ((handle>0) && (FindEntryByHandle(handle)==0xff));
 			if((handle<DOS_FILES) && Files[handle] && !(Files[handle]->flags & DOS_NOT_INHERIT) && allowCopy)
 			{   
@@ -327,20 +368,20 @@ void DOS_PSP::CopyFileTable(DOS_PSP* srcpsp,bool createchildpsp) {
 }
 
 void DOS_PSP::CloseFile(const char *name) {
+	// FIXME: This code assumes dos.psp() == this PSP segment
 	for (uint16_t i=0;i<sGet(sPSP,max_files);i++) {
-        uint32_t handle = RealHandle(i);
-        if (handle<DOS_FILES && Files[handle] && !strcmp(Files[handle]->name, name)) {
-            if (Files[handle]->IsOpen()) Files[handle]->open = false;
-            Files[handle] = NULL;
-            return;
-        }
+		uint32_t handle = RealHandle(i);
+		if (handle<DOS_FILES && Files[handle] && !strcmp(Files[handle]->name, name)) {
+			DOS_CloseFile(i);
+			return;
+		}
 	}
 }
 
 void DOS_PSP::CloseFiles(void) {
-	for (uint16_t i=0;i<sGet(sPSP,max_files);i++) {
+	// FIXME: This code assumes dos.psp() == this PSP segment
+	for (uint16_t i=0;i<sGet(sPSP,max_files);i++)
 		DOS_CloseFile(i);
-	}
 }
 
 void DOS_PSP::SaveVectors(void) {
@@ -400,7 +441,7 @@ bool DOS_PSP::SetNumFiles(uint16_t fileNum) {
 	return true;
 }
 
-void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern) {
+void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
 	unsigned int i;
 
 	if (lfn_filefind_handle<LFN_FILEFIND_NONE || forcelfn) {
@@ -429,9 +470,9 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern) {
 	}
 }
 
-void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,uint16_t _date,uint16_t _time,uint8_t _attr) {
-	fd.hsize=0;
+void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,uint32_t _hsize,uint16_t _date,uint16_t _time,uint8_t _attr) {
 	fd.size=_size;
+	fd.hsize=_hsize;
 	fd.mdate=_date;
 	fd.mtime=_time;
 	fd.attr=_attr;
@@ -448,11 +489,12 @@ void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,
 }
 
 
-void DOS_DTA::GetResult(char * _name, char * _lname,uint32_t & _size,uint16_t & _date,uint16_t & _time,uint8_t & _attr) {
+void DOS_DTA::GetResult(char * _name, char * _lname,uint32_t & _size,uint32_t & _hsize,uint16_t & _date,uint16_t & _time,uint8_t & _attr) {
 	strcpy(_lname,fd.lname);
 	if (fd.sname[0]!=0) strcpy(_name,fd.sname);
 	else if (strlen(fd.lname)<DOS_NAMELENGTH_ASCII) strcpy(_name,fd.lname);
 	_size = fd.size;
+	_hsize = fd.hsize;
 	_date = fd.mdate;
 	_time = fd.mtime;
 	_attr = fd.attr;
@@ -465,23 +507,37 @@ void DOS_DTA::GetResult(char * _name, char * _lname,uint32_t & _size,uint16_t & 
 	}
 }
 
+#define	FIND_DATA_SIZE	(4+8+8+8+8+8+260+14)
+void set_dword(char *buff, uint32_t data);
+
 int DOS_DTA::GetFindData(int fmt, char * fdstr, int *c) {
-	if (fmt==1)
-		sprintf(fdstr,"%-1s%-19s%-2s%-2s%-4s%-4s%-4s%-8s%-260s%-14s",(char*)&fd.attr,(char*)&fd.fres1,(char*)&fd.mtime,(char*)&fd.mdate,(char*)&fd.mtime,(char*)&fd.hsize,(char*)&fd.size,(char*)&fd.fres2,(char*)&fd.lname,(char*)&fd.sname);
-	else
-		sprintf(fdstr,"%-1s%-19s%-4s%-4s%-4s%-4s%-8s%-260s%-14s",(char*)&fd.attr,(char*)&fd.fres1,(char*)&fd.mtime,(char*)&fd.mdate,(char*)&fd.hsize,(char*)&fd.size,(char*)&fd.fres2,(char*)&fd.lname,(char*)&fd.sname);
-	for (int i=0;i<4;i++) fdstr[28+i]=0;
-    fdstr[32]=(char)fd.size%256;
-    fdstr[33]=(char)((fd.size%65536)/256);
-    fdstr[34]=(char)((fd.size%16777216)/65536);
-    fdstr[35]=(char)(fd.size/16777216);
-    fdstr[44+strlen(fd.lname)]=0;
-    fdstr[304+strlen(fd.sname)]=0;
+	memset(fdstr, 0, FIND_DATA_SIZE);
+	set_dword(fdstr, fd.attr);
+	if(fmt == 1) {
+		set_dword(&fdstr[20], ((uint32_t)fd.mdate << 16) | fd.mtime);
+	} else {
+		struct tm ftm = {0};
+		ftm.tm_year = ((fd.mdate >> 9) & 0x7f) + 80;
+		ftm.tm_mon = ((fd.mdate >> 5) & 0x0f) - 1;
+		ftm.tm_mday = (fd.mdate & 0x1f);
+		ftm.tm_hour = (fd.mtime >> 11) & 0x1f;
+		ftm.tm_min = (fd.mtime >> 5) & 0x3f;
+		ftm.tm_sec = (fd.mtime & 0x1f) * 2;
+		ftm.tm_isdst = -1;
+		// 116444736000000000LL = FILETIME 1970/01/01 00:00:00
+		long long ff = 116444736000000000LL + (long long)mktime(&ftm) * 10000000LL;
+		set_dword(&fdstr[20], (uint32_t)ff);
+		set_dword(&fdstr[24], (uint32_t)(ff >> 32));
+	}
+	set_dword(&fdstr[28], fd.hsize);
+	set_dword(&fdstr[32], fd.size);
+	strcpy(&fdstr[44], fd.lname);
+	strcpy(&fdstr[304], fd.sname);
 	if (!strcmp(fd.sname,"?")&&strlen(fd.lname))
 		*c=2;
 	else
 		*c=!strchr(fd.sname,'?')&&strchr(fd.lname,'?')?1:0;
-    return (sizeof(fd));
+	return FIND_DATA_SIZE;
 }
 
 uint8_t DOS_DTA::GetSearchDrive(void) {

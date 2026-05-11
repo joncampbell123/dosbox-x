@@ -32,15 +32,18 @@
 #include "bios.h"					// SetLPTPort(..)
 #include "hardware.h"				// OpenCaptureFile
 
+#if HAS_CDIRECTLPT && (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+#include "libs/passthroughio/passthroughio.h" // for dropPrivileges()
+#endif
 #include "parport.h"
-#include "directlpt_win32.h"
-#include "directlpt_linux.h"
+#include "directlpt.h"
 #include "printer_redir.h"
 #include "filelpt.h"
 #include "dos_inc.h"
 
 uint16_t parallel_baseaddr[9] = {0x378,0x278,0x3bc,0,0,0,0,0,0};
 
+#if !defined(OSFREE)
 bool device_LPT::Read(uint8_t * data,uint16_t * size) {
     (void)data;//UNUSED
 	*size=0;
@@ -68,7 +71,11 @@ bool device_LPT::Close() {
 }
 
 uint16_t device_LPT::GetInformation(void) {
-	return 0x80A0;
+#if C_PRINTER
+	if (parallelPortObjects[num] && parallelPortObjects[num]->parallelType == PARALLEL_TYPE_PRINTER)
+		return DeviceInfoFlags::Device | DeviceInfoFlags::EofOnInput | DeviceInfoFlags::Binary;
+#endif
+	return DeviceInfoFlags::Device | DeviceInfoFlags::Binary;
 }
 
 const char* lptname[]={"LPT1","LPT2","LPT3","LPT4","LPT5","LPT6","LPT7","LPT8","LPT9"};
@@ -86,10 +93,11 @@ device_LPT::~device_LPT() {
 //	LOG_MSG("~device_LPT\n");
 	//LOG_MSG("del");
 }
+#endif
 
 static void Parallel_EventHandler(Bitu val) {
 	Bitu serclassid=val&0xf;
-	if(parallelPortObjects[serclassid]!=0)
+	if (parallelPortObjects[serclassid])
 		parallelPortObjects[serclassid]->handleEvent((uint16_t)(val>>4ul));
 }
 
@@ -112,9 +120,10 @@ static Bitu PARALLEL_Read (Bitu port, Bitu iolen) {
 		/* NTS: The traditional parport range is assigned 8 ports by IBM, but only 0-2 are assigned.
 		 *      EPP ports assign ports 3-4 with possible vendor extensions in 5-6, while ECP assigns
 		 *      ports 0x400-0x402 relative to base and leave 3-7 undefined. */
-		if(((port-parallel_baseaddr[i])&0xfff8) == 0 && (parallelPortObjects[i]!=0)) {
+		// 0x3bc is a valid port
+		if(parallel_baseaddr[i]==(port&0xfffc) && parallelPortObjects[i]) {
 			Bitu retval=0xff;
-			switch ((port-parallel_baseaddr[i]) & 0x7) {
+			switch (port & 0x3) {
 				case 0:
 					retval = parallelPortObjects[i]->Read_PR();
 					break;
@@ -131,7 +140,7 @@ static Bitu PARALLEL_Read (Bitu port, Bitu iolen) {
 			parallelPortObjects[i]->log_par(parallelPortObjects[i]->dbg_cregs,
 				"read  0x%2x from %s.",retval,dbgtext[port&3]);
 #endif
-			return retval;	
+			return retval;
 		}
 	}
 	return 0xff;
@@ -142,7 +151,8 @@ static void PARALLEL_Write (Bitu port, Bitu val, Bitu) {
 		/* NTS: The traditional parport range is assigned 8 ports by IBM, but only 0-2 are assigned.
 		 *      EPP ports assign ports 3-4 with possible vendor extensions in 5-6, while ECP assigns
 		 *      ports 0x400-0x402 relative to base and leave 3-7 undefined. */
-		if(((port-parallel_baseaddr[i])&0xfff8) == 0 && (parallelPortObjects[i]!=0)) {
+		// 0x3bc is a valid port
+		if(parallel_baseaddr[i]==(port&0xfffc) && parallelPortObjects[i]) {
 #if PARALLEL_DEBUG
 			const char* const dbgtext[]={"DAT","IOS","CON","???"};
 			parallelPortObjects[i]->log_par(parallelPortObjects[i]->dbg_cregs,
@@ -151,7 +161,7 @@ static void PARALLEL_Write (Bitu port, Bitu val, Bitu) {
 				fprintf(parallelPortObjects[i]->debugfp,"%c",val);
 			}
 #endif
-			switch ((port-parallel_baseaddr[i]) & 0x7) {
+			switch (port & 0x3) {
 				case 0:
 					parallelPortObjects[i]->Write_PR (val);
 					return;
@@ -201,9 +211,9 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq) {
 	dbg_cregs	= cmd->FindExist("dbgregs", false);
 	dbg_plainputchar = cmd->FindExist("dbgputplain", false);
 	dbg_plaindr = cmd->FindExist("dbgdataplain", false);
-	
+
 	if(cmd->FindExist("dbgall", false)) {
-		dbg_data= 
+		dbg_data=
 		dbg_putchar=
 		dbg_cregs=true;
 		dbg_plainputchar=dbg_plaindr=false;
@@ -214,7 +224,7 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq) {
 	else debugfp=0;
 
 	if(debugfp == 0) {
-		dbg_data= 
+		dbg_data=
 		dbg_putchar=dbg_plainputchar=
 		dbg_cregs=false;
 	} else {
@@ -239,19 +249,23 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq) {
 }
 
 void CParallel::registerDOSDevice() {
+#if !defined(OSFREE)
 	if (mydosdevice == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("LPT%d: Registering DOS device",(int)port_nr+1);
 		mydosdevice = new device_LPT((uint8_t)port_nr, this);
 		DOS_AddDevice(mydosdevice);
 	}
+#endif
 }
 
 void CParallel::unregisterDOSDevice() {
+#if !defined(OSFREE)
 	if (mydosdevice != NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("LPT%d: Unregistering DOS device",(int)port_nr+1);
 		DOS_DelDevice(mydosdevice); // deletes the pointer for us!
 		mydosdevice=NULL;
 	}
+#endif
 }
 
 CParallel::~CParallel(void) {
@@ -297,10 +311,11 @@ void CParallel::initialize()
 
 
 CParallel* parallelPortObjects[]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
+static int disneyport = 0;
 bool DISNEY_HasInit();
 Bitu DISNEY_BasePort();
 bool DISNEY_ShouldInit();
+void DISNEY_Close();
 void DISNEY_Init(unsigned int base_port);
 
 Bitu bios_post_parport_count() {
@@ -328,134 +343,147 @@ void BIOS_Post_register_parports() {
 			BIOS_SetLPTPort(i,(uint16_t)DISNEY_BasePort());
 	}
 }
-	
+
 class PARPORTS:public Module_base {
-public:
-	
-	PARPORTS (Section * configuration):Module_base (configuration) {
+	public:
+		PARPORTS (Section * configuration):Module_base (configuration) {
 
-        // TODO: PC-98 does have one parallel port, if at all
-        if (IS_PC98_ARCH) return;
+			// TODO: PC-98 does have one parallel port, if at all
+			if (IS_PC98_ARCH) return;
 
 #if C_PRINTER
-        // we can only have one printer redirection, hence the variable
-        printer_used = false;
+			// we can only have one printer redirection, hence the variable
+			printer_used = false;
 #endif
+			disneyport = 0;
 
-		// default ports & interrupts
-		uint8_t defaultirq[] = { 7, 5, 12, 0, 0, 0, 0, 0, 0};
-		Section_prop *section = static_cast <Section_prop*>(configuration);
-		
-		char pname[]="parallelx";
-		// iterate through all 3 lpt ports
-		for (Bitu i = 0; i < 9; i++) {
-			pname[8] = '1' + (char)i;
-			CommandLine cmd(0,section->Get_string(pname));
-            CommandLine tmp(0,section->Get_string(pname), CommandLine::either, true);
+			// default ports & interrupts
+			uint8_t defaultirq[] = { 7, 5, 12, 0, 0, 0, 0, 0, 0};
+			Section_prop *section = static_cast <Section_prop*>(configuration);
 
-			std::string str;
-            bool squote = false;
-            // single quotes to quote string?
-            if(cmd.FindStringBegin("squote",str,false)) {
-                squote = true;
-                cmd=tmp;
-            }
-
-            if(cmd.FindStringBegin("base:",str,true))
-				parallel_baseaddr[i] = (uint16_t)strtol(str.c_str(), NULL, 16);
-            if(cmd.FindStringBegin("irq:",str,true))
-				defaultirq[i] = (uint8_t)strtol(str.c_str(), NULL, 10);
-			cmd.FindCommand(1,str);
-#if C_DIRECTLPT
-			if(str=="reallpt") {
-				CDirectLPT* cdlpt= new CDirectLPT(i, defaultirq[i],&cmd);
-				if(cdlpt->InstallationSuccessful) {
-					parallelPortObjects[i]=cdlpt;
-					parallelPortObjects[i]->parallelType = PARALLEL_TYPE_REALLPT;
-					cmd.Shift(1);
-					cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
-				} else {
-					delete cdlpt;
-					parallelPortObjects[i]=0;
-				}
-			} else
+#if HAS_CDIRECTLPT && (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+			regainPrivileges(); // Ignore whether we could actually regain privileges.
 #endif
-			if(!str.compare("file")) {
-				CFileLPT* cflpt= new CFileLPT(i, defaultirq[i], &cmd, squote);
-				if(cflpt->InstallationSuccessful) {
-					parallelPortObjects[i]=cflpt;
-					parallelPortObjects[i]->parallelType = PARALLEL_TYPE_FILE;
-					cmd.Shift(1);
-					cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
-				} else {
-					delete cflpt;
-					parallelPortObjects[i]=0;
+			char pname[]="parallelx";
+			// iterate through all 3 lpt ports
+			for (Bitu i = 0; i < 9; i++) {
+				pname[8] = '1' + (char)i;
+				CommandLine cmd(nullptr, section->Get_string(pname));
+				CommandLine tmp(nullptr, section->Get_string(pname), CommandLine::either, true);
+
+				std::string str;
+				bool squote = false;
+				// single quotes to quote string?
+				if(cmd.FindStringBegin("squote",str,false)) {
+					squote = true;
+					cmd=tmp;
 				}
-			} else
+
+				if(cmd.FindStringBegin("base:",str,true))
+					parallel_baseaddr[i] = (uint16_t)strtol(str.c_str(), NULL, 16);
+				if(cmd.FindStringBegin("irq:",str,true))
+					defaultirq[i] = (uint8_t)strtol(str.c_str(), NULL, 10);
+				cmd.FindCommand(1,str);
+
+				/* DOSBox SVN disney=true compatibility: Reserve LPT1 for Disney Sound Source */
+				if (i == 0 && DISNEY_ShouldInit())
+					continue;
+
+#if HAS_CDIRECTLPT
+				if(str=="reallpt") {
+					CDirectLPT* cdlpt= new CDirectLPT(i, defaultirq[i],&cmd);
+					if(cdlpt->InstallationSuccessful) {
+						parallelPortObjects[i]=cdlpt;
+						parallelPortObjects[i]->parallelType = PARALLEL_TYPE_REALLPT;
+						cmd.Shift(1);
+						cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
+					} else {
+						delete cdlpt;
+						parallelPortObjects[i] = nullptr;
+					}
+				} else
+#endif
+					if(!str.compare("file")) {
+						CFileLPT* cflpt= new CFileLPT(i, defaultirq[i], &cmd, squote);
+						if(cflpt->InstallationSuccessful) {
+							parallelPortObjects[i]=cflpt;
+							parallelPortObjects[i]->parallelType = PARALLEL_TYPE_FILE;
+							cmd.Shift(1);
+							cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
+						} else {
+							delete cflpt;
+							parallelPortObjects[i] = nullptr;
+						}
+					} else
 #if C_PRINTER
-            // allow printer redirection on a single port
-            if (str == "printer" && !printer_used)
-            {
-                CPrinterRedir* cprd = new CPrinterRedir(i, defaultirq[i], &cmd);
-                if (cprd->InstallationSuccessful)
-                {
-                    parallelPortObjects[i] = cprd;
-					parallelPortObjects[i]->parallelType = PARALLEL_TYPE_PRINTER;
-					cmd.Shift(1);
-					cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
-                    printer_used = true;
-                }
-                else
-                {
-                    LOG_MSG("Error: printer is not enabled.");
-                    delete cprd;
-                    parallelPortObjects[i] = 0;
-                }
-            } else
-#endif				
-            if(str=="disabled") {
-				parallelPortObjects[i] = 0;
-			} else if (str == "disney") {
-				if (!DISNEY_HasInit()) {
-					LOG_MSG("LPT%d: User explicitly assigned Disney Sound Source to this port",(int)i+1);
-					DISNEY_Init(parallel_baseaddr[i]);
-					parallelPortObjects[i]->parallelType = PARALLEL_TYPE_DISNEY;
-					cmd.Shift(1);
-					cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
-				}
-				else {
-					LOG_MSG("LPT%d: Disney Sound Source already initialized on a port, cannot init again",(int)i+1);
-				}
-			} else {
-				LOG_MSG ("Invalid type for LPT%d.",(int)i + 1);
-				parallelPortObjects[i] = 0;
-			}
-		} // for lpt 1-9
-	}
-#if C_PRINTER
-	// we can only have one printer redirection, hence the variable
-	bool printer_used = false;
+						// allow printer redirection on a single port
+						if (str == "printer" && !printer_used)
+						{
+							CPrinterRedir* cprd = new CPrinterRedir(i, defaultirq[i], &cmd);
+							if (cprd->InstallationSuccessful)
+							{
+								parallelPortObjects[i] = cprd;
+								parallelPortObjects[i]->parallelType = PARALLEL_TYPE_PRINTER;
+								cmd.Shift(1);
+								cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
+								printer_used = true;
+							}
+							else
+							{
+								LOG_MSG("Error: printer is not enabled.");
+								delete cprd;
+								parallelPortObjects[i] = nullptr;
+							}
+						} else
 #endif
-
-	~PARPORTS () {
-//		LOG_MSG("Parports destructor\n");
-		for (Bitu i = 0; i < 9; i++) {
-			if (parallelPortObjects[i]) {
-				delete parallelPortObjects[i];
-				parallelPortObjects[i] = 0;
-			}
+							if(str=="disabled") {
+								parallelPortObjects[i] = nullptr;
+							} else if (str == "disney") {
+								parallelPortObjects[i] = nullptr;
+								if (!DISNEY_HasInit()) {
+									LOG_MSG("LPT%d: User explicitly assigned Disney Sound Source to this port",(int)i+1);
+									DISNEY_Init(parallel_baseaddr[i]);
+									if (DISNEY_HasInit()) disneyport = i+1;
+								}
+								else {
+									LOG_MSG("LPT%d: Disney Sound Source already initialized on a port, cannot init again",(int)i+1);
+								}
+							} else {
+								LOG_MSG ("Invalid type for LPT%d.",(int)i + 1);
+								parallelPortObjects[i] = nullptr;
+							}
+			} // for lpt 1-9
+#if HAS_CDIRECTLPT && (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+			// Drop root privileges (temporarily) when they are not
+			// needed, which is a good practice if the executable is
+			// setuid root.
+			dropPrivilegesTemp(); // Ignore whether we could actually drop privileges.
+#endif
 		}
 #if C_PRINTER
-		printer_used = false;
+		// we can only have one printer redirection, hence the variable
+		bool printer_used = false;
 #endif
-	}
+
+		~PARPORTS () {
+			// LOG_MSG("Parports destructor\n");
+			for (Bitu i = 0; i < 9; i++) {
+				if (parallelPortObjects[i]) {
+					delete parallelPortObjects[i];
+					parallelPortObjects[i] = nullptr;
+				}
+			}
+#if C_PRINTER
+			printer_used = false;
+#endif
+		}
 };
 
 static PARPORTS *testParallelPortsBaseclass = NULL;
 
 static const char *parallelTypes[PARALLEL_TYPE_COUNT] = {
 	"disabled",
-#if C_DIRECTLPT
+#if HAS_CDIRECTLPT
 	"reallpt",
 #endif
 	"file",
@@ -466,24 +494,25 @@ static const char *parallelTypes[PARALLEL_TYPE_COUNT] = {
 };
 
 class PARALLEL : public Program {
-public:
-	void Run();
-private:
-	void showPort(int port);
+	public:
+		void Run() override;
+	private:
+		void showPort(int port);
 };
 
 void PARALLEL::showPort(int port) {
-	if (parallelPortObjects[port] != nullptr) {
+	if (parallelPortObjects[port] != nullptr)
 		WriteOut("LPT%d: %s %s\n", port + 1, parallelTypes[parallelPortObjects[port]->parallelType], parallelPortObjects[port]->commandLineString.c_str());
-	} else {
+	else if (disneyport==port+1)
+		WriteOut("LPT%d: %s %s\n", port + 1, parallelTypes[PARALLEL_TYPE_DISNEY], "");
+	else
 		WriteOut("LPT%d: %s %s\n", port + 1, parallelTypes[PARALLEL_TYPE_DISABLED], "");
-	}
 }
 
 void PARALLEL::Run()
 {
-    if (!testParallelPortsBaseclass) return;
-    if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+	if (!testParallelPortsBaseclass) return;
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
 		WriteOut("Views or changes the parallel port settings.\n\nPARALLEL [port] [type] [option]\n\n"
 				" port   Parallel port number (between 1 and 9).\n type   Type of the parallel port, including:\n        ");
 		for (int x=0; x<PARALLEL_TYPE_COUNT; x++) {
@@ -545,19 +574,19 @@ void PARALLEL::Run()
 			commandLineString.append(temp_line);
 			commandLineString.append(" ");
 		}
-            CommandLine cmd("PARALLEL.COM",commandLineString.c_str());
-            CommandLine tmp("PARALLEL.COM",commandLineString.c_str(), CommandLine::either, true);
-            std::string str;
-            bool squote = false;
-            // single quotes to quote string?
-            if(cmd.FindStringBegin("squote",str,false)) {
-                squote = true;
-                cmd=tmp;
-            }
-			if(cmd.FindStringBegin("base:",str,true))
-				parallel_baseaddr[port-1] = (uint16_t)strtol(str.c_str(), NULL, 16);
-			if(cmd.FindStringBegin("irq:",str,true))
-				defaultirq[port-1] = (uint8_t)strtol(str.c_str(), NULL, 10);
+		CommandLine cmd("PARALLEL.COM",commandLineString.c_str());
+		CommandLine tmp("PARALLEL.COM",commandLineString.c_str(), CommandLine::either, true);
+		std::string str;
+		bool squote = false;
+		// single quotes to quote string?
+		if(cmd.FindStringBegin("squote",str,false)) {
+			squote = true;
+			cmd=tmp;
+		}
+		if(cmd.FindStringBegin("base:",str,true))
+			parallel_baseaddr[port-1] = (uint16_t)strtol(str.c_str(), NULL, 16);
+		if(cmd.FindStringBegin("irq:",str,true))
+			defaultirq[port-1] = (uint8_t)strtol(str.c_str(), NULL, 10);
 		// Remove existing port.
 		if (parallelPortObjects[port-1]) {
 #if C_PRINTER
@@ -567,56 +596,74 @@ void PARALLEL::Run()
 			}
 			if (parallelPortObjects[port-1]->parallelType == PARALLEL_TYPE_PRINTER) testParallelPortsBaseclass->printer_used = false;
 #endif
+			if (mode==PARALLEL_TYPE_DISNEY&&disneyport!=port&&DISNEY_HasInit()) {
+				WriteOut("Disney is already assigned to a different port.\n");
+				return;
+			}
 			DOS_PSP curpsp(dos.psp());
 			if (dos.psp()!=curpsp.GetParent()) {
-                char name[5];
-                sprintf(name, "LPT%d", port);
-                curpsp.CloseFile(name);
-            }
+				char name[5];
+				sprintf(name, "LPT%d", port);
+				curpsp.CloseFile(name);
+			}
 			delete parallelPortObjects[port-1];
-			parallelPortObjects[port-1] = 0;
+			parallelPortObjects[port - 1] = nullptr;
 #if C_PRINTER
 		} else if (mode==PARALLEL_TYPE_PRINTER&&testParallelPortsBaseclass->printer_used) {
 			WriteOut("Printer is already assigned to a different port.\n");
 			return;
 #endif
+		} else if (mode==PARALLEL_TYPE_DISNEY&&disneyport!=port&&DISNEY_HasInit()) {
+			WriteOut("Disney is already assigned to a different port.\n");
+			return;
+		} else if (disneyport==port) {
+			if (mode==PARALLEL_TYPE_DISNEY) {
+				showPort(port-1);
+				return;
+			} else {
+				DISNEY_Close();
+				if (!DISNEY_HasInit()) disneyport=0;
+			}
 		}
 		// Recreate the port with the new mode.
 		switch (mode) {
 			case PARALLEL_TYPE_DISABLED:
-				parallelPortObjects[port-1] = 0;
+				parallelPortObjects[port - 1] = nullptr;
 				break;
-#if C_DIRECTLPT
+#if HAS_CDIRECTLPT
 			case PARALLEL_TYPE_REALLPT:
-			{
-				CDirectLPT* cdlpt= new CDirectLPT(port-1, defaultirq[port-1],&cmd);
-				if(cdlpt->InstallationSuccessful) parallelPortObjects[port-1]=cdlpt;
-				break;
-			}
+				{
+					CDirectLPT* cdlpt= new CDirectLPT(port-1, defaultirq[port-1],&cmd);
+					if(cdlpt->InstallationSuccessful) parallelPortObjects[port-1]=cdlpt;
+					break;
+				}
 #endif
 			case PARALLEL_TYPE_FILE:
-			{
-				CFileLPT* cflpt= new CFileLPT(port-1, defaultirq[port-1], &cmd, squote);
-				if(cflpt->InstallationSuccessful) parallelPortObjects[port-1]=cflpt;
-				break;
-			}
+				{
+					CFileLPT* cflpt= new CFileLPT(port-1, defaultirq[port-1], &cmd, squote);
+					if(cflpt->InstallationSuccessful) parallelPortObjects[port-1]=cflpt;
+					break;
+				}
 #if C_PRINTER
 			case PARALLEL_TYPE_PRINTER:
-                if (!testParallelPortsBaseclass->printer_used) {
-                    CPrinterRedir* cprd = new CPrinterRedir(port-1, defaultirq[port-1], &cmd);
-                    if(cprd->InstallationSuccessful) {
-                        parallelPortObjects[port-1]=cprd;
-                        testParallelPortsBaseclass->printer_used=true;
-                    }
-                }
-                break;
+				if (!testParallelPortsBaseclass->printer_used) {
+					CPrinterRedir* cprd = new CPrinterRedir(port-1, defaultirq[port-1], &cmd);
+					if(cprd->InstallationSuccessful) {
+						parallelPortObjects[port-1]=cprd;
+						testParallelPortsBaseclass->printer_used=true;
+					}
+				}
+				break;
 #endif
 			case PARALLEL_TYPE_DISNEY:
-				if (!DISNEY_HasInit()) DISNEY_Init(parallel_baseaddr[port-1]);
+				if (!DISNEY_HasInit()) {
+					DISNEY_Init(parallel_baseaddr[port-1]);
+					if (DISNEY_HasInit()) disneyport=port;
+				}
 				break;
 		}
 		if (parallelPortObjects[port-1]) {
-            parallelPortObjects[port-1]->registerDOSDevice();
+			parallelPortObjects[port-1]->registerDOSDevice();
 			parallelPortObjects[port-1]->parallelType = (ParallelTypesE)mode;
 			parallelPortObjects[port-1]->commandLineString = commandLineString;
 		}
@@ -639,7 +686,7 @@ void runParallel(const char *str) {
 }
 
 void PARALLEL_Destroy (Section * sec) {
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	if (testParallelPortsBaseclass != NULL) {
 		delete testParallelPortsBaseclass;
 		testParallelPortsBaseclass = NULL;
@@ -647,22 +694,22 @@ void PARALLEL_Destroy (Section * sec) {
 }
 
 void PARALLEL_OnPowerOn (Section * sec) {
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing parallel port emulation");
 
 	if (testParallelPortsBaseclass) delete testParallelPortsBaseclass;
 	testParallelPortsBaseclass = new PARPORTS (control->GetSection("parallel"));
 
-	/* Mainline DOSBox 0.74 compatible support for "disney=true" setting.
-	 * But, don't allocate the Disney Sound Source if LPT1 is already taken. */
+	/* DOSBox SVN compatibility: LPT1 should be reserved for Disney Sound Source if disney=true, now init it */
 	if (!DISNEY_HasInit() && DISNEY_ShouldInit() && parallelPortObjects[0] == NULL) {
-		LOG_MSG("LPT: LPT1 not taken, and dosbox-x.conf says to emulate Disney Sound Source");
+		LOG_MSG("disney=true. For compatibility with other DOSBox forks and SVN, LPT1 has been reserved for Disney Sound Source. Initializing it now.");
+		LOG_MSG("DOSBox-X also supports disney=false and parallel1=disney");
 		DISNEY_Init(parallel_baseaddr[0]);
 	}
 }
 
 void PARALLEL_OnDOSKernelInit (Section * sec) {
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	unsigned int i;
 
 	LOG(LOG_MISC,LOG_DEBUG)("DOS kernel initializing, creating LPTx devices");
@@ -674,7 +721,7 @@ void PARALLEL_OnDOSKernelInit (Section * sec) {
 }
 
 void PARALLEL_OnDOSKernelExit (Section * sec) {
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	unsigned int i;
 
 	for (i=0;i < 9;i++) {
@@ -684,7 +731,7 @@ void PARALLEL_OnDOSKernelExit (Section * sec) {
 }
 
 void PARALLEL_OnReset (Section * sec) {
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	unsigned int i;
 
 	// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.
@@ -699,11 +746,11 @@ void PARALLEL_Init () {
 
 	AddExitFunction(AddExitFunctionFuncPair(PARALLEL_Destroy),true);
 
-    if (!IS_PC98_ARCH) {
-        AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PARALLEL_OnReset));
-        AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PARALLEL_OnPowerOn));
-        AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelExit));
-        AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelInit));
-    }
+	if (!IS_PC98_ARCH) {
+		AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PARALLEL_OnReset));
+		AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PARALLEL_OnPowerOn));
+		AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelExit));
+		AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelInit));
+	}
 }
 

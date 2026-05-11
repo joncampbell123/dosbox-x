@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_HAIKU
+#ifdef SDL_VIDEO_DRIVER_HAIKU
 
 /* BWindow based clipboard implementation */
 
@@ -37,12 +37,12 @@ extern "C" {
 
 int HAIKU_SetClipboardText(_THIS, const char *text) {
     BMessage *clip = NULL;
-    if(be_clipboard->Lock()) {
+    if (be_clipboard->Lock()) {
         be_clipboard->Clear();
-        if((clip = be_clipboard->Data())) {
+        if ((clip = be_clipboard->Data())) {
             /* Presumably the string of characters is ascii-format */
             ssize_t asciiLength = 0;
-            for(; text[asciiLength] != 0; ++asciiLength) {}
+            for (; text[asciiLength] != 0; ++asciiLength) {}
             clip->AddData("text/plain", B_MIME_TYPE, text, asciiLength);
             be_clipboard->Commit();
         }
@@ -56,8 +56,8 @@ char *HAIKU_GetClipboardText(_THIS) {
     const char *text = NULL;    
     ssize_t length;
     char *result;
-    if(be_clipboard->Lock()) {
-        if((clip = be_clipboard->Data())) {
+    if (be_clipboard->Lock()) {
+        if ((clip = be_clipboard->Data())) {
             /* Presumably the string of characters is ascii-format */
             clip->FindData("text/plain", B_MIME_TYPE, (const void**)&text,
                 &length);

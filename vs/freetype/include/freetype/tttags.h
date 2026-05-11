@@ -1,27 +1,26 @@
-/***************************************************************************/
-/*                                                                         */
-/*  tttags.h                                                               */
-/*                                                                         */
-/*    Tags for TrueType and OpenType tables (specification only).          */
-/*                                                                         */
-/*  Copyright 1996-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * tttags.h
+ *
+ *   Tags for TrueType and OpenType tables (specification only).
+ *
+ * Copyright (C) 1996-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
 #ifndef TTAGS_H_
 #define TTAGS_H_
 
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include <freetype/freetype.h>
 
 #ifdef FREETYPE_H
 #error "freetype.h of FreeType 1 has been loaded!"
@@ -46,6 +45,8 @@ FT_BEGIN_HEADER
 #define TTAG_CFF2  FT_MAKE_TAG( 'C', 'F', 'F', '2' )
 #define TTAG_CID   FT_MAKE_TAG( 'C', 'I', 'D', ' ' )
 #define TTAG_cmap  FT_MAKE_TAG( 'c', 'm', 'a', 'p' )
+#define TTAG_COLR  FT_MAKE_TAG( 'C', 'O', 'L', 'R' )
+#define TTAG_CPAL  FT_MAKE_TAG( 'C', 'P', 'A', 'L' )
 #define TTAG_cvar  FT_MAKE_TAG( 'c', 'v', 'a', 'r' )
 #define TTAG_cvt   FT_MAKE_TAG( 'c', 'v', 't', ' ' )
 #define TTAG_DSIG  FT_MAKE_TAG( 'D', 'S', 'I', 'G' )
@@ -94,6 +95,7 @@ FT_BEGIN_HEADER
 #define TTAG_sbix  FT_MAKE_TAG( 's', 'b', 'i', 'x' )
 #define TTAG_sfnt  FT_MAKE_TAG( 's', 'f', 'n', 't' )
 #define TTAG_SING  FT_MAKE_TAG( 'S', 'I', 'N', 'G' )
+#define TTAG_SVG   FT_MAKE_TAG( 'S', 'V', 'G', ' ' )
 #define TTAG_trak  FT_MAKE_TAG( 't', 'r', 'a', 'k' )
 #define TTAG_true  FT_MAKE_TAG( 't', 'r', 'u', 'e' )
 #define TTAG_ttc   FT_MAKE_TAG( 't', 't', 'c', ' ' )
@@ -105,6 +107,7 @@ FT_BEGIN_HEADER
 #define TTAG_vmtx  FT_MAKE_TAG( 'v', 'm', 't', 'x' )
 #define TTAG_VVAR  FT_MAKE_TAG( 'V', 'V', 'A', 'R' )
 #define TTAG_wOFF  FT_MAKE_TAG( 'w', 'O', 'F', 'F' )
+#define TTAG_wOF2  FT_MAKE_TAG( 'w', 'O', 'F', '2' )
 
 /* used by "Keyboard.dfont" on legacy Mac OS X */
 #define TTAG_0xA5kbd  FT_MAKE_TAG( 0xA5, 'k', 'b', 'd' )

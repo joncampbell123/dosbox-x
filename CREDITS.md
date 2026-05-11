@@ -3,7 +3,7 @@ Credits
 
 Jonathan Campbell, the maintainer of DOSBox-X does not claim to have written all of the code in this project.
 
-The purpose of this document is to try and build a comprehensive list of source code in this repository that was borrowed from other projects.
+The purpose of this document is to try to build a comprehensive list of source code in this repository that was borrowed from other projects.
 
 The base code is from the [DOSBox](https://www.dosbox.com) project in which most of the SVN commits made since 2011 were incorporated into DOSBox-X. This code had since been heavily modified by the DOSBox-X project.
 
@@ -37,7 +37,8 @@ A list of features ported from DOSBox Staging (maintainers: dreamer and kcgen):
 
 * AUTOTYPE command for scripted keyboard entry (improved since then by Wengier)
 * LS command (heavily improved since then by Wengier)
-* Modem phonebook support
+* Basic support for VMware mouse protocol and CuteMouse wheel API
+* Support for phonebook and ENET reliable UDP for modem emulation
 * Support for changing key bindings in runtime (improved since then by Wengier)
 
 A list of features ported from DOSVAX (maintainer: akm) and DOSVAXJ3 (maintainer: nanshiki):
@@ -71,8 +72,6 @@ FluidSynth synthesizer (Tom Moebert; GPLv2+) src/libs/fluidsynth/.c src/libs/flu
 
 Framework-agnostic GUI toolkit (Jorg Walter; GPLv3+) src/libs/gui_tk/.cpp src/libs/gui_tk/.h
 
-Porttalk library, to read/write I/O ports directly (Unknown source) src/libs/porttalk/.cpp src/libs/porttalk/.h
-
 FLAC, MP3, WAV, and Vorbis libraries (David Reid, Kevin Croft, et al; GPLv2+) src/libs/decoders/mp3*.cpp src/libs/decoders/.c src/libs/decoders/.h
 
 FreeDOS utilities as binary blobs (FreeDOS; no license) src/builtin/*.cpp
@@ -91,6 +90,8 @@ HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin; GPLv2+) src/gui/render_templ
 
 PC-98 FM board emulation (Neko Project II; BSD 3-clause) src/hardware/snd_pc98/*
 
+PC-98 GDC and LIO drawing support (Neko Project II; BSD 3-clause) src/hardware/vga_pc98_gdc_draw.cpp src/ints/pc98_lio.cpp
+
 QCOW image support (Michael Greger; GPLv2+) src/ints/qcow2_disk.cpp
 
 JEGA and DOS/V support (nanshiki, Wengier; GPLv2+) include/jfont.h src/ints/int_dosv.cpp
@@ -101,3 +102,6 @@ Tiny File Dialogs (vareille; zlib licence) src/libs/tinyfiledialogs/*
 
 MAME CHD support (Romain Tisserand; BSD 3-clause) src/libs/libchdr/*
 
+Game Link IPC protocol (David Walters, ported by Jörg Walter; GPLv2+) src/gamelink/* src/output/output_gamelink*
+
+passthroughio library, port I/O to/from the host system (Daniël Hörchner; GPLv2+) src/libs/passthroughio/*

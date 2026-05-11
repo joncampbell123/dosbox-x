@@ -33,6 +33,8 @@
 #include "voodoo_vogl.h"
 #include "voodoo_types.h"
 
+extern UINT32 new_width;
+extern UINT32 new_height;
 
 /* texture data */
 struct ogl_texture_data {

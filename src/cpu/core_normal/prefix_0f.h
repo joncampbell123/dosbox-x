@@ -158,6 +158,11 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 		if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 		break;
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x19) CASE_0F_B(0x1A) CASE_0F_B(0x1B) CASE_0F_B(0x1C) CASE_0F_B(0x1D) CASE_0F_B(0x1E) CASE_0F_B(0x1F)         /* hinting NOPs */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		break;
+#endif
 	CASE_0F_B(0x20)												/* MOV Rd.CRx */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
@@ -252,7 +257,7 @@
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
 			/* Use a fixed number when in auto cycles mode as else the reported value changes constantly */
-			int64_t tsc=(int64_t)(PIC_FullIndex()*(double) (CPU_CycleAutoAdjust?70000:CPU_CycleMax));
+			int64_t tsc=CPU_RDTSC();
 			reg_edx=(uint32_t)(tsc>>32);
 			reg_eax=(uint32_t)(tsc&0xffffffff);
 		}
@@ -694,36 +699,39 @@
 	CASE_0F_B(0xc0)												/* XADD Gb,Eb */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
-			GetRMrb;uint8_t oldrmrb=*rmrb;
-			if (rm >= 0xc0 ) {GetEArb;*rmrb=*earb;*earb+=oldrmrb;}
-			else {GetEAa;*rmrb=LoadMb(eaa);SaveMb(eaa,LoadMb(eaa)+oldrmrb);}
+			GetRMrb;auto oldrmrb=lf_var2b=*rmrb;
+			if (rm >= 0xc0 ) {GetEArb;lf_var1b=*rmrb=*earb;*earb+=oldrmrb;lf_resb=*earb;}
+			else {GetEAa;lf_var1b=*rmrb=LoadMb(eaa);SaveMb(eaa,lf_resb=*rmrb+oldrmrb);}
+			lflags.type=t_ADDb;
 			break;
 		}
 	CASE_0F_W(0xc1)												/* XADD Gw,Ew */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
-			GetRMrw;uint16_t oldrmrw=*rmrw;
-			if (rm >= 0xc0 ) {GetEArw;*rmrw=*earw;*earw+=oldrmrw;}
-			else {GetEAa;*rmrw=LoadMw(eaa);SaveMw(eaa,LoadMw(eaa)+oldrmrw);}
+			GetRMrw;auto oldrmrw=lf_var2w=*rmrw;
+			if (rm >= 0xc0 ) {GetEArw;lf_var1w=*rmrw=*earw;*earw+=oldrmrw;lf_resw=*earw;}
+			else {GetEAa;lf_var1w=*rmrw=LoadMw(eaa);SaveMw(eaa,lf_resw=*rmrw+oldrmrw);}
+			lflags.type=t_ADDw;
 			break;
 		}
-    CASE_0F_W(0xc7)
-        {
-            extern bool enable_cmpxchg8b;
-            void CPU_CMPXCHG8B(PhysPt eaa);
 
-            if (!enable_cmpxchg8b || CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
-            GetRM;
-            if (((rm >> 3) & 7) == 1) { // CMPXCHG8B /1 r/m
-                if (rm >= 0xc0 ) goto illegal_opcode;
-                GetEAa;
-                CPU_CMPXCHG8B(eaa);
-            }
-            else {
-                goto illegal_opcode;
-            }
-            break;
-        }
+	CASE_0F_W(0xc7)
+		{
+			extern bool enable_cmpxchg8b;
+			void CPU_CMPXCHG8B(PhysPt eaa);
+
+			if (!enable_cmpxchg8b || CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
+			GetRM;
+			if (((rm >> 3) & 7) == 1) { // CMPXCHG8B /1 r/m
+				if (rm >= 0xc0 ) goto illegal_opcode;
+				GetEAa;
+				CPU_CMPXCHG8B(eaa);
+			}
+			else {
+				goto illegal_opcode;
+			}
+			break;
+		}
 	CASE_0F_W(0xc8)												/* BSWAP AX */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 		BSWAPW(reg_ax);break;
@@ -748,8 +756,11 @@
 	CASE_0F_W(0xcf)												/* BSWAP DI */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 		BSWAPW(reg_di);break;
+
 #if C_FPU
-#define CASE_0F_MMX(x) CASE_0F_W(x)
-#include "prefix_0f_mmx.h"
-#undef CASE_0F_MMX
+# if CPU_CORE >= CPU_ARCHTYPE_386
+#  define CASE_0F_MMX(x) CASE_0F_W(x)
+#  include "prefix_0f_mmx.h"
+#  undef CASE_0F_MMX
+# endif
 #endif

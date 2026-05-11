@@ -18,7 +18,9 @@
 /* DEBUG: Force dual rw/rx on a Linux system that otherwise allows rwx */
 //#define DEBUG_LINUX_FORCE_MEMFD_DUAL_RW_X
 
+#if defined(C_HAVE_MEMFD_CREATE) && !defined(__ANDROID__) && !defined(ANDROID)
 static int cache_fd = -1;
+#endif
 static uint8_t *cache_code_init = NULL; // NTS: Because dynamic code modifies cache_code as needed
 static uint8_t *cache_exec_ptr = NULL;
 static Bitu cache_map_size = 0;

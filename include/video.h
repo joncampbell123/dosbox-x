@@ -48,6 +48,7 @@ struct GFX_PalEntry {
 #define GFX_LOVE_32		0x0080u
 
 #define GFX_RGBONLY		0x0100u
+#define GFX_NORMALSCALE		0x0200u // one of the Normal scalers and therefore should be ignored for hardware scaling
 
 #define GFX_SCALING		0x1000u
 #define GFX_HARDWARE	0x2000u
@@ -94,6 +95,14 @@ void GFX_CaptureMouse(bool capture);
 void CaptureMouseNotify();
 //! \brief Notifies mouse capture according specific state.
 void CaptureMouseNotify(bool capture);
+
 extern bool mouselocked; //true if mouse is confined to window
+extern volatile bool vmware_mouse;
+
+void VMWARE_MouseButtonPressed(uint8_t button);
+void VMWARE_MouseButtonReleased(uint8_t button);
+void VMWARE_MousePosition(uint16_t pos_x, uint16_t pos_y);
+void VMWARE_MouseWheel(int32_t scroll);
+void VMWARE_ScreenParams(uint16_t clip_x, uint16_t clip_y, uint16_t res_x,  uint16_t res_y, bool fullscreen);
 
 #endif

@@ -35,7 +35,7 @@
 CDirectSerial::CDirectSerial (Bitu id, CommandLine* cmd)
 					:CSerial (id, cmd) {
 	InstallationSuccessful = false;
-	comport = 0;
+	comport = nullptr;
 
 	rx_retry = 0;
     rx_retry_max = 0;
@@ -230,7 +230,7 @@ void CDirectSerial::handleUpperEvent(uint16_t type) {
 			break;
 		}
 		case SERIAL_TX_EVENT: {
-			// Maybe echo cirquit works a bit better this way
+			// Maybe echo circuit works a bit better this way
 			if(rx_state==D_RX_IDLE && CanReceiveByte()) {
 				if(doReceive()) {
 					// a byte was received

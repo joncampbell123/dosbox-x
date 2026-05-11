@@ -458,8 +458,10 @@ Uint8 SDL_EventState (Uint8 type, int state)
 				SDL_eventstate &= ~(0x00000001 << (type));
 			}
 		}
-		while ( SDL_PollEvent(&bitbucket) > 0 )
+#if 0 // This does not seem necessary, and in fact results in lost keystrokes when entering/leaving keystrokes. Disabled
+        while ( SDL_PollEvent(&bitbucket) > 0 )
 			;
+#endif
 		return(current_state);
 	}
 
@@ -475,8 +477,10 @@ Uint8 SDL_EventState (Uint8 type, int state)
 			} else {
 				SDL_eventstate &= ~(0x00000001 << (type));
 			}
-			while ( SDL_PollEvent(&bitbucket) > 0 )
+#if 0 // This does not seem necessary, and in fact results in lost keystrokes when entering/leaving keystrokes. Disabled
+            while ( SDL_PollEvent(&bitbucket) > 0 )
 				;
+#endif
 			break;
 		default:
 			/* Querying state? */
@@ -602,7 +606,7 @@ wchar_t CompositionFontName[LF_FACESIZE];
 int SDL_IM_Composition() {
 #ifdef ENABLE_IM_EVENT
 #define IME_END_CR_WAIT 50
-    return IM_Context.bCompos||end_ticks&&(GetTickCount()-end_ticks<IME_END_CR_WAIT) ? 1 : 0;
+    return IM_Context.bCompos||(end_ticks&&GetTickCount()-end_ticks<IME_END_CR_WAIT) ? 1 : 0;
 #else
     return 0;
 #endif

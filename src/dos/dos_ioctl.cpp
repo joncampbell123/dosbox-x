@@ -30,6 +30,7 @@
 bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
+#if !defined(OSFREE)
         case 0x40:		/* Set device parameters */
 			{
 				if (strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
@@ -78,6 +79,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
 				fdp->SetBPB(bpb);
 				break;
 			}
+#endif
+#if !defined(OSFREE)
         case 0x60:		/* Get device parameters */
 			if (query) break;
 			{
@@ -149,6 +152,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                     mem_writeb(ptr+i,0);
                 break;
             }
+#endif
+#if !defined(OSFREE)
         case 0x42:  /* Format and verify logical device track (FORMAT.COM) */
             {
                 /* 01h    WORD    number of disk head
@@ -197,6 +202,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                 LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:42 Drive %2X pretending to format device track C/H/S=%u/%u/%u ntracks=%u",drive,cyl,head,sect,ntracks);
             }
             break;
+#endif
+#if !defined(OSFREE)
         case 0x62:	/* Verify logical device track (FORMAT.COM) */
             {
                 /* 01h    WORD    number of disk head
@@ -243,6 +250,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                 LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:62 Drive %2X pretending to verify device track C/H/S=%u/%u/%u ntracks=%u",drive,cyl,head,sect,ntracks);
             }
             break;
+#endif
+#if !defined(OSFREE)
         case 0x46:	/* Set volume serial number */
 			if (query) break;
 			{
@@ -261,6 +270,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
 				fdp->SetBPB(bpb);
 			}
             break;
+#endif
+#if !defined(OSFREE)
         case 0x66:	/* Get volume serial number */
 			if (query) break;
 			{
@@ -298,6 +309,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                 MEM_BlockWrite(ptr+0x11,buf2,8);//filesystem
             }
             break;
+#endif
+#if !defined(OSFREE)
         case 0x41:  /* Write logical device track */
 			{
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
@@ -374,6 +387,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                 }
             }
             break;
+#endif
+#if !defined(OSFREE)
         case 0x61:  /* Read logical device track */
             {
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
@@ -449,6 +464,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                 }
             }
             break;
+#endif
+#if !defined(OSFREE)
         case 0x4A:
         case 0x4B:
         case 0x6A:
@@ -456,6 +473,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
 			if (query) break;
 			LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X volume/drive locking IOCTL, faking it",reg_cl,drive);
             break;
+#endif
+#if !defined(OSFREE)
 		case 0x67: /* Get access flag (whether allowed by driver) */
 			if (query) break;
 			/* In DOSBox-X, disk access is always allowed.
@@ -465,6 +484,7 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
 			 * ptr+1 = return whether access allowed */
 			mem_writeb(ptr+1,0x01);
 			break;
+#endif
         default:
             LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL %s %2X:%2X Drive %2X unhandled (CH=08h)",query?"Query":"Call",reg_al,reg_cl,drive);
             DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
@@ -477,6 +497,7 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
 bool DOS_IOCTL_AX440D_CH48(uint8_t drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
+#if !defined(OSFREE)
         case 0x40:		/* Set device parameters */
 			{
 				if (strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
@@ -521,6 +542,8 @@ bool DOS_IOCTL_AX440D_CH48(uint8_t drive,bool query) {
 				}
 				break;
 			}
+#endif
+#if !defined(OSFREE)
         case 0x60:		/* Get device parameters */
 			if (query) break;
 			{
@@ -575,6 +598,8 @@ bool DOS_IOCTL_AX440D_CH48(uint8_t drive,bool query) {
                 }
                 break;
             }
+#endif
+#if !defined(OSFREE)
         case 0x42:
         case 0x46:
         case 0x4A:
@@ -585,6 +610,7 @@ bool DOS_IOCTL_AX440D_CH48(uint8_t drive,bool query) {
         case 0x6A:
         case 0x6B:
             return DOS_IOCTL_AX440D_CH08(drive,query);
+#endif
         default:
             LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call %02X:%2X Drive %2X unhandled (CH=48h)",reg_al,reg_cl,drive);
             DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
@@ -624,8 +650,10 @@ bool DOS_IOCTL(void) {
 	}
 	switch(reg_al) {
 	case 0x00:		/* Get Device Information */
-		if (Files[handle]->GetInformation() & 0x8000) {	//Check for device
-			reg_dx=Files[handle]->GetInformation() & ~EXT_DEVICE_BIT;
+		if (Files[handle]->GetInformation() & DeviceInfoFlags::Device) {	//Check for device
+			reg_dx=Files[handle]->GetInformation() & ~DeviceInfoFlags::ExternalDevice;
+			// DOS copies the upper byte of device attributes in DH resulting in two bits being set for a device
+			reg_dx |= DeviceAttributeFlags::CharacterDevice;//FIXME: What about when block device support is added?
 		} else {
 			uint8_t hdrive=Files[handle]->GetDrive();
 			if (hdrive==0xff) {
@@ -633,7 +661,7 @@ bool DOS_IOCTL(void) {
 				hdrive=2;	// defaulting to C:
 			}
 			/* return drive number in lower 5 bits for block devices */
-			reg_dx=(Files[handle]->GetInformation()&0xffe0)|hdrive;
+			reg_dx = (Files[handle]->GetInformation()&0xffe0) | (hdrive&0x1f);
 		}
 		reg_ax=reg_dx; //Destroyed officially
 		return true;
@@ -642,7 +670,8 @@ bool DOS_IOCTL(void) {
 			DOS_SetError(DOSERR_DATA_INVALID);
 			return false;
 		} else {
-			if (Files[handle]->GetInformation() & 0x8000) {	//Check for device
+			if (Files[handle]->GetInformation() & DeviceInfoFlags::Device) {	//Check for device
+				((DOS_Device *)(Files[handle]))->SetInformation(reg_dx);
 				reg_al=(uint8_t)(Files[handle]->GetInformation() & 0xff);
 			} else {
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
@@ -651,7 +680,7 @@ bool DOS_IOCTL(void) {
 		}
 		return true;
 	case 0x02:		/* Read from Device Control Channel */
-		if (Files[handle]->GetInformation() & 0xc000) {
+		if ((Files[handle]->GetInformation() & (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport)) == (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport)) {
 			/* is character device with IOCTL support */
 			PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
 			uint16_t retcode=0;
@@ -663,7 +692,7 @@ bool DOS_IOCTL(void) {
 		DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 		return false;
 	case 0x03:		/* Write to Device Control Channel */
-		if (Files[handle]->GetInformation() & 0xc000) {
+		if ((Files[handle]->GetInformation() & (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport)) == (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport)) {
 			/* is character device with IOCTL support */
 			PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
 			uint16_t retcode=0;
@@ -675,7 +704,7 @@ bool DOS_IOCTL(void) {
 		DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 		return false;
 	case 0x06:      /* Get Input Status */
-		if (Files[handle]->GetInformation() & 0x8000) {		//Check for device
+		if (Files[handle]->GetInformation() & DeviceInfoFlags::Device) {		//Check for device
 			reg_al = ((DOS_Device*)(Files[handle]))->GetStatus(true);
 		} else { // FILE
 			uint32_t oldlocation=0;
@@ -692,7 +721,7 @@ bool DOS_IOCTL(void) {
 		}
 		return true;
 	case 0x07:		/* Get Output Status */
-		if (Files[handle]->GetInformation() & EXT_DEVICE_BIT) {
+		if (Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
 			reg_al = ((DOS_Device*)(Files[handle]))->GetStatus(false);
 			return true;
 		}
@@ -781,6 +810,6 @@ bool DOS_IOCTL(void) {
 bool DOS_GetSTDINStatus(void) {
 	uint32_t handle=RealHandle(STDIN);
 	if (handle==0xFF) return false;
-	if (Files[handle] && (Files[handle]->GetInformation() & 64)) return false;
+	if (Files[handle] && (Files[handle]->GetInformation() & DeviceInfoFlags::EofOnInput)) return false;
 	return true;
 }

@@ -1,0 +1,114 @@
+Render on Demand:
+[DONE]
+- XARGON: Causes extra long pause going from initial title screen to main menu.
+  Apparently for some reason, the Idle callback takes 100x as much emulator time
+  when Render On Demand is enabled. Sometimes the Idle callback takes a full
+  1ms timer tick. Yikes.
+
+Render on Demand + Wait for Changes:
+[DONE]
+- XARGON: Wait for Changes often fails to update display when Xargon shows a popup message on the screen.
+          Xargon is using VGA unchained page flipping. The page flip to present the popup fails to render.
+          Perhaps the RenderComplete VGA function is rendering the entire frame in response BEFORE the
+          new start address takes effect. [FIXED]
+- Commander Keen in Invasion of the Vorticons (keen1):
+  Commander Keen in Aliens Ate My Babysitter (keen6):
+  Cosmo's Cosmic Adventure (cosmo):
+
+  Wait for Changes fails to update display when game uses only the attribute controller palette to "fade in"
+  and "fade out" the display. These games target the EGA where that is a more practical palette-based way
+  to do it. There is no VGA palette on EGA.
+- Cosmo's Cosmic Adventure (cosmo):
+  Jill of the Jungle (jill/trilogy-1):
+
+  Wait for Changes appears to affect Cosmo's rendering and page flipping. The normally regular (8fps?) frame
+  rate becomes somewhat irregular.
+
+  NOTE: I still see from time to time, Cosmo's frame rate seem to skip a bit, but it's much better (2025/12/23).
+  NOTE: Apparently reducing the calls to render complete frame down to ONE call per frame solves the issue (2025/12/24).
+- Cosmo's Cosmic Adventure (cosmo):
+  When your health goes to zero, Cosmo "dies" and goes to heaven, and the game does the
+  attribute controller "fade out", the Wait For Changes emulation fails to update the
+  screen after the last color is blanked. If you look at the Video Debug Overlay, despite
+  that all colors should be blanked, the last rendered frame still has color 15 set to
+  white. This does not happen if only Render On Demand is active.
+
+DOSBox Integrated Graphics:
+[TODO]
+[DONE]
+- Windows 3.1 IG driver needs to be able to read back the bank switching (r/w) registers so the software cursor can save/restore them as part of drawing the cursor.
+- Capabilities register, so the guest driver knows what we offer, AND as a way to detect whether the DOSBox IG is even enabled or not (whether machine=svga_dosbox or not).
+- Add DOSBox Integrated Graphics control register to control bank switching window size and granularity. The Windows driver could change the granularity to something smaller than 64KB while maintaining a 64KB window so that it can draw without having to worry about bank switching mid-draw. It's pretty obvious why Cirrus SVGA chipsets chose to use 64KB windows and 4KB granularity, and that's likely why. Yes, the Windows 3.1 driver in 386 enhanced mode will just use the linear framebuffer anyway, but for 286 standard mode and real mode windows, it's easier for the driver to just use the A000h segment and bank switching.
+- doublescan setting should become "true" "false" or "auto". "auto" is like true, but automatically becomes false when the user selects any render scaler other than the scale2x, etc. scalers. If the user wants to use the mame upscalers the doublescan setting shouldn't get in the way. [DONE, BUT IN A DIFFERENT WAY]
+- HD (1920x1080) modes crash the emulator if the Video Debug Overlay is enabled. [FIXED: Now it just stops rendering]
+- Why does VBETEST's line drawing glitch out for mode 0x10D (320x200 15bpp). It makes the test for that mode
+  either take way too long or never complete. ANSWER: Mode 0x10D is INT 10 mode 0x75, and 0x75 is a JEGA mode, which is M_CGA4, which confuses the VESA BIOS code.
+- DOSBox IG should use vscale register for low res VESA BIOS modes to double the pixels as normal SVGA cards do.
+- Video debug overlay fix info for DOSBox IG, the text is too long on one line and the EPAL palette can overlap it.
+- Need to implement get/set scanline length, so VBETEST can do the full panning test
+- Video debug overlay does not reflect Integrated Graphics width/height/bytesperscanline/hpel state when active,
+  still shows VGA state underneath.
+- video debug overlay, when DOSBox IG is enabled, does not show hpel [FIXED]
+- Add register to control pixel aspect ratio, so that it can fix the distorted frame when "fit to aspect ratio" is set. 1920x1080 has a 16:9 aspect ratio, not a 4:3 aspect ratio.
+- 16:9 VESA BIOS modes, when "fit to aspect ratio", are squeezed as if 4:3. [FIXED]
+
+VGA rendering system:
+[DONE]
+- Add to VGA struct two integers indicating the maximum video resolution supported by the emulated card. [DONE]
+- S3 emulation: Fill in VGA struct to indicate maximum video resolution is 2048x2048. [DONE]
+- DOSBox IG: Fill in VGA struct to indicate maximum video resolution supported is 4096x4096. [DONE]
+- DOSBox IG: Reject width/height specification from guest if the dimensions are larger than the maximum video resolution
+  reported in the VGA struct. [DONE]
+
+VESA BIOS:
+[NOTED]
+- VBETEST refuses to do the panning test on the initial screen per mode if the reported video memory size through the VESA BIOS is larger than 32MB. Why?
+- VBETEST refuses to do get/set scanline panning test if the video memory size reported through the VESA BIOS is larger than 8MB. Why?
+- VBETEST cannot handle more than 256 banks properly. It requires the VESA BIOS to ignore the upper 8 bits when calling the bank switching function, or else the test screens do not render properly. This is ironic considering VBETEST meticulously tests whether getting/setting the bank switching window works correctly even for banks 256 or higher if it thinks the card should support it. It seems to take the number of banks that SHOULD be there given the video memory (N), and then test up to N * 4.
+[TODO]
+- VBE protected mode "set display start" function should wait for vertical retrace if set by dosbox.conf or if BL == 0x80, same as the normal INT 10h call. Doing so should fix flickering in Duke Nukem 3D and Blood 800x600 VBE modes when used with dynamic core and cycles=max (any case where the game is able to render faster than the refresh rate). Then again perhaps the pmode interface was designed to quickly set the start address and may not have waited for vsync by default. Perhaps when Duke Nukem 3D coded their support the average machine was not capable in VBE modes of rendering more than 1/3 the refresh rate and the dev never noticed the issue.
+- Add dosbox.conf option to control whether pmode option waits for vsync. A pmode analog of "vesa set display vsync". If -1 it does not vsync.
+- INT 10h modelist: Add a field to the modelist struct that allows the modelist to specify a display aspect ratio.
+- VESAMOED: Add parameters that allow the user to edit the VESA BIOS modelist and control the display aspect ratio. You want to make a custom mode with a wacky aspect ratio like 21:9? Go for it. Make sure the program indicates in the param list the aspect ratio settings only apply to machine=svga_dosbox.
+[DONE]
+- Video debug overlay reporting source -> display resolutions for CGA/MDA/HERC/etc. assumes that 2x/4x row height is interleaved graphics, but remember there's that 160x100 text mode "graphics" mode some games use.
+- Add machine=vesa_vbe3 (S3 emulation), enable VBE 3.0 emulation if machine=vesa_vbe3.
+- For machine=svga_dosbox (DOSBox Integrated Graphics) add boolean to enable VBE 3.0 extensions, and then implement them if set. machine=svga_dosbox should emulate VBE 3.0. machine=svga_dosbox_vbe2 should emulate VBE 2.0.
+- S3: If there is enough video memory that more than 128 banks are possible, set the require-lfb flag on any mode for which more than 128 banks are required to interact with the visible page of the mode. Require the linear framebuffer to use it.
+- INT 10h VBE modelist. Add special flag that if set, makes use of the LFB a requirement to use the mode (and disables all bank switching non-lfb support for the mode)
+- When reading the vbe_window_granularity from dosbox.conf, instead of leaving it 0 if the user doesn't set it, set it to the SVGA card's default. Then go through the code and replace all the conditional (vbe_window_granularity != 0) tests with code to just trust that vbe_window_granularity is the window granularity. Cleanup the code. Add a variable to store the loaded value from dosbox.conf in a vbe_window_granularity_default variable because we're going to allow the DOSBox IG to change it at runtime.
+- dosbox.conf option to enable/disable the VBE protected mode interface.
+- Filter out video modes with width and/or height larger than the maximum video resolution indicated in the VGA struct. [DONE]
+- Now that render scaler limits have been removed, start adding VESA BIOS modes higher than 1920x1440. For example,
+  1920x1200, 2560x1600, 2880x2160, 3840x2160 (4K UHD!), 4096x2160. It is very important not to allow these UHD modes for
+  S3 emulation because the S3 chipset as emulated cannot output more than 2048 scan lines due to register limitations. [DONE]
+- VESA SetCPUWindow(). The bank number is 16-bit. The code masks off the low 8 bits because of legacy code and Demoscene bugs. Add code to NOT mask off the low 8 bits if there is enough video memory that 256 or more banks are possible. Make it one less thing for VBETEST to possibly complain about.
+- Add dosbox.conf option that if set, instructs the VESA BIOS emulation to limit the reported amount of video memory on the card.
+- To complement vga.mem.memsize, add vga.mem.vbe_memsize. Normally they would be the same value, but it would make it possible to report a smaller size through the VESA BIOS to deal with troublesome programs that can't handle too many banks while bank switching, or too much video memory in general, or limitations in the S3 CRTC registers. Then replace GetReportedVideoMemorySize() with just a reference to vga.mem.vbe_memsize. The code to limit reported VBE memory for S3 to stay within the limits of the S3 CRTC registers could adjust THAT value instead of limiting video memory.
+- S3 CRTC port 6Ah (bank switching) remove 8-bit hack for smaller vbe window granularity. Update code that limits reported VBE memory for S3 based on banks to always limit to 128, instead of 128 but 256 if smaller granularity.
+- BUG: machine=svga_dosbox breaks Duke Nukem 3D SVGA graphics support. You get a "rolling image" effect. This only happens if the game uses the protected mode interface to set the display start.
+
+AVI capture:
+- When capturing MPEG-TS with H.264, if FFMPEG provides it, try using the VAAPI version if possible. That means if your GPU has H.264 encoding support, the VAAPI version will use your GPU to encode to H.264, instead of using your CPU to do it. This at least would enable it under Linux. Not sure about Mac OS or Windows here.
+- Add option for MPEG-TS to choose between H.264, H.265, or AV1. These are codecs commonly supported by GPUs today.
+- Add option for AVI capture to choose between AVI, MPEG-TS, and fragmented MP4. The MP4 format might be easier to bring into video editing software. However you can't change video format on a whim in MP4, so, like AVI, every mode change means starting another capture file.
+
+Output drivers:
+- Add Vulkan output driver. On Linux at least, allow the user to choose between surface, opengl, and vulkan.
+- Add Metal output driver. It might be some good API practice if Mac OS builds could use that.
+- DirectX 11 output driver? DirectX 12 output driver? Programming practice.
+
+Voodoo 3Dfx:
+- Idea: Set up an OpenGL texture and direct 3Dfx emulation to render to texture, then present that texture to the DOSBox-X window. This would allow 3Dfx OpenGL output while allowing resizing and the menus to work.
+- Make it possible, like other DOSBox forks do, and users seem to expect, for DOSBox-X to just OpenGL render 3Dfx at the resolution of the window, effectively upscaling the 3Dfx output. That does screw with the OpenGL matrix and OpenGL state, which is why DOSBox-X imposed the limit in the first place.
+
+DOSBox menus:
+- Add menu item to control render on demand, and wait for changes. Selecting the menu will toggle between [auto], [off], and [on].
+- Add menu item to control AVI capture skip unchanged option.
+
+DOSBox scaler render system:
+[DONE]
+- Render scaler code crashes if the GFX display is larger than 1920x1080. Add code to bypass scalers entirely and draw directly to the SDL surface if the resolution is greater than 1920x1080. At that high resolution there is no need for scalers (you probably can't see the effects of the more elaborate ones anyway), and you probably have a GPU through which you can use the OpenGL output mode to scale up to your screen if for some reason you have an 8K monitor. [FIXED]
+- Recent changes to the render system in DOSBox-X just BROKE the "fit aspect ratio" setting for output=surface! It no longer stretches the
+  frame properly! Fix! [UM, DOES NOT HAPPEN ANYMORE?]
+

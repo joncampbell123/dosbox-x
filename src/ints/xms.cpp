@@ -95,6 +95,12 @@ bool xms_hma_exists = true;
 bool xms_hma_application_has_control = false;
 bool xms_hma_alloc_non_dos_kernel_control = true;
 
+bool xms_memmove_flatrealmode = false;
+bool xms_init_flatrealmode = false;
+#if !defined(OSFREE)
+bool xms_debug_log_memmove = false;
+#endif
+
 struct XMS_Block {
 	Bitu	size;
 	MemHandle mem;
@@ -153,8 +159,13 @@ Bitu XMS_GetEnabledA20(void) {
 }
 
 static RealPt xms_callback;
+#if !defined(OSFREE)
 static bool umb_available = false;
 static bool umb_init = false;
+uint16_t desired_ems_segment = 0;
+#else
+static constexpr bool umb_available = false;
+#endif
 
 static XMS_Block xms_handles[XMS_HANDLES_MAX];
 
@@ -196,6 +207,7 @@ Bitu XMS_QueryFreeMemory(uint32_t& largestFree, uint32_t& totalFree) {
 	return 0;
 }
 
+#if !defined(OSFREE)
 void XMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 	PhysPt address;
 
@@ -209,9 +221,12 @@ void XMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 		pages--;
 	}
 }
+#endif
 
+#if !defined(OSFREE)
 extern bool enable_a20_on_windows_init;
 extern bool dbg_zero_on_xms_allocmem;
+#endif
 
 Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle) {	// size = kb
 	/* Find free handle */
@@ -224,11 +239,15 @@ Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle) {	// size = kb
 		Bitu pages=(size/4) + ((size & 3) ? 1 : 0);
 		mem=MEM_AllocatePages(pages,true);
 		if (!mem) return XMS_OUT_OF_SPACE;
+#if !defined(OSFREE)
 		if (dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,(unsigned int)pages);
+#endif
 	} else {
 		mem=MEM_GetNextFreePage();
 		if (mem==0) LOG(LOG_MISC,LOG_DEBUG)("XMS:Allocate zero pages with no memory left"); // Windows 3.1 triggers this surprisingly often!
+#if !defined(OSFREE)
 		if (mem != 0 && dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,1);
+#endif
 	}
 	xms_handles[index].free=false;
 	xms_handles[index].mem=mem;
@@ -248,12 +267,14 @@ Bitu XMS_FreeMemory(Bitu handle) {
 	return 0;
 }
 
+bool XMS_InitFlatRealMode(void);
+
 Bitu XMS_MoveMemory(PhysPt bpt) {
 	/* Read the block with mem_read's */
 	Bitu length=mem_readd(bpt+offsetof(XMS_MemMove,length));
 
-    /* "Length must be even" --Microsoft XMS Spec 3.0 */
-    if (length & 1u) return XMS_INVALID_LENGTH;
+	/* "Length must be even" --Microsoft XMS Spec 3.0 */
+	if (length & 1u) return XMS_INVALID_LENGTH;
 
 	Bitu src_handle=mem_readw(bpt+offsetof(XMS_MemMove,src_handle));
 	union {
@@ -278,9 +299,9 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 	} else {
 		srcpt=Real2Phys(src.realpt);
 
-        /* Microsoft TEST.C considers it an error to allow real mode pointers + length to
-         * extend past the end of the 8086-accessible conventional memory area. */
-        if ((srcpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
+		/* Microsoft TEST.C considers it an error to allow real mode pointers + length to
+		 * extend past the end of the 8086-accessible conventional memory area. */
+		if ((srcpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
 	}
 	if (dest_handle) {
 		if (InvalidHandle(dest_handle)) {
@@ -296,28 +317,40 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 	} else {
 		destpt=Real2Phys(dest.realpt);
 
-        /* Microsoft TEST.C considers it an error to allow real mode pointers + length to
-         * extend past the end of the 8086-accessible conventional memory area. */
-        if ((destpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
+		/* Microsoft TEST.C considers it an error to allow real mode pointers + length to
+		 * extend past the end of the 8086-accessible conventional memory area. */
+		if ((destpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
 	}
-//	LOG_MSG("XMS move src %X dest %X length %X",srcpt,destpt,length);
 
-    /* we must enable the A20 gate during this copy.
-     * DOSBox-X masks the A20 line and this will only cause corruption otherwise. */
+#if !defined(OSFREE)
+	if (xms_debug_log_memmove) {
+		LOG_MSG("XMS move src %X dest %X length %X",(unsigned int)srcpt,(unsigned int)destpt,(unsigned int)length);
+	}
+#endif
 
-    if (length != 0) {
-        bool a20_was_enabled = XMS_GetEnabledA20();
+	/* we must enable the A20 gate during this copy.
+	 * DOSBox-X masks the A20 line and this will only cause corruption otherwise. */
 
-        xms_local_enable_count++;
-        XMS_EnableA20(true);
+	if (length != 0) {
+		bool a20_was_enabled = XMS_GetEnabledA20();
 
-        mem_memcpy(destpt,srcpt,length);
+		xms_local_enable_count++;
+		XMS_EnableA20(true);
 
-        xms_local_enable_count--;
-        if (!a20_was_enabled) XMS_EnableA20(false);
-    }
+		// HIMEM.SYS on 386 and higher is said to use "flat real mode" to copy extended memory.
+		// That means if a program calls this function, it implicitly sets up flat real mode.
+		// It seems some demoscene stuff in the 1992-1994 timeframe assume this case.
+		if (xms_memmove_flatrealmode && XMS_InitFlatRealMode()) {
+			LOG(LOG_MISC,LOG_DEBUG)("XMS: Memory move/copy is enabling flat real mode");
+		}
 
-    return 0;
+		mem_memcpy(destpt,srcpt,length);
+
+		xms_local_enable_count--;
+		if (!a20_was_enabled) XMS_EnableA20(false);
+	}
+
+	return 0;
 }
 
 Bitu XMS_LockMemory(Bitu handle, uint32_t& address) {
@@ -408,7 +441,7 @@ void XMS_DOS_LocalA20DisableIfNotEnabled_XMSCALL(void) {
     uint32_t old_eax = reg_eax;
     uint32_t old_ebx = reg_ebx;
 
-    LOG(LOG_DOSMISC,LOG_DEBUG)("Temporarily disabling A20 gate by calling XMS entry point. Hopefully the vm86 protected mode kernel will do it's job");
+    LOG(LOG_DOSMISC,LOG_DEBUG)("Temporarily disabling A20 gate by calling XMS entry point. Hopefully the vm86 protected mode kernel will do its job");
 
     reg_ah = 0x06; /* local disable */
     CALLBACK_RunRealFar((uint16_t)(xms_callback>>16ul),(uint16_t)(xms_callback&0xFFFFul));
@@ -664,7 +697,9 @@ Bitu XMS_Handler(void) {
 
 bool xms_init = false;
 
+#if !defined(OSFREE)
 bool keep_umb_on_boot;
+#endif
 
 extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
@@ -678,13 +713,16 @@ bool XMS_HMA_EXISTS() {
 	return XMS_IS_ACTIVE() && xms_hma_exists;
 }
 
+#if !defined(OSFREE)
 Bitu GetEMSType(const Section_prop* section);
+#endif
 void DOS_GetMemory_Choose();
 
 void ROMBIOS_FreeUnusedMinToLoc(Bitu phys);
 bool MEM_unmap_physmem(Bitu start,Bitu end);
 Bitu ROMBIOS_MinAllocatedLoc();
 
+#if !defined(OSFREE)
 void RemoveUMBBlock() {
 	/* FIXME: Um... why is umb_available == false even when set to true below? */
 	if (umb_init) {
@@ -693,6 +731,25 @@ void RemoveUMBBlock() {
 		umb_init = false;
 	}
 }
+#endif
+
+#if !defined(OSFREE)
+void Update_Get_Desired_Segment(void) {
+	const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+
+	desired_ems_segment=section->Get_hex("ems frame");
+
+	if (IS_PC98_ARCH && (desired_ems_segment == 0xC000 || desired_ems_segment == 0xD000)) {
+		/* ok */
+	}
+	else if (!IS_PC98_ARCH && (desired_ems_segment == 0xE000)) {
+		/* ok */
+	}
+	else {
+		desired_ems_segment = IS_PC98_ARCH ? 0xD000 : 0xE000;
+	}
+}
+#endif
 
 class XMS: public Module_base {
 private:
@@ -700,22 +757,42 @@ private:
 public:
 	XMS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
+#if !defined(OSFREE)
 		umb_available=false;
+#endif
 
-        xms_global_enable = false;
-        xms_local_enable_count = 0;
+		xms_global_enable = false;
+		xms_local_enable_count = 0;
+#if !defined(OSFREE)
+		xms_debug_log_memmove = false;
+		xms_memmove_flatrealmode = false;
+		xms_init_flatrealmode = false;
 
 		if (!section->Get_bool("xms")) return;
 
-        XMS_HANDLES = (unsigned int)(section->Get_int("xms handles"));
-        if (XMS_HANDLES == 0)
-            XMS_HANDLES = XMS_HANDLES_DEFAULT;
-        else if (XMS_HANDLES < XMS_HANDLES_MIN)
-            XMS_HANDLES = XMS_HANDLES_MIN;
-        else if (XMS_HANDLES > XMS_HANDLES_MAX)
-            XMS_HANDLES = XMS_HANDLES_MAX;
+		xms_debug_log_memmove = section->Get_bool("xms log memmove");
+		xms_memmove_flatrealmode = section->Get_bool("xms memmove causes flat real mode");
+		xms_init_flatrealmode = section->Get_bool("xms init causes flat real mode");
+#else
+		/* OSFREE: MS-DOS is not supposed to be there, you do NOT get to control these options! That includes the ability to turn off XMS! */
+		xms_memmove_flatrealmode = true;
+		xms_init_flatrealmode = true;
+#endif
 
-        LOG_MSG("XMS: %u handles allocated for use by the DOS environment",XMS_HANDLES);
+#if !defined(OSFREE)
+		XMS_HANDLES = (unsigned int)(section->Get_int("xms handles"));
+		if (XMS_HANDLES == 0)
+			XMS_HANDLES = XMS_HANDLES_DEFAULT;
+		else if (XMS_HANDLES < XMS_HANDLES_MIN)
+			XMS_HANDLES = XMS_HANDLES_MIN;
+		else if (XMS_HANDLES > XMS_HANDLES_MAX)
+			XMS_HANDLES = XMS_HANDLES_MAX;
+
+		LOG_MSG("XMS: %u handles allocated for use by the DOS environment",XMS_HANDLES);
+#else
+		/* OSFREE: MS-DOS is not supposed to be there, you do NOT get to control these options! */
+		XMS_HANDLES = XMS_HANDLES_DEFAULT;
+#endif
 
 		/* NTS: Disable XMS emulation if CPU type is less than a 286, because extended memory did not
 		 *      exist until the CPU had enough address lines to read past the 1MB mark.
@@ -735,23 +812,41 @@ public:
 			return;
 		}
 
+		/* NTS: Disable XMS emulation if the memsize setting is 1MB+64KB or less. In that case there is nothing
+		 *      that counts as "extended memory" and therefore no reason to emulate XMS services. */
+		/* TODO: Add option to *force* XMS emulation, overriding this lockout, if you really want to emulate
+		 *       HIMEM.SYS loaded and active on a DOS configuration with only 256KB of memory. */
+		if (MEM_TotalPages() <= 0x110) { /* If not enough for 1MB base memory + 64KB HMA area */
+			LOG_MSG("Configured memory size is 1MB or less, disabling XMS");
+			return;
+		}
+
 		xms_init = true;
 
+#if !defined(OSFREE)
 		xms_hma_exists = section->Get_bool("hma");
 		xms_hma_minimum_alloc = (unsigned int)section->Get_int("hma minimum allocation");
 		xms_hma_alloc_non_dos_kernel_control = section->Get_bool("hma allow reservation");
 		if (xms_hma_minimum_alloc > 0xFFF0U) xms_hma_minimum_alloc = 0xFFF0U;
+#else
+		/* OSFREE: MS-DOS is not supposed to be there, you do NOT get to control these options! */
+		xms_hma_exists = true;
+		xms_hma_minimum_alloc = 0xFFF0U;
+		xms_hma_alloc_non_dos_kernel_control = false;
+#endif
 
 		Bitu i;
 		BIOS_ZeroExtendedSize(true);
 		DOS_AddMultiplexHandler(multiplex_xms);
 
+#if !defined(OSFREE)
 		enable_a20_on_windows_init = section->Get_bool("enable a20 on windows init");
 		dbg_zero_on_xms_allocmem = section->Get_bool("zero memory on xms memory allocation");
 
 		if (dbg_zero_on_xms_allocmem) {
 			LOG_MSG("Debug option enabled: XMS memory allocation will always clear memory block before returning\n");
 		}
+#endif
 
 		/* place hookable callback in writable memory area */
 		xms_callback=RealMake(DOS_GetMemory(0x1,"xms_callback")-1,0x10);
@@ -772,23 +867,36 @@ public:
 		/* Disable the 0 handle */
 		xms_handles[0].free	= false;
 
+#if !defined(OSFREE)
 		/* Set up UMB chain */
 		keep_umb_on_boot=section->Get_bool("keep umb on boot");
 		umb_available=section->Get_bool("umb");
 		first_umb_seg=section->Get_hex("umb start");
 		first_umb_size=section->Get_hex("umb end");
+#endif
 
-        /* This code will mess up the MCB chain in PCjr mode if umb=true */
-        if (umb_available && machine == MCH_PCJR) {
-            LOG(LOG_MISC,LOG_DEBUG)("UMB emulation is incompatible with PCjr emulation, disabling UMBs");
-            umb_available = false;
-        }
+#if !defined(OSFREE)
+		Update_Get_Desired_Segment();
+#endif
+
+#if !defined(OSFREE)
+		/* This code will mess up the MCB chain in PCjr mode if umb=true */
+		if (umb_available && machine == MCH_PCJR) {
+			LOG(LOG_MISC,LOG_DEBUG)("UMB emulation is incompatible with PCjr emulation, disabling UMBs");
+			umb_available = false;
+		}
+#endif
+
+#if !defined(OSFREE)
+		LOG(LOG_MISC,LOG_DEBUG)("Desired EMS segment 0x%04x",desired_ems_segment);
+#endif
 
 		DOS_GetMemory_Choose();
 
 		// Sanity check
 		if (rombios_minimum_location == 0) E_Exit("Uninitialized ROM BIOS base");
 
+#if !defined(OSFREE)
 		if (first_umb_seg == 0) {
 			first_umb_seg = DOS_PRIVATE_SEGMENT_END;
 			if (first_umb_seg < (uint16_t)VGA_BIOS_SEG_END)
@@ -806,25 +914,27 @@ public:
 			LOG(LOG_MISC,LOG_NORMAL)("UMB starting segment 0x%04x conflict with BIOS at 0x%04x. Disabling UMBs",(int)first_umb_seg,(int)(rombios_minimum_location>>4));
 			umb_available = false;
 		}
+#endif
 
-        if (IS_PC98_ARCH) {
-            bool PC98_FM_SoundBios_Enabled(void);
+#if !defined(OSFREE)
+		if (IS_PC98_ARCH) {
+			bool PC98_FM_SoundBios_Enabled(void);
 
-            /* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
-             * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
-            unsigned int limit = 0xCFFF;
+			/* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
+			 * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
+			unsigned int limit = (desired_ems_segment == 0xC000) ? 0xDFFF : 0xCFFF;
 
-            if (PC98_FM_SoundBios_Enabled()) {
-                // TODO: What about sound BIOSes larger than 16KB?
-                if (limit > 0xCBFF)
-                    limit = 0xCBFF;
-            }
+			if (PC98_FM_SoundBios_Enabled() && desired_ems_segment == 0xD000) {
+				// TODO: What about sound BIOSes larger than 16KB?
+				if (limit > 0xCBFF)
+					limit = 0xCBFF;
+			}
 
-            if (first_umb_seg > limit)
-                first_umb_seg = limit;
-            if (first_umb_size > limit)
-                first_umb_size = limit;
-        }
+			if (first_umb_seg > limit)
+				first_umb_seg = limit;
+			if (first_umb_size > limit)
+				first_umb_size = limit;
+		}
 
 		if (first_umb_size >= (rombios_minimum_location>>4)) {
 			/* we can ask the BIOS code to trim back the region, assuming it hasn't allocated anything there yet */
@@ -835,25 +945,27 @@ public:
 			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region",(int)first_umb_size,(int)(rombios_minimum_location>>4));
 			first_umb_size = ((unsigned int)rombios_minimum_location>>4u)-1u;
 		}
+#endif
 
-        Bitu GetEMSPageFrameSegment(void);
+		Bitu GetEMSPageFrameSegment(void);
 
-        bool ems_available = GetEMSType(section)>0;
+#if !defined(OSFREE)
+		bool ems_available = GetEMSType(section)>0;
 
-        /* 2017/12/24 I just noticed that the EMS page frame will conflict with UMB on standard configuration.
-         * In IBM PC mode the EMS page frame is at E000:0000.
-         * In PC-98 mode the EMS page frame is at D000:0000. */
-        if (ems_available && first_umb_size >= GetEMSPageFrameSegment()) {
-            assert(GetEMSPageFrameSegment() >= 0xA000);
-            LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps EMS page frame at 0x%04x, truncating region",(unsigned int)GetEMSPageFrameSegment());
-            first_umb_size = (uint16_t)(GetEMSPageFrameSegment() - 1);
-        }
-        /* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */
-        /* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */
-        if (IS_PC98_ARCH && first_umb_size >= 0xE000) {
-            LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps PC-98 EGC 4th graphics bitplane, truncating region");
-            first_umb_size = 0xDFFF;
-        }
+		/* 2017/12/24 I just noticed that the EMS page frame will conflict with UMB on standard configuration.
+		 * In IBM PC mode the EMS page frame is at E000:0000.
+		 * In PC-98 mode the EMS page frame is at D000:0000. */
+		if (ems_available && first_umb_size >= GetEMSPageFrameSegment() && first_umb_seg < GetEMSPageFrameSegment()) {
+			assert(GetEMSPageFrameSegment() >= 0xA000);
+			LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps EMS page frame at 0x%04x, truncating region",(unsigned int)GetEMSPageFrameSegment());
+			first_umb_size = (uint16_t)(GetEMSPageFrameSegment() - 1);
+		}
+		/* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */
+		/* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */
+		if (IS_PC98_ARCH && first_umb_size >= 0xE000) {
+			LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps PC-98 EGC 4th graphics bitplane, truncating region");
+			first_umb_size = 0xDFFF;
+		}
 		if (first_umb_size < first_umb_seg) {
 			LOG(LOG_MISC,LOG_NORMAL)("UMB end segment below UMB start. I'll just assume you mean to disable UMBs then.");
 			first_umb_size = first_umb_seg - 1;
@@ -870,21 +982,30 @@ public:
 				umb_available = false;
 			}
 		}
+#endif
 
+#if !defined(OSFREE)
 		DOS_BuildUMBChain(umb_available&&dos_umb,ems_available);
 		umb_init = true;
+#endif
 
-        /* CP/M compat will break unless a copy of the JMP instruction is mirrored in HMA */
-        DOS_Write_HMA_CPM_jmp();
+		if (xms_init_flatrealmode && XMS_InitFlatRealMode()) {
+			LOG(LOG_MISC,LOG_DEBUG)("XMS: Initialization is enabling flat real mode");
+		}
+
+		/* CP/M compat will break unless a copy of the JMP instruction is mirrored in HMA */
+		DOS_Write_HMA_CPM_jmp();
 	}
 
 	~XMS(){
 		/* Remove upper memory information */
 		dos_infoblock.SetStartOfUMBChain(0xffff);
+#if !defined(OSFREE)
 		if (umb_available) {
 			if (dos_umb) dos_infoblock.SetUMBChainState(0);
 			umb_available=false;
 		}
+#endif
 
 		if (!xms_init) return;
 
@@ -924,7 +1045,7 @@ bool XMS_Active(void) {
 }
 
 void XMS_Startup(Section *sec) {
-    (void)sec;//UNUSED
+	(void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating XMS emulation");
 		test = new XMS(control->GetSection("dos"));

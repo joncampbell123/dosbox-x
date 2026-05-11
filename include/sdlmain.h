@@ -12,6 +12,10 @@
 #ifndef DOSBOX_SDLMAIN_H
 #define DOSBOX_SDLMAIN_H
 
+#include "zipfile.h"
+
+#include <output/output_gamelink.h>
+
 enum SCREEN_TYPES {
     SCREEN_SURFACE
     ,SCREEN_OPENGL // [FIXME] cannot make this conditional because somehow SDL2 code uses it while C_OPENGL is definitely disabled by C_SDL2 so SCREEN_OPENGL is unavailable
@@ -19,6 +23,13 @@ enum SCREEN_TYPES {
     ,SCREEN_DIRECT3D
 #endif
     ,SCREEN_TTF
+    ,SCREEN_GAMELINK
+#if C_DIRECT3D && defined(C_SDL2)
+    ,SCREEN_DIRECT3D11
+#endif
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+    , SCREEN_METAL
+#endif
 };
 
 enum AUTOLOCK_FEEDBACK
@@ -97,7 +108,7 @@ struct SDL_Block {
         uint32_t bpp = 0;
         Bitu flags = 0;
         double scalex = 0, scaley = 0;
-        GFX_CallBack_t callback = 0;
+        GFX_CallBack_t callback = nullptr;
     } draw;
     bool wait_on_error = false;
     struct {
@@ -123,6 +134,19 @@ struct SDL_Block {
         SCREEN_TYPES type = (SCREEN_TYPES)0;
         SCREEN_TYPES want_type = (SCREEN_TYPES)0;
     } desktop;
+#if C_GAMELINK
+    struct {
+        Bitu pitch;
+        void * framebuf;
+        GameLink::sSharedMMapInput_R2 input_prev;
+        GameLink::sSharedMMapInput_R2 input;
+        GameLink::sSharedMMapAudio_R1 audio;
+        bool want_mouse;
+        bool enable;
+        bool snoop;
+        Bitu loadaddr;
+    } gamelink;
+#endif // C_GAMELINK
     struct {
         SDL_Surface * surface = NULL;
 #if (HAVE_DDRAW_H) && defined(WIN32)
@@ -145,7 +169,6 @@ struct SDL_Block {
     } texture;
 #endif
     int displayNumber = 0;
-    SDL_cond *cond = NULL;
     struct {
         bool autolock = false;
         AUTOLOCK_FEEDBACK autolock_feedback = (AUTOLOCK_FEEDBACK)0;
@@ -156,6 +179,9 @@ struct SDL_Block {
         int ysensitivity = 0;
         MOUSE_EMULATION emulation = (MOUSE_EMULATION)0;
     } mouse;
+#if defined(C_SDL2)
+    bool capture_keyboard = false;
+#endif
     SDL_Rect updateRects[1024] = {};
     Bitu overscan_color = 0;
     Bitu overscan_width = 0;
@@ -166,12 +192,16 @@ struct SDL_Block {
     uint32_t focus_ticks = 0;
     uint32_t ime_ticks;
 #endif
+#if defined(MACOSX)
+	uint32_t ime_ticks;
+#endif
     // state of alt-keys for certain special handlings
     uint16_t laltstate = 0, raltstate = 0;
     uint16_t lctrlstate = 0, rctrlstate = 0;
     uint16_t lshiftstate = 0, rshiftstate = 0;
     bool must_redraw_all = false;
     bool deferred_resize = false;
+    bool window_too_small = false;
     bool init_ignore = false;
     unsigned int gfx_force_redraw_count = 0;
     struct {
@@ -191,15 +221,6 @@ extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
 
 extern Bitu frames;
 extern SDL_Block sdl;
-
-#include <output/output_surface.h>
-#include <output/output_direct3d.h>
-#include <output/output_opengl.h>
-#include <output/output_tools.h>
-#include <output/output_tools_xbrz.h>
-
-#include "zipfile.h"
-
 extern Bitu userResizeWindowWidth;
 extern Bitu userResizeWindowHeight;
 extern Bitu currentWindowWidth;
@@ -209,9 +230,15 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl);
 void GFX_LogSDLState(void);
 void GFX_SDL_Overscan(void);
 void GFX_SetIcon(void);
+void GFX_ForceFullscreenExit(void);
 void SDL_rect_cliptoscreen(SDL_Rect &r);
 void UpdateWindowDimensions(void);
 void UpdateWindowDimensions(Bitu width, Bitu height);
+void DoKillSwitch();
+void ResetSystem(bool pressed);
+void PauseDOSBox(bool pressed);
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+int GetNumScreen();
 
 #if defined(C_SDL2)
 SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
@@ -221,9 +248,17 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 void SDL_GL_SwapBuffers(void);
 #endif
 
-bool TTF_using(void);
-#ifdef USE_TTF
-int setTTFCodePage(void);
+#if defined(C_SDL2)
+void GFX_KeyboardCapture(bool enabled);
+#endif
+
+#if defined(WIN32) && !defined(HX_DOS)
+extern int curscreen;
+extern RECT monrect;
+typedef struct {
+	int	x, y;
+} xyp;
+BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam);
 #endif
 
 #endif /*DOSBOX_SDLMAIN_H*/

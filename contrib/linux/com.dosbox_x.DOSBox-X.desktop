@@ -31,3 +31,4 @@ Terminal=false
 Type=Application
 Categories=Game;Emulator
 Keywords=PCjr;Tandy;PC98;PC-98
+StartupWMClass=dosbox-x 

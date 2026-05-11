@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -30,55 +30,53 @@
 
 #include "SDL_loadso.h"
 
-#if SDL_VIDEO_DRIVER_UIKIT
+#ifdef SDL_VIDEO_DRIVER_UIKIT
 #include "../../video/uikit/SDL_uikitvideo.h"
 #endif
 
-void *
-SDL_LoadObject(const char *sofile)
+void *SDL_LoadObject(const char *sofile)
 {
     void *handle;
     const char *loaderror;
 
-#if SDL_VIDEO_DRIVER_UIKIT
+#ifdef SDL_VIDEO_DRIVER_UIKIT
     if (!UIKit_IsSystemVersionAtLeast(8.0)) {
         SDL_SetError("SDL_LoadObject requires iOS 8+");
         return NULL;
     }
 #endif
 
-    handle = dlopen(sofile, RTLD_NOW|RTLD_LOCAL);
-    loaderror = (char *) dlerror();
-    if (handle == NULL) {
+    handle = dlopen(sofile, RTLD_NOW | RTLD_LOCAL);
+    loaderror = dlerror();
+    if (!handle) {
         SDL_SetError("Failed loading %s: %s", sofile, loaderror);
     }
-    return (handle);
+    return handle;
 }
 
-void *
-SDL_LoadFunction(void *handle, const char *name)
+void *SDL_LoadFunction(void *handle, const char *name)
 {
     void *symbol = dlsym(handle, name);
-    if (symbol == NULL) {
-        /* append an underscore for platforms that need that. */
-        size_t len = 1 + SDL_strlen(name) + 1;
-        char *_name = SDL_stack_alloc(char, len);
+    if (!symbol) {
+        /* prepend an underscore for platforms that need that. */
+        SDL_bool isstack;
+        size_t len = SDL_strlen(name) + 1;
+        char *_name = SDL_small_alloc(char, len + 1, &isstack);
         _name[0] = '_';
-        SDL_strlcpy(&_name[1], name, len);
+        SDL_memcpy(&_name[1], name, len);
         symbol = dlsym(handle, _name);
-        SDL_stack_free(_name);
-        if (symbol == NULL) {
+        SDL_small_free(_name, isstack);
+        if (!symbol) {
             SDL_SetError("Failed loading %s: %s", name,
-                         (const char *) dlerror());
+                         (const char *)dlerror());
         }
     }
-    return (symbol);
+    return symbol;
 }
 
-void
-SDL_UnloadObject(void *handle)
+void SDL_UnloadObject(void *handle)
 {
-    if (handle != NULL) {
+    if (handle) {
         dlclose(handle);
     }
 }

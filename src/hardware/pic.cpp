@@ -32,7 +32,7 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
-#define PIC_QUEUESIZE 512
+#define PIC_QUEUESIZE 8192
 
 unsigned long PIC_irq_delay_ns = 0;
 
@@ -49,6 +49,8 @@ struct PIC_Controller {
     bool request_issr;
     uint8_t vector_base;
 
+    uint8_t input;      // input signal (directly set by raise/lower irq) used to filter for edge detect
+    uint8_t edge;       // which signals are to be filtered for edge trigger
     uint8_t irr;        // request register
     uint8_t imr;        // mask register
     uint8_t imrr;       // mask register reversed (makes bit tests simpler)
@@ -92,6 +94,7 @@ struct PIC_Controller {
 
     void lower_irq(uint8_t val){
         uint8_t bit = 1 << ( val);
+        input&=~bit;
         if(irr & bit) { //value will change (as it is currently active)
             irr&=~bit;
             if((bit&imrr)&isrr) { //not masked and not in service
@@ -137,6 +140,11 @@ void PIC_Controller::check_for_irq(){
 
 void PIC_Controller::raise_irq(uint8_t val){
     uint8_t bit = 1 << (val);
+
+    // edge detect: only if the signal goes from low to high
+    if (bit&edge&input) return;
+
+    input|=bit;
     if((irr & bit)==0) { //value changed (as it is currently not active)
         irr|=bit;
         if((bit&imrr)&isrr) { //not masked and not in service
@@ -371,6 +379,25 @@ static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
     CPU_Check_NMI();
 }
 
+void PIC_EdgeTrigger(Bitu irq,bool set) {
+    if (IS_PC98_ARCH) {
+        if (irq == 7) return;
+    }
+    else if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
+        if (irq == 2) irq = 9;
+    }
+    else { /* PC/XT emulation with only master PIC */
+        if (irq == 9) irq = 2;
+        if (irq >= 8) return;
+    }
+
+    Bitu t = irq>7 ? (irq - 8): irq;
+    PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
+
+    if (set) pic->edge |= 1u << (unsigned char)t;
+    else pic->edge &= ~(1u << (unsigned char)t);
+}
+
 /* FIXME: This should be called something else that's true to the ISA bus, like PIC_PulseIRQ, not Activate IRQ.
  *        ISA interrupts are edge triggered, not level triggered. */
 void PIC_ActivateIRQ(Bitu irq) {
@@ -595,8 +622,8 @@ void DEBUG_PICMask(int irq,bool mask) {
 
 static void AddEntry(PICEntry * entry) {
     PICEntry * find_entry=pic_queue.next_entry;
-    if (GCC_UNLIKELY(find_entry ==0)) {
-        entry->next=0;
+    if (GCC_UNLIKELY(!find_entry)) {
+        entry->next = nullptr;
         pic_queue.next_entry=entry;
     } else if (find_entry->index>entry->index) {
         pic_queue.next_entry=entry;
@@ -651,8 +678,7 @@ void PIC_AddEvent(PIC_EventHandler handler,pic_tickindex_t delay,Bitu val) {
 
 void PIC_RemoveSpecificEvents(PIC_EventHandler handler, Bitu val) {
     PICEntry * entry=pic_queue.next_entry;
-    PICEntry * prev_entry;
-    prev_entry = 0;
+    PICEntry * prev_entry = nullptr;
     while (entry) {
         if (GCC_UNLIKELY((entry->pic_event == handler)) && (entry->value == val)) {
             if (prev_entry) {
@@ -676,8 +702,7 @@ void PIC_RemoveSpecificEvents(PIC_EventHandler handler, Bitu val) {
 
 void PIC_RemoveEvents(PIC_EventHandler handler) {
     PICEntry * entry=pic_queue.next_entry;
-    PICEntry * prev_entry;
-    prev_entry=0;
+    PICEntry * prev_entry = nullptr;
     while (entry) {
         if (GCC_UNLIKELY(entry->pic_event==handler)) {
             if (prev_entry) {
@@ -782,7 +807,7 @@ struct TickerBlock {
     TickerBlock * next;
 };
 
-static TickerBlock * firstticker=0;
+static TickerBlock * firstticker = nullptr;
 
 void TIMER_ShutdownTickHandlers() {
     unsigned int leftovers = 0;
@@ -941,6 +966,8 @@ void PIC_Reset(Section *sec) {
         pics[i].irr = pics[i].isr = pics[i].imrr = 0;
         pics[i].isrr = pics[i].imr = 0xff;
         pics[i].isr_ignore = 0x00;
+        pics[i].edge = 0x00;
+        pics[i].input = 0x00;
         pics[i].active_irq = 8;
     }
 
@@ -1026,11 +1053,11 @@ void Init_PIC() {
         pic_queue.entries[i].next=&pic_queue.entries[i+1];
 
         // savestate compatibility
-        pic_queue.entries[i].pic_event = 0;
+        pic_queue.entries[i].pic_event = nullptr;
     }
-    pic_queue.entries[PIC_QUEUESIZE-1].next=0;
+    pic_queue.entries[PIC_QUEUESIZE-1].next = nullptr;
     pic_queue.free_entry=&pic_queue.entries[0];
-    pic_queue.next_entry=0;
+    pic_queue.next_entry = nullptr;
 
     AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
@@ -1228,7 +1255,7 @@ public:
     {}
 
 private:
-    virtual void getBytes(std::ostream& stream)
+    void getBytes(std::ostream& stream) override
     {
 				uint16_t pic_free_idx, pic_next_idx;
 				uint16_t pic_next_ptr[PIC_QUEUESIZE];
@@ -1331,7 +1358,7 @@ private:
 				//test->saveState(stream);
 		}
 
-    virtual void setBytes(std::istream& stream)
+    void setBytes(std::istream& stream) override
     {
 				uint16_t free_idx, next_idx;
 				uint16_t ticker_size;

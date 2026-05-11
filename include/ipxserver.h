@@ -21,7 +21,11 @@
 
 #if C_IPX
 
+#if defined(C_SDL2_NET)  && C_SDL2_NET
+#include <SDL2/SDL_net.h>
+#else
 #include "SDL_net.h"
+#endif
 
 struct packetBuffer {
 	uint8_t buffer[1024];

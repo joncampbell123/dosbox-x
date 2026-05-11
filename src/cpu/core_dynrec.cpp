@@ -45,6 +45,8 @@
 #include "lazyflags.h"
 #include "pic.h"
 
+extern bool do_lds_wraparound;
+
 #define CACHE_MAXSIZE	(4096*2)
 #define CACHE_TOTAL		(1024*1024*8)
 #define CACHE_PAGES		(512)
@@ -97,7 +99,7 @@
 #define DRCD_REG_WORD(reg,dwrd) ((dwrd)?((void*)(&cpu_regs.regs[reg].dword[DW_INDEX])):((void*)(&cpu_regs.regs[reg].word[W_INDEX])))
 
 
-enum BlockReturn {
+enum BlockReturnDynRec {
 	BR_Normal=0,
 	BR_Cycles,
 	BR_Link1,BR_Link2,
@@ -120,7 +122,7 @@ static void IllegalOptionDynrec(const char* msg) {
 }
 
 static struct {
-	BlockReturn (*runcode)(uint8_t*);		// points to code that can start a block
+	BlockReturnDynRec (*runcode)(uint8_t*);		// points to code that can start a block
 	Bitu callback;				// the occurred callback
 	Bitu readdata;				// spare space used when reading from memory
 	uint32_t protected_regs[8];	// space to save/restore register values
@@ -192,7 +194,7 @@ static bool winrt_warning = true;
 #endif
 
 
-CacheBlockDynRec * LinkBlocks(BlockReturn ret) {
+CacheBlockDynRec * LinkBlocks(BlockReturnDynRec ret) {
 	CacheBlockDynRec * block=NULL;
 	// the last instruction was a control flow modifying instruction
 	uint32_t temp_ip=SegPhys(cs)+reg_eip;
@@ -266,7 +268,7 @@ Bits CPU_Core_Dynrec_Run(void) {
 			if (DEBUG_HeavyIsBreakpoint()) return (Bits)debugCallback;
 		#endif
 
-		CodePageHandlerDynRec * chandler=0;
+		CodePageHandlerDynRec * chandler=nullptr;
 		// see if the current page is present and contains code
 		if (GCC_UNLIKELY(MakeCodePage(ip_point,chandler))) {
 			// page not present, throw the exception
@@ -305,10 +307,10 @@ Bits CPU_Core_Dynrec_Run(void) {
 		}
 
 run_block:
-		cache.block.running=0;
+		cache.block.running=nullptr;
 		// now we're ready to run the dynamic code block
-//		BlockReturn ret=((BlockReturn (*)(void))(block->cache.start))();
-		BlockReturn ret=core_dynrec.runcode(block->cache.xstart);
+//		BlockReturnDynRec ret=((BlockReturnDynRec (*)(void))(block->cache.start))();
+		BlockReturnDynRec ret=core_dynrec.runcode(block->cache.xstart);
 
         if (sizeof(CPU_Cycles) > 4) {
             // HACK: All dynrec cores for each processor assume CPU_Cycles is 32-bit wide.

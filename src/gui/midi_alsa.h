@@ -118,13 +118,13 @@ private:
 	}
 public:
 	MidiHandler_alsa() : MidiHandler() {};
-	const char* GetName(void) { return "alsa"; }
-	void PlaySysex(uint8_t * sysex,Bitu len) {
+	const char* GetName(void) override { return "alsa"; }
+	void PlaySysex(uint8_t * sysex,Bitu len) override {
 		snd_seq_ev_set_sysex(&ev, len, sysex);
 		send_event(1);
 	}
 
-	void PlayMsg(uint8_t * msg) {
+	void PlayMsg(uint8_t * msg) override {
 		ev.type = SND_SEQ_EVENT_OSS;
 
 		ev.data.raw32.d[0] = msg[0];
@@ -164,19 +164,78 @@ public:
 			}
 			break;
 		default:
-			//Maybe filter out FC as it leads for at least one user to crash, but the entire midi stream has not yet been checked.
-			LOG(LOG_MISC,LOG_DEBUG)("ALSA:Unknown Command: %02X %02X %02X", msg[0],msg[1],msg[2]);
-			send_event(1);
+			switch (msg[0]) {
+				case 0xF8:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_CLOCK;
+					send_event(1);
+					break;
+				case 0xFA:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_START;
+					send_event(1);
+					break;
+				case 0xFB:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_CONTINUE;
+					send_event(1);
+					break;
+				case 0xFC:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_STOP;
+					send_event(1);
+					break;
+				case 0xFE:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_SENSING;
+					send_event(1);
+					break;
+				case 0xFF:
+					snd_seq_ev_set_fixed(&ev);
+					ev.type = SND_SEQ_EVENT_RESET;
+					send_event(1);
+					break;
+				default:
+					LOG(LOG_MISC,LOG_DEBUG)("ALSA:Unknown Command: %02X %02X %02X", msg[0],msg[1],msg[2]);
+					send_event(1);
+					break;
+			}
 			break;
 		}
 	}	
 
-	void Close(void) {
+	void Close(void) override {
 		if (seq_handle)
 			snd_seq_close(seq_handle);
 	}
 
-	bool Open(const char * conf) {
+	void log_list_alsa_seqclient(void) {
+		snd_seq_client_info_t *sscit = NULL;
+		int status;
+
+		if (snd_seq_client_info_malloc(&sscit) >= 0) {
+			if ((status=snd_seq_get_any_client_info(seq_handle,0,sscit)) >= 0) {
+				do {
+					const int id = snd_seq_client_info_get_client(sscit);
+					const char *name = snd_seq_client_info_get_name(sscit);
+					const int ports = snd_seq_client_info_get_num_ports(sscit);
+
+					const char *ct_str = "?";
+					const snd_seq_client_type_t ct = snd_seq_client_info_get_type(sscit);
+					switch (ct) {
+						case SND_SEQ_KERNEL_CLIENT:	ct_str = "kernel"; break;
+						case SND_SEQ_USER_CLIENT:	ct_str = "user"; break;
+						default:			break;
+					};
+
+					LOG_MSG("ALSA seq enum: id=%d name=\"%s\" ports=%d type=\"%s\"",id,name,ports,ct_str);
+				} while ((status=snd_seq_query_next_client(seq_handle,sscit)) >= 0);
+			}
+			snd_seq_client_info_free(sscit);
+		}
+	}
+
+	bool Open(const char * conf) override {
 		char var[10];
 		unsigned int caps;
 		bool defaultport = true; //try 17:0. Seems to be default nowadays
@@ -200,7 +259,13 @@ public:
 			LOG(LOG_MISC,LOG_WARN)("ALSA:Can't open sequencer");
 			return false;
 		}
-	
+
+		// Not many people know how to get the magic numbers needed for this ALSA output to send MIDI
+		// to a hardware device (hint: modprobe snd-seq-midi and then aconnect -l) so to assist users,
+		// enumerate all ALSA sequencer clients (these are client numbers) and list them in the log file.
+		// In the same way NE2000 emulation lists all pcap interfaces for your reference.
+		log_list_alsa_seqclient();
+
 		my_client = snd_seq_client_id(seq_handle);
 		snd_seq_set_client_name(seq_handle, "DOSBOX-X");
 		snd_seq_set_client_group(seq_handle, "input");
@@ -240,12 +305,18 @@ public:
 		return true;
 	}
 
-    void ListAll(Program* base) {
-        auto print_port = [base, this](auto *client_info, auto *port_info) {
-            const auto *addr = snd_seq_port_info_get_addr(port_info);
+    void ListAll(Program* base) override {
+#if __cplusplus <= 201103L // C++11 compliant code not tested
+        auto print_port = [base, this](snd_seq_client_info_t *client_info, snd_seq_port_info_t *port_info) {
+            const auto* addr = snd_seq_port_info_get_addr(port_info);
             const unsigned int type = snd_seq_port_info_get_type(port_info);
             const unsigned int caps = snd_seq_port_info_get_capability(port_info);
-
+#else
+        auto print_port = [base, this](auto* client_info, auto* port_info) {
+            const auto* addr = snd_seq_port_info_get_addr(port_info);
+            const unsigned int type = snd_seq_port_info_get_type(port_info);
+            const unsigned int caps = snd_seq_port_info_get_capability(port_info);
+#endif
             if ((type & SND_SEQ_PORT_TYPE_SYNTHESIZER) || port_is_writable(caps)) {
                 const bool selected = (addr->client == this->seq.client && addr->port == this->seq.port);
                 const char esc_color[] = "\033[32;1m";

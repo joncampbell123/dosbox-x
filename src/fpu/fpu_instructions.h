@@ -18,12 +18,29 @@
 
 #include <math.h> /* for isinf, etc */
 #include "cpu/lazyflags.h"
+
+// Helper functions for 64-bit memory access
+static inline uint64_t mem_readq(PhysPt addr) {
+	uint64_t tmp;
+	tmp  = (uint64_t)mem_readd(addr);
+	tmp |= (uint64_t)mem_readd(addr+4ul) << (uint64_t)32ul;
+	return tmp;
+}
+
+static inline void mem_writeq(PhysPt addr,uint64_t v) {
+	mem_writed(addr,    (uint32_t)v);
+	mem_writed(addr+4ul,(uint32_t)(v >> (uint64_t)32ul));
+}
+
+// Local "shadow" register file to store bit-perfect 64-bit integers.
+// Declared static to keep the change local to this file.
+static FPU_Reg fpu_regs_memcpy[9];
+
 static void FPU_FINIT(void) {
 	unsigned int i;
 
 	fpu.cw.init();
-	fpu.sw = 0;
-	TOP=FPU_GET_TOP();
+	fpu.sw.init();
 	fpu.tags[0] = TAG_Empty;
 	fpu.tags[1] = TAG_Empty;
 	fpu.tags[2] = TAG_Empty;
@@ -34,10 +51,14 @@ static void FPU_FINIT(void) {
 	fpu.tags[7] = TAG_Empty;
 	fpu.tags[8] = TAG_Valid; // is only used by us (FIXME: why?)
 	for (i=0;i < 9;i++) fpu.use80[i] = false;
+
+	for (i = 0; i < 9; i++) {
+		fpu_regs_memcpy[i].ll = 0;
+	}
 }
 
 static void FPU_FCLEX(void){
-	fpu.sw &= 0x7f00;			//should clear exceptions
+	fpu.sw.clearExceptions();
 }
 
 static void FPU_FNOP(void){
@@ -194,16 +215,11 @@ static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
 }
 
 static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
-	FPU_Reg blah;
-	blah.l.lower = mem_readd(addr);
-	blah.l.upper = (int32_t)mem_readd(addr+4);
-	fpu.regs[store_to].d = static_cast<double>(blah.ll);
-	// store the signed 64-bit integer in the 80-bit format mantissa with faked exponent.
-	// this is needed for DOS and Windows games that use the Pentium fast memcpy trick, using FLD/FST to copy 64 bits at a time.
-	// I wonder if that trick is what helped spur Intel to make the MMX extensions :)
-	fpu.regs_80[store_to].raw.l = (uint64_t)blah.ll;
-	fpu.regs_80[store_to].raw.h = ((blah.ll/*sign bit*/ >> (uint64_t)63) ? 0x8000u : 0x0000u) + FPU_Reg_80_exponent_bias + 63u; // FIXME: Verify this is correct!
-	fpu.use80[store_to] = true;
+	const int64_t val = mem_readq(addr);
+
+	fpu.regs[store_to].d = static_cast<double>(val);
+	fpu_regs_memcpy[store_to].ll = val;
+	fpu.use80[store_to] = false;
 }
 
 static void FPU_FBLD(PhysPt addr,Bitu store_to) {
@@ -212,7 +228,7 @@ static void FPU_FBLD(PhysPt addr,Bitu store_to) {
 	uint64_t base = 1;
 	for(uint8_t i = 0;i < 9;i++){
 		in = mem_readb(addr + i);
-		val += ( (in&0xf) * base); //in&0xf shouldn't be higher then 9
+		val += ( (in&0xf) * base); //in&0xf shouldn't be higher than 9
 		base *= 10;
 		val += ((( in>>4)&0xf) * base);
 		base *= 10;
@@ -273,21 +289,16 @@ static void FPU_FST_I32(PhysPt addr) {
 }
 
 static void FPU_FST_I64(PhysPt addr) {
-	FPU_Reg blah;
-	if (fpu.use80[TOP] && (fpu.regs_80[TOP].raw.h & 0x7FFFu) == (0x0000u + FPU_Reg_80_exponent_bias + 63u)) {
-		// FIXME: This works so far for DOS demos that use the "Pentium memcpy trick" to copy 64 bits at a time.
-		//        What this code needs to do is take the exponent into account and then clamp the 64-bit int within range.
-		//        This cheap hack is good enough for now.
-		mem_writed(addr,(uint32_t)(fpu.regs_80[TOP].raw.l));
-		mem_writed(addr+4,(uint32_t)(fpu.regs_80[TOP].raw.l >> (uint64_t)32));
-	}
-	else {
-		double val = FROUND(fpu.regs[TOP].d);
-		blah.ll = (val < 9223372036854775808.0 && val >= -9223372036854775808.0)?static_cast<int64_t>(val):LONGTYPE(0x8000000000000000);
+	auto val_i       = fpu_regs_memcpy[TOP].ll;
+	const auto val_d = fpu.regs[TOP].d;
 
-		mem_writed(addr,(uint32_t)blah.l.lower);
-		mem_writed(addr+4,(uint32_t)blah.l.upper);
+	if (val_d != static_cast<double>(val_i)) {
+		const auto rounded = FROUND(val_d);
+		val_i = (rounded < 9223372036854775808.0 && rounded >= -9223372036854775808.0)
+			? static_cast<int64_t>(rounded)
+			: 0x8000000000000000LL;
 	}
+	mem_writeq(addr, val_i);
 }
 
 // WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
@@ -461,17 +472,20 @@ static void FPU_FXCH(Bitu st, Bitu other){
 	FPU_Reg_80 reg80 = fpu.regs_80[other];
 	FPU_Tag tag = fpu.tags[other];
 	FPU_Reg reg = fpu.regs[other];
+	auto reg_memcpy = fpu_regs_memcpy[other];
 	bool use80 = fpu.use80[other];
 
 	fpu.regs_80[other] = fpu.regs_80[st];
 	fpu.use80[other] = fpu.use80[st];
 	fpu.tags[other] = fpu.tags[st];
 	fpu.regs[other] = fpu.regs[st];
+	fpu_regs_memcpy[other]  = fpu_regs_memcpy[st];
 
 	fpu.regs_80[st] = reg80;
 	fpu.use80[st] = use80;
 	fpu.tags[st] = tag;
 	fpu.regs[st] = reg;
+	fpu_regs_memcpy[st] = reg_memcpy;
 }
 
 static void FPU_FST(Bitu st, Bitu other){
@@ -479,6 +493,7 @@ static void FPU_FST(Bitu st, Bitu other){
 	fpu.use80[other] = fpu.use80[st];
 	fpu.tags[other] = fpu.tags[st];
 	fpu.regs[other] = fpu.regs[st];
+	fpu_regs_memcpy[other]  = fpu_regs_memcpy[st];
 }
 
 static inline void FPU_FCMOV(Bitu st, Bitu other){
@@ -499,7 +514,7 @@ static void FPU_FCOM(Bitu st, Bitu other){
 	/* TODO: This should eventually become an option, say, a dosbox.conf option named fputype where the user can enter
 	 *       "none" for no FPU, 287 or 387 for cputype=286 and cputype=386, or "auto" to match the CPU (8086 => 8087).
 	 *       If the FPU type is 387 or auto, then skip this hack. Else for 8087 and 287, use this hack. */
-	if (CPU_ArchitectureType<CPU_ARCHTYPE_386) {
+	if (FPU_ArchitectureType<FPU_ARCHTYPE_387) {
 		if ((std::isinf)(fpu.regs[st].d) && (std::isinf)(fpu.regs[other].d)) {
 			/* 8087/287 consider -inf == +inf and that's what DOS programs test for to detect 287 vs 387 */
 			FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);return;
@@ -635,9 +650,8 @@ static void FPU_FSCALE(void){
 	return; //2^x where x is chopped.
 }
 
-static void FPU_FSTENV(PhysPt addr){
-	FPU_SET_TOP(TOP);
-	if(!cpu.code.big) {
+static void FPU_FSTENV(PhysPt addr, bool op16){
+	if (op16) {
 		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));
 		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
 		mem_writew(addr+4,static_cast<uint16_t>(FPU_GetTag()));
@@ -648,28 +662,23 @@ static void FPU_FSTENV(PhysPt addr){
 	}
 }
 
-static void FPU_FLDENV(PhysPt addr){
+static void FPU_FLDENV(PhysPt addr, bool op16){
 	uint16_t tag;
-	uint32_t tagbig;
-	Bitu cw;
-	if(!cpu.code.big) {
-		cw     = mem_readw(addr+0);
+	if (op16) {
+		fpu.cw = mem_readw(addr+0);
 		fpu.sw = mem_readw(addr+2);
 		tag    = mem_readw(addr+4);
 	} else { 
-		cw     = mem_readd(addr+0);
-		fpu.sw = (uint16_t)mem_readd(addr+4);
-		tagbig = mem_readd(addr+8);
-		tag    = static_cast<uint16_t>(tagbig);
+		fpu.cw = static_cast<uint16_t>(mem_readd(addr+0));
+		fpu.sw = static_cast<uint16_t>(mem_readd(addr+4));
+		tag    = static_cast<uint16_t>(mem_readd(addr+8));
 	}
 	FPU_SetTag(tag);
-	fpu.cw = cw;
-	TOP = FPU_GET_TOP();
 }
 
-static void FPU_FSAVE(PhysPt addr){
-	FPU_FSTENV(addr);
-	uint8_t start = (cpu.code.big?28:14);
+static void FPU_FSAVE(PhysPt addr, bool op16){
+	FPU_FSTENV(addr, op16);
+	uint8_t start = op16 ? 14:28;
 	for(uint8_t i = 0;i < 8;i++){
 		FPU_ST80(addr+start,STV(i),/*&*/fpu.regs_80[STV(i)],fpu.use80[STV(i)]);
 		start += 10;
@@ -677,9 +686,9 @@ static void FPU_FSAVE(PhysPt addr){
 	FPU_FINIT();
 }
 
-static void FPU_FRSTOR(PhysPt addr){
-	FPU_FLDENV(addr);
-	uint8_t start = (cpu.code.big?28:14);
+static void FPU_FRSTOR(PhysPt addr, bool op16){
+	FPU_FLDENV(addr, op16);
+	uint8_t start = op16 ? 14:28;
 	for(uint8_t i = 0;i < 8;i++){
 		fpu.regs[STV(i)].d = FPU_FLD80(addr+start,/*&*/fpu.regs_80[STV(i)]);
 		fpu.use80[STV(i)] = true;

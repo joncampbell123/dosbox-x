@@ -27,7 +27,21 @@
 
 #include "SDLnetsys.h"
 #include "SDL_net.h"
+#if defined(__WIN32__)
+#include "winerror.h"
+#endif
 
+#if defined(__MINGW32__)
+#ifndef SDL_malloc
+#define SDL_malloc malloc
+#endif
+#ifndef SDL_free
+#define SDL_free free
+#endif
+#ifndef SDL_realloc
+#define SDL_realloc realloc
+#endif
+#endif
 
 const SDL_version *SDLNet_Linked_Version(void)
 {

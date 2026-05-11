@@ -1,139 +1,168 @@
-/***************************************************************************/
-/*                                                                         */
-/* This file defines the structure of the FreeType reference.              */
-/* It is used by the python script that generates the HTML files.          */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * This file defines the structure of the FreeType reference.
+ * It is used by the python script that generates the HTML files.
+ *
+ */
 
 
-/***************************************************************************/
-/*                                                                         */
-/* <Chapter>                                                               */
-/*    general_remarks                                                      */
-/*                                                                         */
-/* <Title>                                                                 */
-/*    General Remarks                                                      */
-/*                                                                         */
-/* <Sections>                                                              */
-/*    header_inclusion                                                     */
-/*    user_allocation                                                      */
-/*                                                                         */
-/***************************************************************************/
+  /**************************************************************************
+   *
+   * @chapter:
+   *   general_remarks
+   *
+   * @title:
+   *   General Remarks
+   *
+   * @sections:
+   *   preamble
+   *   header_inclusion
+   *   user_allocation
+   *
+   */
 
 
-/***************************************************************************/
-/*                                                                         */
-/* <Chapter>                                                               */
-/*    core_api                                                             */
-/*                                                                         */
-/* <Title>                                                                 */
-/*    Core API                                                             */
-/*                                                                         */
-/* <Sections>                                                              */
-/*    version                                                              */
-/*    basic_types                                                          */
-/*    base_interface                                                       */
-/*    glyph_variants                                                       */
-/*    glyph_management                                                     */
-/*    mac_specific                                                         */
-/*    sizes_management                                                     */
-/*    header_file_macros                                                   */
-/*                                                                         */
-/***************************************************************************/
+  /**************************************************************************
+   *
+   * @chapter:
+   *   core_api
+   *
+   * @title:
+   *   Core API
+   *
+   * @sections:
+   *   basic_types
+   *   library_setup
+   *   face_creation
+   *   font_testing_macros
+   *   sizing_and_scaling
+   *   glyph_retrieval
+   *   character_mapping
+   *   information_retrieval
+   *   other_api_data
+   *
+   */
 
 
-/***************************************************************************/
-/*                                                                         */
-/* <Chapter>                                                               */
-/*    format_specific                                                      */
-/*                                                                         */
-/* <Title>                                                                 */
-/*    Format-Specific API                                                  */
-/*                                                                         */
-/* <Sections>                                                              */
-/*    multiple_masters                                                     */
-/*    truetype_tables                                                      */
-/*    type1_tables                                                         */
-/*    sfnt_names                                                           */
-/*    bdf_fonts                                                            */
-/*    cid_fonts                                                            */
-/*    pfr_fonts                                                            */
-/*    winfnt_fonts                                                         */
-/*    font_formats                                                         */
-/*    gasp_table                                                           */
-/*                                                                         */
-/***************************************************************************/
+  /**************************************************************************
+   *
+   * @chapter:
+   *   extended_api
+   *
+   * @title:
+   *   Extended API
+   *
+   * @sections:
+   *   glyph_variants
+   *   color_management
+   *   layer_management
+   *   glyph_management
+   *   mac_specific
+   *   sizes_management
+   *   header_file_macros
+   *
+   */
 
 
-/***************************************************************************/
-/*                                                                         */
-/* <Chapter>                                                               */
-/*    module_specific                                                      */
-/*                                                                         */
-/* <Title>                                                                 */
-/*    Controlling FreeType Modules                                         */
-/*                                                                         */
-/* <Sections>                                                              */
-/*    auto_hinter                                                          */
-/*    cff_driver                                                           */
-/*    t1_cid_driver                                                        */
-/*    tt_driver                                                            */
-/*    pcf_driver                                                           */
-/*    properties                                                           */
-/*    parameter_tags                                                       */
-/*                                                                         */
-/***************************************************************************/
+  /**************************************************************************
+   *
+   * @chapter:
+   *   format_specific
+   *
+   * @title:
+   *   Format-Specific API
+   *
+   * @sections:
+   *   multiple_masters
+   *   truetype_tables
+   *   type1_tables
+   *   sfnt_names
+   *   bdf_fonts
+   *   cid_fonts
+   *   pfr_fonts
+   *   winfnt_fonts
+   *   svg_fonts
+   *   font_formats
+   *   gasp_table
+   *
+   */
 
 
-/***************************************************************************/
-/*                                                                         */
-/* <Chapter>                                                               */
-/*    cache_subsystem                                                      */
-/*                                                                         */
-/* <Title>                                                                 */
-/*    Cache Sub-System                                                     */
-/*                                                                         */
-/* <Sections>                                                              */
-/*    cache_subsystem                                                      */
-/*                                                                         */
-/***************************************************************************/
+  /**************************************************************************
+   *
+   * @chapter:
+   *   module_specific
+   *
+   * @title:
+   *   Controlling FreeType Modules
+   *
+   * @sections:
+   *   auto_hinter
+   *   cff_driver
+   *   t1_cid_driver
+   *   tt_driver
+   *   pcf_driver
+   *   ot_svg_driver
+   *   properties
+   *   parameter_tags
+   *   lcd_rendering
+   *
+   */
 
 
-/***************************************************************************/
-/*                                                                         */
-/* <Chapter>                                                               */
-/*    support_api                                                          */
-/*                                                                         */
-/* <Title>                                                                 */
-/*    Support API                                                          */
-/*                                                                         */
-/* <Sections>                                                              */
-/*    computations                                                         */
-/*    list_processing                                                      */
-/*    outline_processing                                                   */
-/*    quick_advance                                                        */
-/*    bitmap_handling                                                      */
-/*    raster                                                               */
-/*    glyph_stroker                                                        */
-/*    system_interface                                                     */
-/*    module_management                                                    */
-/*    gzip                                                                 */
-/*    lzw                                                                  */
-/*    bzip2                                                                */
-/*    lcd_filtering                                                        */
-/*                                                                         */
-/***************************************************************************/
+  /**************************************************************************
+   *
+   * @chapter:
+   *   cache_subsystem
+   *
+   * @title:
+   *   Cache Sub-System
+   *
+   * @sections:
+   *   cache_subsystem
+   *
+   */
 
-/***************************************************************************/
-/*                                                                         */
-/* <Chapter>                                                               */
-/*    error_codes                                                          */
-/*                                                                         */
-/* <Title>                                                                 */
-/*    Error Codes                                                          */
-/*                                                                         */
-/* <Sections>                                                              */
-/*    error_enumerations                                                   */
-/*    error_code_values                                                    */
-/*                                                                         */
-/***************************************************************************/
+
+  /**************************************************************************
+   *
+   * @chapter:
+   *   support_api
+   *
+   * @title:
+   *   Support API
+   *
+   * @sections:
+   *   computations
+   *   list_processing
+   *   outline_processing
+   *   quick_advance
+   *   bitmap_handling
+   *   raster
+   *   glyph_stroker
+   *   system_interface
+   *   module_management
+   *   gzip
+   *   lzw
+   *   bzip2
+   *   debugging_apis
+   *
+   */
+
+
+  /**************************************************************************
+   *
+   * @chapter:
+   *   error_codes
+   *
+   * @title:
+   *   Error Codes
+   *
+   * @sections:
+   *   error_enumerations
+   *   error_code_values
+   *
+   */
+
+
+/* END */

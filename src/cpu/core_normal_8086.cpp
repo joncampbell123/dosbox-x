@@ -19,8 +19,11 @@
 #include "cpu.h"
 #include "lazyflags.h"
 #include "callback.h"
+#include "paging.h"
 #include "pic.h"
 #include "fpu.h"
+
+extern bool do_lds_wraparound;
 
 /* Do not emulate segment limit exceptions on 8086. This turns the if() statements into if (0)
  * and the C++ compiler optimizer should then completely omit the code for the 8086 cputype. */
@@ -46,37 +49,6 @@ extern bool mustCompleteInstruction;
 static uint16_t last_ea86_offset;
 
 /* NTS: we special case writes to seg:ffff to emulate 8086 behavior where word read/write wraps around the 64KB segment */
-#if (!C_CORE_INLINE)
-
-#define LoadMb(off) mem_readb(off)
-
-static inline uint16_t LoadMw(Bitu off) {
-	if (last_ea86_offset == 0xffff)
-		return (mem_readb(off) | (mem_readb(off-0xffff) << 8));
-
-	return mem_readw(off);	
-}
-
-#define LoadMd(off) mem_readd(off)
-
-#define SaveMb(off,val)	mem_writeb(off,val)
-
-static void SaveMw(Bitu off,Bitu val) {
-	if (last_ea86_offset == 0xffff) {
-		mem_writeb(off,val);
-		mem_writeb(off-0xffff,val>>8);
-	}
-	else {
-		mem_writew(off,val);
-	}
-}
-
-#define SaveMd(off,val)	mem_writed(off,val)
-
-#else 
-
-#include "paging.h"
-
 #define LoadMb(off) mem_readb_inline(off)
 
 static inline uint16_t LoadMw(Bitu off) {
@@ -101,8 +73,6 @@ static void SaveMw(Bitu off,Bitu val) {
 }
 
 #define SaveMd(off,val)	mem_writed_inline(off,val)
-
-#endif
 
 extern Bitu cycle_count;
 
@@ -148,6 +118,8 @@ extern Bitu cycle_count;
 	core.prefixes|=PREFIX_REP;				\
 	core.rep_zero=_ZERO;					\
 	goto restart_opcode;
+
+#define REMEMBER_PREFIX(_x)
 
 typedef PhysPt (*GetEAHandler)(void);
 
@@ -212,8 +184,8 @@ static INLINE uint32_t Fetchd() {
 #define EALookupTable (core.ea_table)
 
 Bits CPU_Core8086_Normal_Run(void) {
-    if (CPU_Cycles <= 0)
-	    return CBRET_NONE;
+	if (CPU_Cycles <= 0)
+		return CBRET_NONE;
 
 	while (CPU_Cycles-->0) {
 		LOADIP;

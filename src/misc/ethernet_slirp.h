@@ -26,6 +26,7 @@
 #include "ethernet.h"
 #include <slirp/libslirp.h>
 #include <list>
+#include <map>
 
 /*
  * libslirp really wants a poll() API, so we'll use that when we're
@@ -61,9 +62,9 @@ class SlirpEthernetConnection : public EthernetConnection {
 		/* Boilerplate EthernetConnection interface */
 		SlirpEthernetConnection();
 		~SlirpEthernetConnection();
-		bool Initialize(Section* config);
-		void SendPacket(const uint8_t* packet, int len);
-		void GetPackets(std::function<void(const uint8_t*, int)> callback);
+		bool Initialize(Section* config) override;
+		void SendPacket(const uint8_t* packet, int len) override;
+		void GetPackets(std::function<void(const uint8_t*, int)> callback) override;
 
 		/* Called by libslirp when it has a packet for us */
 		void ReceivePacket(const uint8_t* packet, int len);
@@ -84,16 +85,19 @@ class SlirpEthernetConnection : public EthernetConnection {
 		void TimersRun();
 		void TimersClear();
 
-                /* Builds a list of descriptors and polls them */
+		void ClearPortForwards(const bool is_udp, std::map<int, int> &existing_port_forwards);
+		std::map<int, int> SetupPortForwards(const bool is_udp, const std::string &port_forward_rules);
+
+		/* Builds a list of descriptors and polls them */
 		void PollsAddRegistered();
 		void PollsClear();
 		bool PollsPoll(uint32_t timeout_ms);
 
 		Slirp* slirp = nullptr; /*!< Handle to libslirp */
 		SlirpConfig config = { 0 }; /*!< Configuration passed to libslirp */
-		SlirpCb slirp_callbacks = { 0 }; /*!< Callbacks used by libslirp */
+		SlirpCb slirp_callbacks = { nullptr }; /*!< Callbacks used by libslirp */
 		std::list<struct slirp_timer*> timers; /*!< Stored timers */
-                
+
 		/** The GetPacket callback
 		 * When libslirp has a new packet for us it calls ReceivePacket,
 		 * but the EthernetConnection interface requires users to poll
@@ -106,6 +110,9 @@ class SlirpEthernetConnection : public EthernetConnection {
 
 		std::list<int> registered_fds; /*!< File descriptors to watch */
 
+		// keep track of the ports forwarded
+		std::map<int, int> forwarded_tcp_ports = {};
+		std::map<int, int> forwarded_udp_ports = {};
 #ifndef WIN32
 		std::vector<struct pollfd> polls; /*!< Descriptors for poll() */
 #else

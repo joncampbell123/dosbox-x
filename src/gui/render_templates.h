@@ -18,13 +18,13 @@
 
 #include "config.h"
 #include "SDL_endian.h"
+#include "vga.h"
 
 #if DBPP == 8
 #define PSIZE 1
 #define PTYPE uint8_t
 #define WC scalerWriteCache.b8
-//#define FC scalerFrameCache.b8
-#define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b8
+#define FC scalerFrameCache.b8
 #define redMask		0
 #define	greenMask	0
 #define blueMask	0
@@ -38,8 +38,7 @@
 #define PSIZE 2
 #define PTYPE uint16_t
 #define WC scalerWriteCache.b16
-//#define FC scalerFrameCache.b16
-#define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b16
+#define FC scalerFrameCache.b16
 #if DBPP == 15
 #define	redMask		0x7C00
 #define	greenMask	0x03E0
@@ -65,8 +64,7 @@
 #define PSIZE 4
 #define PTYPE uint32_t
 #define WC scalerWriteCache.b32
-//#define FC scalerFrameCache.b32
-#define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b32
+#define FC scalerFrameCache.b32
 # if !defined(C_SDL2) && defined(MACOSX) /* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */
 #  define redMask       0x0000ff00
 #  define greenMask     0x00ff0000
@@ -94,7 +92,6 @@
 
 
 #if SBPP == 8 || SBPP == 9
-#define SC scalerSourceCache.b8
 #if DBPP == 8
 #define PMAKE(_VAL) (_VAL)
 #elif DBPP == 15
@@ -108,7 +105,6 @@
 #endif
 
 #if SBPP == 15
-#define SC scalerSourceCache.b16
 #ifdef WORDS_BIGENDIAN
 #if DBPP == 15   // GGGBBBBBxRRRRRGG -> xRRRRRGGGGGBBBBB
 #define PMAKE(_VAL) (((_VAL>>8)&0x00FF)|((_VAL<<8)&0xFF00))
@@ -123,7 +119,7 @@
 #elif DBPP == 16 // xRRRRRGggggBBBBB -> RRRRRGggggGBBBBB
 #define PMAKE(_VAL) ((_VAL & 31)|((_VAL & ~31)<<1)|((_VAL&0x0200)>>4))
 #elif DBPP == 32 // xRRRrrGGGggBBBbb -> RRRrrRRRGGGggGGGBBBbbBBB
-# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
 #  define PMAKE(_VAL)  (((_VAL&(31u<<10u))<<1u)|((_VAL&(31u<<5u))<<14u)|((_VAL&31u)<<27u))
 # else
 #  define PMAKE(_VAL)  (((_VAL&(31u<<10u))<<9u)|((_VAL&(31u<<5u))<<6u)|((_VAL&31u)<<3u)|((_VAL&(7<<12))<<4)|((_VAL&(7<<7))<<1)|((_VAL&(7<<2))>>2))
@@ -134,7 +130,6 @@
 #endif
 
 #if SBPP == 16
-#define SC scalerSourceCache.b16
 #ifdef WORDS_BIGENDIAN
 #if DBPP == 15   // GGgBBBBBRRRRRGGG -> 0RRRRRGGGGGBBBBB
 #define PMAKE(_VAL) (((_VAL>>8)&0x001F)|((_VAL>>9)&0x0060)|((_VAL<<7)&0x7F80))
@@ -149,7 +144,7 @@
 #elif DBPP == 16
 #define PMAKE(_VAL) (_VAL)
 #elif DBPP == 32 // RRRrrGGggggBBBbb -> RRRrrRRRGGggggGGBBBbbBBB
-# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
 #  define PMAKE(_VAL)  (((_VAL&(31u<<11u))<<0u)|((_VAL&(63u<<5u))<<13u)|((_VAL&31u)<<27u))
 # else
 #  define PMAKE(_VAL)  (((_VAL&(31<<11))<<8)|((_VAL&(63<<5))<<5)|((_VAL&0xE01F)<<3)|((_VAL&(3<<9))>>1)|((_VAL&(7<<2))>>2))
@@ -160,7 +155,6 @@
 #endif
 
 #if SBPP == 32
-#define SC scalerSourceCache.b32
 #ifdef WORDS_BIGENDIAN
 #if DBPP == 15   // BBBBBbbbGGGGGgggRRRRRrrrxxxxxxxx -> 0RRRRRGGGGGBBBBB
 #define PMAKE(_VAL) (PTYPE)(((_VAL>>27)&0x001F)|((_VAL>>14)&0x03E0)|((_VAL>>1)&0x7C00))
@@ -186,24 +180,35 @@
 //  C6 C7 C8 D5
 //  D0 D1 D2 D6
 
-#define C0 fc[-1 - SCALER_COMPLEXWIDTH]
-#define C1 fc[+0 - SCALER_COMPLEXWIDTH]
-#define C2 fc[+1 - SCALER_COMPLEXWIDTH]
-#define C3 fc[-1 ]
-#define C4 fc[+0 ]
-#define C5 fc[+1 ]
-#define C6 fc[-1 + SCALER_COMPLEXWIDTH]
-#define C7 fc[+0 + SCALER_COMPLEXWIDTH]
-#define C8 fc[+1 + SCALER_COMPLEXWIDTH]
+#define C0 fcp1[-1]
+#define C1 fcp1[+0]
+#define C2 fcp1[+1]
+#define C3 fc[-1]
+#define C4 fc[+0]
+#define C5 fc[+1]
+#define C6 fcn1[-1]
+#define C7 fcn1[+0]
+#define C8 fcn1[+1]
 
-#define D0 fc[-1 + 2*SCALER_COMPLEXWIDTH]
-#define D1 fc[+0 + 2*SCALER_COMPLEXWIDTH]
-#define D2 fc[+1 + 2*SCALER_COMPLEXWIDTH]
-#define D3 fc[+2 - SCALER_COMPLEXWIDTH]
+#define D0 fcn2[-1]
+#define D1 fcn2[+0]
+#define D2 fcn2[+1]
+#define D3 fcp1[+2]
 #define D4 fc[+2]
-#define D5 fc[+2 + SCALER_COMPLEXWIDTH]
-#define D6 fc[+2 + 2*SCALER_COMPLEXWIDTH]
+#define D5 fcn1[+2]
+#define D6 fcn2[+2]
 
+#define FC_PTR_ADV(adj) \
+	fcp1 += (adj); \
+	fc   += (adj); \
+	fcn1 += (adj); \
+	fcn2 += (adj);
+
+#define FC_PTRS(pt_t,line) \
+	pt_t *fcp1 = &FC[(line)-1u][1]; (void)fcp1; \
+	pt_t *fc   = &FC[(line)   ][1]; (void)fc;   \
+	pt_t *fcn1 = &FC[(line)+1u][1]; (void)fcn1; \
+	pt_t *fcn2 = &FC[(line)+2u][1]; (void)fcn2;
 
 #if RENDER_USE_ADVANCED_SCALERS>1
 static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
@@ -219,9 +224,10 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 	}
 #endif
 	const SRCTYPE * src = (SRCTYPE*)s;
-	PTYPE *fc= &FC[render.scale.inLine+1][1];
+	FC_PTRS(PTYPE,render.scale.inLine+1);
 	SRCTYPE *sc = (SRCTYPE*)(render.scale.cacheRead);
 	render.scale.cacheRead += render.scale.cachePitch;
+
 	Bitu b;
 	bool hadChange = false;
 	/* This should also copy the surrounding pixels but it looks nice enough without */
@@ -253,7 +259,8 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 				continue;
 			}
 		}
-		fc += SCALER_BLOCKSIZE;
+
+		FC_PTR_ADV(SCALER_BLOCKSIZE);
 		sc += SCALER_BLOCKSIZE;
 		src += SCALER_BLOCKSIZE;
 	}
@@ -502,6 +509,28 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #undef SCALERHEIGHT
 #undef SCALERFUNC
 
+#define SCALERNAME		TV2xDw
+#define SCALERWIDTH		4
+#define SCALERHEIGHT	2
+#define SCALERFUNC									\
+{													\
+	PTYPE halfpixel=((P & redblueMask) >> 1) & redblueMask;	\
+	halfpixel|=((P & greenMask) >> 1) & greenMask;			\
+	line0[0]=P;							\
+	line0[1]=P;							\
+	line0[2]=P;							\
+	line0[3]=P;							\
+	line1[0]=halfpixel;						\
+	line1[1]=halfpixel;						\
+	line1[2]=halfpixel;						\
+	line1[3]=halfpixel;						\
+}
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
 #define SCALERNAME		TVDh
 #define SCALERWIDTH		1
 #define SCALERHEIGHT	2
@@ -562,6 +591,68 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #undef SCALERHEIGHT
 #undef SCALERFUNC
 
+#define SCALERNAME		TV3xDw
+#define SCALERWIDTH		6
+#define SCALERHEIGHT	3
+#if !defined(C_SDL2) && defined(MACOSX) /* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */
+#define SCALERFUNC							\
+{											\
+	PTYPE halfpixel=(((uint64_t)(P & redblueMask) * (uint64_t)5) >> (uint64_t)3) & redblueMask;	\
+	halfpixel|=(((uint64_t)(P & greenMask) * (uint64_t)5) >> (uint64_t)3) & greenMask;			\
+	line0[0]=P;								\
+	line0[1]=P;								\
+	line0[2]=P;								\
+	line0[3]=P;								\
+	line0[4]=P;								\
+	line0[5]=P;								\
+	line1[0]=halfpixel;						\
+	line1[1]=halfpixel;						\
+	line1[2]=halfpixel;						\
+	line1[3]=halfpixel;						\
+	line1[4]=halfpixel;						\
+	line1[5]=halfpixel;						\
+	halfpixel=(((uint64_t)(P & redblueMask) * (uint64_t)5) >> (uint64_t)4) & redblueMask;	\
+	halfpixel|=(((uint64_t)(P & greenMask) * (uint64_t)5) >> (uint64_t)4) & greenMask;			\
+	line2[0]=halfpixel;						\
+	line2[1]=halfpixel;						\
+	line2[2]=halfpixel;						\
+	line2[3]=halfpixel;						\
+	line2[4]=halfpixel;						\
+	line2[5]=halfpixel;						\
+}
+#else
+#define SCALERFUNC							\
+{											\
+	PTYPE halfpixel=(((P & redblueMask) * 5) >> 3) & redblueMask;	\
+	halfpixel|=(((P & greenMask) * 5) >> 3) & greenMask;			\
+	line0[0]=P;								\
+	line0[1]=P;								\
+	line0[2]=P;								\
+	line0[3]=P;								\
+	line0[4]=P;								\
+	line0[5]=P;								\
+	line1[0]=halfpixel;						\
+	line1[1]=halfpixel;						\
+	line1[2]=halfpixel;						\
+	line1[3]=halfpixel;						\
+	line1[4]=halfpixel;						\
+	line1[5]=halfpixel;						\
+	halfpixel=(((P & redblueMask) * 5) >> 4) & redblueMask;	\
+	halfpixel|=(((P & greenMask) * 5) >> 4) & greenMask;			\
+	line2[0]=halfpixel;						\
+	line2[1]=halfpixel;						\
+	line2[2]=halfpixel;						\
+	line2[3]=halfpixel;						\
+	line2[4]=halfpixel;						\
+	line2[5]=halfpixel;						\
+}
+#endif
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
 #define SCALERNAME		RGB2x
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
@@ -570,6 +661,24 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 	line0[1]=P & greenMask;			\
 	line1[0]=P & blueMask;				\
 	line1[1]=P;
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		RGB2xDw
+#define SCALERWIDTH		4
+#define SCALERHEIGHT	2
+#define SCALERFUNC						\
+	line0[0]=P & redMask;				\
+	line0[1]=P & greenMask;			\
+	line0[2]=P & redMask;				\
+	line0[3]=P & greenMask;			\
+	line1[0]=P & blueMask;				\
+	line1[1]=P;				\
+	line1[2]=P & blueMask;				\
+	line1[3]=P;
 #include "render_simple.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -595,6 +704,34 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #undef SCALERHEIGHT
 #undef SCALERFUNC
 
+#define SCALERNAME		RGB3xDw
+#define SCALERWIDTH		6
+#define SCALERHEIGHT	3
+#define SCALERFUNC						\
+	line0[0]=P;							\
+	line0[1]=P & greenMask;				\
+	line0[2]=P & blueMask;				\
+	line0[3]=P;							\
+	line0[4]=P & greenMask;				\
+	line0[5]=P & blueMask;				\
+	line1[0]=P & greenMask;				\
+	line1[1]=P & redMask; 						\
+	line1[2]=P;				\
+	line1[3]=P & greenMask;				\
+	line1[4]=P & redMask; 						\
+	line1[5]=P;				\
+	line2[0]=P;				\
+	line2[1]=P & blueMask;				\
+	line2[2]=P & redMask;			\
+	line2[3]=P;				\
+	line2[4]=P & blueMask;				\
+	line2[5]=P & redMask;
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
 #define SCALERNAME		Scan2x
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
@@ -603,6 +740,24 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 	line0[1]=P;							\
 	line1[0]=0;							\
 	line1[1]=0;
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		Scan2xDw
+#define SCALERWIDTH		4
+#define SCALERHEIGHT	2
+#define SCALERFUNC						\
+	line0[0]=P;							\
+	line0[1]=P;							\
+	line0[2]=P;							\
+	line0[3]=P;							\
+	line1[0]=0;							\
+	line1[1]=0;							\
+	line1[2]=0;							\
+	line1[3]=0;
 #include "render_simple.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -634,6 +789,34 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 	line2[0]=0;				\
 	line2[1]=0;				\
 	line2[2]=0;
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		Scan3xDw
+#define SCALERWIDTH		6
+#define SCALERHEIGHT	3
+#define SCALERFUNC			\
+	line0[0]=P;				\
+	line0[1]=P;				\
+	line0[2]=P;				\
+	line0[3]=P;				\
+	line0[4]=P;				\
+	line0[5]=P;				\
+	line1[0]=P;				\
+	line1[1]=P;				\
+	line1[2]=P;				\
+	line1[3]=P;				\
+	line1[4]=P;				\
+	line1[5]=P;				\
+	line2[0]=0;				\
+	line2[1]=0;				\
+	line2[2]=0;				\
+	line2[3]=0;				\
+	line2[4]=0;				\
+	line2[5]=0;
 #include "render_simple.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -716,7 +899,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
 #include "render_templates_hq2x.h"
-#define SCALERFUNC		conc2d(Hq2x,SBPP)(line0, line1, fc)
+#define SCALERFUNC		conc2d(Hq2x,SBPP)(line0, line1, fcp1, fc, fcn1, fcn2)
 #include "render_loops.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -727,7 +910,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERWIDTH		3
 #define SCALERHEIGHT	3
 #include "render_templates_hq3x.h"
-#define SCALERFUNC		conc2d(Hq3x,SBPP)(line0, line1, line2, fc)
+#define SCALERFUNC		conc2d(Hq3x,SBPP)(line0, line1, line2, fcp1, fc, fcn1, fcn2)
 #include "render_loops.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -739,7 +922,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERNAME		Super2xSaI
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
-#define SCALERFUNC		conc2d(Super2xSaI,SBPP)(line0, line1, fc)
+#define SCALERFUNC		conc2d(Super2xSaI,SBPP)(line0, line1, fcp1, fc, fcn1, fcn2)
 #include "render_loops.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -749,7 +932,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERNAME		SuperEagle
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
-#define SCALERFUNC		conc2d(SuperEagle,SBPP)(line0, line1, fc)
+#define SCALERFUNC		conc2d(SuperEagle,SBPP)(line0, line1, fcp1, fc, fcn1, fcn2)
 #include "render_loops.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
@@ -759,7 +942,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERNAME		_2xSaI
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
-#define SCALERFUNC		conc2d(_2xSaI,SBPP)(line0, line1, fc)
+#define SCALERFUNC		conc2d(_2xSaI,SBPP)(line0, line1, fcp1, fc, fcn1, fcn2)
 #include "render_loops.h"
 #undef SCALERNAME
 #undef SCALERWIDTH

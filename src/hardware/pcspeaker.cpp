@@ -366,7 +366,7 @@ void PCSPEAKER_SetCounter_NoNewMode(Bitu cntr) {
 		break;
 	default:
 #ifdef SPKR_DEBUGGING
-		LOG_MSG("Unhandled speaker mode %d at %f", mode, PIC_FullIndex());
+		LOG_MSG("Unhandled speaker mode %d at %f", spkr.pit_mode, PIC_FullIndex());
 #endif
 		return;
 	}
@@ -686,7 +686,7 @@ static void PCSPEAKER_CallBack(Bitu len) {
 
         /* hack: some indexes come out at 1.001, fix that for the next round.
          *       this is a consequence of DOSBox-X allowing the CPU cycles
-         *       count use to overrun slightly for accuracy. if we DONT fix
+         *       count use to overrun slightly for accuracy. if we DON'T fix
          *       this the delay queue will get stuck and PC speaker output
          *       will stop. */
         for (Bitu i=0;i < spkr.used;i++) {
@@ -705,7 +705,7 @@ private:
 	MixerObject MixerChan;
 public:
 	PCSPEAKER(Section* configuration):Module_base(configuration){
-		spkr.chan=0;
+		spkr.chan = nullptr;
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		if(!section->Get_bool("pcspeaker")||control->opt_silent) return;
 		spkr.pit_output_enabled = 0;
@@ -729,14 +729,14 @@ public:
 		 * by setting the counter to an ultrasonic frequency, it averages out into a quiet hiss rather
 		 * than noisy aliasing noise. */
 		spkr.minimum_counter = PIT_TICK_RATE/(spkr.rate*10);
-		SPKR_SPEED = (pic_tickindex_t)((SPKR_VOLUME*2*44100)/(0.050*spkr.rate)); /* calibrated around DOSBox-X default rate 44100h */
+		SPKR_SPEED = (pic_tickindex_t)((SPKR_VOLUME*2*44100)/(0.010*spkr.rate));
 		spkr.used=0;
 		/* Register the sound channel */
 		spkr.chan=MixerChan.Install(&PCSPEAKER_CallBack,spkr.rate,"SPKR");
 		if (!spkr.chan) {
 			E_Exit(__FILE__ ": Unable to register channel with mixer.");
 		}
-		spkr.chan->SetLowpassFreq(14000);
+		spkr.chan->SetLowpassFreq(10000,3);
 		spkr.chan->Enable(true);
 #ifdef SPKR_DEBUGGING
 		PCSpeakerLog = fopen("PCSpeakerLog.txt", "w");

@@ -103,7 +103,7 @@ extern "C" {
   * @endcode
   *
   * where opus_encoder_get_size() returns the required size for the encoder state. Note that
-  * future versions of this code may change the size, so no assuptions should be made about it.
+  * future versions of this code may change the size, so no assumptions should be made about it.
   *
   * The encoder state is always continuous in memory and only a shallow copy is sufficient
   * to copy it (e.g. memcpy())
@@ -357,7 +357,7 @@ OPUS_EXPORT int opus_encoder_ctl(OpusEncoder *st, int request, ...) OPUS_ARG_NON
   * error = opus_decoder_init(dec, Fs, channels);
   * @endcode
   * where opus_decoder_get_size() returns the required size for the decoder state. Note that
-  * future versions of this code may change the size, so no assuptions should be made about it.
+  * future versions of this code may change the size, so no assumptions should be made about it.
   *
   * The decoder state is always continuous in memory and only a shallow copy is sufficient
   * to copy it (e.g. memcpy())
@@ -621,7 +621,7 @@ OPUS_EXPORT void opus_pcm_soft_clip(float *pcm, int frame_size, int channels, fl
   * framing overhead becomes negligible.
   *
   * The repacketizer currently only operates on elementary Opus
-  * streams. It will not manipualte multistream packets successfully, except in
+  * streams. It will not manipulate multistream packets successfully, except in
   * the degenerate case where they consist of data from a single stream.
   *
   * The repacketizing process starts with creating a repacketizer state, either

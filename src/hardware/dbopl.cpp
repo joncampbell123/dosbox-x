@@ -45,6 +45,10 @@
 #define PI 3.14159265358979323846
 #endif
 
+extern bool adlib_pcm_boost;
+
+void adlib_boost32(int32_t *buf,unsigned int c,unsigned int ch);
+
 namespace DBOPL {
 
 #define OPLRATE		((double)(14318180.0 / 288.0))
@@ -100,9 +104,9 @@ namespace DBOPL {
 #endif
 
 
-//How much to substract from the base value for the final attenuation
+//How much to subtract from the base value for the final attenuation
 static const uint8_t KslCreateTable[16] = {
-	//0 will always be be lower than 7 * 8
+	//0 will always be lower than 7 * 8
 	64, 32, 24, 19, 
 	16, 12, 11, 10, 
 	 8,  6,  5,  4,
@@ -142,7 +146,7 @@ static uint16_t SinTable[ 512 ];
 
 #if ( DBOPL_WAVE > WAVE_HANDLER )
 //Layout of the waveform table in 512 entry intervals
-//With overlapping waves we reduce the table to half it's size
+//With overlapping waves we reduce the table to half its size
 
 //	|    |//\\|____|WAV7|//__|/\  |____|/\/\|
 //	|\\//|    |    |WAV7|    |  \/|    |    |
@@ -210,7 +214,7 @@ static void EnvelopeSelect( uint8_t val, uint8_t& index, uint8_t& shift ) {
 
 #if ( DBOPL_WAVE == WAVE_HANDLER )
 /*
-	Generate the different waveforms out of the sine/exponetial table using handlers
+	Generate the different waveforms out of the sine/exponential table using handlers
 */
 static /*inline*/ Bits MakeVolume( Bitu wave, Bitu volume ) {
 	Bitu total = wave + volume;
@@ -509,7 +513,7 @@ void Operator::Write80( const Chip* chip, uint8_t val ) {
 void Operator::WriteE0( const Chip* chip, uint8_t val ) {
 	if ( !(regE0 ^ val) ) 
 		return;
-	//in opl3 mode you can always selet 7 waveforms regardless of waveformselect
+	//in opl3 mode you can always select 7 waveforms regardless of waveformselect
 	const uint8_t waveForm = val & ( ( 0x3 & chip->waveFormMask ) | (0x7 & chip->opl3Active ) );
 	regE0 = val;
 #if ( DBOPL_WAVE == WAVE_HANDLER )
@@ -613,7 +617,7 @@ Operator::Operator() {
 	reg60 = 0;
 	reg80 = 0;
 	regE0 = 0;
-    waveBase = 0;
+    waveBase = nullptr;
     waveMask = 0;
     waveStart = 0;
     vibrato = 0;
@@ -895,7 +899,7 @@ Channel* Channel::BlockTemplate( Chip* chip, uint32_t samples, int32_t* output )
 	default:
 		break;
 	}
-	//Init the operators with the the current vibrato and tremolo values
+	//Init the operators with the current vibrato and tremolo values
 	Op( 0 )->Prepare( chip );
 	Op( 1 )->Prepare( chip );
 	if ( mode > sm4Start ) {
@@ -910,10 +914,10 @@ Channel* Channel::BlockTemplate( Chip* chip, uint32_t samples, int32_t* output )
 		//Early out for percussion handlers
 		if ( mode == sm2Percussion ) {
 			GeneratePercussion<false>( chip, output + i );
-			continue;	//Prevent some unitialized value bitching
+			continue;	//Prevent some uninitialized value bitching
 		} else if ( mode == sm3Percussion ) {
 			GeneratePercussion<true>( chip, output + i * 2 );
-			continue;	//Prevent some unitialized value bitching
+			continue;	//Prevent some uninitialized value bitching
 		}
 
 		//Do unsigned shift so we can shift out all bits but still stay in 10 bit range otherwise
@@ -978,7 +982,7 @@ Channel* Channel::BlockTemplate( Chip* chip, uint32_t samples, int32_t* output )
 	case sm3Percussion:
 		return( this + 3 );
 	}
-	return 0;
+	return nullptr;
 }
 
 /*
@@ -1011,7 +1015,7 @@ Chip::Chip( bool _opl3Mode ) : opl3Mode( _opl3Mode ) {
 	vibratoShift = ( VibratoTable[ vibratoIndex >> 2] & 7) + vibratoStrength; 
 	tremoloValue = TremoloTable[ tremoloIndex ] >> tremoloStrength;
 
-	//Check hom many samples there can be done before the value changes
+	//Check how many samples there can be done before the value changes
 	uint32_t todo = LFO_MAX - lfoCounter;
 	uint32_t count = (todo + lfoAdd - 1) / lfoAdd;
 	if ( count > samples ) {
@@ -1022,7 +1026,7 @@ Chip::Chip( bool _opl3Mode ) : opl3Mode( _opl3Mode ) {
 		lfoCounter &= (LFO_MAX - 1);
 		//Maximum of 7 vibrato value * 4
 		vibratoIndex = ( vibratoIndex + 1 ) & 31;
-		//Clip tremolo to the the table size
+		//Clip tremolo to the table size
 		if ( tremoloIndex + 1 < TREMOLO_TABLE  )
 			++tremoloIndex;
 		else
@@ -1450,7 +1454,7 @@ void InitTables( void ) {
 			ChanOffsetTable[i] = 0;
 			continue;
 		}
-		//Make sure the four op channels follow eachother
+		//Make sure the four op channels follow each other
 		if ( index < 6 ) {
 			index = (index % 3) * 2 + ( index / 3 );
 		}
@@ -1516,9 +1520,11 @@ void Handler::Generate( MixerChannel* chan, Bitu samples ) {
 		samples = 512;
 	if ( !chip.opl3Active ) {
 		chip.GenerateBlock2( samples, buffer );
+		if (adlib_pcm_boost) adlib_boost32(buffer,samples,1/*mono*/);
 		chan->AddSamples_m32( samples, buffer );
 	} else {
 		chip.GenerateBlock3( samples, buffer );
+		if (adlib_pcm_boost) adlib_boost32(buffer,samples,2/*stereo*/);
 		chan->AddSamples_s32( samples, buffer );
 	}
 }

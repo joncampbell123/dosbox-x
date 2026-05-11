@@ -47,6 +47,13 @@
 #define CPU_ARCHTYPE_PMMXSLOW			0x55
 #define CPU_ARCHTYPE_PPROSLOW			0x60
 #define CPU_ARCHTYPE_PENTIUMII			0x65
+#define CPU_ARCHTYPE_PENTIUMIII			0x6A
+
+#define FPU_ARCHTYPE_8087			0x00
+#define FPU_ARCHTYPE_287			0x20
+#define FPU_ARCHTYPE_387			0x30
+#define FPU_ARCHTYPE_BEST			0xfe
+#define FPH_ARCHTYPE_EXPERIMENTAL		0xff
 
 /* CPU Cycle Timing */
 extern cpu_cycles_count_t CPU_Cycles;
@@ -66,6 +73,7 @@ extern bool CPU_SkipCycleAutoAdjust;
 extern bool enable_weitek;
 
 extern unsigned char CPU_ArchitectureType;
+extern unsigned char FPU_ArchitectureType;
 
 extern unsigned int CPU_PrefetchQueueSize;
 
@@ -95,6 +103,11 @@ Bits CPU_Core8086_Normal_Trap_Run(void);
 Bits CPU_Core286_Prefetch_Run(void);
 
 Bits CPU_Core8086_Prefetch_Run(void);
+
+#if defined(C_HAVE_LINUX_KVM_X86)
+Bits CPU_Core_KVM_Run(void);
+Bits CPU_Core_KVM_Trap_Run(void);
+#endif
 
 void CPU_Enable_SkipAutoAdjust(void);
 void CPU_Disable_SkipAutoAdjust(void);
@@ -357,6 +370,15 @@ struct TSS_32 {
     uint32_t ldt;                  /* The local descriptor table */
 } GCC_ATTRIBUTE(packed);
 
+/* Last prefix encountered, needed for Pentium III "mandatory opcode prefixes" needed to differentiate SSE instructions given the opcode.
+ * Keeping it small and sequential should help your C++ compiler optimize the switch statement you're probably going to use in the normal core code. */
+enum {
+	MP_NONE=0,
+	MP_66,
+	MP_F2,
+	MP_F3
+};
+
 #ifdef _MSC_VER
 #pragma pack()
 #endif
@@ -365,16 +387,23 @@ class Descriptor
 public:
 	Descriptor() { saved.fill[0]=saved.fill[1]=0; }
 
-	void Load(PhysPt address);
-	void Save(PhysPt address);
+	void Load(LinearPt address);
+	void Save(LinearPt address);
 
-    PhysPt GetBase (void) const {
-        return (PhysPt)(
-            ((PhysPt)saved.seg.base_24_31 << (PhysPt)24U) |
-            ((PhysPt)saved.seg.base_16_23 << (PhysPt)16U) |
-             (PhysPt)saved.seg.base_0_15);
-    }
-	bool GetExpandDown (void) {
+	LinearPt GetBase (void) const {
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
+			return (LinearPt)(
+					((LinearPt)saved.seg.base_24_31 << (LinearPt)24U) |
+					((LinearPt)saved.seg.base_16_23 << (LinearPt)16U) |
+					(LinearPt)saved.seg.base_0_15);
+		}
+		else {
+			return (LinearPt)(
+					((LinearPt)saved.seg.base_16_23 << (LinearPt)16U) |
+					(LinearPt)saved.seg.base_0_15);
+		}
+	}
+    bool GetExpandDown (void) {
 #if 0
 	uint32_t limit_0_15	:16;
 	uint32_t base_0_15	:16;
@@ -402,11 +431,14 @@ public:
 	}
 	Bitu GetLimit (void) const {
 		const Bitu limit = ((Bitu)saved.seg.limit_16_19 << (Bitu)16U) | (Bitu)saved.seg.limit_0_15;
-		if (saved.seg.g) return ((Bitu)limit << (Bitu)12U) | (Bitu)0xFFFU;
+		if (saved.seg.g && CPU_ArchitectureType >= CPU_ARCHTYPE_386) return ((Bitu)limit << (Bitu)12U) | (Bitu)0xFFFU;
 		return limit;
 	}
 	Bitu GetOffset(void) const {
-		return ((Bitu)saved.gate.offset_16_31 << (Bitu)16U) | (Bitu)saved.gate.offset_0_15;
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_386)
+			return ((Bitu)saved.gate.offset_16_31 << (Bitu)16U) | (Bitu)saved.gate.offset_0_15;
+		else
+			return (Bitu)saved.gate.offset_0_15;
 	}
 	Bitu GetSelector(void) const {
 		return saved.gate.selector;
@@ -433,15 +465,17 @@ public:
 
 class DescriptorTable {
 public:
-    PhysPt  GetBase         (void) const    { return table_base;    }
+    virtual ~DescriptorTable() noexcept = default;
+
+    LinearPt  GetBase         (void) const    { return table_base;    }
     Bitu    GetLimit        (void) const    { return table_limit;   }
-    void    SetBase         (PhysPt _base)  { table_base = _base;   }
+    void    SetBase         (LinearPt _base)  { table_base = _base;   }
     void    SetLimit        (Bitu _limit)   { table_limit= _limit;  }
 
     bool GetDescriptor  (Bitu selector, Descriptor& desc) {
         selector&=~7U;
         if (selector>=table_limit) return false;
-        desc.Load((PhysPt)(table_base+selector));
+        desc.Load((LinearPt)(table_base+selector));
         return true;
     }
 	
@@ -450,7 +484,7 @@ public:
 
 
 protected:
-    PhysPt table_base;
+    LinearPt table_base;
     Bitu table_limit;
 };
 
@@ -460,11 +494,11 @@ public:
 		Bitu address=selector & ~7U;
 		if (selector & 4U) {
 			if (address>=ldt_limit) return false;
-			desc.Load((PhysPt)(ldt_base+address));
+			desc.Load((LinearPt)(ldt_base+address));
 			return true;
 		} else {
 			if (address>=table_limit) return false;
-			desc.Load((PhysPt)(table_base+address));
+			desc.Load((LinearPt)(table_base+address));
 			return true;
 		}
 	}
@@ -472,11 +506,11 @@ public:
 		Bitu address=selector & ~7U;
 		if (selector & 4U) {
 			if (address>=ldt_limit) return false;
-			desc.Save((PhysPt)(ldt_base+address));
+			desc.Save((LinearPt)(ldt_base+address));
 			return true;
 		} else {
 			if (address>=table_limit) return false;
-			desc.Save((PhysPt)(table_base+address));
+			desc.Save((LinearPt)(table_base+address));
 			return true;
 		}
 	} 
@@ -500,11 +534,11 @@ public:
 		return true;
 	}
 
-	virtual void SaveState( std::ostream& stream );
-	virtual void LoadState( std::istream& stream );
+	void SaveState( std::ostream& stream ) override;
+	void LoadState( std::istream& stream ) override;
 
 private:
-	PhysPt ldt_base;
+	LinearPt ldt_base;
 	Bitu ldt_limit;
 	Bitu ldt_value;
 };
@@ -518,7 +552,7 @@ public:
 		return saved.seg.type & 8;
 	}
 	void SetBusy(const bool busy) {
-		if (busy) saved.seg.type|=(2U);
+		if (busy) saved.seg.type|=2U;
 		else saved.seg.type&=(~2U); /* -Wconversion cannot silence without hard-coding ~2U & 0x1F */
 	}
 };
@@ -528,12 +562,11 @@ struct CPUBlock {
 	Bitu cpl;							/* Current Privilege */
 	Bitu mpl;
 	Bitu cr0;
+	Bitu cr4;
 	bool pmode;							/* Is Protected mode enabled */
 	GDTDescriptorTable gdt;
 	DescriptorTable idt;
 	struct {
-		Bitu cr0_and;
-		Bitu cr0_or;
 		Bitu eflags;
 	} masks;
 	struct {
@@ -557,6 +590,17 @@ struct CPUBlock {
 };
 
 extern CPUBlock cpu;
+
+// SSE instructions are available if bit 9 is on in CR4, also enables FXSAVE and FXRESTOR
+static INLINE bool CPU_SSE(void) {
+	// TODO: The architecture test may be replaced with a general global variable that says "sse" allowed
+	return (cpu.cr4 & 0x200u) && (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMIII);
+}
+
+// SSE exceptions enabled by bit 10
+static INLINE bool CPU_SSE_exceptions(void) {
+	return (cpu.cr4 & 0x400u) && CPU_SSE();
+}
 
 static INLINE void CPU_SetFlagsd(const Bitu word) {
 	const Bitu mask=cpu.cpl ? FMASK_NORMAL : FMASK_ALL;
@@ -602,5 +646,8 @@ typedef unsigned int        dyncore_flags_t;
 extern dyncore_alloc_t      dyncore_alloc;
 extern dyncore_flags_t      dyncore_flags;
 extern dyncore_method_t     dyncore_method;
+
+int64_t CPU_RDTSC();
+void RDTSC_rebase();
 
 #endif

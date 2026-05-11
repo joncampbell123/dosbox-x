@@ -65,7 +65,7 @@ void EnvelopeGenerator::reset()
 //
 // NB! Sampling ENV3 shows that the calculated values are not exact.
 // It may seem like most calculated values have been rounded (.5 is rounded
-// down) and 1 has beed added to the result. A possible explanation for this
+// down) and 1 has been added to the result. A possible explanation for this
 // is that the SID designers have used the calculated values directly
 // as rate counter comparison values, not considering a one cycle delay to
 // zero the counter. This would yield an actual period of comparison value + 1.
@@ -135,7 +135,7 @@ reg16 EnvelopeGenerator::rate_counter_period[] = {
 // of ENV3 with another timed loop to fully synchronize with ENV3.
 //
 // At the first period when an exponential counter period larger than one
-// is used (decay or relase), one extra cycle is spent before the envelope is
+// is used (decay or release), one extra cycle is spent before the envelope is
 // decremented. The envelope output is then delayed one cycle until the state
 // is changed to attack. Now one cycle less will be spent before the envelope
 // is incremented, and the situation is normalized.

@@ -7,7 +7,7 @@ In builds where it is enabled, DOSBox-X supports breaking into the debugger
 interface, which is shown on the console.
 
 A mapper shortcut is provided to break into the debugger on demand. Normally
-this shortcut is set to Alt+Pause.
+this shortcut is set to Alt+Pause (Mac: Alt+F12).
 
 In Windows, DOSBox-X can create a console and show the debugger interface
 on it.
@@ -78,18 +78,42 @@ view will show 'pf' to indicate this.
   pf = segment:offset or linear address is paged out or
        not present according to page tables.
 
+Debugging a program and breaking on start
+-----------------------------------------
+
+DOSBox-X includes a built-in command to launch a program and
+break at the entry point.
+
+DEBUGBOX [command] [options]
+
+You can also type DEBUGBOX without a parameter to start the
+debugger.
+
 Debugger keyboard shortcuts
 ---------------------------
 
-Tab                 Switch between windows
+Tab/Shift+Tab       Switch to the next/previous window
+F3/F6               Previous command in history
+F4/F7               Next command in history
 F5                  Resume emulation
+F8                  Toggle printable characters display in data view
 F9                  Set/clear breakpoint
 F10                 Single step (over)
 F11                 Single step (into)
 Up arrow            Scroll up one line (if applicable)
 Down arrow          Scroll down one line (if applicable)
-Page Up             Scroll up by window height (if applicable)
-Page Down           Scroll down by window height (if applicable)
+Left arrow          Move cursor left in command line
+Right arrow         Move cursor right in command line
+Page Up/Fn+Up       Scroll up by window height (if applicable)
+Page Down/Fn+Down   Scroll down by window height (if applicable)
+Home/Fn+Left        Scroll to top (in Output window)
+End/Fn+Right        Scroll to bottom (in Output window)
+Insert              Toggle insert/overwrite mode in command line
+Alt+D               Set data view to DS:SI
+Alt+E               Set data view to ES:DI
+Alt+X               Set data view to DS:DX
+Alt+B               Set data view to ES:BX
+Alt+S               Set data view to SS:SP
 
 Debugger commands
 -----------------
@@ -132,6 +156,7 @@ LOGS <hexadecimal count>                    Log CPU state, short log, to LOGCPU.
 LOGL <hexadecimal count>                    Log CPU state, long log, to LOGCPU.TXT
 INTT <intnum>                               Trace interrupt
 INT <intnum>                                Start interrupt
+CALLBACKS                                   Show callbacks of interrupts.
 SELINFO <n>                                 Show selector information
 DOS MCBS                                    Dump DOS kernel MCB chain (conventional memory allocation chain)
 DOS KERN                                    Dump DOS kernel memory allocation list
@@ -143,10 +168,15 @@ LDT                                         Dump LDT (local descriptor table)
 IDT                                         Dump IDT (interrupt descriptor table)
 PAGING                                      Dump page table information
 CPU                                         Dump additional CPU information
+VGA cmd                                     VGA related debugging commands.
+PC98 cmd                                    PC98 related debugging commands.
+EMU MEM/MACHINE                             Show emulator memory or machine info.
 INTVEC <file>                               Dump interrupt vector table to <file>
 INTHAND <intnum>                            Set code view to start of interrupt handler
 EXTEND                                      Toggle additional information
 TIMERIRQ                                    Start timer IRQ
+TIME <time>                                 Display or change the internal time
+DATE <date>                                 Display or change the internal date
 HEAVYLOG                                    Toggle heavy CPU logging
 ZEROPROTECT                                 Toggle zero protection
 HELP                                        Show some debugger commands for reference

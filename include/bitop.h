@@ -1,4 +1,7 @@
 
+#ifndef DOSBOX_BITOP_H
+#define DOSBOX_BITOP_H
+
 #include <limits.h>
 
 namespace bitop {
@@ -97,7 +100,9 @@ template <typename T=unsigned int> static inline constexpr unsigned int _bitseql
 }
 
 /* private common function */
-template <typename T=unsigned int> static inline void _bitseqlengthlsb_1(unsigned int &c,T &v) {
+template <typename T=unsigned int> static inline unsigned int _bitseqlengthlsb_1(T &v) {
+    unsigned int c = 0;
+
     while ((v & 0xFFUL) == 0xFFUL) {
         v >>= (T)8UL;
         c += (T)8;
@@ -106,6 +111,8 @@ template <typename T=unsigned int> static inline void _bitseqlengthlsb_1(unsigne
         v >>= (T)1UL;
         c++;
     }
+
+    return c;
 }
 
 /* Return number of sequential 1 bits counting from LSB in value 'v' of type 'T'
@@ -126,9 +133,7 @@ template <const unsigned int v> static inline constexpr unsigned int bitseqlengt
 }
 
 template <typename T=unsigned int> static inline unsigned int bitseqlengthlsb(T v) {
-    unsigned int c = 0;
-    _bitseqlengthlsb_1(/*&*/c,/*&*/v);
-    return c;
+    return _bitseqlengthlsb_1(/*&*/v);
 }
 
 
@@ -145,7 +150,7 @@ template <const unsigned int a,typename T=unsigned int> static inline constexpr 
     return (T)1U << (T)a;
 }
 
-template <typename T=unsigned int> static inline constexpr T bit2mask(const unsigned int a) {
+template <typename T=unsigned int> static inline constexpr T bit2mask(const T a) {
     return (T)1U << (T)a;
 }
 
@@ -187,7 +192,7 @@ template <const unsigned int a,typename T=unsigned int> static inline constexpr 
     return bitcount2masklsb<a,0u,T>();
 }
 
-template <typename T=unsigned int> static inline constexpr T bitcount2masklsb(const unsigned int a,const unsigned int offset=0) {
+template <typename T=unsigned int> static inline constexpr T bitcount2masklsb(const T a,const unsigned int offset=0) {
     /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
      *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used */
     return ((a < type_bits<T>()) ? (bit2mask<T>(a) - (T)1u) : allones<T>()) << (T)offset;
@@ -220,7 +225,7 @@ template <const unsigned int a,typename T=unsigned int> static inline constexpr 
     return bitcount2maskmsb<a,0u,T>();
 }
 
-template <typename T=unsigned int> static inline constexpr T bitcount2maskmsb(const unsigned int a,const unsigned int offset=0) {
+template <typename T=unsigned int> static inline constexpr T bitcount2maskmsb(const T a,const unsigned int offset=0) {
     /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
      *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used */
     return ((a != (T)0) ? ((T)(allones<T>() << (T)(type_bits<T>() - a)) >> (T)offset) : allzero<T>());
@@ -283,7 +288,7 @@ template <typename T=unsigned int> static inline constexpr T bitcount2maskmsb(co
  * For integer values, apply the AND operator to the same bit position from both integers for each bit across the width of the integer.
  *
  * @return Boolean true if 'a' is a power of 2 */
-template <typename T=unsigned int> static inline constexpr bool ispowerof2(const unsigned int a) {
+template <typename T=unsigned int> static inline constexpr bool ispowerof2(const T a) {
     return (a & (a-(T)1u)) == 0;
 }
 
@@ -338,11 +343,35 @@ template <typename T=unsigned int> static inline unsigned int log2(T v) {
     return ~0u;
 }
 
+/* round up to the next power of 2 */
+/* 0x7000 0111 0000 0000 0000 16 bits
+ * 0x7070 0111 0000 0111 0000 shf = 8
+ * 0x7777 0111 0111 0111 0111 shf = 4
+ * 0x7FFF 0111 1111 1111 1111 shf = 2
+ * 0x7FFF 0111 1111 1111 1111 shf = 1
+ *
+ * 0x2000 0010 0000 0000 0000 16 bits
+ * 0x2020 0010 0000 0010 0000 shf = 8
+ * 0x2222 0010 0010 0010 0010 shf = 4
+ * 0x2AAA 0010 1010 1010 1010 shf = 2
+ * 0x3FFF 0011 1111 1111 1111 shf = 1
+ */
+template <typename T=unsigned int> static inline constexpr unsigned int _rounduppow2mask(const T v,const T shf) {
+	return shf != T(0u) ? _rounduppow2mask(v | (v >> shf),shf >> T(1u)) : v;
+}
+
+template <typename T=unsigned int> static inline constexpr unsigned int rounduppow2mask(const T v) {
+	return _rounduppow2mask<T>(v,type_bits<T>() >> T(1u));
+}
+
+static_assert( rounduppow2mask(0x7000) == 0x7FFF, "oops" );
+static_assert( rounduppow2mask(0x2000) == 0x3FFF, "oops" );
+static_assert( rounduppow2mask(0x0FFF) == 0x0FFF, "oops" );
 
 /* return type, pair */
 class bitseqlengthandpos_ret_t {
     public:
-        bitseqlengthandpos_ret_t(const unsigned int _start,const unsigned int _length) : start(_start), length(_length) { }
+        constexpr bitseqlengthandpos_ret_t(const unsigned int _start,const unsigned int _length) : start(_start), length(_length) { }
     public:
         bool operator==(const bitseqlengthandpos_ret_t &n) const {
             return  (n.start == start) &&
@@ -390,3 +419,5 @@ template <typename T=unsigned int> static inline bitseqlengthandpos_ret_t bitseq
 void self_test(void);
 
 }
+
+#endif //DOSBOX_BITOP_H

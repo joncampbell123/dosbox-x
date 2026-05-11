@@ -10,7 +10,7 @@ enum {
     DKM_DEU,            // German keyboard layout (one concerned user, in issue tracker)
     DKM_JPN_PC98,       // Japanese PC98 keyboard layout (for PC-98 emulation)
     DKM_JPN,            // Japanese keyboard layout (one concerned user, in issue tracker, with suggestion for mapping Ro)
-
+    DKM_NON_US,         // A non-US keyboard
     DKM_MAX
 };
 

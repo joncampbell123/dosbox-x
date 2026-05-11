@@ -33,6 +33,7 @@
 static MixerChannel *synthchan = NULL;
 static fluid_synth_t *synth_soft = NULL;
 static int synthsamplerate = 0;
+static uint8_t master_volume = 128;
 
 static void synth_log(int level,
 #if !defined (FLUIDSYNTH_VERSION_MAJOR) || FLUIDSYNTH_VERSION_MAJOR >= 2 // Let version 2.x be the default
@@ -61,6 +62,11 @@ static void synth_log(int level,
 static void synth_CallBack(Bitu len) {
 	if (synth_soft != NULL) {
 		fluid_synth_write_s16(synth_soft, (int)len, MixTemp, 0, 2, MixTemp, 1, 2);
+		if (master_volume < 128) {
+			for (unsigned int i=0;i < (len*2);i++) {
+				((int16_t*)MixTemp)[i] = (int16_t)(((((int16_t*)MixTemp)[i]) * master_volume) >> 7);
+			}
+		}
 		synthchan->AddSamples_s16(len,(int16_t *)MixTemp);
 	}
 }
@@ -82,6 +88,23 @@ private:
 	void PlayEvent(uint8_t *msg, Bitu len) {
 		uint8_t event = msg[0], channel, p1, p2;
 
+		if (roland_gs_sysex) {
+			if (msg[1] == 0x41/*Roland*/ && msg[3] == 0x42/*GS*/ && msg[4] == 0x12/*Send*/ && len >= 9) {
+				const uint32_t addr =
+					((uint32_t)msg[5] << 16) +
+					((uint32_t)msg[6] <<  8) +
+					(uint32_t)msg[7];
+
+				if (addr == 0x400004) { /* MASTER VOLUME */
+					/* Fluidsynth doesn't appear to support this message, so we have to handle it ourself. */
+					master_volume = msg[8];
+					if (master_volume >= 127) master_volume = 128;
+					LOG_MSG("MIDI synth: MASTER VOLUME %u",master_volume);
+					return;
+				}
+			}
+		}
+
 		switch (event) {
 		case 0xf0:
 		case 0xf7:
@@ -92,6 +115,7 @@ private:
 			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: midi tick");
 			return;
 		case 0xff:
+			master_volume = 128;
 			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: system reset");
 			fluid_synth_system_reset(synth_soft);
 			return;
@@ -134,11 +158,11 @@ private:
 public:
 	MidiHandler_synth() : MidiHandler(),isOpen(false) {};
 
-	const char * GetName(void) {
+	const char * GetName(void) override {
 		return "synth";
 	};
 
-	bool Open(const char *conf) {
+	bool Open(const char *conf) override {
 		if (isOpen) return false;
 
 		std::string sf = "";
@@ -224,13 +248,14 @@ public:
 		sffile=sf;
         fsinfo="Sound font: "+sf;
 
+		master_volume = 128;
 		synthchan = MIXER_AddChannel(synth_CallBack, (unsigned int)synthsamplerate, "SYNTH");
 		synthchan->Enable(false);
 		isOpen = true;
 		return true;
 	};
 
-	void Close(void) {
+	void Close(void) override {
 		if (!isOpen) return;
 
 		synthchan->Enable(false);
@@ -244,16 +269,16 @@ public:
 		isOpen = false;
 	};
 
-	void PlayMsg(uint8_t *msg) {
+	void PlayMsg(uint8_t *msg) override {
 		synthchan->Enable(true);
 		PlayEvent(msg, MIDI_evt_len[*msg]);
 	};
 
-	void PlaySysex(uint8_t *sysex, Bitu len) {
+	void PlaySysex(uint8_t *sysex, Bitu len) override {
 		PlayEvent(sysex, len);
 	};
 
-	void ListAll(Program* base) {
+	void ListAll(Program* base) override {
 		base->WriteOut("  %s\n",fsinfo.c_str());
 	}
 
@@ -271,12 +296,12 @@ private:
 	fluid_audio_driver_t* adriver;
 public:
 	MidiHandler_fluidsynth() : MidiHandler() {};
-	const char* GetName(void) { return "fluidsynth"; }
-	void PlaySysex(uint8_t * sysex, Bitu len) {
+	const char* GetName(void) override { return "fluidsynth"; }
+	void PlaySysex(uint8_t * sysex, Bitu len) override {
 		fluid_synth_sysex(synth, (char*)sysex, (int)len, NULL, NULL, NULL, 0);
 	}
 
-	void PlayMsg(uint8_t * msg) {
+	void PlayMsg(uint8_t * msg) override {
 		unsigned char chanID = msg[0] & 0x0F;
 		switch (msg[0] & 0xF0) {
 		case 0x80:
@@ -305,7 +330,7 @@ public:
 		}
 	}
 
-	void Close(void) {
+	void Close(void) override {
 		if (soundfont_id >= 0) {
 			fluid_synth_sfunload(synth, soundfont_id, 0);
 		}
@@ -314,7 +339,7 @@ public:
 		delete_fluid_settings(settings);
 	}
 
-	bool Open(const char * conf) {
+	bool Open(const char * conf) override {
 		(void)conf;
 
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
@@ -354,16 +379,25 @@ public:
 			}
 #endif
 		} else
-            ResolvePath(sf);
+			ResolvePath(sf);
+
 		soundfont.assign(sf);
 		settings = new_fluid_settings();
+
 		if (strcmp(section->Get_string("fluid.driver"), "default") != 0) {
 			fluid_settings_setstr(settings, "audio.driver", section->Get_string("fluid.driver"));
 		}
 #if defined (__linux__) // Let's use pulseaudio as default on Linux, and not the FluidSynth default of Jack
-		else
-		    fluid_settings_setstr(settings, "audio.driver", "pulseaudio");
+		else {
+			fluid_settings_setstr(settings, "audio.driver", "pulseaudio");
+		}
 #endif
+#if defined (WIN32) && !defined(HX_DOS)
+		else {
+			fluid_settings_setstr(settings, "audio.driver", "dsound"); // Explicitly set audio driver to be dsound as default for Windows
+		}
+#endif //WIN32
+
 		fluid_settings_setnum(settings, "synth.sample-rate", atof(section->Get_string("fluid.samplerate")));
 		fluid_settings_setnum(settings, "synth.gain", atof(section->Get_string("fluid.gain")));
 		fluid_settings_setint(settings, "synth.polyphony", section->Get_int("fluid.polyphony"));
@@ -386,17 +420,25 @@ public:
 			periodsize="64";
 #endif
 		}
-#if !defined (FLUIDSYNTH_VERSION_MAJOR) || FLUIDSYNTH_VERSION_MAJOR >= 2
+		 int major = 0, minor = 0, micro = 0;
+		 fluid_version(&major, &minor, &micro);
+		#if !defined (FLUIDSYNTH_VERSION_MAJOR) 
+		if(1)
+		#else 
+		if (major >= 2)
+		#endif
+		{
 		fluid_settings_setint(settings, "audio.periods", atoi(period.c_str()));
 		fluid_settings_setint(settings, "audio.period-size", atoi(periodsize.c_str()));
 		fluid_settings_setint(settings, "synth.reverb.active", !strcmp(section->Get_string("fluid.reverb"), "yes")?1:0);
 		fluid_settings_setint(settings, "synth.chorus.active", !strcmp(section->Get_string("fluid.chorus"), "yes")?1:0);
-#else
+		}
+		else {
 		fluid_settings_setnum(settings, "audio.periods", atof(period.c_str()));
 		fluid_settings_setnum(settings, "audio.period-size", atof(periodsize.c_str()));
 		fluid_settings_setstr(settings, "synth.reverb.active", section->Get_string("fluid.reverb"));
 		fluid_settings_setstr(settings, "synth.chorus.active", section->Get_string("fluid.chorus"));
-#endif
+		}
 
 		synth = new_fluid_synth(settings);
 		if (!synth) {
@@ -416,13 +458,13 @@ public:
 		fluid_synth_set_reverb(synth, atof(section->Get_string("fluid.reverb.roomsize")), atof(section->Get_string("fluid.reverb.damping")), atof(section->Get_string("fluid.reverb.width")), atof(section->Get_string("fluid.reverb.level")));
 
 		fluid_synth_set_chorus(synth, section->Get_int("fluid.chorus.number"), atof(section->Get_string("fluid.chorus.level")), atof(section->Get_string("fluid.chorus.speed")), atof(section->Get_string("fluid.chorus.depth")), section->Get_int("fluid.chorus.type"));
-
+		LOG_MSG("MIDI:fluidsynth: version %d.%d.%d", major, minor, micro);
 		/* Optionally load a soundfont */
 		if (!soundfont.empty()) {
 			soundfont_id = fluid_synth_sfload(synth, soundfont.c_str(), 1);
 			if (soundfont_id == FLUID_FAILED) {
 				/* Just consider this a warning (fluidsynth already prints) */
-				soundfont.clear();
+                soundfont.clear();
 				soundfont_id = -1;
 			}
 			else {
@@ -432,13 +474,14 @@ public:
 			}
 		}
 		else {
-			soundfont_id = -1;
+            soundfont_id = -1;
 			LOG_MSG("MIDI:fluidsynth: No SoundFont loaded");
 		}
-		return true;
+        if(soundfont_id == -1) sffile = "Not available";
+        return true;
 	}
 
-	void ListAll(Program* base) {
+	void ListAll(Program* base) override {
 		base->WriteOut("  %s\n",fsinfo.c_str());
 	}
 };

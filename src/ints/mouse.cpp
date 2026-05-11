@@ -14,6 +14,7 @@
  *  You should have received a copy of the GNU General Public License along
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *  VMware mouse protocol support by the DOSBox Staging Team (ported by Wengier)
  */
 
 /* TODO: If biosps2=true and aux=false, also allow an option (default disabled)
@@ -22,6 +23,7 @@
 
 #include <string.h>
 #include <math.h>
+#include <vector>
 
 #include "dosbox.h"
 #include "callback.h"
@@ -45,6 +47,29 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
+static bool adjust_x_max_excess = false,adjust_y_max_excess = false;
+static unsigned int assume_max_x = 0,assume_max_y = 0;
+static int adjust_x = 0,adjust_y = 0;
+static int mickey_threshold = 0;
+
+#define VMWARE_PORT         0x5658u        // communication port
+#define VMWARE_PORTHB       0x5659u        // communication port, high bandwidth
+static Bitu PortRead(Bitu port, Bitu iolen);
+
+static constexpr uint32_t TYPE_STANDARD     = 0;
+static constexpr uint32_t TYPE_INTELLIMOUSE = 3;
+
+static constexpr uint32_t RATE_10  = 0; // sample rate 10 Hz
+static constexpr uint32_t RATE_20  = 1;
+static constexpr uint32_t RATE_40  = 2;
+static constexpr uint32_t RATE_60  = 3;
+static constexpr uint32_t RATE_80  = 4;
+static constexpr uint32_t RATE_100 = 5;
+static constexpr uint32_t RATE_200 = 6;
+
+// Unlock sequences taken from https://www.scs.stanford.edu/10wi-cs140/pintos/specs/kbd/scancodes-12.html
+static const std::vector<uint32_t> UNLOCK_SEQ_INTELLIMOUSE = { RATE_200, RATE_100, RATE_80 };
+
 /* ints/bios.cpp */
 void bios_enable_ps2();
 void WriteCharTopView(uint16_t off, int count);
@@ -55,14 +80,17 @@ void AUX_INT33_Takeover();
 int KEYBOARD_AUX_Active();
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 extern bool MOUSE_IsLocked();
-extern bool usesystemcursor, dbcs_sbcs, del_flag;
+extern bool usesystemcursor, dbcs_sbcs, showdbcs, del_flag;
 
 bool en_int33=false;
+bool en_vmware=false;
 bool en_bios_ps2mouse=false;
 bool cell_granularity_disable=false;
 bool en_int33_hide_if_polling=false;
 bool en_int33_hide_if_intsub=false;
 bool en_int33_pc98_show_graphics=true; // NEC MOUSE.COM behavior
+bool pc98_nec_mouse = false;
+uint8_t pc98_nec_mouse_plane = 2;
 
 double int33_last_poll = 0;
 
@@ -153,11 +181,23 @@ static uint16_t defaultCursorMask[CURSORY] = {
         0x0600, 0x0300, 0x0300, 0x0000
 };
 
+static uint16_t defaultCursorMaskNEC[CURSORY*2] = {
+        0xc000, 0xe000, 0xf000, 0xf800,
+        0xfc00, 0xfe00, 0xff00, 0xff80,
+        0xffc0, 0xffe0, 0xfff0, 0xfff8,
+        0xfffc, 0xfffe, 0xffff, 0xffff,
+        0xff80, 0xfb80, 0xf1c0, 0xe1c0,
+        0xc0e0, 0x80e0, 0x0070, 0x0070,
+        0x0038, 0x0038, 0x001c, 0x001c,
+        0x000e, 0x000e, 0x0007, 0x0007
+};
+
 static uint16_t userdefScreenMask[CURSORY];
-static uint16_t userdefCursorMask[CURSORY];
+static uint16_t userdefCursorMask[CURSORY*2];
 
 static struct {
     uint8_t buttons;
+    int16_t wheel;
     uint16_t times_pressed[MOUSE_BUTTONS];
     uint16_t times_released[MOUSE_BUTTONS];
     uint16_t last_released_x[MOUSE_BUTTONS];
@@ -165,11 +205,14 @@ static struct {
     uint16_t last_pressed_x[MOUSE_BUTTONS];
     uint16_t last_pressed_y[MOUSE_BUTTONS];
     pic_tickindex_t hidden_at;
+    uint16_t last_scrolled_x;
+    uint16_t last_scrolled_y;
     uint16_t hidden;
     float add_x,add_y;
     int16_t min_x,max_x,min_y,max_y;
     int16_t max_screen_x,max_screen_y;
-    float mickey_x,mickey_y;
+    int32_t mickey_x,mickey_y;
+    float mickey_accum_x, mickey_accum_y;
     float x,y;
     float ps2x,ps2y;
     button_event event_queue[QUEUE_SIZE];
@@ -208,10 +251,33 @@ static struct {
     bool first_range_setx;
     bool first_range_sety;
     bool in_UIR;
+    bool polled;
     uint8_t mode;
     int16_t gran_x,gran_y;
     int scrollwheel;
+    uint8_t ps2_type;
+    uint8_t ps2_rate; // sampling rate is not really emulated, but needed for switching between protocols
+    uint8_t ps2_packet_size;
+    uint8_t ps2_unlock_idx;
 } mouse;
+
+double clamp(double d, double min, double max) {
+  const double t = d < min ? min : d;
+  return t > max ? max : t;
+}
+
+inline uint8_t GetWheel8bit() {
+	/* CuteMouse wheel extension allows for -0x80,0x7F range, but let's keep it symmetric */
+	int8_t tmp=clamp(mouse.wheel, static_cast<int16_t>(-0x7F), static_cast<int16_t>(0x7F));
+	mouse.wheel=0;
+	return (tmp >= 0) ? tmp : 0x100 + tmp;
+}
+
+inline uint8_t GetWheel16bit() {
+	int16_t tmp=(mouse.wheel >= 0) ? mouse.wheel : 0x10000 + mouse.wheel;
+	mouse.wheel=0;
+	return tmp;
+}
 
 bool Mouse_SetPS2State(bool use) {
     if (use && (!ps2callbackinit)) {
@@ -229,6 +295,35 @@ bool Mouse_SetPS2State(bool use) {
         PIC_SetIRQMask(MOUSE_IRQ,!useps2callback);
 
     return true;
+}
+
+void Mouse_PS2Reset(void) {
+	mouse.ps2_type       = TYPE_STANDARD;
+	mouse.ps2_rate       = RATE_100;
+	mouse.ps2_unlock_idx = 0;
+}
+
+bool Mouse_PS2SetPacketSize(uint8_t packet_size) {
+	if ((packet_size==0x03) ||
+		(packet_size==0x04 && mouse.ps2_type==TYPE_INTELLIMOUSE)) {
+		mouse.ps2_packet_size = packet_size;
+	    return true;
+	}
+	return false;
+}
+
+void Mouse_PS2SetSamplingRate(uint8_t rate) {
+	mouse.ps2_rate = rate;
+	if (UNLOCK_SEQ_INTELLIMOUSE[mouse.ps2_unlock_idx]!=rate)
+		mouse.ps2_unlock_idx = 0;
+	else if (UNLOCK_SEQ_INTELLIMOUSE.size()==++mouse.ps2_unlock_idx) {
+			mouse.ps2_type=TYPE_INTELLIMOUSE;
+			mouse.ps2_unlock_idx=0;
+	}
+}
+
+uint8_t Mouse_PS2GetType(void) {
+	return mouse.ps2_type;
 }
 
 void Mouse_ChangePS2Callback(uint16_t pseg, uint16_t pofs) {
@@ -270,10 +365,19 @@ void DoPS2Callback(uint16_t data, int16_t mouseX, int16_t mouseY) {
             CPU_Push16(reg_bp);CPU_Push16(reg_si);CPU_Push16(reg_di);
             CPU_Push16(SegValue(ds)); CPU_Push16(SegValue(es));
         }
-        CPU_Push16((uint16_t)mdat); 
-        CPU_Push16((uint16_t)(xdiff % 256)); 
-        CPU_Push16((uint16_t)(ydiff % 256)); 
-        CPU_Push16((uint16_t)0); 
+        switch (mouse.ps2_packet_size) {
+            case 0x04: // IntelliMouse protocol
+                CPU_Push16((uint16_t)(mdat + (xdiff % 256) * 256));
+                CPU_Push16((uint16_t)(ydiff % 256));
+                CPU_Push16((uint16_t)GetWheel8bit());
+                CPU_Push16((uint16_t)0);
+                break;
+            default:   // Standard protocol
+                CPU_Push16((uint16_t)mdat);
+                CPU_Push16((uint16_t)(xdiff % 256));
+                CPU_Push16((uint16_t)(ydiff % 256));
+                CPU_Push16((uint16_t)0);
+        }
         CPU_Push16(RealSeg(ps2_callback));
         CPU_Push16(RealOff(ps2_callback));
         SegSet16(cs, ps2cbseg);
@@ -302,8 +406,45 @@ Bitu PS2_Handler(void) {
 #define MOUSE_RIGHT_RELEASED 16
 #define MOUSE_MIDDLE_PRESSED 32
 #define MOUSE_MIDDLE_RELEASED 64
-#define MOUSE_DUMMY 128
-#define MOUSE_DELAY 5.0
+#define MOUSE_WHEEL_MOVED 128
+#define MOUSE_ABSOLUTE 256
+
+unsigned int user_mouse_report_rate = 0;
+unsigned int mouse_report_rate = 200; /* DOSBox SVN compatible default (MOUSE_DELAY = 5.0 ms) */
+pic_tickindex_t MOUSE_DELAY = 5.0; /* This was once a hard #define */
+
+void UpdateMouseReportRate(void) {
+	/* If the user did not specify an explicit rate, then whatever the current rate goes and update MOUSE_DELAY.
+	 * This is done so that PS/2 mouse emulation can accept the commands to change reporting rate and have it work */
+	if (user_mouse_report_rate != 0)
+		mouse_report_rate = user_mouse_report_rate;
+
+	MOUSE_DELAY = 1000.0 / mouse_report_rate;
+}
+
+void ChangeMouseReportRate(unsigned int new_rate) {
+	if (user_mouse_report_rate == 0) {
+		mouse_report_rate = new_rate;
+		UpdateMouseReportRate();
+	}
+}
+
+int KEYBOARD_PS2REPORT_Active();
+
+bool MouseInterruptEnabled(void) {
+	if (!IS_PC98_ARCH && KEYBOARD_AUX_Active())
+		return true;
+	if (KEYBOARD_PS2REPORT_Active()) // FIXME: INT 15h needs to issue keyboard command "enable AUX"
+		return true;
+	if (mouse.polled)
+		return true;
+	if (mouse.sub_mask)
+		return true;
+	if (!mouse.hidden)
+		return true;
+
+	return false;
+}
 
 void MOUSE_Limit_Events(Bitu /*val*/) {
     mouse.timer_in_progress = false;
@@ -319,7 +460,7 @@ void MOUSE_Limit_Events(Bitu /*val*/) {
         PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
 
         if (MOUSE_IRQ != 0) {
-            if (!IS_PC98_ARCH)
+            if (!IS_PC98_ARCH && MouseInterruptEnabled())
                 PIC_ActivateIRQ(MOUSE_IRQ);
         }
     }
@@ -329,7 +470,7 @@ INLINE void Mouse_AddEvent(uint8_t type) {
     if (mouse.events<QUEUE_SIZE) {
         if (mouse.events>0) {
             /* Skip duplicate events */
-            if (type==MOUSE_HAS_MOVED) return;
+            if (type==MOUSE_HAS_MOVED || type==MOUSE_WHEEL_MOVED) return;
             /* Always put the newest element in the front as that the events are 
              * handled backwards (prevents doubleclicks while moving)
              */
@@ -345,14 +486,10 @@ INLINE void Mouse_AddEvent(uint8_t type) {
         PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
 
         if (MOUSE_IRQ != 0) {
-            if (!IS_PC98_ARCH)
+            if (!IS_PC98_ARCH && MouseInterruptEnabled())
                 PIC_ActivateIRQ(MOUSE_IRQ);
         }
     }
-}
-
-void MOUSE_DummyEvent(void) {
-    Mouse_AddEvent(MOUSE_DUMMY);
 }
 
 // ***************************************************************************
@@ -366,7 +503,15 @@ void RestoreCursorBackgroundText() {
     if (mouse.hidden || mouse.inhibit_draw) return;
 
     if (mouse.background) {
-        WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0],mouse.backData[1],true);
+        if(mouse.backData[4] == 1) {
+            WriteChar((uint16_t)mouse.backposx,mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0],mouse.backData[1],true);
+            WriteChar((uint16_t)(mouse.backposx + 1),(uint16_t)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[2],mouse.backData[3],true);
+        } else if(mouse.backData[4] == 2) {
+            WriteChar((uint16_t)(mouse.backposx - 1),(uint16_t)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[2], mouse.backData[3],true);
+            WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0], mouse.backData[1],true);
+        } else {
+            WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0],mouse.backData[1],true);
+        }
         mouse.background = false;
     }
 }
@@ -389,15 +534,32 @@ void DrawCursorText() {
     //use current page (CV program)
     uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
-    if (mouse.cursorType == 0) {
+    if (mouse.cursorType == 0 || mouse.cursorType == 2/*Microsoft Word 5.5 even in text mode*/) {
         uint16_t result;
         ReadCharAttr((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,page,&result);
+        mouse.backData[4]	= DOSV_CheckCJKVideoMode() ? GetKanjiAttr(mouse.backposx, mouse.backposy) : 0;
         mouse.backData[0]	= (uint8_t)(result & 0xFF);
         mouse.backData[1]	= (uint8_t)(result>>8);
         mouse.background	= true;
         // Write Cursor
         result = (result & mouse.textAndMask) ^ mouse.textXorMask;
-        WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
+        if(mouse.backData[4] == 1) {
+            uint16_t result2;
+            ReadCharAttr(mouse.backposx + 1, mouse.backposy, page, &result2);
+            mouse.backData[2] = (uint8_t)(result2 & 0xFF);
+            mouse.backData[3] = (uint8_t)(result2>>8);
+            WriteChar((uint16_t)mouse.backposx,mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
+            WriteChar((uint16_t)(mouse.backposx+1),mouse.backposy,page,(uint8_t)(result2&0xFF),(uint8_t)(result>>8),true);
+        } else if(mouse.backData[4] == 2) {
+            uint16_t result2;
+            ReadCharAttr(mouse.backposx - 1, mouse.backposy, page, &result2);
+            mouse.backData[2] = (uint8_t)(result2 & 0xFF);
+            mouse.backData[3] = (uint8_t)(result2>>8);
+            WriteChar((uint16_t)(mouse.backposx-1),(uint16_t)mouse.backposy,page,(uint8_t)(result2&0xFF),(uint8_t)(result>>8),true);
+            WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
+        } else {
+            WriteChar((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
+        }
     } else {
         uint16_t address=page * real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
         address += (mouse.backposy * real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS) + mouse.backposx) * 2;
@@ -473,6 +635,41 @@ void ClipCursorArea(int16_t& x1, int16_t& x2, int16_t& y1, int16_t& y2,
     }
 }
 
+static uint16_t pc98_graph_seg[4] = { 0xa800,0xb000,0xb800,0xe000 };
+
+void PC98_XorPixel(uint16_t x, uint16_t y, uint8_t plane)
+{
+    uint16_t addr = y * 80 + x / 8;
+    real_writeb(pc98_graph_seg[plane], addr, real_readb(pc98_graph_seg[plane], addr) ^ (1 << (7 - (x % 8))));
+}
+
+void PC98_PutPixel(uint16_t x, uint16_t y, uint8_t color)
+{
+    uint16_t addr = y * 80 + x / 8;
+    uint8_t bit = 7 - (x % 8);
+    uint8_t data;
+    for(uint8_t plane = 0 ; plane < 4 ; plane++) {
+        data = real_readb(pc98_graph_seg[plane], addr);
+        if(color & (1 << plane)) {
+            real_writeb(pc98_graph_seg[plane], addr, data | (1 << bit));
+        } else {
+            real_writeb(pc98_graph_seg[plane], addr, data & ~(1 << bit));
+        }
+    }
+}
+
+void PC98_GetPixel(uint16_t x, uint16_t y, uint8_t *color)
+{
+    uint16_t addr = y * 80 + x / 8;
+    uint8_t bit = 7 - (x % 8);
+    *color = 0;
+    for(uint8_t plane = 0 ; plane < 4 ; plane++) {
+        if(real_readb(pc98_graph_seg[plane], addr) & (1 << bit)) {
+            *color |= (1 << plane);
+        }
+    }
+}
+
 void RestoreCursorBackground() {
     if (mouse.hidden || mouse.inhibit_draw) return;
 
@@ -487,19 +684,41 @@ void RestoreCursorBackground() {
         int16_t x2       = x1 + CURSORX - 1;
         int16_t y2       = y1 + CURSORY - 1; 
 
+        if(pc98_nec_mouse) y2 += CURSORY;
+
         ClipCursorArea(x1, x2, y1, y2, addx1, addx2, addy);
 
         dataPos = addy * CURSORX;
-        for (y=y1; y<=y2; y++) {
-            dataPos += addx1;
-            for (x=x1; x<=x2; x++) {
-                INT10_PutPixel((uint16_t)x,(uint16_t)y,mouse.page,mouse.backData[dataPos++]);
+        if(pc98_nec_mouse) {
+            for (y=y1; y<=y2; y++) {
+                uint16_t cuMask = mouse.cursorMask[addy+y-y1];
+                if (addx1>0) { cuMask<<=addx1; dataPos += addx1; }
+                for (x=x1; x<=x2; x++) {
+                    if (cuMask & HIGHESTBIT) PC98_XorPixel((uint16_t)x,(uint16_t)y, pc98_nec_mouse_plane);
+                    cuMask<<=1;
+                    dataPos++;
+                }
+                dataPos += addx2;
             }
-            dataPos += addx2;
+        } else {
+            for (y=y1; y<=y2; y++) {
+                dataPos += addx1;
+                for (x=x1; x<=x2; x++) {
+                    if(IS_PC98_ARCH) PC98_PutPixel((uint16_t)x, (uint16_t)y, mouse.backData[dataPos++]);
+                    else INT10_PutPixel((uint16_t)x,(uint16_t)y,mouse.page,mouse.backData[dataPos++]);
+                }
+                dataPos += addx2;
+            }
         }
         mouse.background = false;
     }
     RestoreVgaRegisters();
+}
+
+void PC98_ChangeMouseFunction(bool nec)
+{
+    RestoreCursorBackground();
+    pc98_nec_mouse = nec;
 }
 
 void DrawCursor() {
@@ -510,7 +729,7 @@ void DrawCursor() {
     }
     INT10_SetCurMode();
     // In Textmode ?
-    if (CurMode->type==M_TEXT) {
+    if (CurMode->type==M_TEXT || (IS_DOSV && DOSV_CheckCJKVideoMode())) {
         DrawCursorText();
         return;
     }
@@ -556,15 +775,20 @@ void DrawCursor() {
     int16_t x2       = x1 + CURSORX - 1;
     int16_t y2       = y1 + CURSORY - 1; 
 
+    if(pc98_nec_mouse) y2 += CURSORY;
+
     ClipCursorArea(x1,x2,y1,y2, addx1, addx2, addy);
 
-    dataPos = addy * CURSORX;
-    for (y=y1; y<=y2; y++) {
-        dataPos += addx1;
-        for (x=x1; x<=x2; x++) {
-            INT10_GetPixel((uint16_t)x,(uint16_t)y,mouse.page,&mouse.backData[dataPos++]);
+    if(!pc98_nec_mouse) {
+        dataPos = addy * CURSORX;
+        for (y=y1; y<=y2; y++) {
+            dataPos += addx1;
+            for (x=x1; x<=x2; x++) {
+                if(IS_PC98_ARCH) PC98_GetPixel((uint16_t)x, (uint16_t)y, &mouse.backData[dataPos++]);
+                else INT10_GetPixel((uint16_t)x,(uint16_t)y,mouse.page,&mouse.backData[dataPos++]);
+            }
+            dataPos += addx2;
         }
-        dataPos += addx2;
     }
     mouse.background= true;
     mouse.backposx  = POS_X / xratio - mouse.hotx;
@@ -577,15 +801,21 @@ void DrawCursor() {
         uint16_t cuMask = mouse.cursorMask[addy+y-y1];
         if (addx1>0) { scMask<<=addx1; cuMask<<=addx1; dataPos += addx1; }
         for (x=x1; x<=x2; x++) {
-            uint8_t pixel = 0;
-            // ScreenMask
-            if (scMask & HIGHESTBIT) pixel = mouse.backData[dataPos];
-            scMask<<=1;
-            // CursorMask
-            if (cuMask & HIGHESTBIT) pixel = pixel ^ 0x0F;
-            cuMask<<=1;
-            // Set Pixel
-            INT10_PutPixel((uint16_t)x,(uint16_t)y,mouse.page,pixel);
+            if(pc98_nec_mouse) {
+                if(cuMask & HIGHESTBIT) PC98_XorPixel((uint16_t)x,(uint16_t)y, pc98_nec_mouse_plane);
+                cuMask<<=1;
+            } else {
+                uint8_t pixel = 0;
+                // ScreenMask
+                if (scMask & HIGHESTBIT) pixel = mouse.backData[dataPos];
+                scMask<<=1;
+                // CursorMask
+                if (cuMask & HIGHESTBIT) pixel = pixel ^ 0x0F;
+                cuMask<<=1;
+                // Set Pixel
+                if(IS_PC98_ARCH) PC98_PutPixel((uint16_t)x, (uint16_t)y, pixel);
+                else INT10_PutPixel((uint16_t)x,(uint16_t)y,mouse.page,pixel);
+            }
             dataPos++;
         }
         dataPos += addx2;
@@ -629,11 +859,21 @@ static bool AllowINT33RMAccess() {
 	return false;
 }
 
+#if C_DEBUG
+bool IsDebuggerActive(void);
+#endif
+
 /* FIXME: Re-test this code */
 void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     extern bool Mouse_Vertical;
     float dx = xrel * mouse.pixelPerMickey_x;
     float dy = (Mouse_Vertical?-yrel:yrel) * mouse.pixelPerMickey_y;
+
+#if C_DEBUG
+    /* if debugging the code don't let mouse movement over the emulator window cause problems */
+    if (IsDebuggerActive())
+	return;
+#endif
 
     if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
         KEYBOARD_AUX_Event(xrel,yrel,mouse.buttons,mouse.scrollwheel);
@@ -655,12 +895,22 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
         /* PC-98 mouse */
         if (IS_PC98_ARCH) pc98_mouse_movement_apply(xrel,yrel);
 
-        mouse.mickey_x += (dx * mouse.mickeysPerPixel_x);
-        mouse.mickey_y += (dy * mouse.mickeysPerPixel_y);
-        if (mouse.mickey_x >= 32768.0) mouse.mickey_x -= 65536.0;
-        else if (mouse.mickey_x <= -32769.0) mouse.mickey_x += 65536.0;
-        if (mouse.mickey_y >= 32768.0) mouse.mickey_y -= 65536.0;
-        else if (mouse.mickey_y <= -32769.0) mouse.mickey_y += 65536.0;
+        mouse.mickey_accum_x += (dx * mouse.mickeysPerPixel_x);
+        mouse.mickey_accum_y += (dy * mouse.mickeysPerPixel_y);
+
+        if (fabs(mouse.mickey_accum_x) >= mickey_threshold) {
+            mouse.mickey_x += truncf(mouse.mickey_accum_x);
+            mouse.mickey_accum_x -= truncf(mouse.mickey_accum_x);
+        }
+        if (fabs(mouse.mickey_accum_y) >= mickey_threshold) {
+            mouse.mickey_y += truncf(mouse.mickey_accum_y);
+            mouse.mickey_accum_y -= truncf(mouse.mickey_accum_y);
+        }
+
+        if (mouse.mickey_x >= 32768) mouse.mickey_x -= 65536;
+        else if (mouse.mickey_x <= -32769) mouse.mickey_x += 65536;
+        if (mouse.mickey_y >= 32768) mouse.mickey_y -= 65536;
+        else if (mouse.mickey_y <= -32769) mouse.mickey_y += 65536;
     }
 
     if (emulate) {
@@ -714,6 +964,29 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
         mouse.x       = x1 * mouse.max_screen_x;
         mouse.y       = y1 * mouse.max_screen_y;
 
+	/* Cursor adjustment to help in-game cursor match host:
+	 *
+	 * x=[-]adjustment     i.e. x=5 or x=-8
+	 * y=[-]adjustment     i.e. y=8 or y=-10 */
+        mouse.x += adjust_x;
+        mouse.y += adjust_y;
+	/* When used with int33 max x/y:
+	 * max-excess can be specified to state that if the game set the maximum
+	 * past the dosbox.conf max value, that the x/y coordinates are adjusted
+	 * by the difference, for use with games that make use of the min/max
+	 * constraint per screen and offset the min/max by some offset (Lemmings 2).
+	 *
+	 * x=max-excess
+	 * y=max-excess */
+        if (adjust_x_max_excess) {
+            if (mouse.max_x > (int)assume_max_x)
+                mouse.x += (mouse.max_x - assume_max_x);
+        }
+        if (adjust_y_max_excess) {
+            if (mouse.max_y > (int)assume_max_y)
+                mouse.y += (mouse.max_y - assume_max_y);
+        }
+
         if (mouse.x < mouse.min_x)
             mouse.x = mouse.min_x;
         if (mouse.y < mouse.min_y)
@@ -742,9 +1015,12 @@ uint8_t Mouse_GetButtonState(void) {
 }
 
 char text[5000];
+extern std::list<uint16_t> bdlist;
 extern bool isDBCSCP();
-extern std::vector<std::pair<int,int>> jtbs;
+extern std::vector<std::pair<int,int>> jtbs, dbox;
+extern std::map<int, int> pc98boxdrawmap;
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
+    bdlist = {};
 	uint16_t result=0, len=0;
 	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	uint16_t c=0, r=0;
@@ -773,7 +1049,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		r2=t;
 	}
 	text[0]=0;
-    uint16_t seg = IS_DOSV?GetTextSeg():0;
+    uint16_t seg = IS_DOSV?GetTextSeg():VGAMEM_CTEXT;
     bool ttfuse = false;
     int ttfcols = 0;
 #if defined(USE_TTF)
@@ -781,8 +1057,8 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
     ttfcols = ttf.cols;
     if (ttfuse&&isDBCSCP()&&dbcs_sbcs&&!(c1==0&&c2==(int)(ttf.cols-1)&&r1==0&&r2==(int)(ttf.lins-1))) {
         ttf_cell *curAC = curAttrChar;
-        for (unsigned int y = 0; y < ttf.lins; y++) {
-            if ((int)y>=r1&&(int)y<=r2) {
+        for (int y = 0; y < (int)ttf.lins; y++) {
+            if (y>=r1&&y<=r2) {
                 for (unsigned int x = 0; x < ttf.cols; x++)
                     if ((int)x>=c1&&(int)x<=c2&&curAC[rtl?ttf.cols-x-1:x].selected) {
                         if ((int)x==c1&&c1>0&&curAC[rtl?ttf.cols-x-1:x].skipped&&!curAC[rtl?ttf.cols-x-2:x-1].selected&&curAC[rtl?ttf.cols-x-2:x-1].doublewide) {
@@ -790,6 +1066,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                             text[len++]=result;
                         }
                         ReadCharAttr(rtl?ttf.cols-x-1:x,y,page,&result);
+                        if (curAC[rtl?ttf.cols-x-1:x].boxdraw||(!x&&curAC[rtl?ttf.cols-x:x+1].boxdraw)) bdlist.push_back(len);
                         text[len++]=result;
                         if ((int)x==c2&&c2<(int)(ttf.cols-1)&&curAC[rtl?ttf.cols-x-1:x].doublewide&&!curAC[rtl?ttf.cols-x:x+1].selected&&curAC[rtl?ttf.cols-x:x+1].skipped) {
                             ReadCharAttr(rtl?ttf.cols-x:x+1,y,page,&result);
@@ -797,18 +1074,20 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                         }
                     }
                 while (len>0&&text[len-1]==32) text[--len]=0;
-                if (y<r2) {
-                    text[len++]='\r';
-                    text[len++]='\n';
-                }
+                if (y<r2) text[len++]='\n';
             }
             curAC += ttf.cols;
         }
     } else
 #endif
 	for (int i=r1; i<=r2; i++) {
+        uint16_t startlen = len;
         bool lead1 = false, lead2 = false;
-        if (IS_DOSV && (CurMode->type != M_DCGA || IS_J3100)) {
+        if ((showdbcs && !ttfuse && !IS_DOSV && isDBCSCP()
+#if defined(USE_TTF)
+            && dbcs_sbcs
+#endif
+            ) || (IS_DOSV && DOSV_CheckCJKVideoMode()) || (IS_J3100 && J3_IsJapanese())) {
             for (int k=0; k<c1; k++) {
                 if (lead1) lead1=false;
                 else if (isKanji1(real_readb(seg,(i*c+k)*2))) lead1=true;
@@ -819,7 +1098,15 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 				uint16_t address=((i*80)+(ttfuse&&rtl?ttfcols-j-1:j))*2;
 				PhysPt where = CurMode->pstart+address;
 				result=mem_readw(where);
-				if ((result & 0xFF00u) != 0u && (result & 0xFCu) != 0x08u && result==mem_readw(where+(ttfuse&&rtl?-2:2)) && ++j<c) {
+                if (!result || (result == 0xFE && j && mem_readw(where-2) == 0)) result = 32;
+                if ((result & 0xFF00u) != 0u && (result & 0x7Cu) == 0x08u && (result%0xff) - (result/0x100) == 0xB) {
+                    uint8_t val = result/0x100+31;
+                    for (auto it = pc98boxdrawmap.begin(); it != pc98boxdrawmap.end(); ++it)
+                        if (it->second == val) {
+                            text[len++]=it->first;
+                            break;
+                        }
+                } else if ((result & 0xFF00u) != 0u && (result & 0x7Cu) != 0x08u && result==mem_readw(where+(ttfuse&&rtl?-2:2)) && ++j<c) {
 					result&=0x7F7F;
 					uint8_t j1=(result%0x100)+0x20, j2=result/0x100;
 					if (j1>32&&j1<127&&j2>32&&j2<127) {
@@ -834,40 +1121,57 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                         text[len++]=result;
                 } else if (result)
                     text[len++]=result;
-            } else if (IS_DOSV && (CurMode->type != M_DCGA || IS_J3100)) {
+            } else if ((IS_DOSV && DOSV_CheckCJKVideoMode()) || (IS_J3100 && J3_IsJapanese())) {
                 if (lead2) lead2=false;
                 else if (isKanji1(real_readb(seg,(i*c+j)*2))) lead2=true;
                 result=real_readb(seg,(i*c+j)*2);
+                if ((uint8_t)result==0) result=32;
                 text[len++]=result;
                 if (!lead2 && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 if (j==c2&&c2<c-1&&lead2) {
                     result=real_readb(seg,(i*c+j+1)*2);
                     text[len++]=result;
-                    if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
+                    if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
             } else {
-                bool find = isJEGAEnabled()?std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) != jtbs.end():false;
+                bool find = isJEGAEnabled() || (isDBCSCP()
+#if defined(USE_TTF)
+                && dbcs_sbcs
+#endif
+                && showdbcs) ? std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) != jtbs.end():false;
                 if (!isJEGAEnabled()||j>c1||!find) {
                     ReadCharAttr(ttfuse&&rtl?ttfcols-j-1:j,i,page,&result);
-                    if (!result && CurMode->type == M_DCGA && !IS_J3100) result=32;
+                    if ((uint8_t)result==0) result=32;
+#if defined(USE_TTF)
+                    if (ttfuse && isDBCSCP()) {
+                        ttf_cell *curAC = curAttrChar+i*ttfcols;
+                        if (curAC[rtl?ttfcols-j-1:j].boxdraw||(!j&&curAC[rtl?ttf.cols-j:j+1].boxdraw)) bdlist.push_back(len);
+                    } else
+#endif
+                    if (isDBCSCP()
+#if defined(USE_TTF)
+                    && dbcs_sbcs
+#endif
+                    && showdbcs && std::find(dbox.begin(), dbox.end(), std::make_pair(i,j)) != dbox.end()) bdlist.push_back(len);
                     text[len++]=result;
-                    if (isJEGAEnabled() && find && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
+                    if (dos.loaded_codepage == 932 && find && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
-                if (isJEGAEnabled()&&j==c2&&c2<c-1&&std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j+1)) != jtbs.end()) {
+                if ((isJEGAEnabled()||(isDBCSCP()
+#if defined(USE_TTF)
+                && dbcs_sbcs
+#endif
+                && showdbcs))&&j==c2&&c2<c-1&&std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j+1)) != jtbs.end()) {
                     ReadCharAttr(ttfuse&&rtl?(ttfcols-j):(j+1),i,page,&result);
                     text[len++]=result;
-                    if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
+                    if (dos.loaded_codepage == 932 && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
 			}
 		}
-		while (len>0&&text[len-1]==32) text[--len]=0;
-		if (i<r2) {
-			text[len++]='\r';
-			text[len++]='\n';
-		}
+		if (ttfuse&&rtl) std::reverse(text+startlen, text+len);
+		while (len>0&&text[len-1]==32) {text[--len]=0;bdlist.remove(len);}
+		if (i<r2) text[len++]='\n';
 	}
     text[len] = 0;
-    if (ttfuse&&rtl) std::reverse(text, text+len);
 	*textlen=len;
 	return text;
 }
@@ -875,7 +1179,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 #if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
     int c1=x1, r1=y1, c2=x2, r2=y2, t;
-    uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+//    uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
     uint16_t c=0, r=0;
     if (IS_PC98_ARCH) {
         c=80;
@@ -906,12 +1210,12 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 #if defined(USE_TTF)
     ttfuse = ttf.inUse;
     ttfcols = ttf.cols;
-    if (ttfuse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||isDBCSCP()&&dbcs_sbcs)) {
+    if (ttfuse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||(isDBCSCP()&&dbcs_sbcs))) {
         ttf_cell *newAC = newAttrChar;
         for (unsigned int y = 0; y < ttf.lins; y++) {
-            if (y>=r1&&y<=r2)
-                for (unsigned int x = 0; x < ttf.cols; x++)
-                    if ((x>=c1||((IS_PC98_ARCH||isDBCSCP()&&dbcs_sbcs)&&c1>0&&x==c1-1&&(newAC[rtl?ttf.cols-x-1:x].chr&0xFF00)&&(newAC[rtl?ttf.cols-x:x+1].chr&0xFF)==32))&&x<=c2)
+            if ((int)y>=r1&&(int)y<=r2)
+                for (int x = 0; x < (int)ttf.cols; x++)
+                    if ((x>=c1||((IS_PC98_ARCH||(isDBCSCP()&&dbcs_sbcs))&&c1>0&&x==c1-1&&(newAC[rtl?ttf.cols-x-1:x].chr&0xFF00)&&(newAC[rtl?ttf.cols-x:x+1].chr&0xFF)==32))&&x<=c2)
                         newAC[rtl?ttf.cols-x-1:x].selected = select?1:0;
             newAC += ttf.cols;
         }
@@ -924,7 +1228,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 			if (IS_PC98_ARCH) {
 				PhysPt where = CurMode->pstart+((i*80)+j)*2;
 				mem_writeb(where+0x2000,mem_readb(where+0x2000)^16);
-			} else if (IS_DOSV && !IS_J3100) {
+			} else if ((IS_DOSV && DOSV_CheckCJKVideoMode()) || (IS_J3100 && J3_IsJapanese())) {
 				uint8_t attr = real_readb(seg,(i*c+j)*2+1);
 				real_writeb(seg,(i*c+j)*2+1,attr/0x10+(attr&0xF)*0x10);
 				if (j==c2) WriteCharTopView(c*i*2,j+1);
@@ -1054,6 +1358,13 @@ void Mouse_ButtonReleased(uint8_t button) {
     on_mouse_event_for_serial(0,0,mouse.buttons);
 }
 
+void Mouse_WheelMoved(int32_t scroll) {
+	mouse.wheel = clamp(scroll + mouse.wheel, -0x7FFF, 0x7FFF); /* limit is -0x8000,0x7FFF, but let's keep it symmetric */
+	Mouse_AddEvent(MOUSE_WHEEL_MOVED);
+	mouse.last_scrolled_x=POS_X;
+	mouse.last_scrolled_y=POS_Y;
+}
+
 static void Mouse_SetMickeyPixelRate(int16_t px, int16_t py){
     if ((px!=0) && (py!=0)) {
         mouse.mickeysPerPixel_x  = (float)px/X_MICKEY;
@@ -1144,12 +1455,17 @@ void Mouse_AfterNewVideoMode(bool setmode) {
         mouse.gran_x = (mode<2)?0xfff0:0xfff8;
         mouse.gran_y = (int16_t)0xfff8;
         if (IS_PC98_ARCH) {
+            mouse.gran_x = (int16_t)0xffff;
+            mouse.gran_y = (int16_t)0xffff;
             mouse.max_y = 400 - 1;
         }
         else {
             Bitu rows = IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24;
             if ((rows == 0) || (rows > 250)) rows = 25 - 1;
             mouse.max_y = 8*(rows+1) - 1;
+            uint16_t cols = real_readb(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+            if((cols == 0) || (cols > 250)) cols = 80;
+            mouse.max_x = cols * 8 - 1;
         }
         break;
     }
@@ -1182,6 +1498,14 @@ void Mouse_AfterNewVideoMode(bool setmode) {
         mouse.first_range_setx = true;
         mouse.first_range_sety = true;
         break;
+    case 0x70:
+        if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+            mouse.gran_x = (int16_t)0xfff8;
+            mouse.gran_y = (int16_t)0xfff8;
+            mouse.max_y = (real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS) + 1) * 8 - 1;
+            mouse.max_x = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) * 8 - 1;
+            break;
+        }
     default:
         LOG(LOG_MOUSE,LOG_ERROR)("Unhandled videomode %X on reset",mode);
         mouse.inhibit_draw = true;
@@ -1218,7 +1542,10 @@ void Mouse_AfterNewVideoMode(bool setmode) {
     mouse.hoty       = 0;
     mouse.background = false;
     mouse.screenMask = defaultScreenMask;
-    mouse.cursorMask = defaultCursorMask;
+    if(pc98_nec_mouse) {
+        mouse.cursorMask = defaultCursorMaskNEC;
+        pc98_nec_mouse_plane = 2;
+    } else mouse.cursorMask = defaultCursorMask;
     mouse.textAndMask= defaultTextAndMask;
     mouse.textXorMask= defaultTextXorMask;
     mouse.language   = 0;
@@ -1228,8 +1555,15 @@ void Mouse_AfterNewVideoMode(bool setmode) {
     mouse.cursorType = 0;
     mouse.enabled=true;
 
-    mouse.max_screen_x = mouse.max_x;
-    mouse.max_screen_y = mouse.max_y;
+    if (assume_max_x > 0)
+        mouse.max_screen_x = assume_max_x;
+    else
+        mouse.max_screen_x = mouse.max_x;
+
+    if (assume_max_y > 0)
+        mouse.max_screen_y = assume_max_y;
+    else
+        mouse.max_screen_y = mouse.max_y;
 }
 
 //Much too empty, Mouse_NewVideoMode contains stuff that should be in here
@@ -1240,8 +1574,14 @@ static void Mouse_Reset(void) {
 
     mouse.mickey_x = 0;
     mouse.mickey_y = 0;
+    mouse.mickey_accum_x = 0;
+    mouse.mickey_accum_y = 0;
 
     mouse.buttons = 0;
+
+    mouse.wheel           = 0; /* CuteMouse wheel extension */
+    mouse.last_scrolled_x = 0;
+    mouse.last_scrolled_y = 0;
 
     for (uint16_t but=0; but<MOUSE_BUTTONS; but++) {
         mouse.times_pressed[but] = 0;
@@ -1252,7 +1592,7 @@ static void Mouse_Reset(void) {
         mouse.last_released_y[but] = 0;
     }
 
-    // Dont set max coordinates here. it is done by SetResolution!
+    // Don't set max coordinates here. it is done by SetResolution!
     mouse.x = static_cast<float>((mouse.max_x + 1)/ 2);
     mouse.y = static_cast<float>((mouse.max_y + 1)/ 2);
     mouse.sub_mask = 0;
@@ -1282,6 +1622,7 @@ static Bitu INT33_Handler(void) {
     switch (reg_ax) {
     case 0x00:  /* MS MOUSE - RESET DRIVER AND READ STATUS */
         Mouse_ResetHardware();
+        mouse.polled = false;
         goto software_reset;
     case 0x01:  /* MS MOUSE v1.0+ - SHOW MOUSE CURSOR */
         if (mouse.hidden) mouse.hidden--;
@@ -1299,9 +1640,17 @@ static Bitu INT33_Handler(void) {
         }
         break;
     case 0x03:  /* MS MOUSE v1.0+ - RETURN POSITION AND BUTTON STATUS */
-        reg_bx = mouse.buttons;
-        reg_cx = (uint16_t)POS_X;
-        reg_dx = (uint16_t)POS_Y;
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - Buttons are in different states */
+            reg_ax = (mouse.buttons & 1) ? 0xffff : 0;
+            reg_bx = (mouse.buttons & 2) ? 0xffff : 0;
+        } else {
+            reg_bl=mouse.buttons;
+            reg_bh=GetWheel8bit(); /* CuteMouse wheel extension */
+        }
+        reg_cx=POS_X;
+        reg_dx=POS_Y;
+        mouse.polled = true;
         mouse.first_range_setx = false;
         mouse.first_range_sety = false;
         if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
@@ -1322,33 +1671,74 @@ static Bitu INT33_Handler(void) {
         if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         break;
     case 0x05:  /* MS MOUSE v1.0+ - RETURN BUTTON PRESS DATA */
-        {
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - RETURN LEFT BUTTON PRESS DATA */
+            reg_ax = (mouse.buttons & 1) ? 0xffff: 0;
+            reg_cx = mouse.last_pressed_x[0];
+            reg_dx = mouse.last_pressed_y[0];
+            reg_bx = mouse.times_pressed[0];
+            mouse.times_pressed[0] = 0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
+        } else {
             uint16_t but = reg_bx;
-            reg_ax = mouse.buttons;
-            if (but >= MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
-            reg_cx = mouse.last_pressed_x[but];
-            reg_dx = mouse.last_pressed_y[but];
-            reg_bx = mouse.times_pressed[but];
-            mouse.times_pressed[but] = 0;
+            if (but==0xFFFF){
+			    /* CuteMouse wheel extension */
+			    reg_bx=GetWheel16bit();
+			    reg_cx=mouse.last_scrolled_x;
+			    reg_dx=mouse.last_scrolled_y;
+			} else {
+				reg_ax=mouse.buttons;
+				if (but>=MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
+				reg_cx=mouse.last_pressed_x[but];
+				reg_dx=mouse.last_pressed_y[but];
+				reg_bx=mouse.times_pressed[but];
+				mouse.times_pressed[but]=0;
+			}
             if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         }
+        mouse.polled = true;
         Mouse_Used();
         break;
     case 0x06:  /* MS MOUSE v1.0+ - RETURN BUTTON RELEASE DATA */
-        {
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - RETURN LEFT BUTTON RELEASE DATA */
+            reg_ax = (mouse.buttons & 1) ? 0xffff: 0;
+            reg_cx = mouse.last_released_x[0];
+            reg_dx = mouse.last_released_y[0];
+            reg_bx = mouse.times_released[0];
+            mouse.times_released[0] = 0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
+        } else {
             uint16_t but = reg_bx;
-            reg_ax = mouse.buttons;
-            if (but >= MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
-            reg_cx = mouse.last_released_x[but];
-            reg_dx = mouse.last_released_y[but];
-            reg_bx = mouse.times_released[but];
-            mouse.times_released[but] = 0;
+            if (but==0xFFFF){
+			    /* CuteMouse wheel extension */
+			    reg_bx=(mouse.wheel >= 0) ? mouse.wheel : (0x10000 + mouse.wheel);
+			    reg_cx=mouse.last_scrolled_x;
+			    reg_dx=mouse.last_scrolled_y;
+			    mouse.wheel=0;
+			} else {
+				reg_ax=mouse.buttons;
+				if (but>=MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
+				reg_cx=mouse.last_released_x[but];
+				reg_dx=mouse.last_released_y[but];
+				reg_bx=mouse.times_released[but];
+				mouse.times_released[but]=0;
+			}
             if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         }
+        mouse.polled = true;
         Mouse_Used();
         break;
     case 0x07:  /* MS MOUSE v1.0+ - DEFINE HORIZONTAL CURSOR RANGE */
-        {
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - RETURN RIGHT BUTTON PRESS DATA */
+            reg_ax = (mouse.buttons & 2) ? 0xffff: 0;
+            reg_cx = mouse.last_pressed_x[1];
+            reg_dx = mouse.last_pressed_y[1];
+            reg_bx = mouse.times_pressed[1];
+            mouse.times_pressed[1] = 0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
+        } else {
             //Lemmings sets 1-640 and wants that. Ironseed sets 0-640 but doesn't like 640
             //Ironseed works if newvideo mode with mode 13 sets 0-639
             //Larry 6 actually wants newvideo mode with mode 13 to set it to 0-319
@@ -1373,7 +1763,7 @@ static Bitu INT33_Handler(void) {
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
             if (mouse.first_range_setx || mouse.buttons == 0) {
-                if (mouse.min_x == 0 && mouse.max_x > 0) {
+                if (mouse.min_x == 0 && mouse.max_x > 0 && assume_max_x == 0) {
                     // most games redefine the range so they can use a saner range matching the screen
                     int16_t nval = mouse.max_x;
 
@@ -1409,7 +1799,15 @@ static Bitu INT33_Handler(void) {
         }
         break;
     case 0x08:  /* MS MOUSE v1.0+ - DEFINE VERTICAL CURSOR RANGE */
-        {
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - RETURN RIGHT BUTTON RELEASE DATA */
+            reg_ax = (mouse.buttons & 2) ? 0xffff: 0;
+            reg_cx = mouse.last_released_x[1];
+            reg_dx = mouse.last_released_y[1];
+            reg_bx = mouse.times_released[1];
+            mouse.times_released[1] = 0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
+        } else {
             // Not sure what to take instead of the CurMode (see case 0x07 as well)
             // especially the cases where sheight= 400 and we set it with the mouse_reset to 200
             // disabled it at the moment. Seems to break Syndicate which wants 400 in mode 13
@@ -1434,7 +1832,7 @@ static Bitu INT33_Handler(void) {
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
             if (mouse.first_range_sety || mouse.buttons == 0) {
-                if (mouse.min_y == 0 && mouse.max_y > 0) {
+                if (mouse.min_y == 0 && mouse.max_y > 0 && assume_max_y == 0) {
                     // most games redefine the range so they can use a saner range matching the screen
                     int16_t nval = mouse.max_y;
 
@@ -1470,18 +1868,25 @@ static Bitu INT33_Handler(void) {
         }
         break;
     case 0x09:  /* MS MOUSE v3.0+ - DEFINE GRAPHICS CURSOR */
-        {
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - Different data formats */
+            PhysPt src = SegPhys(es) + reg_dx;
+            for(uint16_t y = 0 ; y < CURSORY*2 ; y++) {
+                userdefCursorMask[y] = (mem_readb(src) << 8) | mem_readb(src + 1);
+                src += 2;
+            }
+        } else {
             PhysPt src = SegPhys(es) + reg_dx;
             MEM_BlockRead(src, userdefScreenMask, CURSORY * 2);
             MEM_BlockRead(src + CURSORY * 2, userdefCursorMask, CURSORY * 2);
             mouse.screenMask = userdefScreenMask;
-            mouse.cursorMask = userdefCursorMask;
-            mouse.hotx = (int16_t)reg_bx;
-            mouse.hoty = (int16_t)reg_cx;
-            mouse.cursorType = 2;
-            DrawCursor();
-            break;
         }
+        mouse.cursorMask = userdefCursorMask;
+        mouse.hotx = (int16_t)reg_bx;
+        mouse.hoty = (int16_t)reg_cx;
+        mouse.cursorType = 2;/*NTS: Microsoft Word calls this even in text mode!*/
+        DrawCursor();
+        break;
     case 0x0a:  /* MS MOUSE v3.0+ - DEFINE TEXT CURSOR */
         mouse.cursorType = (reg_bx ? 1 : 0);
         mouse.textAndMask = reg_cx;
@@ -1493,6 +1898,7 @@ static Bitu INT33_Handler(void) {
         DrawCursor();
         break;
     case 0x0b:  /* MS MOUSE v1.0+ - READ MOTION COUNTERS */
+        mouse.polled = true;
         Mouse_Read_Motion_Data();
         break;
     case 0x0c:  /* MS MOUSE v1.0+ - DEFINE INTERRUPT SUBROUTINE PARAMETERS */
@@ -1511,21 +1917,55 @@ static Bitu INT33_Handler(void) {
         Mouse_SetMickeyPixelRate((int16_t)reg_cx, (int16_t)reg_dx);
         break;
     case 0x10:  /* MS MOUSE v1.0+ - DEFINE SCREEN REGION FOR UPDATING */
-        mouse.updateRegion_x[0] = (int16_t)reg_cx;
-        mouse.updateRegion_y[0] = (int16_t)reg_dx;
-        mouse.updateRegion_x[1] = (int16_t)reg_si;
-        mouse.updateRegion_y[1] = (int16_t)reg_di;
-        DrawCursor();
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - DEFINE HORIZONTAL CURSOR RANGE */
+            int16_t max, min;
+            if ((int16_t)reg_cx < (int16_t)reg_dx) { min = (int16_t)reg_cx; max = (int16_t)reg_dx; }
+            else { min = (int16_t)reg_dx; max = (int16_t)reg_cx; }
+            mouse.min_x = min;
+            mouse.max_x = max;
+        } else {
+            mouse.updateRegion_x[0] = (int16_t)reg_cx;
+            mouse.updateRegion_y[0] = (int16_t)reg_dx;
+            mouse.updateRegion_x[1] = (int16_t)reg_si;
+            mouse.updateRegion_y[1] = (int16_t)reg_di;
+            DrawCursor();
+        }
         break;
     case 0x11:  /* Genius Mouse 9.06 - GET NUMBER OF BUTTONS */
-        reg_ax = 0xffff;
-        reg_bx = MOUSE_BUTTONS;
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - DEFINE VERTICAL CURSOR RANGE */
+            int16_t max, min;
+            if ((int16_t)reg_cx < (int16_t)reg_dx) { min = (int16_t)reg_cx; max = (int16_t)reg_dx; }
+            else { min = (int16_t)reg_dx; max = (int16_t)reg_cx; }
+            mouse.min_y = min;
+            mouse.max_y = max;
+        } else {
+            reg_ax = 0x574D; /* Identifier for detection purposes */
+            reg_bx = 0;      /* Reserved capabilities flags */
+            reg_cx = 1;      /* Wheel is supported */
+            /* Previous implementation provided Genius mouse-specific function to get
+               number of buttons (https://sourceforge.net/p/dosbox/patches/32/), it was
+               returning 0xffff in reg_ax and number of buttons in reg_bx; I suppose
+               the CuteMouse extensions are more useful */
+        }
         break;
     case 0x12:  /* MS MOUSE - SET LARGE GRAPHICS CURSOR BLOCK */
-        LOG(LOG_MOUSE, LOG_ERROR)("Set large graphics cursor block not implemented");
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - Set the drawing plane */
+            RestoreCursorBackground();
+            pc98_nec_mouse_plane = reg_bx;
+        } else {
+            LOG(LOG_MOUSE, LOG_ERROR)("Set large graphics cursor block not implemented");
+        }
         break;
     case 0x13:  /* MS MOUSE v5.0+ - DEFINE DOUBLE-SPEED THRESHOLD */
-        mouse.doubleSpeedThreshold = (reg_dx ? reg_dx : 64);
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - Get available planes */
+            reg_bx = 0xffff; /* 0xffff = enable plane 3 */
+        } else {
+            mouse.doubleSpeedThreshold = (reg_dx ? reg_dx : 64);
+        }
         break;
     case 0x14:  /* MS MOUSE v3.0+ - EXCHANGE INTERRUPT SUBROUTINES */
         {
@@ -1622,7 +2062,7 @@ static Bitu INT33_Handler(void) {
              *                        04h     Swedish
              *                        05h     Finnish
              *                        06h     Spanish
-             *                        07h     Portugese
+             *                        07h     Portuguese
              *                        08h     Italian
              *
              */
@@ -1650,7 +2090,11 @@ static Bitu INT33_Handler(void) {
 	//       BX = fCursor lock
 	//       CX = FinMouse code
 	//       DX = fMouse busy
-        LOG(LOG_MOUSE, LOG_ERROR)("Get general driver information not implemented");
+        reg_al = 1; // GUESS for MDDs
+        reg_ah = 0x40/*integrated*/ | (mouse.cursorType << 4) | 0x01/*30 reports/sec*/;
+        reg_bx = 0;
+        reg_cx = 0;
+        reg_dx = 0;
         break;
     case 0x26:  /* MS MOUSE v6.26+ - GET MAXIMUM VIRTUAL COORDINATES */
         reg_bx = (mouse.enabled ? 0x0000 : 0xffff);
@@ -1658,6 +2102,7 @@ static Bitu INT33_Handler(void) {
         reg_dx = (uint16_t)mouse.max_y;
         break;
     case 0x27:  /* MS MOUSE v7.01+ - GET SCREEN/CURSOR MASKS AND MICKEY COUNTS */
+        mouse.polled = true;
         reg_ax = mouse.textAndMask;
         reg_bx = mouse.textXorMask;
         Mouse_Read_Motion_Data();
@@ -1801,6 +2246,11 @@ static Bitu MOUSE_BD_Handler(void) {
     return CBRET_NONE;
 }
 
+static Bitu PC98_INT15_Handler(void) {
+    if(AllowINT33RMAccess() && en_int33) DrawCursor();
+    return CBRET_NONE;
+}
+
 static Bitu INT74_Handler(void) {
     if (mouse.events>0 && !mouse.in_UIR) {
         mouse.events--;
@@ -1815,8 +2265,10 @@ static Bitu INT74_Handler(void) {
 
         /* Check for an active Interrupt Handler that will get called */
         if (AllowINT33RMAccess() && (mouse.sub_mask & mouse.event_queue[mouse.events].type)) {
-            reg_ax=mouse.event_queue[mouse.events].type;
-            reg_bx=mouse.event_queue[mouse.events].buttons;
+            reg_ax=mouse.event_queue[mouse.events].type
+                  | (!MOUSE_IsLocked() ? MOUSE_ABSOLUTE & mouse.sub_mask : 0);
+            reg_bl=mouse.event_queue[mouse.events].buttons;
+            reg_bh=GetWheel8bit(); /* CuteMouse wheel extension */
             reg_cx=(uint16_t)POS_X;
             reg_dx=(uint16_t)POS_Y;
             reg_si=(uint16_t)static_cast<int16_t>(mouse.mickey_x);
@@ -1881,7 +2333,18 @@ void BIOS_PS2MOUSE_ShutDown(Section *sec) {
     (void)sec;//UNUSED
 }
 
+static CALLBACK_HandlerObject callback_pc98_mouse;
+
 void BIOS_PS2Mouse_Startup(Section *sec) {
+    if(IS_PC98_ARCH) {
+        Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
+        pc98_nec_mouse = pc98_section->Get_bool("pc-98 nec mouse function");
+        callback_pc98_mouse.Uninstall();
+        callback_pc98_mouse.Install(&PC98_INT15_Handler, CB_IRET_EOI_PIC2,"PC-98 Mouse");
+        callback_pc98_mouse.Set_RealVec(0x15, true);
+        return;
+    }
+
     (void)sec;//UNUSED
     Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
 
@@ -1965,11 +2428,61 @@ void MOUSE_Startup(Section *sec) {
         return;
     }
 
+    user_mouse_report_rate=section->Get_int("mouse report rate");
+    UpdateMouseReportRate();
+
+    mickey_threshold = section->Get_int("int33 mickey threshold");
+
+    assume_max_x=section->Get_int("int33 max x");
+    assume_max_y=section->Get_int("int33 max y");
+
+    {
+        const char *s = section->Get_string("int33 xy adjust");
+        while (*s != 0) {
+            if (*s == ' ') {
+                s++;
+            }
+            else {
+                const char *base = s;
+                while (*s != 0 && *s != ',' && *s != '=') s++;
+                std::string name = std::string(base,(size_t)(s-base)),value;
+                if (*s == '=') {
+                    s++;
+                    base = s;
+                    while (*s != 0 && *s != ',') s++;
+                    value = std::string(base,(size_t)(s-base));
+                }
+                if (*s == ',') s++;
+
+                if (name == "x") {
+                    const char *v = value.c_str();
+                    if (isdigit(*v) || (*v == '-' && isdigit(v[1]))) {
+                        adjust_x = atoi(v);
+                    }
+                    else if (!strcmp(v,"max-excess")) {
+                        adjust_x_max_excess = true;
+                    }
+                }
+                else if (name == "y") {
+                    const char *v = value.c_str();
+                    if (isdigit(*v) || (*v == '-' && isdigit(v[1]))) {
+                        adjust_y = atoi(v);
+                    }
+                    else if (!strcmp(v,"max-excess")) {
+                        adjust_y_max_excess = true;
+                    }
+                }
+            }
+        }
+    }
+
     en_int33_hide_if_intsub=section->Get_bool("int33 hide host cursor if interrupt subroutine");
 
     en_int33_hide_if_polling=section->Get_bool("int33 hide host cursor when polling");
 
     en_int33_pc98_show_graphics=pc98_section->Get_bool("pc-98 show graphics layer on initialize");
+
+    en_vmware=section->Get_bool("vmware");
 
     en_int33=section->Get_bool("int33");
     if (!en_int33) {
@@ -2013,6 +2526,7 @@ void MOUSE_Startup(Section *sec) {
     mouse.timer_in_progress = false;
     mouse.mode = 0xFF; //Non existing mode
     mouse.scrollwheel = 0;
+    mouse.polled = 0;
 
     mouse.sub_mask=0;
     mouse.sub_seg=0x6362;   // magic value
@@ -2024,6 +2538,11 @@ void MOUSE_Startup(Section *sec) {
     Mouse_ResetHardware();
     Mouse_Reset();
     Mouse_SetSensitivity(50,50,50);
+
+    if (en_vmware) {
+	    LOG(LOG_MISC,LOG_DEBUG)("Enabling VMware integration for mouse interface");
+	    IO_RegisterReadHandler(VMWARE_PORT, &PortRead, IO_MD);
+    }
 }
 
 void MOUSE_Init() {
@@ -2056,6 +2575,223 @@ bool MOUSE_HasInterruptSub()
     return (mouse.sub_mask != 0);
 }
 
+// Basic VMware tools support, based on documentation from https://wiki.osdev.org/VMware_tools
+// Mouse support tested using unofficial Windows 3.1 driver from https://github.com/NattyNarwhal/vmwmouse
+
+static constexpr uint32_t VMWARE_MAGIC           = 0x564D5868u;    // magic number for all VMware calls
+
+static constexpr uint16_t CMD_GETVERSION         = 10u;
+static constexpr uint16_t CMD_ABSPOINTER_DATA    = 39u;
+static constexpr uint16_t CMD_ABSPOINTER_STATUS  = 40u;
+static constexpr uint16_t CMD_ABSPOINTER_COMMAND = 41u;
+
+static constexpr uint32_t ABSPOINTER_ENABLE      = 0x45414552u;
+static constexpr uint32_t ABSPOINTER_RELATIVE    = 0xF5u;
+static constexpr uint32_t ABSPOINTER_ABSOLUTE    = 0x53424152u;
+
+static constexpr uint8_t BUTTON_LEFT            = 0x20u;
+static constexpr uint8_t BUTTON_RIGHT           = 0x10u;
+static constexpr uint8_t BUTTON_MIDDLE          = 0x08u;
+
+volatile bool vmware_mouse     = false;  // if true, VMware compatible driver has taken over the mouse
+
+static uint8_t mouse_buttons    = 0;      // state of mouse buttons, in VMware format
+static uint16_t mouse_x          = 0x8000; // mouse position X, in VMware format (scaled from 0 to 0xFFFF)
+static uint16_t mouse_y          = 0x8000; // ditto
+static int8_t mouse_wheel      = 0;
+static bool mouse_updated    = false;
+
+static int16_t mouse_diff_x     = 0;      // difference between host and guest mouse x coordinate (in host pixels)
+static int16_t mouse_diff_y     = 0;      // ditto
+
+static bool video_fullscreen = false;
+static uint16_t video_res_x      = 1;      // resolution to which guest image is scaled, excluding black borders
+static uint16_t video_res_y      = 1;
+static uint16_t video_clip_x     = 0;      // clipping value - size of black border (one side)
+static uint16_t video_clip_y     = 0;
+
+
+class Section;
+
+// Commands (requests) to the VMware hypervisor
+
+static inline void CmdGetVersion() {
+        reg_eax = 0; // FIXME: should we respond with something resembling VMware?
+        reg_ebx = VMWARE_MAGIC;
+}
+
+static inline void CmdAbsPointerData() {
+        reg_eax = mouse_buttons;
+        reg_ebx = mouse_x;
+        reg_ecx = mouse_y;
+        reg_edx = (mouse_wheel >= 0) ? mouse_wheel : 256 + mouse_wheel;
+
+        mouse_wheel = 0;
+}
+
+static inline void CmdAbsPointerStatus() {
+        reg_eax = mouse_updated ? 4 : 0;
+        mouse_updated = false;
+}
+
+static inline void CmdAbsPointerCommand() {
+
+        switch (reg_ebx) {
+        case ABSPOINTER_ENABLE:
+                // can be safely ignored
+                break;
+        case ABSPOINTER_RELATIVE:
+                vmware_mouse = false;
+                if (!MOUSE_IsLocked()) SDL_ShowCursor(SDL_ENABLE);
+                break;
+        case ABSPOINTER_ABSOLUTE:
+                vmware_mouse = true;
+                if (!MOUSE_IsLocked()) SDL_ShowCursor(SDL_DISABLE);
+                break;
+        default:
+                LOG_MSG("VMWARE: unknown mouse subcommand 0x%08x", reg_ebx);
+                break;
+        }
+}
+
+// IO port handling
+
+static Bitu PortRead(Bitu port, Bitu iolen) {
+    (void)port;
+    (void)iolen;
+
+        if (reg_eax != VMWARE_MAGIC)
+                return 0;
+
+        // LOG_MSG("VMWARE: called with EBX 0x%08x, ECX 0x%08x", reg_ebx, reg_ecx);
+
+        switch (reg_cx) {
+        case CMD_GETVERSION:
+                CmdGetVersion();
+                break;
+        case CMD_ABSPOINTER_DATA:
+                CmdAbsPointerData();
+                break;
+        case CMD_ABSPOINTER_STATUS:
+                CmdAbsPointerStatus();
+                break;
+        case CMD_ABSPOINTER_COMMAND:
+                CmdAbsPointerCommand();
+                break;
+        default:
+                LOG_MSG("VMWARE: unknown command 0x%08x", reg_ecx);
+                break;
+        }
+
+        return reg_ax;
+}
+
+// Notifications from external subsystems
+
+void VMWARE_MouseButtonPressed(uint8_t button) {
+
+        switch (button) {
+        case 0:
+                mouse_buttons |= BUTTON_LEFT;
+                mouse_updated = true;
+                break;
+        case 1:
+                mouse_buttons |= BUTTON_RIGHT;
+                mouse_updated = true;
+                break;
+        case 2:
+                mouse_buttons |= BUTTON_MIDDLE;
+                mouse_updated = true;
+                break;
+        default:
+                break;
+        }
+}
+
+void VMWARE_MouseButtonReleased(uint8_t button) {
+
+        switch (button) {
+        case 0:
+                mouse_buttons &= ~BUTTON_LEFT;
+                mouse_updated = true;
+                break;
+        case 1:
+                mouse_buttons &= ~BUTTON_RIGHT;
+                mouse_updated = true;
+                break;
+        case 2:
+                mouse_buttons &= ~BUTTON_MIDDLE;
+                mouse_updated = true;
+                break;
+        default:
+                break;
+        }
+}
+
+void VMWARE_MousePosition(uint16_t pos_x, uint16_t pos_y) {
+
+        float tmp_x;
+        float tmp_y;
+
+        if (video_fullscreen)
+        {
+                // We have to maintain the diffs (offsets) between host and guest
+                // mouse positions; otherwise in case of clipped picture (like
+                // 4:3 screen displayed on 16:9 fullscreen mode) we could have
+                // an effect of 'sticky' borders if the user moves mouse outside
+                // of the guest display area
+
+                if (pos_x + mouse_diff_x < video_clip_x)
+                        mouse_diff_x = video_clip_x - pos_x;
+                else if (pos_x + mouse_diff_x >= video_res_x + video_clip_x)
+                        mouse_diff_x = video_res_x + video_clip_x - pos_x - 1;
+
+                if (pos_y + mouse_diff_y < video_clip_y)
+                        mouse_diff_y = video_clip_y - pos_y;
+                else if (pos_y + mouse_diff_y >= video_res_y + video_clip_y)
+                        mouse_diff_y = video_res_y + video_clip_y - pos_y - 1;
+
+                tmp_x = pos_x + mouse_diff_x - video_clip_x;
+                tmp_y = pos_y + mouse_diff_y - video_clip_y;
+        }
+        else
+        {
+                tmp_x = pos_x > video_clip_x ? pos_x - video_clip_x : 0;
+                tmp_y = pos_y > video_clip_y ? pos_y - video_clip_y : 0;
+        }
+
+        mouse_x = (std::min)(0xFFFFu, static_cast<uint32_t>(tmp_x * 0xFFFF / (video_res_x - 1) + 0.499));
+        mouse_y = (std::min)(0xFFFFu, static_cast<uint32_t>(tmp_y * 0xFFFF / (video_res_y - 1) + 0.499));
+
+        mouse_updated = true;
+}
+
+void VMWARE_MouseWheel(int32_t scroll) {
+        if (scroll >= 255 || scroll + mouse_wheel >= 127)
+                mouse_wheel = 127;
+        else if (scroll <= -255 || scroll + mouse_wheel <= -127)
+                mouse_wheel = -127;
+        else
+                mouse_wheel += scroll;
+
+        mouse_updated = true;
+}
+
+void VMWARE_ScreenParams(uint16_t clip_x, uint16_t clip_y, uint16_t res_x, uint16_t res_y, bool fullscreen) {
+        video_clip_x     = clip_x;
+        video_clip_y     = clip_y;
+        video_res_x      = res_x;
+        video_res_y      = res_y;
+        video_fullscreen = fullscreen;
+
+        // Unfortunately, with seamless driver changing the window size can cause
+        // mouse movement as a side-effect, this is not fun for games. Let's try
+        // to at least minimize the effect.
+
+        mouse_diff_x = clamp(static_cast<int32_t>(mouse_diff_x), -video_clip_x, static_cast<int32_t>(video_clip_x));
+        mouse_diff_y = clamp(static_cast<int32_t>(mouse_diff_y), -video_clip_y, static_cast<int32_t>(video_clip_y));
+}
+
 //save state support
 void *MOUSE_Limit_Events_PIC_Event = (void*)((uintptr_t)MOUSE_Limit_Events);
 
@@ -2069,7 +2805,7 @@ public:
 	{}
 
 private:
-	virtual void getBytes(std::ostream& stream)
+	void getBytes(std::ostream& stream) override
 	{
 		uint8_t screenMask_idx, cursorMask_idx;
 
@@ -2114,7 +2850,7 @@ private:
 		WRITE_POD( &cursorMask_idx, cursorMask_idx );
 	}
 
-	virtual void setBytes(std::istream& stream)
+	void setBytes(std::istream& stream) override
 	{
 		uint8_t screenMask_idx, cursorMask_idx;
 

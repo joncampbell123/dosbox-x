@@ -115,6 +115,22 @@ char *strtok_dbcs(char *s, const char *d) {
     return result;
 }
 
+bool check_last_split_char(const char *name, size_t len, char split)
+{
+	bool tail = false;
+	if((IS_PC98_ARCH || isDBCSCP()) && split == '\\') {
+		bool lead = false;
+		for(size_t pos = 0 ; pos < len ; pos++) {
+			if(lead) lead = false;
+        	else if ((IS_PC98_ARCH && shiftjis_lead_byte(name[pos])) || (isDBCSCP() && isKanji1(name[pos]))) lead = true;
+			else if(pos == len - 1 && name[pos] == split) tail = true;
+		}
+	} else if(len > 0) {
+		if(name[len - 1] == split) tail = true;
+	}
+	return tail;
+}
+
 /* 
 	Ripped some source from freedos for this one.
 
@@ -169,7 +185,22 @@ char * lowcase(char * str) {
 	return str;
 }
 
-
+std::vector<std::string> split(const std::string& str, char split_char) {
+    const char* cur = str.c_str();
+    const char* str_end = str.c_str() + str.size();
+    std::vector<std::string> chunks;
+    while (cur < str_end) {
+        const char* start = cur;
+        while (start < str_end && *start == split_char)
+            start++;
+        const char* end = start + 1;
+        while (end < str_end && *end != split_char)
+            end++;
+        cur = end + 1;
+        chunks.push_back(std::string(start, end - start));
+    }
+    return chunks;
+}
 
 bool ScanCMDBool(char * cmd,char const * const check) {
 	char * scan=cmd;size_t c_len=strlen(check);
@@ -193,7 +224,7 @@ char * ScanCMDRemain(char * cmd) {
 		while ( *scan && !isspace(*reinterpret_cast<unsigned char*>(scan)) ) scan++;
 		*scan=0;
 		return found;
-	} else return 0; 
+	} else return nullptr;
 }
 
 char * StripWord(char *&line) {
@@ -480,5 +511,5 @@ void E_Exit(const char * format,...) {
         DOSBox_ConsolePauseWait();
 #endif
     }
-	exit(0);
+	exit(1);
 }

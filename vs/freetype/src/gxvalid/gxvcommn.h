@@ -1,39 +1,39 @@
-/***************************************************************************/
-/*                                                                         */
-/*  gxvcommn.h                                                             */
-/*                                                                         */
-/*    TrueTypeGX/AAT common tables validation (specification).             */
-/*                                                                         */
-/*  Copyright 2004-2018 by                                                 */
-/*  suzuki toshiya, Masatake YAMATO, Red Hat K.K.,                         */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * gxvcommn.h
+ *
+ *   TrueTypeGX/AAT common tables validation (specification).
+ *
+ * Copyright (C) 2004-2023 by
+ * suzuki toshiya, Masatake YAMATO, Red Hat K.K.,
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
-/***************************************************************************/
-/*                                                                         */
-/* gxvalid is derived from both gxlayout module and otvalid module.        */
-/* Development of gxlayout is supported by the Information-technology      */
-/* Promotion Agency(IPA), Japan.                                           */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * gxvalid is derived from both gxlayout module and otvalid module.
+ * Development of gxlayout is supported by the Information-technology
+ * Promotion Agency(IPA), Japan.
+ *
+ */
 
 
   /*
    * keywords in variable naming
    * ---------------------------
-   *  table: Of type FT_Bytes, pointing to the start of this table/subtable.
-   *  limit: Of type FT_Bytes, pointing to the end of this table/subtable,
+   * table:  Of type FT_Bytes, pointing to the start of this table/subtable.
+   * limit:  Of type FT_Bytes, pointing to the end of this table/subtable,
    *         including padding for alignment.
-   *  offset: Of type FT_UInt, the number of octets from the start to target.
-   *  length: Of type FT_UInt, the number of octets from the start to the
-   *          end in this table/subtable, including padding for alignment.
+   * offset: Of type FT_UInt, the number of octets from the start to target.
+   * length: Of type FT_UInt, the number of octets from the start to the
+   *         end in this table/subtable, including padding for alignment.
    *
    *  _MIN, _MAX: Should be added to the tail of macros, as INT_MIN, etc.
    */
@@ -43,10 +43,9 @@
 #define GXVCOMMN_H_
 
 
-#include <ft2build.h>
 #include "gxvalid.h"
-#include FT_INTERNAL_DEBUG_H
-#include FT_SFNT_NAMES_H
+#include <freetype/internal/ftdebug.h>
+#include <freetype/ftsnames.h>
 
 
 FT_BEGIN_HEADER
@@ -62,8 +61,11 @@ FT_BEGIN_HEADER
 
 #undef GXV_LOAD_UNUSED_VARS /* debug purpose */
 
-#define IS_PARANOID_VALIDATION          ( gxvalid->root->level >= FT_VALIDATE_PARANOID )
-#define GXV_SET_ERR_IF_PARANOID( err )  { if ( IS_PARANOID_VALIDATION ) ( err ); }
+#define IS_PARANOID_VALIDATION                             \
+          ( gxvalid->root->level >= FT_VALIDATE_PARANOID )
+#define GXV_SET_ERR_IF_PARANOID( err )                              \
+          do { if ( IS_PARANOID_VALIDATION ) ( err ); } while ( 0 )
+
 
   /*************************************************************************/
   /*************************************************************************/
@@ -262,17 +264,17 @@ FT_BEGIN_HEADER
   } GXV_ValidatorRec;
 
 
-#define GXV_TABLE_DATA( tag, field )                           \
+#define GXV_TABLE_DATA( tag, field )                             \
         ( ( (GXV_ ## tag ## _Data)gxvalid->table_data )->field )
 
 #undef  FT_INVALID_
-#define FT_INVALID_( _error ) \
+#define FT_INVALID_( _error )                                     \
           ft_validator_error( gxvalid->root, FT_THROW( _error ) )
 
-#define GXV_LIMIT_CHECK( _count )                                     \
-          FT_BEGIN_STMNT                                              \
+#define GXV_LIMIT_CHECK( _count )                                       \
+          FT_BEGIN_STMNT                                                \
             if ( p + _count > ( limit? limit : gxvalid->root->limit ) ) \
-              FT_INVALID_TOO_SHORT;                                   \
+              FT_INVALID_TOO_SHORT;                                     \
           FT_END_STMNT
 
 
@@ -280,19 +282,19 @@ FT_BEGIN_HEADER
 
 #define GXV_INIT  gxvalid->debug_indent = 0
 
-#define GXV_NAME_ENTER( name )                             \
-          FT_BEGIN_STMNT                                   \
-            gxvalid->debug_indent += 2;                      \
-            FT_TRACE4(( "%*.s", gxvalid->debug_indent, 0 )); \
-            FT_TRACE4(( "%s table\n", name ));             \
+#define GXV_NAME_ENTER( name )                                \
+          FT_BEGIN_STMNT                                      \
+            gxvalid->debug_indent += 2;                       \
+            FT_TRACE4(( "%*.s", gxvalid->debug_indent, "" )); \
+            FT_TRACE4(( "%s table\n", name ));                \
           FT_END_STMNT
 
 #define GXV_EXIT  gxvalid->debug_indent -= 2
 
-#define GXV_TRACE( s )                                     \
-          FT_BEGIN_STMNT                                   \
-            FT_TRACE4(( "%*.s", gxvalid->debug_indent, 0 )); \
-            FT_TRACE4( s );                                \
+#define GXV_TRACE( s )                                        \
+          FT_BEGIN_STMNT                                      \
+            FT_TRACE4(( "%*.s", gxvalid->debug_indent, "" )); \
+            FT_TRACE4( s );                                   \
           FT_END_STMNT
 
 #else /* !FT_DEBUG_LEVEL_TRACE */

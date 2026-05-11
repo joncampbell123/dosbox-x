@@ -1,35 +1,34 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ttinterp.h                                                             */
-/*                                                                         */
-/*    TrueType bytecode interpreter (specification).                       */
-/*                                                                         */
-/*  Copyright 1996-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ttinterp.h
+ *
+ *   TrueType bytecode interpreter (specification).
+ *
+ * Copyright (C) 1996-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
 #ifndef TTINTERP_H_
 #define TTINTERP_H_
 
-#include <ft2build.h>
 #include "ttobjs.h"
 
 
 FT_BEGIN_HEADER
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* Rounding mode constants.                                              */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * Rounding mode constants.
+   */
 #define TT_Round_Off             5
 #define TT_Round_To_Half_Grid    0
 #define TT_Round_To_Grid         1
@@ -40,19 +39,19 @@ FT_BEGIN_HEADER
 #define TT_Round_Super_45        7
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* Function types used by the interpreter, depending on various modes    */
-  /* (e.g. the rounding mode, whether to render a vertical or horizontal   */
-  /* line etc).                                                            */
-  /*                                                                       */
-  /*************************************************************************/
+  /**************************************************************************
+   *
+   * Function types used by the interpreter, depending on various modes
+   * (e.g. the rounding mode, whether to render a vertical or horizontal
+   * line etc).
+   *
+   */
 
   /* Rounding function */
   typedef FT_F26Dot6
   (*TT_Round_Func)( TT_ExecContext  exc,
                     FT_F26Dot6      distance,
-                    FT_F26Dot6      compensation );
+                    FT_Int          color );
 
   /* Point displacement along the freedom vector routine */
   typedef void
@@ -84,10 +83,10 @@ FT_BEGIN_HEADER
                       FT_F26Dot6      value );
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* This structure defines a call record, used to manage function calls.  */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * This structure defines a call record, used to manage function calls.
+   */
   typedef struct  TT_CallRec_
   {
     FT_Int   Caller_Range;
@@ -101,11 +100,11 @@ FT_BEGIN_HEADER
 
 #ifdef TT_SUPPORT_SUBPIXEL_HINTING_INFINALITY
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* These structures define rules used to tweak subpixel hinting for      */
-  /* various fonts.  "", 0, "", NULL value indicates to match any value.   */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * These structures define rules used to tweak subpixel hinting for
+   * various fonts.  "", 0, "", NULL value indicates to match any value.
+   */
 
 #define SPH_MAX_NAME_SIZE      32
 #define SPH_MAX_CLASS_MEMBERS  100
@@ -141,41 +140,45 @@ FT_BEGIN_HEADER
 #endif /* TT_SUPPORT_SUBPIXEL_HINTING_INFINALITY */
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The main structure for the interpreter which collects all necessary   */
-  /* variables and states.                                                 */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * The main structure for the interpreter which collects all necessary
+   * variables and states.
+   *
+   * Members that are initialized by `TT_Load_Context` are marked with '!'.
+   * Members that are initialized by `TT_Run_Context` are marked with '@'.
+   */
   typedef struct  TT_ExecContextRec_
   {
-    TT_Face            face;
-    TT_Size            size;
+    TT_Face            face;       /* ! */
+    TT_Size            size;       /* ! */
     FT_Memory          memory;
 
     /* instructions state */
 
     FT_Error           error;      /* last execution error */
 
-    FT_Long            top;        /* top of exec. stack   */
+    FT_Long            top;        /* @ top of exec. stack */
 
-    FT_Long            stackSize;  /* size of exec. stack  */
-    FT_Long*           stack;      /* current exec. stack  */
+    FT_Long            stackSize;  /* ! size of exec. stack */
+    FT_Long*           stack;      /* ! current exec. stack */
 
     FT_Long            args;
-    FT_Long            new_top;    /* new top after exec.  */
+    FT_Long            new_top;    /* new top after exec. */
 
-    TT_GlyphZoneRec    zp0,        /* zone records */
-                       zp1,
-                       zp2,
-                       pts,
-                       twilight;
+    TT_GlyphZoneRec    zp0,        /* @! zone records */
+                       zp1,        /* @!              */
+                       zp2,        /* @!              */
+                       pts,        /*  !              */
+                       twilight;   /*  !              */
 
-    FT_Long            pointSize;  /* in 26.6 format */
-    FT_Size_Metrics    metrics;
-    TT_Size_Metrics    tt_metrics; /* size metrics */
+    FT_Long            pointSize;  /* ! in 26.6 format */
+    FT_Size_Metrics    metrics;    /* !                */
+    TT_Size_Metrics    tt_metrics; /* ! size metrics   */
 
-    TT_GraphicsState   GS;         /* current graphics state */
+    TT_GraphicsState   GS;         /* !@ current graphics state */
 
+    FT_Int             iniRange;  /* initial code range number   */
     FT_Int             curRange;  /* current code range number   */
     FT_Byte*           code;      /* current code range          */
     FT_Long            IP;        /* current instruction pointer */
@@ -186,43 +189,47 @@ FT_BEGIN_HEADER
 
     FT_Bool            step_ins;  /* true if the interpreter must */
                                   /* increment IP after ins. exec */
-    FT_ULong           cvtSize;
-    FT_Long*           cvt;
+    FT_ULong           cvtSize;   /* ! */
+    FT_Long*           cvt;       /* ! */
+    FT_ULong           glyfCvtSize;
+    FT_Long*           glyfCvt;   /* cvt working copy for glyph */
 
-    FT_UInt            glyphSize; /* glyph instructions buffer size */
-    FT_Byte*           glyphIns;  /* glyph instructions buffer */
+    FT_UInt            glyphSize; /* ! glyph instructions buffer size */
+    FT_Byte*           glyphIns;  /* ! glyph instructions buffer      */
 
-    FT_UInt            numFDefs;  /* number of function defs         */
-    FT_UInt            maxFDefs;  /* maximum number of function defs */
-    TT_DefArray        FDefs;     /* table of FDefs entries          */
+    FT_UInt            numFDefs;  /* ! number of function defs         */
+    FT_UInt            maxFDefs;  /* ! maximum number of function defs */
+    TT_DefArray        FDefs;     /*   table of FDefs entries          */
 
-    FT_UInt            numIDefs;  /* number of instruction defs */
-    FT_UInt            maxIDefs;  /* maximum number of ins defs */
-    TT_DefArray        IDefs;     /* table of IDefs entries     */
+    FT_UInt            numIDefs;  /* ! number of instruction defs */
+    FT_UInt            maxIDefs;  /* ! maximum number of ins defs */
+    TT_DefArray        IDefs;     /*   table of IDefs entries     */
 
-    FT_UInt            maxFunc;   /* maximum function index     */
-    FT_UInt            maxIns;    /* maximum instruction index  */
+    FT_UInt            maxFunc;   /* ! maximum function index    */
+    FT_UInt            maxIns;    /* ! maximum instruction index */
 
-    FT_Int             callTop,    /* top of call stack during execution */
-                       callSize;   /* size of call stack */
-    TT_CallStack       callStack;  /* call stack */
+    FT_Int             callTop,    /* @ top of call stack during execution */
+                       callSize;   /*   size of call stack                 */
+    TT_CallStack       callStack;  /*   call stack                         */
 
     FT_UShort          maxPoints;    /* capacity of this context's `pts' */
     FT_Short           maxContours;  /* record, expressed in points and  */
                                      /* contours.                        */
 
-    TT_CodeRangeTable  codeRangeTable;  /* table of valid code ranges */
-                                        /* useful for the debugger   */
+    TT_CodeRangeTable  codeRangeTable;  /* ! table of valid code ranges */
+                                        /*   useful for the debugger    */
 
-    FT_UShort          storeSize;  /* size of current storage */
-    FT_Long*           storage;    /* storage area            */
+    FT_UShort          storeSize;    /* ! size of current storage */
+    FT_Long*           storage;      /* ! storage area            */
+    FT_UShort          glyfStoreSize;
+    FT_Long*           glyfStorage;  /* storage working copy for glyph */
 
     FT_F26Dot6         period;     /* values used for the */
     FT_F26Dot6         phase;      /* `SuperRounding'     */
     FT_F26Dot6         threshold;
 
-    FT_Bool            instruction_trap; /* If `True', the interpreter will */
-                                         /* exit after each instruction     */
+    FT_Bool            instruction_trap; /* ! If `True', the interpreter   */
+                                         /*   exits after each instruction */
 
     TT_GraphicsState   default_GS;       /* graphics state resulting from   */
                                          /* the prep program                */
@@ -239,7 +246,7 @@ FT_BEGIN_HEADER
                        func_dualproj,  /* current dual proj. function */
                        func_freeProj;  /* current freedom proj. func  */
 
-    TT_Move_Func       func_move;      /* current point move function */
+    TT_Move_Func       func_move;      /* current point move function     */
     TT_Move_Func       func_move_orig; /* move original position function */
 
     TT_Cur_Ppem_Func   func_cur_ppem;  /* get current proj. ppem value  */
@@ -352,7 +359,7 @@ FT_BEGIN_HEADER
      *     https://www.microsoft.com/typography/cleartype/truetypecleartype.aspx
      *
      * [3] Beat Stamm describes it in more detail:
-     *     http://www.beatstamm.com/typography/RTRCh4.htm#Sec12
+     *     http://rastertragedy.com/RTRCh4.htm#Sec12.
      *
      * [4] The list of `native ClearType' fonts is small at the time of this
      *     writing; I found the following on a Windows 10 Update 1511
@@ -453,37 +460,29 @@ FT_BEGIN_HEADER
   FT_LOCAL( void )
   TT_Clear_CodeRange( TT_ExecContext  exec,
                       FT_Int          range );
-
-
-  FT_LOCAL( FT_Error )
-  Update_Max( FT_Memory  memory,
-              FT_ULong*  size,
-              FT_ULong   multiplier,
-              void*      _pbuff,
-              FT_ULong   new_max );
 #endif /* TT_USE_BYTECODE_INTERPRETER */
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Function>                                                            */
-  /*    TT_New_Context                                                     */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    Queries the face context for a given font.  Note that there is     */
-  /*    now a _single_ execution context in the TrueType driver which is   */
-  /*    shared among faces.                                                */
-  /*                                                                       */
-  /* <Input>                                                               */
-  /*    face :: A handle to the source face object.                        */
-  /*                                                                       */
-  /* <Return>                                                              */
-  /*    A handle to the execution context.  Initialized for `face'.        */
-  /*                                                                       */
-  /* <Note>                                                                */
-  /*    Only the glyph loader and debugger should call this function.      */
-  /*    (And right now only the glyph loader uses it.)                     */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @Function:
+   *   TT_New_Context
+   *
+   * @Description:
+   *   Create a `TT_ExecContext`.  Note that there is now an execution
+   *   context per `TT_Size` that is not shared among faces.
+   *
+   * @Input:
+   *   driver ::
+   *     A handle to the driver, used for memory allocation.
+   *
+   * @Return:
+   *   A handle to a new empty execution context.
+   *
+   * @Note:
+   *   Only the glyph loader and debugger should call this function.
+   *   (And right now only the glyph loader uses it.)
+   */
   FT_EXPORT( TT_ExecContext )
   TT_New_Context( TT_Driver  driver );
 
@@ -506,29 +505,30 @@ FT_BEGIN_HEADER
 #endif /* TT_USE_BYTECODE_INTERPRETER */
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Function>                                                            */
-  /*    TT_RunIns                                                          */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    Executes one or more instruction in the execution context.  This   */
-  /*    is the main function of the TrueType opcode interpreter.           */
-  /*                                                                       */
-  /* <Input>                                                               */
-  /*    exec :: A handle to the target execution context.                  */
-  /*                                                                       */
-  /* <Return>                                                              */
-  /*    FreeType error code.  0 means success.                             */
-  /*                                                                       */
-  /* <Note>                                                                */
-  /*    Only the object manager and debugger should call this function.    */
-  /*                                                                       */
-  /*    This function is publicly exported because it is directly          */
-  /*    invoked by the TrueType debugger.                                  */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @Function:
+   *   TT_RunIns
+   *
+   * @Description:
+   *   Executes one or more instruction in the execution context.  This
+   *   is the main function of the TrueType opcode interpreter.
+   *
+   * @Input:
+   *   exec ::
+   *     A handle to the target execution context.
+   *
+   * @Return:
+   *   FreeType error code.  0 means success.
+   *
+   * @Note:
+   *   Only the object manager and debugger should call this function.
+   *
+   *   This function is publicly exported because it is directly
+   *   invoked by the TrueType debugger.
+   */
   FT_EXPORT( FT_Error )
-  TT_RunIns( TT_ExecContext  exec );
+  TT_RunIns( void*  exec );
 
 
 FT_END_HEADER

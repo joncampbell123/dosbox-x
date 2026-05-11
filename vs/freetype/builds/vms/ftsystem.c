@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    VMS-specific FreeType low-level system interface (body).             */
 /*                                                                         */
-/*  Copyright 1996-2018 by                                                 */
+/*  Copyright (C) 1996-2023 by                                             */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -19,11 +19,11 @@
 #include <ft2build.h>
   /* we use our special ftconfig.h file, not the standard one */
 #include <ftconfig.h>
-#include FT_INTERNAL_DEBUG_H
-#include FT_SYSTEM_H
-#include FT_ERRORS_H
-#include FT_TYPES_H
-#include FT_INTERNAL_OBJECTS_H
+#include <freetype/internal/ftdebug.h>
+#include <freetype/ftsystem.h>
+#include <freetype/fterrors.h>
+#include <freetype/fttypes.h>
+#include <freetype/internal/ftobjs.h>
 
   /* memory-mapping includes and definitions */
 #ifdef HAVE_UNISTD_H
@@ -172,7 +172,7 @@
   /* messages during execution.                                            */
   /*                                                                       */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_io
+#define FT_COMPONENT  io
 
   /* We use the macro STREAM_FILE for convenience to extract the       */
   /* system-specific stream handle from a given FreeType stream object */
@@ -197,7 +197,7 @@
 
     stream->descriptor.pointer = NULL;
     stream->size               = 0;
-    stream->base               = 0;
+    stream->base               = NULL;
   }
 
 
@@ -246,7 +246,7 @@
                                           file,
                                           0 );
 
-    if ( (long)stream->base == -1 )
+    if ( stream->base == MAP_FAILED )
     {
       FT_ERROR(( "FT_Stream_Open:" ));
       FT_ERROR(( " could not `mmap' file `%s'\n", filepathname ));
@@ -259,7 +259,7 @@
     stream->pathname.pointer   = (char*)filepathname;
 
     stream->close = ft_close_stream;
-    stream->read  = 0;
+    stream->read  = NULL;
 
     FT_TRACE1(( "FT_Stream_Open:" ));
     FT_TRACE1(( " opened `%s' (%d bytes) successfully\n",
@@ -300,7 +300,7 @@
     memory = (FT_Memory)malloc( sizeof ( *memory ) );
     if ( memory )
     {
-      memory->user    = 0;
+      memory->user    = NULL;
       memory->alloc   = ft_alloc;
       memory->realloc = ft_realloc;
       memory->free    = ft_free;

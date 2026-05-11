@@ -51,7 +51,7 @@
 // Improved the vignette when WARP is enabled
 //--------------------------------------------------------------
 // Didn't test HLSL or CPU options
-//  - Will incorportate patches if they are broken
+//  - Will incorporate patches if they are broken
 //  - But out of time to try them myself
 //==============================================================
 ////////////////////////////////////////////////////////////////
@@ -321,7 +321,7 @@ vec3 ToSrgb(vec3 c){return vec3(
 //  1.00 = thinner scanlines (too thin)
 #define INPUT_THIN 0.5 + (0.5 * SCANLINE_THINNESS)
 //--------------------------------------------------------------
-// Horizonal scan blur
+// Horizontal scan blur
 //  -3.0 = pixely
 //  -2.5 = default
 //  -2.0 = smooth
@@ -341,7 +341,7 @@ vec3 ToSrgb(vec3 c){return vec3(
 vec3 CrtsFetch(vec2 uv){
  // For shadertoy, scale to get native texels in the image
  uv*=vec2(INPUT_X,INPUT_Y)/rubyTextureSize.xy;
- // Move towards intersting parts
+ // Move towards interesting parts
 // uv+=vec2(0.5,0.5);
  // Non-shadertoy case would not have the color conversion
  return FromSrgb(COMPAT_TEXTURE(rubyTexture,uv.xy,-16.0).rgb);}
@@ -441,7 +441,7 @@ vec3 CrtsFetch(vec2 uv){
 //         Pixel {0,0} should be {0.5,0.5}
 //         Pixel {1,1} should be {1.5,1.5}
 //--------------------------------------------------------------
-// 'dark' - Exposure of of masked channel
+// 'dark' - Exposure of masked channel
 //          0.0=fully off, 1.0=no effect
 //==============================================================
  CrtsF3 CrtsMask(CrtsF2 pos,CrtsF1 dark){
@@ -504,7 +504,7 @@ vec3 CrtsFetch(vec2 uv){
 //  a0=cos(min(0.5,     off *thin)*2pi)*0.5+0.5;
 //  a1=cos(min(0.5,(1.0-off)*thin)*2pi)*0.5+0.5;
 //--------------------------------------------------------------
-// This leads to a image darkening factor of roughly:
+// This leads to an image darkening factor of roughly:
 //  {(1.5-thin)/1.0}
 // This is further reduced by the mask:
 //  {1.0/2.0+mask*1.0/2.0}
@@ -548,7 +548,7 @@ vec3 CrtsFetch(vec2 uv){
 	// Shared with CrtsTone() function
 	CrtsF1 thin,
 //--------------------------------------------------------------
-	// Horizonal scan blur
+	// Horizontal scan blur
 	//  -3.0 = pixely
 	//  -2.5 = default
 	//  -2.0 = smooth
@@ -616,7 +616,7 @@ vec3 CrtsFetch(vec2 uv){
 	#else
 	 // Snap to center of one of four pixels
 	 CrtsF1 x0=floor(pos.x-1.5)+0.5;
-	 // Inital UV position
+	 // Initial UV position
 	 CrtsF2 p=CrtsF2(x0*rcpInputSize.x,y0*rcpInputSize.y);
 	 // Fetch 4 nearest texels from 2 nearest scanlines
 	 CrtsF3 colA0=CrtsFetch(p);

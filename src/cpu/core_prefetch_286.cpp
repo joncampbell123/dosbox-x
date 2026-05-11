@@ -22,8 +22,11 @@
 #include "cpu.h"
 #include "lazyflags.h"
 #include "callback.h"
+#include "paging.h"
 #include "pic.h"
 #include "fpu.h"
+
+extern bool do_lds_wraparound;
 
 using namespace std;
 
@@ -49,23 +52,14 @@ static inline bool _seg_limit_check(void) {
 
 #define DoString DoString_Prefetch286
 
+static uint16_t last_ea86_offset;
+
 extern bool ignore_opcode_63;
 
 #if C_DEBUG
 #include "debug.h"
 #endif
 
-#if (!C_CORE_INLINE)
-#define LoadMb(off) mem_readb(off)
-#define LoadMw(off) mem_readw(off)
-#define LoadMd(off) mem_readd(off)
-#define LoadMq(off) ((uint64_t)((uint64_t)mem_readd(off+4)<<32 | (uint64_t)mem_readd(off)))
-#define SaveMb(off,val)	mem_writeb(off,val)
-#define SaveMw(off,val)	mem_writew(off,val)
-#define SaveMd(off,val)	mem_writed(off,val)
-#define SaveMq(off,val) {mem_writed(off,val&0xffffffff);mem_writed(off+4,(val>>32)&0xffffffff);}
-#else 
-#include "paging.h"
 #define LoadMb(off) mem_readb_inline(off)
 #define LoadMw(off) mem_readw_inline(off)
 #define LoadMd(off) mem_readd_inline(off)
@@ -74,7 +68,6 @@ extern bool ignore_opcode_63;
 #define SaveMw(off,val)	mem_writew_inline(off,val)
 #define SaveMd(off,val)	mem_writed_inline(off,val)
 #define SaveMq(off,val) {mem_writed_inline(off,val&0xffffffff);mem_writed_inline(off+4,(val>>32)&0xffffffff);}
-#endif
 
 extern Bitu cycle_count;
 
@@ -121,6 +114,8 @@ Bits CPU_Core_Prefetch_Trap_Run(void);
 	core.prefixes|=PREFIX_REP;				\
 	core.rep_zero=_ZERO;					\
 	goto restart_opcode;
+
+#define REMEMBER_PREFIX(_x)
 
 typedef PhysPt (*GetEAHandler)(void);
 
@@ -206,11 +201,11 @@ void CPU_Core286_Prefetch_reset(void) {
 Bits CPU_Core286_Prefetch_Run(void) {
 	bool invalidate_pq=false;
 
-    if (CPU_Cycles <= 0)
-	    return CBRET_NONE;
+	if (CPU_Cycles <= 0)
+		return CBRET_NONE;
 
-    pq_limit = (max(CPU_PrefetchQueueSize,(unsigned int)(4ul + prefetch_unit)) + prefetch_unit - 1ul) & (~(prefetch_unit-1ul));
-    pq_reload = min(pq_limit,(Bitu)8u);
+	pq_limit = (max(CPU_PrefetchQueueSize,(unsigned int)(4ul + prefetch_unit)) + prefetch_unit - 1ul) & (~(prefetch_unit-1ul));
+	pq_reload = min(pq_limit,(Bitu)8u);
 
 	while (CPU_Cycles-->0) {
 		if (invalidate_pq) {
@@ -220,6 +215,7 @@ Bits CPU_Core286_Prefetch_Run(void) {
 		LOADIP;
 		core.prefixes=0;
 		core.opcode_index=0;
+		last_ea86_offset=0;
 		core.ea_table=&EATable[0];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);

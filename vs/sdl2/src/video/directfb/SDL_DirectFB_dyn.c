@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_DIRECTFB
+#ifdef SDL_VIDEO_DRIVER_DIRECTFB
 
 #include "SDL_DirectFB_video.h"
 #include "SDL_DirectFB_dyn.h"
@@ -45,8 +45,7 @@ DFB_SYMS
 
 static void *handle = NULL;
 
-int
-SDL_DirectFB_LoadLibrary(void)
+int SDL_DirectFB_LoadLibrary(void)
 {
     int retval = 0;
 
@@ -92,26 +91,25 @@ SDL_DirectFB_LoadLibrary(void)
     return retval;
 }
 
-void
-SDL_DirectFB_UnLoadLibrary(void)
+void SDL_DirectFB_UnLoadLibrary(void)
 {
-    if (handle != NULL) {
+    if (handle) {
         SDL_UnloadObject(handle);
         handle = NULL;
     }
 }
 
 #else
-int
-SDL_DirectFB_LoadLibrary(void)
+
+int SDL_DirectFB_LoadLibrary(void)
 {
     return 1;
 }
 
-void
-SDL_DirectFB_UnLoadLibrary(void)
+void SDL_DirectFB_UnLoadLibrary(void)
 {
 }
+
 #endif
 
 #endif /* SDL_VIDEO_DRIVER_DIRECTFB */

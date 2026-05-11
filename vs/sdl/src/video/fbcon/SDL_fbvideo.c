@@ -202,6 +202,12 @@ static int FB_Available(void)
 	int idx = 0;
 	const char *SDL_fbdevs[4] = { NULL, "/dev/fb0", "/dev/fb/0", NULL };
 
+#if defined(__LINUX__)
+	/* X11 or Wayland running?
+	 * Then NO, this output is not available */
+	if (sdl1_force_x11) return 0;
+#endif
+
 	SDL_fbdevs[0] = SDL_getenv("SDL_FBDEV");
 	if( !SDL_fbdevs[0] )
 		idx++;

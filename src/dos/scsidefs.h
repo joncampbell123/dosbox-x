@@ -161,7 +161,7 @@
 //***************************************************************************
 #define SCSI_GETDBSTAT  0x34    // Get Data Buffer Status (O)
 #define SCSI_GETWINDOW  0x25    // Get Window (O)
-#define SCSI_OBJECTPOS  0x31    // Object Postion (O)
+#define SCSI_OBJECTPOS  0x31    // Object Position (O)
 #define SCSI_SCAN       0x1B    // Scan (O)
 #define SCSI_SETWINDOW  0x24    // Set Window (MANDATORY)
 

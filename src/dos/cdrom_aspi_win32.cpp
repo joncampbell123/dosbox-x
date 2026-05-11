@@ -17,13 +17,14 @@
  */
 
 
-#if defined (WIN32) && 0
+#if defined (WIN32)
 
 #include <ctype.h>
 
 #include "dosbox.h"
 #include "cdrom.h"
 #include "support.h"
+#include "logging.h"
 
 //Are actually system includes but leave for now
 #include "wnaspi32.h"
@@ -59,15 +60,6 @@ typedef union {
 // *****************************************************************
 // Windows ASPI functions (should work for all WIN with ASPI layer)
 // *****************************************************************
-
-CDROM_Interface_Aspi::CDROM_Interface_Aspi(void)
-{
-	hASPI					= NULL;
-	hEvent					= NULL;
-	pGetASPI32SupportInfo	= NULL;
-	pSendASPI32Command		= NULL;
-	memset(&oldLeadOut,0,sizeof(oldLeadOut));
-};
 
 CDROM_Interface_Aspi::~CDROM_Interface_Aspi(void)
 {
@@ -262,6 +254,7 @@ bool CDROM_Interface_Aspi::ScanRegistry(HKEY& hKeyBase)
 
 bool CDROM_Interface_Aspi::SetDevice(char* path, int forceCD)
 {
+    (void)forceCD;
 	// load WNASPI32.DLL
 	hASPI = LoadLibrary ( "WNASPI32.DLL" );
 	if (!hASPI) return false;
@@ -335,6 +328,7 @@ bool CDROM_Interface_Aspi::GetAudioTrackInfo	(int track, TMSF& start, unsigned c
 
 HANDLE CDROM_Interface_Aspi::OpenIOCTLFile(char cLetter,BOOL bAsync)
 {
+    (void)bAsync;
 	HANDLE hF;
 	char szFName[16];
 	OSVERSIONINFO ov;
@@ -637,7 +631,7 @@ bool CDROM_Interface_Aspi::GetAudioStatus(bool& playing, bool& pause)
 	s.execscsicmd.CDBByte[0]     = SCSI_SUBCHANNEL;
 	s.execscsicmd.CDBByte[1]     = (lun<<5)|2;   // lun & msf
 	s.execscsicmd.CDBByte[2]     = 0x00;            // no subq
-	s.execscsicmd.CDBByte[3]     = 0x00;            // dont care
+	s.execscsicmd.CDBByte[3]     = 0x00;            // don't care
 	s.execscsicmd.CDBByte[6]     = 0;               // track number (only in isrc mode, ignored)
 	s.execscsicmd.CDBByte[7]     = 0;               // alloc len
 	s.execscsicmd.CDBByte[8]     = sizeof(sub);		
@@ -767,6 +761,10 @@ bool CDROM_Interface_Aspi::ReadSectors(PhysPt buffer, bool raw, unsigned long se
 
 bool CDROM_Interface_Aspi::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
 {
+    (void)buffer;
+    (void)raw;
+    (void)sector;
+    (void)num;
 	return false;/*TODO*/
 };
 

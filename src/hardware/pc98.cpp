@@ -28,15 +28,18 @@ extern bool gdc_5mhz_mode_initial;
 extern bool gdc_5mhz_mode;
 extern bool enable_pc98_egc;
 extern bool enable_pc98_grcg;
+extern bool pc98_timestamp5c;
 
+int Reflect_Menu(void);
 void gdc_5mhz_mode_update_vars(void);
 void gdc_egc_enable_update_vars(void);
 void gdc_grcg_enable_update_vars(void);
+void PC98_ChangeMouseFunction(bool nec);
 
 /* ====================== PC98UTIL.COM ====================== */
 class PC98UTIL : public Program {
 public:
-	void Run(void) {
+	void Run(void) override {
         string arg;
 		bool got_opt=false;
 		
@@ -55,8 +58,7 @@ public:
 					enable_pc98_grcg = true;
 					gdc_grcg_enable_update_vars();
 				}
-#if defined(WIN32) && !defined(C_SDL2)
-				int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 				Reflect_Menu();
 #endif
             }
@@ -64,8 +66,7 @@ public:
                 enable_pc98_egc = false;
                 WriteOut("EGC graphics functions disabled\n");
                 gdc_egc_enable_update_vars();
-#if defined(WIN32) && !defined(C_SDL2)
-				int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 				Reflect_Menu();
 #endif
             }
@@ -74,8 +75,7 @@ public:
                 gdc_5mhz_mode_update_vars();
                 LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
                 WriteOut("GDC is now running at 2.5MHz\n");
-#if defined(WIN32) && !defined(C_SDL2)
-				int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 				Reflect_Menu();
 #endif
                 mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
@@ -85,8 +85,7 @@ public:
                 gdc_5mhz_mode_update_vars();
                 LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
                 WriteOut("GDC is now running at 5MHz\n");
-#if defined(WIN32) && !defined(C_SDL2)
-                int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                 Reflect_Menu();
 #endif
                 mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
@@ -126,6 +125,14 @@ public:
 
                 WriteOut("Hsync is now 31khz");
             }
+            else if (arg == "nec") {
+                PC98_ChangeMouseFunction(true);
+                WriteOut("Use NEC mouse function in int 33h");
+            }
+            else if (arg == "ms") {
+                PC98_ChangeMouseFunction(false);
+                WriteOut("Use Microsoft mouse function in int 33h");
+            }
             else {
                 WriteOut("Unknown switch %s",arg.c_str());
                 break;
@@ -142,6 +149,8 @@ public:
         WriteOut("  /noegc     Disable EGC\n");
         WriteOut("  /24khz     Set hsync to 24KHz\n");
         WriteOut("  /31khz     Set hsync to 31KHz\n");
+        WriteOut("  /nec       Use NEC mouse function in int 33h\n");
+        WriteOut("  /ms        Use Microsoft mouse function in int 33h\n");
     }
 };
 

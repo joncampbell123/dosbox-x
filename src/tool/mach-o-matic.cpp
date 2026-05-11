@@ -15,12 +15,15 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 #include <stdio.h>
 #include <fcntl.h>
 
 #include <mach-o/loader.h> /* Apple headers */
 
 #include <string>
+
+std::string arch_prefix = "arm64";
 
 using namespace std;
 
@@ -40,13 +43,25 @@ string dylib_replace(string path) {
         fn = s;
 
     if (str_startswith(s,"/opt/homebrew/"))
-        return string("@executable_path/") + fn;
+        return string("@executable_path/") + arch_prefix + "/" + fn;
+    if (str_startswith(s,"/usr/local/Homebrew/"))
+        return string("@executable_path/") + arch_prefix + "/" + fn;
     if (str_startswith(s,"/usr/local/lib/"))
-        return string("@executable_path/") + fn;
+        return string("@executable_path/") + arch_prefix + "/" + fn;
     if (str_startswith(s,"/usr/local/opt/"))
-        return string("@executable_path/") + fn;
+        return string("@executable_path/") + arch_prefix + "/" + fn;
     if (str_startswith(s,"/usr/local/Cellar/"))
-        return string("@executable_path/") + fn;
+        return string("@executable_path/") + arch_prefix + "/" + fn;
+
+    if (str_startswith(s,"@loader_path/")) { /* often in Brew followed by ../../.. etc */
+        s = fn;
+        while (!strncmp(s,"../",3)) s += 3;
+        printf("'%s' = '%s'\n",path.c_str(),s);
+        return string("@executable_path/") + arch_prefix + "/" + s;
+    }
+
+    if (str_startswith(s,"@rpath/"))
+        return string("@executable_path/") + arch_prefix + "/" + fn;
 
     return path;
 }
@@ -90,6 +105,11 @@ int main(int argc,char **argv) {
     if (argc < 2) {
         fprintf(stderr,"mach-o-matic <Mach-O executable or dylib>\n");
         return 1;
+    }
+
+    {
+        char *x = getenv("ARCHPREF");
+        if (x != NULL) arch_prefix = x;
     }
 
     fpath = argv[1];
@@ -277,8 +297,25 @@ int main(int argc,char **argv) {
         off_t tgt = (off_t)(src_scan - src_mmap);
 
         if (pos > tgt) {
-            fprintf(stderr,"Modification expanded load command list\n");
-            return 1;
+            /* If it doesn't expand much there's a good chance it just goes a bit more into the empty space
+               before the first sector or section. As segments are page aligned there should be enough to do
+               this so long as we're not expanding it too far! Note that it is necessary to scan the sections
+               because some declare segments that start at file offset zero but the sections do not.
+
+               TODO: It really would be a good idea to scan the segment load commands and the sections within
+                     and error out if the newly written dylib commands really do extend into valid segment data.
+                     At some point, this code should support arbitrary expansion by adjusting segment file offsets
+                     farther out if necessary. */
+            uint64_t add = uint64_t(pos - tgt);
+
+            fprintf(stderr,"Modification expanded load command list by %llu bytes.\n",(unsigned long long)add);
+
+            if (add > 256)
+                return 1;
+
+            tgt = pos;
+            src_scan = src_mmap + size_t(pos);
+            assert(src_scan <= src_mmap_fence);
         }
 
         const uint8_t zc = 0;

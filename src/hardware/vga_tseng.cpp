@@ -27,11 +27,13 @@
 #include "regs.h"
 #include <cstdlib>
 
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
 extern bool vga_enable_3C6_ramdac;
 extern bool vga_sierra_lock_565;
 
 extern unsigned int vbe_window_granularity;
-extern unsigned int vbe_window_size;
 
 // Tseng ET4K data
 typedef struct {
@@ -97,8 +99,11 @@ void write_p3d5_et4k(Bitu reg,Bitu val,Bitu iolen) {
         // 3d4 index 33h (R/W): Extended start Address
         // 0-1 Display Start Address bits 16-17
         // 2-3 Cursor start address bits 16-17
+        // 4-7 zero, does not exist
         // Used by standard Tseng ID scheme
-        et4k.store_3d4_33 = val;
+        // The upper 4 bits must remain zero or else VGAKIT based programs will fail to detect ET3000/ET4000.
+        // See also [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/Tseng%20Labs/Tseng%20ET4000%20Graphics%20Controller%20%281990%29%2epdf] PDF page 131 "Extended Start Address".
+        et4k.store_3d4_33 = val & 0x0F;
         vga.config.display_start = (vga.config.display_start & 0xffff) | ((val & 0x03)<<16);
         vga.config.cursor_start = (vga.config.cursor_start & 0xffff) | ((val & 0x0c)<<14);
         break;
@@ -149,11 +154,21 @@ void write_p3d5_et4k(Bitu reg,Bitu val,Bitu iolen) {
         break;
 
     // 3d4h index 36h - Video System Configuration 1 (R/W)
-    // VGADOC provides a lot of info on this register, Ferraro has significantly less detail.
-    // This is unlikely to be used by any games. Bit 4 switches chipset into linear mode -
-    // that may be useful in some cases if there is any software actually using it.
-    // TODO (not near future): support linear addressing
-    STORE_ET4K(3d4, 36);
+    // Bits 0-2: Refresh count per line - 1
+    // Bit 3: Font width control (1=up to 16-bit, 0=8-bit VGA compatible font)
+    // Bit 4: Segment/linear system configuration (0=segment 1=linear),
+    //        meaning to present the 1MB of the card as a linear framebuffer somewhere on the SSA bus
+    // Bit 5: Addressing mode (0=IBM 1=TLI).
+    //        If set, enables contiguous address mapping which is a much more efficient use of the card's resources.
+    //        If not set, address mapping is compatible with VGA.
+    // Bit 6: 16-bit display memory read/write (1=enable)
+    // Bit 7: 16-bit I/O read/write (1=enable)
+    case 0x36:
+        if (val != et4k.store_3d4_36) {
+            et4k.store_3d4_36 = val;
+            // TODO
+        }
+        break;
 
     // 3d4h index 37 - Video System Configuration 2 (R/W)
     // Bits 0,1, and 3 provides information about memory size:
@@ -268,13 +283,18 @@ Bitu read_p3cd_et4k(Bitu port,Bitu iolen) {
 void write_p3c0_et4k(Bitu reg,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     switch(reg) {
-    // 3c0 index 16h: ATC Miscellaneous
-    // VGADOC provides a lot of information, Ferarro documents only two bits
-    // and even those incompletely. The register is used as part of identification
-    // scheme.
-    // Unlikely to be used by any games but double timing may be useful.
-    // TODO: Figure out if this has any practical use
-    STORE_ET4K(3c0, 16);
+    /* 3c0 index 16h: ATC Miscellaneous
+       bit 7: bypass the internal palette
+       bit 6: 2-byte character code (ET4000 Rev E) [TODO: See addendum 6.1]
+       bit 4-5: Select high resolution/color mode
+                00b: Normal
+                01b: Reserved
+                10b: High resolution mode (up to 256 colors)
+                11b: High-color 16-bit/pixel
+       bit 0-3: Reserved */
+        case 0x16:
+            et4k.store_3c0_16 = val;
+            break;
     /*
     3C0h index 17h (R/W):  Miscellaneous 1
     bit   7  If set protects the internal palette ram and redefines the attribute
@@ -437,9 +457,9 @@ void DetermineMode_ET4K() {
                 VGA_SetMode(M_LIN8);
             }
         }
-        else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
-        else if ((vga.gfx.miscellaneous & 0x0c)==0x0c) VGA_SetMode(M_CGA2);
-        else VGA_SetMode((et4k.biosMode<=0x13)?M_EGA:M_LIN4);
+        else {
+            VGA_SetMode((et4k.biosMode<=0x13)?M_EGA:M_LIN4);
+        }
     } else {
         VGA_SetMode(M_TEXT);
     }
@@ -610,6 +630,9 @@ void SVGA_Setup_TsengET4K(void) {
     svga.write_p3c0 = &write_p3c0_et4k;
     svga.read_p3c1 = &read_p3c1_et4k;
 
+    vga.max_svga_width = 2048; // because Tseng reportedly supports a 1280x1024 mode
+    vga.max_svga_height = 1024;
+
     svga.set_video_mode = &FinishSetMode_ET4K;
     svga.determine_mode = &DetermineMode_ET4K;
     svga.set_clock = &SetClock_ET4K;
@@ -621,8 +644,8 @@ void SVGA_Setup_TsengET4K(void) {
     // From the depths of X86Config, probably inexact
     VGA_SetClock(0,CLK_25);
     VGA_SetClock(1,CLK_28);
-    VGA_SetClock(2,32400);
-    VGA_SetClock(3,35900);
+    VGA_SetClock(2,32515);
+    VGA_SetClock(3,40000);
     VGA_SetClock(4,39900);
     VGA_SetClock(5,44700);
     VGA_SetClock(6,31400);
@@ -829,7 +852,7 @@ void write_p3cd_et3k(Bitu port,Bitu val,Bitu iolen) {
     vga.svga.bank_write = val & 0x07;
     vga.svga.bank_read = (val>>3) & 0x07;
 
-    if (vbe_window_granularity > 0)
+    if (vbe_window_granularity < 0x10000/*64KB*/)
         vga.svga.bank_size = vbe_window_granularity; /* allow different sizes for dev testing */
     else
         vga.svga.bank_size = (val&0x40)?64*1024:128*1024;
@@ -952,8 +975,6 @@ void DetermineMode_ET3K() {
     // merge them.
     if (vga.attr.mode_control & 1) {
         if (vga.gfx.mode & 0x40) VGA_SetMode((et3k.biosMode<=0x13)?M_VGA:M_LIN8); // Ugly...
-        else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
-        else if ((vga.gfx.miscellaneous & 0x0c)==0x0c) VGA_SetMode(M_CGA2);
         else VGA_SetMode((et3k.biosMode<=0x13)?M_EGA:M_LIN4);
     } else {
         VGA_SetMode(M_TEXT);

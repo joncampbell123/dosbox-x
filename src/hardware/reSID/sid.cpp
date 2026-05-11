@@ -26,8 +26,8 @@
 SID2::SID2()
 {
   // Initialize pointers.
-  sample = 0;
-  fir = 0;
+  sample = nullptr;
+  fir = nullptr;
 
   voice[0].set_sync_source(&voice[2]);
   voice[1].set_sync_source(&voice[0]);
@@ -414,7 +414,7 @@ double SID2::I0(double x)
 // ----------------------------------------------------------------------------
 // Setting of SID sampling parameters.
 //
-// Use a clock freqency of 985248Hz for PAL C64, 1022730Hz for NTSC C64.
+// Use a clock frequency of 985248Hz for PAL C64, 1022730Hz for NTSC C64.
 // The default end of passband frequency is pass_freq = 0.9*sample_freq/2
 // for sample frequencies up to ~ 44.1kHz, and 20kHz for higher sample
 // frequencies.
@@ -479,8 +479,8 @@ bool SID2::set_sampling_parameters(double clock_freq, sampling_method method,
   {
     delete[] sample;
     delete[] fir;
-    sample = 0;
-    fir = 0;
+    sample = nullptr;
+    fir = nullptr;
     return true;
   }
 
@@ -715,7 +715,7 @@ void SID2::clock(cycle_count delta_t)
 
 // ----------------------------------------------------------------------------
 // SID clocking with audio sampling.
-// Fixpoint arithmetics is used.
+// Fixpoint arithmetic is used.
 //
 // The example below shows how to clock the SID a specified amount of cycles
 // while producing audio output:
@@ -920,7 +920,7 @@ int SID2::clock_resample_interpolate(cycle_count& delta_t, short* buf, int n,
 
     v >>= FIR_SHIFT;
 
-    // Saturated arithmetics to guard against 16 bit sample overflow.
+    // Saturated arithmetic to guard against 16 bit sample overflow.
     const int half = 1 << 15;
     if (v >= half) {
       v = half - 1;
@@ -983,7 +983,7 @@ int SID2::clock_resample_fast(cycle_count& delta_t, short* buf, int n,
 
     v >>= FIR_SHIFT;
 
-    // Saturated arithmetics to guard against 16 bit sample overflow.
+    // Saturated arithmetic to guard against 16 bit sample overflow.
     const int half = 1 << 15;
     if (v >= half) {
       v = half - 1;

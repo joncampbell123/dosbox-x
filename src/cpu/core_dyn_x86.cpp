@@ -50,6 +50,8 @@
 #define DYN_PAGE_HASH	(4096>>DYN_HASH_SHIFT)
 #define DYN_LINKS		(16)
 
+extern bool do_lds_wraparound;
+
 //#define DYN_LOG 1 //Turn logging on
 
 #if C_FPU
@@ -98,11 +100,12 @@ enum BranchTypes {
 };
 
 
-enum BlockReturn {
+enum BlockReturnDynX86 {
 	BR_Normal=0,
 	BR_Cycles,
 	BR_Link1,BR_Link2,
 	BR_Opcode,
+	BR_Opcode2,
 	BR_Iret,
 	BR_CallBack,
 	BR_SMCBlock,
@@ -169,7 +172,7 @@ static struct {
 } decoder_pagefault;
 
 #if defined(X86_DYNFPU_DH_ENABLED)
-static struct dyn_dh_fpu {
+static struct dyn_dh_fpu_struct {
 	uint16_t	cw,host_cw;
 	bool		state_used;
 	// some fields expanded here for alignment purposes
@@ -292,6 +295,71 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 
 #include "core_dyn_x86/decoder.h"
 
+#if defined(X86_DYNFPU_DH_ENABLED)
+
+static bool using_normal_core = false;
+
+static void dh_fpu_enter_normal_core (void)
+{
+	if (dyn_dh_fpu.state_used) {
+		gen_dh_fpu_save();
+	}
+	if (!using_normal_core) {
+		using_normal_core = true;
+		if (dyn_dh_fpu.dh_fpu_enabled) { /* If NOT enabled, the code below will obliterate FPU state and problems result */
+			FPU_SetTag(dyn_dh_fpu.state.tag);
+			fpu.cw = dyn_dh_fpu.state.cw;
+			fpu.sw = dyn_dh_fpu.state.sw;
+			const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+			for(Bitu i = 0;i < 8;i++){
+				memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
+			}
+		}
+	}
+}
+
+static void dh_fpu_enter_dyn_core (void)
+{
+	if (using_normal_core) {
+		using_normal_core = false;
+		dyn_dh_fpu.state.tag = FPU_GetTag();
+		dyn_dh_fpu.state.cw = fpu.cw;
+		dyn_dh_fpu.state.sw = fpu.sw;
+		uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+		for(Bitu i = 0;i < 8;i++){
+			memcpy(buffer + i * 10, &fpu.p_regs[STV(i)], 10);
+		}
+	}
+}
+
+static Bits Safe_CPU_Core_Normal_Run (void)
+{
+	dh_fpu_enter_normal_core();
+	return CPU_Core_Normal_Run();
+}
+static BlockReturnDynX86 safe_gen_runcode(uint8_t* code)
+{
+	dh_fpu_enter_dyn_core();
+	return gen_runcode(code);
+}
+
+void dyn_core_dh_debug_flush (void) {
+	dh_fpu_enter_normal_core();
+}
+#else
+static Bits Safe_CPU_Core_Normal_Run (void)
+{
+	return CPU_Core_Normal_Run();
+}
+static BlockReturnDynX86 safe_gen_runcode(uint8_t* code)
+{
+	return gen_runcode(code);
+}
+
+void dyn_core_dh_debug_flush (void) {
+}
+#endif
+
 extern int dynamic_core_cache_block_size;
 
 Bits CPU_Core_Dyn_X86_Run(void) {
@@ -307,7 +375,7 @@ Bits CPU_Core_Dyn_X86_Run(void) {
 	};
 	auto_dh_fpu fpu_saver;
 
-	/* Determine the linear address of CS:EIP */
+    /* Determine the linear address of CS:EIP */
 restart_core:
 	if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = false;
 	PhysPt ip_point=SegPhys(cs)+reg_eip;
@@ -316,14 +384,14 @@ restart_core:
 		if (DEBUG_HeavyIsBreakpoint()) return debugCallback;
 #endif
 #endif
-	CodePageHandler * chandler=0;
+	CodePageHandler * chandler=nullptr;
 	if (GCC_UNLIKELY(MakeCodePage(ip_point,chandler))) {
 		CPU_Exception(cpu.exception.which,cpu.exception.error);
 		goto restart_core;
 	}
 	if (!chandler) {
 		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
-		return CPU_Core_Normal_Run();
+		return Safe_CPU_Core_Normal_Run();
 	}
 	/* Find correct Dynamic Block to run */
 	CacheBlock * block=chandler->FindCacheBlock(ip_point&4095);
@@ -335,7 +403,7 @@ restart_core:
 			while (decoder_pagefault.had_pagefault) {
 				// Can happen only if use_dynamic_core_with_paging is on
 				// We can't throw exception during the creation of the block, as it will corrupt things
-				// If a page fault occoured, invalidated the block, and try to create smaller block
+				// If a page fault occurred, invalidated the block, and try to create smaller block
 				// If the page fault is in the current instruction, throw exception
 				block->Clear();
 				if (cache_size == 1)
@@ -348,10 +416,8 @@ restart_core:
 			int32_t old_cycles=(int32_t)CPU_Cycles;
 			CPU_Cycles=1;
 			CPU_CycleLeft+=old_cycles;
-			// manually save
-			fpu_saver = auto_dh_fpu();
 			if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
-			Bits nc_retcode=CPU_Core_Normal_Run();
+			Bits nc_retcode=Safe_CPU_Core_Normal_Run();
 			if (!nc_retcode) {
 				CPU_Cycles=old_cycles-1;
 				CPU_CycleLeft-=old_cycles;
@@ -361,9 +427,9 @@ restart_core:
 		}
 	}
 run_block:
-	cache.block.running=0;
+	cache.block.running=nullptr;
 	core_dyn.pagefault = false;
-	BlockReturn ret=gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
+	BlockReturnDynX86 ret=safe_gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
 
 	if (sizeof(CPU_Cycles) > 4) {
 		// HACK: All dynrec cores for each processor assume CPU_Cycles is 32-bit wide.
@@ -420,7 +486,12 @@ run_block:
 		CPU_CycleLeft+=CPU_Cycles;
 		CPU_Cycles=1;
 		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
-		return CPU_Core_Normal_Run();
+		return Safe_CPU_Core_Normal_Run();
+	case BR_Opcode2:
+		CPU_CycleLeft+=CPU_Cycles;
+		CPU_Cycles=2;
+		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
+		return Safe_CPU_Core_Normal_Run();
 	case BR_Link1:
 	case BR_Link2:
 		{
@@ -454,7 +525,7 @@ Bits CPU_Core_Dyn_X86_Trap_Run(void) {
 	CPU_Cycles = 1;
 	cpu.trap_skip = false;
 
-	Bits ret=CPU_Core_Normal_Run();
+	Bits ret=Safe_CPU_Core_Normal_Run();
 	if (!cpu.trap_skip) CPU_DebugException(DBINT_STEP,reg_eip);
 	CPU_Cycles = oldCycles-1;
 	cpudecoder = &CPU_Core_Dyn_X86_Run;
@@ -469,7 +540,7 @@ void CPU_Core_Dyn_X86_Shutdown(void) {
 void CPU_Core_Dyn_X86_Init(void) {
 	Bits i;
 	/* Setup the global registers and their flags */
-	for (i=0;i<G_MAX;i++) DynRegs[i].genreg=0;
+	for (i=0;i<G_MAX;i++) DynRegs[i].genreg=nullptr;
 	DynRegs[G_EAX].data=&reg_eax;
 	DynRegs[G_EAX].flags=DYNFLG_HAS8|DYNFLG_HAS16|DYNFLG_LOAD|DYNFLG_SAVE;
 	DynRegs[G_ECX].data=&reg_ecx;
@@ -524,7 +595,7 @@ void CPU_Core_Dyn_X86_Init(void) {
 	DynRegs[G_TMPD].flags=DYNFLG_HAS16;
 	DynRegs[G_SHIFT].data=&extra_regs.shift;
 	DynRegs[G_SHIFT].flags=DYNFLG_HAS8|DYNFLG_HAS16;
-	DynRegs[G_EXIT].data=0;
+	DynRegs[G_EXIT].data=nullptr;
 	DynRegs[G_EXIT].flags=DYNFLG_HAS16;
 	/* Init the generator */
 	gen_init();

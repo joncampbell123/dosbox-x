@@ -16,7 +16,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
 #include "dosbox.h"
 #include "cross.h"
 #include "support.h"
@@ -42,8 +41,10 @@ typedef wchar_t host_cnv_char_t;
 #else
 typedef char host_cnv_char_t;
 #endif
-extern bool hidenonrep;
+extern std::string prefix_local;
+extern bool gbk, notrycp, hidenonrep, ignorespecial;
 extern char *CodePageHostToGuest(const host_cnv_char_t *s);
+bool isKanji1_gbk(uint8_t chr), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 
 #if defined HAVE_SYS_TYPES_H && defined HAVE_PWD_H
 #include <sys/types.h>
@@ -89,106 +90,175 @@ void ResolvePath(std::string& in) {
 }
 
 #if defined(WIN32) && !defined(HX_DOS)
-static void W32_ConfDir(std::string& in,bool create) {
-	int c = create?1:0;
-	char result[MAX_PATH] = { 0 };
-	BOOL r = SHGetSpecialFolderPath(NULL,result,CSIDL_LOCAL_APPDATA,c);
-	if(!r || result[0] == 0) r = SHGetSpecialFolderPath(NULL,result,CSIDL_APPDATA,c);
-	if(!r || result[0] == 0) {
-		char const * windir = getenv("windir");
-		if(!windir) windir = "c:\\windows";
-		safe_strncpy(result,windir,MAX_PATH);
-		char const* appdata = "\\Application Data";
-		size_t len = strlen(result);
-		if(len + strlen(appdata) < MAX_PATH) strcat(result,appdata);
-		if(create) _mkdir(result);
-	}
-	in = result;
+static std::string W32_ConfDir(bool create) {
+    char result[MAX_PATH] = { 0 };
+#if !defined(_WIN32_WINDOWS)
+    BOOL r = SHGetSpecialFolderPathA(NULL, result, CSIDL_LOCAL_APPDATA, create ? 1 : 0);
+    if(!r || result[0] == 0)
+        r = SHGetSpecialFolderPathA(NULL, result, CSIDL_APPDATA, create ? 1 : 0);
+#else
+    BOOL r = GetModuleFileNameA(NULL, result, MAX_PATH);
+    while(r && result[r] != '\\') result[r--] = '\0';
+#endif
+
+    if(!r || result[0] == 0) {
+        const char* windir = getenv("windir");
+        if(!windir) windir = "c:\\windows";
+        strncpy(result, windir, MAX_PATH - 1);
+        result[MAX_PATH - 1] = '\0';
+        const char* appdata = "\\Application Data";
+        size_t len = strlen(result);
+        if(len + strlen(appdata) < MAX_PATH)
+            strcat(result, appdata);
+    }
+
+    if(create) _mkdir(result);
+    return std::string(result);
 }
 #endif
 
-void Cross::GetPlatformResDir(std::string& in) {
+std::string Cross::GetPlatformResDir() {
+    std::string in;
+
 #if defined(MACOSX)
-	in = MacOSXResPath;
+    in = MacOSXResPath;
+    if(in.empty()) {
+        in = "/usr/local/share/dosbox-x";
+        struct stat info;
+        if((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+            in = "/usr/share/dosbox-x";
+        if((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+            in = RESDIR;
+    }
+
 #elif defined(RISCOS)
-	in = "/<DosBox-X$Dir>/resources";
+    in = "/<DosBox-X$Dir>/resources";
+
 #elif defined(LINUX)
-	const char *xdg_data_home = getenv("XDG_DATA_HOME");
-	const std::string data_home = xdg_data_home && xdg_data_home[0] == '/' ? xdg_data_home: "~/.local/share";
-	in = data_home + "/dosbox-x";
-	ResolveHomedir(in);
+    const char* xdg_data_home = getenv("XDG_DATA_HOME");
+    const std::string data_home =
+        (xdg_data_home && xdg_data_home[0] == '/') ? xdg_data_home : "~/.local/share";
 
-	// Let's check if the above exists, otherwise use RESDIR
-	struct stat info;
-	if ((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR))) {
-		//LOG_MSG("XDG_DATA_HOME (%s) does not exist. Using %s", in.c_str(), RESDIR);
-	        in = RESDIR;
-	}
+    in = data_home + "/dosbox-x";
+    ResolveHomedir(in);
+
+    struct stat info;
+    if((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+        in = "/usr/local/share/dosbox-x";
+    if((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+        in = "/usr/share/dosbox-x";
+    if((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+        in = RESDIR;
+
+#elif defined(WIN32)
+    in = "C:\\DOSBox-X";
+# if defined(RESDIR)
+    struct stat info;
+    if((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+        in = RESDIR;
+# endif
+
 #elif defined(RESDIR)
-	in = RESDIR;
+    in = RESDIR;
 #endif
-	if (!in.empty())
-		in += CROSS_FILESPLIT;
+
+    if(!in.empty())
+        in += CROSS_FILESPLIT;
+
+    return in;
 }
 
-void Cross::GetPlatformConfigDir(std::string& in) {
+
+std::string Cross::GetPlatformConfigDir()
+{
+    std::string dir;
+
 #if defined(WIN32) && !defined(HX_DOS)
-	W32_ConfDir(in,false);
-	in += "\\DOSBox-X";
+    dir = W32_ConfDir(false);
+    dir += "\\DOSBox-X";
+
 #elif defined(MACOSX)
-	in = "~/Library/Preferences";
-	ResolveHomedir(in);
+    dir = "~/Library/Preferences";
+    ResolveHomedir(dir);
+
 #elif defined(HAIKU)
-	in = "~/config/settings/dosbox-x";
-	ResolveHomedir(in);
+    dir = "~/config/settings/dosbox-x";
+    ResolveHomedir(dir);
+
 #elif defined(RISCOS)
-	in = "/<Choices$Write>/DosBox-X";
+    dir = "/<Choices$Write>/DosBox-X";
+
 #elif !defined(HX_DOS)
-	const char *xdg_conf_home = getenv("XDG_CONFIG_HOME");
-	const std::string conf_home = xdg_conf_home && xdg_conf_home[0] == '/' ? xdg_conf_home: "~/.config";
-	in = conf_home + "/dosbox-x";
-	ResolveHomedir(in);
+    const char* xdg_conf_home = getenv("XDG_CONFIG_HOME");
+    const std::string conf_home = (xdg_conf_home && xdg_conf_home[0] == '/')
+        ? xdg_conf_home
+        : "~/.config";
+
+    dir = conf_home + "/dosbox-x";
+    ResolveHomedir(dir);
 #endif
-	//LOG_MSG("Config dir: %s", in.c_str());
-	in += CROSS_FILESPLIT;
+
+    if(!dir.empty())
+        dir += CROSS_FILESPLIT;
+
+    return dir;
 }
 
-void Cross::GetPlatformConfigName(std::string& in) {
+
+std::string Cross::GetPlatformConfigName()
+{
+    std::string name;
+
 #ifdef WIN32
 #define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION ".conf"
 #elif defined(MACOSX)
 #define DEFAULT_CONFIG_FILE "DOSBox-X " VERSION " Preferences"
-#else /*linux freebsd*/
+#elif defined(OS2) && defined(C_SDL2)
+#define DEFAULT_CONFIG_FILE "dosbox-x-" PACKAGE_VERSION ".conf"
+#else /* linux, freebsd */
 #define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION ".conf"
 #endif
-	in = DEFAULT_CONFIG_FILE;
+
+    name = DEFAULT_CONFIG_FILE;
+    return name;
 }
 
-void Cross::CreatePlatformConfigDir(std::string& in) {
+std::string Cross::CreatePlatformConfigDir()
+{
+    std::string path;
+
 #if defined(WIN32) && !defined(HX_DOS)
-	W32_ConfDir(in,true);
-	in += "\\DOSBox-X";
-	_mkdir(in.c_str());
+    path = W32_ConfDir(true);
+    path += "\\DOSBox-X";
+    _mkdir(path.c_str());
+
 #elif defined(MACOSX)
-	in = "~/Library/Preferences";
-	ResolveHomedir(in);
-	//Don't create it. Assume it exists
+    path = "~/Library/Preferences";
+    ResolveHomedir(path);
+    // Don't create it. Assume it exists
+
 #elif defined(HAIKU)
-	in = "~/config/settings/dosbox-x";
-	ResolveHomedir(in);
-	mkdir(in.c_str(),0700);
+    path = "~/config/settings/dosbox-x";
+    ResolveHomedir(path);
+    mkdir(path.c_str(), 0700);
+
 #elif defined(RISCOS)
-	in = "/<Choices$Write>/DosBox-X";
-	mkdir(in.c_str(),0700);
+    path = "/<Choices$Write>/DosBox-X";
+    mkdir(path.c_str(), 0700);
+
 #elif !defined(HX_DOS)
-	const char *xdg_conf_home = getenv("XDG_CONFIG_HOME");
-	const std::string conf_home = xdg_conf_home && xdg_conf_home[0] == '/' ? xdg_conf_home: "~/.config";
-	in = conf_home + "/dosbox-x";
-	ResolveHomedir(in);
-	mkdir(in.c_str(),0700);
+    const char* xdg_conf_home = getenv("XDG_CONFIG_HOME");
+    const std::string conf_home =
+        (xdg_conf_home && xdg_conf_home[0] == '/') ? xdg_conf_home : "~/.config";
+    path = conf_home + "/dosbox-x";
+    ResolveHomedir(path);
+    mkdir(path.c_str(), 0700);
 #endif
-	in += CROSS_FILESPLIT;
+
+    path += CROSS_FILESPLIT;
+    return path;
 }
+
 
 void Cross::ResolveHomedir(std::string & temp_line) {
 	if(!temp_line.size() || temp_line[0] != '~') return; //No ~
@@ -231,27 +301,45 @@ bool Cross::IsPathAbsolute(std::string const& in) {
 #if defined (WIN32)
 extern bool isDBCSCP();
 
+static bool isDBCSlead(const wchar_t fchar) {
+	if ((fchar & 0x00FF) == fchar) return false;
+	uint16_t uname[4];
+	char text[3];
+	uname[0]=fchar;
+	uname[1]=0;
+	text[0]=0;
+	text[1]=0;
+	text[2]=0;
+	if (CodePageHostToGuestUTF16(text,uname)) return isKanji1_gbk(text[0] & 0xFF);
+	else return false;
+}
+
 /* does the filename fit the 8.3 format? */
 static bool is_filename_8by3w(const wchar_t* fname) {
-	if (CodePageHostToGuest(fname)==NULL) return false;
+    notrycp = true;
+    if (CodePageHostToGuest(fname)==NULL) {notrycp = false;return false;}
+    notrycp = false;
     int i;
 
     /* Is the first part 8 chars or less? */
     i=0;
     while (*fname != 0 && *fname != L'.') {
-		if (*fname<=32||*fname==127||*fname==L'"'||*fname==L'+'||*fname==L'='||*fname==L','||*fname==L';'||*fname==L':'||*fname==L'<'||*fname==L'>'||*fname==L'|'||*fname==L'?'||*fname==L'*') return false;
-		if ((IS_PC98_ARCH || isDBCSCP()) && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
+		if (*fname<=32||*fname==127||*fname==L'"'||*fname==L'+'||*fname==L'='||*fname==L','||*fname==L';'||*fname==L':'||*fname==L'<'||*fname==L'>'||*fname==L'['||*fname==L']'||*fname==L'|'||*fname==L'?'||*fname==L'*') return false;
+		if ((IS_PC98_ARCH && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) || (isDBCSCP() && isDBCSlead(*fname))) i++;
 		fname++; i++; 
 	}
     if (i > 8) return false;
 
-    if (*fname == L'.') fname++;
+    if (*fname == L'.') {
+		if (i==0 && *(fname+1) != 0 && !(*(fname+1) == L'.' && *(fname+2) == 0)) return false;
+		fname++;
+	}
 
     /* Is the second part 3 chars or less? A second '.' also makes it a LFN */
     i=0;
     while (*fname != 0 && *fname != L'.') {
-		if (*fname<=32||*fname==127||*fname==L'"'||*fname==L'+'||*fname==L'='||*fname==L','||*fname==L';'||*fname==L':'||*fname==L'<'||*fname==L'>'||*fname==L'|'||*fname==L'?'||*fname==L'*') return false;
-		if ((IS_PC98_ARCH || isDBCSCP()) && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
+		if (*fname<=32||*fname==127||*fname==L'"'||*fname==L'+'||*fname==L'='||*fname==L','||*fname==L';'||*fname==L':'||*fname==L'<'||*fname==L'>'||*fname==L'['||*fname==L']'||*fname==L'|'||*fname==L'?'||*fname==L'*') return false;
+		if ((IS_PC98_ARCH && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) || (isDBCSCP() && isDBCSlead(*fname))) i++;
 		fname++; i++;
 	}
     if (i > 3) return false;
@@ -402,10 +490,11 @@ dir_information* open_directory(const char* dirname) {
 bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {	
 	if (!dirp) return false;
 	struct dirent* dentry;
+	std::string::size_type const prefix_lengh = prefix_local.size();
 	do {
 		dentry = readdir(dirp->dir);
 		if (dentry==NULL) return false;
-	} while (hidenonrep&&CodePageHostToGuest(dentry->d_name)==NULL);
+	} while ((hidenonrep && CodePageHostToGuest(dentry->d_name)==NULL) || (ignorespecial && (strlen(dentry->d_name) > prefix_lengh+5) && strncmp(dentry->d_name,prefix_local.c_str(),prefix_lengh) == 0));
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
@@ -436,10 +525,11 @@ bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_s
 bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
 	if (!dirp) return false;
 	struct dirent* dentry;
+	std::string::size_type const prefix_lengh = prefix_local.size();
 	do {
 		dentry = readdir(dirp->dir);
 		if (dentry==NULL) return false;
-	} while (hidenonrep&&CodePageHostToGuest(dentry->d_name)==NULL);
+	} while ((hidenonrep && CodePageHostToGuest(dentry->d_name)==NULL) || (ignorespecial && (strlen(dentry->d_name) > prefix_lengh+5) && strncmp(dentry->d_name,prefix_local.c_str(),prefix_lengh) == 0));
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
@@ -485,7 +575,7 @@ FILE *fopen_wrap(const char *path, const char *mode) {
 			*last = 0;
 			//If this compare fails, then we are dealing with files in / 
 			//Which is outside the scope, but test anyway. 
-			//However as realpath only works for exising files. The testing is 
+			//However as realpath only works for existing files. The testing is 
 			//in that case not done against new files.
 		}
 		char* check = realpath(work,NULL);
@@ -520,4 +610,16 @@ FILE *fopen_wrap(const char *path, const char *mode) {
 #endif
 
 	return fopen(path,mode);
+}
+
+const char* get_time(void)
+{
+    static char buf[16];
+    time_t curtime;
+    struct tm* loctime;
+
+    curtime = time(NULL);
+    loctime = localtime(&curtime);
+    strftime(buf, sizeof(buf), "%H:%M:%S", loctime);
+    return buf;
 }

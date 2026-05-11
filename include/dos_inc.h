@@ -27,6 +27,48 @@
 #include <list>
 #include <stddef.h> //for offsetof
 
+ /* Macros SSET_* and SGET_* are used to safely access fields in memory-mapped
+  * DOS structures represented via classes inheriting from MemStruct class.
+  *
+  * All of these macros depend on 'pt' base pointer from MemStruct base class;
+  * all DOS-specific fields are accessed by reading memory relative to that
+  * pointer.
+  *
+  * Example usage:
+  *
+  *   SSET_WORD(dos-structure-name, field-name, value);
+  *   uint16_t x = SGET_WORD(dos-structure-name, field-name);
+  */
+template <size_t N, typename S, typename T1, typename T2 = T1>
+constexpr PhysPt assert_macro_args_ok()
+{
+    static_assert(sizeof(T1) == N, "Requested struct field has unexpected size");
+    static_assert(sizeof(T2) == N, "Type used to save value has unexpected size");
+    static_assert(std::is_standard_layout<S>::value,
+        "Struct needs to have standard layout for offsetof calculation");
+    // returning 0, so compiler can optimize-out no-op "0 +" expression
+    return 0;
+}
+
+#define VERIFY_SSET_ARGS(n, s, f, v)                                           \
+	assert_macro_args_ok<n, s, decltype(s::f), decltype(v)>()
+#define VERIFY_SGET_ARGS(n, s, f)                                              \
+	assert_macro_args_ok<n, s, decltype(s::f)>()
+
+#define SSET_BYTE(s, f, v)                                                     \
+	mem_writeb(VERIFY_SSET_ARGS(1, s, f, v) + pt + offsetof(s, f), v)
+#define SSET_WORD(s, f, v)                                                     \
+	mem_writew(VERIFY_SSET_ARGS(2, s, f, v) + pt + offsetof(s, f), v)
+#define SSET_DWORD(s, f, v)                                                    \
+	mem_writed(VERIFY_SSET_ARGS(4, s, f, v) + pt + offsetof(s, f), v)
+
+#define SGET_BYTE(s, f)                                                        \
+	mem_readb(VERIFY_SGET_ARGS(1, s, f) + pt + offsetof(s, f))
+#define SGET_WORD(s, f)                                                        \
+	mem_readw(VERIFY_SGET_ARGS(2, s, f) + pt + offsetof(s, f))
+#define SGET_DWORD(s, f)                                                       \
+	mem_readd(VERIFY_SGET_ARGS(4, s, f) + pt + offsetof(s, f))
+
 #ifdef _MSC_VER
 #pragma pack (1)
 #endif
@@ -40,22 +82,33 @@ struct CommandTail{
 
 extern bool dos_kernel_disabled;
 
+#if !defined(OSFREE)
 #define IS_DOS_JAPANESE (!dos_kernel_disabled && mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0x81 && mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0x9F)
 #define IS_DOS_CJK (!dos_kernel_disabled && ((mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0x81 || mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0xA1) && (mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0x9F || mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0xFE)))
-#define IS_DOSV (dos.set_jdosv_enabled || dos.set_kdosv_enabled || dos.set_cdosv_enabled || dos.set_pdosv_enabled)
+#define IS_DOSV (dos.set_jdosv_enabled || dos.set_kdosv_enabled || dos.set_pdosv_enabled || dos.set_tdosv_enabled)
 #define IS_JDOSV (dos.set_jdosv_enabled)
 #define IS_KDOSV (dos.set_kdosv_enabled)
-#define IS_CDOSV (dos.set_cdosv_enabled)
 #define IS_PDOSV (dos.set_pdosv_enabled)
+#define IS_TDOSV (dos.set_tdosv_enabled)
 #define IS_J3100 (dos.set_j3100_enabled)
-
-#define	EXT_DEVICE_BIT				0x0200
+#else
+/* OSFREE: You don't get any of this! */
+#define IS_DOS_JAPANESE (0)
+#define IS_DOS_CJK (0)
+#define IS_DOSV (0)
+#define IS_JDOSV (0)
+#define IS_KDOSV (0)
+#define IS_PDOSV (0)
+#define IS_TDOSV (0)
+#define IS_J3100 (0)
+#endif
 
 extern uint16_t first_umb_seg;
 extern uint16_t first_umb_size;
 
 bool MEM_unmap_physmem(Bitu start,Bitu end);
 bool MEM_map_RAM_physmem(Bitu start,Bitu end);
+bool MEM_map_ROM_physmem(Bitu start,Bitu end);
 
 struct BuiltinFileBlob {
 	const char		*recommended_file_name;
@@ -154,6 +207,10 @@ extern uint16_t DOS_MEM_START;// 0x158	 // regression to r3437 fixes nascar 2 co
 extern uint16_t DOS_PRIVATE_SEGMENT;// 0xc800
 extern uint16_t DOS_PRIVATE_SEGMENT_END;// 0xd000
 
+constexpr int SftHeaderSize = 6;
+constexpr int SftEntrySize = 59;
+constexpr int SftNumEntries = 16;
+
 /* internal Dos Tables */
 
 extern DOS_File ** Files;
@@ -172,6 +229,42 @@ void DOS_SetError(uint16_t code);
 enum { STDIN=0,STDOUT=1,STDERR=2,STDAUX=3,STDPRN=4};
 enum { HAND_NONE=0,HAND_FILE,HAND_DEVICE};
 
+namespace DeviceInfoFlags
+{
+	// Device flags
+	constexpr uint16_t StdIn            = 1<<0;
+	constexpr uint16_t StdOut           = 1<<1;
+	constexpr uint16_t Nul              = 1<<2;
+	constexpr uint16_t Clock            = 1<<3;
+	constexpr uint16_t Special          = 1<<4;
+	constexpr uint16_t Binary           = 1<<5;
+	constexpr uint16_t EofOnInput       = 1<<6;
+	constexpr uint16_t Device           = 1<<7;
+	constexpr uint16_t ExternalDevice   = 1<<9;
+	constexpr uint16_t OpenCloseSupport = 1<<11;
+	constexpr uint16_t OutputUntilBusy  = 1<<13;
+	constexpr uint16_t IoctlSupport     = 1<<14;
+
+	// File flags
+	constexpr uint16_t NotWritten       = 1<<6;
+	constexpr uint16_t NotRemovable     = 1<<11;
+	constexpr uint16_t NoTimeUpdate     = 1<<14;
+	constexpr uint16_t Remote           = 1<<15;
+}
+namespace DeviceAttributeFlags
+{
+	constexpr uint16_t CurrentStdIn      = 1<<0;
+	constexpr uint16_t CurrentStdOut     = 1<<1;
+	constexpr uint16_t CurrentNul        = 1<<2;
+	constexpr uint16_t CurrentClock      = 1<<3;
+	constexpr uint16_t SupportsRemovable = 1<<11;
+	constexpr uint16_t NonIBM            = 1<<13;
+	constexpr uint16_t SupportsIoctl     = 1<<14;
+	constexpr uint16_t CharacterDevice   = 1<<15;
+
+	constexpr uint16_t CoreDevicesMask   = CurrentStdIn | CurrentStdOut | CurrentNul | CurrentClock;
+}
+
 /* Routines for File Class */
 void DOS_SetupFiles (void);
 bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount, bool fcb = false);
@@ -188,6 +281,7 @@ bool DOS_SetFileDate(uint16_t entry, uint16_t ntime, uint16_t ndate);
 
 /* Routines for Drive Class */
 bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb = false);
+bool DOS_OpenExistingSFTEntry(uint16_t jft_handle,int sft_handle);
 bool DOS_OpenFileExtended(char const * name, uint16_t flags, uint16_t createAttr, uint16_t action, uint16_t *entry, uint16_t* status);
 bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry, bool fcb = false);
 bool DOS_UnlinkFile(char const * const name);
@@ -231,7 +325,8 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag);
 /* Execute and new process creation */
 bool DOS_NewPSP(uint16_t segment,uint16_t size);
 bool DOS_ChildPSP(uint16_t segment,uint16_t size);
-bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags);
+bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags);
+#define DOSEXEC_DEVICEDRIVER 0x0100 /* special flags param for DOS_Execute() that DOS programs cannot pass through INT 21h, block_pt becomes direct segment */
 void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode);
 
 /* Memory Handling Routines */
@@ -242,6 +337,8 @@ bool DOS_ResizeMemory(uint16_t segment,uint16_t * blocks);
 bool DOS_FreeMemory(uint16_t segment);
 void DOS_FreeProcessMemory(uint16_t pspseg);
 uint16_t DOS_GetMemory(uint16_t pages,const char *who=NULL);
+void DOS_Private_UMB_Lock(const bool lock);
+void DOS_FreeTableMemory();
 bool DOS_SetMemAllocStrategy(uint16_t strat);
 uint16_t DOS_GetMemAllocStrategy(void);
 void DOS_BuildUMBChain(bool umb_active,bool ems_active);
@@ -283,7 +380,8 @@ enum {
 	KEYB_FILENOTFOUND,
 	KEYB_INVALIDFILE,
 	KEYB_LAYOUTNOTFOUND,
-	KEYB_INVALIDCPFILE
+	KEYB_INVALIDCPFILE,
+	KEYB_LOADERROR
 };
 
 
@@ -355,7 +453,7 @@ static INLINE uint16_t DOS_PackDate(uint16_t year,uint16_t mon,uint16_t day) {
 
 
 /* Remains some classes used to access certain things */
-#define sOffset(s,m) ((char*)&(((s*)NULL)->m)-(char*)NULL)
+#define sOffset(s,m) offsetof(s,m)
 #define sGet(s,m) GetIt(sizeof(((s *)&pt)->m),(PhysPt)sOffset(s,m))
 #define sSave(s,m,val) SaveIt(sizeof(((s *)&pt)->m),(PhysPt)sOffset(s,m),val)
 
@@ -387,7 +485,7 @@ protected:
 
 class DOS_PSP :public MemStruct {
 public:
-	DOS_PSP						(uint16_t segment)		{ SetPt(segment);seg=segment;};
+	DOS_PSP						(uint16_t segment):seg(segment)		{ SetPt(segment);};
 	void	MakeNew				(uint16_t mem_size);
 	void	CopyFileTable		(DOS_PSP* srcpsp,bool createchildpsp);
 	uint16_t	FindFreeFileEntry	(void);
@@ -416,13 +514,14 @@ public:
 	void    RestoreCommandTail  (void);
 	bool	SetNumFiles			(uint16_t fileNum);
 	uint16_t	FindEntryByHandle	(uint8_t handle);
+	uint16_t	GetSegment		(void) const			{ return seg; }
 			
 private:
 	#ifdef _MSC_VER
 	#pragma pack(1)
 	#endif
 	struct sPSP {
-		uint8_t	exit[2];			/* CP/M-like exit poimt */
+		uint8_t	exit[2];			/* CP/M-like exit point */
 		uint16_t	next_seg;			/* Segment of first byte beyond memory allocated or program */
 		uint8_t	fill_1;				/* single char fill */
 		uint8_t	far_call;			/* far call opcode */
@@ -432,7 +531,7 @@ private:
 		RealPt	int_24;				/* Critical Error Address */
 		uint16_t	psp_parent;			/* Parent PSP Segment */
 		uint8_t	files[20];			/* File Table - 0xff is unused */
-		uint16_t	environment;		/* Segment of evironment table */
+		uint16_t	environment;		/* Segment of environment table */
 		RealPt	stack;				/* SS:SP Save point for int 0x21 calls */
 		uint16_t	max_files;			/* Maximum open files */
 		RealPt	file_table;			/* Pointer to File Table PSP:0x18 */
@@ -441,7 +540,7 @@ private:
 		uint8_t truename_flag;
 		uint16_t nn_flags;
 		uint16_t dos_version;
-		uint8_t	fill_2[14];			/* Lot's of unused stuff i can't care aboue */
+		uint8_t	fill_2[14];			/* Lot's of unused stuff i can't care about */
 		uint8_t	service[3];			/* INT 0x21 Service call int 0x21;retf; */
 		uint8_t	fill_3[9];			/* This has some blocks with FCB info */
 		uint8_t	fcb1[16];			/* first FCB */
@@ -487,10 +586,11 @@ public:
 
 class DOS_InfoBlock:public MemStruct {
 public:
-    DOS_InfoBlock() : seg(0) {};
+    DOS_InfoBlock() {};
 	void SetLocation(uint16_t  segment);
-    void SetFirstDPB(uint32_t _first_dpb);
+	void SetFirstDPB(uint32_t _first_dpb);
 	void SetFirstMCB(uint16_t _firstmcb);
+	uint16_t GetFirstMCB(void);
 	void SetBuffers(uint16_t x,uint16_t y);
 	void SetCurDirStruct(uint32_t _curdirstruct);
 	void SetFCBTable(uint32_t _fcbtable);
@@ -503,6 +603,10 @@ public:
 	uint8_t	GetUMBChainState(void);
 	RealPt	GetPointer(void);
 	uint32_t GetDeviceChain(void);
+	uint32_t GetStartOfDeviceChain(void);/*this one includes the NUL driver at the very start*/
+
+	void SetBootDrive(uint8_t drv) { sSave(sDIB,bootDrive,drv); }
+	uint8_t GetBootDrive(void) { return sGet(sDIB,bootDrive); }
 
 	#ifdef _MSC_VER
 	#pragma pack(1)
@@ -561,7 +665,7 @@ public:
 	#ifdef _MSC_VER
 	#pragma pack ()
 	#endif
-	uint16_t	seg;
+	uint16_t	seg = 0;
 };
 
 class DOS_DTA:public MemStruct{
@@ -570,12 +674,12 @@ public:
 
     int GetFindData(int fmt,char * finddata,int *c);
 	
-	void SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern);
-	void SetResult(const char * _name,const char * _lname,uint32_t _size,uint16_t _date,uint16_t _time,uint8_t _attr);
+	void SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern);
+	void SetResult(const char * _name,const char * _lname,uint32_t _size,uint32_t _hsize,uint16_t _date,uint16_t _time,uint8_t _attr);
 	
 	uint8_t GetSearchDrive(void);
 	void GetSearchParams(uint8_t & _sattr,char * _spattern,bool lfn);
-    void GetResult(char * _name,char * _lname,uint32_t & _size,uint16_t & _date,uint16_t & _time,uint8_t & _attr);
+    void GetResult(char * _name,char * _lname,uint32_t & _size,uint32_t & _hsize,uint16_t & _date,uint16_t & _time,uint8_t & _attr);
 
 	void	SetDirID(uint16_t entry)			{ sSave(sDTA,dirID,entry); };
 	void	SetDirIDCluster(uint32_t entry)	{ sSave(sDTA,dirCluster,entry); };
@@ -734,6 +838,126 @@ private:
 	#pragma pack()
 	#endif
 };
+
+static constexpr uint32_t NONEXTDEV = 0xFFFFFFFFul;
+
+static constexpr uint16_t DEVATTR_ISCHAR = 1u << 15u;/*which determines which of the following flags apply*/
+
+static constexpr uint16_t DEVATTRCHR_IOCTL_CTLSTRINGS = 1u << 14u;/*MS-DOS 4.0: 1 IF THE DEVICE UNDERSTANDS IOCTL CONTROL STRINGS*/
+static constexpr uint16_t DEVATTRCHR_IOCTL_OUTPUT_UNTIL_BUSY = 1u << 13u;/*MS-DOS 4.0: 1 IF THE DEVICE SUPPORTS OUTPUT-UNTIL-BUSY*/
+static constexpr uint16_t DEVATTRCHR_OPENCLOSE = 1u << 11u;/*MS-DOS 4.0: 1 IF THE DEVICE UNDERSTANDS OPEN/CLOSE*/
+static constexpr uint16_t DEVATTRCHR_INT29 = 1u << 4u;/*MS-DOS 4.0: 1 IF DEVICE IS RECIPIENT OF INT 29H*/
+static constexpr uint16_t DEVATTRCHR_CLOCK = 1u << 3u;/*MS-DOS 4.0: 1 IF DEVICE IS CLOCK DEVICE*/
+static constexpr uint16_t DEVATTRCHR_NULL = 1u << 2u;/*MS-DOS 4.0: 1 IF DEVICE IS NULL DEVICE*/
+static constexpr uint16_t DEVATTRCHR_CONOUT = 1u << 1u;/*MS-DOS 4.0: 1 IF DEVICE IS CONSOLE OUTPUT*/
+static constexpr uint16_t DEVATTRCHR_CONIN = 1u << 0u;/*MS-DOS 4.0: 1 IF DEVICE IS CONSOLE INPUT*/
+
+static constexpr uint16_t DEVATTRBLK_IOCTL_CTLSTRINGS = 1u << 14u;/*MS-DOS 4.0: 1 IF THE DEVICE UNDERSTANDS IOCTL CONTROL STRINGS*/
+static constexpr uint16_t DEVATTRBLK_IOCTL_MEDIA_FAT_BYTE = 1u << 13u;/*MS-DOS 4.0: 1 IF THE DEVICE DETERMINES MEDIA BY EXAMINING THE FAT ID BYTE*/
+static constexpr uint16_t DEVATTRBLK_OPENCLOSEREMOVABLE = 1u << 11u;/*MS-DOS 4.0: 1 IF THE DEVICE UNDERSTANDS OPEN/CLOSE/REMOVABLE MEDIA*/
+static constexpr uint16_t DEVATTRBLK_IBM_DRIVE_SHARED = 1u << 9u;/*MS-DOS 4.0: ... IS CURRENTLY USED ON IBM SYSTEMS TO INDICATE "DRIVE IS SHARED" ... THIS USE IS NOT DOCUMENTED ... used by utilities like FORMAT which are supposed to fail on shared drives on server machines */
+static constexpr uint16_t DEVATTRBLK_IOCTL_GEN = 1u << 6u;/*MS-DOS 4.0: IF DEVICE HAS SUPPORT FOR GETMAP/SETMAP OF LOGICAL DRIVES / UNDERSTANDS GENERIC IOCTL FUNCTION CALLS*/
+static constexpr uint16_t DEVATTRBLK_EXTENDED = 1u << 1u;/*MS-DOS 4.0: Extended block device (>=32MB) aka EXTDRVR*/
+
+enum DEVFUNC {
+	DEVFUNC_INIT=0,
+	DEVFUNC_MEDIACHECK=1,
+	DEVFUNC_GETPBP=2,
+	DEVFUNC_IOCTL_READ=3,
+	DEVFUNC_READ=4,
+	DEVFUNC_NDREAD=5,/*non destructive read*/
+	DEVFUNC_INPUT_STATUS=6,
+	DEVFUNC_INPUT_FLUSH=7,
+	DEVFUNC_WRITE=8,
+	DEVFUNC_WRITEVERIFY=9,
+	DEVFUNC_OUTPUT_STATUS=10,
+	DEVFUNC_OUTPUT_FLUSH=11,
+	DEVFUNC_IOCTL_WRITE=12,
+	DEVFUNC_OPEN=13,
+	DEVFUNC_CLOSE=14,
+	DEVFUNC_REMOVABLE_MEDIA=15,
+	DEVFUNC_OUTPUT_UNTIL_BUSY=16,/*MS-DOS 4.0*/
+	DEVFUNC_GENERAL_IOCTL=19,
+	DEVFUNC_GET_OWNER=23,/*MS-DOS 4.0*/
+	DEVFUNC_SET_OWNER=24/*MS-DOS 4.0*/
+};
+
+enum DOSDEVERR {
+	DOSDEVERR_WRITEPROTECT=0,
+	DOSDEVERR_UNKNOWNUNIT=1,
+	DOSDEVERR_DRIVENOTREADY=2,
+	DOSDEVERR_UNKNOWNCOMMAND=3,
+	DOSDEVERR_CRC=4,
+	DOSDEVERR_BADDRIVEREQUEST=5,
+	DOSDEVERR_SEEKERR=6,
+	DOSDEVERR_UNKNOWNMEDIA=7,
+	DOSDEVERR_SECTORNOTFOUND=8,
+	DOSDEVERR_PRINTEROUTOFPAPER=9,
+	DOSDEVERR_WRITEFAULT=10,
+	DOSDEVERR_READFAULT=11,
+	DOSDEVERR_GENERALFAILURE=12
+};
+
+class DOS_DEVHDR : public MemStruct{/*device driver header*/
+public:
+	DOS_DEVHDR(uint16_t seg) { SetPt(seg); }
+	uint32_t GetNextDriver(void) { return (uint32_t)sGet(hdr,nextdev); }; /* NONEXTDEV if end of list */
+	void SetNextDriver(const uint32_t p) { sSave(hdr,nextdev,p); };
+	uint16_t GetAttributes(void) { return (uint16_t)sGet(hdr,attributes); };
+	uint16_t GetStrategyOffset(void) { return (uint16_t)sGet(hdr,strategy_entry); };
+	uint16_t GetInterruptOffset(void) { return (uint16_t)sGet(hdr,interrupt_entry); };
+	void GetName(char * const _name) { MEM_BlockRead(pt+offsetof(hdr,name),_name,8);_name[8]=0;}
+
+	#ifdef _MSC_VER
+	#pragma pack (1)
+	#endif
+	struct hdr {
+		uint32_t nextdev; /* pointer to next device or FFFF:FFFF */
+		uint16_t attributes;
+		uint16_t strategy_entry;
+		uint16_t interrupt_entry;
+		uint8_t name[8];
+	} GCC_ATTRIBUTE(packed);/*=18 bytes*/
+
+	/* structure used in passing requests to device driver, head structure: "Static Request Header" */
+	struct streqhdr {
+		uint8_t record_length; /* length of the driver request */
+		uint8_t unit_code;
+		uint8_t cmd_code;
+		uint16_t status; /* status word: 15=ERR 9=BUSY 8=DONE 7..0=ERR CODE */
+		uint32_t reserved[2]; /* reserved for internal DOS use, queue links */
+	} GCC_ATTRIBUTE(packed);/*=13 bytes*/
+
+	/* init request */
+	struct req_init {
+		struct streqhdr hdr; /* static request header (13 bytes) DEVFUNC_INIT */
+		uint8_t num_of_units; /* number of units */
+		uint32_t end_ptr; /* ending address of driver, filled in by INIT */
+		uint32_t bpb_ptr; /* in: init arguments  out: BPB array */
+		/* MS-DOS 2.0 ends here == 22 bytes */
+		uint8_t drive_num; /* driver number */
+		uint16_t config_err; /* config.sys error flag */
+	} GCC_ATTRIBUTE(packed);/*=25 bytes*/
+
+	/* read/write request */
+	struct req_rwio {
+		struct streqhdr hdr; /* static request header (13 bytes) DEVFUNC_READ/DEVFUNC_WRITE/DEVFUNC_WRITEVERIFY */
+		uint8_t media_dpb; /* from DPB */
+		uint32_t xfer_addr; /* transfer address (16:16) */
+		uint16_t count; /* byte or sector count */
+		uint16_t start_sector; /* starting sector (if block device) */
+		/* block device with 16-bit sector stops here (prior to MS-DOS 3.3) == 22 bytes */
+		/* the following applies if EXTDRVR */
+		uint32_t ptr_volid; /* pointer to volume ID (R/W according to MS-DOS 4.0 source code) */
+		uint32_t start_sector32; /* starting sector (if block device) */
+		/* EXTDRVR stops here == 30 bytes */
+	} GCC_ATTRIBUTE(packed);/*=30 bytes*/
+
+	#ifdef _MSC_VER
+	#pragma pack ()
+	#endif
+};
+
 extern DOS_InfoBlock dos_infoblock;
 
 struct DOS_Block {
@@ -741,10 +965,10 @@ struct DOS_Block {
     DOS_Version version = {};
     uint16_t firstMCB = 0;
     uint16_t errorcode = 0;
-    uint16_t psp();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();};
-    void psp(uint16_t _seg);//{ DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetPSP(_seg);};
-    RealPt dta();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDTA();};
-    void dta(RealPt _dta);//{DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDTA(_dta);};
+    uint16_t psp() const;//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();};
+    void psp(uint16_t _seg) const;//{ DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetPSP(_seg);};
+    RealPt dta() const;//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDTA();};
+    void dta(RealPt _dta) const;//{DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDTA(_dta);};
     uint8_t return_code = 0, return_mode = 0;
 
     uint8_t current_drive = 0;
@@ -767,13 +991,22 @@ struct DOS_Block {
         uint16_t mediaid_offset = 0x17; // media ID offset in DPB (MS-DOS 4.x-6.x case)
     } tables;
     uint16_t loaded_codepage = 0;
-    bool set_cdosv_enabled = false;
+#if !defined(OSFREE)
     bool set_jdosv_enabled = false;
     bool set_kdosv_enabled = false;
     bool set_pdosv_enabled = false;
+    bool set_tdosv_enabled = false;
     bool set_j3100_enabled = false;
+#else
+    static constexpr bool set_jdosv_enabled = false;
+    static constexpr bool set_kdosv_enabled = false;
+    static constexpr bool set_pdosv_enabled = false;
+    static constexpr bool set_tdosv_enabled = false;
+    static constexpr bool set_j3100_enabled = false;
+#endif
     bool im_enable_flag;
     uint16_t dcp;	// Device command packet
+    static constexpr uint16_t dcp_size_seg = 3;//allocated size of DCP buffer
 };
 
 extern DOS_Block dos;
@@ -794,5 +1027,211 @@ extern std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
 extern int customcp, altcp;
 bool isSupportedCP(int cp);
 void SetupDBCSTable(void);
+const char* DOS_GetLoadedLayout(void);
+
+enum COUNTRYNO {
+	United_States = 1,
+	Candian_French = 2,
+	Latin_America = 3,
+	Russia = 7,
+	Greece = 30,
+	Netherlands = 31,
+	Belgium = 32,
+	France = 33,
+	Spain = 34,
+	Hungary = 36,
+	Yugoslavia = 38,
+	Italy = 39,
+	Romania = 40,
+	Switzerland = 41,
+	Czech_Slovak = 42,
+	Austria = 43,
+	United_Kingdom = 44,
+	Denmark = 45,
+	Sweden = 46,
+	Norway = 47,
+	Poland = 48,
+	Germany = 49,
+	Argentina = 54,
+	Brazil = 55,
+	Malaysia = 60,
+	Australia = 61,
+	Philippines = 63,
+	Singapore = 65,
+	Kazakhstan = 77,
+	Japan = 81,
+	South_Korea = 82,
+	Vietnam = 84,
+	China = 86,
+	Turkey = 90,
+	India = 91,
+	Niger = 227,
+	Benin = 229,
+	Nigeria = 234,
+	Faeroe_Islands = 298,
+	Portugal = 351,
+	Iceland = 354,
+	Albania = 355,
+	Malta = 356,
+	Finland = 358,
+	Bulgaria = 359,
+	Lithuania = 370,
+	Latvia = 371,
+	Estonia = 372,
+	Armenia = 374,
+	Belarus = 375,
+	Ukraine = 380,
+	Serbia = 381,
+	Montenegro = 382,
+	Croatia = 384,
+	Slovenia = 386,
+	Bosnia = 387,
+	Macedonia = 389,
+	Taiwan = 886,
+	Arabic = 785,
+	Israel = 972,
+	Mongolia = 976,
+	Tadjikistan = 992,
+	Turkmenistan = 993,
+	Azerbaijan = 994,
+	Georgia = 995,
+	Kyrgyzstan = 996,
+	Uzbekistan = 998,
+};
+
+const std::map<std::string, int> country_code_map {
+	// reference: https://gitlab.com/FreeDOS/base/keyb_lay/-/blob/master/DOC/KEYB/LAYOUTS/LAYOUTS.TXT
+	{"ar462",  COUNTRYNO::Arabic         },
+	{"ar470",  COUNTRYNO::Arabic         },
+	{"az",     COUNTRYNO::Azerbaijan     },
+	{"ba",     COUNTRYNO::Bosnia         },
+	{"be",     COUNTRYNO::Belgium        },
+	{"bg",     COUNTRYNO::Bulgaria       }, // 101-key
+	{"bg103",  COUNTRYNO::Bulgaria       }, // 101-key, Phonetic
+	{"bg241",  COUNTRYNO::Bulgaria       }, // 102-key
+	{"bl",     COUNTRYNO::Belarus        },
+	{"bn",     COUNTRYNO::Benin          },
+	{"br",     COUNTRYNO::Brazil         }, // ABNT layout
+	{"br274",  COUNTRYNO::Brazil         }, // US layout
+	{"bx",     COUNTRYNO::Belgium        }, // International
+	{"by",     COUNTRYNO::Belarus        },
+	{"ca",     COUNTRYNO::Candian_French }, // Standard
+	{"ce",     COUNTRYNO::Russia         }, // Chechnya Standard
+	{"ce443",  COUNTRYNO::Russia         }, // Chechnya Typewriter
+	{"cg",     COUNTRYNO::Montenegro     },
+	{"cf",     COUNTRYNO::Candian_French }, // Standard
+	{"cf445",  COUNTRYNO::Candian_French }, // Dual-layer
+	{"co",     COUNTRYNO::United_States  }, // Colemak
+	{"cz",     COUNTRYNO::Czech_Slovak   }, // Czechia, QWERTY
+	{"cz243",  COUNTRYNO::Czech_Slovak   }, // Czechia, Standard
+	{"cz489",  COUNTRYNO::Czech_Slovak   }, // Czechia, Programmers
+	{"de",     COUNTRYNO::Germany        }, // Standard
+	{"dk",     COUNTRYNO::Denmark        },
+	{"dv",     COUNTRYNO::United_States  }, // Dvorak
+	{"ee",     COUNTRYNO::Estonia        },
+	{"el",     COUNTRYNO::Greece         }, // 319
+	{"es",     COUNTRYNO::Spain          },
+	{"et",     COUNTRYNO::Estonia        },
+	{"fi",     COUNTRYNO::Finland        },
+	{"fo",     COUNTRYNO::Faeroe_Islands },
+	{"fr",     COUNTRYNO::France         }, // Standard
+	{"fx",     COUNTRYNO::France         }, // International
+	{"gk",     COUNTRYNO::Greece         }, // 319
+	{"gk220",  COUNTRYNO::Greece         }, // 220
+	{"gk459",  COUNTRYNO::Greece         }, // 101-key
+	{"gr",     COUNTRYNO::Germany        }, // Standard
+	{"gr453",  COUNTRYNO::Germany        }, // Dual-layer
+	{"hr",     COUNTRYNO::Croatia        },
+	{"hu",     COUNTRYNO::Hungary        }, // 101-key
+	{"hu208",  COUNTRYNO::Hungary        }, // 102-key
+	{"hy",     COUNTRYNO::Armenia        },
+	{"il",     COUNTRYNO::Israel         },
+	{"is",     COUNTRYNO::Iceland        }, // 101-key
+	{"is161",  COUNTRYNO::Iceland        }, // 102-key
+	{"it",     COUNTRYNO::Italy          }, // Standard
+	{"it142",  COUNTRYNO::Italy          }, // Comma on Numeric Pad
+	{"ix",     COUNTRYNO::Italy          }, // International
+	{"jp",     COUNTRYNO::Japan          },
+	{"ka",     COUNTRYNO::Georgia        },
+	{"kk",     COUNTRYNO::Kazakhstan     },
+	{"kk476",  COUNTRYNO::Kazakhstan     },
+	{"kx",     COUNTRYNO::United_Kingdom }, // International
+	{"ky",     COUNTRYNO::Kyrgyzstan     },
+	{"la",     COUNTRYNO::Latin_America  },
+	{"lh",     COUNTRYNO::United_States  }, // Left-Hand Dvorak
+	{"lt",     COUNTRYNO::Lithuania      }, // Baltic
+	{"lt210",  COUNTRYNO::Lithuania      }, // 101-key, Programmers
+	{"lt211",  COUNTRYNO::Lithuania      }, // AZERTY
+	{"lt221",  COUNTRYNO::Lithuania      }, // Standard
+	{"lt456",  COUNTRYNO::Lithuania      }, // Dual-layout
+	{"lv",     COUNTRYNO::Latvia         }, // Standard
+	{"lv455",  COUNTRYNO::Latvia         }, // Dual-layout
+	{"ml",     COUNTRYNO::Malta          }, // UK-based
+	{"mk",     COUNTRYNO::Macedonia      },
+	{"mn",     COUNTRYNO::Mongolia       },
+	{"mo",     COUNTRYNO::Mongolia       },
+	{"mt",     COUNTRYNO::Malta          }, // UK-based
+	{"mt103",  COUNTRYNO::Malta          }, // US-based
+	{"ne",     COUNTRYNO::Niger          },
+	{"ng",     COUNTRYNO::Nigeria        },
+	{"nl",     COUNTRYNO::Netherlands    }, // 102-key
+	{"no",     COUNTRYNO::Norway         },
+	{"ph",     COUNTRYNO::Philippines    },
+	{"pl",     COUNTRYNO::Poland         }, // 101-key, Programmers
+	{"pl214",  COUNTRYNO::Poland         }, // 102-key
+	{"po",     COUNTRYNO::Portugal       },
+	{"px",     COUNTRYNO::Portugal       }, // International
+	{"ro",     COUNTRYNO::Romania        }, // Standard
+	{"ro446",  COUNTRYNO::Romania        }, // QWERTY
+	{"rh",     COUNTRYNO::United_States  }, // Right-Hand Dvorak
+	{"ru",     COUNTRYNO::Russia         }, // Standard
+	{"ru443",  COUNTRYNO::Russia         }, // Typewriter
+	{"rx",     COUNTRYNO::Russia         }, // Extended Standard
+	{"rx443",  COUNTRYNO::Russia         }, // Extended Typewriter
+	{"sd",     COUNTRYNO::Switzerland    }, // German
+	{"sf",     COUNTRYNO::Switzerland    }, // French
+	{"sg",     COUNTRYNO::Switzerland    }, // German
+	{"si",     COUNTRYNO::Slovenia       },
+	{"sk",     COUNTRYNO::Czech_Slovak   }, // Slovakia
+	{"sp",     COUNTRYNO::Spain          },
+	{"sq",     COUNTRYNO::Albania        }, // No-deadkeys
+	{"sq448",  COUNTRYNO::Albania        }, // Deadkeys
+	{"sr",     COUNTRYNO::Serbia         }, // Deadkey
+	{"su",     COUNTRYNO::Finland        },
+	{"sv",     COUNTRYNO::Sweden         },
+	{"sx",     COUNTRYNO::Spain          }, // International
+	{"tj",     COUNTRYNO::Tadjikistan    },
+	{"tm",     COUNTRYNO::Turkmenistan   },
+	{"tr",     COUNTRYNO::Turkey         }, // QWERTY
+	{"tr440",  COUNTRYNO::Turkey         }, // Non-standard
+	{"tt",     COUNTRYNO::Russia         }, // Tatarstan Standard
+	{"tt443",  COUNTRYNO::Russia         }, // Tatarstan Typewriter
+	{"ua",     COUNTRYNO::Ukraine        }, // 101-key
+	{"uk",     COUNTRYNO::United_Kingdom }, // Standard
+	{"uk168",  COUNTRYNO::United_Kingdom }, // Alternate
+	{"ur",     COUNTRYNO::Ukraine        }, // 101-key
+	{"ur465",  COUNTRYNO::Ukraine        }, // 101-key
+	{"ur1996", COUNTRYNO::Ukraine        }, // 101-key
+	{"ur2001", COUNTRYNO::Ukraine        }, // 102-key
+	{"ur2007", COUNTRYNO::Ukraine        }, // 102-key
+	{"us",     COUNTRYNO::United_States  }, // Standard
+	{"ux",     COUNTRYNO::United_States  }, // International
+	{"uz",     COUNTRYNO::Uzbekistan     },
+	{"vi",     COUNTRYNO::Vietnam        },
+	{"yc",     COUNTRYNO::Serbia         }, // Deadkey
+	{"yc450",  COUNTRYNO::Serbia         }, // No-deadkey
+	{"yu",     COUNTRYNO::Yugoslavia     },
+};
+
+void DOS_FlushSTDIN(void);
+
+
+extern unsigned char exepack_handling;
+
+enum {
+	EXEPACK_NONE,
+	EXEPACK_A20OFF,
+	EXEPACK_UNPACK
+};
 
 #endif

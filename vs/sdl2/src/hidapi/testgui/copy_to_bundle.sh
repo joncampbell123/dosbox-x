@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #### Configuration:
 # The name of the executable. It is assumed
@@ -14,7 +14,7 @@ EXEPATH=$PWD/TestGUI.app/Contents/MacOS
 LIBS_TO_BUNDLE=libFOX
 
 
-function copydeps {
+copydeps() {
 	local file=$1
 	# echo "Copying deps for $file...."
 	local BASE_OF_EXE=`basename $file`
@@ -44,7 +44,7 @@ function copydeps {
 			isOptLocal=1
 			echo "bundling $i because it's in /opt/local."
 		fi
-		
+
 		# Bundle the library
 		if [ $isOptLocal -ne 0 ] || [ $bundle_this_lib -ne 0 ]; then
 
@@ -55,15 +55,15 @@ function copydeps {
 				cp $i $EXEPATH
 				chmod 755 $EXEPATH/$BASE
 			fi
-			
-			
+
+
 			# echo "$BASE_OF_EXE depends on $BASE"
-			
+
 			# Fix the paths using install_name_tool and then
 			# call this function recursively for each dependency
-			# of this library. 
+			# of this library.
 			if [ $BASE_OF_EXE != $BASE ]; then
-			
+
 				# Fix the paths
 				install_name_tool -id @executable_path/$BASE $EXEPATH/$BASE
 				install_name_tool -change $i @executable_path/$BASE $EXEPATH/$BASE_OF_EXE

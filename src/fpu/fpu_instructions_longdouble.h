@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2021  The DOSBox Team
+ *  Copyright (C) 2002-2024  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,32 +16,19 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <cfenv> /* for std::feholdexcept */
 #include <math.h> /* for isinf, etc */
 #include "cpu/lazyflags.h"
 
-#ifdef __GNUC__
-# if defined(__MINGW32__) || (defined(MACOSX) && !defined(__arm64__))
-#  include "fpu_control_x86.h"
-# elif defined(ANDROID) || defined(__ANDROID__) || (defined(MACOSX) && defined(__arm64__)) || defined(EMSCRIPTEN)
-/* ? */
-#  define _FPU_SETCW(x) /* dummy */
-# else
-#  include <fpu_control.h>
-# endif
-static inline void FPU_SyncCW(void) {
-    _FPU_SETCW(fpu.cw);
-}
-#else
-static inline void FPU_SyncCW(void) {
-    /* nothing */
-}
-#endif
-
 static void FPU_FINIT(void) {
+	fenv_t buf;
+
 	fpu.cw.init();
-    FPU_SyncCW();
-    fpu.sw = 0;
-	TOP=FPU_GET_TOP();
+
+	// HACK: Disable all FPU exceptions until DOSBox-X can catch and reflect FPU exceptions to the guest
+	std::feholdexcept(&buf);
+
+    fpu.sw.init();
 	fpu.tags[0] = TAG_Empty;
 	fpu.tags[1] = TAG_Empty;
 	fpu.tags[2] = TAG_Empty;
@@ -54,7 +41,7 @@ static void FPU_FINIT(void) {
 }
 
 static void FPU_FCLEX(void){
-	fpu.sw &= 0x7f00;			//should clear exceptions
+	fpu.sw.clearExceptions();
 }
 
 static void FPU_FNOP(void){
@@ -173,7 +160,7 @@ static void FPU_FBLD(PhysPt addr,Bitu store_to) {
 	uint64_t base = 1;
 	for(Bitu i = 0;i < 9;i++){
 		in = mem_readb(addr + i);
-		val += ( (in&0xf) * base); //in&0xf shouldn't be higher then 9
+		val += ( (in&0xf) * base); //in&0xf shouldn't be higher than 9
 		base *= 10;
 		val += ((( in>>4)&0xf) * base);
 		base *= 10;
@@ -290,7 +277,8 @@ static void FPU_FBST(PhysPt addr) {
 #endif
 
 static void FPU_FADD(Bitu op1, Bitu op2){
-    FPU_SyncCW();
+	fenv_t buf;
+	std::feholdexcept(&buf);
 	// HACK: Set the denormal flag according to whether the source or final result is a denormalized number.
 	//       This is vital if we don't want certain DOS programs to mis-detect our FPU emulation as an IIT clone chip when cputype == 286
 	bool was_not_normal = isdenormal(fpu.regs_80[op1].v);
@@ -324,7 +312,8 @@ static void FPU_FCOS(void){
 }
 
 static void FPU_FSQRT(void){
-    FPU_SyncCW();
+	fenv_t buf;
+	std::feholdexcept(&buf);
 	fpu.regs_80[TOP].v = sqrtl(fpu.regs_80[TOP].v);
 	//flags and such :)
 	return;
@@ -343,35 +332,40 @@ static void FPU_FPTAN(void){
 	return;
 }
 static void FPU_FDIV(Bitu st, Bitu other){
-    FPU_SyncCW();
+	fenv_t buf;
+	std::feholdexcept(&buf);
 	fpu.regs_80[st].v = fpu.regs_80[st].v/fpu.regs_80[other].v;
 	//flags and such :)
 	return;
 }
 
 static void FPU_FDIVR(Bitu st, Bitu other){
-    FPU_SyncCW();
+	fenv_t buf;
+	std::feholdexcept(&buf);
 	fpu.regs_80[st].v = fpu.regs_80[other].v/fpu.regs_80[st].v;
 	// flags and such :)
 	return;
 }
 
 static void FPU_FMUL(Bitu st, Bitu other){
-    FPU_SyncCW();
+	fenv_t buf;
+	std::feholdexcept(&buf);
 	fpu.regs_80[st].v *= fpu.regs_80[other].v;
 	//flags and such :)
 	return;
 }
 
 static void FPU_FSUB(Bitu st, Bitu other){
-    FPU_SyncCW();
+	fenv_t buf;
+	std::feholdexcept(&buf);
 	fpu.regs_80[st].v = fpu.regs_80[st].v - fpu.regs_80[other].v;
 	//flags and such :)
 	return;
 }
 
 static void FPU_FSUBR(Bitu st, Bitu other){
-    FPU_SyncCW();
+	fenv_t buf;
+	std::feholdexcept(&buf);
 	fpu.regs_80[st].v = fpu.regs_80[other].v - fpu.regs_80[st].v;
 	//flags and such :)
 	return;
@@ -409,7 +403,7 @@ static void FPU_FCOM(Bitu st, Bitu other){
 	/* TODO: This should eventually become an option, say, a dosbox.conf option named fputype where the user can enter
 	 *       "none" for no FPU, 287 or 387 for cputype=286 and cputype=386, or "auto" to match the CPU (8086 => 8087).
 	 *       If the FPU type is 387 or auto, then skip this hack. Else for 8087 and 287, use this hack. */
-	if (CPU_ArchitectureType<CPU_ARCHTYPE_386) {
+	if (FPU_ArchitectureType<FPU_ARCHTYPE_387) {
 		if ((std::isinf)(fpu.regs_80[st].v) && (std::isinf)(fpu.regs_80[other].v)) {
 			/* 8087/287 consider -inf == +inf and that's what DOS programs test for to detect 287 vs 387 */
 			FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);return;
@@ -538,9 +532,8 @@ static void FPU_FSCALE(void){
 	return; //2^x where x is chopped.
 }
 
-static void FPU_FSTENV(PhysPt addr){
-	FPU_SET_TOP(TOP);
-	if(!cpu.code.big) {
+static void FPU_FSTENV(PhysPt addr, bool op16){
+	if (op16) {
 		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));
 		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
 		mem_writew(addr+4,static_cast<uint16_t>(FPU_GetTag()));
@@ -551,29 +544,25 @@ static void FPU_FSTENV(PhysPt addr){
 	}
 }
 
-static void FPU_FLDENV(PhysPt addr){
+static void FPU_FLDENV(PhysPt addr, bool op16){
 	uint16_t tag;
-	uint32_t tagbig;
-	Bitu cw;
-	if(!cpu.code.big) {
-		cw     = mem_readw(addr+0);
+	if (op16) {
+		fpu.cw = mem_readw(addr+0);
 		fpu.sw = mem_readw(addr+2);
 		tag    = mem_readw(addr+4);
 	} else { 
-		cw     = mem_readd(addr+0);
-		fpu.sw = (uint16_t)mem_readd(addr+4);
-		tagbig = mem_readd(addr+8);
-		tag    = static_cast<uint16_t>(tagbig);
+		fpu.cw = static_cast<uint16_t>(mem_readd(addr+0));
+		fpu.sw = static_cast<uint16_t>(mem_readd(addr+4));
+		tag    = static_cast<uint16_t>(mem_readd(addr+8));
 	}
 	FPU_SetTag(tag);
-	fpu.cw = cw;
-    FPU_SyncCW();
-	TOP = FPU_GET_TOP();
+	fenv_t buf;
+	std::feholdexcept(&buf);
 }
 
-static void FPU_FSAVE(PhysPt addr){
-	FPU_FSTENV(addr);
-	Bitu start = (cpu.code.big?28:14);
+static void FPU_FSAVE(PhysPt addr, bool op16){
+	FPU_FSTENV(addr, op16);
+	Bitu start = op16 ? 14:28;
 	for(Bitu i = 0;i < 8;i++){
 		FPU_ST80(addr+start,STV(i));
 		start += 10;
@@ -581,9 +570,9 @@ static void FPU_FSAVE(PhysPt addr){
 	FPU_FINIT();
 }
 
-static void FPU_FRSTOR(PhysPt addr){
-	FPU_FLDENV(addr);
-	Bitu start = (cpu.code.big?28:14);
+static void FPU_FRSTOR(PhysPt addr, bool op16){
+	FPU_FLDENV(addr, op16);
+	Bitu start = op16 ? 14:28;
 	for(Bitu i = 0;i < 8;i++){
 		fpu.regs_80[STV(i)].v = FPU_FLD80(addr+start);
 		start += 10;
@@ -616,39 +605,69 @@ static void FPU_FTST(void){
 	FPU_FCOM(TOP,8);
 }
 
+static inline void FPU_FLD_CONSTANT_ADJUST_DOWN()
+{
+	if (FPU_ArchitectureType >= FPU_ARCHTYPE_387)
+	{
+		if (fpu.cw.RC==FPUControlWord::RoundMode::Down ||
+		    fpu.cw.RC==FPUControlWord::RoundMode::Chop)
+		{
+			// On 32-bit x87 and later rounding mode affects the value
+			fpu.regs_80[TOP].f.mantissa--;
+		}
+	}
+}
+
+static inline void FPU_FLD_CONSTANT_ADJUST_UP()
+{
+	if (FPU_ArchitectureType >= FPU_ARCHTYPE_387)
+	{
+		if (fpu.cw.RC==FPUControlWord::RoundMode::Up)
+		{
+			// On 32-bit x87 and later rounding mode affects the value
+			fpu.regs_80[TOP].f.mantissa++;
+		}
+	}
+}
+
 static void FPU_FLD1(void){
 	FPU_PREP_PUSH();
-	fpu.regs_80[TOP].v = 1.0;
+	fpu.regs_80[TOP].v = 1.0L;
 }
 
 static void FPU_FLDL2T(void){
 	FPU_PREP_PUSH();
 	fpu.regs_80[TOP].v = L2T;
+	FPU_FLD_CONSTANT_ADJUST_UP();
 }
 
 static void FPU_FLDL2E(void){
 	FPU_PREP_PUSH();
 	fpu.regs_80[TOP].v = L2E;
+	FPU_FLD_CONSTANT_ADJUST_DOWN();
 }
 
 static void FPU_FLDPI(void){
 	FPU_PREP_PUSH();
 	fpu.regs_80[TOP].v = PI;
+	FPU_FLD_CONSTANT_ADJUST_DOWN();
 }
 
 static void FPU_FLDLG2(void){
 	FPU_PREP_PUSH();
 	fpu.regs_80[TOP].v = LG2;
+	FPU_FLD_CONSTANT_ADJUST_DOWN();
 }
 
 static void FPU_FLDLN2(void){
 	FPU_PREP_PUSH();
 	fpu.regs_80[TOP].v = LN2;
+	FPU_FLD_CONSTANT_ADJUST_DOWN();
 }
 
 static void FPU_FLDZ(void){
 	FPU_PREP_PUSH();
-	fpu.regs_80[TOP].v = 0.0;
+	fpu.regs_80[TOP].v = 0.0L;
 	fpu.tags[TOP] = TAG_Zero;
 }
 

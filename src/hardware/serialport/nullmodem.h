@@ -38,19 +38,21 @@ public:
 	CNullModem(Bitu id, CommandLine* cmd);
 	~CNullModem();
 
-	void updatePortConfig(uint16_t divider, uint8_t lcr);
-	void updateMSR();
-	void transmitByte(uint8_t val, bool first);
-	void setBreak(bool value);
+	void updatePortConfig(uint16_t divider, uint8_t lcr) override;
+	void updateMSR() override;
+	void transmitByte(uint8_t val, bool first) override;
+	void setBreak(bool value) override;
 	
-	void setRTSDTR(bool rts, bool dtr);
-	void setRTS(bool val);
-	void setDTR(bool val);
-	void handleUpperEvent(uint16_t type);
+	void setRTSDTR(bool rts, bool dtr) override;
+	void setRTS(bool val) override;
+	void setDTR(bool val) override;
+	void handleUpperEvent(uint16_t type) override;
+
+	SocketTypesE socketType = SOCKET_TYPE_TCP;
 
 private:
-	TCPServerSocket* serversocket;
-	TCPClientSocket* clientsocket;
+	NETServerSocket* serversocket;
+	NETClientSocket* clientsocket;
 
 	bool receiveblock;		// It's not a block of data it rather blocks
 	uint16_t serverport;		// we are a server if this is nonzero
@@ -66,11 +68,11 @@ private:
 #define N_RX_DISC		4
 
 	bool doReceive();
-	bool ClientConnect(TCPClientSocket* newsocket);
+	bool ClientConnect(NETClientSocket * newsocket);
 	bool ServerListen();
 	bool ServerConnect();
     void Disconnect();
-	Bits readChar();
+	Bits readChar(uint8_t &val);
 	void WriteChar(uint8_t data);
 
 	bool DTR_delta;		// with dtrrespect, we try to establish a connection
@@ -83,7 +85,7 @@ private:
 	Bitu rx_retry;		// counter of retries
 
 	Bitu rx_retry_max;	// how many POLL_EVENTS to wait before causing
-						// a overrun error.
+						// an overrun error.
 
 	Bitu tx_gather;		// how long to gather tx data before
 						// sending all of them [milliseconds]

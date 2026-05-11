@@ -17,6 +17,7 @@
  */
 
 #include "dosbox.h"
+#include "control.h"
 #include "logging.h"
 #include "setup.h"
 #include "video.h"
@@ -41,7 +42,11 @@
 #include <string>
 #include <stdio.h>
 
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
 /* Character Generator (CG) font access state */
+bool                        pc98_cg_kanji_dot_access_mode = false;
 uint16_t                    a1_font_load_addr = 0;
 uint8_t                     a1_font_char_offset = 0;
 
@@ -50,6 +55,9 @@ uint8_t                     a1_font_char_offset = 0;
  * a 1986 book published about NEC BIOS and BASIC ROM. */
 Bitu pc98_a1_read(Bitu port,Bitu iolen) {
     (void)iolen;//UNUSED
+
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("pc98"));
+
     switch (port) {
         case 0xA9: // an 8-bit I/O port to access font RAM by...
             // NOTES: On a PC-9821 Lt2 laptop, the character ROM doesn't seem to latch valid data beyond
@@ -57,7 +65,23 @@ Bitu pc98_a1_read(Bitu port,Bitu iolen) {
             //        on the bus can read back nonzero. This doesn't apply to 0x0000-0x00FF of course (single wide
             //        characters), but only to the double-wide character set where (c & 0x007F) >= 0x5D.
             //        This behavior should be emulated. */
-            return pc98_font_char_read(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1);
+            //
+            //        On some (most?) models, reading from the character generator outside of VSync
+            //        (always with ANK, in Code Access mode with Kanji) is invalid and returns 0xFF.
+            if (
+                // Configured to ignore
+                (!section->Get_bool("pc-98 chargen vsync-limited access"))
+
+                // Kanji, Dot Access
+                || (((a1_font_load_addr & 0xFF00) != 0) && pc98_cg_kanji_dot_access_mode)
+                // Kanji, Code Access & ANK
+                || (pc98_gdc[GDC_MASTER].read_status() & 0x20)
+            ) {
+                return pc98_font_char_read(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1);
+            } else {
+                LOG_MSG("A9 port attempt to read char 0x%04x/line %X in code access mode outside of vsync",a1_font_load_addr,a1_font_char_offset & 0xF);
+                return ~0ul;
+            }
         default:
             break;
     }
@@ -83,7 +107,7 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
         case 0xA5:
             /* From documentation:
              *
-             *    bit [7:6] = Dont care
+             *    bit [7:6] = Don't care
              *    bit [5]   = L/R
              *    bit [4]   = 0
              *    bit [3:0] = C3-C0
@@ -110,7 +134,7 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
                    // I'm also guessing that this RAM is not involved with the single-wide
                    // character set, which is why writes to 0x0056/0x0057 are redirected to
                    // 0x8056/0x8057. Without this hack, Touhou Project 2 will overwrite
-                   // the letter 'W' when loading it's font data (Level 1 will show "Eastern  ind"
+                   // the letter 'W' when loading its font data (Level 1 will show "Eastern  ind"
                    // instead of "Eastern Wind" for the music title as a result).
                    //
                    // On real hardware it seems, attempts to write anywhere outside 0xxx56/0xxx57

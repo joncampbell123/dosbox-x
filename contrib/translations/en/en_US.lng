@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:English (United States)
 :DOSBOX-X:CODEPAGE:437
-:DOSBOX-X:VERSION:0.83.20
+:DOSBOX-X:VERSION:2026.05.02
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -50,8 +50,11 @@ Cancel
 :CLOSE
 Close
 .
-:UPDATE
-Update
+:THEME
+Theme
+.
+:DEBUGCMD
+Enter Debugger Command
 .
 :ADD
 Add
@@ -101,8 +104,8 @@ Edit %s
 :HELP_FOR
 Help for %s
 .
-:CONFIGURATION_FOR
-Configuration for %s
+:SELECT_VALUE
+Select property value
 .
 :CONFIGURATION
 Configuration
@@ -144,7 +147,7 @@ Current sound mixer volumes
 Sound Blaster configuration
 .
 :CURRENT_MIDICONFIG
-Current MIDI configuration
+Current MIDI/OPL configuration
 .
 :CREATE_IMAGE
 Create blank disk image
@@ -157,9 +160,6 @@ Printer device list
 .
 :INTRODUCTION
 Introduction
-.
-:CONFIGURE_GROUP
-Choose a settings group to configure:
 .
 :SHOW_ADVOPT
 Show advanced options
@@ -188,7 +188,7 @@ Language name (optional):
 :INTRO_MESSAGE
 Welcome to DOSBox-X, a free and complete DOS emulation package.
 DOSBox-X creates a DOS shell which looks like the plain DOS.
-You can also run Windows 3.x and 95/98 inside the DOS machine.
+You can also run Windows 3.x and 9x/Me inside the DOS machine.
 .
 :DRIVE
 Drive
@@ -217,17 +217,11 @@ Empty slot
 :SLOT
 Slot
 .
-:PREVIOUS_PAGE
-< Previous Page
-.
-:NEXT_PAGE
-    Next Page >
-.
 :SELECT_EVENT
 Select an event to change.
 .
 :SELECT_DIFFERENT_EVENT
-Select a different event or hit the Add/Del/Next buttons.
+Select an event or press Add/Del/Next buttons.
 .
 :PRESS_JOYSTICK_KEY
 Press a key/joystick button or move the joystick.
@@ -454,6 +448,14 @@ Drive %c is mounted as %s
 The currently mounted drives are:
 
 .
+:PROGRAM_MOUNT_NOT_FORMATTED
+Drive not formatted. Format it before accessing the drive.
+
+.
+:PROGRAM_MOUNT_UNSUPPORTED_EXT
+Unsupported extension %s: Mounted as raw IMG image.
+
+.
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
 %-5s  %-47s  %-12s  %s
 
@@ -511,7 +513,8 @@ Usage: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_directo
  -t               Specify the drive type the mounted drive to behave as.
                   Supported drive type: dir, floppy, cdrom, overlay
  (Note that 'overlay' redirects writes for mounted drive to another directory)
- -label [name]    Set the volume label name of the drive (all upper case)
+ -label [name]    Set the volume label name of the drive (all upper case).
+ -nl              Use next available drive letter if the drive is mounted.
  -ro              Mount the drive in read-only mode.
  -pr              Specify the path is relative to the config file location.
  -cd              Generate a list of local CD drive's "drive #" values.
@@ -526,7 +529,6 @@ Usage: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_directo
  -u               Unmount the drive.
  ←[32;1m-examples        Show some usage examples.←[0m
 Type MOUNT with no parameters to display a list of mounted drives.
-
 .
 :PROGRAM_MOUNT_EXAMPLE
 A basic example of MOUNT command:
@@ -743,7 +745,7 @@ Windows users must open cmd.exe or edit the shortcut to DOSBox-X.exe for this.
 dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf congfigfile] [-lang languagefile] [-machine machinetype]
          [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
-         [-noconsole] [-c command] [-set <section property=value>]
+         [-o options] [-c command] [-set <section property=value>]
 
 
 .
@@ -774,9 +776,9 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 ←[33;1m  -lang←[0m languagefile
 ○Start DOSBox-X using the language specified in languagefile.
 
-←[33;1m  -noconsole←[0m (Windows Only)
-○Start DOSBox-X without showing the console window. Output will
-○be redirected to stdout.txt and stderr.txt
+←[33;1m  -startmapper←[0m
+○Enter the keymapper directly on startup. Useful for people with
+○keyboard problems.
 
 ←[33;1m  -machine←[0m machinetype
 ○Setup DOSBox-X to emulate a specific type of machine. Valid choices:
@@ -786,12 +788,12 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 .
 :PROGRAM_INTRO_USAGE_3
-←[33;1m  -startmapper←[0m
-○Enter the keymapper directly on startup. Useful for people with
-○keyboard problems.
-
 ←[33;1m  -noautoexec←[0m
 ○Skips the [autoexec] section of the loaded configuration file.
+
+←[33;1m  -o←[0m options
+○Provides command-line option(s) for "name" if an executable name is
+○specified. Multiple -o can be used for multiple executable names.
 
 ←[33;1m  -c←[0m command
 ○Runs the specified command before running name. Multiple commands
@@ -809,7 +811,6 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 For information about basic mount, type ←[34;1mintro mount←[0m
 For information about CD-ROM support, type ←[34;1mintro cdrom←[0m
-For information about special keys, type ←[34;1mintro special←[0m
 For information about usage, type ←[34;1mintro usage←[0m
 
 For the latest version of DOSBox-X, go to its homepage:←[34;1m
@@ -897,7 +898,7 @@ drive (C or D), ensure the image is already mounted by ←[34;1mIMGMOUNT←[0m c
 
 The syntax of this command is one of the following:
 
-←[34;1mBOOT [driveletter:]←[0m
+←[34;1mBOOT [driveletter:] [-convertfat|-convertfatro|-noconvertfat]←[0m
 
 ←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]←[0m
 
@@ -912,6 +913,10 @@ Examples:
 .
 :PROGRAM_BOOT_UNABLE
 Unable to boot off of drive %c.
+
+.
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Floppy image(s) already mounted.
 
 .
 :PROGRAM_BOOT_IMAGE_OPEN
@@ -930,6 +935,9 @@ Available PCjr cartridge commandos:%s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 No PCjr cartridge commandos found
+.
+:PROGRAM_BOOT_BOOTING
+Booting from drive 
 .
 :PROGRAM_LOADROM_HELP
 Loads the specified ROM image file for video BIOS or IBM BASIC.
@@ -1010,10 +1018,6 @@ Must specify drive number (0 to %d) to mount image at (0,1=fda,fdb;2,3=hda,hdb).
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
 Could not load image file.
 Check that the path is correct and the image is accessible.
-
-.
-:PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
-Dynamic VHD files are not supported.
 
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
@@ -1134,19 +1138,18 @@ Usage: ←[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc]
     ←[33;1mFloppy disk templates←[0m (names resolve to floppy sizes in KB or fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
     ←[33;1mHard disk templates:←[0m
-     hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image
-     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image
-     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)
-    ←[33;1mCustom hard disk images:←[0m hd (requires -size or -chs)
-  -size: Size of a custom hard disk image in MB.
+     hd_250: 250MB, hd_520: 520MB, hd_1gig: 1GB, hd_2gig: 2GB, hd_4gig: 4GB,
+     hd_8gig: 8GB, hd_st251: 40MB, hd_st225: 20MB (geometry from old drives)
+    ←[33;1mCustom hard disks:←[0m hd vhd (requires -size or -chs)
+  -size: Size of a custom hard disk image in MB (vhd: up to 2088960).
   -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).
   -nofs: Add this parameter if a blank image should be created.
-  -force: Force to overwrite the existing image file.
+  -force: Overwrite existing image file. -chs / -lba: Choose C/H/S or LBA.
   -bat: Create a .bat file with the IMGMOUNT command required for this image.
-  -fat: FAT filesystem type (12, 16, or 32).
-  -spc: Sectors per cluster override. Must be a power of 2.
-  -fatcopies: Override number of FAT table copies.
-  -rootdir: Size of root directory in entries. Ignored for FAT32.
+  -fat: Type (12, 16, or 32). -fatcopies: FAT table copies.
+  -spc: Sectors per cluster (must be power of 2). -label Drive label.
+  -rootdir: Root directory entries. -partofs: Start of hd partition.
+  -align: Align filesystem structures. In sectors, or add 'K' suffix for KB.
   -source: drive letter - if specified the image is read from a floppy disk.
   -retries: how often to retry when attempting to read a bad floppy disk(1-99).
   ←[32;1m-examples: Show some usage examples.←[0m
@@ -1157,6 +1160,7 @@ Some usage examples of IMGMAKE:
   ←[32;1mIMGMAKE -t fd←[0m                   - create a 1.44MB floppy image ←[33;1mIMGMAKE.IMG←[0m
   ←[32;1mIMGMAKE -t fd_1440 -force←[0m       - force to create a floppy image ←[33;1mIMGMAKE.IMG←[0m
   ←[32;1mIMGMAKE dos.img -t fd_2880←[0m      - create a 2.88MB floppy image named dos.img
+  ←[32;1mIMGMAKE new.vhd -t vhd -size 520←[0m- create a 520MB Dynamic VHD named new.vhd
   ←[32;1mIMGMAKE c:\disk.img -t hd -size 50←[0m      - create a 50MB HDD image c:\disk.img
   ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m     - create a 520MB blank HDD image
   ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m  - create a 2GB FAT32 HDD image
@@ -1183,7 +1187,7 @@ The file "%s" cannot be opened for writing.
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-Not enough space availible for the image file. Need %u bytes.
+Not enough space available for the image file. Need %llu bytes.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
@@ -1194,6 +1198,10 @@ Creating image file "%s" with %u cylinders, %u heads and %u sectors
 
 
 Unable to read floppy.
+.
+:PROGRAM_IMGMAKE_BADSIZE
+Wrong -size or -chs arguments.
+
 .
 :PROGRAM_KEYB_INFO
 Codepage %i has been loaded
@@ -1206,13 +1214,19 @@ Codepage %i has been loaded for layout %s
 :PROGRAM_KEYB_SHOWHELP
 Configures a keyboard for a specific language.
 
-KEYB [keyboard layout ID [codepage number [codepage file]]]
+Usage: ←[32;1mKEYB←[0m [keyboard layout ID [codepage number [codepage file]]]
+  layout ID        Name of layout or keyboard file (.kl) to load
+  codepage number  Number of codepage to load
+  codepage file    .cpi/.cpx file including specified codepage information
+  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
+   executable exists.)
 
 Some examples:
   ←[32;1mKEYB←[0m          Display currently loaded codepage.
   ←[32;1mKEYB sp←[0m       Load the Spanish (SP) layout, use an appropriate codepage.
   ←[32;1mKEYB sp 850←[0m   Load the Spanish (SP) layout, use codepage 850.
   ←[32;1mKEYB sp 850 mycp.cpi←[0m Same as above, but use file mycp.cpi.
+  ←[32;1mKEYB sp_mod 850←[0m      Load keyboard layout from sp_mod.kl, use codepage 850.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1220,7 +1234,7 @@ Keyboard layout %s loaded for codepage %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Keyboard file %s not found
+Keyboard file %s not found (or not a valid ID)
 
 
 .
@@ -1237,6 +1251,37 @@ None or invalid codepage file for layout %s
 
 
 .
+:INT21_6523_YESNO_CHARS
+yn
+.
+:PROGRAM_LABEL_HELP
+Creates, changes, or deletes the volume label of a drive.
+
+LABEL [drive:][label]
+
+  [drive:]○Specifies the drive letter
+  [label]○Specifies the volume label
+
+.
+:PROGRAM_LABEL_DELETE
+Delete the volume label (Y/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+Label is too long (more than 11 characters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+Label has invalid characters.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+Volume in drive %c is %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+Volume in drive %c has no label
+
+.
 :PROGRAM_MODE_USAGE
 Configures system devices.
 
@@ -1251,6 +1296,102 @@ Invalid parameter(s).
 .
 :PROGRAM_PORT_INVALID_NUMBER
 Must specify a port number between 1 and 9.
+
+.
+:PROGRAM_VHDMAKE_WRITERR
+Could not write to new VHD image "%s", aborting.
+
+.
+:PROGRAM_VHDMAKE_REMOVEERR
+Could not erase file "%s"
+
+.
+:PROGRAM_VHDMAKE_RENAME
+You'll have to manually rename the newly created VHD image.
+
+.
+:PROGRAM_VHDMAKE_SUCCESS
+New VHD image successfully created. You can mount it with ←[34;1mIMGMOUNT←[0m.
+
+.
+:PROGRAM_VHDMAKE_ERROPEN
+Error, could not open image file "%s".
+
+.
+:PROGRAM_VHDMAKE_BADSIZE
+Bad VHD size specified, aborting!
+
+.
+:PROGRAM_VHDMAKE_FNEEDED
+A pre-existing VHD image can't be silently overwritten without -f option!
+
+.
+:PROGRAM_VHDMAKE_BADPARENT
+The parent VHD image "%s" can't be opened for linking, aborting!
+
+.
+:PROGRAM_VHDMAKE_NOINFO
+Couldn't query info for "%s".
+
+.
+:PROGRAM_VHDMAKE_BLOCKSTATS
+ with %d/%d blocks allocated.
+
+.
+:PROGRAM_VHDMAKE_INFO
+VHD "%s" type is %s.
+Its virtual size is %.02f MB
+.
+:PROGRAM_VHDMAKE_CANTMERGE
+%s is not a Differencing disk, can't merge!
+
+.
+:PROGRAM_VHDMAKE_MERGEREPORT
+%d sectors in %d blocks from "%s" merged into "%s".
+
+.
+:PROGRAM_VHDMAKE_MERGENODELETE
+Couldn't remove snapshot "%s", you'll have to do it yourself!
+.
+:PROGRAM_VHDMAKE_MERGEOKDELETE
+Snapshot VHD merged and deleted.
+
+.
+:PROGRAM_VHDMAKE_MERGEFAILED
+Failure while merging, aborted!
+
+.
+:PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
+ Parent "%s" contents could be corrupted!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH
+Warning: an absolute path to parent prevents portability.
+Please prefer a path relative to the differencing image file!
+
+.
+:PROGRAM_VHDMAKE_HELP
+Creates Dynamic or Differencing VHD images, converts raw images into Fixed VHD,
+shows information about VHD images and merges them.
+←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
+←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
+←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
+←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
+←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
+ -c | -convert  convert a raw hd image to Fixed VHD, renaming it to new.vhd
+ -l | -link     create a new Differencing VHD new.vhd and link it to the
+                pre-existing parent image parent.vhd
+ -f | -force    force overwriting a pre-existing image file
+ -i | -info     show useful information about a.vhd image
+ -m | -merge    merge differencing delta.vhd to its parent
+ new.vhd        name of the new Dynamic VHD image to create
+ size           disk size (eventually with size unit, Bytes is implicit)
+When converting a raw disk image to Fixed VHD, it has to be partitioned with
+MBR scheme and formatted with FAT format.
+When creating a Dynamic VHD, its size must range from 3 MB to 2040 GB.
+The Dynamic VHD created is not partitioned nor formatted: to directly mount to
+a drive letter with ←[34;1mIMGMOUNT←[0m, please consider using ←[34;1mIMGMAKE←[0m instead.
+A merged snapshot VHD is automatically deleted if merge is successful.
 
 .
 :SHELL_CMD_TREE_ERROR
@@ -1401,6 +1542,12 @@ Unable to create directory - %s
 Invalid path, not directory, or directory not empty - %s
 
 .
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Delete directory "%s" and all its subdirectories? (Y/N)?
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Delete file "%s" (Y/N)?
+.
 :SHELL_CMD_RENAME_ERROR
 Unable to rename - %s
 
@@ -1416,6 +1563,9 @@ Unable to set attributes: %s
 :SHELL_CMD_DEL_ERROR
 Unable to delete - %s
 
+.
+:SHELL_CMD_DEL_CONFIRM
+Delete %s (Y/N)?
 .
 :SHELL_CMD_DEL_SURE
 All files in directory will be deleted!
@@ -1537,6 +1687,11 @@ Insufficient disk space - %s
 Copy error - %s
 
 .
+:SHELL_CMD_COPY_NOSELF
+File cannot be copied onto itself
+
+
+.
 :SHELL_CMD_SUBST_DRIVE_LIST
 The currently mounted local drives are:
 
@@ -1568,6 +1723,9 @@ DOS/V V-text is currently enabled.
 :SHELL_CMD_VTEXT_OFF
 DOS/V V-text is currently disabled.
 
+.
+:SHELL_ALLFILES_CHAR
+a
 .
 :SHELL_STARTUP_TITLE
 Welcome to DOSBox-X !
@@ -1823,6 +1981,16 @@ GOTO label
 You type a label on a line by itself, beginning with a colon.
 
 .
+:SHELL_CMD_HISTORY_HELP
+Displays or clears the command history list.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  Clears the command history list.
+
+.
 :SHELL_CMD_SHIFT_HELP
 Changes the position of replaceable parameters in a batch file.
 
@@ -1963,15 +2131,19 @@ LOADHIGH        [drive:][path]filename [parameters]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Waits for a keypress and sets ERRORLEVEL.
+Waits for a user keypress to choose one of a set of choices.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choices] [/N] [/S] text
-  /C[:]choices  -  Specifies allowable keys.  Default is: yn.
-  /N  -  Do not display the choices at end of prompt.
-  /S  -  Enables case-sensitive choices to be selected.
-  text  -  The text to display as a prompt.
+CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text
+
+  /C[:]choices Specifies allowable keys.  Default is: yn.
+  /N           Do not display the choices at end of prompt.
+  /S           Enables case-sensitive choices to be selected.
+  /T[:]c,nn    Default choice to c after nn seconds.
+  text         The text to display as a prompt.
+
+ERRORLEVEL is set to offset of key user presses in choices.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -2108,21 +2280,36 @@ Type ALIAS without parameters to display the list of aliases in the form:
 `ALIAS NAME = VALUE'
 
 .
+:SHELL_CMD_ASSOC_HELP
+Displays or changes file extension associations.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.ext[=command] ... ]
+
+Type ASSOC without parameters to display the current file associations.
+File extensions must start with a dot (.); wildcards (* and ?) are allowed.
+
+.
 :SHELL_CMD_CHCP_HELP
 Displays or changes the current DOS code page.
 
 .
 :SHELL_CMD_CHCP_HELP_LONG
 CHCP [nnn [file]]
+CHCP nnn[:[language]]
 
-  nnn   Specifies a code page number.
-  file  Specifies a code page file.
+  nnn      Specifies a code page number.
+  file     Specifies a code page file.
+  language Specifies a corresponding language.
 
 Supported code pages for changing in the TrueType font output:
 
-437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
+437,737,775,808,850,852,853,855-869,872,874,1250-1258,3021
 
-Also double-byte code pages including 932, 936, 949, and 950.
+Also double-byte code pages including 932, 936, 949, and 950/951.
+
+Customized code pages are supported by providing code page files.
 
 .
 :SHELL_CMD_CHCP_ACTIVE
@@ -2146,7 +2333,7 @@ COUNTRY [nnn]
 
   nnn   Specifies a country code.
 
-Date and time formats will be affected by the specified country code.
+Country-specific information such as date and time formats will be affected.
 
 .
 :SHELL_CMD_CTTY_HELP
@@ -2181,10 +2368,10 @@ Runs program with video or audio capture.
 
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
-DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [/O|/-O] [command] [options]
 
 It will start video or audio capture, run program, and then automatically stop capture when the program exits.
-
+ /V for video, /A for audio, /M multi-track audio and /O for OPL FM (DROv2 format)
 .
 :SHELL_CMD_DEBUGBOX_HELP
 Runs program and breaks into debugger at entry point.
@@ -2222,6 +2409,9 @@ Quick launch program...
 :MENU:mapper_shutdown
 Quit from DOSBox-X
 .
+:MENU:mapper_capkeyboard
+Capture keyboard
+.
 :MENU:mapper_capmouse
 Capture mouse
 .
@@ -2236,6 +2426,12 @@ Pasting from the clipboard
 .
 :MENU:mapper_pasteend
 Stop clipboard pasting
+.
+:MENU:mapper_ejectpage
+Send form-feed
+.
+:MENU:mapper_printtext
+Print DOS text screen
 .
 :MENU:mapper_pause
 Pause emulation
@@ -2255,11 +2451,23 @@ Toggle fullscreen
 :MENU:mapper_resetsize
 Reset window size
 .
+:MENU:mapper_dbcssbcs
+CJK: Switch between DBCS/SBCS modes
+.
+:MENU:mapper_autoboxdraw
+CJK: Auto-detect box-drawing characters
+.
 :MENU:mapper_incsize
 Increase TTF font size
 .
 :MENU:mapper_decsize
 Decrease TTF font size
+.
+:MENU:mapper_resetcolor
+Reset TTF color scheme
+.
+:MENU:mapper_pwrbutton
+APM power button
 .
 :MENU:mapper_togmenu
 Hide/show menu bar
@@ -2322,37 +2530,43 @@ Emulate CPU speed
 486DX5 133MHz (~47810 cycles)
 .
 :MENU:cpu586-60
-Pentium 60MHz (~31545 cycles)
+Pentium 60MHz (~32090 cycles)
 .
 :MENU:cpu586-66
 Pentium 66MHz (~35620 cycles)
 .
 :MENU:cpu586-75
-Pentium 75MHz (~43500 cycles)
+Pentium 75MHz (~40072 cycles)
 .
 :MENU:cpu586-90
-Pentium 90MHz (~52000 cycles)
+Pentium 90MHz (~48087 cycles)
 .
 :MENU:cpu586-100
-Pentium 100MHz (~60000 cycles)
+Pentium 100MHz (~53430 cycles)
 .
 :MENU:cpu586-120
-Pentium 120MHz (~74000 cycles)
+Pentium 120MHz (~64180 cycles)
 .
 :MENU:cpu586-133
-Pentium 133MHz (~80000 cycles)
+Pentium 133MHz (~71240 cycles)
 .
 :MENU:cpu586-166
-Pentium 166MHz MMX (~97240 cycles)
+Pentium 166MHz MMX (~95548 cycles)
 .
-:MENU:cpuak6-166
-AMD K6 166MHz (~110000 cycles)
+:MENU:cpu586-200
+Pentium 200MHz MMX (~114657 cycles)
 .
 :MENU:cpuak6-200
 AMD K6 200MHz (~130000 cycles)
 .
 :MENU:cpuak6-300
 AMD K6-2 300MHz (~193000 cycles)
+.
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 cycles)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 cycles)
 .
 :MENU:VideoMenu
 Video
@@ -2393,11 +2607,47 @@ Off
 :MENU:frameskip_10
 10 frame
 .
+:MENU:VideoRatioMenu
+Aspect ratio
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_3_2
+3:2
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+Original ratio
+.
+:MENU:video_ratio_set
+Set ratio
+.
+:MENU:VideoPreventCaptureMenu
+Screen capture control
+.
+:MENU:prevcap_none
+Allow
+.
+:MENU:prevcap_blank
+Show as blank
+.
+:MENU:prevcap_invisible
+Make invisible
+.
 :MENU:VideoScalerMenu
 Scaler
-.
-:MENU:scaler_forced
-Force scaler
 .
 :MENU:scaler_set_none
 None
@@ -2486,8 +2736,17 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
 .
+:MENU:center_window
+Center window
+.
+:MENU:set_titletext
+Set title bar text...
+.
+:MENU:set_transparency
+Set transparency...
+.
 :MENU:refresh_rate
-Refresh rate...
+Adjust refresh rate...
 .
 :MENU:VideoOutputMenu
 Output
@@ -2509,6 +2768,9 @@ OpenGL perfect
 .
 :MENU:output_ttf
 TrueType font
+.
+:MENU:output_gamelink
+Game Link
 .
 :MENU:doublescan
 Doublescan
@@ -2609,9 +2871,6 @@ Screen: 132 columns x 60 lines
 :MENU:VideoTTFMenu
 TTF options
 .
-:MENU:ttf_resetcolor
-Reset TTF color scheme
-.
 :MENU:ttf_showbold
 Display bold text in TTF
 .
@@ -2647,12 +2906,6 @@ Display text from right to left
 .
 :MENU:ttf_printfont
 Use current TTF font for printing
-.
-:MENU:ttf_dbcs_sbcs
-CJK: Switch between DBCS/SBCS modes
-.
-:MENU:ttf_autoboxdraw
-CJK: Auto-detect box-drawing characters
 .
 :MENU:ttf_halfwidthkana
 CJK: Allow half-width Japanese Katakana
@@ -2727,7 +2980,7 @@ Show sound mixer volumes
 Show Sound Blaster configuration
 .
 :MENU:midi_info
-Show MIDI device configuration
+Show MIDI/OPL device configuration
 .
 :MENU:DOSMenu
 DOS
@@ -2806,6 +3059,15 @@ EMM386 emulation
 .
 :MENU:dos_ems_false
 Disable EMS emulation
+.
+:MENU:DOSDiskRateMenu
+Limit disk transfer speed
+.
+:MENU:limit_hdd_rate
+Limit hard disk data rate
+.
+:MENU:limit_floppy_rate
+Limit floppy disk data rate
 .
 :MENU:DOSWinMenu
 Host system applications
@@ -2930,6 +3192,9 @@ Boot from drive
 :MENU:drive_bootimg
 Boot from disk image
 .
+:MENU:drive_saveimg
+Save to disk image
+.
 :MENU:HelpMenu
 Help
 .
@@ -2957,6 +3222,12 @@ About DOSBox-X
 :MENU:show_console
 Show logging console
 .
+:MENU:clear_console
+Clear logging console
+.
+:MENU:disable_logging
+Disable logging output
+.
 :MENU:wait_on_error
 Console wait on error
 .
@@ -2977,6 +3248,9 @@ Debugger option: Run normal
 .
 :MENU:debugger_runwatch
 Debugger option: Run watch
+.
+:MENU:video_debug_overlay
+Video debug overlay
 .
 :MENU:HelpCommandMenu
 DOS commands
@@ -3044,6 +3318,9 @@ Increase frameskip
 :MENU:mapper_aspratio
 Fit to aspect ratio
 .
+:MENU:mapper_fscaler
+Force scaler
+.
 :MENU:mapper_recwave
 Record audio to WAV
 .
@@ -3056,29 +3333,17 @@ Record MIDI output
 :MENU:mapper_caprawopl
 Record FM (OPL) output
 .
+:MENU:mapper_capnetrf
+Record network traffic
+.
 :MENU:mapper_video
 Record video to AVI
 .
 :MENU:mapper_scrshot
 Take screenshot
 .
-:MENU:mapper_debugger
-Start DOSBox-X Debugger
-.
-:MENU:mapper_volup
-Increase volume
-.
-:MENU:mapper_voldown
-Decrease volume
-.
-:MENU:mapper_recvolup
-Increase recording volume
-.
-:MENU:mapper_recvoldown
-Decrease recording volume
-.
-:MENU:mapper_sendkey_mapper
-Send special key
+:MENU:mapper_rawscrshot
+Take raw screenshot
 .
 :MENU:mapper_cycledown
 Decrement cycles
@@ -3149,8 +3414,26 @@ Pentium Pro
 :MENU:cputype_pentium_ii
 Pentium II
 .
+:MENU:cputype_pentium_iii
+Pentium III
+.
 :MENU:cputype_experimental
 Experimental
+.
+:MENU:mapper_volup
+Increase volume
+.
+:MENU:mapper_voldown
+Decrease volume
+.
+:MENU:mapper_recvolup
+Increase recording volume
+.
+:MENU:mapper_recvoldown
+Decrease recording volume
+.
+:MENU:mapper_sendkey_mapper
+Send special key
 .
 :MENU:debug_pageflip
 Page flip debug line
@@ -3164,8 +3447,8 @@ Swap floppy drive
 :MENU:mapper_swapcd
 Swap CD drive
 .
-:MENU:mapper_ejectpage
-Send form-feed
+:MENU:mapper_debugger
+Start DOSBox-X Debugger
 .
 :MENU:mapper_rescanall
 Rescan all drives
@@ -3182,8 +3465,8 @@ Restart DOSBox-X instance
 :MENU:restartconf
 Restart DOSBox-X with config file...
 .
-:MENU:restartlang
-Restart DOSBox-X with language file...
+:MENU:loadlang
+Load language file...
 .
 :MENU:auto_lock_mouse
 Autolock mouse
@@ -3282,7 +3565,7 @@ Convert to Ctrl+W/Z keys
 Enable for guest systems also
 .
 :MENU:doublebuf
-Double Buffering (Fullscreen)
+Double buffering (fullscreen)
 .
 :MENU:alwaysontop
 Always on top
@@ -3308,11 +3591,11 @@ Show mounted drive numbers
 :MENU:list_ideinfo
 Show IDE disk or CD status
 .
-:MENU:print_textscreen
-Print DOS text screen
-.
 :MENU:pc98_use_uskb
 Use US keyboard layout
+.
+:MAPPER:capnetrf
+Record Network traffic
 .
 :MAPPER:caprawopl
 Record FM/OPL output
@@ -3362,6 +3645,9 @@ Pause with interrupt
 :MAPPER:prevslot
 Previous save slot
 .
+:MAPPER:printtext
+Print text screen
+.
 :MAPPER:quickrun
 Quick launch program
 .
@@ -3369,19 +3655,16 @@ Quick launch program
 Reboot DOS system
 .
 :MAPPER:recmtwave
-Record to M.T. AVI
-.
-:MAPPER:recvoldown
-Decrease rec. volume
-.
-:MAPPER:recvolup
-Increase rec. volume
+Record to multi-track AVI
 .
 :MAPPER:rescanall
 Rescan drives
 .
 :MAPPER:reset
 Reset DOSBox-X
+.
+:MAPPER:resetcolor
+Reset color scheme
 .
 :MAPPER:showstate
 Display state info
@@ -3391,4 +3674,853 @@ CPU: simple core
 .
 :MAPPER:togmenu
 Toggle menu bar
+.
+:PROGRAM_FLAGSAVE_UNFLAGALL
+All files unflagged for saving.
+
+.
+:PROGRAM_FLAGSAVE_UNFLAGGED
+File %s unflagged for saving.
+
+.
+:PROGRAM_FLAGSAVE_FLAGGED
+File already flagged for saving - %s
+
+.
+:PROGRAM_FLAGSAVE_TOOMANY
+Too many files to flag for saving.
+
+.
+:PROGRAM_FLAGSAVE_SAVED
+File %s flagged for saving
+
+.
+:PROGRAM_FLAGSAVE_LIST
+Files flagged for saving:
+.
+:PROGRAM_FLAGSAVE_HLP
+Marks or flags files to be saved for the save state feature.
+
+FLAGSAVE [file(s) [/F] [/R]] [/U]
+
+  file(s)     Specifies one or more files to be flagged for saving.
+  /F          Forces to flag the file(s) even if they are not found.
+  /R          Removes flags from the specified file(s).
+  /U          Removes flags from all flagged files.
+
+Type FLAGSAVE without a parameter to list flagged files.
+
+.
+:PROGRAM_INT2FDBG_NOT_SET
+INT 2Fh hook has not been set.
+
+.
+:PROGRAM_INT2FDBG_ALREADY
+INT 2Fh hook has already been set.
+
+.
+:PROGRAM_INT2FDBG_HELP
+Hooks INT 2Fh for debugging purposes.
+
+INT2FDBG [option]
+  /I      Installs hook
+  
+It will hook INT 2Fh at the top of the call chain for debugging information.
+
+Type INT2FDBG without a parameter to show the current hook status.
+.
+:PROGRAM_SET80x25
+Changes to 80x25 text mode.
+.
+:PROGRAM_SET80x43
+Changes to 80x43 text mode.
+.
+:PROGRAM_SET80x50
+Changes to 80x50 text mode.
+.
+:PROGRAM_SET80x60
+Changes to 80x60 text mode.
+.
+:PROGRAM_SET132x25
+Changes to 132x25 text mode.
+.
+:PROGRAM_SET132x43
+Changes to 132x43 text mode.
+.
+:PROGRAM_SET132x50
+Changes to 132x50 text mode.
+.
+:PROGRAM_SET132x60
+Changes to 132x60 text mode.
+.
+:PROGRAM_RESCAN_HELP
+Rescans for changes on mounted drives made on the host by clearing caches.
+
+RESCAN [/A] [/Q]
+RESCAN [drive:] [/Q]
+
+  [/A]     Rescan all drives
+  [/Q]     Enable quiet mode
+  [drive:] The drive to rescan
+
+Type RESCAN with no parameters to rescan the current drive.
+
+.
+:PROGRAM_CFGTOOL_HELP
+Starts DOSBox-X's graphical configuration tool.
+
+CFGTOOL
+
+Note: You can also use CONFIG command for command-line configurations.
+.
+:PROGRAM_IMGSWAP_HELP
+Swaps floppy, hard drive and optical disc images.
+
+←[32;1mIMGSWAP←[0m ←[37;1mdrive←[0m ←[36;1m[position]←[0m
+ ←[37;1mdrive←[0m               Drive letter to swap the image.
+ ←[36;1m[position]←[0m          Disk position to swap to.
+.
+:PROGRAM_INTRO_HELP
+A full-screen introduction to DOSBox-X.
+
+INTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]
+.
+:PROGRAM_IMGMOUNT_NOT_ASSIGNED
+BIOS disk index does not have an image assigned.
+.
+:PROGRAM_IMGMOUNT_INVALID_NUMBER
+Invalid mount number.
+.
+:PROGRAM_IMGMOUNT_INVALID_FSTYPE
+Invalid fstype.
+.
+:PROGRAM_IMGMOUNT_INVALID_SIZE
+Invalid size parameter.
+.
+:PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER
+Drive number %d is not mounted.
+.
+:PROGRAM_IMGMOUNT_UMOUNT_USAGE
+Incorrect IMGMOUNT unmount usage.
+.
+:PROGRAM_IMGMOUNT_INVALID_LETTER
+Invalid drive letter.
+.
+:PROGRAM_IMGMOUNT_CHOOSE_LETTER
+Partitions cannot be mounted in conflict with the standard INT 13h hard disk
+allotment. Choose a different drive letter to mount to.
+.
+:PROGRAM_ELTORITO_LETTER
+El Torito emulation requires a proper CD-ROM drive letter.
+.
+:PROGRAM_ELTORITO_DRIVE_EXISTS
+El Torito CD-ROM drive specified already exists as a non-CD-ROM device
+.
+:PROGRAM_ELTORITO_NOT_CDDRIVE
+El Torito CD-ROM drive specified is not actually a CD-ROM drive.
+.
+:PROGRAM_ELTORITO_REQUIRE_FLOPPY
+El Torito emulation must be used with -t floppy at this time.
+.
+:PROGRAM_ELTORITO_NO_BOOT_RECORD
+El Torito CD-ROM boot record not found.
+.
+:PROGRAM_ELTORITO_ENTRY_UNREADABLE
+El Torito entries unreadable.
+.
+:PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY
+El Torito bootable floppy not found.
+.
+:PROGRAM_ELTORITO_BOOTABLE_SECTION
+Unable to locate bootable section
+.
+:PROGRAM_ELTORITO_BOOTSECTOR
+El Torito boot sector unreadable
+.
+:PROGRAM_IMGMAKE_ALIGNMENT
+Invalid alignment
+.
+:PROGRAM_IMGMAKE_PARTOFS
+Invalid -partofs
+.
+:PROGRAM_IMGMAKE_FAT
+Invalid -fat option. Must be 12, 16, or 32
+.
+:PROGRAM_IMGMAKE_FATCOPIES
+Invalid -fatcopies option
+.
+:PROGRAM_IMGMAKE_SPC
+Invalid -spc option, out of range
+.
+:PROGRAM_IMGMAKE_SPC2
+Invalid -spc option, must be a power of 2
+.
+:PROGRAM_IMGMAKE_ROOTDIR
+Invalid -rootdir option
+.
+PROGRAM_IMGMAKE_BOOTSECT
+Invalid bootsector position
+.
+PROGRAM_IMGMAKE_VOLUME_ALIGN
+Sanity check failed: Volume size not aligned
+.
+:PROGRAM_IMGMAKE_FAT_ALIGN
+Sanity check failed: FAT tables not aligned
+.
+:PROGRAM_IMGMAKE_SECTPERFAT
+Error: Generated filesystem has more than 256 sectors per FAT and is not FAT32
+.
+:PROGRAM_IMGMAKE_VOLSIZE
+Sanity check failed: Volume size not aligned
+.
+:PROGRAM_IMGMAKE_CLUSTERS
+Error: Generated filesystem has too few clusters given the parameters
+.
+:PROGRAM_IMGMAKE_CLUSTERCOUNT
+Warning: Cluster count is too high given the volume size. 
+         Reporting a smaller sector count.
+.
+:PROGRAM_IMGMAKE_CLUSTER_ALIGN
+Sanity check failed: First cluster not aligned
+.
+:PROGRAM_IMGMAKE_CLUSTER_SIZE
+WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK
+.
+:PROGRAM_BOOT_UNSUPPORTED
+Unsupported boot mode
+.
+:PROGRAM_MOUNT_OVERLAY_REPLACE
+Existing overlay has been replaced with new overlay.
+.
+:PROGRAM_LOADFIX_EMS_FREE
+EMS handle %u: unable to free
+.
+:PROGRAM_LOADFIX_XMS_FREE
+XMS handle %u: unable to free
+.
+:PROGRAM_LOADFIX_EMS_ALLOC
+EMS block allocated (%uKB)
+.
+:PROGRAM_LOADFIX_EMS_ALLOCERROR
+Unable to allocate EMS block
+.
+PROGRAM_LOADFIX_NOEMS
+EMS not active
+.
+:PROGRAM_LOADFIX_XMS_ALLOC
+XMS block allocated (%uKB)
+.
+:PROGRAM_LOADFIX_XMS_ALLOCERROR
+Unable to allocate XMS block
+.
+:PROGRAM_LOADFIX_NOXMS
+XMS not active
+.
+:PROGRAM_LOADFIX_NOALLOC
+Lowest MCB is above 64KB, nothing allocated
+.
+:PROGRAM_BOOT_SWAP_ALREADY
+Multiple disk images specified and another drive is already connected to the swap list
+.
+:PROGRAM_BOOT_NOT_SPECIFIED
+No images specified
+.
+:PROGRAM_BOOT_IS_PC88
+The D88 image appears to target PC-88 and cannot be booted.
+.
+:PROGRAM_BOOT_BPS_TOOLARGE
+Bytes/sector too large
+.
+:PROGRAM_BOOT_DRIVE_READERROR
+Error reading drive
+.
+:PROGRAM_START_HELP_WIN
+Starts a separate window to run a specified program or command.
+
+START [+|-|_] command [arguments]
+
+  [+|-|_]: To maximize/minimize/hide the program.
+  The options /MAX, /MIN, /HID are also accepted.
+  command: The command, program or file to start.
+  arguments: Arguments to pass to the application.
+  
+START opens the Windows command prompt automatically to run these commands
+and wait for a key press before exiting (specified by "startincon" option):
+%s
+
+Note: The path specified in this command is the path on the host system.
+.
+:PROGRAM_START_HELP
+Starts a separate window to run a specified program or command.
+
+START /OPEN file
+START command [arguments]
+
+  /OPEN: To open a file or URL with the associated program.
+  file: The file or URL to open with the associated program.
+  command: The command or program to start or run.
+  arguments: Arguments to pass to the application.
+  
+Note: The path specified in this command is the path on the host system.
+.
+:PROGRAM_START_COMPLETED
+The command execution is completed.
+.
+:PROGRAM_START_COMMAND
+Starting %s...
+.
+:PROGRAM_START_CTRLC
+(Press Ctrl+C to exit immediately)
+.
+:PROGRAM_START_HOST_ERROR
+Error: START cannot launch application to run on your current host system.
+.
+:PROGRAM_START_LAUNCH_ERROR
+Error: START could not launch application.
+.
+:PROGRAM_IMGMOUNT_ELTORITO_NO_FILE
+Do not specify files when mounting floppy drives from El Torito bootable CDs
+.
+:PROGRAM_IMGMOUNT_RAMDRIVE_NO_FILE
+Do not specify files when mounting RAM drives
+.
+:PROGRAM_IMGMOUNT_INVALID_SECTORSIZE
+Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.
+.
+:PROGRAM_IMGMOUNT_OPEN_ERROR
+Unable to open '%s'
+.
+:PROGRAM_IMGMOUNT_QCOW2_INVALID
+qcow2 image '%s' is not supported
+.
+:PROGRAM_IMGMOUNT_GEOMETRY_ERROR
+Unable to detect geometry
+.
+:PROGRAM_IMGMOUNT_DOS_VERSION
+Mounting this image file requires a reported DOS version of %u.%u or higher.
+%s
+.
+:PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE
+Floppy size not recognized
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_USED
+Multiple images given and another drive already uses multiple images
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED
+Multiple disk images not supported for that drive
+.
+:PROGRAM_IMGMOUNT_HD_FDPOSITION
+Cannot mount hard drive in floppy position.
+.
+:PROGRAM_IMGMOUNT_FD_HDPOSITION
+Cannot mount floppy in hard drive position.
+.
+:PROGRAM_ELTORITO_ISOMOUNT
+El Torito bootable CD: -fs iso mounting not supported
+.
+:PROGRAM_MODE_STATUS
+Status for device CON:
+----------------------
+Columns=%d
+Lines=%d
+.
+:PROGRAM_MODE_NOTSUPPORTED
+
+Code page operation not supported on this device
+.
+:PROGRAM_MODE_RATE_DELAY
+Rate and delay must be specified together
+.
+:PROGRAM_UTF8_HELP
+Converts UTF-8 text to view in the current code page.
+
+UTF8 < [drive:][path]filename
+command-name | UTF8
+.
+:PROGRAM_UTF8_NO_TEXT
+No input text found.
+.
+:PROGRAM_UTF8_INVALIDCP
+Invalid code page for text conversion.
+.
+:PROGRAM_UTF8_NOT_UTF8
+The input text is UTF-16.
+.
+:PROGRAM_UTF8_CONVERSION_ERROR
+An error occurred during text conversion.
+.
+:PROGRAM_UTF16_HELP
+Converts UTF-16 text to view in the current code page.
+
+UTF16 [/BE|/LE] < [drive:][path]filename
+command-name | UTF16 [/BE|/LE]
+
+  /BE  Use UTF-16 Big Endian
+  /LE  Use UTF-16 Little Endian
+.
+:PROGRAM_VTEXT_HELP
+Changes V-text mode for the DOS/V emulation.
+
+VTEXT [mode]
+
+  [mode] can be 0, 1, 2, for no V-text, V-text 1, and V-text 2 respectively.
+
+Type VTEXT without a parameter to show the current V-text mode status.
+.
+:PROGRAM_NMITEST_HELP
+Generates a non-maskable interrupt (NMI).
+
+NMITEST
+
+Note: This is a debugging tool to test if the interrupt handler works properly.
+.
+:PROGRAM_NMITEST_GENERATE_NMI
+Generating a non-maskable interrupt (NMI)...
+.
+:PROGRAM_CAPMOUSE_HELP
+Captures or releases the mouse inside DOSBox-X.
+
+CAPMOUSE [/C|/R]
+
+  /C Capture the mouse
+  /R Release the mouse
+.
+:PROGRAM_CAPMOUSE_MOUSE
+Mouse 
+.
+:PROGRAM_CAPMOUSE_CURRENTLY
+is currently 
+.
+:PROGRAM_CAPMOUSE_CAPTURED
+captured
+.
+:PROGRAM_CAPMOUSE_RELEASED
+released
+.
+:PROGRAM_AUTOTYPE_HELP
+Performs scripted keyboard entry into a running DOS program.
+
+AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]
+
+Where:
+  -list:   prints all available button names.
+  -w WAIT: seconds before typing begins. Two second default; max of 30.
+  -p PACE: seconds between each keystroke. Half-second default; max of 10.
+  
+  The sequence is comprised of one or more space-separated buttons.
+  Autotyping begins after WAIT seconds, and each button is entered
+  every PACE seconds. The , character inserts an extra PACE delay.
+  
+Some examples:
+  ←[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter←[0m
+  ←[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter←[0m
+  ←[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter←[0m
+.
+:PROGRAM_AUTOTYPE_NO_BINDINGS
+AUTOTYPE: The mapper has no key bindings
+.
+:PROGRAM_AUTOTYPE_CLAMP_VALUE
+AUTOTYPE: bounding %s value of %.2f to %.2f
+.
+:PROGRAM_AUTOTYPE_INVALID_VALUE
+AUTOTYPE: %s value '%s' is not a valid floating point number
+.
+:PROGRAM_ADDKEY_HELP
+Generates artificial keypresses.
+
+ADDKEY [pmsec] [key]
+
+For example, the command below types "dir" followed by ENTER after 1 second:
+
+ADDKEY p1000 d i r enter
+
+You could also try AUTOTYPE command instead of this command to perform
+scripted keyboard entry into a running DOS program.
+.
+:PROGRAM_SETCOLOR_HELP
+Views or changes the text-mode color scheme settings.
+
+SETCOLOR [color# [value]]
+
+For example:
+
+   ←[32;1mSETCOLOR 0 (50,50,50)←[0m
+Change Color #0 to the specified color value
+
+   ←[32;1mSETCOLOR 7 -←[0m
+Return Color #7 to the default color value
+
+   ←[32;1mSETCOLOR 3 +←[0m
+Return Color #3 to the preset color value
+
+   ←[32;1mSETCOLOR MONO←[0m
+Display current MONO mode status
+
+To change the current background and foreground colors, use COLOR command.
+.
+:PROGRAM_SETCOLOR_STATUS
+MONO mode status: %s (video mode %d)
+
+.
+:PROGRAM_SETCOLOR_ACTIVE
+active
+.
+:PROGRAM_SETCOLOR_INACTIVE
+inactive
+.
+:PROGRAM_SETCOLOR_UNAVAILABLE
+unavailable
+.
+:PROGRAM_SETCOLOR_MONO_MODE7
+MONO mode status => active (video mode 7)
+.
+:PROGRAM_SETCOLOR_MONO_MODE3
+MONO mode status => inactive (video mode 3)
+.
+:PROGRAM_SETCOLOR_MONO_FAIL
+Failed to change MONO mode
+.
+:PROGRAM_SETCOLOR_MONO_SYNTAX
+Must be + or - for MONO: %s
+.
+:PROGRAM_SETCOLOR_COLOR
+Color %d: (%d,%d,%d) or #%02x%02x%02x
+
+.
+:PROGRAM_SETCOLOR_INVALID_NUMBER
+Invalid color number - %s
+.
+:PROGRAM_SETCOLOR_INVALID_VALUE
+Invalid color value - %s
+.
+:PROGRAM_SETCOLOR_NOT_SUPPORTED
+Changing color scheme is not supported for the current video mode.
+.
+:PROGRAM_BOOT_UNKNOWN_BOOTHAX
+Unknown boothax mode
+.
+:PROGRAM_BOOT_SPECIFY_FILE
+Must specify BIOS image to boot
+.
+:PROGRAM_BOOT_BIOS_OPEN_ERROR
+Unable to open BIOS image
+.
+:PROGRAM_BIOSTEST_SPECIFY_FILE
+Must specify BIOS file to load.
+.
+:PROGRAM_BIOSTEST_OPEN_ERROR
+Can't open a file
+.
+:PROGRAM_BIOSTEST_TOO_LARGE
+BIOS File too large
+.
+:PROGRAM_DELTREE_HELP
+Deletes a directory and all the subdirectories and files in it.
+
+To delete one or more files and directories:
+DELTREE [/Y] [drive:]path [[drive:]path[...]]
+
+  /Y              Suppresses prompting to confirm you want to delete
+                  the subdirectory.
+  [drive:]path    Specifies the name of the directory you want to delete.
+
+Note: Use DELTREE cautiously. Every file and subdirectory within the
+specified directory will be deleted.
+
+.
+:PROGRAM_TREE_HELP
+Graphically displays the directory structure of a drive or path.
+
+TREE [drive:][path] [/F] [/A]
+
+  /F   Displays the names of the files in each directory.
+  /A   Uses ASCII instead of extended characters.
+
+.
+:PROGRAM_TITLE_HELP
+Sets the window title for the DOSBox-X window.
+
+TITLE [string]
+
+  string       Specifies the title for the DOSBox-X window.
+
+.
+:PROGRAM_COLOR_HELP
+Sets the default console foreground and background colors.
+
+COLOR [attr]
+
+  attr        Specifies color attribute of console output
+  
+Color attributes are specified by TWO hex digits -- the first
+corresponds to the background; the second to the foreground.
+Each digit can be any of the following values:
+
+    0 = Black       8 = Gray
+    1 = Blue        9 = Light Blue
+    2 = Green       A = Light Green
+    3 = Aqua        B = Light Aqua
+    4 = Red         C = Light Red
+    5 = Purple      D = Light Purple
+    6 = Yellow      E = Light Yellow
+    7 = White       F = Bright White
+
+If no argument is given, this command restores the original color.
+
+The COLOR command sets ERRORLEVEL to 1 if an attempt is made to execute
+the COLOR command with a foreground and background color that are the same.
+
+Example: "COLOR fc" produces light red on bright white.
+
+.
+:PROGRAM_SWITCH_LANG
+You have changed the active code page to %d.
+Do you want to load language file %s for this code page ?
+.
+:PROGRAM_ALREADY_MOUNTED
+Drive %s: is already mounted. Unmount it first, and then try again.
+.
+:PROGRAM_DRIVE_NO_EXIST
+Drive %s: does not exist in the system.
+.
+:PROGRAM_DRIVE_WARN
+Do you really want to give DOSBox-X access to your real %s drive %s ?
+.
+:DRIVE_TYPE_FLOPPY
+floppy
+.
+:DRIVE_TYPE_REMOVABLE
+removable
+.
+:DRIVE_TYPE_NETWORK
+network
+.
+:DRIVE_TYPE_HARD
+hard
+.
+:DRIVE_TYPE_LOCAL
+local
+.
+:DRIVE_TYPE_CDROM
+CD-ROM
+.
+:PROGRAM_CDDRIVE_WARN
+CD drive %s is currently mounted with the image:
+
+%s
+
+Do you want to change the CD image now?
+.
+:PROGRAM_CDMOUNT_ERROR
+Could not mount the selected CD image.
+.
+:ELTORITO_IMAGE
+El Torito floppy image
+.
+:RAM_FLOPPY_IMAGE
+RAM floppy image
+.
+:PROGRAM_FLOPPY_WARN
+Floppy drive %s is currently mounted with the image:
+
+%s
+
+Do you want to change the floppy disk image now?
+.
+:PROGRAM_FLOPPYMOUNT_ERROR
+Could not mount the selected floppy disk image.
+.
+:PROGRAM_MOUNT_MORE_IMAGES
+Do you want to mount more image file(s)?
+.
+:PROGRAM_MOUNT_PATH_TOOLONG
+The path for the file(s) to mount is too long.
+.
+:PROGRAM_BOOT_FAILED
+Drive %s: failed to boot.
+.
+:PROGRAM_MOUNT_FAILED
+Drive %s: failed to mount.
+.
+:PROGRAM_MOUNT_IMAGE
+Mounted %s to Drive %s:
+%s %s
+.
+:ARCHIVE
+archive
+.
+:DISK_IMAGE
+disk image
+.
+:READONLY_MODE
+Read-only mode
+.
+:PROGRAM_MOUNT_SELECT_DRIVE
+Select a drive/directory to mount for Drive %s: as %s
+.
+:PROGRAM_MOUNT_CDROM_SUPPORT
+Mounting a directory as CD-ROM gives an limited support.
+.
+:PROGRAM_MOUNT_NOT_MOUNTED
+Drive %s: is not yet mounted.
+.
+:PROGRAM_PROGRAM_ALREADY
+Another program is already running.
+.
+:PROGRAM_SHELL_ALREADY
+Another shell is currently running.
+.
+:PROGRAM_MOUNT_SUCCESS
+Drive %s is now mounted to:
+%s
+.
+:PROGRAM_WARN_QUICKLAUNCH
+Quick launch automatically mounts drive C in DOSBox-X.
+Drive C has already been mounted. Do you want to continue?
+.
+:PROGRAM_NO_EXECUTABLE
+Executable file not found.
+.
+:PROGRAM_EXEC_FINISHED
+Program has finished execution. Do you want to unmount Drive %s now?
+.
+:PROGRAM_ASK_CHCP
+Drive %c: may require code page %d to be properly accessed.
+
+Do you want to change the current code page to %d now?
+.
+:PROGRAM_CHANGING_CODEPAGE
+Changing code page
+.
+:IMAGEMOUNT_CHANGE_DOSVER
+Mounting this type of disk images requires a reported DOS version of %s or higher.
+Do you want to auto - change the reported DOS version to %s now and mount the disk image ?
+.
+:MENU_DRIVE_NOTEXIST
+Drive does not exist or is mounted from disk image.
+.
+:MENU_SAVE_IMAGE_FAILED
+Failed to save disk image.
+.
+:MENU_JP_CPONLY
+This function is only available for the Japanese code page (932).
+.
+:MENU_CH_CPONLY
+This function is only available for the Chinese code pages (936, 950, or 951).
+.
+:MENU_GLIDE_ERROR
+Glide passthrough cannot be enabled. Check the Glide wrapper installation.
+.
+:MENU_HIGH_INTENSITY_ERROR
+High intensity is not supported for the current video mode.
+.
+:MENU_SAVE_FILE_ERROR
+Cannot save to the file: %s
+.
+:MENU_INT2F_SUCCESS
+The INT 2Fh hook has been successfully set.
+.
+:MENU_INT2F_ALREADY_SET
+The INT 2Fh hook was already set up.
+.
+:QUIT_DISABLED
+Quitting from DOSBox-X with this is currently disabled.
+.
+:QUIT_CONFIRM
+This will quit from DOSBox-X.
+Are you sure?
+.
+:QUIT_GUEST_DISABLED
+You cannot quit DOSBox-X while running a guest system.
+.
+:QUIT_GUEST_CONFIRM
+You are currently running a guest system.
+Are you sure to quit anyway now?
+.
+:QUIT_FILE_OPEN_DISABLED
+You cannot quit DOSBox-X while one or more files are open.
+.
+:QUIT_FILE_OPEN_CONFIRM
+It may be unsafe to quit from DOSBox-X right now
+because one or more files are currently open.
+Are you sure to quit anyway now?
+.
+:QUIT_PROGRAM_DISABLED
+You cannot quit DOSBox-X while running a program or game.
+.
+:QUIT_PROGRAM_CONFIRM
+You are currently running a program or game.
+Are you sure to quit anyway now?
+.
+:LANG_JP_INCOMPATIBLE
+You have specified a language file which uses a code page incompatible with the Japanese PC-98 or JEGA/AX system.
+
+Are you sure to use the language file for this machine type?
+.
+:LANG_DOSV_INCOMPATIBLE
+You have specified a language file which uses a code page incompatible with the current DOS/V system.
+
+Are you sure to use the language file for this system type?
+.
+:LANG_CHANGE_CP
+The specified language file uses code page %d. Do you want to change to this code page accordingly?.
+.
+:SCALER_LOAD_WARN
+This scaler may not work properly or have undesired effect:
+
+%s
+
+Do you want to force load the scaler?
+.
+:PIXEL_SHADER_WARN
+This pixel shader may be unneeded or have undesired effect:
+
+%s
+
+Do you want to load the pixel shader anyway?
+
+(You may append 'forced' to the pixelshader setting to force load the pixel shader without this message)
+.
+:PIXEL_SHADER_LOADED
+Loaded pixel shader - %s
+.
+:MAPPEREDITOR_NOT_AVAILABLE
+Mapper Editor is not currently available.
+.
+:OPL_REC_COMPLETED
+Saved Raw OPL output to the file:
+
+%s
+.
+:OPL_CAPTURE_FAILED
+Cannot capture Raw OPL output because ESFM native mode is being used by the current application, which is not supported by the Raw OPL format.
+.
+:TTF_DBCS_ONLY
+This function is only available for the Chinese/Japanese/Korean code pages.
+.
+:SAVE_FAILED
+Failed to save the current state.
+.
+:SAVE_CORRUPTED
+Save state corrupted! Program may not work.
+.
+:SAVE_SCREENSHOT
+Saved screenshot to the file:
+
+%s
+.
+:HELP_ABOUT_VERSION
+DOSBox-X ver.%s (%s %s %s-bit)%s
+.
+:HELP_ABOUT_UPDATED
+Build date/time: %s
+.
+:HELP_ABOUT_COPYRIGHT
+Copyright %s-%s %s
+.
+:HELP_ABOUT_MAINTAINER
+Project maintainer: %s
+.
+:HELP_ABOUT_HOMEPAGE
+DOSBox-X homepage: %s
 .

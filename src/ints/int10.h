@@ -99,6 +99,7 @@ extern uint32_t S3_LFB_BASE;
 #define BIOS_CHEIGHT uint8_t cheight=IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT):8;
 
 extern uint8_t int10_font_08[256 * 8];
+extern uint8_t int10_font_13[256 * 13];
 extern uint8_t int10_font_14[256 * 14];
 extern uint8_t int10_font_16[256 * 16];
 extern uint8_t int10_font_19[256 * 19];
@@ -107,6 +108,7 @@ extern uint8_t int10_font_14_alternate[20 * 15 + 1];
 extern uint8_t int10_font_16_alternate[19 * 17 + 1];
 extern uint8_t int10_font_14_init[256 * 14];
 extern uint8_t int10_font_16_init[256 * 16];
+extern uint8_t int10_font_16_mcga[256 * 16];
 
 struct VideoModeBlock {
 	uint16_t	mode;
@@ -119,6 +121,7 @@ struct VideoModeBlock {
 	Bitu	htotal,vtotal;
 	Bitu	hdispend,vdispend;
 	Bitu	special;
+	Bitu	pitch; /* bytes/scanline to use instead of normal calculation */
 	
 };
 extern VideoModeBlock ModeList_VGA[];
@@ -128,6 +131,7 @@ typedef struct {
 	struct {
 		RealPt font_8_first;
 		RealPt font_8_second;
+		RealPt font_13;
 		RealPt font_14;
 		RealPt font_16;
 		RealPt font_14_alternate;
@@ -135,7 +139,7 @@ typedef struct {
 		RealPt font_19;
 		RealPt static_state;
 		RealPt video_save_pointers;
-        RealPt video_dynamic_save_area;
+		RealPt video_dynamic_save_area;
 		RealPt video_parameter_table;
 		RealPt video_save_pointer_table;
 		RealPt video_dcc_table;
@@ -148,26 +152,38 @@ typedef struct {
 		uint16_t pmode_interface_start;
 		uint16_t pmode_interface_window;
 		uint16_t pmode_interface_palette;
-        uint16_t vesa_alloc_modes;
+		uint16_t vesa_alloc_modes;
 		uint16_t used;
 	} rom;
 	uint16_t vesa_setmode;
 	bool vesa_nolfb;
 	bool vesa_oldvbe;
 	bool vesa_oldvbe10;
+	bool vesa_vbe3;
 	uint8_t text_row;
 } Int10Data;
 
-#define _EGA_HALF_CLOCK			0x0001
-#define _DOUBLESCAN			    0x0002  /* CGA/EGA on VGA doublescan (bit 7 of max scanline) */
-#define _VGA_PIXEL_DOUBLE		0x0004
-#define _S3_PIXEL_DOUBLE		0x0008
-#define _REPEAT1			    0x0010  /* VGA doublescan (bit 0 of max scanline) */
-#define _CGA_SYNCDOUBLE			0x0020
-#define _HIGH_DEFINITION        0x0040
-#define _UNUSUAL_MODE           0x0080
-#define _USER_DISABLED          0x4000  /* disabled (cannot set mode) but still listed in modelist */
-#define _USER_MODIFIED          0x8000  /* user modified (through VESAMOED) */
+typedef struct {
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
+	uint8_t alpha;		// unused
+} alt_rgb;
+
+#define _EGA_HALF_CLOCK                 0x0001
+#define _DOUBLESCAN                     0x0002  /* CGA/EGA on VGA doublescan (bit 7 of max scanline) */
+#define _VGA_PIXEL_DOUBLE               0x0004
+#define _S3_PIXEL_DOUBLE                0x0008
+#define _REPEAT1                        0x0010  /* VGA doublescan (bit 0 of max scanline) */
+#define _CGA_SYNCDOUBLE                 0x0020
+#define _S3_POW2_STRIDE                 0x0040  /* Stride must be a power of 2, round up after offset calculation */
+#define _HIGH_DEFINITION                0x0080
+#define _UNUSUAL_MODE                   0x0100
+#define _DO_NOT_LIST                    0x0200  /* support the mode but do not list in VBE mode enumeration */
+#define _USER_DISABLED                  0x4000  /* user disabled (cannot set mode) but still listed in modelist */
+#define _USER_MODIFIED                  0x8000  /* user modified (through VESAMOED) */
+#define _BIOS_DISABLED                 0x10000  /* BIOS disabled (cannot set mode), may be listed in modelist but likely not */
+#define _REQUIRE_LFB                   0x20000  /* Require LFB, no bank switching permitted */
 
 extern Int10Data int10;
 
@@ -206,6 +222,8 @@ void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr);
 void INT10_ReadCharAttr(uint16_t * result,uint8_t page);
 void INT10_WriteChar(uint16_t chr,uint8_t attr,uint8_t page,uint16_t count,bool showattr);
 void INT10_WriteString(uint8_t row,uint8_t col,uint8_t flag,uint8_t attr,PhysPt string,uint16_t count,uint8_t page);
+
+bool CheckAnotherDisplayDriver();
 
 /* Graphics Stuff */
 void INT10_PutPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t color);
@@ -271,3 +289,6 @@ bool INT10_VideoState_Restore(Bitu state,RealPt buffer);
 /* Video Parameter Tables */
 uint16_t INT10_SetupVideoParameterTable(PhysPt basepos);
 void INT10_SetupBasicVideoParameterTable(void);
+
+Bitu VideoModeMemSize(VideoModeBlock* vmodeBlock,Bitu mode);
+

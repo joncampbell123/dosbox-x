@@ -35,10 +35,23 @@
 #include "shell.h"
 #include "jfont.h"
 #include "sdlmain.h"
+#include "../ints/int10.h"
+
+#include <output/output_opengl.h>
+#include <output/output_ttf.h>
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 unsigned int min_sdldraw_menu_width = 500;
 unsigned int min_sdldraw_menu_height = 300;
+#endif
+
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+unsigned int SDLDrawGenFontTextureUnitPerRow = 16;
+unsigned int SDLDrawGenFontTextureRows = 16;
+unsigned int SDLDrawGenFontTextureWidth = SDLDrawGenFontTextureUnitPerRow * 8;
+unsigned int SDLDrawGenFontTextureHeight = SDLDrawGenFontTextureRows * 16;
+bool SDLDrawGenFontTextureInit = false;
+GLuint SDLDrawGenFontTexture = (GLuint)(~0UL), SDLDrawGenDBCSFontTexture = (GLuint)(~0UL);
 #endif
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
@@ -55,12 +68,7 @@ void*                                               sdl_hax_nsMenuItemAlloc(cons
 void                                                sdl_hax_nsMenuItemRelease(void *nsMenuItem);
 #endif
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-extern "C" void                                     SDL1_hax_SetMenu(HMENU menu);
-#endif
-
 void                                                reflectmenu_INITMENU_cb();
-bool                                                GFX_GetPreventFullscreen(void);
 void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool                                                OpenGL_using(void);
 
@@ -98,6 +106,14 @@ char                                                hdd_size[20]="";
 
 extern "C" void                                     (*SDL1_hax_INITMENU_cb)();
 
+extern bool showdbcs, loadlang;
+extern bool isDBCSCP(), InitCodePage();
+extern bool font_14_init, font_16_init;
+uint8_t *GetDbcsFont(Bitu code);
+bool Direct3D_using(void);
+void UpdateSDLDrawDBCSTexture(Bitu code);
+unsigned char prevc = 0;
+
 /* top level menu ("") */
 static const char *def_menu__toplevel[] =
 {
@@ -106,10 +122,12 @@ static const char *def_menu__toplevel[] =
     "VideoMenu",
     "SoundMenu",
     "DOSMenu",
+#if !defined(OSFREE)
+    "DriveMenu",
+#endif
 #if !defined(C_EMSCRIPTEN)
     "CaptureMenu",
 #endif
-    "DriveMenu",
 #if C_DEBUG
     "DebugMenu",
 #endif
@@ -122,29 +140,39 @@ static const char *def_menu_main[] =
 {
     "mapper_gui",
     "mapper_mapper",
+#if !defined(HX_DOS)
+    "--",
+# if !defined(OSFREE)
+    "mapper_quickrun",
+# endif
+    "loadlang",
     "mapper_loadmap",
+#endif
     "--",
     "MainSendKey",
     "MainHostKey",
     "SharedClipboard",
     "--",
+#if defined(C_SDL2)
+    "mapper_capkeyboard",
+#endif
     "mapper_capmouse",
     "auto_lock_mouse",
     "WheelToArrow",
     "--",
+    "alwaysontop",
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "mapper_pause",
     "mapper_pauseints",
 #endif
-    "showdetails",
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
     "mapper_reset",
     "mapper_reboot",
-    "restartinst",
+    "mapper_pwrbutton", /* APM/ACPI etc */
     "--",
+    "restartinst",
     "restartconf",
-    "restartlang",
     "--",
     "mapper_shutdown",
 #endif
@@ -240,9 +268,11 @@ static const char *def_menu_cpu_speed[] =
     "cpu586-120",
     "cpu586-133",
     "cpu586-166",
-    "cpuak6-166",
+    "cpu586-200",
     "cpuak6-200",
     "cpuak6-300",
+    "cpuath-600",
+    "cpu686-866",
     NULL
 };
 
@@ -283,6 +313,7 @@ static const char *def_menu_cpu_type[] =
     "cputype_pentium_mmx",
     "cputype_ppro_slow",
     "cputype_pentium_ii",
+    "cputype_pentium_iii",
     "--",
     "cputype_experimental",
     NULL
@@ -323,6 +354,30 @@ static const char *def_menu_video_frameskip[] =
     NULL
 };
 
+/* video prevent capture menu ("VideoPreventCaptureMenu") */
+static const char *def_menu_video_preventcapture[] =
+{
+    "prevcap_none",
+    "prevcap_blank",
+    "prevcap_invisible",
+    NULL
+};
+
+/* video scaler menu ("VideoRatioMenu") */
+static const char *def_menu_video_ratio[] =
+{
+    "video_ratio_1_1",
+    "video_ratio_3_2",
+    "video_ratio_4_3",
+    "video_ratio_16_9",
+    "video_ratio_16_10",
+    "video_ratio_18_10",
+    "--",
+    "video_ratio_original",
+    "video_ratio_set",
+    NULL
+};
+
 /* video scaler menu ("VideoScalerMenu") */
 static const char *def_menu_video_scaler[] =
 {
@@ -335,6 +390,9 @@ static const char *def_menu_video_output[] =
     "output_surface",
 #if (HAVE_D3D9_H) && defined(WIN32) && !defined(HX_DOS)
     "output_direct3d",
+#if defined(C_SDL2)
+    "output_direct3d11",
+#endif
 #endif
 #if defined(C_OPENGL) && !defined(HX_DOS)
     "output_opengl",
@@ -344,8 +402,19 @@ static const char *def_menu_video_output[] =
 #if defined(USE_TTF)
     "output_ttf",
 #endif
+#if C_GAMELINK
+    "output_gamelink",
+#endif
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+    "output_metal",
+#endif    
     "--",
     "doublescan",
+#if !defined(C_SDL2)
+    "doublebuf",
+#else
+    "modeswitch",
+#endif
     NULL
 };
 
@@ -383,7 +452,7 @@ static const char *def_menu_video_ttf[] =
 {
     "mapper_incsize",
     "mapper_decsize",
-    "ttf_resetcolor",
+    "mapper_resetcolor",
     "--",
     "ttf_showbold",
     "ttf_showital",
@@ -402,8 +471,8 @@ static const char *def_menu_video_ttf[] =
     "ttf_printfont",
 #endif
     "--",
-    "ttf_dbcs_sbcs",
-    "ttf_autoboxdraw",
+    "mapper_dbcssbcs",
+    "mapper_autoboxdraw",
     "ttf_halfwidthkana",
     "ttf_extcharset",
     NULL
@@ -413,14 +482,12 @@ static const char *def_menu_video_ttf[] =
 /* video vsync menu ("VideoVsyncMenu") */
 static const char *def_menu_video_vsync[] =
 {
-#if !defined(C_SDL2)
     "vsync_on",
     "vsync_force",
     "vsync_host",
     "vsync_off",
     "--",
     "vsync_set_syncrate",
-#endif
     NULL
 };
 
@@ -466,35 +533,35 @@ static const char *def_menu_video_pc98[] =
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] =
 {
-    "mapper_aspratio",
-#if !defined(HX_DOS)
-    "mapper_fullscr",
-    "--",
+#if defined(WIN32) || defined(MACOSX)
+    "VideoPreventCaptureMenu",
 #endif
-#if !defined(HX_DOS) && (defined(LINUX) || !defined(C_SDL2))
-    "alwaysontop",
+    "VideoRatioMenu",
+    "mapper_aspratio",
+#if defined(C_SDL2)
+    "center_window",
 #endif
 #if !defined(C_SDL2) && defined(MACOSX)
     "highdpienable",
 #endif
-#if !defined(C_SDL2)
-    "doublebuf",
+    "mapper_resetsize",
     "--",
+#if !defined(HX_DOS)
+    "mapper_fullscr",
 #endif
 #ifndef MACOSX
     "mapper_togmenu",
 #endif
-#if !defined(HX_DOS)
-    "mapper_resetsize",
-#endif
+    "showdetails",
     "--",
+    "set_titletext",
+    "set_transparency",
     "refresh_rate",
-    "scaler_forced",
+    "--",
+    "mapper_fscaler",
     "VideoScalerMenu",
     "VideoOutputMenu",
-#if !defined(C_SDL2)
     "VideoVsyncMenu",
-#endif
     "--",
     "VideoOverscanMenu",
     "VideoFrameskipMenu",
@@ -522,22 +589,26 @@ static const char *def_menu_video[] =
 /* DOS menu ("DOSMenu") */
 static const char *def_menu_dos[] =
 {
-#if !defined(HX_DOS)
-    "mapper_quickrun",
-#endif
+#if !defined(OSFREE)
     "DOSVerMenu",
     "DOSLFNMenu",
-    "--",
-    "DOSMouseMenu",
-    "DOSEMSMenu",
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+# if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
     "DOSWinMenu",
+# endif
+    "--",
 #endif
+    "DOSMouseMenu",
+#if !defined(OSFREE)
+    "DOSEMSMenu",
+#endif
+    "DOSDiskRateMenu",
     "--",
     "enable_a20gate",
     "quick_reboot",
     "sync_host_datetime",
+#if !defined(OSFREE)
     "shell_config_commands",
+#endif
     "--",
     "mapper_swapimg",
     "mapper_swapcd",
@@ -550,7 +621,7 @@ static const char *def_menu_dos[] =
     "mapper_rescanall",
     "--",
 #if C_PRINTER
-    "print_textscreen",
+    "mapper_printtext",
     "mapper_ejectpage",
 #endif
     NULL
@@ -598,6 +669,14 @@ static const char *def_menu_dos_ems[] =
     NULL
 };
 
+/* DOS disk rate menu ("DOSDiskRateMenu") */
+static const char *def_menu_dos_diskrate[] =
+{
+    "limit_hdd_rate",
+    "limit_floppy_rate",
+    NULL
+};
+
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
 /* DOS WIN menu ("DOSWinMenu") */
 static const char *def_menu_dos_win[] =
@@ -633,6 +712,7 @@ static const char *def_menu_capture[] =
 {
 #if defined(C_SSHOT)
     "mapper_scrshot",
+    "mapper_rawscrshot",
     "--",
 #endif
 #if !defined(C_EMSCRIPTEN)
@@ -645,11 +725,12 @@ static const char *def_menu_capture[] =
     "mapper_recmtwave",
     "mapper_caprawopl",
     "mapper_caprawmidi",
+    "mapper_capnetrf",
     "--",
 #endif
-    "saveoptionmenu",
     "mapper_savestate",
     "mapper_loadstate",
+    "saveoptionmenu",
     "saveslotmenu",
     "autosavecfg",
     "browsesavefile",
@@ -764,7 +845,9 @@ static const char* def_menu_debug[] =
     "--",
     "debug_blankrefreshtest",
     "debug_generatenmi",
+#if !defined(OSFREE)
     "debug_int2fhook",
+#endif
     "debug_pageflip",
     "debug_retracepoll",
     "--",
@@ -773,10 +856,16 @@ static const char* def_menu_debug[] =
     "save_logas",
     "--",
     "show_console",
+    "clear_console",
+    "disable_logging",
     "wait_on_error",
+    "--",
+    "video_debug_overlay",
+#if !defined(OSFREE)
     "--",
     "debug_logint21",
     "debug_logfileio",
+#endif
     NULL
 };
 #elif !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
@@ -784,6 +873,8 @@ static const char* def_menu_help_debug[] =
 {
     "show_console",
     "wait_on_error",
+    "--",
+    "video_debug_overlay",
     NULL
 };
 #endif
@@ -792,14 +883,16 @@ static const char* def_menu_help_debug[] =
 static const char *def_menu_help[] =
 {
     "help_intro",
-    "HelpCommandMenu",
+    "help_about",
 #if !defined(HX_DOS)
     "--",
     "help_homepage",
     "help_wiki",
     "help_issue",
 #endif
+#if !defined(OSFREE)
     "--",
+#endif
 #if C_PCAP
     "help_nic",
 #endif
@@ -809,10 +902,12 @@ static const char *def_menu_help[] =
 #if !C_DEBUG && !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "HelpDebugMenu",
 #endif
-#if C_PCAP || C_PRINTER && defined(WIN32) || !C_DEBUG && !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+#if !defined(OSFREE)
+# if C_PCAP || C_PRINTER && defined(WIN32) || !C_DEBUG && !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "--",
+# endif
+    "HelpCommandMenu",
 #endif
-    "help_about",
     NULL
 };
 
@@ -838,7 +933,7 @@ DOSBoxMenu::displaylist::displaylist() {
 
 DOSBoxMenu::displaylist::~displaylist() {
 }
-        
+
 bool DOSBoxMenu::item_exists(const std::string &name) {
     const auto i = name_map.find(name);
 
@@ -1182,7 +1277,7 @@ bool DOSBoxMenu::nsMenuInit(void) {
             item.nsAppendMenu(nsMenu);
         }
 
-        /* release our handle on the nsMenus. Mac OS X will keep them alive with it's
+        /* release our handle on the nsMenus. Mac OS X will keep them alive with its
            reference until the menu is destroyed at which point all items and submenus
            will be automatically destroyed */
         for (auto &id : master_list) {
@@ -1227,13 +1322,15 @@ LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
             if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV) cp = 932;
             else if (IS_PDOSV) cp = 936;
             else if (IS_KDOSV) cp = 949;
-            else if (IS_CDOSV) cp = 950;
+            else if (IS_TDOSV) cp = 950;
         }
     }
     uint16_t len=(uint16_t)str.size();
     if (cp>0) {
         if (cp==808) cp=866;
+        else if (cp==859) cp=858;
         else if (cp==872) cp=855;
+        else if (cp==951) cp=950;
         reqsize = MultiByteToWideChar(cp, 0, str.c_str(), len+1, NULL, 0);
         buffer = new wchar_t[reqsize];
         if (reqsize>0 && MultiByteToWideChar(cp, 0, str.c_str(), len+1, buffer, reqsize)==reqsize) ret = (LPWSTR)buffer;
@@ -1284,6 +1381,7 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
 
 void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     wchar_t* buffer = NULL;
+    wchar_t emptyStr[] = L"";
     if (type == separator_type_id) {
         AppendMenu(handle, MF_SEPARATOR, 0, NULL);
     }
@@ -1292,7 +1390,7 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     }
     else if (type == submenu_type_id) {
         if (winMenu != NULL) {
-            LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+            LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
             if (wcscmp(str, L""))
                 AppendMenuW(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, str);
             else
@@ -1305,7 +1403,7 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
         attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
         attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-        LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+        LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
         if (wcscmp(str, L""))
             AppendMenuW(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), str);
         else
@@ -1417,7 +1515,8 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
                 attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
                 wchar_t* buffer = NULL;
-                LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+                wchar_t emptyStr[] = L"";
+                LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
                 if (wcscmp(str, L""))
                     ModifyMenuW(phandle, (uintptr_t)(master_id + winMenuMinimumID), attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID), str);
                 else
@@ -1466,11 +1565,11 @@ void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * li
         const char *ref = list[i];
 
         /* NTS: This code calls mainMenu.get_item(item_id) every iteration.
-         *      
+         *
          *      This seemingly inefficient method of populating the display
          *      list is REQUIRED because DOSBoxMenu::item& is a reference
          *      to a std::vector, and the reference becomes invalid when
-         *      the vector reallocates to accomodate more entries.
+         *      the vector reallocates to accommodate more entries.
          *
          *      Holding onto one reference for the entire loop risks a
          *      segfault (use after free) bug if the vector should reallocate
@@ -1488,7 +1587,7 @@ void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * li
                 mainMenu.get_item(item_id).display_list, separator_handle);
         }
         else if (!strcmp(ref,"||")) {
-            /* dito */
+            /* ditto */
             DOSBoxMenu::item_handle_t separator_handle = separator_get(DOSBoxMenu::vseparator_type_id);
             mainMenu.displaylist_append(
                 mainMenu.get_item(item_id).display_list, separator_handle);
@@ -1539,6 +1638,14 @@ void ConstructMenu(void) {
 
     /* video menu */
     ConstructSubMenu(mainMenu.get_item("VideoMenu").get_master_id(), def_menu_video);
+
+    /* video ratio menu */
+    ConstructSubMenu(mainMenu.get_item("VideoRatioMenu").get_master_id(), def_menu_video_ratio);
+
+#if defined(WIN32) || defined(MACOSX)
+    /* video prevent capture menu */
+    ConstructSubMenu(mainMenu.get_item("VideoPreventCaptureMenu").get_master_id(), def_menu_video_preventcapture);
+#endif
 
     /* video frameskip menu */
     ConstructSubMenu(mainMenu.get_item("VideoFrameskipMenu").get_master_id(), def_menu_video_frameskip);
@@ -1609,6 +1716,9 @@ void ConstructMenu(void) {
 
     /* DOS EMS menu */
     ConstructSubMenu(mainMenu.get_item("DOSEMSMenu").get_master_id(), def_menu_dos_ems);
+
+    /* DOS disk rate menu */
+    ConstructSubMenu(mainMenu.get_item("DOSDiskRateMenu").get_master_id(), def_menu_dos_diskrate);
 
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
     /* DOS WIN menu */
@@ -1718,7 +1828,7 @@ void SetScaleForced(bool forced)
     SetVal("render", "scaler", value);
 
     RENDER_CallBack(GFX_CallBackReset);
-    mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_fscaler").check(render.scale.forced).refresh_item(mainMenu);
 }
 
 // Sets the scaler to use.
@@ -1742,7 +1852,7 @@ std::string MSCDEX_Output(int num) {
     case 4: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Too many CDRom-drives (max: 5). MSCDEX Installation failed";
     case 5: return MSCDEX_MSG + "Mounted subdirectory: limited support.";
     case 6: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Unknown error";
-    default: return 0;
+    default: return {};
     }
 }
 
@@ -1763,6 +1873,31 @@ void SetVal(const std::string& secname, const std::string& preval, const std::st
     }
 }
 
+#if defined(WIN32) && defined(C_SDL2)
+void SDL1_hax_SetMenu(HMENU menu) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if (GFX_IsFullscreen()) {
+        SetMenu(GetHWND(), NULL);
+        return;
+    }
+    if(GetMenu(GetHWND()) != menu) {
+        bool res = SetMenu(GetHWND(), menu);
+        if(!res) {
+            mainMenu.unbuild();
+            mainMenu.rebuild();
+            res = SetMenu(GetHWND(), mainMenu.getWinMenu());
+        }
+        DrawMenuBar(GetHWND());
+    }
+#endif
+}
+#elif DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+#endif
+
+/**
+ * NOTE: this function can make a SDL_Surface become invalid (e.g. mapper, Windows)
+ */
 void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* nothing to do */
@@ -1780,8 +1915,12 @@ void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
 
     LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching custom menu resource to DOSBox-X's window");
 
-    NonUserResizeCounter=1;
+    HMENU pMenu = GetMenu(GetHWND());
+
     SDL1_hax_SetMenu(altMenu.getWinMenu());
+
+    if((GetMenu(GetHWND()) != NULL) != (pMenu != NULL))
+        NonUserResizeCounter = 1;
 #endif
 }
 
@@ -1795,6 +1934,8 @@ void DOSBox_SetMenu(void) {
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* TODO: Move to menu.cpp DOSBox_SetMenu() and add setmenu(NULL) to DOSBox_NoMenu() @emendelson request showmenu=false */
+    if(!menu.gui) return;
+    menu.toggle=true;
     void sdl_hax_macosx_setmenu(void *nsMenu);
     sdl_hax_macosx_setmenu(mainMenu.getNsMenu());
 #endif
@@ -1803,8 +1944,9 @@ void DOSBox_SetMenu(void) {
 
     LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox-X's window");
 
+    HMENU pMenu = GetMenu(GetHWND());
+
     menu.toggle=true;
-    NonUserResizeCounter=1;
     SDL1_hax_SetMenu(mainMenu.getWinMenu());
     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 
@@ -1813,6 +1955,9 @@ void DOSBox_SetMenu(void) {
     if(menu.startup) {
         RENDER_CallBack( GFX_CallBackReset );
     }
+
+    if((GetMenu(GetHWND()) != NULL) != (pMenu != NULL))
+        NonUserResizeCounter = 1;
 #endif
 #if defined(USE_TTF)
     if (ttf.inUse) resetFontSize();
@@ -1830,6 +1975,8 @@ void DOSBox_NoMenu(void) {
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+    if(!menu.gui) return;
+    menu.toggle=false;
     void sdl_hax_macosx_setmenu(void *nsMenu);
     sdl_hax_macosx_setmenu(NULL);
 #endif
@@ -1848,8 +1995,6 @@ void DOSBox_NoMenu(void) {
 }
 
 void ToggleMenu(bool pressed) {
-    bool GFX_GetPreventFullscreen(void);
-
     /* prevent removing the menu in 3Dfx mode */
     if (GFX_GetPreventFullscreen())
         return;
@@ -1869,7 +2014,7 @@ void ToggleMenu(bool pressed) {
     DOSBox_SetSysMenu();
 }
 
-#if !(defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS))
+#if !defined(WIN32) || defined(HX_DOS)
 int Reflect_Menu(void) {
     return 0;
 }
@@ -1884,7 +2029,6 @@ void DOSBox_CheckOS(int &id, int &major, int &minor) {
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 #if defined(WIN32) && !defined(HX_DOS)
-    bool GFX_GetPreventFullscreen(void);
     bool MAPPER_IsRunning(void);
     bool GUI_IsRunning(void);
 
@@ -1961,7 +2105,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
         mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
-        mii.dwTypeData = getWString(msg, L"Show menu bar", buffer);
+        wchar_t showMenuBarStr[] = L"Show menu bar";
+        mii.dwTypeData = getWString(msg, showMenuBarStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -1976,7 +2121,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = (is_paused ? MFS_CHECKED : 0) | MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_PAUSE;
-        mii.dwTypeData = getWString(msg, L"Pause emulation", buffer);
+        wchar_t pauseEmulationStr[] = L"Pause emulation";
+        mii.dwTypeData = getWString(msg, pauseEmulationStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -1993,7 +2139,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_RESETSIZE;
-        mii.dwTypeData = getWString(msg, L"Reset window size", buffer);
+        wchar_t resetWindowSizeStr[] = L"Reset window size";
+        mii.dwTypeData = getWString(msg, resetWindowSizeStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2009,7 +2156,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = TTF_using() ? MFS_ENABLED : MFS_DISABLED;
         mii.wID = ID_WIN_SYSMENU_TTFINCSIZE;
-        mii.dwTypeData = getWString(msg, L"Increase TTF font size", buffer);
+        wchar_t increaseTTFFontSizeStr[] = L"Increase TTF font size";
+        mii.dwTypeData = getWString(msg, increaseTTFFontSizeStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2024,7 +2172,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = TTF_using() ? MFS_ENABLED : MFS_DISABLED;
         mii.wID = ID_WIN_SYSMENU_TTFDECSIZE;
-        mii.dwTypeData = getWString(msg, L"Decrease TTF font size", buffer);
+        wchar_t decreaseTTFFontSizeStr[] = L"Decrease TTF font size";
+        mii.dwTypeData = getWString(msg, decreaseTTFFontSizeStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2042,7 +2191,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_CFG_GUI;
-        mii.dwTypeData = getWString(msg, L"Configuration tool", buffer);
+        wchar_t configurationToolStr[] = L"Configuration tool";
+        mii.dwTypeData = getWString(msg, configurationToolStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2057,7 +2207,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_MAPPER;
-        mii.dwTypeData = getWString(msg, L"Mapper editor", buffer);
+        wchar_t mapperEditorStr[] = L"Mapper editor";
+        mii.dwTypeData = getWString(msg, mapperEditorStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2065,7 +2216,7 @@ void DOSBox_SetSysMenu(void) {
     }
 #endif
 }
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS)
 #include <shlobj.h>
 
 void GetDefaultSize(void) {
@@ -2121,7 +2272,7 @@ void BrowseFolder( char drive , std::string drive_type ) {
 void mem_conf(std::string memtype, int option) {
     std::string tmp;
     Section* sec = control->GetSection("dos");
-    Section_prop * section=static_cast<Section_prop *>(sec); 
+    Section_prop * section=static_cast<Section_prop *>(sec);
     if (!option) {
         tmp = section->Get_bool(memtype) ? "false" : "true";
     } else {
@@ -2157,9 +2308,9 @@ umount:
         switch (DriveManager::UnmountDrive(i_drive-'A')) {
         case 0:
             Drives[i_drive-'A'] = 0;
-            if(i_drive-'A' == DOS_GetDefaultDrive()) 
+            if(i_drive-'A' == DOS_GetDefaultDrive())
                 DOS_SetDrive(toupper('Z') - 'A');
-            LOG_MSG("GUI:Drive %c has succesfully been removed.",i_drive); break;
+            LOG_MSG("GUI:Drive %c has successfully been removed.",i_drive); break;
         case 1:
             LOG_MSG("GUI:Virtual Drives can not be unMOUNTed."); break;
         case 2:
@@ -2277,7 +2428,9 @@ void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image,
     EnableMenuItem(handle, floppy, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
     EnableMenuItem(handle, local, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
     EnableMenuItem(handle, image, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
+ #if !defined(OSFREE)
     if(sec) EnableMenuItem(handle, automount, AUTOMOUNT(full_drive.c_str(), drive) && !menu.boot && sec->Get_bool("automount") ? MF_ENABLED : MF_GRAYED);
+ #endif
     EnableMenuItem(handle, umount, (!Drives[drive - 'A']) || menu.boot ? MF_GRAYED : MF_ENABLED);
 #endif
 }
@@ -2288,7 +2441,7 @@ void MENU_KeyDelayRate(int delay, int rate) {
 }
 
 int Reflect_Menu(void) {
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !defined(C_SDL2)
     SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
 #endif
     return 1;
@@ -2646,3 +2799,622 @@ void DOSBoxMenu::item::placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel) {
 }
 #endif
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+void MenuShadeRect(int x,int y,int w,int h) {
+    if (OpenGL_using()) {
+#if C_OPENGL
+        glShadeModel (GL_FLAT);
+        glBlendFunc(GL_ONE, GL_SRC_ALPHA);
+        glDisable (GL_DEPTH_TEST);
+        glDisable (GL_LIGHTING);
+        glEnable(GL_BLEND);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glDisable(GL_TEXTURE_2D);
+
+        glColor4ub(0, 0, 0, 64);
+        glBegin(GL_QUADS);
+        glVertex2i(x  ,y  );
+        glVertex2i(x+w,y  );
+        glVertex2i(x+w,y+h);
+        glVertex2i(x  ,y+h);
+        glEnd();
+
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glEnable(GL_TEXTURE_2D);
+#endif
+    }
+    else {
+        if (x < 0) {
+            w += x;
+            x = 0;
+        }
+        if (y < 0) {
+            h += y;
+            y = 0;
+        }
+        if ((x+w) > sdl.surface->w)
+            w = sdl.surface->w - x;
+        if ((y+h) > sdl.surface->h)
+            h = sdl.surface->h - y;
+        if (w <= 0 || h <= 0)
+            return;
+
+        if (sdl.surface->format->BitsPerPixel == 32) {
+            unsigned char *scan;
+            uint32_t mask;
+
+            mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
+                ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
+                ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 4;
+            while (h-- > 0) {
+                uint32_t *row = (uint32_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+            }
+        }
+        else if (sdl.surface->format->BitsPerPixel == 16) {
+            unsigned char *scan;
+            uint16_t mask;
+
+            mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
+                ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
+                ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 2;
+            while (h-- > 0) {
+                uint16_t *row = (uint16_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+            }
+        }
+        else {
+            /* TODO */
+        }
+    }
+}
+
+void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
+    if (OpenGL_using()) {
+#if C_OPENGL
+        glShadeModel (GL_FLAT);
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glDisable (GL_DEPTH_TEST);
+        glDisable (GL_LIGHTING);
+        glDisable(GL_BLEND);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glDisable(GL_TEXTURE_2D);
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX)
+        if (color >= 0x1000000) color = ((color / 0x1000000) % 0x100) + ((color / 0x10000) % 0x100) * 0x100 + ((color / 0x100) % 0x100) * 0x10000;
+#endif
+        glColor3ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF);
+        glBegin(GL_QUADS);
+        glVertex2i(x  ,y  );
+        glVertex2i(x+w,y  );
+        glVertex2i(x+w,y+h);
+        glVertex2i(x  ,y+h);
+        glEnd();
+
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glEnable(GL_TEXTURE_2D);
+#endif
+    }
+    else {
+        if (x < 0) {
+            w += x;
+            x = 0;
+        }
+        if (y < 0) {
+            h += y;
+            y = 0;
+        }
+        if ((x+w) > sdl.surface->w)
+            w = sdl.surface->w - x;
+        if ((y+h) > sdl.surface->h)
+            h = sdl.surface->h - y;
+        if (w <= 0 || h <= 0)
+            return;
+
+        if (sdl.surface->format->BitsPerPixel == 32) {
+            unsigned char *scan;
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 4;
+            while (h-- > 0) {
+                uint32_t *row = (uint32_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint32_t)color;
+            }
+        }
+        else if (sdl.surface->format->BitsPerPixel == 16) {
+            unsigned char *scan;
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 2;
+            while (h-- > 0) {
+                uint16_t *row = (uint16_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint16_t)color;
+            }
+        }
+        else {
+            /* TODO */
+        }
+    }
+}
+
+void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
+    static const unsigned int fontHeight = 16;
+    unsigned char *scan, *bmp = NULL;
+
+    if (x < 0 || y < 0 ||
+        (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
+        (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
+        return;
+
+    if (check)
+        prevc = 0;
+    else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+        if (isKanji1(c) && prevc == 0) {
+            prevc = c;
+            return;
+        } else if (isKanji2(c) && prevc > 1) {
+#if C_OPENGL
+            if (OpenGL_using())
+                UpdateSDLDrawDBCSTexture(prevc*0x100+c);
+            else
+#endif
+                bmp = GetDbcsFont(prevc*0x100+c);
+            prevc = 1;
+        } else if (prevc < 0x81)
+            prevc = 0;
+    } else
+        prevc = 0;
+
+    if (OpenGL_using()) {
+#if C_OPENGL
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+            glPushMatrix();
+            glMatrixMode (GL_TEXTURE);
+            glLoadIdentity ();
+            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+            glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+        }
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            unsigned int tx = ((prevc?i:c) % 16u) * 8u;
+            unsigned int ty = ((prevc?i:c) / 16u) * 16u;
+
+            /* MenuDrawText() has prepared OpenGL state for us */
+            glBegin(GL_QUADS);
+            // lower left
+            glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i((int)x,  (int)y                );
+            // lower right
+            glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i((int)x+8,(int)y                );
+            // upper right
+            glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i((int)x+8,(int)y+(int)fontHeight);
+            // upper left
+            glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i((int)x,  (int)y+(int)fontHeight);
+            glEnd();
+            x += (int)mainMenu.fontCharWidth;
+        }
+
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBlendFunc(GL_ONE, GL_ZERO);
+            glDisable(GL_ALPHA_TEST);
+            glEnable(GL_TEXTURE_2D);
+            glPopMatrix();
+            glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+        }
+#endif
+    }
+    else {
+        assert(sdl.surface->pixels != NULL);
+
+        if (x < 0 || y < 0)
+            return;
+        if ((x + 8) > sdl.surface->w)
+            return;
+        if ((y + (int)fontHeight) > sdl.surface->h)
+            return;
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&prevc!=1)
+                bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
+            else if (prevc!=1)
+                bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
+            scan += (unsigned int)x * (((unsigned int)sdl.surface->format->BitsPerPixel+7u)/8u);
+
+            for (unsigned int row=0;row < fontHeight;row++) {
+                unsigned char rb = bmp[prevc==1?(row*2+i):row];
+
+                if (sdl.surface->format->BitsPerPixel == 32) {
+                    uint32_t *dp = (uint32_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) *dp = (uint32_t)color;
+                        dp++;
+                    }
+                }
+                else if (sdl.surface->format->BitsPerPixel == 16) {
+                    uint16_t *dp = (uint16_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) *dp = (uint16_t)color;
+                        dp++;
+                    }
+                }
+
+                scan += (size_t)sdl.surface->pitch;
+            }
+            x += (int)mainMenu.fontCharWidth;
+        }
+    }
+    prevc = 0;
+}
+
+void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
+    static const unsigned int fontHeight = 16;
+    unsigned char *scan, *bmp = NULL;
+
+    if (x < 0 || y < 0 ||
+        (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
+        (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
+        return;
+
+    if (check)
+        prevc = 0;
+    else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+        if (isKanji1(c) && prevc == 0) {
+            prevc = c;
+            return;
+        } else if (isKanji2(c) && prevc > 1) {
+#if C_OPENGL
+            if (OpenGL_using())
+                UpdateSDLDrawDBCSTexture(prevc*0x100+c);
+            else
+#endif
+                bmp = GetDbcsFont(prevc*0x100+c);
+            prevc = 1;
+        } else
+            prevc = 0;
+    } else
+        prevc = 0;
+
+    if (OpenGL_using()) {
+#if C_OPENGL
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+            glPushMatrix();
+            glMatrixMode (GL_TEXTURE);
+            glLoadIdentity ();
+            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+            glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+        }
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            unsigned int tx = ((prevc?i:c) % 16u) * 8u;
+            unsigned int ty = ((prevc?i:c) / 16u) * 16u;
+
+            /* MenuDrawText() has prepared OpenGL state for us */
+            glBegin(GL_QUADS);
+            // lower left
+            glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i(x,      y                    );
+            // lower right
+            glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i(x+(8*2),y                    );
+            // upper right
+            glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i(x+(8*2),y+((int)fontHeight*2));
+            // upper left
+            glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i(x,      y+((int)fontHeight*2));
+            glEnd();
+            x += (int)mainMenu.fontCharWidth;
+        }
+
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBlendFunc(GL_ONE, GL_ZERO);
+            glDisable(GL_ALPHA_TEST);
+            glEnable(GL_TEXTURE_2D);
+            glPopMatrix();
+            glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+        }
+#endif
+    }
+    else {
+        assert(sdl.surface->pixels != NULL);
+
+        if (x < 0 || y < 0)
+            return;
+        if ((x + 16) > sdl.surface->w)
+            return;
+        if ((y + ((int)fontHeight * 2)) > sdl.surface->h)
+            return;
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&!prevc)
+                bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
+            else if (prevc!=1)
+                bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
+
+            for (unsigned int row=0;row < (fontHeight*2);row++) {
+                unsigned char rb = bmp[prevc==1?((row>>1U)*2+i):(row>>1U)];
+
+                if (sdl.surface->format->BitsPerPixel == 32) {
+                    uint32_t *dp = (uint32_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) {
+                            *dp++ = (uint32_t)color;
+                            *dp++ = (uint32_t)color;
+                        }
+                        else {
+                            dp += 2;
+                        }
+                    }
+                }
+                else if (sdl.surface->format->BitsPerPixel == 16) {
+                    uint16_t *dp = (uint16_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) {
+                            *dp++ = (uint16_t)color;
+                            *dp++ = (uint16_t)color;
+                        }
+                        else {
+                            dp += 2;
+                        }
+                    }
+                }
+
+                scan += (size_t)sdl.surface->pitch;
+            }
+            x += (int)mainMenu.fontCharWidth;
+        }
+    }
+    prevc = 0;
+}
+
+void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
+    bool use0 = false;
+#if C_OPENGL
+    if (OpenGL_using()) {
+        if (check&&(text[0]&0xFF)==0xFB) {
+            use0 = true;
+            UpdateSDLDrawDBCSTexture(0);
+        }
+        glBindTexture(GL_TEXTURE_2D,use0?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+
+        glPushMatrix();
+
+        glMatrixMode (GL_TEXTURE);
+        glLoadIdentity ();
+        glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX)
+        if (color >= 0x1000000) color = ((color / 0x1000000) % 0x100) + ((color / 0x10000) % 0x100) * 0x100 + ((color / 0x100) % 0x100) * 0x10000;
+#endif
+        glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_ALPHA_TEST);
+        glEnable(GL_BLEND);
+    }
+#endif
+
+    prevc = 0;
+    while (*text != 0) {
+        if (mainMenu.fontCharScale >= 2)
+            MenuDrawTextChar2x(x,y,use0?0:(unsigned char)*text,color,check);
+        else
+            MenuDrawTextChar(x,y,use0?0:(unsigned char)*text,color,check);
+        text++;
+    }
+    if (prevc>1) {
+        if (mainMenu.fontCharScale >= 2)
+            MenuDrawTextChar2x(x,y,prevc,color,true);
+        else
+            MenuDrawTextChar(x,y,prevc,color,true);
+    }
+    prevc = 0;
+#if C_OPENGL
+    if (OpenGL_using()) {
+        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glDisable(GL_ALPHA_TEST);
+        glEnable(GL_TEXTURE_2D);
+
+        glPopMatrix();
+
+        glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+    }
+#endif
+}
+
+void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+
+    force_conversion = showdbcs;
+    int cp = dos.loaded_codepage;
+    if (!cp || force_conversion) InitCodePage();
+    force_conversion = false;
+
+    Bitu bgcolor = GFX_GetRGB(63, 63, 63);
+    Bitu fgcolor = GFX_GetRGB(191, 191, 191);
+    Bitu fgshortcolor = GFX_GetRGB(127, 127, 191);
+    Bitu fgcheckcolor = GFX_GetRGB(191, 191, 127);
+
+    if (type >= separator_type_id) {
+        /* separators never change visual state on hover/select */
+    }
+    else if (!status.enabled) {
+        if (itemHover)
+            bgcolor = GFX_GetRGB(79, 79, 79);
+
+        fgcolor = GFX_GetRGB(144, 144, 144);
+        fgshortcolor = GFX_GetRGB(63, 63, 144);
+        fgcheckcolor = GFX_GetRGB(144, 144, 63);
+    }
+    else if (itemHilight) {
+        bgcolor = GFX_GetRGB(0, 0, 63);
+        fgcolor = GFX_GetRGB(255, 255, 255);
+        fgshortcolor = GFX_GetRGB(191, 191, 255);
+    }
+    else if (itemHover) {
+        bgcolor = GFX_GetRGB(127, 127, 127);
+        fgcolor = GFX_GetRGB(255, 255, 255);
+        fgshortcolor = GFX_GetRGB(191, 191, 255);
+    }
+
+    itemHoverDrawn = itemHover;
+    itemHilightDrawn = itemHilight;
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_LockSurface(sdl.surface);
+
+    MenuDrawRect(screenBox.x, screenBox.y, screenBox.w, screenBox.h, bgcolor);
+    if (checkBox.w != 0 && checkBox.h != 0) {
+        const char *str = status.checked ? "\xFB" : " ";
+
+        MenuDrawText(screenBox.x+checkBox.x, screenBox.y+checkBox.y, str, fgcheckcolor, true);
+    }
+    if (textBox.w != 0 && textBox.h != 0)
+        MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
+    if (shortBox.w != 0 && shortBox.h != 0)
+        MenuDrawText(screenBox.x+shortBox.x, screenBox.y+shortBox.y, shortcut_text.c_str(), fgshortcolor);
+
+    if (type == submenu_type_id && borderTop/*not toplevel*/)
+        MenuDrawText((int)((int)screenBox.x+(int)screenBox.w - (int)mainMenu.fontCharWidth - 1), (int)((int)screenBox.y+(int)textBox.y), "\x10", fgcheckcolor);
+
+    if (type == separator_type_id)
+        MenuDrawRect((int)screenBox.x, (int)screenBox.y + ((int)screenBox.h/2), (int)screenBox.w, 1, fgcolor);
+    else if (type == vseparator_type_id)
+        MenuDrawRect((int)screenBox.x + ((int)screenBox.w/2), (int)screenBox.y, 1, (int)screenBox.h, fgcolor);
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_UnlockSurface(sdl.surface);
+    dos.loaded_codepage = cp;
+}
+
+void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu,bool updateScreen) {
+    for (auto &id : disp_list) {
+        DOSBoxMenu::item &item = menu.get_item(id);
+
+        item.drawMenuItem(menu);
+        if (updateScreen) item.updateScreenFromItem(menu);
+    }
+}
+
+DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &menu,int x,int y) {
+    for (auto &id : disp_list) {
+        DOSBoxMenu::item &item = menu.get_item(id);
+        if (x >= item.screenBox.x && y >= item.screenBox.y) {
+            int sx = x - item.screenBox.x;
+            int sy = y - item.screenBox.y;
+            int adj = (this != &menu.display_list && item.get_type() == DOSBoxMenu::submenu_type_id) ? 2 : 0;
+            if (sx < (item.screenBox.w+adj) && sy < item.screenBox.h)
+                return id;
+        }
+    }
+
+    return unassigned_item_handle;
+}
+
+bool skipdraw=false;
+void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+    if (!OpenGL_using()) {
+        SDL_Rect uprect = screenBox;
+
+        SDL_rect_cliptoscreen(uprect);
+
+#if defined(C_SDL2)
+        if (!Direct3D_using() || !skipdraw)
+        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+#else
+        SDL_UpdateRects( sdl.surface, 1, &uprect );
+#endif
+    }
+}
+
+void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+    if (!OpenGL_using()) {
+        SDL_Rect uprect = popupBox;
+
+        uprect.w += DOSBoxMenu::dropshadowX;
+        uprect.h += DOSBoxMenu::dropshadowY;
+        SDL_rect_cliptoscreen(uprect);
+
+#if defined(C_SDL2)
+        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+#else
+        SDL_UpdateRects( sdl.surface, 1, &uprect );
+#endif
+    }
+}
+
+void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+    Bitu bordercolor = GFX_GetRGB(31, 31, 31);
+    Bitu bgcolor = GFX_GetRGB(63, 63, 63);
+
+    if (popupBox.w <= 1 || popupBox.h <= 1)
+        return;
+
+    MenuDrawRect(popupBox.x, popupBox.y, popupBox.w, popupBox.h, bgcolor);
+
+    if (borderTop)
+        MenuDrawRect(popupBox.x, popupBox.y, popupBox.w, 1, bordercolor);
+
+    MenuDrawRect(popupBox.x, popupBox.y + popupBox.h - 1, popupBox.w, 1, bordercolor);
+
+    MenuDrawRect(popupBox.x, popupBox.y, 1, popupBox.h, bordercolor);
+    MenuDrawRect(popupBox.x + popupBox.w - 1, popupBox.y, 1, popupBox.h, bordercolor);
+
+    if (type == DOSBoxMenu::submenu_type_id) {
+        MenuShadeRect((int)popupBox.x + (int)popupBox.w, (int)popupBox.y + (int)DOSBoxMenu::dropshadowY,
+                      (int)DOSBoxMenu::dropshadowX, (int)popupBox.h);
+        MenuShadeRect((int)popupBox.x + (int)DOSBoxMenu::dropshadowX, (int)popupBox.y + (int)popupBox.h,
+                      (int)popupBox.w - (int)DOSBoxMenu::dropshadowX, (int)DOSBoxMenu::dropshadowY);
+    }
+}
+#endif

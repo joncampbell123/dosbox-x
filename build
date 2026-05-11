@@ -1,4 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# allow 32-bit on 64-bit (x86) builds
+if [ "$1" == "32" ]; then
+    CC="$(which gcc) -m32"
+    CXX="$(which g++) -m32"
+    export CC CXX
+    shift
+    opt="--host=i686-pc-linux-gnu --target=i686-pc-linux-gnu"
+fi
+
+# Jonathan C dev hack: refer to LNKDOS16 in /usr/src/doslib
+doslib=""
+if [ -d /usr/src/doslib ]; then doslib="/usr/src/doslib"; fi
+
+if [ -n "${doslib}" ]; then
+    if [ -x "${doslib}/tool/linker/linux-host/lnkdos16" ]; then
+        export PATH="${doslib}/tool/linker/linux-host:${PATH}"
+    fi
+fi
 
 # I'm sick and tired of all the churn the three versions of autoconf
 # are causing in this repo. Stop committing the configure scripts
@@ -9,16 +28,16 @@
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
 # prefer to compile against our own copy of SDL 1.x
-echo Compiling our internal SDL 1.x
+echo "Compiling our internal SDL 1.x"
 (cd vs/sdl && ./build-dosbox.sh) || exit 1
 
 # prefer to compile against our own copy of SDLnet 1.x
-echo Compiling our internal SDLnet 1.x
+echo "Compiling our internal SDLnet 1.x"
 (cd vs/sdlnet && ./build-dosbox.sh) || exit 1
 
 # now compile ourself
-echo Compiling DOSBox-X
+echo "Compiling DOSBox-X"
 chmod +x configure
-./configure --enable-core-inline --disable-debug --prefix=/usr "$@" || exit 1
+./configure --enable-debug --prefix=/usr "${@}" "${opt}" || exit 1
 make -j3 || exit 1
 

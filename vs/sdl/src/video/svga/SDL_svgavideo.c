@@ -75,6 +75,12 @@ static int SVGA_Available(void)
 	/* SVGALib 1.9.x+ doesn't require root (via /dev/svga) */
 	int svgalib2 = -1;
 
+#if defined(__LINUX__)
+	/* X11 or Wayland running?
+	 * Then NO, this output is not available */
+	if (sdl1_force_x11) return 0;
+#endif
+
 	/* See if we are connected to a virtual terminal */
 	console = STDIN_FILENO;
 #if 0 /* This is no longer needed, SVGAlib can switch consoles for us */

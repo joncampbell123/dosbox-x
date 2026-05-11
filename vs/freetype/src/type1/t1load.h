@@ -1,29 +1,28 @@
-/***************************************************************************/
-/*                                                                         */
-/*  t1load.h                                                               */
-/*                                                                         */
-/*    Type 1 font loader (specification).                                  */
-/*                                                                         */
-/*  Copyright 1996-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * t1load.h
+ *
+ *   Type 1 font loader (specification).
+ *
+ * Copyright (C) 1996-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
 #ifndef T1LOAD_H_
 #define T1LOAD_H_
 
 
-#include <ft2build.h>
-#include FT_INTERNAL_STREAM_H
-#include FT_INTERNAL_POSTSCRIPT_AUX_H
-#include FT_MULTIPLE_MASTERS_H
+#include <freetype/internal/ftstream.h>
+#include <freetype/internal/psaux.h>
+#include <freetype/ftmm.h>
 
 #include "t1parse.h"
 
@@ -67,44 +66,54 @@ FT_BEGIN_HEADER
 #ifndef T1_CONFIG_OPTION_NO_MM_SUPPORT
 
   FT_LOCAL( FT_Error )
-  T1_Get_Multi_Master( T1_Face           face,
+  T1_Get_Multi_Master( FT_Face           face,
                        FT_Multi_Master*  master );
 
   FT_LOCAL( FT_Error )
-  T1_Get_MM_Var( T1_Face      face,
+  T1_Get_MM_Var( FT_Face      face,
                  FT_MM_Var*  *master );
 
   FT_LOCAL( FT_Error )
-  T1_Set_MM_Blend( T1_Face    face,
+  T1_Set_MM_Blend( FT_Face    face,
                    FT_UInt    num_coords,
                    FT_Fixed*  coords );
 
   FT_LOCAL( FT_Error )
-  T1_Get_MM_Blend( T1_Face    face,
+  T1_Get_MM_Blend( FT_Face    face,
                    FT_UInt    num_coords,
                    FT_Fixed*  coords );
 
   FT_LOCAL( FT_Error )
-  T1_Set_MM_Design( T1_Face   face,
+  T1_Set_MM_Design( FT_Face   face,
                     FT_UInt   num_coords,
                     FT_Long*  coords );
 
   FT_LOCAL( FT_Error )
-  T1_Reset_MM_Blend( T1_Face  face,
+  T1_Reset_MM_Blend( FT_Face  face,
                      FT_UInt  instance_index );
 
   FT_LOCAL( FT_Error )
-  T1_Get_Var_Design( T1_Face    face,
+  T1_Get_Var_Design( FT_Face    face,
                      FT_UInt    num_coords,
                      FT_Fixed*  coords );
 
   FT_LOCAL( FT_Error )
-  T1_Set_Var_Design( T1_Face    face,
+  T1_Set_Var_Design( FT_Face    face,
                      FT_UInt    num_coords,
                      FT_Fixed*  coords );
 
   FT_LOCAL( void )
-  T1_Done_Blend( T1_Face  face );
+  T1_Done_Blend( FT_Face  face );
+
+  FT_LOCAL( FT_Error )
+  T1_Set_MM_WeightVector( FT_Face    face,
+                          FT_UInt    len,
+                          FT_Fixed*  weightvector );
+
+  FT_LOCAL( FT_Error )
+  T1_Get_MM_WeightVector( FT_Face    face,
+                          FT_UInt*   len,
+                          FT_Fixed*  weightvector );
 
 #endif /* !T1_CONFIG_OPTION_NO_MM_SUPPORT */
 

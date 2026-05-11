@@ -72,6 +72,8 @@ public:
         (void)_device;
 	}
 
+	virtual ~device_sound_interface() noexcept = default;
+
 };
 
 struct attotime {

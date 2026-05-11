@@ -55,7 +55,7 @@
 
   28/03/2005 : Sebastien Chevalier
   Update th SN76496Write func, according to SN76489 doc found on SMSPower.
-   - On write with 0x80 set to 0, when LastRegister is other then TONE,
+   - On write with 0x80 set to 0, when LastRegister is other than TONE,
    the function is similar than update with 0x80 set to 1
 
   23/04/2007 : Lord Nightmare
@@ -398,7 +398,7 @@ void sn76496_base_device::sound_stream_update(sound_stream &stream, stream_sampl
     (void)inputs;
 	int i;
 	stream_sample_t *lbuffer = outputs[0];
-	stream_sample_t *rbuffer = (m_stereo)? outputs[1] : 0;//nullptr;
+	stream_sample_t *rbuffer = (m_stereo)? outputs[1] : nullptr;
 
 	int16_t out;
 	int16_t out2 = 0;

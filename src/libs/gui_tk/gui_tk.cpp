@@ -33,42 +33,35 @@
 #include "dosbox.h"
 #include "setup.h"
 #include "jfont.h"
+#include "dos_inc.h"
 
 #include <SDL.h>
+#include "logging.h"
 #include "gui_tk.h"
 
 #include <math.h> /* floor */
-bool isDBCSCP();
+extern unsigned int maincp;
+extern bool dos_kernel_disabled, isDBCSCP();
 uint8_t *GetDbcs14Font(Bitu code, bool &is14);
 
 namespace GUI {
 
 /* start <= y < stop, region reserved for top level window title bar */
-int titlebar_y_start = 5;
-int titlebar_y_stop = 25;
+int titlebar_y_start = 5; // TODO move to some theme constants class
+int titlebar_y_stop = 25; // TODO move to some theme constants class
 
 /* region where title bar is drawn */
-int titlebox_y_start = 4;
-int titlebox_y_height = 20;
+int titlebox_y_start = 4;  // TODO move to some theme constants class
+int titlebox_y_height = 20;  // TODO move to some theme constants class
 
 /* width of the system menu */
-int titlebox_sysmenu_width = 20; // includes black divider line
+int titlebox_sysmenu_width = 20; // includes black divider line // TODO move to some theme constants class
 
-namespace Color {
-	RGB Background3D =		0xffc0c0c0;
-	RGB Light3D =			0xfffcfcfc;
-	RGB Shadow3D =			0xff808080;
-	RGB Border =			0xff000000;
-	RGB Text =			0xff000000;
-	RGB Background =		0xffc0c0c0;
-	RGB SelectionBackground =	0xff000080;
-	RGB SelectionForeground =	0xffffffff;
-	RGB EditableBackground =	0xffffffff;
-	RGB Titlebar =			0xffa4c8f0;
-	RGB TitlebarText =		0xff000000;
-	RGB TitlebarInactive =			0xffffffff;
-	RGB TitlebarInactiveText =		0xff000000;
-}
+// OLD theme // BUG OBSOLETE
+Theme CurrentTheme = ThemeLight();
+
+// NEW theme
+ThemeWindows31 DefaultTheme = ThemeWindows31WindowsDefault();
 
 std::map<const char *,Font *,Font::ltstr> Font::registry;
 
@@ -369,26 +362,26 @@ void Drawable::drawCircle(int d) {
 
 void Drawable::drawRect(int w, int h)
 {
-	gotoXY(x-lineWidth/2,y);
-	drawLine(x+w+lineWidth-1,y);
-	gotoXY(x-(lineWidth-1)/2,y);
-	drawLine(x,y+h);
-	gotoXY(x+(lineWidth-1)/2,y);
-	drawLine(x-w-lineWidth+1,y);
-	gotoXY(x+lineWidth/2,y);
-	drawLine(x,y-h);
+    gotoXY(x - lineWidth / 2, y);             // tl
+    drawLine(x + (w - 1) + lineWidth - 1, y); // tr
+    gotoXY(x - (lineWidth - 1) / 2, y);       // tl
+    drawLine(x, y + (h - 1));                 // bl
+    gotoXY(x + (lineWidth - 1) / 2, y);       // tl
+    drawLine(x - (w - 1) - lineWidth + 1, y); // tr
+    gotoXY(x + lineWidth / 2, y);             // tl
+    drawLine(x, y - (h - 1));                 // bl
 }
 
 void Drawable::drawDotRect(int w, int h)
 {
-	gotoXY(x-lineWidth/2,y);
-	drawDotLine(x+w+lineWidth-1,y);
-	gotoXY(x-(lineWidth-1)/2,y);
-	drawDotLine(x,y+h);
-	gotoXY(x+(lineWidth-1)/2,y);
-	drawDotLine(x-w-lineWidth+1,y);
-	gotoXY(x+lineWidth/2,y);
-	drawDotLine(x,y-h);
+    gotoXY(x - lineWidth / 2, y);                // tl
+    drawDotLine(x + (w - 1) + lineWidth - 1, y); // tr
+    gotoXY(x - (lineWidth - 1) / 2, y);          // tl
+    drawDotLine(x, y + (h - 1));                 // bl
+    gotoXY(x + (lineWidth - 1) / 2, y);          // tl
+    drawDotLine(x - (w - 1) - lineWidth + 1, y); // tr
+    gotoXY(x + lineWidth / 2, y);                // tl
+    drawDotLine(x, y - (h - 1));                 // bl
 }
 
 void Drawable::fill()
@@ -491,9 +484,12 @@ void BitmapFont::drawChar(Drawable *d, const Char c) const {
 	int bit = 0, i = 0, w = 0, h = 0;
 	bool is14 = false;
 	if (c > last) {prvc = 0;return;}
+	unsigned int cpbak = dos.loaded_codepage;
+	if (dos_kernel_disabled&&maincp) dos.loaded_codepage = maincp;
     if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
         if (isKanji1(c) && prvc == 0) {
             prvc = c;
+            dos.loaded_codepage = cpbak;
             return;
         } else if (isKanji2(c) && prvc > 2) {
             optr = GetDbcs14Font(prvc*0x100+c, is14);
@@ -502,6 +498,7 @@ void BitmapFont::drawChar(Drawable *d, const Char c) const {
             prvc = 0;
     } else
         prvc = 0;
+    dos.loaded_codepage = cpbak;
 #define move(x) (ptr += (((x)+bit)/8-(((x)+bit)<0))*(prvc==1||prvc==2?2:1), bit = ((x)+bit+(((x)+bit)<0?8:0))%8)
 	int ht = prvc==1?16:height, at = prvc==1?11:ascent;
 	int rs = row_step;
@@ -712,36 +709,93 @@ void Window::paintAll(Drawable &d) const
 	}
 }
 
+void WindowInWindow::onTabbing(const int msg) {
+	Window::onTabbing(msg);
+	if (msg == ONTABBING_TABTOTHIS || msg == ONTABBING_REVTABTOTHIS)
+		scrollToWindow(children.back());
+}
+
+void Window::onTabbing(const int msg) {
+	if (msg == ONTABBING_TABTOTHIS) {
+		if (scan_tabbing) {
+			std::list<Window *>::iterator i = children.begin(), e = children.end();
+			while (i != e) {
+				if ((*i)->tabbable && (*i)->first_tabbable) {
+					if ((*i)->raise())
+						break;
+				}
+
+				i++;
+			}
+		}
+	}
+	else if (msg == ONTABBING_REVTABTOTHIS) {
+		if (scan_tabbing) {
+			std::list<Window *>::reverse_iterator i = children.rbegin(), e = children.rend();
+			while (i != e) {
+				if ((*i)->tabbable && (*i)->last_tabbable) {
+					if ((*i)->raise())
+						break;
+				}
+
+				i++;
+			}
+		}
+	}
+}
+
 bool Window::keyDown(const Key &key)
 {
 	if (children.empty()) return false;
 	if ((*children.rbegin())->keyDown(key)) return true;
 	if (key.ctrl || key.alt || key.windows || key.special != Key::Tab) return false;
 
+	bool tab_quit = false;
+
 	if (key.shift) {
 		std::list<Window *>::reverse_iterator i = children.rbegin(), e = children.rend();
 		++i;
-        while (i != e) {
-            if ((*i)->tabbable) {
-                if ((*i)->raise())
-                    break;
-            }
+		while (i != e) {
+			if ((*i)->last_tabbable)
+				tab_quit = true;
 
-            ++i;
-        }
-        return (i != e) || toplevel/*prevent TAB escape to another window*/;
+			if ((*i)->tabbable) {
+				// WARNING: remember raise() changes the order of children, therefore using
+				//          *i after raise() is invalid (stale reference)
+				if ((*i) != children.back()) children.back()->onTabbing(ONTABBING_REVTABFROMTHIS);
+				(*i)->onTabbing(ONTABBING_REVTABTOTHIS);
+				if ((*i)->raise())
+				{
+				    toplevel = true;
+				    break;
+				}
+			}
+
+			++i;
+		}
+		return handleTab(tab_quit, i, e);
 	} else {
 		std::list<Window *>::iterator i = children.begin(), e = children.end();
-        --e;
+		--e;
 		while (i != e) {
-            if ((*i)->tabbable) {
-                if ((*i)->raise())
-                    break;
-            }
+			if ((*i)->first_tabbable)
+				tab_quit = true;
 
-            ++i;
-        }
-		return (i != e) || toplevel/*prevent TAB escape to another window*/;
+			if ((*i)->tabbable) {
+				// WARNING: remember raise() changes the order of children, therefore using
+				//          *i after raise() is invalid (stale reference)
+				if ((*i) != children.back()) children.back()->onTabbing(ONTABBING_TABFROMTHIS);
+				(*i)->onTabbing(ONTABBING_TABTOTHIS);
+				if ((*i)->raise())
+				{
+				    toplevel = true;
+				    break;
+				}
+			}
+
+			++i;
+		}
+		return handleTab(tab_quit, i, e);
 	}
 }
 
@@ -789,78 +843,83 @@ bool WindowInWindow::keyDown(const Key &key)
 {
 	if (children.empty()) return false;
 	if ((*children.rbegin())->keyDown(key)) return true;
-    if (dragging || vscroll_dragging) return true;
+	if (dragging || vscroll_dragging) return true;
 
-    if (key.special == Key::Up) {
-        scroll_pos_y -= 64;
-        if (scroll_pos_y < 0) scroll_pos_y = 0;
-        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
-        return true;
-    }
+	if (key.special == Key::Up) {
+		scroll_pos_y -= 64;
+		if (scroll_pos_y < 0) scroll_pos_y = 0;
+		if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+		return true;
+	}
 
-    if (key.special == Key::Down) {
-        scroll_pos_y += 64;
-        if (scroll_pos_y < 0) scroll_pos_y = 0;
-        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
-        return true;
-    }
+	if (key.special == Key::Down) {
+		scroll_pos_y += 64;
+		if (scroll_pos_y < 0) scroll_pos_y = 0;
+		if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+		return true;
+	}
 
-    if (key.special == Key::PageUp) {
-        scroll_pos_y -= height - 16;
-        if (scroll_pos_y < 0) scroll_pos_y = 0;
-        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
-        return true;
-    }
+	if (key.special == Key::PageUp) {
+		scroll_pos_y -= height - 16;
+		if (scroll_pos_y < 0) scroll_pos_y = 0;
+		if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+		return true;
+	}
 
-    if (key.special == Key::PageDown) {
-        scroll_pos_y += height - 16;
-        if (scroll_pos_y < 0) scroll_pos_y = 0;
-        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
-        return true;
-    }
+	if (key.special == Key::PageDown) {
+		scroll_pos_y += height - 16;
+		if (scroll_pos_y < 0) scroll_pos_y = 0;
+		if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+		return true;
+	}
 
 	if (key.ctrl || key.alt || key.windows || key.special != Key::Tab) return false;
 
-    bool tab_quit = false;
+	bool tab_quit = false;
 
 	if (key.shift) {
 		std::list<Window *>::reverse_iterator i = children.rbegin(), e = children.rend();
 		++i;
-        while (i != e) {
-            if ((*i)->last_tabbable)
-                tab_quit = true;
+		while (i != e) {
+			if ((*i)->last_tabbable)
+				tab_quit = true;
 
-            if ((*i)->tabbable) {
-                // WARNING: remember raise() changes the order of children, therefore using
-                //          *i after raise() is invalid (stale reference)
-                scrollToWindow(*i);
-                if ((*i)->raise())
-                    break;
-            }
+			if ((*i)->tabbable) {
+				// WARNING: remember raise() changes the order of children, therefore using
+				//          *i after raise() is invalid (stale reference)
+				if ((*i) != children.back()) children.back()->onTabbing(ONTABBING_REVTABFROMTHIS);
+				(*i)->onTabbing(ONTABBING_REVTABTOTHIS);
+				if (!tab_quit) scrollToWindow(*i);
+				if ((*i)->raise())
+					break;
+			}
 
-            ++i;
-        }
-        if (tab_quit) return false;
-        return (i != e) || toplevel/*prevent TAB escape to another window*/;
-    } else {
-        std::list<Window *>::iterator i = children.begin(), e = children.end();
-        --e;
-        while (i != e) {
-            if ((*i)->first_tabbable)
-                tab_quit = true;
+			++i;
+		}
+		return handleTab(tab_quit, i, e);
+	} else {
+		std::list<Window *>::iterator i = children.begin(), e = children.end();
+		--e;
+		while (i != e) {
+			if ((*i)->first_tabbable)
+				tab_quit = true;
 
-            if ((*i)->tabbable) {
-                // WARNING: remember raise() changes the order of children, therefore using
-                //          *i after raise() is invalid (stale reference)
-                scrollToWindow(*i);
-                if ((*i)->raise())
-                    break;
-            }
+			if ((*i)->tabbable) {
+				// WARNING: remember raise() changes the order of children, therefore using
+				//          *i after raise() is invalid (stale reference)
+				if ((*i) != children.back()) children.back()->onTabbing(ONTABBING_TABFROMTHIS);
+				(*i)->onTabbing(ONTABBING_TABTOTHIS);
+				if (!tab_quit) scrollToWindow(*i);
+				if ((*i)->raise())
+				{
+				    toplevel = true;
+				    break;
+				}
+			}
 
-            ++i;
-        }
-        if (tab_quit) return false;
-		return (i != e) || toplevel/*prevent TAB escape to another window*/;
+			++i;
+		}
+		return handleTab(tab_quit, i, e);
 	}
 }
 
@@ -923,27 +982,27 @@ bool Window::mouseDownOutside(MouseButton button) {
 bool Window::mouseDown(int x, int y, MouseButton button)
 {
 	std::list<Window *>::reverse_iterator i = children.rbegin();
-    bool handled = false;
-    bool doraise = !(button == GUI::WheelUp || button == GUI::WheelDown); /* do not raise if the scroll wheel */
+	bool handled = false;
+	bool doraise = !(button == GUI::WheelUp || button == GUI::WheelDown); /* do not raise if the scroll wheel */
 	Window *last = NULL;
 
 	while (i != children.rend()) {
 		Window *w = *i;
 
 		if (w->visible && x >= w->x && x < (w->x+w->width) && y >= w->y && y < (w->y+w->height)) {
-            if (handled) {
-                mouseChild = NULL;
-                return true;
-            }
+			if (handled) {
+				mouseChild = NULL;
+				return true;
+			}
 			mouseChild = last = w;
 			if (w->mouseDown(x-w->x, y-w->y, button)) {
-                if (doraise) w->raise();
+				if (doraise) w->raise();
 				return true;
 			}
 		}
-        else if (w->transient) {
-            handled |= w->mouseDownOutside(button);
-        }
+		else if (w->transient) {
+			handled |= w->mouseDownOutside(button);
+		}
 
 		++i;
 	}
@@ -969,6 +1028,34 @@ bool Window::mouseDoubleClicked(int x, int y, MouseButton button)
 {
 	if (mouseChild == NULL) return false;
 	return mouseChild->mouseDoubleClicked(x-mouseChild->x, y-mouseChild->y, button);
+}
+
+bool Window::mouseWheel(int x, int y, int wheel)
+{
+    for(const auto& win1 : children)
+    {
+        if(win1->hasFocus())
+        {
+            for(const auto& win2 : win1->children)
+            {
+                if(dynamic_cast<WindowInWindow*>(win2))
+                {
+                    const auto xMin = win1->x + win2->x;
+                    const auto yMin = win1->y + win2->y;
+                    const auto xMax = xMin + win2->width - 1;
+                    const auto yMax = yMin + win2->height - 1;
+
+                    if(x >= xMin && x <= xMax && y >= yMin && y <= yMax)
+                    {
+                        return win2->mouseWheel(x, y, wheel);
+                    }
+                }
+            }
+        }
+    }
+
+	if (mouseChild == NULL) return false;
+	return mouseChild->mouseWheel(x, y, wheel);
 }
 
 bool BorderedWindow::mouseDown(int x, int y, MouseButton button)
@@ -1005,47 +1092,31 @@ bool BorderedWindow::mouseDragged(int x, int y, MouseButton button)
 
 void ToplevelWindow::paint(Drawable &d) const
 {
-	unsigned int mask = (systemMenu->isVisible()?Color::RedMask|Color::GreenMask|Color::BlueMask:0);
-	d.clear(Color::Background);
+    // window frame (outer)
+    d.setColor(DefaultTheme.WindowFrame);
+    d.fillRect(0, 0, width, height);
+    
+    // active border
+    d.setColor(DefaultTheme.ActiveTitleBar);
+    d.fillRect(1, 1, width - 2, height - 2);
 
-	d.setColor(Color::Border);
-	d.drawLine(0,height-1,width-1,height-1);
-	d.drawLine(width-1,0,width-1,height-1);
+    // window frame (inner)
+    d.setColor(DefaultTheme.ApplicationWorkspace);
+    d.fillRect(5, 4, width - 10, height - 8);
 
-	d.setColor(Color::Shadow3D);
-	d.drawLine(0,0,width-2,0);
-	d.drawLine(0,0,0,height-2);
-	d.drawLine(0,height-2,width-2,height-2);
-	d.drawLine(width-2,0,width-2,height-2);
+    // title bar background
+    d.setColor(DefaultTheme.WindowFrame);
+    d.fillRect(6, 5, width - 6 - 6, 19);
 
-	d.drawLine(5,titlebox_y_start,width-7,titlebox_y_start);
-	d.drawLine(5,titlebox_y_start,5,titlebox_y_start+titlebox_y_height-2);
-
-	d.setColor(Color::Light3D);
-	d.drawLine(1,1,width-3,1);
-	d.drawLine(1,1,1,height-3);
-
-	d.drawLine(5,titlebox_y_start+titlebox_y_height-1,width-6,titlebox_y_start+titlebox_y_height-1);
-	d.drawLine(width-6,5,width-6,titlebox_y_start+titlebox_y_height-1);
-
-	d.setColor(Color::Background3D^mask);
-	d.fillRect(6,titlebox_y_start+1,titlebox_sysmenu_width-1,titlebox_y_height-2);
-    {
-        int y = titlebox_y_start+((titlebox_y_height-4)/2);
-        int x = 8;
-        int w = (titlebox_sysmenu_width * 20) / 27;
-        int h = 4;
-
-        d.setColor(Color::Grey50^mask);
-        d.fillRect(x+1,y+1,w,  h);
-        d.setColor(Color::Black^mask);
-        d.fillRect(x,  y,  w,  h);
-        d.setColor(Color::White^mask);
-        d.fillRect(x+1,y+1,w-2,h-2);
-    }
-
-	d.setColor(Color::Border);
-	d.drawLine(6+titlebox_sysmenu_width-1,titlebox_y_start+1,6+titlebox_sysmenu_width-1,titlebox_y_start+titlebox_y_height-2);
+    // system menu (hardcoded)
+    d.setColor(0xFFC0C7C8);
+    d.fillRect(6, 5, 18, 18);
+    d.setColor(0xFF87888F);
+    d.fillRect(9, 13, 13, 3);
+    d.setColor(DefaultTheme.WindowFrame);
+    d.fillRect(8, 12, 13, 3);
+    d.setColor(0xFFFFFFFF);
+    d.fillRect(9, 13, 11, 1);
 
     bool active = hasFocus();
 
@@ -1072,13 +1143,15 @@ void ToplevelWindow::paint(Drawable &d) const
         }
     }
 
-	d.setColor(active ? Color::Titlebar : Color::TitlebarInactive);
-	d.fillRect(6+titlebox_sysmenu_width,titlebox_y_start+1,width-(6+titlebox_sysmenu_width+6),titlebox_y_height-2);
-
-	const Font *font = Font::getFont("title");
-	d.setColor(active ? Color::TitlebarText : Color::TitlebarInactiveText);
-	d.setFont(font);
-	d.drawText(31+(width-39-font->getWidth(title))/2,titlebox_y_start+(titlebox_y_height-font->getHeight())/2+font->getAscent(),title,false,0);
+    // title
+    d.setColor(active ? DefaultTheme.ActiveTitleBar : DefaultTheme.InactiveTitleBar);
+    d.fillRect(25, 5, width - 25 - 6, 18);
+    const Font* titleFont = Font::getFont("title");
+    const auto titleW = width - (25 + 6);
+    const auto titleX = 25 + (titleW / 2 - titleFont->getWidth(title) / 2);
+    d.setFont(titleFont);
+    d.setColor(active ? DefaultTheme.ActiveTitleBarText : DefaultTheme.InactiveTitleBarText);
+    d.drawText(titleX, 17, title, false, 0);
 }
 
 void Input::posToEnd(void) {
@@ -1088,17 +1161,17 @@ void Input::posToEnd(void) {
 
 void Input::paint(Drawable &d) const
 {
-	d.clear(Color::EditableBackground);
+	d.clear(CurrentTheme.EditableBackground);
 
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(0,0,width-2,0);
 	d.drawLine(0,0,0,height-2);
 
-	d.setColor(Color::Background3D);
+	d.setColor(CurrentTheme.Background);
 	d.drawLine(1,height-2,width-2,height-2);
 	d.drawLine(width-2,1,width-2,height-2);
 
-	d.setColor(Color::Text);
+	d.setColor(CurrentTheme.TextColor);
 	d.drawLine(1,1,width-3,1);
 	d.drawLine(1,1,1,height-3);
 
@@ -1116,18 +1189,18 @@ void Input::paint(Drawable &d) const
 	int ex = dr.getX(), ey = dr.getY();
 
 	if (sx != ex || sy != ey) {
-		dr.setColor(Color::SelectionBackground);
+		dr.setColor(CurrentTheme.SelectionBackground);
 		if (sy == ey) dr.fillRect(sx,sy-f->getAscent(),ex-sx,f->getHeight()+1);
 		else {
 			dr.fillRect(sx, sy-f->getAscent(),		width-sx+offset, f->getHeight()	);
 			dr.fillRect(0,  sy-f->getAscent()+f->getHeight(), width+offset,    ey-sy-f->getHeight());
 			dr.fillRect(0,  ey-f->getAscent(),		ex,	      f->getHeight()	);
 		}
-		dr.setColor(Color::SelectionForeground);
+		dr.setColor(CurrentTheme.SelectionForeground);
 		dr.drawText(sx, sy, text, multi, start, end-start);
 	}
 
-	dr.setColor(Color::Text);
+	dr.setColor(CurrentTheme.TextColor);
 
 	dr.drawText(text, multi, end);
 
@@ -1180,100 +1253,100 @@ bool Input::keyDown(const Key &key)
 {
 	const Font *f = Font::getFont("input");
 	switch (key.special) {
-	case Key::None:
-		if (key.ctrl) {
-			switch (key.character) {
-			case 1:
-			case 'a':
-			case 'A':
-				if (key.shift) {
-					start_sel = end_sel = pos;
-				} else {
-					start_sel = 0;
-					pos = end_sel = (Size)text.size();
+		case Key::None:
+			if (key.ctrl) {
+				switch (key.character) {
+					case 1:
+					case 'a':
+					case 'A':
+						if (key.shift) {
+							start_sel = end_sel = pos;
+						} else {
+							start_sel = 0;
+							pos = end_sel = (Size)text.size();
+						}
+						break;
+					case 24:
+					case 'x':
+					case 'X':
+						cutSelection();
+						break;
+					case 3:
+					case 'c':
+					case 'C':
+						copySelection();
+						break;
+					case 22:
+					case 'v':
+					case 'V':
+						pasteSelection();
+						break;
+					default: printf("Ctrl-0x%x\n",key.character); break;
 				}
 				break;
-			case 24:
-			case 'x':
-			case 'X':
-				cutSelection();
-				break;
-			case 3:
-			case 'c':
-			case 'C':
-				copySelection();
-				break;
-			case 22:
-			case 'v':
-			case 'V':
-				pasteSelection();
-				break;
-			default: printf("Ctrl-0x%x\n",key.character); break;
+			}
+			if (start_sel != end_sel) clearSelection();
+			if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),key.character);
+			else text[pos++] = key.character;
+			break;
+		case Key::Left:
+			if (pos > 0) pos--;
+			break;
+		case Key::Right:
+			if (pos < text.size()) pos++;
+			break;
+		case Key::Down:
+			if (multi) pos = findPos(posx+3, posy-offset+f->getHeight()+4);
+			else return false;
+			break;
+		case Key::Up:
+			if (multi) pos = findPos(posx+3, posy-offset-f->getHeight()+4);
+			else return false;
+			break;
+		case Key::Home:
+			if (multi) {
+				while (pos > 0 && f->toSpecial(text[pos-1]) != Font::LF) pos--;
+			} else pos = 0;
+			break;
+		case Key::End:
+			if (multi) {
+				while (pos < text.size() && f->toSpecial(text[pos]) != Font::LF) pos++;
+			} else pos = (Size)text.size();
+			break;
+		case Key::Backspace:
+			if (!key.shift && start_sel != end_sel) clearSelection();
+			else if (pos > 0) {
+				text.erase(text.begin()+int(--pos));
+				if (start_sel > pos) start_sel = pos;
+				if (end_sel > pos) end_sel = pos;
 			}
 			break;
-		}
-		if (start_sel != end_sel) clearSelection();
-		if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),key.character);
-		else text[pos++] = key.character;
-		break;
-	case Key::Left:
-		if (pos > 0) pos--;
-		break;
-	case Key::Right:
-		if (pos < text.size()) pos++;
-		break;
-	case Key::Down:
-		if (multi) pos = findPos(posx+3, posy-offset+f->getHeight()+4);
-        else return false;
-		break;
-	case Key::Up:
-		if (multi) pos = findPos(posx+3, posy-offset-f->getHeight()+4);
-        else return false;
-		break;
-	case Key::Home:
-		if (multi) {
-			while (pos > 0 && f->toSpecial(text[pos-1]) != Font::LF) pos--;
-		} else pos = 0;
-		break;
-	case Key::End:
-		if (multi) {
-			while (pos < text.size() && f->toSpecial(text[pos]) != Font::LF) pos++;
-		} else pos = (Size)text.size();
-		break;
-	case Key::Backspace:
-		if (!key.shift && start_sel != end_sel) clearSelection();
-		else if (pos > 0) {
-			text.erase(text.begin()+int(--pos));
-			if (start_sel > pos) start_sel = pos;
-			if (end_sel > pos) end_sel = pos;
-		}
-		break;
-	case Key::Delete:
-		if (key.shift) cutSelection();
-		else if (start_sel != end_sel) clearSelection();
-		else if (pos < text.size()) text.erase(text.begin()+int(pos));
-		break;
-	case Key::Insert:
-		if (key.ctrl) copySelection();
-		else if (key.shift) pasteSelection();
-		else insert = !insert;
-		break;
-	case Key::Enter:
-		if (multi) {
-			if (start_sel != end_sel) clearSelection();
-			if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),f->fromSpecial(Font::LF));
-			else text[pos++] = f->fromSpecial(Font::LF);
-		} else executeAction(text);
-		break;
-	case Key::Tab:
-		if (multi && enable_tab_input) {
-			if (start_sel != end_sel) clearSelection();
-			if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),f->fromSpecial(Font::Tab));
-			else text[pos++] = f->fromSpecial(Font::Tab);
-		} else return false;
-		break;
-	default:
-		return false;
+		case Key::Delete:
+			if (key.shift) cutSelection();
+			else if (start_sel != end_sel) clearSelection();
+			else if (pos < text.size()) text.erase(text.begin()+int(pos));
+			break;
+		case Key::Insert:
+			if (key.ctrl) copySelection();
+			else if (key.shift) pasteSelection();
+			else insert = !insert;
+			break;
+		case Key::Enter:
+			if (multi) {
+				if (start_sel != end_sel) clearSelection();
+				if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),f->fromSpecial(Font::LF));
+				else text[pos++] = f->fromSpecial(Font::LF);
+			} else executeAction(text);
+			break;
+		case Key::Tab:
+			if (multi && enable_tab_input) {
+				if (start_sel != end_sel) clearSelection();
+				if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),f->fromSpecial(Font::Tab));
+				else text[pos++] = f->fromSpecial(Font::Tab);
+			} else return false;
+			break;
+		default:
+			return false;
 	}
 	if (!key.ctrl) {
 		if (!key.shift || key.special == Key::None) start_sel = end_sel = pos;
@@ -1297,13 +1370,78 @@ void BorderedWindow::paintAll(Drawable &d) const
 	}
 }
 
-void Button::paint(Drawable &d) const
+void Button::paint(Drawable& d) const
 {
+    // Windows 3.1 pixel perfect button style
+#define WIN31_STYLE 1
+#define WIN31_STYLE_DEBUG 0
+#if WIN31_STYLE
+#if WIN31_STYLE_DEBUG
+    d.setColor(0xFFFF00FF);
+    d.fillRect(0, 0, width, height);
+#endif
+    const auto w = width;
+    const auto h = height;
+
+    if(hasFocus())
+    {
+        d.setColor(CurrentTheme.ButtonBorder);
+        d.fillRect(0, 1, 2, h - 2);     // L
+        d.fillRect(1, 0, w - 2, 2);     // T
+        d.fillRect(w - 2, 1, 2, h - 2); // R
+        d.fillRect(1, h - 2, w - 2, 2); // B
+
+        if(pressed)
+        {
+            d.setColor(CurrentTheme.ButtonBevel2);
+            d.drawLine(2, 2, 2, h - 3); // L
+            d.drawLine(3, 2, w - 3, 2); // T
+            d.setColor(CurrentTheme.ButtonFiller);
+            d.fillRect(3, 3, w - 5, h - 5);
+        }
+        else
+        {
+            d.setColor(CurrentTheme.ButtonBevel1);
+            d.drawLine(2, 2, 2, h - 4); // L
+            d.drawLine(3, 2, 3, h - 5); // L
+            d.drawLine(4, 2, w - 4, 2); // T
+            d.drawLine(4, 3, w - 5, 3); // T
+            d.setColor(CurrentTheme.ButtonBevel2);
+            d.drawLine(w - 4, 3, w - 4, h - 3); // R
+            d.drawLine(w - 3, 2, w - 3, h - 3); // R
+            d.drawLine(3, h - 4, w - 5, h - 4); // B
+            d.drawLine(2, h - 3, w - 5, h - 3); // B
+            d.setColor(CurrentTheme.ButtonFiller);
+            d.fillRect(4, 4, w - 8, h - 8);
+        }
+    }
+    else
+    {
+        d.setColor(CurrentTheme.ButtonBorder);
+        d.drawLine(0, 1, 0, h - 2);         // L
+        d.drawLine(1, 0, w - 2, 0);         // T
+        d.drawLine(w - 1, 1, w - 1, h - 2); // R
+        d.drawLine(1, h - 1, w - 2, h - 1); // B
+        d.setColor(CurrentTheme.ButtonBevel1);
+        d.drawLine(1, 1, 1, h - 3); // L
+        d.drawLine(2, 1, 2, h - 4); // L
+        d.drawLine(3, 1, w - 3, 1); // T
+        d.drawLine(3, 2, w - 4, 2); // T
+        d.setColor(CurrentTheme.ButtonBevel2);
+        d.drawLine(w - 2, 1, w - 2, h - 2); // R
+        d.drawLine(w - 3, 2, w - 3, h - 2); // R
+        d.drawLine(2, h - 3, w - 4, h - 3); // B
+        d.drawLine(1, h - 2, w - 4, h - 2); // B
+        d.setColor(CurrentTheme.ButtonFiller);
+        d.fillRect(3, 3, w - 6, h - 6);
+    }
+ // TODO delete old style once satisfied
+ #else
 	int offset = -1;
 
 	if (hasFocus()) {
 		offset = 0;
-		d.setColor(Color::Border);
+		d.setColor(CurrentTheme.Border);
 		d.drawLine(0,0,width,0);
 		d.drawLine(0,0,0,height);
 
@@ -1311,45 +1449,46 @@ void Button::paint(Drawable &d) const
 		d.drawLine(width-1,0,width-1,height);
 	}
 
-	d.setColor(Color::Background3D);
+	d.setColor(CurrentTheme.Background);
 	d.fillRect(2,2,width-4,height-4);
 
 	if (pressed) {
-		d.setColor(Color::Shadow3D);
+		d.setColor(CurrentTheme.Shadow3D);
 
 		d.drawLine(1+offset,1+offset,width-2-offset,1+offset);
 		d.drawLine(1+offset,1+offset,1+offset,height-2-offset);
 	} else {
-		d.setColor(Color::Background3D);
+		d.setColor(CurrentTheme.Background);
 
 		d.drawLine(1+offset,1+offset,width-3-offset,1+offset);
 		d.drawLine(1+offset,1+offset,1+offset,height-3-offset);
 
-		d.setColor(Color::Light3D);
+		d.setColor(CurrentTheme.Light3D);
 
 		d.drawLine(2+offset,2+offset,width-4-offset,2+offset);
 		d.drawLine(2+offset,2+offset,2+offset,height-4-offset);
 
-		d.setColor(Color::Shadow3D);
+		d.setColor(CurrentTheme.Shadow3D);
 
 		d.drawLine(2+offset,height-3-offset,width-2-offset,height-3-offset);
 		d.drawLine(width-3-offset,2+offset,width-3-offset,height-2-offset);
 
-		d.setColor(Color::Border);
+		d.setColor(CurrentTheme.Border);
 
 		d.drawLine(width-2-offset,1+offset,width-2-offset,height-2-offset);
 		d.drawLine(1+offset,height-2-offset,width-2-offset,height-2-offset);
-	}
+    }
+#endif
 }
 
 bool Checkbox::keyDown(const Key &key)
 {
 	switch (key.special) {
-	case Key::None:
-		if (key.character != ' ') return false;
-	case Key::Enter:
-		break;
-	default: return false;
+		case Key::None:
+			if (key.character != ' ') return false;
+		case Key::Enter:
+			break;
+		default: return false;
 	}
 	mouseDown(0,0,Left);
 	return true;
@@ -1365,31 +1504,33 @@ bool Checkbox::keyUp(const Key &key)
 
 void Checkbox::paint(Drawable &d) const
 {
-	d.setColor(Color::Background3D);
+	d.setColor(CurrentTheme.Background);
 	d.fillRect(2,(height/2)-7,14,14);
 
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(2,(height/2)-7,13,(height/2)-7);
 	d.drawLine(2,(height/2)-7,2,(height/2)+5);
 
-	d.setColor(Color::Light3D);
+	d.setColor(CurrentTheme.Light3D);
 	d.drawLine(2,(height/2)+5,14,(height/2)+5);
 	d.drawLine(14,(height/2)-7,14,(height/2)+5);
 
-	d.setColor(Color::EditableBackground);
-	d.fillRect(4,(height/2)-5,9,9);
+	if (!pressed) {
+		d.setColor(CurrentTheme.EditableBackground);
+		d.fillRect(4,(height/2)-5,9,9);
+	}
 
-	d.setColor(Color::Border);
+	d.setColor(CurrentTheme.Border);
 	d.drawLine(3,(height/2)-6,12,(height/2)-6);
 	d.drawLine(3,(height/2)-6,3,(height/2)+4);
 
-    if (hasFocus()) {
-        d.setColor(Color::Black);
-        d.drawDotRect(1,(height/2)-8,14,14);
-    }
+	if (hasFocus()) {
+		d.setColor(Color::Black);
+		d.drawDotRect(1,(height/2)-8,14,14);
+	}
 
 	if (checked) {
-		d.setColor(Color::Text);
+		d.setColor(CurrentTheme.TextColor);
 		d.drawLine(5,(height/2)-2,7,(height/2)  );
 		d.drawLine(11,(height/2)-4);
 		d.drawLine(5,(height/2)-1,7,(height/2)+1);
@@ -1399,9 +1540,8 @@ void Checkbox::paint(Drawable &d) const
 	}
 }
 
-Radiobox::Radiobox(Frame *parent, int x, int y, int w, int h) : BorderedWindow(static_cast<Window *>(parent),x,y,w,h,16,0,0,0), ActionEventSource("GUI::Radiobox"), checked(0)
+Radiobox::Radiobox(Window *parent, int x, int y, int w, int h) : BorderedWindow(parent,x,y,w,h,16,0,0,0), ActionEventSource("GUI::Radiobox"), checked(0), pressed(0)
 {
-	 addActionHandler(parent);
 }
 
 bool Radiobox::keyDown(const Key &key)
@@ -1427,37 +1567,42 @@ bool Radiobox::keyUp(const Key &key)
 
 void Radiobox::paint(Drawable &d) const
 {
-	d.setColor(Color::Light3D);
+	d.setColor(CurrentTheme.Light3D);
 	d.drawLine(6,(height/2)+6,9,(height/2)+6);
 	d.drawLine(4,(height/2)+5,11,(height/2)+5);
 	d.drawLine(13,(height/2)-1,13,(height/2)+2);
 	d.drawLine(12,(height/2)-2,12,(height/2)+4);
 
-	d.setColor(Color::Background3D);
+	d.setColor(CurrentTheme.Background);
 	d.drawLine(6,(height/2)+5,9,(height/2)+5);
 	d.drawLine(4,(height/2)+4,11,(height/2)+4);
 	d.drawLine(12,(height/2)-1,12,(height/2)+2);
 	d.drawLine(11,(height/2)-2,11,(height/2)+4);
 
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(6,(height/2)-5,9,(height/2)-5);
 	d.drawLine(4,(height/2)-4,11,(height/2)-4);
 	d.drawLine(2,(height/2)-1,2,(height/2)+2);
 	d.drawLine(3,(height/2)-3,3,(height/2)+4);
 
-	d.setColor(Color::Border);
+	d.setColor(CurrentTheme.Border);
 	d.drawLine(6,(height/2)-4,9,(height/2)-4);
 	d.drawLine(4,(height/2)-3,11,(height/2)-3);
 	d.drawLine(3,(height/2)-1,3,(height/2)+2);
 	d.drawLine(4,(height/2)-3,4,(height/2)+3);
 
-	d.setColor(Color::EditableBackground);
+	d.setColor(pressed ? CurrentTheme.Background : CurrentTheme.EditableBackground); // do not omit this draw, doing so makes the radio button look a little crappy
 	d.fillRect(5,(height/2)-2,6,6);
 	d.fillRect(4,(height/2)-1,8,4);
 	d.fillRect(6,(height/2)-3,4,8);
 
+	if (hasFocus()) {
+		d.setColor(Color::Black);
+		d.drawDotRect(1,(height/2)-6,13,13);
+	}
+
 	if (checked) {
-		d.setColor(Color::Text);
+		d.setColor(CurrentTheme.TextColor);
 		d.fillRect(6,(height/2),4,2);
 		d.fillRect(7,(height/2)-1,2,4);
 	}
@@ -1465,68 +1610,53 @@ void Radiobox::paint(Drawable &d) const
 
 void Menu::paint(Drawable &d) const
 {
-	d.clear(Color::Background3D);
+	d.clear(DefaultTheme.MenuBar);
 
-	d.setColor(Color::Border);
-	d.drawLine(0,height-1,width-1,height-1);
-	d.drawLine(width-1,0,width-1,height-1);
-
-	d.setColor(Color::Shadow3D);
-	d.drawLine(0,0,width-2,0);
-	d.drawLine(0,0,0,height-2);
-	d.drawLine(0,height-2,width-2,height-2);
-	d.drawLine(width-2,0,width-2,height-2);
-
-	d.setColor(Color::Light3D);
-	d.drawLine(1,1,width-3,1);
-	d.drawLine(1,1,1,height-3);
+	d.setColor(CurrentTheme.Border); // TODO
+	d.drawRect(0,0,width,height);
 
 	d.setFont(Font::getFont("menu"));
 	const int asc = Font::getFont("menu")->getAscent()+1;
 	const int height = Font::getFont("menu")->getHeight()+2;
-    int x = 3,cwidth = width-3-x;
-	int y = asc+3;
+	int x = 1,cwidth = width-1-x;
+	int y = asc+1;
 	int index = 0;
-    unsigned int coli = 0;
+	unsigned int coli = 0;
 
-    if (coli < colx.size()) {
-        x = colx[coli++];
-        cwidth = width-3-x;
-        if (coli < colx.size()) {
-            cwidth = colx[coli] - x;
-        }
-    }
+	if (coli < colx.size()) {
+		x = colx[coli++];
+		cwidth = width-1-x;
+		if (coli < colx.size()) {
+			cwidth = colx[coli] - x;
+		}
+	}
 
 	for (std::vector<String>::const_iterator i = items.begin(); i != items.end(); ++i) {
 		if ((*i).empty()) {
-			d.setColor(Color::Shadow3D);
-			d.drawLine(x+1,y-asc+6,cwidth,y-asc+6);
-			d.setColor(Color::Light3D);
-			d.drawLine(x+1,y-asc+7,cwidth,y-asc+7);
-			y += 12;
-        } else if (*i == "|") {
-            y = asc+3;
-            if (coli < colx.size()) {
-                x = colx[coli++];
-                cwidth = width-3-x;
-                if (coli < colx.size()) {
-                    cwidth = colx[coli] - x;
-                }
+			d.setColor(Color::Black); // TODO
+			d.drawLine(x,y-asc+3,cwidth,y-asc+3);
+			y += 3+1+3;
+		} else if (*i == "|") {
+			y = asc+1;
+			if (coli < colx.size()) {
+				x = colx[coli++];
+				cwidth = width-1-x;
+				if (coli < colx.size()) {
+					cwidth = colx[coli] - x;
+				}
 
-                d.setColor(Color::Shadow3D);
-                d.drawLine(x-2,2,x-2,this->height-4);
-                d.setColor(Color::Light3D);
-                d.drawLine(x-1,2,x-1,this->height-4);
-            }
-        } else {
-			if (index == selected && hasFocus()) {
-				d.setColor(Color::SelectionBackground);
-				d.fillRect(x,y-asc,cwidth,height);
-				d.setColor(Color::SelectionForeground);
-			} else {
-				d.setColor(Color::Text);
+				d.setColor(Color::Black); // TODO
+				d.drawLine(x-1,1,x-1,this->height-2);
 			}
-			d.drawText(x+17,y,(*i),false,0);
+		} else {
+			if (index == selected && hasFocus()) {
+				d.setColor(DefaultTheme.Highlight);
+				d.fillRect(x,y-asc,cwidth,height);
+				d.setColor(DefaultTheme.HighlightedText);
+			} else {
+				d.setColor(DefaultTheme.MenuText);
+			}
+			d.drawText(x+7,y,(*i),false,0);
 			y += height;
 		}
 		index++;
@@ -1537,37 +1667,38 @@ void Menubar::paint(Drawable &d) const
 {
 	const Font *f = Font::getFont("menu");
 
-	d.setColor(Color::Light3D);
-	d.drawLine(0,height-1,width-1,height-1);
-	d.setColor(Color::Shadow3D);
-	d.drawLine(0,height-2,width-1,height-2);
+	d.setColor(DefaultTheme.MenuBar);
+	d.fillRect(0, 0, width, height - 1);
 
-	d.gotoXY(7,f->getAscent()+2);
+	d.setColor(Color::Black);
+	d.gotoXY(0,height-1);
+	d.drawLine(width,height-1);
 
-	int index = 0;
+	int index = 0, x = 0;
+	d.gotoXY(x,f->getAscent()+2);
 	for (std::vector<Menu*>::const_iterator i = menus.begin(); i != menus.end(); ++i, ++index) {
+		const int w = f->getWidth((*i)->getName());
 		if (index == selected && (*i)->isVisible()) {
-			int w = f->getWidth((*i)->getName());
-			d.setColor(Color::SelectionBackground);
-			d.fillRect(d.getX()-7,0,w+14,height-2);
-			d.setColor(Color::SelectionForeground);
-			d.gotoXY(d.getX()+7,f->getAscent()+2);
+			d.setColor(DefaultTheme.Highlight);
+			d.fillRect(x,0,w+14,height-2);
+			d.setColor(DefaultTheme.HighlightedText);
 		} else {
-			d.setColor(Color::Text);
+			d.setColor(DefaultTheme.MenuText);
 		}
+		d.gotoXY(x+7,f->getAscent()+2);
 		d.drawText((*i)->getName(),false);
-		d.gotoXY(d.getX()+14,f->getAscent()+2);
+		x += w+14;
 	}
 }
 
 bool Button::keyDown(const Key &key)
 {
 	switch (key.special) {
-	case Key::None:
-		if (key.character != ' ') return false;
-	case Key::Enter:
-		break;
-	default: return false;
+		case Key::None:
+			if (key.character != ' ') return false;
+		case Key::Enter:
+			break;
+		default: return false;
 	}
 	mouseDown(0,0,Left);
 	return true;
@@ -1585,21 +1716,21 @@ void Frame::paint(Drawable &d) const {
 	const Font *f = Font::getFont("default");
 	const int top = (label.empty()?1:f->getAscent()/2+1);
 
-	d.setColor(Color::Shadow3D);
+	d.setColor(CurrentTheme.Shadow3D);
 	d.drawLine(1,height-2,1,top);
 	d.drawLine(8,top);
 	d.drawLine((label.empty()?8:f->getWidth(label)+14),top,width-2,top);
 	d.drawLine(2,height-3,width-3,height-3);
 	d.drawLine(width-3,top+1);
 	
-	d.setColor(Color::Light3D);
+	d.setColor(CurrentTheme.Light3D);
 	d.drawLine(2,height-3,2,top+1);
 	d.drawLine(8,top+1);
 	d.drawLine((label.empty()?8:f->getWidth(label)+14),top+1,width-3,top+1);
 	d.drawLine(2,height-2,width-2,height-2);
 	d.drawLine(width-2,top+1);
 
-	d.setColor(Color::Text);
+	d.setColor(CurrentTheme.TextColor);
 	d.drawText(11,f->getAscent()+1,label,false,0);
 }
 
@@ -1772,78 +1903,142 @@ static MouseButton SDL_to_GUI(const int button)
 static GUI::Char SDLSymToChar(const SDL_Keysym &key) {
     /* SDL will not uppercase the char for us with shift, etc. */
     /* Additionally we have to filter out non-char values */
-    if (key.sym == 0 || key.sym > 0x7f) return 0;
-
-    GUI::Char ret = key.sym;
-
-    if (key.mod & KMOD_SHIFT) {
+    GUI::Char ret = key.scancode;
+    bool is_shift = (key.mod & KMOD_SHIFT) > 0; /* True if Shift key is pressed */
+    bool is_caps = (key.mod & KMOD_CAPS) > 0;   /* True if caps lock is enabled */
+    bool is_num = (key.mod & KMOD_NUM) > 0; /* True if NumLock is enabled */
+    if (key.sym < 0x40000000){ // key.sym of printable characters are < 0x40000000 except for those of Keypad 
         switch (ret) {
-            case '[':
-                ret = (GUI::Char)('{');
+            case 45: // '-'
+                ret = is_shift ? (GUI::Char)('_') : (GUI::Char)('-');
                 break;
-            case ']':
-                ret = (GUI::Char)('}');
+            case 46: // '='
+                ret = is_shift ? (GUI::Char)('+') : (GUI::Char)('=');
                 break;
-            case '\\':
-                ret = (GUI::Char)('|');
+            case 47: // '['
+                ret = is_shift ? (GUI::Char)('{') : (GUI::Char)('[');
                 break;
-            case ';':
-                ret = (GUI::Char)(':');
+            case 48: // ']'
+                ret = is_shift ? (GUI::Char)('}') : (GUI::Char)(']');
                 break;
-            case '\'':
-                ret = (GUI::Char)('"');
+            case 49: // '\\'
+                ret = is_shift ? (GUI::Char)('|') : (GUI::Char)('\\');
                 break;
-            case ',':
-                ret = (GUI::Char)('<');
+            //case 50: /* FIX_ME: Key with this scancode is not known. Please report if character is not correct */
+            case 51: //';'
+                ret = is_shift ? (GUI::Char)(':') : (GUI::Char)(';');
                 break;
-            case '.':
-                ret = (GUI::Char)('>');
+            case 52: //'\''
+                ret = is_shift ? (GUI::Char)('"') : (GUI::Char)('\'');
                 break;
-            case '/':
-                ret = (GUI::Char)('?');
+            case 53: //'`'
+                ret = is_shift ? (GUI::Char)('~') : (GUI::Char)('`');
                 break;
-            case '-':
-                ret = (GUI::Char)('_');
+            case 54: //','
+                ret = is_shift ? (GUI::Char)('<') : (GUI::Char)(',');
                 break;
-            case '=':
-                ret = (GUI::Char)('+');
+            case 55: //'.'
+                ret = is_shift ? (GUI::Char)('>') : (GUI::Char)('.');
                 break;
-            case '1':
-                ret = (GUI::Char)('!');
+            case 56: //'/'
+                ret = is_shift ? (GUI::Char)('?') : (GUI::Char)('/');
                 break;
-            case '2':
-                ret = (GUI::Char)('@');
+            case 135: // Int'l 5
+                ret = is_shift ? (GUI::Char)('_') : (GUI::Char)('\\');
                 break;
-            case '3':
-                ret = (GUI::Char)('#');
+            case 137: // JP Yen
+                ret = is_shift ? (GUI::Char)('|') : (GUI::Char)('\\');
                 break;
-            case '4':
-                ret = (GUI::Char)('$');
+            case 30:
+                ret = is_shift ? (GUI::Char)('!') : (GUI::Char)('1');
                 break;
-            case '5':
-                ret = (GUI::Char)('%');
+            case 31:
+                ret = is_shift ? (GUI::Char)('@') : (GUI::Char)('2');
                 break;
-            case '6':
-                ret = (GUI::Char)('^');
+            case 32:
+                ret = is_shift ? (GUI::Char)('#') : (GUI::Char)('3');
                 break;
-            case '7':
-                ret = (GUI::Char)('&');
+            case 33:
+                ret = is_shift ? (GUI::Char)('$') : (GUI::Char)('4');
                 break;
-            case '8':
-                ret = (GUI::Char)('*');
+            case 34:
+                ret = is_shift ? (GUI::Char)('%') : (GUI::Char)('5');
                 break;
-            case '9':
-                ret = (GUI::Char)('(');
+            case 35:
+                ret = is_shift ? (GUI::Char)('^') : (GUI::Char)('6');
                 break;
-            case '0':
-                ret = (GUI::Char)(')');
+            case 36:
+                ret = is_shift ? (GUI::Char)('&') : (GUI::Char)('7');
+                break;
+            case 37:
+                ret = is_shift ? (GUI::Char)('*') : (GUI::Char)('8');
+                break;
+            case 38:
+                ret = is_shift ? (GUI::Char)('(') : (GUI::Char)('9');
+                break;
+            case 39: //'0'
+                ret = is_shift ? (GUI::Char)(')') : (GUI::Char)('0');
                 break;
             default:
-                ret = (GUI::Char)toupper((int)ret);
+                if(ret == 50) LOG_MSG("gui_tk: scancode 0x50 sym=%x", key.sym);
+                ret = (is_shift ^ is_caps) ? (GUI::Char)toupper((int)key.sym) : key.sym;
                 break;
         }
+    } else {
+        switch(ret){
+            case 53:
+                ret = is_shift ? (GUI::Char)('~') : (GUI::Char)('`'); // Zenkaku/Hankaku
+                break;
+            case 84:
+                ret = (GUI::Char)('/');
+                break;
+            case 85:
+                ret = (GUI::Char)('*');
+                break;
+            case 86:
+                ret = (GUI::Char)('-');
+                break;
+            case 87:
+                ret = (GUI::Char)('+');
+                break;
+         // case 88: /* Kp enter */
+            case 89:
+                ret = (is_num && !is_shift) ? (GUI::Char)('1') : 0;
+                break;
+            case 90:
+                ret = (is_num && !is_shift) ? (GUI::Char)('2') : 0;
+                break;
+            case 91:
+                ret = (is_num && !is_shift) ? (GUI::Char)('3') : 0;
+                break;
+            case 92:
+                ret = (is_num && !is_shift) ? (GUI::Char)('4') : 0;
+                break;
+            case 93:
+                ret = (is_num && !is_shift) ? (GUI::Char)('5') : 0;
+                break;
+            case 94:
+                ret = (is_num && !is_shift) ? (GUI::Char)('6') : 0;
+                break;
+            case 95:
+                ret = (is_num && !is_shift) ? (GUI::Char)('7') : 0;
+                break;
+            case 96:
+                ret = (is_num && !is_shift) ? (GUI::Char)('8') : 0;
+                break;
+            case 97:
+                ret = (is_num && !is_shift) ? (GUI::Char)('9') : 0;
+                break;
+            case 98:
+                ret = (is_num && !is_shift) ? (GUI::Char)('0') : 0;
+                break;
+            case 99:
+                ret = (is_num && !is_shift) ? (GUI::Char)('.') : 0;
+                break;
+            default:
+                ret = 0; // ignore all other keys as non-printable
+            }
     }
-
     return ret;
 }
 #endif
@@ -1876,6 +2071,7 @@ static const Key SDL_to_GUI(const SDL_keysym &key)
 	case SDLK_DELETE: ksym = GUI::Key::Delete; break;
 	case SDLK_INSERT: ksym = GUI::Key::Insert; break;
 	case SDLK_RETURN: ksym = GUI::Key::Enter; break;
+    case SDLK_KP_ENTER: ksym = GUI::Key::Enter; break;
 	case SDLK_MENU: ksym = GUI::Key::Menu; break;
 	case SDLK_PAGEUP: ksym = GUI::Key::PageUp; break;
 	case SDLK_PAGEDOWN: ksym = GUI::Key::PageDown; break;
@@ -1916,7 +2112,7 @@ static const Key SDL_to_GUI(const SDL_keysym &key)
         break;
 	}
 #if defined(C_SDL2)
-	return Key(SDLSymToChar(key), ksym,
+    return Key(SDLSymToChar(key), ksym,
 		(key.mod&KMOD_SHIFT)>0,
 		(key.mod&KMOD_CTRL)>0,
 		(key.mod&KMOD_ALT)>0,
@@ -2033,7 +2229,7 @@ bool ScreenSDL::event(SDL_Event &event) {
 #if defined(C_SDL2)
     /* handle mouse events only if it comes from the mouse.
      * ignore the fake mouse events some OSes generate from the touchscreen.
-     * Note that Windows will fake mouse events, Linux/X11 wil not */
+     * Note that Windows will fake mouse events, Linux/X11 will not */
     if (event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
         if (event.button.which == SDL_TOUCH_MOUSEID) /* don't handle mouse events faked by touchscreen */
             return true;/*eat the event or else it will just keep calling objects until processed*/
@@ -2077,6 +2273,7 @@ bool ScreenSDL::event(SDL_Event &event) {
 	}
 	case SDL_KEYDOWN: {
 		const Key &key = SDL_to_GUI(event.key.keysym);
+        //LOG_MSG("scancode=%x, sim=%x", event.key.keysym.scancode, event.key.keysym.sym);
 		if (key.special == GUI::Key::None && key.character == 0) break;
 		rc = keyDown(key);
 		if (key.special == GUI::Key::CapsLock || key.special == GUI::Key::NumLock) keyUp(key);
@@ -2136,25 +2333,34 @@ bool ScreenSDL::event(SDL_Event &event) {
 		}
 		lastdown = 0;
 		return rc;
-	}
+#if C_SDL2	    
+#if WIN32
+    case SDL_MOUSEWHEEL:
+    {
+        const auto wheel = event.wheel;
+        return mouseWheel(wheel.mouseX / scale, wheel.mouseY / scale, wheel.y);
+    }
+#endif
+#endif
+    }
 
 	return false;
 }
 
 void WindowInWindow::paintScrollBar3DInset(Drawable &dscroll, int x, int y, int w, int h) const {
     // Windows 3.1 renders the shadow one pixel wide, no highlight
-    dscroll.setColor(Color::Shadow3D);
+    dscroll.setColor(CurrentTheme.Shadow3D);
     dscroll.drawLine(x,y,x+w-1,y);
     dscroll.drawLine(x,y,x,    y+h-1);
 }
 
 void WindowInWindow::paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const {
-    dscroll.setColor(Color::Light3D);
+    dscroll.setColor(CurrentTheme.Light3D);
     dscroll.drawLine(x,y,x+w-2,y);
     dscroll.drawLine(x,y,x,    y+h-2);
 
     // Windows 3.1 renders the shadow two pixels wide
-    dscroll.setColor(Color::Shadow3D);
+    dscroll.setColor(CurrentTheme.Shadow3D);
     dscroll.drawLine(x,    y+h-1,x+w-1,y+h-1);
     dscroll.drawLine(x+w-1,y,    x+w-1,y+h-1);
 
@@ -2164,8 +2370,8 @@ void WindowInWindow::paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int
 
 void WindowInWindow::paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vsl) const {
     // black border
-    dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
-    dscroll.drawRect(vsl.xleft,vsl.ytop,vsl.thumbwidth-1,vsl.thumbheight-1);
+    dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
+    dscroll.drawRect(vsl.xleft,vsl.ytop,vsl.thumbwidth,vsl.thumbheight);
 
     // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
     paintScrollBar3DOutset(dscroll, vsl.xleft+1, vsl.ytop+1, vsl.thumbwidth-2, vsl.thumbheight-2);
@@ -2173,10 +2379,10 @@ void WindowInWindow::paintScrollBarThumb(Drawable &dscroll, vscrollbarlayout &vs
 
 void WindowInWindow::paintScrollBarBackground(Drawable &dscroll,const vscrollbarlayout &vsl) const {
     /* scroll bar border, background */
-    dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
-    dscroll.drawRect(vsl.scrollthumbRegion.x,  vsl.scrollthumbRegion.y,  vsl.scrollthumbRegion.w-1,vsl.scrollthumbRegion.h-1);
+    dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
+    dscroll.drawRect(vsl.scrollthumbRegion.x,  vsl.scrollthumbRegion.y,  vsl.scrollthumbRegion.w,vsl.scrollthumbRegion.h);
 
-    dscroll.setColor(Color::Background3D);
+    dscroll.setColor(CurrentTheme.Background);
     dscroll.fillRect(vsl.scrollthumbRegion.x+1,vsl.scrollthumbRegion.y+1,vsl.scrollthumbRegion.w-2,vsl.scrollthumbRegion.h-2);
 }
 
@@ -2187,7 +2393,7 @@ void WindowInWindow::paintScrollBarThumbDragOutline(Drawable &dscroll,const vscr
     int y = (drag_y - vsl.scrollthumbRegion.y) - ((vsl.thumbheight + 2) / 2);
     if (y < 0) y = 0;
     if (y > vsl.thumbtravel) y = vsl.thumbtravel;
-    dscroll.setColor(Color::Light3D);
+    dscroll.setColor(CurrentTheme.Light3D);
     dscroll.drawDotRect(x+vsl.scrollthumbRegion.x,y+vsl.scrollthumbRegion.y,vsl.thumbwidth-1,vsl.thumbheight-1);
 }
 
@@ -2232,7 +2438,7 @@ void WindowInWindow::paintScrollBarArrowInBox(Drawable &dscroll,const int x,cons
     const int ax = ((w - aw) / 2) + x;
     const int ay = ((h - ah) / 2) + y;
 
-    dscroll.setColor(disabled ? Color::Shadow3D : Color::Black);
+    dscroll.setColor(disabled ? CurrentTheme.Shadow3D : Color::Black);
 
     if (downArrow) {
         dscroll.fillRect(ax+2,ay,3,3);
@@ -2269,11 +2475,11 @@ void WindowInWindow::paintAll(Drawable &d) const {
         if (vscroll)
             w -= (vscroll?vscroll_display_width:0);
 
-        dchild.setColor(Color::Shadow3D);
+        dchild.setColor(CurrentTheme.Shadow3D);
         dchild.drawLine(0,0,w,0);
         dchild.drawLine(0,0,0,h);
 
-        dchild.setColor(Color::Light3D);
+        dchild.setColor(CurrentTheme.Light3D);
         dchild.drawLine(0,h,w,h);
         dchild.drawLine(w,0,w,h);
     }
@@ -2295,8 +2501,10 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 const int h = vsl.scrollthumbRegion.y + 1; /* want black border of thumb to overlap our black border 1 pixel */
 
                 // black border
-                dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
-                dscroll.drawRect(x,y,w-1,h-1);
+                dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
+                dscroll.drawRect(x,y,w,h);
+                dscroll.setColor(CurrentTheme.ButtonFiller); // NTS: Actually, scroll bar buttons are always gray regardless of theme
+                dscroll.fillRect(x+1,y+1,w-2,h-2);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 if (vscroll_uparrowhold && vscroll_uparrowdown)
@@ -2317,8 +2525,10 @@ void WindowInWindow::paintAll(Drawable &d) const {
                 const int h = height - y;
 
                 // black border
-                dscroll.setColor(vsl.disabled ? Color::Shadow3D : Color::Black);
-                dscroll.drawRect(x,y,w-1,h-1);
+                dscroll.setColor(vsl.disabled ? CurrentTheme.Shadow3D : Color::Black);
+                dscroll.drawRect(x,y,w,h);
+                dscroll.setColor(CurrentTheme.ButtonFiller); // NTS: Actually, scroll bar buttons are always gray regardless of theme
+                dscroll.fillRect(x+1,y+1,w-2,h-2);
 
                 // 3D outset style, 1 pixel inward each side, inside the black rectangle we just drew
                 if (vscroll_downarrowhold && vscroll_downarrowdown)
@@ -2673,6 +2883,12 @@ bool WindowInWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
     }
 
     return Window::mouseDoubleClicked(x-xadj,y-xadj,button);
+}
+
+bool WindowInWindow::mouseWheel(int x, int y, int wheel)
+{
+    scroll_pos_y = imin(imax(scroll_pos_y - wheel * 30, 0), scroll_pos_h);
+    return Window::mouseWheel(x, y, wheel);
 }
 
 void WindowInWindow::resize(int w, int h) {

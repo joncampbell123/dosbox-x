@@ -16,8 +16,9 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <map>
 #include <string>
-void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
+#include <vector>
 
 #include <SDL_video.h>
 
@@ -93,6 +94,8 @@ void DOSBox_NoMenu(void);
 
 #endif
 
+void SetVal(const std::string & secname, const std::string & preval, const std::string & val);
+
 /* menu interface mode */
 #define DOSBOXMENU_NULL     (0)     /* nothing */
 #define DOSBOXMENU_HMENU    (1)     /* Windows HMENU resources */
@@ -101,7 +104,9 @@ void DOSBox_NoMenu(void);
 
 #if C_FORCE_MENU_SDLDRAW /* Programmer/Dev wants to compile with SDL drawn menus even if host OS offers menus (shrug) Ok */
 # define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW
-#elif defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#elif defined(HX_DOS)
+# define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW
+#elif defined(WIN32)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_HMENU
 #elif defined(MACOSX)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NSMENU
@@ -122,9 +127,6 @@ void GUI_Shortcut(int select);
 
 #define DOSBOXMENU_ACCELMARK_STR        "\x01"
 #define DOSBOXMENU_ACCELMARK_CHAR       '\x01'
-
-#include <map>
-#include <vector>
 
 #ifndef MENU_DOSBOXMENU_H
 #define MENU_DOSBOXMENU_H
@@ -328,6 +330,18 @@ class DOSBoxMenu {
 
                     return *this;
                 }
+#if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101300
+                /* A copy of check() required to avoid conflict in macro definition */
+                inline item &check2(const bool f=true) {
+                    if (status.checked != f) {
+                        status.checked  = f;
+                        if (can_check() && has_vis_checked())
+                            status.changed = 1;
+                    }
+
+                    return *this;
+                }
+#endif                
                 inline bool is_checked(void) const {
                     return status.checked;
                 }
@@ -517,5 +531,13 @@ class DOSBoxMenu {
 extern DOSBoxMenu mainMenu;
 
 void DOSBox_SetMenu(DOSBoxMenu &altMenu);
+
+#if defined(WIN32)
+#if !defined(C_SDL2)
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+#elif DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+void SDL1_hax_SetMenu(HMENU menu);
+#endif
+#endif
 
 #endif /* MENU_DOSBOXMENU_H */

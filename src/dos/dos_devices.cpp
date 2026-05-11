@@ -32,46 +32,27 @@
 #include "render.h"
 /* Include all the devices */
 
+unsigned int BeepDuration();
+
 #include "dev_con.h"
 #include <fstream>
 
+#if (!defined(WIN32) && defined(C_SDL2)) || defined(MACOSX)
+typedef char host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+#endif
+
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
+extern std::map<int, int> lowboxdrawmap;
 extern int dos_clipboard_device_access;
+extern bool morelen, halfwidthkana, showdbcs;
 extern const char * dos_clipboard_device_name;
 bool isDBCSCP(), shiftjis_lead_byte(int c);
-bool Network_IsNetworkResource(const char * filename);
+#if !defined(OSFREE)
+bool Network_IsNetworkResource(const char * filename), TTF_using(void);
+#endif
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
-struct ExtDeviceData {
-	uint16_t attribute;
-	uint16_t segment;
-	uint16_t strategy;
-	uint16_t interrupt;
-};
-
-class DOS_ExtDevice : public DOS_Device {
-public:
-	DOS_ExtDevice(const char *name, uint16_t seg, uint16_t off) {
-		SetName(name);
-		ext.attribute = real_readw(seg, off + 4);
-		ext.segment = seg;
-		ext.strategy = real_readw(seg, off + 6);
-		ext.interrupt = real_readw(seg, off + 8);
-	}
-	virtual bool	Read(uint8_t * data,uint16_t * size);
-	virtual bool	Write(const uint8_t * data,uint16_t * size);
-	virtual bool	Seek(uint32_t * pos,uint32_t type);
-	virtual bool	Close();
-	virtual uint16_t	GetInformation(void);
-	virtual bool	ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
-	virtual bool	WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
-	virtual uint8_t	GetStatus(bool input_flag);
-	bool CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off);
-private:
-	struct ExtDeviceData ext;
-
-	uint16_t CallDeviceFunction(uint8_t command, uint8_t length, PhysPt bufptr, uint16_t size);
-};
 
 bool DOS_ExtDevice::CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off) {
 	if(seg == ext.segment && s_off == ext.strategy && i_off == ext.interrupt) {
@@ -80,8 +61,10 @@ bool DOS_ExtDevice::CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off
 	return false;
 }
 
-uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, PhysPt bufptr, uint16_t size) {
+/* This function is optimized for use with read/write and ioctl read/write commands for character devices */
+uint16_t DOS_ExtDevice::CallRWIODeviceFunction(uint8_t command, uint8_t length, uint16_t seg, uint16_t offset, uint16_t size) {
 	uint16_t oldbx = reg_bx;
+	uint16_t oldds = SegValue(ds);
 	uint16_t oldes = SegValue(es);
 
 	real_writeb(dos.dcp, 0, length);
@@ -90,25 +73,29 @@ uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, Phys
 	real_writew(dos.dcp, 3, 0);
 	real_writed(dos.dcp, 5, 0);
 	real_writed(dos.dcp, 9, 0);
-	real_writeb(dos.dcp, 13, 0);
-	real_writew(dos.dcp, 14, (uint16_t)(bufptr & 0x000f));
-	real_writew(dos.dcp, 16, (uint16_t)(bufptr >> 4));
-	real_writew(dos.dcp, 18, size);
+	if (length >= 20) { // this code is used below for input/output status which does not use these fields
+		real_writeb(dos.dcp, 13, 0);
+		real_writew(dos.dcp, 14, offset);
+		real_writew(dos.dcp, 16, seg);
+		real_writew(dos.dcp, 18, size);
+	}
 
 	reg_bx = 0;
+	SegSet16(ds, ext.segment);
 	SegSet16(es, dos.dcp);
 	CALLBACK_RunRealFar(ext.segment, ext.strategy);
 	CALLBACK_RunRealFar(ext.segment, ext.interrupt);
 	reg_bx = oldbx;
 	SegSet16(es, oldes);
+	SegSet16(ds, oldds);
 
 	return real_readw(dos.dcp, 3);
 }
 
 bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
-	if(ext.attribute & 0x4000) {
+	if(ext.attribute & DeviceAttributeFlags::SupportsIoctl) {
 		// IOCTL INPUT
-		if((CallDeviceFunction(3, 26, bufptr, size) & 0x8000) == 0) {
+		if((CallRWIODeviceFunction(DEVFUNC_IOCTL_READ, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
 			*retcode = real_readw(dos.dcp, 18);
 			return true;
 		}
@@ -116,10 +103,10 @@ bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t 
 	return false;
 }
 
-bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
-	if(ext.attribute & 0x4000) {
+bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
+	if(ext.attribute & DeviceAttributeFlags::SupportsIoctl) {
 		// IOCTL OUTPUT
-		if((CallDeviceFunction(12, 26, bufptr, size) & 0x8000) == 0) {
+		if((CallRWIODeviceFunction(DEVFUNC_IOCTL_WRITE, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
 			*retcode = real_readw(dos.dcp, 18);
 			return true;
 		}
@@ -128,36 +115,100 @@ bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t *
 }
 
 bool DOS_ExtDevice::Read(uint8_t * data,uint16_t * size) {
-	PhysPt bufptr = (dos.dcp << 4) | 32;
-	for(uint16_t no = 0 ; no < *size ; no++) {
-		// INPUT
-		if((CallDeviceFunction(4, 26, bufptr, 1) & 0x8000)) {
+	PhysPt bufptr = (dos.dcp << 4) + 32;
+
+	if (dos.dcp_size_seg <= 2) return false;
+
+	unsigned int batch_size = (dos.dcp_size_seg - 2) << 4;
+	unsigned int todo = *size;
+	unsigned int done = 0;
+	unsigned int rd;
+
+	const auto inproc = [bufptr, &todo, &done, &rd, &data, this](const unsigned int batch_size) {
+		rd = 0;
+
+		if (CallRWIODeviceFunction(DEVFUNC_READ, 26, dos.dcp + 2/*2 paras = 32 bytes*/, 0, batch_size) & 0x8000/*error*/)
+			return;
+
+		rd = real_readw(dos.dcp, 18);/*how much was read?*/
+		if (rd > batch_size) {
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver read too much data!");
+			rd = 0;
+			return;
+		}
+		for (unsigned int c=0;c < rd;c++) data[c] = mem_readb(bufptr+c);
+		todo -= rd;
+		data += rd;
+		done += rd;
+	};
+
+	while (todo >= batch_size) {
+		inproc(batch_size);
+		if (rd != batch_size) {
+			*size = done;
 			return false;
-		} else {
-			if(real_readw(dos.dcp, 18) != 1) {
-				return false;
-			}
-			*data++ = mem_readb(bufptr);
 		}
 	}
+
+	if (todo != 0) {
+		inproc(todo);
+		if (rd != todo) {
+			*size = done;
+			return false;
+		}
+	}
+
+	*size = done;
 	return true;
 }
 
 bool DOS_ExtDevice::Write(const uint8_t * data,uint16_t * size) {
-	PhysPt bufptr = (dos.dcp << 4) | 32;
-	for(uint16_t no = 0 ; no < *size ; no++) {
-		mem_writeb(bufptr, *data);
-		// OUTPUT
-		if((CallDeviceFunction(8, 26, bufptr, 1) & 0x8000)) {
-			return false;
-		} else {
-			if(real_readw(dos.dcp, 18) != 1) {
-				return false;
-			}
+	PhysPt bufptr = (dos.dcp << 4) + 32;
+
+	if (dos.dcp_size_seg <= 2) return false;
+
+	unsigned int batch_size = (dos.dcp_size_seg - 2) << 4;
+	unsigned int todo = *size;
+	unsigned int done = 0;
+	unsigned int wd;
+
+	const auto inproc = [bufptr, &todo, &done, &wd, &data, this](const unsigned int batch_size) {
+		wd = 0;
+
+		for (unsigned int c=0;c < batch_size;c++) mem_writeb(bufptr+c,data[c]);
+		if (CallRWIODeviceFunction(DEVFUNC_WRITE, 26, dos.dcp + 2/*2 paras = 32 bytes*/, 0, batch_size) & 0x8000/*error*/)
+			return;
+
+		wd = real_readw(dos.dcp, 18);/*how much was written?*/
+		if (wd > batch_size) {
+			LOG(LOG_MISC,LOG_DEBUG)("Device driver wrote too much data!");
+			wd = 0;
+			return;
 		}
-		data++;
+		todo -= wd;
+		data += wd;
+		done += wd;
+	};
+
+	while (todo >= batch_size) {
+		inproc(batch_size);
+		if (wd != batch_size) {
+			*size = done;
+			return false;
+		}
 	}
+
+	if (todo != 0) {
+		inproc(todo);
+		if (wd != todo) {
+			*size = done;
+			return false;
+		}
+	}
+
+	*size = done;
 	return true;
+
 }
 
 bool DOS_ExtDevice::Close() {
@@ -165,24 +216,28 @@ bool DOS_ExtDevice::Close() {
 }
 
 bool DOS_ExtDevice::Seek(uint32_t * pos,uint32_t type) {
-    (void)pos;//UNUSED
-    (void)type;//UNUSED
+	(void)pos;//UNUSED
+	(void)type;//UNUSED
 	return true;
 }
 
 uint16_t DOS_ExtDevice::GetInformation(void) {
-	// bit9=1 .. ExtDevice
-	return (ext.attribute & 0xc07f) | 0x0080 | EXT_DEVICE_BIT;
+	uint16_t ret = DeviceInfoFlags::ExternalDevice;
+	if (ext.attribute & DeviceAttributeFlags::CharacterDevice)   ret |= DeviceInfoFlags::Device;
+	if (ext.attribute & DeviceAttributeFlags::SupportsIoctl)     ret |= DeviceInfoFlags::IoctlSupport;
+	if (ext.attribute & DeviceAttributeFlags::SupportsRemovable) ret |= DeviceInfoFlags::OpenCloseSupport;
+	ret |= ext.attribute & DeviceAttributeFlags::CoreDevicesMask;
+	return ret;
 }
 
 uint8_t DOS_ExtDevice::GetStatus(bool input_flag) {
 	uint16_t status;
 	if(input_flag) {
-		// NON-DESTRUCTIVE INPUT NO WAIT
-		status = CallDeviceFunction(5, 14, 0, 0);
+		// INPUT STATUS
+		status = CallRWIODeviceFunction(DEVFUNC_INPUT_STATUS, 13, 0, 0, 0);
 	} else {
 		// OUTPUT STATUS
-		status = CallDeviceFunction(10, 13, 0, 0);
+		status = CallRWIODeviceFunction(DEVFUNC_OUTPUT_STATUS, 13, 0, 0, 0);
 	}
 	// check NO ERROR & BUSY
 	if((status & 0x8200) == 0) {
@@ -192,7 +247,7 @@ uint8_t DOS_ExtDevice::GetStatus(bool input_flag) {
 }
 
 uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
-	uint32_t addr = dos_infoblock.GetDeviceChain();
+	uint32_t addr = dos_infoblock.GetStartOfDeviceChain();
 	uint16_t seg, off;
 	uint16_t next_seg, next_off;
 	uint16_t no;
@@ -204,9 +259,6 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
 		no = real_readw(seg, off + 4);
 		next_seg = real_readw(seg, off + 2);
 		next_off = real_readw(seg, off);
-		if(next_seg == 0xffff && next_off == 0xffff) {
-			break;
-		}
 		if(no & 0x8000) {
 			for(no = 0 ; no < 8 ; no++) {
 				if((devname[no] = real_readb(seg, off + 10 + no)) <= 0x20) {
@@ -219,7 +271,7 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
 				if(already_flag) {
 					for(no = 0 ; no < DOS_DEVICES ; no++) {
 						if(Devices[no]) {
-							if(Devices[no]->GetInformation() & EXT_DEVICE_BIT) {
+							if(Devices[no]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
 								if(((DOS_ExtDevice *)Devices[no])->CheckSameDevice(seg, real_readw(seg, off + 6), real_readw(seg, off + 8))) {
 									return 0;
 								}
@@ -234,6 +286,9 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
 				return (uint32_t)seg << 16 | (uint32_t)off;
 			}
 		}
+		if(next_seg == 0xffff && next_off == 0xffff) {
+			break;
+		}
 		seg = next_seg;
 		off = next_off;
 	}
@@ -244,6 +299,7 @@ static void DOS_CheckOpenExtDevice(const char *name) {
 	uint32_t addr;
 
 	if((addr = DOS_CheckExtDevice(name, true)) != 0) {
+		LOG(LOG_MISC,LOG_DEBUG)("Found external device driver '%s' (%x:%x), adding", name, addr >> 16, addr & 0xffff);
 		DOS_ExtDevice *device = new DOS_ExtDevice(name, addr >> 16, addr & 0xffff);
 		DOS_AddDevice(device);
 	}
@@ -252,42 +308,43 @@ static void DOS_CheckOpenExtDevice(const char *name) {
 class device_NUL : public DOS_Device {
 public:
 	device_NUL() { SetName("NUL"); };
-	virtual bool Read(uint8_t * data,uint16_t * size) {
+	bool Read(uint8_t * data,uint16_t * size) override {
         (void)data; // UNUSED
-		*size = 0; //Return success and no data read. 
+		*size = 0; //Return success and no data read.
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:READ",GetName());
 		return true;
 	}
-	virtual bool Write(const uint8_t * data,uint16_t * size) {
+	bool Write(const uint8_t * data,uint16_t * size) override {
         (void)data; // UNUSED
         (void)size; // UNUSED
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:WRITE",GetName());
 		return true;
 	}
-	virtual bool Seek(uint32_t * pos,uint32_t type) {
+	bool Seek(uint32_t * pos,uint32_t type) override {
         (void)type;
         (void)pos;
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:SEEK",GetName());
 		return true;
 	}
-	virtual bool Close() { return true; }
-	virtual uint16_t GetInformation(void) { return 0x8084; }
-	virtual bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
-	virtual bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	bool Close() override { return true; }
+	uint16_t GetInformation(void) override { return DeviceInfoFlags::Device | DeviceInfoFlags::Nul; }
+	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
+	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
 };
 
+#if !defined(OSFREE)
 class device_PRN : public DOS_Device {
 public:
 	device_PRN() {
 		SetName("PRN");
 	}
-	bool Read(uint8_t * data,uint16_t * size) {
+	bool Read(uint8_t * data,uint16_t * size) override {
         (void)data; // UNUSED
         (void)size; // UNUSED
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
-	bool Write(const uint8_t * data,uint16_t * size) {
+	bool Write(const uint8_t * data,uint16_t * size) override {
 		for(int i = 0; i < 9; i++) {
 			// look up a parallel port
 			if(parallelPortObjects[i] != NULL) {
@@ -300,18 +357,19 @@ public:
 		}
 		return false;
 	}
-	bool Seek(uint32_t * pos,uint32_t type) {
+	bool Seek(uint32_t * pos,uint32_t type) override {
         (void)type; // UNUSED
 		*pos = 0;
 		return true;
 	}
-	uint16_t GetInformation(void) {
-		return 0x80A0;
+	uint16_t GetInformation(void) override {
+		return DeviceInfoFlags::Device | DeviceInfoFlags::Binary;
 	}
-	bool Close() {
+	bool Close() override {
 		return false;
 	}
 };
+#endif
 
 uint16_t cpMap[512] = { // Codepage is standard 437
 	0x0020, 0x263a, 0x263b, 0x2665, 0x2666, 0x2663, 0x2660, 0x2219, 0x25d8, 0x25cb, 0x25d9, 0x2642, 0x2640, 0x266a, 0x266b, 0x263c,
@@ -385,76 +443,12 @@ uint16_t cpMap_PC98[256] = {
     0x0020, 0x0020, 0x0020, 0x0020, 0x005C, 0x0020, 0x0020, 0x0020                  // 0xF8-0xFF   0xFC = Backslash
 };
 
+#if !defined(OSFREE)
+bool getClipboard();
 bool lastwrite = false;
-uint8_t *clipAscii = NULL;
-uint32_t clipSize = 0, cPointer = 0, fPointer;
-
-#if defined(WIN32)
-void Unicode2Ascii(const uint16_t* unicode) {
-	int memNeeded = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
-	if (memNeeded <= 1)																// Includes trailing null
-		return;
-	if (!(clipAscii = (uint8_t *)malloc(memNeeded)))
-		return;
-	// Untranslated characters will be set to 0x07 (BEL), and later stripped
-	if (WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:dos.loaded_codepage), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded)
-		{																			// Can't actually happen of course
-		free(clipAscii);
-		clipAscii = NULL;
-		return;
-		}
-	memNeeded--;																	// Don't include trailing null
-	for (int i = 0; i < memNeeded; i++)
-		if (clipAscii[i] > 31 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13)	// Space and up, or TAB, CR/LF allowed (others make no sense when pasting)
-			clipAscii[clipSize++] = clipAscii[i];
-	return;																			// clipAscii dould be downsized, but of no real interest
-}
-#else
-typedef char host_cnv_char_t;
-host_cnv_char_t *CodePageGuestToHost(const char *s);
-#endif
-
-bool swapad=true;
-extern std::string strPasteBuffer;
-void PasteClipboard(bool bPressed);
-bool getClipboard() {
-	if (clipAscii) {
-		free(clipAscii);
-		clipAscii = NULL;
-	}
-#if defined(WIN32)
-    clipSize = 0;
-    if (OpenClipboard(NULL)) {
-        if (HANDLE cbText = GetClipboardData(CF_UNICODETEXT)) {
-            uint16_t *unicode = (uint16_t *)GlobalLock(cbText);
-            Unicode2Ascii(unicode);
-            GlobalUnlock(cbText);
-        }
-        CloseClipboard();
-    }
-#else
-    swapad=false;
-    PasteClipboard(true);
-    swapad=true;
-    clipSize = 0;
-    unsigned int extra = 0;
-    unsigned char head, last=13;
-    for (size_t i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
-    clipAscii = (uint8_t*)malloc(strPasteBuffer.length() + extra);
-    if (clipAscii)
-        while (strPasteBuffer.length()) {
-            head = strPasteBuffer[0];
-            if (head == 10 && last != 13) clipAscii[clipSize++] = 13;
-            if (head > 31 || head == 9 || head == 10 || head == 13)
-                clipAscii[clipSize++] = head;
-            if (head == 13 && (strPasteBuffer.length() < 2 || strPasteBuffer[1] != 10)) clipAscii[clipSize++] = 10;
-            strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-            last = head;
-        }
-#endif
-    return clipSize != 0;
-}
-
+uint32_t cPointer = 0, fPointer;
+extern uint32_t clipSize;
+extern uint8_t *clipAscii;
 class device_CLIP : public DOS_Device {
 private:
 	char	tmpAscii[20];
@@ -522,7 +516,11 @@ private:
 						break;
 					case 10:															// Linefeed (combination)
 					case 13:
+#if defined(WIN32)
 						fwrite("\x0d\x00\x0a\x00", 1, 4, fh);
+#else
+						fwrite("x0a\x00", 1, 2, fh);
+#endif
 						if (i < rawdata.size() -1 && textChar == 23-rawdata[i+1])
 							i++;
 						break;
@@ -545,7 +543,7 @@ private:
 			if (EmptyClipboard())
 				{
 				int bytes = ftell(fh);
-				HGLOBAL hCbData = GlobalAlloc(NULL, bytes);
+				HGLOBAL hCbData = GlobalAlloc(0, bytes);
 				uint8_t* pChData = (uint8_t*)GlobalLock(hCbData);
 				if (pChData)
 					{
@@ -565,6 +563,7 @@ private:
             std::string result="";
             std::istringstream iss(contents.c_str());
             for (std::string token; std::getline(iss, token); ) {
+                if (token.size() && token.back() == 13) token.pop_back();
                 char* uname = CodePageGuestToHost(token.c_str());
                 result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
             }
@@ -588,7 +587,7 @@ public:
 		strcpy(tmpAscii, "#clip$.asc");
 		strcpy(tmpUnicode, "#clip$.txt");
 	}
-	virtual bool Read(uint8_t * data,uint16_t * size) {
+	bool Read(uint8_t * data,uint16_t * size) override {
 		if(control->SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
 			*size = 0;
 			return true;
@@ -609,7 +608,7 @@ public:
 		}
 		return true;
 	}
-	virtual bool Write(const uint8_t * data,uint16_t * size) {
+	bool Write(const uint8_t * data,uint16_t * size) override {
 		if(control->SecureMode()||!(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
@@ -637,13 +636,13 @@ public:
 			*(datadst++) = ' ';
 		if (uint16_t newsize = (uint16_t)(datadst - data))									// If data
 			{
-			if (rawdata.capacity() < 100000)											// Prevent repetive size allocations
+			if (rawdata.capacity() < 100000)											// Prevent repetitive size allocations
 				rawdata.reserve(100000);
 			rawdata.append((char *)data, newsize);
 			}
 		return true;
 	}
-	virtual bool Seek(uint32_t * pos,uint32_t type) {
+	bool Seek(uint32_t * pos,uint32_t type) override {
 		if(control->SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
 			*pos = 0;
 			return true;
@@ -681,7 +680,7 @@ public:
 		fPointer = newPos;
 		return true;
 	}
-	virtual bool Close() {
+	bool Close() override {
 		if(control->SecureMode()||dos_clipboard_device_access<2)
 			return false;
 		clipSize = 0;																	// Reset clipboard read
@@ -695,16 +694,27 @@ public:
 		CommitData();
 		return true;
 	}
-	uint16_t GetInformation(void) {
-		return 0x80E0;
+	uint16_t GetInformation(void) override {
+		return DeviceInfoFlags::Device | DeviceInfoFlags::EofOnInput | DeviceInfoFlags::Binary;
 	}
 };
+#endif
 
 bool DOS_Device::Read(uint8_t * data,uint16_t * size) {
 	return Devices[devnum]->Read(data,size);
 }
 
 bool DOS_Device::Write(const uint8_t * data,uint16_t * size) {
+	// Enables console capture with VZ editor resident and xscript
+	if(IS_PC98_ARCH && Devices[devnum]->IsName("CON")) {
+		uint16_t keep_ax = reg_ax;
+		for(uint16_t n = 0 ; n < *size ; n++) {
+			reg_al = *data++;
+			CALLBACK_RunRealInt(0x29);
+		}
+		reg_ax = keep_ax;
+		return true;
+	}
 	return Devices[devnum]->Write(data,size);
 }
 
@@ -720,6 +730,12 @@ uint16_t DOS_Device::GetInformation(void) {
 	return Devices[devnum]->GetInformation();
 }
 
+void DOS_Device::SetInformation(uint16_t info) {
+	if(Devices[devnum]->IsName("CON") && !(Devices[devnum]->GetInformation() & DeviceInfoFlags::ExternalDevice)) {
+		Devices[devnum]->SetInformation(info);
+	}
+}
+
 bool DOS_Device::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	return Devices[devnum]->ReadFromControlChannel(bufptr,size,retcode);
 }
@@ -730,10 +746,10 @@ bool DOS_Device::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * re
 
 uint8_t DOS_Device::GetStatus(bool input_flag) {
 	uint16_t info = Devices[devnum]->GetInformation();
-	if(info & EXT_DEVICE_BIT) {
+	if(info & DeviceInfoFlags::ExternalDevice) {
 		return Devices[devnum]->GetStatus(input_flag);
 	}
-	return (info & 0x40) ? 0x00 : 0xff;
+	return (info & DeviceInfoFlags::EofOnInput) ? 0x00 : 0xff;
 }
 
 DOS_File::DOS_File(const DOS_File& orig) : flags(orig.flags), open(orig.open), attr(orig.attr),
@@ -755,7 +771,7 @@ DOS_File& DOS_File::operator= (const DOS_File& orig) {
         drive = orig.drive;
         newtime = orig.newtime;
         if (name) {
-            delete[] name; name = 0;
+            delete[] name; name = nullptr;
         }
         if (orig.name) {
             name = new char[strlen(orig.name) + 1]; strcpy(name, orig.name);
@@ -769,37 +785,57 @@ uint8_t DOS_FindDevice(char const * name) {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;
 	bool ime_flag = false;
 //	if(!name || !(*name)) return DOS_DEVICES; //important, but makename does it
+
+	// NTS: If a program is trying to open paths like "@:\\WINBOOT.SYS" the most likely
+	//      reason is that it's a Microsoft program like FORMAT.COM and it's reading
+	//      locations in the DOS kernel that are supposed to hold the drive letter of
+	//      the boot drive, but carry zero instead.
+	//
+	//      "@:" paths are a sign the program is possibly trying to read files from
+	//      the boot device but is using nonstandard means to determine that i.e.
+	//      not using INT 21h AX=3305h as documented for MS-DOS 4.0 or higher.
+	//      Real MS-DOS probably does not accept "@:" drive paths and neither should
+	//      we.
+	//
+	//      The other reason for this rejection is that the code that was here to
+	//      convert "@:" to normal paths did not initialize local variable "drive"
+	//      and Windows 95 FORMAT.COM requesting "@:\\WINBOOT.SYS" prior to this fix
+	//      sometimes caused a segfault.
 	if(*name == '@' && *(name + 1) == ':') {
-		strcpy(fullname, name + 2);
-		ime_flag = true;
+		LOG_MSG("DOS_FindDevice(): Rejecting path '%s'. @: paths are not valid. It may be a sign the program is attempting to locate the boot drive in an undocumented manner not supported by this emulator",name);
+		return DOS_DEVICES;
+		//ime_flag = true;   // FIXME: <- Why?
 	} else {
 		if (!DOS_MakeName(name,fullname,&drive)) return DOS_DEVICES;
 	}
 	char* name_part = strrchr_dbcs(fullname,'\\');
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if(Network_IsNetworkResource(name))
+ #if !defined(OSFREE)
+    if(Network_IsNetworkResource(name))
 		name_part = fullname;
 	else
+ #endif
 #endif
 	if(name_part) {
 		*name_part++ = 0;
 		//Check validity of leading directory.
-		if(!Drives[drive]->TestDir(fullname)) return DOS_DEVICES;
+		if(!Drives[drive]->TestDir(fullname) && !strcasecmp(name_part, "NUL")) return DOS_DEVICES; //can be invalid
 	} else name_part = fullname;
-   
+
 	char* dot = strrchr(name_part,'.');
 	if(dot) *dot = 0; //no ext checking
 
 	DOS_CheckOpenExtDevice(name_part);
 	for(int index = DOS_DEVICES - 1 ; index >= 0 ; index--) {
 		if(Devices[index]) {
-			if(Devices[index]->GetInformation() & EXT_DEVICE_BIT) {
+			if(Devices[index]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
 				if(WildFileCmp(name_part, Devices[index]->name)) {
 					if(DOS_CheckExtDevice(name_part, false) != 0) {
 						return index;
 					} else {
+						LOG(LOG_MISC,LOG_DEBUG)("Remove external device driver '%s', no longer in the device chain",name);
 						delete Devices[index];
-						Devices[index] = 0;
+						Devices[index] = nullptr;
 						break;
 					}
 				}
@@ -815,7 +851,7 @@ uint8_t DOS_FindDevice(char const * name) {
 	static char com[5] = { 'C','O','M','1',0 };
 	static char lpt[5] = { 'L','P','T','1',0 };
 	// AUX is alias for COM1 and PRN for LPT1
-	// A bit of a hack. (but less then before).
+	// A bit of a hack. (but less than before).
 	// no need for casecmp as makename returns uppercase
 	if (strcmp(name_part, "AUX") == 0) name_part = com;
 	if (strcmp(name_part, "PRN") == 0) name_part = lpt;
@@ -829,38 +865,63 @@ uint8_t DOS_FindDevice(char const * name) {
 	return DOS_DEVICES;
 }
 
-
 void DOS_AddDevice(DOS_Device * adddev) {
 //Caller creates the device. We store a pointer to it
 //TODO Give the Device a real handler in low memory that responds to calls
-	if (adddev == NULL) E_Exit("DOS_AddDevice with null ptr");
-	for(Bitu i = 0; i < DOS_DEVICES;i++) {
+	if (adddev == NULL) E_Exit("DOS_AddDevice() with null ptr");
+	for(Bitu i = 0; i < DOS_DEVICES; i++) {
 		if (Devices[i] == NULL){
-//			LOG_MSG("DOS_AddDevice %s (%p)\n",adddev->name,(void*)adddev);
+//			LOG_MSG("DOS_AddDevice() %s (%p)",adddev->name,(void*)adddev);
 			Devices[i] = adddev;
 			Devices[i]->SetDeviceNumber(i);
 			return;
 		}
 	}
-	E_Exit("DOS:Too many devices added");
+	E_Exit("DOS_AddDevice(): Too many devices added");
+}
+
+static void DelDeviceUpdateFiles(const char * deviceName) {
+	for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
+		DOS_File* file = Files[handle];
+		if (file && !strcmp(file->name, deviceName)) {
+//			LOG_MSG("Closing %s (%p)",file->name,(void*)file);
+			/* DOS_CloseFile() takes care of bookkeeping, including updating
+			 * Files. However, we cannot allow references to remain to the
+			 * device that we are about to delete. So, we force the reference
+			 * counter to be 1. If we do not, DOS_Device::Close() may be called
+			 * by DOS_CloseFile() for a deleted device (and crash the process). */
+			file->refCtr = 1;
+			if (!DOS_CloseFile(handle, true))
+				LOG_MSG("WARNING: DOS_CloseFile() failed to close %s",deviceName);
+		}
+	}
 }
 
 void DOS_DelDevice(DOS_Device * dev) {
 // We will destroy the device if we find it in our list.
-// TODO:The file table is not checked to see the device is opened somewhere!
-	if (dev == NULL) return E_Exit("DOS_DelDevice with null ptr");
-	for (Bitu i = 0; i <DOS_DEVICES;i++) {
-		if (Devices[i] == dev) { /* NTS: The mainline code deleted by matching names??? Why? */
-//			LOG_MSG("DOS_DelDevice %s (%p)\n",dev->name,(void*)dev);
-			delete Devices[i];
-			Devices[i] = 0;
-			return;
+	if (dev == NULL) return E_Exit("DOS_DelDevice() with null ptr");
+
+	/* We should match names, because neither files nor devices have a proper
+	 * ID. The address of neither DOS_File nor DOS_Device objects is a proper
+	 * ID, because the objects can be copied. Note that device names are
+	 * unique, but that separate DOS_File objects can refer to the same device.
+	 * - dbjh */
+	DelDeviceUpdateFiles(dev->name);
+
+	for (Bitu i = 0; i < DOS_DEVICES; i++) {
+		if (Devices[i] != NULL) { /* This code sets Devices[i] to NULL after delete on device name match so don't assume it's non-NULL! */
+			if (!strcmp(Devices[i]->name, dev->name)) {
+//				LOG_MSG("DOS_DelDevice() %s (%p)",dev->name,(void*)dev);
+				delete Devices[i];
+				Devices[i] = nullptr;
+				return;
+			}
 		}
 	}
 
 	/* hm. unfortunately, too much code in DOSBox assumes that we delete the object.
 	 * prior to this fix, failure to delete caused a memory leak */
-	LOG_MSG("WARNING: DOS_DelDevice() failed to match device object '%s' (%p). Deleting anyway\n",dev->name,(void*)dev);
+	LOG_MSG("WARNING: DOS_DelDevice() failed to match device object '%s' (%p). Deleting anyway",dev->name,(void*)dev);
 	delete dev;
 }
 
@@ -887,8 +948,21 @@ bool ANSI_SYS_installed() {
     return false;
 }
 
-void DOS_ClearKeyMap()
-{
+uint8_t DOS_GetAnsiAttr() {
+    if (DOS_CON != NULL)
+        return DOS_CON->GetAnsiAttr();
+    return 0;
+}
+
+bool DOS_SetAnsiAttr(uint8_t attr) {
+    if (DOS_CON != NULL) {
+        DOS_CON->SetAnsiAttr(attr);
+        return true;
+    }
+    return false;
+}
+
+void DOS_ClearKeyMap() {
 	for(Bitu i = 0 ; i < DOS_DEVICES ; i++) {
 		if(Devices[i]) {
 			if(Devices[i]->IsName("CON")) {
@@ -900,8 +974,7 @@ void DOS_ClearKeyMap()
 	}
 }
 
-void DOS_SetConKey(uint16_t src, uint16_t dst)
-{
+void DOS_SetConKey(uint16_t src, uint16_t dst) {
 	for(Bitu i = 0 ; i < DOS_DEVICES ; i++) {
 		if(Devices[i]) {
 			if(Devices[i]->IsName("CON")) {
@@ -920,14 +993,18 @@ void DOS_SetupDevices(void) {
 	DOS_Device * newdev2;
 	newdev2=new device_NUL();
 	DOS_AddDevice(newdev2);
+#if !defined(OSFREE)
 	DOS_Device * newdev3;
 	newdev3=new device_PRN();
 	DOS_AddDevice(newdev3);
+#endif
+#if !defined(OSFREE)
 	if (dos_clipboard_device_access) {
 		DOS_Device * newdev4;
 		newdev4=new device_CLIP();
 		DOS_AddDevice(newdev4);
 	}
+#endif
 }
 
 /* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */
@@ -974,15 +1051,69 @@ void INTDC_CL10h_AH09h(uint16_t count) {
         DOS_CON->INTDC_CL10h_AH09h(count);
 }
 
+void INTDC_CL10h_AH0Ah(uint16_t pattern) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH0Ah(pattern);
+}
+
+void INTDC_CL10h_AH0Bh(uint16_t pattern) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH0Bh(pattern);
+}
+
+void INTDC_CL10h_AH0Ch(uint16_t count) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH0Ch(count);
+}
+
+void INTDC_CL10h_AH0Dh(uint16_t count) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH0Dh(count);
+}
+
+/* The CB_INT28 handler calls this callback then executes STI+HLT.
+ * This works great when called from the CON device because on return,
+ * when IRQ1 keyboard input breaks the HLT and returns to CON, this
+ * keeps CPU load down. But what if you're some DOS program that
+ * likes to call INT 28h a lot just to appease some multitasking OS
+ * or NetWare servers? INT 28h will block until any interrupt
+ * happens whether or not pending keyboard data is waiting for the
+ * CON device. Usually it's the regular tick of IRQ0 that finally
+ * breaks HLT, but that's only at 18.2 ticks/sec and some programs
+ * like the Pacific C freeware compiler like to call INT 28h a lot
+ * before processing keyboard input. So to avoid stalls in that
+ * case, INT 28h will use STI+HLT only once. The CON driver will
+ * set that flag every time it calls it and then set it again when
+ * it completes to allow one more STI+HLT should external DOS
+ * programs call INT 28h. */
+bool INT28_AllowOnce = true;
+Bitu INT28_HANDLER(void) {
+	bool skip = false;
+
+	if (INT28_AllowOnce) {
+		INT28_AllowOnce = false;
+	}
+	else {
+		skip = true;
+	}
+
+	if (skip) {
+		/* skip STI+HLT */
+		reg_ip += 2;
+	}
+
+	return CBRET_NONE;
+}
+
 Bitu INT29_HANDLER(void) {
-    if (DOS_CON != NULL) {
-        unsigned char b = reg_al;
-        uint16_t sz = 1;
+	if (DOS_CON != NULL) {
+		unsigned char b = reg_al;
+		uint16_t sz = 1;
 
-        DOS_CON->Write(&b,&sz);
-    }
+		DOS_CON->Write(&b,&sz);
+	}
 
-    return CBRET_NONE;
+	return CBRET_NONE;
 }
 
 extern bool dos_kernel_disabled;

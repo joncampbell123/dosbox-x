@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,23 +19,25 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
+/* WIKI CATEGORY: LoadSO */
+
 /**
- *  \file SDL_loadso.h
+ * # CategoryLoadSO
  *
- *  System dependent library loading routines
+ * System-dependent library loading routines.
  *
- *  Some things to keep in mind:
- *  \li These functions only work on C function names.  Other languages may
- *      have name mangling and intrinsic language support that varies from
- *      compiler to compiler.
- *  \li Make sure you declare your function pointers with the same calling
- *      convention as the actual library function.  Your code will crash
- *      mysteriously if you do not do this.
- *  \li Avoid namespace collisions.  If you load a symbol from the library,
- *      it is not defined whether or not it goes into the global symbol
- *      namespace for the application.  If it does and it conflicts with
- *      symbols in your code or other shared libraries, you will not get
- *      the results you expect. :)
+ * Some things to keep in mind:
+ *
+ * - These functions only work on C function names. Other languages may have
+ *   name mangling and intrinsic language support that varies from compiler to
+ *   compiler.
+ * - Make sure you declare your function pointers with the same calling
+ *   convention as the actual library function. Your code will crash
+ *   mysteriously if you do not do this.
+ * - Avoid namespace collisions. If you load a symbol from the library, it is
+ *   not defined whether or not it goes into the global symbol namespace for
+ *   the application. If it does and it conflicts with symbols in your code or
+ *   other shared libraries, you will not get the results you expect. :)
  */
 
 #ifndef SDL_loadso_h_
@@ -51,22 +53,56 @@ extern "C" {
 #endif
 
 /**
- *  This function dynamically loads a shared object and returns a pointer
- *  to the object handle (or NULL if there was an error).
- *  The 'sofile' parameter is a system dependent name of the object file.
+ * Dynamically load a shared object.
+ *
+ * \param sofile a system-dependent name of the object file.
+ * \returns an opaque pointer to the object handle or NULL if there was an
+ *          error; call SDL_GetError() for more information.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_LoadFunction
+ * \sa SDL_UnloadObject
  */
 extern DECLSPEC void *SDLCALL SDL_LoadObject(const char *sofile);
 
 /**
- *  Given an object handle, this function looks up the address of the
- *  named function in the shared object and returns it.  This address
- *  is no longer valid after calling SDL_UnloadObject().
+ * Look up the address of the named function in a shared object.
+ *
+ * This function pointer is no longer valid after calling SDL_UnloadObject().
+ *
+ * This function can only look up C function names. Other languages may have
+ * name mangling and intrinsic language support that varies from compiler to
+ * compiler.
+ *
+ * Make sure you declare your function pointers with the same calling
+ * convention as the actual library function. Your code will crash
+ * mysteriously if you do not do this.
+ *
+ * If the requested function doesn't exist, NULL is returned.
+ *
+ * \param handle a valid shared object handle returned by SDL_LoadObject().
+ * \param name the name of the function to look up.
+ * \returns a pointer to the function or NULL if there was an error; call
+ *          SDL_GetError() for more information.
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_LoadObject
+ * \sa SDL_UnloadObject
  */
 extern DECLSPEC void *SDLCALL SDL_LoadFunction(void *handle,
                                                const char *name);
 
 /**
- *  Unload a shared object from memory.
+ * Unload a shared object from memory.
+ *
+ * \param handle a valid shared object handle returned by SDL_LoadObject().
+ *
+ * \since This function is available since SDL 2.0.0.
+ *
+ * \sa SDL_LoadFunction
+ * \sa SDL_LoadObject
  */
 extern DECLSPEC void SDLCALL SDL_UnloadObject(void *handle);
 

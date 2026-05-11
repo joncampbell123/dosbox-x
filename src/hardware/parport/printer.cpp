@@ -39,16 +39,23 @@
 #include "../../ints/int10.h"
 #include "sdlmain.h"
 
+#include <output/output_ttf.h>
+
 #if defined(USE_TTF)
 extern unsigned char DOSBoxTTFbi[48868];
 extern bool printfont;
 extern void resetFontSize();
 extern FT_Face GetTTFFace();
 #endif
+extern std::string GetDOSBoxXPath(bool withexe=false);
+extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
+extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+extern bool isDBCSCP(), isKanji1(uint8_t chr);
 extern void GFX_CaptureMouse(void);
 extern std::map<int, int> lowboxdrawmap;
 extern uint16_t cpMap[512], cpMap_PC98[256];
-extern bool dbcs_sbcs, autoboxdraw;
+extern bool showdbcs, dbcs_sbcs, autoboxdraw;
 extern bool halfwidthkana, mouselocked;
 
 static CPrinter* defaultPrinter = NULL;
@@ -93,7 +100,7 @@ void CPrinter::FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, ui
 extern std::string prtlist;
 
 void CPrinter::getPrinterContext() {
-#if defined (WIN32)
+#if defined (WIN32) && !defined(_WIN32_WINDOWS)
     if (device.size()&&device!="-") {
         printerDC = CreateDC("WINSPOOL", device.c_str(), NULL, NULL);
         return;
@@ -330,22 +337,65 @@ void CPrinter::updateFont()
 	    default:
 		    fontName = basedir + "roman.ttf";
 	}
-	
-#ifndef WIN32
-	std::string configfont;
-	Cross::GetPlatformConfigDir(configfont);
-	configfont += fontName;
-	fontName = configfont;
+    std::string exepath=GetDOSBoxXPath();
+    struct stat wstat;
+    if (stat(fontName.c_str(),&wstat)) {
+        std::string configfont, resfont, name = fontName;
+        configfont = Cross::GetPlatformConfigDir();
+        configfont += fontName;
+        fontName = configfont;
+        if (stat(fontName.c_str(),&wstat)) {
+            fontName = name;
+            resfont = Cross::GetPlatformResDir();
+            resfont += fontName;
+            fontName = resfont;
+            if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
+        }
+    }
+    if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || ((TTF_using() || showdbcs)
+#if defined(USE_TTF)
+    && dbcs_sbcs
 #endif
-	
+    )))) && (IS_PC98_ARCH || isDBCSCP()) && stat(fontName.c_str(),&wstat)) {
+        fontName = basedir + "SarasaGothicFixed.ttf";
+        if (stat(fontName.c_str(),&wstat)) {
+            std::string configfont, resfont, name = fontName;
+            configfont = Cross::GetPlatformConfigDir();
+            configfont += fontName;
+            fontName = configfont;
+            if (stat(fontName.c_str(),&wstat)) {
+                fontName = name;
+                resfont = Cross::GetPlatformResDir();
+                resfont += fontName;
+                fontName = resfont;
+                if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
+                if (stat(fontName.c_str(),&wstat)) {
+                    fontName = "SarasaGothicFixed.ttf";
+                    if (stat(fontName.c_str(),&wstat)) {
+                        std::string configfont, resfont, name = fontName;
+                        configfont = Cross::GetPlatformConfigDir();
+                        configfont += fontName;
+                        fontName = configfont;
+                        if (stat(fontName.c_str(),&wstat)) {
+                            fontName = name;
+                            resfont = Cross::GetPlatformResDir();
+                            resfont += fontName;
+                            fontName = resfont;
+                            if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 	if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont))
 	{
         std::string oldfont=fontName;
-        struct stat wstat;
 #if defined(WIN32)
         const char* windir = "C:\\WINDOWS";
         if(stat(windir,&wstat) || !(wstat.st_mode & S_IFDIR)) {
-            TCHAR dir[MAX_PATH];
+            TCHAR dir[MAX_PATH] = {};
             if (GetWindowsDirectory(dir, MAX_PATH))
                 windir=dir;
         }
@@ -488,7 +538,7 @@ void CPrinter::updateFont()
 		matrix.xy = (FT_Fixed)(0.20 * 0x10000L);
 		matrix.yx = 0;
 		matrix.yy = 0x10000L;
-		FT_Set_Transform(curFont, &matrix, 0);
+		FT_Set_Transform(curFont, &matrix, nullptr);
 	}
 }
 
@@ -870,7 +920,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    style &= ~STYLE_BOLD;
 			    updateFont();
 			    break;
-		    case 0x47: // Select dobule-strike printing (ESC G)
+		    case 0x47: // Select double-strike printing (ESC G)
 			    style |= STYLE_DOUBLESTRIKE;
 			    break;
 		    case 0x48: // Cancel double-strike printing (ESC H)
@@ -1086,7 +1136,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    numParam = 0;
 			    break;
 		    case 0x274: // Assign character table (ESC (t)
-			    if (params[2] < 4 && params[3] < 16)
+			    if (params[2] < 4 && params[3] < 15)
 			    {
 				    charTables[params[2]] = codepages[params[3]];
 				    //LOG_MSG("curr table: %d, p2: %d, p3: %d",curCharTable,params[2],params[3]);
@@ -1260,7 +1310,8 @@ bool CPrinter::processCommandChar(uint8_t ch)
 		    }
 		    curX = leftMargin;
 		    curY += lineSpacing;
-		    if (curY > bottomMargin)
+		    //LOG_MSG("curY:%f, bottomMargin:%f",curY, bottomMargin);
+		    if (curY > bottomMargin-0.0001) // goto the next page if curY is larger or slightly smaller than bottomMargin
 			    newPage(true, false);
 		    return true;
 	    case 0x0e:		//Select double-width printing (one line) (SO)
@@ -1336,14 +1387,12 @@ void CPrinter::newPage(bool save, bool resetx)
 	}*/
 }
 
-extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-extern bool isDBCSCP(), isKanji1(uint8_t chr), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 void CPrinter::printChar(uint8_t ch, int box)
 {
     bool dbcs=false;
     uint8_t ll = 0;
     uint16_t dbchar = 0;
-    if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || (TTF_using()
+    if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || ((TTF_using() || showdbcs)
 #if defined(USE_TTF)
     && dbcs_sbcs
 #endif
@@ -1503,7 +1552,11 @@ void CPrinter::printChar(uint8_t ch, int box)
 	
 	// Find the glyph for the char to render
     uint16_t printch = dbchar?dbchar:curMap[ch];
-    if (!dbchar && dos.loaded_codepage == 932 && (halfwidthkana || isJEGAEnabled())) {
+    if (!dbchar && dos.loaded_codepage == 932 && (
+#if defined(USE_TTF)
+        halfwidthkana ||
+#endif
+        isJEGAEnabled())) {
         if (ch>=0xA1&&ch<=0xDF) printch = cpMap_PC98[ch];
         else {
             std::map<int, int>::iterator it = lowboxdrawmap.find(ch);
@@ -1588,7 +1641,7 @@ void CPrinter::printChar(uint8_t ch, int box)
     {
 		curX = leftMargin;
 		curY += lineSpacing;
-		if (curY > bottomMargin) newPage(true, false);
+		if (curY > bottomMargin - 0.0001) newPage(true, false);
 	}
 }
 
@@ -1827,7 +1880,7 @@ void CPrinter::printBitGraph(uint8_t ch)
 
 void CPrinter::formFeed()
 {
-    if ((printdbcs==1 || (printdbcs==-1 && TTF_using()
+    if ((printdbcs==1 || (printdbcs==-1 && (TTF_using() || showdbcs)
 #if defined(USE_TTF)
     && dbcs_sbcs
 #endif
@@ -1928,14 +1981,13 @@ void CPrinter::doAction(const char *fname) {
             fail=system((action+" "+fname).c_str())!=0;
 #endif
         }
-        bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
         if (fail) systemmessagebox("Error", "The requested file handler failed to complete.", "ok","error", 1);
     }
 }
 
 void CPrinter::outputPage() 
 {
-	char fname[200];
+	char fname[512];
 
 	if (strcasecmp(output, "printer") == 0)
 	{
@@ -1948,21 +2000,30 @@ void CPrinter::outputPage()
 		uint16_t physW = GetDeviceCaps(printerDC, PHYSICALWIDTH);
 		uint16_t physH = GetDeviceCaps(printerDC, PHYSICALHEIGHT);
 
+        int printW = GetDeviceCaps(printerDC, HORZRES);
+        int printH = GetDeviceCaps(printerDC, VERTRES);
+
+        int offsetX = GetDeviceCaps(printerDC, PHYSICALOFFSETX);
+        int offsetY = GetDeviceCaps(printerDC, PHYSICALOFFSETY);
+
+        int dpiX = GetDeviceCaps(printerDC, LOGPIXELSX);
+        int dpiY = GetDeviceCaps(printerDC, LOGPIXELSY);
+
+        int minMarginX = (int)(dpiX * 0.118);
+        int minMarginY = (int)(dpiY * 0.118);
+
+        if(offsetX == 0 && offsetY == 0) {
+            int marginX = (offsetX > minMarginX) ? offsetX : minMarginX;
+            int marginY = (offsetY > minMarginY) ? offsetY : minMarginY;
+            offsetX += marginX;
+            offsetY += marginY;
+            printW -= marginX * 2;
+            printH -= marginY * 2;
+        }
+
 		double scaleW, scaleH;
-
-		if (page->w > physW) 
-	        scaleW = (double)page->w / (double)physW;
-	    else 
-			scaleW = (double)physW / (double)page->w; 
- 
-		if (page->h > physH) 
-	        scaleH = (double)page->h / (double)physH;
-	    else 
-			scaleH = (double)physH / (double)page->h; 
-
-		HDC memHDC = CreateCompatibleDC(printerDC);
-		HBITMAP bitmap = CreateCompatibleBitmap(memHDC, page->w, page->h);
-		SelectObject(memHDC, bitmap);
+        scaleW = (double)printW / (double)page->w;
+        scaleH = (double)printH / (double)page->h;
 
 		// Start new printer job?
 		if (outputHandle == NULL)
@@ -1977,8 +2038,6 @@ void CPrinter::outputPage()
 
 			if (StartDoc(printerDC, &docinfo)<=0) {
                 LOG_MSG("PRINTER: Cannot start print.");
-                DeleteObject(bitmap);
-                DeleteDC(memHDC);
                 return;
             }
 			multiPageCounter = 1;
@@ -1987,30 +2046,89 @@ void CPrinter::outputPage()
 		if (StartPage(printerDC) < 0)
         {
 			LOG_MSG("PRINTER: Cannot start page.");
-			DeleteObject(bitmap);
-			DeleteDC(memHDC);
 			return;
 		}
-		SDL_LockSurface(page);
 
-		SDL_Palette* sdlpal = page->format->palette;
+        // Create a memory DC for the printer bitmap
+        HDC memHDC = CreateCompatibleDC(printerDC);
 
-		for (uint16_t y = 0; y < page->h; y++)
-		{
-			for (uint16_t x = 0; x < page->w; x++)
-			{
-				uint8_t pixel = *((uint8_t*)page->pixels + x + (y*page->pitch));
-				uint32_t color = 0;
-				color |= sdlpal->colors[pixel].r;
-				color |= ((uint32_t)sdlpal->colors[pixel].g) << 8;
-				color |= ((uint32_t)sdlpal->colors[pixel].b) << 16;
-				SetPixel(memHDC, x, y, color);
-			}
-		}
+        // Set up a BITMAPINFO for an 8-bit DIBSection (top-down)
+        BITMAPINFO bmi{};
+        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmi.bmiHeader.biWidth = page->w;
+        bmi.bmiHeader.biHeight = -((LONG)page->h);
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = 32;
+        bmi.bmiHeader.biCompression = BI_RGB;
 
-		SDL_UnlockSurface(page);
-	
-		StretchBlt(printerDC, 0, 0, physW, physH, memHDC, 0, 0, page->w, page->h, SRCCOPY);
+        void* pBits = nullptr;
+        HBITMAP bitmap = CreateDIBSection(printerDC, &bmi, DIB_RGB_COLORS, &pBits, NULL, 0);
+        HBITMAP oldBitmap = (HBITMAP)SelectObject(memHDC, bitmap);
+
+        if(!bitmap || !pBits) {
+            LOG_MSG("PRINTER: CreateDIBSection failed");
+            DeleteDC(memHDC);
+            EndPage(printerDC);
+            return;
+        }
+
+        if(!oldBitmap) {
+            LOG_MSG("PRINTER: SelectObject failed");
+            DeleteObject(bitmap);
+            DeleteDC(memHDC);
+            EndPage(printerDC);
+            return;
+        }
+
+        if(SDL_LockSurface(page) != 0) {
+            LOG_MSG("PRINTER: SDL_LockSurface failed");
+            SelectObject(memHDC, oldBitmap);
+            DeleteObject(bitmap);
+            DeleteDC(memHDC);
+            EndPage(printerDC);
+            return;
+        }
+
+        for(int y = 0; y < page->h; y++) {
+            uint8_t* src = (uint8_t*)page->pixels + y * page->pitch;
+            uint32_t* dst = (uint32_t*)pBits + y * page->w;
+
+            for(int x = 0; x < page->w; x++) {
+
+                uint8_t r, g, b;
+
+                if(page->format->BytesPerPixel == 1) {
+                    uint8_t idx = src[x];
+
+                    if(page->format->palette) {
+                        SDL_Color c = page->format->palette->colors[idx];
+                        r = c.r; g = c.g; b = c.b;
+                    }
+                    else {
+                        r = g = b = idx;
+                    }
+                }
+                else {
+                    uint32_t pixel;
+                    memcpy(&pixel, src + x * page->format->BytesPerPixel,
+                        page->format->BytesPerPixel);
+                    SDL_GetRGB(pixel, page->format, &r, &g, &b);
+                }
+
+                dst[x] = (b) | (g << 8) | (r << 16);
+            }
+        }
+
+        SDL_UnlockSurface(page);
+
+        double scale = (scaleW < scaleH) ? scaleW : scaleH;
+        int drawW = (int)(page->w * scale);
+        int drawH = (int)(page->h * scale);
+        int drawX = offsetX + (printW - drawW) / 2;
+        int drawY = offsetY + (printH - drawH) / 2;
+
+        // Stretch and copy the bitmap from the memory DC to the printer DC, scaling it to the printer's physical dimensions
+        StretchBlt(printerDC, drawX, drawY, drawW, drawH, memHDC, 0, 0, page->w, page->h, SRCCOPY);
 
 		EndPage(printerDC);
 
@@ -2024,7 +2142,8 @@ void CPrinter::outputPage()
 			EndDoc(printerDC);
 			outputHandle = NULL;
 		}
-		DeleteObject(bitmap);
+        SelectObject(memHDC, oldBitmap);
+        DeleteObject(bitmap);
 		DeleteDC(memHDC);
 #else
 		LOG_MSG("PRINTER: Direct printing not supported under this OS");
@@ -2038,8 +2157,6 @@ void CPrinter::outputPage()
 	
 		png_structp png_ptr;
 		png_infop info_ptr;
-		png_bytep* row_pointers;
-		png_color palette[256];
 		Bitu i;
 
 		/* Open the actual file */
@@ -2050,14 +2167,18 @@ void CPrinter::outputPage()
 			return;
 		}
 
-		/* First try to alloacte the png structures */
+		/* First try to allocate the png structures */
 		png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-		if (!png_ptr) return;
+        if(!png_ptr) {
+            fclose(fp);
+            return;
+        }
 		info_ptr = png_create_info_struct(png_ptr);
 		if (!info_ptr)
         {
 			png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-			return;
+            fclose(fp);
+            return;
 		}
 
 		/* Finalize the initing of png library */
@@ -2072,39 +2193,93 @@ void CPrinter::outputPage()
 		png_set_compression_buffer_size(png_ptr, 8192);
 		
 		png_set_IHDR(png_ptr, info_ptr, page->w, page->h,
-			8, PNG_COLOR_TYPE_PALETTE, PNG_INTERLACE_NONE,
+			8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
 			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-		for (i = 0; i < 256; i++) 
-		{
-			palette[i].red = page->format->palette->colors[i].r;
-			palette[i].green = page->format->palette->colors[i].g;
-			palette[i].blue = page->format->palette->colors[i].b;
-		}
-		png_set_PLTE(png_ptr, info_ptr, palette,256);
 		
-		SDL_LockSurface(page);
+        if(SDL_LockSurface(page) != 0) {
+            LOG_MSG("PRINTER: SDL_LockSurface failed");
+            png_destroy_write_struct(&png_ptr, &info_ptr);
+            fclose(fp);
+            return;
+        }
+
+        const int width = page->w;
+        const int height = page->h;
 
 		// Allocate an array of scanline pointers
-		row_pointers = (png_bytep*)malloc(page->h * sizeof(png_bytep));
-		for (i = 0; i < (Bitu)page->h; i++) 
-			row_pointers[i] = ((uint8_t*)page->pixels + (i * page->pitch));
+        std::vector<uint8_t> image(width* height * 3);
+        std::vector<png_bytep> row_pointers(height);
 
-		// tell the png library what to encode.
-		png_set_rows(png_ptr, info_ptr, row_pointers);
+		for (i = 0; i < height; i++) 
+            row_pointers[i] = image.data() + i * width * 3;
+
+        for(int y = 0; y < height; y++) {
+            uint8_t* src = (uint8_t*)page->pixels + y * page->pitch;
+            uint8_t* dst = image.data() + y * width * 3;
+
+            for(int x = 0; x < width; x++) {
+
+                uint8_t r = 0, g = 0, b = 0;
+
+                switch(page->format->BytesPerPixel) {
+
+                case 1: {
+                    uint8_t idx = src[x];
+                    if(page->format->palette) {
+                        SDL_Color c = page->format->palette->colors[idx];
+                        r = c.r; g = c.g; b = c.b;
+                    }
+                    else {
+                        r = g = b = idx;
+                    }
+                    break;
+                }
+
+                case 2: {
+                    uint16_t pixel = *(uint16_t*)(src + x * 2);
+                    SDL_GetRGB(pixel, page->format, &r, &g, &b);
+                    break;
+                }
+
+                case 3: {
+                    uint8_t* p = src + x * 3;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+                    uint32_t pixel = (p[0] << 16) | (p[1] << 8) | p[2];
+#else
+                    uint32_t pixel = p[0] | (p[1] << 8) | (p[2] << 16);
+#endif
+                    SDL_GetRGB(pixel, page->format, &r, &g, &b);
+                    break;
+                }
+
+                case 4: {
+                    uint32_t pixel = *(uint32_t*)(src + x * 4);
+                    SDL_GetRGB(pixel, page->format, &r, &g, &b);
+                    break;
+                }
+                }
+
+                dst[x * 3 + 0] = r;
+                dst[x * 3 + 1] = g;
+                dst[x * 3 + 2] = b;
+            }
+        }
+
+
+        SDL_UnlockSurface(page);
+
+        // tell the png library what to encode.
+        png_set_rows(png_ptr, info_ptr, row_pointers.data());
 		
 		// Write image to file
 		png_write_png(png_ptr, info_ptr, 0, NULL);
 
-		SDL_UnlockSurface(page);
-		
 		/*close file*/
 		fclose(fp);
 	
 		/*Destroy PNG structs*/
 		png_destroy_write_struct(&png_ptr, &info_ptr);
 		
-		/*clean up dynamically allocated RAM.*/
-		free(row_pointers);
 		doAction(fname);
 	}
 #endif
@@ -2175,7 +2350,7 @@ void CPrinter::outputPage()
 			}
 			else
 			{
-				// Find end of heterogenous area
+				// Find end of heterogeneous area
 				uint8_t diffCount = 1;
 				while (
                     diffCount < 128 && diffCount + pix < numpix && 
@@ -2273,7 +2448,7 @@ void CPrinter::fprintASCII85(FILE* f, uint16_t b)
 	}
 	else // Close string
 	{
-		// Partial tupel if there are still bytes in the buffer
+		// Partial tuple if there are still bytes in the buffer
 		if (ASCII85BufferPos > 0)
 		{
 			for (uint8_t i = ASCII85BufferPos; i < 4; i++)
@@ -2371,7 +2546,7 @@ Bitu PRINTER_readstatus(Bitu port,Bitu iolen)
 	return status;
 }
 
-static void FormFeed(bool pressed)
+void FormFeed(bool pressed)
 {
 	if (pressed)
 		if (defaultPrinter)
@@ -2383,12 +2558,27 @@ static void FormFeed(bool pressed)
 		}
 }
 
-const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen);
 void PrintScreen(const char *text, uint16_t len)
 {
     if (!defaultPrinter) defaultPrinter = new CPrinter(confdpi, confwidth, confheight, confoutputDevice, confmultipageOutput);
     for (int i=0; i<len; i++) defaultPrinter->printChar(text[i]);
     FormFeed(true);
+}
+
+void PrintText(bool pressed) {
+    if (!pressed) return;
+    if (!PRINTER_isInited()) {
+        systemmessagebox("Error","Printer support is not enabled in the configuration.","ok", "error", 1);
+        return;
+    }
+    if (!CurMode||CurMode->type!=M_TEXT) {
+        systemmessagebox("Error","The current DOS screen is not in text mode.","ok", "error", 1);
+        return;
+    }
+    uint16_t len=0;
+    const char* text = Mouse_GetSelected(0,0,(int)(currentWindowWidth-1-sdl.clip.x),(int)(currentWindowHeight-1-sdl.clip.y),(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
+    if (len) PrintScreen(text, len);
+    return;
 }
 
 static void PRINTER_EventHandler(Bitu param)
@@ -2502,11 +2692,7 @@ void PRINTER_Init()
 	//IO_RegisterWriteHandler(LPTPORT+2,PRINTER_writecontrol,IO_MB);
 	//IO_RegisterReadHandler(LPTPORT+2,PRINTER_readcontrol,IO_MB);
 
-    DOSBoxMenu::item *item;
-	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Send form-feed", &item);
-    item->set_text("Send form-feed");
-
-#if defined(WIN32)
+#if defined(WIN32) && !defined(_WIN32_WINDOWS)
     if (!inited && !strcasecmp(confoutputDevice, "printer")) {
         DWORD dwNeeded = 0, dwReturned = 0;
         bool fnReturn = EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL, 1L, (LPBYTE)NULL, 0L, &dwNeeded, &dwReturned);        PRINTER_INFO_1* pInfo = NULL;
