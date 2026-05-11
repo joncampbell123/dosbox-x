@@ -2451,9 +2451,11 @@ public:
             }
 
             /* signal INT 13h to emulate a CD-ROM drive El Torito "no emulation" style */
+            assert(INT13_ElTorito_cdrom == NULL);
             INT13_ElTorito_IDEInterface = -1;
             INT13_ElTorito_NoEmuDriveNumber = 0x90;
             INT13_ElTorito_NoEmuCDROMDrive = el_torito_cd_drive;
+            (INT13_ElTorito_cdrom = src_drive)->Addref();
 
             /* this is required if INT 13h extensions are to correctly report what IDE controller the drive is connected to and master/slave */
             {
@@ -2476,6 +2478,7 @@ public:
             reg_eax = 0;
             /* ISOLINUX clearly assumes DL at entry contains the drive number and at no point from entry to INT 13h does it change the contents of DX */
             reg_edx = INT13_ElTorito_NoEmuDriveNumber;
+            src_drive->Release();
 #ifdef __WIN32__
             // let menu know it boots
             menu.boot=true;

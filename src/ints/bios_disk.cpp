@@ -1861,6 +1861,7 @@ void diskio_delay(Bits value/*bytes*/, int type = -1);
 
 /* For El Torito "No emulation" INT 13 services */
 unsigned char INT13_ElTorito_NoEmuDriveNumber = 0;
+CDROM_Interface * INT13_ElTorito_cdrom = NULL;
 signed char INT13_ElTorito_IDEInterface = -1; /* (controller * 2) + (is_slave?1:0) */
 char INT13_ElTorito_NoEmuCDROMDrive = 0;
 
@@ -2283,12 +2284,13 @@ static Bitu INT13_DiskHandler(void) {
             return CBRET_NONE;
         }
         if (INT13_ElTorito_NoEmuDriveNumber != 0 && INT13_ElTorito_NoEmuDriveNumber == reg_dl) {
-                CDROM_Interface *src_drive = NULL;
-                if (!GetMSCDEXDrive(INT13_ElTorito_NoEmuCDROMDrive - 'A', &src_drive/*addref*/)) {
+		if (!INT13_ElTorito_cdrom) {
                         reg_ah = 0x01;
                         CALLBACK_SCF(true);
                         return CBRET_NONE;
                 }
+
+                CDROM_Interface *src_drive = INT13_ElTorito_cdrom;
 
                 segat = dap.seg;
                 bufptr = dap.off;
@@ -2312,7 +2314,6 @@ static Bitu INT13_DiskHandler(void) {
                 }
                 reg_ah = 0x00;
                 CALLBACK_SCF(false);
-                src_drive->Release();
                 return CBRET_NONE;
         }
 
