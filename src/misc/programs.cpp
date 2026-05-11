@@ -1293,8 +1293,11 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
     }
 }
 
+#if !defined(OSFREE)
 uint8_t device_nextdrive = 0;
+#endif
 
+#if !defined(OSFREE)
 uint8_t imageDiskMSDOSBlockDevice::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 	const unsigned int max_sects = (bdevbuf_sz - 16) / sector_size;
 	if (max_sects == 0) return 0x05;
@@ -1351,7 +1354,9 @@ uint8_t imageDiskMSDOSBlockDevice::Read_AbsoluteSector(uint32_t sectnum, void * 
 	MEM_BlockRead(PhysMake(bdevbuf_seg+1,0),p_data,sector_size);
         return 0;
 }
+#endif
 
+#if !defined(OSFREE)
 uint8_t imageDiskMSDOSBlockDevice::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
 	const unsigned int max_sects = (bdevbuf_sz - 16) / sector_size;
 	if (max_sects == 0) return 0x05;
@@ -1408,17 +1413,25 @@ uint8_t imageDiskMSDOSBlockDevice::Write_AbsoluteSector(uint32_t sectnum, const 
 
         return 0;
 }
+#endif
 
+#if !defined(OSFREE)
 bool imageDiskMSDOSBlockDevice::detectDiskChange(void) {
 	return false;//TODO
 }
+#endif
 
+#if !defined(OSFREE)
 imageDiskMSDOSBlockDevice::imageDiskMSDOSBlockDevice() : imageDisk(ID_MSDOSBLOCKDEV) {
 }
+#endif
 
+#if !defined(OSFREE)
 imageDiskMSDOSBlockDevice::~imageDiskMSDOSBlockDevice() {
 }
+#endif
 
+#if !defined(OSFREE)
 bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	bool user_wants_mcb_per_driver = false;
 	uint16_t devseg = 0,ofs,attr;
@@ -1881,10 +1894,14 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 	return true;
 }
+#endif
 
+#if !defined(OSFREE)
 std::string config_run_var_device;
 std::string config_run_var_devparm;
+#endif
 
+#if !defined(OSFREE)
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-wcpboot", "-wcdboot", "-wcboot", "-writeconfboot", "-bootconf", "-bc",
@@ -2766,10 +2783,13 @@ next:
 
 	return;
 }
+#endif
 
+#if !defined(OSFREE)
 void CONFIG_ProgramStart(Program * * make) {
 	*make=new CONFIG;
 }
+#endif
 
 void PROGRAMS_DOS_Boot(Section *) {
 }

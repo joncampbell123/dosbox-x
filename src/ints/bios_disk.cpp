@@ -3798,9 +3798,12 @@ imageDiskEmptyDrive::~imageDiskEmptyDrive() {
 
 /////
 
+#if !defined(OSFREE)
 unsigned int INT13Xfer = 0;
 size_t INT13XferSize = 4096;
+#endif
 
+#if !defined(OSFREE)
 static void imageDiskCallINT13(void) {
 	unsigned int rv = CALLBACK_RealPointer(call_int13);
 	Bitu oldIF=GETFLAG(IF);
@@ -3814,7 +3817,9 @@ static void imageDiskCallINT13(void) {
 	SegSet16(cs,oldcs);
 	SETFLAGBIT(IF,oldIF);
 }
+#endif
 
+#if !defined(OSFREE)
 uint8_t imageDiskINT13Drive::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
 	if (!enable_int13 || busy) return subdisk->Read_Sector(head,cylinder,sector,data,req_sector_size);
 
@@ -3892,13 +3897,17 @@ again:
 
 	return ret;
 }
+#endif
 
+#if !defined(OSFREE)
 uint8_t imageDiskINT13Drive::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size) {
 	if (INT13Xfer == 0) INT13Xfer = DOS_GetMemory(INT13XferSize/16u,"INT 13 transfer buffer");
 
 	return subdisk->Write_Sector(head,cylinder,sector,data,req_sector_size);
 }
+#endif
 
+#if !defined(OSFREE)
 uint8_t imageDiskINT13Drive::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 	unsigned int c,h,s;
 
@@ -3910,7 +3919,9 @@ uint8_t imageDiskINT13Drive::Read_AbsoluteSector(uint32_t sectnum, void * data) 
 	c = (sectnum / sectors / heads);
 	return Read_Sector(h,c,s,data);
 }
+#endif
 
+#if !defined(OSFREE)
 uint8_t imageDiskINT13Drive::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
 	unsigned int c,h,s;
 
@@ -3922,19 +3933,27 @@ uint8_t imageDiskINT13Drive::Write_AbsoluteSector(uint32_t sectnum, const void *
 	c = (sectnum / sectors / heads);
 	return Write_Sector(h,c,s,data);
 }
+#endif
 
+#if !defined(OSFREE)
 void imageDiskINT13Drive::UpdateFloppyType(void) {
 	subdisk->UpdateFloppyType();
 }
+#endif
 
+#if !defined(OSFREE)
 void imageDiskINT13Drive::Set_Reserved_Cylinders(Bitu resCyl) {
 	subdisk->Set_Reserved_Cylinders(resCyl);
 }
+#endif
 
+#if !defined(OSFREE)
 uint32_t imageDiskINT13Drive::Get_Reserved_Cylinders() {
 	return subdisk->Get_Reserved_Cylinders();
 }
+#endif
 
+#if !defined(OSFREE)
 void imageDiskINT13Drive::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize) {
 	heads = setHeads;
 	cylinders = setCyl;
@@ -3942,19 +3961,27 @@ void imageDiskINT13Drive::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint3
 	sector_size = setSectSize;
 	return subdisk->Set_Geometry(setHeads,setCyl,setSect,setSectSize);
 }
+#endif
 
+#if !defined(OSFREE)
 void imageDiskINT13Drive::Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize) {
 	return subdisk->Get_Geometry(getHeads,getCyl,getSect,getSectSize);
 }
+#endif
 
+#if !defined(OSFREE)
 uint8_t imageDiskINT13Drive::GetBiosType(void) {
 	return subdisk->GetBiosType();
 }
+#endif
 
+#if !defined(OSFREE)
 uint32_t imageDiskINT13Drive::getSectSize(void) {
 	return subdisk->getSectSize();
 }
+#endif
 
+#if !defined(OSFREE)
 bool imageDiskINT13Drive::detectDiskChange(void) {
 	if (enable_int13 && !busy) {
 		busy = true;
@@ -3997,7 +4024,9 @@ bool imageDiskINT13Drive::detectDiskChange(void) {
 
 	return imageDisk::detectDiskChange();
 }
+#endif
 
+#if !defined(OSFREE)
 imageDiskINT13Drive::imageDiskINT13Drive(imageDisk *sdisk) : imageDisk(ID_INT13) {
 	subdisk = sdisk;
 	subdisk->Addref();
@@ -4013,8 +4042,11 @@ imageDiskINT13Drive::imageDiskINT13Drive(imageDisk *sdisk) : imageDisk(ID_INT13)
 	diskSizeK      = subdisk->diskSizeK;
 	diskChangeFlag = subdisk->diskChangeFlag;
 }
+#endif
 
+#if !defined(OSFREE)
 imageDiskINT13Drive::~imageDiskINT13Drive() {
 	subdisk->Release();
 }
+#endif
 
