@@ -79,6 +79,13 @@ Next version
     FAT filesystem driver, and then a drive letter. At this time, this
     is enough for Microsoft RAMDRIVE.SYS to load and appear as a working
     drive letter in DOSBox-X (joncampbell123)
+  - CD-ROM device emulation is no longer strictly tied to MSCDEX emulation.
+    While devices are still initialized through MSCDEX emulation, it is now
+    possible for other parts of emulation to own a reference to it without
+    MSCDEX. This means it is now possible for CD-ROM emulation to work
+    after booting a guest OS without reaching back through MSCDEX emulation,
+    and MSCDEX emulation can now unload properly with the rest of the DOS
+    kernel. (joncampbell123)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
