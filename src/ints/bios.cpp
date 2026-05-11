@@ -12790,6 +12790,11 @@ void BIOS_OnResetComplete(Section *x) {
         biosConfigSeg = 0u;
     }
 
+    if (INT13_ElTorito_cdrom) {
+        INT13_ElTorito_cdrom->Release();
+        INT13_ElTorito_cdrom = NULL;
+    }
+
     call_pnp_rp = 0;
     if (call_pnp_r != ~0UL) {
         CALLBACK_DeAllocate(call_pnp_r);
