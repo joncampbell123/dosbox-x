@@ -201,7 +201,6 @@ CMscdex::CMscdex(const char *_name) {
 }
 
 CMscdex::~CMscdex(void) {
-	if ((bootguest||(use_quick_reboot&&!bootvm))&&bootdrive>=0) return;
 	defaultBufSeg = 0;
 	for (uint16_t i=0; i<GetNumDrives(); i++) {
 		if (cdrom[i]) {
@@ -1653,8 +1652,7 @@ void MSCDEX_SetCDInterface(int intNr, int numCD) {
 	forceCD	= numCD;
 }
 
-void MSCDEX_ShutDown(Section* /*sec*/) {
-	if ((bootguest||(use_quick_reboot&&!bootvm))&&bootdrive>=0) return;
+void MSCDEX_Reset(Section* /*sec*/) {
 	if (mscdex != NULL) {
 		delete mscdex;
 		mscdex = NULL;
@@ -1663,10 +1661,21 @@ void MSCDEX_ShutDown(Section* /*sec*/) {
 	curReqheaderPtr = 0;
 }
 
-/* HACK: The IDE emulation is messily tied into calling MSCDEX.EXE!
- *       We cannot shut down the mscdex object when booting into a guest OS!
- *       Need to fix this, this is backwards! */
+void MSCDEX_ShutDown(Section* /*sec*/) {
+	if (mscdex != NULL) {
+		delete mscdex;
+		mscdex = NULL;
+	}
+
+	curReqheaderPtr = 0;
+}
+
 void MSCDEX_DOS_ShutDown(Section* /*sec*/) {
+	if (mscdex != NULL) {
+		delete mscdex;
+		mscdex = NULL;
+	}
+
 	curReqheaderPtr = 0;
 }
 
@@ -1702,7 +1711,7 @@ void MSCDEX_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(MSCDEX_ShutDown));
 
 	/* in any event that the DOS kernel is shutdown or abruptly wiped from memory */
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_ShutDown));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_Reset));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(MSCDEX_DOS_ShutDown));
 }
 
