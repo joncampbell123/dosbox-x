@@ -474,6 +474,7 @@ public:
         if (!src_drive->ReadSectorsHost(buffer,false,cdrom_sector_offset+(sectnum>>2)/*512 byte/sector to 2048 byte/sector conversion*/,1))
             return 0x05;
 
+        if ((sectnum & 3) * 512 + 512 > sizeof(buffer)) return 0x05;
         memcpy(data,buffer+((sectnum&3)*512),512);
         return 0x00;
     }
