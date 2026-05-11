@@ -608,6 +608,7 @@ extern unsigned char INT13_ElTorito_NoEmuDriveNumber;
 extern signed char INT13_ElTorito_IDEInterface;
 extern char INT13_ElTorito_NoEmuCDROMDrive;
 
+#if !defined(OSFREE)
 class imageDiskINT13Drive : public imageDisk {
 public:
 	uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0) override;
@@ -632,7 +633,9 @@ public:
 	imageDisk* subdisk = NULL;
 	bool busy = false;
 };
+#endif
 
+#if !defined(OSFREE)
 class imageDiskMSDOSBlockDevice : public imageDisk {
 public:
 	uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override;
@@ -650,5 +653,6 @@ public:
 	PhysPt devhdr = 0;
 	PhysPt bpbptr = 0;
 };
+#endif
 
 #endif

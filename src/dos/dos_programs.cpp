@@ -7676,7 +7676,9 @@ void MIXER_ProgramStart(Program * * make);
 void REDOS_ProgramStart(Program * * make);
 void SHELL_ProgramStart(Program * * make);
 void SERIAL_ProgramStart(Program * * make);
+#if !defined(OSFREE)
 void CONFIG_ProgramStart(Program * * make);
+#endif
 void IPXNET_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
 void CGASNOW_ProgramStart(Program * * make);
