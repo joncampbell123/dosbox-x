@@ -2284,7 +2284,7 @@ static Bitu INT13_DiskHandler(void) {
         }
         if (INT13_ElTorito_NoEmuDriveNumber != 0 && INT13_ElTorito_NoEmuDriveNumber == reg_dl) {
                 CDROM_Interface *src_drive = NULL;
-                if (!GetMSCDEXDrive(INT13_ElTorito_NoEmuCDROMDrive - 'A', &src_drive)) {
+                if (!GetMSCDEXDrive(INT13_ElTorito_NoEmuCDROMDrive - 'A', &src_drive/*addref*/)) {
                         reg_ah = 0x01;
                         CALLBACK_SCF(true);
                         return CBRET_NONE;
@@ -2301,6 +2301,7 @@ static Bitu INT13_DiskHandler(void) {
                                 killRead = false;
                                 reg_ah = 0x04;
                                 CALLBACK_SCF(true);
+                                src_drive->Release();
                                 return CBRET_NONE;
                         }
 
@@ -2311,6 +2312,7 @@ static Bitu INT13_DiskHandler(void) {
                 }
                 reg_ah = 0x00;
                 CALLBACK_SCF(false);
+                src_drive->Release();
                 return CBRET_NONE;
         }
 

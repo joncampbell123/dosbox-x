@@ -270,6 +270,7 @@ public:
     std::string id_model;
     unsigned char drive_index;
     Bitu sector_transfer_limit = 16;
+    CDROM_Interface *cdrom = NULL;
     CDROM_Interface *getMSCDEXDrive();
     void update_from_cdrom();
     Bitu data_read(Bitu iolen) override; /* read from 1F0h data port from IDE device */
@@ -1534,6 +1535,10 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 }
 
 IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
+    if (cdrom) {
+        cdrom->Release();
+        cdrom = NULL;
+    }
 }
 
 void IDEATAPICDROMDevice::on_mode_select_io_complete() {
@@ -2650,10 +2655,10 @@ imageDisk *IDEATADevice::getBIOSdisk() {
 }
 
 CDROM_Interface *IDEATAPICDROMDevice::getMSCDEXDrive() {
-    CDROM_Interface *cdrom=NULL;
-
-    if (!GetMSCDEXDrive(drive_index,&cdrom))
-        return NULL;
+    if (cdrom == NULL) {
+        if (!GetMSCDEXDrive(drive_index,&cdrom))/*will addref*/
+            return NULL;
+    }
 
     return cdrom;
 }
