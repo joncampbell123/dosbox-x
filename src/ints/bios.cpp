@@ -12759,6 +12759,11 @@ void BIOS_Destroy(Section* /*sec*/){
         delete test;
         test = NULL;
     }
+
+    if (INT13_ElTorito_cdrom) {
+        INT13_ElTorito_cdrom->Release();
+        INT13_ElTorito_cdrom = NULL;
+    }
 }
 
 void BIOS_OnPowerOn(Section* sec) {
