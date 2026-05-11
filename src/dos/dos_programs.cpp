@@ -2299,6 +2299,7 @@ public:
              * For floppy emulation boot, use IMGMOUNT and then boot the emulated floppy drive. */
             if (el_torito_mode != "noemu") {
                 WriteOut(MSG_Get("PROGRAM_BOOT_UNSUPPORTED"));
+                src_drive->Release();
                 return;
             }
 
@@ -2312,6 +2313,7 @@ public:
 	    unsigned char el_torito_mediatype = 0;
             if (!ElTorito_ScanForBootRecord(src_drive, boot_record_sector, el_torito_base)) {
                 WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOT_RECORD"));
+                src_drive->Release();
                 return;
             }
 
@@ -2322,6 +2324,7 @@ public:
             /* Step #2: Parse the records. Each one is 32 bytes long */
             if (!src_drive->ReadSectorsHost(entries, false, el_torito_base, 1)) {
                 WriteOut(MSG_Get("PROGRAM_ELTORITO_ENTRY_UNREADABLE"));
+                src_drive->Release();
                 return;
             }
 
@@ -2436,6 +2439,7 @@ public:
             for (unsigned int s=0;s < bootcdsect;s++) {
                 if (!src_drive->ReadSectorsHost(entries, false, el_torito_rba+s, 1)) {
                     WriteOut(MSG_Get("PROGRAM_ELTORITO_BOOTSECTOR"));
+                    src_drive->Release();
                     return;
                 }
 
@@ -6349,6 +6353,7 @@ class IMGMOUNT : public Program {
 			 *        This mode will never support "no emulation" boot. */
 			if (type != "floppy") {
 				WriteOut(MSG_Get("PROGRAM_ELTORITO_REQUIRE_FLOPPY"));
+				src_drive->Release();
 				return false;
 			}
 
@@ -6356,15 +6361,17 @@ class IMGMOUNT : public Program {
 			unsigned long el_torito_base = 0, boot_record_sector = 0;
 			if (!ElTorito_ScanForBootRecord(src_drive, boot_record_sector, el_torito_base)) {
 				WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOT_RECORD"));
+				src_drive->Release();
 				return false;
 			}
 
 			LOG_MSG("El Torito emulation: Found ISO 9660 Boot Record in sector %lu, pointing to sector %lu\n",
-					boot_record_sector, el_torito_base);
+				boot_record_sector, el_torito_base);
 
 			/* Step #2: Parse the records. Each one is 32 bytes long */
 			if (!src_drive->ReadSectorsHost(entries, false, el_torito_base, 1)) {
 				WriteOut(MSG_Get("PROGRAM_ELTORITO_ENTRY_UNREADABLE"));
+				src_drive->Release();
 				return false;
 			}
 

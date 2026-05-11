@@ -1040,7 +1040,7 @@ bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 	for (i=0;i < MSCDEX_MAX_DRIVES;i++) {
 		if (mscdex->cdrom[i] == NULL) continue;
 		if (mscdex->dinfo[i].drive == drive_letter) {
-			if (_cdrom) *_cdrom = mscdex->cdrom[i];
+			if (_cdrom) (*_cdrom = mscdex->cdrom[i])->Addref();
 			return true;
 		}
 	}
