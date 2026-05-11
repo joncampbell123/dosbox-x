@@ -2815,11 +2815,11 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
     }
 
     dev = new IDEATAPICDROMDevice(c,drive_index,slave,cdrom);
-    cdrom->Release();
     if(dev == NULL) {
         LOG_MSG("IMGMOUNT: Failed to allocate CD-ROM drive %c to IDE %s %s", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);
         return;
     }
+    cdrom->Release();
     dev->update_from_cdrom();
     c->device[slave?1:0] = (IDEDevice*)dev;
     LOG_MSG("IMGMOUNT: CD-ROM image mounted to drive %c (IDE %s %s)", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);

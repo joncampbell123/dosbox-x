@@ -2456,6 +2456,7 @@ public:
             INT13_ElTorito_NoEmuDriveNumber = 0x90;
             INT13_ElTorito_NoEmuCDROMDrive = el_torito_cd_drive;
             (INT13_ElTorito_cdrom = src_drive)->Addref();
+            src_drive->Release();
 
             /* this is required if INT 13h extensions are to correctly report what IDE controller the drive is connected to and master/slave */
             {
@@ -2478,7 +2479,6 @@ public:
             reg_eax = 0;
             /* ISOLINUX clearly assumes DL at entry contains the drive number and at no point from entry to INT 13h does it change the contents of DX */
             reg_edx = INT13_ElTorito_NoEmuDriveNumber;
-            src_drive->Release();
 #ifdef __WIN32__
             // let menu know it boots
             menu.boot=true;
@@ -6484,9 +6484,11 @@ class IMGMOUNT : public Program {
 
 			if (el_torito_floppy_type == 0xFF || el_torito_floppy_base == ~0UL) {
 				WriteOut(MSG_Get("PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY"));
+				src_drive->Release();
 				return false;
 			}
 
+			src_drive->Release();
 			return true;
 		}
 
@@ -6556,11 +6558,12 @@ class IMGMOUNT : public Program {
 			newImage->Addref();
 
 			DOS_Drive* newDrive = new fatDrive(newImage, options);
-			newImage->Release(); //fatDrive calls Addref, and this will release newImage if fatDrive doesn't use it
 			if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+				newImage->Release(); //fatDrive calls Addref, and this will release newImage if fatDrive doesn't use it
 				return false;
 			}
+			newImage->Release(); //fatDrive calls Addref, and this will release newImage if fatDrive doesn't use it
 
 			AddToDriveManager(drive, newDrive, 0xF0);
 			AttachToBiosByLetter(newImage, drive);
