@@ -79,6 +79,7 @@ Next version
     FAT filesystem driver, and then a drive letter. At this time, this
     is enough for Microsoft RAMDRIVE.SYS to load and appear as a working
     drive letter in DOSBox-X (joncampbell123)
+  - Fixed logging of 'Packed file is corrupt' message detection (maron2000)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
