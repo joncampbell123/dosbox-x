@@ -275,17 +275,11 @@ int CMscdex::RemoveDrive(uint16_t _drive)
 	return 1;
 }
 
-int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
-{
-	subUnit = 0;
-	if ((Bitu)GetNumDrives()+1>=MSCDEX_MAX_DRIVES) return 4;
-	if (GetNumDrives()) {
-		// Error check, driveletter have to be in a row
-		if (dinfo[0].drive-1!=_drive && dinfo[numDrives-1].drive+1!=_drive) 
-			return 1;
-	}
-	// Set return type to ok
+int CDROM_AllocateInterface(char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom) {
 	int result = 0;
+
+	*cdrom = NULL;
+
 	// Get Mounttype and init needed cdrom interface
 	switch (CDROM_GetMountType(physicalPath,forceCD)) {
 	case 0x00: {	
@@ -298,46 +292,46 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		if ((osi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (osi.dwMajorVersion>4)) {
 			// only WIN NT/200/XP
 			if (useCdromInterface==CDROM_USE_IOCTL_DIO) {
-				(cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DIO))->Addref();
+				(*cdrom = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DIO))->Addref();
 				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
 				break;
 			}
 			if (useCdromInterface==CDROM_USE_IOCTL_DX) {
-				(cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DX))->Addref();
+				(*cdrom = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DX))->Addref();
 				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (digital audio extraction).");
 				break;
 			}
 			if (useCdromInterface==CDROM_USE_IOCTL_MCI) {
-				(cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_MCI))->Addref();
+				(*cdrom = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_MCI))->Addref();
 				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (media control interface).");
 				break;
 			}
 		}
 		if (useCdromInterface==CDROM_USE_ASPI) {
 			// all Wins - ASPI
-			(cdrom[numDrives] = new CDROM_Interface_Aspi())->Addref();
+			(*cdrom = new CDROM_Interface_Aspi())->Addref();
 			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: ASPI Interface.");
 			break;
 		}
 #endif
 #if defined (LINUX) || defined(OS2)
 		// Always use IOCTL in Linux or OS/2
-		(cdrom[numDrives] = new CDROM_Interface_Ioctl())->Addref();
+		(*cdrom = new CDROM_Interface_Ioctl())->Addref();
 		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
 #else
 		// Default case windows and other oses
-		(cdrom[numDrives] = new CDROM_Interface_SDL())->Addref();
+		(*cdrom = new CDROM_Interface_SDL())->Addref();
 		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: SDL Interface.");
 #endif
 		} break;
 	case 0x01:	// iso cdrom interface	
 		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting iso file as cdrom: %s", physicalPath);
-		(cdrom[numDrives] = new CDROM_Interface_Image((uint8_t)numDrives))->Addref();
+		(*cdrom = new CDROM_Interface_Image((uint8_t)numDrive))->Addref();
 		break;
 	case 0x02:	// fake cdrom interface (directories)
 		{
 			CDROM_Interface_Fake *fake = new CDROM_Interface_Fake;
-			(cdrom[numDrives] = fake)->Addref();
+			(*cdrom = fake)->Addref();
 			assert(fake->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE);
 			if (!strcmp(physicalPath,"empty")) {
 				fake->isEmpty = true;
@@ -353,11 +347,26 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		return 6;
 	}
 
-	if (!cdrom[numDrives]->SetDevice(physicalPath,forceCD)) {
-//		delete cdrom[numDrives] ; mount seems to delete it
+	if (!(*cdrom)->SetDevice(physicalPath,forceCD)) {
+		(*cdrom)->Release();
+		*cdrom = NULL;
 		return 3;
 	}
 
+	return result;
+}
+
+int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
+{
+	subUnit = 0;
+	if ((Bitu)GetNumDrives()+1>=MSCDEX_MAX_DRIVES) return 4;
+	if (GetNumDrives()) {
+		// Error check, driveletter have to be in a row
+		if (dinfo[0].drive-1!=_drive && dinfo[numDrives-1].drive+1!=_drive)
+			return 1;
+	}
+
+	int result = CDROM_AllocateInterface(physicalPath,forceCD,numDrives,&cdrom[numDrives]);
 
 #if !defined(OSFREE)
 	if (rootDriverHeaderSeg==0) {
