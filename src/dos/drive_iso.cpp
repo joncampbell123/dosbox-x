@@ -1141,27 +1141,29 @@ int isoDrive::UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit)
 		subUnit = MSCDEX_GetSubUnit(driveLetter);
 		if (empty_drive) {
 			CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
-			CDROM_Interface* cdrom = new CDROM_Interface_Fake();
+			CDROM_Interface* cdrom = new CDROM_Interface_Fake(); cdrom->Addref();
 			char pathCopy[CROSS_LEN];
 			safe_strncpy(pathCopy, path, CROSS_LEN);
 			if (!cdrom->SetDevice(pathCopy, 0)) {
 				CDROM_Interface_Image::images[subUnit] = oldCdrom;
-				delete cdrom;
+				cdrom->Release();
 				return 3;
 			}
 			MSCDEX_ReplaceDrive(cdrom, subUnit);
+			cdrom->Release();
 		}
 		else {
 			CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
-			CDROM_Interface* cdrom = new CDROM_Interface_Image(subUnit);
+			CDROM_Interface* cdrom = new CDROM_Interface_Image(subUnit); cdrom->Addref();
 			char pathCopy[CROSS_LEN];
 			safe_strncpy(pathCopy, path, CROSS_LEN);
 			if (!cdrom->SetDevice(pathCopy, 0)) {
 				CDROM_Interface_Image::images[subUnit] = oldCdrom;
-				delete cdrom;
+				cdrom->Release();
 				return 3;
 			}
 			MSCDEX_ReplaceDrive(cdrom, subUnit);
+			cdrom->Release();
 		}
 		return 0;
 	} else {
