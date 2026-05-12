@@ -252,7 +252,7 @@ bool CDROM_Interface_Aspi::ScanRegistry(HKEY& hKeyBase)
 	return false;
 };
 
-bool CDROM_Interface_Aspi::SetDevice(char* path, int forceCD)
+bool CDROM_Interface_Aspi::SetDevice(const char* path, int forceCD)
 {
     (void)forceCD;
 	// load WNASPI32.DLL
