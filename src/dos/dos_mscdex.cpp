@@ -1680,10 +1680,12 @@ void MSCDEX_ShutDown(Section* /*sec*/) {
 }
 
 void MSCDEX_DOS_ShutDown(Section* /*sec*/) {
+#if 0/*Sadly, CD-ROM emulation still requires MSCDEX*/
 	if (mscdex != NULL) {
 		delete mscdex;
 		mscdex = NULL;
 	}
+#endif
 
 	curReqheaderPtr = 0;
 }
