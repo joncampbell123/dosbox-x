@@ -1044,47 +1044,47 @@ bool CDROM_Interface_Image::images_init = false;
 
 isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error, std::vector<std::string>& options) {
 #if !defined(OSFREE)
-    enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
-    enable_rock_ridge = (dos.version.major >= 7 || uselfn);//default
-    enable_joliet = (dos.version.major >= 7 || uselfn);//default
+	enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
+	enable_rock_ridge = (dos.version.major >= 7 || uselfn);//default
+	enable_joliet = (dos.version.major >= 7 || uselfn);//default
 #endif
-    for (const auto &opt : options) {
-        size_t equ = opt.find_first_of('=');
-        std::string name,value;
+	for (const auto &opt : options) {
+		size_t equ = opt.find_first_of('=');
+		std::string name,value;
 
-        if (equ != std::string::npos) {
-            name = opt.substr(0,equ);
-            value = opt.substr(equ+1);
-        }
-        else {
-            name = opt;
-            value.clear();
-        }
+		if (equ != std::string::npos) {
+			name = opt.substr(0,equ);
+			value = opt.substr(equ+1);
+		}
+		else {
+			name = opt;
+			value.clear();
+		}
 
 #if !defined(OSFREE)
-        if (name == "rr") { // Enable/disable Rock Ridge extensions
-            if (value == "1" || value == "") enable_rock_ridge = true; // "-o rr" or "-o rr=1"
-            else if (value == "0") enable_rock_ridge = false;
-        }
-        else if (name == "joliet") { // Enable/disable Joliet extensions
-            if (value == "1" || value == "") enable_joliet = true; // "-o joliet" or "-o joliet=1"
-            else if (value == "0") enable_joliet = false;
-        }
-        else if (name == "udf") { // Enable/disable UDF
-            if (value == "1" || value == "") enable_udf = true; // "-o udf" or "-o udf=1"
-            else if (value == "0") enable_udf = false;
-        }
+		if (name == "rr") { // Enable/disable Rock Ridge extensions
+			if (value == "1" || value == "") enable_rock_ridge = true; // "-o rr" or "-o rr=1"
+			else if (value == "0") enable_rock_ridge = false;
+		}
+		else if (name == "joliet") { // Enable/disable Joliet extensions
+			if (value == "1" || value == "") enable_joliet = true; // "-o joliet" or "-o joliet=1"
+			else if (value == "0") enable_joliet = false;
+		}
+		else if (name == "udf") { // Enable/disable UDF
+			if (value == "1" || value == "") enable_udf = true; // "-o udf" or "-o udf=1"
+			else if (value == "0") enable_udf = false;
+		}
 #endif
-    }
+	}
 
-    if (!strcmp(fileName,"empty"))
-        empty_drive = true;
+	if (!strcmp(fileName,"empty"))
+		empty_drive = true;
 
-    if (!CDROM_Interface_Image::images_init) {
-        CDROM_Interface_Image::images_init = true;
-        for (size_t i=0;i < 26;i++)
-            CDROM_Interface_Image::images[i] = NULL;
-    }
+	if (!CDROM_Interface_Image::images_init) {
+		CDROM_Interface_Image::images_init = true;
+		for (size_t i=0;i < 26;i++)
+			CDROM_Interface_Image::images[i] = NULL;
+	}
 
 	this->fileName[0]  = '\0';
 	this->discLabel[0] = '\0';
@@ -1141,27 +1141,25 @@ int isoDrive::UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit)
 		subUnit = MSCDEX_GetSubUnit(driveLetter);
 		if (empty_drive) {
 			CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
-			CDROM_Interface* cdrom = new CDROM_Interface_Fake();
-			char pathCopy[CROSS_LEN];
-			safe_strncpy(pathCopy, path, CROSS_LEN);
-			if (!cdrom->SetDevice(pathCopy, 0)) {
+			CDROM_Interface* cdrom = new CDROM_Interface_Fake(); cdrom->Addref();
+			if (!cdrom->SetDevice(path, 0)) {
 				CDROM_Interface_Image::images[subUnit] = oldCdrom;
-				delete cdrom;
+				cdrom->Release();
 				return 3;
 			}
 			MSCDEX_ReplaceDrive(cdrom, subUnit);
+			cdrom->Release();
 		}
 		else {
 			CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
-			CDROM_Interface* cdrom = new CDROM_Interface_Image(subUnit);
-			char pathCopy[CROSS_LEN];
-			safe_strncpy(pathCopy, path, CROSS_LEN);
-			if (!cdrom->SetDevice(pathCopy, 0)) {
+			CDROM_Interface* cdrom = new CDROM_Interface_Image(subUnit); cdrom->Addref();
+			if (!cdrom->SetDevice(path, 0)) {
 				CDROM_Interface_Image::images[subUnit] = oldCdrom;
-				delete cdrom;
+				cdrom->Release();
 				return 3;
 			}
 			MSCDEX_ReplaceDrive(cdrom, subUnit);
+			cdrom->Release();
 		}
 		return 0;
 	} else {
@@ -2242,9 +2240,11 @@ bool isoDrive :: loadImage() {
 			dataCD = true;
 			return true;
 		} else if (dos.version.major < 7 || (dos.version.major == 7 && dos.version.minor < 10)) {
-			const char *msg = "Found UDF image which requires a reported DOS version of 7.10 to mount.\r\n";
-			uint16_t n = (uint16_t)strlen(msg);
-			DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
+			if (!dos_kernel_disabled) {
+				const char *msg = "Found UDF image which requires a reported DOS version of 7.10 to mount.\r\n";
+				uint16_t n = (uint16_t)strlen(msg);
+				DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
+			}
 		}
 	}
 #endif
