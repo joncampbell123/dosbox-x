@@ -2777,6 +2777,13 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index) {
                 IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
                 if (drive_index == atapi->drive_index) {
                     LOG_MSG("IDE ATAPI acknowledge media change for drive %c\n",drive_index+'A');
+
+                    CDROM_Interface *cdrom = NULL;
+                    if (GetMSCDEXDrive(drive_index,&cdrom)) {
+                        if (atapi->cdrom) atapi->cdrom->Release();
+                        (atapi->cdrom = cdrom)->Addref();
+                    }
+
                     atapi->has_changed = true;
                     atapi->loading_mode = LOAD_INSERT_CD;
                     PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
@@ -2806,7 +2813,7 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
         LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.",ideslot[index],master_slave[slave?1:0]);
         return;
     }
-    
+
     CDROM_Interface *cdrom = NULL;
 
     if (!GetMSCDEXDrive(drive_index,&cdrom)) {
