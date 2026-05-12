@@ -2240,9 +2240,11 @@ bool isoDrive :: loadImage() {
 			dataCD = true;
 			return true;
 		} else if (dos.version.major < 7 || (dos.version.major == 7 && dos.version.minor < 10)) {
-			const char *msg = "Found UDF image which requires a reported DOS version of 7.10 to mount.\r\n";
-			uint16_t n = (uint16_t)strlen(msg);
-			DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
+			if (!dos_kernel_disabled) {
+				const char *msg = "Found UDF image which requires a reported DOS version of 7.10 to mount.\r\n";
+				uint16_t n = (uint16_t)strlen(msg);
+				DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
+			}
 		}
 	}
 #endif
