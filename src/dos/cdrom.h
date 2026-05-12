@@ -156,7 +156,7 @@ public:
 	virtual void	InitNewMedia		(void) {};
 
 	INTERFACE_TYPE class_id = ID_BASE;
-	uint8_t                subUnit = 0xFFFF;
+	uint8_t                subUnit = 0xFF;
 
 	private:
 		volatile int refcount = 0;
