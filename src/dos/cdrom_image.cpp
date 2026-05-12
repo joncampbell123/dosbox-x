@@ -473,10 +473,10 @@ CDROM_Interface_Image* CDROM_Interface_Image::images[26] = {};
 CDROM_Interface_Image::imagePlayer CDROM_Interface_Image::player;
 
 CDROM_Interface_Image::CDROM_Interface_Image(uint8_t subUnit)
-		      :subUnit(subUnit)
 {
 	class_id = ID_IMAGE;
 	images[subUnit] = this;
+	this->subUnit = subUnit;
 	if (refCount == 0) {
 		if (player.channel == NULL) {
 			// channel is kept dormant except during cdrom playback periods

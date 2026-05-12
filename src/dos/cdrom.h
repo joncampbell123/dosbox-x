@@ -156,6 +156,7 @@ public:
 	virtual void	InitNewMedia		(void) {};
 
 	INTERFACE_TYPE class_id = ID_BASE;
+	uint8_t                subUnit = 0xFFFF;
 
 	private:
 		volatile int refcount = 0;
@@ -444,7 +445,6 @@ private:
 	std::vector<uint8_t> readBuffer;
 	std::string          mcn;
 	static int           refCount;
-    uint8_t                subUnit;
 };
 
 #if defined (WIN32)	/* Win 32 */
