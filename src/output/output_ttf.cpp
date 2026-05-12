@@ -69,6 +69,7 @@ uint16_t cpMap_AX[32] = {
 #endif
 
 Render_ttf ttf;
+bool enablePercLimit = true;
 bool char512 = true;
 bool showbold = true;
 bool showital = true;
@@ -730,6 +731,7 @@ void OUTPUT_TTF_Select(int fsize) {
         winPerc = ttf_section->Get_int("winperc");
         if (winPerc>100||(fsize==2&&GFX_IsFullscreen())||(fsize!=1&&fsize!=2&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen")))) winPerc=100;
         else if (winPerc<25) winPerc=25;
+        enablePercLimit = ttf_section->Get_bool("enableWinPercLimit");
 #if defined(HX_DOS)
         winPerc=100;
 #else
@@ -834,10 +836,12 @@ void OUTPUT_TTF_Select(int fsize) {
     unsigned int maxWidth, maxHeight;
     GetMaxWidthHeight(&maxWidth, &maxHeight);
 
-    // Limit dimenions
+    // Limit dimensions
     if(!ttf.fullScrn) {
-        maxWidth = (maxWidth * 2) / 3;
-        maxHeight = (maxHeight * 2) / 3;
+        if(enablePercLimit) {
+           maxWidth = (maxWidth * 2) / 3;
+           maxHeight = (maxHeight * 2) / 3;
+        }
     }
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
     maxHeight -= mainMenu.menuBarHeightBase * 2;

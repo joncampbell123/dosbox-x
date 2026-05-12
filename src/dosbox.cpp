@@ -3346,6 +3346,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Specifies the window percentage for the TTF output (100 = full screen). Ignored if the ptsize setting is specified.");
     Pint->SetBasic(true);
 
+    Pbool = secprop->Add_bool("enableWinPercLimit", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, a TrueType window size will be limited to 60 percent of the screen.\n"
+        "Enabled by default; optionally disable the limit when using more than 25 lines in a TTF window.");
+    Pbool->SetBasic(true);
+
 	Pint = secprop->Add_int("ptsize", Property::Changeable::Always, 0);
     Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 9), it will override the winperc setting.");
     Pint->SetBasic(true);
