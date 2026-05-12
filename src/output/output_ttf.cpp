@@ -838,9 +838,11 @@ void OUTPUT_TTF_Select(int fsize) {
 
     // Limit dimensions
     if(!ttf.fullScrn) {
-        if(enablePercLimit) {
-           maxWidth = (maxWidth * 2) / 3;
-           maxHeight = (maxHeight * 2) / 3;
+        #if !defined(HX_DOS)
+            if(enablePercLimit) {
+            maxWidth = (maxWidth * 2) / 3;
+            maxHeight = (maxHeight * 2) / 3;
+        #endif
         }
     }
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
