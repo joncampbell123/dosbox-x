@@ -63,7 +63,7 @@ CDROM_Interface_SDL::~CDROM_Interface_SDL(void) {
 	cd		= nullptr;
 }
 
-bool CDROM_Interface_SDL::SetDevice(char* path, int forceCD) { 
+bool CDROM_Interface_SDL::SetDevice(const char* path, int forceCD) {
 	int num = SDL_CDNumDrives();
 	if ((forceCD >= 0) && (forceCD < num)) {
 		driveID = forceCD;
