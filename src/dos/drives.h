@@ -1178,7 +1178,6 @@ private:
     static constexpr bool is_udf = false;
     static constexpr bool is_joliet = false;
 #endif
-    bool empty_drive = false;
 #if !defined(OSFREE)
     bool is_rock_ridge = false; // NTS: Rock Ridge and System Use Sharing Protocol was detected in the root directory
     bool enable_joliet = false; // NTS: "Joliet" is just ISO 9660 with filenames encoded as UTF-16 Unicode. One of the few times Microsoft extended something yet kept it simple --J.C.
