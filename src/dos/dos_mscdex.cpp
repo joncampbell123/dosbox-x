@@ -437,14 +437,11 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 
 	if (dinfo[0].drive-1==_drive) {
 		CDROM_Interface *_cdrom = cdrom[numDrives];
-		CDROM_Interface_Image *_cdimg = CDROM_Interface_Image::images[numDrives];
 		for (uint16_t i=GetNumDrives(); i>0; i--) {
 			dinfo[i] = dinfo[i-1];
 			cdrom[i] = cdrom[i-1];
-			CDROM_Interface_Image::images[i] = CDROM_Interface_Image::images[i-1];
 		}
 		cdrom[0] = _cdrom;
-		CDROM_Interface_Image::images[0] = _cdimg;
 		dinfo[0].drive		= (uint8_t)_drive;
 		dinfo[0].physDrive	= (uint8_t)toupper(physicalPath[0]);
 		subUnit = 0;
