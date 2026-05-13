@@ -1658,9 +1658,10 @@ int MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit
 	// HACK: During CONFIG.SYS stage, mscdex == NULL.
 	//       If we want people to IMGMOUNT their CD-ROM drives during CONFIG.SYS
 	//       without causing a segfault, this is necessary!
-	if (mscdex == NULL && first_shell && first_shell->config_shell)
+	if (mscdex == NULL && !dos_kernel_disabled && first_shell && first_shell->config_shell)
 		MSCDEX_Startup(NULL);
 
+	if (mscdex == NULL) return 6;
 	return mscdex->AddDrive(driveLetter-'A',(char*)physicalPath,subUnit);
 }
 
