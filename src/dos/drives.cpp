@@ -482,17 +482,17 @@ void DriveManager::CycleAllCDs(void) {
 		if (numDisks > 1) {
 			// cycle disk
 			unsigned int currentDisk = driveInfos[idrive].currentDisk;
-            const DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
-            if (dynamic_cast<const isoDrive*>(oldDisk) == NULL) continue;
+			const DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
+			if (dynamic_cast<const isoDrive*>(oldDisk) == NULL) continue;
 			currentDisk = (currentDisk + 1u) % numDisks;
 			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
-			
+
 			// copy working directory, acquire system resources and finally switch to next drive
 			strcpy(newDisk->curdir, oldDisk->curdir);
 			newDisk->Activate();
-            if (!dos_kernel_disabled) newDisk->UpdateDPB(currentDrive);
-            Drives[idrive] = newDisk;
+			if (!dos_kernel_disabled) newDisk->UpdateDPB(currentDrive);
+			Drives[idrive] = newDisk;
 			LOG_MSG("Drive %c: disk %d of %d now active", 'A'+idrive, currentDisk+1, numDisks);
 		}
 	}
