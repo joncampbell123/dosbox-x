@@ -90,6 +90,108 @@ static bool HasDrive(uint16_t drive) {
 }
 
 #if !defined(OSFREE)
+static bool GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
+	if (subUnit>=numDrives) return false;
+	if (cdrom[subUnit] == NULL) return false;
+	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioSub(attr,track,index,rel,abs);
+	if (!dinfo[subUnit].lastResult) {
+		attr = track = index = 0;
+		rel.fr = rel.min = rel.sec = 0;
+		abs.fr = abs.min = abs.sec = 0;
+	}
+	return dinfo[subUnit].lastResult;
+}
+#endif
+
+#if !defined(OSFREE)
+static bool GetAudioStatus(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end) {
+	if (subUnit>=numDrives) return false;
+	if (cdrom[subUnit] == NULL) return false;
+	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioStatus(playing,pause);
+	if (dinfo[subUnit].lastResult) {
+		if (playing) {
+			// Start
+			uint32_t addr	= dinfo[subUnit].audioStart + 150;
+			start.fr	= (uint8_t)(addr%75);	addr/=75;
+			start.sec	= (uint8_t)(addr%60);
+			start.min	= (uint8_t)(addr/60);
+			// End
+			addr		= dinfo[subUnit].audioEnd + 150;
+			end.fr		= (uint8_t)(addr%75);	addr/=75;
+			end.sec		= (uint8_t)(addr%60);
+			end.min		= (uint8_t)(addr/60);
+		} else {
+			start.fr = start.min = start.sec = 0;
+			end.fr = end.min = end.sec = 0;
+		}
+	} else {
+		playing		= false;
+		pause		= false;
+		start.fr = start.min = start.sec = 0;
+		end.fr = end.min = end.sec = 0;
+	}
+
+	return dinfo[subUnit].lastResult;
+}
+#endif
+
+#if !defined(OSFREE)
+static bool GetCurrentPos(uint8_t subUnit, TMSF& pos) {
+	if (subUnit>=numDrives) return false;
+	if(!dinfo[subUnit].audioPlay) {
+		FRAMES_TO_MSF((dinfo[subUnit].audioStart + REDBOOK_FRAME_PADDING), &pos.min, &pos.sec, &pos.fr);
+		return true;
+	}
+	TMSF rel;
+	uint8_t attr,track,index;
+	dinfo[subUnit].lastResult = GetQChannelData(subUnit, attr, track, index, rel, pos);
+	if(!dinfo[subUnit].lastResult) pos.fr = pos.min = pos.sec = 0;
+	return dinfo[subUnit].lastResult;
+}
+#endif
+
+#if !defined(OSFREE)
+static bool StopAudio(uint8_t subUnit) {
+	if (subUnit>=numDrives) return false;
+	if (dinfo[subUnit].audioPlay) {
+		// Check if audio is still playing....
+		TMSF start,end;
+		bool playing,pause;
+		if (GetAudioStatus(subUnit,playing,pause,start,end))
+			dinfo[subUnit].audioPlay = playing;
+		else
+			dinfo[subUnit].audioPlay = false;
+	}
+
+	if (cdrom[subUnit]) {
+		if (dinfo[subUnit].audioPlay)
+			dinfo[subUnit].lastResult = cdrom[subUnit]->PauseAudio(false);
+		else
+			dinfo[subUnit].lastResult = cdrom[subUnit]->StopAudio();
+	}
+	else {
+		dinfo[subUnit].lastResult = false;
+		dinfo[subUnit].audioPlay = false;
+	}
+
+	if (dinfo[subUnit].lastResult) {
+		if (dinfo[subUnit].audioPlay) {
+			TMSF pos;
+			GetCurrentPos(subUnit,pos);
+			dinfo[subUnit].audioStart	= pos.min*60u*75u+pos.sec*75u+pos.fr - 150u;
+			dinfo[subUnit].audioPaused  = true;
+		} else {
+			dinfo[subUnit].audioPaused  = false;
+			dinfo[subUnit].audioStart	= 0;
+			dinfo[subUnit].audioEnd		= 0;
+		}
+		dinfo[subUnit].audioPlay = false;
+	}
+	return dinfo[subUnit].lastResult;
+}
+#endif
+
+#if !defined(OSFREE)
 static Bitu MSCDEX_Strategy_Handler(void); 
 static Bitu MSCDEX_Interrupt_Handler(void);
 #endif
@@ -149,10 +251,6 @@ public:
 #if !defined(OSFREE)
 	bool		PlayAudioSector		(uint8_t subUnit, uint32_t sector, uint32_t length);
 	bool		PlayAudioMSF		(uint8_t subUnit, uint32_t start, uint32_t length);
-	bool		StopAudio			(uint8_t subUnit);
-	bool		GetAudioStatus		(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
-
-	bool		GetQChannelData	(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs);
 #endif
 	int			RemoveDrive			(uint16_t _drive);
 	int			AddDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
@@ -182,7 +280,6 @@ public:
 	uint32_t		GetVolumeSize		(uint8_t subUnit);
 	bool		GetTrackInfo		(uint8_t subUnit, uint8_t track, uint8_t& attr, TMSF& start);
 	uint16_t		GetStatusWord		(uint8_t subUnit,uint16_t status);
-	bool		GetCurrentPos		(uint8_t subUnit, TMSF& pos);
 	uint32_t		GetDeviceStatus		(uint8_t subUnit);
 	bool		GetMediaStatus		(uint8_t subUnit, uint8_t& status);
 	bool		LoadUnloadMedia		(uint8_t subUnit, bool unload);
@@ -618,93 +715,6 @@ bool CMscdex::Seek(uint8_t subUnit, uint32_t sector)
 #endif
 
 #if !defined(OSFREE)
-bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
-	if (subUnit>=numDrives) return false;
-	if (cdrom[subUnit] == NULL) return false;
-	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioSub(attr,track,index,rel,abs);
-	if (!dinfo[subUnit].lastResult) {
-		attr = track = index = 0;
-		rel.fr = rel.min = rel.sec = 0;
-		abs.fr = abs.min = abs.sec = 0;
-	}
-	return dinfo[subUnit].lastResult;
-}
-#endif
-
-#if !defined(OSFREE)
-bool CMscdex::GetAudioStatus(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end) {
-	if (subUnit>=numDrives) return false;
-	if (cdrom[subUnit] == NULL) return false;
-	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioStatus(playing,pause);
-	if (dinfo[subUnit].lastResult) {
-		if (playing) {
-			// Start
-			uint32_t addr	= dinfo[subUnit].audioStart + 150;
-			start.fr	= (uint8_t)(addr%75);	addr/=75;
-			start.sec	= (uint8_t)(addr%60); 
-			start.min	= (uint8_t)(addr/60);
-			// End
-			addr		= dinfo[subUnit].audioEnd + 150;
-			end.fr		= (uint8_t)(addr%75);	addr/=75;
-			end.sec		= (uint8_t)(addr%60); 
-			end.min		= (uint8_t)(addr/60);
-		} else {
-            start.fr = start.min = start.sec = 0;
-            end.fr = end.min = end.sec = 0;
-		}
-	} else {
-		playing		= false;
-		pause		= false;
-        start.fr = start.min = start.sec = 0;
-        end.fr = end.min = end.sec = 0;
-	}
-	
-	return dinfo[subUnit].lastResult;
-}
-#endif
-
-#if !defined(OSFREE)
-bool CMscdex::StopAudio(uint8_t subUnit) {
-	if (subUnit>=numDrives) return false;
-	if (dinfo[subUnit].audioPlay) {
-		// Check if audio is still playing....
-		TMSF start,end;
-		bool playing,pause;
-		if (GetAudioStatus(subUnit,playing,pause,start,end))
-			dinfo[subUnit].audioPlay = playing;
-		else
-			dinfo[subUnit].audioPlay = false;
-	}
-
-	if (cdrom[subUnit]) {
-		if (dinfo[subUnit].audioPlay)
-			dinfo[subUnit].lastResult = cdrom[subUnit]->PauseAudio(false);
-		else
-			dinfo[subUnit].lastResult = cdrom[subUnit]->StopAudio();
-	}
-	else {
-		dinfo[subUnit].lastResult = false;
-		dinfo[subUnit].audioPlay = false;
-	}
-	
-	if (dinfo[subUnit].lastResult) {
-		if (dinfo[subUnit].audioPlay) {
-			TMSF pos;
-			GetCurrentPos(subUnit,pos);
-			dinfo[subUnit].audioStart	= pos.min*60u*75u+pos.sec*75u+pos.fr - 150u;
-			dinfo[subUnit].audioPaused  = true;
-		} else {	
-			dinfo[subUnit].audioPaused  = false;
-			dinfo[subUnit].audioStart	= 0;
-			dinfo[subUnit].audioEnd		= 0;
-		}
-		dinfo[subUnit].audioPlay = false;
-	}
-	return dinfo[subUnit].lastResult;
-}
-#endif
-
-#if !defined(OSFREE)
 bool CMscdex::ResumeAudio(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	return dinfo[subUnit].lastResult = PlayAudioSector(subUnit,dinfo[subUnit].audioStart,dinfo[subUnit].audioEnd);
@@ -935,21 +945,6 @@ bool CMscdex::GetDirectoryEntry(uint16_t drive, bool copyFlag, PhysPt pathname, 
 #endif
 
 #if !defined(OSFREE)
-bool CMscdex::GetCurrentPos(uint8_t subUnit, TMSF& pos) {
-	if (subUnit>=numDrives) return false;
-    if(!dinfo[subUnit].audioPlay) {
-        FRAMES_TO_MSF((dinfo[subUnit].audioStart + REDBOOK_FRAME_PADDING), &pos.min, &pos.sec, &pos.fr);
-        return true;
-    }
-    TMSF rel;
-	uint8_t attr,track,index;
-	dinfo[subUnit].lastResult = GetQChannelData(subUnit, attr, track, index, rel, pos);
-    if(!dinfo[subUnit].lastResult) pos.fr = pos.min = pos.sec = 0;
-	return dinfo[subUnit].lastResult;
-}
-#endif
-
-#if !defined(OSFREE)
 bool CMscdex::GetMediaStatus(uint8_t subUnit, bool& media, bool& changed, bool& trayOpen) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetMediaTrayStatus(media,changed,trayOpen);
@@ -1128,7 +1123,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
     case 0x01: /* Drive head location */
     {
         TMSF pos;
-        mscdex->GetCurrentPos(drive_unit, pos);
+        GetCurrentPos(drive_unit, pos);
         uint8_t addr_mode = mem_readb(buffer + 1);
         if(addr_mode == 0) { // HSG
             uint32_t frames = MSF_TO_FRAMES(pos.min, pos.sec, pos.fr);
@@ -1221,7 +1216,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
     {
         uint8_t attr = 0, track, index;
         TMSF abs, rel;
-        mscdex->GetQChannelData(drive_unit, attr, track, index, rel, abs);
+        GetQChannelData(drive_unit, attr, track, index, rel, abs);
         mem_writeb(buffer + 1, attr);
         mem_writeb(buffer + 2, ((track / 10) << 4) | (track % 10)); // track in BCD
         mem_writeb(buffer + 3, index);
@@ -1251,7 +1246,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
         bool playing = false;
         bool paused = false;
         TMSF resStart, resEnd;
-        mscdex->GetAudioStatus(drive_unit, playing, paused, resStart, resEnd);
+        GetAudioStatus(drive_unit, playing, paused, resStart, resEnd);
         mem_writew(buffer + 1u, paused);
         mem_writeb(buffer + 3u, resStart.min);
         mem_writeb(buffer + 4u, resStart.sec);
@@ -1285,7 +1280,7 @@ static uint16_t MSCDEX_IOCTL_Output(PhysPt buffer, uint8_t drive_unit) {
         break;
     case 0x02: // Reset drive
         LOG(LOG_MISC, LOG_WARN)("cdromDrive reset");
-        if(!mscdex->StopAudio(drive_unit))  return 0x02;
+        if(!StopAudio(drive_unit))  return 0x02;
         break;
     case 0x03: // Control audio channel
         TCtrl ctrl;
@@ -1448,7 +1443,7 @@ static Bitu MSCDEX_Interrupt_Handler(void) {
         break;
     }
     case 0x85:      /* STOP AUDIO */
-        mscdex->StopAudio(subUnit);
+        StopAudio(subUnit);
         break;
     case 0x86:      /* WRITE LONG */
         MSCDEX_LOG_ERROR("Unsupported Driver Request %02X", funcNr);
@@ -1820,8 +1815,8 @@ void POD_Save_DOS_Mscdex( std::ostream& stream )
 			bool playing, pause;
 
 #if !defined(OSFREE)
-			mscdex->GetAudioStatus(drive_unit, playing, pause, start, end);
-			mscdex->GetCurrentPos(drive_unit,pos);
+			GetAudioStatus(drive_unit, playing, pause, start, end);
+			GetCurrentPos(drive_unit,pos);
 #endif
 
 
@@ -1874,7 +1869,7 @@ void POD_Load_DOS_Mscdex( std::istream& stream )
 
 #if !defined(OSFREE)
 			// first play, then simulate pause
-			mscdex->StopAudio(drive_unit);
+			StopAudio(drive_unit);
 #endif
 
 #if !defined(OSFREE)
