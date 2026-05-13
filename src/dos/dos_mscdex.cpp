@@ -1076,18 +1076,11 @@ bool CMscdex::GetChannelControl(uint8_t subUnit, TCtrl& ctrl) {
 static CMscdex* mscdex = nullptr;
 static PhysPt curReqheaderPtr = 0;
 
-bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
-	Bitu i;
-
-	if (mscdex == NULL) {
-		if (_cdrom) *_cdrom = NULL;
-		return false;
-	}
-
-	for (i=0;i < MSCDEX_MAX_DRIVES;i++) {
-		if (cdrom[i] == NULL) continue;
-		if (dinfo[i].drive == drive_letter) {
-			if (_cdrom) (*_cdrom = cdrom[i])->Addref();
+bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **ret_cdrom) {
+	*ret_cdrom = NULL;
+	for (unsigned int i=0;i < MSCDEX_MAX_DRIVES;i++) {
+		if (cdrom[i] && dinfo[i].drive == drive_letter) {
+			if (ret_cdrom) (*ret_cdrom = cdrom[i])->Addref();
 			return true;
 		}
 	}
@@ -1095,15 +1088,11 @@ bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 	return false;
 }
 
-bool GetMSCDEXDriveBySubUnit(uint8_t unit,CDROM_Interface **_cdrom) {
-	if (mscdex == NULL) {
-		if (_cdrom) *_cdrom = NULL;
-		return false;
-	}
-
+bool GetMSCDEXDriveBySubUnit(uint8_t unit,CDROM_Interface **ret_cdrom) {
+	*ret_cdrom = NULL;
 	if (unit < MSCDEX_MAX_DRIVES) {
 		if (cdrom[unit]) {
-			if (_cdrom) (*_cdrom = cdrom[unit])->Addref();
+			if (ret_cdrom) (*ret_cdrom = cdrom[unit])->Addref();
 			return true;
 		}
 	}
