@@ -1039,6 +1039,7 @@ void  MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, uint8_t subUnit);
 bool  MSCDEX_HasDrive(char driveLetter);
 bool  MSCDEX_GetVolumeName(uint8_t subUnit, char* name);
 uint8_t MSCDEX_GetSubUnit(char driveLetter);
+bool  GetMSCDEXDriveBySubUnit(uint8_t unit,CDROM_Interface **_cdrom);
 
 bool CDROM_Interface_Image::images_init = false;
 
@@ -1097,6 +1098,7 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 	
 	safe_strncpy(this->fileName, fileName, CROSS_LEN);
 	error = UpdateMscdex(driveLetter, fileName, subUnit);
+	UpdateCDROMRef();
 
 	if (!error) {
 		if (empty_drive) {
@@ -1115,7 +1117,8 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 			char buffer[32] = { 0 };
 			if (!MSCDEX_GetVolumeName(subUnit, buffer)) strcpy(buffer, "");
 			Set_Label(buffer,discLabel,true);
-		} else if (CDROM_Interface_Image::images[subUnit]->HasDataTrack() == false && CDROM_Interface_Image::images[subUnit]->HasAudioTrack() == true) { //Audio only cdrom
+#if 0//TODO
+		} else if (cdrom->HasDataTrack() == false && cdrom->HasAudioTrack() == true) { //Audio only cdrom
 			strcpy(info, "isoDrive ");
 			strcat(info, fileName);
 			this->driveLetter = driveLetter;
@@ -1123,11 +1126,19 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 			char buffer[32] = { 0 };
 			strcpy(buffer, "Audio_CD");
 			Set_Label(buffer,discLabel,true);
-		} else error = 6; //Corrupt image
+#endif
+		} else {
+			error = 6; //Corrupt image
+		}
 	}
 }
 
-isoDrive::~isoDrive() { }
+isoDrive::~isoDrive() {
+	if (cdrom) {
+		cdrom->Release();
+		cdrom = NULL;
+	}
+}
 
 void isoDrive::setFileName(const char* fileName) {
 	safe_strncpy(this->fileName, fileName, CROSS_LEN);
@@ -1140,26 +1151,24 @@ int isoDrive::UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit)
 	if (MSCDEX_HasDrive(driveLetter)) {
 		subUnit = MSCDEX_GetSubUnit(driveLetter);
 		if (empty_drive) {
-			CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
-			CDROM_Interface* cdrom = new CDROM_Interface_Fake(); cdrom->Addref();
-			if (!cdrom->SetDevice(path, 0)) {
-				CDROM_Interface_Image::images[subUnit] = oldCdrom;
-				cdrom->Release();
+			CDROM_Interface* new_cdrom = new CDROM_Interface_Fake(); new_cdrom->Addref();
+			if (!new_cdrom->SetDevice(path, 0)) {
+				new_cdrom->Release();
 				return 3;
 			}
-			MSCDEX_ReplaceDrive(cdrom, subUnit);
-			cdrom->Release();
+			MSCDEX_ReplaceDrive(new_cdrom, subUnit);
+			new_cdrom->Release();
+			UpdateCDROMRef();
 		}
 		else {
-			CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
-			CDROM_Interface* cdrom = new CDROM_Interface_Image(subUnit); cdrom->Addref();
-			if (!cdrom->SetDevice(path, 0)) {
-				CDROM_Interface_Image::images[subUnit] = oldCdrom;
-				cdrom->Release();
+			CDROM_Interface* new_cdrom = new CDROM_Interface_Image(subUnit); new_cdrom->Addref();
+			if (!new_cdrom->SetDevice(path, 0)) {
+				new_cdrom->Release();
 				return 3;
 			}
-			MSCDEX_ReplaceDrive(cdrom, subUnit);
-			cdrom->Release();
+			MSCDEX_ReplaceDrive(new_cdrom, subUnit);
+			new_cdrom->Release();
+			UpdateCDROMRef();
 		}
 		return 0;
 	} else {
@@ -1169,6 +1178,18 @@ int isoDrive::UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit)
 
 void isoDrive::Activate(void) {
 	UpdateMscdex(driveLetter, fileName, subUnit);
+	UpdateCDROMRef();
+}
+
+void isoDrive::UpdateCDROMRef(void) {
+	CDROM_Interface *new_cdrom = NULL;
+
+	GetMSCDEXDriveBySubUnit(subUnit,&new_cdrom);/*will Addref*/
+
+	if (new_cdrom) {
+		if (cdrom) cdrom->Release();
+		cdrom = new_cdrom;
+	}
 }
 
 bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
@@ -1839,13 +1860,15 @@ void isoDrive::FreeDirIterator(const int dirIterator) {
 
 #if !defined(OSFREE)
 bool isoDrive::ReadCachedSector(uint8_t** buffer, const uint32_t sector) {
+	if(cdrom == nullptr) return false;
+
 	// get hash table entry
 	unsigned int pos = sector % ISO_MAX_HASH_TABLE_SIZE;
 	SectorHashEntry& he = sectorHashEntries[pos];
-	
+
 	// check if the entry is valid and contains the correct sector
 	if (!he.valid || he.sector != sector) {
-		if (!CDROM_Interface_Image::images[subUnit]->ReadSector(he.data, false, sector)) {
+		if (!cdrom->ReadSectorsHost(he.data, false, sector, 1)) {
 			return false;
 		}
 		he.valid = true;
@@ -1858,8 +1881,8 @@ bool isoDrive::ReadCachedSector(uint8_t** buffer, const uint32_t sector) {
 #endif
 
 inline bool isoDrive :: readSector(uint8_t *buffer, uint32_t sector) const {
-    if(CDROM_Interface_Image::images[subUnit] == nullptr) return false;
-    return CDROM_Interface_Image::images[subUnit]->ReadSector(buffer, false, sector);
+    if(cdrom == nullptr) return false;
+    return cdrom->ReadSectorsHost(buffer, false, sector, 1);
 }
 
 #if !defined(OSFREE)

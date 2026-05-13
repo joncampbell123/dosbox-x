@@ -23,6 +23,7 @@
 #include <vector>
 #include <sys/types.h>
 #include "dos_system.h"
+#include "cdrom.h"
 #include "shell.h" /* for DOS_Shell */
 
 bool DOS_CommonFAT32FAT16DiskSpaceConv(
@@ -1153,6 +1154,7 @@ private:
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(uint8_t** buffer, const uint32_t sector);
+	void UpdateCDROMRef(void);
 #endif
 
 #if !defined(OSFREE)
@@ -1199,6 +1201,7 @@ private:
     uint8_t subUnit = 0;
     char driveLetter = '\0';
 	char discLabel[32];
+	CDROM_Interface *cdrom = NULL;
 public:
 #if !defined(OSFREE)
 	UDFextent_ad convertToUDFextent_ad(const UDFshort_ad &s,const uint32_t partition_ref_id=0xFFFFFFFFu) const;

@@ -1056,6 +1056,22 @@ bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 	return false;
 }
 
+bool GetMSCDEXDriveBySubUnit(uint8_t unit,CDROM_Interface **_cdrom) {
+	if (mscdex == NULL) {
+		if (_cdrom) *_cdrom = NULL;
+		return false;
+	}
+
+	if (unit < MSCDEX_MAX_DRIVES) {
+		if (mscdex->cdrom[unit]) {
+			if (_cdrom) (*_cdrom = mscdex->cdrom[unit])->Addref();
+			return true;
+		}
+	}
+
+	return false;
+}
+
 #if !defined(OSFREE)
 // Reference: https://oldlinux.superglobalmegacorp.com/Linux.old/docs/interrupts/inter61/INTERRUP.G
 static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer, uint8_t drive_unit) {
