@@ -1727,13 +1727,15 @@ void MSCDEX_ShutDown(Section* /*sec*/) {
 }
 
 void MSCDEX_DOS_ShutDown(Section* /*sec*/) {
-#if 0//Nope, not there yet. Shutting down MSCDEX currently breaks the ability to CD swap
 	if (mscdex != NULL) {
 		delete mscdex;
 		mscdex = NULL;
 	}
-#endif
 
+	/* Do NOT free all CDROM drives.
+	 * The "CD swap" mapper shortcut will not work properly while
+	 * running a guest OS using the BOOT command if the cdrom[]
+	 * reference array is freed here. */
 	curReqheaderPtr = 0;
 }
 
