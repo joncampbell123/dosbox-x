@@ -50,6 +50,45 @@ int forceCD				= -1;
 extern int bootdrive;
 extern bool dos_kernel_disabled, bootguest, bootvm, use_quick_reboot, enable_network_redirector;
 
+typedef struct SDriveInfo {
+	uint8_t	drive;			// drive letter in dosbox
+	uint8_t	physDrive;		// drive letter in system
+	bool	audioPlay;		// audio playing active
+	bool	audioPaused;	// audio playing paused
+	uint32_t	audioStart;		// StartLoc for resume
+	uint32_t	audioEnd;		// EndLoc for resume
+	bool	locked;			// drive locked ?
+	bool	lastResult;		// last operation success ?
+	uint32_t	volumeSize;		// for media change
+	TCtrl	audioCtrl;		// audio channel control
+} TDriveInfo;
+
+static uint16_t			numDrives = 0;
+static CDROM_Interface*		cdrom[MSCDEX_MAX_DRIVES] = {NULL};
+static TDriveInfo		dinfo[MSCDEX_MAX_DRIVES] = { {0} };
+
+static uint16_t GetNumDrives(void) {
+	return numDrives;
+};
+
+static uint16_t GetFirstDrive(void) {
+	if (numDrives > 0)
+		return dinfo[0].drive;
+	else
+		return 0;
+}
+
+static uint8_t GetSubUnit(uint16_t _drive)
+{
+	_drive &= 0xff; //Only lowerpart (Ultimate domain)
+	for (uint16_t i=0; i<GetNumDrives(); i++) if (dinfo[i].drive==_drive) return (uint8_t)i;
+	return 0xff;
+}
+
+static bool HasDrive(uint16_t drive) {
+	return (GetSubUnit(drive) != 0xff);
+}
+
 #if !defined(OSFREE)
 static Bitu MSCDEX_Strategy_Handler(void); 
 static Bitu MSCDEX_Interrupt_Handler(void);
@@ -102,9 +141,6 @@ public:
 	~CMscdex	(void);
 
 	uint16_t		GetVersion			(void)	{ return (MSCDEX_VERSION_HIGH<<8)+MSCDEX_VERSION_LOW; };
-	uint16_t		GetNumDrives		(void)	{ return numDrives;			};
-	uint16_t		GetFirstDrive		(void)	{ return dinfo[0].drive; };
-	uint8_t		GetSubUnit			(uint16_t _drive);
 #if !defined(OSFREE)
 	bool		GetUPC				(uint8_t subUnit, uint8_t& attr, char* upc);
 #endif
@@ -121,7 +157,6 @@ public:
 	int			RemoveDrive			(uint16_t _drive);
 	int			AddDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
 	int			UpdateDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
-	bool 		HasDrive			(uint16_t drive);
 	void		ReplaceDrive		(CDROM_Interface* newCdrom, uint8_t subUnit);
 	void		GetDrives			(PhysPt data);
 #if !defined(OSFREE)
@@ -162,24 +197,7 @@ public:
 	void SaveState( std::ostream& stream );
 	void LoadState( std::istream& stream );
 
-	uint16_t		numDrives = 0;
-
-	typedef struct SDriveInfo {
-		uint8_t	drive;			// drive letter in dosbox
-		uint8_t	physDrive;		// drive letter in system
-		bool	audioPlay;		// audio playing active
-		bool	audioPaused;	// audio playing paused
-		uint32_t	audioStart;		// StartLoc for resume
-		uint32_t	audioEnd;		// EndLoc for resume
-		bool	locked;			// drive locked ?
-		bool	lastResult;		// last operation success ?
-		uint32_t	volumeSize;		// for media change
-		TCtrl	audioCtrl;		// audio channel control
-	} TDriveInfo;
-
 	uint16_t				defaultBufSeg = 0;
-	TDriveInfo			dinfo[MSCDEX_MAX_DRIVES];
-	CDROM_Interface*		cdrom[MSCDEX_MAX_DRIVES];
 #if !defined(OSFREE)
 	uint16_t		rootDriverHeaderSeg = 0;
 #endif
@@ -192,6 +210,16 @@ public:
 #endif
 };
 
+void CDROM_FreeAllDrives(void) {
+	for (uint16_t i=0; i<GetNumDrives(); i++) {
+		if (cdrom[i]) {
+			cdrom[i]->Release();
+			cdrom[i] = nullptr;
+		}
+	}
+	numDrives = 0;
+}
+
 CMscdex::CMscdex(const char *_name) {
 	assert(_name != NULL);
 	assert(strlen(_name) <= 8);
@@ -202,13 +230,8 @@ CMscdex::CMscdex(const char *_name) {
 }
 
 CMscdex::~CMscdex(void) {
+	/* cdrom[] is numDrives is no longer part of this C++ class, do not free them */
 	defaultBufSeg = 0;
-	for (uint16_t i=0; i<GetNumDrives(); i++) {
-		if (cdrom[i]) {
-			cdrom[i]->Release();
-			cdrom[i] = nullptr;
-		}
-	}
 	delete[] name;
 }
 
@@ -222,13 +245,6 @@ bool CMscdex::IsValidDrive(uint16_t _drive)
 	_drive &= 0xff; //Only lowerpart (Ultimate domain)
 	for (uint16_t i=0; i<GetNumDrives(); i++) if (dinfo[i].drive==_drive) return true;
 	return false;
-}
-
-uint8_t CMscdex::GetSubUnit(uint16_t _drive)
-{
-	_drive &= 0xff; //Only lowerpart (Ultimate domain)
-	for (uint16_t i=0; i<GetNumDrives(); i++) if (dinfo[i].drive==_drive) return (uint8_t)i;
-	return 0xff;
 }
 
 int CMscdex::RemoveDrive(uint16_t _drive)
@@ -363,6 +379,8 @@ int CMscdex::UpdateDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 {
 	CDROM_Interface *new_cdrom = NULL;
 
+	(void)_drive;//unused
+
 	if (subUnit >= GetNumDrives()) return 4;
 
 	int result = CDROM_AllocateInterface(physicalPath,forceCD,numDrives,&new_cdrom);/*Will Addref*/
@@ -485,10 +503,6 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 	StopAudio(subUnit);
 #endif
 	return result;
-}
-
-bool CMscdex::HasDrive(uint16_t drive) {
-	return (GetSubUnit(drive) != 0xff);
 }
 
 void CMscdex::ReplaceDrive(CDROM_Interface* newCdrom, uint8_t subUnit) {
@@ -1076,9 +1090,9 @@ bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 	}
 
 	for (i=0;i < MSCDEX_MAX_DRIVES;i++) {
-		if (mscdex->cdrom[i] == NULL) continue;
-		if (mscdex->dinfo[i].drive == drive_letter) {
-			if (_cdrom) (*_cdrom = mscdex->cdrom[i])->Addref();
+		if (cdrom[i] == NULL) continue;
+		if (dinfo[i].drive == drive_letter) {
+			if (_cdrom) (*_cdrom = cdrom[i])->Addref();
 			return true;
 		}
 	}
@@ -1093,8 +1107,8 @@ bool GetMSCDEXDriveBySubUnit(uint8_t unit,CDROM_Interface **_cdrom) {
 	}
 
 	if (unit < MSCDEX_MAX_DRIVES) {
-		if (mscdex->cdrom[unit]) {
-			if (_cdrom) (*_cdrom = mscdex->cdrom[unit])->Addref();
+		if (cdrom[unit]) {
+			if (_cdrom) (*_cdrom = cdrom[unit])->Addref();
 			return true;
 		}
 	}
@@ -1483,8 +1497,8 @@ static bool MSCDEX_Handler(void) {
 	CALLBACK_SCF(false); // carry flag cleared for all functions (undocumented); only set on error
 	switch (reg_ax) {
 		case 0x1500:	/* Install check */
-						reg_bx = mscdex->GetNumDrives();
-						if (reg_bx>0) reg_cx = mscdex->GetFirstDrive();
+						reg_bx = GetNumDrives();
+						if (reg_bx>0) reg_cx = GetFirstDrive();
 						reg_al = 0xff;
 						break;
 		case 0x1501:	/* Get cdrom driver info */
@@ -1638,8 +1652,15 @@ bool device_MSCDEX::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t *
 }
 #endif
 
+void MSCDEX_Startup(Section* sec);
 int MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit)
 {
+	// HACK: During CONFIG.SYS stage, mscdex == NULL.
+	//       If we want people to IMGMOUNT their CD-ROM drives during CONFIG.SYS
+	//       without causing a segfault, this is necessary!
+	if (mscdex == NULL && first_shell && first_shell->config_shell)
+		MSCDEX_Startup(NULL);
+
 	return mscdex->AddDrive(driveLetter-'A',(char*)physicalPath,subUnit);
 }
 
@@ -1653,16 +1674,9 @@ int MSCDEX_RemoveDrive(char driveLetter)
 	return mscdex->RemoveDrive(driveLetter-'A');
 }
 
-void MSCDEX_Startup(Section* sec);
 bool MSCDEX_HasDrive(char driveLetter)
 {
-	// HACK: During CONFIG.SYS stage, mscdex == NULL.
-	//       If we want people to IMGMOUNT their CD-ROM drives during CONFIG.SYS
-	//       without causing a segfault, this is necessary!
-	if (mscdex == NULL && first_shell && first_shell->config_shell)
-		MSCDEX_Startup(NULL);
-
-	return mscdex->HasDrive(driveLetter-'A');
+	return HasDrive(driveLetter-'A');
 }
 
 void MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, uint8_t subUnit)
@@ -1672,7 +1686,7 @@ void MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, uint8_t subUnit)
 
 uint8_t MSCDEX_GetSubUnit(char driveLetter)
 {
-	return mscdex->GetSubUnit(driveLetter-'A');
+	return GetSubUnit(driveLetter-'A');
 }
 
 bool MSCDEX_GetVolumeName(uint8_t subUnit, char* name)
@@ -1716,6 +1730,7 @@ void MSCDEX_Reset(Section* /*sec*/) {
 		mscdex = NULL;
 	}
 
+	CDROM_FreeAllDrives();
 	curReqheaderPtr = 0;
 }
 
@@ -1725,11 +1740,12 @@ void MSCDEX_ShutDown(Section* /*sec*/) {
 		mscdex = NULL;
 	}
 
+	CDROM_FreeAllDrives();
 	curReqheaderPtr = 0;
 }
 
 void MSCDEX_DOS_ShutDown(Section* /*sec*/) {
-#if 0/*Sadly, CD-ROM emulation still requires MSCDEX*/
+#if 0//Nope, not there yet. Shutting down MSCDEX currently breaks the ability to CD swap
 	if (mscdex != NULL) {
 		delete mscdex;
 		mscdex = NULL;
@@ -1796,7 +1812,7 @@ void CMscdex::LoadState( std::istream& stream )
 void POD_Save_DOS_Mscdex( std::ostream& stream )
 {
 	if (!dos_kernel_disabled) {
-		uint16_t dnum=mscdex->GetNumDrives();
+		uint16_t dnum=GetNumDrives();
 		WRITE_POD( &dnum, dnum);
 		for (uint8_t drive_unit=0; drive_unit<dnum; drive_unit++) {
 			TMSF pos, start, end;
@@ -1825,12 +1841,12 @@ void POD_Load_DOS_Mscdex( std::istream& stream )
 	if (!dos_kernel_disabled) {
 		uint16_t dnum;
 		READ_POD( &dnum, dnum);
-		if (mscdex->GetNumDrives()>dnum) {
-			mscdex->numDrives=dnum;
-			for (uint16_t i=dnum; i<mscdex->GetNumDrives(); i++) {
-				if (mscdex->cdrom[i]) {
-					mscdex->cdrom[i]->Release();
-					mscdex->cdrom[i] = nullptr;
+		if (GetNumDrives()>dnum) {
+			numDrives=dnum;
+			for (uint16_t i=dnum; i<GetNumDrives(); i++) {
+				if (cdrom[i]) {
+					cdrom[i]->Release();
+					cdrom[i] = nullptr;
 				}
 			}
 		}
