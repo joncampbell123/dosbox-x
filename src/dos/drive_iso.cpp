@@ -1041,6 +1041,16 @@ bool  MSCDEX_GetVolumeName(uint8_t subUnit, char* name);
 uint8_t MSCDEX_GetSubUnit(char driveLetter);
 bool  GetMSCDEXDriveBySubUnit(uint8_t unit,CDROM_Interface **_cdrom);
 
+bool CDROM_IsEmpty(CDROM_Interface *cd) {
+	if (cd->class_id == CDROM_Interface::ID_FAKE) {
+		CDROM_Interface_Fake *cdfake = (CDROM_Interface_Fake*)cd;
+		if (cdfake->isEmpty)
+			return true;
+	}
+
+	return false;
+}
+
 bool CDROM_IsAudioOnly(CDROM_Interface *cd) {
 	if (cd->class_id == CDROM_Interface::ID_IMAGE) {
 		CDROM_Interface_Image *cdimg = (CDROM_Interface_Image*)cd;
@@ -1086,9 +1096,6 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 #endif
 	}
 
-	if (!strcmp(fileName,"empty"))
-		empty_drive = true;
-
 	this->fileName[0]  = '\0';
 	this->discLabel[0] = '\0';
 	subUnit = 0;
@@ -1103,15 +1110,7 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 	UpdateCDROMRef();
 
 	if (!error) {
-		if (empty_drive) {
-			LOG_MSG("Empty ISO");
-			strcpy(info, "isoDrive ");
-			strcat(info, "empty");
-			this->driveLetter = driveLetter;
-			this->mediaid = mediaid;
-			char buffer[32] = { 0 };
-			Set_Label(buffer,discLabel,true);
-		} else if (loadImage()) {
+		if (loadImage()) {
 			strcpy(info, "isoDrive ");
 			strcat(info, fileName);
 			this->driveLetter = driveLetter;
@@ -1157,7 +1156,7 @@ void isoDrive::setFileName(const char* fileName) {
 int isoDrive::UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit) {
 	if (MSCDEX_HasDrive(driveLetter)) {
 		subUnit = MSCDEX_GetSubUnit(driveLetter);
-		if (empty_drive) {
+		if (!strcmp(path,"empty")) {
 			CDROM_Interface* new_cdrom = new CDROM_Interface_Fake(); new_cdrom->Addref();
 			if (!new_cdrom->SetDevice(path, 0)) {
 				new_cdrom->Release();
@@ -2261,6 +2260,11 @@ bool isoDrive :: loadImage() {
 	is_udf = false;
 #endif
 	dataCD = false;
+
+	if (CDROM_IsEmpty(cdrom)) {
+		LOG(LOG_MISC,LOG_DEBUG)("ISO: empty CD-ROM drive");
+		return true;
+	}
 
 #if !defined(OSFREE)
 	if (loadImageUDF()) {
