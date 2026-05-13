@@ -120,6 +120,7 @@ public:
 #endif
 	int			RemoveDrive			(uint16_t _drive);
 	int			AddDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
+	int			UpdateDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
 	bool 		HasDrive			(uint16_t drive);
 	void		ReplaceDrive		(CDROM_Interface* newCdrom, uint8_t subUnit);
 	void		GetDrives			(PhysPt data);
@@ -356,6 +357,29 @@ int CDROM_AllocateInterface(char* physicalPath,int forceCD,uint16_t numDrive,CDR
 	return result;
 }
 
+// TODO: Perhaps add a check that, if physicalPath and subUnit are the same as the CDROM interface
+//       already there, don't do anything and return success.
+int CMscdex::UpdateDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
+{
+	CDROM_Interface *new_cdrom = NULL;
+
+	if (subUnit >= GetNumDrives()) return 4;
+
+	int result = CDROM_AllocateInterface(physicalPath,forceCD,numDrives,&new_cdrom);/*Will Addref*/
+
+	if (new_cdrom) {
+#if !defined(OSFREE)
+		// stop audio
+		StopAudio(subUnit);
+#endif
+
+		if (cdrom[subUnit]) cdrom[subUnit]->Release();
+		cdrom[subUnit] = new_cdrom;
+	}
+
+	return result;
+}
+
 int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 {
 	subUnit = 0;
@@ -366,7 +390,7 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 			return 1;
 	}
 
-	int result = CDROM_AllocateInterface(physicalPath,forceCD,numDrives,&cdrom[numDrives]);
+	int result = CDROM_AllocateInterface(physicalPath,forceCD,numDrives,&cdrom[numDrives]);/*Will Addref*/
 
 #if !defined(OSFREE)
 	if (rootDriverHeaderSeg==0) {
@@ -437,14 +461,11 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 
 	if (dinfo[0].drive-1==_drive) {
 		CDROM_Interface *_cdrom = cdrom[numDrives];
-		CDROM_Interface_Image *_cdimg = CDROM_Interface_Image::images[numDrives];
 		for (uint16_t i=GetNumDrives(); i>0; i--) {
 			dinfo[i] = dinfo[i-1];
 			cdrom[i] = cdrom[i-1];
-			CDROM_Interface_Image::images[i] = CDROM_Interface_Image::images[i-1];
 		}
 		cdrom[0] = _cdrom;
-		CDROM_Interface_Image::images[0] = _cdimg;
 		dinfo[0].drive		= (uint8_t)_drive;
 		dinfo[0].physDrive	= (uint8_t)toupper(physicalPath[0]);
 		subUnit = 0;
@@ -585,11 +606,12 @@ bool CMscdex::Seek(uint8_t subUnit, uint32_t sector)
 #if !defined(OSFREE)
 bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
 	if (subUnit>=numDrives) return false;
+	if (cdrom[subUnit] == NULL) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioSub(attr,track,index,rel,abs);
 	if (!dinfo[subUnit].lastResult) {
 		attr = track = index = 0;
-        rel.fr = rel.min = rel.sec = 0;
-        abs.fr = abs.min = abs.sec = 0;
+		rel.fr = rel.min = rel.sec = 0;
+		abs.fr = abs.min = abs.sec = 0;
 	}
 	return dinfo[subUnit].lastResult;
 }
@@ -598,6 +620,7 @@ bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, ui
 #if !defined(OSFREE)
 bool CMscdex::GetAudioStatus(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end) {
 	if (subUnit>=numDrives) return false;
+	if (cdrom[subUnit] == NULL) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioStatus(playing,pause);
 	if (dinfo[subUnit].lastResult) {
 		if (playing) {
@@ -638,10 +661,17 @@ bool CMscdex::StopAudio(uint8_t subUnit) {
 		else
 			dinfo[subUnit].audioPlay = false;
 	}
-	if (dinfo[subUnit].audioPlay)
-		dinfo[subUnit].lastResult = cdrom[subUnit]->PauseAudio(false);
-	else
-		dinfo[subUnit].lastResult = cdrom[subUnit]->StopAudio();
+
+	if (cdrom[subUnit]) {
+		if (dinfo[subUnit].audioPlay)
+			dinfo[subUnit].lastResult = cdrom[subUnit]->PauseAudio(false);
+		else
+			dinfo[subUnit].lastResult = cdrom[subUnit]->StopAudio();
+	}
+	else {
+		dinfo[subUnit].lastResult = false;
+		dinfo[subUnit].audioPlay = false;
+	}
 	
 	if (dinfo[subUnit].lastResult) {
 		if (dinfo[subUnit].audioPlay) {
@@ -1049,6 +1079,22 @@ bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 		if (mscdex->cdrom[i] == NULL) continue;
 		if (mscdex->dinfo[i].drive == drive_letter) {
 			if (_cdrom) (*_cdrom = mscdex->cdrom[i])->Addref();
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool GetMSCDEXDriveBySubUnit(uint8_t unit,CDROM_Interface **_cdrom) {
+	if (mscdex == NULL) {
+		if (_cdrom) *_cdrom = NULL;
+		return false;
+	}
+
+	if (unit < MSCDEX_MAX_DRIVES) {
+		if (mscdex->cdrom[unit]) {
+			if (_cdrom) (*_cdrom = mscdex->cdrom[unit])->Addref();
 			return true;
 		}
 	}
@@ -1594,8 +1640,11 @@ bool device_MSCDEX::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t *
 
 int MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit)
 {
-	int result = mscdex->AddDrive(driveLetter-'A',(char*)physicalPath,subUnit);
-	return result;
+	return mscdex->AddDrive(driveLetter-'A',(char*)physicalPath,subUnit);
+}
+
+int MSCDEX_UpdateDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit) {
+	return mscdex->UpdateDrive(driveLetter-'A',(char*)physicalPath,subUnit);
 }
 
 int MSCDEX_RemoveDrive(char driveLetter)

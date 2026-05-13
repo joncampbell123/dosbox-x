@@ -23,6 +23,7 @@
 #include <vector>
 #include <sys/types.h>
 #include "dos_system.h"
+#include "cdrom.h"
 #include "shell.h" /* for DOS_Shell */
 
 bool DOS_CommonFAT32FAT16DiskSpaceConv(
@@ -1153,6 +1154,7 @@ private:
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(uint8_t** buffer, const uint32_t sector);
+	void UpdateCDROMRef(void);
 #endif
 
 #if !defined(OSFREE)
@@ -1176,7 +1178,6 @@ private:
     static constexpr bool is_udf = false;
     static constexpr bool is_joliet = false;
 #endif
-    bool empty_drive = false;
 #if !defined(OSFREE)
     bool is_rock_ridge = false; // NTS: Rock Ridge and System Use Sharing Protocol was detected in the root directory
     bool enable_joliet = false; // NTS: "Joliet" is just ISO 9660 with filenames encoded as UTF-16 Unicode. One of the few times Microsoft extended something yet kept it simple --J.C.
@@ -1199,6 +1200,7 @@ private:
     uint8_t subUnit = 0;
     char driveLetter = '\0';
 	char discLabel[32];
+	CDROM_Interface *cdrom = NULL;
 public:
 #if !defined(OSFREE)
 	UDFextent_ad convertToUDFextent_ad(const UDFshort_ad &s,const uint32_t partition_ref_id=0xFFFFFFFFu) const;
