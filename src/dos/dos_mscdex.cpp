@@ -120,6 +120,7 @@ public:
 #endif
 	int			RemoveDrive			(uint16_t _drive);
 	int			AddDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
+	int			UpdateDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
 	bool 		HasDrive			(uint16_t drive);
 	void		ReplaceDrive		(CDROM_Interface* newCdrom, uint8_t subUnit);
 	void		GetDrives			(PhysPt data);
@@ -356,6 +357,29 @@ int CDROM_AllocateInterface(char* physicalPath,int forceCD,uint16_t numDrive,CDR
 	return result;
 }
 
+// TODO: Perhaps add a check that, if physicalPath and subUnit are the same as the CDROM interface
+//       already there, don't do anything and return success.
+int CMscdex::UpdateDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
+{
+	CDROM_Interface *new_cdrom = NULL;
+
+	if (subUnit >= GetNumDrives()) return 4;
+
+	int result = CDROM_AllocateInterface(physicalPath,forceCD,numDrives,&new_cdrom);/*Will Addref*/
+
+	if (new_cdrom) {
+#if !defined(OSFREE)
+		// stop audio
+		StopAudio(subUnit);
+#endif
+
+		if (cdrom[subUnit]) cdrom[subUnit]->Release();
+		cdrom[subUnit] = new_cdrom;
+	}
+
+	return result;
+}
+
 int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 {
 	subUnit = 0;
@@ -366,7 +390,7 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 			return 1;
 	}
 
-	int result = CDROM_AllocateInterface(physicalPath,forceCD,numDrives,&cdrom[numDrives]);
+	int result = CDROM_AllocateInterface(physicalPath,forceCD,numDrives,&cdrom[numDrives]);/*Will Addref*/
 
 #if !defined(OSFREE)
 	if (rootDriverHeaderSeg==0) {
@@ -1616,8 +1640,11 @@ bool device_MSCDEX::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t *
 
 int MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit)
 {
-	int result = mscdex->AddDrive(driveLetter-'A',(char*)physicalPath,subUnit);
-	return result;
+	return mscdex->AddDrive(driveLetter-'A',(char*)physicalPath,subUnit);
+}
+
+int MSCDEX_UpdateDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit) {
+	return mscdex->UpdateDrive(driveLetter-'A',(char*)physicalPath,subUnit);
 }
 
 int MSCDEX_RemoveDrive(char driveLetter)

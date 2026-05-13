@@ -1035,6 +1035,7 @@ uint32_t isoFile::GetSeekPos() {
 
 int   MSCDEX_RemoveDrive(char driveLetter);
 int   MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit);
+int   MSCDEX_UpdateDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit);
 void  MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, uint8_t subUnit);
 bool  MSCDEX_HasDrive(char driveLetter);
 bool  MSCDEX_GetVolumeName(uint8_t subUnit, char* name);
@@ -1154,32 +1155,10 @@ void isoDrive::setFileName(const char* fileName) {
 
 /* because of the way this ties into IDE emulation through MSCDEX emulation, this must stay */
 int isoDrive::UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit) {
-	if (MSCDEX_HasDrive(driveLetter)) {
-		subUnit = MSCDEX_GetSubUnit(driveLetter);
-		if (!strcmp(path,"empty")) {
-			CDROM_Interface* new_cdrom = new CDROM_Interface_Fake(); new_cdrom->Addref();
-			if (!new_cdrom->SetDevice(path, 0)) {
-				new_cdrom->Release();
-				return 3;
-			}
-			MSCDEX_ReplaceDrive(new_cdrom, subUnit);
-			new_cdrom->Release();
-			UpdateCDROMRef();
-		}
-		else {
-			CDROM_Interface* new_cdrom = new CDROM_Interface_Image(subUnit); new_cdrom->Addref();
-			if (!new_cdrom->SetDevice(path, 0)) {
-				new_cdrom->Release();
-				return 3;
-			}
-			MSCDEX_ReplaceDrive(new_cdrom, subUnit);
-			new_cdrom->Release();
-			UpdateCDROMRef();
-		}
-		return 0;
-	} else {
+	if (MSCDEX_HasDrive(driveLetter))
+		return MSCDEX_UpdateDrive(driveLetter, path, subUnit);
+	else
 		return MSCDEX_AddDrive(driveLetter, path, subUnit);
-	}
 }
 
 void isoDrive::Activate(void) {
