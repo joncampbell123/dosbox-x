@@ -386,16 +386,6 @@ public:
 	//! \brief Indicate whether the image has a data track
 	bool	HasDataTrack            (void) const;
 	bool	HasAudioTrack           (void) const;
-    //! \brief Flag to track if images have been initialized
-    //!
-    //! \description Whether images[] has been initialized.
-    //!              Note that images_init and images[] are static and
-    //!              they are not specific to any one C++ class instance.
-	static bool images_init;
-    //! \brief Array of CD-ROM images, one per drive letter.
-    //!
-    //! \description images[] is static and not specific to any C++ class instance.
-	static CDROM_Interface_Image* images[26];
 
 private:
 	static struct imagePlayer {

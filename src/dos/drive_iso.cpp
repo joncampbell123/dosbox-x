@@ -1041,8 +1041,6 @@ bool  MSCDEX_GetVolumeName(uint8_t subUnit, char* name);
 uint8_t MSCDEX_GetSubUnit(char driveLetter);
 bool  GetMSCDEXDriveBySubUnit(uint8_t unit,CDROM_Interface **_cdrom);
 
-bool CDROM_Interface_Image::images_init = false;
-
 bool CDROM_IsAudioOnly(CDROM_Interface *cd) {
 	if (cd->class_id == CDROM_Interface::ID_IMAGE) {
 		CDROM_Interface_Image *cdimg = (CDROM_Interface_Image*)cd;
@@ -1090,12 +1088,6 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 
 	if (!strcmp(fileName,"empty"))
 		empty_drive = true;
-
-	if (!CDROM_Interface_Image::images_init) {
-		CDROM_Interface_Image::images_init = true;
-		for (size_t i=0;i < 26;i++)
-			CDROM_Interface_Image::images[i] = NULL;
-	}
 
 	this->fileName[0]  = '\0';
 	this->discLabel[0] = '\0';

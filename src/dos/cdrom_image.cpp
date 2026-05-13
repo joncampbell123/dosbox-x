@@ -469,13 +469,11 @@ uint16_t CDROM_Interface_Image::CHDFile::decode(uint8_t* buffer)
 
 // initialize static members
 int CDROM_Interface_Image::refCount = 0;
-CDROM_Interface_Image* CDROM_Interface_Image::images[26] = {};
 CDROM_Interface_Image::imagePlayer CDROM_Interface_Image::player;
 
 CDROM_Interface_Image::CDROM_Interface_Image(uint8_t subUnit)
 {
 	class_id = ID_IMAGE;
-	images[subUnit] = this;
 	this->subUnit = subUnit;
 	if (refCount == 0) {
 		if (player.channel == NULL) {
