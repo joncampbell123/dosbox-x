@@ -1148,13 +1148,13 @@ private:
 	bool lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, const char *path);
 #endif
 	int  UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit);
+	void UpdateCDROMRef(void);
 #if !defined(OSFREE)
 	int  GetDirIterator(const isoDirEntry* de);
 	int  GetDirIterator(const UDFFileEntry &fe);
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(uint8_t** buffer, const uint32_t sector);
-	void UpdateCDROMRef(void);
 #endif
 
 #if !defined(OSFREE)
