@@ -1043,6 +1043,16 @@ bool  GetMSCDEXDriveBySubUnit(uint8_t unit,CDROM_Interface **_cdrom);
 
 bool CDROM_Interface_Image::images_init = false;
 
+bool CDROM_IsAudioOnly(CDROM_Interface *cd) {
+	if (cd->class_id == CDROM_Interface::ID_IMAGE) {
+		CDROM_Interface_Image *cdimg = (CDROM_Interface_Image*)cd;
+		if (cdimg->HasDataTrack() == false && cdimg->HasAudioTrack() == true)
+			return true;
+	}
+
+	return false;
+}
+
 isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error, std::vector<std::string>& options) {
 #if !defined(OSFREE)
 	enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
@@ -1117,8 +1127,7 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 			char buffer[32] = { 0 };
 			if (!MSCDEX_GetVolumeName(subUnit, buffer)) strcpy(buffer, "");
 			Set_Label(buffer,discLabel,true);
-#if 0//TODO
-		} else if (cdrom->HasDataTrack() == false && cdrom->HasAudioTrack() == true) { //Audio only cdrom
+		} else if (CDROM_IsAudioOnly(cdrom)) { //Audio only cdrom
 			strcpy(info, "isoDrive ");
 			strcat(info, fileName);
 			this->driveLetter = driveLetter;
@@ -1126,7 +1135,6 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 			char buffer[32] = { 0 };
 			strcpy(buffer, "Audio_CD");
 			Set_Label(buffer,discLabel,true);
-#endif
 		} else {
 			error = 6; //Corrupt image
 		}
