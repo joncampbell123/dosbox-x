@@ -195,6 +195,7 @@ static bool StopAudio(uint8_t subUnit) {
 static Bitu MSCDEX_Strategy_Handler(void); 
 static Bitu MSCDEX_Interrupt_Handler(void);
 #endif
+int CDROM_AllocateInterface(char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom);
 
 #if !defined(OSFREE)
 class DOS_DeviceHeader:public MemStruct {
@@ -237,6 +238,39 @@ public:
 };
 #endif
 
+// TODO: Perhaps add a check that, if physicalPath and subUnit are the same as the CDROM interface
+//       already there, don't do anything and return success.
+static int UpdateDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
+{
+	if (subUnit >= GetNumDrives()) return 4;
+	(void)_drive;//unused
+
+	CDROM_Interface *new_cdrom = NULL;
+	int result = CDROM_AllocateInterface(physicalPath,forceCD,numDrives,&new_cdrom);/*Will Addref*/
+
+	if (new_cdrom) {
+#if !defined(OSFREE)
+		// stop audio
+		StopAudio(subUnit);
+#endif
+
+		if (cdrom[subUnit]) cdrom[subUnit]->Release();
+		cdrom[subUnit] = new_cdrom;
+	}
+
+	return result;
+}
+
+static void ReplaceDrive(CDROM_Interface* newCdrom, uint8_t subUnit) {
+	if (cdrom[subUnit] != NULL) {
+#if !defined(OSFREE)
+		StopAudio(subUnit);
+#endif
+		cdrom[subUnit]->Release();
+	}
+	(cdrom[subUnit] = newCdrom)->Addref();
+}
+
 class CMscdex {
 public:
 	CMscdex		(const char *name);
@@ -254,8 +288,6 @@ public:
 #endif
 	int			RemoveDrive			(uint16_t _drive);
 	int			AddDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
-	int			UpdateDrive			(uint16_t _drive, char* physicalPath, uint8_t& subUnit);
-	void		ReplaceDrive		(CDROM_Interface* newCdrom, uint8_t subUnit);
 	void		GetDrives			(PhysPt data);
 #if !defined(OSFREE)
 	void		GetDriverInfo		(PhysPt data);
@@ -470,31 +502,6 @@ int CDROM_AllocateInterface(char* physicalPath,int forceCD,uint16_t numDrive,CDR
 	return result;
 }
 
-// TODO: Perhaps add a check that, if physicalPath and subUnit are the same as the CDROM interface
-//       already there, don't do anything and return success.
-int CMscdex::UpdateDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
-{
-	CDROM_Interface *new_cdrom = NULL;
-
-	(void)_drive;//unused
-
-	if (subUnit >= GetNumDrives()) return 4;
-
-	int result = CDROM_AllocateInterface(physicalPath,forceCD,numDrives,&new_cdrom);/*Will Addref*/
-
-	if (new_cdrom) {
-#if !defined(OSFREE)
-		// stop audio
-		StopAudio(subUnit);
-#endif
-
-		if (cdrom[subUnit]) cdrom[subUnit]->Release();
-		cdrom[subUnit] = new_cdrom;
-	}
-
-	return result;
-}
-
 int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 {
 	subUnit = 0;
@@ -600,16 +607,6 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 	StopAudio(subUnit);
 #endif
 	return result;
-}
-
-void CMscdex::ReplaceDrive(CDROM_Interface* newCdrom, uint8_t subUnit) {
-	if (cdrom[subUnit] != NULL) {
-#if !defined(OSFREE)
-		StopAudio(subUnit);
-#endif
-		cdrom[subUnit]->Release();
-	}
-	(cdrom[subUnit] = newCdrom)->Addref();
 }
 
 PhysPt CMscdex::GetDefaultBuffer(void) {
@@ -1650,7 +1647,7 @@ int MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit
 }
 
 int MSCDEX_UpdateDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit) {
-	return mscdex->UpdateDrive(driveLetter-'A',(char*)physicalPath,subUnit);
+	return UpdateDrive(driveLetter-'A',(char*)physicalPath,subUnit);
 }
 
 int MSCDEX_RemoveDrive(char driveLetter)
@@ -1666,7 +1663,7 @@ bool MSCDEX_HasDrive(char driveLetter)
 
 void MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, uint8_t subUnit)
 {
-	mscdex->ReplaceDrive(cdrom, subUnit);
+	ReplaceDrive(cdrom, subUnit);
 }
 
 uint8_t MSCDEX_GetSubUnit(char driveLetter)
