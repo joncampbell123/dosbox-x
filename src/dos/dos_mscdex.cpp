@@ -582,11 +582,12 @@ bool CMscdex::Seek(uint8_t subUnit, uint32_t sector)
 #if !defined(OSFREE)
 bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
 	if (subUnit>=numDrives) return false;
+	if (cdrom[subUnit] == NULL) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioSub(attr,track,index,rel,abs);
 	if (!dinfo[subUnit].lastResult) {
 		attr = track = index = 0;
-        rel.fr = rel.min = rel.sec = 0;
-        abs.fr = abs.min = abs.sec = 0;
+		rel.fr = rel.min = rel.sec = 0;
+		abs.fr = abs.min = abs.sec = 0;
 	}
 	return dinfo[subUnit].lastResult;
 }
@@ -595,6 +596,7 @@ bool CMscdex::GetQChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, ui
 #if !defined(OSFREE)
 bool CMscdex::GetAudioStatus(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end) {
 	if (subUnit>=numDrives) return false;
+	if (cdrom[subUnit] == NULL) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioStatus(playing,pause);
 	if (dinfo[subUnit].lastResult) {
 		if (playing) {
@@ -635,10 +637,17 @@ bool CMscdex::StopAudio(uint8_t subUnit) {
 		else
 			dinfo[subUnit].audioPlay = false;
 	}
-	if (dinfo[subUnit].audioPlay)
-		dinfo[subUnit].lastResult = cdrom[subUnit]->PauseAudio(false);
-	else
-		dinfo[subUnit].lastResult = cdrom[subUnit]->StopAudio();
+
+	if (cdrom[subUnit]) {
+		if (dinfo[subUnit].audioPlay)
+			dinfo[subUnit].lastResult = cdrom[subUnit]->PauseAudio(false);
+		else
+			dinfo[subUnit].lastResult = cdrom[subUnit]->StopAudio();
+	}
+	else {
+		dinfo[subUnit].lastResult = false;
+		dinfo[subUnit].audioPlay = false;
+	}
 	
 	if (dinfo[subUnit].lastResult) {
 		if (dinfo[subUnit].audioPlay) {

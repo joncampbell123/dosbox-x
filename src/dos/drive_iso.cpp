@@ -1134,6 +1134,13 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 }
 
 isoDrive::~isoDrive() {
+	/* if drive letter assigned but error returned, and we don't
+	 * remove the drive here, the drive will still exist in MSCDEX
+	 * but will point to a NULL pointer and cause a crash */
+	if (driveLetter && MSCDEX_HasDrive(driveLetter)) {
+		MSCDEX_RemoveDrive(driveLetter);
+	}
+
 	if (cdrom) {
 		cdrom->Release();
 		cdrom = NULL;
