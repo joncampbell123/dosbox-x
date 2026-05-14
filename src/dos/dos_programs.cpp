@@ -5575,6 +5575,7 @@ bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsign
 std::string GetIDEPosition(unsigned char bios_disk_index);
 class IMGMOUNT : public Program {
 	public:
+		bool opt_replace = false;
 		std::vector<std::string> options;
 		void ListImgMounts(void) {
 			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
@@ -5720,6 +5721,10 @@ class IMGMOUNT : public Program {
 				while (cmd->FindString("-o", s, true))
 					options.push_back(s);
 			}
+
+			//look for -replace
+			if (cmd->FindExist("-replace"))
+				opt_replace = true;
 
 			//look for -el-torito parameter and remove it from the command line
 			cmd->FindString("-el-torito",el_torito,true);
@@ -7169,8 +7174,11 @@ class IMGMOUNT : public Program {
 
 		bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
 			//mount cdrom
-			if (Drives[drive - 'A']) {
+			if (Drives[drive - 'A'] && !opt_replace) {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
+				return false;
+			}
+			if (paths.empty()) {
 				return false;
 			}
 			uint8_t mediaid = 0xF8;
@@ -7203,6 +7211,8 @@ class IMGMOUNT : public Program {
 					return false;
 				}
 			}
+			if (opt_replace) DriveManager::ClearDrive(drive - 'A');
+			else if (Drives[drive - 'A']) E_Exit("Drives[drive-'A'] is non-null and -replace not specified");
 			// Update DriveManager
 			for (ct = 0; ct < isoDisks.size(); ct++) {
 				DriveManager::AppendDisk(drive - 'A', isoDisks[ct]);
@@ -7213,8 +7223,18 @@ class IMGMOUNT : public Program {
 			// Set the correct media byte in the table 
 			mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
 
-			// If instructed, attach to IDE controller as ATAPI CD-ROM device
-			if (ide_index >= 0) IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');
+			// If instructed, attach to IDE controller as ATAPI CD-ROM device, unless replacement mode
+			if (ide_index >= 0 && !opt_replace) IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');
+
+			// for replacement, make sure IDE controller is updated
+			if (opt_replace && Drives[drive - 'A']) {
+				// NTS: Activate() must be called for MSCDEX and IDE emulation to correctly load the new
+				//      replacement image. Windows 95 will not see the CD-ROM drive without this!
+				//      DriveManager::InitializeDrive() does not call Activate() unless there are multiple
+				//      images associated with the drive!
+				Drives[drive - 'A']->Activate(); // for MSCDEX and IDE
+				Drives[drive - 'A']->MediaChange(); // for IDE
+			}
 
 			// Print status message (success)
 			if (!qmount) WriteOut(MSG_Get("MSCDEX_SUCCESS"));
