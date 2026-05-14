@@ -2765,35 +2765,44 @@ bool IDE_controller_occupied(signed char index, bool slave) { // Return true if 
 }
 
 /* drive_index = drive letter 0...A to 25...Z */
-void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index) {
-    for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
-        IDEController *c = idecontroller[ide];
-        if (c == NULL) continue;
-        for (unsigned int ms=0;ms < 2;ms++) {
-            const unsigned int pk = IDEEventPack(c->interface_index,ms).get();
-            IDEDevice *dev = c->device[ms];
-            if (dev == NULL) continue;
-            if (dev->type == IDE_TYPE_CDROM) {
-                IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
-                if (drive_index == atapi->drive_index) {
-                    LOG_MSG("IDE ATAPI acknowledge media change for drive %c\n",drive_index+'A');
+void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate) {
+	for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
+		IDEController *c = idecontroller[ide];
+		if (c == NULL) continue;
+		for (unsigned int ms=0;ms < 2;ms++) {
+			const unsigned int pk = IDEEventPack(c->interface_index,ms).get();
+			IDEDevice *dev = c->device[ms];
+			if (dev == NULL) continue;
+			if (dev->type == IDE_TYPE_CDROM) {
+				IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+				if (drive_index == atapi->drive_index) {
+					LOG_MSG("IDE ATAPI acknowledge media change for drive %c\n",drive_index+'A');
+					if (immediate) LOG_MSG("--media change is immediate");
 
-                    CDROM_Interface *cdrom = NULL;
-                    if (GetMSCDEXDrive(drive_index,&cdrom)) {
-                        if (atapi->cdrom) atapi->cdrom->Release();
-                        (atapi->cdrom = cdrom)->Addref();
-                    }
+					CDROM_Interface *cdrom = NULL;
+					if (GetMSCDEXDrive(drive_index,&cdrom)) {
+						if (atapi->cdrom) atapi->cdrom->Release();
+						(atapi->cdrom = cdrom)->Addref();
+					}
 
-                    atapi->has_changed = true;
-                    atapi->loading_mode = LOAD_INSERT_CD;
-                    PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
-                    PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
-                    PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
-                    PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,pk);
-                }
-            }
-        }
-    }
+					if (immediate) {
+						atapi->loading_mode = LOAD_READY;
+						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+						PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+					}
+					else {
+						atapi->has_changed = true;
+						atapi->loading_mode = LOAD_INSERT_CD;
+						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+						PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+						PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,pk);
+					}
+				}
+			}
+		}
+	}
 }
 
 /* drive_index = drive letter 0...A to 25...Z */

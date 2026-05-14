@@ -1130,6 +1130,7 @@ public:
 	uint8_t GetMediaByte(void) override;
 	void EmptyCache(void) override;
 	void MediaChange(void) override;
+	void MediaChangeImmediate(void);
 	bool isRemote(void) override;
 	bool isRemovable(void) override;
 	Bits UnMount(void) override;

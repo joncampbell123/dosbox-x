@@ -7245,12 +7245,18 @@ class IMGMOUNT : public Program {
 
 			// for replacement, make sure IDE controller is updated
 			if (opt_replace && Drives[drive - 'A']) {
+				isoDrive *isodrv = dynamic_cast<isoDrive*>(Drives[drive - 'A']);
+
 				// NTS: Activate() must be called for MSCDEX and IDE emulation to correctly load the new
 				//      replacement image. Windows 95 will not see the CD-ROM drive without this!
 				//      DriveManager::InitializeDrive() does not call Activate() unless there are multiple
 				//      images associated with the drive!
 				Drives[drive - 'A']->Activate(); // for MSCDEX and IDE
-				Drives[drive - 'A']->MediaChange(); // for IDE
+
+				if (isodrv)
+					isodrv->MediaChangeImmediate(); // for IDE, without the media change delay
+				else
+					Drives[drive - 'A']->MediaChange(); // for IDE
 			}
 
 			// Print status message (success)
