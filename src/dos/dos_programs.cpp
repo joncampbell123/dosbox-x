@@ -7183,7 +7183,7 @@ class IMGMOUNT : public Program {
 				int error = -1;
 				DOS_Drive* newDrive = new isoDrive(drive, wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].c_str()+1:paths[i].c_str(), mediaid, error, options);
 				isoDisks.push_back(newDrive);
-				if(!qmount)
+				if(!qmount) {
 					switch(error) {
 						case 0: break;
 						case 1: WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));  break;
@@ -7194,6 +7194,7 @@ class IMGMOUNT : public Program {
 						case 6: WriteOut(MSG_Get("MSCDEX_INVALID_FILEFORMAT"));     break;
 						default: WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));         break;
 					}
+				}
 				// error: clean up and leave
 				if (error) {
 					for (ct = 0; ct < isoDisks.size(); ct++) {
