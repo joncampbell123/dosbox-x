@@ -441,13 +441,13 @@ void DriveManager::CycleDisks(int drive, bool notify, unsigned int position) {
 	if (numDisks > 1) {
 		// cycle disk
 		unsigned int currentDisk = driveInfos[drive].currentDisk;
-        const DOS_Drive* oldDisk = driveInfos[drive].disks[currentDisk];
-        if (position<1)
-            currentDisk = (currentDisk + 1u) % numDisks;
-        else if (position>numDisks)
-            currentDisk = 0;
-        else
-            currentDisk = position - 1;
+		const DOS_Drive* oldDisk = driveInfos[drive].disks[currentDisk];
+		if (position<1)
+			currentDisk = (currentDisk + 1u) % numDisks;
+		else if (position>numDisks)
+			currentDisk = 0;
+		else
+			currentDisk = position - 1;
 		DOS_Drive* newDisk = driveInfos[drive].disks[currentDisk];
 		driveInfos[drive].currentDisk = currentDisk;
 		if (drive < MAX_DISK_IMAGES && imageDiskList[drive] != NULL) {
@@ -462,7 +462,7 @@ void DriveManager::CycleDisks(int drive, bool notify, unsigned int position) {
 			if (imageDiskList[drive] != NULL) imageDiskList[drive]->Addref();
 			if ((drive == 2 || drive == 3) && imageDiskList[drive]->hardDrive) updateDPT();
 		}
-		
+
 		// copy working directory, acquire system resources and finally switch to next drive
 		strcpy(newDisk->curdir, oldDisk->curdir);
 		newDisk->Activate();
