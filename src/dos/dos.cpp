@@ -5018,6 +5018,12 @@ void DOS_EnableDriveMenu(char drv) {
 	if (drv >= 'A' && drv <= 'Z') {
 		std::string name;
 		bool empty=!dos_kernel_disabled && Drives[drv-'A'] == NULL;
+		bool cdromchange=false;
+
+		if (!dos_kernel_disabled && Drives[drv-'A']) {
+			if (dynamic_cast<isoDrive*>(Drives[drv-'A'])) cdromchange = true;
+		}
+
 #if defined (WIN32)
 		name = std::string("drive_") + drv + "_mountauto";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
@@ -5033,9 +5039,9 @@ void DOS_EnableDriveMenu(char drv) {
 		name = std::string("drive_") + drv + "_mountarc";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimg";
-		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		mainMenu.get_item(name).enable(empty || cdromchange).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimgs";
-		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		mainMenu.get_item(name).enable(empty || cdromchange).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountiro";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_unmount";
