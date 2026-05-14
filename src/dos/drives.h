@@ -38,6 +38,7 @@ class DriveManager {
 public:
 	static void AppendDisk(int drive, DOS_Drive* disk);
 	static void ChangeDisk(int drive, DOS_Drive* disk);
+	static void ClearDrive(int drive);
 	static void InitializeDrive(int drive);
 	static int UnmountDrive(int drive);
 	static int GetDisksSize(int drive);
@@ -1129,6 +1130,7 @@ public:
 	uint8_t GetMediaByte(void) override;
 	void EmptyCache(void) override;
 	void MediaChange(void) override;
+	void MediaChangeImmediate(void);
 	bool isRemote(void) override;
 	bool isRemovable(void) override;
 	Bits UnMount(void) override;

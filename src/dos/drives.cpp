@@ -391,6 +391,11 @@ void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
     if (old) old->UnMount();
 }
 
+void DriveManager::ClearDrive(int drive) {
+	UnmountDrive(drive); // which calls UnMount which drives delete themselves
+	Drives[drive] = NULL;
+}
+
 void DriveManager::InitializeDrive(int drive) {
 	currentDrive = drive;
 	DriveInfo& driveInfo = driveInfos[currentDrive];
@@ -399,8 +404,8 @@ void DriveManager::InitializeDrive(int drive) {
 		DOS_Drive* disk = driveInfo.disks[driveInfo.currentDisk];
 		Drives[currentDrive] = disk;
 		if (driveInfo.disks.size() > 1) disk->Activate();
-        disk->UpdateDPB(currentDrive);
-    }
+		disk->UpdateDPB(currentDrive);
+	}
 }
 
 /*
@@ -441,13 +446,13 @@ void DriveManager::CycleDisks(int drive, bool notify, unsigned int position) {
 	if (numDisks > 1) {
 		// cycle disk
 		unsigned int currentDisk = driveInfos[drive].currentDisk;
-        const DOS_Drive* oldDisk = driveInfos[drive].disks[currentDisk];
-        if (position<1)
-            currentDisk = (currentDisk + 1u) % numDisks;
-        else if (position>numDisks)
-            currentDisk = 0;
-        else
-            currentDisk = position - 1;
+		const DOS_Drive* oldDisk = driveInfos[drive].disks[currentDisk];
+		if (position<1)
+			currentDisk = (currentDisk + 1u) % numDisks;
+		else if (position>numDisks)
+			currentDisk = 0;
+		else
+			currentDisk = position - 1;
 		DOS_Drive* newDisk = driveInfos[drive].disks[currentDisk];
 		driveInfos[drive].currentDisk = currentDisk;
 		if (drive < MAX_DISK_IMAGES && imageDiskList[drive] != NULL) {
@@ -462,7 +467,7 @@ void DriveManager::CycleDisks(int drive, bool notify, unsigned int position) {
 			if (imageDiskList[drive] != NULL) imageDiskList[drive]->Addref();
 			if ((drive == 2 || drive == 3) && imageDiskList[drive]->hardDrive) updateDPT();
 		}
-		
+
 		// copy working directory, acquire system resources and finally switch to next drive
 		strcpy(newDisk->curdir, oldDisk->curdir);
 		newDisk->Activate();
@@ -503,6 +508,7 @@ int DriveManager::UnmountDrive(int drive) {
 	// unmanaged drive
 	if (driveInfos[drive].disks.size() == 0) {
 		result = (int)Drives[drive]->UnMount();
+		driveInfos[drive].currentDisk = 0;
 	} else {
 		// managed drive
 		unsigned int currentDisk = driveInfos[drive].currentDisk;
@@ -514,6 +520,7 @@ int DriveManager::UnmountDrive(int drive) {
 				delete driveInfos[drive].disks[i];
 			}
 			driveInfos[drive].disks.clear();
+			driveInfos[drive].currentDisk = 0;
 		}
 	}
 	

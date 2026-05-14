@@ -2508,12 +2508,18 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 #endif
 
 #if !defined(OSFREE)
-void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index);
+void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate);
 #endif
 
 void isoDrive :: MediaChange() {
 #if !defined(OSFREE)
-	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A'); /* ewwww */
+	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A',/*immediate*/false); /* ewwww */
+#endif
+}
+
+void isoDrive :: MediaChangeImmediate() {
+#if !defined(OSFREE)
+	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A',/*immediate*/true); /* ewwww */
 #endif
 }
 
