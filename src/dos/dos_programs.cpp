@@ -693,7 +693,14 @@ void MenuBrowseFDImage(char drive, int num, int type) {
 void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 	std::string str(1, drive);
 	std::string drive_warn;
+
+	bool cdromreplace = false;
+
 	if (Drives[drive-'A']&&!boot) {
+		if (dynamic_cast<isoDrive*>(Drives[drive-'A'])) cdromreplace = true;
+	}
+
+	if (Drives[drive-'A']&&!boot&&!cdromreplace) {
 		drive_warn= formatString(MSG_Get("PROGRAM_ALREADY_MOUNTED"), str.c_str());
 		systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
 		return;
@@ -705,52 +712,55 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 	if (dos_kernel_disabled)
 		return;
 #if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    getcwd(Temp_CurrentDir, 512);
-    char const * lTheOpenFileName;
-    std::string files="", fname="";
-    if (arc) {
-        const char *lFilterPatterns[] = {"*.zip","*.7z","*.ZIP","*.7Z"};
-        const char *lFilterDescription = "Archive files (*.zip, *.7z)";
-        lTheOpenFileName = tinyfd_openFileDialog(("Select an archive file for Drive "+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,0);
-        if (lTheOpenFileName) fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
-    } else {
-        const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.fdi","*.hdi","*.nfd","*.nhd","*.d88","*.hdm","*.xdf","*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.ccd","*.inst","*.IMA","*.IMG","*.VHD","*.FDI","*.HDI","*.NFD","*.NHD","*.D88","*.HDM","*.XDF","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS","*.CCD","*.INST"};
-        const char *lFilterDescription = "Disk/CD image files";
-        lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,multiple?1:0);
-        if (lTheOpenFileName) fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
-        if (multiple&&fname.size()) {
-            files = std::regex_replace(fname, std::regex("\\|"), "\" \"");
-        }
-        while (multiple&&lTheOpenFileName&&systemmessagebox("Mount image files", MSG_Get("PROGRAM_MOUNT_MORE_IMAGES"),"yesno", "question", 1)) {
-            lTheOpenFileName = tinyfd_openFileDialog(("Select image file(s) for Drive "+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,multiple?1:0);
-            if (lTheOpenFileName) {
-                fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
-                files = files + " " + std::regex_replace(fname, std::regex("\\|"), "\" \"");
-            }
-        }
-    }
+	char CurrentDir[512];
+	char * Temp_CurrentDir = CurrentDir;
+	getcwd(Temp_CurrentDir, 512);
+	char const * lTheOpenFileName;
+	std::string files="", fname="";
+	if (arc) {
+		const char *lFilterPatterns[] = {"*.zip","*.7z","*.ZIP","*.7Z"};
+		const char *lFilterDescription = "Archive files (*.zip, *.7z)";
+		lTheOpenFileName = tinyfd_openFileDialog(("Select an archive file for Drive "+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,0);
+		if (lTheOpenFileName) fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
+	} else {
+		const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.fdi","*.hdi","*.nfd","*.nhd","*.d88","*.hdm","*.xdf","*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.ccd","*.inst","*.IMA","*.IMG","*.VHD","*.FDI","*.HDI","*.NFD","*.NHD","*.D88","*.HDM","*.XDF","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS","*.CCD","*.INST"};
+		const char *lFilterDescription = "Disk/CD image files";
+		lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,multiple?1:0);
+		if (lTheOpenFileName) fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
+		if (multiple&&fname.size()) {
+			files = std::regex_replace(fname, std::regex("\\|"), "\" \"");
+		}
+		while (multiple&&lTheOpenFileName&&systemmessagebox("Mount image files", MSG_Get("PROGRAM_MOUNT_MORE_IMAGES"),"yesno", "question", 1)) {
+			lTheOpenFileName = tinyfd_openFileDialog(("Select image file(s) for Drive "+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,multiple?1:0);
+			if (lTheOpenFileName) {
+				fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
+				files = files + " " + std::regex_replace(fname, std::regex("\\|"), "\" \"");
+			}
+		}
+	}
 
-    if (fname.size()||files.size()) {
-        char type[15];
-        if (!arc&&!files.size()) {
-            char ext[5] = "";
-            if (fname.size()>4)
-                strcpy(ext, fname.substr(fname.size()-4).c_str());
-            if(!strcasecmp(ext,".ima"))
-                strcpy(type,"-t floppy ");
-            else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".chd")) || (!strcasecmp(ext,".mdf")) || (!strcasecmp(ext,".gog")) || (!strcasecmp(ext,".ins")) || (!strcasecmp(ext, ".inst")))
-                strcpy(type,"-t iso ");
-            else
-                strcpy(type,"");
-        } else
-            *type=0;
+	// FIXME: Ugh, it would be better to have an internal API for mounting ISO images and replacement.
+	//        Running a command line to run IMGMOUNT is THE primary reason we cannot provide this menu
+	//        command while running a guest OS, where it would be very useful!
+	if (fname.size()||files.size()) {
+		char type[15];
+		if (!arc&&!files.size()) {
+			char ext[5] = "";
+			if (fname.size()>4)
+				strcpy(ext, fname.substr(fname.size()-4).c_str());
+			if(!strcasecmp(ext,".ima"))
+				strcpy(type,"-t floppy ");
+			else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".chd")) || (!strcasecmp(ext,".mdf")) || (!strcasecmp(ext,".gog")) || (!strcasecmp(ext,".ins")) || (!strcasecmp(ext, ".inst")))
+				strcpy(type,"-t iso ");
+			else
+				strcpy(type,"");
+		} else
+			*type=0;
 		char mountstring[CROSS_LEN*4+20];
-        if (files.size()>CROSS_LEN*4) {
-            systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_MOUNT_PATH_TOOLONG"),"ok","error", 1);
-            return;
-        }
+		if (files.size()>CROSS_LEN*4) {
+			systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_MOUNT_PATH_TOOLONG"),"ok","error", 1);
+			return;
+		}
 		strcpy(mountstring,type);
 		char temp_str[3] = { 0,0,0 };
 		temp_str[0]=drive;
@@ -758,70 +768,71 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 		strcat(mountstring,temp_str);
 		//if (!multiple) strcat(mountstring,"\"");
 		strcat(mountstring,files.size()?files.c_str():fname.c_str());
-        //if(!multiple) strcat(mountstring, "\"");
-        if(mountiro[drive - 'A']) strcat(mountstring, " -ro");
-        if(boot) {
-            strcat(mountstring, " -u");
-            mountstring[0] = drive - 'A' + '0';
-            runImgmount(mountstring);   // mount by drive number
-            std::string bootstr = "-Q ";
-            bootstr += drive;
-            bootstr += ':';
-            runBoot(bootstr.c_str());
-            std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), (std::string(1, drive)).c_str());
-            systemmessagebox(MSG_Get("ERROR"), drive_warn.c_str(), "ok", "error", 1);
-            bootstr = "-u ";
-            bootstr += drive - 'A' + '0';
-            runImgmount(bootstr.c_str()); // unmount if boot failed
-            return;
-        }
-        if(arc) {
-            strcat(mountstring," -q");
-            runMount(mountstring);
-        } else {
-            qmount=true;
-            runImgmount(mountstring);
-            qmount=false;
-        }
+		//if(!multiple) strcat(mountstring, "\"");
+		if(mountiro[drive - 'A']) strcat(mountstring, " -ro");
+		if(cdromreplace) strcat(mountstring, " -replace");
+		if(boot) {
+			strcat(mountstring, " -u");
+			mountstring[0] = drive - 'A' + '0';
+			runImgmount(mountstring);   // mount by drive number
+			std::string bootstr = "-Q ";
+			bootstr += drive;
+			bootstr += ':';
+			runBoot(bootstr.c_str());
+			std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), (std::string(1, drive)).c_str());
+			systemmessagebox(MSG_Get("ERROR"), drive_warn.c_str(), "ok", "error", 1);
+			bootstr = "-u ";
+			bootstr += drive - 'A' + '0';
+			runImgmount(bootstr.c_str()); // unmount if boot failed
+			return;
+		}
+		if(arc) {
+			strcat(mountstring," -q");
+			runMount(mountstring);
+		} else {
+			qmount=true;
+			runImgmount(mountstring);
+			qmount=false;
+		}
 		chdir( Temp_CurrentDir );
 		if (!Drives[drive - 'A']) {
 			drive_warn= formatString(MSG_Get("PROGRAM_MOUNT_FAILED"), (std::string(1, drive)).c_str());
 			systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
 			return;
-        } 
-        else {
-            if(!multiple && !lTheOpenFileName){
-                chdir( Temp_CurrentDir );
-                return;    
-            }
+		} 
+		else {
+			if(!multiple && !lTheOpenFileName){
+				chdir( Temp_CurrentDir );
+				return;    
+			}
 #if defined(MACOSX)
-            auto MSGX = MSG_GetUTF8;
+			auto MSGX = MSG_GetUTF8;
 #else
-            auto MSGX = MSG_Get;
+			auto MSGX = MSG_Get;
 #endif
-            std::string readonly = mountiro[drive - 'A'] ? "\n(" + std::string(MSGX("READONLY_MODE")) + ")" : "";    
-            std::string msg = MSGX("PROGRAM_MOUNT_IMAGE");
-            std::string image, drive_warn;
-            if(multiple){
-                image = std::string(MSGX("DISK_IMAGE"));
-                files.erase(std::remove(files.begin(), files.end(), '"'), files.end());
-                drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(),
-                                            files.c_str(), readonly.c_str());
-            }
-            else if(lTheOpenFileName){
-                image = arc ? std::string(MSGX("ARCHIVE")) : std::string(MSGX("DISK_IMAGE"));
-                drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(),
-                                            GetNewStr(lTheOpenFileName).c_str(), readonly.c_str());
-            }
-            std::string title = MSGX("INFORMATION");
+			std::string readonly = mountiro[drive - 'A'] ? "\n(" + std::string(MSGX("READONLY_MODE")) + ")" : "";    
+			std::string msg = MSGX("PROGRAM_MOUNT_IMAGE");
+			std::string image, drive_warn;
+			if(multiple){
+				image = std::string(MSGX("DISK_IMAGE"));
+				files.erase(std::remove(files.begin(), files.end(), '"'), files.end());
+				drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(),
+						files.c_str(), readonly.c_str());
+			}
+			else if(lTheOpenFileName){
+				image = arc ? std::string(MSGX("ARCHIVE")) : std::string(MSGX("DISK_IMAGE"));
+				drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(),
+						GetNewStr(lTheOpenFileName).c_str(), readonly.c_str());
+			}
+			std::string title = MSGX("INFORMATION");
 #if defined(MACOSX)
-            tinyfd_messageBox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
+			tinyfd_messageBox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
 #else
-            systemmessagebox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
+			systemmessagebox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
 #endif
-        }
+		}
 	}
-    chdir( Temp_CurrentDir );
+	chdir( Temp_CurrentDir );
 #endif
 }
 
