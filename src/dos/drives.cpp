@@ -399,8 +399,8 @@ void DriveManager::InitializeDrive(int drive) {
 		DOS_Drive* disk = driveInfo.disks[driveInfo.currentDisk];
 		Drives[currentDrive] = disk;
 		if (driveInfo.disks.size() > 1) disk->Activate();
-        disk->UpdateDPB(currentDrive);
-    }
+		disk->UpdateDPB(currentDrive);
+	}
 }
 
 /*
