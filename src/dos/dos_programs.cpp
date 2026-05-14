@@ -5723,7 +5723,7 @@ class IMGMOUNT : public Program {
 			}
 
 			//look for -replace
-			if (cmd->FindExist("-replace"))
+			if (cmd->FindExist("-replace",true))
 				opt_replace = true;
 
 			//look for -el-torito parameter and remove it from the command line
@@ -7172,11 +7172,28 @@ class IMGMOUNT : public Program {
 			return false;
 		}
 
+		bool MountIsoAllowReplace(const char drive) {
+			// replacement is allowed if the drive doesn't exist, obviously
+			if (!Drives[drive - 'A']) return true;
+
+			// replacement not allowed if not wanted
+			if (!opt_replace) return false;
+
+			// you may only replace the drive with an ISO image if the drive is already an ISO image
+			isoDrive *isodrv = dynamic_cast<isoDrive*>(Drives[drive - 'A']);
+			if (isodrv) return true;
+
+			return false;
+		}
+
 		bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
 			//mount cdrom
-			if (Drives[drive - 'A'] && !opt_replace) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
-				return false;
+			if (Drives[drive - 'A']) {
+				//For -replace, the drive to replace must be a CD-ROM drive already, or else don't allow it!
+				if (!MountIsoAllowReplace(drive)) {
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
+					return false;
+				}
 			}
 			if (paths.empty()) {
 				return false;
