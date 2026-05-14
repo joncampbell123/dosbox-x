@@ -38,6 +38,7 @@ class DriveManager {
 public:
 	static void AppendDisk(int drive, DOS_Drive* disk);
 	static void ChangeDisk(int drive, DOS_Drive* disk);
+	static void ClearDrive(int drive);
 	static void InitializeDrive(int drive);
 	static int UnmountDrive(int drive);
 	static int GetDisksSize(int drive);
