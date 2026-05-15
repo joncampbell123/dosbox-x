@@ -528,8 +528,6 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
         return false;
     }
 
-    if (dos_kernel_disabled) return true;
-
     MenuUnmountDrive(drive+'A');
 
     return true;
