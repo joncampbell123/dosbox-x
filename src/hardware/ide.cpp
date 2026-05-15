@@ -1050,6 +1050,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
         switch (atapi_cmd[0]) {
             case 0x00: /* TEST UNIT READY */
             case 0x03: /* REQUEST SENSE */
+            case 0x12: /* INQUIRY */
                 allow_writing = true;
                 break; /* do not delay */
             default:
@@ -1062,6 +1063,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
         switch (atapi_cmd[0]) {
             case 0x00: /* TEST UNIT READY */
             case 0x03: /* REQUEST SENSE */
+            case 0x12: /* INQUIRY */
                 allow_writing = true;
                 break; /* do not delay */
             default:
@@ -1136,7 +1138,12 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
             state = IDE_DEV_DATA_READ;
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
 
-            /* Don't care. Do nothing. */
+            {
+                uint8_t PREVENT = atapi_cmd[4] & 3;
+                bool lock = (PREVENT == 1 || PREVENT == 3);
+
+                LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM PREVENT/ALLOW MEDIA REMOVAL: prevent=%u locked=%u",PREVENT,lock);
+            }
 
             /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
             lba[2] = sector_total >> 8;
