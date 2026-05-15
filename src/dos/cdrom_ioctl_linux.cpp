@@ -83,7 +83,7 @@ bool CDROM_Interface_Ioctl::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 	return (ret > 0);
 }
 
-bool CDROM_Interface_Ioctl::SetDevice(char* path, int forceCD)
+bool CDROM_Interface_Ioctl::SetDevice(const char* path, int forceCD)
 {
 	bool success = CDROM_Interface_SDL::SetDevice(path, forceCD);
 	

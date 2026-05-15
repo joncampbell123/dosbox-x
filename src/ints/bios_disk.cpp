@@ -1861,6 +1861,7 @@ void diskio_delay(Bits value/*bytes*/, int type = -1);
 
 /* For El Torito "No emulation" INT 13 services */
 unsigned char INT13_ElTorito_NoEmuDriveNumber = 0;
+CDROM_Interface * INT13_ElTorito_cdrom = NULL;
 signed char INT13_ElTorito_IDEInterface = -1; /* (controller * 2) + (is_slave?1:0) */
 char INT13_ElTorito_NoEmuCDROMDrive = 0;
 
@@ -2283,12 +2284,13 @@ static Bitu INT13_DiskHandler(void) {
             return CBRET_NONE;
         }
         if (INT13_ElTorito_NoEmuDriveNumber != 0 && INT13_ElTorito_NoEmuDriveNumber == reg_dl) {
-                CDROM_Interface *src_drive = NULL;
-                if (!GetMSCDEXDrive(INT13_ElTorito_NoEmuCDROMDrive - 'A', &src_drive)) {
+		if (!INT13_ElTorito_cdrom) {
                         reg_ah = 0x01;
                         CALLBACK_SCF(true);
                         return CBRET_NONE;
                 }
+
+                CDROM_Interface *src_drive = INT13_ElTorito_cdrom;
 
                 segat = dap.seg;
                 bufptr = dap.off;
@@ -2301,6 +2303,7 @@ static Bitu INT13_DiskHandler(void) {
                                 killRead = false;
                                 reg_ah = 0x04;
                                 CALLBACK_SCF(true);
+                                src_drive->Release();
                                 return CBRET_NONE;
                         }
 
@@ -2435,7 +2438,6 @@ static Bitu INT13_DiskHandler(void) {
         real_writed(segat,bufptr+0x0C,tmpsect);
         real_writed(segat,bufptr+0x10, int13_enable_48bitLBA?(uint32_t)(LBA & 0xFFFFFFFF): (uint32_t)(LBA > 0x0FFFFFFF?0x0FFFFFFF:LBA)); /* LBA lower 32bit */
         real_writed(segat,bufptr+0x14, int13_enable_48bitLBA?(uint32_t)(LBA >> 32):0); /* LBA upper 32bit */
-        real_writed(segat,bufptr+0x14,0);
         real_writew(segat,bufptr+0x18,512);
         if (bufsz >= 0x1E)
             real_writed(segat,bufptr+0x1A,0xFFFFFFFF); /* no EDD information available */

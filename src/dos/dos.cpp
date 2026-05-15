@@ -2150,7 +2150,8 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 MEM_BlockRead(SegPhys(ds)+reg_dx,dos_copybuf,towrite);
-                packerr=reg_bx==2&&!strncmp((char *)dos_copybuf,"Packed file is corrupt",towrite);
+                static const char* msg = "Packed file is corrupt";
+                packerr = reg_bx == 2 && towrite >= strlen(msg) && !memcmp(dos_copybuf, msg, strlen(msg));
                 if(packerr) LOG_MSG("INT 21h WRITE warning: Detected 'Packed file is corrupt' message, try loadfix utility if your program fails to launch.");
                 fWritten = (packerr && !(i4dos && !shellrun) && (!autofixwarn || (autofixwarn == 2 && infix == 0) || (autofixwarn == 1 && infix == 1)));
                 if(!fWritten)
@@ -5017,6 +5018,12 @@ void DOS_EnableDriveMenu(char drv) {
 	if (drv >= 'A' && drv <= 'Z') {
 		std::string name;
 		bool empty=!dos_kernel_disabled && Drives[drv-'A'] == NULL;
+		bool cdromchange=false;
+
+		if (Drives[drv-'A']) {
+			if (dynamic_cast<isoDrive*>(Drives[drv-'A'])) cdromchange = true;
+		}
+
 #if defined (WIN32)
 		name = std::string("drive_") + drv + "_mountauto";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
@@ -5032,13 +5039,13 @@ void DOS_EnableDriveMenu(char drv) {
 		name = std::string("drive_") + drv + "_mountarc";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimg";
-		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		mainMenu.get_item(name).enable(empty || cdromchange).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimgs";
-		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		mainMenu.get_item(name).enable(empty || cdromchange).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountiro";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_unmount";
-		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
+		mainMenu.get_item(name).enable((!dos_kernel_disabled || cdromchange) && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_swap";
 		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_rescan";

@@ -469,14 +469,12 @@ uint16_t CDROM_Interface_Image::CHDFile::decode(uint8_t* buffer)
 
 // initialize static members
 int CDROM_Interface_Image::refCount = 0;
-CDROM_Interface_Image* CDROM_Interface_Image::images[26] = {};
 CDROM_Interface_Image::imagePlayer CDROM_Interface_Image::player;
 
 CDROM_Interface_Image::CDROM_Interface_Image(uint8_t subUnit)
-		      :subUnit(subUnit)
 {
 	class_id = ID_IMAGE;
-	images[subUnit] = this;
+	this->subUnit = subUnit;
 	if (refCount == 0) {
 		if (player.channel == NULL) {
 			// channel is kept dormant except during cdrom playback periods
@@ -503,7 +501,7 @@ CDROM_Interface_Image::~CDROM_Interface_Image()
 }
 
 extern bool qmount;
-bool CDROM_Interface_Image::SetDevice(char* path, int forceCD)
+bool CDROM_Interface_Image::SetDevice(const char* path, int forceCD)
 {
 	(void)forceCD;//UNUSED
 	const bool result = LoadCueSheet(path) || LoadCloneCDSheet(path) || LoadIsoFile(path) || LoadChdFile(path);
@@ -1015,7 +1013,7 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 	}
 }
 
-bool CDROM_Interface_Image::LoadIsoFile(char* filename)
+bool CDROM_Interface_Image::LoadIsoFile(const char* filename)
 {
 	tracks.clear();
 	// data track
@@ -1134,11 +1132,11 @@ static void CloneCDEntryToTrack(CDROM_Interface_Image::Track &trk,ImageCCDEntry 
 	trk.start = ent.PLBA;
 }
 
-bool CDROM_Interface_Image::LoadCloneCDSheet(char *cuefile) {
+bool CDROM_Interface_Image::LoadCloneCDSheet(const char *cuefile) {
 	// If we're going to support CUE vs CCD vs anything else then this function must
 	// reject any file who's file extension is not .CCD
 	{
-		char *s = strrchr(cuefile,'.');
+		const char *s = strrchr(cuefile,'.');
 		if (!s) return false;
 		if (strcasecmp(s,".ccd")) return false;
 	}
@@ -1153,7 +1151,7 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(char *cuefile) {
 	/* locate corresponding IMG file */
 	std::string imgfile;
 	{
-		char *ext = strrchr(cuefile,'.');
+		const char *ext = strrchr(cuefile,'.');
 		if (!ext) return false;
 		imgfile = std::string(cuefile,(size_t)(ext-cuefile));
 		imgfile += ".img";
@@ -1338,12 +1336,12 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(char *cuefile) {
 	return (leadOutLBA >= 0 && isCloneCD);
 }
 
-bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
+bool CDROM_Interface_Image::LoadCueSheet(const char *cuefile)
 {
 	// reject any file which are not a CUE sheet, GOG is so smart that they set several different extensions so that we can't assume .cue only.
     // Known extensions at the moment are: .cue, .ins, .dat, .inst (not sure it is an exhaustive list)
 	{
-		char *s = strrchr(cuefile,'.');
+		const char *s = strrchr(cuefile,'.');
 		if (!s) return false;
 		if (!strcasecmp(s,".ccd") || !strcasecmp(s, ".chd") || !strcasecmp(s, ".iso") || !strcasecmp(s, ".img") || !strcasecmp(s, ".gog")
             || !strcasecmp(s, ".mds") || !strcasecmp(s, ".mdf") || !strcasecmp(s, ".bin")) return false;
@@ -1510,7 +1508,7 @@ std::vector<string> split_string_to_list(const std::string& str, const std::stri
     return tokens;
 }
 
-bool CDROM_Interface_Image::LoadChdFile(char* chdfile)
+bool CDROM_Interface_Image::LoadChdFile(const char* chdfile)
 {
     /*
         ToDo:

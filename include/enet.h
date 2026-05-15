@@ -1456,7 +1456,14 @@ extern "C" {
     }
 
     void * enet_malloc(size_t size) {
-        void *memory = callbacks.malloc(size);
+        void *memory;
+
+        if (size == 0) {
+            callbacks.no_memory();
+            return NULL;
+        }
+
+        memory = callbacks.malloc(size);
 
         if (memory == NULL) {
             callbacks.no_memory();

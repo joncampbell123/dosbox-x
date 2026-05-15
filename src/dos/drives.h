@@ -23,6 +23,7 @@
 #include <vector>
 #include <sys/types.h>
 #include "dos_system.h"
+#include "cdrom.h"
 #include "shell.h" /* for DOS_Shell */
 
 bool DOS_CommonFAT32FAT16DiskSpaceConv(
@@ -37,6 +38,7 @@ class DriveManager {
 public:
 	static void AppendDisk(int drive, DOS_Drive* disk);
 	static void ChangeDisk(int drive, DOS_Drive* disk);
+	static void ClearDrive(int drive);
 	static void InitializeDrive(int drive);
 	static int UnmountDrive(int drive);
 	static int GetDisksSize(int drive);
@@ -1128,6 +1130,7 @@ public:
 	uint8_t GetMediaByte(void) override;
 	void EmptyCache(void) override;
 	void MediaChange(void) override;
+	void MediaChangeImmediate(void);
 	bool isRemote(void) override;
 	bool isRemovable(void) override;
 	Bits UnMount(void) override;
@@ -1147,6 +1150,7 @@ private:
 	bool lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, const char *path);
 #endif
 	int  UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit);
+	void UpdateCDROMRef(void);
 #if !defined(OSFREE)
 	int  GetDirIterator(const isoDirEntry* de);
 	int  GetDirIterator(const UDFFileEntry &fe);
@@ -1176,7 +1180,6 @@ private:
     static constexpr bool is_udf = false;
     static constexpr bool is_joliet = false;
 #endif
-    bool empty_drive = false;
 #if !defined(OSFREE)
     bool is_rock_ridge = false; // NTS: Rock Ridge and System Use Sharing Protocol was detected in the root directory
     bool enable_joliet = false; // NTS: "Joliet" is just ISO 9660 with filenames encoded as UTF-16 Unicode. One of the few times Microsoft extended something yet kept it simple --J.C.
@@ -1199,6 +1202,7 @@ private:
     uint8_t subUnit = 0;
     char driveLetter = '\0';
 	char discLabel[32];
+	CDROM_Interface *cdrom = NULL;
 public:
 #if !defined(OSFREE)
 	UDFextent_ad convertToUDFextent_ad(const UDFshort_ad &s,const uint32_t partition_ref_id=0xFFFFFFFFu) const;

@@ -574,7 +574,7 @@ void CDROM_Interface_Ioctl::dx_CDAudioCallBack(Bitu len) {
 	player.bufLen -= len;
 }
 
-bool CDROM_Interface_Ioctl::SetDevice(char* path, int forceCD) {
+bool CDROM_Interface_Ioctl::SetDevice(const char* path, int forceCD) {
     (void)forceCD;
 	mci_devid = 0;
 	use_mciplay = false;
