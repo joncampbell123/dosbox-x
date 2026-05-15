@@ -1127,6 +1127,16 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 			char buffer[32] = { 0 };
 			strcpy(buffer, "Audio_CD");
 			Set_Label(buffer,discLabel,true);
+		} else if (dos_kernel_disabled) {
+			//If we don't recognize the filesystem or disc and the guest OS is running,
+			//it's not our job to reject CDs. Maybe the guest OS might recognize it anyway.
+			strcpy(info, "isoDrive ");
+			strcat(info, fileName);
+			this->driveLetter = driveLetter;
+			this->mediaid = mediaid;
+			char buffer[32] = { 0 };
+			strcpy(buffer, "Unknown_CD");
+			Set_Label(buffer,discLabel,true);
 		} else {
 			error = 6; //Corrupt image
 		}
