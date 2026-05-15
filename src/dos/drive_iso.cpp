@@ -1068,6 +1068,13 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 	enable_rock_ridge = (dos.version.major >= 7 || uselfn);//default
 	enable_joliet = (dos.version.major >= 7 || uselfn);//default
 #endif
+
+	if (dos_kernel_disabled) {
+		enable_udf = true;
+		enable_rock_ridge = true;
+		enable_joliet = true;
+	}
+
 	for (const auto &opt : options) {
 		size_t equ = opt.find_first_of('=');
 		std::string name,value;
@@ -1137,6 +1144,7 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 			char buffer[32] = { 0 };
 			strcpy(buffer, "Unknown_CD");
 			Set_Label(buffer,discLabel,true);
+			LOG(LOG_MISC,LOG_DEBUG)("isoDrive: Failed to mount the filesystem, but presenting the ISO image to the guest anyway");
 		} else {
 			error = 6; //Corrupt image
 		}
@@ -2546,9 +2554,18 @@ void isoDrive :: EmptyCache(void) {
 		}
 	}
 	if (dos_kernel_disabled) return;
+#if !defined(OSFREE)
 	enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
 	enable_rock_ridge = dos.version.major >= 7 || uselfn;
 	enable_joliet = dos.version.major >= 7 || uselfn;
+#endif
+
+	if (dos_kernel_disabled) {
+		enable_udf = true;
+		enable_rock_ridge = true;
+		enable_joliet = true;
+	}
+
 	is_joliet = false;
 	//this->fileName[0]  = '\0'; /* deleted to fix issue #3848. Revert this if there are any flaws */
 	//this->discLabel[0] = '\0'; /* deleted to fix issue #3848. Revert this if there are any flaws */
