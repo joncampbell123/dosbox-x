@@ -930,12 +930,28 @@ void MenuBrowseFolder(char drive, std::string const& drive_type) {
 
 void MenuUnmountDrive(char drive) {
 	if (!Drives[drive-'A']) {
-        std::string drive_letter(1, drive);
-        std::string drive_warn= formatString(MSG_Get("PROGRAM_MOUNT_NOT_MOUNTED"), drive_letter.c_str());
+		std::string drive_letter(1, drive);
+		std::string drive_warn= formatString(MSG_Get("PROGRAM_MOUNT_NOT_MOUNTED"), drive_letter.c_str());
 		systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
 		return;
 	}
-    UnmountHelper(drive);
+
+	/* 2026/05/14: When the guest OS is running, this command has a different meaning.
+	 *             We cannot change drive letters or subunits after BOOTing, but this
+	 *             command becomes a useful way for the user to say that they want to
+	 *             change the CD-ROM image to "empty", meaning, an empty CD-ROM drive. */
+	if (dos_kernel_disabled) {
+		isoDrive *isodrv = dynamic_cast<isoDrive*>(Drives[drive-'A']);
+		if (isodrv) {
+			std::vector<std::string> paths;
+
+			paths.push_back("empty");
+			runImgmountISO(drive,paths,/*replace*/true);
+		}
+	}
+	else {
+		UnmountHelper(drive);
+	}
 }
 
 void MenuBootDrive(char drive) {
