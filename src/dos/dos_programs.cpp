@@ -954,6 +954,10 @@ void MenuUnmountDrive(char drive) {
 	}
 }
 
+void IDE_Eject_unmount(char drive) {
+	if (Drives[drive-'A'] && dos_kernel_disabled) MenuUnmountDrive(drive);
+}
+
 void MenuBootDrive(char drive) {
 	if(control->SecureMode()) {
 		systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
