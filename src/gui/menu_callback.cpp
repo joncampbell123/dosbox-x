@@ -390,8 +390,6 @@ bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
         return false;
     }
 
-    if (dos_kernel_disabled) return true;
-
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     GFX_ReleaseMouse();
@@ -416,8 +414,6 @@ bool drive_mountimgs_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
     else {
         return false;
     }
-
-    if (dos_kernel_disabled) return true;
 
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();

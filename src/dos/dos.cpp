@@ -5020,7 +5020,7 @@ void DOS_EnableDriveMenu(char drv) {
 		bool empty=!dos_kernel_disabled && Drives[drv-'A'] == NULL;
 		bool cdromchange=false;
 
-		if (!dos_kernel_disabled && Drives[drv-'A']) {
+		if (Drives[drv-'A']) {
 			if (dynamic_cast<isoDrive*>(Drives[drv-'A'])) cdromchange = true;
 		}
 
