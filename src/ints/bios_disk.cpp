@@ -1284,7 +1284,13 @@ void swapInDrive(int drive, unsigned int position=0) {
     LOG_MSG("Diskcaching reset for drive %c.", drive+'A');
     if (Drives[drive] != NULL) {
         Drives[drive]->EmptyCache();
-        Drives[drive]->MediaChange();
+
+        isoDrive *isodrv = dynamic_cast<isoDrive*>(Drives[drive]);
+
+        if (isodrv && !dos_kernel_disabled)
+            isodrv->MediaChangeImmediate(); // for IDE, without the media change delay
+        else
+            Drives[drive]->MediaChange(); // for IDE
     }
 }
 
@@ -1317,7 +1323,13 @@ void swapInNextCD(bool pressed) {
     for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: if it is a CD/DVD drive */
         if (Drives[i] != NULL && dynamic_cast<isoDrive*>(Drives[i]) != NULL) {
             Drives[i]->EmptyCache();
-            Drives[i]->MediaChange();
+
+            isoDrive *isodrv = dynamic_cast<isoDrive*>(Drives[i]);
+
+            if (isodrv && !dos_kernel_disabled)
+                isodrv->MediaChangeImmediate(); // for IDE, without the media change delay
+            else
+                Drives[i]->MediaChange(); // for IDE
         }
     }
 }
