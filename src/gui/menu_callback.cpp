@@ -549,8 +549,6 @@ bool drive_swap_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
         return false;
     }
 
-    if (dos_kernel_disabled) return true;
-
     if (drive < DOS_DRIVES && Drives[drive]) {
         LOG(LOG_DOSMISC,LOG_DEBUG)("Triggering swap on drive %c",drive+'A');
         swapInDrive(drive);
