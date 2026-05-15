@@ -2829,7 +2829,15 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate) {
 						(atapi->cdrom = cdrom)->Addref();
 					}
 
-					if (immediate) {
+					bool empty = false;
+
+					if (atapi->cdrom->class_id == CDROM_Interface::ID_FAKE) {
+						CDROM_Interface_Fake *fake = (CDROM_Interface_Fake*)(atapi->cdrom);
+						if (fake->isEmpty) empty = true;
+					}
+
+					/* if asked to change immediately, or the new image is the fake "empty" drive, change right away */
+					if (immediate || empty) {
 						atapi->loading_mode = LOAD_READY;
 						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
 						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
