@@ -890,6 +890,8 @@ static unsigned char dec2bcd(unsigned char c) {
 }
 #endif
 
+void IDE_Eject_unmount(char drive);
+
 void IDEATAPICDROMDevice::read_toc() {
     /* NTS: The SCSI MMC standards say we're allowed to indicate the return data
      *      is longer than it's allocation length. But here's the thing: some MS-DOS
@@ -1084,6 +1086,41 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
             feature = 0x00;
             state = IDE_DEV_DATA_READ;
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+
+            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
+            lba[2] = sector_total >> 8;
+            lba[1] = sector_total;
+
+            raise_irq();
+            allow_writing = true;
+            break;
+        case 0x1B: /* START/STOP UNIT */
+            count = 0x03;
+            feature = 0x00;
+            sector_total = 0x00;
+            state = IDE_DEV_DATA_READ;
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+
+            {
+                    bool START = !!(atapi_cmd[4] & 0x01);
+                    bool LOEJ = !!(atapi_cmd[4] & 0x02);
+                    // TODO: IMMED, POWER_CONDITION, etc.
+
+                    if (LOEJ) {
+                            LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM drive is being asked to %s the media",
+                                START ? "LOAD" : "EJECT");
+                    }
+                    else {
+                            LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM drive is being asked to %s the media",
+                                START ? "START" : "STOP");
+                    }
+
+                    // Treat the EJECT command as a command to swap to an "empty" CD-ROM image
+                    if (LOEJ && !START) {
+                            LOG(LOG_MISC,LOG_DEBUG)("Interpreting EJECT as a command to unmount the drive (replace with empty image)");
+                            IDE_Eject_unmount(drive_index+'A');
+                    }
+            }
 
             /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
             lba[2] = sector_total >> 8;
@@ -1977,6 +2014,13 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
+        case 0x1B: /* START/STOP UNIT */
+            count = 0x02;
+            state = IDE_DEV_ATAPI_BUSY;
+            status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
+            break;
         case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
@@ -2785,7 +2829,15 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate) {
 						(atapi->cdrom = cdrom)->Addref();
 					}
 
-					if (immediate) {
+					bool empty = false;
+
+					if (atapi->cdrom->class_id == CDROM_Interface::ID_FAKE) {
+						CDROM_Interface_Fake *fake = (CDROM_Interface_Fake*)(atapi->cdrom);
+						if (fake->isEmpty) empty = true;
+					}
+
+					/* if asked to change immediately, or the new image is the fake "empty" drive, change right away */
+					if (immediate || empty) {
 						atapi->loading_mode = LOAD_READY;
 						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
 						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
