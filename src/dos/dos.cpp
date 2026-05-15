@@ -5020,7 +5020,7 @@ void DOS_EnableDriveMenu(char drv) {
 		bool empty=!dos_kernel_disabled && Drives[drv-'A'] == NULL;
 		bool cdromchange=false;
 
-		if (!dos_kernel_disabled && Drives[drv-'A']) {
+		if (Drives[drv-'A']) {
 			if (dynamic_cast<isoDrive*>(Drives[drv-'A'])) cdromchange = true;
 		}
 
@@ -5045,7 +5045,7 @@ void DOS_EnableDriveMenu(char drv) {
 		name = std::string("drive_") + drv + "_mountiro";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_unmount";
-		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
+		mainMenu.get_item(name).enable((!dos_kernel_disabled || cdromchange) && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_swap";
 		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_rescan";
