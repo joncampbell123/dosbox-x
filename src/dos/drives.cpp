@@ -393,6 +393,7 @@ void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
 
 void DriveManager::ClearDrive(int drive) {
 	UnmountDrive(drive); // which calls UnMount which drives delete themselves
+	if (dos_kernel_disabled && !driveInfos[drive].disks.empty()) E_Exit("Drive Manager ClearDrive UnmountDrive failed to clear disk swap chain");
 	Drives[drive] = NULL;
 }
 
@@ -507,12 +508,14 @@ int DriveManager::UnmountDrive(int drive) {
 	int result = 0;
 	// unmanaged drive
 	if (driveInfos[drive].disks.size() == 0) {
-		result = (int)Drives[drive]->UnMount();
+		if (!dos_kernel_disabled) result = (int)Drives[drive]->UnMount();
+		else delete Drives[drive];
 		driveInfos[drive].currentDisk = 0;
 	} else {
 		// managed drive
 		unsigned int currentDisk = driveInfos[drive].currentDisk;
-		result = (int)driveInfos[drive].disks[currentDisk]->UnMount();
+		if (!dos_kernel_disabled) result = (int)driveInfos[drive].disks[currentDisk]->UnMount();
+		else delete driveInfos[drive].disks[currentDisk];
 		// only delete on success, current disk set to NULL because of UnMount
 		if (result == 0) {
 			driveInfos[drive].disks[currentDisk] = NULL;

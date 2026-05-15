@@ -129,6 +129,7 @@ extern bool clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr), i
 extern int lastcp, lastmsgcp, tryconvertcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 extern uint8_t DOS_GetAnsiAttr(void);
 extern int toSetCodePage(DOS_Shell *shell, int newCP, int opt);
+void runImgmountISO(const char drive,const std::vector<std::string> &paths,const bool replace);
 void MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu(), Load_Language(std::string name);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt(), ttf_reset(void);
@@ -695,6 +696,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 	std::string drive_warn;
 
 	bool cdromreplace = false;
+	bool cdrom = false;
 
 	if (Drives[drive-'A']&&!boot) {
 		if (dynamic_cast<isoDrive*>(Drives[drive-'A'])) cdromreplace = true;
@@ -709,24 +711,40 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 		systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
 		return;
 	}
-	if (dos_kernel_disabled)
-		return;
 #if !defined(HX_DOS)
 	char CurrentDir[512];
 	char * Temp_CurrentDir = CurrentDir;
 	getcwd(Temp_CurrentDir, 512);
 	char const * lTheOpenFileName;
+	std::vector<std::string> paths;
 	std::string files="", fname="";
 	if (arc) {
 		const char *lFilterPatterns[] = {"*.zip","*.7z","*.ZIP","*.7Z"};
 		const char *lFilterDescription = "Archive files (*.zip, *.7z)";
 		lTheOpenFileName = tinyfd_openFileDialog(("Select an archive file for Drive "+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,0);
-		if (lTheOpenFileName) fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
+		if (lTheOpenFileName) {
+			fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
+			paths.push_back(lTheOpenFileName);
+		}
 	} else {
 		const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.fdi","*.hdi","*.nfd","*.nhd","*.d88","*.hdm","*.xdf","*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.ccd","*.inst","*.IMA","*.IMG","*.VHD","*.FDI","*.HDI","*.NFD","*.NHD","*.D88","*.HDM","*.XDF","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS","*.CCD","*.INST"};
 		const char *lFilterDescription = "Disk/CD image files";
 		lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,multiple?1:0);
-		if (lTheOpenFileName) fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
+		if (lTheOpenFileName) {
+			fname = "\"" + GetNewStr(lTheOpenFileName) + "\"";
+			if (multiple) {
+				const char *s = lTheOpenFileName;
+				while (*s) {
+					const char *b = s;
+					while (*s && *s != '|') s++;
+					if (b < s) paths.push_back(std::string(b,size_t(s-b)));
+					if (*s == '|') s++;
+				}
+			}
+			else {
+				paths.push_back(lTheOpenFileName);
+			}
+		}
 		if (multiple&&fname.size()) {
 			files = std::regex_replace(fname, std::regex("\\|"), "\" \"");
 		}
@@ -748,88 +766,128 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 			char ext[5] = "";
 			if (fname.size()>4)
 				strcpy(ext, fname.substr(fname.size()-4).c_str());
-			if(!strcasecmp(ext,".ima"))
+
+			if(!strcasecmp(ext,".ima")) {
 				strcpy(type,"-t floppy ");
-			else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".chd")) || (!strcasecmp(ext,".mdf")) || (!strcasecmp(ext,".gog")) || (!strcasecmp(ext,".ins")) || (!strcasecmp(ext, ".inst")))
+			}
+			else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".chd")) || (!strcasecmp(ext,".mdf")) || (!strcasecmp(ext,".gog")) || (!strcasecmp(ext,".ins")) || (!strcasecmp(ext, ".inst"))) {
 				strcpy(type,"-t iso ");
-			else
+			}
+			else {
 				strcpy(type,"");
-		} else
-			*type=0;
-		char mountstring[CROSS_LEN*4+20];
-		if (files.size()>CROSS_LEN*4) {
-			systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_MOUNT_PATH_TOOLONG"),"ok","error", 1);
-			return;
-		}
-		strcpy(mountstring,type);
-		char temp_str[3] = { 0,0,0 };
-		temp_str[0]=drive;
-		temp_str[1]=' ';
-		strcat(mountstring,temp_str);
-		//if (!multiple) strcat(mountstring,"\"");
-		strcat(mountstring,files.size()?files.c_str():fname.c_str());
-		//if(!multiple) strcat(mountstring, "\"");
-		if(mountiro[drive - 'A']) strcat(mountstring, " -ro");
-		if(cdromreplace) strcat(mountstring, " -replace");
-		if(boot) {
-			strcat(mountstring, " -u");
-			mountstring[0] = drive - 'A' + '0';
-			runImgmount(mountstring);   // mount by drive number
-			std::string bootstr = "-Q ";
-			bootstr += drive;
-			bootstr += ':';
-			runBoot(bootstr.c_str());
-			std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), (std::string(1, drive)).c_str());
-			systemmessagebox(MSG_Get("ERROR"), drive_warn.c_str(), "ok", "error", 1);
-			bootstr = "-u ";
-			bootstr += drive - 'A' + '0';
-			runImgmount(bootstr.c_str()); // unmount if boot failed
-			return;
-		}
-		if(arc) {
-			strcat(mountstring," -q");
-			runMount(mountstring);
+			}
 		} else {
-			qmount=true;
-			runImgmount(mountstring);
-			qmount=false;
+			*type=0;
 		}
-		chdir( Temp_CurrentDir );
-		if (!Drives[drive - 'A']) {
-			drive_warn= formatString(MSG_Get("PROGRAM_MOUNT_FAILED"), (std::string(1, drive)).c_str());
-			systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
-			return;
-		} 
+
+		if (!arc) {
+			bool cd = false;
+			bool notcd = false;
+
+			for (const auto &a : paths) {
+				const char *c = a.c_str();
+				const char *ext = strrchr(c,'.');/*FIXME: If no extension, this might interpret a path with a dot as a large extension*/
+				bool is_cd = false;
+
+				if (ext) {
+					if (	!strcasecmp(ext,".iso") || !strcasecmp(ext,".cue") || !strcasecmp(ext,".bin") ||
+						!strcasecmp(ext,".chd") || !strcasecmp(ext,".mdf") || !strcasecmp(ext,".gog") ||
+						!strcasecmp(ext,".inst"))
+						is_cd = true;
+				}
+
+				if (is_cd) cd = true;
+				else notcd = true;
+			}
+
+			if (cd && !notcd) cdrom = true;
+		}
+
+		if (cdrom && !boot) {
+			if (dos_kernel_disabled && !cdromreplace)
+				return;
+
+			runImgmountISO(drive,paths,cdromreplace);
+		}
 		else {
-			if(!multiple && !lTheOpenFileName){
-				chdir( Temp_CurrentDir );
-				return;    
+			if (dos_kernel_disabled)
+				return;
+
+			char mountstring[CROSS_LEN*4+20];
+			if (files.size()>CROSS_LEN*4) {
+				systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_MOUNT_PATH_TOOLONG"),"ok","error", 1);
+				return;
 			}
+			strcpy(mountstring,type);
+			char temp_str[3] = { 0,0,0 };
+			temp_str[0]=drive;
+			temp_str[1]=' ';
+			strcat(mountstring,temp_str);
+			//if (!multiple) strcat(mountstring,"\"");
+			strcat(mountstring,files.size()?files.c_str():fname.c_str());
+			//if(!multiple) strcat(mountstring, "\"");
+			if(mountiro[drive - 'A']) strcat(mountstring, " -ro");
+			if(cdromreplace) strcat(mountstring, " -replace");
+			if(boot) {
+				strcat(mountstring, " -u");
+				mountstring[0] = drive - 'A' + '0';
+				runImgmount(mountstring);   // mount by drive number
+				std::string bootstr = "-Q ";
+				bootstr += drive;
+				bootstr += ':';
+				runBoot(bootstr.c_str());
+				std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), (std::string(1, drive)).c_str());
+				systemmessagebox(MSG_Get("ERROR"), drive_warn.c_str(), "ok", "error", 1);
+				bootstr = "-u ";
+				bootstr += drive - 'A' + '0';
+				runImgmount(bootstr.c_str()); // unmount if boot failed
+				return;
+			}
+			if(arc) {
+				strcat(mountstring," -q");
+				runMount(mountstring);
+			} else {
+				qmount=true;
+				runImgmount(mountstring);
+				qmount=false;
+			}
+			chdir( Temp_CurrentDir );
+			if (!Drives[drive - 'A']) {
+				drive_warn= formatString(MSG_Get("PROGRAM_MOUNT_FAILED"), (std::string(1, drive)).c_str());
+				systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
+				return;
+			} 
+			else {
+				if(!multiple && !lTheOpenFileName){
+					chdir( Temp_CurrentDir );
+					return;    
+				}
 #if defined(MACOSX)
-			auto MSGX = MSG_GetUTF8;
+				auto MSGX = MSG_GetUTF8;
 #else
-			auto MSGX = MSG_Get;
+				auto MSGX = MSG_Get;
 #endif
-			std::string readonly = mountiro[drive - 'A'] ? "\n(" + std::string(MSGX("READONLY_MODE")) + ")" : "";    
-			std::string msg = MSGX("PROGRAM_MOUNT_IMAGE");
-			std::string image, drive_warn;
-			if(multiple){
-				image = std::string(MSGX("DISK_IMAGE"));
-				files.erase(std::remove(files.begin(), files.end(), '"'), files.end());
-				drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(),
-						files.c_str(), readonly.c_str());
-			}
-			else if(lTheOpenFileName){
-				image = arc ? std::string(MSGX("ARCHIVE")) : std::string(MSGX("DISK_IMAGE"));
-				drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(),
-						GetNewStr(lTheOpenFileName).c_str(), readonly.c_str());
-			}
-			std::string title = MSGX("INFORMATION");
+				std::string readonly = mountiro[drive - 'A'] ? "\n(" + std::string(MSGX("READONLY_MODE")) + ")" : "";    
+				std::string msg = MSGX("PROGRAM_MOUNT_IMAGE");
+				std::string image, drive_warn;
+				if(multiple){
+					image = std::string(MSGX("DISK_IMAGE"));
+					files.erase(std::remove(files.begin(), files.end(), '"'), files.end());
+					drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(),
+							files.c_str(), readonly.c_str());
+				}
+				else if(lTheOpenFileName){
+					image = arc ? std::string(MSGX("ARCHIVE")) : std::string(MSGX("DISK_IMAGE"));
+					drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(),
+							GetNewStr(lTheOpenFileName).c_str(), readonly.c_str());
+				}
+				std::string title = MSGX("INFORMATION");
 #if defined(MACOSX)
-			tinyfd_messageBox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
+				tinyfd_messageBox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
 #else
-			systemmessagebox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
+				systemmessagebox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
 #endif
+			}
 		}
 	}
 	chdir( Temp_CurrentDir );
@@ -7197,12 +7255,21 @@ class IMGMOUNT : public Program {
 			return false;
 		}
 
+	public:
 		bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+			//If mounting while a guest OS is active, you may ONLY replace an ISO with an ISO! You may not mount a new drive!
+			if (dos_kernel_disabled) {
+				if (Drives[drive - 'A']) {
+					if (dynamic_cast<isoDrive*>(Drives[drive - 'A']) == NULL)/*if not isoDrive, then no*/
+						return false;
+				}
+			}
+
 			//mount cdrom
 			if (Drives[drive - 'A']) {
 				//For -replace, the drive to replace must be a CD-ROM drive already, or else don't allow it!
 				if (!MountIsoAllowReplace(drive)) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
+					if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
 					return false;
 				}
 			}
@@ -7219,7 +7286,7 @@ class IMGMOUNT : public Program {
 				int error = -1;
 				DOS_Drive* newDrive = new isoDrive(drive, wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].c_str()+1:paths[i].c_str(), mediaid, error, options);
 				isoDisks.push_back(newDrive);
-				if(!qmount) {
+				if(!qmount && !dos_kernel_disabled) {
 					switch(error) {
 						case 0: break;
 						case 1: WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));  break;
@@ -7249,7 +7316,8 @@ class IMGMOUNT : public Program {
 			DOS_EnableDriveMenu(drive);
 
 			// Set the correct media byte in the table 
-			mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
+			if (!dos_kernel_disabled)
+				mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
 
 			// If instructed, attach to IDE controller as ATAPI CD-ROM device, unless replacement mode
 			if (ide_index >= 0 && !opt_replace) IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');
@@ -7264,21 +7332,21 @@ class IMGMOUNT : public Program {
 				//      images associated with the drive!
 				Drives[drive - 'A']->Activate(); // for MSCDEX and IDE
 
-				if (isodrv)
+				if (isodrv && !dos_kernel_disabled)
 					isodrv->MediaChangeImmediate(); // for IDE, without the media change delay
 				else
 					Drives[drive - 'A']->MediaChange(); // for IDE
 			}
 
 			// Print status message (success)
-			if (!qmount) WriteOut(MSG_Get("MSCDEX_SUCCESS"));
+			if (!qmount && !dos_kernel_disabled) WriteOut(MSG_Get("MSCDEX_SUCCESS"));
 			if (!paths.empty()) {
 				std::string tmp(wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].substr(1):paths[0]);
 				for (i = 1; i < paths.size(); i++) {
 					tmp += "; " + (wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].substr(1):paths[i]);
 				}
 				lastmount = drive;
-				if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
+				if (!qmount && !dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 			}
 			else {
 				lastmount = drive;
@@ -7286,6 +7354,7 @@ class IMGMOUNT : public Program {
 			return true;
 		}
 
+	private:
 		imageDisk* MountImageNone(const char* fileName, FILE* file, const Bitu sizesOriginal[], const int reserved_cylinders, bool roflag) {
 			bool assumeHardDisk = false;
 			imageDisk* newImage = nullptr;
@@ -7487,6 +7556,14 @@ void runImgmount(const char *str) {
 	IMGMOUNT imgmount;
 	imgmount.cmd=new CommandLine("IMGMOUNT", str);
 	imgmount.Run();
+}
+
+/* mount an ISO, calling directly into the IMGMOUNT program instead of roundabout through the command line parsing */
+void runImgmountISO(const char drive,const std::vector<std::string> &paths,const bool replace) {
+	IMGMOUNT imgmount;
+	imgmount.opt_replace = replace;
+	imgmount.cmd=new CommandLine("IMGMOUNT", "");
+	imgmount.MountIso(drive,paths,-1/*ide*/,-1/*ide*/);
 }
 
 Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp);
