@@ -95,8 +95,8 @@ public:
 	unsigned char exit_status;                          //! Exit status, returned to the parent DOS process
 
 	std::string temp_line;                              //! Temporary string object for parsing
-	CommandLine * cmd;                                  //! Command line object
-	DOS_PSP * psp;                                      //! DOS kernel Program Segment Prefix associated with this program at runtime
+	CommandLine * cmd = NULL;                           //! Command line object
+	DOS_PSP * psp = NULL;                               //! DOS kernel Program Segment Prefix associated with this program at runtime
 	virtual void Run(void)=0;                           //! Run() method, called when the program is run. Subclass must override this
 	bool GetEnvStr(const char * entry,std::string & result); //! Return an environment variable by name
 	bool GetEnvNum(Bitu want_num,std::string & result);      //! Return an environment variable by index
