@@ -93,6 +93,54 @@ Next version
     (orbisai0security)
   - Fixed logging of 'Packed file is corrupt' message detection (maron2000)
   - Fixed upper 32-bit of LBA was always cleared (maron2000)
+  - Fix and revise MSCDEX and CD-ROM emulation to disentangle the two,
+    so that MSCDEX no longer needs to remain in the background when BOOTed
+    into a guest OS for IDE emulation to work. (joncampbell123)
+  - CD-ROM emulation updated to use reference counting to improve sharing
+    of the image between IDE, MSCDEX, and general CD-ROM emulation.
+    IDE emulation can hold on to a reference instead of constantly asking
+    MSCDEX for it. (joncampbell123)
+  - Fix bug where mounting an invalid CUE file with no tracks caused DOSBox-X
+    to crash. (joncampbell123)
+  - MSCDEX and CD-ROM emulation: Cleanup and centralize creation of CD-ROM
+    interface objects, including the creation of the fake "empty" special
+    interface used to emulate an empty CD-ROM drive. (joncampbell123)
+  - Revise MSCDEX emulation to separate the CD-ROM subunit and drive tracking
+    from MSCDEX itself so that state can persist properly for a guest OS
+    even when MSCDEX is shutdown during BOOT. (joncampbell123)
+  - Add -replace option to IMGMOUNT to allow changing the ISO image assigned
+    to a CD-ROM drive without changing or altering the drive letter already
+    assigned. -replace is strictly limited to CD-ROM drives where the drive
+    letter is already assigned to that drive letter. (joncampbell123)
+  - Clean up the Drives menu for any drive letter assigned to a CD-ROM drive.
+    Enable the "Mount a disk or CD image file" and "Mount multiple disk/CD images"
+    even if the drive letter already has a CD-ROM drive attached, in which case
+    the menu item just replaces it. Allow these menu items to work even when
+    running a guest OS so that Windows 95 users can load any ISO image they
+    want at any time, instead of having to pre-load all images they will need
+    on a swap chain before BOOT. (joncampbell123)
+  - Replace ISO mounting code from the menu item to call more directly into
+    IMGMOUNT to avoid making a commad shell object which would probably interfere
+    with the guest OS. (joncampbell123)
+  - Enable the "Unmount drive" menu option under Drives for any drive attached
+    to a CD-ROM drive while running a guest OS like Windows 95. When used in
+    that scenario, it does not remove the drive letter, but instead acts like
+    a command to eject the CD from the CD-ROM drive (swaps in the "empty"
+    CD-ROM image). In the DOSBox-X environment "Unmount drive" will still
+    unmount the drive and remove the drive letter as expected. (joncampbell123)
+  - "Swap disk" menu item under "Drives" is now enabled even while running a
+    guest OS like Windows 95, if the drive is associated with a CD-ROM drive.
+    Using the command rotates through the CD-ROM drive swap chain only for
+    that specific drive, instead of all drives as the Swap CD mapper shortcut
+    would do. (joncampbell123)
+  - IDE emulation: Skip the CD-ROM eject / unload / load delay if media change
+    is swapping to the "empty" CD-ROM image object. (joncampbell123)
+  - Program object (base class of built-in commands) will no longer attempt to
+    do anything with PSP segments or command line strings in memory if invoked
+    while DOS kernel is disabled (running a guest OS). (joncampbell123)
+  - IDE ATAPI CD-ROM emulation: If the guest issues the START/STOP command
+    to eject the CD-ROM drive, replace the CD-ROM image with the "empty" object
+    to emulate a now-empty CD-ROM drive. (joncampbell123)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
