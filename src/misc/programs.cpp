@@ -179,19 +179,25 @@ static Bitu PROGRAMS_Handler(void) {
 /* Main functions used in all program */
 
 Program::Program() {
-	/* Find the command line and setup the PSP */
-	psp = new DOS_PSP(dos.psp());
-	/* Scan environment for filename */
-	PhysPt envscan=PhysMake(psp->GetEnvironment(),0);
-	while (mem_readb(envscan)) envscan+=(PhysPt)(mem_strlen(envscan)+1);	
-	envscan+=3;
-	CommandTail tail;
-    MEM_BlockRead(PhysMake(dos.psp(),CTBUF+1),&tail,CTBUF+1);
-    if (tail.count<CTBUF) tail.buffer[tail.count]=0;
-    else tail.buffer[CTBUF-1]=0;
-	char filename[256+1];
-	MEM_StrCopy(envscan,filename,256);
-	cmd = new CommandLine(filename,tail.buffer);
+	if (!dos_kernel_disabled) {
+		/* Find the command line and setup the PSP */
+		psp = new DOS_PSP(dos.psp());
+		/* Scan environment for filename */
+		PhysPt envscan=PhysMake(psp->GetEnvironment(),0);
+		while (mem_readb(envscan)) envscan+=(PhysPt)(mem_strlen(envscan)+1);	
+		envscan+=3;
+		CommandTail tail;
+		MEM_BlockRead(PhysMake(dos.psp(),CTBUF+1),&tail,CTBUF+1);
+		if (tail.count<CTBUF) tail.buffer[tail.count]=0;
+		else tail.buffer[CTBUF-1]=0;
+		char filename[256+1];
+		MEM_StrCopy(envscan,filename,256);
+		cmd = new CommandLine(filename,tail.buffer);
+	}
+	else {
+		psp = NULL;
+		cmd = NULL;
+	}
 	exit_status = 0;
 }
 
