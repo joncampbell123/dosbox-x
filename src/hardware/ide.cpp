@@ -1050,6 +1050,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
         switch (atapi_cmd[0]) {
             case 0x00: /* TEST UNIT READY */
             case 0x03: /* REQUEST SENSE */
+            case 0x12: /* INQUIRY */
                 allow_writing = true;
                 break; /* do not delay */
             default:
@@ -1062,6 +1063,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
         switch (atapi_cmd[0]) {
             case 0x00: /* TEST UNIT READY */
             case 0x03: /* REQUEST SENSE */
+            case 0x12: /* INQUIRY */
                 allow_writing = true;
                 break; /* do not delay */
             default:
