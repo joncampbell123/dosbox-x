@@ -84,7 +84,8 @@ private:
  */
 class Program {
 public:
-	Program();                                          //! Constructor
+	static constexpr unsigned int prg_nopsp = 1u << 0u; //! Bitfield flag: Do not create or handle PSP segment
+	Program(const unsigned int fl=0);                   //! Constructor
 	virtual ~Program(){                                 //! Default destructor
 		delete cmd;
 		delete psp;

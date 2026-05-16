@@ -5666,6 +5666,8 @@ class IMGMOUNT : public Program {
 	public:
 		bool opt_replace = false;
 		std::vector<std::string> options;
+		IMGMOUNT(const unsigned int fl=0) : Program(fl) {
+		}
 		void ListImgMounts(void) {
 			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
 			uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
@@ -7569,18 +7571,18 @@ class IMGMOUNT : public Program {
 };
 
 void IMGMOUNT_ProgramStart(Program * * make) {
-    *make=new IMGMOUNT;
+	*make=new IMGMOUNT;
 }
 
 void runImgmount(const char *str) {
-	IMGMOUNT imgmount;
+	IMGMOUNT imgmount(Program::prg_nopsp);
 	imgmount.cmd=new CommandLine("IMGMOUNT", str);
 	imgmount.Run();
 }
 
 /* mount an ISO, calling directly into the IMGMOUNT program instead of roundabout through the command line parsing */
 void runImgmountISO(const char drive,const std::vector<std::string> &paths,const bool replace) {
-	IMGMOUNT imgmount;
+	IMGMOUNT imgmount(Program::prg_nopsp);
 	imgmount.opt_replace = replace;
 	imgmount.cmd=new CommandLine("IMGMOUNT", "");
 	imgmount.MountIso(drive,paths,-1/*ide*/,-1/*ide*/);
