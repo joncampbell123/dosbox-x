@@ -178,8 +178,11 @@ static Bitu PROGRAMS_Handler(void) {
 
 /* Main functions used in all program */
 
-Program::Program() {
-	if (!dos_kernel_disabled) {
+Program::Program(const unsigned int fl) {
+	if (dos_kernel_disabled && !(fl & prg_nopsp))
+		LOG(LOG_MISC,LOG_DEBUG)("Program constructor: DOS kernel disabled and prg_nopsp was not specified");
+
+	if (!dos_kernel_disabled && !(fl & prg_nopsp)) {
 		/* Find the command line and setup the PSP */
 		psp = new DOS_PSP(dos.psp());
 		/* Scan environment for filename */
@@ -198,6 +201,7 @@ Program::Program() {
 		psp = NULL;
 		cmd = NULL;
 	}
+
 	exit_status = 0;
 }
 
