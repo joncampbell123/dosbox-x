@@ -561,6 +561,7 @@ FloppyController *match_fdc_controller(Bitu port) {
 /* when DOR port is written */
 void FloppyController::on_dor_change(unsigned char b) {
 	unsigned char chg = b ^ digital_output_register;
+	digital_output_register = b;
 
 	/* !RESET line */
 	if (chg & 0x04) {
@@ -591,7 +592,7 @@ void FloppyController::on_dor_change(unsigned char b) {
 
 	/* DMA/IRQ enable */
 	if (chg & 0x08 && IRQ >= 0) {
-		if ((b&0x08) && irq_pending) PIC_ActivateIRQ((unsigned int)IRQ);
+		if (irq_enabled() && irq_pending) PIC_ActivateIRQ((unsigned int)IRQ);
 		else PIC_DeActivateIRQ((unsigned int)IRQ);
 	}
 
@@ -604,8 +605,6 @@ void FloppyController::on_dor_change(unsigned char b) {
 			if (device[i] != NULL) device[i]->set_motor((b&(0x10<<i))?true:false);
 		}
 	}
-
-	digital_output_register = b;
 }
 
 /* IDE code needs to know if port 3F7 will be taken by FDC emulation */
