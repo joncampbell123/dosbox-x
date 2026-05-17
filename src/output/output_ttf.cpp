@@ -30,6 +30,7 @@
 #include "inout.h"
 #include "bios.h"
 #include "regs.h"
+#include "cpu.h"
 #include "control.h"
 #include "menudef.h"
 #include "callback.h"
@@ -1429,7 +1430,11 @@ void ttf_setlines(int cols, int lins) {
 void ttf_switch_on(bool ss=true) {
     if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
         checkcol = 0;
-        if (strcmp(RunningProgram, "LOADLIN")) {
+        /* Do NOT run a real-mode guest interrupt while the guest CPU is in
+         * protected mode (e.g. a game using a DOS extender). CALLBACK_RunRealInt()
+         * would push a real-mode-style frame and corrupt the extender,
+         * causing a #GP storm on the handler's IRETD. */
+        if (strcmp(RunningProgram, "LOADLIN") && !cpu.pmode) {
             uint16_t oldax=reg_ax;
             reg_ax=0x1600;
             CALLBACK_RunRealInt(0x2F);
