@@ -706,8 +706,8 @@ void FloppyController::on_fdc_in_command() {
 	if (dev != NULL) image = dev->getImage();
 
 	switch (in_cmd[0]&0x1F) {
-		case 0x0A:
-			break;
+		//case 0x0A:
+		//	break;
 		default:
 			LOG_MSG("FDC: Command len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
 				in_cmd_len,
@@ -757,7 +757,6 @@ void FloppyController::on_fdc_in_command() {
 			 */
 			/* must have a device present. must have an image. device motor and select must be enabled.
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
-			ST[0] &= ~0x20;
 			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
 			dma = GetDMAChannel(DMA);
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
@@ -859,6 +858,7 @@ void FloppyController::on_fdc_in_command() {
 				out_res[2] = ST[2];
 			}
 			raise_irq();
+			ST[0] &= ~0x20;
 			break;
 		case 0x06: /* Read data (0110) */
 			/*     |   7    6    5    4    3    2    1    0
@@ -878,7 +878,6 @@ void FloppyController::on_fdc_in_command() {
 			 * In order to support copy-protected booter games (IBM PC or PC-98) the sector number is NOT range
 			 * limited in order to support games such as Star Cruiser that look for intentionally out of range
 			 * sector numbers. */
-			ST[0] &= ~0x20;
 			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
 			dma = GetDMAChannel(DMA);
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
@@ -988,6 +987,7 @@ void FloppyController::on_fdc_in_command() {
 				busy_status = 0;
 
 			raise_irq();
+			ST[0] &= ~0x20;
 			break;
 		case 0x07: /* Calibrate drive */
 			ST[0] = devidx;
@@ -1059,7 +1059,6 @@ void FloppyController::on_fdc_in_command() {
 			 */
 			/* must have a device present. must have an image. device motor and select must be enabled.
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
-			ST[0] &= ~0x20;
 			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
 			if (dev != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
 				current_cylinder[devidx] < image->cylinders && ((in_cmd[1]&4U)?1U:0U) <= image->heads) {
@@ -1092,6 +1091,7 @@ void FloppyController::on_fdc_in_command() {
 				out_res[0] = ST[0];
 			}
 			raise_irq();
+			ST[0] &= ~0x20;
 			break;
 		case 0x0C: /* Read deleted data (1100) */
 			/*     |   7    6    5    4    3    2    1    0
@@ -1109,11 +1109,11 @@ void FloppyController::on_fdc_in_command() {
 			/* the raw images used by DOSBox cannot represent "deleted sectors", so always fail */
 			reset_res();
 			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
-			ST[0] &= ~0x20;
 			ST[0] = (ST[0] & 0x1F) | 0x80;
 			ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
 			ST[2] = (1 << 0)/*missing data address mark*/;
 			prepare_res_phase(1);
+			ST[0] &= ~0x20;
 			break;
 		case 0x0E: /* Dump registers (response) */
 			/*     |   7    6    5    4    3    2    1    0
@@ -1192,8 +1192,8 @@ void FloppyController::on_fdc_in_command() {
 	}
 
 	switch (in_cmd[0]&0x1F) {
-		case 0x0A:
-			break;
+		//case 0x0A:
+		//	break;
 		default:
 			LOG_MSG("FDC: Response len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
 				out_res_len,
@@ -1541,6 +1541,8 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 			b = 0x78; /* dsr=0 high density */
 
 			/* HACK: Re-use from INT 13h emulation */
+			/* WARNING: The meaning of this bit changes whether PC/AT, PS/2, or other modes.
+			 *          Depending on which, it's either inverted, or not. Imagine model-specific Opposite Day */
 			if (fdc->interface_index < MAX_DISK_IMAGES && imageDiskChange[fdc->interface_index]) b |= 0x80;
 
 			/* NTS: Windows 95's 32-bit floppy driver needs this register to work properly */
