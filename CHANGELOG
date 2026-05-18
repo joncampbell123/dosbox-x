@@ -143,6 +143,7 @@ Next version
     to emulate a now-empty CD-ROM drive. (joncampbell123)
   - Enable "Swap disk" menu command for floppy drives even while running a
     guest OS, as long as a floppy drive was already mounted there. (joncampbell123)
+  - BOOT: Fixed a regression of floppy image detection (maron2000)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
