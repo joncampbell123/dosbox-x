@@ -825,8 +825,11 @@ void FloppyController::on_fdc_in_command() {
 						break;
 					}
 
+#if 0//NTS: Apparently this is ignored. If it was not, OS/2 1.x would have failed to read things properly on real hardware.
+     //     Because reading/writing a 1.44MB floppy (18 sectors/track) with an end track number like you're a 720K floppy (end of track == 9) is something IBM would do.
 					/* if we're at the last sector of the track according to program, then stop */
 					if (in_cmd[4] == in_cmd[6]) break;
+#endif
 
 					/* next sector (TODO "multi-track" mode) */
 					if (in_cmd[4] == image->sectors)
@@ -942,8 +945,11 @@ void FloppyController::on_fdc_in_command() {
 						break;
 					}
 
+#if 0//NTS: Apparently this is ignored. If it was not, OS/2 1.x would have failed to read things properly on real hardware.
+     //     Because reading/writing a 1.44MB floppy (18 sectors/track) with an end track number like you're a 720K floppy (end of track == 9) is something IBM would do.
 					/* if we're at the last sector of the track according to program, then stop */
 					if (in_cmd[4] == in_cmd[6]) break;
+#endif
 
 					/* next sector (TODO "multi-track" mode) */
 					if (in_cmd[4] == image->sectors)
