@@ -1128,6 +1128,7 @@ diskGeo DiskGeometryList[] = {
 
 Bitu call_int13 = 0;
 Bitu diskparm0 = 0, diskparm1 = 0;
+PhysPt floppyparm0 = 0;/* this is a physical memory address! */
 static uint8_t last_status;
 static uint8_t last_drive;
 uint16_t imgDTASeg;
@@ -2151,6 +2152,11 @@ static Bitu INT13_DiskHandler(void) {
                 reg_dl = 1;
                 last_status = 0x00;
                 CALLBACK_SCF(false);
+                {/*fill in ES:DI*/
+                    uint32_t vec = phys_readd(0x78); /* INT 1Eh */
+                    reg_di = vec & 0xFFFFu;
+                    CPU_SetSegGeneral(es,vec >> 16u);
+                }
                 return CBRET_NONE;
             }
             last_status = 0x07;
@@ -2180,11 +2186,26 @@ static Bitu INT13_DiskHandler(void) {
         reg_dh = (uint8_t)tmpheads;
         last_status = 0x00;
         if (reg_dl&0x80) {  // harddisks
+            {/*fill in ES:DI*/
+                uint32_t vec;
+
+                if (drivenum == 0) vec = phys_readd(0x41*4u); /* INT 41h */
+                else if (drivenum == 0) vec = phys_readd(0x46*4u); /* INT 46h */
+                else vec = 0;
+
+                reg_di = (vec & 0xFFFFu);
+                CPU_SetSegGeneral(es,vec >> 16u);
+            }
             reg_dl = 0;
             for (int index = 2; index < MAX_DISK_IMAGES; index++) {
                 if (imageDiskList[index] != NULL) reg_dl++;
             }
         } else {        // floppy disks
+            {/*fill in ES:DI*/
+                uint32_t vec = reg_dl < 2 ? phys_readd(0x78) : 0; /* INT 1Eh */
+                reg_di = vec ? ((vec & 0xFFFFu) + (11 * reg_dl)) : 0;
+                CPU_SetSegGeneral(es,vec >> 16u);
+            }
             reg_dl = 0;
             if(imageDiskList[0] != NULL) reg_dl++;
             if(imageDiskList[1] != NULL) reg_dl++;
@@ -2557,6 +2578,9 @@ void BIOS_SetupDisks(void) {
 
     imgDTASeg = 0;
 
+    floppyparm0 = ROMBIOS_GetMemory(11*2/*two tables*/,"BIOS Floppy parameter tables",1,0);
+    RealSetVec(0x1E,RealMake(floppyparm0 >> 4u,floppyparm0 & 0xFu));
+    for(i=0;i<11*2;i++) phys_writeb(floppyparm0+i,0);
 /* Setup the Bios Area */
     mem_writeb(BIOS_HARDDISK_COUNT,2);
 
