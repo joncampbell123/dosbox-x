@@ -212,6 +212,11 @@ static void fdc_baseio98_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio98_r(Bitu port,Bitu iolen);
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
+void FDC_MotorStep(Bitu idx/*which IDE controller*/);
+
+void FDC_ClearEvents(Bitu interface_index) {
+	PIC_RemoveSpecificEvents(FDC_MotorStep,interface_index);
+}
 
 void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 	FloppyController *fdc;
@@ -254,6 +259,7 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 	fdc->update_ST3();
 	if (fdc->motor_steps != 0) {
 		/* step again */
+		FDC_ClearEvents(idx);
 		PIC_AddEvent(FDC_MotorStep,fdc->fdc_motor_step_delay,idx);
 	}
 	else {
@@ -294,7 +300,7 @@ imageDisk *FloppyDevice::getImage() {
 
 void FloppyController::on_reset() {
 	/* TODO: cancel DOSBox events corresponding to read/seek/etc */
-	PIC_RemoveSpecificEvents(FDC_MotorStep,interface_index);
+	FDC_ClearEvents(interface_index);
 	motor_dir = 0;
 	motor_steps = 0;
 	for (size_t i=0;i < 4;i++) current_cylinder[i] = 0;
@@ -1019,6 +1025,7 @@ void FloppyController::on_fdc_in_command() {
 				busy_status = 1;
 
 				/* and make it happen */
+				FDC_ClearEvents(interface_index);
 				PIC_AddEvent(FDC_MotorStep,(motor_steps > 0 ? fdc_motor_step_delay : 0.1)/*ms*/,interface_index);
 
 				/* return now */
@@ -1175,6 +1182,7 @@ void FloppyController::on_fdc_in_command() {
 				busy_status = 1;
 
 				/* and make it happen */
+				FDC_ClearEvents(interface_index);
 				PIC_AddEvent(FDC_MotorStep,(motor_steps > 0 ? fdc_motor_step_delay : 0.1)/*ms*/,interface_index);
 
 				/* return now */
