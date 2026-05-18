@@ -24,6 +24,7 @@ enum SCREEN_TYPES {
 #endif
     ,SCREEN_TTF
     ,SCREEN_GAMELINK
+    ,SCREEN_TERMINAL
 #if C_DIRECT3D && defined(C_SDL2)
     ,SCREEN_DIRECT3D11
 #endif
