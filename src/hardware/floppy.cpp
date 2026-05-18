@@ -664,7 +664,7 @@ void FloppyController::prepare_res_phase(uint8_t len) {
 void FloppyController::invalid_command_code() {
 	reset_res();
 	prepare_res_phase(1);
-	out_res[0] = ST[0] = 0x80;
+	out_res[0] = ST[0] = 0xC0;
 }
 
 uint8_t FloppyController::fdc_data_read() {
