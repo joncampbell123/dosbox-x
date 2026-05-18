@@ -268,9 +268,11 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 		fdc->reset_io();
 
 		/* real FDC's don't have this insight, but for DOSBox-X debugging... */
-		if (dev != NULL && dev->current_track != fdc->current_cylinder[devidx])
+		if (dev != NULL && dev->current_track != fdc->current_cylinder[devidx]) {
 			LOG_MSG("FDC: warning, after motor step FDC and drive are out of sync (fdc=%u drive=%u). OS or App needs to recalibrate\n",
 				fdc->current_cylinder[devidx],dev->current_track);
+			fdc->current_cylinder[devidx] = dev->current_track;//FIXME
+		}
 
 //		LOG_MSG("FDC: motor step finished. current=%u\n",(int)(fdc->current_cylinder[devidx]));
 	}
@@ -1041,7 +1043,8 @@ void FloppyController::on_fdc_in_command() {
 				reset_res();
 				ST[0] = (ST[0] & 0x3F) | 0x80;
 				out_res[0] = ST[0];
-				prepare_res_phase(1);
+				out_res[1] = current_cylinder[devidx];
+				prepare_res_phase(2);
 			}
 			break;
 		case 0x0A: /* Read ID */
