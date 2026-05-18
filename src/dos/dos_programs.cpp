@@ -2619,7 +2619,7 @@ public:
             else if(!memcmp(hdr, "T98FDDIMAGE.R1\0\0", 16))
                 newDiskSwap[index] = new imageDiskNFD(usefile, fname, floppysize, false, 1);
             else
-                newDiskSwap[index] = new imageDisk(usefile, fname, floppysize, floppysize > 2880);
+                newDiskSwap[index] = new imageDisk(usefile, fname, rombytesize, rombytesize > 2880 * 1024);
 
             if(newDiskSwap[index]) {
                 newDiskSwap[index]->Addref();
