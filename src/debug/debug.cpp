@@ -292,6 +292,7 @@ typedef struct MEMFinder {
 	uint16_t iterations = 0;
 	uint16_t seg = 0;
 	uint32_t ofs = 0;
+	uint32_t baseLinear = 0;
 	uint32_t range = 0;
 	uint32_t value = 0;
 	uint32_t matches = 0;
@@ -2028,7 +2029,7 @@ bool ParseCommand(char* str) {
 			if (MEMFINDInstance != NULL){
 				DEBUG_BeginPagedContent();
 				uint32_t j = 0;
-				for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i+=MEMFINDInstance->size){
+				for (uint32_t i = MEMFINDInstance->baseLinear; i < MEMFINDInstance->baseLinear + MEMFINDInstance->range; i+=MEMFINDInstance->size){
 							switch (MEMFINDInstance->size){
 								case 1:
 									mem_readb_checked((PhysPt)(i),&valfind8);
@@ -2049,7 +2050,7 @@ bool ParseCommand(char* str) {
 							}
 							if (MEMFINDInstance->tableTruth[j] == true){
 								listedvalues++;
-								DEBUG_ShowMsg("DEBUG: [MEMFIND] Address: %04X:%06X Current Value: %08X\n",MEMFINDInstance->seg,(i - (MEMFINDInstance->seg * 16)),valfind);
+								DEBUG_ShowMsg("DEBUG: [MEMFIND] Address: %04X:%06X (lin %08X) Current Value: %0*X\n",MEMFINDInstance->seg,(MEMFINDInstance->ofs + (i - MEMFINDInstance->baseLinear)),i,MEMFINDInstance->size*2,valfind);
 							}
 							j+=MEMFINDInstance->size;
 						}
@@ -2064,12 +2065,19 @@ bool ParseCommand(char* str) {
 		uint32_t ofs = GetHexValue(found,found); found++;
 		uint32_t num = GetHexValue(found,found); found++;
 		if ((MEMFINDInstance == NULL) && (num > 0)){
-			if (((seg*16)+ofs+num) > 16777215){
-				DEBUG_ShowMsg("DEBUG: Address range larger than valid size, cancelling.");
+			uint64_t base = GetAddress(seg,ofs);
+			if (base == mem_no_address){
+				DEBUG_ShowMsg("DEBUG: Invalid selector/segment, cancelling.");
+				return true;
+			}
+			uint64_t memBytes = (uint64_t)MEM_TotalPages() << 12;
+			if ((base + (uint64_t)num) > memBytes){
+				DEBUG_ShowMsg("DEBUG: Range exceeds configured memory (%lX bytes), cancelling.",(unsigned long)memBytes);
 				return true;
 			}
 			DEBUG_ShowMsg("DEBUG: Created memory search instance.");
 			MEMFINDInstance = new MEMFinder;
+			MEMFINDInstance->baseLinear = (uint32_t)base;
 		} else if ((MEMFINDInstance == NULL) && (num == 0)){
 			DEBUG_ShowMsg("DEBUG: --MEMFIND-- Start memory search instance.");
 			DEBUG_ShowMsg("DEBUG: Use MEMS to proceed through search instance.");
@@ -2099,12 +2107,12 @@ bool ParseCommand(char* str) {
 				MEMFINDInstance->size = 1;
 				break;
 		}
-		DEBUG_ShowMsg("DEBUG: RAM search from %04X:%04X with range: %06X\n",seg,ofs,num);
+		DEBUG_ShowMsg("DEBUG: RAM search from %04X:%04X (lin %08X) with range: %06X\n",seg,ofs,MEMFINDInstance->baseLinear,num);
 		MEMFINDInstance->range = num;
 		MEMFINDInstance->ofs = ofs;
 		MEMFINDInstance->seg = seg;
 		MEMFINDInstance->tableTruth.resize(num,true);
-		for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i++){
+		for (uint32_t i = MEMFINDInstance->baseLinear; i < MEMFINDInstance->baseLinear + MEMFINDInstance->range; i++){
 			mem_readb_checked((PhysPt)(i),&valfind8);
 			MEMFINDInstance->tableValue.push_back(valfind8);
 		}
@@ -2181,7 +2189,7 @@ bool ParseCommand(char* str) {
 			MEMFINDInstance->usePreviousValue = false;
 		}
 		uint32_t y = 0;	//This index is seperated from the for loop, as the for loop can start from any index while this particular index starts at 0
-		for (uint32_t i = (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16)); i < (MEMFINDInstance->ofs + (MEMFINDInstance->seg * 16) + MEMFINDInstance->range); i+=MEMFINDInstance->size){
+		for (uint32_t i = MEMFINDInstance->baseLinear; i < MEMFINDInstance->baseLinear + MEMFINDInstance->range; i+=MEMFINDInstance->size){
 			switch (MEMFINDInstance->size){
 				case 1:
 					mem_readb_checked((PhysPt)(i),&valfind8);
@@ -2264,7 +2272,7 @@ bool ParseCommand(char* str) {
 			if (MEMFINDInstance->usePreviousValue == true){
 				DEBUG_ShowMsg("DEBUG: No more matches found when comparing %s previous value. Memory search instance finished.\n",opTypeStr);
 			} else {
-				DEBUG_ShowMsg("DEBUG: No more matches found with value %s (%06X). Memory search instance finished.\n",opTypeStr,value);
+				DEBUG_ShowMsg("DEBUG: No more matches found with value %s (%0*X). Memory search instance finished.\n",opTypeStr,MEMFINDInstance->size*2,value);
 			}
 			MEMFINDInstance->tableTruth.clear();
 			MEMFINDInstance->tableValue.clear();
@@ -2276,7 +2284,7 @@ bool ParseCommand(char* str) {
 				if (MEMFINDInstance->usePreviousValue == true){
 					DEBUG_ShowMsg("DEBUG: (%06X) addresses matching %s their previous values. Iterations: %06X\n",MEMFINDInstance->matches,opTypeStr,MEMFINDInstance->iterations);
 				} else {
-					DEBUG_ShowMsg("DEBUG: (%06X) matches found with value %s (%06X). Iterations: %06X\n",MEMFINDInstance->matches,opTypeStr,value,MEMFINDInstance->iterations);
+					DEBUG_ShowMsg("DEBUG: (%06X) matches found with value %s (%0*X). Iterations: %06X\n",MEMFINDInstance->matches,opTypeStr,MEMFINDInstance->size*2,value,MEMFINDInstance->iterations);
 				}
 		}
 		return true;
