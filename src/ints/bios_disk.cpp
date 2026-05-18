@@ -1201,6 +1201,7 @@ void updateDPT(void) {
 
 void updateFloppyDPT(void) {
     if (floppyparm0) {
+        LOG(LOG_MISC,LOG_DEBUG)("Updating floppy DPT");
         for (unsigned int fi=0;fi < 2;fi++) {
             PhysPt tp = floppyparm0 + (fi * 11);
 
@@ -2227,9 +2228,13 @@ static Bitu INT13_DiskHandler(void) {
                 last_status = 0x00;
                 CALLBACK_SCF(false);
                 {/*fill in ES:DI*/
-                    uint32_t vec = phys_readd(0x78); /* INT 1Eh */
-                    reg_di = vec & 0xFFFFu;
-                    CPU_SetSegGeneral(es,vec >> 16u);
+                    /* Even though BIOSes document vectors pointed at tables,
+                     * return the address in BIOS because Windows 95 apparently
+                     * likes to replace INT 0x1E with a pointer to whatever else
+                     * it decides, and then complain that the floppy controller
+                     * isn't working without ever touching I/O ports. What a jackass. */
+                    reg_di = floppyparm0 & 0xFu;
+                    CPU_SetSegGeneral(es,floppyparm0 >> 4u);
                 }
                 return CBRET_NONE;
             }
@@ -2267,9 +2272,19 @@ static Bitu INT13_DiskHandler(void) {
             }
         } else {        // floppy disks
             {/*fill in ES:DI*/
-                uint32_t vec = reg_dl < 2 ? phys_readd(0x78) : 0; /* INT 1Eh */
-                reg_di = vec ? ((vec & 0xFFFFu) + (11 * reg_dl)) : 0;
-                CPU_SetSegGeneral(es,vec >> 16u);
+                /* Even though BIOSes document vectors pointed at tables,
+                 * return the address in BIOS because Windows 95 apparently
+                 * likes to replace INT 0x1E with a pointer to whatever else
+                 * it decides, and then complain that the floppy controller
+                 * isn't working without ever touching I/O ports. What a jackass. */
+                if (reg_dl < 2) {
+                    reg_di = (floppyparm0 & 0xFu) + (reg_dl * 11u);
+                    CPU_SetSegGeneral(es,floppyparm0 >> 4u);
+                }
+                else {
+                    reg_di = 0;
+                    CPU_SetSegGeneral(es,0);
+                }
             }
             reg_dl = 0;
             if(imageDiskList[0] != NULL) reg_dl++;
@@ -2645,7 +2660,7 @@ void BIOS_SetupDisks(void) {
 
     floppyparm0 = ROMBIOS_GetMemory(11*2/*two tables*/,"BIOS Floppy parameter tables",1,0);
     RealSetVec(0x1E,RealMake(floppyparm0 >> 4u,floppyparm0 & 0xFu));
-    for(i=0;i<11*2;i++) phys_writeb(floppyparm0+i,0);
+    updateFloppyDPT();
 /* Setup the Bios Area */
     mem_writeb(BIOS_HARDDISK_COUNT,2);
 
