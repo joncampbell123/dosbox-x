@@ -151,6 +151,7 @@ public:
 	void prepare_res_phase(uint8_t len);
 	void on_dor_change(unsigned char b);
 	void invalid_command_code();
+	void ProcessReadID(void);
 	void on_fdc_in_command();
 	void on_reset();
 public:
@@ -213,8 +214,10 @@ static Bitu fdc_baseio98_r(Bitu port,Bitu iolen);
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
 void FDC_MotorStep(Bitu idx/*which IDE controller*/);
+void FDC_ProcessReadID(Bitu interface_index);
 
 void FDC_ClearEvents(Bitu interface_index) {
+	PIC_RemoveSpecificEvents(FDC_ProcessReadID,interface_index);
 	PIC_RemoveSpecificEvents(FDC_MotorStep,interface_index);
 }
 
@@ -280,8 +283,64 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 			fdc->current_cylinder[devidx] = dev->current_track;//FIXME
 		}
 
-//		LOG_MSG("FDC: motor step finished. current=%u\n",(int)(fdc->current_cylinder[devidx]));
+		//LOG_MSG("FDC: motor step finished. current=%u\n",(int)(fdc->current_cylinder[devidx]));
 	}
+}
+
+void FDC_ProcessReadID(Bitu interface_index) {
+	FloppyController *fdc;
+
+	if (interface_index >= MAX_FLOPPY_CONTROLLERS) return;
+	fdc = floppycontroller[interface_index];
+	if (fdc == NULL) return;
+	fdc->ProcessReadID();
+}
+
+void FloppyController::ProcessReadID(void) {
+	int devidx = drive_selected()&3;
+	FloppyDevice *dev = device[devidx];
+
+	imageDisk *image=NULL;
+	if (dev != NULL) image = dev->getImage();
+
+	if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
+	if (dev != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
+		current_cylinder[devidx] < image->cylinders && ((in_cmd[1]&4U)?1U:0U) <= image->heads) {
+		int ns = (int)floor(dev->floppy_image_motor_position() * image->sectors);
+		/* TODO: minor delay to emulate time for one sector to pass under the head */
+		reset_res();
+		out_res[0] = ST[0];
+		out_res[1] = ST[1];
+		out_res[2] = ST[2];
+		out_res[3] = current_cylinder[devidx];
+		out_res[4] = ((in_cmd[1]&4)?1:0);
+		out_res[5] = ns + 1;		/* the sector passing under the head at this time */
+		{
+			unsigned int sz = (unsigned int)image->sector_size;
+			out_res[6] = 0;			    /* 128 << 2 == 512 bytes/sector */
+			while (sz > 128u && out_res[6] < FLOPPY_MAX_SECTOR_SIZE_SZCODE) {
+				out_res[6]++;
+				sz >>= 1u;
+			}
+		}
+		prepare_res_phase(7);
+	}
+	else {
+		/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */
+		reset_res();
+		ST[0] = (ST[0] & 0x3F) | 0x80;
+		ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
+		ST[2] = (1 << 0)/*missing data address mark*/;
+		prepare_res_phase(1);
+		out_res[0] = ST[0];
+	}
+	raise_irq();//Does not raise IRQ? Or does it?
+	ST[0] &= ~0x20;
+
+	LOG_MSG("FDC: Read ID Response len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+		out_res_len,
+		out_res[0],out_res[1],out_res[2],out_res[3],out_res[4],
+		out_res[5],out_res[6],out_res[7],out_res[8],out_res[9]);
 }
 
 double FloppyDevice::floppy_image_motor_position() {
@@ -304,6 +363,8 @@ void FloppyController::on_reset() {
 	motor_dir = 0;
 	motor_steps = 0;
 	for (size_t i=0;i < 4;i++) current_cylinder[i] = 0;
+	data_register_ready = 1;
+	data_read_expected = 0;
 	busy_status = 0;
 	ST[0] &= 0x3F;
 	reset_io();
@@ -663,6 +724,7 @@ bool fdc_takes_port_3F7() {
 }
 
 void FloppyController::prepare_res_phase(uint8_t len) {
+	data_register_ready = 1;
 	data_read_expected = 1;
 	out_res_pos = 0;
 	out_res_len = len;
@@ -1075,39 +1137,18 @@ void FloppyController::on_fdc_in_command() {
 			 */
 			/* must have a device present. must have an image. device motor and select must be enabled.
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
-			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
-			if (dev != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
-				current_cylinder[devidx] < image->cylinders && ((in_cmd[1]&4U)?1U:0U) <= image->heads) {
-				int ns = (int)floor(dev->floppy_image_motor_position() * image->sectors);
-				/* TODO: minor delay to emulate time for one sector to pass under the head */
-				reset_res();
-				out_res[0] = ST[0];
-				out_res[1] = ST[1];
-				out_res[2] = ST[2];
-				out_res[3] = current_cylinder[devidx];
-				out_res[4] = ((in_cmd[1]&4)?1:0);
-				out_res[5] = ns + 1;		/* the sector passing under the head at this time */
-				{
-					unsigned int sz = (unsigned int)image->sector_size;
-					out_res[6] = 0;			    /* 128 << 2 == 512 bytes/sector */
-					while (sz > 128u && out_res[6] < FLOPPY_MAX_SECTOR_SIZE_SZCODE) {
-						out_res[6]++;
-						sz >>= 1u;
-					}
-				}
-				prepare_res_phase(7);
+			if (instant_mode) {
+				FDC_ProcessReadID(interface_index);
 			}
 			else {
-				/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */
-				reset_res();
-				ST[0] = (ST[0] & 0x3F) | 0x80;
-				ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
-				ST[2] = (1 << 0)/*missing data address mark*/;
-				prepare_res_phase(1);
-				out_res[0] = ST[0];
+				/* do it */
+				busy_status = 1;
+				data_read_expected = 0;
+				data_register_ready = 0;
+				FDC_ClearEvents(interface_index);
+				PIC_AddEvent(FDC_ProcessReadID,(1000.00 / 18.00/*1.44MB*/ / 5.0/*300rpm==5rps*/ / 2.0/*for good measure*/)/*ms*/,interface_index);
+				return;
 			}
-			raise_irq();
-			ST[0] &= ~0x20;
 			break;
 		case 0x0C: /* Read deleted data (1100) */
 			/*     |   7    6    5    4    3    2    1    0
@@ -1535,7 +1576,7 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 				(fdc->positioning[2] ? 0x04 : 0x00) +
 				(fdc->positioning[1] ? 0x02 : 0x00) +
 				(fdc->positioning[0] ? 0x01 : 0x00);
-//			LOG_MSG("FDC: read status 0x%02x\n",b);
+			//LOG_MSG("FDC: read status 0x%02x\n",b);
 			return b;
 		case 5: /* data */
 			if (!fdc->data_register_ready) {
@@ -1548,7 +1589,7 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 			}
 
 			b = fdc->fdc_data_read();
-//			LOG_MSG("FDC: read data 0x%02x\n",b);
+			//LOG_MSG("FDC: read data 0x%02x\n",b);
 			return b;
 		case 7: /* digital input register */
 			/* bit[7] = disk change
@@ -1562,7 +1603,6 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 			 *          Depending on which, it's either inverted, or not. Imagine model-specific Opposite Day */
 			if (fdc->interface_index < MAX_DISK_IMAGES && imageDiskChange[fdc->interface_index]) b |= 0x80;
 
-			/* NTS: Windows 95's 32-bit floppy driver needs this register to work properly */
 			return b;
 		default:
 			LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",(int)port,(int)iolen);
