@@ -101,6 +101,8 @@ public:
  *    bit[1..0]----status of DS1..DS0 pins
  */
 
+extern bool imageDiskChange[MAX_DISK_IMAGES];
+
 class FloppyController:public Module_base{
 public:
 	int IRQ;
@@ -236,7 +238,7 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 	if (fdc->motor_steps > 0) {
 		fdc->motor_steps--;
 		if ((fdc->motor_dir < 0 && fdc->current_cylinder[devidx] != 0x00) ||
-				(fdc->motor_dir > 0 && fdc->current_cylinder[devidx] != 0xFF)) {
+			(fdc->motor_dir > 0 && fdc->current_cylinder[devidx] != 0xFF)) {
 			fdc->current_cylinder[devidx] += fdc->motor_dir;
 		}
 
@@ -268,7 +270,7 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 		/* real FDC's don't have this insight, but for DOSBox-X debugging... */
 		if (dev != NULL && dev->current_track != fdc->current_cylinder[devidx])
 			LOG_MSG("FDC: warning, after motor step FDC and drive are out of sync (fdc=%u drive=%u). OS or App needs to recalibrate\n",
-					fdc->current_cylinder[devidx],dev->current_track);
+				fdc->current_cylinder[devidx],dev->current_track);
 
 //		LOG_MSG("FDC: motor step finished. current=%u\n",(int)(fdc->current_cylinder[devidx]));
 	}
@@ -755,6 +757,8 @@ void FloppyController::on_fdc_in_command() {
 			 */
 			/* must have a device present. must have an image. device motor and select must be enabled.
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
+			ST[0] &= ~0x20;
+			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
 			dma = GetDMAChannel(DMA);
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
 				current_cylinder[devidx] < image->cylinders && ((in_cmd[1]&4U)?1U:0U) <= image->heads &&
@@ -874,6 +878,8 @@ void FloppyController::on_fdc_in_command() {
 			 * In order to support copy-protected booter games (IBM PC or PC-98) the sector number is NOT range
 			 * limited in order to support games such as Star Cruiser that look for intentionally out of range
 			 * sector numbers. */
+			ST[0] &= ~0x20;
+			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
 			dma = GetDMAChannel(DMA);
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
 					current_cylinder[devidx] < image->cylinders && ((in_cmd[1]&4U)?1U:0U) <= image->heads &&
@@ -984,10 +990,12 @@ void FloppyController::on_fdc_in_command() {
 			raise_irq();
 			break;
 		case 0x07: /* Calibrate drive */
-			ST[0] = 0x20 | devidx;
+			ST[0] = devidx;
+			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
 			if (instant_mode) {
 				/* move head to track 0 */
 				current_cylinder[devidx] = 0;
+				ST[0] |= 0x20;/*seek complete*/
 				/* fire IRQ */
 				raise_irq();
 				/* no result phase */
@@ -1052,6 +1060,7 @@ void FloppyController::on_fdc_in_command() {
 			/* must have a device present. must have an image. device motor and select must be enabled.
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
 			ST[0] &= ~0x20;
+			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
 			if (dev != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
 				current_cylinder[devidx] < image->cylinders && ((in_cmd[1]&4U)?1U:0U) <= image->heads) {
 				int ns = (int)floor(dev->floppy_image_motor_position() * image->sectors);
@@ -1099,6 +1108,8 @@ void FloppyController::on_fdc_in_command() {
 			 */
 			/* the raw images used by DOSBox cannot represent "deleted sectors", so always fail */
 			reset_res();
+			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
+			ST[0] &= ~0x20;
 			ST[0] = (ST[0] & 0x1F) | 0x80;
 			ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
 			ST[2] = (1 << 0)/*missing data address mark*/;
@@ -1135,9 +1146,11 @@ void FloppyController::on_fdc_in_command() {
 			break;
 		case 0x0F: /* Seek Head */
 			ST[0] = 0x00 | drive_selected();
+			if (interface_index < MAX_DISK_IMAGES) imageDiskChange[interface_index] = false;//FIXME
 			if (instant_mode) {
 				/* move head to whatever track was wanted */
 				current_cylinder[devidx] = in_cmd[2]; /* from 3rd byte of command */
+				ST[0] |= 0x20;/*seek complete*/
 				/* fire IRQ */
 				raise_irq();
 				/* no result phase */
@@ -1519,6 +1532,18 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 
 			b = fdc->fdc_data_read();
 //			LOG_MSG("FDC: read data 0x%02x\n",b);
+			return b;
+		case 7: /* digital input register */
+			/* bit[7] = disk change
+			 * bit[6..3] = 1;
+			 * bit[2..1] = data rate selected
+			 * bit[0] = ~high density */
+			b = 0x78; /* dsr=0 high density */
+
+			/* HACK: Re-use from INT 13h emulation */
+			if (fdc->interface_index < MAX_DISK_IMAGES && imageDiskChange[fdc->interface_index]) b |= 0x80;
+
+			/* NTS: Windows 95's 32-bit floppy driver needs this register to work properly */
 			return b;
 		default:
 			LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",(int)port,(int)iolen);
