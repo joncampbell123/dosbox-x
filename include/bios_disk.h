@@ -583,6 +583,7 @@ struct partTable {
 
 void updateDPT(void);
 void incrementFDD(void);
+void updateFloppyDPT(void);
 
 //in order to attach to the virtual IDE controllers, the disk must be mounted
 //  in the BIOS first (the imageDiskList array), so the IDE controller can obtain

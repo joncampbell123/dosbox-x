@@ -1798,7 +1798,10 @@ public:
             }
 #endif
         }
-        if(type == "floppy") incrementFDD();
+        if(type == "floppy") {
+            incrementFDD();
+            updateFloppyDPT();
+	}
         return;
 showusage:
         resetcolor = true;
@@ -3236,7 +3239,10 @@ public:
 
             if (drive == 'A' || drive == 'B') {
                 FDC_AssignINT13Disk(drive - 'A');
-                if (!IS_PC98_ARCH) incrementFDD();
+                if (!IS_PC98_ARCH) {
+                    incrementFDD();
+                    updateFloppyDPT();
+                }
             }
 
             /* NTS: IBM PC and PC-98 both use DMA channel 2 for the floppy, though according to
@@ -5586,6 +5592,7 @@ bool AttachToBiosByIndex(imageDisk* image, const unsigned char bios_drive_index)
     if (bios_drive_index <= 1) {
         FDC_AssignINT13Disk(bios_drive_index);
         incrementFDD();
+        updateFloppyDPT();
     }
 
     return true;
