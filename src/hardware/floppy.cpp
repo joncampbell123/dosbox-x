@@ -67,7 +67,7 @@ public:
  *    bit[7..6]----interrupt code  0=normal command end 1=abnormal command end 2=invalid command 3=abnormal termination from polling
  *    bit[5]-------seek end (SEEK or RECALIBRATE)
  *    bit[4]-------equipment check, TRK0 failed to signal after 80 step pulses from RECALIBRATE, or RELATIVE SEEK went past track 0
- *    bit[3]-------always zero?
+ *    bit[3]-------not ready, set on attempt to read/write when not ready, or to side 1 of single-sided drive
  *    bit[2]-------current head address
  *    bit[1..0]----current drive select
  *
@@ -86,17 +86,17 @@ public:
  *    bit[6]-------control mark, read data matched deleted sector, read data deleted matched non-deleted sector
  *    bit[5]-------data field (CRC) error
  *    bit[4]-------wrong track, sector ID field has different track number than expected
- *    bit[3]-------always zero?
- *    bit[2]-------always zero?
+ *    bit[3]-------scan equal hit
+ *    bit[2]-------scan not satisfied
  *    bit[1]-------track address from sector ID is different than what the chip thinks internally and is equal to 0xFF which means bad track with hard error (IBM)
  *    bit[0]-------missing address mark, cannot detect data address mark
  *
  * ST[3]:
- *    bit[7]-------always zero
+ *    bit[7]-------fault status
  *    bit[6]-------write protect status
- *    bit[5]-------always one
+ *    bit[5]-------ready status
  *    bit[4]-------track 0 status
- *    bit[3]-------always one
+ *    bit[3]-------two sided signal
  *    bit[2]-------head select status
  *    bit[1..0]----status of DS1..DS0 pins
  */
