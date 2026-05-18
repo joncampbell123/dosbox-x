@@ -1198,6 +1198,50 @@ void updateDPT(void) {
     }
 }
 
+
+void updateFloppyDPT(void) {
+    if (floppyparm0) {
+        for (unsigned int fi=0;fi < 2;fi++) {
+            PhysPt tp = floppyparm0 + (fi * 11);
+
+            if (imageDiskList[fi]) {
+                uint32_t tmpheads, tmpcyl, tmpsect, tmpsize;
+                imageDiskList[fi]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
+
+                phys_writeb(tp+0,(8 << 4u)/*Head Unload Time*/ | 8/*Step Rate Time*/);//GUESS
+                phys_writeb(tp+1,(8 << 2u)/*Head Load Time*/ | 0x01/*use DMA*/);//GUESS
+                phys_writeb(tp+2,1000 / 55u);/*55ms increments to motor off (1 second)*/
+
+                /* sector size as a power of 2 from 128 onward */
+                if (tmpsize == 128)
+                    phys_writeb(tp+3,0);
+                else if (tmpsize == 256)
+                    phys_writeb(tp+3,1);
+                else if (tmpsize == 512)
+                    phys_writeb(tp+3,2);
+                else if (tmpsize == 1024)
+                    phys_writeb(tp+3,3);
+                else if (tmpsize == 2048)
+                    phys_writeb(tp+3,4);
+                else
+                    phys_writeb(tp+3,2);
+
+                phys_writeb(tp+4,tmpsect);/*last sector on track*/
+                phys_writeb(tp+5,0x10);/*Gap length (GUESS)*/
+                phys_writeb(tp+6,0xFF);/*Data transfer length max transfer when length not set (GUESS)*/
+                phys_writeb(tp+7,0x10);/*Gap length for format operation (GUESS)*/
+                phys_writeb(tp+8,0xF6);/*Fill char for format operation*/
+                phys_writeb(tp+9,0x10);/*Head settle time in millseconds (GUESS)*/
+                phys_writeb(tp+10,3);/*Motor on startup time in 1/8 second units*/
+            }
+            else {
+                for (unsigned int i=0;i < 11;i++)
+                    phys_writeb(tp+i,0);
+            }
+        }
+    }
+}
+
 void incrementFDD(void) {
     uint16_t equipment=mem_readw(BIOS_CONFIGURATION);
     if(equipment&1) {
@@ -2960,6 +3004,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK
                 active = false;
             } else {
                 incrementFDD();
+                updateFloppyDPT();
             }
         }
     }
@@ -3289,6 +3334,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, const char *imgName, uint32_t imgSizeK
             active = false;
         } else {
             incrementFDD();
+            updateFloppyDPT();
         }
     }
 }
@@ -3644,6 +3690,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK
             active = false;
         } else {
             incrementFDD();
+            updateFloppyDPT();
         }
     }
 }
