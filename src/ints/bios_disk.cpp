@@ -1234,6 +1234,36 @@ void updateFloppyDPT(void) {
                 phys_writeb(tp+9,0x10);/*Head settle time in millseconds (GUESS)*/
                 phys_writeb(tp+10,3);/*Motor on startup time in 1/8 second units*/
             }
+            else if (fi == 0) {
+                /* Present it as a 1.44MB drive */
+                uint32_t tmpheads = 2, tmpcyl = 80, tmpsect = 18, tmpsize = 512;
+
+                phys_writeb(tp+0,(8 << 4u)/*Head Unload Time*/ | 8/*Step Rate Time*/);//GUESS
+                phys_writeb(tp+1,(8 << 2u)/*Head Load Time*/ | 0x01/*use DMA*/);//GUESS
+                phys_writeb(tp+2,1000 / 55u);/*55ms increments to motor off (1 second)*/
+
+                /* sector size as a power of 2 from 128 onward */
+                if (tmpsize == 128)
+                    phys_writeb(tp+3,0);
+                else if (tmpsize == 256)
+                    phys_writeb(tp+3,1);
+                else if (tmpsize == 512)
+                    phys_writeb(tp+3,2);
+                else if (tmpsize == 1024)
+                    phys_writeb(tp+3,3);
+                else if (tmpsize == 2048)
+                    phys_writeb(tp+3,4);
+                else
+                    phys_writeb(tp+3,2);
+
+                phys_writeb(tp+4,tmpsect);/*last sector on track*/
+                phys_writeb(tp+5,0x10);/*Gap length (GUESS)*/
+                phys_writeb(tp+6,0xFF);/*Data transfer length max transfer when length not set (GUESS)*/
+                phys_writeb(tp+7,0x10);/*Gap length for format operation (GUESS)*/
+                phys_writeb(tp+8,0xF6);/*Fill char for format operation*/
+                phys_writeb(tp+9,0x10);/*Head settle time in millseconds (GUESS)*/
+                phys_writeb(tp+10,3);/*Motor on startup time in 1/8 second units*/
+            }
             else {
                 for (unsigned int i=0;i < 11;i++)
                     phys_writeb(tp+i,0);
