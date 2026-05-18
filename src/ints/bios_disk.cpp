@@ -2260,16 +2260,7 @@ static Bitu INT13_DiskHandler(void) {
         reg_dh = (uint8_t)tmpheads;
         last_status = 0x00;
         if (reg_dl&0x80) {  // harddisks
-            {/*fill in ES:DI*/
-                uint32_t vec;
-
-                if (drivenum == 0) vec = phys_readd(0x41*4u); /* INT 41h */
-                else if (drivenum == 0) vec = phys_readd(0x46*4u); /* INT 46h */
-                else vec = 0;
-
-                reg_di = (vec & 0xFFFFu);
-                CPU_SetSegGeneral(es,vec >> 16u);
-            }
+            /* do NOT fill in ES:DI for hard disks, it causes Windows 95 to crash at startup! */
             reg_dl = 0;
             for (int index = 2; index < MAX_DISK_IMAGES; index++) {
                 if (imageDiskList[index] != NULL) reg_dl++;
