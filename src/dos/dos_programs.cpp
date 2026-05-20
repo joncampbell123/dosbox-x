@@ -7285,7 +7285,7 @@ class IMGMOUNT : public Program {
 		}
 
 	public:
-		bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+		bool MountIso(const char drive, const std::vector<std::string> &paths, signed char ide_index, bool ide_slave) {
 			//If mounting while a guest OS is active, you may ONLY replace an ISO with an ISO! You may not mount a new drive!
 			if (dos_kernel_disabled) {
 				if (Drives[drive - 'A']) {
@@ -7348,9 +7348,19 @@ class IMGMOUNT : public Program {
 			if (!dos_kernel_disabled)
 				mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
 
-			// If instructed, attach to IDE controller as ATAPI CD-ROM device, unless replacement mode
-			if (ide_index >= 0 && !opt_replace) IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');
-
+			// Attach to IDE controller as ATAPI CD-ROM device, unless replacement mode
+            if(!opt_replace) {
+                // If no IDE index specified (negative value), try to find an open slot for a CD-ROM drive
+                if(ide_index < 0) {
+                    if(!IDE_controller_occupied(1, false)) { // CD-ROMS default to Secondary master if not occupied
+                        ide_index = 1;
+                        ide_slave = false;
+                    }
+                }
+                if(ide_index < 0) IDE_Auto(ide_index, ide_slave); // Pick an empty slot if secondary master is occupied
+                if(ide_index >= 0)IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');
+                else LOG_MSG("IMGMOUNT: No available IDE slot found to attach CD-ROM drive, drive will be available only as MSCDEX drive letter");
+            }
 			// for replacement, make sure IDE controller is updated
 			if (opt_replace && Drives[drive - 'A']) {
 				isoDrive *isodrv = dynamic_cast<isoDrive*>(Drives[drive - 'A']);
