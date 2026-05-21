@@ -849,6 +849,9 @@
     <ClCompile Include="..\src\output\output_surface.cpp">
       <Filter>Sources\output</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\output\output_terminal.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\output\output_direct3d.cpp">
       <Filter>Sources\output</Filter>
     </ClCompile>
@@ -2622,6 +2625,7 @@
     <ClInclude Include="..\src\gamelink\gamelink.h" />
     <ClInclude Include="..\src\gamelink\scancodes_windows.h" />
     <ClInclude Include="..\src\output\output_gamelink.h" />
+    <ClInclude Include="..\src\output\output_terminal.h" />
     <ClInclude Include="..\src\cpu\dynamic_alloc_common.h">
       <Filter>Sources\cpu</Filter>
     </ClInclude>

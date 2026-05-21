@@ -187,6 +187,7 @@ char* revert_escape_newlines(const char* aMessage);
 #include <output/output_direct3d.h>
 #include <output/output_opengl.h>
 #include <output/output_surface.h>
+#include <output/output_terminal.h>
 #include <output/output_tools.h>
 #include <output/output_ttf.h>
 #include <output/output_tools_xbrz.h>
@@ -1999,6 +2000,10 @@ Bitu GFX_GetBestMode(Bitu flags)
             break;
 #endif
 
+        case SCREEN_TERMINAL:
+            retFlags = OUTPUT_TERMINAL_GetBestMode(flags);
+            break;
+
 #if defined(USE_TTF)
         case SCREEN_TTF:
             retFlags = GFX_CAN_32 | GFX_SCALING;
@@ -2267,6 +2272,10 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
             retFlags = OUTPUT_GAMELINK_SetSize();
             break;
 #endif
+
+        case SCREEN_TERMINAL:
+            retFlags = OUTPUT_TERMINAL_SetSize();
+            break;
 
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
@@ -3141,7 +3150,7 @@ void GFX_SwitchFullScreen(void)
 }
 
 static void SwitchFullScreen(bool pressed) {
-    if (!pressed || sdl.desktop.want_type == SCREEN_GAMELINK)
+    if (!pressed || sdl.desktop.want_type == SCREEN_GAMELINK || sdl.desktop.want_type == SCREEN_TERMINAL)
         return;
 
     GFX_LosingFocus();
@@ -3249,6 +3258,9 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
         case SCREEN_GAMELINK:
             return OUTPUT_GAMELINK_StartUpdate(pixels, pitch);
 #endif
+
+        case SCREEN_TERMINAL:
+            return OUTPUT_TERMINAL_StartUpdate(pixels, pitch);
 
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
@@ -3365,6 +3377,10 @@ switch_type:
             break;
 #endif
 
+        case SCREEN_TERMINAL:
+            OUTPUT_TERMINAL_EndUpdate(changedLines);
+            break;
+
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
             OUTPUT_DIRECT3D_EndUpdate(changedLines);
@@ -3452,6 +3468,9 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
             return (((unsigned long)blue <<  0ul) | ((unsigned long)green <<  8ul) | ((unsigned long)red << 16ul)) | (255ul << 24ul);
 #endif
 
+        case SCREEN_TERMINAL:
+            return (((unsigned long)blue <<  0ul) | ((unsigned long)green <<  8ul) | ((unsigned long)red << 16ul)) | (255ul << 24ul);
+
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
 #if defined(C_SDL2)
@@ -3515,6 +3534,9 @@ static void GUI_ShutDown(Section * /*sec*/) {
             break;
 #endif
 #endif
+        case SCREEN_TERMINAL:
+            OUTPUT_TERMINAL_Shutdown();
+            break;
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         case SCREEN_METAL:
             OUTPUT_Metal_Shutdown();
@@ -4096,7 +4118,7 @@ static void GUI_StartUp() {
 
     if (sdl_xbrz.enable) {
         // xBRZ requirements
-        if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq")  && (output != "openglnb") && (output != "openglpp") && (output != "ttf") && (output != "gamelink"))
+        if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq")  && (output != "openglnb") && (output != "openglpp") && (output != "ttf") && (output != "gamelink") && (output != "terminal"))
             output = "surface";
     }
 #endif
@@ -4159,6 +4181,10 @@ static void GUI_StartUp() {
     {
         OUTPUT_GAMELINK_Select();
 #endif
+    }
+    else if (output == "terminal")
+    {
+        OUTPUT_TERMINAL_Select();
 #if C_DIRECT3D
     }
     else if (output == "direct3d")
@@ -5909,6 +5935,10 @@ void GFX_Events() {
 #if C_GAMELINK
     if (sdl.desktop.type == SCREEN_GAMELINK) OUTPUT_GAMELINK_InputEvent();
 #endif
+    if (sdl.desktop.type == SCREEN_TERMINAL) {
+        OUTPUT_TERMINAL_InputEvent();
+        return;
+    }
 
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
@@ -6829,6 +6859,7 @@ void SDL_SetupConfigSection() {
 #if C_GAMELINK
         "gamelink",
 #endif
+        "terminal",
         "ddraw",
 #if C_DIRECT3D
         "direct3d", "direct3d11",
@@ -6843,7 +6874,7 @@ void SDL_SetupConfigSection() {
     Pint->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
-    Pstring->Set_help("What video system to use for output (surface = software (SDL_Surface); openglnb = OpenGL nearest; openglpp = OpenGL perfect; ttf = TrueType font output).");
+    Pstring->Set_help("What video system to use for output (surface = software (SDL_Surface); openglnb = OpenGL nearest; openglpp = OpenGL perfect; ttf = TrueType font output; terminal = Unix text-mode terminal output).");
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
 
@@ -9319,8 +9350,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         putenv(const_cast<char*>("SDL_DISABLE_LOCK_KEYS=1"));
         LOG(LOG_GUI,LOG_DEBUG)("SDL 1.2.14 hack: SDL_DISABLE_LOCK_KEYS=1");
 #endif
-        std::string videodriver = static_cast<Section_prop *>(control->GetSection("sdl"))->Get_string("videodriver");
-        if (videodriver.size()) {
+        Section_prop *sdl_section = static_cast<Section_prop *>(control->GetSection("sdl"));
+        const bool terminal_output_requested = !strcasecmp(sdl_section->Get_string("output"), "terminal");
+        std::string videodriver = sdl_section->Get_string("videodriver");
+        if (terminal_output_requested) {
+            /* Terminal output does not create an SDL window, but still uses SDL for events/audio. */
+            static char terminal_sdl_videodriver[] = "SDL_VIDEODRIVER=dummy";
+            putenv(terminal_sdl_videodriver);
+        } else if (videodriver.size()) {
             videodriver = "SDL_VIDEODRIVER="+videodriver;
             putenv((char *)videodriver.c_str());
         }
