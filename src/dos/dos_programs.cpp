@@ -2127,6 +2127,7 @@ public:
         bool bios_boot = false;
         bool swaponedrive = false;
         bool convertro = false;
+        bool zeromem = false;
         bool force = false;
         int loadseg_user = -1;
         int convimg = -1;
@@ -2141,6 +2142,9 @@ public:
 
         if (cmd->FindExist("-swap-one-drive",true))
             swaponedrive = true;
+
+        if (cmd->FindExist("-zeromem",true))
+            zeromem = true;
 
         //look for -el-torito parameter and remove it from the command line.
         //This is copy-pasta to be consistent with the IMGMOUNT command which accepts this as either -el-torito or -bootcd.
@@ -2314,7 +2318,7 @@ public:
 
         /* IBM PC:
          *    CS:IP = 0000:7C00     Load = 07C0:0000
-         *    SS:SP = ???
+         *    SS:SP = 0030:0080 (PCjr at least)
          *
          * PC-98:
          *    CS:IP = 1FC0:0000     Load = 1FC0:0000
@@ -2323,7 +2327,7 @@ public:
          * Reportedly PC-98 will load to 1FE0:0000 when booting the 1.44MB format (512 bytes per sector).
          * Note that 0x1FC0:0000 leaves enough room for the 1024 bytes per sector format of PC-98.
          */
-        Bitu stack_seg=IS_PC98_ARCH ? 0x0030 : 0x7000;
+        Bitu stack_seg=0x0030;
         Bitu load_seg;//=IS_PC98_ARCH ? 0x1FC0 : 0x07C0;
 
         if (MEM_ConventionalPages() > 0x9C)
@@ -3227,9 +3231,25 @@ public:
                 }
             }
 
+            /* zero out DOS memory */
+            if (!dos_kernel_disabled && !dos_kernel_shutdown_mcb && zeromem) {
+                unsigned int max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << 10u;
+                if (max_conv > 0xC0000) max_conv = 0xC0000;
+
+                //LOG(LOG_MISC,LOG_DEBUG)("XX %x",max_conv);
+                PhysPt e = (PhysPt)max_conv;
+                PhysPt b = IS_PC98_ARCH ? 0x600 : 0x501;
+
+                if (b < e) {
+                        LOG(LOG_MISC,LOG_DEBUG)("BOOT: Clearing DOS memory %x to %x",(unsigned int)b,(unsigned int)e);
+                        for (PhysPt p=b;p < e;p++) phys_writeb(p,0);
+                        b = e;
+                }
+            }
+
             /* we're about to overwrite low memory and possibly corrupt the MCB, and the shell now frees memory.
              * to avoid a MCB corruption crash in this emulation, reset the MCB chain now. */
-	    dos_kernel_shutdown_mcb = true;
+            dos_kernel_shutdown_mcb = true;
 
             for(i=0;i<bootsize;i++) real_writeb((uint16_t)load_seg, (uint16_t)i, bootarea.rawdata[i]);
 
@@ -3415,7 +3435,7 @@ public:
                 SegSet16(es, 0);
                 reg_ip = (uint16_t)(load_seg<<4);
                 reg_ebx = (uint32_t)(load_seg<<4); //Real code probably uses bx to load the image
-                reg_esp = 0x100;
+                reg_esp = 0x80;
                 /* set up stack at a safe place */
                 SegSet16(ss, (uint16_t)stack_seg);
                 reg_esi = 0;
