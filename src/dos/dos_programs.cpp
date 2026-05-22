@@ -1798,7 +1798,10 @@ public:
             }
 #endif
         }
-        if(type == "floppy") incrementFDD();
+        if(type == "floppy") {
+            incrementFDD();
+            updateFloppyDPT();
+	}
         return;
 showusage:
         resetcolor = true;
@@ -2124,6 +2127,7 @@ public:
         bool bios_boot = false;
         bool swaponedrive = false;
         bool convertro = false;
+        bool zeromem = false;
         bool force = false;
         int loadseg_user = -1;
         int convimg = -1;
@@ -2138,6 +2142,9 @@ public:
 
         if (cmd->FindExist("-swap-one-drive",true))
             swaponedrive = true;
+
+        if (cmd->FindExist("-zeromem",true))
+            zeromem = true;
 
         //look for -el-torito parameter and remove it from the command line.
         //This is copy-pasta to be consistent with the IMGMOUNT command which accepts this as either -el-torito or -bootcd.
@@ -2311,7 +2318,7 @@ public:
 
         /* IBM PC:
          *    CS:IP = 0000:7C00     Load = 07C0:0000
-         *    SS:SP = ???
+         *    SS:SP = 0030:0080 (PCjr at least)
          *
          * PC-98:
          *    CS:IP = 1FC0:0000     Load = 1FC0:0000
@@ -2320,7 +2327,7 @@ public:
          * Reportedly PC-98 will load to 1FE0:0000 when booting the 1.44MB format (512 bytes per sector).
          * Note that 0x1FC0:0000 leaves enough room for the 1024 bytes per sector format of PC-98.
          */
-        Bitu stack_seg=IS_PC98_ARCH ? 0x0030 : 0x7000;
+        Bitu stack_seg=0x0030;
         Bitu load_seg;//=IS_PC98_ARCH ? 0x1FC0 : 0x07C0;
 
         if (MEM_ConventionalPages() > 0x9C)
@@ -2619,7 +2626,7 @@ public:
             else if(!memcmp(hdr, "T98FDDIMAGE.R1\0\0", 16))
                 newDiskSwap[index] = new imageDiskNFD(usefile, fname, floppysize, false, 1);
             else
-                newDiskSwap[index] = new imageDisk(usefile, fname, floppysize, floppysize > 2880);
+                newDiskSwap[index] = new imageDisk(usefile, fname, rombytesize, rombytesize > 2880 * 1024);
 
             if(newDiskSwap[index]) {
                 newDiskSwap[index]->Addref();
@@ -3224,9 +3231,25 @@ public:
                 }
             }
 
+            /* zero out DOS memory */
+            if (!dos_kernel_disabled && !dos_kernel_shutdown_mcb && zeromem) {
+                unsigned int max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << 10u;
+                if (max_conv > 0xC0000) max_conv = 0xC0000;
+
+                //LOG(LOG_MISC,LOG_DEBUG)("XX %x",max_conv);
+                PhysPt e = (PhysPt)max_conv;
+                PhysPt b = IS_PC98_ARCH ? 0x600 : 0x501;
+
+                if (b < e) {
+                        LOG(LOG_MISC,LOG_DEBUG)("BOOT: Clearing DOS memory %x to %x",(unsigned int)b,(unsigned int)e);
+                        for (PhysPt p=b;p < e;p++) phys_writeb(p,0);
+                        b = e;
+                }
+            }
+
             /* we're about to overwrite low memory and possibly corrupt the MCB, and the shell now frees memory.
              * to avoid a MCB corruption crash in this emulation, reset the MCB chain now. */
-	    dos_kernel_shutdown_mcb = true;
+            dos_kernel_shutdown_mcb = true;
 
             for(i=0;i<bootsize;i++) real_writeb((uint16_t)load_seg, (uint16_t)i, bootarea.rawdata[i]);
 
@@ -3236,7 +3259,10 @@ public:
 
             if (drive == 'A' || drive == 'B') {
                 FDC_AssignINT13Disk(drive - 'A');
-                if (!IS_PC98_ARCH) incrementFDD();
+                if (!IS_PC98_ARCH) {
+                    incrementFDD();
+                    updateFloppyDPT();
+                }
             }
 
             /* NTS: IBM PC and PC-98 both use DMA channel 2 for the floppy, though according to
@@ -3409,7 +3435,7 @@ public:
                 SegSet16(es, 0);
                 reg_ip = (uint16_t)(load_seg<<4);
                 reg_ebx = (uint32_t)(load_seg<<4); //Real code probably uses bx to load the image
-                reg_esp = 0x100;
+                reg_esp = 0x80;
                 /* set up stack at a safe place */
                 SegSet16(ss, (uint16_t)stack_seg);
                 reg_esi = 0;
@@ -5586,6 +5612,7 @@ bool AttachToBiosByIndex(imageDisk* image, const unsigned char bios_drive_index)
     if (bios_drive_index <= 1) {
         FDC_AssignINT13Disk(bios_drive_index);
         incrementFDD();
+        updateFloppyDPT();
     }
 
     return true;
@@ -5666,6 +5693,8 @@ class IMGMOUNT : public Program {
 	public:
 		bool opt_replace = false;
 		std::vector<std::string> options;
+		IMGMOUNT(const unsigned int fl=0) : Program(fl) {
+		}
 		void ListImgMounts(void) {
 			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
 			uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
@@ -7276,7 +7305,7 @@ class IMGMOUNT : public Program {
 		}
 
 	public:
-		bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+		bool MountIso(const char drive, const std::vector<std::string> &paths, signed char ide_index, bool ide_slave) {
 			//If mounting while a guest OS is active, you may ONLY replace an ISO with an ISO! You may not mount a new drive!
 			if (dos_kernel_disabled) {
 				if (Drives[drive - 'A']) {
@@ -7339,9 +7368,19 @@ class IMGMOUNT : public Program {
 			if (!dos_kernel_disabled)
 				mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
 
-			// If instructed, attach to IDE controller as ATAPI CD-ROM device, unless replacement mode
-			if (ide_index >= 0 && !opt_replace) IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');
-
+			// Attach to IDE controller as ATAPI CD-ROM device, unless replacement mode
+            if(!opt_replace) {
+                // If no IDE index specified (negative value), try to find an open slot for a CD-ROM drive
+                if(ide_index < 0) {
+                    if(!IDE_controller_occupied(1, false)) { // CD-ROMS default to Secondary master if not occupied
+                        ide_index = 1;
+                        ide_slave = false;
+                    }
+                }
+                if(ide_index < 0) IDE_Auto(ide_index, ide_slave); // Pick an empty slot if secondary master is occupied
+                if(ide_index >= 0)IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');
+                else LOG_MSG("IMGMOUNT: No available IDE slot found to attach CD-ROM drive, drive will be available only as MSCDEX drive letter");
+            }
 			// for replacement, make sure IDE controller is updated
 			if (opt_replace && Drives[drive - 'A']) {
 				isoDrive *isodrv = dynamic_cast<isoDrive*>(Drives[drive - 'A']);
@@ -7569,18 +7608,18 @@ class IMGMOUNT : public Program {
 };
 
 void IMGMOUNT_ProgramStart(Program * * make) {
-    *make=new IMGMOUNT;
+	*make=new IMGMOUNT;
 }
 
 void runImgmount(const char *str) {
-	IMGMOUNT imgmount;
+	IMGMOUNT imgmount(Program::prg_nopsp);
 	imgmount.cmd=new CommandLine("IMGMOUNT", str);
 	imgmount.Run();
 }
 
 /* mount an ISO, calling directly into the IMGMOUNT program instead of roundabout through the command line parsing */
 void runImgmountISO(const char drive,const std::vector<std::string> &paths,const bool replace) {
-	IMGMOUNT imgmount;
+	IMGMOUNT imgmount(Program::prg_nopsp);
 	imgmount.opt_replace = replace;
 	imgmount.cmd=new CommandLine("IMGMOUNT", "");
 	imgmount.MountIso(drive,paths,-1/*ide*/,-1/*ide*/);
