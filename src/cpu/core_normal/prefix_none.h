@@ -939,7 +939,7 @@
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
 #ifndef CPU_OMIT_8086
-			if (do_lds_wraparound && !cpu.code.big/*8086 table is missing latter half for 32-bit!*/) {
+			if (do_lds_wraparound && !TEST_PREFIX_ADDR/*8086 table is missing latter half for 32-bit!*/) {
 				/* stack underflow 64KB wraparound? [https://github.com/joncampbell123/dosbox-x/issues/5621] */
 				GetEAaN8086; /* 8086 version that also sets last_ea86_offset */
 				if (last_ea86_offset > (0x10000u-4u)) {
@@ -964,7 +964,7 @@
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
 #ifndef CPU_OMIT_8086
-			if (do_lds_wraparound && !cpu.code.big/*8086 table is missing latter half for 32-bit!*/) {
+			if (do_lds_wraparound && !TEST_PREFIX_ADDR/*8086 table is missing latter half for 32-bit!*/) {
 				/* stack underflow 64KB wraparound? [https://github.com/joncampbell123/dosbox-x/issues/5621] */
 				GetEAaN8086; /* 8086 version that also sets last_ea86_offset */
 				if (last_ea86_offset > (0x10000u-4u)) {
