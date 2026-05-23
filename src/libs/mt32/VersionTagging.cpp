@@ -17,6 +17,9 @@
 
 #include "globals.h"
 
+#undef MT32EMU_EXPORT_V
+#define MT32EMU_EXPORT_V(symbol_version_tag) MT32EMU_EXPORT_ATTRIBUTE
+
 extern "C" {
 // Here's a list of all tagged minor library versions through global (potentially versioned) symbols.
 // An application that's been linked with an older library version will be able to find a matching tag,
@@ -25,8 +28,9 @@ extern "C" {
 MT32EMU_EXPORT_V(2.5) extern const volatile char mt32emu_2_5 = 0;
 MT32EMU_EXPORT_V(2.6) extern const volatile char mt32emu_2_6 = 0;
 MT32EMU_EXPORT_V(2.7) extern const volatile char mt32emu_2_7 = 0;
+MT32EMU_EXPORT_V(2.8) extern const volatile char mt32emu_2_8 = 0;
 
-#if MT32EMU_VERSION_MAJOR > 2 || MT32EMU_VERSION_MINOR > 7
+#if MT32EMU_VERSION_MAJOR > 2 || MT32EMU_VERSION_MINOR > 8
 #error "Missing version tag definition for current library version"
 #endif
 }

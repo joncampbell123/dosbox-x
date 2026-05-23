@@ -24,6 +24,8 @@
 
 namespace MT32Emu {
 
+struct Tables;
+
 /**
  * LA32 performs wave generation in the log-space that allows replacing multiplications by cheap additions
  * It's assumed that only low-bit multiplications occur in a few places which are unavoidable like these:
@@ -43,13 +45,6 @@ struct LogSample {
 		POSITIVE,
 		NEGATIVE
 	} sign;
-};
-
-class LA32Utilites {
-public:
-	static Bit16u interpolateExp(const Bit16u fract);
-	static Bit16s unlog(const LogSample &logSample);
-	static void addLogSamples(LogSample &logSample1, const LogSample &logSample2);
 };
 
 /**
@@ -77,7 +72,7 @@ class LA32WaveGenerator {
 	Bit16u pitch;
 
 	// Values in range [1..31]
-	// Value 1 correspong to the minimum resonance
+	// Value 1 corresponds to the minimum resonance
 	Bit8u resonance;
 
 	// Processed value in range [0..255]
@@ -236,16 +231,18 @@ class LA32IntPartialPair : public LA32PartialPair {
 	static Bit16s unlogAndMixWGOutput(const LA32WaveGenerator &wg);
 
 public:
+	static void initTables(const Tables &tables);
+
 	// ringModulated should be set to false for the structures with mixing or stereo output
 	// ringModulated should be set to true for the structures with ring modulation
 	// mixed is used for the structures with ring modulation and indicates whether the master partial output is mixed to the ring modulator output
-	void init(const bool ringModulated, const bool mixed) override;
+	void init(const bool ringModulated, const bool mixed);
 
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) override;
+	void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
-	void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) override;
+	void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
 	void generateNextSample(const PairType master, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
@@ -255,7 +252,7 @@ public:
 	Bit16s nextOutSample();
 
 	// Deactivate the WG engine
-	void deactivate(const PairType master) override;
+	void deactivate(const PairType master);
 
 	// Return active state of the WG engine
 	bool isActive(const PairType master) const;

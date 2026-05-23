@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2026 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -194,6 +194,7 @@ struct ControlROMFeatureSet {
 	unsigned int quirkFastPitchChanges : 1;
 	unsigned int quirkDisplayCustomMessagePriority : 1;
 	unsigned int oldMT32DisplayFeatures : 1;
+	unsigned int newGenNoteCancellation : 1;
 
 	// Features below don't actually depend on control ROM version, which is used to identify hardware model
 	unsigned int defaultReverbMT32Compatible : 1;

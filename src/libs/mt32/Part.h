@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2025 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -86,6 +86,8 @@ protected:
 	const char *getName() const;
 
 public:
+	static const Part *getPart(Synth &synth, Bit8u partNum);
+
 	Part(Synth *synth, unsigned int usePartNum);
 	virtual ~Part();
 	void reset();
@@ -115,7 +117,7 @@ public:
 	void updatePitchBenderRange();
 	virtual void refresh();
 	virtual void refreshTimbre(unsigned int absTimbreNum);
-	virtual void setTimbre(TimbreParam *timbre);
+	virtual void resetTimbre();
 	virtual unsigned int getAbsTimbreNum() const;
 	const char *getCurrentInstr() const;
 	const Poly *getFirstActivePoly() const;
@@ -144,15 +146,15 @@ class RhythmPart: public Part {
 	PatchCache drumCache[85][4];
 public:
 	RhythmPart(Synth *synth, unsigned int usePartNum);
-	void refresh() override;
-	void refreshTimbre(unsigned int timbreNum) override;
-	void setTimbre(TimbreParam *timbre) override;
-	void noteOn(unsigned int key, unsigned int velocity) override;
-	void noteOff(unsigned int midiKey) override;
-	unsigned int getAbsTimbreNum() const override;
-	void setPan(unsigned int midiPan) override;
-	void setProgram(unsigned int patchNum) override;
-	void polyStateChanged(PolyState oldState, PolyState newState) override;
+	void refresh();
+	void refreshTimbre(unsigned int timbreNum);
+	void resetTimbre();
+	void noteOn(unsigned int key, unsigned int velocity);
+	void noteOff(unsigned int midiKey);
+	unsigned int getAbsTimbreNum() const;
+	void setPan(unsigned int midiPan);
+	void setProgram(unsigned int patchNum);
+	void polyStateChanged(PolyState oldState, PolyState newState);
 };
 
 } // namespace MT32Emu

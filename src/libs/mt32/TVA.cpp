@@ -32,7 +32,17 @@
 namespace MT32Emu {
 
 // CONFIRMED: Matches a table in ROM - haven't got around to coming up with a formula for it yet.
-static Bit8u biasLevelToAmpSubtractionCoeff[13] = {255, 187, 137, 100, 74, 54, 40, 29, 21, 15, 10, 5, 0};
+static const Bit8u biasLevelToAmpSubtractionCoeff[13] = {255, 187, 137, 100, 74, 54, 40, 29, 21, 15, 10, 5, 0};
+
+static const Bit8u *envLogarithmicTime;
+static const Bit8u *levelToAmpSubtraction;
+static const Bit8u *masterVolToAmpSubtraction;
+
+void TVA::initTables(const Tables &tables) {
+	envLogarithmicTime = tables.envLogarithmicTime;
+	levelToAmpSubtraction = tables.levelToAmpSubtraction;
+	masterVolToAmpSubtraction = tables.masterVolToAmpSubtraction;
+}
 
 TVA::TVA(const Partial *usePartial, LA32Ramp *useAmpRamp) :
 	partial(usePartial), ampRamp(useAmpRamp), system(&usePartial->getSynth()->mt32ram.system), phase(TVA_PHASE_DEAD) {
@@ -99,24 +109,24 @@ static int calcVeloAmpSubtraction(Bit8u veloSensitivity, unsigned int velocity) 
 	return absVelocityMult - (velocityMult >> 8); // PORTABILITY NOTE: Assumes arithmetic shift
 }
 
-static int calcBasicAmp(const Tables *tables, const Partial *partial, const MemParams::System *system, const TimbreParam::PartialParam *partialParam, Bit8u partVolume, const MemParams::RhythmTemp *rhythmTemp, int biasAmpSubtraction, int veloAmpSubtraction, Bit8u expression, bool hasRingModQuirk) {
+static int calcBasicAmp(const Partial *partial, const MemParams::System *system, const TimbreParam::PartialParam *partialParam, Bit8u partVolume, const MemParams::RhythmTemp *rhythmTemp, int biasAmpSubtraction, int veloAmpSubtraction, Bit8u expression, bool hasRingModQuirk) {
 	int amp = 155;
 
 	if (!(hasRingModQuirk ? partial->isRingModulatingNoMix() : partial->isRingModulatingSlave())) {
-		amp -= tables->masterVolToAmpSubtraction[system->masterVol];
+		amp -= masterVolToAmpSubtraction[system->masterVol];
 		if (amp < 0) {
 			return 0;
 		}
-		amp -= tables->levelToAmpSubtraction[partVolume];
+		amp -= levelToAmpSubtraction[partVolume];
 		if (amp < 0) {
 			return 0;
 		}
-		amp -= tables->levelToAmpSubtraction[expression];
+		amp -= levelToAmpSubtraction[expression];
 		if (amp < 0) {
 			return 0;
 		}
 		if (rhythmTemp != NULL) {
-			amp -= tables->levelToAmpSubtraction[rhythmTemp->outputLevel];
+			amp -= levelToAmpSubtraction[rhythmTemp->outputLevel];
 			if (amp < 0) {
 				return 0;
 			}
@@ -126,7 +136,7 @@ static int calcBasicAmp(const Tables *tables, const Partial *partial, const MemP
 	if (amp < 0) {
 		return 0;
 	}
-	amp -= tables->levelToAmpSubtraction[partialParam->tva.level];
+	amp -= levelToAmpSubtraction[partialParam->tva.level];
 	if (amp < 0) {
 		return 0;
 	}
@@ -158,8 +168,6 @@ void TVA::reset(const Part *newPart, const TimbreParam::PartialParam *newPartial
 
 	playing = true;
 
-	const Tables *tables = &Tables::getInstance();
-
 	int key = partial->getPoly()->getKey();
 	int velocity = partial->getPoly()->getVelocity();
 
@@ -168,7 +176,7 @@ void TVA::reset(const Part *newPart, const TimbreParam::PartialParam *newPartial
 	biasAmpSubtraction = calcBiasAmpSubtractions(partialParam, key);
 	veloAmpSubtraction = calcVeloAmpSubtraction(partialParam->tva.veloSensitivity, velocity);
 
-	int newTarget = calcBasicAmp(tables, partial, system, partialParam, part->getVolume(), newRhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression(), partial->getSynth()->controlROMFeatures->quirkRingModulationNoMix);
+	int newTarget = calcBasicAmp(partial, system, partialParam, part->getVolume(), newRhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression(), partial->getSynth()->controlROMFeatures->quirkRingModulationNoMix);
 	int newPhase;
 	if (partialParam->tva.envTime[0] == 0) {
 		// Initially go to the TVA_PHASE_ATTACK target amp, and spend the next phase going from there to the TVA_PHASE_2 target amp
@@ -219,8 +227,7 @@ void TVA::recalcSustain() {
 		return;
 	}
 	// We're sustaining. Recalculate all the values
-	const Tables *tables = &Tables::getInstance();
-	int newTarget = calcBasicAmp(tables, partial, system, partialParam, part->getVolume(), rhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression(), partial->getSynth()->controlROMFeatures->quirkRingModulationNoMix);
+	int newTarget = calcBasicAmp(partial, system, partialParam, part->getVolume(), rhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression(), partial->getSynth()->controlROMFeatures->quirkRingModulationNoMix);
 	newTarget += partialParam->tva.envLevel[3];
 
 	// Although we're in TVA_PHASE_SUSTAIN at this point, we cannot be sure that there is no active ramp at the moment.
@@ -235,9 +242,9 @@ void TVA::recalcSustain() {
 	Bit8u newIncrement;
 	bool descending = targetDelta < 0;
 	if (!descending) {
-		newIncrement = tables->envLogarithmicTime[Bit8u(targetDelta)] - 2;
+		newIncrement = envLogarithmicTime[Bit8u(targetDelta)] - 2;
 	} else {
-		newIncrement = (tables->envLogarithmicTime[Bit8u(-targetDelta)] - 2) | 0x80;
+		newIncrement = (envLogarithmicTime[Bit8u(-targetDelta)] - 2) | 0x80;
 	}
 	if (part->getSynth()->isNiceAmpRampEnabled() && (descending != ampRamp->isBelowCurrent(newTarget))) {
 		newIncrement ^= 0x80;
@@ -256,8 +263,6 @@ int TVA::getPhase() const {
 }
 
 void TVA::nextPhase() {
-	const Tables *tables = &Tables::getInstance();
-
 	if (phase >= TVA_PHASE_DEAD || !playing) {
 		partial->getSynth()->printDebug("TVA::nextPhase(): Shouldn't have got here with phase %d, playing=%s", phase, playing ? "true" : "false");
 		return;
@@ -293,7 +298,7 @@ void TVA::nextPhase() {
 	int envPointIndex = phase;
 
 	if (!allLevelsZeroFromNowOn) {
-		newTarget = calcBasicAmp(tables, partial, system, partialParam, part->getVolume(), rhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression(), partial->getSynth()->controlROMFeatures->quirkRingModulationNoMix);
+		newTarget = calcBasicAmp(partial, system, partialParam, part->getVolume(), rhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression(), partial->getSynth()->controlROMFeatures->quirkRingModulationNoMix);
 
 		if (newPhase == TVA_PHASE_SUSTAIN || newPhase == TVA_PHASE_RELEASE) {
 			if (partialParam->tva.envLevel[3] == 0) {
@@ -352,14 +357,14 @@ void TVA::nextPhase() {
 					}
 				}
 				targetDelta = -targetDelta;
-				newIncrement = tables->envLogarithmicTime[Bit8u(targetDelta)] - envTimeSetting;
+				newIncrement = envLogarithmicTime[Bit8u(targetDelta)] - envTimeSetting;
 				if (newIncrement <= 0) {
 					newIncrement = 1;
 				}
 				newIncrement = newIncrement | 0x80;
 			} else {
 				// FIXME: The last 22 or so entries in this table are 128 - surely that fucks things up, since that ends up being -128 signed?
-				newIncrement = tables->envLogarithmicTime[Bit8u(targetDelta)] - envTimeSetting;
+				newIncrement = envLogarithmicTime[Bit8u(targetDelta)] - envTimeSetting;
 				if (newIncrement <= 0) {
 					newIncrement = 1;
 				}
