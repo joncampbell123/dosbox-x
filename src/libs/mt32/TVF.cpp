@@ -53,6 +53,8 @@ enum {
 	PHASE_DONE = 7
 };
 
+static const Bit8u *envLogarithmicTime;
+
 static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, Bit32u basePitch, unsigned int key, bool quirkTVFBaseCutoffLimit) {
 	// This table matches the values used by a real LAPC-I.
 	static const Bit8s biasLevelToBiasMult[] = {85, 42, 21, 16, 10, 5, 2, 0, -2, -5, -10, -16, -21, -74, -85};
@@ -108,6 +110,10 @@ static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, Bit32u 
 	return Bit8u(baseCutoff);
 }
 
+void TVF::initTables(const Tables &tables) {
+	envLogarithmicTime = tables.envLogarithmicTime;
+}
+
 TVF::TVF(const Partial *usePartial, LA32Ramp *useCutoffModifierRamp) :
 	partial(usePartial), cutoffModifierRamp(useCutoffModifierRamp) {
 }
@@ -126,8 +132,6 @@ void TVF::reset(const TimbreParam::PartialParam *newPartialParam, unsigned int b
 
 	unsigned int key = partial->getPoly()->getKey();
 	unsigned int velocity = partial->getPoly()->getVelocity();
-
-	const Tables *tables = &Tables::getInstance();
 
 	baseCutoff = calcBaseCutoff(newPartialParam, basePitch, key, partial->getSynth()->controlROMFeatures->quirkTVFBaseCutoffLimit);
 #if MT32EMU_MONITOR_TVF >= 1
@@ -160,7 +164,7 @@ void TVF::reset(const TimbreParam::PartialParam *newPartialParam, unsigned int b
 	if (envTimeSetting <= 0) {
 		newIncrement = (0x80 | 127);
 	} else {
-		newIncrement = tables->envLogarithmicTime[newTarget] - envTimeSetting;
+		newIncrement = envLogarithmicTime[newTarget] - envTimeSetting;
 		if (newIncrement <= 0) {
 			newIncrement = 1;
 		}
@@ -189,7 +193,6 @@ void TVF::startDecay() {
 }
 
 void TVF::nextPhase() {
-	const Tables *tables = &Tables::getInstance();
 	int newPhase = phase + 1;
 
 	switch (newPhase) {
@@ -226,7 +229,7 @@ void TVF::nextPhase() {
 				newTarget--;
 			}
 		}
-		newIncrement = tables->envLogarithmicTime[targetDelta < 0 ? -targetDelta : targetDelta] - envTimeSetting;
+		newIncrement = envLogarithmicTime[targetDelta < 0 ? -targetDelta : targetDelta] - envTimeSetting;
 		if (newIncrement <= 0) {
 			newIncrement = 1;
 		}

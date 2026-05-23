@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2026 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -42,13 +42,19 @@ private:
 
 	bool abortFirstReleasingPolyWhereReserveExceeded(int minPart);
 	bool abortFirstPolyPreferHeldWhereReserveExceeded(int minPart);
+	bool abortFirstPolyPreferReleasingThenHeldWhereReserveExceeded(int minPart);
+	bool abortFirstPolyOnPartPreferReleasingThenHeld(int partNum);
+	bool freePartialsNewGen(unsigned int needed, int partNum);
 
 public:
-	PartialManager(Synth *synth, Part **parts);
+	static PartialManager *getPartialManager(Synth &synth);
+
+	PartialManager(Synth *useSynth);
 	~PartialManager();
 	Partial *allocPartial(int partNum);
 	unsigned int getFreePartialCount();
 	void getPerPartPartialUsage(unsigned int perPartPartialUsage[9]);
+	const Poly *getAbortingPoly();
 	bool freePartials(unsigned int needed, int partNum);
 	unsigned int setReserve(Bit8u *rset);
 	void deactivateAll();

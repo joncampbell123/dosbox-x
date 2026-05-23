@@ -91,7 +91,7 @@ Tables::Tables() {
 
 	// found from sample analysis
 	static const Bit8u resAmpDecayFactorTable[] = {31, 16, 12, 8, 5, 3, 2, 1};
-	resAmpDecayFactor = resAmpDecayFactorTable;
+	resAmpDecayFactors = resAmpDecayFactorTable;
 }
 
 } // namespace MT32Emu

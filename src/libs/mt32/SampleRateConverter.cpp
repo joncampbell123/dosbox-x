@@ -28,7 +28,7 @@
 
 #include "Synth.h"
 
-using namespace MT32Emu;
+namespace MT32Emu {
 
 static inline void *createDelegate(Synth &synth, double targetSampleRate, SamplerateConversionQuality quality) {
 #if MT32EMU_WITH_LIBSOXR_RESAMPLER
@@ -124,3 +124,5 @@ double SampleRateConverter::convertOutputToSynthTimestamp(double outputTimestamp
 double SampleRateConverter::convertSynthToOutputTimestamp(double synthTimestamp) const {
 	return synthTimestamp / synthInternalToTargetSampleRateRatio;
 }
+
+} // namespace MT32Emu

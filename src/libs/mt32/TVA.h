@@ -27,6 +27,7 @@ namespace MT32Emu {
 class LA32Ramp;
 class Part;
 class Partial;
+struct Tables;
 
 // Note that when entering nextPhase(), newPhase is set to phase + 1, and the descriptions/names below refer to
 // newPhase's value.
@@ -83,6 +84,8 @@ private:
 	void nextPhase();
 
 public:
+	static void initTables(const Tables &tables);
+
 	TVA(const Partial *partial, LA32Ramp *ampRamp);
 	void reset(const Part *part, const TimbreParam::PartialParam *partialParam, const MemParams::RhythmTemp *rhythmTemp);
 	void handleInterrupt();

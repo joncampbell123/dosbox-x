@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2026 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,9 +28,13 @@
 
 namespace MT32Emu {
 
-PartialManager::PartialManager(Synth *useSynth, Part **useParts) {
+PartialManager *PartialManager::getPartialManager(Synth &synth) {
+	return synth.partialManager;
+}
+
+PartialManager::PartialManager(Synth *useSynth) {
 	synth = useSynth;
-	parts = useParts;
+	parts = useSynth->parts;
 	inactivePartialCount = synth->getPartialCount();
 	partialTable = new Partial *[inactivePartialCount];
 	inactivePartials = new int[inactivePartialCount];
@@ -114,6 +118,10 @@ void PartialManager::getPerPartPartialUsage(unsigned int perPartPartialUsage[9])
 	}
 }
 
+const Poly *PartialManager::getAbortingPoly() {
+	return synth->abortingPoly;
+}
+
 // Finds the lowest-priority part that is exceeding its reserved partial allocation and has a poly
 // in POLY_Releasing, then kills its first releasing poly.
 // Parts with higher priority than minPart are not checked.
@@ -158,7 +166,71 @@ bool PartialManager::abortFirstPolyPreferHeldWhereReserveExceeded(int minPart) {
 	return false;
 }
 
+bool PartialManager::abortFirstPolyPreferReleasingThenHeldWhereReserveExceeded(int minPartNum) {
+	for (int candidatePartNum = 7; candidatePartNum >= minPartNum; candidatePartNum--) {
+		if (parts[candidatePartNum]->getActivePartialCount() > numReservedPartialsForPart[candidatePartNum]) {
+			return abortFirstPolyOnPartPreferReleasingThenHeld(candidatePartNum);
+		}
+	}
+	return false;
+}
+
+bool PartialManager::abortFirstPolyOnPartPreferReleasingThenHeld(int partNum) {
+	if (parts[partNum]->abortFirstPoly(POLY_Releasing)) {
+		return true;
+	}
+	return parts[partNum]->abortFirstPolyPreferHeld();
+}
+
 bool PartialManager::freePartials(unsigned int needed, int partNum) {
+	// NOTE: Currently, we don't consider peculiarities of partial allocation when a timbre involves structures with ring modulation.
+
+	if (synth->controlROMFeatures->newGenNoteCancellation) {
+		return freePartialsNewGen(needed, partNum);
+	}
+
+	while (!synth->isAbortingPoly() && getFreePartialCount() < needed) {
+		if (parts[partNum]->getActiveNonReleasingPartialCount() + needed > numReservedPartialsForPart[partNum]) {
+			// If priority is given to earlier polys, there's nothing we can do.
+			if (synth->getPart(partNum)->getPatchTemp()->patch.assignMode & 1) return false;
+
+			if (needed <= numReservedPartialsForPart[partNum]) {
+				// No more partials needed than reserved for this part, only attempt to free partials on the same part.
+				abortFirstPolyOnPartPreferReleasingThenHeld(partNum);
+				continue;
+			}
+
+			// More partials desired than reserved, try to borrow some from parts with lesser priority.
+			// NOTE: there's a bug here in the old-gen program, so that the device exhibits undefined behaviour when trying to play
+			// a note on the rhythm part beyond the reserve while none of the voice parts has exceeded their reserve.
+			// We don't emulate this here, assuming that the intention was to traverse all voice parts, then check the rhythm part.
+			if (abortFirstPolyPreferReleasingThenHeldWhereReserveExceeded(partNum < 8 ? partNum : 0)) continue;
+
+			// At this point, old-gen devices try to borrow partials from the rhythm part if it's exceeding the reservation.
+			if (parts[8]->getActivePartialCount() > numReservedPartialsForPart[8]
+				&& abortFirstPolyOnPartPreferReleasingThenHeld(8)) continue;
+
+			// Alas, this one will be muted.
+			return false;
+		}
+
+		// OK, we're not going to exceed the reserve. Reclaim our partials from other parts starting from 7 to 0.
+		if (abortFirstPolyPreferReleasingThenHeldWhereReserveExceeded(0)) continue;
+
+		// Now try the rhythm part.
+		if (parts[8]->getActivePartialCount() > numReservedPartialsForPart[8]
+			&& abortFirstPolyOnPartPreferReleasingThenHeld(8)) continue;
+
+		// Lastly, try to silence a poly on this part.
+		if (abortFirstPolyOnPartPreferReleasingThenHeld(partNum)) continue;
+
+		// Fair enough, there's no room for it.
+		return false;
+	}
+	return true;
+}
+
+bool PartialManager::freePartialsNewGen(unsigned int needed, int partNum) {
 	// CONFIRMED: Barring bugs, this matches the real LAPC-I according to information from Mok.
 
 	// BUG: There's a bug in the LAPC-I implementation:
@@ -176,32 +248,15 @@ bool PartialManager::freePartials(unsigned int needed, int partNum) {
 		return true;
 	}
 
-	// Note that calling getFreePartialCount() also ensures that numReservedPartialsPerPart is up-to-date
 	if (getFreePartialCount() >= needed) {
 		return true;
 	}
 
-	// Note: These #ifdefs are temporary until we have proper "quirk" configuration.
-	// Also, the MT-32 version isn't properly confirmed yet.
-#ifdef MT32EMU_QUIRK_FREE_PARTIALS_MT32
-	// On MT-32, we bail out before even killing releasing partials if the allocating part has exceeded its reserve and is configured for priority-to-earlier-polys.
-	if (parts[partNum]->getActiveNonReleasingPartialCount() + needed > numReservedPartialsForPart[partNum] && (synth->getPart(partNum)->getPatchTemp()->patch.assignMode & 1)) {
-		return false;
-	}
-#endif
-
 	for (;;) {
-#ifdef MT32EMU_QUIRK_FREE_PARTIALS_MT32
-		// Abort releasing polys in parts that have exceeded their partial reservation (working backwards from part 7, with rhythm last)
-		if (!abortFirstReleasingPolyWhereReserveExceeded(-1)) {
-			break;
-		}
-#else
 		// Abort releasing polys in non-rhythm parts that have exceeded their partial reservation (working backwards from part 7)
 		if (!abortFirstReleasingPolyWhereReserveExceeded(0)) {
 			break;
 		}
-#endif
 		if (synth->isAbortingPoly() || getFreePartialCount() >= needed) {
 			return true;
 		}
@@ -229,7 +284,7 @@ bool PartialManager::freePartials(unsigned int needed, int partNum) {
 	} else {
 		// At this point, we're certain that we've reserved enough partials to play our poly.
 		// Check all parts from lowest to highest priority to see whether they've exceeded their
-		// reserve, and abort their polys until until we have enough free partials or they're within
+		// reserve, and abort their polys until we have enough free partials or they're within
 		// their reserve allocation.
 		for (;;) {
 			if (!abortFirstPolyPreferHeldWhereReserveExceeded(-1)) {

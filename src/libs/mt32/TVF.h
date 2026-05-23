@@ -26,6 +26,7 @@ namespace MT32Emu {
 
 class LA32Ramp;
 class Partial;
+struct Tables;
 
 class TVF {
 private:
@@ -44,6 +45,8 @@ private:
 	void nextPhase();
 
 public:
+	static void initTables(const Tables &tables);
+
 	TVF(const Partial *partial, LA32Ramp *cutoffModifierRamp);
 	void reset(const TimbreParam::PartialParam *partialParam, Bit32u basePitch);
 	// Returns the base cutoff (without envelope modification).
