@@ -7368,8 +7368,8 @@ class IMGMOUNT : public Program {
 			if (!dos_kernel_disabled)
 				mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
 
-			// Attach to IDE controller as ATAPI CD-ROM device, unless replacement mode
-            if(!opt_replace) {
+			// Attach the new drive to IDE controller as ATAPI CD-ROM device, unless replacement mode. (New drives may not be mounted on a booted guest OS.)
+            if(!opt_replace && !dos_kernel_disabled) {
                 // If no IDE index specified (negative value), try to find an open slot for a CD-ROM drive
                 if(ide_index < 0) {
                     if(!IDE_controller_occupied(1, false)) { // CD-ROMS default to Secondary master if not occupied
