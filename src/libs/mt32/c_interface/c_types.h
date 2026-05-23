@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2026 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -118,7 +118,8 @@ typedef struct {
 typedef enum {
 	MT32EMU_REPORT_HANDLER_VERSION_0 = 0,
 	MT32EMU_REPORT_HANDLER_VERSION_1 = 1,
-	MT32EMU_REPORT_HANDLER_VERSION_CURRENT = MT32EMU_REPORT_HANDLER_VERSION_1
+	MT32EMU_REPORT_HANDLER_VERSION_2 = 2,
+	MT32EMU_REPORT_HANDLER_VERSION_CURRENT = MT32EMU_REPORT_HANDLER_VERSION_2
 } mt32emu_report_handler_version;
 
 /** MIDI receiver interface versions */
@@ -136,7 +137,8 @@ typedef enum {
 	MT32EMU_SERVICE_VERSION_4 = 4,
 	MT32EMU_SERVICE_VERSION_5 = 5,
 	MT32EMU_SERVICE_VERSION_6 = 6,
-	MT32EMU_SERVICE_VERSION_CURRENT = MT32EMU_SERVICE_VERSION_6
+	MT32EMU_SERVICE_VERSION_7 = 7,
+	MT32EMU_SERVICE_VERSION_CURRENT = MT32EMU_SERVICE_VERSION_7
 } mt32emu_service_version;
 
 /* === Report Handler Interface === */
@@ -188,6 +190,17 @@ typedef union mt32emu_report_handler_i mt32emu_report_handler_i;
 	/** Invoked when the emulated MIDI MESSAGE LED changes state. The led_state parameter represents whether the LED is ON. */ \
 	void (MT32EMU_C_CALL *onMidiMessageLEDStateUpdated)(void *instance_data, mt32emu_boolean led_state);
 
+#define MT32EMU_REPORT_HANDLER_I_V2 \
+	/**
+	 * Invoked in case the NoteOn MIDI message currently being processed cannot be played due to insufficient free partials.
+	 */ \
+	void (MT32EMU_C_CALL *onNoteOnIgnored)(void *instance_data, mt32emu_bit32u partials_needed, mt32emu_bit32u partials_free); \
+	/**
+	 * Invoked in case the partial allocator starts premature silencing a currently playing poly to free partials necessary
+	 * for processing the preceding NoteOn MIDI message.
+	 */ \
+	void (MT32EMU_C_CALL *onPlayingPolySilenced)(void *instance_data, mt32emu_bit32u partials_needed, mt32emu_bit32u partials_free);
+
 typedef struct {
 	MT32EMU_REPORT_HANDLER_I_V0
 } mt32emu_report_handler_i_v0;
@@ -197,6 +210,12 @@ typedef struct {
 	MT32EMU_REPORT_HANDLER_I_V1
 } mt32emu_report_handler_i_v1;
 
+typedef struct {
+	MT32EMU_REPORT_HANDLER_I_V0
+	MT32EMU_REPORT_HANDLER_I_V1
+	MT32EMU_REPORT_HANDLER_I_V2
+} mt32emu_report_handler_i_v2;
+
 /**
  * Extensible interface for handling reported events.
  * Union intended to view an interface of any subsequent version as any parent interface not requiring a cast.
@@ -205,10 +224,12 @@ typedef struct {
 union mt32emu_report_handler_i {
 	const mt32emu_report_handler_i_v0 *v0;
 	const mt32emu_report_handler_i_v1 *v1;
+	const mt32emu_report_handler_i_v2 *v2;
 };
 
 #undef MT32EMU_REPORT_HANDLER_I_V0
 #undef MT32EMU_REPORT_HANDLER_I_V1
+#undef MT32EMU_REPORT_HANDLER_I_V2
 
 /* === MIDI Receiver Interface === */
 
@@ -285,7 +306,7 @@ typedef union mt32emu_service_i mt32emu_service_i;
 	mt32emu_return_code (MT32EMU_C_CALL *playSysexAt)(mt32emu_const_context context, const mt32emu_bit8u *sysex, mt32emu_bit32u len, mt32emu_bit32u timestamp); \
 \
 	void (MT32EMU_C_CALL *playMsgNow)(mt32emu_const_context context, mt32emu_bit32u msg); \
-	void (MT32EMU_C_CALL *playMsgOnPart)(mt32emu_const_context context, mt32emu_bit8u part, mt32emu_bit8u code, mt32emu_bit8u note, mt32emu_bit8u velocity); \
+	void (MT32EMU_C_CALL *playMsgOnPart)(mt32emu_const_context context, mt32emu_bit8u part_number, mt32emu_bit8u command, mt32emu_bit8u data1, mt32emu_bit8u data2); \
 	void (MT32EMU_C_CALL *playSysexNow)(mt32emu_const_context context, const mt32emu_bit8u *sysex, mt32emu_bit32u len); \
 	void (MT32EMU_C_CALL *writeSysex)(mt32emu_const_context context, mt32emu_bit8u channel, const mt32emu_bit8u *sysex, mt32emu_bit32u len); \
 \
@@ -370,6 +391,12 @@ typedef union mt32emu_service_i mt32emu_service_i;
 	mt32emu_boolean (MT32EMU_C_CALL *getSoundGroupName)(mt32emu_const_context context, char *sound_group_name, mt32emu_bit8u timbre_group, mt32emu_bit8u timbre_number); \
 	mt32emu_boolean (MT32EMU_C_CALL *getSoundName)(mt32emu_const_context context, char *sound_name, mt32emu_bit8u timbre_group, mt32emu_bit8u timbre_number);
 
+#define MT32EMU_SERVICE_I_V7 \
+	void (MT32EMU_C_CALL *setMasterVolumeOverride)(mt32emu_const_context context, mt32emu_bit8u volume_override); \
+	mt32emu_bit8u (MT32EMU_C_CALL *getMasterVolumeOverride)(mt32emu_const_context context); \
+	mt32emu_bit32u (MT32EMU_C_CALL *dumpSysexBank)(mt32emu_const_context context, mt32emu_bit8u *sysex_bank, mt32emu_bit32u size); \
+	mt32emu_bit32u (MT32EMU_C_CALL *applySysexBank)(mt32emu_const_context context, const mt32emu_bit8u *sysex_bank, mt32emu_bit32u size);
+
 typedef struct {
 	MT32EMU_SERVICE_I_V0
 } mt32emu_service_i_v0;
@@ -419,6 +446,17 @@ typedef struct {
 	MT32EMU_SERVICE_I_V6
 } mt32emu_service_i_v6;
 
+typedef struct {
+	MT32EMU_SERVICE_I_V0
+	MT32EMU_SERVICE_I_V1
+	MT32EMU_SERVICE_I_V2
+	MT32EMU_SERVICE_I_V3
+	MT32EMU_SERVICE_I_V4
+	MT32EMU_SERVICE_I_V5
+	MT32EMU_SERVICE_I_V6
+	MT32EMU_SERVICE_I_V7
+} mt32emu_service_i_v7;
+
 /**
  * Extensible interface for all the library services.
  * Union intended to view an interface of any subsequent version as any parent interface not requiring a cast.
@@ -432,6 +470,7 @@ union mt32emu_service_i {
 	const mt32emu_service_i_v4 *v4;
 	const mt32emu_service_i_v5 *v5;
 	const mt32emu_service_i_v6 *v6;
+	const mt32emu_service_i_v7 *v7;
 };
 
 #undef MT32EMU_SERVICE_I_V0
@@ -441,5 +480,6 @@ union mt32emu_service_i {
 #undef MT32EMU_SERVICE_I_V4
 #undef MT32EMU_SERVICE_I_V5
 #undef MT32EMU_SERVICE_I_V6
+#undef MT32EMU_SERVICE_I_V7
 
 #endif /* #ifndef MT32EMU_C_TYPES_H */

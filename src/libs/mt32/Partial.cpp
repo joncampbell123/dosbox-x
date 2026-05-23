@@ -34,6 +34,8 @@ namespace MT32Emu {
 static const Bit8u PAN_NUMERATOR_MASTER[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7};
 static const Bit8u PAN_NUMERATOR_SLAVE[]  = {0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7};
 
+static const Bit8u *pulseWidth100To255;
+
 // We assume the pan is applied using the same 13-bit multiplier circuit that is also used for ring modulation
 // because of the observed sample overflow, so the panSetting values are likely mapped in a similar way via a LUT.
 // FIXME: Sample analysis suggests that the use of panSetting is linear, but there are some quirks that still need to be resolved.
@@ -51,9 +53,26 @@ static Bit32s getPanFactor(Bit32s panSetting) {
 	return PAN_FACTORS[panSetting];
 }
 
+static bool initTables() {
+	const Tables &tables = Tables::getInstance();
+	pulseWidth100To255 = tables.pulseWidth100To255;
+	LA32IntPartialPair::initTables(tables);
+	LA32FloatPartialPair::initTables(tables);
+	LA32Ramp::initTables(tables);
+	TVA::initTables(tables);
+	TVF::initTables(tables);
+	return true;
+}
+
+static void ensureTables() {
+	static const bool initialised = initTables();
+	(void)initialised;
+}
+
 Partial::Partial(Synth *useSynth, int usePartialIndex) :
 	synth(useSynth), partialIndex(usePartialIndex), sampleNum(0),
 	floatMode(useSynth->getSelectedRendererType() == RendererType_FLOAT) {
+	ensureTables();
 	// Initialisation of tva, tvp and tvf uses 'this' pointer
 	// and thus should not be in the initializer list to avoid a compiler warning
 	tva = new TVA(this, &ampRamp);
@@ -201,7 +220,7 @@ void Partial::startPartial(const Part *part, Poly *usePoly, const PatchCache *us
 	}
 
 	// CONFIRMED: pulseWidthVal calculation is based on information from Mok
-	pulseWidthVal = (poly->getVelocity() - 64) * (patchCache->srcPartial.wg.pulseWidthVeloSensitivity - 7) + Tables::getInstance().pulseWidth100To255[patchCache->srcPartial.wg.pulseWidth];
+	pulseWidthVal = (poly->getVelocity() - 64) * (patchCache->srcPartial.wg.pulseWidthVeloSensitivity - 7) + pulseWidth100To255[patchCache->srcPartial.wg.pulseWidth];
 	if (pulseWidthVal < 0) {
 		pulseWidthVal = 0;
 	} else if (pulseWidthVal > 255) {

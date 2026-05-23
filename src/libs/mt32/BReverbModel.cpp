@@ -455,11 +455,11 @@ public:
 		close();
 	}
 
-	bool isOpen() const override {
+	bool isOpen() const {
 		return combs != NULL;
 	}
 
-	void open() override {
+	void open() {
 		if (isOpen()) return;
 		if (currentSettings.numberOfAllpasses > 0) {
 			allpasses = new AllpassFilter<Sample>*[currentSettings.numberOfAllpasses];
@@ -479,7 +479,7 @@ public:
 		mute();
 	}
 
-	void close() override {
+	void close() {
 		if (allpasses != NULL) {
 			for (Bit32u i = 0; i < currentSettings.numberOfAllpasses; i++) {
 				if (allpasses[i] != NULL) {
@@ -502,7 +502,7 @@ public:
 		}
 	}
 
-	void mute() override {
+	void mute() {
 		if (allpasses != NULL) {
 			for (Bit32u i = 0; i < currentSettings.numberOfAllpasses; i++) {
 				allpasses[i]->mute();
@@ -515,7 +515,7 @@ public:
 		}
 	}
 
-	void setParameters(Bit8u time, Bit8u level) override {
+	void setParameters(Bit8u time, Bit8u level) {
 		if (!isOpen()) return;
 		level &= 7;
 		time &= 7;
@@ -542,7 +542,7 @@ public:
 		}
 	}
 
-	bool isActive() const override {
+	bool isActive() const {
 		if (!isOpen()) return false;
 		for (Bit32u i = 0; i < currentSettings.numberOfAllpasses; i++) {
 			if (!allpasses[i]->isEmpty()) return true;
@@ -553,7 +553,7 @@ public:
 		return false;
 	}
 
-	bool isMT32Compatible(const ReverbMode mode) const override {
+	bool isMT32Compatible(const ReverbMode mode) const {
 		return &currentSettings == &getMT32Settings(mode);
 	}
 
@@ -622,8 +622,8 @@ public:
 		} // while ((numSamples--) > 0)
 	} // produceOutput
 
-	bool process(const IntSample *inLeft, const IntSample *inRight, IntSample *outLeft, IntSample *outRight, Bit32u numSamples) override;
-	bool process(const FloatSample *inLeft, const FloatSample *inRight, FloatSample *outLeft, FloatSample *outRight, Bit32u numSamples) override;
+	bool process(const IntSample *inLeft, const IntSample *inRight, IntSample *outLeft, IntSample *outRight, Bit32u numSamples);
+	bool process(const FloatSample *inLeft, const FloatSample *inRight, FloatSample *outLeft, FloatSample *outRight, Bit32u numSamples);
 };
 
 BReverbModel *BReverbModel::createBReverbModel(const ReverbMode mode, const bool mt32CompatibleModel, const RendererType rendererType) {

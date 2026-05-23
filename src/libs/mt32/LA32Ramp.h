@@ -23,6 +23,8 @@
 
 namespace MT32Emu {
 
+struct Tables;
+
 class LA32Ramp {
 private:
 	Bit32u current;
@@ -34,6 +36,8 @@ private:
 	bool interruptRaised;
 
 public:
+	static void initTables(const Tables &tables);
+
 	LA32Ramp();
 	void startRamp(Bit8u target, Bit8u increment);
 	Bit32u nextValue();

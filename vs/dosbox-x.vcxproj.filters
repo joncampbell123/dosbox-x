@@ -2618,7 +2618,6 @@
     <ClInclude Include="..\src\hardware\snd_pc98\cbus\pcm86io.h">
       <Filter>Sources\hardware\snd_pc98\cbus</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\libs\mt32\Types.h" />
     <ClInclude Include="..\src\gamelink\gamelink.h" />
     <ClInclude Include="..\src\gamelink\scancodes_windows.h" />
     <ClInclude Include="..\src\output\output_gamelink.h" />
@@ -2633,6 +2632,9 @@
     </ClInclude>
     <ClInclude Include="..\src\output\output_direct3d11.h">
       <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Types.h">
+      <Filter>Sources\libs\mt32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

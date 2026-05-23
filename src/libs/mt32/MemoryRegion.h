@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2025 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -34,15 +34,13 @@ class Synth;
 
 class MemoryRegion {
 private:
-	Synth *synth;
 	Bit8u *realMemory;
 	Bit8u *maxTable;
 public:
 	MemoryRegionType type;
 	Bit32u startAddr, entrySize, entries;
 
-	MemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable, MemoryRegionType useType, Bit32u useStartAddr, Bit32u useEntrySize, Bit32u useEntries) {
-		synth = useSynth;
+	MemoryRegion(Bit8u *useRealMemory, Bit8u *useMaxTable, MemoryRegionType useType, Bit32u useStartAddr, Bit32u useEntrySize, Bit32u useEntries) {
 		realMemory = useRealMemory;
 		maxTable = useMaxTable;
 		type = useType;
@@ -96,37 +94,37 @@ public:
 
 class PatchTempMemoryRegion : public MemoryRegion {
 public:
-	PatchTempMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_PatchTemp, MT32EMU_MEMADDR(0x030000), sizeof(MemParams::PatchTemp), 9) {}
+	PatchTempMemoryRegion(Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useRealMemory, useMaxTable, MR_PatchTemp, MT32EMU_MEMADDR(0x030000), sizeof(MemParams::PatchTemp), 9) {}
 };
 class RhythmTempMemoryRegion : public MemoryRegion {
 public:
-	RhythmTempMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_RhythmTemp, MT32EMU_MEMADDR(0x030110), sizeof(MemParams::RhythmTemp), 85) {}
+	RhythmTempMemoryRegion(Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useRealMemory, useMaxTable, MR_RhythmTemp, MT32EMU_MEMADDR(0x030110), sizeof(MemParams::RhythmTemp), 85) {}
 };
 class TimbreTempMemoryRegion : public MemoryRegion {
 public:
-	TimbreTempMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_TimbreTemp, MT32EMU_MEMADDR(0x040000), sizeof(TimbreParam), 8) {}
+	TimbreTempMemoryRegion(Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useRealMemory, useMaxTable, MR_TimbreTemp, MT32EMU_MEMADDR(0x040000), sizeof(TimbreParam), 8) {}
 };
 class PatchesMemoryRegion : public MemoryRegion {
 public:
-	PatchesMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_Patches, MT32EMU_MEMADDR(0x050000), sizeof(PatchParam), 128) {}
+	PatchesMemoryRegion(Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useRealMemory, useMaxTable, MR_Patches, MT32EMU_MEMADDR(0x050000), sizeof(PatchParam), 128) {}
 };
 class TimbresMemoryRegion : public MemoryRegion {
 public:
-	TimbresMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_Timbres, MT32EMU_MEMADDR(0x080000), sizeof(MemParams::PaddedTimbre), 64 + 64 + 64 + 64) {}
+	TimbresMemoryRegion(Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useRealMemory, useMaxTable, MR_Timbres, MT32EMU_MEMADDR(0x080000), sizeof(MemParams::PaddedTimbre), 64 + 64 + 64 + 64) {}
 };
 class SystemMemoryRegion : public MemoryRegion {
 public:
-	SystemMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_System, MT32EMU_MEMADDR(0x100000), sizeof(MemParams::System), 1) {}
+	SystemMemoryRegion(Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useRealMemory, useMaxTable, MR_System, MT32EMU_MEMADDR(0x100000), sizeof(MemParams::System), 1) {}
 };
 class DisplayMemoryRegion : public MemoryRegion {
 public:
 	// Note, we set realMemory to NULL despite the real devices buffer inbound strings. However, it is impossible to retrieve them.
 	// This entrySize permits emulation of handling a 20-byte display message sent to an old-gen device at address 0x207F7F.
-	DisplayMemoryRegion(Synth *useSynth) : MemoryRegion(useSynth, NULL, NULL, MR_Display, MT32EMU_MEMADDR(0x200000), 0x4013, 1) {}
+	DisplayMemoryRegion() : MemoryRegion(NULL, NULL, MR_Display, MT32EMU_MEMADDR(0x200000), 0x4013, 1) {}
 };
 class ResetMemoryRegion : public MemoryRegion {
 public:
-	ResetMemoryRegion(Synth *useSynth) : MemoryRegion(useSynth, NULL, NULL, MR_Reset, MT32EMU_MEMADDR(0x7F0000), 0x3FFF, 1) {}
+	ResetMemoryRegion() : MemoryRegion(NULL, NULL, MR_Reset, MT32EMU_MEMADDR(0x7F0000), 0x3FFF, 1) {}
 };
 
 } // namespace MT32Emu

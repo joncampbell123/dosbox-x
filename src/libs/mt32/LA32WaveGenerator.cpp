@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2026 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,27 +30,37 @@ static const Bit32u RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE = 144 << 18;
 static const Bit32u MAX_CUTOFF_VALUE = 240 << 18;
 static const LogSample SILENCE = {65535, LogSample::POSITIVE};
 
-Bit16u LA32Utilites::interpolateExp(const Bit16u fract) {
+// These two tables are accessed extremely often. Keeping the direct pointers here significantly improves performance in most cases.
+static const Bit16u *exp9;
+static const Bit16u *logsin9;
+// This is accessed less often, but it's still on the critical path.
+static const Bit8u *resAmpDecayFactors;
+
+namespace LA32Utilites {
+
+static inline Bit16u interpolateExp(const Bit16u fract) {
 	Bit16u expTabIndex = fract >> 3;
 	Bit16u extraBits = ~fract & 7;
-	Bit16u expTabEntry2 = 8191 - Tables::getInstance().exp9[expTabIndex];
-	Bit16u expTabEntry1 = expTabIndex == 0 ? 8191 : (8191 - Tables::getInstance().exp9[expTabIndex - 1]);
+	Bit16u expTabEntry2 = 8191 - exp9[expTabIndex];
+	Bit16u expTabEntry1 = expTabIndex == 0 ? 8191 : (8191 - exp9[expTabIndex - 1]);
 	return expTabEntry2 + (((expTabEntry1 - expTabEntry2) * extraBits) >> 3);
 }
 
-Bit16s LA32Utilites::unlog(const LogSample &logSample) {
-	//Bit16s sample = (Bit16s)EXP2F(13.0f - logSample.logValue / 1024.0f);
+static inline Bit16s unlog(const LogSample &logSample) {
+	//Bit16s sample = (Bit16s)EXP2F(13.0f - logSample.logValue / 4096.0f);
 	Bit32u intLogValue = logSample.logValue >> 12;
 	Bit16u fracLogValue = logSample.logValue & 4095;
 	Bit16s sample = interpolateExp(fracLogValue) >> intLogValue;
 	return logSample.sign == LogSample::POSITIVE ? sample : -sample;
 }
 
-void LA32Utilites::addLogSamples(LogSample &logSample1, const LogSample &logSample2) {
+static inline void addLogSamples(LogSample &logSample1, const LogSample &logSample2) {
 	Bit32u logSampleValue = logSample1.logValue + logSample2.logValue;
 	logSample1.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
 	logSample1.sign = logSample1.sign == logSample2.sign ? LogSample::POSITIVE : LogSample::NEGATIVE;
 }
+
+} // namespace LA32Utilites
 
 Bit32u LA32WaveGenerator::getSampleStep() {
 	// sampleStep = EXP2F(pitch / 4096.0f + 4.0f)
@@ -136,11 +146,11 @@ void LA32WaveGenerator::generateNextSquareWaveLogSample() {
 	switch (phase) {
 		case POSITIVE_RISING_SINE_SEGMENT:
 		case NEGATIVE_FALLING_SINE_SEGMENT:
-			logSampleValue = Tables::getInstance().logsin9[(squareWavePosition >> 9) & 511];
+			logSampleValue = logsin9[(squareWavePosition >> 9) & 511];
 			break;
 		case POSITIVE_FALLING_SINE_SEGMENT:
 		case NEGATIVE_RISING_SINE_SEGMENT:
-			logSampleValue = Tables::getInstance().logsin9[~(squareWavePosition >> 9) & 511];
+			logSampleValue = logsin9[~(squareWavePosition >> 9) & 511];
 			break;
 		case POSITIVE_LINEAR_SEGMENT:
 		case NEGATIVE_LINEAR_SEGMENT:
@@ -161,9 +171,9 @@ void LA32WaveGenerator::generateNextSquareWaveLogSample() {
 void LA32WaveGenerator::generateNextResonanceWaveLogSample() {
 	Bit32u logSampleValue;
 	if (resonancePhase == POSITIVE_FALLING_RESONANCE_SINE_SEGMENT || resonancePhase == NEGATIVE_RISING_RESONANCE_SINE_SEGMENT) {
-		logSampleValue = Tables::getInstance().logsin9[~(resonanceSinePosition >> 9) & 511];
+		logSampleValue = logsin9[~(resonanceSinePosition >> 9) & 511];
 	} else {
-		logSampleValue = Tables::getInstance().logsin9[(resonanceSinePosition >> 9) & 511];
+		logSampleValue = logsin9[(resonanceSinePosition >> 9) & 511];
 	}
 	logSampleValue <<= 2;
 	logSampleValue += amp >> 10;
@@ -176,10 +186,10 @@ void LA32WaveGenerator::generateNextResonanceWaveLogSample() {
 	// To ensure the output wave has no breaks, two different windows are applied to the beginning and the ending of the resonance sine segment
 	if (phase == POSITIVE_RISING_SINE_SEGMENT || phase == NEGATIVE_FALLING_SINE_SEGMENT) {
 		// The window is synchronous sine here
-		logSampleValue += Tables::getInstance().logsin9[(squareWavePosition >> 9) & 511] << 2;
+		logSampleValue += logsin9[(squareWavePosition >> 9) & 511] << 2;
 	} else if (phase == POSITIVE_FALLING_SINE_SEGMENT || phase == NEGATIVE_RISING_SINE_SEGMENT) {
 		// The window is synchronous square sine here
-		logSampleValue += Tables::getInstance().logsin9[~(squareWavePosition >> 9) & 511] << 3;
+		logSampleValue += logsin9[~(squareWavePosition >> 9) & 511] << 3;
 	}
 
 	if (cutoffVal < MIDDLE_CUTOFF_VALUE) {
@@ -188,7 +198,7 @@ void LA32WaveGenerator::generateNextResonanceWaveLogSample() {
 	} else if (cutoffVal < RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE) {
 		// For the cutoff values below this point, the amp of the resonance wave is sinusoidally decayed
 		Bit32u sineIx = (cutoffVal - MIDDLE_CUTOFF_VALUE) >> 13;
-		logSampleValue += Tables::getInstance().logsin9[sineIx] << 2;
+		logSampleValue += logsin9[sineIx] << 2;
 	}
 
 	// After all the amp decrements are added, it should be safe now to adjust the amp of the resonance wave to what we see on captures
@@ -201,9 +211,9 @@ void LA32WaveGenerator::generateNextResonanceWaveLogSample() {
 void LA32WaveGenerator::generateNextSawtoothCosineLogSample(LogSample &logSample) const {
 	Bit32u sawtoothCosinePosition = wavePosition + (1 << 18);
 	if ((sawtoothCosinePosition & (1 << 18)) > 0) {
-		logSample.logValue = Tables::getInstance().logsin9[~(sawtoothCosinePosition >> 9) & 511];
+		logSample.logValue = logsin9[~(sawtoothCosinePosition >> 9) & 511];
 	} else {
-		logSample.logValue = Tables::getInstance().logsin9[(sawtoothCosinePosition >> 9) & 511];
+		logSample.logValue = logsin9[(sawtoothCosinePosition >> 9) & 511];
 	}
 	logSample.logValue <<= 2;
 	logSample.sign = ((sawtoothCosinePosition & (1 << 19)) == 0) ? LogSample::POSITIVE : LogSample::NEGATIVE;
@@ -267,7 +277,7 @@ void LA32WaveGenerator::initSynth(const bool useSawtoothWaveform, const Bit8u us
 	resonanceSinePosition = 0;
 	resonancePhase = POSITIVE_RISING_RESONANCE_SINE_SEGMENT;
 	resonanceAmpSubtraction = (32 - resonance) << 10;
-	resAmpDecayFactor = Tables::getInstance().resAmpDecayFactor[resonance >> 2] << 2;
+	resAmpDecayFactor = resAmpDecayFactors[resonance >> 2] << 2;
 
 	pcmWaveAddress = NULL;
 	active = true;
@@ -335,6 +345,12 @@ bool LA32WaveGenerator::isPCMWave() const {
 
 Bit32u LA32WaveGenerator::getPCMInterpolationFactor() const {
 	return pcmInterpolationFactor;
+}
+
+void LA32IntPartialPair::initTables(const Tables &tables) {
+	exp9 = tables.exp9;
+	logsin9 = tables.logsin9;
+	resAmpDecayFactors = tables.resAmpDecayFactors;
 }
 
 void LA32IntPartialPair::init(const bool useRingModulated, const bool useMixed) {

@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2024 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -122,10 +122,6 @@ public:
 	MT32EMU_EXPORT const ROMInfo *getROMInfo() const;
 
 private:
-	static const ROMImage *makeFullROMImage(Bit8u *data, size_t dataSize);
-	static const ROMImage *appendImages(const ROMImage *romImageLow, const ROMImage *romImageHigh);
-	static const ROMImage *interleaveImages(const ROMImage *romImageEven, const ROMImage *romImageOdd);
-
 	File * const file;
 	const bool ownFile;
 	const ROMInfo * const romInfo;

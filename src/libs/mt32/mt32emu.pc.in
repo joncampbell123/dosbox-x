@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: @PROJECT_NAME@
+Description: @libmt32emu_DESCRIPTION_SUMMARY@
+URL: @libmt32emu_URL@
+Version: @libmt32emu_VERSION@
+Requires.private: @libmt32emu_PC_REQUIRES_PRIVATE@
+Libs: -L${libdir} -lmt32emu
+Cflags: -I${includedir}

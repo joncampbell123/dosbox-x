@@ -69,6 +69,12 @@ const unsigned int MAX_CURRENT = 0xFF << TARGET_SHIFTS;
 // scheme eventually.
 const int INTERRUPT_TIME = 7;
 
+static const Bit16u *exp9;
+
+void LA32Ramp::initTables(const Tables &tables) {
+	exp9 = tables.exp9;
+}
+
 LA32Ramp::LA32Ramp() :
 	current(0),
 	largeTarget(0),
@@ -85,7 +91,7 @@ void LA32Ramp::startRamp(Bit8u target, Bit8u increment) {
 		// Three bits in the fractional part, no need to interpolate
 		// (unsigned int)(EXP2F(((increment & 0x7F) + 24) / 8.0f) + 0.125f)
 		Bit32u expArg = increment & 0x7F;
-		largeIncrement = 8191 - Tables::getInstance().exp9[~(expArg << 6) & 511];
+		largeIncrement = 8191 - exp9[~(expArg << 6) & 511];
 		largeIncrement <<= expArg >> 3;
 		largeIncrement += 64;
 		largeIncrement >>= 9;

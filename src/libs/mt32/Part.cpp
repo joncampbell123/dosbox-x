@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2025 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -38,6 +38,10 @@ static const Bit8u PartialMixStruct[13] = {
 	1, 3, 3, 2, 2, 2, 2
 };
 
+const Part *Part::getPart(Synth &synth, Bit8u partNum) {
+	return synth.getPart(partNum);
+}
+
 RhythmPart::RhythmPart(Synth *useSynth, unsigned int usePartNum): Part(useSynth, usePartNum) {
 	strcpy(name, "Rhythm");
 	rhythmTemp = &synth->mt32ram.rhythmTemp[0];
@@ -51,10 +55,18 @@ Part::Part(Synth *useSynth, unsigned int usePartNum) {
 	holdpedal = false;
 	patchTemp = &synth->mt32ram.patchTemp[partNum];
 	if (usePartNum == 8) {
-		// Nasty hack for rhythm
+		// The Rhythm part doesn't have just a single timbre associated.
 		timbreTemp = NULL;
 	} else {
-		sprintf(name, "Part %d", partNum + 1);
+#ifdef MT32EMU_WITH_STD_SNPRINTF
+		snprintf(
+			name, sizeof name,
+#else
+		sprintf(
+			name,
+#endif
+			"Part %d", partNum + 1
+		);
 		timbreTemp = &synth->mt32ram.timbreTemp[partNum];
 	}
 	currentInstr[0] = 0;
@@ -195,12 +207,14 @@ void Part::setPatch(const PatchParam *patch) {
 	patchTemp->patch = *patch;
 }
 
-void RhythmPart::setTimbre(TimbreParam * /*timbre*/) {
-	synth->printDebug("%s: Attempted to call setTimbre() - doesn't make sense for rhythm", name);
+void RhythmPart::resetTimbre() {
+	synth->printDebug("%s: Attempted to call resetTimbre() - doesn't make sense for rhythm", name);
 }
 
-void Part::setTimbre(TimbreParam *timbre) {
-	*timbreTemp = *timbre;
+void Part::resetTimbre() {
+	holdpedal = false;
+	allSoundOff();
+	*timbreTemp = synth->mt32ram.timbres[getAbsTimbreNum()].timbre;
 }
 
 unsigned int RhythmPart::getAbsTimbreNum() const {
@@ -222,9 +236,7 @@ void RhythmPart::setProgram(unsigned int) { }
 
 void Part::setProgram(unsigned int patchNum) {
 	setPatch(&synth->mt32ram.patches[patchNum]);
-	holdpedal = false;
-	allSoundOff();
-	setTimbre(&synth->mt32ram.timbres[getAbsTimbreNum()].timbre);
+	resetTimbre();
 	refresh();
 }
 
@@ -498,9 +510,13 @@ void Part::playPoly(const PatchCache cache[4], const MemParams::RhythmTemp *rhyt
 		synth->printDebug("%s (%s): Insufficient free partials to play key %d (velocity %d); needed=%d, free=%d, assignMode=%d", name, currentInstr, midiKey, velocity, needPartials, synth->partialManager->getFreePartialCount(), patchTemp->patch.assignMode);
 		synth->printPartialUsage();
 #endif
+		synth->getReportHandler3()->onNoteOnIgnored(needPartials, synth->partialManager->getFreePartialCount());
 		return;
 	}
-	if (synth->isAbortingPoly()) return;
+	if (synth->isAbortingPoly()) {
+		synth->getReportHandler3()->onPlayingPolySilenced(needPartials, synth->partialManager->getFreePartialCount());
+		return;
+	}
 
 	Poly *poly = synth->partialManager->assignPolyToPart(this);
 	if (poly == NULL) {
