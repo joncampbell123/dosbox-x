@@ -1817,16 +1817,33 @@ void imageDisk::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSec
     sectors = 63; // Default to 63 sectors per track.
     heads = 16;   // Default to 16 heads.
 
-    if(setHeads == 0 || setCyl == 0 || setSect == 0 || total_sectors > 0x0FFFFFFF) {
+    if(((setSectSize & (setSectSize - 1)) != 0)) {
+        LOG_MSG("bios_disk: Invalid sector size %u, must be a power of 2.", setSectSize);
+        active = false;
+        return;
+    }
+
+    if(total_sectors == 0) {
         LOG_MSG("bios_disk: Invalid disk geometry C, H, S = %u, %u, %u", setCyl, setHeads, setSect);
         active = false;
         return;
     }
     else if (total_sectors > 1024ULL * 255ULL * 63ULL) {
-        LOG_MSG("bios_disk: Disk geometry C, H, S = %u, %u, %u is too large, setting to max limits", setCyl, setHeads, setSect);
+        LOG_MSG("bios_disk: Disk geometry C, H, S = %u, %u, %u exceeds 8.4GB disk size, setting to max limits", setCyl, setHeads, setSect);
         cylinders = 1024;
         heads = 255;
         sectors = 63;
+        sector_size = setSectSize;
+        active = true;
+        return;
+    }
+
+    // Use the provided geometry, if it is valid
+    if(setCyl > 0 && setCyl <= 1024 && setHeads > 0 && setHeads <= 255 && setSect >0 && setSect <= 63) {
+        cylinders = setCyl;
+        heads = setHeads;
+        sectors = setSect;
+        sector_size = setSectSize;
         active = true;
         return;
     }
