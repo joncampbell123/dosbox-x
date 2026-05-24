@@ -205,6 +205,43 @@ static void cmos_checktimer(void) {
 //  status reg A reading with this (and with other delays actually)
 }
 
+#if C_DEBUG
+void DEBUG_PrintRTC(void) {
+        double index = PIC_FullIndex();
+        double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index);
+
+	LOG_MSG("RTC: year=%u mon=%u day=%u wday=%u hour=%u min=%u sec=%u",
+		cmos.clock.year,cmos.clock.month,cmos.clock.day,
+		cmos.clock.weekday,cmos.clock.hour,cmos.clock.min,cmos.clock.sec);
+	LOG_MSG("RTC: alarmhour=%u alarmmin=%u alarmsec=%u",
+		cmos.alarm.hour,cmos.alarm.min,cmos.alarm.sec);
+	LOG_MSG("RTC: clock_time_t=%lu reg=%02x lock=%u ampm=%u bcd=%u nmi=%u",
+		(unsigned long)cmos.clock_time_t,
+		cmos.reg,cmos.lock,cmos.ampm,cmos.bcd,cmos.nmi);
+	LOG_MSG("RTC: div=%u delay=%.3f ack=%u remaining_time_to_delay=%.3f",
+		cmos.timer.div,
+		(double)cmos.timer.delay,
+		cmos.timer.acknowledged,
+		remd);
+	LOG_MSG("RTC: now=%.3f last_ended=%.3f since_last=%.3f",
+		index,
+		cmos.last.ended,
+		index - cmos.last.ended);
+
+	char tmp[64];
+	std::string tms;
+	for (unsigned int i=0;i < 0x40;i++) {
+		if ((i&15) != 0) tms += " ";
+		sprintf(tmp,"%02x",cmos.regs[i]);
+		tms += tmp;
+		if ((i&15) == 15) {
+			LOG_MSG("RTC: regs[%02x-%02x]: %s",i,i+0xF,tms.c_str());
+			tms.clear();
+		}
+	}
+}
+#endif
+
 void cmos_selreg(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
