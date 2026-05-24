@@ -335,19 +335,23 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             cmos.clock.year += val * 100;
             break;
         case 0x0a:      /* Status reg A */
-            cmos.regs[cmos.reg]=val & 0x7f;
-            if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Illegal 22 stage divider value");
-            cmos.timer.div=(val & 0xf);
-            cmos_checktimer();
+            if (cmos.regs[cmos.reg] != (uint8_t)val) {
+                cmos.regs[cmos.reg]=val & 0x7f;
+                if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Illegal 22 stage divider value");
+                cmos.timer.div=(val & 0xf);
+                cmos_checktimer();
+            }
             break;
         case 0x0b:      /* Status reg B */
             {
-                cmos.ampm = !(val & 0x02);
-                cmos.bcd = !(val & 0x04);
-                cmos.lock = (val & 0x80) != 0;
-                if (cmos.lock) val &= ~0x10; /* Setting bit 7 clears bit 4 (UEI) */
-                cmos.regs[cmos.reg] = (uint8_t)val;
-                cmos_checktimer();
+                if (cmos.regs[cmos.reg] != (uint8_t)val) {
+                    cmos.ampm = !(val & 0x02);
+                    cmos.bcd = !(val & 0x04);
+                    cmos.lock = (val & 0x80) != 0;
+                    if (cmos.lock) val &= ~0x10; /* Setting bit 7 clears bit 4 (UEI) */
+                    cmos.regs[cmos.reg] = (uint8_t)val;
+                    cmos_checktimer();
+                }
             }
             break;
         case 0x0c:      /* Status reg C */
