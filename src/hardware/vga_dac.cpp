@@ -495,4 +495,8 @@ void POD_Load_VGA_Dac( std::istream& stream )
 
 
 	// no static globals found
+
+	// fix: regenerate xlat32/xlat16 caches from rgb[] using the current host pixel format;
+	// loading them raw from the save desyncs colours when host format differs from save-time
+	VGA_DAC_UpdateColorPalette();
 }
