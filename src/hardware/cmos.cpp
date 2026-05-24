@@ -152,8 +152,8 @@ static void cmos_timerevent(Bitu val) {
     (void)val;//UNUSED
     {
         double index = PIC_FullIndex();
-        double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index);
-        //double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
+        //double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index); // no, this doesn't work
+        double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
         //double remd = index - trunc(index / (double)cmos.timer.delay) * (double)cmos.timer.delay; // alternative fix
         //LOG_MSG("cmos timerevent: index=%f, interval=%f", index, cmos.timer.delay - remd);
 
@@ -195,12 +195,14 @@ static void cmos_checktimer(void) {
     if (cmos.timer.div<=2) cmos.timer.div+=7;
     cmos.timer.delay=(1000.0f/(32768.0f / (1 << (cmos.timer.div - 1))));
     if (!cmos.timer.div) return;
-    LOG(LOG_PIT,LOG_NORMAL)("RTC Timer at %.2f hz",1000.0/cmos.timer.delay);
+    LOG(LOG_PIT,LOG_DEBUG)("RTC Timer at %.2f hz",1000.0/cmos.timer.delay);
 //  PIC_AddEvent(cmos_timerevent,cmos.timer.delay);
     /* A rtc is always running */
     //double remd=fmod(PIC_FullIndex(),(double)cmos.timer.delay);
     double index = PIC_FullIndex();
-    double remd = fma((index / (double)cmos.timer.delay), -(double)cmos.timer.delay, index);
+    //double remd = fma((index / (double)cmos.timer.delay), -(double)cmos.timer.delay, index); // no, this doesn't work
+    double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
+    LOG(LOG_PIT,LOG_DEBUG)("RTC index=%.3f remd=%.3f delay=%.3f",index,remd,cmos.timer.delay);
     PIC_AddEvent(cmos_timerevent,(float)((double)cmos.timer.delay-remd)); //Should be more like a real pc. Check
 //  status reg A reading with this (and with other delays actually)
 }
@@ -208,7 +210,8 @@ static void cmos_checktimer(void) {
 #if C_DEBUG
 void DEBUG_PrintRTC(void) {
         double index = PIC_FullIndex();
-        double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index);
+        //double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index); // no, this doesn't work
+        double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
 
 	LOG_MSG("RTC: year=%u mon=%u day=%u wday=%u hour=%u min=%u sec=%u",
 		cmos.clock.year,cmos.clock.month,cmos.clock.day,
@@ -335,7 +338,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             cmos.clock.year += val * 100;
             break;
         case 0x0a:      /* Status reg A */
-            if (cmos.regs[cmos.reg] != (uint8_t)val) {
+            if (cmos.regs[cmos.reg] != (uint8_t)val || 1) {
                 cmos.regs[cmos.reg]=val & 0x7f;
                 if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Illegal 22 stage divider value");
                 cmos.timer.div=(val & 0xf);
@@ -344,7 +347,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             break;
         case 0x0b:      /* Status reg B */
             {
-                if (cmos.regs[cmos.reg] != (uint8_t)val) {
+                if (cmos.regs[cmos.reg] != (uint8_t)val || 1) {
                     cmos.ampm = !(val & 0x02);
                     cmos.bcd = !(val & 0x04);
                     cmos.lock = (val & 0x80) != 0;
