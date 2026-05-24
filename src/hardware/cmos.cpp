@@ -194,15 +194,16 @@ static void cmos_checktimer(void) {
     PIC_RemoveEvents(cmos_timerevent);
     if (cmos.timer.div<=2) cmos.timer.div+=7;
     cmos.timer.delay=(1000.0f/(32768.0f / (1 << (cmos.timer.div - 1))));
-    if (!cmos.timer.div) return;
-    LOG(LOG_PIT,LOG_DEBUG)("RTC Timer at %.2f hz",1000.0/cmos.timer.delay);
-//  PIC_AddEvent(cmos_timerevent,cmos.timer.delay);
+    if (!cmos.timer.div) {
+        LOG(LOG_PIT,LOG_DEBUG)("RTC Timer at %.2f hz, but the divider is zero, so the clock tick is disabled",1000.0/cmos.timer.delay);
+        return;
+    }
     /* A rtc is always running */
     //double remd=fmod(PIC_FullIndex(),(double)cmos.timer.delay);
     double index = PIC_FullIndex();
     //double remd = fma((index / (double)cmos.timer.delay), -(double)cmos.timer.delay, index); // no, this doesn't work
     double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
-    LOG(LOG_PIT,LOG_DEBUG)("RTC index=%.3f remd=%.3f delay=%.3f",index,remd,cmos.timer.delay);
+    LOG(LOG_PIT,LOG_DEBUG)("RTC Timer at %.2f hz index=%.3f remd=%.3f delay=%.3f",1000.0/cmos.timer.delay,index,remd,cmos.timer.delay);
     PIC_AddEvent(cmos_timerevent,(float)((double)cmos.timer.delay-remd)); //Should be more like a real pc. Check
 //  status reg A reading with this (and with other delays actually)
 }
