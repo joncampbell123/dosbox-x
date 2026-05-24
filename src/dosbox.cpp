@@ -1854,6 +1854,12 @@ void DOSBOX_SetupConfigSections(void) {
                     "Enabled by default. Recommended for MS-DOS when HIMEM.SYS is not installed in the guest OS.\n"
                     "If disabled, and MS-DOS does not load HIMEM.SYS, programs and features that rely on the 1MB wraparound will fail.");
 
+    Pbool = secprop->Add_bool("pit any read returns status latch",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, and the guest issues a command to read status, any I/O read from any counter will return the status of that counter.\n"
+		    "This may be necessary for some games with unusual PIT counter management that requires this.\n"
+		    "Required for:\n"
+		    " - Descent to Undermountain");
+
     /* Ref:
      *
      * "Except the first generation, which C-Bus was synchronous with its 5MHz 8086, PC-98s
