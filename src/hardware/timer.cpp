@@ -86,6 +86,7 @@ struct PIT_Block {
         uint16_t          cycle = 0;          // cycle (Mode 3: 0 or 1)
     };
 
+    uint8_t latched_timerstatus = 0;
     Bitu cntr = 0;          /* counter value written to 40h-42h as the interval. may take effect immediately (after port 43h) or after count expires */
     Bitu cntr_cur = 0;      /* current counter value in effect */
     pic_tickindex_t delay = 0;       /* interval (in ms) between one full count cycle */
@@ -395,7 +396,6 @@ struct PIT_Block {
 
 static PIT_Block pit[3];
 
-static uint8_t latched_timerstatus;//FIXME: Move into per-counter struct because status can be latched per counter!
 // the timer status can not be overwritten until it is read or the timer was 
 // reprogrammed.
 static bool latched_timerstatus_locked;//FIXME: Move into per-counter struct because status can be latched per counter!
@@ -462,11 +462,12 @@ static bool counter_output(Bitu counter) {
     return p->output;
 }
 static void status_latch(Bitu counter) {
+	PIT_Block * p=&pit[counter];
+
 	// the timer status can not be overwritten until it is read or the timer was 
 	// reprogrammed.
 	if(!latched_timerstatus_locked)	{
-		PIT_Block * p=&pit[counter];
-		latched_timerstatus=0;
+		p->latched_timerstatus=0;
 		// Timer Status Word
 		// 0: BCD 
 		// 1-3: Timer mode
@@ -474,13 +475,13 @@ static void status_latch(Bitu counter) {
 		// 6: "NULL" - this is 0 if "the counter value is in the counter" ;)
 		// should rarely be 1 (i.e. on exotic modes)
 		// 7: OUT - the logic level on the Timer output pin
-		if(p->bcd)latched_timerstatus|=0x1;
-		latched_timerstatus|=((p->mode&7)<<1);
-		if((p->read_state==0)||(p->read_state==3)) latched_timerstatus|=0x30;
-		else if(p->read_state==1) latched_timerstatus|=0x10;
-		else if(p->read_state==2) latched_timerstatus|=0x20;
-		if(counter_output(counter)) latched_timerstatus|=0x80;
-		if(p->new_mode) latched_timerstatus|=0x40;
+		if(p->bcd)p->latched_timerstatus|=0x1;
+		p->latched_timerstatus|=((p->mode&7)<<1);
+		if((p->read_state==0)||(p->read_state==3)) p->latched_timerstatus|=0x30;
+		else if(p->read_state==1) p->latched_timerstatus|=0x10;
+		else if(p->read_state==2) p->latched_timerstatus|=0x20;
+		if(counter_output(counter)) p->latched_timerstatus|=0x80;
+		if(p->new_mode) p->latched_timerstatus|=0x40;
 		// The first thing that is being read from this counter now is the
 		// counter status.
 		p->counterstatus_set=true;
@@ -767,7 +768,7 @@ static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
 	if(GCC_UNLIKELY(pit[counter].counterstatus_set)){
 		pit[counter].counterstatus_set = false;
 		latched_timerstatus_locked = false;
-		ret = latched_timerstatus;
+		ret = pit[counter].latched_timerstatus;
 	} else {
 		if (pit[counter].go_read_latch == true)
 			counter_latch(counter);
@@ -1277,7 +1278,6 @@ public:
     {
         registerPOD(pit);
         //registerPOD(gate2);
-        registerPOD(latched_timerstatus);
 		registerPOD(latched_timerstatus_locked);
     }
 } dummy;
