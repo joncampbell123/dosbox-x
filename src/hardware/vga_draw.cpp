@@ -8368,7 +8368,7 @@ void POD_Save_VGA_Draw( std::ostream& stream )
 {
 	uint8_t linear_base_idx;
 	uint8_t font_tables_idx[2];
-	uint8_t drawline_idx;
+	uint8_t drawline_idx = 0u; // fix: was uninitialised; if/else below covers only 14 of ~46 VGA_DrawLine variants, so unmatched modes wrote stack garbage
 
 
 	if(0) {}
