@@ -70,7 +70,9 @@ TerminalState terminal;
 static bool host_terminal_supported()
 {
 #if !defined(WIN32) && !defined(HX_DOS) && !C_EMSCRIPTEN
-    return isatty(STDIN_FILENO) && isatty(STDOUT_FILENO);
+    return isatty(STDIN_FILENO) &&
+           isatty(STDOUT_FILENO) &&
+           isatty(STDERR_FILENO);
 #else
     return false;
 #endif
