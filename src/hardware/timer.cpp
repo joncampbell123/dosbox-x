@@ -87,6 +87,7 @@ struct PIT_Block {
     };
 
     uint8_t latched_timerstatus = 0;
+    bool latched_timerstatus_locked = false;// the timer status can not be overwritten until it is read or the timer was reprogrammed.
     Bitu cntr = 0;          /* counter value written to 40h-42h as the interval. may take effect immediately (after port 43h) or after count expires */
     Bitu cntr_cur = 0;      /* current counter value in effect */
     pic_tickindex_t delay = 0;       /* interval (in ms) between one full count cycle */
@@ -396,10 +397,6 @@ struct PIT_Block {
 
 static PIT_Block pit[3];
 
-// the timer status can not be overwritten until it is read or the timer was 
-// reprogrammed.
-static bool latched_timerstatus_locked;//FIXME: Move into per-counter struct because status can be latched per counter!
-
 unsigned long PIT_TICK_RATE = PIT_TICK_RATE_IBM;
 
 pic_tickindex_t VGA_PITSync_delay(void);
@@ -466,7 +463,7 @@ static void status_latch(Bitu counter) {
 
 	// the timer status can not be overwritten until it is read or the timer was 
 	// reprogrammed.
-	if(!latched_timerstatus_locked)	{
+	if(!p->latched_timerstatus_locked) {
 		p->latched_timerstatus=0;
 		// Timer Status Word
 		// 0: BCD 
@@ -485,7 +482,7 @@ static void status_latch(Bitu counter) {
 		// The first thing that is being read from this counter now is the
 		// counter status.
 		p->counterstatus_set=true;
-		latched_timerstatus_locked=true;
+		p->latched_timerstatus_locked=true;
 	}
 }
 
@@ -731,6 +728,15 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 }
 
+static bool pit_any_status(void) {
+	for (unsigned int c=0;c < 3;c++) {
+		if (pit[c].counterstatus_set)
+			return true;
+	}
+
+	return false;
+}
+
 static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port read %X",port);
 
@@ -755,10 +761,10 @@ static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
 	 *
 	 *       Hack for Descent to Undermountain which asks to latch status for Counter 1 when the timer ISR is checking
 	 *       to make sure Counter 2 is programmed correctly (or else it resets Counter 2 to count==0), oops! */
-        if (pit_status_latch_read_anywhere && latched_timerstatus_locked) {
+        if (pit_status_latch_read_anywhere && pit_any_status()) {
 		if (!pit[counter].counterstatus_set) {
 			LOG(LOG_PIT,LOG_DEBUG)("Returning status for counter %u when a different counter was asked to latch status!",counter);
-			latched_timerstatus_locked = false;//status_latch() will not update without clearing this first
+			for (unsigned int c=0;c < 3;c++) pit[c].counterstatus_set = pit[c].latched_timerstatus_locked = false;//clear all others
 			status_latch(counter);
 		}
         }
@@ -767,7 +773,7 @@ static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
 	 *        asks the PIT to latch status for more than one counter! */
 	if(GCC_UNLIKELY(pit[counter].counterstatus_set)){
 		pit[counter].counterstatus_set = false;
-		latched_timerstatus_locked = false;
+		pit[counter].latched_timerstatus_locked = false;
 		ret = pit[counter].latched_timerstatus;
 	} else {
 		if (pit[counter].go_read_latch == true)
@@ -848,7 +854,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			// Timer is being reprogrammed, unlock the status
 			if(pit[latch].counterstatus_set) {
 				pit[latch].counterstatus_set=false;
-				latched_timerstatus_locked=false;
+				pit[latch].latched_timerstatus_locked=false;
 			}
 			// Do not call reset_count_at() here, it causes problems.
 			// When the mode byte is written, count stops. When the new count is written, THEN call reset_count_at()
@@ -1190,8 +1196,6 @@ void TIMER_OnPowerOn(Section*) {
         ReadHandler[2].Install(0x42,read_latch,IO_MB);
     }
 
-	latched_timerstatus_locked=false;
-
     if (IS_PC98_ARCH) {
         int pc98rate;
 
@@ -1219,8 +1223,6 @@ void TIMER_OnPowerOn(Section*) {
             PIT_TICK_RATE = PIT_TICK_RATE_PC98_8MHZ;
 
         LOG_MSG("PC-98 PIT master clock rate %luHz",PIT_TICK_RATE);
-
-        latched_timerstatus_locked=false;
     }
 }
 
@@ -1278,7 +1280,6 @@ public:
     {
         registerPOD(pit);
         //registerPOD(gate2);
-		registerPOD(latched_timerstatus_locked);
     }
 } dummy;
 }
