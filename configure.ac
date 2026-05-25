@@ -146,7 +146,14 @@ AC_MSG_RESULT([$COMMIT_HASH])
 GITBRANCH=`git rev-parse --abbrev-ref HEAD`
 OSFREE=0
 AH_TEMPLATE(C_OSFREE,[Define to 1 to make an OSFREE version])
+
+# automated builds on GitHub are failing to detect main-osfree branch for osfree?
+# try looking at vs/config_package.h
+TMP=`grep -R "#define OSFREE" vs/config_package.h`
+
 if [[ x"$GITBRANCH" == x"main-osfree" ]]; then
+    AC_DEFINE(C_OSFREE,1,[Make an OSFREE build])
+elif [ -n "$TMP" ]; then # vs/config_package.h is OSFREE
     AC_DEFINE(C_OSFREE,1,[Make an OSFREE build])
 fi
 
