@@ -40,7 +40,7 @@ public:
 
 class MT32EMU_EXPORT AbstractFile : public File {
 public:
-	const SHA1Digest &getSHA1() override;
+	const SHA1Digest &getSHA1();
 
 protected:
 	AbstractFile();
@@ -59,9 +59,9 @@ public:
 	ArrayFile(const Bit8u *data, size_t size);
 	ArrayFile(const Bit8u *data, size_t size, const SHA1Digest &sha1Digest);
 
-	size_t getSize() override;
-	const Bit8u *getData() override;
-	void close() override {}
+	size_t getSize();
+	const Bit8u *getData();
+	void close() {}
 
 private:
 	const Bit8u *data;

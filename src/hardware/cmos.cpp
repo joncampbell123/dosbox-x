@@ -152,8 +152,8 @@ static void cmos_timerevent(Bitu val) {
     (void)val;//UNUSED
     {
         double index = PIC_FullIndex();
-        double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index);
-        //double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
+        //double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index); // no, this doesn't work
+        double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
         //double remd = index - trunc(index / (double)cmos.timer.delay) * (double)cmos.timer.delay; // alternative fix
         //LOG_MSG("cmos timerevent: index=%f, interval=%f", index, cmos.timer.delay - remd);
 
@@ -194,16 +194,57 @@ static void cmos_checktimer(void) {
     PIC_RemoveEvents(cmos_timerevent);
     if (cmos.timer.div<=2) cmos.timer.div+=7;
     cmos.timer.delay=(1000.0f/(32768.0f / (1 << (cmos.timer.div - 1))));
-    if (!cmos.timer.div) return;
-    LOG(LOG_PIT,LOG_NORMAL)("RTC Timer at %.2f hz",1000.0/cmos.timer.delay);
-//  PIC_AddEvent(cmos_timerevent,cmos.timer.delay);
+    if (!cmos.timer.div) {
+        LOG(LOG_PIT,LOG_DEBUG)("RTC Timer at %.2f hz, but the divider is zero, so the clock tick is disabled",1000.0/cmos.timer.delay);
+        return;
+    }
     /* A rtc is always running */
     //double remd=fmod(PIC_FullIndex(),(double)cmos.timer.delay);
     double index = PIC_FullIndex();
-    double remd = fma((index / (double)cmos.timer.delay), -(double)cmos.timer.delay, index);
+    //double remd = fma((index / (double)cmos.timer.delay), -(double)cmos.timer.delay, index); // no, this doesn't work
+    double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
+    LOG(LOG_PIT,LOG_DEBUG)("RTC Timer at %.2f hz index=%.3f remd=%.3f delay=%.3f",1000.0/cmos.timer.delay,index,remd,cmos.timer.delay);
     PIC_AddEvent(cmos_timerevent,(float)((double)cmos.timer.delay-remd)); //Should be more like a real pc. Check
 //  status reg A reading with this (and with other delays actually)
 }
+
+#if C_DEBUG
+void DEBUG_PrintRTC(void) {
+        double index = PIC_FullIndex();
+        //double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index); // no, this doesn't work
+        double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
+
+	LOG_MSG("RTC: year=%u mon=%u day=%u wday=%u hour=%u min=%u sec=%u",
+		cmos.clock.year,cmos.clock.month,cmos.clock.day,
+		cmos.clock.weekday,cmos.clock.hour,cmos.clock.min,cmos.clock.sec);
+	LOG_MSG("RTC: alarmhour=%u alarmmin=%u alarmsec=%u",
+		cmos.alarm.hour,cmos.alarm.min,cmos.alarm.sec);
+	LOG_MSG("RTC: clock_time_t=%lu reg=%02x lock=%u ampm=%u bcd=%u nmi=%u",
+		(unsigned long)cmos.clock_time_t,
+		cmos.reg,cmos.lock,cmos.ampm,cmos.bcd,cmos.nmi);
+	LOG_MSG("RTC: div=%u delay=%.3f ack=%u remaining_time_to_delay=%.3f",
+		cmos.timer.div,
+		(double)cmos.timer.delay,
+		cmos.timer.acknowledged,
+		remd);
+	LOG_MSG("RTC: now=%.3f last_ended=%.3f since_last=%.3f",
+		index,
+		cmos.last.ended,
+		index - cmos.last.ended);
+
+	char tmp[64];
+	std::string tms;
+	for (unsigned int i=0;i < 0x40;i++) {
+		if ((i&15) != 0) tms += " ";
+		sprintf(tmp,"%02x",cmos.regs[i]);
+		tms += tmp;
+		if ((i&15) == 15) {
+			LOG_MSG("RTC: regs[%02x-%02x]: %s",i,i+0xF,tms.c_str());
+			tms.clear();
+		}
+	}
+}
+#endif
 
 void cmos_selreg(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
@@ -298,19 +339,23 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             cmos.clock.year += val * 100;
             break;
         case 0x0a:      /* Status reg A */
-            cmos.regs[cmos.reg]=val & 0x7f;
-            if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Illegal 22 stage divider value");
-            cmos.timer.div=(val & 0xf);
-            cmos_checktimer();
+            if (cmos.regs[cmos.reg] != (uint8_t)val) {
+                cmos.regs[cmos.reg]=val & 0x7f;
+                if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Illegal 22 stage divider value");
+                cmos.timer.div=(val & 0xf);
+                cmos_checktimer();
+            }
             break;
         case 0x0b:      /* Status reg B */
             {
-                cmos.ampm = !(val & 0x02);
-                cmos.bcd = !(val & 0x04);
-                cmos.lock = (val & 0x80) != 0;
-                if (cmos.lock) val &= ~0x10; /* Setting bit 7 clears bit 4 (UEI) */
-                cmos.regs[cmos.reg] = (uint8_t)val;
-                cmos_checktimer();
+                if (cmos.regs[cmos.reg] != (uint8_t)val) {
+                    cmos.ampm = !(val & 0x02);
+                    cmos.bcd = !(val & 0x04);
+                    cmos.lock = (val & 0x80) != 0;
+                    if (cmos.lock) val &= ~0x10; /* Setting bit 7 clears bit 4 (UEI) */
+                    cmos.regs[cmos.reg] = (uint8_t)val;
+                    cmos_checktimer();
+                }
             }
             break;
         case 0x0c:      /* Status reg C */

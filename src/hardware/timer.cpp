@@ -32,6 +32,37 @@
 extern bool VGA_PITsync;
 extern double vga_fps;
 
+// "Descent to Undermountain" has an unusual Timer ISR that
+// checks the status of Counter 2 to make sure the mode (status)
+// is what it expects. However, the programmer make a mistake
+// that requests Counter 1 status, and then reads it from Counter 2,
+// and if it doesn't match the value it expects, resets PIT Counter 2 with
+// a new value. There is a software delay loop using Pit Counter 2
+// to count time. With the timer ISR behavior described, that loop
+// never ends because the counter is constantly reset, and the timer
+// ISR's attempt to track the change in PIT counter never counts
+// time either because the ISR writes command byte (new counter) and
+// counter == 0 to reset the counter, THEN reads back the counter
+// which (to nobody's surprise is counter == 0!), compared that to
+// the value it got the last time it did this (which of course the
+// delta == 0!) and then adds that to a base counter!
+//
+// The easiest way to make this game work is to allow a request for
+// status, and then any I/O read from any counter returns that
+// counter's status even when it was not requested by the command.
+//
+// On real hardware, if you want status from a counter, you have
+// to explicitly set the bit for that counter in the command written
+// to port 43h, to then read a status byte. Reads from counters not
+// requested by the command will return hi/lo bytes from the counter
+// as normal. Therefore "Descent to Undermountain" *should* hang
+// during FMV playback on real hardware, unless some DOS machines or
+// perhaps quirks in Windows 95 timer virtualization allowed that
+// kind of behavior. There's an excellent example of a demoscene
+// entry that only works correctly in a Windows 95/98 DOS VM yet
+// crashes on real MS-DOS systems (and it uses MMX instructions too!).
+bool pit_status_latch_read_anywhere = false;
+
 // This is only set in PC-98 mode and only if emulating PC-9801.
 // There is at least one game (PC-98 port of Thexder) that depends on PC-9801 PIT 1
 // behavior where the counter cycles at all times whether or not the PC speaker is
@@ -55,6 +86,8 @@ struct PIT_Block {
         uint16_t          cycle = 0;          // cycle (Mode 3: 0 or 1)
     };
 
+    uint8_t latched_timerstatus = 0;
+    bool latched_timerstatus_locked = false;// the timer status can not be overwritten until it is read or the timer was reprogrammed.
     Bitu cntr = 0;          /* counter value written to 40h-42h as the interval. may take effect immediately (after port 43h) or after count expires */
     Bitu cntr_cur = 0;      /* current counter value in effect */
     pic_tickindex_t delay = 0;       /* interval (in ms) between one full count cycle */
@@ -364,11 +397,6 @@ struct PIT_Block {
 
 static PIT_Block pit[3];
 
-static uint8_t latched_timerstatus;
-// the timer status can not be overwritten until it is read or the timer was 
-// reprogrammed.
-static bool latched_timerstatus_locked;
-
 unsigned long PIT_TICK_RATE = PIT_TICK_RATE_IBM;
 
 pic_tickindex_t VGA_PITSync_delay(void);
@@ -431,11 +459,12 @@ static bool counter_output(Bitu counter) {
     return p->output;
 }
 static void status_latch(Bitu counter) {
+	PIT_Block * p=&pit[counter];
+
 	// the timer status can not be overwritten until it is read or the timer was 
 	// reprogrammed.
-	if(!latched_timerstatus_locked)	{
-		PIT_Block * p=&pit[counter];
-		latched_timerstatus=0;
+	if(!p->latched_timerstatus_locked) {
+		p->latched_timerstatus=0;
 		// Timer Status Word
 		// 0: BCD 
 		// 1-3: Timer mode
@@ -443,17 +472,17 @@ static void status_latch(Bitu counter) {
 		// 6: "NULL" - this is 0 if "the counter value is in the counter" ;)
 		// should rarely be 1 (i.e. on exotic modes)
 		// 7: OUT - the logic level on the Timer output pin
-		if(p->bcd)latched_timerstatus|=0x1;
-		latched_timerstatus|=((p->mode&7)<<1);
-		if((p->read_state==0)||(p->read_state==3)) latched_timerstatus|=0x30;
-		else if(p->read_state==1) latched_timerstatus|=0x10;
-		else if(p->read_state==2) latched_timerstatus|=0x20;
-		if(counter_output(counter)) latched_timerstatus|=0x80;
-		if(p->new_mode) latched_timerstatus|=0x40;
+		if(p->bcd)p->latched_timerstatus|=0x1;
+		p->latched_timerstatus|=((p->mode&7)<<1);
+		if((p->read_state==0)||(p->read_state==3)) p->latched_timerstatus|=0x30;
+		else if(p->read_state==1) p->latched_timerstatus|=0x10;
+		else if(p->read_state==2) p->latched_timerstatus|=0x20;
+		if(counter_output(counter)) p->latched_timerstatus|=0x80;
+		if(p->new_mode) p->latched_timerstatus|=0x40;
 		// The first thing that is being read from this counter now is the
 		// counter status.
 		p->counterstatus_set=true;
-		latched_timerstatus_locked=true;
+		p->latched_timerstatus_locked=true;
 	}
 }
 
@@ -623,7 +652,8 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 				p->update_count=true;
 				return;
 			}
-			else if ((p->mode == 3) && (counter == (IS_PC98_ARCH ? 1 : 2))) {
+			else if ((p->mode == 2/*Descent to Undermountain uses Mode 2 and PC speaker PIT as time delay*/ || p->mode == 3) &&
+				(counter == (IS_PC98_ARCH ? 1 : 2))) {
 				void PCSPEAKER_SetCounter_NoNewMode(Bitu cntr);
 
 				// PC speaker
@@ -698,6 +728,15 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 }
 
+static bool pit_any_status(void) {
+	for (unsigned int c=0;c < 3;c++) {
+		if (pit[c].counterstatus_set)
+			return true;
+	}
+
+	return false;
+}
+
 static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port read %X",port);
 
@@ -716,10 +755,26 @@ static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
 
 	uint32_t counter=(uint32_t)(port-0x40);
 	uint8_t ret=0;
+
+        /* HACK: If option set, and counter status is waiting, ANY READ from 40h-42h
+         *       will return the status of that counter, even if the command to read status was for any other counter!
+	 *
+	 *       Hack for Descent to Undermountain which asks to latch status for Counter 1 when the timer ISR is checking
+	 *       to make sure Counter 2 is programmed correctly (or else it resets Counter 2 to count==0), oops! */
+        if (pit_status_latch_read_anywhere && pit_any_status()) {
+		if (!pit[counter].counterstatus_set) {
+			LOG(LOG_PIT,LOG_DEBUG)("Returning status for counter %u when a different counter was asked to latch status!",counter);
+			for (unsigned int c=0;c < 3;c++) pit[c].counterstatus_set = pit[c].latched_timerstatus_locked = false;//clear all others
+			status_latch(counter);
+		}
+        }
+
+	/* FIXME: This design does make it very difficult to return one status per counter if the guest
+	 *        asks the PIT to latch status for more than one counter! */
 	if(GCC_UNLIKELY(pit[counter].counterstatus_set)){
 		pit[counter].counterstatus_set = false;
-		latched_timerstatus_locked = false;
-		ret = latched_timerstatus;
+		pit[counter].latched_timerstatus_locked = false;
+		ret = pit[counter].latched_timerstatus;
 	} else {
 		if (pit[counter].go_read_latch == true)
 			counter_latch(counter);
@@ -799,7 +854,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			// Timer is being reprogrammed, unlock the status
 			if(pit[latch].counterstatus_set) {
 				pit[latch].counterstatus_set=false;
-				latched_timerstatus_locked=false;
+				pit[latch].latched_timerstatus_locked=false;
 			}
 			// Do not call reset_count_at() here, it causes problems.
 			// When the mode byte is written, count stops. When the new count is written, THEN call reset_count_at()
@@ -987,6 +1042,11 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[2].reset_count_at(PIC_FullIndex());
     pit[2].track_time(PIC_FullIndex());
 
+    {
+        Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        pit_status_latch_read_anywhere = sec->Get_bool("pit any read returns status latch");
+    }
+
     /* TODO: I have observed that on real PC-98 hardware:
      * 
      *   Output 1 (speaker) does not cycle if inhibited by port 35h
@@ -1136,8 +1196,6 @@ void TIMER_OnPowerOn(Section*) {
         ReadHandler[2].Install(0x42,read_latch,IO_MB);
     }
 
-	latched_timerstatus_locked=false;
-
     if (IS_PC98_ARCH) {
         int pc98rate;
 
@@ -1165,8 +1223,6 @@ void TIMER_OnPowerOn(Section*) {
             PIT_TICK_RATE = PIT_TICK_RATE_PC98_8MHZ;
 
         LOG_MSG("PC-98 PIT master clock rate %luHz",PIT_TICK_RATE);
-
-        latched_timerstatus_locked=false;
     }
 }
 
@@ -1224,8 +1280,6 @@ public:
     {
         registerPOD(pit);
         //registerPOD(gate2);
-        registerPOD(latched_timerstatus);
-		registerPOD(latched_timerstatus_locked);
     }
 } dummy;
 }

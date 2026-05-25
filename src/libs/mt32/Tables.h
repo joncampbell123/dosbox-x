@@ -23,13 +23,9 @@
 
 namespace MT32Emu {
 
-class Tables {
-private:
-	Tables();
-	Tables(Tables &);
-	~Tables() {}
-
-public:
+struct Tables {
+	// Ensures a singleton that is immutable yet guaranteed to be initialised orderly.
+	// However, this normally adds some performance penalty, so it should be avoided on the critical path.
 	static const Tables &getInstance();
 
 	// Constant LUTs
@@ -54,8 +50,14 @@ public:
 	Bit16u exp9[512];
 	Bit16u logsin9[512];
 
-	const Bit8u *resAmpDecayFactor;
-}; // class Tables
+	const Bit8u *resAmpDecayFactors;
+
+private:
+	Tables();
+	Tables(const Tables &);
+	~Tables() {}
+	Tables &operator=(const Tables &);
+}; // struct Tables
 
 } // namespace MT32Emu
 

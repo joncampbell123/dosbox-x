@@ -149,6 +149,7 @@ extern bool logBuffSuppressConsole;
 extern bool logBuffSuppressConsoleNeedUpdate;
 
 void DEBUG_PrintGUS();
+void DEBUG_PrintRTC();
 
 // Forwards
 static void DrawCode(void);
@@ -3234,8 +3235,22 @@ bool ParseCommand(char* str) {
         return true;
     }
 
+    if (command == "RTC") {
+        while (*found == ' ') found++;
+        command.clear(); // iostream >> command does not update "command" if there is no string there, so it's basically fancy scanf() then!
+        stream >> command;
+        while (*found != 0 && *found != ' ') found++;
+        while (*found == ' ') found++;
+
+        if (command == "") {
+            DEBUG_PrintRTC();
+            return true;
+        }
+    }
+
     if (command == "VGA") {
         while (*found == ' ') found++;
+        command.clear(); // iostream >> command does not update "command" if there is no string there, so it's basically fancy scanf() then!
         stream >> command;
         while (*found != 0 && *found != ' ') found++;
         while (*found == ' ') found++;

@@ -29,6 +29,8 @@ static const float MIDDLE_CUTOFF_VALUE = 128.0f;
 static const float RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE = 144.0f;
 static const float MAX_CUTOFF_VALUE = 240.0f;
 
+static const Bit8u *resAmpDecayFactors;
+
 float LA32FloatWaveGenerator::getPCMSample(unsigned int position) {
 	if (position >= pcmWaveLength) {
 		if (!pcmWaveLooped) {
@@ -202,7 +204,7 @@ float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit1
 			float resSample = 1.0f;
 
 			// Resonance decay speed factor
-			float resAmpDecayFactor = Tables::getInstance().resAmpDecayFactor[resonance >> 2];
+			float resAmpDecayFactor = resAmpDecayFactors[resonance >> 2];
 
 			// Now relWavePos counts from the middle of first cosine
 			relWavePos = wavePos;
@@ -279,6 +281,10 @@ bool LA32FloatWaveGenerator::isActive() const {
 
 bool LA32FloatWaveGenerator::isPCMWave() const {
 	return pcmWaveAddress != NULL;
+}
+
+void LA32FloatPartialPair::initTables(const Tables &tables) {
+	resAmpDecayFactors = tables.resAmpDecayFactors;
 }
 
 void LA32FloatPartialPair::init(const bool useRingModulated, const bool useMixed) {

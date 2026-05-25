@@ -494,6 +494,7 @@ struct SB_INFO {
 	} dsp;
 	struct {
 		int16_t last;
+		uint8_t last_direct_dac;
 		double dac_t,dac_pt;
 	} dac;
 	struct {
@@ -1471,6 +1472,7 @@ void SB_INFO::DSP_Reset(void) {
 	freq=22050;
 	freq_derived_from_tc=true;
 	time_constant=45;
+	dac.last_direct_dac=0x80;
 	dac.last=0;
 	e2.valadd=0xaa;
 	e2.valxor=0x96;
@@ -2081,6 +2083,13 @@ void SB_INFO::DSP_DoCommand(void) {
 
 				// do it
 				for (s=0;s < sc;s++) chan->AddSamples_m8(1,(uint8_t*)(&dsp.in.data[0]));
+
+				// Sound Blaster cards will hold the last sample written even if you stop writing new ones,
+				// or until you reset DSP or play DMA audio. In Extremis will play audio using DSP command 0x10
+				// but only when there is a sound effect to play, and the footstep sound is VERY unbalanaced
+				// (not DC centered around 0x80 but is WAY off to around 0x00-0x20) and this is necessary to avoid
+				// popping noises.
+				dac.last_direct_dac=dsp.in.data[0];
 			}
 			break;
 		case 0x99:  /* Single Cycle 8-Bit DMA High speed DAC */
@@ -3295,7 +3304,15 @@ static void SBLASTER_CallBack(const size_t ci,Bitu len) {
 			sb[ci].chan->AddSilence();
 			break;
 		case MODE_DAC:
-			sb[ci].mode = MODE_NONE;
+			if (sb[ci].dac.last_direct_dac != 0x80) {
+				// DSP will hold the last sample written until reset.
+				// Emulate this to avoid popping artifacts from In Extremis and their
+				// very DC unbalanced footstep sound effects.
+				for (Bitu c=0;c < len;c++) sb[ci].chan->AddSamples_m8(1,(uint8_t*)(&sb[ci].dac.last_direct_dac));
+			}
+			else {
+				sb[ci].mode = MODE_NONE;
+			}
 			break;
 		case MODE_DMA:
 			len*=sb[ci].dma.mul;
