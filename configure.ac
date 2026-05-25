@@ -153,7 +153,7 @@ TMP=`grep -R "#define OSFREE" vs/config_package.h`
 
 if [[ x"$GITBRANCH" == x"main-osfree" ]]; then
     AC_DEFINE(C_OSFREE,1,[Make an OSFREE build])
-elif [ -n "$TMP" ]; then # vs/config_package.h is OSFREE
+elif [[ -n "$TMP" ]]; then # vs/config_package.h is OSFREE
     AC_DEFINE(C_OSFREE,1,[Make an OSFREE build])
 fi
 
