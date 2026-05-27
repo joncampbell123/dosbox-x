@@ -415,6 +415,7 @@ public:
 		disney.status=0x84;
 		disney.control=0;
 		disney.last_used=0;
+		disney.da[0].last_dac = disney.da[1].last_dac = 128;
 
 		disney.mo = new MixerObject();
 		disney.chan=disney.mo->Install(&DISNEY_CallBack,10000,"DISNEY");
@@ -423,6 +424,7 @@ public:
 	~DISNEY(){
 		CPU_Snap_Back_To_Real_Mode();
 
+		disney.da[0].last_dac = disney.da[1].last_dac = 128;
 		BIOS_SetLPTPort(0,0);
 		DISNEY_disable(0);
 		if (disney.mo)
