@@ -88,6 +88,7 @@ static struct {
     int32_t          work[MIXER_BUFSIZE][2];
     Bitu            work_in,work_out,work_wrap;
     Bitu            pos,done;
+    int16_t         last_dac[2];
     float           mastervol[2];
     float           recordvol[2];
     MixerChannel*   channels;
@@ -801,7 +802,7 @@ static void SDLCALL MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
             mixer.prebuffer_wait = false;
     }
 
-    if (!mixer.prebuffer_wait && !mixer.mute) {
+    if (!mixer.prebuffer_wait && !mixer.mute && need > 0) {
         int32_t *in = &mixer.work[mixer.work_out][0];
         while (need > 0) {
             if (mixer.work_out == mixer.work_in) break;
@@ -814,14 +815,17 @@ static void SDLCALL MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
             }
             need--;
         }
+        /* assume output != stream */
+        mixer.last_dac[0] = (output-2)[0];
+        mixer.last_dac[1] = (output-2)[1];
     }
 
     if (need > 0)
         mixer.prebuffer_wait = true;
 
     while (need > 0) {
-        *output++ = 0;
-        *output++ = 0;
+        *output++ = mixer.last_dac[0];
+        *output++ = mixer.last_dac[1];
         need--;
     }
 
@@ -1085,6 +1089,8 @@ void MIXER_Init() {
     mixer.mastervol[1]=1.0f;
     mixer.recordvol[0]=1.0f;
     mixer.recordvol[1]=1.0f;
+    mixer.last_dac[0]=0;
+    mixer.last_dac[1]=0;
 
     /* Start the Mixer using SDL Sound at 22 khz */
     SDL_AudioSpec spec;
