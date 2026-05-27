@@ -106,6 +106,7 @@ static struct {
     bool            sampleaccurate;
     bool            prebuffer_wait;
     Bitu            prebuffer_samples;
+    bool            dc_bias_adj;
     bool            mute;
 } mixer;
 
@@ -697,7 +698,7 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
      * the mixdown should do a very slow adjustment to center the waveform. On modern
      * systems, the user might wonder why a YouTube video always gets distorted audio
      * while a game like In Extremis is running without this adjustment. */
-    if (true/*TODO dosbox.conf option*/) {
+    if (mixer.dc_bias_adj) {
         Bitu added = whole - prev_rendered;
         Bitu readpos = mixer.work_in + prev_rendered;
         int32_t ns;
@@ -1102,6 +1103,7 @@ void MIXER_Init() {
     mixer.blocksize=(unsigned int)section->Get_int("blocksize");
     mixer.swapstereo=section->Get_bool("swapstereo");
     mixer.sampleaccurate=section->Get_bool("sample accurate");
+    mixer.dc_bias_adj=section->Get_bool("dc bias correction");
     mixer.mute=false;
     if (control->opt_silent) mixer.nosound = true;
 
@@ -1204,7 +1206,7 @@ void MIXER_Init() {
     // DC bias adjustment for games like In Extremis and their digitized samples that are WAY off center
     DC_ADJUSTMENT_STEP = (int32_t)((1ul << DC_ADJBITS) / (unsigned long)mixer.freq);
 
-    LOG(LOG_MISC,LOG_DEBUG)("Mixer: sample_accurate=%u blocksize=%u sdl_rate=%uHz mixer_rate=%uHz channels=%u samples=%u min/max/need=%u/%u/%u per_ms=%u %u/%u samples prebuffer=%u dcadj=%.10f",
+    LOG(LOG_MISC,LOG_DEBUG)("Mixer: sample_accurate=%u blocksize=%u sdl_rate=%uHz mixer_rate=%uHz channels=%u samples=%u min/max/need=%u/%u/%u per_ms=%u %u/%u samples prebuffer=%u dcadj=%.10f(en=%u)",
         (unsigned int)mixer.sampleaccurate,
         (unsigned int)mixer.blocksize,
         (unsigned int)obtained.freq,
@@ -1218,7 +1220,8 @@ void MIXER_Init() {
         (unsigned int)mixer.samples_per_ms.fn,
         (unsigned int)mixer.samples_per_ms.fd,
         (unsigned int)mixer.prebuffer_samples,
-        (double)DC_ADJUSTMENT_STEP / (1u << DC_ADJBITS));
+        (double)DC_ADJUSTMENT_STEP / (1u << DC_ADJBITS),
+        mixer.dc_bias_adj);
 
     AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(MIXER_DOS_Boot));
 

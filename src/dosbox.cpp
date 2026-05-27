@@ -3484,6 +3484,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable silent mode, sound is still emulated though.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("dc bias correction",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("If set, apply DC bias correction to the overall audio mix to prevent distortion when certain DOS games"
+		    "play digitized audio where the digitized audio has an overall DC bias that is way off from zero, for example,"
+		    "In Extremis. This is enabled by default. The bias correction is applied slowly so that normal audio output"
+		    "remains unaffected");
+    Pbool->SetBasic(true);
+
     Pbool = secprop->Add_bool("sample accurate",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Enable sample accurate mixing, at the expense of some emulation performance. Enable this option for DOS games and demos\n"
             "that require such accuracy for correct Tandy/OPL output including digitized speech. This option can also help eliminate\n"
