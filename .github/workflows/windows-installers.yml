@@ -120,8 +120,8 @@ jobs:
           cp $top/COPYING $top/package/COPYING
           cd $top/package/
           $top/vs/tool/zip.exe -r -9 "$top/dosbox-x-vsbuild-win-x86_x64-${{ env.timestamp }}.zip" "*"
-          cd $top
-          ls -lg
+          #cd $top
+          #ls -lg
       - name: Upload preview package(VS x86/x64)
         uses: actions/upload-artifact@v7.0.1
         with:
@@ -160,6 +160,97 @@ jobs:
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-r-${{ github.sha }}
+      - name: Prepare VS osfree build
+        shell: bash
+        run: |
+          echo '#define C_OSFREE 1' >> vs/config_package.h
+          echo '#define OSFREE 1' >> vs/config_package.h
+      - name: Build Visual Studio x86 SDL1 osfree
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=Win32
+          if (-not(Test-Path -Path bin\Win32\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
+          #contrib\windows\installer\PatchPE.exe bin\Win32\Release\dosbox-x.exe
+      - name: Build Visual Studio x86 SDL2 osfree
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=Win32
+          if (-not(Test-Path -Path bin\Win32\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
+          #contrib\windows\installer\PatchPE.exe bin\Win32\"Release SDL2"\dosbox-x.exe
+      - name: Build Visual Studio x64 SDL1 osfree
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=x64
+          if (-not(Test-Path -Path bin\x64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
+          #contrib\windows\installer\PatchPE.exe bin\x64\Release\dosbox-x.exe
+      - name: Build Visual Studio x64 SDL2 osfree
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=x64
+          if (-not(Test-Path -Path bin\x64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
+          #contrib\windows\installer\PatchPE.exe bin\x64\"Release SDL2"\dosbox-x.exe
+      - name: Build Visual Studio ARM64 SDL1 osfree
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false -p:PlatformToolset=v143
+          if (-not(Test-Path -Path bin\ARM64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Build Visual Studio ARM64 SDL2 osfree
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false -p:PlatformToolset=v143
+          if (-not(Test-Path -Path bin\ARM64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Build Visual Studio ARM32 SDL1 osfree
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=ARM -p:PostBuildEventUseInBuild=false -p:PlatformToolset=v143 -p:WindowsTargetPlatformVersion=10.0.22621.0
+          if (-not(Test-Path -Path bin\ARM\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Build Visual Studio ARM32 SDL2 osfree
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=ARM -p:PostBuildEventUseInBuild=false -p:PlatformToolset=v143 -p:WindowsTargetPlatformVersion=10.0.22621.0
+          if (-not(Test-Path -Path bin\ARM\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Package Visual Studio 32/64-bit osfree builds
+        shell: bash
+        run: |
+          top=`pwd`
+          rm $top/package/dosbox-x_*.exe
+          cp $top/bin/Win32/Release/dosbox-x.exe $top/package/dosbox-x_x86_SDL1.exe
+          cp $top/bin/Win32/Release/dosbox-x.exe $top/vs-bin/dosbox-x_x86_SDL1.exe
+          cp $top/bin/Win32/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_x86_SDL2.exe
+          cp $top/bin/Win32/"Release SDL2"/dosbox-x.exe $top/vs-bin/dosbox-x_x86_SDL2.exe
+          cp $top/bin/x64/Release/dosbox-x.exe $top/package/dosbox-x_x64_SDL1.exe
+          cp $top/bin/x64/Release/dosbox-x.exe $top/vs-bin/dosbox-x_x64_SDL1.exe
+          cp $top/bin/x64/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_x64_SDL2.exe
+          cp $top/bin/x64/"Release SDL2"/dosbox-x.exe $top/vs-bin/dosbox-x_x64_SDL2.exe
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 "$top/dosbox-x-vsbuild-win-x86_x64-osfree-${{ env.timestamp }}.zip" "*"
+          cd $top
+      - name: Upload Visual Studio 32/64-bit osfree builds
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dosbox-x-vsbuild-win-x86_x64-osfree-${{ env.timestamp }}
+          path: ${{ github.workspace }}/package/
+      - name: Package Visual Studio ARM 32/64-bit osfree builds
+        shell: bash
+        run: |
+          top=`pwd`
+          rm $top/package/dosbox-x_*.exe
+          cp $top/bin/ARM/Release/dosbox-x.exe $top/package/dosbox-x_ARM_SDL1.exe
+          cp $top/bin/ARM/Release/dosbox-x.exe $top/vs-bin/dosbox-x_ARM_SDL1.exe
+          cp $top/bin/ARM/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_ARM_SDL2.exe
+          cp $top/bin/ARM/"Release SDL2"/dosbox-x.exe $top/vs-bin/dosbox-x_ARM_SDL2.exe
+          cp $top/bin/ARM64/Release/dosbox-x.exe $top/package/dosbox-x_ARM64_SDL1.exe
+          cp $top/bin/ARM64/Release/dosbox-x.exe $top/vs-bin/dosbox-x_ARM64_SDL1.exe
+          cp $top/bin/ARM64/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_ARM64_SDL2.exe
+          cp $top/bin/ARM64/"Release SDL2"/dosbox-x.exe $top/vs-bin/dosbox-x_ARM64_SDL2.exe
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 "$top/dosbox-x-vsbuild-ARM32_64-osfree-${{ env.timestamp }}.zip" "*"
+          cd $top
+      - name: Upload preview package(ARM 32/64-bit)
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dosbox-x-vsbuild-ARM32_64-osfree-${{ env.timestamp }}
+          path: ${{ github.workspace }}/package/
   MinGW32_CI_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
