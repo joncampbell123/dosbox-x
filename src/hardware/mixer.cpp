@@ -68,6 +68,9 @@
 SDL_AudioDeviceID SDL2_AudioDevice = 0; /* valid IDs are 2 or higher, 1 for compat, 0 is never a valid ID */
 #endif
 
+#define DC_ADJBITS (24u)
+static int32_t DC_ADJUSTMENT_STEP = 0;
+
 static INLINE int16_t MIXER_CLIP(Bits SAMP) {
     if (SAMP < MAX_AUDIO) {
         if (SAMP > MIN_AUDIO)
@@ -88,7 +91,8 @@ static struct {
     int32_t          work[MIXER_BUFSIZE][2];
     Bitu            work_in,work_out,work_wrap;
     Bitu            pos,done;
-    int16_t         last_dac[2];
+    int32_t         last_dac[2];
+    int32_t         dc_adj[2];
     float           mastervol[2];
     float           recordvol[2];
     MixerChannel*   channels;
@@ -689,6 +693,29 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
         chan=chan->next;
     }
 
+    /* In case of DOS games that play samples with a DC offset that is WAY off center,
+     * the mixdown should do a very slow adjustment to center the waveform. On modern
+     * systems, the user might wonder why a YouTube video always gets distorted audio
+     * while a game like In Extremis is running without this adjustment. */
+    if (true/*TODO dosbox.conf option*/) {
+        Bitu added = whole - prev_rendered;
+        Bitu readpos = mixer.work_in + prev_rendered;
+        int32_t ns;
+
+        for (Bitu i=0;i<added;i++) {
+            for (unsigned int ch=0;ch < 2;ch++) {
+                ns = mixer.work[readpos][ch] + mixer.dc_adj[ch];
+                if (ns > -((int32_t)(30000u << MIXER_VOLSHIFT)) && ns < ((int32_t)(30000u << MIXER_VOLSHIFT)))
+                    mixer.dc_adj[ch] -= (int32_t)(((int64_t)ns * (int64_t)DC_ADJUSTMENT_STEP) >> (int64_t)DC_ADJBITS);
+                else//if the sample is out of range or nearly out of range then DC adjust FASTER to minimize distortion
+                    mixer.dc_adj[ch] -= (int32_t)(((int64_t)ns * (int64_t)DC_ADJUSTMENT_STEP * 64ll) >> (int64_t)DC_ADJBITS);
+                mixer.work[readpos][ch] = ns;
+            }
+
+            readpos++;
+        }
+    }
+
     if (CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO)) {
         int32_t volscale1 = (int32_t)(mixer.recordvol[0] * (1 << MIXER_VOLSHIFT));
         int32_t volscale2 = (int32_t)(mixer.recordvol[1] * (1 << MIXER_VOLSHIFT));
@@ -1091,6 +1118,8 @@ void MIXER_Init() {
     mixer.recordvol[1]=1.0f;
     mixer.last_dac[0]=0;
     mixer.last_dac[1]=0;
+    mixer.dc_adj[0]=0;
+    mixer.dc_adj[1]=0;
 
     /* Start the Mixer using SDL Sound at 22 khz */
     SDL_AudioSpec spec;
@@ -1172,7 +1201,10 @@ void MIXER_Init() {
     mixer.samples_rendered_ms.fn = 0;
     mixer.samples_rendered_ms.fd = mixer.samples_per_ms.fd;
 
-    LOG(LOG_MISC,LOG_DEBUG)("Mixer: sample_accurate=%u blocksize=%u sdl_rate=%uHz mixer_rate=%uHz channels=%u samples=%u min/max/need=%u/%u/%u per_ms=%u %u/%u samples prebuffer=%u",
+    // DC bias adjustment for games like In Extremis and their digitized samples that are WAY off center
+    DC_ADJUSTMENT_STEP = (int32_t)((1ul << DC_ADJBITS) / (unsigned long)mixer.freq);
+
+    LOG(LOG_MISC,LOG_DEBUG)("Mixer: sample_accurate=%u blocksize=%u sdl_rate=%uHz mixer_rate=%uHz channels=%u samples=%u min/max/need=%u/%u/%u per_ms=%u %u/%u samples prebuffer=%u dcadj=%.10f",
         (unsigned int)mixer.sampleaccurate,
         (unsigned int)mixer.blocksize,
         (unsigned int)obtained.freq,
@@ -1185,7 +1217,8 @@ void MIXER_Init() {
         (unsigned int)mixer.samples_per_ms.w,
         (unsigned int)mixer.samples_per_ms.fn,
         (unsigned int)mixer.samples_per_ms.fd,
-        (unsigned int)mixer.prebuffer_samples);
+        (unsigned int)mixer.prebuffer_samples,
+        (double)DC_ADJUSTMENT_STEP / (1u << DC_ADJBITS));
 
     AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(MIXER_DOS_Boot));
 
