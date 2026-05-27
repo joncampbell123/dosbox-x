@@ -2859,11 +2859,21 @@ class ShowLoadWarning : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
 public:
-    ShowLoadWarning(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 430, 120, MSG_Get("WARNING")) {
+    ShowLoadWarning(GUI::Screen *parent, int x, int y, const char *title, const char *detail_what = nullptr, const char *detail_saved = nullptr, const char *detail_current = nullptr) :
+        ToplevelWindow(parent, x, y, (detail_what && detail_saved && strlen(detail_saved)>30)?560:430, detail_what?180:120, MSG_Get("WARNING")) {
             new GUI::Label(this, strncmp(title, "DOSBox-X ", 9)?30:10, 20, title);
-            (new GUI::Button(this, 140, 50, MSG_Get("YES"), 70))->addActionHandler(this);
-            (new GUI::Button(this, 230, 50, MSG_Get("NO"), 70))->addActionHandler(this);
+            int buttons_y = 50;
+            if (detail_what) {
+                int dy = 50;
+                std::string what = detail_what;
+                new GUI::Label(this, 30, dy, (std::string("Saved ") + what + ": " + (detail_saved?detail_saved:"")).c_str());
+                dy += 22;
+                new GUI::Label(this, 30, dy, (std::string("Current ") + what + ": " + (detail_current?detail_current:"")).c_str());
+                dy += 22;
+                buttons_y = dy + 10;
+            }
+            (new GUI::Button(this, (this->getWidth()-160)/2, buttons_y, MSG_Get("YES"), 70))->addActionHandler(this);
+            (new GUI::Button(this, (this->getWidth()-160)/2+90, buttons_y, MSG_Get("NO"), 70))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -3857,19 +3867,27 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np6->raise();
             } break;
         case 23: {
-            auto *np7 = new ShowLoadWarning(screen, 150, 120, "DOSBox-X version mismatch. Load the state anyway?");
+            extern std::string loadstate_detail_saved, loadstate_detail_current;
+            auto *np7 = new ShowLoadWarning(screen, 150, 120, "DOSBox-X version mismatch. Load the state anyway?",
+                                            "version", loadstate_detail_saved.c_str(), loadstate_detail_current.c_str());
             np7->raise();
             } break;
         case 24: {
-            auto *np7 = new ShowLoadWarning(screen, 150, 120, "Program name mismatch. Load the state anyway?");
+            extern std::string loadstate_detail_saved, loadstate_detail_current;
+            auto *np7 = new ShowLoadWarning(screen, 150, 120, "Program name mismatch. Load the state anyway?",
+                                            "program", loadstate_detail_saved.c_str(), loadstate_detail_current.c_str());
             np7->raise();
             } break;
         case 25: {
-            auto *np7 = new ShowLoadWarning(screen, 150, 120, "Memory size mismatch. Load the state anyway?");
+            extern std::string loadstate_detail_saved, loadstate_detail_current;
+            auto *np7 = new ShowLoadWarning(screen, 150, 120, "Memory size mismatch. Load the state anyway?",
+                                            "memory size", loadstate_detail_saved.c_str(), loadstate_detail_current.c_str());
             np7->raise();
             } break;
         case 26: {
-            auto *np7 = new ShowLoadWarning(screen, 150, 120, "Machine type mismatch. Load the state anyway?");
+            extern std::string loadstate_detail_saved, loadstate_detail_current;
+            auto *np7 = new ShowLoadWarning(screen, 150, 120, "Machine type mismatch. Load the state anyway?",
+                                            "machine type", loadstate_detail_saved.c_str(), loadstate_detail_current.c_str());
             np7->raise();
             } break;
         case 27: {

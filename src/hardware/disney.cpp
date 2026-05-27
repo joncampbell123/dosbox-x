@@ -42,6 +42,7 @@ typedef struct _dac_channel {
 	double speedcheck_last;
 	bool speedcheck_failed;
 	bool speedcheck_init;
+	uint8_t last_dac = 128;
 } dac_channel;
 
 static struct {
@@ -73,9 +74,12 @@ static struct {
 static void DISNEY_CallBack(Bitu len);
 
 static void DISNEY_disable(Bitu) {
+	disney.chan->FillUp();
 	if(disney.mo) {
-		disney.chan->AddSilence();
-		disney.chan->Enable(false);
+		if (disney.da[0].last_dac == 128 && disney.da[1].last_dac == 128) {
+			disney.chan->AddSilence();
+			disney.chan->Enable(false);
+		}
 	}
 	disney.leader = nullptr;
 	disney.last_used = 0;
@@ -308,7 +312,11 @@ static void DISNEY_PlayStereo(Bitu len, uint8_t* l, uint8_t* r) {
 
 static void DISNEY_CallBack(Bitu len) {
 	if (!len) return;
-	if (disney.leader == NULL) return;
+	if (disney.leader == NULL) { // hold the DAC at last value!
+		memset(disney.da[0].buffer,	disney.da[0].last_dac, len);
+		disney.chan->AddSamples_m8(len, disney.da[0].buffer);
+		return;
+	}
 
 	// get the smaller used
 	Bitu real_used;
@@ -319,35 +327,39 @@ static void DISNEY_CallBack(Bitu len) {
 		real_used = disney.leader->used;
 
 	if (real_used >= len) { // enough data for now
-		if(disney.stereo) DISNEY_PlayStereo(len, disney.da[0].buffer, disney.da[1].buffer);
-		else disney.chan->AddSamples_m8(len,disney.leader->buffer);
+		if(disney.stereo) {
+			DISNEY_PlayStereo(len, disney.da[0].buffer, disney.da[1].buffer);
+			disney.da[0].last_dac = disney.da[0].buffer[len-1];
+			disney.da[1].last_dac = disney.da[1].buffer[len-1];
+		}
+		else {
+			disney.chan->AddSamples_m8(len,disney.leader->buffer);
+			disney.da[0].last_dac = disney.da[1].last_dac = disney.leader->buffer[len-1];
+		}
 
 		// put the rest back to start
 		for(int i = 0; i < 2; i++) {
-			// TODO for mono only one 
+			// TODO for mono only one
 			memmove(disney.da[i].buffer,&disney.da[i].buffer[len],DISNEY_SIZE/*real_used*/-len);
 			disney.da[i].used -= len;
 		}
 	// TODO: len > DISNEY
 	} else { // not enough data
 		if(disney.stereo) {
-			uint8_t gapfiller0 = 128;
-			uint8_t gapfiller1 = 128;
 			if(real_used) {
-				gapfiller0 = disney.da[0].buffer[real_used-1];
-				gapfiller1 = disney.da[1].buffer[real_used-1];
+				disney.da[0].last_dac = disney.da[0].buffer[real_used-1];
+				disney.da[1].last_dac = disney.da[1].buffer[real_used-1];
 			}
 
 			memset(disney.da[0].buffer+real_used,
-				gapfiller0,len-real_used);
+				disney.da[0].last_dac,len-real_used);
 			memset(disney.da[1].buffer+real_used,
-				gapfiller1,len-real_used);
+				disney.da[1].last_dac,len-real_used);
 
 			DISNEY_PlayStereo(len, disney.da[0].buffer, disney.da[1].buffer);
 			len -= real_used;
 
 		} else { // mono
-			uint8_t gapfiller = 128; //Keep the middle
 			if(real_used) {
 				// fix for some stupid game; it outputs 0 at the end of the stream
 				// causing a click. So if we have at least two bytes available in the
@@ -357,9 +369,9 @@ static void DISNEY_CallBack(Bitu len) {
 			}
 			// do it this way because AddSilence sounds like a gnawing mouse
 			if(real_used)
-				gapfiller = disney.leader->buffer[real_used-1];
+				disney.da[0].last_dac = disney.da[1].last_dac = disney.leader->buffer[real_used-1];
 			//LOG_MSG("gapfiller %x, fill len %d, realused %d",gapfiller,len-real_used,real_used);
-			memset(disney.leader->buffer+real_used,	gapfiller, len-real_used);
+			memset(disney.leader->buffer+real_used,	disney.da[0].last_dac, len-real_used);
 			disney.chan->AddSamples_m8(len, disney.leader->buffer);
 		}
 		disney.da[0].used =0;
@@ -368,9 +380,8 @@ static void DISNEY_CallBack(Bitu len) {
 		//LOG_MSG("disney underflow %d",len - real_used);
 	}
 	if (disney.last_used+100<PIC_Ticks) {
-		// disable sound output
-		PIC_AddEvent(DISNEY_disable,0.0001f);	// I think we shouldn't delete the 
-												// mixer while we are inside it
+		// disable sound output, but only if held at DC zero to avoid popping artifacts
+		PIC_AddEvent(DISNEY_disable,0.0001f);
 	}
 }
 
@@ -404,6 +415,7 @@ public:
 		disney.status=0x84;
 		disney.control=0;
 		disney.last_used=0;
+		disney.da[0].last_dac = disney.da[1].last_dac = 128;
 
 		disney.mo = new MixerObject();
 		disney.chan=disney.mo->Install(&DISNEY_CallBack,10000,"DISNEY");
@@ -412,6 +424,7 @@ public:
 	~DISNEY(){
 		CPU_Snap_Back_To_Real_Mode();
 
+		disney.da[0].last_dac = disney.da[1].last_dac = 128;
 		BIOS_SetLPTPort(0,0);
 		DISNEY_disable(0);
 		if (disney.mo)
