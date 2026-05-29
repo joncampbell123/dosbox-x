@@ -2027,14 +2027,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		int32_t product0 = (int32_t)dest->sw.w0 * (int32_t)src.sw.w0;
-		int32_t product1 = (int32_t)dest->sw.w1 * (int32_t)src.sw.w1;
-		int32_t product2 = (int32_t)dest->sw.w2 * (int32_t)src.sw.w2;
-		int32_t product3 = (int32_t)dest->sw.w3 * (int32_t)src.sw.w3;
-		dest->uw.w0 = (uint16_t)(product0 >> 16);
-		dest->uw.w1 = (uint16_t)(product1 >> 16);
-		dest->uw.w2 = (uint16_t)(product2 >> 16);
-		dest->uw.w3 = (uint16_t)(product3 >> 16);
+		const int32_t product0 = (int32_t)dest->sw.w0 * (int32_t)src.sw.w0;
+		const int32_t product1 = (int32_t)dest->sw.w1 * (int32_t)src.sw.w1;
+		const int32_t product2 = (int32_t)dest->sw.w2 * (int32_t)src.sw.w2;
+		const int32_t product3 = (int32_t)dest->sw.w3 * (int32_t)src.sw.w3;
+		dest->sw.w0 = (int16_t)(product0 >> (int32_t)16);
+		dest->sw.w1 = (int16_t)(product1 >> (int32_t)16);
+		dest->sw.w2 = (int16_t)(product2 >> (int32_t)16);
+		dest->sw.w3 = (int16_t)(product3 >> (int32_t)16);
 		break;
 	}
 	CASE_0F_MMX(0xe7)
