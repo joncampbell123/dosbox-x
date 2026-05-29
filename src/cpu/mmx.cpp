@@ -111,8 +111,7 @@ uint16_t SaturateDwordSToWordU(int32_t value)
 }
 
 void setFPUTagEmpty() {
-	fpu.cw.init();
-	fpu.sw.init();
+	fpu.sw.top = 0;
 	fpu.tags[0] = TAG_Empty;
 	fpu.tags[1] = TAG_Empty;
 	fpu.tags[2] = TAG_Empty;
