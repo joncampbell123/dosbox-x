@@ -1118,6 +1118,7 @@
 		break;
 #ifdef CPU_FPU
 	CASE_B(0xd8)												/* FPU ESC 0 */
+		if (FPU_CoprocessorException()) RUNEXCEPTION();
 		if (enable_fpu) {
 			FPU_ESC(0);
 		}
@@ -1127,6 +1128,7 @@
 		}
 		break;
 	CASE_B(0xd9)												/* FPU ESC 1 */
+		if (FPU_CoprocessorException()) RUNEXCEPTION();
 		if (enable_fpu) {
 			FPU_ESC_SIZE(1, !(core.opcode_index&OPCODE_SIZE));
 		}
@@ -1136,6 +1138,7 @@
 		}
 		break;
 	CASE_B(0xda)												/* FPU ESC 2 */
+		if (FPU_CoprocessorException()) RUNEXCEPTION();
 		if (enable_fpu) {
 			FPU_ESC(2);
 		}
@@ -1145,6 +1148,7 @@
 		}
 		break;
 	CASE_B(0xdb)												/* FPU ESC 3 */
+		if (FPU_CoprocessorException()) RUNEXCEPTION();
 		if (enable_fpu) {
 			FPU_ESC(3);
 		}
@@ -1154,6 +1158,7 @@
 		}
 		break;
 	CASE_B(0xdc)												/* FPU ESC 4 */
+		if (FPU_CoprocessorException()) RUNEXCEPTION();
 		if (enable_fpu) {
 			FPU_ESC(4);
 		}
@@ -1163,6 +1168,7 @@
 		}
 		break;
 	CASE_B(0xdd)												/* FPU ESC 5 */
+		if (FPU_CoprocessorException()) RUNEXCEPTION();
 		if (enable_fpu) {
 			FPU_ESC_SIZE(5, !(core.opcode_index&OPCODE_SIZE));
 		}
@@ -1172,6 +1178,7 @@
 		}
 		break;
 	CASE_B(0xde)												/* FPU ESC 6 */
+		if (FPU_CoprocessorException()) RUNEXCEPTION();
 		if (enable_fpu) {
 			FPU_ESC(6);
 		}
@@ -1181,6 +1188,7 @@
 		}
 		break;
 	CASE_B(0xdf)												/* FPU ESC 7 */
+		if (FPU_CoprocessorException()) RUNEXCEPTION();
 		if (enable_fpu) {
 			FPU_ESC(7);
 		}
@@ -1198,6 +1206,7 @@
 	CASE_B(0xdd)												/* FPU ESC 5 */
 	CASE_B(0xde)												/* FPU ESC 6 */
 	CASE_B(0xdf)												/* FPU ESC 7 */
+		if (FPU_CoprocessorException()) RUNEXCEPTION();
 		{
 			LOG(LOG_CPU,LOG_NORMAL)("FPU used");
 			uint8_t rm=Fetchb();
