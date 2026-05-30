@@ -840,11 +840,11 @@ void OUTPUT_TTF_Select(int fsize) {
     // Limit dimensions
     if(!ttf.fullScrn) {
         #if !defined(HX_DOS)
-            if(enablePercLimit) {
+        if(enablePercLimit) {
             maxWidth = (maxWidth * 2) / 3;
             maxHeight = (maxHeight * 2) / 3;
-        #endif
         }
+        #endif
     }
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
     maxHeight -= mainMenu.menuBarHeightBase * 2;
