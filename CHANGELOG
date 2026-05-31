@@ -1,4 +1,8 @@
 Next version
+  - DOS file search bugfix: Prevent undefined stat_block usage on failed
+    ht_stat() calls. Use a separate variable for special file attribute
+    checks to avoid reusing stat_block when it contains garbage values.
+    This fixes issues on latest Darwin kernels. (cimarronm)
   - Added function to config to load MS-DOS device drivers. The command is
     config -device <device driver path> -devparm <parameters>. For example,
     to load OAKCDROM.SYS into memory, you could type:
