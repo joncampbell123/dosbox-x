@@ -4911,6 +4911,18 @@ bool FPU_CoprocessorException(void) {
 	return false;
 }
 
+bool MMX_CoprocessorException(void) {
+	/* MMX instructions MUST cause exception 7 if these bits are set, or else Windows
+	 * fails to task switch FPU state properly and funny things happen. */
+	if (cpu.cr0&(CR0_FPUEMULATION|CR0_TASKSWITCH)) {
+		cpu.exception.which=EXCEPTION_NM;
+		cpu.exception.error=0;/*No error code field*/
+		return true;
+	}
+
+	return false;
+}
+
 namespace
 {
 class SerializeCPU : public SerializeGlobalPOD

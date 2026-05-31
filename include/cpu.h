@@ -209,6 +209,7 @@ void CPU_Push32(uint32_t value);
 void CPU_SetFlags(Bitu word,Bitu mask);
 
 bool FPU_CoprocessorException(void);
+bool MMX_CoprocessorException(void);
 
 #define EXCEPTION_DB            1
 #define EXCEPTION_UD			6u
