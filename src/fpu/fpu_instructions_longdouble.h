@@ -537,18 +537,10 @@ static void FPU_FSTENV(PhysPt addr, bool op16){
 		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));
 		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
 		mem_writew(addr+4,static_cast<uint16_t>(FPU_GetTag()));
-		mem_writew(addr+6,0xFFFF);//data pointer
-		mem_writew(addr+8,0xFFFF);//instruction pointer
-		mem_writew(addr+10,0xFFFF);//last instruction opcode
-		mem_writew(addr+12,0xFFFF);//????
 	} else { 
 		mem_writed(addr+0,static_cast<uint32_t>(fpu.cw));
 		mem_writed(addr+4,static_cast<uint32_t>(fpu.sw));
 		mem_writed(addr+8,static_cast<uint32_t>(FPU_GetTag()));
-		mem_writed(addr+12,0xFFFFFFFF);//data pointer
-		mem_writed(addr+16,0xFFFFFFFF);//instruction pointer
-		mem_writed(addr+20,0xFFFFFFFF);//last instruction opcode
-		mem_writed(addr+24,0xFFFFFFFF);//????
 	}
 }
 
