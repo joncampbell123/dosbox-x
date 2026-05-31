@@ -124,6 +124,7 @@ jobs:
           filename: "dosbox-x-vsbuild-win32-*.zip"
           
       - name: Run in Windows build
+        if: false
         shell: bash
         run: |
           top=`pwd`

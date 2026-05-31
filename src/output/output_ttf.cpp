@@ -693,7 +693,7 @@ void OUTPUT_TTF_Select(int fsize) {
         }
         const char * colors = ttf_section->Get_string("colors");
         staycolors = strlen(colors) && *colors == '+'; // Always switch to preset value when '+' is specified
-        if ((*colors && (!init_once || !init_twice))|| staycolors) {
+        if ((*colors && (!init_once || !init_twice))|| (staycolors && !ttf.inUse)) {
             if (!setColors(colors,-1)) {
                 LOG_MSG("Incorrect color scheme: %s", colors);
                 //setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
@@ -840,11 +840,11 @@ void OUTPUT_TTF_Select(int fsize) {
     // Limit dimensions
     if(!ttf.fullScrn) {
         #if !defined(HX_DOS)
-            if(enablePercLimit) {
+        if(enablePercLimit) {
             maxWidth = (maxWidth * 2) / 3;
             maxHeight = (maxHeight * 2) / 3;
-        #endif
         }
+        #endif
     }
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
     maxHeight -= mainMenu.menuBarHeightBase * 2;
