@@ -1802,6 +1802,9 @@
     <ClInclude Include="..\src\hardware\nukedopl.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\hardware\nukedopl_wf_rom.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\hardware\opl.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
