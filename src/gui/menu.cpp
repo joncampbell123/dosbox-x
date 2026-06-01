@@ -185,6 +185,7 @@ static const char *def_menu_main_sendkey[] =
     "sendkey_winlogo",
     "sendkey_winmenu",
     "sendkey_alttab",
+    "sendkey_altsysrq",
     "sendkey_ctrlesc",
     "sendkey_ctrlbreak",
     "sendkey_cad",

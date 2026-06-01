@@ -3665,6 +3665,11 @@ void SendKey(std::string key) {
         KEYBOARD_AddKey(KBD_tab, true);
         KEYBOARD_AddKey(KBD_leftalt, false);
         KEYBOARD_AddKey(KBD_tab, false);
+    } else if (key == "sendkey_altsysrq") {
+        KEYBOARD_AddKey(KBD_leftalt, true);
+        KEYBOARD_AddKey(KBD_printscreen, true);
+        KEYBOARD_AddKey(KBD_leftalt, false);
+        KEYBOARD_AddKey(KBD_printscreen, false);
     } else if (key == "sendkey_ctrlesc") {
         KEYBOARD_AddKey(KBD_leftctrl, true);
         KEYBOARD_AddKey(KBD_esc, true);
