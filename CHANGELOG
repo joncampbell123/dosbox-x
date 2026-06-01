@@ -1,4 +1,8 @@
 Next version
+  - DOS file search bugfix: Prevent undefined stat_block usage on failed
+    ht_stat() calls. Use a separate variable for special file attribute
+    checks to avoid reusing stat_block when it contains garbage values.
+    This fixes issues on latest Darwin kernels. (cimarronm)
   - Added function to config to load MS-DOS device drivers. The command is
     config -device <device driver path> -devparm <parameters>. For example,
     to load OAKCDROM.SYS into memory, you could type:
@@ -144,6 +148,34 @@ Next version
   - Enable "Swap disk" menu command for floppy drives even while running a
     guest OS, as long as a floppy drive was already mounted there. (joncampbell123)
   - BOOT: Fixed a regression of floppy image detection (maron2000)
+  - Sound Blaster DSP command 0x10 (Direct DAC) and Disney Sound Source emulation
+    will hold the last sample received from the guest application to avoid popping
+    noises if games like In Extremis use those devices to play sound effects
+    that have a DC bias way off center. (joncampbell123)
+  - Added DC bias correction to the audio mixing code so that, if games like
+    In Extremis finish a sound effect with the last held sample way off center,
+    it doesn't cause all other audio to clip and distort, and it does not
+    potentially cause all audio on the user's operating system (as modern OSes
+    mix all audio across applications) to clip and distort, such as playing
+    In Extremis while listening to a YouTube video. (joncampbell123)
+  - Fixed bug in MMX instruction EMMS emulation that correctly marked all FPU
+    registers as empty but also reset the FPU status and control words. This
+    fixes the distorted 3D cube when running the Microsoft DirectX diagnostics
+    program (dxdiag.exe) with software rendering. (joncampbell123)
+  - FPU instructions now correctly throw exception 7 (Coprocessor not present)
+    if the EM (emulation) and TS (task switch) bits in CR0 are set, as documented
+    by Intel. Many OSes, including Microsoft Windows, require this fix in order
+    to properly maintain FPU state while multitasking. Without this fix, the FPU
+    state is never switched and all applications (and kernel drivers in Windows 98)
+    end up corrupting each other's FPU state. This fixes glitching artifacts in
+    "Attack of the Saucerman!" by Psygnosis when emulating a CPU type that supports
+    MMX instructions. It also appears to fix the random 3D rendering errors
+    (verticies spiking off into the distance at random) when running "The Sims" for
+    Windows 95 by Maxis, although the game still seems to exit at random after
+    a while and the opening FMV video locks up at some random point. As part of the
+    same fix, MMX instructions will also trigger the exception given the same
+    condition.
+    This fix is only applicable to normal core (core=normal) (joncampbell123)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
