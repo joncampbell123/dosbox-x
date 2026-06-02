@@ -176,6 +176,19 @@ Next version
     same fix, MMX instructions will also trigger the exception given the same
     condition.
     This fix is only applicable to normal core (core=normal) (joncampbell123)
+  - Option to disable TTF winperc limit (emendelson)
+  - Fixed screenshot crash (and others) in protected-mode games with output=ttf
+    (AleWin32)
+  - Debugger: Add missing debugger commands in documentation (AleWin32)
+  - Debugger: MEMFIND/MEMS fixes (most important: protected mode addressing)
+    (AleWin32)
+  - IMGMOUNT: Attach CD-ROM to IDE controller (maron2000)
+  - Bump mt32emu to ver 2.8.0 (maron2000)
+  - IMGMOUNT: Ensure not to attach a new drive to the IDE Controller when running
+    a booted guest OS. (maron2000)
+  - Fixed savestate load producing scrambled graphics (AleWin32)
+  - Feature: Add detailed info when loading savestate mismatch (AleWin32)
+  - output_ttf: Don't reset colors when already in TTF output mode (maron2000)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
