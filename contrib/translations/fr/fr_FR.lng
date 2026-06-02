@@ -3518,6 +3518,9 @@ Envoyer touche du menu
 :MENU:sendkey_alttab
 Envoyer Alt+Tab
 .
+:MENU:sendkey_altsysrq
+Enoyer Alt+SysRq/ImpÉcr
+.
 :MENU:sendkey_ctrlesc
 Envoyer Ctrl+Esc
 .
