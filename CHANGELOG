@@ -1,4 +1,4 @@
-Next version
+2026.06.02
   - DOS file search bugfix: Prevent undefined stat_block usage on failed
     ht_stat() calls. Use a separate variable for special file attribute
     checks to avoid reusing stat_block when it contains garbage values.
