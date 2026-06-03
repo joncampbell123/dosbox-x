@@ -60,6 +60,11 @@ typedef union {
 		uint16_t	h;
 	} raw;
 } FPU_Reg_80;
+#if defined(HAS_LONG_DOUBLE)
+static_assert( sizeof(FPU_Reg_80) >= 8, "FPU_Reg_80 error" );/*NTS: GCC can and often will define long double as 16 bytes or at least align by 16 bytes*/
+#else
+static_assert( sizeof(FPU_Reg_80) == 8, "FPU_Reg_80 error" );
+#endif
 // ^ Remember that in 80-bit extended, the mantissa contains both the fraction and integer bit. There is no
 //   "implied bit" like 32-bit and 64-bit formats.
 #pragma pack(pop)
@@ -447,8 +452,10 @@ typedef struct {
 #else
 	FPU_Reg		regs[9];
 #endif
-	FPU_P_Reg	p_regs[9];
-	FPU_Reg_80	regs_80[9];
+	union {/*these two have the same format, so alias them as an anon union to make switching between dynamic and normal core easier!*/
+		FPU_P_Reg	p_regs[9];
+		FPU_Reg_80	regs_80[9];
+	};
 #if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
 	bool		_do_not_use__use80[9];		// if set, use the 80-bit precision version
 #else
