@@ -2,6 +2,7 @@ Next version
   - 
 
 2026.06.02
+  - Feature: Add 'Send Alt+SysRq/PrtScr' menu item (AleWin32)
   - DOS file search bugfix: Prevent undefined stat_block usage on failed
     ht_stat() calls. Use a separate variable for special file attribute
     checks to avoid reusing stat_block when it contains garbage values.
@@ -191,6 +192,7 @@ Next version
     a booted guest OS. (maron2000)
   - Fixed savestate load producing scrambled graphics (AleWin32)
   - Feature: Add detailed info when loading savestate mismatch (AleWin32)
+  - Fixed wrong disassembly after LMSW in debugger (AleWin32)
   - output_ttf: Don't reset colors when already in TTF output mode (maron2000)
 
 2026.05.02
