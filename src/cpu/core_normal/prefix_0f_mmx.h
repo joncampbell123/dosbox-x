@@ -916,6 +916,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg *dest = lookupRMregMM[rm];
 		MMX_reg src;
@@ -939,6 +940,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg *dest = lookupRMregMM[rm];
 		MMX_reg src;
@@ -958,6 +960,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -974,6 +977,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -997,6 +1001,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1020,6 +1025,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1039,6 +1045,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1056,6 +1063,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1079,6 +1087,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1102,6 +1111,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1121,6 +1131,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1138,6 +1149,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1157,6 +1169,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* rmrq=lookupRMregMM[rm];
 		if (rm>=0xc0) {
@@ -1174,6 +1187,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		if (rm>=0xc0) {
@@ -1208,6 +1222,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		uint8_t op=(rm>>3)&7;
 		uint8_t shift=(uint8_t)Fetchb();
@@ -1253,6 +1268,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		uint8_t op=(rm>>3)&7;
 		uint8_t shift=(uint8_t)Fetchb();
@@ -1290,6 +1306,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		uint8_t op=(rm>>3)&7;
 		uint8_t shift=(uint8_t)Fetchb();
@@ -1312,6 +1329,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1335,6 +1353,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1354,6 +1373,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1371,6 +1391,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		setFPUTagEmpty();
 		fpu.sw.top = 0;
 		break;
@@ -1379,6 +1400,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* rmrq=lookupRMregMM[rm];
 		if (rm>=0xc0) {
@@ -1394,6 +1416,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		if (rm>=0xc0) {
@@ -1608,6 +1631,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1630,6 +1654,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1650,6 +1675,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1667,6 +1693,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1676,14 +1703,10 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		int32_t product0 = (uint32_t)dest->sw.w0 * (uint32_t)src.sw.w0;
-		int32_t product1 = (uint32_t)dest->sw.w1 * (uint32_t)src.sw.w1;
-		int32_t product2 = (uint32_t)dest->sw.w2 * (uint32_t)src.sw.w2;
-		int32_t product3 = (uint32_t)dest->sw.w3 * (uint32_t)src.sw.w3;
-		dest->sw.w0 = product0;
-		dest->sw.w1 = product1;
-		dest->sw.w2 = product2;
-		dest->sw.w3 = product3;
+		dest->uw.w0 *= src.uw.w0;
+		dest->uw.w1 *= src.uw.w1;
+		dest->uw.w2 *= src.uw.w2;
+		dest->uw.w3 *= src.uw.w3;
 		break;
 	}
 	CASE_0F_MMX(0xd7)
@@ -1715,6 +1738,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1741,6 +1765,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1797,6 +1822,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		if (rm>=0xc0) {
@@ -1812,6 +1838,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1835,6 +1862,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1888,6 +1916,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		if (rm>=0xc0) {
@@ -1938,6 +1967,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -1964,6 +1994,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2054,6 +2085,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2097,6 +2129,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2120,6 +2153,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2173,6 +2207,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		if (rm>=0xc0) {
@@ -2188,6 +2223,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2211,6 +2247,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2264,6 +2301,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		if (rm>=0xc0) {
@@ -2279,6 +2317,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2301,6 +2340,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2321,6 +2361,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2338,6 +2379,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2405,6 +2447,7 @@
 		switch (last_prefix) {
 			case MP_NONE:									/* 0F F7 MASKMOVQ reg, r/m */
 				if (rm >= 0xc0) {
+					if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
 					/* the MSB of each byte in second operand indicates whether to write the corresponding byte value from the first operand
 					 * i.e. MASKMOVQ mm1,mm2 would selectively write bytes from mm1 according to MSBs of each byte in mm1. The target memory
 					 * location is DS:EDI (DS can be overridden by a segment prefix). */
@@ -2434,6 +2477,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2457,6 +2501,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2476,6 +2521,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2493,6 +2539,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2516,6 +2563,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
@@ -2535,6 +2583,7 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
+		EnterMMX();
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
 		MMX_reg src;
