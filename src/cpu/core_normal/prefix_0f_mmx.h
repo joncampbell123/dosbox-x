@@ -1703,10 +1703,10 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->uw.w0 *= src.uw.w0;
-		dest->uw.w1 *= src.uw.w1;
-		dest->uw.w2 *= src.uw.w2;
-		dest->uw.w3 *= src.uw.w3;
+		dest->sw.w0 *= src.sw.w0;
+		dest->sw.w1 *= src.sw.w1;
+		dest->sw.w2 *= src.sw.w2;
+		dest->sw.w3 *= src.sw.w3;
 		break;
 	}
 	CASE_0F_MMX(0xd7)
