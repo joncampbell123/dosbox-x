@@ -293,6 +293,7 @@ static INLINE void SSE_CVTTPS2PI_i(int32_t &d,const FPU_Reg_32 &s) {
 static INLINE void SSE_CVTTPS2PI(MMX_reg &d,const XMM_Reg &s) {
 	SSE_CVTTPS2PI_i(d.sd.d0,s.f32[0]);
 	SSE_CVTTPS2PI_i(d.sd.d1,s.f32[1]);
+	d.fpu.e = 0xFFFF;
 }
 
 static INLINE void SSE_CVTTSS2SI(uint32_t &d,const XMM_Reg &s) {
@@ -311,6 +312,7 @@ static INLINE void SSE_CVTPS2PI_i(int32_t &d,const FPU_Reg_32 &s) {
 static INLINE void SSE_CVTPS2PI(MMX_reg &d,const XMM_Reg &s) {
 	SSE_CVTPS2PI_i(d.sd.d0,s.f32[0]);
 	SSE_CVTPS2PI_i(d.sd.d1,s.f32[1]);
+	d.fpu.e = 0xFFFF;
 }
 
 static INLINE void SSE_CVTSS2SI(uint32_t &d,const XMM_Reg &s) {
@@ -533,6 +535,7 @@ static INLINE void SSE_CMPSS(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
 
 static INLINE void MMX_PINSRW(MMX_reg &d,const uint32_t &s,const uint8_t i) {
 	d.uwa[i&3u] = (uint16_t)s;
+	d.fpu.e = 0xFFFF;
 }
 
 static INLINE void SSE_PINSRW(XMM_Reg &d,const uint32_t &s,const uint8_t i) {
@@ -608,6 +611,7 @@ static INLINE void MMX_PMINUB(MMX_reg &d,MMX_reg &s) {
 	STEP(5);
 	STEP(6);
 	STEP(7);
+	d.fpu.e = 0xFFFF;
 #undef STEP
 }
 
@@ -644,6 +648,7 @@ static INLINE void MMX_PMAXUB(MMX_reg &d,MMX_reg &s) {
 	STEP(5);
 	STEP(6);
 	STEP(7);
+	d.fpu.e = 0xFFFF;
 #undef STEP
 }
 
@@ -680,6 +685,7 @@ static INLINE void MMX_PAVGB(MMX_reg &d,MMX_reg &s) {
 	STEP(5);
 	STEP(6);
 	STEP(7);
+	d.fpu.e = 0xFFFF;
 #undef STEP
 }
 
@@ -712,6 +718,7 @@ static INLINE void MMX_PAVGW(MMX_reg &d,MMX_reg &s) {
 	STEP(1);
 	STEP(2);
 	STEP(3);
+	d.fpu.e = 0xFFFF;
 #undef STEP
 }
 
@@ -736,6 +743,7 @@ static INLINE void MMX_PMULHUW(MMX_reg &d,MMX_reg &s) {
 	STEP(1);
 	STEP(2);
 	STEP(3);
+	d.fpu.e = 0xFFFF;
 #undef STEP
 }
 
@@ -760,6 +768,7 @@ static INLINE void MMX_PMINSW(MMX_reg &d,MMX_reg &s) {
 	STEP(1);
 	STEP(2);
 	STEP(3);
+	d.fpu.e = 0xFFFF;
 #undef STEP
 }
 
@@ -784,6 +793,7 @@ static INLINE void MMX_PMAXSW(MMX_reg &d,MMX_reg &s) {
 	STEP(1);
 	STEP(2);
 	STEP(3);
+	d.fpu.e = 0xFFFF;
 #undef STEP
 }
 
@@ -806,6 +816,7 @@ static INLINE void MMX_PSADBW(MMX_reg &d,MMX_reg &s) {
 #define STEP(i) (uint16_t)abs((int16_t)(d.ub.b##i) - (int16_t)(s.ub.b##i))
 	d.uw.w0 = STEP(0) + STEP(1) + STEP(2) + STEP(3) + STEP(4) + STEP(5) + STEP(6) + STEP(7);
 	d.uw.w1 = d.uw.w2 = d.uw.w3 = 0;
+	d.fpu.e = 0xFFFF;
 #undef STEP
 }
 
