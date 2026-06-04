@@ -43,35 +43,6 @@ void FPU_ESC7_Normal(Bitu rm);
 void FPU_ESC7_EA(Bitu rm,PhysPt addr);
 
 #pragma pack(push,1)
-typedef union {
-// TODO: The configure script needs to use "long double" on x86/x86_64 and verify sizeof(long double) == 10,
-//       else undef a macro to let the code emulate long double 80-bit IEEE. Also needs to determine host
-//       byte order here so host long double matches our struct.
-	struct {
-		uint64_t	mantissa;		// [63:0]
-		unsigned int	exponent:15;		// [78:64]
-		unsigned int	sign:1;			// [79:79]
-	} f;
-#if defined(HAS_LONG_DOUBLE)
-	long double		v;			// [79:0]
-#endif
-	struct {
-		uint64_t	l;
-		uint16_t	h;
-	} raw;
-} FPU_Reg_80;
-#if defined(HAS_LONG_DOUBLE)
-static_assert( sizeof(FPU_Reg_80) >= 8, "FPU_Reg_80 error" );/*NTS: GCC can and often will define long double as 16 bytes or at least align by 16 bytes*/
-#else
-static_assert( sizeof(FPU_Reg_80) == 8, "FPU_Reg_80 error" );
-#endif
-// ^ Remember that in 80-bit extended, the mantissa contains both the fraction and integer bit. There is no
-//   "implied bit" like 32-bit and 64-bit formats.
-#pragma pack(pop)
-
-#define FPU_Reg_80_exponent_bias	(16383)
-
-#pragma pack(push,1)
 typedef union alignas(8) {
 	struct {
 		uint64_t	mantissa:52;		// [51:0]
@@ -111,6 +82,7 @@ static_assert( sizeof(FPU_Reg_32) == 4, "FPU_Reg_32 error" );
 #define FPU_Reg_32_exponent_bias	(127)
 static const uint32_t FPU_Reg_32_implied_bit = ((uint32_t)1UL << (uint32_t)23UL);
 
+#pragma pack(push,1)
 union alignas(8) MMX_reg {
 
 	uint64_t q;
@@ -204,6 +176,7 @@ union alignas(8) MMX_reg {
 
 };
 static_assert(sizeof(MMX_reg) == 8, "MMX packing error");
+#pragma pack(pop)
 
 #pragma pack(push,1)
 union alignas(16) XMM_Reg {
@@ -237,6 +210,39 @@ static_assert( sizeof(XMM_Reg)     == 16 /* 128-bit */, "XMM reg struct error" )
 extern MMX_reg * reg_mmx[8];
 extern MMX_reg * lookupRMregMM[256];
 
+#pragma pack(push,1)
+typedef union alignas(8) {
+// TODO: The configure script needs to use "long double" on x86/x86_64 and verify sizeof(long double) == 10,
+//       else undef a macro to let the code emulate long double 80-bit IEEE. Also needs to determine host
+//       byte order here so host long double matches our struct.
+	struct f_t {
+		uint64_t	mantissa;		// [63:0]
+		unsigned int	exponent:15;		// [78:64]
+		unsigned int	sign:1;			// [79:79]
+	} f;
+#if defined(HAS_LONG_DOUBLE)
+	long double		v;			// [79:0]
+#endif
+	struct raw_t {
+		uint64_t	l;
+		uint16_t	h;
+	} raw;
+
+	MMX_reg reg_mmx;
+	static_assert( sizeof(reg_mmx) == 8, "FPU_Reg error" );
+
+	static_assert( offsetof(f_t,mantissa) == 0, "oops" );
+	static_assert( offsetof(raw_t,l) == 0, "oops" );
+	static_assert( offsetof(raw_t,h) == 8, "oops" );
+	static_assert( offsetof(MMX_reg,q) == 0, "oops" );
+} FPU_Reg_80;
+static_assert( sizeof(FPU_Reg_80) >= 8, "FPU_Reg_80 error" );/*NTS: GCC can and often will define long double as 16 bytes or at least align by 16 bytes*/
+// ^ Remember that in 80-bit extended, the mantissa contains both the fraction and integer bit. There is no
+//   "implied bit" like 32-bit and 64-bit formats.
+#pragma pack(pop)
+
+#define FPU_Reg_80_exponent_bias	(16383)
+
 
 int8_t  SaturateWordSToByteS(int16_t value);
 int16_t SaturateDwordSToWordS(int32_t value);
@@ -267,12 +273,10 @@ typedef union alignas(8) {
     } l;
 #endif
     int64_t ll;
-	MMX_reg reg_mmx;
 
 	static_assert( sizeof(d) == 8, "FPU_Reg error" );
 	static_assert( sizeof(l) == 8, "FPU_Reg error" );
 	static_assert( sizeof(ll) == 8, "FPU_Reg error" );
-	static_assert( sizeof(reg_mmx) == 8, "FPU_Reg error" );
 } FPU_Reg;
 static_assert( sizeof(FPU_Reg) == 8, "FPU_Reg error" );
 #pragma pack(pop)

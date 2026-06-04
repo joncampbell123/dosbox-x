@@ -60,6 +60,17 @@ uint16_t FPU_GetTag(void){
 void EnterMMX(void) {
 	fpu.sw.top = 0;
 	FPU_SetTag(0);
+#if !defined(HAS_LONG_DOUBLE)
+	fpu.use80[0] = true;
+	fpu.use80[1] = true;
+	fpu.use80[2] = true;
+	fpu.use80[3] = true;
+	fpu.use80[4] = true;
+	fpu.use80[5] = true;
+	fpu.use80[6] = true;
+	fpu.use80[7] = true;
+	fpu.use80[8] = true;
+#endif
 }
 
 static void EATREE(Bitu _rm){
