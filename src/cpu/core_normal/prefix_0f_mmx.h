@@ -1391,7 +1391,6 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		if (MMX_CoprocessorException()) RUNEXCEPTION();
-		EnterMMX();
 		setFPUTagEmpty();
 		fpu.sw.top = 0;
 		break;
