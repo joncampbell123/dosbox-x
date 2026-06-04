@@ -1832,7 +1832,7 @@ public:
         pos_axis_lists=new CBindList[MAXAXIS];
         neg_axis_lists=new CBindList[MAXAXIS];
         button_lists=new CBindList[MAXBUTTON];
-        hat_lists=new CBindList[4];
+        hat_lists=new CBindList[MAXHAT*4]; /* 4 binding lists (one per direction) per hat, for up to MAXHAT hats */
         Bitu i;
         for (i=0; i<MAXBUTTON; i++) {
             button_autofire[i]=0;
