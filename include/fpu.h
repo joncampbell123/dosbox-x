@@ -83,11 +83,19 @@ static_assert( sizeof(FPU_Reg_32) == 4, "FPU_Reg_32 error" );
 static const uint32_t FPU_Reg_32_implied_bit = ((uint32_t)1UL << (uint32_t)23UL);
 
 #pragma pack(push,1)
-union alignas(8) MMX_reg {
+union alignas(16) MMX_reg {
 
 	uint64_t q;
 
 #ifndef WORDS_BIGENDIAN
+	struct fpu_t {
+		uint64_t m;
+		uint16_t e;
+	} fpu;
+	static_assert(sizeof(fpu) == 10, "MMX packing error");
+	static_assert(offsetof(fpu_t,m) == 0, "MMX packing error");
+	static_assert(offsetof(fpu_t,e) == 8, "MMX packing error");
+
 	struct {
 		uint32_t d0,d1;
 	} ud;
@@ -129,11 +137,19 @@ union alignas(8) MMX_reg {
 	} sb;
 	static_assert(sizeof(sb) == 8, "MMX packing error");
 
-	struct { /* MMX registers can contain single precision float if the program uses AMD 3DNow! instructions */
+	struct alignas(4) { /* MMX registers can contain single precision float if the program uses AMD 3DNow! instructions */
 		FPU_Reg_32 f0,f1;
 	} f32;
 	static_assert(sizeof(f32) == 8, "MMX packing error");
 #else
+	struct fpu_t {
+		uint64_t m;
+		uint16_t e;
+	} fpu;
+	static_assert(sizeof(fpu) == 10, "MMX packing error");
+	static_assert(offsetof(fpu_t,m) == 0, "MMX packing error");
+	static_assert(offsetof(fpu_t,e) == 8, "MMX packing error");
+
 	struct {
 		uint32_t d1,d0;
 	} ud;
@@ -175,7 +191,7 @@ union alignas(8) MMX_reg {
 #endif
 
 };
-static_assert(sizeof(MMX_reg) == 8, "MMX packing error");
+static_assert(sizeof(MMX_reg) == 16, "MMX packing error");
 #pragma pack(pop)
 
 #pragma pack(push,1)
@@ -211,7 +227,7 @@ extern MMX_reg * reg_mmx[8];
 extern MMX_reg * lookupRMregMM[256];
 
 #pragma pack(push,1)
-typedef union alignas(8) {
+typedef union alignas(16) {
 // TODO: The configure script needs to use "long double" on x86/x86_64 and verify sizeof(long double) == 10,
 //       else undef a macro to let the code emulate long double 80-bit IEEE. Also needs to determine host
 //       byte order here so host long double matches our struct.
@@ -229,14 +245,14 @@ typedef union alignas(8) {
 	} raw;
 
 	MMX_reg reg_mmx;
-	static_assert( sizeof(reg_mmx) == 8, "FPU_Reg error" );
+	static_assert( sizeof(reg_mmx) == 16, "FPU_Reg error" );
 
 	static_assert( offsetof(f_t,mantissa) == 0, "oops" );
 	static_assert( offsetof(raw_t,l) == 0, "oops" );
 	static_assert( offsetof(raw_t,h) == 8, "oops" );
 	static_assert( offsetof(MMX_reg,q) == 0, "oops" );
 } FPU_Reg_80;
-static_assert( sizeof(FPU_Reg_80) >= 8, "FPU_Reg_80 error" );/*NTS: GCC can and often will define long double as 16 bytes or at least align by 16 bytes*/
+static_assert( sizeof(FPU_Reg_80) == 16, "FPU_Reg_80 error" );/*NTS: GCC can and often will define long double as 16 bytes or at least align by 16 bytes*/
 // ^ Remember that in 80-bit extended, the mantissa contains both the fraction and integer bit. There is no
 //   "implied bit" like 32-bit and 64-bit formats.
 #pragma pack(pop)
