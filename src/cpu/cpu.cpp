@@ -4883,8 +4883,6 @@ void CPU_CMPXCHG8B(PhysPt eaa) {
 		SETFLAGBIT(ZF,true);
 	}
 	else {
-		mem_writed(eaa,          reg_eax);
-		mem_writed(eaa+(PhysPt)4,reg_edx);
 		SETFLAGBIT(ZF,false);
 		reg_eax = lo;
 		reg_edx = hi;
