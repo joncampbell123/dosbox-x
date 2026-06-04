@@ -833,11 +833,6 @@ bool CPU_STMXCSR(PhysPt eaa);
 
 typedef PhysPt (*EA_LookupHandler)(void);
 
-/* MMX instructions set the top of stack to zero---Intel explicitly documents this.
- * There is code out there, including in Windows ME and Windows Media Player, that
- * will show minor artifacts without this. */
-#define EnterMMX() fpu.sw.top = 0
-
 #include "helpers.h"
 #if CPU_CORE <= CPU_ARCHTYPE_8086
 # define EATable EATable8086
