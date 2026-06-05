@@ -233,8 +233,8 @@ typedef union alignas(16) {
 //       byte order here so host long double matches our struct.
 	struct f_t {
 		uint64_t	mantissa;		// [63:0]
-		unsigned int	exponent:15;		// [78:64]
-		unsigned int	sign:1;			// [79:79]
+		uint16_t	exponent:15;	// [78:64]
+		uint16_t	sign:1;			// [79:79]
 	} f;
 #if defined(HAS_LONG_DOUBLE)
 	long double		v;			// [79:0]
