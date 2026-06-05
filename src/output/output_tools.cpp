@@ -34,6 +34,7 @@
 #include <output/output_direct3d.h>
 #include <output/output_opengl.h>
 #include <output/output_surface.h>
+#include <output/output_terminal.h>
 #include <output/output_ttf.h>
 #include <output/output_direct3d11.h>
 
@@ -62,6 +63,9 @@ void OUTPUT_Metal_Shutdown();
 
 extern int initgl, posx, posy;
 extern bool rtl, gbk, chinasea, window_was_maximized, dpi_aware_enable, isVirtualBox;
+
+/* Internal output selector used by change_output(); not exposed in the GUI menu. */
+static constexpr int OutputTerminal = 15;
 
 void refreshExtChar() {
     if (mainMenu.item_exists("ttf_extcharset")) {
@@ -117,6 +121,8 @@ std::string GetDefaultOutput() {
 
 void change_output(int output) {
     GFX_Stop();
+    if (output != OutputTerminal && (sdl.desktop.type == SCREEN_TERMINAL || sdl.desktop.want_type == SCREEN_TERMINAL))
+        OUTPUT_TERMINAL_Shutdown();
     Section * sec = control->GetSection("sdl");
     Section_prop * section=static_cast<Section_prop *>(sec);
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
@@ -183,6 +189,9 @@ void change_output(int output) {
         OUTPUT_GAMELINK_Select();
         break;
 #endif
+    case OutputTerminal:
+        OUTPUT_TERMINAL_Select();
+        break;
 #if C_DIRECT3D && defined(C_SDL2)
     case 13: /* direct3d11 */
         LOG_MSG("change_output: DIRECT3D11");
@@ -456,6 +465,11 @@ bool toOutput(const char *what) {
         change_output(12);
         reset = true;
 #endif
+    }
+    else if (!strcmp(what,"terminal")) {
+        if (sdl.desktop.want_type == SCREEN_TERMINAL) return false;
+        change_output(OutputTerminal);
+        reset = true;
     }
 #if C_DIRECT3D && defined(C_SDL2)
     else if(!strcmp(what, "direct3d11")) {

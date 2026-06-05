@@ -50,6 +50,7 @@ static bool has_LOG_Init = false;
 static bool has_LOG_EarlyInit = false;
 static bool do_LOG_stderr = false;
 
+bool logSuppressTerminalOutput = false;
 bool logBuffSuppressConsole = false;
 bool logBuffSuppressConsoleNeedUpdate = false;
 
@@ -722,6 +723,8 @@ void DEBUG_ShowMsg(char const* format,...) {
 	if (do_LOG_stderr || debuglog == NULL)
 		stderrlog = true;
 #endif
+	if (logSuppressTerminalOutput)
+		stderrlog = false;
 
 	if (debuglog != NULL) {
 		fprintf(debuglog,"%s\n",buf);

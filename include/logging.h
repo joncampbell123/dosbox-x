@@ -52,6 +52,7 @@ struct _LogGroup {
 
 extern _LogGroup loggrp[LOG_MAX];
 extern FILE* debuglog;
+extern bool logSuppressTerminalOutput;
 
 class LOG 
 { 
