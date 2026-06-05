@@ -1486,7 +1486,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", "0", "-1", nullptr };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", nullptr };
     const char* dmassb[] = { "1", "5", "0", "3", "6", "7", "-1", nullptr };
-    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board", "opl3duoboard", "retrowave_opl3", "esfmu", nullptr };
+    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board", "opl3duoboard", "retrowave_opl3", "esfmu", "cqm", nullptr};
     const char *qualityno[] = { "0", "1", "2", "3", nullptr };
     const char* tandys[] = { "auto", "on", "off", nullptr };
     const char* ps1opt[] = { "on", "off", nullptr };
