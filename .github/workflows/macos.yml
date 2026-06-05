@@ -54,7 +54,18 @@ jobs:
           strip $top/src/dosbox-x
           make dosbox-x.app
           mv dosbox-x.app $top/package/dosbox-x-sdl2
+      - name: Detect OSFREE build
+        id: osfree
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "main-osfree" ]] || \
+             grep -q '^#define C_OSFREE 1' vs/config_package.h 2>/dev/null; then
+            echo "osfree=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "osfree=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Unit testing
+        if: steps.osfree.outputs.osfree != 'true'
         run: |
           top=`pwd`
           chmod +x $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x
@@ -89,6 +100,52 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ env.ZIPNAME }}
+      - name: Prepare macOS osfree build
+        if: steps.osfree.outputs.osfree != 'true'
+        shell: bash
+        run: |
+          top=`pwd`
+          echo '#define C_OSFREE 1' >> vs/config_package.h
+          echo '#define OSFREE 1' >> vs/config_package.h
+          rm -rf dosbox-x.app
+          rm -rf "$top/package/dosbox-x/dosbox-x.app"
+          rm -rf "$top/package/dosbox-x-sdl2/dosbox-x.app"
+      - name: Build macOS SDL1 OSFREE
+        if: steps.osfree.outputs.osfree != 'true'
+        run: |
+          top=`pwd`
+          ./build-macos
+          strip $top/src/dosbox-x
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x
+      - name: Build macOS SDL2 OSFREE
+        if: steps.osfree.outputs.osfree != 'true'
+        run: |
+          top=`pwd`
+          ./build-macos-sdl2
+          strip $top/src/dosbox-x
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x-sdl2
+      - name: Package build
+        if: steps.osfree.outputs.osfree != 'true'
+        run: |
+          top=`pwd`
+          cd $top/package/
+          TIMESTAMP="${{ env.timestamp }}"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            ZIPNAME="dosbox-x-macosx-intel-osfree-${VERSION}.zip"
+          else
+            ZIPNAME="dosbox-x-macosx-intel-${TIMESTAMP}-osfree-nightly.zip"
+          fi
+          echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
+          7zz a "$top/$ZIPNAME" *
+          cd $top
+      - name: Upload preview package
+        if: steps.osfree.outputs.osfree != 'true'
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.ZIPNAME }}
+          path: "${{ github.workspace }}/${{ env.ZIPNAME }}"
   
   macOS_ARM_CI_build:
     permissions:
@@ -137,7 +194,18 @@ jobs:
           strip $top/src/dosbox-x
           make dosbox-x.app
           mv dosbox-x.app $top/package/dosbox-x-sdl2
+      - name: Detect OSFREE build
+        id: osfree
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "main-osfree" ]] || \
+             grep -q '^#define C_OSFREE 1' vs/config_package.h 2>/dev/null; then
+            echo "osfree=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "osfree=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Unit testing
+        if: steps.osfree.outputs.osfree != 'true'
         run: |
           top=`pwd`
           chmod +x $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x
@@ -172,4 +240,48 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ env.ZIPNAME }}
-
+      - name: Prepare macOS ARM osfree build
+        if: steps.osfree.outputs.osfree != 'true'
+        shell: bash
+        run: |
+          top=`pwd`
+          echo '#define C_OSFREE 1' >> vs/config_package.h
+          echo '#define OSFREE 1' >> vs/config_package.h
+          rm -rf dosbox-x.app
+          rm -rf "$top/package/dosbox-x/dosbox-x.app"
+          rm -rf "$top/package/dosbox-x-sdl2/dosbox-x.app"
+      - name: Build macOS ARM SDL1 OSFREE
+        if: steps.osfree.outputs.osfree != 'true'
+        run: |
+          top=`pwd`
+          ./build-macos
+          strip $top/src/dosbox-x
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x
+      - name: Build macOS ARM SDL2 OSFREE
+        run: |
+          top=`pwd`
+          ./build-macos-sdl2
+          strip $top/src/dosbox-x
+          make dosbox-x.app
+          mv dosbox-x.app $top/package/dosbox-x-sdl2
+      - name: Package build
+        if: steps.osfree.outputs.osfree != 'true'
+        run: |
+          top=`pwd`
+          cd $top/package/
+          TIMESTAMP="${{ env.timestamp }}"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            ZIPNAME="dosbox-x-macosx-arm64-osfree-${VERSION}.zip"
+          else
+            ZIPNAME="dosbox-x-macosx-arm64-${TIMESTAMP}-osfree-nightly.zip"
+          fi
+          echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
+          7zz a "$top/$ZIPNAME" *
+          cd $top
+      - name: Upload preview package
+        if: steps.osfree.outputs.osfree != 'true'
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.ZIPNAME }}
+          path: "${{ github.workspace }}/${{ env.ZIPNAME }}"
