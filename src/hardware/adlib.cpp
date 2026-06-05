@@ -377,7 +377,7 @@ struct Handler : public Adlib::Handler {
 	void WriteReg(uint32_t reg, uint8_t val) override {
 		OPL3_WriteRegBuffered(&chip, (uint16_t)reg, val);
 		if (reg == 0x105)
-			newm = reg & 0x01;
+			newm = val & 0x01;
 	}
 
 	uint32_t WriteAddr(uint32_t port, uint8_t val) override {
