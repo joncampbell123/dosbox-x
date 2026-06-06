@@ -6824,6 +6824,7 @@ class IMGMOUNT : public Program {
                                     newImage = new QCow2Disk(qcow2_header, newDisk, fname, qcow2_header.size, (uint32_t)sizes[0], (qcow2_header.size > 2880 * 1024));
                                     if(newImage) {
                                         LOG_MSG("IMGMOUNT: qcow2 image mounted (experimental)");
+                                        //newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]); // FIX ME: Should we obtain logical geometry (BIOS C/H/S) from physical geometry (IDE CHS) here?
                                         newImage->sector_size = sizes[0]; // sector size
                                         newImage->sectors = sizes[1];     // sectors
                                         newImage->heads = sizes[2];       // heads
@@ -7493,12 +7494,9 @@ class IMGMOUNT : public Program {
 				}
 				imagesize = (uint32_t)(qcow2_header.size / 1024L);
 				setbuf(newDisk, NULL);
-                DetectGeometry(sizes, qcow2_header.size);
+                DetectGeometry(sizes, qcow2_header.size); // auto-detect physical geometry (IDE CHS) based on qcow2_header.size
                 newImage = new QCow2Disk(qcow2_header, newDisk, fname, qcow2_header.size, (uint32_t)sizes[0], (imagesize > 2880));
-                newImage->sector_size = sizes[0]; // sector size
-                newImage->sectors = sizes[1];     // sectors
-                newImage->heads = sizes[2];       // heads
-                newImage->cylinders = sizes[3];   // cylinders
+                newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]); // Obtain logical geometry (BIOS C/H/S) from physical geometry (IDE CHS) 
                 uint64_t LBA = newImage->getLBA();
                 if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
                     LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)LBA * 512.0 / (1024.0 * 1024 * 1024));
