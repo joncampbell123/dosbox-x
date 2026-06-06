@@ -476,6 +476,10 @@ namespace NukedCQM {
                 return;
 
             READ_POD(&pod_name, pod_name);
+            if(memcmp(pod_name, "CQMOPL3", 8) != 0) {
+                stream.clear(std::istream::failbit | std::istream::badbit);
+                return;
+            }
             READ_POD(&chip, chip);
         }
 
