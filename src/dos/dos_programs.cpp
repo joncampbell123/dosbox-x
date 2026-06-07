@@ -5953,54 +5953,46 @@ class IMGMOUNT : public Program {
 			cmd->FindString("-chs", str_chs, true);
 			if (!ReadSizeParameter(str_size, str_chs, type, sizes)) return;
 
-			if (!rfstype&&isdigit(tdr)) fstype="none";
+			if (!rfstype&&(isdigit(tdr) || !device_spec.empty())) fstype="none";
 
 			//for floppies, hard drives, and cdroms, require a drive letter
 			//for -fs none, require a number indicating where to mount at
 			if(fstype=="fat" || fstype=="iso") {
-				// get the drive letter--you can't use the device spec here
-				if (tdr == 0) {
-					WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
-					return;
-				}
+				if (tdr != 0) {
+					/* if fs type if "fat" and we're asked to mount *: then check for that here */
+					if (tdr == '*') {
+						/* What drives are available? */
+						int i_drive = IS_PC98_ARCH ? 'A' : 'C';
+						while (i_drive <= 'Z' && Drives[i_drive-'A'] != NULL && (i_drive-'A') < DOS_DRIVES) i_drive++;
 
-				/* if fs type if "fat" and we're asked to mount *: then check for that here */
-				if (tdr == '*') {
-					/* What drives are available? */
-					int i_drive = IS_PC98_ARCH ? 'A' : 'C';
-					while (i_drive <= 'Z' && Drives[i_drive-'A'] != NULL && (i_drive-'A') < DOS_DRIVES) i_drive++;
+						if (i_drive > 'Z') {
+							WriteOut_NoParsing("No drive letters available");
+							return;
+						}
 
-					if (i_drive > 'Z') {
-						WriteOut_NoParsing("No drive letters available");
-						return;
+						drive = static_cast<char>(i_drive);
 					}
-
-					drive = static_cast<char>(i_drive);
-				}
-				else {
-					int i_drive = toupper(tdr);
-					if (!isalpha(i_drive) || (i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) {
-						WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
-						return;
+					else {
+						int i_drive = toupper(tdr);
+						if (!isalpha(i_drive) || (i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) {
+							WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
+							return;
+						}
+						drive = static_cast<char>(i_drive);
 					}
-					drive = static_cast<char>(i_drive);
 				}
 			} else if (fstype=="none") {
-				// get the drive letter--you can't use the device spec here--yet
-				if (tdr == 0) {
-					WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
-					return;
-				}
-
-				drive=tdr;
-				if ((drive<'0') || (drive>=MAX_DISK_IMAGES+'0')) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"), MAX_DISK_IMAGES-1);
-					return;
-				}
-				int index = drive - '0';
-				if (imageDiskList[index]) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER"),index);
-					return;
+				if (tdr != 0) {
+					drive=tdr;
+					if ((drive<'0') || (drive>=MAX_DISK_IMAGES+'0')) {
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"), MAX_DISK_IMAGES-1);
+						return;
+					}
+					int index = drive - '0';
+					if (imageDiskList[index]) {
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER"),index);
+						return;
+					}
 				}
 			} else {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED"),fstype.c_str());
@@ -6051,13 +6043,16 @@ class IMGMOUNT : public Program {
 				}
 			}
 
-			int i_drive = drive - 'A';
+			int i_drive = drive >= 0 ? drive - 'A' : -1;
 			bool exist = i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive];
 			//====== call the proper subroutine ======
 			if(fstype=="fat") {
 #if !defined(OSFREE)
 				//mount floppy or hard drive
-				if (bdisk != "") {
+				if (i_drive < 0) {
+					/* not supported */
+				}
+				else if (bdisk != "") {
 					if (!MountPartitionFat(drive, bdisk_number)) return;
 				}
 				else if (el_torito != "") {
@@ -6076,100 +6071,112 @@ class IMGMOUNT : public Program {
 				return;
 #endif
 			} else if (fstype=="iso") {
-				if (bdisk != "") {
-					// TODO
+				if (i_drive >= 0) {
+					if (bdisk != "") {
+						// TODO
+						return;
+					}
+					if (el_torito != "") {
+						WriteOut(MSG_Get("PROGRAM_ELTORITO_ISOMOUNT")); /* <- NTS: Will never implement, either */
+						return;
+					}
+					//supports multiple files
+					if (!MountIso(drive, paths, ide_index, ide_slave)) return;
+					if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
+				}
+				else {
+					WriteOut("Unable to attach to %s:%s\n",device_spec.c_str(),device_spec_opts.c_str());
 					return;
 				}
-				if (el_torito != "") {
-					WriteOut(MSG_Get("PROGRAM_ELTORITO_ISOMOUNT")); /* <- NTS: Will never implement, either */
-					return;
-				}
-				//supports multiple files
-				if (!MountIso(drive, paths, ide_index, ide_slave)) return;
-				if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
 			} else if (fstype=="none") {
-				unsigned char driveIndex = drive - '0';
+				if (drive >= 0) {
+					unsigned char driveIndex = drive - '0';
 
-				if (paths.size() > 1) {
-					if (driveIndex <= 1) {
-						if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 &&
-							swapInDisksSpecificDrive != driveIndex) {
-							WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MULTIPLE_USED"));
+					if (paths.size() > 1) {
+						if (driveIndex <= 1) {
+							if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 &&
+									swapInDisksSpecificDrive != driveIndex) {
+								WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MULTIPLE_USED"));
+								return;
+							}
+						}
+						else {
+							WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED"));
 							return;
 						}
 					}
-					else {
-						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED"));
-						return;
+
+					if (el_torito != "") {
+						newImage = new imageDiskElToritoFloppy((unsigned char)el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 					}
-				}
-
-				if (el_torito != "") {
-					newImage = new imageDiskElToritoFloppy((unsigned char)el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
-				}
-				else if (type == "ram") {
+					else if (type == "ram") {
 #if !defined(OSFREE)
-					newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
+						newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
 #else
-					WriteOut("RAM disk suport not available\n");
-					return;
+						WriteOut("RAM disk suport not available\n");
+						return;
 #endif
-				}
-				else {
-					newImage = MountImageNone(paths[0].c_str(), NULL, sizes, reserved_cylinders, roflag);
-				}
-				if (newImage == NULL) return;
-				newImage->Addref();
-				if (newImage->hardDrive && (driveIndex < 2)) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HD_FDPOSITION"));
-				}
-				else if (!newImage->hardDrive && (driveIndex >= 2)) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FD_HDPOSITION"));
-				}
-				else {
-					if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
-						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? (wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].c_str()+1:paths[0].c_str()) : (el_torito != ""?"El Torito floppy drive":(type == "ram"?"RAM drive":"-")));
-						if (!paths.empty()) {
-							const char *ext = strrchr(paths[0].c_str(), '.');
-							if (ext != NULL) {
-								if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2")) ||
-									(IS_PC98_ARCH && strcasecmp(ext,".hdi") && strcasecmp(ext,".nhd") && strcasecmp(ext,".img") && strcasecmp(ext,".ima"))){
-									WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+					}
+					else {
+						newImage = MountImageNone(paths[0].c_str(), NULL, sizes, reserved_cylinders, roflag);
+					}
+					if (newImage == NULL) return;
+					newImage->Addref();
+					if (newImage->hardDrive && (driveIndex < 2)) {
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HD_FDPOSITION"));
+					}
+					else if (!newImage->hardDrive && (driveIndex >= 2)) {
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FD_HDPOSITION"));
+					}
+					else {
+						if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
+							WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? (wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].c_str()+1:paths[0].c_str()) : (el_torito != ""?"El Torito floppy drive":(type == "ram"?"RAM drive":"-")));
+							if (!paths.empty()) {
+								const char *ext = strrchr(paths[0].c_str(), '.');
+								if (ext != NULL) {
+									if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2")) ||
+											(IS_PC98_ARCH && strcasecmp(ext,".hdi") && strcasecmp(ext,".nhd") && strcasecmp(ext,".img") && strcasecmp(ext,".ima"))){
+										WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+									}
 								}
 							}
-						}
-						if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
-							for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
-								if (diskSwap[si] != NULL) {
-									diskSwap[si]->Release();
-									diskSwap[si] = NULL;
+							if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
+								for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+									if (diskSwap[si] != NULL) {
+										diskSwap[si]->Release();
+										diskSwap[si] = NULL;
+									}
 								}
-							}
-							swapInDisksSpecificDrive = -1;
-							if (paths.size() > 1) {
-								/* slot 0 is the image we already assigned */
-								diskSwap[0] = newImage;
-								diskSwap[0]->Addref();
-								swapPosition = 0;
-								swapInDisksSpecificDrive = driveIndex;
+								swapInDisksSpecificDrive = -1;
+								if (paths.size() > 1) {
+									/* slot 0 is the image we already assigned */
+									diskSwap[0] = newImage;
+									diskSwap[0]->Addref();
+									swapPosition = 0;
+									swapInDisksSpecificDrive = driveIndex;
 
-								for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
-									imageDisk *img = MountImageNone(paths[si].c_str(), NULL, sizes, reserved_cylinders, roflag);
+									for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
+										imageDisk *img = MountImageNone(paths[si].c_str(), NULL, sizes, reserved_cylinders, roflag);
 
-									if (img != NULL) {
-										diskSwap[si] = img;
-										diskSwap[si]->Addref();
+										if (img != NULL) {
+											diskSwap[si] = img;
+											diskSwap[si]->Addref();
+										}
 									}
 								}
 							}
 						}
+						else {
+							WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_NUMBER"));
+						}
 					}
-					else {
-						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_NUMBER"));
-					}
+					newImage->Release();
+					return;
 				}
-				newImage->Release();
-				return;
+				else {
+					WriteOut("Unable to attach to %s:%s\n",device_spec.c_str(),device_spec_opts.c_str());
+					return;
+				}
 			}
 			else {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_FSTYPE"));
