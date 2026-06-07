@@ -1035,7 +1035,7 @@ uint32_t isoFile::GetSeekPos() {
 
 int   MSCDEX_RemoveDrive(char driveLetter);
 int   MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit);
-int   MSCDEX_UpdateDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit);
+int   MSCDEX_UpdateDrive(char driveLetter, const char* physicalPath, const uint8_t subUnit);
 void  MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, uint8_t subUnit);
 bool  MSCDEX_HasDrive(char driveLetter);
 bool  MSCDEX_GetVolumeName(uint8_t subUnit, char* name);
