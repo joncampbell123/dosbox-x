@@ -424,73 +424,75 @@ int CMscdex::RemoveDrive(uint16_t _drive)
 int CDROM_AllocateInterface(char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom) {
 	int result = 0;
 
+	/* If you're calling this and cdrom != NULL then you're calling to replace the object with a new one */
+	if (cdrom) (*cdrom)->Release();
 	*cdrom = NULL;
 
 	// Get Mounttype and init needed cdrom interface
 	switch (CDROM_GetMountType(physicalPath,forceCD)) {
-	case 0x00: {	
-		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting physical cdrom: %s"	,physicalPath);
+		case 0x00: {	
+			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting physical cdrom: %s"	,physicalPath);
 #if defined (WIN32)
-		// Check OS
-		OSVERSIONINFO osi;
-		osi.dwOSVersionInfoSize = sizeof(osi);
-		GetVersionEx(&osi);
-		if ((osi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (osi.dwMajorVersion>4)) {
-			// only WIN NT/200/XP
-			if (useCdromInterface==CDROM_USE_IOCTL_DIO) {
-				(*cdrom = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DIO))->Addref();
-				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
+			// Check OS
+			OSVERSIONINFO osi;
+			osi.dwOSVersionInfoSize = sizeof(osi);
+			GetVersionEx(&osi);
+			if ((osi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (osi.dwMajorVersion>4)) {
+				// only WIN NT/200/XP
+				if (useCdromInterface==CDROM_USE_IOCTL_DIO) {
+					(*cdrom = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DIO))->Addref();
+					LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
+					break;
+				}
+				if (useCdromInterface==CDROM_USE_IOCTL_DX) {
+					(*cdrom = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DX))->Addref();
+					LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (digital audio extraction).");
+					break;
+				}
+				if (useCdromInterface==CDROM_USE_IOCTL_MCI) {
+					(*cdrom = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_MCI))->Addref();
+					LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (media control interface).");
+					break;
+				}
+			}
+			if (useCdromInterface==CDROM_USE_ASPI) {
+				// all Wins - ASPI
+				(*cdrom = new CDROM_Interface_Aspi())->Addref();
+				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: ASPI Interface.");
 				break;
 			}
-			if (useCdromInterface==CDROM_USE_IOCTL_DX) {
-				(*cdrom = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DX))->Addref();
-				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (digital audio extraction).");
-				break;
-			}
-			if (useCdromInterface==CDROM_USE_IOCTL_MCI) {
-				(*cdrom = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_MCI))->Addref();
-				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (media control interface).");
-				break;
-			}
-		}
-		if (useCdromInterface==CDROM_USE_ASPI) {
-			// all Wins - ASPI
-			(*cdrom = new CDROM_Interface_Aspi())->Addref();
-			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: ASPI Interface.");
-			break;
-		}
 #endif
 #if defined (LINUX) || defined(OS2)
-		// Always use IOCTL in Linux or OS/2
-		(*cdrom = new CDROM_Interface_Ioctl())->Addref();
-		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
+			// Always use IOCTL in Linux or OS/2
+			(*cdrom = new CDROM_Interface_Ioctl())->Addref();
+			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
 #else
-		// Default case windows and other oses
-		(*cdrom = new CDROM_Interface_SDL())->Addref();
-		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: SDL Interface.");
+			// Default case windows and other oses
+			(*cdrom = new CDROM_Interface_SDL())->Addref();
+			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: SDL Interface.");
 #endif
 		} break;
-	case 0x01:	// iso cdrom interface	
-		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting iso file as cdrom: %s", physicalPath);
-		(*cdrom = new CDROM_Interface_Image((uint8_t)numDrive))->Addref();
-		break;
-	case 0x02:	// fake cdrom interface (directories)
-		{
-			CDROM_Interface_Fake *fake = new CDROM_Interface_Fake;
-			(*cdrom = fake)->Addref();
-			assert(fake->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE);
-			if (!strcmp(physicalPath,"empty")) {
-				fake->isEmpty = true;
+		case 0x01:	// iso cdrom interface	
+			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting iso file as cdrom: %s", physicalPath);
+			(*cdrom = new CDROM_Interface_Image((uint8_t)numDrive))->Addref();
+			break;
+		case 0x02:	// fake cdrom interface (directories)
+			{
+				CDROM_Interface_Fake *fake = new CDROM_Interface_Fake;
+				(*cdrom = fake)->Addref();
+				assert(fake->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE);
+				if (!strcmp(physicalPath,"empty")) {
+					fake->isEmpty = true;
+				}
+				else {
+					LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting directory as cdrom: %s",physicalPath);
+					LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: You won't have full MSCDEX support !");
+					result = 5;
+				}
 			}
-			else {
-				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting directory as cdrom: %s",physicalPath);
-				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: You won't have full MSCDEX support !");
-				result = 5;
-			}
-		}
-		break;
-	default	:	// weird result
-		return 6;
+			break;
+		default: // weird result
+			return 6;
 	}
 
 	if (!(*cdrom)->SetDevice(physicalPath,forceCD)) {
