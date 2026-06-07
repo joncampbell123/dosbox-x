@@ -624,7 +624,21 @@ void DBGUI_StartUp(void) {
 	scrollok(stdscr,false);
 	nodelay(dbg.win_main,true);
 	keypad(dbg.win_main,true);
-	#ifndef WIN32
+	#ifdef WIN32
+	/* After ncurses' initscr/cbreak/keypad have configured the console input mode,
+	   re-apply ENABLE_VIRTUAL_TERMINAL_INPUT so the terminal host (Windows Terminal,
+	   ConPTY, modern conhost) stops intercepting keys like F11 (fullscreen toggle)
+	   and forwards them to the application instead. */
+	#ifndef ENABLE_VIRTUAL_TERMINAL_INPUT
+	#define ENABLE_VIRTUAL_TERMINAL_INPUT 0x0200
+	#endif
+	{
+		HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+		DWORD dwInMode = 0;
+		if (GetConsoleMode(hIn, &dwInMode))
+			SetConsoleMode(hIn, dwInMode | ENABLE_VIRTUAL_TERMINAL_INPUT);
+	}
+	#else
 	touchwin(dbg.win_main);
 	#endif
 	old_cursor_state = curs_set(0);

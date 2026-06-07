@@ -72,6 +72,9 @@ static void ResizeConsole( HANDLE hConsole, SHORT xSize, SHORT ySize ) {
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
+#ifndef ENABLE_VIRTUAL_TERMINAL_INPUT
+#define ENABLE_VIRTUAL_TERMINAL_INPUT 0x0200
+#endif
 void DEBUG_ShowMsg(char const* format,...);
 void WIN32_Console() {
 	AllocConsole();
@@ -79,6 +82,11 @@ void WIN32_Console() {
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD dwMode = 0;
 	if (GetConsoleMode(hOut, &dwMode)) SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+	/* Forward keys (F11 etc.) to the application instead of letting the terminal
+	   host (Windows Terminal) swallow them as its own shortcuts (F11 = fullscreen). */
+	HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+	DWORD dwInMode = 0;
+	if (GetConsoleMode(hIn, &dwInMode)) SetConsoleMode(hIn, dwInMode | ENABLE_VIRTUAL_TERMINAL_INPUT);
 	ResizeConsole(hOut,80,50);
 }
 #endif

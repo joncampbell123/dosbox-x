@@ -294,6 +294,7 @@ public:
     virtual void mode_sense();
     virtual void read_toc();
 public:
+    bool mscdex = false; /* if set, attached to MSCDEX subunit */
     bool atapi_to_host;         /* if set, PACKET data transfer is to be read by host */
     double spinup_time;
     double spindown_timeout;
@@ -2831,9 +2832,12 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate) {
 					if (immediate) LOG_MSG("--media change is immediate");
 
 					CDROM_Interface *cdrom = NULL;
-					if (GetMSCDEXDrive(drive_index,&cdrom)) {
-						if (atapi->cdrom) atapi->cdrom->Release();
-						(atapi->cdrom = cdrom)->Addref();
+
+					if (atapi->mscdex) {
+						if (GetMSCDEXDrive(drive_index,&cdrom)) {
+							if (atapi->cdrom) atapi->cdrom->Release();
+							(atapi->cdrom = cdrom)->Addref();
+						}
 					}
 
 					bool empty = false;
@@ -2894,6 +2898,7 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
         LOG_MSG("IMGMOUNT: Failed to allocate CD-ROM drive %c to IDE %s %s", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);
         return;
     }
+    dev->mscdex = true; /* mark that the cdrom object is attached to MSCDEX emulation */
     cdrom->Release();
     dev->update_from_cdrom();
     c->device[slave?1:0] = (IDEDevice*)dev;

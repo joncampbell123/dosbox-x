@@ -240,7 +240,7 @@ public:
 
 // TODO: Perhaps add a check that, if physicalPath and subUnit are the same as the CDROM interface
 //       already there, don't do anything and return success.
-static int UpdateDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
+static int UpdateDrive(uint16_t _drive, char* physicalPath, const uint8_t subUnit)
 {
 	if (subUnit >= GetNumDrives()) return 4;
 	(void)_drive;//unused
@@ -516,7 +516,6 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 
 #if !defined(OSFREE)
 	if (rootDriverHeaderSeg==0) {
-		
 		uint16_t driverSize = sizeof(DOS_DeviceHeader::sDeviceHeader) + 10; // 10 = Bytes for 3 callbacks
 
 		/* should have been assigned by SetName() in constructor, with copy stored by DOS_File::SetName */
@@ -565,7 +564,6 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		devHeader.SetInterrupt(off);
 		
 		rootDriverHeaderSeg = seg;
-	
 	} else if (GetNumDrives() == 0) {
 		DOS_DeviceHeader devHeader(PhysMake(rootDriverHeaderSeg,0));
 		uint16_t off = sizeof(DOS_DeviceHeader::sDeviceHeader);
@@ -1646,7 +1644,7 @@ int MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit
 	return mscdex->AddDrive(driveLetter-'A',(char*)physicalPath,subUnit);
 }
 
-int MSCDEX_UpdateDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit) {
+int MSCDEX_UpdateDrive(char driveLetter, const char* physicalPath, const uint8_t subUnit) {
 	return UpdateDrive(driveLetter-'A',(char*)physicalPath,subUnit);
 }
 

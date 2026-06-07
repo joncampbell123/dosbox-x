@@ -78,7 +78,6 @@ extern bool switchttf, ttfswitch, switch_output_from_ttf;
 extern bool finish_prepare;
 bool checkmenuwidth = false;
 bool dos_kernel_disabled = true;
-bool dos_kernel_shutdown_mcb = true;
 bool winrun=false, use_save_file=false;
 bool maximize = false, tooutttf = false;
 bool tonoime = false, enableime = false;
@@ -7890,7 +7889,6 @@ bool VM_Boot_DOSBox_Kernel() {
         DispatchVMEvent(VM_EVENT_DOS_SURPRISE_REBOOT); // <- apparently we rebooted without any notification (such as jmp'ing to FFFF:0000)
 
         dos_kernel_disabled = true;
-        dos_kernel_shutdown_mcb = true;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
@@ -7905,7 +7903,6 @@ bool VM_Boot_DOSBox_Kernel() {
 
         /* DOS kernel init */
         dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
-	dos_kernel_shutdown_mcb = false;
         void DOS_Startup(Section* sec);
         DOS_Startup(NULL);
         maincp = 0;
@@ -8089,6 +8086,13 @@ bool custom_bios = false;
 size_t custom_bios_image_size = 0;
 Bitu custom_bios_image_offset = 0;
 unsigned char *custom_bios_image = NULL;
+
+/* 2026/06/07: We now accept from BOOT a boot sector to load into memory
+ *             after DOS kernel shutdown, so that the process shutdown
+ *             is cleaner and the "don't check MCB corruption" flag is
+ *             no longer necessary. */
+std::vector<uint8_t> boot_code_image;
+PhysPt boot_code_image_load_to = 0;
 
 // OK why isn't this being set for Linux??
 #ifndef SDL_MAIN_NOEXCEPT
@@ -10268,7 +10272,6 @@ fresh_boot:
              * do not attempt to manipulate now-defunct parts of the kernel
              * such as the environment block */
             dos_kernel_disabled = true;
-            dos_kernel_shutdown_mcb = true;
 
             std::string core(static_cast<Section_prop *>(control->GetSection("cpu"))->Get_string("core"));
             if (!strcmp(RunningProgram, "LOADLIN") && core == "auto") {
@@ -10288,6 +10291,11 @@ fresh_boot:
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
             Reflect_Menu();
 #endif
+
+            /* proceed to real mode */
+            void CPU_Snap_Back_Forget();
+            CPU_Snap_Back_To_Real_Mode();
+            CPU_Snap_Back_Forget();
         }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
@@ -10313,6 +10321,14 @@ fresh_boot:
             if (IS_PC98_ARCH) {
                 void PC98_show_cursor(bool show);
                 PC98_show_cursor(false);
+            }
+
+            /* if BOOT gave us code to load, do it -- I hope you set boot_code_image_load_to to a nonzero value! */
+            if (!boot_code_image.empty()) {
+                LOG_MSG("Loading %u bytes of boot code to %x",(unsigned int)boot_code_image.size(),(unsigned int)boot_code_image_load_to);
+                MEM_BlockWrite(boot_code_image_load_to,boot_code_image.data(),boot_code_image.size());
+                boot_code_image_load_to = 0;
+                boot_code_image.clear();
             }
 
             /* new code: fire event */
