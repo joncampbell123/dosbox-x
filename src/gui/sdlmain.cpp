@@ -78,7 +78,6 @@ extern bool switchttf, ttfswitch, switch_output_from_ttf;
 extern bool finish_prepare;
 bool checkmenuwidth = false;
 bool dos_kernel_disabled = true;
-bool dos_kernel_shutdown_mcb = true;
 bool winrun=false, use_save_file=false;
 bool maximize = false, tooutttf = false;
 bool tonoime = false, enableime = false;
@@ -7890,7 +7889,6 @@ bool VM_Boot_DOSBox_Kernel() {
         DispatchVMEvent(VM_EVENT_DOS_SURPRISE_REBOOT); // <- apparently we rebooted without any notification (such as jmp'ing to FFFF:0000)
 
         dos_kernel_disabled = true;
-        dos_kernel_shutdown_mcb = true;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
@@ -7905,7 +7903,6 @@ bool VM_Boot_DOSBox_Kernel() {
 
         /* DOS kernel init */
         dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
-	dos_kernel_shutdown_mcb = false;
         void DOS_Startup(Section* sec);
         DOS_Startup(NULL);
         maincp = 0;
@@ -10275,7 +10272,6 @@ fresh_boot:
              * do not attempt to manipulate now-defunct parts of the kernel
              * such as the environment block */
             dos_kernel_disabled = true;
-            dos_kernel_shutdown_mcb = true;
 
             std::string core(static_cast<Section_prop *>(control->GetSection("cpu"))->Get_string("core"));
             if (!strcmp(RunningProgram, "LOADLIN") && core == "auto") {

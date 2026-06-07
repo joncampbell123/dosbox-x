@@ -258,7 +258,7 @@ bool SwitchLanguage(int oldcp, int newcp, bool confirm) {
 
 extern std::string hidefiles, dosbox_title;
 extern int swapInDisksSpecificDrive;
-extern bool dos_kernel_disabled, dos_kernel_shutdown_mcb, clearline;
+extern bool dos_kernel_disabled, clearline;
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
 bool FDC_UnassignINT13Disk(unsigned char drv);
 bool bootguest=false, use_quick_reboot=false;
@@ -3234,7 +3234,7 @@ public:
             }
 
             /* zero out DOS memory */
-            if (!dos_kernel_disabled && !dos_kernel_shutdown_mcb && zeromem) {
+            if (!dos_kernel_disabled && zeromem) {
                 unsigned int max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << 10u;
                 if (max_conv > 0xC0000) max_conv = 0xC0000;
 
