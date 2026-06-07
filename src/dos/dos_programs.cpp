@@ -6005,21 +6005,21 @@ class IMGMOUNT : public Program {
 				if (!rtype&&!rfstype&&fstype!="none"&&paths[0].length()>4) {
 					const char *ext = strrchr(paths[0].c_str(), '.');
 					if (ext != NULL) {
-                        if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".gog")||!strcasecmp(ext, ".ins")||!strcasecmp(ext, ".ccd")||!strcasecmp(ext, ".inst")) {
-                            type="iso";
-                            fstype="iso";
-                            if(ide_index < 0 || ideattach == "auto") {
-                                if(!IDE_controller_occupied(1, false)) { // check if secondary master is already occupied
-                                    ide_index = 1;
-                                    ide_slave = false;
-                                }
-                                else IDE_Auto(ide_index, ide_slave);
-                            }
-                        } else if (!strcasecmp(ext, ".ima")) {
-                            type="floppy";
-                            ideattach="none";
-                        }
-                    }
+						if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".gog")||!strcasecmp(ext, ".ins")||!strcasecmp(ext, ".ccd")||!strcasecmp(ext, ".inst")) {
+							type="iso";
+							fstype="iso";
+							if(ide_index < 0 || ideattach == "auto") {
+								if(!IDE_controller_occupied(1, false)) { // check if secondary master is already occupied
+									ide_index = 1;
+									ide_slave = false;
+								}
+								else IDE_Auto(ide_index, ide_slave);
+							}
+						} else if (!strcasecmp(ext, ".ima")) {
+							type="floppy";
+							ideattach="none";
+						}
+					}
 				}
 			}
 
@@ -6700,9 +6700,9 @@ class IMGMOUNT : public Program {
 		}
 #endif
 
-        bool unformatted = false;
-        bool unsupported_ext = false;
-        int  path_no;
+		bool unformatted = false;
+		bool unsupported_ext = false;
+		int  path_no;
 
 #if !defined(OSFREE)
 		bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave, const int reserved_cylinders, bool roflag) {
@@ -6813,28 +6813,28 @@ class IMGMOUNT : public Program {
 								QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
 								// uint64_t sectors; /* unused */
 								sizes[0] = 512; // default sector size
-                                if(qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
-                                    uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
-                                    if((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
-                                        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SECTORSIZE"), cluster_size);
-                                        return false;
-                                    }
-                                    skipDetectGeometry = true;
-                                    DetectGeometry(sizes, qcow2_header.size); // Derive geometry from image size, since qcow2 doesn't have CHS values in the header
-                                    setbuf(newDisk, NULL);
-                                    newImage = new QCow2Disk(qcow2_header, newDisk, fname, qcow2_header.size, (uint32_t)sizes[0], (qcow2_header.size > 2880 * 1024));
-                                    if(newImage) {
-                                        LOG_MSG("IMGMOUNT: qcow2 image mounted (experimental)");
-                                        //newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]); // FIX ME: Should we obtain logical geometry (BIOS C/H/S) from physical geometry (IDE CHS) here?
-                                        newImage->sector_size = sizes[0]; // sector size
-                                        newImage->sectors = sizes[1];     // sectors
-                                        newImage->heads = sizes[2];       // heads
-                                        newImage->cylinders = sizes[3];   // cylinders
-                                        uint64_t LBA = newImage->getLBA();
-                                        if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
-                                            LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)newImage->LBA * 512.0 / (1024.0 * 1024 * 1024));
-                                    }
-                                }
+								if(qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
+									uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
+									if((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
+										WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SECTORSIZE"), cluster_size);
+										return false;
+									}
+									skipDetectGeometry = true;
+									DetectGeometry(sizes, qcow2_header.size); // Derive geometry from image size, since qcow2 doesn't have CHS values in the header
+									setbuf(newDisk, NULL);
+									newImage = new QCow2Disk(qcow2_header, newDisk, fname, qcow2_header.size, (uint32_t)sizes[0], (qcow2_header.size > 2880 * 1024));
+									if(newImage) {
+										LOG_MSG("IMGMOUNT: qcow2 image mounted (experimental)");
+										//newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]); // FIX ME: Should we obtain logical geometry (BIOS C/H/S) from physical geometry (IDE CHS) here?
+										newImage->sector_size = sizes[0]; // sector size
+										newImage->sectors = sizes[1];     // sectors
+										newImage->heads = sizes[2];       // heads
+										newImage->cylinders = sizes[3];   // cylinders
+										uint64_t LBA = newImage->getLBA();
+										if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
+											LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)newImage->LBA * 512.0 / (1024.0 * 1024 * 1024));
+									}
+								}
 								else {
 									WriteOut(MSG_Get("PROGRAM_IMGMOUNT_QCOW2_INVALID"), fname);
 									fclose(newDisk);
@@ -7178,44 +7178,44 @@ class IMGMOUNT : public Program {
 			}
 		}
 
-        void DetectGeometry(Bitu sizes[], uint64_t currentSize) {
-            if(!sizes) return;
+		void DetectGeometry(Bitu sizes[], uint64_t currentSize) {
+			if(!sizes) return;
 
-            const uint16_t sector_size = 512;
-            uint64_t totalSectors = currentSize / sector_size;
+			const uint16_t sector_size = 512;
+			uint64_t totalSectors = currentSize / sector_size;
 
-            uint32_t sectorsPerTrack;
-            uint32_t heads;
-            uint32_t cylinders;
-            uint32_t cylinderTimesHeads = 0;
+			uint32_t sectorsPerTrack;
+			uint32_t heads;
+			uint32_t cylinders;
+			uint32_t cylinderTimesHeads = 0;
 
-            if(totalSectors > 65535ULL * 16ULL * 255ULL)
-                totalSectors = 65535ULL * 16ULL * 255ULL; // cap total sectors to max supported by CHS
+			if(totalSectors > 65535ULL * 16ULL * 255ULL)
+				totalSectors = 65535ULL * 16ULL * 255ULL; // cap total sectors to max supported by CHS
 
-                if(totalSectors > 65535ULL * 16ULL * 63ULL){
-                    sectorsPerTrack = 255;
-                    heads = 16;
-                    cylinders = (uint32_t)(totalSectors / (heads * sectorsPerTrack));
-                }
-                else {
-                    sectorsPerTrack = 63;
-                    cylinderTimesHeads = (uint32_t)(totalSectors / sectorsPerTrack);
-                    cylinders = (uint32_t)(totalSectors / sectorsPerTrack);
-                    heads = (cylinderTimesHeads + 1023) / 1024;
-                }
+			if(totalSectors > 65535ULL * 16ULL * 63ULL){
+				sectorsPerTrack = 255;
+				heads = 16;
+				cylinders = (uint32_t)(totalSectors / (heads * sectorsPerTrack));
+			}
+			else {
+				sectorsPerTrack = 63;
+				cylinderTimesHeads = (uint32_t)(totalSectors / sectorsPerTrack);
+				cylinders = (uint32_t)(totalSectors / sectorsPerTrack);
+				heads = (cylinderTimesHeads + 1023) / 1024;
+			}
 
-                cylinderTimesHeads = totalSectors / sectorsPerTrack;
+			cylinderTimesHeads = totalSectors / sectorsPerTrack;
 
-                if(heads < 4) heads = 4;
-                if(heads > 16 || (cylinderTimesHeads >= (heads * 1024))) {
-                    heads = 16;
-                }
+			if(heads < 4) heads = 4;
+			if(heads > 16 || (cylinderTimesHeads >= (heads * 1024))) {
+				heads = 16;
+			}
 
-                sizes[3] = (uint16_t)(cylinderTimesHeads / heads); // cylinders
-                sizes[2] = heads;
-                sizes[1] = sectorsPerTrack;
-                sizes[0] = sector_size;
-        }
+			sizes[3] = (uint16_t)(cylinderTimesHeads / heads); // cylinders
+			sizes[2] = heads;
+			sizes[1] = sectorsPerTrack;
+			sizes[0] = sector_size;
+		}
 
 		bool DetectMFMsectorPartition(uint8_t buf[], uint32_t fcsize, Bitu sizes[]) const {
 			// This is used for plain MFM sector format as created by IMGMAKE
@@ -7371,18 +7371,18 @@ class IMGMOUNT : public Program {
 				mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
 
 			// Attach the new drive to IDE controller as ATAPI CD-ROM device, unless replacement mode. (New drives may not be mounted on a booted guest OS.)
-            if(!opt_replace && !dos_kernel_disabled) {
-                // If no IDE index specified (negative value), try to find an open slot for a CD-ROM drive
-                if(ide_index < 0) {
-                    if(!IDE_controller_occupied(1, false)) { // CD-ROMS default to Secondary master if not occupied
-                        ide_index = 1;
-                        ide_slave = false;
-                    }
-                }
-                if(ide_index < 0) IDE_Auto(ide_index, ide_slave); // Pick an empty slot if secondary master is occupied
-                if(ide_index >= 0)IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');
-                else LOG_MSG("IMGMOUNT: No available IDE slot found to attach CD-ROM drive, drive will be available only as MSCDEX drive letter");
-            }
+			if(!opt_replace && !dos_kernel_disabled) {
+				// If no IDE index specified (negative value), try to find an open slot for a CD-ROM drive
+				if(ide_index < 0) {
+					if(!IDE_controller_occupied(1, false)) { // CD-ROMS default to Secondary master if not occupied
+						ide_index = 1;
+						ide_slave = false;
+					}
+				}
+				if(ide_index < 0) IDE_Auto(ide_index, ide_slave); // Pick an empty slot if secondary master is occupied
+				if(ide_index >= 0)IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');
+				else LOG_MSG("IMGMOUNT: No available IDE slot found to attach CD-ROM drive, drive will be available only as MSCDEX drive letter");
+			}
 			// for replacement, make sure IDE controller is updated
 			if (opt_replace && Drives[drive - 'A']) {
 				isoDrive *isodrv = dynamic_cast<isoDrive*>(Drives[drive - 'A']);
@@ -7463,8 +7463,8 @@ class IMGMOUNT : public Program {
 							case imageDiskVHD::UNSUPPORTED_WRITE: roflag=true; break;
 							default: break;
 						}
-                        //LOG_MSG("LBA=%llu",newImage->LBA);
-                        return newImage;
+						//LOG_MSG("LBA=%llu",newImage->LBA);
+						return newImage;
 					}
 					else if (!strcasecmp(ext, ".hdi")) {
 						assumeHardDisk = true; /* bugfix for HDI images smaller than 2.88MB so that the .hdi file is not mistaken for a floppy disk image */
@@ -7495,12 +7495,12 @@ class IMGMOUNT : public Program {
 				}
 				imagesize = (uint32_t)(qcow2_header.size / 1024L);
 				setbuf(newDisk, NULL);
-                DetectGeometry(sizes, qcow2_header.size); // auto-detect physical geometry (IDE CHS) based on qcow2_header.size
-                newImage = new QCow2Disk(qcow2_header, newDisk, fname, qcow2_header.size, (uint32_t)sizes[0], (imagesize > 2880));
-                newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]); // Obtain logical geometry (BIOS C/H/S) from physical geometry (IDE CHS) 
-                uint64_t LBA = newImage->getLBA();
-                if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
-                    LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)LBA * 512.0 / (1024.0 * 1024 * 1024));
+				DetectGeometry(sizes, qcow2_header.size); // auto-detect physical geometry (IDE CHS) based on qcow2_header.size
+				newImage = new QCow2Disk(qcow2_header, newDisk, fname, qcow2_header.size, (uint32_t)sizes[0], (imagesize > 2880));
+				newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]); // Obtain logical geometry (BIOS C/H/S) from physical geometry (IDE CHS) 
+				uint64_t LBA = newImage->getLBA();
+				if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
+					LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)LBA * 512.0 / (1024.0 * 1024 * 1024));
 			}
 			else {
 				char tmp[256];
@@ -7544,8 +7544,8 @@ class IMGMOUNT : public Program {
 				}
 				else {
 					fseeko64(newDisk, 0L, SEEK_END);
-                    imagesize = ftello64(newDisk);
-                    sectors = imagesize / (uint64_t)sizes[0];
+					imagesize = ftello64(newDisk);
+					sectors = imagesize / (uint64_t)sizes[0];
 					setbuf(newDisk, NULL);
 					newImage = new imageDisk(newDisk, fname, imagesize, (imagesize > 2880 * 1024) || assumeHardDisk);
 				}
