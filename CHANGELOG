@@ -2,7 +2,15 @@ Next version
   - Fixed savestate format incompatibility between MSVC and MinGW builds.
     (AleWin32)
   - Fixed PMULLW signedness issues. (bachimusprime)
+  - Fixed FPU_Reg_80 size (cimarronm)
+  - gui/sdl_mapper: Fixed startup crash with joysticks reporting >1 hat switch
+    (BoykoNeov)
   - Added Nuked-CQM support to OPL emulation. (maron2000)
+  - macOS: Build OSFREE nightly builds (maron2000)
+  - D3D11: Fix Aspect ratio and Window size was not reflected when returning
+    from fullscreen mode (maron2000)
+  - qcow2: Set logical (BIOS) CHS instead of physical (IDE) CHS when mounted
+    with Drive numbers. (maron2000)
 
 2026.06.02
   - Feature: Add 'Send Alt+SysRq/PrtScr' menu item (AleWin32)
@@ -198,6 +206,7 @@ Next version
   - Fixed wrong disassembly after LMSW in debugger (AleWin32)
   - output_ttf: Don't reset colors when already in TTF output mode (maron2000)
   - Replaced Nuked-OPL3 with Nuked-OPL3-fast (tgies)
+  - Windows: Build OSFREE nightly builds (maron2000)
 
 2026.05.02
   - DOSBox-X will now check both the current directory and the .config
