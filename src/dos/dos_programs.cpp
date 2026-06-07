@@ -5764,8 +5764,8 @@ class IMGMOUNT : public Program {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 				return;
 			}
-			imageDisk * newImage;
-			char drive;
+			imageDisk * newImage = NULL;
+			char drive = -1;
 			std::vector<std::string> paths;
 			if (!cmd->GetCount()) {
 				ListImgMounts();
@@ -6093,7 +6093,7 @@ class IMGMOUNT : public Program {
 				if (paths.size() > 1) {
 					if (driveIndex <= 1) {
 						if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 &&
-								swapInDisksSpecificDrive != driveIndex) {
+							swapInDisksSpecificDrive != driveIndex) {
 							WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MULTIPLE_USED"));
 							return;
 						}
