@@ -41,6 +41,7 @@ class CommandLine {
 		bool FindInt(char const * const name,int & value,bool remove=false);
 		bool FindString(char const * const name,std::string & value,bool remove=false);
 		bool FindCommand(unsigned int which,std::string & value,bool remove=false);
+		bool ExistsCommand(unsigned int which); /* don't return the command, just return whether it exists */
 		bool FindStringBegin(char const * const begin,std::string & value, bool remove=false);
 		bool FindStringFullBegin(char const * const begin,std::string & value, bool squote, bool remove=false);
 		bool FindStringRemain(char const * const name,std::string & value);

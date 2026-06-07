@@ -1356,6 +1356,12 @@ bool CommandLine::FindCommand(unsigned int which,std::string & value,bool remove
     return true;
 }
 
+bool CommandLine::ExistsCommand(unsigned int which) {
+    if (which<1) return false;
+    if (which>cmds.size()) return false;
+    return true;
+}
+
 void CommandLine::DebugDump(const int debuglevel) {
     unsigned int i=1;
 

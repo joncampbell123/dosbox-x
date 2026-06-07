@@ -5842,8 +5842,7 @@ class IMGMOUNT : public Program {
 					Unmount(tdr);
 				}
 
-				std::string templine;
-				if (!cmd->FindCommand(2,templine)||!templine.size()) return;
+				if (!cmd->ExistsCommand(2)) return;
 			}
 
 			//get the type
