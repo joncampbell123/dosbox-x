@@ -1996,6 +1996,10 @@ next:
     return retfile;
 }
 
+/* SDL main now allows storing the bootcode to load into memory AFTER DOS kernel shutdown */
+extern std::vector<uint8_t> boot_code_image;
+extern PhysPt boot_code_image_load_to;
+
 /*! \brief          BOOT.COM utility to boot a floppy or hard disk device.
  *
  *  \description    Users will use this command to boot a guest operating system from
@@ -2528,22 +2532,20 @@ public:
 
 	    load_seg = el_torito_load_segment;
 
-            /* we're about to overwrite low memory and possibly corrupt the MCB, and the shell now frees memory.
-             * to avoid a MCB corruption crash in this emulation, reset the MCB chain now. */
-	    dos_kernel_shutdown_mcb = true;
-
             /* round up to CD-ROM sectors and read */
             unsigned int bootcdsect = (el_torito_sectors + 3u) / 4u; /* 4 512-byte sectors per CD-ROM sector */
             if (bootcdsect == 0) bootcdsect = 1;
 
+            /* load the boot sector and set the load location so sdlmain.cpp can load it into memory AFTER DOS kernel shutdown */
+            boot_code_image_load_to = (PhysPt)(load_seg << 4u);
+            boot_code_image.resize(bootcdsect * 2048u);
+
             for (unsigned int s=0;s < bootcdsect;s++) {
-                if (!src_drive->ReadSectorsHost(entries, false, el_torito_rba+s, 1)) {
+                if (!src_drive->ReadSectorsHost(boot_code_image.data() + (s*2048u), false, el_torito_rba+s, 1)) {
                     WriteOut(MSG_Get("PROGRAM_ELTORITO_BOOTSECTOR"));
                     src_drive->Release();
                     return;
                 }
-
-                for(i=0;i<2048;i++) real_writeb((uint16_t)load_seg, (uint16_t)i+(s*2048), entries[i]);
             }
 
             /* signal INT 13h to emulate a CD-ROM drive El Torito "no emulation" style */
@@ -3247,11 +3249,10 @@ public:
                 }
             }
 
-            /* we're about to overwrite low memory and possibly corrupt the MCB, and the shell now frees memory.
-             * to avoid a MCB corruption crash in this emulation, reset the MCB chain now. */
-            dos_kernel_shutdown_mcb = true;
-
-            for(i=0;i<bootsize;i++) real_writeb((uint16_t)load_seg, (uint16_t)i, bootarea.rawdata[i]);
+            /* load the boot sector and set the load location so sdlmain.cpp can load it into memory AFTER DOS kernel shutdown */
+            boot_code_image_load_to = (PhysPt)(load_seg << 4u);
+            boot_code_image.resize(bootsize);
+            memcpy(boot_code_image.data(),bootarea.rawdata,bootsize);
 
             /* debug */
             LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",(int)stack_seg,(int)load_seg);
