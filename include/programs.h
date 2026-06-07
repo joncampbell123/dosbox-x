@@ -36,6 +36,7 @@ class CommandLine {
 		CommandLine(char const * const name,char const * const cmdline,enum opt_style opt=CommandLine::either,bool squote=false);
 		const char * GetFileName(){ return file_name.c_str();}
 
+		bool EraseCommand(unsigned int which);
 		bool FindExist(char const * const name,bool remove=false);
 		bool FindHex(char const * const name,unsigned int & value,bool remove=false);
 		bool FindInt(char const * const name,int & value,bool remove=false);

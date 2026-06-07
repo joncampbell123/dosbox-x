@@ -5958,14 +5958,14 @@ class IMGMOUNT : public Program {
 			//for floppies, hard drives, and cdroms, require a drive letter
 			//for -fs none, require a number indicating where to mount at
 			if(fstype=="fat" || fstype=="iso") {
-				// get the drive letter
-				if (!cmd->FindCommand(1,temp_line) || (temp_line.size() > 2) || ((temp_line.size()>1) && (temp_line[1]!=':'))) {
+				// get the drive letter--you can't use the device spec here
+				if (tdr == 0) {
 					WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
 					return;
 				}
 
 				/* if fs type if "fat" and we're asked to mount *: then check for that here */
-				if (temp_line[0] == '*' && temp_line[1] == ':') {
+				if (tdr == '*' && temp_line[1] == ':') {
 					/* What drives are available? */
 					int i_drive = IS_PC98_ARCH ? 'A' : 'C';
 					while (i_drive <= 'Z' && Drives[i_drive-'A'] != NULL && (i_drive-'A') < DOS_DRIVES) i_drive++;
@@ -5978,7 +5978,7 @@ class IMGMOUNT : public Program {
 					drive = static_cast<char>(i_drive);
 				}
 				else {
-					int i_drive = toupper(temp_line[0]);
+					int i_drive = toupper(tdr);
 					if (!isalpha(i_drive) || (i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) {
 						WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
 						return;
@@ -5986,12 +5986,13 @@ class IMGMOUNT : public Program {
 					drive = static_cast<char>(i_drive);
 				}
 			} else if (fstype=="none") {
-				cmd->FindCommand(1,temp_line);
-				if ((temp_line.size() > 1) || (!isdigit(temp_line[0]))) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"), MAX_DISK_IMAGES-1);
+				// get the drive letter--you can't use the device spec here--yet
+				if (tdr == 0) {
+					WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
 					return;
 				}
-				drive=temp_line[0];
+
+				drive=tdr;
 				if ((drive<'0') || (drive>=MAX_DISK_IMAGES+'0')) {
 					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"), MAX_DISK_IMAGES-1);
 					return;
