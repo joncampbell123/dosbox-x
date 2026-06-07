@@ -4339,11 +4339,96 @@ int32_t DEBUG_Run(int32_t amount,bool quickexit) {
 	return ret;
 }
 
+#ifdef WIN32
+/* Translate VT escape sequences into ncurses KEY_* constants. Needed because
+   we set ENABLE_VIRTUAL_TERMINAL_INPUT on the debugger console input handle
+   (so the terminal host stops swallowing F11 etc. for fullscreen). With that
+   flag, function keys arrive as VT sequences (e.g. F11 = ESC [ 23 ~) instead of
+   virtual key codes, so ncurses' getch() returns them char by char and the
+   KEY_F(N) cases below never fire. */
+static int dbg_getch_vt(void) {
+	int c = getch();
+	if (c != 27) return c;
+
+	int c2 = getch();
+	if (c2 < 0) return 27; /* plain ESC */
+
+	if (c2 == 'O') {
+		/* SS3: ESC O X */
+		int c3 = getch();
+		switch (c3) {
+			case 'P': return KEY_F(1);
+			case 'Q': return KEY_F(2);
+			case 'R': return KEY_F(3);
+			case 'S': return KEY_F(4);
+			case 'A': return KEY_UP;
+			case 'B': return KEY_DOWN;
+			case 'C': return KEY_RIGHT;
+			case 'D': return KEY_LEFT;
+			case 'H': return KEY_HOME;
+			case 'F': return KEY_END;
+		}
+		return 27;
+	}
+
+	if (c2 == '[') {
+		/* CSI: ESC [ [params] final */
+		int param = 0;
+		int c3 = getch();
+		while (c3 >= '0' && c3 <= '9') {
+			param = param * 10 + (c3 - '0');
+			c3 = getch();
+		}
+		if (c3 == '~') {
+			switch (param) {
+				case 1: return KEY_HOME;
+				case 2: return KEY_IC;
+				case 3: return KEY_DC;
+				case 4: return KEY_END;
+				case 5: return KEY_PPAGE;
+				case 6: return KEY_NPAGE;
+				case 11: return KEY_F(1);
+				case 12: return KEY_F(2);
+				case 13: return KEY_F(3);
+				case 14: return KEY_F(4);
+				case 15: return KEY_F(5);
+				case 17: return KEY_F(6);
+				case 18: return KEY_F(7);
+				case 19: return KEY_F(8);
+				case 20: return KEY_F(9);
+				case 21: return KEY_F(10);
+				case 23: return KEY_F(11);
+				case 24: return KEY_F(12);
+			}
+		} else if (param == 0) {
+			switch (c3) {
+				case 'A': return KEY_UP;
+				case 'B': return KEY_DOWN;
+				case 'C': return KEY_RIGHT;
+				case 'D': return KEY_LEFT;
+				case 'H': return KEY_HOME;
+				case 'F': return KEY_END;
+			}
+		}
+		return 27;
+	}
+
+	/* Alt+letter or other ESC-prefixed sequence — push back so the existing
+	   case 27 handler below can read it as before. */
+	ungetch(c2);
+	return 27;
+}
+#endif
+
 uint32_t DEBUG_CheckKeys(void) {
 	Bits ret=0;
 	bool numberrun = false;
 	bool skipDraw = false;
+#ifdef WIN32
+	int key=dbg_getch_vt();
+#else
 	int key=getch();
+#endif
 
     if (key == KEY_RESIZE) {
 #ifdef WIN32 /* BUG: pdcurses notifies us immediately upon getting a resize event but does not update it's
