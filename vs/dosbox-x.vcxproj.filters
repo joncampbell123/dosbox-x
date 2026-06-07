@@ -127,6 +127,12 @@
     <Filter Include="Sources\hardware\RetroWaveLib">
       <UniqueIdentifier>{2a582629-0964-4559-9992-810e70c2f6ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\gamelink">
+      <UniqueIdentifier>{a4caad95-7f37-479a-be67-29228662d0fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\tinyfiledialogs">
+      <UniqueIdentifier>{d5990f4f-fb75-4276-9b30-a54d290d8822}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -1605,17 +1611,12 @@
     <ClCompile Include="..\src\hardware\snd_pc98\cbus\pcm86io.c">
       <Filter>Sources\hardware\snd_pc98\cbus</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gamelink\gamelink.cpp" />
-    <ClCompile Include="..\src\gamelink\gamelink_term.cpp" />
-    <ClCompile Include="..\src\output\output_gamelink.cpp" />
     <ClCompile Include="..\src\hardware\imfc_rom.c">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\imfc.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\esfmu\esfm.c" />
-    <ClCompile Include="..\src\hardware\esfmu\esfm_registers.c" />
     <ClCompile Include="..\src\builtin\4dos.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
@@ -1658,7 +1659,6 @@
     <ClCompile Include="..\src\builtin\cwsdpmi_exe_pc98.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.c" />
     <ClCompile Include="..\src\builtin\ipspatch.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
@@ -1669,6 +1669,27 @@
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\output\output_direct3d11.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\cqm.c">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\esfmu\esfm_registers.c">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\esfmu\esfm.c">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gamelink\gamelink.cpp">
+      <Filter>Sources\gamelink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gamelink\gamelink_term.cpp">
+      <Filter>Sources\gamelink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.c">
+      <Filter>Sources\libs\tinyfiledialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_gamelink.cpp">
       <Filter>Sources\output</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2621,15 +2642,9 @@
     <ClInclude Include="..\src\hardware\snd_pc98\cbus\pcm86io.h">
       <Filter>Sources\hardware\snd_pc98\cbus</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\gamelink\gamelink.h" />
-    <ClInclude Include="..\src\gamelink\scancodes_windows.h" />
-    <ClInclude Include="..\src\output\output_gamelink.h" />
     <ClInclude Include="..\src\cpu\dynamic_alloc_common.h">
       <Filter>Sources\cpu</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\version_string.h" />
-    <ClInclude Include="..\src\hardware\esfmu\esfm.h" />
-    <ClInclude Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.h" />
     <ClInclude Include="..\src\hardware\mic_input_win32.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
@@ -2638,6 +2653,27 @@
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\Types.h">
       <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\cqm.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\esfmu\esfm.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gamelink\gamelink.h">
+      <Filter>Sources\gamelink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\gamelink\scancodes_windows.h">
+      <Filter>Sources\gamelink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.h">
+      <Filter>Sources\libs\tinyfiledialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_gamelink.h">
+      <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\version_string.h">
+      <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

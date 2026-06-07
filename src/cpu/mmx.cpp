@@ -22,25 +22,14 @@
 #if C_FPU
 
 MMX_reg *reg_mmx[8] = {
-#if defined(HAS_LONG_DOUBLE)
-	&fpu._do_not_use__regs[0].reg_mmx,
-	&fpu._do_not_use__regs[1].reg_mmx,
-	&fpu._do_not_use__regs[2].reg_mmx,
-	&fpu._do_not_use__regs[3].reg_mmx,
-	&fpu._do_not_use__regs[4].reg_mmx,
-	&fpu._do_not_use__regs[5].reg_mmx,
-	&fpu._do_not_use__regs[6].reg_mmx,
-	&fpu._do_not_use__regs[7].reg_mmx,
-#else
-	&fpu.regs[0].reg_mmx,
-	&fpu.regs[1].reg_mmx,
-	&fpu.regs[2].reg_mmx,
-	&fpu.regs[3].reg_mmx,
-	&fpu.regs[4].reg_mmx,
-	&fpu.regs[5].reg_mmx,
-	&fpu.regs[6].reg_mmx,
-	&fpu.regs[7].reg_mmx,
-#endif
+	&fpu.regs_80[0].reg_mmx,
+	&fpu.regs_80[1].reg_mmx,
+	&fpu.regs_80[2].reg_mmx,
+	&fpu.regs_80[3].reg_mmx,
+	&fpu.regs_80[4].reg_mmx,
+	&fpu.regs_80[5].reg_mmx,
+	&fpu.regs_80[6].reg_mmx,
+	&fpu.regs_80[7].reg_mmx
 };
 
 MMX_reg * lookupRMregMM[256]={
@@ -112,6 +101,17 @@ uint16_t SaturateDwordSToWordU(int32_t value)
 
 void setFPUTagEmpty() {
 	fpu.sw.top = 0;
+#if !defined(HAS_LONG_DOUBLE)
+	fpu.use80[0] = false;
+	fpu.use80[1] = false;
+	fpu.use80[2] = false;
+	fpu.use80[3] = false;
+	fpu.use80[4] = false;
+	fpu.use80[5] = false;
+	fpu.use80[6] = false;
+	fpu.use80[7] = false;
+	fpu.use80[8] = false;
+#endif
 	fpu.tags[0] = TAG_Empty;
 	fpu.tags[1] = TAG_Empty;
 	fpu.tags[2] = TAG_Empty;

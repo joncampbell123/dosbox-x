@@ -29,6 +29,7 @@
 #include "mem.h"
 #include "dbopl.h"
 #include "nukedopl.h"
+#include "cqm.h"
 #include "cpu.h"
 
 #include "mame/emu.h"
@@ -376,7 +377,7 @@ struct Handler : public Adlib::Handler {
 	void WriteReg(uint32_t reg, uint8_t val) override {
 		OPL3_WriteRegBuffered(&chip, (uint16_t)reg, val);
 		if (reg == 0x105)
-			newm = reg & 0x01;
+			newm = val & 0x01;
 	}
 
 	uint32_t WriteAddr(uint32_t port, uint8_t val) override {
@@ -406,6 +407,84 @@ struct Handler : public Adlib::Handler {
 	~Handler() {
 	}
 };
+
+}
+
+namespace NukedCQM {
+
+    struct Handler : public Adlib::Handler {
+        cqm_t chip = {};
+
+        void WriteReg(uint32_t reg, uint8_t val) override
+        {
+            CQM_WriteRegBuffered(&chip,
+                static_cast<uint16_t>(reg),
+                val);
+        }
+
+        uint32_t WriteAddr(uint32_t port, uint8_t val) override
+        {
+            uint16_t addr = val;
+
+            if((port & 2) && (addr == 0x05 || chip.newm))
+                addr |= 0x100;
+
+            return addr;
+        }
+
+        void Generate(MixerChannel* chan, Bitu samples) override
+        {
+            int16_t buf[1024 * 2];
+
+            while(samples > 0) {
+                const uint32_t todo =
+                    (samples > 1024)
+                    ? 1024
+                    : static_cast<uint32_t>(samples);
+
+                CQM_GenerateStream(&chip, buf, todo);
+
+                chan->AddSamples_s16(todo, buf);
+
+                samples -= todo;
+            }
+        }
+
+        void Init(Bitu rate) override
+        {
+            CQM_Reset(&chip,
+                static_cast<uint32_t>(rate),
+                static_cast<uint32_t>(rate));
+        }
+
+        void SaveState(std::ostream& stream) override
+        {
+            const char pod_name[32] = "CQMOPL3";
+
+            if(stream.fail())
+                return;
+
+            WRITE_POD(&pod_name, pod_name);
+            WRITE_POD(&chip, chip);
+        }
+
+        void LoadState(std::istream& stream) override
+        {
+            char pod_name[32];
+
+            if(stream.fail())
+                return;
+
+            READ_POD(&pod_name, pod_name);
+            if(memcmp(pod_name, "CQMOPL3", 8) != 0) {
+                stream.clear(std::istream::failbit | std::istream::badbit);
+                return;
+            }
+            READ_POD(&chip, chip);
+        }
+
+        ~Handler() override = default;
+    };
 
 }
 
@@ -1559,9 +1638,13 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 		else {
 			handler = new OPL3::Handler();
 		}
-	} else if (oplemu == "nuked") {
+	}
+    else if (oplemu == "nuked") {
 		handler = new NukedOPL::Handler();
 	}
+    else if(oplemu == "cqm") {
+        handler = new NukedCQM::Handler();
+    }
 	else if (oplemu == "opl2board") {
 		oplmode = OPL_opl2;
 		handler = new OPL2BOARD::Handler(oplport.c_str());

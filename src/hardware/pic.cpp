@@ -1309,7 +1309,13 @@ private:
 					uint16_t event_idx;
 
 					// - data
-					stream.write(reinterpret_cast<const char*>(&pic_queue.entries[lcv].index), sizeof(pic_queue.entries[lcv].index) );
+					/* Serialize .index as a fixed 8-byte double, not the raw
+					 * pic_tickindex_t (long double) bytes — MSVC has
+					 * sizeof(long double)==8 while MinGW has 16, so writing the
+					 * raw bytes makes the savestate file incompatible across
+					 * toolchains. Runtime keeps long double. */
+					double index_d = (double)pic_queue.entries[lcv].index;
+					stream.write(reinterpret_cast<const char*>(&index_d), sizeof(index_d) );
 					stream.write(reinterpret_cast<const char*>(&pic_queue.entries[lcv].value), sizeof(pic_queue.entries[lcv].value) );
 
 					// - function ptr
@@ -1331,7 +1337,10 @@ private:
 
 				// - data
         stream.write(reinterpret_cast<const char*>(&InEventService), sizeof(InEventService) );
-        stream.write(reinterpret_cast<const char*>(&srv_lag), sizeof(srv_lag) );
+        {
+            double srv_lag_d = (double)srv_lag; /* fixed-width on disk; see PICEntry.index above */
+            stream.write(reinterpret_cast<const char*>(&srv_lag_d), sizeof(srv_lag_d) );
+        }
 
 
 				// - reloc ptr
@@ -1380,7 +1389,10 @@ private:
 					uint16_t event_idx, next_idx;
 
 					// - data
-					stream.read(reinterpret_cast<char*>(&pic_queue.entries[lcv].index), sizeof(pic_queue.entries[lcv].index) );
+					/* Read .index as fixed 8-byte double (see save side). */
+					double index_d = 0.0;
+					stream.read(reinterpret_cast<char*>(&index_d), sizeof(index_d) );
+					pic_queue.entries[lcv].index = (pic_tickindex_t)index_d;
 					stream.read(reinterpret_cast<char*>(&pic_queue.entries[lcv].value), sizeof(pic_queue.entries[lcv].value) );
 
 
@@ -1412,7 +1424,11 @@ private:
 
 				// - data
         stream.read(reinterpret_cast<char*>(&InEventService), sizeof(InEventService) );
-        stream.read(reinterpret_cast<char*>(&srv_lag), sizeof(srv_lag) );
+        {
+            double srv_lag_d = 0.0; /* fixed-width on disk; see PICEntry.index above */
+            stream.read(reinterpret_cast<char*>(&srv_lag_d), sizeof(srv_lag_d) );
+            srv_lag = (pic_tickindex_t)srv_lag_d;
+        }
 
 
 				// 1- wipe old data

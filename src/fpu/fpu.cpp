@@ -54,6 +54,25 @@ uint16_t FPU_GetTag(void){
 #include "fpu_instructions.h"
 #endif
 
+/* MMX instructions set the top of stack to zero---Intel explicitly documents this.
+ * There is code out there, including in Windows ME and Windows Media Player, that
+ * will show minor artifacts without this. */
+void EnterMMX(void) {
+	fpu.sw.top = 0;
+	FPU_SetTag(0);
+#if !defined(HAS_LONG_DOUBLE)
+	fpu.use80[0] = true;
+	fpu.use80[1] = true;
+	fpu.use80[2] = true;
+	fpu.use80[3] = true;
+	fpu.use80[4] = true;
+	fpu.use80[5] = true;
+	fpu.use80[6] = true;
+	fpu.use80[7] = true;
+	fpu.use80[8] = true;
+#endif
+}
+
 static void EATREE(Bitu _rm){
 	Bitu group=(_rm >> 3) & 7;
 	switch(group){
