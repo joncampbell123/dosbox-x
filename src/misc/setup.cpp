@@ -1219,7 +1219,7 @@ bool Config::ParseConfigFile(char const * const configfilename) {
 
     //static bool first_configfile = true;
     if (strlen(configfilename) >= PATH_MAX) {
-        LOG_MSG("Warning: config file path %d characters is too long: %s", strlen(configfilename), configfilename);
+        LOG_MSG("Warning: config file path %u characters is too long: %s", (unsigned int)strlen(configfilename), configfilename);
     }
     ifstream in(configfilename);
     if (!in) {
@@ -1346,13 +1346,45 @@ bool CommandLine::FindString(char const * const name,std::string & value,bool re
     return true;
 }
 
-bool CommandLine::FindCommand(unsigned int which,std::string & value) {
+bool CommandLine::FindCommand(unsigned int which,std::string & value,bool remove) {
     if (which<1) return false;
     if (which>cmds.size()) return false;
     cmd_it it=cmds.begin();
     for (;which>1;--which) ++it;
     value=(*it);
+    if (remove) cmds.erase(it);
     return true;
+}
+
+bool CommandLine::EraseCommand(unsigned int which) {
+    if (which<1) return false;
+    if (which>cmds.size()) return false;
+    cmd_it it=cmds.begin();
+    for (;which>1;--which) ++it;
+    cmds.erase(it);
+    return true;
+}
+
+bool CommandLine::ExistsCommand(unsigned int which) {
+    if (which<1) return false;
+    if (which>cmds.size()) return false;
+    return true;
+}
+
+void CommandLine::DebugDump(const int debuglevel) {
+    unsigned int i=1;
+
+    if (debuglevel >= 0)
+        LOG(LOG_MISC,(LOG_SEVERITIES)debuglevel)("CommandLine::DebugDump(this=%p)",(void*)this);
+    else
+        LOG_MSG("CommandLine::DebugDump(this=%p)",(void*)this);
+
+    for (auto it=cmds.begin();it!=cmds.end();it++,i++) {
+        if (debuglevel >= 0)
+            LOG(LOG_MISC,(LOG_SEVERITIES)debuglevel)("  [%u] = \"%s\"",i,(*it).c_str());
+        else
+            LOG_MSG("  [%u] = \"%s\"",i,(*it).c_str());
+    }
 }
 
 bool CommandLine::FindEntry(char const * const name,cmd_it & it,bool neednext) {

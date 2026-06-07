@@ -23,58 +23,61 @@
 #include "dos_inc.h"
 
 class CommandLine {
-public:
-	enum opt_style {
-		dos=0,		// MS-DOS style /switches
-		gnu,		// GNU style --switches or -switches, switch parsing stops at --
-		gnu_getopt,	// GNU style --long or -a -b -c -d or -abcd (short as single char), switch parsing stops at --
-		either,		// Both DOS and GNU styles, switch parsing stops at --
-		either_except	// Both DOS and GNU styles, except for paths to executables
-	};
-public:
-	CommandLine(int argc,char const * const argv[],enum opt_style opt=CommandLine::either);
-	CommandLine(char const * const name,char const * const cmdline,enum opt_style opt=CommandLine::either,bool squote=false);
-	const char * GetFileName(){ return file_name.c_str();}
+	public:
+		enum opt_style {
+			dos=0,		// MS-DOS style /switches
+			gnu,		// GNU style --switches or -switches, switch parsing stops at --
+			gnu_getopt,	// GNU style --long or -a -b -c -d or -abcd (short as single char), switch parsing stops at --
+			either,		// Both DOS and GNU styles, switch parsing stops at --
+			either_except	// Both DOS and GNU styles, except for paths to executables
+		};
+	public:
+		CommandLine(int argc,char const * const argv[],enum opt_style opt=CommandLine::either);
+		CommandLine(char const * const name,char const * const cmdline,enum opt_style opt=CommandLine::either,bool squote=false);
+		const char * GetFileName(){ return file_name.c_str();}
 
-	bool FindExist(char const * const name,bool remove=false);
-	bool FindHex(char const * const name,unsigned int & value,bool remove=false);
-	bool FindInt(char const * const name,int & value,bool remove=false);
-	bool FindString(char const * const name,std::string & value,bool remove=false);
-	bool FindCommand(unsigned int which,std::string & value);
-	bool FindStringBegin(char const * const begin,std::string & value, bool remove=false);
-	bool FindStringFullBegin(char const * const begin,std::string & value, bool squote, bool remove=false);
-	bool FindStringRemain(char const * const name,std::string & value);
-	bool FindStringRemainBegin(char const * const name,std::string & value);
-	bool GetStringRemain(std::string & value);
-	int GetParameterFromList(const char* const params[], std::vector<std::string> & output);
-	void FillVector(std::vector<std::string> & vector);
-	unsigned int GetCount(void);
-	void Shift(unsigned int amount=1);
-	uint16_t Get_arglength();
+		bool EraseCommand(unsigned int which);
+		bool FindExist(char const * const name,bool remove=false);
+		bool FindHex(char const * const name,unsigned int & value,bool remove=false);
+		bool FindInt(char const * const name,int & value,bool remove=false);
+		bool FindString(char const * const name,std::string & value,bool remove=false);
+		bool FindCommand(unsigned int which,std::string & value,bool remove=false);
+		bool ExistsCommand(unsigned int which); /* don't return the command, just return whether it exists */
+		bool FindStringBegin(char const * const begin,std::string & value, bool remove=false);
+		bool FindStringFullBegin(char const * const begin,std::string & value, bool squote, bool remove=false);
+		bool FindStringRemain(char const * const name,std::string & value);
+		bool FindStringRemainBegin(char const * const name,std::string & value);
+		bool GetStringRemain(std::string & value);
+		int GetParameterFromList(const char* const params[], std::vector<std::string> & output);
+		void FillVector(std::vector<std::string> & vector);
+		unsigned int GetCount(void);
+		void Shift(unsigned int amount=1);
+		uint16_t Get_arglength();
 
-	bool BeginOpt(bool eat_argv=true);
-	bool GetOpt(std::string &name);
-	bool NextOptArgv(std::string &argv);
-	bool GetOptGNUSingleCharCheck(std::string &name);
-	void ChangeOptStyle(enum opt_style opt_style);
-	void EndOpt();
+		bool BeginOpt(bool eat_argv=true);
+		bool GetOpt(std::string &name);
+		bool NextOptArgv(std::string &argv);
+		bool GetOptGNUSingleCharCheck(std::string &name);
+		void ChangeOptStyle(enum opt_style opt_style);
+		void EndOpt();
 
-    bool GetCurrentArgv(std::string &argv);
-    bool CurrentArgvEnd(void);
-    void EatCurrentArgv(void);
-    void NextArgv(void);
+		bool GetCurrentArgv(std::string &argv);
+		bool CurrentArgvEnd(void);
+		void EatCurrentArgv(void);
+		void NextArgv(void);
+		void DebugDump(const int debuglevel=-1);
 
-    const std::string &GetRawCmdline(void);
-private:
-	typedef std::list<std::string>::iterator cmd_it;
-	std::string opt_gnu_getopt_singlechar;		/* non-empty if we hit GNU options like -abcd => -a -b -c -d */
-	cmd_it opt_scan;
-	bool opt_eat_argv = false;
-	std::list<std::string> cmds;
-	std::string file_name;
-    std::string raw_cmdline;
-	enum opt_style opt_style;
-	bool FindEntry(char const * const name,cmd_it & it,bool neednext=false);
+		const std::string &GetRawCmdline(void);
+	private:
+		typedef std::list<std::string>::iterator cmd_it;
+		std::string opt_gnu_getopt_singlechar;		/* non-empty if we hit GNU options like -abcd => -a -b -c -d */
+		cmd_it opt_scan;
+		bool opt_eat_argv = false;
+		std::list<std::string> cmds;
+		std::string file_name;
+		std::string raw_cmdline;
+		enum opt_style opt_style;
+		bool FindEntry(char const * const name,cmd_it & it,bool neednext=false);
 };
 
 /*! \brief          Base Program class for built-in programs on drive Z:
@@ -83,34 +86,34 @@ private:
  *                  In most cases, the class will override just the Run() method.
  */
 class Program {
-public:
-	static constexpr unsigned int prg_nopsp = 1u << 0u; //! Bitfield flag: Do not create or handle PSP segment
-	Program(const unsigned int fl=0);                   //! Constructor
-	virtual ~Program(){                                 //! Default destructor
-		delete cmd;
-		delete psp;
-	}
+	public:
+		static constexpr unsigned int prg_nopsp = 1u << 0u; //! Bitfield flag: Do not create or handle PSP segment
+		Program(const unsigned int fl=0);                   //! Constructor
+		virtual ~Program(){                                 //! Default destructor
+			delete cmd;
+			delete psp;
+		}
 
-    /*! \brief      Exit status of the program
-     */
-	unsigned char exit_status;                          //! Exit status, returned to the parent DOS process
+		/*! \brief      Exit status of the program
+		*/
+		unsigned char exit_status;                          //! Exit status, returned to the parent DOS process
 
-	std::string temp_line;                              //! Temporary string object for parsing
-	CommandLine * cmd = NULL;                           //! Command line object
-	DOS_PSP * psp = NULL;                               //! DOS kernel Program Segment Prefix associated with this program at runtime
-	virtual void Run(void)=0;                           //! Run() method, called when the program is run. Subclass must override this
-	bool GetEnvStr(const char * entry,std::string & result); //! Return an environment variable by name
-	bool GetEnvNum(Bitu want_num,std::string & result);      //! Return an environment variable by index
-	Bitu GetEnvCount(void);                             //! Return the number of environmental variables
-	bool SetEnv(const char * entry,const char * new_string); //! Set environment variable
-	bool FirstEnv(const char * entry);
-	bool EraseEnv(void);
-	virtual void WriteOut(const char *format, const char * arguments);
-	void WriteOut(const char * format,...);				//! Write to standard output 
-	virtual int WriteOut_NoParsing(const char * format, bool dbcs = false); //! Write to standard output, no parsing
-	void ChangeToLongCmd();                             //! Get command line from shell instead of PSP
-	void DebugDumpEnv();                                //! Dump environment block to log
-	void WriteExitStatus();                             //! Write exit status to CPU register AL for return to MS-DOS
+		std::string temp_line;                              //! Temporary string object for parsing
+		CommandLine * cmd = NULL;                           //! Command line object
+		DOS_PSP * psp = NULL;                               //! DOS kernel Program Segment Prefix associated with this program at runtime
+		virtual void Run(void)=0;                           //! Run() method, called when the program is run. Subclass must override this
+		bool GetEnvStr(const char * entry,std::string & result); //! Return an environment variable by name
+		bool GetEnvNum(Bitu want_num,std::string & result);      //! Return an environment variable by index
+		Bitu GetEnvCount(void);                             //! Return the number of environmental variables
+		bool SetEnv(const char * entry,const char * new_string); //! Set environment variable
+		bool FirstEnv(const char * entry);
+		bool EraseEnv(void);
+		virtual void WriteOut(const char *format, const char * arguments);
+		void WriteOut(const char * format,...);				//! Write to standard output 
+		virtual int WriteOut_NoParsing(const char * format, bool dbcs = false); //! Write to standard output, no parsing
+		void ChangeToLongCmd();                             //! Get command line from shell instead of PSP
+		void DebugDumpEnv();                                //! Dump environment block to log
+		void WriteExitStatus();                             //! Write exit status to CPU register AL for return to MS-DOS
 };
 
 typedef void (PROGRAMS_Main)(Program * * make);
