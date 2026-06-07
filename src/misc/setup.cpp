@@ -1356,6 +1356,15 @@ bool CommandLine::FindCommand(unsigned int which,std::string & value,bool remove
     return true;
 }
 
+bool CommandLine::EraseCommand(unsigned int which) {
+    if (which<1) return false;
+    if (which>cmds.size()) return false;
+    cmd_it it=cmds.begin();
+    for (;which>1;--which) ++it;
+    cmds.erase(it);
+    return true;
+}
+
 bool CommandLine::ExistsCommand(unsigned int which) {
     if (which<1) return false;
     if (which>cmds.size()) return false;
