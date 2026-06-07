@@ -425,7 +425,7 @@ int CDROM_AllocateInterface(char* physicalPath,int forceCD,uint16_t numDrive,CDR
 	int result = 0;
 
 	/* If you're calling this and cdrom != NULL then you're calling to replace the object with a new one */
-	if (cdrom) (*cdrom)->Release();
+	if (*cdrom) (*cdrom)->Release();
 	*cdrom = NULL;
 
 	// Get Mounttype and init needed cdrom interface
