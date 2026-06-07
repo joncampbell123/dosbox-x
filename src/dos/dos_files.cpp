@@ -219,6 +219,7 @@ uint8_t DOS_GetDefaultDrive(void) {
 }
 
 void DOS_SetDefaultDrive(uint8_t drive) {
+	if (dos_kernel_disabled) return;
 //	if (drive<=DOS_DRIVES && ((drive<2) || Drives[drive])) DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(drive);
 	if (drive<DOS_DRIVES && ((drive<2) || Drives[drive])) {dos.current_drive = drive; DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(drive);}
 }
