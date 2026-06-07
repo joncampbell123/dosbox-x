@@ -5814,7 +5814,7 @@ class IMGMOUNT : public Program {
 			//2026/06/07: Allow the drive spec to start with ':' and then some device string, such as ":ide:1m" to mount directly
 			//            to IDE emulation as primary master, instead of mounting to a drive letter. Separate :ide from :1m so that
 			//            parsing is simpler (device type from additional options), now for IDE, and for future SATA and SCSI emulation too.
-			if (cmd->FindCommand(1,temp_line)) {
+			if (cmd->FindCommand(1,temp_line,/*remove*/true)) {
 				if (temp_line.size() >= 1 && temp_line[0] == ':') {
 					/* device spec such as ":ide:1m" */
 					const char *s = temp_line.c_str();
@@ -6265,15 +6265,26 @@ class IMGMOUNT : public Program {
 			char drive=commandLine[0];
 			bool nocont=false;
 			int num = 0;
-			while (!nocont&&cmd->FindCommand((unsigned int)(paths.size() + 1 - num), commandLine)) {
+			while (!nocont&&cmd->ExistsCommand(1)) {
 				bool usedef=false;
-				if (!cmd->FindCommand((unsigned int)(paths.size() + 2 - num), commandLine) || !commandLine.size()) {
+				if (!cmd->FindCommand(1, commandLine)) {
 					if (!nodef && !paths.size()) {
 						commandLine="IMGMAKE.IMG";
 						usedef=true;
 					}
-					else break;
+					else {
+						break;
+					}
 				}
+
+				if (commandLine[0] == '-'/*unknown option?*/)
+					break;
+
+				cmd->EraseCommand(1);
+
+				if (commandLine.empty())
+					continue;
+
 				if (commandLine == "empty") {
 					/* special name */
 					paths.push_back(commandLine);
