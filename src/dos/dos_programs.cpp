@@ -5953,7 +5953,7 @@ class IMGMOUNT : public Program {
 			cmd->FindString("-chs", str_chs, true);
 			if (!ReadSizeParameter(str_size, str_chs, type, sizes)) return;
 
-			if (!rfstype&&isdigit(temp_line[0])) fstype="none";
+			if (!rfstype&&isdigit(tdr)) fstype="none";
 
 			//for floppies, hard drives, and cdroms, require a drive letter
 			//for -fs none, require a number indicating where to mount at
@@ -5965,7 +5965,7 @@ class IMGMOUNT : public Program {
 				}
 
 				/* if fs type if "fat" and we're asked to mount *: then check for that here */
-				if (tdr == '*' && temp_line[1] == ':') {
+				if (tdr == '*') {
 					/* What drives are available? */
 					int i_drive = IS_PC98_ARCH ? 'A' : 'C';
 					while (i_drive <= 'Z' && Drives[i_drive-'A'] != NULL && (i_drive-'A') < DOS_DRIVES) i_drive++;
