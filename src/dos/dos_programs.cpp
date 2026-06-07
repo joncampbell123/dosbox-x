@@ -5805,20 +5805,43 @@ class IMGMOUNT : public Program {
 			uint8_t tdr = 0;
 			std::string bdisk;
 			int bdisk_number=-1;
+			std::string device_spec;
+			std::string device_spec_opts;
 
 			//this code simply sets default type to "floppy" if mounting at A: or B: --- nothing else
 			// get first parameter - which is probably the drive letter to mount at (A-Z or A:-Z:) - and check it if is A or B or A: or B:
 			// default to floppy for drive letters A and B and numbers 0 and 1
-			if (!cmd->FindCommand(1,temp_line) || (temp_line.size() > 2) ||
-					((temp_line.size()>1) && (temp_line[1]!=':'))) {
-				// drive not valid
-			} else {
-				tdr = toupper(temp_line[0]);
-				if(tdr=='A'||tdr=='B'||tdr=='0'||tdr=='1') type="floppy";
+			//2026/06/07: Allow the drive spec to start with ':' and then some device string, such as ":ide:1m" to mount directly
+			//            to IDE emulation as primary master, instead of mounting to a drive letter. Separate :ide from :1m so that
+			//            parsing is simpler (device type from additional options), now for IDE, and for future SATA and SCSI emulation too.
+			if (cmd->FindCommand(1,temp_line)) {
+				if (temp_line.size() >= 1 && temp_line[0] == ':') {
+					/* device spec such as ":ide:1m" */
+					const char *s = temp_line.c_str();
+					assert(*s == ':'); s++; /* sanity check */
+					device_spec.clear();
+					while (*s && *s != ':') device_spec += *s++;
+					if (*s == ':') {
+						s++;
+						device_spec_opts = s;
+					}
+
+					LOG(LOG_MISC,LOG_DEBUG)("IMGMOUNT to device spec instead of drive letter (experimental): dev='%s' opt='%s'",
+						device_spec.c_str(),
+						device_spec_opts.c_str());
+				}
+				else if ((temp_line.size() == 1 || (temp_line.size() == 2 && temp_line[1] == ':')) && (isalpha(temp_line[0]) || isdigit(temp_line[0]))) {
+					/* drive letter or number */
+					tdr = toupper(temp_line[0]);
+					if(tdr=='A'||tdr=='B'||tdr=='0'||tdr=='1') type="floppy";
+				}
 			}
 
-			if (temp_line.size() == 1 && isdigit(temp_line[0]) && temp_line[0]>='0' && temp_line[0]<MAX_DISK_IMAGES+'0' && cmd->FindExist("-u",true)) {
-				Unmount(temp_line[0]);
+			if (cmd->FindExist("-u",true)) {
+				if (tdr != 0) {
+					Unmount(tdr);
+				}
+
 				std::string templine;
 				if (!cmd->FindCommand(2,templine)||!templine.size()) return;
 			}
@@ -6351,7 +6374,7 @@ class IMGMOUNT : public Program {
 			return false;
 		}
 
-		bool Unmount(char &letter) {
+		bool Unmount(char letter) {
 			letter = toupper(letter);
 			if (isalpha(letter)) { /* if it's a drive letter, then traditional usage applies */
 				int i_drive = letter - 'A';
