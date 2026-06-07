@@ -5830,7 +5830,8 @@ class IMGMOUNT : public Program {
 						device_spec.c_str(),
 						device_spec_opts.c_str());
 				}
-				else if ((temp_line.size() == 1 || (temp_line.size() == 2 && temp_line[1] == ':')) && (isalpha(temp_line[0]) || isdigit(temp_line[0]))) {
+				else if ((temp_line.size() == 1 || (temp_line.size() == 2 && temp_line[1] == ':')) &&
+					(temp_line[0] == '*' || isalpha(temp_line[0]) || isdigit(temp_line[0]))) {
 					/* drive letter or number */
 					tdr = toupper(temp_line[0]);
 					if(tdr=='A'||tdr=='B'||tdr=='0'||tdr=='1') type="floppy";
@@ -5844,6 +5845,10 @@ class IMGMOUNT : public Program {
 
 				if (!cmd->ExistsCommand(2)) return;
 			}
+
+			/* if drive letter (not a device spec) was given, it is in "tdr", so don't go calling FindCommand() again for it.
+			 * tdr is only assigned if drive letter ('A' to 'Z'), or INT 13h drive number ('0' to '9'), or '*' for the FAT
+			 * filesystem mount to auto-assign a drive letter */
 
 			//get the type
 			bool rtype=cmd->FindString("-t", type, true);
