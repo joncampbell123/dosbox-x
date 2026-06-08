@@ -2880,7 +2880,6 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
         return;
     }
 
-
     if (c->device[slave?1:0] != NULL) {
         LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.",ideslot[index],master_slave[slave?1:0]);
         return;

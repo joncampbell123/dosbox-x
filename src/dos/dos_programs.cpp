@@ -5690,6 +5690,9 @@ bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsign
 }
 
 std::string GetIDEPosition(unsigned char bios_disk_index);
+int CDROM_AllocateInterface(const char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom);
+extern int forceCD;
+
 class IMGMOUNT : public Program {
 	public:
 		bool opt_replace = false;
@@ -6085,8 +6088,7 @@ class IMGMOUNT : public Program {
 					if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
 				}
 				else {
-					WriteOut("Unable to attach to %s:%s\n",device_spec.c_str(),device_spec_opts.c_str());
-					return;
+					if (!MountIsoToDeviceSpec(device_spec, device_spec_opts, paths)) return;
 				}
 			} else if (fstype=="none") {
 				if (drive >= 0) {
@@ -6172,6 +6174,9 @@ class IMGMOUNT : public Program {
 					}
 					newImage->Release();
 					return;
+				}
+				else if (type == "iso") {
+					if (!MountIsoToDeviceSpec(device_spec, device_spec_opts, paths)) return;
 				}
 				else {
 					WriteOut("Unable to attach to %s:%s\n",device_spec.c_str(),device_spec_opts.c_str());
@@ -7353,6 +7358,43 @@ class IMGMOUNT : public Program {
 		}
 
 	public:
+		bool MountIsoToDeviceSpec(const std::string &device_spec, const std::string &device_spec_opts, const std::vector<std::string> &paths) {
+			std::vector<CDROM_Interface*> cds;
+			bool ok = true;
+
+			if (paths.empty()) return false;
+
+			MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
+			for (unsigned int i=0; i < paths.size(); i++) {
+				CDROM_Interface *cdrom = NULL;
+
+				if (CDROM_AllocateInterface(paths[i].c_str(),forceCD,0xFFFF/*invalid subunit*/,&cdrom))/*Addrefs*/ {
+					ok = false;
+					break;
+				}
+				if (cdrom == NULL) {
+					ok = false;
+					break;
+				}
+
+				cds.push_back(cdrom);
+			}
+
+			// TODO
+			LOG(LOG_MISC,LOG_DEBUG)("CD-ROM image ok=%u to %s:%s experimental",ok,device_spec.c_str(),device_spec_opts.c_str());
+
+			/* Failure path -- cleanup */
+			for (unsigned int i=0; i < cds.size(); i++) {
+				if (cds[i]) {
+					cds[i]->Release();
+					cds[i] = NULL;
+				}
+			}
+			cds.clear();
+
+			WriteOut("Unable to attach to %s:%s\n",device_spec.c_str(),device_spec_opts.c_str());
+			return false;
+		}
 		bool MountIso(const char drive, const std::vector<std::string> &paths, signed char ide_index, bool ide_slave) {
 			//If mounting while a guest OS is active, you may ONLY replace an ISO with an ISO! You may not mount a new drive!
 			if (dos_kernel_disabled) {
