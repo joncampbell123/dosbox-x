@@ -7942,6 +7942,9 @@ bool VM_Boot_DOSBox_Kernel() {
         EMS_Startup(NULL);
 #endif
 
+        /* possible return to DOSBox-X DOS environment */
+        mainMenu.get_item("HelpCommandMenu").enable();
+
         SHELL_MessagesInit();
         CONFIGSHELL_Init();
         CONFIGSHELL_Run();
@@ -10321,6 +10324,9 @@ fresh_boot:
 
             /* if instructed, turn off A20 at boot */
             if (disable_a20) MEM_A20_Enable(false);
+
+            /* Why allow the Help -> DOS commands menu when running a guest OS? */
+            mainMenu.get_item("HelpCommandMenu").enable(false);
 
             /* PC-98: hide the cursor */
             if (IS_PC98_ARCH) {
