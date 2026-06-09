@@ -2892,27 +2892,37 @@ bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Inter
 	return true;
 }
 
-bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds) {
-	const char *opts_c = opts.c_str();
+struct ide_opt_spec_t {
 	signed char index = -1;
 	bool slave = false;
+};
+
+bool IDE_CDROM_ParseOptSpec(struct ide_opt_spec_t &spec,const std::string &opts) {
+	const char *opts_c = opts.c_str();
 
 	/* opts: "1m" "1s" "2m" "2s" etc */
 	if (isdigit(*opts_c)) {
 		const unsigned int c = strtoul(opts_c,(char**)(&opts_c),10);
-		if (c <= 128) index = (signed char)(c - 1u);
+		if (c <= 128) spec.index = (signed char)(c - 1u);
 
 		if (*opts_c == 'm') {
-			slave = false;
+			spec.slave = false;
 			opts_c++;
 		}
 		else if (*opts_c == 's') {
-			slave = true;
+			spec.slave = true;
 			opts_c++;
 		}
 	}
 
-	return IDE_CDROM_Attach(index,slave,cds);
+	return true;
+}
+
+bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds) {
+	struct ide_opt_spec_t spec;
+
+	if (!IDE_CDROM_ParseOptSpec(spec,opts)) return false;
+	return IDE_CDROM_Attach(spec.index,spec.slave,cds);
 }
 
 /* drive_index = drive letter 0...A to 25...Z */
