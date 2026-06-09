@@ -1512,7 +1512,7 @@ bool DOSBoxMenu::mainMenuWM_COMMAND(unsigned int id) {
 
 void DOSBoxMenu::item::check_layout(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    if (display_list.needLayout && topMenu) layoutSubmenu(*topMenu,/*toplevel*/false);
+    if (display_list.needLayout && topMenu) layoutSubmenu(*topMenu,/*toplevel*/(parent_id == unassigned_item_handle));
 #endif
 }
 
