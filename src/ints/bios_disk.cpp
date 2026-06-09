@@ -1392,6 +1392,9 @@ void swapInNextDisk(bool pressed) {
     swapping_requested = true;
 }
 
+void IDE_ATAPI_MediaChangeNotify(signed char index, bool slave, bool immediate);
+void IDE_ATAPI_MediaChangeNotifyAll(bool immediate);
+
 void swapInNextCD(bool pressed) {
     if (!pressed)
         return;
@@ -1410,8 +1413,12 @@ void swapInNextCD(bool pressed) {
                 Drives[i]->MediaChange(); // for IDE
         }
     }
-}
 
+    if (!dos_kernel_disabled)
+        IDE_ATAPI_MediaChangeNotifyAll(/*immediate*/true);
+    else
+        IDE_ATAPI_MediaChangeNotifyAll(/*immediate*/false);
+}
 
 uint8_t imageDisk::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
     uint32_t sectnum;

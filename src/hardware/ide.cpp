@@ -276,6 +276,7 @@ public:
     size_t cdrom_swaplist_pos = 0;
     Bitu data_read(Bitu iolen) override; /* read from 1F0h data port from IDE device */
     void data_write(Bitu v,Bitu iolen) override; /* write to 1F0h data port to IDE device */
+    virtual void swap_to_next_cd();
     virtual void generate_identify_device();
     virtual void generate_mmc_inquiry();
     virtual void prepare_read(Bitu offset,Bitu size);
@@ -2513,6 +2514,19 @@ void IDEATADevice::prepare_read(Bitu offset,Bitu size) {
     assert(sector_total <= sizeof(sector));
 }
 
+void IDEATAPICDROMDevice::swap_to_next_cd() {
+    if (cdrom_swaplist.empty()) return;
+    if (mscdex) return; // the drive manager manages swapping for us
+
+    if (cdrom) cdrom->Release();
+    cdrom = NULL;
+
+    if (++cdrom_swaplist_pos >= cdrom_swaplist.size())
+        cdrom_swaplist_pos = 0;
+
+    (cdrom = cdrom_swaplist[cdrom_swaplist_pos])->Addref();
+}
+
 void IDEATAPICDROMDevice::generate_mmc_inquiry() {
     Bitu i;
 
@@ -2815,6 +2829,63 @@ bool IDE_controller_occupied(signed char index, bool slave) { // Return true if 
     }
 }
 
+void IDE_ATAPI_MediaChangeNotify(signed char index, bool slave, bool immediate) {
+	IDEController *c;
+	IDEDevice *dev;
+
+	if (index < 0 || index >= MAX_IDE_CONTROLLERS)
+		return;
+
+	c = idecontroller[index];
+	if (c == NULL)
+		return;
+
+	dev = c->device[slave?1:0];
+	if (dev == NULL)
+		return;
+
+	if (dev->type == IDE_TYPE_CDROM) {
+		IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+		const unsigned int pk = IDEEventPack(index,slave).get();
+
+		LOG_MSG("IDE ATAPI acknowledge media change\n");
+		if (immediate) LOG_MSG("--media change is immediate");
+
+		atapi->swap_to_next_cd();
+
+		bool empty = false;
+
+		if (atapi->cdrom->class_id == CDROM_Interface::ID_FAKE) {
+			CDROM_Interface_Fake *fake = (CDROM_Interface_Fake*)(atapi->cdrom);
+			if (fake->isEmpty) empty = true;
+		}
+
+		/* if asked to change immediately, or the new image is the fake "empty" drive, change right away */
+		if (immediate || empty) {
+			atapi->loading_mode = LOAD_READY;
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+		}
+		else {
+			atapi->has_changed = true;
+			atapi->loading_mode = LOAD_INSERT_CD;
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+			PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,pk);
+		}
+	}
+}
+
+void IDE_ATAPI_MediaChangeNotifyAll(bool immediate) {
+	for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
+		for (unsigned int ms=0;ms < 2;ms++) {
+			IDE_ATAPI_MediaChangeNotify(ide,ms,immediate);
+		}
+	}
+}
+
 /* drive_index = drive letter 0...A to 25...Z */
 void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate) {
 	for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
@@ -2900,7 +2971,6 @@ bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Inter
 			cd->Addref();
 			dev->cdrom_swaplist.push_back(cd);
 		}
-		dev->cdrom_swaplist_pos = 1; /* index 0 is already set to dev->cdrom */
 	}
 
 	c->device[slave?1:0] = (IDEDevice*)dev;
