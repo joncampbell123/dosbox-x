@@ -1155,7 +1155,6 @@ void DOSBoxMenu::displaylist_append(displaylist &ls,const DOSBoxMenu::item_handl
 
     ls.disp_list.push_back(item.master_id);
     item.status.in_use = true;
-    ls.order_changed = true;
 }
 
 void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
@@ -1163,8 +1162,6 @@ void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
     std::fill(ls.disp_list.begin(), ls.disp_list.end(), id);
 
     ls.disp_list.clear();
-    ls.items_changed = true;
-    ls.order_changed = true;
 }
 
 void DOSBoxMenu::rebuild(void) {

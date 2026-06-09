@@ -2165,8 +2165,7 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
 
     if (&dl == &menu.display_list) { /* top level menu, draw background */
         MenuDrawRect(menu.menuBox.x, menu.menuBox.y, menu.menuBox.w, menu.menuBox.h - 1, GFX_GetRGB(63, 63, 63));
-        MenuDrawRect(menu.menuBox.x, menu.menuBox.y + menu.menuBox.h - 1, menu.menuBox.w, 1,
-                     GFX_GetRGB(31, 31, 31));
+        MenuDrawRect(menu.menuBox.x, menu.menuBox.y + menu.menuBox.h - 1, menu.menuBox.w, 1, GFX_GetRGB(31, 31, 31));
     }
 
     if (mustLock) {

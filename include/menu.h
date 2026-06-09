@@ -163,8 +163,6 @@ class DOSBoxMenu {
                 item_handle_t           itemFromPoint(DOSBoxMenu &menu,int x,int y);
 #endif
             protected:
-                bool                    items_changed = false;
-                bool                    order_changed = false;
                 std::vector<item_handle_t> disp_list;
             public:
                 const std::vector<item_handle_t> &get_disp_list(void) const {
