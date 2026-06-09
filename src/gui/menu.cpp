@@ -2580,6 +2580,7 @@ void DOSBoxMenu::layoutMenu(void) {
         DOSBoxMenu::item &item = get_item(*i);
 
         item.placeItem(*this, x, y, /*toplevel*/true);
+        if (item.status.hidden) continue;
         x += item.screenBox.w;
     }
 
@@ -2596,6 +2597,8 @@ void DOSBoxMenu::layoutMenu(void) {
 
 void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
     int x, y, minx, maxx;
+
+    if (status.hidden) return;
 
     display_list.needLayout = false;
     needRedraw = true;
@@ -2619,6 +2622,8 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
     auto arr_follow=display_list.disp_list.begin();
     for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++) {
         DOSBoxMenu::item &item = menu.get_item(*i);
+
+        if (item.status.hidden) continue;
 
         if (item.get_type() == DOSBoxMenu::vseparator_type_id) {
             for (;arr_follow < i;arr_follow++)
@@ -2648,6 +2653,7 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
 
     for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++) {
         DOSBoxMenu::item &item = menu.get_item(*i);
+        if (item.status.hidden) continue;
         int my = item.screenBox.y + item.screenBox.h;
         if (y < my) y = my;
     }
@@ -2717,6 +2723,8 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
 }
 
 void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTopLevel) {
+    if (status.hidden) return;
+
     if (type < separator_type_id) {
         int x = 0,rx = 0;
 
@@ -2765,7 +2773,28 @@ void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTop
 }
 
 void DOSBoxMenu::item::placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel) {
-    if (type < separator_type_id) {
+    if (status.hidden) {
+        screenBox.x = 0;
+        screenBox.y = 0;
+        screenBox.w = 0;
+        screenBox.h = 0;
+
+        checkBox.x = 0;
+        checkBox.y = 0;
+        checkBox.w = 0;
+        checkBox.h = 0;
+
+        textBox.x = 0;
+        textBox.y = 0;
+        textBox.w = 0;
+        textBox.h = 0;
+
+        shortBox.x = 0;
+        shortBox.y = 0;
+        shortBox.w = 0;
+        shortBox.h = 0;
+    }
+    else if (type < separator_type_id) {
         screenBox.x = x;
         screenBox.y = y;
         screenBox.w = 0;
@@ -3295,6 +3324,8 @@ void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
 
 void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     (void)menu;//UNUSED
+
+    if (status.hidden) return;
 
     force_conversion = showdbcs;
     int cp = dos.loaded_codepage;
