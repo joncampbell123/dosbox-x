@@ -1155,6 +1155,9 @@ void DOSBoxMenu::displaylist_append(displaylist &ls,const DOSBoxMenu::item_handl
 
     ls.disp_list.push_back(item.master_id);
     item.status.in_use = true;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    ls.needLayout = true;
+#endif
 }
 
 void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
@@ -1162,6 +1165,15 @@ void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
     std::fill(ls.disp_list.begin(), ls.disp_list.end(), id);
 
     ls.disp_list.clear();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    ls.needLayout = true;
+#endif
+}
+
+void DOSBoxMenu::check_layout(void) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    if (display_list.needLayout) layoutMenu();
+#endif
 }
 
 void DOSBoxMenu::rebuild(void) {
@@ -1486,6 +1498,12 @@ bool DOSBoxMenu::mainMenuWM_COMMAND(unsigned int id) {
     return true;
 }
 #endif
+
+void DOSBoxMenu::item::check_layout(void) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    if (display_list.needLayout && topMenu) layoutSubmenu(*topMenu,/*toplevel*/false);
+#endif
+}
 
 void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
     (void)menu;//POSSIBLY UNUSED
@@ -2552,6 +2570,9 @@ void DOSBoxMenu::updateRect(void) {
 void DOSBoxMenu::layoutMenu(void) {
     int x, y;
 
+    display_list.needLayout = false;
+    needRedraw = true;
+
     x = menuBox.x;
     y = menuBox.y;
 
@@ -2575,6 +2596,9 @@ void DOSBoxMenu::layoutMenu(void) {
 
 void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
     int x, y, minx, maxx;
+
+    display_list.needLayout = false;
+    needRedraw = true;
 
     x = screenBox.x;
     y = screenBox.y;

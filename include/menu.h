@@ -164,6 +164,9 @@ class DOSBoxMenu {
 #endif
             protected:
                 std::vector<item_handle_t> disp_list;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                bool                    needLayout = false;
+#endif
             public:
                 const std::vector<item_handle_t> &get_disp_list(void) const {
                     return disp_list;
@@ -188,6 +191,8 @@ class DOSBoxMenu {
             public:
                                         item();
                                         ~item();
+            public:
+                void                    check_layout(void);
             protected:
                 DOSBoxMenu*             topMenu = NULL;     /* menu object that contains this item */
                 std::string             name;               /* item name */
@@ -203,13 +208,14 @@ class DOSBoxMenu {
                 struct status {
                                         status() : changed(false), allocated(false),
                                                    enabled(true), checked(false),
-                                                   in_use(false) { };
+                                                   in_use(false), hidden(false) { };
 
                     unsigned int        changed:1;
                     unsigned int        allocated:1;
                     unsigned int        enabled:1;
                     unsigned int        checked:1;
                     unsigned int        in_use:1;
+                    unsigned int        hidden:1;
                 } status = {};
             protected:
                 callback_t              callback_func = unassigned_callback;
@@ -311,6 +317,9 @@ class DOSBoxMenu {
                 inline bool can_check(void) const {
                     return type <= item_type_id;
                 }
+                inline bool can_hide(void) const {
+                    return type <= item_type_id;
+                }
             public:
                 void refresh_item(DOSBoxMenu &menu);
                 inline bool has_changed(void) const {
@@ -356,6 +365,30 @@ class DOSBoxMenu {
                 }
                 inline bool is_enabled(void) const {
                     return status.enabled;
+                }
+            public:
+                inline item &hide(const bool f=true) {
+                    if (status.hidden != f) {
+                        status.hidden  = f;
+                        if (can_hide() && has_vis_enabled()) {
+                            status.changed = 1;
+                            /* this affects the parent menu item too! */
+                            if (topMenu) {
+                                if (parent_id != unassigned_item_handle) {
+                                    item &item = topMenu->get_item(parent_id);
+                                    item.display_list.needLayout = true;
+                                }
+                                else {
+                                    topMenu->display_list.needLayout = true;
+                                }
+                            }
+                        }
+                    }
+
+                    return *this;
+                }
+                inline bool is_hidden(void) const {
+                    return status.hidden;
                 }
             public:
                 inline item_type_t get_type(void) const {
@@ -442,6 +475,7 @@ class DOSBoxMenu {
         void                            dump_log_debug(void);
         void                            dump_log_displaylist(DOSBoxMenu::displaylist &ls, unsigned int indent);
         const char*                     TypeToString(const enum item_type_t type);
+        void                            check_layout(void);
         void                            rebuild(void);
         void                            unbuild(void);
     public:

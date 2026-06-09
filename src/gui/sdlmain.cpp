@@ -2148,6 +2148,7 @@ bool DOSBox_isMenuVisible(void);
 void MenuShadeRect(int x,int y,int w,int h);
 void MenuDrawRect(int x,int y,int w,int h,Bitu color);
 void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
+    menu.check_layout();
     if (!menu.needsRedraw() || (sdl.updating && !OpenGL_using())) {
         return;
     }
@@ -4986,6 +4987,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                 psel_item = DOSBoxMenu::unassigned_item_handle;
                 choice_item = mainMenu.menuUserHoverAt = mainMenu.menuUserAttentionAt;
 
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).check_layout();
                 popup_stack.push_back(mainMenu.menuUserAttentionAt);
 
 #if C_DIRECT3D
@@ -5271,6 +5273,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                                                 popup_stack.erase(search,popup_stack.end());
                                                 mainMenu.get_item(sel_item).setHilight(mainMenu,true).setHover(mainMenu,true);
+                                                mainMenu.get_item(sel_item).check_layout();
                                                 popup_stack.push_back(sel_item);
                                                 redrawAll = true;
                                             }
