@@ -272,6 +272,8 @@ public:
     Bitu sector_transfer_limit = 16;
     CDROM_Interface *cdrom = NULL;
     CDROM_Interface *getMSCDEXDrive();
+    std::vector<CDROM_Interface*> cdrom_swaplist;
+    size_t cdrom_swaplist_pos = 0;
     Bitu data_read(Bitu iolen) override; /* read from 1F0h data port from IDE device */
     void data_write(Bitu v,Bitu iolen) override; /* write to 1F0h data port to IDE device */
     virtual void generate_identify_device();
@@ -1581,6 +1583,12 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 }
 
 IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
+    for (auto &cd : cdrom_swaplist) {
+	cd->Release();
+	cd = NULL;
+    }
+    cdrom_swaplist.clear();
+    cdrom_swaplist_pos = 0;
     if (cdrom) {
         cdrom->Release();
         cdrom = NULL;
@@ -2885,7 +2893,15 @@ bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Inter
 		return false;
 	}
 
-	/* TODO: IDE ATAPI swaplist for cds[1...size-1] */
+	if (cds.size() > 1) {
+		assert(dev->cdrom_swaplist.empty());
+		assert(dev->cdrom_swaplist_pos == 0);
+		for (auto &cd : cds) {
+			cd->Addref();
+			dev->cdrom_swaplist.push_back(cd);
+		}
+		dev->cdrom_swaplist_pos = 1; /* index 0 is already set to dev->cdrom */
+	}
 
 	c->device[slave?1:0] = (IDEDevice*)dev;
 	LOG_MSG("IMGMOUNT: CD-ROM image mounted to (IDE %s %s)", ideslot[index], master_slave[slave ? 1 : 0]);
