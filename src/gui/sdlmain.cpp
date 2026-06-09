@@ -4972,7 +4972,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
     if (button->button == SDL_BUTTON_LEFT) {
         if (button->state == SDL_PRESSED) {
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
-            if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+            if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle && mainMenu.get_item(mainMenu.menuUserHoverAt).is_enabled()) {
                 std::vector<DOSBoxMenu::item_handle_t> popup_stack;
                 DOSBoxMenu::item_handle_t choice_item;
                 DOSBoxMenu::item_handle_t psel_item;
@@ -4991,23 +4991,23 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                 popup_stack.push_back(mainMenu.menuUserAttentionAt);
 
 #if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) {
-            /* In output=direct3d mode, SDL still has a surface but this code ignores SDL
-             * and draws directly to a Direct3D9 backbuffer which is presented to the window
-             * client area. However, GDI output to the window still works, and this code
-             * uses the SDL surface still. Therefore, for menus to draw correctly atop the
-             * Direct3D output, this code copies the Direct3D backbuffer to the SDL surface
-             * first.
-             *
-             * WARNING: This happens to work with Windows (even Windows 10 build 18xx as of
-             * 2018/05/21) because Windows appears to permit mixing Direct3D and GDI rendering
-             * to the window.
-             *
-             * Someday, if Microsoft should break that ability, this code will need to be
-             * revised to send screen "updates" to the Direct3D backbuffer first, then
-             * Present to the window client area. */
-            if (d3d) d3d->UpdateRectToSDLSurface(0, 0, sdl.surface->w, sdl.surface->h);
-        }
+                if (sdl.desktop.want_type == SCREEN_DIRECT3D) {
+                    /* In output=direct3d mode, SDL still has a surface but this code ignores SDL
+                     * and draws directly to a Direct3D9 backbuffer which is presented to the window
+                     * client area. However, GDI output to the window still works, and this code
+                     * uses the SDL surface still. Therefore, for menus to draw correctly atop the
+                     * Direct3D output, this code copies the Direct3D backbuffer to the SDL surface
+                     * first.
+                     *
+                     * WARNING: This happens to work with Windows (even Windows 10 build 18xx as of
+                     * 2018/05/21) because Windows appears to permit mixing Direct3D and GDI rendering
+                     * to the window.
+                     *
+                     * Someday, if Microsoft should break that ability, this code will need to be
+                     * revised to send screen "updates" to the Direct3D backbuffer first, then
+                     * Present to the window client area. */
+                    if (d3d) d3d->UpdateRectToSDLSurface(0, 0, sdl.surface->w, sdl.surface->h);
+                }
 #endif
 
                 if (OpenGL_using()) {
@@ -5261,7 +5261,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                                     if (sel_item != DOSBoxMenu::unassigned_item_handle) {
                                         if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id) {
-                                            if (!mainMenu.get_item(sel_item).isHilight()) {
+                                            if (!mainMenu.get_item(sel_item).isHilight() && mainMenu.get_item(sel_item).is_enabled()) {
                                                 /* use a copy of the iterator to scan forward and un-hilight the menu items.
                                                  * then use the original iterator to erase from the vector. */
                                                 for (auto ss=search;ss != popup_stack.end();ss++) {
