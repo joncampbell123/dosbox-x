@@ -1153,7 +1153,8 @@ void DOSBoxMenu::displaylist_append(displaylist &ls,const DOSBoxMenu::item_handl
     if (item.status.in_use)
         E_Exit("DOSBoxMenu::displaylist_append() item already in use");
 
-    ls.disp_list.push_back(item.master_id);
+    assert(item_id == item.master_id);
+    ls.disp_list.push_back(item_id);
     item.status.in_use = true;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     ls.needLayout = true;

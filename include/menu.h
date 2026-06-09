@@ -201,8 +201,8 @@ class DOSBoxMenu {
                 std::string             description;        /* description text */
                 struct accelerator      accelerator;        /* menu accelerator */
             protected:
-                item_handle_t           parent_id = unassigned_item_handle;
-                item_handle_t           master_id = unassigned_item_handle;
+                item_handle_t           parent_id = unassigned_item_handle; /* parent submenu that contains us */
+                item_handle_t           master_id = unassigned_item_handle; /* our own item ID in the top menu master list */
                 enum item_type_t        type = item_type_id;
             protected:
                 struct status {
