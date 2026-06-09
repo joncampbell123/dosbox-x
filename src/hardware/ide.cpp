@@ -2925,6 +2925,36 @@ bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*
 	return IDE_CDROM_Attach(spec.index,spec.slave,cds);
 }
 
+bool IDE_CDROM_Detach(signed char index,bool slave) {
+	IDEATAPICDROMDevice *dev;
+	IDEController *c;
+
+	if (index < 0 || index >= MAX_IDE_CONTROLLERS)
+		return false;
+
+	c = idecontroller[index];
+	if(c == NULL)
+		return false;
+
+	if (c->device[slave?1:0] == NULL)
+		return false;
+
+	dev = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave]);
+	if (dev) {
+		delete dev;
+		c->device[slave] = NULL;
+	}
+
+	return true;
+}
+
+bool IDE_CDROM_Detach(const std::string &opts) {
+	struct ide_opt_spec_t spec;
+
+	if (!IDE_CDROM_ParseOptSpec(spec,opts)) return false;
+	return IDE_CDROM_Detach(spec.index,spec.slave);
+}
+
 /* drive_index = drive letter 0...A to 25...Z */
 void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
     IDEController *c;

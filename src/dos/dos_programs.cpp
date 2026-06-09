@@ -5694,6 +5694,7 @@ int CDROM_AllocateInterface(const char* physicalPath,int forceCD,uint16_t numDri
 extern int forceCD;
 
 bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds);
+bool IDE_CDROM_Detach(const std::string &opts);
 
 class IMGMOUNT : public Program {
 	public:
@@ -5787,16 +5788,14 @@ class IMGMOUNT : public Program {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_EXAMPLE"));
 				return;
 			}
-			/* Check for unmounting */
-			std::string umount;
-			if (cmd->FindString("-u",umount,false)) {
-				Unmount(umount[0]);
-				return;
-			}
 
 			bool roflag = false;
 			if (cmd->FindExist("-ro",true))
 				roflag = true;
+
+			bool unmount = false;
+			if (cmd->FindExist("-u",true))
+				unmount = true;
 
 			//initialize more variables
 			unsigned long el_torito_floppy_base=~0UL;
@@ -5843,9 +5842,15 @@ class IMGMOUNT : public Program {
 				}
 			}
 
-			if (cmd->FindExist("-u",true)) {
+			if (unmount) {
 				if (tdr != 0) {
 					Unmount(tdr);
+				}
+				else if (device_spec == "ide") {
+					if (!IDE_CDROM_Detach(device_spec_opts)) {
+						LOG_MSG("Unable to detach IDE device");
+						WriteOut("Unable to detach IDE device\n");
+					}
 				}
 
 				if (!cmd->ExistsCommand(2)) return;
