@@ -5024,6 +5024,10 @@ void DOS_EnableDriveMenu(char drv) {
 			if (dynamic_cast<isoDrive*>(Drives[drv-'A'])) cdromchange = true;
 		}
 
+		/* why even show the drive if booted into a guest OS and no drive attached? */
+		name = std::string("Drive") + drv;
+		mainMenu.get_item(name).hide(drv >= 'C' && dos_kernel_disabled && Drives[drv-'A'] == NULL).refresh_item(mainMenu);
+
 #if defined (WIN32)
 		name = std::string("drive_") + drv + "_mountauto";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);

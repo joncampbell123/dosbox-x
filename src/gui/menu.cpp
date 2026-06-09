@@ -1147,23 +1147,33 @@ void DOSBoxMenu::item::deallocate(void) {
     name.clear();
 }
 
-void DOSBoxMenu::displaylist_append(displaylist &ls,const DOSBoxMenu::item_handle_t item_id) {
+void DOSBoxMenu::displaylist_append(const DOSBoxMenu::item_handle_t parent_id,const DOSBoxMenu::item_handle_t item_id) {
+    displaylist &ls = (parent_id == DOSBoxMenu::unassigned_item_handle) ? display_list : get_item(parent_id).display_list;
     DOSBoxMenu::item &item = get_item(item_id);
 
     if (item.status.in_use)
         E_Exit("DOSBoxMenu::displaylist_append() item already in use");
 
-    assert(item_id == item.master_id);
+    //assert(item_id == item.master_id);
+
     ls.disp_list.push_back(item_id);
+    item.parent_id = parent_id;
     item.status.in_use = true;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     ls.needLayout = true;
 #endif
 }
 
-void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
-    uint16_t id = DOSBoxMenu::unassigned_item_handle;
-    std::fill(ls.disp_list.begin(), ls.disp_list.end(), id);
+void DOSBoxMenu::displaylist_clear(const DOSBoxMenu::item_handle_t parent_id) {
+    displaylist &ls = (parent_id == DOSBoxMenu::unassigned_item_handle) ? display_list : get_item(parent_id).display_list;
+
+    for (auto &id : ls.disp_list) {
+        if (id != DOSBoxMenu::unassigned_item_handle) {
+            DOSBoxMenu::item &item = get_item(id);
+            item.parent_id = DOSBoxMenu::unassigned_item_handle;
+        }
+        id = DOSBoxMenu::unassigned_item_handle;
+    }
 
     ls.disp_list.clear();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
@@ -1256,7 +1266,7 @@ bool DOSBoxMenu::nsMenuSubInit(DOSBoxMenu::item &p_item) {
 
                 /* if a submenu, make the submenu */
                 if (item.type == submenu_type_id) {
-                    item.parent_id = p_item.master_id;
+                    item.parent_id = p_item.master_id;//FIXME: No longer needed?
                     nsMenuSubInit(item);
                 }
 
@@ -1283,7 +1293,7 @@ bool DOSBoxMenu::nsMenuInit(void) {
 
             /* if a submenu, make the submenu */
             if (item.type == submenu_type_id) {
-                item.parent_id = unassigned_item_handle;
+                item.parent_id = unassigned_item_handle;//FIXME: No longer needed?
                 nsMenuSubInit(item);
             }
 
@@ -1434,7 +1444,7 @@ bool DOSBoxMenu::winMenuSubInit(DOSBoxMenu::item &p_item) {
 
                 /* if a submenu, make the submenu */
                 if (item.type == submenu_type_id) {
-                    item.parent_id = p_item.master_id;
+                    item.parent_id = p_item.master_id;//FIXME: No longer needed?
                     winMenuSubInit(item);
                 }
 
@@ -1457,7 +1467,7 @@ bool DOSBoxMenu::winMenuInit(void) {
 
             /* if a submenu, make the submenu */
             if (item.type == submenu_type_id) {
-                item.parent_id = unassigned_item_handle;
+                item.parent_id = unassigned_item_handle;//FIXME: No longer needed?
                 winMenuSubInit(item);
             }
 
@@ -1602,31 +1612,26 @@ void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * li
              * rely that parameters are expanded from right to left
              * -> we must get separator handle first */
             DOSBoxMenu::item_handle_t separator_handle = separator_get(DOSBoxMenu::separator_type_id);
-            mainMenu.displaylist_append(
-                mainMenu.get_item(item_id).display_list, separator_handle);
+            mainMenu.displaylist_append(item_id, separator_handle);
         }
         else if (!strcmp(ref,"||")) {
             /* ditto */
             DOSBoxMenu::item_handle_t separator_handle = separator_get(DOSBoxMenu::vseparator_type_id);
-            mainMenu.displaylist_append(
-                mainMenu.get_item(item_id).display_list, separator_handle);
+            mainMenu.displaylist_append(item_id, separator_handle);
         }
         else if (mainMenu.item_exists(ref)) {
-            mainMenu.displaylist_append(
-                mainMenu.get_item(item_id).display_list, mainMenu.get_item_id_by_name(ref));
+            mainMenu.displaylist_append(item_id, mainMenu.get_item_id_by_name(ref));
         }
     }
 }
 
 void ConstructMenu(void) {
-    mainMenu.displaylist_clear(mainMenu.display_list);
+    mainMenu.displaylist_clear(DOSBoxMenu::unassigned_item_handle);
     separator_alloc = 0;
 
     /* top level */
     for (size_t i=0;def_menu__toplevel[i] != NULL;i++)
-        mainMenu.displaylist_append(
-            mainMenu.display_list,
-            mainMenu.get_item_id_by_name(def_menu__toplevel[i]));
+        mainMenu.displaylist_append(DOSBoxMenu::unassigned_item_handle,mainMenu.get_item_id_by_name(def_menu__toplevel[i]));
 
     /* main menu */
     ConstructSubMenu(mainMenu.get_item("MainMenu").get_master_id(), def_menu_main);
@@ -1679,13 +1684,13 @@ void ConstructMenu(void) {
 
             if (mainMenu.item_exists(name)) {
                 mainMenu.displaylist_append(
-                    mainMenu.get_item("VideoScalerMenu").display_list,
+                    mainMenu.get_item("VideoScalerMenu").get_master_id(),
                     mainMenu.get_item_id_by_name(name));
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                 if ((count % 15) == 14) {
                     mainMenu.displaylist_append(
-                        mainMenu.get_item("VideoScalerMenu").display_list,
+                        mainMenu.get_item("VideoScalerMenu").get_master_id(),
                         separator_get(DOSBoxMenu::vseparator_type_id));
                 }
 #endif
@@ -1767,7 +1772,7 @@ void ConstructMenu(void) {
 
             if (mainMenu.item_exists(name)) {
                 mainMenu.displaylist_append(
-                    mainMenu.get_item(dname).display_list,
+                    mainMenu.get_item(dname).get_master_id(),
                     mainMenu.get_item_id_by_name(name));
             }
         }
