@@ -1004,7 +1004,7 @@ DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type,const std::
     while (master_list_alloc < master_list.size()) {
         if (!master_list[master_list_alloc].status.allocated) {
             name_map[name] = master_list_alloc;
-            return master_list[master_list_alloc].allocate(master_list_alloc,type,name);
+            return master_list[master_list_alloc].allocate(master_list_alloc,type,name,this);
         }
 
         master_list_alloc++;
@@ -1021,7 +1021,7 @@ DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type,const std::
     assert(master_list_alloc < master_list.size());
 
     name_map[name] = master_list_alloc;
-    return master_list[master_list_alloc].allocate(master_list_alloc,type,name);
+    return master_list[master_list_alloc].allocate(master_list_alloc,type,name,this);
 }
 
 void DOSBoxMenu::delete_item(const item_handle_t i) {
@@ -1121,11 +1121,12 @@ DOSBoxMenu::item::item() {
 DOSBoxMenu::item::~item() {
 }
 
-DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id,const enum item_type_t new_type,const std::string &new_name) {
+DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id,const enum item_type_t new_type,const std::string &new_name,DOSBoxMenu *_topMenu) {
     if (master_id != unassigned_item_handle || status.allocated)
         E_Exit("DOSBoxMenu::item::allocate() called on item already allocated");
 
     status.allocated = 1;
+    topMenu = _topMenu;
     name = new_name;
     type = new_type;
     master_id = id;
@@ -1136,6 +1137,7 @@ void DOSBoxMenu::item::deallocate(void) {
     if (master_id == unassigned_item_handle || !status.allocated)
         E_Exit("DOSBoxMenu::item::deallocate() called on item already deallocated");
 
+    topMenu = NULL;
     master_id = unassigned_item_handle;
     status.allocated = 0;
     status.changed = 1;

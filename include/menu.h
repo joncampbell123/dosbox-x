@@ -191,6 +191,7 @@ class DOSBoxMenu {
                                         item();
                                         ~item();
             protected:
+                DOSBoxMenu*             topMenu = NULL;     /* menu object that contains this item */
                 std::string             name;               /* item name */
                 std::string             text;               /* item text */
                 std::string             shortcut_text;      /* shortcut text on the right */
@@ -267,16 +268,16 @@ class DOSBoxMenu {
                 }
 #endif
             protected:
-                item&                   allocate(const DOSBoxMenu::item_handle_t id, const enum item_type_t new_type, const std::string& new_name);
+                item&                   allocate(const DOSBoxMenu::item_handle_t id, const enum item_type_t new_type, const std::string& new_name,DOSBoxMenu *_topMenu);
                 void                    deallocate(void);
             public:
                 inline bool checkResetRedraw(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-					bool r = needRedraw || (itemHilight != itemHilightDrawn) || (itemHover != itemHoverDrawn);
+                    bool r = needRedraw || (itemHilight != itemHilightDrawn) || (itemHover != itemHoverDrawn);
                     needRedraw = false;
                     return r;
 #else
-					return false;
+                    return false;
 #endif
                 }
                 inline const std::string &get_name(void) const {
