@@ -1576,7 +1576,10 @@ void DOSBOX_SetupConfigSections(void) {
         "opengl", "openglnb", "openglhq", "openglpp",
 #endif
 #if C_DIRECT3D
-        "direct3d", "direct3d11",
+        "direct3d",
+#if defined(C_SDL2)
+        "direct3d11",
+#endif
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         "metal",
