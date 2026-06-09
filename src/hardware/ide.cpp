@@ -272,7 +272,6 @@ public:
     Bitu sector_transfer_limit = 16;
     CDROM_Interface *cdrom = NULL;
     CDROM_Interface *getMSCDEXDrive();
-    void update_from_cdrom();
     Bitu data_read(Bitu iolen) override; /* read from 1F0h data port from IDE device */
     void data_write(Bitu v,Bitu iolen) override; /* write to 1F0h data port to IDE device */
     virtual void generate_identify_device();
@@ -2712,14 +2711,6 @@ CDROM_Interface *IDEATAPICDROMDevice::getMSCDEXDrive() {
     return cdrom;
 }
 
-void IDEATAPICDROMDevice::update_from_cdrom() {
-    CDROM_Interface *cdrom = getMSCDEXDrive();
-    if (cdrom == NULL) {
-        LOG_MSG("WARNING: IDE update from CD-ROM failed, disk not available\n");
-        return;
-    }
-}
-
 void IDEATADevice::update_from_biosdisk() {
 	imageDisk *dsk = getBIOSdisk();
 	if (dsk == NULL) {
@@ -2868,6 +2859,62 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate) {
 	}
 }
 
+bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Interface*> &cds) {
+	IDEATAPICDROMDevice *dev;
+	IDEController *c;
+
+	if (index < 0 || index >= MAX_IDE_CONTROLLERS)
+		return false;
+	if (cds.empty())
+		return false;
+
+	c = idecontroller[index];
+	if(c == NULL) {
+		LOG_MSG("IDE: WARNING: IDE %s controller not available. Check setting or specify another controller.", ideslot[index]);
+		return false;
+	}
+
+	if (c->device[slave?1:0] != NULL) {
+		LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.",ideslot[index],master_slave[slave?1:0]);
+		return false;
+	}
+
+	dev = new IDEATAPICDROMDevice(c,0xFFu/*no drive*/,slave,cds[0]);
+	if(dev == NULL) {
+		LOG_MSG("IDE: Unable to attach CD-ROM images");
+		return false;
+	}
+
+	/* TODO: IDE ATAPI swaplist for cds[1...size-1] */
+
+	c->device[slave?1:0] = (IDEDevice*)dev;
+	LOG_MSG("IMGMOUNT: CD-ROM image mounted to (IDE %s %s)", ideslot[index], master_slave[slave ? 1 : 0]);
+	return true;
+}
+
+bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds) {
+	const char *opts_c = opts.c_str();
+	signed char index = -1;
+	bool slave = false;
+
+	/* opts: "1m" "1s" "2m" "2s" etc */
+	if (isdigit(*opts_c)) {
+		const unsigned int c = strtoul(opts_c,(char**)(&opts_c),10);
+		if (c <= 128) index = (signed char)(c - 1u);
+
+		if (*opts_c == 'm') {
+			slave = false;
+			opts_c++;
+		}
+		else if (*opts_c == 's') {
+			slave = true;
+			opts_c++;
+		}
+	}
+
+	return IDE_CDROM_Attach(index,slave,cds);
+}
+
 /* drive_index = drive letter 0...A to 25...Z */
 void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
     IDEController *c;
@@ -2899,7 +2946,6 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
     }
     dev->mscdex = true; /* mark that the cdrom object is attached to MSCDEX emulation */
     cdrom->Release();
-    dev->update_from_cdrom();
     c->device[slave?1:0] = (IDEDevice*)dev;
     LOG_MSG("IMGMOUNT: CD-ROM image mounted to drive %c (IDE %s %s)", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);
 }

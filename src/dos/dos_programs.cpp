@@ -5693,6 +5693,8 @@ std::string GetIDEPosition(unsigned char bios_disk_index);
 int CDROM_AllocateInterface(const char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom);
 extern int forceCD;
 
+bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds);
+
 class IMGMOUNT : public Program {
 	public:
 		bool opt_replace = false;
@@ -7380,10 +7382,12 @@ class IMGMOUNT : public Program {
 				cds.push_back(cdrom);
 			}
 
-			// TODO
-			LOG(LOG_MISC,LOG_DEBUG)("CD-ROM image ok=%u to %s:%s experimental",ok,device_spec.c_str(),device_spec_opts.c_str());
+			if (ok) {
+				if (device_spec == "ide") {
+					ok = IDE_CDROM_Attach(device_spec_opts,cds);
+				}
+			}
 
-			/* Failure path -- cleanup */
 			for (unsigned int i=0; i < cds.size(); i++) {
 				if (cds[i]) {
 					cds[i]->Release();
@@ -7391,6 +7395,8 @@ class IMGMOUNT : public Program {
 				}
 			}
 			cds.clear();
+
+			if (ok) return true;
 
 			WriteOut("Unable to attach to %s:%s\n",device_spec.c_str(),device_spec_opts.c_str());
 			return false;
