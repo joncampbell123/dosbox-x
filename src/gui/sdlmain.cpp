@@ -6826,16 +6826,21 @@ void SDL_SetupConfigSection() {
     Pstring->SetBasic(true);
 
     const char* outputs[] = {
-        "default", "surface", "overlay", "ttf",
+        "default", "surface",
+#if defined(USE_TTF)
+        "ttf",
+#endif
 #if C_OPENGL
         "opengl", "openglnb", "openglhq", "openglpp",
 #endif
 #if C_GAMELINK
         "gamelink",
 #endif
-        "ddraw",
 #if C_DIRECT3D
-        "direct3d", "direct3d11",
+        "direct3d",
+#if defined(C_SDL2)
+        "direct3d11",
+#endif
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         "metal",
