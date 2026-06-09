@@ -2148,6 +2148,7 @@ bool DOSBox_isMenuVisible(void);
 void MenuShadeRect(int x,int y,int w,int h);
 void MenuDrawRect(int x,int y,int w,int h,Bitu color);
 void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
+    menu.check_layout();
     if (!menu.needsRedraw() || (sdl.updating && !OpenGL_using())) {
         return;
     }
@@ -2165,8 +2166,7 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
 
     if (&dl == &menu.display_list) { /* top level menu, draw background */
         MenuDrawRect(menu.menuBox.x, menu.menuBox.y, menu.menuBox.w, menu.menuBox.h - 1, GFX_GetRGB(63, 63, 63));
-        MenuDrawRect(menu.menuBox.x, menu.menuBox.y + menu.menuBox.h - 1, menu.menuBox.w, 1,
-                     GFX_GetRGB(31, 31, 31));
+        MenuDrawRect(menu.menuBox.x, menu.menuBox.y + menu.menuBox.h - 1, menu.menuBox.w, 1, GFX_GetRGB(31, 31, 31));
     }
 
     if (mustLock) {
@@ -4972,7 +4972,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
     if (button->button == SDL_BUTTON_LEFT) {
         if (button->state == SDL_PRESSED) {
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
-            if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+            if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle && mainMenu.get_item(mainMenu.menuUserHoverAt).is_enabled()) {
                 std::vector<DOSBoxMenu::item_handle_t> popup_stack;
                 DOSBoxMenu::item_handle_t choice_item;
                 DOSBoxMenu::item_handle_t psel_item;
@@ -4987,26 +4987,27 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                 psel_item = DOSBoxMenu::unassigned_item_handle;
                 choice_item = mainMenu.menuUserHoverAt = mainMenu.menuUserAttentionAt;
 
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).check_layout();
                 popup_stack.push_back(mainMenu.menuUserAttentionAt);
 
 #if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) {
-            /* In output=direct3d mode, SDL still has a surface but this code ignores SDL
-             * and draws directly to a Direct3D9 backbuffer which is presented to the window
-             * client area. However, GDI output to the window still works, and this code
-             * uses the SDL surface still. Therefore, for menus to draw correctly atop the
-             * Direct3D output, this code copies the Direct3D backbuffer to the SDL surface
-             * first.
-             *
-             * WARNING: This happens to work with Windows (even Windows 10 build 18xx as of
-             * 2018/05/21) because Windows appears to permit mixing Direct3D and GDI rendering
-             * to the window.
-             *
-             * Someday, if Microsoft should break that ability, this code will need to be
-             * revised to send screen "updates" to the Direct3D backbuffer first, then
-             * Present to the window client area. */
-            if (d3d) d3d->UpdateRectToSDLSurface(0, 0, sdl.surface->w, sdl.surface->h);
-        }
+                if (sdl.desktop.want_type == SCREEN_DIRECT3D) {
+                    /* In output=direct3d mode, SDL still has a surface but this code ignores SDL
+                     * and draws directly to a Direct3D9 backbuffer which is presented to the window
+                     * client area. However, GDI output to the window still works, and this code
+                     * uses the SDL surface still. Therefore, for menus to draw correctly atop the
+                     * Direct3D output, this code copies the Direct3D backbuffer to the SDL surface
+                     * first.
+                     *
+                     * WARNING: This happens to work with Windows (even Windows 10 build 18xx as of
+                     * 2018/05/21) because Windows appears to permit mixing Direct3D and GDI rendering
+                     * to the window.
+                     *
+                     * Someday, if Microsoft should break that ability, this code will need to be
+                     * revised to send screen "updates" to the Direct3D backbuffer first, then
+                     * Present to the window client area. */
+                    if (d3d) d3d->UpdateRectToSDLSurface(0, 0, sdl.surface->w, sdl.surface->h);
+                }
 #endif
 
                 if (OpenGL_using()) {
@@ -5260,7 +5261,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                                     if (sel_item != DOSBoxMenu::unassigned_item_handle) {
                                         if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id) {
-                                            if (!mainMenu.get_item(sel_item).isHilight()) {
+                                            if (!mainMenu.get_item(sel_item).isHilight() && mainMenu.get_item(sel_item).is_enabled()) {
                                                 /* use a copy of the iterator to scan forward and un-hilight the menu items.
                                                  * then use the original iterator to erase from the vector. */
                                                 for (auto ss=search;ss != popup_stack.end();ss++) {
@@ -5272,6 +5273,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                                                 popup_stack.erase(search,popup_stack.end());
                                                 mainMenu.get_item(sel_item).setHilight(mainMenu,true).setHover(mainMenu,true);
+                                                mainMenu.get_item(sel_item).check_layout();
                                                 popup_stack.push_back(sel_item);
                                                 redrawAll = true;
                                             }
@@ -7940,6 +7942,9 @@ bool VM_Boot_DOSBox_Kernel() {
         EMS_Startup(NULL);
 #endif
 
+        /* possible return to DOSBox-X DOS environment */
+        mainMenu.get_item("HelpCommandMenu").enable();
+
         SHELL_MessagesInit();
         CONFIGSHELL_Init();
         CONFIGSHELL_Run();
@@ -9903,6 +9908,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("load_ttf_font").enable(TTF_using());
 #endif
 
+        /* why show PC-98 options in IBM PC emulation mode? */
+        mainMenu.get_item("VideoPC98Menu").hide(!IS_PC98_ARCH);
+
 #if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
         mainMenu.get_item("clear_console").check(false).enable(showconsole_init).refresh_item(mainMenu);
@@ -10316,6 +10324,9 @@ fresh_boot:
 
             /* if instructed, turn off A20 at boot */
             if (disable_a20) MEM_A20_Enable(false);
+
+            /* Why allow the Help -> DOS commands menu when running a guest OS? */
+            mainMenu.get_item("HelpCommandMenu").enable(false);
 
             /* PC-98: hide the cursor */
             if (IS_PC98_ARCH) {

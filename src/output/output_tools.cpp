@@ -332,6 +332,9 @@ void OutputSettingMenuUpdate(void) {
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
     mainMenu.get_item("output_metal").check(sdl.desktop.want_type == SCREEN_METAL).refresh_item(mainMenu);
 #endif
+
+    /* don't show Video -> TTF menu if not TTF output */
+    mainMenu.get_item("VideoTTFMenu").hide(sdl.desktop.want_type != SCREEN_TTF);
 }
 
 void SwitchFS(Bitu val) {

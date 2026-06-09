@@ -272,9 +272,11 @@ public:
     Bitu sector_transfer_limit = 16;
     CDROM_Interface *cdrom = NULL;
     CDROM_Interface *getMSCDEXDrive();
-    void update_from_cdrom();
+    std::vector<CDROM_Interface*> cdrom_swaplist;
+    size_t cdrom_swaplist_pos = 0;
     Bitu data_read(Bitu iolen) override; /* read from 1F0h data port from IDE device */
     void data_write(Bitu v,Bitu iolen) override; /* write to 1F0h data port to IDE device */
+    virtual void swap_to_next_cd();
     virtual void generate_identify_device();
     virtual void generate_mmc_inquiry();
     virtual void prepare_read(Bitu offset,Bitu size);
@@ -1582,6 +1584,12 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 }
 
 IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
+    for (auto &cd : cdrom_swaplist) {
+	cd->Release();
+	cd = NULL;
+    }
+    cdrom_swaplist.clear();
+    cdrom_swaplist_pos = 0;
     if (cdrom) {
         cdrom->Release();
         cdrom = NULL;
@@ -2506,6 +2514,19 @@ void IDEATADevice::prepare_read(Bitu offset,Bitu size) {
     assert(sector_total <= sizeof(sector));
 }
 
+void IDEATAPICDROMDevice::swap_to_next_cd() {
+    if (cdrom_swaplist.empty()) return;
+    if (mscdex) return; // the drive manager manages swapping for us
+
+    if (cdrom) cdrom->Release();
+    cdrom = NULL;
+
+    if (++cdrom_swaplist_pos >= cdrom_swaplist.size())
+        cdrom_swaplist_pos = 0;
+
+    (cdrom = cdrom_swaplist[cdrom_swaplist_pos])->Addref();
+}
+
 void IDEATAPICDROMDevice::generate_mmc_inquiry() {
     Bitu i;
 
@@ -2712,14 +2733,6 @@ CDROM_Interface *IDEATAPICDROMDevice::getMSCDEXDrive() {
     return cdrom;
 }
 
-void IDEATAPICDROMDevice::update_from_cdrom() {
-    CDROM_Interface *cdrom = getMSCDEXDrive();
-    if (cdrom == NULL) {
-        LOG_MSG("WARNING: IDE update from CD-ROM failed, disk not available\n");
-        return;
-    }
-}
-
 void IDEATADevice::update_from_biosdisk() {
 	imageDisk *dsk = getBIOSdisk();
 	if (dsk == NULL) {
@@ -2816,6 +2829,63 @@ bool IDE_controller_occupied(signed char index, bool slave) { // Return true if 
     }
 }
 
+void IDE_ATAPI_MediaChangeNotify(signed char index, bool slave, bool immediate) {
+	IDEController *c;
+	IDEDevice *dev;
+
+	if (index < 0 || index >= MAX_IDE_CONTROLLERS)
+		return;
+
+	c = idecontroller[index];
+	if (c == NULL)
+		return;
+
+	dev = c->device[slave?1:0];
+	if (dev == NULL)
+		return;
+
+	if (dev->type == IDE_TYPE_CDROM) {
+		IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+		const unsigned int pk = IDEEventPack(index,slave).get();
+
+		LOG_MSG("IDE ATAPI acknowledge media change\n");
+		if (immediate) LOG_MSG("--media change is immediate");
+
+		atapi->swap_to_next_cd();
+
+		bool empty = false;
+
+		if (atapi->cdrom->class_id == CDROM_Interface::ID_FAKE) {
+			CDROM_Interface_Fake *fake = (CDROM_Interface_Fake*)(atapi->cdrom);
+			if (fake->isEmpty) empty = true;
+		}
+
+		/* if asked to change immediately, or the new image is the fake "empty" drive, change right away */
+		if (immediate || empty) {
+			atapi->loading_mode = LOAD_READY;
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+		}
+		else {
+			atapi->has_changed = true;
+			atapi->loading_mode = LOAD_INSERT_CD;
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+			PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,pk);
+		}
+	}
+}
+
+void IDE_ATAPI_MediaChangeNotifyAll(bool immediate) {
+	for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
+		for (unsigned int ms=0;ms < 2;ms++) {
+			IDE_ATAPI_MediaChangeNotify(ide,ms,immediate);
+		}
+	}
+}
+
 /* drive_index = drive letter 0...A to 25...Z */
 void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate) {
 	for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
@@ -2868,6 +2938,109 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate) {
 	}
 }
 
+bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Interface*> &cds) {
+	IDEATAPICDROMDevice *dev;
+	IDEController *c;
+
+	if (index < 0 || index >= MAX_IDE_CONTROLLERS)
+		return false;
+	if (cds.empty())
+		return false;
+
+	c = idecontroller[index];
+	if(c == NULL) {
+		LOG_MSG("IDE: WARNING: IDE %s controller not available. Check setting or specify another controller.", ideslot[index]);
+		return false;
+	}
+
+	if (c->device[slave?1:0] != NULL) {
+		LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.",ideslot[index],master_slave[slave?1:0]);
+		return false;
+	}
+
+	dev = new IDEATAPICDROMDevice(c,0xFFu/*no drive*/,slave,cds[0]);
+	if(dev == NULL) {
+		LOG_MSG("IDE: Unable to attach CD-ROM images");
+		return false;
+	}
+
+	if (cds.size() > 1) {
+		assert(dev->cdrom_swaplist.empty());
+		assert(dev->cdrom_swaplist_pos == 0);
+		for (auto &cd : cds) {
+			cd->Addref();
+			dev->cdrom_swaplist.push_back(cd);
+		}
+	}
+
+	c->device[slave?1:0] = (IDEDevice*)dev;
+	LOG_MSG("IMGMOUNT: CD-ROM image mounted to (IDE %s %s)", ideslot[index], master_slave[slave ? 1 : 0]);
+	return true;
+}
+
+struct ide_opt_spec_t {
+	signed char index = -1;
+	bool slave = false;
+};
+
+bool IDE_CDROM_ParseOptSpec(struct ide_opt_spec_t &spec,const std::string &opts) {
+	const char *opts_c = opts.c_str();
+
+	/* opts: "1m" "1s" "2m" "2s" etc */
+	if (isdigit(*opts_c)) {
+		const unsigned int c = strtoul(opts_c,(char**)(&opts_c),10);
+		if (c <= 128) spec.index = (signed char)(c - 1u);
+
+		if (*opts_c == 'm') {
+			spec.slave = false;
+			opts_c++;
+		}
+		else if (*opts_c == 's') {
+			spec.slave = true;
+			opts_c++;
+		}
+	}
+
+	return true;
+}
+
+bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds) {
+	struct ide_opt_spec_t spec;
+
+	if (!IDE_CDROM_ParseOptSpec(spec,opts)) return false;
+	return IDE_CDROM_Attach(spec.index,spec.slave,cds);
+}
+
+bool IDE_CDROM_Detach(signed char index,bool slave) {
+	IDEATAPICDROMDevice *dev;
+	IDEController *c;
+
+	if (index < 0 || index >= MAX_IDE_CONTROLLERS)
+		return false;
+
+	c = idecontroller[index];
+	if(c == NULL)
+		return false;
+
+	if (c->device[slave?1:0] == NULL)
+		return false;
+
+	dev = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave]);
+	if (dev) {
+		delete dev;
+		c->device[slave] = NULL;
+	}
+
+	return true;
+}
+
+bool IDE_CDROM_Detach(const std::string &opts) {
+	struct ide_opt_spec_t spec;
+
+	if (!IDE_CDROM_ParseOptSpec(spec,opts)) return false;
+	return IDE_CDROM_Detach(spec.index,spec.slave);
+}
+
 /* drive_index = drive letter 0...A to 25...Z */
 void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
     IDEController *c;
@@ -2879,7 +3052,6 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
         LOG_MSG("IDE: WARNING: IDE %s controller not available. Check setting or specify another controller.", ideslot[index]);
         return;
     }
-
 
     if (c->device[slave?1:0] != NULL) {
         LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.",ideslot[index],master_slave[slave?1:0]);
@@ -2900,7 +3072,6 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
     }
     dev->mscdex = true; /* mark that the cdrom object is attached to MSCDEX emulation */
     cdrom->Release();
-    dev->update_from_cdrom();
     c->device[slave?1:0] = (IDEDevice*)dev;
     LOG_MSG("IMGMOUNT: CD-ROM image mounted to drive %c (IDE %s %s)", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);
 }

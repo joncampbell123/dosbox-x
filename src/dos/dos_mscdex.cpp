@@ -195,7 +195,7 @@ static bool StopAudio(uint8_t subUnit) {
 static Bitu MSCDEX_Strategy_Handler(void); 
 static Bitu MSCDEX_Interrupt_Handler(void);
 #endif
-int CDROM_AllocateInterface(char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom);
+int CDROM_AllocateInterface(const char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom);
 
 #if !defined(OSFREE)
 class DOS_DeviceHeader:public MemStruct {
@@ -240,7 +240,7 @@ public:
 
 // TODO: Perhaps add a check that, if physicalPath and subUnit are the same as the CDROM interface
 //       already there, don't do anything and return success.
-static int UpdateDrive(uint16_t _drive, char* physicalPath, const uint8_t subUnit)
+static int UpdateDrive(uint16_t _drive, const char* physicalPath, const uint8_t subUnit)
 {
 	if (subUnit >= GetNumDrives()) return 4;
 	(void)_drive;//unused
@@ -421,7 +421,7 @@ int CMscdex::RemoveDrive(uint16_t _drive)
 	return 1;
 }
 
-int CDROM_AllocateInterface(char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom) {
+int CDROM_AllocateInterface(const char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom) {
 	int result = 0;
 
 	/* If you're calling this and cdrom != NULL then you're calling to replace the object with a new one */

@@ -843,9 +843,11 @@ static void SDLCALL MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
             }
             need--;
         }
-        /* assume output != stream */
-        mixer.last_dac[0] = (output-2)[0];
-        mixer.last_dac[1] = (output-2)[1];
+        if (output != (int16_t*)stream) {
+            /* assume output != stream */
+            mixer.last_dac[0] = (output-2)[0];
+            mixer.last_dac[1] = (output-2)[1];
+        }
     }
 
     if (need > 0)
