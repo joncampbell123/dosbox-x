@@ -191,7 +191,7 @@ class DOSBoxMenu {
             public:
                                         item();
                                         ~item();
-            public:
+        public:
                 void                    check_layout(void);
             protected:
                 DOSBoxMenu*             topMenu = NULL;     /* menu object that contains this item */
@@ -208,7 +208,8 @@ class DOSBoxMenu {
                 struct status {
                                         status() : changed(false), allocated(false),
                                                    enabled(true), checked(false),
-                                                   in_use(false), hidden(false) { };
+                                                   in_use(false), hidden(false),
+                                                   changed_layout(false) { };
 
                     unsigned int        changed:1;
                     unsigned int        allocated:1;
@@ -216,6 +217,7 @@ class DOSBoxMenu {
                     unsigned int        checked:1;
                     unsigned int        in_use:1;
                     unsigned int        hidden:1;
+                    unsigned int        changed_layout:1;
                 } status = {};
             protected:
                 callback_t              callback_func = unassigned_callback;
@@ -227,8 +229,10 @@ class DOSBoxMenu {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
             protected:
                 HMENU                   winMenu = NULL;
+                bool                    menuInParent = false; /* HMENU has been AppendChild'd to a parent menu */
             protected:
                 void                    winAppendMenu(HMENU handle);
+                bool                    winLocateItem(HMENU handle, UINT& item, BOOL& fByPosition);
                 std::string             winConstructMenuText(void);
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
@@ -376,6 +380,7 @@ class DOSBoxMenu {
                             if (topMenu) {
                                 if (parent_id != unassigned_item_handle) {
                                     item &item = topMenu->get_item(parent_id);
+                                    item.status.changed_layout = 1;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                                     item.display_list.needLayout = true;
 #endif

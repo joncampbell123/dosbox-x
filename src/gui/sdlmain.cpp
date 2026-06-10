@@ -10331,7 +10331,7 @@ fresh_boot:
             if (disable_a20) MEM_A20_Enable(false);
 
             /* Why allow the Help -> DOS commands menu when running a guest OS? */
-            mainMenu.get_item("HelpCommandMenu").enable(false);
+            mainMenu.get_item("HelpCommandMenu").enable(false).refresh_item(mainMenu);
 
             /* PC-98: hide the cursor */
             if (IS_PC98_ARCH) {
