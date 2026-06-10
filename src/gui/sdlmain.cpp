@@ -9914,7 +9914,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
         /* why show PC-98 options in IBM PC emulation mode? */
-        mainMenu.get_item("VideoPC98Menu").hide(!IS_PC98_ARCH);
+        mainMenu.get_item("VideoPC98Menu").hide(!IS_PC98_ARCH).refresh_item(mainMenu);
 
 #if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
