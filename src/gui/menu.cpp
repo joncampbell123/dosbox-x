@@ -1403,75 +1403,85 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
 }
 
 void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
-    int index = GetMenuItemCount(handle);
-    if(index < 0) return;
+    const int index = GetMenuItemCount(handle);
+    if (index < 0) return;
 
+    if (type == submenu_type_id && winMenu == NULL)
+        return;
+
+    bool wide = false;
+    LPWSTR str = NULL;
     wchar_t* buffer = NULL;
     wchar_t emptyStr[] = L"";
-    if (type == separator_type_id) {
-        AppendMenu(handle, MF_SEPARATOR, 0, NULL);
-    }
-    else if (type == vseparator_type_id) {
-        AppendMenu(handle, MF_MENUBREAK, 0, NULL);
-    }
-    else if (type == submenu_type_id) {
-        if (winMenu != NULL) {
-            unsigned int attr = MF_STRING;
+    const char* c_str = "";
+    UINT flags = 0;
+    UINT_PTR itemID = 0;
+    std::string mt;
 
-            /* NTS: Until this code fully follows the Linux SDLDrawn hidden item behavior,
-                    treat hidden the same as !enabled */
+    if (type == submenu_type_id || type == item_type_id) {
+        mt = winConstructMenuText();
+        c_str = mt.c_str();
 
-            attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
-            attr |= (status.enabled && !status.hidden) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
-
-            LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
-            if (wcscmp(str, L""))
-                AppendMenuW(handle, MF_POPUP | attr, (uintptr_t)winMenu, str);
-            else
-                AppendMenu(handle, MF_POPUP | attr, (uintptr_t)winMenu, winConstructMenuText().c_str());
-
-            menuInParent = true;/* and therefore, we don't need to free it because Windows will do it for us at DestroyMenu() */
-        }
-    }
-    else if (type == item_type_id) {
-        unsigned int attr = MF_STRING;
+        str = getWString(mt, emptyStr, buffer);
+        if (*str != 0/*wcslen() > 0 aka wcscmp(str,"")*/) wide = true;
 
         /* NTS: Until this code fully follows the Linux SDLDrawn hidden item behavior,
                 treat hidden the same as !enabled */
 
-        attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
-        attr |= (status.enabled && !status.hidden) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
-
-        LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
-        if (wcscmp(str, L""))
-            AppendMenuW(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), str);
-        else
-            AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
+        flags |= MF_STRING;
+        flags |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
+        flags |= (status.enabled && !status.hidden) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
+        if (type == submenu_type_id) {
+            flags |= MF_POPUP;
+            itemID = (UINT_PTR)winMenu;
+            menuInParent = true;/* and therefore, we don't need to free it because Windows will do it for us when we call DestroyMenu() */
+        }
+        else {
+            itemID = master_id + winMenuMinimumID;
+        }
     }
-    if (buffer != NULL) {delete[] buffer;buffer = NULL;}
+    else if (type == separator_type_id) {
+        flags |= MF_SEPARATOR;
+    }
+    else if (type == vseparator_type_id) {
+        flags |= MF_MENUBREAK;
+    }
 
-    MENUITEMINFO mii;
-    memset(&mii, 0, sizeof(mii));
-    mii.cbSize = sizeof(MENUITEMINFO);
-    mii.fMask = MIIM_DATA;
-    mii.dwItemData = (ULONG_PTR)master_id;
-    SetMenuItemInfo(handle, index, TRUE, &mii);
+    if (wide)
+        AppendMenuW(handle, flags, (uintptr_t)itemID, str);
+    else
+        AppendMenu(handle, flags, (uintptr_t)itemID, c_str);
+
+    if (buffer != NULL) {
+        delete[] buffer;
+        buffer = NULL;
+    }
+
+    {
+        MENUITEMINFO mii;
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(MENUITEMINFO);
+        mii.fMask = MIIM_DATA;
+        mii.dwItemData = (ULONG_PTR)master_id;
+        SetMenuItemInfo(handle, index, TRUE, &mii);
+    }
 }
 
 bool DOSBoxMenu::item::winLocateItem(HMENU handle, UINT& item, BOOL& fByPosition) {
     /* items you can access by ID */
-    if(type == DOSBoxMenu::item_type_id) {
+    if (type == DOSBoxMenu::item_type_id) {
         item = (UINT)(master_id + winMenuMinimumID);
         fByPosition = FALSE;
         return true;
     }
 
+    MENUITEMINFO mii;
+    memset(&mii, 0, sizeof(mii));
+
     /* anything else (submenus, separators, etc) we have to search for.
        fortunately Windows 95 and higher have menu item info with a dwItemData we can use to hold the item ID */
-    int count = GetMenuItemCount(handle);
-    for(int c = 0; c < count; c++) {
-        MENUITEMINFO mii;
-        memset(&mii, 0, sizeof(mii));
+    const int count = GetMenuItemCount(handle);
+    for (int c = 0; c < count; c++) {
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_DATA;
         if(GetMenuItemInfo(handle, (UINT)c, TRUE, &mii)) {
@@ -1602,8 +1612,8 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
                 if(GetMenuItemInfo(phandle, item, fByPosition, &mii)) {
                     /* NTS: Until this code fully follows the Linux SDLDrawn hidden item behavior,
                             treat hidden the same as !enabled */
-                    /* NTS: MSDN docs document MS_DISABLED == 0x03 and MF_GRAYED == 0x03, which is false.
-                            They reflect the same constants from the Windows 3.1 days. Does Microsoft even check their own site? */
+                    /* NTS: MSDN aka "Microsoft Learn" website documents that MS_DISABLED == 0x03 and MF_GRAYED == 0x03, which is false.
+                            They reflect different bits same as from the Windows 3.1 days. Does Microsoft even check their own site? */
                     if(status.checked)                   mii.fState |=   MF_CHECKED;/*MF_UNCHECKED==0*/
                     else                                 mii.fState &=  ~MF_CHECKED;
                     if(!status.enabled || status.hidden) mii.fState |=  (MF_DISABLED|MF_GRAYED);
