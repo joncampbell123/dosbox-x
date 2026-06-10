@@ -530,15 +530,15 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
             item.set_text(MSG_Get("CONFIG_TOOL_EXIT"));
         }
 
-        guiMenu.displaylist_clear(guiMenu.display_list);
+        guiMenu.displaylist_clear(guiMenu.unassigned_item_handle);
 
         guiMenu.displaylist_append(
-                guiMenu.display_list,
-                guiMenu.get_item_id_by_name("ConfigGuiMenu"));
+            guiMenu.unassigned_item_handle,
+            guiMenu.get_item_id_by_name("ConfigGuiMenu"));
 
         {
             guiMenu.displaylist_append(
-                    guiMenu.get_item("ConfigGuiMenu").display_list, guiMenu.get_item_id_by_name("ExitGUI"));
+                guiMenu.get_item_id_by_name("ConfigGuiMenu"), guiMenu.get_item_id_by_name("ExitGUI"));
         }
     } else if (!shortcut || shortcutid<16) {
         {
@@ -562,10 +562,10 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
             item.set_text("");
         }
 
-        nullMenu.displaylist_clear(nullMenu.display_list);
+        nullMenu.displaylist_clear(nullMenu.unassigned_item_handle);
 
         nullMenu.displaylist_append(
-                nullMenu.display_list,
+                nullMenu.unassigned_item_handle,
                 nullMenu.get_item_id_by_name("ConfigGuiMenu"));
     }
 

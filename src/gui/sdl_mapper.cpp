@@ -5971,21 +5971,21 @@ void MAPPER_StartUp() {
         item.set_text(MSG_Get("SAVE_MAPPER_FILE"));
     }
 
-    mapperMenu.displaylist_clear(mapperMenu.display_list);
+    mapperMenu.displaylist_clear(mapperMenu.unassigned_item_handle);
 
     mapperMenu.displaylist_append(
-        mapperMenu.display_list,
+        mapperMenu.unassigned_item_handle,
         mapperMenu.get_item_id_by_name("MapperMenu"));
 
     {
         mapperMenu.displaylist_append(
-            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("ExitMapper"));
+            mapperMenu.get_item_id_by_name("MapperMenu"), mapperMenu.get_item_id_by_name("ExitMapper"));
 
         mapperMenu.displaylist_append(
-            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("_separator_"));
+            mapperMenu.get_item_id_by_name("MapperMenu"), mapperMenu.get_item_id_by_name("_separator_"));
 
         mapperMenu.displaylist_append(
-            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("SaveMapper"));
+            mapperMenu.get_item_id_by_name("MapperMenu"), mapperMenu.get_item_id_by_name("SaveMapper"));
     }
 #endif
 
