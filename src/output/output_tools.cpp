@@ -334,7 +334,9 @@ void OutputSettingMenuUpdate(void) {
 #endif
 
     /* don't show Video -> TTF menu if not TTF output */
+#if defined(USE_TTF)
     mainMenu.get_item("VideoTTFMenu").hide(sdl.desktop.want_type != SCREEN_TTF);
+#endif
 }
 
 void SwitchFS(Bitu val) {
