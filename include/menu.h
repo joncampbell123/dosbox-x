@@ -376,10 +376,14 @@ class DOSBoxMenu {
                             if (topMenu) {
                                 if (parent_id != unassigned_item_handle) {
                                     item &item = topMenu->get_item(parent_id);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                                     item.display_list.needLayout = true;
+#endif
                                 }
                                 else {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                                     topMenu->display_list.needLayout = true;
+#endif
                                 }
                             }
                         }
