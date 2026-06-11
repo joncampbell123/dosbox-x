@@ -1445,6 +1445,8 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle,int where) {
     }
     else if (type == vseparator_type_id) {
         flags |= MF_MENUBREAK;
+        //FIXME: Windows 11 MF_MENUBREAK and MF_MENUBARBREAK work but also cause an extra emoty menu item,
+        //       which looks ugly and janky. Why?
     }
 
     if(wide)
