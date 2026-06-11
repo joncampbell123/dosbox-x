@@ -574,6 +574,7 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
 		NSMenuItem *ns_item = (NSMenuItem*)nsMenuItem;
 
 		[ns_item setEnabled:(item.is_enabled() ? YES : NO)];
+		[ns_item setHidden:(item.is_hidden() ? YES : NO)];
 		[ns_item setState:(item.is_checked() ? NSOnState : NSOffState)];
 
 		const std::string &it = item.get_text();
