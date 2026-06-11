@@ -231,7 +231,7 @@ class DOSBoxMenu {
                 HMENU                   winMenu = NULL;
                 bool                    menuInParent = false; /* HMENU has been AppendChild'd to a parent menu */
             protected:
-                void                    winAppendMenu(HMENU handle);
+                void                    winAppendMenu(HMENU handle,int where=-1);
                 bool                    winLocateItem(HMENU handle, UINT& item, BOOL& fByPosition);
                 std::string             winConstructMenuText(void);
 #endif
@@ -376,6 +376,7 @@ class DOSBoxMenu {
                         status.hidden  = f;
                         if (has_vis_enabled()) {
                             status.changed = 1;
+                            status.changed_layout = 1;
                             /* this affects the parent menu item too! */
                             if (topMenu) {
                                 if (parent_id != unassigned_item_handle) {

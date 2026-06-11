@@ -1402,11 +1402,14 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
     return r;
 }
 
-void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
-    const int index = GetMenuItemCount(handle);
+void DOSBoxMenu::item::winAppendMenu(HMENU handle,int where) {
+    const int index = (where >= 0) ? where : GetMenuItemCount(handle);
     if (index < 0) return;
 
     if (type == submenu_type_id && winMenu == NULL)
+        return;
+
+    if (status.hidden)
         return;
 
     bool wide = false;
@@ -1424,9 +1427,6 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
 
         str = getWString(mt, emptyStr, buffer);
         if (*str != 0/*wcslen() > 0 aka wcscmp(str,"")*/) wide = true;
-
-        /* NTS: Until this code fully follows the Linux SDLDrawn hidden item behavior,
-                treat hidden the same as !enabled */
 
         flags |= MF_STRING;
         flags |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
@@ -1447,10 +1447,10 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
         flags |= MF_MENUBREAK;
     }
 
-    if (wide)
-        AppendMenuW(handle, flags, (uintptr_t)itemID, str);
+    if(wide)
+        InsertMenuW(handle, index, flags | MF_BYPOSITION, (uintptr_t)itemID, str);
     else
-        AppendMenu(handle, flags, (uintptr_t)itemID, c_str);
+        InsertMenuA(handle, index, flags | MF_BYPOSITION, (uintptr_t)itemID, c_str);
 
     if (buffer != NULL) {
         delete[] buffer;
@@ -1583,17 +1583,79 @@ void DOSBoxMenu::item::check_layout(void) {
 void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
     (void)menu;//POSSIBLY UNUSED
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
-    if (menu.winMenu != NULL && status.in_use && status.changed) {
+    HMENU phandle = NULL;
+
+    if (parent_id != unassigned_item_handle)
+        phandle = menu.get_item(parent_id).winMenu;
+    else
+        phandle = menu.winMenu;
+
+    if (phandle && status.in_use && status.changed && status.changed_layout && !status.hidden) {
+        const displaylist& dl =
+            (parent_id != unassigned_item_handle) ?
+            menu.get_item(parent_id).display_list :
+            menu.display_list;
+
+        /* is the menu item there? if not, we'll need to add it back in */
+        {
+            const int count = GetMenuItemCount(phandle);
+            size_t dlist_found = 0;
+            size_t dlist_scan = 0;
+            bool insert = false;
+            int menu_scan = 0;
+
+            MENUITEMINFO mii;
+            memset(&mii, 0, sizeof(mii));
+            mii.cbSize = sizeof(mii);
+            mii.fMask = MIIM_DATA;
+
+            /* where am I in the display list? */
+            while (dlist_found < dl.disp_list.size() && dl.disp_list[dlist_found] != master_id)
+                dlist_found++;
+
+            /* where should I insert myself into the menu? */
+            if (dlist_found < dl.disp_list.size()) {
+                insert = true;
+                while (menu_scan < count && dlist_scan < dlist_found) {
+                    if (GetMenuItemInfo(phandle, (UINT)menu_scan, TRUE, &mii)) {
+                        while (dlist_scan < dlist_found) {
+                            if (mii.dwItemData == dl.disp_list[dlist_scan]) {
+                                dlist_scan++; /* continue scan after this entry */
+                                break;
+                            }
+                            if (mii.dwItemData == master_id) {
+                                insert = false; /* Oh! There I am! No insertion needed! */
+                                break;
+                            }
+                            dlist_scan++;
+                        }
+                    }
+
+                    menu_scan++;
+                }
+
+                if (insert)
+                    winAppendMenu(phandle, menu_scan);
+            }
+        }
+    }
+
+    if (phandle != NULL && status.in_use && status.changed) {
         BOOL fByPosition = FALSE;
-        HMENU phandle = NULL;
         UINT item = 0;
 
-        if (parent_id != unassigned_item_handle)
-            phandle = menu.get_item(parent_id).winMenu;
-        else
-            phandle = menu.winMenu;
-
         if (phandle != NULL && winLocateItem(phandle,/*&*/item,/*&*/fByPosition)) {
+            if (status.hidden) {
+                /* need to remove the item from the menu */
+                RemoveMenu(phandle, item, fByPosition ? MF_BYPOSITION : MF_BYCOMMAND);
+                if (type == DOSBoxMenu::submenu_type_id)
+                    menuInParent = false; /* detached from menu, it is our responsibility to DestroyMenu() again */
+
+                status.changed_layout = false;
+                status.changed = false;
+                return;
+            }
+
             MENUITEMINFO mii;
             memset(&mii, 0, sizeof(mii));
             mii.cbSize = sizeof(mii);
@@ -1610,8 +1672,6 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
                 mii.fMask = MIIM_STATE;
 
                 if(GetMenuItemInfo(phandle, item, fByPosition, &mii)) {
-                    /* NTS: Until this code fully follows the Linux SDLDrawn hidden item behavior,
-                            treat hidden the same as !enabled */
                     /* NTS: MSDN aka "Microsoft Learn" website documents that MS_DISABLED == 0x03 and MF_GRAYED == 0x03, which is false.
                             They reflect different bits same as from the Windows 3.1 days. Does Microsoft even check their own site? */
                     if(status.checked)                   mii.fState |=   MF_CHECKED;/*MF_UNCHECKED==0*/
@@ -1634,11 +1694,6 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
                         mii.cch = winConstructMenuText().length();
                         SetMenuItemInfoA(phandle, item, fByPosition, (MENUITEMINFOA*)(&mii));
                     }
-                }
-
-                mii.fMask = MIIM_STATE;
-                if(GetMenuItemInfo(phandle, item, fByPosition, &mii)) {
-                    auto x = mii.fState;
                 }
             }
         }
