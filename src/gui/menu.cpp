@@ -1402,51 +1402,111 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
     return r;
 }
 
-void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
+void DOSBoxMenu::item::winAppendMenu(HMENU handle,int where) {
+    const int index = (where >= 0) ? where : GetMenuItemCount(handle);
+    if (index < 0) return;
+
+    if (type == submenu_type_id && winMenu == NULL)
+        return;
+
+    if (status.hidden)
+        return;
+
+    bool wide = false;
+    LPWSTR str = NULL;
     wchar_t* buffer = NULL;
     wchar_t emptyStr[] = L"";
-    if (type == separator_type_id) {
-        AppendMenu(handle, MF_SEPARATOR, 0, NULL);
-    }
-    else if (type == vseparator_type_id) {
-        AppendMenu(handle, MF_MENUBREAK, 0, NULL);
-    }
-    else if (type == submenu_type_id) {
-        if (winMenu != NULL) {
-            LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
-            if (wcscmp(str, L""))
-                AppendMenuW(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, str);
-            else
-                AppendMenu(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, winConstructMenuText().c_str());
+    const char* c_str = "";
+    UINT flags = 0;
+    UINT_PTR itemID = 0;
+    std::string mt;
+
+    if (type == submenu_type_id || type == item_type_id) {
+        mt = winConstructMenuText();
+        c_str = mt.c_str();
+
+        str = getWString(mt, emptyStr, buffer);
+        if (*str != 0/*wcslen() > 0 aka wcscmp(str,"")*/) wide = true;
+
+        flags |= MF_STRING;
+        flags |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
+        flags |= (status.enabled && !status.hidden) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
+        if (type == submenu_type_id) {
+            flags |= MF_POPUP;
+            itemID = (UINT_PTR)winMenu;
+            menuInParent = true;/* and therefore, we don't need to free it because Windows will do it for us when we call DestroyMenu() */
+        }
+        else {
+            itemID = master_id + winMenuMinimumID;
         }
     }
-    else if (type == item_type_id) {
-        unsigned int attr = MF_STRING;
-
-        attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
-        attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
-
-        LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
-        if (wcscmp(str, L""))
-            AppendMenuW(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), str);
-        else
-            AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
+    else if (type == separator_type_id) {
+        flags |= MF_SEPARATOR;
     }
-    if (buffer != NULL) {delete[] buffer;buffer = NULL;}
+    else if (type == vseparator_type_id) {
+        flags |= MF_MENUBREAK;
+    }
+
+    if(wide)
+        InsertMenuW(handle, index, flags | MF_BYPOSITION, (uintptr_t)itemID, str);
+    else
+        InsertMenuA(handle, index, flags | MF_BYPOSITION, (uintptr_t)itemID, c_str);
+
+    if (buffer != NULL) {
+        delete[] buffer;
+        buffer = NULL;
+    }
+
+    {
+        MENUITEMINFO mii;
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(MENUITEMINFO);
+        mii.fMask = MIIM_DATA;
+        mii.dwItemData = (ULONG_PTR)master_id;
+        SetMenuItemInfo(handle, index, TRUE, &mii);
+    }
+}
+
+bool DOSBoxMenu::item::winLocateItem(HMENU handle, UINT& item, BOOL& fByPosition) {
+    /* items you can access by ID */
+    if (type == DOSBoxMenu::item_type_id) {
+        item = (UINT)(master_id + winMenuMinimumID);
+        fByPosition = FALSE;
+        return true;
+    }
+
+    MENUITEMINFO mii;
+    memset(&mii, 0, sizeof(mii));
+
+    /* anything else (submenus, separators, etc) we have to search for.
+       fortunately Windows 95 and higher have menu item info with a dwItemData we can use to hold the item ID */
+    const int count = GetMenuItemCount(handle);
+    for (int c = 0; c < count; c++) {
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_DATA;
+        if(GetMenuItemInfo(handle, (UINT)c, TRUE, &mii)) {
+            if(mii.dwItemData == (ULONG_PTR)master_id) {
+                fByPosition = TRUE;
+                item = (UINT)c;
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 bool DOSBoxMenu::winMenuSubInit(DOSBoxMenu::item &p_item) {
     if (p_item.winMenu == NULL) {
         p_item.winMenu = CreatePopupMenu();
+        p_item.menuInParent = false;
         if (p_item.winMenu != NULL) {
             for (const auto id : p_item.display_list.disp_list) {
                 DOSBoxMenu::item &item = get_item(id);
 
                 /* if a submenu, make the submenu */
-                if (item.type == submenu_type_id) {
-                    item.parent_id = p_item.master_id;//FIXME: No longer needed?
+                if (item.type == submenu_type_id)
                     winMenuSubInit(item);
-                }
 
                 item.winAppendMenu(p_item.winMenu);
             }
@@ -1466,10 +1526,8 @@ bool DOSBoxMenu::winMenuInit(void) {
             DOSBoxMenu::item &item = get_item(id);
 
             /* if a submenu, make the submenu */
-            if (item.type == submenu_type_id) {
-                item.parent_id = unassigned_item_handle;//FIXME: No longer needed?
+            if (item.type == submenu_type_id)
                 winMenuSubInit(item);
-            }
 
             item.winAppendMenu(winMenu);
         }
@@ -1480,9 +1538,15 @@ bool DOSBoxMenu::winMenuInit(void) {
 
 void DOSBoxMenu::winMenuDestroy(void) {
     if (winMenu != NULL) {
-        /* go through all menu items, and clear the menu handle */
-        for (auto &id : master_list)
+        /* go through all menu items, and clear the menu handle.
+           destroy the menu handle UNLESS it was inserted into a parent menu,
+           in which case DestroyMenu() will destroy it as part of recursively
+           destroying the menu resource. */
+        for(auto& id : master_list) {
+            if(id.winMenu && !id.menuInParent) DestroyMenu(id.winMenu);
+            id.menuInParent = false;
             id.winMenu = NULL;
+        }
 
         /* destroy the menu.
          * By MSDN docs it destroys submenus automatically */
@@ -1519,41 +1583,123 @@ void DOSBoxMenu::item::check_layout(void) {
 void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
     (void)menu;//POSSIBLY UNUSED
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
-    if (menu.winMenu != NULL && status.in_use && status.changed) {
-        HMENU phandle = NULL;
+    HMENU phandle = NULL;
 
-        if (parent_id != unassigned_item_handle)
-            phandle = menu.get_item(parent_id).winMenu;
-        else
-            phandle = menu.winMenu;
+    if (parent_id != unassigned_item_handle)
+        phandle = menu.get_item(parent_id).winMenu;
+    else
+        phandle = menu.winMenu;
 
-        if (phandle != NULL) {
+    if (phandle && status.in_use && status.changed && status.changed_layout && !status.hidden) {
+        const displaylist& dl =
+            (parent_id != unassigned_item_handle) ?
+            menu.get_item(parent_id).display_list :
+            menu.display_list;
+
+        /* is the menu item there? if not, we'll need to add it back in */
+        {
+            const int count = GetMenuItemCount(phandle);
+            size_t dlist_found = 0;
+            size_t dlist_scan = 0;
+            bool insert = false;
+            int menu_scan = 0;
+
+            MENUITEMINFO mii;
+            memset(&mii, 0, sizeof(mii));
+            mii.cbSize = sizeof(mii);
+            mii.fMask = MIIM_DATA;
+
+            /* where am I in the display list? */
+            while (dlist_found < dl.disp_list.size() && dl.disp_list[dlist_found] != master_id)
+                dlist_found++;
+
+            /* where should I insert myself into the menu? */
+            if (dlist_found < dl.disp_list.size()) {
+                insert = true;
+                while (menu_scan < count && dlist_scan < dlist_found) {
+                    if (GetMenuItemInfo(phandle, (UINT)menu_scan, TRUE, &mii)) {
+                        while (dlist_scan < dlist_found) {
+                            if (mii.dwItemData == dl.disp_list[dlist_scan]) {
+                                dlist_scan++; /* continue scan after this entry */
+                                break;
+                            }
+                            if (mii.dwItemData == master_id) {
+                                insert = false; /* Oh! There I am! No insertion needed! */
+                                break;
+                            }
+                            dlist_scan++;
+                        }
+                    }
+
+                    menu_scan++;
+                }
+
+                if (insert)
+                    winAppendMenu(phandle, menu_scan);
+            }
+        }
+    }
+
+    if (phandle != NULL && status.in_use && status.changed) {
+        BOOL fByPosition = FALSE;
+        UINT item = 0;
+
+        if (phandle != NULL && winLocateItem(phandle,/*&*/item,/*&*/fByPosition)) {
+            if (status.hidden) {
+                /* need to remove the item from the menu */
+                RemoveMenu(phandle, item, fByPosition ? MF_BYPOSITION : MF_BYCOMMAND);
+                if (type == DOSBoxMenu::submenu_type_id)
+                    menuInParent = false; /* detached from menu, it is our responsibility to DestroyMenu() again */
+
+                status.changed_layout = false;
+                status.changed = false;
+                return;
+            }
+
+            MENUITEMINFO mii;
+            memset(&mii, 0, sizeof(mii));
+            mii.cbSize = sizeof(mii);
+
+            static_assert(sizeof(MENUITEMINFOA) == sizeof(MENUITEMINFOW), "oops");
+
             if (type == separator_type_id) {
                 /* none */
             }
             else if (type == vseparator_type_id) {
                 /* none */
             }
-            else if (type == submenu_type_id) {
-                /* TODO: Can't change by ID, have to change by position */
-            }
-            else if (type == item_type_id) {
-                unsigned int attr = MF_STRING;
+            else { /* item or submenu */
+                mii.fMask = MIIM_STATE;
 
-                attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
-                attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
+                if(GetMenuItemInfo(phandle, item, fByPosition, &mii)) {
+                    /* NTS: MSDN aka "Microsoft Learn" website documents that MS_DISABLED == 0x03 and MF_GRAYED == 0x03, which is false.
+                            They reflect different bits same as from the Windows 3.1 days. Does Microsoft even check their own site? */
+                    if(status.checked)                   mii.fState |=   MF_CHECKED;/*MF_UNCHECKED==0*/
+                    else                                 mii.fState &=  ~MF_CHECKED;
+                    if(!status.enabled || status.hidden) mii.fState |=  (MF_DISABLED|MF_GRAYED);
+                    else                                 mii.fState &= ~(MF_DISABLED|MF_GRAYED);/*MF_ENABLED==0*/
 
-                wchar_t* buffer = NULL;
-                wchar_t emptyStr[] = L"";
-                LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
-                if (wcscmp(str, L""))
-                    ModifyMenuW(phandle, (uintptr_t)(master_id + winMenuMinimumID), attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID), str);
-                else
-                    ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID), attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
+                    wchar_t* buffer = NULL;
+                    wchar_t emptyStr[] = L"";
+                    LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
+                    mii.fMask |= MIIM_TYPE;
+                    mii.fType = MFT_STRING;
+                    if(wcscmp(str, L"")) {
+                        mii.dwTypeData = (LPTSTR)str;
+                        mii.cch = wcslen(str);
+                        SetMenuItemInfoW(phandle, item, fByPosition, (MENUITEMINFOW*)(&mii));
+                    }
+                    else {
+                        mii.dwTypeData = (LPTSTR)winConstructMenuText().c_str();
+                        mii.cch = winConstructMenuText().length();
+                        SetMenuItemInfoA(phandle, item, fByPosition, (MENUITEMINFOA*)(&mii));
+                    }
+                }
             }
         }
     }
 
+    status.changed_layout = false;
     status.changed = false;
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */

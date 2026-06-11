@@ -1570,17 +1570,15 @@ void DOSBOX_SetupConfigSections(void) {
         "true", "false", "dosvar", "tilde", "1", "0",
         nullptr };
 
+    /* Do NOT ifdef these off, even if compiled for a platform that does not support the output mode,
+     * so that when the reference config files are made they list all settings. The output code is
+     * expected to pick a default or best equivalent when given a setting not supported for the platform. */
     const char* switchoutputs[] = {
         "auto", "surface",
-#if C_OPENGL
         "opengl", "openglnb", "openglhq", "openglpp",
-#endif
-#if C_DIRECT3D
-        "direct3d", "direct3d11",
-#endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+        "direct3d",
+        "direct3d11",
         "metal",
-#endif
         nullptr };
 
     const char* scalers[] = {

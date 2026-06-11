@@ -6828,16 +6828,21 @@ void SDL_SetupConfigSection() {
     Pstring->SetBasic(true);
 
     const char* outputs[] = {
-        "default", "surface", "overlay", "ttf",
+        "default", "surface",
+#if defined(USE_TTF)
+        "ttf",
+#endif
 #if C_OPENGL
         "opengl", "openglnb", "openglhq", "openglpp",
 #endif
 #if C_GAMELINK
         "gamelink",
 #endif
-        "ddraw",
 #if C_DIRECT3D
-        "direct3d", "direct3d11",
+        "direct3d",
+#if defined(C_SDL2)
+        "direct3d11",
+#endif
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         "metal",
@@ -9909,7 +9914,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
         /* why show PC-98 options in IBM PC emulation mode? */
-        mainMenu.get_item("VideoPC98Menu").hide(!IS_PC98_ARCH);
+        mainMenu.get_item("VideoPC98Menu").hide(!IS_PC98_ARCH).refresh_item(mainMenu);
 
 #if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
@@ -10326,7 +10331,7 @@ fresh_boot:
             if (disable_a20) MEM_A20_Enable(false);
 
             /* Why allow the Help -> DOS commands menu when running a guest OS? */
-            mainMenu.get_item("HelpCommandMenu").enable(false);
+            mainMenu.get_item("HelpCommandMenu").enable(false).refresh_item(mainMenu);
 
             /* PC-98: hide the cursor */
             if (IS_PC98_ARCH) {

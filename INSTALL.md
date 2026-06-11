@@ -43,6 +43,10 @@ Regarding Joystick support, the *SDL1 builds requires XInput compatible devices*
 * Windows XP users must use the XP compatible installer with "XP" in the file name, which includes Visual Studio XP builds and the 32-bit MinGW low-end builds. Note that not all features are available in the MinGW low-end builds, currently Slirp support is known to be missing. You also need to install the [DirectX runtime](https://www.microsoft.com/en-us/download/details.aspx?id=8109) or DOSBox-X will complain you're missing `XInput9_1_0.dll`. XP compatible builds works in ReactOS as well, but support is considered experimental.
 * Windows Vista users can use the XP installer or standard (non-XP) Visual Studio portable builds, because standard (non-XP) installer doesn't work in Vista. MinGW dropped support for XP/Vista, so install the 32-bit low-end builds from the XP compatible installer if you prefer MinGW builds.
 
+### winget (Windows Package Manager)
+You can install DOSBox-X through winget, which checks for the latest version and download the Windows installer.
+However, the package is NOT officially updated by the DOSBox-X team.
+If you find the latest version missing, you may want to contribute by updating the winget manifest (https://github.com/microsoft/winget-pkgs).
 
 ## Linux Packages (Flatpak and more)
 DOSBox-X is available packaged in the below formats. 
