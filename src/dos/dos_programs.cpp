@@ -829,8 +829,11 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 			if(mountiro[drive - 'A']) strcat(mountstring, " -ro");
 			if(cdromreplace) strcat(mountstring, " -replace");
 			if(boot) {
-				strcat(mountstring, " -u");
-				mountstring[0] = drive - 'A' + '0';
+                // Unmount existing image
+                const std::string drive_num(1, drive - 'A' + '0');
+                runImgmount((drive_num + " -u").c_str());
+
+                mountstring[0] = drive - 'A' + '0';
 				runImgmount(mountstring);   // mount by drive number
 				std::string bootstr = "-Q ";
 				bootstr += drive;
@@ -838,9 +841,8 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 				runBoot(bootstr.c_str());
 				std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), (std::string(1, drive)).c_str());
 				systemmessagebox(MSG_Get("ERROR"), drive_warn.c_str(), "ok", "error", 1);
-				bootstr = "-u ";
-				bootstr += drive - 'A' + '0';
-				runImgmount(bootstr.c_str()); // unmount if boot failed
+
+                runImgmount((drive_num + " -u").c_str()); // unmount if boot failed
 				return;
 			}
 			if(arc) {
