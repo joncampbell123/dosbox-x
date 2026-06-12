@@ -27,6 +27,7 @@
 #include "mem.h"
 #include "cpu.h"
 #include "ide.h"
+#include "menu.h"
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"
@@ -5248,5 +5249,68 @@ void BIOS_Post_register_IDE() {
         if (idecontroller[i] != NULL)
             idecontroller[i]->register_isapnp();
     }
+}
+
+void DOS_EnableDriveIDEMenu(unsigned int idx,unsigned char ms) {
+	if (idx < MAX_IDE_CONTROLLERS) {
+		IDEController *ctl = idecontroller[idx];
+		IDEDevice *dev = ctl ? ctl->device[ms] : NULL;
+		IDEATAPICDROMDevice *cdrom;
+		bool do_hide = true;
+		std::string name;
+		char bname[128];
+
+                sprintf(bname,"IDEDrive%u%c",idx,ms?'s':'m');
+
+		if (dev) {
+			if (dev->type == IDE_TYPE_CDROM) {
+				cdrom = dynamic_cast<IDEATAPICDROMDevice*>(dev);
+				if (cdrom) {
+					if (!cdrom->mscdex) do_hide = false;
+				}
+			}
+		}
+
+		/* why even show the drive if booted into a guest OS and no drive attached? */
+		/* NTS: The vertical menu divide between A-M and N-Z might get weird depending on
+		 *      the menu API involved so to prevent that, always show drives A, B, and Z */
+		name = bname;
+		mainMenu.get_item(name).hide(do_hide).refresh_item(mainMenu);
+
+#if defined (WIN32)
+		name = std::string(bname) + "_mountauto";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+#endif
+		name = std::string(bname) + "_mounthd";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_mountcd";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_mountfd";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_mountfro";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_mountarc";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_mountimg";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_mountimgs";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_mountiro";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_unmount";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_swap";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_rescan";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_info";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_boot";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_bootimg";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		name = std::string(bname) + "_saveimg";
+		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+	}
 }
 

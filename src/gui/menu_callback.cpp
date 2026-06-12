@@ -33,6 +33,7 @@
 #include "inout.h"
 #include "regs.h"
 #include "cpu.h"
+#include "ide.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
@@ -3717,6 +3718,30 @@ void AllocCallback1() {
                         mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(drive_opts[i][1]).set_callback_function(drive_callbacks[i]);
                 }
             }
+
+	    {
+                char name[128],tmp[128];
+
+                /* Additional menus for IDE-only device mounts */
+                for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
+                    for (unsigned int ms=0;ms < 2;ms++) {
+                        sprintf(name,"IDEDrive%u%c",ide,ms?'s':'m');
+                        sprintf(tmp,"IDE %u%c",ide+1,ms?'s':'m');
+
+                        DOSBoxMenu::item &ditem = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,name);
+                        ditem.set_text(tmp);
+
+                        for (size_t i=0;drive_opts[i][0] != NULL;i++) {
+	                    const std::string sname = std::string(name) + "_" + drive_opts[i][0];
+                            if (!strcmp(drive_opts[i][1], "--"))
+                                mainMenu.alloc_item(DOSBoxMenu::separator_type_id,sname);
+                            else
+                                mainMenu.alloc_item(DOSBoxMenu::item_type_id,sname).set_text(drive_opts[i][1]).set_callback_function(drive_callbacks[i]);
+	                }
+	            }
+	        }
+	    }
+
         }
 
         {

@@ -826,6 +826,11 @@ static const char *def_menu_drive[] =
     "DriveX",
     "DriveY",
     "DriveZ",
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    "||",
+#endif
+
     NULL
 };
 
@@ -1922,6 +1927,31 @@ void ConstructMenu(void) {
                 mainMenu.displaylist_append(
                     mainMenu.get_item(dname).get_master_id(),
                     mainMenu.get_item_id_by_name(name));
+            }
+        }
+    }
+
+    {
+        const DOSBoxMenu::item_handle_t drvMenuID = mainMenu.get_item("DriveMenu").get_master_id();
+        char name[128],tmp[64];
+
+        /* Additional menus for IDE-only device mounts */
+        for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
+            for (unsigned int ms=0;ms < 2;ms++) {
+                sprintf(name,"IDEDrive%u%c",ide,ms?'s':'m');
+		const DOSBoxMenu::item &nitem = mainMenu.get_item(name);
+
+                for (size_t i=0;drive_opts[i][0] != NULL;i++) {
+                    const std::string sname = std::string(name) + "_" + drive_opts[i][0];
+
+                    if (mainMenu.item_exists(sname)) {
+                        mainMenu.displaylist_append(
+                            nitem.get_master_id(),
+                            mainMenu.get_item_id_by_name(sname));
+                    }
+                }
+
+                mainMenu.displaylist_append(drvMenuID,nitem.get_master_id());
             }
         }
     }
