@@ -813,43 +813,48 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 			if (dos_kernel_disabled)
 				return;
 
-			char mountstring[CROSS_LEN*4+20];
 			if (files.size()>CROSS_LEN*4) {
 				systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_MOUNT_PATH_TOOLONG"),"ok","error", 1);
 				return;
 			}
-			strcpy(mountstring,type);
-			char temp_str[3] = { 0,0,0 };
-			temp_str[0]=drive;
-			temp_str[1]=' ';
-			strcat(mountstring,temp_str);
-			//if (!multiple) strcat(mountstring,"\"");
-			strcat(mountstring,files.size()?files.c_str():fname.c_str());
-			//if(!multiple) strcat(mountstring, "\"");
-			if(mountiro[drive - 'A']) strcat(mountstring, " -ro");
-			if(cdromreplace) strcat(mountstring, " -replace");
-			if(boot) {
-				strcat(mountstring, " -u");
-				mountstring[0] = drive - 'A' + '0';
-				runImgmount(mountstring);   // mount by drive number
-				std::string bootstr = "-Q ";
+            std::string mountstring = type;
+            mountstring += drive;
+            mountstring += ' ';
+            mountstring += files.empty() ? fname : files;
+
+            if(mountiro[drive - 'A'])
+                mountstring += " -ro";
+
+            if(cdromreplace)
+                mountstring += " -replace";
+
+            if(boot) {
+                // Unmount existing image
+                const std::string drive_num(1, drive - 'A' + '0');
+                runImgmount((drive_num + " -u").c_str());
+
+                // Mount by drive number
+                mountstring[0] = drive - 'A' + '0';
+                runImgmount(mountstring.c_str());
+
+                std::string bootstr = "-Q ";
 				bootstr += drive;
 				bootstr += ':';
-				runBoot(bootstr.c_str());
-				std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), (std::string(1, drive)).c_str());
+                runBoot(bootstr.c_str());
+
+                std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), (std::string(1, drive)).c_str());
 				systemmessagebox(MSG_Get("ERROR"), drive_warn.c_str(), "ok", "error", 1);
-				bootstr = "-u ";
-				bootstr += drive - 'A' + '0';
-				runImgmount(bootstr.c_str()); // unmount if boot failed
+
+                runImgmount((drive_num + " -u").c_str()); // unmount if boot failed
 				return;
 			}
 			if(arc) {
-				strcat(mountstring," -q");
-				runMount(mountstring);
+                mountstring += " -q";
+                runMount(mountstring.c_str());
 			} else {
-				qmount=true;
-				runImgmount(mountstring);
-				qmount=false;
+                qmount = true;
+                runImgmount(mountstring.c_str());
+                qmount = false;
 			}
 			chdir( Temp_CurrentDir );
 			if (!Drives[drive - 'A']) {
@@ -3232,6 +3237,9 @@ public:
                     reg_ax = oldax;
                 }
             }
+
+            if(!Drives[0]) runImgmount("0 empty");
+            if(!Drives[1]) runImgmount("1 empty");
 
             /* zero out DOS memory */
             if (!dos_kernel_disabled && zeromem) {
