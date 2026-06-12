@@ -6099,7 +6099,7 @@ class IMGMOUNT : public Program {
 						return;
 					}
 					//supports multiple files
-					if (!MountIso(drive, paths, ide_index, ide_slave)) return;
+					if (!MountIso(drive, paths, ide_index, ide_slave, false)) return;
 					if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
 				}
 				else {
@@ -7414,7 +7414,7 @@ class IMGMOUNT : public Program {
 			WriteOut("Unable to attach to %s:%s\n",device_spec.c_str(),device_spec_opts.c_str());
 			return false;
 		}
-		bool MountIso(const char drive, const std::vector<std::string> &paths, signed char ide_index, bool ide_slave) {
+		bool MountIso(const char drive, const std::vector<std::string> &paths, signed char ide_index, bool ide_slave, bool is_menu = true) {
 			//If mounting while a guest OS is active, you may ONLY replace an ISO with an ISO! You may not mount a new drive!
 			if (dos_kernel_disabled) {
 				if (Drives[drive - 'A']) {
@@ -7422,12 +7422,27 @@ class IMGMOUNT : public Program {
 						return false;
 				}
 			}
-
+#if defined(MACOSX)
+            auto MSGX = MSG_GetUTF8;
+#else
+            auto MSGX = MSG_Get;
+#endif
 			//mount cdrom
 			if (Drives[drive - 'A']) {
 				//For -replace, the drive to replace must be a CD-ROM drive already, or else don't allow it!
 				if (!MountIsoAllowReplace(drive)) {
-					if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
+                    if(is_menu || dos_kernel_disabled) {
+                        std::string title = MSGX("ERROR");
+                        std::string str(1, drive);
+                        std::string drive_warn;
+                        drive_warn = formatString(MSGX("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
+#if defined(MACOSX)
+                        tinyfd_messageBox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
+#else
+                        systemmessagebox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
+#endif
+                    }
+                    else if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
 					return false;
 				}
 			}
@@ -7444,24 +7459,34 @@ class IMGMOUNT : public Program {
 				int error = -1;
 				DOS_Drive* newDrive = new isoDrive(drive, wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].c_str()+1:paths[i].c_str(), mediaid, error, options);
 				isoDisks.push_back(newDrive);
-				if(!qmount && !dos_kernel_disabled) {
-					switch(error) {
-						case 0: break;
-						case 1: WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));  break;
-						case 2: WriteOut(MSG_Get("MSCDEX_ERROR_NOT_SUPPORTED"));    break;
-						case 3: WriteOut(MSG_Get("MSCDEX_ERROR_OPEN"));             break;
-						case 4: WriteOut(MSG_Get("MSCDEX_TOO_MANY_DRIVES"));        break;
-						case 5: WriteOut(MSG_Get("MSCDEX_LIMITED_SUPPORT"));        break;
-						case 6: WriteOut(MSG_Get("MSCDEX_INVALID_FILEFORMAT"));     break;
-						default: WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));         break;
-					}
+                std::string mscdex_error_msg;
+                switch(error) {
+					case 0: break;
+					case 1: mscdex_error_msg = MSGX("MSCDEX_ERROR_MULTIPLE_CDROMS");  break;
+					case 2: mscdex_error_msg = MSGX("MSCDEX_ERROR_NOT_SUPPORTED");    break;
+					case 3: mscdex_error_msg = MSGX("MSCDEX_ERROR_OPEN");             break;
+					case 4: mscdex_error_msg = MSGX("MSCDEX_TOO_MANY_DRIVES");        break;
+					case 5: mscdex_error_msg = MSGX("MSCDEX_LIMITED_SUPPORT");        break;
+					case 6: mscdex_error_msg = MSGX("MSCDEX_INVALID_FILEFORMAT");     break;
+					default: mscdex_error_msg = MSGX("MSCDEX_UNKNOWN_ERROR");         break;
 				}
 				// error: clean up and leave
 				if (error) {
-					for (ct = 0; ct < isoDisks.size(); ct++) {
+                    for (ct = 0; ct < isoDisks.size(); ct++) {
 						delete isoDisks[ct];
 					}
-					return false;
+                    if(is_menu || dos_kernel_disabled) {
+                        std::string title = MSGX("ERROR");
+#if defined(MACOSX)
+                        tinyfd_messageBox(title.c_str(), mscdex_error_msg.c_str(), "ok", "info", 1);
+#else
+                        systemmessagebox(title.c_str(), mscdex_error_msg.c_str(), "ok", "info", 1);
+#endif
+                    }
+                    else if(!dos_kernel_disabled) {
+                        WriteOut(mscdex_error_msg.c_str());
+                    }
+                    return false;
 				}
 			}
 			if (opt_replace) DriveManager::ClearDrive(drive - 'A');
@@ -7507,14 +7532,28 @@ class IMGMOUNT : public Program {
 			}
 
 			// Print status message (success)
-			if (!qmount && !dos_kernel_disabled) WriteOut(MSG_Get("MSCDEX_SUCCESS"));
+			if (!qmount && !dos_kernel_disabled && !is_menu) WriteOut(MSG_Get("MSCDEX_SUCCESS"));
 			if (!paths.empty()) {
 				std::string tmp(wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].substr(1):paths[0]);
 				for (i = 1; i < paths.size(); i++) {
 					tmp += "; " + (wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].substr(1):paths[i]);
 				}
 				lastmount = drive;
-				if (!qmount && !dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
+                if(is_menu) {
+                    /* Print message in dialog box if mounted via dropdown menu */
+                    std::string readonly = mountiro[drive - 'A'] ? "\n(" + std::string(MSGX("READONLY_MODE")) + ")" : "";
+                    std::string msg = MSGX("PROGRAM_MOUNT_IMAGE");
+                    std::string image, drive_warn;
+                    image = std::string(MSGX("DISK_IMAGE"));
+                    drive_warn = formatString(msg.c_str(), image.c_str(), std::string(1, drive).c_str(), tmp.c_str(), readonly.c_str());
+                    std::string title = MSGX("INFORMATION");
+#if defined(MACOSX)
+                    tinyfd_messageBox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
+#else
+                    systemmessagebox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
+#endif
+                }
+                else if (!qmount && !dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 			}
 			else {
 				lastmount = drive;
