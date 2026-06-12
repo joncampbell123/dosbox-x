@@ -828,7 +828,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
             if(cdromreplace)
                 mountstring += " -replace";
 
-			if(boot) {
+            if(boot) {
                 // Unmount existing image
                 const std::string drive_num(1, drive - 'A' + '0');
                 runImgmount((drive_num + " -u").c_str());
@@ -3237,6 +3237,9 @@ public:
                     reg_ax = oldax;
                 }
             }
+
+            if(!Drives[0]) runImgmount("0 empty");
+            if(!Drives[1]) runImgmount("1 empty");
 
             /* zero out DOS memory */
             if (!dos_kernel_disabled && zeromem) {
