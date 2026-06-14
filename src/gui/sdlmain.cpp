@@ -1132,9 +1132,15 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 //  if (timing != -1) internal_timing = timing;
 //  if (frameskip != -1) internal_frameskip = frameskip;
 
+#ifdef C_OSFREE
+    constexpr const char* dosbox_name = "DOSBox-X OSFREE";
+#else
+    constexpr const char* dosbox_name = "DOSBox-X";
+#endif
+
     bool showbasic = section->Get_bool("showbasic");
     if (showbasic) {
-        sprintf(title,"%s%sDOSBox-X %s", dosbox_title.c_str(),dosbox_title.empty()?"":" - ", VERSION);
+        sprintf(title, "%s%s%s %s", dosbox_title.c_str(), dosbox_title.empty() ? "" : " - ", dosbox_name, VERSION);
 
         const char *what = RunningProgram;
         if (what != NULL && *what != 0) {
@@ -1149,7 +1155,7 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
         else
             sprintf(p,"%d cycles/ms", (int)internal_cycles);
     } else
-        sprintf(title,"%s%sDOSBox-X", dosbox_title.c_str(),dosbox_title.empty()?"":" - ");
+        sprintf(title, "%s%s%s", dosbox_title.c_str(), dosbox_title.empty() ? "" : " - ", dosbox_name);
 
     if (!menu.hidecycles) {
         char *p = title + strlen(title); // append to end of string

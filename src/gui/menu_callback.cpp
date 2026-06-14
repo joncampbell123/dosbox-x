@@ -33,6 +33,7 @@
 #include "inout.h"
 #include "regs.h"
 #include "cpu.h"
+#include "ide.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
@@ -513,6 +514,8 @@ bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
+bool IDE_CDROM_Eject(int index,bool slave);
+
 bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -524,6 +527,23 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
         drive = mname[6] - 'A';
         if (drive < 0 || drive >= DOS_DRIVES) return false;
     }
+    else if (!strncmp(mname,"IDEDrive",8)) { /* IDEDrive1m for example */
+        const char *s = mname + 8;
+        int idx = (int)strtoul(s,(char**)(&s),10);
+        bool ms = false;
+
+        if (*s == 'm') {
+                ms = false;
+                s++;
+        }
+        else if (*s == 's') {
+                ms = true;
+                s++;
+        }
+
+        IDE_CDROM_Eject(idx,ms);
+        return true;
+    }
     else {
         return false;
     }
@@ -534,6 +554,7 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 }
 
 void swapInDrive(int drive, unsigned int position=0);
+void IDE_ATAPI_MediaChangeNotify(signed char index, bool slave, bool immediate);
 bool drive_swap_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -544,6 +565,23 @@ bool drive_swap_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     if (!strncmp(mname,"drive_",6)) {
         drive = mname[6] - 'A';
         if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else if (!strncmp(mname,"IDEDrive",8)) { /* IDEDrive1m for example */
+        const char *s = mname + 8;
+        int idx = (int)strtoul(s,(char**)(&s),10);
+        bool ms = false;
+
+        if (*s == 'm') {
+                ms = false;
+                s++;
+        }
+        else if (*s == 's') {
+                ms = true;
+                s++;
+        }
+
+        IDE_ATAPI_MediaChangeNotify(idx,ms,!dos_kernel_disabled);
+        return true;
     }
     else {
         return false;
@@ -3717,6 +3755,30 @@ void AllocCallback1() {
                         mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(drive_opts[i][1]).set_callback_function(drive_callbacks[i]);
                 }
             }
+
+	    {
+                char name[128],tmp[128];
+
+                /* Additional menus for IDE-only device mounts */
+                for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
+                    for (unsigned int ms=0;ms < 2;ms++) {
+                        sprintf(name,"IDEDrive%u%c",ide,ms?'s':'m');
+                        sprintf(tmp,"IDE %u%c",ide+1,ms?'s':'m');
+
+                        DOSBoxMenu::item &ditem = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,name);
+                        ditem.set_text(tmp);
+
+                        for (size_t i=0;drive_opts[i][0] != NULL;i++) {
+	                    const std::string sname = std::string(name) + "_" + drive_opts[i][0];
+                            if (!strcmp(drive_opts[i][1], "--"))
+                                mainMenu.alloc_item(DOSBoxMenu::separator_type_id,sname);
+                            else
+                                mainMenu.alloc_item(DOSBoxMenu::item_type_id,sname).set_text(drive_opts[i][1]).set_callback_function(drive_callbacks[i]);
+	                }
+	            }
+	        }
+	    }
+
         }
 
         {

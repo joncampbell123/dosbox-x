@@ -32,6 +32,7 @@
 #include <thread>
 #endif
 
+#include "ide.h"
 #include "mem.h"
 #include "mixer.h"
 #include "../libs/decoders/SDL_sound.h"
@@ -598,5 +599,8 @@ private:
 };
 
 #endif /* LINUX */
+
+bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds,bool opt_replace=false);
+bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Interface*> &cds,bool opt_replace=false);
 
 #endif /* __CDROM_INTERFACE__ */

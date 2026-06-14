@@ -570,38 +570,56 @@ void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
 }
 
 void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) {
-	if (item.has_changed()) {
-		NSMenuItem *ns_item = (NSMenuItem*)nsMenuItem;
+    if (item.has_changed()) {
+        NSMenuItem *ns_item = (NSMenuItem*)nsMenuItem;
 
-		[ns_item setEnabled:(item.is_enabled() ? YES : NO)];
-		[ns_item setState:(item.is_checked() ? NSOnState : NSOffState)];
+        [ns_item setEnabled:(item.is_enabled() ? YES : NO)];
+        [ns_item setHidden:(item.is_hidden() ? YES : NO)];
+        [ns_item setState:(item.is_checked() ? NSOnState : NSOffState)];
 
-		const std::string &it = item.get_text();
-		const std::string &st = item.get_shortcut_text();
-		std::string ft = it;
+        const std::string &it = item.get_text();
+        const std::string &st = item.get_shortcut_text();
+        std::string ft;
 
-		/* TODO: Figure out how to put the shortcut text right-aligned while leaving the main text left-aligned */
-		if (!st.empty()) {
-			ft += " [";
-			ft += st;
-			ft += "]";
-		}
+        if (CodePageGuestToHostUTF8(tempstr,it.c_str()))
+            ft += tempstr;
+        else
+            ft += it;
 
-		{
-			NSString *title;
-            int cp = dos.loaded_codepage;
-            InitCodePage();
-            if (CodePageGuestToHostUTF8(tempstr,ft.c_str()))
-                title = [[NSString alloc] initWithUTF8String:tempstr];
-            else
-                title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",ft.c_str()]];
-            dos.loaded_codepage = cp;
-			[ns_item setTitle:title];
-			[title release];
-		}
+        int cp = dos.loaded_codepage;
+        InitCodePage();
 
-		item.clear_changed();
-	}
+        NSMutableAttributedString *titleas;
+        {
+            NSString *title;
+            title = [[NSString alloc] initWithUTF8String:ft.c_str()];
+            titleas = [[NSMutableAttributedString alloc] initWithString:title];
+            [title release];
+        }
+
+        if (!st.empty()) {
+            ft = " [" + st + "]";
+
+            {
+                NSString *title;
+                NSMutableAttributedString *as;
+                title = [[NSString alloc] initWithUTF8String:ft.c_str()];
+                as = [[NSMutableAttributedString alloc] initWithString:title attributes:@{
+                    NSForegroundColorAttributeName: [NSColor linkColor]//FIXME: Got any better ideas?
+                }];
+                [titleas appendAttributedString:as];
+                [title release];
+                [as release];
+            }
+        }
+
+        [ns_item setAttributedTitle:titleas];
+        [titleas release];
+
+        dos.loaded_codepage = cp;
+
+        item.clear_changed();
+    }
 }
 
 void* sdl_hax_nsMenuAlloc(const char *initWithText) {

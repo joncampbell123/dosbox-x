@@ -11,7 +11,13 @@ Next version
     from fullscreen mode (maron2000)
   - qcow2: Set logical (BIOS) CHS instead of physical (IDE) CHS when mounted
     with Drive numbers. (maron2000)
-
+  - Debugger: fix F11 (trace into next instruction) collision being swallowed
+    by Windows Terminal (AleWin32)
+  - Show OSFREE in the title and help message to distinguish OSFREE builds.
+    (maron2000)
+  - Fixed possible boot failure when booted from "Boot from disk image" menu.
+    (maron2000)
+    
 2026.06.02
   - Feature: Add 'Send Alt+SysRq/PrtScr' menu item (AleWin32)
   - DOS file search bugfix: Prevent undefined stat_block usage on failed

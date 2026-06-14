@@ -1191,7 +1191,7 @@ bool DOS_Shell::OSFreeOperatingSystemNotFound(void) {
 	} while(1);
 
 	WriteOut("\n");
-	WriteOut("This version was built without MS-DOS emulation.\n");
+	WriteOut("This is the OSFREE version, which was built without MS-DOS emulation.\n");
 	WriteOut("\n");
 	WriteOut("The full version may be unavailable for your use for legal reasons including\n");
 	WriteOut("but not limited to OS level age verification requirements in your local\n");

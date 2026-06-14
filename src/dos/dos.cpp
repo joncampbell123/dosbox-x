@@ -33,6 +33,7 @@
 #include "bios_disk.h"
 #include "bios.h"
 #include "logging.h"
+#include "ide.h"
 #include "mem.h"
 #include "paging.h"
 #include "callback.h"
@@ -5011,6 +5012,7 @@ void DOS_ShutdownDrives() {
 	}
 }
 
+void DOS_EnableDriveIDEMenu(unsigned int idx,unsigned char ms);
 void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
 void DOS_Casemap_Free();
 
@@ -5089,6 +5091,10 @@ void DOS_DoShutDown() {
 	DOS_Casemap_Free();
 
 	for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
+
+	for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++)
+		for (unsigned int ms=0;ms < 2;ms++)
+			DOS_EnableDriveIDEMenu(ide,ms);
 }
 
 void DOS_GetMemory_reinit();
@@ -5117,6 +5123,11 @@ void DOS_Startup(Section* sec) {
 
 	force_conversion=true;
 	for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
+
+	for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++)
+		for (unsigned int ms=0;ms < 2;ms++)
+			DOS_EnableDriveIDEMenu(ide,ms);
+
 	force_conversion=false;
 }
 
@@ -5155,6 +5166,10 @@ void DOS_Init() {
 	item->enable(false).refresh_item(mainMenu);
 	item->set_text("Rescan all drives");
 	for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
+
+	for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++)
+		for (unsigned int ms=0;ms < 2;ms++)
+			DOS_EnableDriveIDEMenu(ide,ms);
 }
 
 #if !defined(OSFREE)
