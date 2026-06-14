@@ -2877,6 +2877,8 @@ void IDE_ATAPI_MediaChangeNotify(signed char index, bool slave, bool immediate) 
 			PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,pk);
 		}
 	}
+
+	DOS_EnableDriveIDEMenu((unsigned char)index,slave);
 }
 
 void IDE_ATAPI_MediaChangeNotifyAll(bool immediate) {
@@ -2976,6 +2978,7 @@ bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Inter
 
 	c->device[slave?1:0] = (IDEDevice*)dev;
 	LOG_MSG("IMGMOUNT: CD-ROM image mounted to (IDE %s %s)", ideslot[index], master_slave[slave ? 1 : 0]);
+	DOS_EnableDriveIDEMenu((unsigned char)index,slave);
 	return true;
 }
 
@@ -3032,6 +3035,7 @@ bool IDE_CDROM_Detach(signed char index,bool slave) {
 		c->device[slave] = NULL;
 	}
 
+	DOS_EnableDriveIDEMenu((unsigned char)index,slave);
 	return true;
 }
 
