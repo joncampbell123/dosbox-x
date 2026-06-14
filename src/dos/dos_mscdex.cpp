@@ -320,7 +320,7 @@ public:
     bool        Seek                (uint8_t subUnit, uint32_t sector);
 #endif
  
-#if defined (WIN32)
+#if !defined (OSFREE)
 	PhysPt		GetDefaultBuffer	(void);
 #endif
 	PhysPt		GetTempBuffer		(void);
@@ -611,7 +611,7 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 	return result;
 }
 
-#if defined (WIN32)
+#if !defined (OSFREE)
 PhysPt CMscdex::GetDefaultBuffer(void) {
 	if (defaultBufSeg==0 && !dos_kernel_disabled) {
 		uint16_t size = (2352*2+15)/16;
