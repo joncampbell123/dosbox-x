@@ -119,6 +119,7 @@ static Bitu ide_altio_r(Bitu port,Bitu iolen);
 static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu ide_baseio_r(Bitu port,Bitu iolen);
 bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
+bool IDE_CDROM_Eject(int index,bool slave);
 
 enum IDEDeviceType {
     IDE_TYPE_NONE,
@@ -1124,7 +1125,8 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                     // Treat the EJECT command as a command to swap to an "empty" CD-ROM image
                     if (LOEJ && !START) {
                             LOG(LOG_MISC,LOG_DEBUG)("Interpreting EJECT as a command to unmount the drive (replace with empty image)");
-                            IDE_Eject_unmount(drive_index+'A');
+                            if (mscdex) IDE_Eject_unmount(drive_index+'A');
+                            else IDE_CDROM_Eject(controller->interface_index,slave);
                     }
             }
 
@@ -1586,8 +1588,8 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 
 IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
     for (auto &cd : cdrom_swaplist) {
-	cd->Release();
-	cd = NULL;
+        cd->Release();
+        cd = NULL;
     }
     cdrom_swaplist.clear();
     cdrom_swaplist_pos = 0;
@@ -2939,6 +2941,46 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate) {
 			}
 		}
 	}
+}
+
+int CDROM_AllocateInterface(const char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom);
+
+bool IDE_CDROM_Eject(int index,bool slave) {
+	IDEATAPICDROMDevice *dev;
+	IDEController *c;
+
+	if (index < 0 || index >= MAX_IDE_CONTROLLERS)
+		return false;
+
+	c = idecontroller[index];
+	if(c == NULL)
+		return false;
+
+	if (c->device[slave?1:0] == NULL)
+		return false;
+
+	dev = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave]);
+	if (!dev)
+		return false;
+
+        CDROM_Interface *cdrom = NULL;
+        if (CDROM_AllocateInterface("empty",true,0xFFFF/*invalid subunit*/,&cdrom))/*Addrefs*/
+                return false;
+
+        for (auto &cd : dev->cdrom_swaplist) {
+                cd->Release();
+                cd = NULL;
+        }
+        dev->cdrom_swaplist.clear();
+        dev->cdrom_swaplist_pos = 0;
+        if (dev->cdrom) {
+                dev->cdrom->Release();
+                dev->cdrom = NULL;
+        }
+        (dev->cdrom = cdrom)->Addref();
+        cdrom->Release();
+
+        return true;
 }
 
 bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Interface*> &cds) {
@@ -5260,7 +5302,9 @@ void DOS_EnableDriveIDEMenu(unsigned int idx,unsigned char ms) {
 		IDEController *ctl = idecontroller[idx];
 		IDEDevice *dev = ctl ? ctl->device[ms] : NULL;
 		IDEATAPICDROMDevice *cdrom;
+		bool cdromchange = false;
 		bool do_hide = true;
+		bool empty = true;
 		std::string name;
 		char bname[128];
 
@@ -5270,9 +5314,16 @@ void DOS_EnableDriveIDEMenu(unsigned int idx,unsigned char ms) {
 			if (dev->type == IDE_TYPE_CDROM) {
 				cdrom = dynamic_cast<IDEATAPICDROMDevice*>(dev);
 				if (cdrom) {
-					if (!cdrom->mscdex) do_hide = false;
+					if (!cdrom->mscdex) {
+						do_hide = false;
+						empty = false;
+					}
 				}
 			}
+		}
+
+		if (cdrom) {
+			cdromchange = true;
 		}
 
 		/* why even show the drive if booted into a guest OS and no drive attached? */
@@ -5302,9 +5353,9 @@ void DOS_EnableDriveIDEMenu(unsigned int idx,unsigned char ms) {
 		name = std::string(bname) + "_mountiro";
 		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
 		name = std::string(bname) + "_unmount";
-		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		mainMenu.get_item(name).enable(cdromchange).refresh_item(mainMenu);
 		name = std::string(bname) + "_swap";
-		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		mainMenu.get_item(name).enable(cdromchange).refresh_item(mainMenu);
 		name = std::string(bname) + "_rescan";
 		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
 		name = std::string(bname) + "_info";
