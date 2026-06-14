@@ -3105,6 +3105,33 @@ bool IDE_CDROM_Detach(const std::string &opts) {
 	return IDE_CDROM_Detach(spec.index,spec.slave);
 }
 
+bool IDE_is_CDROM(signed char index,bool slave) {
+	IDEATAPICDROMDevice *dev;
+	IDEController *c;
+
+	if (index < 0 || index >= MAX_IDE_CONTROLLERS)
+		return false;
+
+	c = idecontroller[index];
+	if(c == NULL)
+		return false;
+
+	if (c->device[slave?1:0] == NULL)
+		return false;
+
+	dev = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave]);
+	if (dev) return true;
+
+	return false;
+}
+
+bool IDE_is_CDROM(const std::string &opts) {
+	struct ide_opt_spec_t spec;
+
+	if (!IDE_CDROM_ParseOptSpec(spec,opts)) return false;
+	return IDE_is_CDROM(spec.index,spec.slave);
+}
+
 /* drive_index = drive letter 0...A to 25...Z */
 void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
     IDEController *c;
@@ -5325,7 +5352,7 @@ void DOS_EnableDriveIDEMenu(unsigned int idx,unsigned char ms) {
 		std::string name;
 		char bname[128];
 
-                sprintf(bname,"IDEDrive%u%c",idx,ms?'s':'m');
+		sprintf(bname,"IDEDrive%u%c",idx+1,ms?'s':'m');
 
 		if (dev) {
 			if (dev->type == IDE_TYPE_CDROM) {
@@ -5364,9 +5391,9 @@ void DOS_EnableDriveIDEMenu(unsigned int idx,unsigned char ms) {
 		name = std::string(bname) + "_mountarc";
 		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
 		name = std::string(bname) + "_mountimg";
-		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		mainMenu.get_item(name).enable(cdromchange).refresh_item(mainMenu);
 		name = std::string(bname) + "_mountimgs";
-		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+		mainMenu.get_item(name).enable(cdromchange).refresh_item(mainMenu);
 		name = std::string(bname) + "_mountiro";
 		mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
 		name = std::string(bname) + "_unmount";

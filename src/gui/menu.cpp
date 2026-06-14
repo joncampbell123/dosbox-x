@@ -1938,8 +1938,8 @@ void ConstructMenu(void) {
         /* Additional menus for IDE-only device mounts */
         for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
             for (unsigned int ms=0;ms < 2;ms++) {
-                sprintf(name,"IDEDrive%u%c",ide,ms?'s':'m');
-		const DOSBoxMenu::item &nitem = mainMenu.get_item(name);
+                sprintf(name,"IDEDrive%u%c",ide+1,ms?'s':'m');
+                const DOSBoxMenu::item &nitem = mainMenu.get_item(name);
 
                 for (size_t i=0;drive_opts[i][0] != NULL;i++) {
                     const std::string sname = std::string(name) + "_" + drive_opts[i][0];

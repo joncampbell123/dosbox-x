@@ -386,6 +386,20 @@ bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
         drive = mname[6] - 'A';
         if (drive < 0 || drive >= DOS_DRIVES) return false;
     }
+    else if (!strncmp(mname,"IDEDrive",8)) { /* IDEDrive1m for example */
+        const char *s = mname + 8;
+        const char *e = s; while (isdigit(*e)) e++; if (*e == 'm' || *e == 's') e++;
+        const std::string opts = std::string(s,(size_t)(e-s));
+
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        GFX_ReleaseMouse();
+        MenuBrowseImageFile(-1, false, false, false, "ide", opts);
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+
+        return true;
+    }
     else {
         return false;
     }
@@ -410,6 +424,20 @@ bool drive_mountimgs_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
     if (!strncmp(mname,"drive_",6)) {
         drive = mname[6] - 'A';
         if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else if (!strncmp(mname,"IDEDrive",8)) { /* IDEDrive1m for example */
+        const char *s = mname + 8;
+        const char *e = s; while (isdigit(*e)) e++; if (*e == 'm' || *e == 's') e++;
+        const std::string opts = std::string(s,(size_t)(e-s));
+
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        GFX_ReleaseMouse();
+        MenuBrowseImageFile(-1, false, false, true, "ide", opts);
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+
+        return true;
     }
     else {
         return false;
@@ -528,7 +556,7 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     }
     else if (!strncmp(mname,"IDEDrive",8)) { /* IDEDrive1m for example */
         const char *s = mname + 8;
-        int idx = (int)strtoul(s,(char**)(&s),10);
+        int idx = (int)strtoul(s,(char**)(&s),10) - 1;
         bool ms = false;
 
         if (*s == 'm') {
@@ -567,7 +595,7 @@ bool drive_swap_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     }
     else if (!strncmp(mname,"IDEDrive",8)) { /* IDEDrive1m for example */
         const char *s = mname + 8;
-        int idx = (int)strtoul(s,(char**)(&s),10);
+        int idx = (int)strtoul(s,(char**)(&s),10) - 1;
         bool ms = false;
 
         if (*s == 'm') {
@@ -3761,7 +3789,7 @@ void AllocCallback1() {
                 /* Additional menus for IDE-only device mounts */
                 for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
                     for (unsigned int ms=0;ms < 2;ms++) {
-                        sprintf(name,"IDEDrive%u%c",ide,ms?'s':'m');
+                        sprintf(name,"IDEDrive%u%c",ide+1,ms?'s':'m');
                         sprintf(tmp,"IDE %u%c",ide+1,ms?'s':'m');
 
                         DOSBoxMenu::item &ditem = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,name);
