@@ -2988,7 +2988,7 @@ bool IDE_CDROM_Eject(int index,bool slave) {
         return true;
 }
 
-bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Interface*> &cds,bool opt_replace=false) {
+bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Interface*> &cds,bool opt_replace) {
 	IDEATAPICDROMDevice *dev;
 	IDEController *c;
 
@@ -3067,7 +3067,7 @@ bool IDE_CDROM_ParseOptSpec(struct ide_opt_spec_t &spec,const std::string &opts)
 	return true;
 }
 
-bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds,bool opt_replace=false) {
+bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds,bool opt_replace) {
 	struct ide_opt_spec_t spec;
 
 	if (!IDE_CDROM_ParseOptSpec(spec,opts)) return false;
