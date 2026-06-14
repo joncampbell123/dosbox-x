@@ -577,57 +577,57 @@ void MenuBrowseCDImage(char drive, int num) {
 		return;
 	}
 
-    if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "isoDrive ", 9)) {
+	if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "isoDrive ", 9)) {
 #if !defined(HX_DOS)
-        std::string drive_info = std::string(Drives[drive - 'A']->GetInfo() + 9);
-        std::string drive_letter = dos_kernel_disabled ? std::to_string(num) : (std::string(1, drive) + ":");
-        std::string drive_warn = formatString(MSG_Get("PROGRAM_CDDRIVE_WARN"), drive_letter.c_str(), drive_info.c_str());
-        if (!systemmessagebox("Change CD Image",drive_warn.c_str(),"yesno","question", 1)) return;
+		std::string drive_info = std::string(Drives[drive - 'A']->GetInfo() + 9);
+		std::string drive_letter = dos_kernel_disabled ? std::to_string(num) : (std::string(1, drive) + ":");
+		std::string drive_warn = formatString(MSG_Get("PROGRAM_CDDRIVE_WARN"), drive_letter.c_str(), drive_info.c_str());
+		if (!systemmessagebox("Change CD Image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
-    } else
-        return;
+	} else
+		return;
 #if !defined(HX_DOS)
-    char CurrentDir[512];
-    std::vector<std::string> options;
-    char * Temp_CurrentDir = CurrentDir;
-    getcwd(Temp_CurrentDir, 512);
-    char const * lTheOpenFileName;
-    std::string files="", fname="";
-    const char *lFilterPatterns[] = {"*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.inst","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS","*.INST" };
-    const char *lFilterDescription = "CD image files (*.iso, *.cue, *.bin, *.chd, *.mdf, *.gog, *.ins, *.inst)";
-    lTheOpenFileName = tinyfd_openFileDialog("Select a CD image file","", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,0);
-    bool isempty = std::string(Drives[drive - 'A']->GetInfo() + 9) == "empty";
-    if (lTheOpenFileName) {
-        isoDrive *cdrom = dynamic_cast<isoDrive*>(Drives[drive-'A']);
-        DOS_Drive *newDrive = NULL;
-        int error = -1;
-        uint8_t mediaid = 0xF8;
-        if (cdrom && dos_kernel_disabled) {
-            cdrom->setFileName(lTheOpenFileName);
-            if(isempty) {
-                newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error, options);
-                if(error) {
-                    delete newDrive;
-                    systemmessagebox(MSG_Get("ERROR"), MSG_Get("PROGRAM_CDMOUNT_ERROR"), "ok", "error", 1);
-                    chdir(Temp_CurrentDir);
-                    return;
-                }
-                delete cdrom;
-                cdrom = dynamic_cast<isoDrive*>(newDrive);
-                Drives[drive - 'A'] = cdrom;
-            }
-        } else {
-            newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error, options);
-            if (error) {
-                delete newDrive;
-                systemmessagebox(MSG_Get("ERROR"), MSG_Get("PROGRAM_CDMOUNT_ERROR"),"ok","error", 1);
-                chdir( Temp_CurrentDir );
-                return;
-            }
-            cdrom = dynamic_cast<isoDrive*>(newDrive);
-            Drives[drive - 'A'] = cdrom;
-        }
-        if ((!isempty || !dos_kernel_disabled) && cdrom) DriveManager::ChangeDisk(drive-'A', cdrom);
+	char CurrentDir[512];
+	std::vector<std::string> options;
+	char * Temp_CurrentDir = CurrentDir;
+	getcwd(Temp_CurrentDir, 512);
+	char const * lTheOpenFileName;
+	std::string files="", fname="";
+	const char *lFilterPatterns[] = {"*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.inst","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS","*.INST" };
+	const char *lFilterDescription = "CD image files (*.iso, *.cue, *.bin, *.chd, *.mdf, *.gog, *.ins, *.inst)";
+	lTheOpenFileName = tinyfd_openFileDialog("Select a CD image file","", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,0);
+	bool isempty = std::string(Drives[drive - 'A']->GetInfo() + 9) == "empty";
+	if (lTheOpenFileName) {
+		isoDrive *cdrom = dynamic_cast<isoDrive*>(Drives[drive-'A']);
+		DOS_Drive *newDrive = NULL;
+		int error = -1;
+		uint8_t mediaid = 0xF8;
+		if (cdrom && dos_kernel_disabled) {
+			cdrom->setFileName(lTheOpenFileName);
+			if(isempty) {
+				newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error, options);
+				if(error) {
+					delete newDrive;
+					systemmessagebox(MSG_Get("ERROR"), MSG_Get("PROGRAM_CDMOUNT_ERROR"), "ok", "error", 1);
+					chdir(Temp_CurrentDir);
+					return;
+				}
+				delete cdrom;
+				cdrom = dynamic_cast<isoDrive*>(newDrive);
+				Drives[drive - 'A'] = cdrom;
+			}
+		} else {
+			newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error, options);
+			if (error) {
+				delete newDrive;
+				systemmessagebox(MSG_Get("ERROR"), MSG_Get("PROGRAM_CDMOUNT_ERROR"),"ok","error", 1);
+				chdir( Temp_CurrentDir );
+				return;
+			}
+			cdrom = dynamic_cast<isoDrive*>(newDrive);
+			Drives[drive - 'A'] = cdrom;
+		}
+		if ((!isempty || !dos_kernel_disabled) && cdrom) DriveManager::ChangeDisk(drive-'A', cdrom);
 	}
 	chdir( Temp_CurrentDir );
 #endif
@@ -639,54 +639,54 @@ void MenuBrowseFDImage(char drive, int num, int type) {
 		return;
 	}
 
-    if (type==-1 || (Drives[drive-'A'] && !strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9))) {
+	if (type==-1 || (Drives[drive-'A'] && !strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9))) {
 #if !defined(HX_DOS)
-        std::string image = type==1||(type==-1&&dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[drive-'A'])!=NULL)?MSG_Get("ELTORITO_IMAGE"):(type==2||(type==-1&&dynamic_cast<imageDiskMemory *>(imageDiskList[drive-'A'])!=NULL)?MSG_Get("RAM_FLOPPY_IMAGE"):(type==-1?imageDiskList[drive-'A']->diskname.c_str():Drives[drive-'A']->GetInfo()+9));
-        std::string drive_warn = formatString(MSG_Get("PROGRAM_FLOPPY_WARN"), (type == -1 ? std::string(1, drive - 'A' + '0') : (dos_kernel_disabled ? std::to_string(num) : std::string(1, drive) + ":")).c_str(), image.c_str());
-        if (!systemmessagebox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
+		std::string image = type==1||(type==-1&&dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[drive-'A'])!=NULL)?MSG_Get("ELTORITO_IMAGE"):(type==2||(type==-1&&dynamic_cast<imageDiskMemory *>(imageDiskList[drive-'A'])!=NULL)?MSG_Get("RAM_FLOPPY_IMAGE"):(type==-1?imageDiskList[drive-'A']->diskname.c_str():Drives[drive-'A']->GetInfo()+9));
+		std::string drive_warn = formatString(MSG_Get("PROGRAM_FLOPPY_WARN"), (type == -1 ? std::string(1, drive - 'A' + '0') : (dos_kernel_disabled ? std::to_string(num) : std::string(1, drive) + ":")).c_str(), image.c_str());
+		if (!systemmessagebox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
-    } else
-        return;
+	} else
+		return;
 #if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    getcwd(Temp_CurrentDir, 512);
-    char const * lTheOpenFileName;
-    std::string files="", fname="";
-    const char *lFilterPatterns[] = {"*.ima","*.img","*.xdf","*.fdi","*.hdm","*.nfd","*.d88","*.IMA","*.IMG","*.XDF","*.FDI","*.HDM","*.NFD","*.D88"};
-    const char *lFilterDescription = "Floppy image files (*.ima, *.img, *.xdf, *.fdi, *.hdm, *.nfd, *.d88)";
-    lTheOpenFileName = tinyfd_openFileDialog("Select a floppy image file","",sizeof(lFilterPatterns)/sizeof(lFilterPatterns[0]), lFilterPatterns, lFilterDescription, 0);
+	char CurrentDir[512];
+	char * Temp_CurrentDir = CurrentDir;
+	getcwd(Temp_CurrentDir, 512);
+	char const * lTheOpenFileName;
+	std::string files="", fname="";
+	const char *lFilterPatterns[] = {"*.ima","*.img","*.xdf","*.fdi","*.hdm","*.nfd","*.d88","*.IMA","*.IMG","*.XDF","*.FDI","*.HDM","*.NFD","*.D88"};
+	const char *lFilterDescription = "Floppy image files (*.ima, *.img, *.xdf, *.fdi, *.hdm, *.nfd, *.d88)";
+	lTheOpenFileName = tinyfd_openFileDialog("Select a floppy image file","",sizeof(lFilterPatterns)/sizeof(lFilterPatterns[0]), lFilterPatterns, lFilterDescription, 0);
 
 #if !defined(OSFREE)
-    if (lTheOpenFileName) {
-        //uint8_t mediaid = 0xF0; UNUSED
-        std::vector<std::string> options;
-        if (mountiro[drive-'A']) options.emplace_back("readonly");
-        fatDrive *newDrive = new fatDrive(lTheOpenFileName, 0, 0, 0, 0, options);
-        if (!newDrive->created_successfully) {
-            systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_FLOPPYMOUNT_ERROR"), "ok", "error", 1);
-            chdir( Temp_CurrentDir );
-            return;
-        }
-        if (newDrive) {
-            if (type>-1)
-                DriveManager::ChangeDisk(drive-'A', newDrive);
-            else if (newDrive->loadedDisk) {
-                if (imageDiskList[drive-'A']) {
-                    imageDiskList[drive-'A']->Release();
-                    imageDiskList[drive-'A'] = newDrive->loadedDisk;
-                    //imageDiskList[drive-'A']->Addref();
-                    imageDiskChange[drive-'A'] = true;
-                }
-                if (swapInDisksSpecificDrive == drive-'A' && diskSwap[swapPosition]) {
-                    diskSwap[swapPosition]->Release();
-                    diskSwap[swapPosition] = newDrive->loadedDisk;
-                    diskSwap[swapPosition]->Addref();
-                }
-            }
-        }
-    }
-    chdir( Temp_CurrentDir );
+	if (lTheOpenFileName) {
+		//uint8_t mediaid = 0xF0; UNUSED
+		std::vector<std::string> options;
+		if (mountiro[drive-'A']) options.emplace_back("readonly");
+		fatDrive *newDrive = new fatDrive(lTheOpenFileName, 0, 0, 0, 0, options);
+		if (!newDrive->created_successfully) {
+			systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_FLOPPYMOUNT_ERROR"), "ok", "error", 1);
+			chdir( Temp_CurrentDir );
+			return;
+		}
+		if (newDrive) {
+			if (type>-1)
+				DriveManager::ChangeDisk(drive-'A', newDrive);
+			else if (newDrive->loadedDisk) {
+				if (imageDiskList[drive-'A']) {
+					imageDiskList[drive-'A']->Release();
+					imageDiskList[drive-'A'] = newDrive->loadedDisk;
+					//imageDiskList[drive-'A']->Addref();
+					imageDiskChange[drive-'A'] = true;
+				}
+				if (swapInDisksSpecificDrive == drive-'A' && diskSwap[swapPosition]) {
+					diskSwap[swapPosition]->Release();
+					diskSwap[swapPosition] = newDrive->loadedDisk;
+					diskSwap[swapPosition]->Addref();
+				}
+			}
+		}
+	}
+	chdir( Temp_CurrentDir );
 #endif
 #endif
 }
@@ -791,8 +791,8 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 
 				if (ext) {
 					if (	!strcasecmp(ext,".iso") || !strcasecmp(ext,".cue") || !strcasecmp(ext,".bin") ||
-						!strcasecmp(ext,".chd") || !strcasecmp(ext,".mdf") || !strcasecmp(ext,".gog") ||
-						!strcasecmp(ext,".inst"))
+							!strcasecmp(ext,".chd") || !strcasecmp(ext,".mdf") || !strcasecmp(ext,".gog") ||
+							!strcasecmp(ext,".inst"))
 						is_cd = true;
 				}
 
@@ -817,44 +817,44 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 				systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_MOUNT_PATH_TOOLONG"),"ok","error", 1);
 				return;
 			}
-            std::string mountstring = type;
-            mountstring += drive;
-            mountstring += ' ';
-            mountstring += files.empty() ? fname : files;
+			std::string mountstring = type;
+			mountstring += drive;
+			mountstring += ' ';
+			mountstring += files.empty() ? fname : files;
 
-            if(mountiro[drive - 'A'])
-                mountstring += " -ro";
+			if(mountiro[drive - 'A'])
+				mountstring += " -ro";
 
-            if(cdromreplace)
-                mountstring += " -replace";
+			if(cdromreplace)
+				mountstring += " -replace";
 
-            if(boot) {
-                // Unmount existing image
-                const std::string drive_num(1, drive - 'A' + '0');
-                runImgmount((drive_num + " -u").c_str());
+			if(boot) {
+				// Unmount existing image
+				const std::string drive_num(1, drive - 'A' + '0');
+				runImgmount((drive_num + " -u").c_str());
 
-                // Mount by drive number
-                mountstring[0] = drive - 'A' + '0';
-                runImgmount(mountstring.c_str());
+				// Mount by drive number
+				mountstring[0] = drive - 'A' + '0';
+				runImgmount(mountstring.c_str());
 
-                std::string bootstr = "-Q ";
+				std::string bootstr = "-Q ";
 				bootstr += drive;
 				bootstr += ':';
-                runBoot(bootstr.c_str());
+				runBoot(bootstr.c_str());
 
-                std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), (std::string(1, drive)).c_str());
+				std::string drive_warn = formatString(MSG_Get("PROGRAM_BOOT_FAILED"), (std::string(1, drive)).c_str());
 				systemmessagebox(MSG_Get("ERROR"), drive_warn.c_str(), "ok", "error", 1);
 
-                runImgmount((drive_num + " -u").c_str()); // unmount if boot failed
+				runImgmount((drive_num + " -u").c_str()); // unmount if boot failed
 				return;
 			}
 			if(arc) {
-                mountstring += " -q";
-                runMount(mountstring.c_str());
+				mountstring += " -q";
+				runMount(mountstring.c_str());
 			} else {
-                qmount = true;
-                runImgmount(mountstring.c_str());
-                qmount = false;
+				qmount = true;
+				runImgmount(mountstring.c_str());
+				qmount = false;
 			}
 			chdir( Temp_CurrentDir );
 			if (!Drives[drive - 'A']) {
@@ -900,10 +900,10 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 }
 
 void MenuBrowseFolder(char drive, std::string const& drive_type) {
-    std::string str(1, drive);
+	std::string str(1, drive);
 	if (Drives[drive-'A']) {
-        std::string drive_warn = formatString(MSG_Get("PROGRAM_ALREADY_MOUNTED"), str.c_str());
-        systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
+		std::string drive_warn = formatString(MSG_Get("PROGRAM_ALREADY_MOUNTED"), str.c_str());
+		systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
 		return;
 	}
 	if(control->SecureMode()) {
@@ -911,25 +911,25 @@ void MenuBrowseFolder(char drive, std::string const& drive_type) {
 		return;
 	}
 #if !defined(HX_DOS)
-    std::string base = "DRIVE_TYPE_";
-    std::string msg_key = base + std::string(drive_type);
-    std::string title = formatString(MSG_Get("PROGRAM_MOUNT_SELECT_DRIVE"), str.c_str(),MSG_Get(msg_key.c_str()));
-    if(drive_type=="CDROM")
-        title += "\n" + std::string(MSG_Get("PROGRAM_MOUNT_CDROM_SUPPORT"));
+	std::string base = "DRIVE_TYPE_";
+	std::string msg_key = base + std::string(drive_type);
+	std::string title = formatString(MSG_Get("PROGRAM_MOUNT_SELECT_DRIVE"), str.c_str(),MSG_Get(msg_key.c_str()));
+	if(drive_type=="CDROM")
+		title += "\n" + std::string(MSG_Get("PROGRAM_MOUNT_CDROM_SUPPORT"));
 #ifdef LINUX
-    size_t aMessageLength = strlen(title.c_str());
-    char *lMessage = (char *)malloc((aMessageLength * 2 + 1) * sizeof(char)); 
-    CodePageGuestToHostUTF8(lMessage, title.c_str()) ;
-    char const * lTheSelectFolderName = tinyfd_selectFolderDialog(lMessage, NULL);
-    free(lMessage);
+	size_t aMessageLength = strlen(title.c_str());
+	char *lMessage = (char *)malloc((aMessageLength * 2 + 1) * sizeof(char)); 
+	CodePageGuestToHostUTF8(lMessage, title.c_str()) ;
+	char const * lTheSelectFolderName = tinyfd_selectFolderDialog(lMessage, NULL);
+	free(lMessage);
 #else
-    char const * lTheSelectFolderName = tinyfd_selectFolderDialog(title.c_str(), NULL);
+	char const * lTheSelectFolderName = tinyfd_selectFolderDialog(title.c_str(), NULL);
 #endif
-    if (lTheSelectFolderName) {
-        MountHelper(drive,GetNewStr(lTheSelectFolderName).c_str(),drive_type);
-        std::string drive_warn = formatString(MSG_Get("PROGRAM_MOUNT_SUCCESS"), std::string(1, drive).c_str(), lTheSelectFolderName);
-        if (Drives[drive-'A']) systemmessagebox(MSG_Get("INFORMATION"),drive_warn.c_str(), "ok", "info", 1);
-    }
+	if (lTheSelectFolderName) {
+		MountHelper(drive,GetNewStr(lTheSelectFolderName).c_str(),drive_type);
+		std::string drive_warn = formatString(MSG_Get("PROGRAM_MOUNT_SUCCESS"), std::string(1, drive).c_str(), lTheSelectFolderName);
+		if (Drives[drive-'A']) systemmessagebox(MSG_Get("INFORMATION"),drive_warn.c_str(), "ok", "info", 1);
+	}
 #endif
 }
 
@@ -971,8 +971,8 @@ void MenuBootDrive(char drive) {
 	char str[] = "-Q A:";
 	str[3]=drive;
 	runBoot(str);
-    std::string drive_letter(1, drive);
-    std::string drive_warn= formatString(MSG_Get("PROGRAM_BOOT_FAILED"), drive_letter.c_str());
+	std::string drive_letter(1, drive);
+	std::string drive_warn= formatString(MSG_Get("PROGRAM_BOOT_FAILED"), drive_letter.c_str());
 	systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
 }
 
@@ -983,76 +983,76 @@ void MenuBrowseProgramFile() {
 	}
 	if (dos_kernel_disabled)
 		return;
-    std::string drive_warn;
+	std::string drive_warn;
 	DOS_MCB mcb(dos.psp()-1);
 	static char psp_name[9];
 	mcb.GetFileName(psp_name);
 	if(strlen(psp_name)&&strcmp(psp_name, "COMMAND")) {
-        drive_warn=strcmp(psp_name, "4DOS")? MSG_Get("PROGRAM_PROGRAM_ALREADY"): MSG_Get("PROGRAM_PROGRAM_ALREADY");
+		drive_warn=strcmp(psp_name, "4DOS")? MSG_Get("PROGRAM_PROGRAM_ALREADY"): MSG_Get("PROGRAM_PROGRAM_ALREADY");
 		systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
-        return;
-    }
+		return;
+	}
 
 #if !defined(HX_DOS)
-    char drv=' ';
-    for (int i=2; i<DOS_DRIVES-1; i++) {
-        if (!Drives[i]) {
-            drv='A'+i;
-            break;
-        }
-    }
-    if (drv==' ') {
-        for (int i=0; i<2; i++) {
-            if (!Drives[i]) {
-                drv='A'+i;
-                break;
-            }
-        }
-    }
-    if (drv==' ') { // Fallback to C: if no free drive found
-        if (!systemmessagebox(MSG_Get("WARNING"),MSG_Get("PROGRAM_WARN_QUICKLAUNCH"),"yesno", "question", 1)) {return;}
-        drv='C';
-    }
-    mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
+	char drv=' ';
+	for (int i=2; i<DOS_DRIVES-1; i++) {
+		if (!Drives[i]) {
+			drv='A'+i;
+			break;
+		}
+	}
+	if (drv==' ') {
+		for (int i=0; i<2; i++) {
+			if (!Drives[i]) {
+				drv='A'+i;
+				break;
+			}
+		}
+	}
+	if (drv==' ') { // Fallback to C: if no free drive found
+		if (!systemmessagebox(MSG_Get("WARNING"),MSG_Get("PROGRAM_WARN_QUICKLAUNCH"),"yesno", "question", 1)) {return;}
+		drv='C';
+	}
+	mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
 
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    getcwd(Temp_CurrentDir, 512);
-    const char *lFilterPatterns[] = {"*.com","*.exe","*.bat","*.COM","*.EXE","*.BAT"};
-    const char *lFilterDescription = "Executable files (*.com, *.exe, *.bat)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select an executable file to launch","",6,lFilterPatterns,lFilterDescription,0);
+	char CurrentDir[512];
+	char * Temp_CurrentDir = CurrentDir;
+	getcwd(Temp_CurrentDir, 512);
+	const char *lFilterPatterns[] = {"*.com","*.exe","*.bat","*.COM","*.EXE","*.BAT"};
+	const char *lFilterDescription = "Executable files (*.com, *.exe, *.bat)";
+	char const * lTheOpenFileName = tinyfd_openFileDialog("Select an executable file to launch","",6,lFilterPatterns,lFilterDescription,0);
 
-    if (lTheOpenFileName) {
-        const char *ext = strrchr(lTheOpenFileName,'.');
-        struct stat st;
-        std::string localname = lTheOpenFileName;
-        std::string base = !FileDirExistCP(lTheOpenFileName) && FileDirExistUTF8(localname, lTheOpenFileName) ? localname : lTheOpenFileName;
-        std::string full = base;
-        if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
-            if(ext!=NULL) {
-                systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_NO_EXECUTABLE"),"ok","error", 1);
-                return;
-            }
-            full=base+".com";
-            if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
-                full=base+".exe";
-                if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
-                    full=base+".bat";
-                    if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
-                        systemmessagebox(MSG_Get("ERROR"), MSG_Get("PROGRAM_NO_EXECUTABLE"),"ok","error", 1);
-                        return;
-                    }
-                }
-            }
-        }
-        if(ext==NULL) {
-            systemmessagebox(MSG_Get("ERROR"), MSG_Get("PROGRAM_NO_EXECUTABLE"),"ok","error", 1);
-            return;
-        }
-        std::size_t found = full.find_last_of("/\\");
-        std::string pathname = full.substr(0,found), filename = full.substr(found+1);
-        clearline=true;
-        bool exist=Drives[drv-'A'];
+	if (lTheOpenFileName) {
+		const char *ext = strrchr(lTheOpenFileName,'.');
+		struct stat st;
+		std::string localname = lTheOpenFileName;
+		std::string base = !FileDirExistCP(lTheOpenFileName) && FileDirExistUTF8(localname, lTheOpenFileName) ? localname : lTheOpenFileName;
+		std::string full = base;
+		if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
+			if(ext!=NULL) {
+				systemmessagebox(MSG_Get("ERROR"),MSG_Get("PROGRAM_NO_EXECUTABLE"),"ok","error", 1);
+				return;
+			}
+			full=base+".com";
+			if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
+				full=base+".exe";
+				if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
+					full=base+".bat";
+					if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
+						systemmessagebox(MSG_Get("ERROR"), MSG_Get("PROGRAM_NO_EXECUTABLE"),"ok","error", 1);
+						return;
+					}
+				}
+			}
+		}
+		if(ext==NULL) {
+			systemmessagebox(MSG_Get("ERROR"), MSG_Get("PROGRAM_NO_EXECUTABLE"),"ok","error", 1);
+			return;
+		}
+		std::size_t found = full.find_last_of("/\\");
+		std::string pathname = full.substr(0,found), filename = full.substr(found+1);
+		clearline=true;
+		bool exist=Drives[drv-'A'];
 		char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
 		char temp_str[3] = { 0,0,0 };
 		temp_str[0]=drv;
@@ -1067,67 +1067,67 @@ void MenuBrowseProgramFile() {
 		strcat(mountstring," -Q -U");
 		runMount(mountstring);
 		if (!Drives[drv-'A']) {
-            drive_warn = formatString(MSG_Get("PROGRAM_MOUNT_FAILED"), std::string(1, drv).c_str());
-            systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
-            if (!dos_kernel_disabled) mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
+			drive_warn = formatString(MSG_Get("PROGRAM_MOUNT_FAILED"), std::string(1, drv).c_str());
+			systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
+			if (!dos_kernel_disabled) mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
 			return;
-        }
-        uint8_t olddrv=DOS_GetDefaultDrive();
+		}
+		uint8_t olddrv=DOS_GetDefaultDrive();
 		DOS_SetDefaultDrive(drv-'A');
 
 		char name1[DOS_PATHLENGTH+2], name2[DOS_PATHLENGTH+4], name3[DOS_PATHLENGTH+4];
-        std::string msg="\r\nLaunching ";
+		std::string msg="\r\nLaunching ";
 		strcpy(name1,filename.c_str());
-        msg+=std::string(name1)+"...\r\n";
-        bool filename_not_8x3(const char *n);
-        if (filename_not_8x3(name1)) {
-            bool olduselfn=uselfn;
-            uselfn=true;
-            sprintf(name3,"\"%s\"",filename.c_str());
-            if (DOS_GetSFNPath(name3,name2,false)) {
-                char *p=strrchr_dbcs(name2, '\\');
-                strcpy(name1,p==NULL?name2:p+1);
-            }
-            uselfn=olduselfn;
-        }
+		msg+=std::string(name1)+"...\r\n";
+		bool filename_not_8x3(const char *n);
+		if (filename_not_8x3(name1)) {
+			bool olduselfn=uselfn;
+			uselfn=true;
+			sprintf(name3,"\"%s\"",filename.c_str());
+			if (DOS_GetSFNPath(name3,name2,false)) {
+				char *p=strrchr_dbcs(name2, '\\');
+				strcpy(name1,p==NULL?name2:p+1);
+			}
+			uselfn=olduselfn;
+		}
 
-        uint16_t n = (uint16_t)msg.size();
-        DOS_WriteFile(STDERR,(uint8_t*)msg.c_str(),&n);
+		uint16_t n = (uint16_t)msg.size();
+		DOS_WriteFile(STDERR,(uint8_t*)msg.c_str(),&n);
 
 		chdir( Temp_CurrentDir );
-        DOS_Shell shell;
-        shell.Execute(name1," ");
-        if (!strcasecmp(ext,".bat")) {
-            bool echo=shell.echo;
-            shell.echo=false;
-            shell.RunInternal();
-            shell.echo=echo;
-        }
-        if (!exist) {
-            for (int i=0; i<1000; i++) CALLBACK_Idle();
-            drive_warn= formatString(MSG_Get("PROGRAM_EXEC_FINISHED"),std::string(1, drv).c_str());
-            if (systemmessagebox(MSG_Get("WARNING"),drive_warn.c_str(),"yesno", "question", 1)) {
-                if (Drives[olddrv]) DOS_SetDefaultDrive(olddrv);
-                char temp_str[3] = { 0,0,0 };
-                temp_str[0]=drv;
-                temp_str[1]=' ';
-                strcpy(mountstring,temp_str);
-                strcat(mountstring," -Q -U");
-                runMount(mountstring);
-            }
-        }
-        if (strcasecmp(ext,".bat")) {
-            n=1;
-            uint8_t c='\r';
-            DOS_WriteFile(STDOUT,&c,&n);
-            c='\n';
-            DOS_WriteFile(STDOUT,&c,&n);
-        }
+		DOS_Shell shell;
+		shell.Execute(name1," ");
+		if (!strcasecmp(ext,".bat")) {
+			bool echo=shell.echo;
+			shell.echo=false;
+			shell.RunInternal();
+			shell.echo=echo;
+		}
+		if (!exist) {
+			for (int i=0; i<1000; i++) CALLBACK_Idle();
+			drive_warn= formatString(MSG_Get("PROGRAM_EXEC_FINISHED"),std::string(1, drv).c_str());
+			if (systemmessagebox(MSG_Get("WARNING"),drive_warn.c_str(),"yesno", "question", 1)) {
+				if (Drives[olddrv]) DOS_SetDefaultDrive(olddrv);
+				char temp_str[3] = { 0,0,0 };
+				temp_str[0]=drv;
+				temp_str[1]=' ';
+				strcpy(mountstring,temp_str);
+				strcat(mountstring," -Q -U");
+				runMount(mountstring);
+			}
+		}
+		if (strcasecmp(ext,".bat")) {
+			n=1;
+			uint8_t c='\r';
+			DOS_WriteFile(STDOUT,&c,&n);
+			c='\n';
+			DOS_WriteFile(STDOUT,&c,&n);
+		}
 		shell.ShowPrompt();
 	}
 
 	chdir( Temp_CurrentDir );
-    if (!dos_kernel_disabled) mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
+	if (!dos_kernel_disabled) mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
 #endif
 }
 
