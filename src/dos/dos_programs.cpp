@@ -691,7 +691,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
 #endif
 }
 
-void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
+void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple, const std::string &dev_spec, const std::string &dev_spec_opts) {
 	std::string str(1, drive);
 	std::string drive_warn;
 

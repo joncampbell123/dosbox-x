@@ -87,7 +87,6 @@ void DOSBox_ShowConsole(void);
 void Load_Language(std::string name);
 void RebootLanguage(std::string filename, bool confirm=false);
 void MenuBrowseFolder(char drive, std::string const& drive_type);
-void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void DOSBox_SetSysMenu(void);
