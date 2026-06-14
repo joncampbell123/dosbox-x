@@ -279,6 +279,7 @@ public:
     Bitu data_read(Bitu iolen) override; /* read from 1F0h data port from IDE device */
     void data_write(Bitu v,Bitu iolen) override; /* write to 1F0h data port to IDE device */
     virtual void swap_to_next_cd();
+    virtual void drop_all_cds();
     virtual void generate_identify_device();
     virtual void generate_mmc_inquiry();
     virtual void prepare_read(Bitu offset,Bitu size);
@@ -2517,6 +2518,19 @@ void IDEATADevice::prepare_read(Bitu offset,Bitu size) {
     assert(sector_total <= sizeof(sector));
 }
 
+void IDEATAPICDROMDevice::drop_all_cds() {
+    for (auto &cd : cdrom_swaplist) {
+        cd->Release();
+        cd = NULL;
+    }
+    cdrom_swaplist.clear();
+    cdrom_swaplist_pos = 0;
+    if (cdrom) {
+        cdrom->Release();
+        cdrom = NULL;
+    }
+}
+
 void IDEATAPICDROMDevice::swap_to_next_cd() {
     if (cdrom_swaplist.empty()) return;
     if (mscdex) return; // the drive manager manages swapping for us
@@ -2967,16 +2981,7 @@ bool IDE_CDROM_Eject(int index,bool slave) {
         if (CDROM_AllocateInterface("empty",true,0xFFFF/*invalid subunit*/,&cdrom))/*Addrefs*/
                 return false;
 
-        for (auto &cd : dev->cdrom_swaplist) {
-                cd->Release();
-                cd = NULL;
-        }
-        dev->cdrom_swaplist.clear();
-        dev->cdrom_swaplist_pos = 0;
-        if (dev->cdrom) {
-                dev->cdrom->Release();
-                dev->cdrom = NULL;
-        }
+        dev->drop_all_cds();
         (dev->cdrom = cdrom)->Addref();
         cdrom->Release();
 
@@ -3005,16 +3010,7 @@ bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Inter
 			return false;
 		}
 
-		for (auto &cd : dev->cdrom_swaplist) {
-			cd->Release();
-			cd = NULL;
-		}
-		dev->cdrom_swaplist.clear();
-		dev->cdrom_swaplist_pos = 0;
-		if (dev->cdrom) {
-			dev->cdrom->Release();
-			dev->cdrom = NULL;
-		}
+		dev->drop_all_cds();
 		(dev->cdrom = cds[0])->Addref();
 	}
 	else {
