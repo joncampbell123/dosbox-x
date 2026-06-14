@@ -5701,7 +5701,7 @@ std::string GetIDEPosition(unsigned char bios_disk_index);
 int CDROM_AllocateInterface(const char* physicalPath,int forceCD,uint16_t numDrive,CDROM_Interface **cdrom);
 extern int forceCD;
 
-bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds);
+bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds,bool replace=false);
 bool IDE_CDROM_Detach(const std::string &opts);
 
 class IMGMOUNT : public Program {
@@ -7397,7 +7397,7 @@ class IMGMOUNT : public Program {
 
 			if (ok) {
 				if (device_spec == "ide") {
-					ok = IDE_CDROM_Attach(device_spec_opts,cds);
+					ok = IDE_CDROM_Attach(device_spec_opts,cds,opt_replace);
 				}
 			}
 

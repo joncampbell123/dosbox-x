@@ -2983,7 +2983,7 @@ bool IDE_CDROM_Eject(int index,bool slave) {
         return true;
 }
 
-bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Interface*> &cds) {
+bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Interface*> &cds,bool opt_replace=false) {
 	IDEATAPICDROMDevice *dev;
 	IDEController *c;
 
@@ -2998,15 +2998,36 @@ bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Inter
 		return false;
 	}
 
-	if (c->device[slave?1:0] != NULL) {
-		LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.",ideslot[index],master_slave[slave?1:0]);
-		return false;
-	}
+	if (opt_replace && c->device[slave?1:0] != NULL) {
+		dev = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave?1:0]);
+		if(dev == NULL) {
+			LOG_MSG("IDE: Unable to attach CD-ROM images");
+			return false;
+		}
 
-	dev = new IDEATAPICDROMDevice(c,0xFFu/*no drive*/,slave,cds[0]);
-	if(dev == NULL) {
-		LOG_MSG("IDE: Unable to attach CD-ROM images");
-		return false;
+		for (auto &cd : dev->cdrom_swaplist) {
+			cd->Release();
+			cd = NULL;
+		}
+		dev->cdrom_swaplist.clear();
+		dev->cdrom_swaplist_pos = 0;
+		if (dev->cdrom) {
+			dev->cdrom->Release();
+			dev->cdrom = NULL;
+		}
+		(dev->cdrom = cds[0])->Addref();
+	}
+	else {
+		if (c->device[slave?1:0] != NULL) {
+			LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.",ideslot[index],master_slave[slave?1:0]);
+			return false;
+		}
+
+		dev = new IDEATAPICDROMDevice(c,0xFFu/*no drive*/,slave,cds[0]);
+		if(dev == NULL) {
+			LOG_MSG("IDE: Unable to attach CD-ROM images");
+			return false;
+		}
 	}
 
 	if (cds.size() > 1) {
@@ -3050,11 +3071,11 @@ bool IDE_CDROM_ParseOptSpec(struct ide_opt_spec_t &spec,const std::string &opts)
 	return true;
 }
 
-bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds) {
+bool IDE_CDROM_Attach(const std::string &opts,const std::vector<CDROM_Interface*> &cds,bool opt_replace=false) {
 	struct ide_opt_spec_t spec;
 
 	if (!IDE_CDROM_ParseOptSpec(spec,opts)) return false;
-	return IDE_CDROM_Attach(spec.index,spec.slave,cds);
+	return IDE_CDROM_Attach(spec.index,spec.slave,cds,opt_replace);
 }
 
 bool IDE_CDROM_Detach(signed char index,bool slave) {
