@@ -544,12 +544,29 @@ void CPrinter::updateFont()
 
 bool CPrinter::processCommandChar(uint8_t ch)
 {
-	if (ESCSeen || FSSeen)
+    if(ESCCmd == ESC_SKIP_VARIABLE && variableLength != 0)
+    {
+        ++variableCount;
+
+        if(variableCount < variableLength)
+            return true;
+
+        // End of variable-length command reached
+        ESCCmd = 0;
+        neededParam = 0;
+        numParam = 0;
+        variableLength = 0;
+        variableCount = 0;
+        return true;
+    }
+
+    if (ESCSeen || FSSeen)
 	{
 		ESCCmd = ch;
-		if(FSSeen) ESCCmd |= 0x800;
+		if(FSSeen) ESCCmd |= FS_COMMAND;
 		ESCSeen = FSSeen = false;
 		numParam = 0;
+        neededParam = 0;
 
 		switch (ESCCmd) {
 		    case 0x02: // Undocumented
@@ -666,7 +683,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    return true;
 		    default:
 			    LOG_MSG("PRINTER: Unknown command %s (%02Xh) %c , unable to skip parameters.",
-				    (ESCCmd & 0x800)?"FS":"ESC",ESCCmd, ESCCmd);
+				    (ESCCmd & FS_COMMAND)?"FS":"ESC",ESCCmd, ESCCmd);
 			
 			    neededParam = 0;
 			    ESCCmd = 0;
@@ -680,7 +697,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 	// Two bytes sequence
 	if (ESCCmd == '(')
 	{
-		ESCCmd = 0x200 + ch;
+		ESCCmd = ESC_PAREN_COMMAND | ch;
 
 		switch (ESCCmd)
 		{
@@ -709,7 +726,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    //LOG(LOG_MISC,LOG_ERROR)
 				    LOG_MSG("PRINTER: Skipping unsupported command ESC ( %c (%02X).", ESCCmd, ESCCmd);
 			    neededParam = 2;
-			    ESCCmd = 0x101;
+			    ESCCmd = ESC_SKIP_VARIABLE;
 			    return true;
 		}
 
@@ -1131,10 +1148,12 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    bottomMargin = pageHeight;
 			    topMargin = 0.0;
 			    break;
-		    case 0x101: // Skip unsupported ESC ( command
+            /**
+            case 0x101: // Skip unsupported ESC ( command
 			    neededParam = PARAM16(0);
 			    numParam = 0;
 			    break;
+            */
 		    case 0x274: // Assign character table (ESC (t)
 			    if (params[2] < 4 && params[3] < 15)
 			    {
@@ -1161,9 +1180,12 @@ bool CPrinter::processCommandChar(uint8_t ch)
 		    case 0x242: // Bar code setup and print (ESC (B)
 			    LOG(LOG_MISC,LOG_ERROR)("PRINTER: Bardcode printing not supported");
 			    // Find out how many bytes to skip
-			    neededParam = PARAM16(0);
-			    numParam = 0;
-			    break;
+                variableLength = PARAM16(0);
+                variableCount = 0;
+                neededParam = 0;
+                numParam = 0;
+                ESCCmd = ESC_SKIP_VARIABLE;
+                return true; // Force exit immediately to engage the variable parser state machine loop cleanly
 		    case 0x243: // Set page length in defined unit (ESC (C)
 			    if (params[0] != 0 && definedUnit > 0)
 			    {

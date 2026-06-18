@@ -84,6 +84,11 @@ enum Typeface
 	svjittra = 31
 };
 
+constexpr uint16_t FS_COMMAND = 0x800;
+constexpr uint16_t ESC_PAREN_COMMAND = 0x200;
+constexpr uint16_t ESC_SKIP_VARIABLE = 0x101;
+constexpr uint16_t ESC_BARCODE_DATA = 0x102;
+
 class CPrinter {
 public:
 
@@ -182,7 +187,9 @@ private:
 	uint8_t numParam = 0, neededParam = 0;		// Numbers of parameters already read/needed to process command
 
     uint8_t params[20] = {};					// Buffer for the read params
-	uint16_t style = 0;						// Style of font (see STYLE_* constants)
+    uint16_t variableLength = 0;                // Length of variable command
+    uint16_t variableCount = 0;                 // Bytes of variable command read
+    uint16_t style = 0;						// Style of font (see STYLE_* constants)
 	double cpi = 0, actcpi = 0;					// CPI value set by program and the actual one (taking in account font types)
 	uint8_t score = 0;						// Score for lines (see SCORE_* constants)
 
