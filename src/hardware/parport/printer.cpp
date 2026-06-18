@@ -60,7 +60,7 @@ extern bool halfwidthkana, mouselocked;
 
 static CPrinter* defaultPrinter = NULL;
 
-#define PARAM16(I) (params[I+1]*256+params[I])
+#define PARAM16(I) ((uint16_t)(params[I+1] << 8) | params[I])
 #define PIXX ((Bitu)floor(curX*dpi+0.5))
 #define PIXY ((Bitu)floor(curY*dpi+0.5))
 
