@@ -1000,7 +1000,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 		    case 0x53: // Select superscript/subscript printing (ESC S)
 			    if (params[0] == 0 || params[0] == 48)
 				    style |= STYLE_SUBSCRIPT;
-			    if (params[0] == 1 || params[1] == 49)
+			    if (params[0] == 1 || params[0] == 49)
 				    style |= STYLE_SUPERSCRIPT;
 			    updateFont();
 			    break;
