@@ -1414,6 +1414,13 @@ void CPrinter::printChar(uint8_t ch, int box)
     bool dbcs=false;
     uint8_t ll = 0;
     uint16_t dbchar = 0;
+
+    // Are we currently printing a bit graphic?
+    if(bitGraph.remBytes > 0) {
+        printBitGraph(ch);
+        return;
+    }
+
     if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || ((TTF_using() || showdbcs)
 #if defined(USE_TTF)
     && dbcs_sbcs
@@ -1555,12 +1562,6 @@ void CPrinter::printChar(uint8_t ch, int box)
 	if (msb != 255) {
 		if (msb == 0) ch &= 0x7F;
 		if (msb == 1) ch |= 0x80;
-	}
-
-	// Are we currently printing a bit graphic?
-	if (bitGraph.remBytes > 0) {
-		printBitGraph(ch);
-		return;
 	}
 
 	// Print everything?
