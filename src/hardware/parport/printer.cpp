@@ -77,7 +77,6 @@ static std::string actstd, acterr;
 
 void UpdateDefaultPrinterFont() {
     if (defaultPrinter!=NULL) {
-        defaultPrinter->curFont = NULL;
         defaultPrinter->updateFont();
     }
 }
@@ -1588,55 +1587,84 @@ void CPrinter::printChar(uint8_t ch, int box)
     }
 	FT_UInt index = FT_Get_Char_Index(curFont, printch);
 	
-	// Load the glyph 
-	FT_Load_Glyph(curFont, index, FT_LOAD_DEFAULT);
+    // Load and render the glyph.
+    FT_Error error;
 
-	// Render a high-quality bitmap
-	FT_Render_Glyph(curFont->glyph, FT_RENDER_MODE_NORMAL);
+    error = FT_Load_Glyph(curFont, index, FT_LOAD_DEFAULT);
+    if(error)
+        return;
 
-	uint16_t penX = (uint16_t)(PIXX + curFont->glyph->bitmap_left);
-	uint16_t penY = (uint16_t)(PIXY - curFont->glyph->bitmap_top + curFont->size->metrics.ascender / 64);
+    error = FT_Render_Glyph(curFont->glyph, FT_RENDER_MODE_NORMAL);
+    if(error)
+        return;
 
-	if (style & STYLE_SUBSCRIPT) penY += curFont->glyph->bitmap.rows / 2;
+    const FT_GlyphSlot slot = curFont->glyph;
 
-	// Copy bitmap into page
-	SDL_LockSurface(page);
+    // Calculate drawing position using the font metrics.
+    const uint16_t penX = static_cast<uint16_t>(
+        PIXX + slot->bitmap_left);
 
-	blitGlyph(curFont->glyph->bitmap, penX, penY, false);
-	blitGlyph(curFont->glyph->bitmap, penX+1, penY, true);
+    uint16_t penY = static_cast<uint16_t>(
+        PIXY -
+        slot->bitmap_top +
+        (curFont->size->metrics.ascender >> 6));
 
-	// Doublestrike => Print the glyph a second time one pixel below
-	if (style & STYLE_DOUBLESTRIKE)
+    if(style & STYLE_SUBSCRIPT)
+        penY += slot->bitmap.rows / 2;
+
+    // Copy bitmap into page.
+    SDL_LockSurface(page);
+
+    blitGlyph(slot->bitmap, penX, penY, false);
+    blitGlyph(slot->bitmap, penX + 1, penY, true);
+
+    // Double-strike.
+    if(style & STYLE_DOUBLESTRIKE)
     {
-		blitGlyph(curFont->glyph->bitmap, penX, penY+1, true);
-		blitGlyph(curFont->glyph->bitmap, penX+1, penY+1, true);
-	}
+        blitGlyph(slot->bitmap, penX, penY + 1, true);
+        blitGlyph(slot->bitmap, penX + 1, penY + 1, true);
+    }
 
-	// Bold => Print the glyph a second time one pixel to the right
-	// or be a bit more bold...
-	if (style & STYLE_BOLD)
+    // Bold.
+    if(style & STYLE_BOLD)
     {
-		blitGlyph(curFont->glyph->bitmap, penX+1, penY, true);
-		blitGlyph(curFont->glyph->bitmap, penX+2, penY, true);
-		blitGlyph(curFont->glyph->bitmap, penX+3, penY, true);
-	}
-	SDL_UnlockSurface(page);
+        blitGlyph(slot->bitmap, penX + 1, penY, true);
+        blitGlyph(slot->bitmap, penX + 2, penY, true);
+        blitGlyph(slot->bitmap, penX + 3, penY, true);
+    }
 
-	// For line printing
-	uint16_t lineStart = (uint16_t)PIXX;
+    SDL_UnlockSurface(page);
 
-	// advance the cursor to the right
-	double x_advance;
-	if ((style & STYLE_PROP) || dbcs)
-		x_advance = (double)((double)(curFont->glyph->advance.x) / (double)(dpi * 64));
-	else
+    // For line printing.
+    const uint16_t lineStart = static_cast<uint16_t>(PIXX);
+
+    // Advance the cursor.
+    double x_advance;
+
+    if(style & STYLE_PROP)
     {
-		if (hmi < 0)
-            x_advance = 1 / (double)actcpi;
-		else
-            x_advance = hmi;
-	}
-	x_advance += extraIntraSpace;
+        // Proportional printing uses the font advance.
+        x_advance = static_cast<double>(slot->advance.x) /
+            static_cast<double>(dpi * 64);
+    }
+    else
+    {
+        // Fixed-pitch printing uses the printer cell width.
+        if(hmi < 0)
+        {
+            x_advance = dbcs ?
+                (2.0 / static_cast<double>(actcpi)) :
+                (1.0 / static_cast<double>(actcpi));
+        }
+        else
+        {
+            x_advance = dbcs ?
+                (hmi * 2.0) :
+                hmi;
+        }
+    }
+
+    x_advance += extraIntraSpace;
     curX += x_advance;
 
 	// Draw lines if desired
