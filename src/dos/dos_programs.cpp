@@ -2022,6 +2022,8 @@ next:
 /* SDL main now allows storing the bootcode to load into memory AFTER DOS kernel shutdown */
 extern std::vector<uint8_t> boot_code_image;
 extern PhysPt boot_code_image_load_to;
+extern uint16_t boot_code_image_stack_ss;
+extern uint16_t boot_code_image_stack_sp;
 
 /*! \brief          BOOT.COM utility to boot a floppy or hard disk device.
  *
@@ -2345,7 +2347,7 @@ public:
 
         /* IBM PC:
          *    CS:IP = 0000:7C00     Load = 07C0:0000
-         *    SS:SP = 0030:0080 (PCjr at least)
+         *    SS:SP = 0030:0100     (confirmed from IBM PC, XT, PCjr BIOS source code)
          *
          * PC-98:
          *    CS:IP = 1FC0:0000     Load = 1FC0:0000
@@ -2606,6 +2608,9 @@ public:
 #endif
             bootguest=false;
             bootdrive=drive-65;
+
+            boot_code_image_stack_ss = stack_seg;
+            boot_code_image_stack_sp = reg_esp;
 
             /* forcibly exit the shell, the DOS kernel, and anything else by throwing an exception */
             throw int(2);
@@ -3462,7 +3467,7 @@ public:
                 SegSet16(es, 0);
                 reg_ip = (uint16_t)(load_seg<<4);
                 reg_ebx = (uint32_t)(load_seg<<4); //Real code probably uses bx to load the image
-                reg_esp = 0x80;
+                reg_esp = 0x100; /* NTS: From IBM PC BIOS source code: "STACK SEGMENT AT 30H; DW 128 DUP(?); TOS LABEL WORD; STACK ENDS" that means 0x80 WORDs */
                 /* set up stack at a safe place */
                 SegSet16(ss, (uint16_t)stack_seg);
                 reg_esi = 0;
@@ -3481,6 +3486,9 @@ public:
 #endif
             bootguest=false;
             bootdrive=drive-65;
+
+            boot_code_image_stack_ss = stack_seg;
+            boot_code_image_stack_sp = reg_esp;
 
             /* forcibly exit the shell, the DOS kernel, and anything else by throwing an exception */
             throw int(2);
