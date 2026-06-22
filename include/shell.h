@@ -107,6 +107,8 @@ private:
 
 public:
 
+	bool free_your_own_psp = false; /* set to true if created directly, will not terminate through INT 21h, and therefore normal PSP and memory free will not happen */
+
 	DOS_Shell();
 	virtual ~DOS_Shell();
 
