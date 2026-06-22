@@ -21,7 +21,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.13.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -137,7 +137,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.13.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
@@ -242,7 +242,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.13.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
