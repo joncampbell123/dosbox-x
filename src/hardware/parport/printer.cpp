@@ -60,7 +60,7 @@ extern bool halfwidthkana, mouselocked;
 
 static CPrinter* defaultPrinter = NULL;
 
-#define PARAM16(I) (params[I+1]*256+params[I])
+#define PARAM16(I) ((uint16_t)(params[I+1] << 8) | params[I])
 #define PIXX ((Bitu)floor(curX*dpi+0.5))
 #define PIXY ((Bitu)floor(curY*dpi+0.5))
 
@@ -77,7 +77,6 @@ static std::string actstd, acterr;
 
 void UpdateDefaultPrinterFont() {
     if (defaultPrinter!=NULL) {
-        defaultPrinter->curFont = NULL;
         defaultPrinter->updateFont();
     }
 }
@@ -544,12 +543,29 @@ void CPrinter::updateFont()
 
 bool CPrinter::processCommandChar(uint8_t ch)
 {
-	if (ESCSeen || FSSeen)
+    if(ESCCmd == ESC_SKIP_VARIABLE && variableLength != 0)
+    {
+        ++variableCount;
+
+        if(variableCount < variableLength)
+            return true;
+
+        // End of variable-length command reached
+        ESCCmd = 0;
+        neededParam = 0;
+        numParam = 0;
+        variableLength = 0;
+        variableCount = 0;
+        return true;
+    }
+
+    if (ESCSeen || FSSeen)
 	{
 		ESCCmd = ch;
-		if(FSSeen) ESCCmd |= 0x800;
+		if(FSSeen) ESCCmd |= FS_COMMAND;
 		ESCSeen = FSSeen = false;
 		numParam = 0;
+        neededParam = 0;
 
 		switch (ESCCmd) {
 		    case 0x02: // Undocumented
@@ -666,7 +682,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    return true;
 		    default:
 			    LOG_MSG("PRINTER: Unknown command %s (%02Xh) %c , unable to skip parameters.",
-				    (ESCCmd & 0x800)?"FS":"ESC",ESCCmd, ESCCmd);
+				    (ESCCmd & FS_COMMAND)?"FS":"ESC",ESCCmd, ESCCmd);
 			
 			    neededParam = 0;
 			    ESCCmd = 0;
@@ -680,7 +696,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 	// Two bytes sequence
 	if (ESCCmd == '(')
 	{
-		ESCCmd = 0x200 + ch;
+		ESCCmd = ESC_PAREN_COMMAND | ch;
 
 		switch (ESCCmd)
 		{
@@ -709,7 +725,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    //LOG(LOG_MISC,LOG_ERROR)
 				    LOG_MSG("PRINTER: Skipping unsupported command ESC ( %c (%02X).", ESCCmd, ESCCmd);
 			    neededParam = 2;
-			    ESCCmd = 0x101;
+			    ESCCmd = ESC_SKIP_VARIABLE;
 			    return true;
 		}
 
@@ -983,7 +999,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 		    case 0x53: // Select superscript/subscript printing (ESC S)
 			    if (params[0] == 0 || params[0] == 48)
 				    style |= STYLE_SUBSCRIPT;
-			    if (params[0] == 1 || params[1] == 49)
+			    if (params[0] == 1 || params[0] == 49)
 				    style |= STYLE_SUPERSCRIPT;
 			    updateFont();
 			    break;
@@ -1131,10 +1147,12 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    bottomMargin = pageHeight;
 			    topMargin = 0.0;
 			    break;
-		    case 0x101: // Skip unsupported ESC ( command
+            /**
+            case 0x101: // Skip unsupported ESC ( command
 			    neededParam = PARAM16(0);
 			    numParam = 0;
 			    break;
+            */
 		    case 0x274: // Assign character table (ESC (t)
 			    if (params[2] < 4 && params[3] < 15)
 			    {
@@ -1161,9 +1179,12 @@ bool CPrinter::processCommandChar(uint8_t ch)
 		    case 0x242: // Bar code setup and print (ESC (B)
 			    LOG(LOG_MISC,LOG_ERROR)("PRINTER: Bardcode printing not supported");
 			    // Find out how many bytes to skip
-			    neededParam = PARAM16(0);
-			    numParam = 0;
-			    break;
+                variableLength = PARAM16(0);
+                variableCount = 0;
+                neededParam = 0;
+                numParam = 0;
+                ESCCmd = ESC_SKIP_VARIABLE;
+                return true; // Force exit immediately to engage the variable parser state machine loop cleanly
 		    case 0x243: // Set page length in defined unit (ESC (C)
 			    if (params[0] != 0 && definedUnit > 0)
 			    {
@@ -1392,6 +1413,13 @@ void CPrinter::printChar(uint8_t ch, int box)
     bool dbcs=false;
     uint8_t ll = 0;
     uint16_t dbchar = 0;
+
+    // Are we currently printing a bit graphic?
+    if(bitGraph.remBytes > 0) {
+        printBitGraph(ch);
+        return;
+    }
+
     if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || ((TTF_using() || showdbcs)
 #if defined(USE_TTF)
     && dbcs_sbcs
@@ -1535,12 +1563,6 @@ void CPrinter::printChar(uint8_t ch, int box)
 		if (msb == 1) ch |= 0x80;
 	}
 
-	// Are we currently printing a bit graphic?
-	if (bitGraph.remBytes > 0) {
-		printBitGraph(ch);
-		return;
-	}
-
 	// Print everything?
 	if (numPrintAsChar > 0) numPrintAsChar--;
 	else if (processCommandChar(ch)) return;
@@ -1565,55 +1587,84 @@ void CPrinter::printChar(uint8_t ch, int box)
     }
 	FT_UInt index = FT_Get_Char_Index(curFont, printch);
 	
-	// Load the glyph 
-	FT_Load_Glyph(curFont, index, FT_LOAD_DEFAULT);
+    // Load and render the glyph.
+    FT_Error error;
 
-	// Render a high-quality bitmap
-	FT_Render_Glyph(curFont->glyph, FT_RENDER_MODE_NORMAL);
+    error = FT_Load_Glyph(curFont, index, FT_LOAD_DEFAULT);
+    if(error)
+        return;
 
-	uint16_t penX = (uint16_t)(PIXX + curFont->glyph->bitmap_left);
-	uint16_t penY = (uint16_t)(PIXY - curFont->glyph->bitmap_top + curFont->size->metrics.ascender / 64);
+    error = FT_Render_Glyph(curFont->glyph, FT_RENDER_MODE_NORMAL);
+    if(error)
+        return;
 
-	if (style & STYLE_SUBSCRIPT) penY += curFont->glyph->bitmap.rows / 2;
+    const FT_GlyphSlot slot = curFont->glyph;
 
-	// Copy bitmap into page
-	SDL_LockSurface(page);
+    // Calculate drawing position using the font metrics.
+    const uint16_t penX = static_cast<uint16_t>(
+        PIXX + slot->bitmap_left);
 
-	blitGlyph(curFont->glyph->bitmap, penX, penY, false);
-	blitGlyph(curFont->glyph->bitmap, penX+1, penY, true);
+    uint16_t penY = static_cast<uint16_t>(
+        PIXY -
+        slot->bitmap_top +
+        (curFont->size->metrics.ascender >> 6));
 
-	// Doublestrike => Print the glyph a second time one pixel below
-	if (style & STYLE_DOUBLESTRIKE)
+    if(style & STYLE_SUBSCRIPT)
+        penY += slot->bitmap.rows / 2;
+
+    // Copy bitmap into page.
+    SDL_LockSurface(page);
+
+    blitGlyph(slot->bitmap, penX, penY, false);
+    blitGlyph(slot->bitmap, penX + 1, penY, true);
+
+    // Double-strike.
+    if(style & STYLE_DOUBLESTRIKE)
     {
-		blitGlyph(curFont->glyph->bitmap, penX, penY+1, true);
-		blitGlyph(curFont->glyph->bitmap, penX+1, penY+1, true);
-	}
+        blitGlyph(slot->bitmap, penX, penY + 1, true);
+        blitGlyph(slot->bitmap, penX + 1, penY + 1, true);
+    }
 
-	// Bold => Print the glyph a second time one pixel to the right
-	// or be a bit more bold...
-	if (style & STYLE_BOLD)
+    // Bold.
+    if(style & STYLE_BOLD)
     {
-		blitGlyph(curFont->glyph->bitmap, penX+1, penY, true);
-		blitGlyph(curFont->glyph->bitmap, penX+2, penY, true);
-		blitGlyph(curFont->glyph->bitmap, penX+3, penY, true);
-	}
-	SDL_UnlockSurface(page);
+        blitGlyph(slot->bitmap, penX + 1, penY, true);
+        blitGlyph(slot->bitmap, penX + 2, penY, true);
+        blitGlyph(slot->bitmap, penX + 3, penY, true);
+    }
 
-	// For line printing
-	uint16_t lineStart = (uint16_t)PIXX;
+    SDL_UnlockSurface(page);
 
-	// advance the cursor to the right
-	double x_advance;
-	if ((style & STYLE_PROP) || dbcs)
-		x_advance = (double)((double)(curFont->glyph->advance.x) / (double)(dpi * 64));
-	else
+    // For line printing.
+    const uint16_t lineStart = static_cast<uint16_t>(PIXX);
+
+    // Advance the cursor.
+    double x_advance;
+
+    if(style & STYLE_PROP)
     {
-		if (hmi < 0)
-            x_advance = 1 / (double)actcpi;
-		else
-            x_advance = hmi;
-	}
-	x_advance += extraIntraSpace;
+        // Proportional printing uses the font advance.
+        x_advance = static_cast<double>(slot->advance.x) /
+            static_cast<double>(dpi * 64);
+    }
+    else
+    {
+        // Fixed-pitch printing uses the printer cell width.
+        if(hmi < 0)
+        {
+            x_advance = dbcs ?
+                (2.0 / static_cast<double>(actcpi)) :
+                (1.0 / static_cast<double>(actcpi));
+        }
+        else
+        {
+            x_advance = dbcs ?
+                (hmi * 2.0) :
+                hmi;
+        }
+    }
+
+    x_advance += extraIntraSpace;
     curX += x_advance;
 
 	// Draw lines if desired

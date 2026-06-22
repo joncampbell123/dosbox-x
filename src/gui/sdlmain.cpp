@@ -8109,6 +8109,8 @@ unsigned char *custom_bios_image = NULL;
  *             no longer necessary. */
 std::vector<uint8_t> boot_code_image;
 PhysPt boot_code_image_load_to = 0;
+uint16_t boot_code_image_stack_ss = 0;
+uint16_t boot_code_image_stack_sp = 0;
 
 // OK why isn't this being set for Linux??
 #ifndef SDL_MAIN_NOEXCEPT
@@ -10355,6 +10357,10 @@ fresh_boot:
 
             /* new code: fire event */
             DispatchVMEvent(VM_EVENT_GUEST_OS_BOOT);
+
+            /* just to be sure nothing during DOS kernel shutdown changed the stack pointer */
+            SegSet16(ss,boot_code_image_stack_ss);
+            reg_esp = boot_code_image_stack_sp;
 
             LOG_MSG("Alright: DOS kernel shutdown, booting a guest OS\n");
             LOG_MSG("  CS:IP=%04x:%04x SS:SP=%04x:%04x AX=%04x BX=%04x CX=%04x DX=%04x\n",
