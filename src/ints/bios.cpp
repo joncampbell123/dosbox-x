@@ -3099,10 +3099,6 @@ static Bitu INT1A_Handler(void) {
             reg_cl = ReadCmosByte(0x02);    // minutes
             reg_dh = ReadCmosByte(0x00);    // seconds
             reg_dl = ReadCmosByte(0x0b) & 0x01; // daylight saving time
-	    /* 2023/10/06 - Let interrupts and CPU cycles catch up and the RTC clock a chance to tick. This is needed for
-	     * "Pizza Tycoon" which appears to start by running in a loop reading time from the BIOS and writing
-	     * time to INT 21h in a loop until the second value changes. */
-            for (unsigned int c=0;c < 4;c++) CALLBACK_Idle();
         }
         CALLBACK_SCF(false);
         break;
@@ -3114,10 +3110,6 @@ static Bitu INT1A_Handler(void) {
             WriteCmosByte(0x02, reg_cl);        // minutes
             WriteCmosByte(0x00, reg_dh);        // seconds
             WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7eu) | (reg_dh & 0x01u)); // dst + implicitly allow updates
-	    /* 2023/10/06 - Let interrupts and CPU cycles catch up and the RTC clock a chance to tick. This is needed for
-	     * "Pizza Tycoon" which appears to start by running in a loop reading time from the BIOS and writing
-	     * time to INT 21h in a loop until the second value changes. */
-            for (unsigned int c=0;c < 4;c++) CALLBACK_Idle();
         }
         break;
     case 0x04:  /* GET REAL-TIME ClOCK DATE  (AT,XT286,PS) */
@@ -3127,10 +3119,6 @@ static Bitu INT1A_Handler(void) {
             reg_cl = ReadCmosByte(0x09);    // year
             reg_dh = ReadCmosByte(0x08);    // month
             reg_dl = ReadCmosByte(0x07);    // day
-	    /* 2023/10/06 - Let interrupts and CPU cycles catch up and the RTC clock a chance to tick. This is needed for
-	     * "Pizza Tycoon" which appears to start by running in a loop reading time from the BIOS and writing
-	     * time to INT 21h in a loop until the second value changes. */
-            for (unsigned int c=0;c < 4;c++) CALLBACK_Idle();
         }
         CALLBACK_SCF(false);
         break;
@@ -3143,10 +3131,6 @@ static Bitu INT1A_Handler(void) {
             WriteCmosByte(0x08, reg_dh);    // month
             WriteCmosByte(0x07, reg_dl);    // day
             WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7f));   // allow updates
-	    /* 2023/10/06 - Let interrupts and CPU cycles catch up and the RTC clock a chance to tick. This is needed for
-	     * "Pizza Tycoon" which appears to start by running in a loop reading time from the BIOS and writing
-	     * time to INT 21h in a loop until the second value changes. */
-            for (unsigned int c=0;c < 4;c++) CALLBACK_Idle();
         }
         break;
     case 0x80:  /* Pcjr Setup Sound Multiplexer */

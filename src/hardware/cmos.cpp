@@ -305,12 +305,25 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             break;
         case 0x0b:      /* Status reg B */
             {
+                const uint8_t oldval = cmos.regs[cmos.reg];
                 cmos.ampm = !(val & 0x02);
                 cmos.bcd = !(val & 0x04);
                 cmos.lock = (val & 0x80) != 0;
                 if (cmos.lock) val &= ~0x10; /* Setting bit 7 clears bit 4 (UEI) */
                 cmos.regs[cmos.reg] = (uint8_t)val;
-                cmos_checktimer();
+                /* Only re-arm the periodic RTC event if a bit that affects its
+                 * scheduling actually changed: PIE (bit6, 0x40) or UIE (bit4,
+                 * 0x10). Otherwise a guest that writes reg B in a tight loop --
+                 * e.g. the BIOS INT 1A/02 handler's InitRtc() while a program
+                 * polls "wait until the RTC second changes" -- would call
+                 * cmos_checktimer() (PIC_RemoveEvents + re-AddEvent) faster than
+                 * the ~1ms periodic event can fire, perpetually pushing it into
+                 * the future and FREEZING the clock (UFO: Enemy Unknown intro).
+                 * The always-on 1-second tick is started at reset by the reg A
+                 * write and self-reschedules, so leaving the event alone here
+                 * keeps it running. */
+                if (((oldval ^ (uint8_t)val) & 0x50u) != 0u)
+                    cmos_checktimer();
             }
             break;
         case 0x0c:      /* Status reg C */
