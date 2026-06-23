@@ -143,11 +143,15 @@ void SHELL_ProgramStart(Program * * make) {
 //Repeat it with the correct type, could do it in the function below, but this way it should be
 //clear that if the above function is changed, this function might need a change as well.
 static void SHELL_ProgramStart_First_shell(DOS_Shell * * make) {
-	*make = new DOS_Shell;
+	DOS_Shell *sh = new DOS_Shell;
+	sh->free_your_own_psp = true; /* shell does not exit normally using INT 21h and must free it's own memory by itself */
+	*make = sh;
 }
 #if !defined(OSFREE)
 static void SHELL_ProgramStart_Config_shell(DOS_Shell * * make) {
-	*make = new DOS_ConfigShell;
+	DOS_ConfigShell *sh = new DOS_ConfigShell;
+	sh->free_your_own_psp = true; /* shell does not exit normally using INT 21h and must free it's own memory by itself */
+	*make = sh;
 }
 #endif
 
@@ -326,7 +330,7 @@ DOS_Shell::~DOS_Shell() {
 	/* shell termination is not handled like a normal program.
 	 * memory allocated by the shell is not automatically freed on termination.
 	 * files are not automatically closed */
-	if (psp->GetSegment()) {
+	if (free_your_own_psp && psp->GetSegment()) {
 		DOS_FreeProcessMemory(psp->GetSegment());
 
 		/* NTS: DOS_PSP would ideally allow JFT handle operations regardless of whatever the

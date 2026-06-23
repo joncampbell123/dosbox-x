@@ -1714,6 +1714,19 @@ continue_1:
 		SegSet16(cs,oldcs);
 #endif
 
+		/* The error code returned from the DOS program needs to be returned.
+		 * Microsoft Flight Simulator 5.1 setup expects it, when it runs a self-extracting executable
+		 * during setup. Also, INT 21h AH=4Bh emulation was set up to return a nonzero AX value
+		 * according to real MS-DOS behavior, which this will cover up.
+		 *
+		 * The stock executable code used to run these programs will take whatever we leave in AL
+		 * and pass it to INT 21h AH=4Ch as the exit code.
+		 *
+		 * NTS: I don't think there's a way for COMMAND.COM to return the error state of a TSR exit
+		 *      whether or not the program exited as a TSR or not. */
+		reg_al = dos.return_code;
+		reg_ax = 0;
+
 		if (dos.errorcode != 0) {
 			if (dos.errorcode == DOSERR_ACCESS_DENIED) {
 				WriteOut(MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"), name);

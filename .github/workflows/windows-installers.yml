@@ -21,7 +21,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.13.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: microsoft/setup-msbuild@v3
       - name: Prepare Visual Studio builds
         shell: bash
@@ -264,7 +264,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.13.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
@@ -337,7 +337,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.13.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -395,7 +395,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Restore MinGW x86 builds (nightly)
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/cache/restore@v5
