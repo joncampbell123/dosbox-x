@@ -5160,6 +5160,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 FDC_WAIT_TIMER_HACK();
             }
 
+#if 0
             /* Prevent reading 1.44MB floppies using 1.2MB read commands and vice versa.
              * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
              *        when Drive A: (the first floppy) is a 1.44MB drive or not and fails
@@ -5180,6 +5181,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                     return;
                 }
             }
+#endif
 
             PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
             unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
@@ -5239,6 +5241,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 FDC_WAIT_TIMER_HACK();
             }
 
+#if 0
             /* Prevent reading 1.44MB floppies using 1.2MB read commands and vice versa.
              * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
              *        when Drive A: (the first floppy) is a 1.44MB drive or not and fails
@@ -5259,6 +5262,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                     return;
                 }
             }
+#endif
 
             PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
             unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
