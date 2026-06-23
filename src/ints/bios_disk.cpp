@@ -1846,7 +1846,7 @@ void imageDisk::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSec
     }
 
     // Use the provided geometry, if it is valid
-    if(setCyl > 0 && setCyl <= 1024 && setHeads > 0 && setHeads <= 255 && setSect >0 && setSect <= 63) {
+    if(setCyl > 0 && setHeads > 0 && setSect > 0 && (setCyl <= 1024 || IS_PC98_ARCH) && setHeads <= 255 && setSect <= 63) {
         cylinders = setCyl;
         heads = setHeads;
         sectors = setSect;
