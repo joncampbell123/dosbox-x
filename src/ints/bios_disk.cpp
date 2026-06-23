@@ -1780,7 +1780,7 @@ imageDisk::imageDisk(class DOS_Drive *useDrive, unsigned int letter, uint32_t fr
 	diskimg = NULL;
 	diskname[0] = '\0';
 	hardDrive = true;
-	Set_GeometryForHardDisk();
+    Set_GeometryForHardDisk();
 }
 
 imageDisk::~imageDisk()
@@ -1808,14 +1808,20 @@ void imageDisk::Set_GeometryForHardDisk()
 		uint32_t setHeads = bootbuffer.headcount;
 		uint32_t setCyl = (mbrData.pentry[m].absSectStart + mbrData.pentry[m].partSize) / (setSect * setHeads);
 		Set_Geometry(setHeads, setCyl, setSect, 512);
-		return;
+        if(image_length == 0) {
+            LBA = (uint64_t)setCyl * setHeads * setSect;
+            image_length = (uint64_t)LBA * sector_size;
+        }
+        return;
 	}
 	if (!diskimg) return;
-	uint32_t diskimgsize;
+    uint32_t diskimgsize;
 	fseek(diskimg,0,SEEK_END);
 	diskimgsize = (uint32_t)ftell(diskimg);
-	fseek(diskimg,current_fpos,SEEK_SET);
-	Set_Geometry(16, diskimgsize / (512 * 63 * 16), 63, 512);
+    fseek(diskimg,current_fpos,SEEK_SET);
+    image_length = diskimgsize;
+    LBA = (uint64_t)diskimgsize / sector_size;
+    Set_Geometry(16, diskimgsize / (512 * 63 * 16), 63, 512);
 }
 
 void imageDisk::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize) {
