@@ -330,9 +330,9 @@ DOS_Shell::~DOS_Shell() {
 	/* shell termination is not handled like a normal program.
 	 * memory allocated by the shell is not automatically freed on termination.
 	 * files are not automatically closed */
-	if (free_your_own_psp && psp->GetSegment()) {
+	if (free_your_own_psp && psp && psp->GetSegment()) {
 		DOS_FreeProcessMemory(psp->GetSegment());
-
+        free_your_own_psp = false;
 		/* NTS: DOS_PSP would ideally allow JFT handle operations regardless of whatever the
 		 *      current PSP segment is, but that's not how the code is written */
 		const uint16_t o_psp = dos.psp();
