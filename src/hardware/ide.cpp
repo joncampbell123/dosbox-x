@@ -5345,7 +5345,7 @@ void DOS_EnableDriveIDEMenu(unsigned int idx,unsigned char ms) {
 	if (idx < MAX_IDE_CONTROLLERS) {
 		IDEController *ctl = idecontroller[idx];
 		IDEDevice *dev = ctl ? ctl->device[ms] : NULL;
-		IDEATAPICDROMDevice *cdrom;
+        IDEATAPICDROMDevice* cdrom = nullptr;
 		bool cdromchange = false;
 		bool do_hide = true;
 		bool empty = true;
