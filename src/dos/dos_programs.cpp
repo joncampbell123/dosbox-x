@@ -879,18 +879,18 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple, const s
 				drive_warn= formatString(MSG_Get("PROGRAM_MOUNT_FAILED"), (std::string(1, drive)).c_str());
 				systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
 				return;
-			} 
+			}
 			else {
 				if(!multiple && !lTheOpenFileName){
 					chdir( Temp_CurrentDir );
-					return;    
+					return;
 				}
 #if defined(MACOSX)
 				auto MSGX = MSG_GetUTF8;
 #else
 				auto MSGX = MSG_Get;
 #endif
-				std::string readonly = mountiro[drive - 'A'] ? "\n(" + std::string(MSGX("READONLY_MODE")) + ")" : "";    
+				std::string readonly = mountiro[drive - 'A'] ? "\n(" + std::string(MSGX("READONLY_MODE")) + ")" : "";
 				std::string msg = MSGX("PROGRAM_MOUNT_IMAGE");
 				std::string image, drive_warn;
 				if(multiple){
@@ -936,7 +936,7 @@ void MenuBrowseFolder(char drive, std::string const& drive_type) {
 		title += "\n" + std::string(MSG_Get("PROGRAM_MOUNT_CDROM_SUPPORT"));
 #ifdef LINUX
 	size_t aMessageLength = strlen(title.c_str());
-	char *lMessage = (char *)malloc((aMessageLength * 2 + 1) * sizeof(char)); 
+	char *lMessage = (char *)malloc((aMessageLength * 2 + 1) * sizeof(char));
 	CodePageGuestToHostUTF8(lMessage, title.c_str()) ;
 	char const * lTheSelectFolderName = tinyfd_selectFolderDialog(lMessage, NULL);
 	free(lMessage);
@@ -1262,7 +1262,7 @@ public:
             return;
         }
 
-        /* In secure mode don't allow people to change mount points. 
+        /* In secure mode don't allow people to change mount points.
          * Neither mount nor unmount */
         if(control->SecureMode()) {
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
@@ -1389,7 +1389,7 @@ public:
                 }
                 str_size=teststr;
             }
-           
+
             cmd->FindString("-size",str_size,true);
             char number[21] = { 0 }; const char* scan = str_size.c_str();
             Bitu index = 0; Bitu count = 0;
@@ -1406,7 +1406,7 @@ public:
                 number[index] = 0; //always goes correct as index is max 20 at this point.
                 sizes[count] = atoi(number);
             }
-        
+
             // get the drive letter
             cmd->FindCommand(1,temp_line);
             if ((temp_line.size() > 2) || ((temp_line.size()>1) && (temp_line[1]!=':'))) goto showusage;
@@ -1768,7 +1768,7 @@ public:
                           delete Drives[drive-'A'];
                           Drives[drive-'A'] = nullptr;
                       }
-                  } else { 
+                  } else {
                       if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_ERROR"));
                       return;
                   }
@@ -1802,7 +1802,7 @@ public:
         /* For hard drives set the label to DRIVELETTER_Drive.
          * For floppy drives set the label to DRIVELETTER_Floppy.
          * This way every drive except cdroms should get a label.*/
-        else if(type == "dir" || type == "overlay") { 
+        else if(type == "dir" || type == "overlay") {
 #if defined (WIN32) || defined(OS2)
             if(temp_line.size()==3 && toupper(drive) == toupper(temp_line[0]))  {
                 // automatic mount
@@ -2064,7 +2064,7 @@ private:
 		bool readonly=wpcolon&&strlen(filename)>1&&filename[0]==':';
         if (!DOS_MakeName(readonly?filename+1:filename,fullname,&drive)) return NULL;
 
-        try {       
+        try {
             ldp=dynamic_cast<localDrive*>(Drives[drive]);
             if(!ldp) return NULL;
 
@@ -2142,7 +2142,7 @@ private:
     }
 
 public:
-   
+
     /*! \brief      Program entry point, when the command is run
      */
     void Run(void) override {
@@ -2237,7 +2237,7 @@ public:
             return;
         }
 
-        /* In secure mode don't allow people to boot stuff. 
+        /* In secure mode don't allow people to boot stuff.
          * They might try to corrupt the data on it */
         if(control->SecureMode()) {
             if (!quiet) WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
@@ -2253,7 +2253,7 @@ public:
             }
 
             // NOTES:
-            // 
+            //
             // Regarding PC-98 mode, you should use an older BIOS image.
             // The PC-9821 ROM image(s) I have appear to rely on bank
             // switching parts of itself to boot up and operate.
@@ -2337,7 +2337,7 @@ public:
         bool bootbyDrive=false;
         FILE *usefile_1=NULL;
         FILE *usefile_2=NULL;
-        Bitu i=0; 
+        Bitu i=0;
         uint32_t floppysize=0;
         uint32_t rombytesize_1=0;
         uint32_t rombytesize_2=0;
@@ -2980,7 +2980,7 @@ public:
             pcjr_hdr_type = 2; // PCJRCart
             pcjr_hdr_length = 0x80;
         }
-        
+
         if (pcjr_hdr_type > 0) {
             if (machine!=MCH_PCJR&&!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_WO_PCJR"));
             else {
@@ -3163,7 +3163,7 @@ public:
                         /* boot cartridge (int18) */
                         SegSet16(cs,RealSeg(new_int18));
                         reg_ip = RealOff(new_int18);
-                    } 
+                    }
                 } else {
                     if (cfound_at>0) {
                         /* run cartridge setup */
@@ -3716,9 +3716,9 @@ const uint8_t freedos_mbr[] = {
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x73,0x73,0x65,0xE3,0x3F,0xBF,0x00,0x00, //1B0h
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 
-    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x55,0xAA
 };
 #ifdef WIN32
@@ -3744,23 +3744,23 @@ public:
     bool OpenDisk(HANDLE* f, OVERLAPPED* o, uint8_t* name) const {
         o->hEvent = INVALID_HANDLE_VALUE;
         *f = CreateFile( (LPCSTR)name, GENERIC_READ | GENERIC_WRITE,
-            0,    // exclusive access 
-            NULL, // default security attributes 
+            0,    // exclusive access
+            NULL, // default security attributes
             OPEN_EXISTING,
             FILE_FLAG_OVERLAPPED,
             NULL );
 
         if (*f == INVALID_HANDLE_VALUE) return false;
 
-        // init OVERLAPPED 
+        // init OVERLAPPED
         o->Internal = 0;
         o->InternalHigh = 0;
         o->Offset = 0;
         o->OffsetHigh = 0;
         o->hEvent = CreateEvent(
-            NULL,   // default security attributes 
-            TRUE,   // manual-reset event 
-            FALSE,  // not signaled 
+            NULL,   // default security attributes
+            TRUE,   // manual-reset event
+            FALSE,  // not signaled
             NULL    // no name
             );
         return true;
@@ -3771,7 +3771,7 @@ public:
         if(o->hEvent != INVALID_HANDLE_VALUE) CloseHandle(o->hEvent);
     }
 
-    bool StartReadDisk(HANDLE f, OVERLAPPED* o, uint8_t* buffer, Bitu offset, Bitu size) const { 
+    bool StartReadDisk(HANDLE f, OVERLAPPED* o, uint8_t* buffer, Bitu offset, Bitu size) const {
         o->Offset = (DWORD)offset;
         if (!ReadFile(f, buffer, (DWORD)size, NULL, o) &&
             (GetLastError()==ERROR_IO_PENDING)) return true;
@@ -3781,7 +3781,7 @@ public:
     // 0=still waiting, 1=catastrophic failure, 2=success, 3=sector not found, 4=crc error
     Bitu CheckDiskReadComplete(HANDLE f, OVERLAPPED* o) const {
         DWORD numret;
-        BOOL b = GetOverlappedResult( f, o, &numret,false); 
+        BOOL b = GetOverlappedResult( f, o, &numret,false);
         if(b) return 2;
         else {
             int error = GetLastError();
@@ -3789,7 +3789,7 @@ public:
             if(error==ERROR_FLOPPY_UNKNOWN_ERROR)   return 5;
             if(error==ERROR_CRC)                    return 4;
             if(error==ERROR_SECTOR_NOT_FOUND)       return 3;
-            return 1;   
+            return 1;
         }
     }
 
@@ -3817,12 +3817,12 @@ public:
         }
         Bitu total_sect_per_cyl = geom.SectorsPerTrack * geom.TracksPerCylinder;
         Bitu cyln_size = 512 * total_sect_per_cyl;
-        
+
         WriteOut(MSG_Get("PROGRAM_IMGMAKE_FLREAD"),
             geom.Cylinders.LowPart,geom.TracksPerCylinder,
             geom.SectorsPerTrack,(cyln_size*geom.Cylinders.LowPart)/1024);
         WriteOut(MSG_Get("PROGRAM_IMGMAKE_FLREAD2"), "\xdb", "\xb1");
-            
+
         for(Bitu i = 0; i < geom.Cylinders.LowPart; i++) {
             Bitu result;
             // for each cylinder
@@ -3857,7 +3857,7 @@ restart_int:
                         CALLBACK_Idle();
                     }
                     while (result==0);
-                                        
+
                     switch(result) {
                     case 1: // bad error
                         CloseDisk(hFloppy,&o);
@@ -3931,7 +3931,7 @@ restart_int:
         // when only a filename is passed try to create the file on the current DOS path
         // if directory+filename are passed first see if directory is a host path, if not
         // maybe it is a DOSBox path.
-        
+
         // split filename and path
         std::string path = "";
         Bitu spos = temp_line.rfind('\\');
@@ -3946,7 +3946,7 @@ restart_int:
             path=temp_line.substr(0,spos);
             filename=temp_line.substr(spos+1,std::string::npos);
         }
-        if(filename=="") 
+        if(filename=="")
 
         char tbuffer[DOS_PATHLENGTH]= { 0 };
         if(path=="") {
@@ -3955,7 +3955,7 @@ restart_int:
                 return;
             }
             dpath=(std::string)tbuffer;
-        }       
+        }
         WriteOut("path %s, filename %s, dpath %s",
             path.c_str(),filename.c_str(),dpath.c_str());
         return;
@@ -4773,7 +4773,7 @@ restart_int:
                 if(disktype != "vhd") {
                     fseeko64(f, (bootsect_pos + 6u) * 512, SEEK_SET);
                     fwrite(&sbuf, 512, 1, f);
-                } 
+                }
                 else {
                     vhd->Write_AbsoluteSector((bootsect_pos + 6u), sbuf);
                 }
@@ -5067,7 +5067,7 @@ void LOADFIX_OnDOSShutdown(void) {
 }
 
 #if !defined(OSFREE)
-void LOADFIX::Run(void) 
+void LOADFIX::Run(void)
 {
     uint16_t commandNr  = 1;
     Bitu kb             = 64;
@@ -5206,11 +5206,11 @@ void LOADFIX::Run(void)
                 // Use shell to start program
                 DOS_Shell shell;
                 shell.Execute(filename,args);
-                DOS_FreeMemory(segment);        
+                DOS_FreeMemory(segment);
                 WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOC"),kb);
             }
         } else {
-            WriteOut(MSG_Get("PROGRAM_LOADFIX_ERROR"),kb);  
+            WriteOut(MSG_Get("PROGRAM_LOADFIX_ERROR"),kb);
         }
     }
 }
@@ -5240,7 +5240,7 @@ void RESCAN::Run(void)
 
     uint8_t drive = DOS_GetDefaultDrive();
     if(cmd->FindCommand(1,temp_line)) {
-        //-A -All /A /All 
+        //-A -All /A /All
         if(temp_line.size() >= 2 && (temp_line[0] == '-' ||temp_line[0] =='/')&& (temp_line[1] == 'a' || temp_line[1] =='A') ) all = true;
         else if(temp_line.size() == 2 && temp_line[1] == ':') {
             lowcase(temp_line);
@@ -5336,7 +5336,7 @@ public:
                 "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n");
-#else           
+#else
             WriteOut("\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
@@ -5486,7 +5486,7 @@ goto_exit:
 
 basic:
         menuname="BASIC";
-        WriteOut(MSG_Get("PROGRAM_INTRO_MENU_BASIC_HELP")); 
+        WriteOut(MSG_Get("PROGRAM_INTRO_MENU_BASIC_HELP"));
         CON_IN(&c);
         do switch (c) {
             case 0x48|0x80: menuname="QUIT"; goto menufirst; // Up
@@ -5503,7 +5503,7 @@ basic:
 
 cdrom:
         menuname="CDROM";
-        WriteOut(MSG_Get("PROGRAM_INTRO_MENU_CDROM_HELP")); 
+        WriteOut(MSG_Get("PROGRAM_INTRO_MENU_CDROM_HELP"));
         CON_IN(&c);
         do switch (c) {
             case 0x48|0x80: menuname="BASIC"; goto menufirst; // Up
@@ -5517,7 +5517,7 @@ cdrom:
 
 usage:
         menuname="USAGE";
-        WriteOut(MSG_Get("PROGRAM_INTRO_MENU_USAGE_HELP")); 
+        WriteOut(MSG_Get("PROGRAM_INTRO_MENU_USAGE_HELP"));
         CON_IN(&c);
         do switch (c) {
             case 0x48|0x80: menuname="CDROM"; goto menufirst; // Down
@@ -5547,7 +5547,7 @@ info:
 
 quit:
         menuname="QUIT";
-        WriteOut(MSG_Get("PROGRAM_INTRO_MENU_QUIT_HELP")); 
+        WriteOut(MSG_Get("PROGRAM_INTRO_MENU_QUIT_HELP"));
         CON_IN(&c);
         do switch (c) {
             case 0x48|0x80: menuname="INFO"; goto menufirst; // Up
@@ -5676,7 +5676,7 @@ bool AttachToBiosByLetter(imageDisk* image, const char drive) {
 #if 0
     else if (IS_PC98_ARCH) {
         // FIX_ME: This code is not correct. PC-98 boots from Drive 2 only if Drive 1 is empty.
-        //         Currently disable this code since DOSBox-X supports only Drive A (Drive 1) as floppy boot drive anyway. 
+        //         Currently disable this code since DOSBox-X supports only Drive A (Drive 1) as floppy boot drive anyway.
 
         //for pc-98 machines, mount floppies at first available index
         for (int index = 0; index < 2; index++) {
@@ -5706,7 +5706,7 @@ bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsign
 #if 0
     else if (IS_PC98_ARCH) {
         // FIX_ME: This code is not correct. PC-98 boots from Drive 2 only if Drive 1 is empty.
-        //         Currently disable this code since DOSBox-X supports only Drive A (Drive 1) as floppy boot drive anyway. 
+        //         Currently disable this code since DOSBox-X supports only Drive A (Drive 1) as floppy boot drive anyway.
 
         //for pc-98 machines, mount floppies at first available index
         for (int index = 0; index < 2; index++) {
@@ -5795,7 +5795,7 @@ class IMGMOUNT : public Program {
 		void Run(void) override {
 			//Hack To allow long commandlines
 			ChangeToLongCmd();
-			/* In secure mode don't allow people to change imgmount points. 
+			/* In secure mode don't allow people to change imgmount points.
 			 * Neither mount nor unmount */
 			if(control->SecureMode()) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
@@ -5984,7 +5984,7 @@ class IMGMOUNT : public Program {
 			} else if (type=="iso") {
 				//str_size=="2048,1,60000,0";   // ignored, see drive_iso.cpp (AllocationInfo)
 				fstype = "iso";
-			} 
+			}
 
 			//load the size parameter
 			//auto detect hard drives if not specified
@@ -6061,7 +6061,7 @@ class IMGMOUNT : public Program {
 			else {
 				if (paths.size() == 0) {
 					if (strcasecmp(temp_line.c_str(), "-u")&&!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
-					return; 
+					return;
 				}
 				if (!rtype&&!rfstype&&fstype!="none"&&paths[0].length()>4) {
 					const char *ext = strrchr(paths[0].c_str(), '.');
@@ -6872,21 +6872,21 @@ class IMGMOUNT : public Program {
 										}
 										break;
 									}
-									case imageDiskVHD::ERROR_OPENING: 
+									case imageDiskVHD::ERROR_OPENING:
 										errorMessage = MSG_Get("VHD_ERROR_OPENING"); break;
-									case imageDiskVHD::INVALID_DATA: 
+									case imageDiskVHD::INVALID_DATA:
 										errorMessage = MSG_Get("VHD_INVALID_DATA"); break;
-									case imageDiskVHD::UNSUPPORTED_TYPE: 
+									case imageDiskVHD::UNSUPPORTED_TYPE:
 										errorMessage = MSG_Get("VHD_UNSUPPORTED_TYPE"); break;
-									case imageDiskVHD::ERROR_OPENING_PARENT: 
+									case imageDiskVHD::ERROR_OPENING_PARENT:
 										errorMessage = MSG_Get("VHD_ERROR_OPENING_PARENT"); break;
-									case imageDiskVHD::PARENT_INVALID_DATA: 
+									case imageDiskVHD::PARENT_INVALID_DATA:
 										errorMessage = MSG_Get("VHD_PARENT_INVALID_DATA"); break;
-									case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: 
+									case imageDiskVHD::PARENT_UNSUPPORTED_TYPE:
 										errorMessage = MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE"); break;
-									case imageDiskVHD::PARENT_INVALID_MATCH: 
+									case imageDiskVHD::PARENT_INVALID_MATCH:
 										errorMessage = MSG_Get("VHD_PARENT_INVALID_MATCH"); break;
-									case imageDiskVHD::PARENT_INVALID_DATE: 
+									case imageDiskVHD::PARENT_INVALID_DATE:
 										errorMessage = MSG_Get("VHD_PARENT_INVALID_DATE"); break;
 									default: break;
 								}
@@ -6909,16 +6909,12 @@ class IMGMOUNT : public Program {
 										return false;
 									}
 									skipDetectGeometry = true;
-									DetectGeometry(sizes, qcow2_header.size); // Derive geometry from image size, since qcow2 doesn't have CHS values in the header
+                                    DetectQCow2Geometry(qcow2_header, newDisk, fname, sizes);
 									setbuf(newDisk, NULL);
 									newImage = new QCow2Disk(qcow2_header, newDisk, fname, qcow2_header.size, (uint32_t)sizes[0], (qcow2_header.size > 2880 * 1024));
 									if(newImage) {
 										LOG_MSG("IMGMOUNT: qcow2 image mounted (experimental)");
-										//newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]); // FIX ME: Should we obtain logical geometry (BIOS C/H/S) from physical geometry (IDE CHS) here?
-										newImage->sector_size = sizes[0]; // sector size
-										newImage->sectors = sizes[1];     // sectors
-										newImage->heads = sizes[2];       // heads
-										newImage->cylinders = sizes[3];   // cylinders
+                                        newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]);
 										uint64_t LBA = newImage->getLBA();
 										if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
 											LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)newImage->LBA * 512.0 / (1024.0 * 1024 * 1024));
@@ -7120,7 +7116,7 @@ class IMGMOUNT : public Program {
 			}
 			DriveManager::InitializeDrive(drive - 'A');
 
-			// Set the correct media byte in the table 
+			// Set the correct media byte in the table
 			mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
 
 			/* Command uses dta so set it to our internal dta */
@@ -7311,6 +7307,23 @@ class IMGMOUNT : public Program {
 			sizes[2] = heads;
 			sizes[1] = sectorsPerTrack;
 			sizes[0] = sector_size;
+		}
+
+		void DetectQCow2Geometry(QCow2Image::QCow2Header& qcow2_header, FILE* qcow2File, const char* imageName, Bitu sizes[]) {
+			if (!sizes) return;
+
+			uint8_t buf[512] = {};
+			QCow2Image qcowImage(qcow2_header, qcow2File, imageName, 512);
+			const uint64_t sectors = qcow2_header.size / 512;
+			const uint32_t fcsize = sectors > MAXU32 ? MAXU32 : (uint32_t)sectors;
+
+			if (qcowImage.read_sector(0, buf) == 0 &&
+				buf[510] == 0x55 && buf[511] == 0xaa &&
+				DetectMFMsectorPartition(buf, fcsize, sizes)) {
+				return;
+			}
+
+			DetectGeometry(sizes, qcow2_header.size); // auto-detect physical geometry (IDE CHS) based on qcow2_header.size
 		}
 
 		bool DetectMFMsectorPartition(uint8_t buf[], uint32_t fcsize, Bitu sizes[]) const {
@@ -7528,7 +7541,7 @@ class IMGMOUNT : public Program {
 			DriveManager::InitializeDrive(drive - 'A');
 			DOS_EnableDriveMenu(drive);
 
-			// Set the correct media byte in the table 
+			// Set the correct media byte in the table
 			if (!dos_kernel_disabled)
 				mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
 
@@ -7669,11 +7682,11 @@ class IMGMOUNT : public Program {
 					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_SECTORSIZE"), cluster_size);
 					return nullptr;
 				}
-				imagesize = (uint32_t)(qcow2_header.size / 1024L);
-				setbuf(newDisk, NULL);
-				DetectGeometry(sizes, qcow2_header.size); // auto-detect physical geometry (IDE CHS) based on qcow2_header.size
+                imagesize = (uint32_t)(qcow2_header.size / 1024L);
+                setbuf(newDisk, NULL);
+                DetectQCow2Geometry(qcow2_header, newDisk, fname, sizes);
 				newImage = new QCow2Disk(qcow2_header, newDisk, fname, qcow2_header.size, (uint32_t)sizes[0], (imagesize > 2880));
-				newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]); // Obtain logical geometry (BIOS C/H/S) from physical geometry (IDE CHS) 
+                newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]); // Obtain logical geometry (BIOS C/H/S) from physical geometry (IDE CHS)
 				uint64_t LBA = newImage->getLBA();
 				if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
 					LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)LBA * 512.0 / (1024.0 * 1024 * 1024));
@@ -7821,7 +7834,7 @@ public:
 
 void KEYB::Run(void) {
     if (cmd->FindCommand(1,temp_line)) { /* first parameter is layout ID */
-        if (cmd->FindString("?",temp_line,false)) { 
+        if (cmd->FindString("?",temp_line,false)) {
             resetcolor = true;
             WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));
         } else {
@@ -9283,7 +9296,7 @@ static int8_t hexToInt(char hex) {
     if (hex >= '0' && hex <= '9') return hex - '0';
     if (hex >= 'A' && hex <= 'F') return hex - 'A' + 10;
     if (hex >= 'a' && hex <= 'f') return hex - 'a' + 10;
-    return -1; // error 
+    return -1; // error
 }
 
 #if !defined(OSFREE)
@@ -10499,7 +10512,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_LOADFIX_XMS_ALLOCERROR","Unable to allocate XMS block\n");
     MSG_Add("PROGRAM_LOADFIX_NOXMS","XMS not active\n");
     MSG_Add("PROGRAM_LOADFIX_NOALLOC","Lowest MCB is above 64KB, nothing allocated\n");
-    
+
     MSG_Add("PROGRAM_LOADFIX_HELP",
         "Loads a program above the first 64 KB memory by reducing the available memory.\n\n"
         "LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]\n"
@@ -10775,7 +10788,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMOUNT_DOS_VERSION",
             "Mounting this image file requires a reported DOS version of %u.%u or higher.\n%s");
     MSG_Add("PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE","Floppy size not recognized\n");
-            
+
     MSG_Add("PROGRAM_IMGMOUNT_HELP",
         "Mounts floppy, hard drive and optical disc images.\n"
         "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mfile\033[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
@@ -10909,7 +10922,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_CLUSTERCOUNT", "Warning: Cluster count is too high given the volume size. Reporting a\n         smaller sector count.\n");
     MSG_Add("PROGRAM_IMGMAKE_CLUSTER_ALIGN","Sanity check failed: First cluster not aligned\n");
     MSG_Add("PROGRAM_IMGMAKE_CLUSTER_SIZE","WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
-    
+
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
     MSG_Add("PROGRAM_KEYB_INFO_LAYOUT","Codepage %i has been loaded for layout %s\n");
     MSG_Add("PROGRAM_KEYB_SHOWHELP","Configures a keyboard for a specific language.\n\n"
@@ -10947,7 +10960,7 @@ void DOS_SetupPrograms(void) {
             "Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n");
     MSG_Add("PROGRAM_MODE_NOTSUPPORTED","\nCode page operation not supported on this device\n");
     MSG_Add("PROGRAM_MODE_RATE_DELAY","Rate and delay must be specified together\n");
-    
+
     MSG_Add("PROGRAM_PORT_INVALID_NUMBER","Must specify a port number between 1 and 9.\n");
     MSG_Add("PROGRAM_VHDMAKE_WRITERR", "Could not write to new VHD image \"%s\", aborting.\n");
     MSG_Add("PROGRAM_VHDMAKE_REMOVEERR", "Could not erase file \"%s\"\n");
@@ -11074,7 +11087,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_ELTORITO_BOOTABLE_SECTION","Unable to locate bootable section\n");
     MSG_Add("PROGRAM_ELTORITO_BOOTSECTOR","El Torito boot sector unreadable\n");
     MSG_Add("PROGRAM_ELTORITO_ISOMOUNT","El Torito bootable CD: -fs iso mounting not supported\n");
-    
+
     MSG_Add("PROGRAM_START_HELP_WIN",
             "Starts a separate window to run a specified program or command.\n\n"
             "START [+|-|_] command [arguments]\n\n"
@@ -11237,7 +11250,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("SAVE_FAILED","Failed to save the current state.");
     MSG_Add("SAVE_CORRUPTED","Save state corrupted! Program may not work.");
     MSG_Add("SAVE_SCREENSHOT","Saved screenshot to the file:\n\n%s");
-    
+
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
 
