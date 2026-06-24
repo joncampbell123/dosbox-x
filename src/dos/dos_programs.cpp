@@ -7045,6 +7045,13 @@ class IMGMOUNT : public Program {
 					LOG(LOG_MISC,LOG_DEBUG)("INT 13 image enabling calling");
 				}
 			}
+
+			/* if the user attached the disk with IMGMOUNT, then clear the disk change signal.
+			 * some expect INT 13h calls to succeed right away while running within the DOSBox-X DOS environment,
+			 * including FS.COM on a booter copy of Microsoft Flight Simulator 2 */
+			if (driveIndex >= 0 && driveIndex <= 1)
+				imageDiskChange[driveIndex] = false;
+
 			return true;
 		}
 #endif
