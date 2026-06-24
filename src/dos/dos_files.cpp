@@ -917,7 +917,8 @@ bool DOS_CloseFile(uint16_t entry, bool fcb, uint8_t * refcnt) {
 		return Network_CloseFile(entry);
 # endif
 #endif
-	if (!Files[handle]) {
+
+    if ((Files && !Files[handle]) || !Files) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
