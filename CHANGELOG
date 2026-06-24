@@ -17,6 +17,14 @@ Next version
     (maron2000)
   - Fixed possible boot failure when booted from "Boot from disk image" menu.
     (maron2000)
+  - Fixed dialog box didn't show when an ISO was mounted via dropdown menu.
+    (maron2000)
+  - printer.cpp: Fixed various printer emulation issues (maron2000)
+     Fixed handling of variable_length command
+     Fixed a typo in ESC S command
+     Skip DBCS processing for bit graphic data
+     Fixed advancing cell position of DBCS characters
+  - Fixed geometry detection of host folder converted drives (maron2000)
     
 2026.06.02
   - Feature: Add 'Send Alt+SysRq/PrtScr' menu item (AleWin32)
