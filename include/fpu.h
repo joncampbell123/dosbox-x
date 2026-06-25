@@ -494,7 +494,7 @@ typedef struct {
 #define L2T		3.3219280948873623478693L
 #define LN2		0.69314718055994530941683L
 #define LG2		0.30102999566398119521379L
-
+constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
 
 extern FPU_rec fpu;
 
@@ -547,6 +547,21 @@ static INLINE void FPU_SET_D(Bitu C){
 
 static INLINE void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub) {
 	LOG(LOG_FPU,LOG_WARN)("ESC %lu%s:Unhandled group %lu subfunction %lu",(long unsigned int)tree,ea?" EA":"",(long unsigned int)group,(long unsigned int)sub);
+}
+
+/* FPU exception flags */
+enum {
+    FPU_EX_INVALID = 0x0001,    // IE
+    FPU_EX_DENORMAL = 0x0002,   // DE
+    FPU_EX_ZERODIVIDE = 0x0004, // ZE
+    FPU_EX_OVERFLOW = 0x0008,   // OE
+    FPU_EX_UNDERFLOW = 0x0010,  // UE
+    FPU_EX_PRECISION = 0x0020,  // PE
+    FPU_EX_STACKFAULT = 0x0040  // SF 
+};
+
+static INLINE void FPU_SetException(uint16_t ex) {
+    FPUSW |= ex;
 }
 
 #endif
