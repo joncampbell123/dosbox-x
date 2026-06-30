@@ -6251,7 +6251,7 @@ void GFX_Events() {
                     if((buff = (uint8_t *)malloc(len * 2)) != NULL) {
                         if(CodePageHostToGuestUTF8((char *)buff, event.text.text)) {
                             for(int no = 0 ; buff[no] != 0 ; no++) {
-                                if (IS_PC98_ARCH || isDBCSCP()) {
+                                if (IS_PC98_ARCH ) {
                                     if(dos.loaded_codepage == 932 && isKanji1(buff[no]) && isKanji2(buff[no + 1])) {
 #if defined(MACOSX)
                                         if (buff[no] == 0x81 && buff[no + 1] == 0x40) no++;
@@ -6616,8 +6616,9 @@ void GFX_Events() {
                     uname[0]=event.key.keysym.unicode;
                     uname[1]=0;
                     if (CodePageHostToGuestUTF16(chars, uname)) {
-                        for (size_t i=0; i<strlen(chars); i++) {
-                            if (dos.loaded_codepage == 932 && strlen(chars) == 2 && isKanji1(chars[0]))
+                        size_t char_length = strlen(chars);
+                        for (size_t i=0; i< char_length; i++) {
+                            if (IS_PC98_ARCH && dos.loaded_codepage == 932 && char_length == 2 && isKanji1(chars[0]))
                                 BIOS_AddKeyToBuffer((i==0?0xf100:0xf000) | (unsigned char)chars[i]);
                             else
                                 BIOS_AddKeyToBuffer((unsigned char)chars[i]);
@@ -6672,8 +6673,9 @@ void GFX_Events() {
                             uname[0]=buff[no];
                             uname[1]=0;
                             if (CodePageHostToGuestUTF16(chars, uname)) {
-                                for (size_t i=0; i<strlen(chars); i++) {
-                                    if (dos.loaded_codepage == 932 && strlen(chars) == 2 && isKanji1(chars[0]))
+                                size_t char_length = strlen(chars);
+                                for (size_t i=0; i< char_length; i++) {
+                                    if (IS_PC98_ARCH && dos.loaded_codepage == 932 && char_length == 2 && isKanji1(chars[0]))
                                         BIOS_AddKeyToBuffer((i==0?0xf100:0xf000) | (unsigned char)chars[i]);
                                     else
                                         BIOS_AddKeyToBuffer((unsigned char)chars[i]);
