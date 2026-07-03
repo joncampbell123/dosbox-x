@@ -4105,6 +4105,774 @@ Boot from disk image
 :MENU:drive_saveimg
 Save to disk image
 .
+:MENU:IDEDrive1m
+IDE 1m
+.
+:MENU:IDEDrive1m_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive1m_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive1m_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive1m_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive1m_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive1m_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive1m_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive1m_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive1m_unmount
+Unmount drive
+.
+:MENU:IDEDrive1m_rescan
+Rescan drive
+.
+:MENU:IDEDrive1m_swap
+Swap disk
+.
+:MENU:IDEDrive1m_info
+Drive information
+.
+:MENU:IDEDrive1m_boot
+Boot from drive
+.
+:MENU:IDEDrive1m_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive1m_saveimg
+Save to disk image
+.
+:MENU:IDEDrive1s
+IDE 1s
+.
+:MENU:IDEDrive1s_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive1s_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive1s_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive1s_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive1s_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive1s_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive1s_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive1s_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive1s_unmount
+Unmount drive
+.
+:MENU:IDEDrive1s_rescan
+Rescan drive
+.
+:MENU:IDEDrive1s_swap
+Swap disk
+.
+:MENU:IDEDrive1s_info
+Drive information
+.
+:MENU:IDEDrive1s_boot
+Boot from drive
+.
+:MENU:IDEDrive1s_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive1s_saveimg
+Save to disk image
+.
+:MENU:IDEDrive2m
+IDE 2m
+.
+:MENU:IDEDrive2m_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive2m_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive2m_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive2m_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive2m_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive2m_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive2m_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive2m_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive2m_unmount
+Unmount drive
+.
+:MENU:IDEDrive2m_rescan
+Rescan drive
+.
+:MENU:IDEDrive2m_swap
+Swap disk
+.
+:MENU:IDEDrive2m_info
+Drive information
+.
+:MENU:IDEDrive2m_boot
+Boot from drive
+.
+:MENU:IDEDrive2m_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive2m_saveimg
+Save to disk image
+.
+:MENU:IDEDrive2s
+IDE 2s
+.
+:MENU:IDEDrive2s_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive2s_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive2s_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive2s_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive2s_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive2s_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive2s_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive2s_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive2s_unmount
+Unmount drive
+.
+:MENU:IDEDrive2s_rescan
+Rescan drive
+.
+:MENU:IDEDrive2s_swap
+Swap disk
+.
+:MENU:IDEDrive2s_info
+Drive information
+.
+:MENU:IDEDrive2s_boot
+Boot from drive
+.
+:MENU:IDEDrive2s_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive2s_saveimg
+Save to disk image
+.
+:MENU:IDEDrive3m
+IDE 3m
+.
+:MENU:IDEDrive3m_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive3m_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive3m_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive3m_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive3m_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive3m_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive3m_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive3m_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive3m_unmount
+Unmount drive
+.
+:MENU:IDEDrive3m_rescan
+Rescan drive
+.
+:MENU:IDEDrive3m_swap
+Swap disk
+.
+:MENU:IDEDrive3m_info
+Drive information
+.
+:MENU:IDEDrive3m_boot
+Boot from drive
+.
+:MENU:IDEDrive3m_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive3m_saveimg
+Save to disk image
+.
+:MENU:IDEDrive3s
+IDE 3s
+.
+:MENU:IDEDrive3s_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive3s_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive3s_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive3s_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive3s_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive3s_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive3s_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive3s_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive3s_unmount
+Unmount drive
+.
+:MENU:IDEDrive3s_rescan
+Rescan drive
+.
+:MENU:IDEDrive3s_swap
+Swap disk
+.
+:MENU:IDEDrive3s_info
+Drive information
+.
+:MENU:IDEDrive3s_boot
+Boot from drive
+.
+:MENU:IDEDrive3s_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive3s_saveimg
+Save to disk image
+.
+:MENU:IDEDrive4m
+IDE 4m
+.
+:MENU:IDEDrive4m_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive4m_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive4m_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive4m_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive4m_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive4m_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive4m_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive4m_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive4m_unmount
+Unmount drive
+.
+:MENU:IDEDrive4m_rescan
+Rescan drive
+.
+:MENU:IDEDrive4m_swap
+Swap disk
+.
+:MENU:IDEDrive4m_info
+Drive information
+.
+:MENU:IDEDrive4m_boot
+Boot from drive
+.
+:MENU:IDEDrive4m_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive4m_saveimg
+Save to disk image
+.
+:MENU:IDEDrive4s
+IDE 4s
+.
+:MENU:IDEDrive4s_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive4s_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive4s_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive4s_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive4s_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive4s_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive4s_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive4s_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive4s_unmount
+Unmount drive
+.
+:MENU:IDEDrive4s_rescan
+Rescan drive
+.
+:MENU:IDEDrive4s_swap
+Swap disk
+.
+:MENU:IDEDrive4s_info
+Drive information
+.
+:MENU:IDEDrive4s_boot
+Boot from drive
+.
+:MENU:IDEDrive4s_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive4s_saveimg
+Save to disk image
+.
+:MENU:IDEDrive5m
+IDE 5m
+.
+:MENU:IDEDrive5m_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive5m_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive5m_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive5m_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive5m_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive5m_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive5m_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive5m_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive5m_unmount
+Unmount drive
+.
+:MENU:IDEDrive5m_rescan
+Rescan drive
+.
+:MENU:IDEDrive5m_swap
+Swap disk
+.
+:MENU:IDEDrive5m_info
+Drive information
+.
+:MENU:IDEDrive5m_boot
+Boot from drive
+.
+:MENU:IDEDrive5m_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive5m_saveimg
+Save to disk image
+.
+:MENU:IDEDrive5s
+IDE 5s
+.
+:MENU:IDEDrive5s_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive5s_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive5s_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive5s_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive5s_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive5s_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive5s_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive5s_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive5s_unmount
+Unmount drive
+.
+:MENU:IDEDrive5s_rescan
+Rescan drive
+.
+:MENU:IDEDrive5s_swap
+Swap disk
+.
+:MENU:IDEDrive5s_info
+Drive information
+.
+:MENU:IDEDrive5s_boot
+Boot from drive
+.
+:MENU:IDEDrive5s_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive5s_saveimg
+Save to disk image
+.
+:MENU:IDEDrive6m
+IDE 6m
+.
+:MENU:IDEDrive6m_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive6m_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive6m_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive6m_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive6m_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive6m_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive6m_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive6m_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive6m_unmount
+Unmount drive
+.
+:MENU:IDEDrive6m_rescan
+Rescan drive
+.
+:MENU:IDEDrive6m_swap
+Swap disk
+.
+:MENU:IDEDrive6m_info
+Drive information
+.
+:MENU:IDEDrive6m_boot
+Boot from drive
+.
+:MENU:IDEDrive6m_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive6m_saveimg
+Save to disk image
+.
+:MENU:IDEDrive6s
+IDE 6s
+.
+:MENU:IDEDrive6s_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive6s_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive6s_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive6s_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive6s_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive6s_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive6s_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive6s_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive6s_unmount
+Unmount drive
+.
+:MENU:IDEDrive6s_rescan
+Rescan drive
+.
+:MENU:IDEDrive6s_swap
+Swap disk
+.
+:MENU:IDEDrive6s_info
+Drive information
+.
+:MENU:IDEDrive6s_boot
+Boot from drive
+.
+:MENU:IDEDrive6s_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive6s_saveimg
+Save to disk image
+.
+:MENU:IDEDrive7m
+IDE 7m
+.
+:MENU:IDEDrive7m_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive7m_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive7m_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive7m_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive7m_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive7m_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive7m_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive7m_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive7m_unmount
+Unmount drive
+.
+:MENU:IDEDrive7m_rescan
+Rescan drive
+.
+:MENU:IDEDrive7m_swap
+Swap disk
+.
+:MENU:IDEDrive7m_info
+Drive information
+.
+:MENU:IDEDrive7m_boot
+Boot from drive
+.
+:MENU:IDEDrive7m_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive7m_saveimg
+Save to disk image
+.
+:MENU:IDEDrive7s
+IDE 7s
+.
+:MENU:IDEDrive7s_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive7s_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive7s_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive7s_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive7s_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive7s_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive7s_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive7s_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive7s_unmount
+Unmount drive
+.
+:MENU:IDEDrive7s_rescan
+Rescan drive
+.
+:MENU:IDEDrive7s_swap
+Swap disk
+.
+:MENU:IDEDrive7s_info
+Drive information
+.
+:MENU:IDEDrive7s_boot
+Boot from drive
+.
+:MENU:IDEDrive7s_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive7s_saveimg
+Save to disk image
+.
+:MENU:IDEDrive8m
+IDE 8m
+.
+:MENU:IDEDrive8m_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive8m_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive8m_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive8m_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive8m_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive8m_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive8m_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive8m_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive8m_unmount
+Unmount drive
+.
+:MENU:IDEDrive8m_rescan
+Rescan drive
+.
+:MENU:IDEDrive8m_swap
+Swap disk
+.
+:MENU:IDEDrive8m_info
+Drive information
+.
+:MENU:IDEDrive8m_boot
+Boot from drive
+.
+:MENU:IDEDrive8m_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive8m_saveimg
+Save to disk image
+.
+:MENU:IDEDrive8s
+IDE 8s
+.
+:MENU:IDEDrive8s_mounthd
+Mount folder as hard drive
+.
+:MENU:IDEDrive8s_mountcd
+Mount folder as CD drive
+.
+:MENU:IDEDrive8s_mountfd
+Mount folder as floppy drive
+.
+:MENU:IDEDrive8s_mountfro
+Option: mount folder read-only
+.
+:MENU:IDEDrive8s_mountarc
+Mount an archive file (ZIP/7Z)
+.
+:MENU:IDEDrive8s_mountimg
+Mount a disk or CD image file
+.
+:MENU:IDEDrive8s_mountimgs
+Mount multiple disk/CD images
+.
+:MENU:IDEDrive8s_mountiro
+Option: mount images read-only
+.
+:MENU:IDEDrive8s_unmount
+Unmount drive
+.
+:MENU:IDEDrive8s_rescan
+Rescan drive
+.
+:MENU:IDEDrive8s_swap
+Swap disk
+.
+:MENU:IDEDrive8s_info
+Drive information
+.
+:MENU:IDEDrive8s_boot
+Boot from drive
+.
+:MENU:IDEDrive8s_bootimg
+Boot from disk image
+.
+:MENU:IDEDrive8s_saveimg
+Save to disk image
+.
 :MENU:HelpMenu
 Help
 .
