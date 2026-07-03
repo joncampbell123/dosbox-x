@@ -1,4 +1,6 @@
-Next version
+2026.07.02
+  - Prepare for release. This time release OSFREE first so that the normal
+    version appears first on GitHub.
   - Fixed savestate format incompatibility between MSVC and MinGW builds.
     (AleWin32)
   - Fixed PMULLW signedness issues. (bachimusprime)
