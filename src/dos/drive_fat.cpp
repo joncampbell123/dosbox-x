@@ -72,6 +72,8 @@ extern bool int13_enable_48bitLBA;
 std::string formatString(const char* format, ...);
 #endif
 
+extern diskGeo DiskGeometryList[];
+
 char* removeTrailingSpaces(char* str) {
 	char* end = str + strlen(str) - 1;
 	while (end >= str && *end == ' ') end--;
@@ -2162,9 +2164,32 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 		/* a clue that we're not really looking at FAT is invalid or weird values in the boot sector */
 		if (BPB.v.BPB_SecPerTrk == 0 || (BPB.v.BPB_SecPerTrk > ((filesize <= 3000) ? 40 : 255)) ||
 				(BPB.v.BPB_NumHeads > ((filesize <= 3000) ? 64 : 255))) {
-			LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
-			created_successfully = false;
-			return;
+            int i = 0;
+            if(!is_hdd) {
+                while(DiskGeometryList[i].ksize != 0) {
+                    if(DiskGeometryList[i].ksize == loadedDisk->diskSizeK) break;
+                    i++;
+                }
+                if(DiskGeometryList[i].ksize != 0) {
+                    LOG_MSG("Values in boot sector in the floppy image are not consistent with FAT filesystem. Setting typical value instead.");
+                    BPB.v.BPB_BytsPerSec = bytesector;
+                    BPB.v.BPB_SecPerClus = DiskGeometryList[i].sectcluster;
+                    BPB.v.BPB_RsvdSecCnt = 1;
+                    BPB.v.BPB_NumFATs = 2;
+                    BPB.v.BPB_SecPerTrk = cylsector;
+                    BPB.v.BPB_NumHeads = headscyl;
+                    BPB.v.BPB_RootEntCnt = DiskGeometryList[i].rootentries;
+                    BPB.v.BPB_TotSec16 = static_cast<uint16_t>(
+                        DiskGeometryList[i].ksize * 1024 / bytesector);
+                    BPB.v.BPB_Media = DiskGeometryList[i].mediaid;
+                    BPB.v.BPB_FATSz16 = DiskGeometryList[i].fatsz;
+                }
+            }
+            if(is_hdd || (!is_hdd && DiskGeometryList[i].ksize == 0)) {
+                LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
+                created_successfully = false;
+                return;
+            }
 		}
 	}
 

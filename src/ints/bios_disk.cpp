@@ -1106,22 +1106,23 @@ bool saveDiskImage(imageDisk *image, const char *name) {
 }
 
 diskGeo DiskGeometryList[] = {
-    { 160,  8, 1, 40, 0, 512,  64, 1, 0xFE},      // IBM PC double density 5.25" single-sided 160KB
-    { 180,  9, 1, 40, 0, 512,  64, 1, 0xFC},      // IBM PC double density 5.25" single-sided 180KB
-    { 200, 10, 1, 40, 0, 512,  64, 2, 0xFC},      // DEC Rainbow double density 5.25" single-sided 200KB (I think...)
-    { 320,  8, 2, 40, 1, 512, 112, 2, 0xFF},      // IBM PC double density 5.25" double-sided 320KB
-    { 360,  9, 2, 40, 1, 512, 112, 2, 0xFD},      // IBM PC double density 5.25" double-sided 360KB
-    { 400, 10, 2, 40, 1, 512, 112, 2, 0xFD},      // DEC Rainbow double density 5.25" double-sided 400KB (I think...)
-    { 640,  8, 2, 80, 3, 512, 112, 2, 0xFB},      // IBM PC double density 3.5" double-sided 640KB
-    { 720,  9, 2, 80, 3, 512, 112, 2, 0xF9},      // IBM PC double density 3.5" double-sided 720KB
-    {1200, 15, 2, 80, 2, 512, 224, 1, 0xF9},      // IBM PC double density 5.25" double-sided 1.2MB
-    {1440, 18, 2, 80, 4, 512, 224, 1, 0xF0},      // IBM PC high density 3.5" double-sided 1.44MB
-    {1680, 21, 2, 80, 4, 512,  16, 4, 0xF0},      // IBM PC high density 3.5" double-sided 1.68MB (DMF)
-    {2880, 36, 2, 80, 6, 512, 240, 2, 0xF0},      // IBM PC high density 3.5" double-sided 2.88MB
+    /* KB   S  H  C type SS  root clus ID  fatsz */
+    { 160,  8, 1, 40, 0, 512,  64, 1, 0xFE, 1},      // IBM PC double density 5.25" single-sided 160KB
+    { 180,  9, 1, 40, 0, 512,  64, 1, 0xFC, 2},      // IBM PC double density 5.25" single-sided 180KB
+    { 200, 10, 1, 40, 0, 512,  64, 2, 0xFC, 2},      // DEC Rainbow double density 5.25" single-sided 200KB (I think...)
+    { 320,  8, 2, 40, 1, 512, 112, 2, 0xFF, 1},      // IBM PC double density 5.25" double-sided 320KB
+    { 360,  9, 2, 40, 1, 512, 112, 2, 0xFD, 2},      // IBM PC double density 5.25" double-sided 360KB
+    { 400, 10, 2, 40, 1, 512, 112, 2, 0xFD, 2},      // DEC Rainbow double density 5.25" double-sided 400KB (I think...)
+    { 640,  8, 2, 80, 3, 512, 112, 2, 0xFB, 2},      // IBM PC double density 3.5" double-sided 640KB
+    { 720,  9, 2, 80, 3, 512, 112, 2, 0xF9, 3},      // IBM PC double density 3.5" double-sided 720KB
+    {1200, 15, 2, 80, 2, 512, 224, 1, 0xF9, 7},      // IBM PC double density 5.25" double-sided 1.2MB
+    {1440, 18, 2, 80, 4, 512, 224, 1, 0xF0, 9},      // IBM PC high density 3.5" double-sided 1.44MB
+    {1680, 21, 2, 80, 4, 512,  16, 4, 0xF0, 3},      // IBM PC high density 3.5" double-sided 1.68MB (DMF)
+    {2880, 36, 2, 80, 6, 512, 240, 2, 0xF0, 9},      // IBM PC high density 3.5" double-sided 2.88MB
 
-    {1232,  8, 2, 77, 7, 1024,192, 1, 0xFE},      // NEC PC-98 high density 3.5" double-sided 1.2MB "3-mode"
-    {1520, 19, 2, 80, 2, 512, 224, 1, 0xF9},      // IBM PC high density 5.25" double-sided 1.52MB (XDF)
-    {1840, 23, 2, 80, 4, 512, 224, 1, 0xF0},      // IBM PC high density 3.5" double-sided 1.84MB (XDF)
+    {1232,  8, 2, 77, 7, 1024,192, 1, 0xFE, 2},      // NEC PC-98 high density 3.5" double-sided 1.2MB "3-mode"
+    {1520, 19, 2, 80, 2, 512, 224, 1, 0xF9, 10},      // IBM PC high density 5.25" double-sided 1.52MB (XDF)
+    {1840, 23, 2, 80, 4, 512, 224, 1, 0xF0, 12},      // IBM PC high density 3.5" double-sided 1.84MB (XDF)
 
     {   0,  0, 0,  0, 0,    0,  0, 0,    0}
 };
