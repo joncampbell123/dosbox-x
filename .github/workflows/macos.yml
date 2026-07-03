@@ -259,6 +259,7 @@ jobs:
           make dosbox-x.app
           mv dosbox-x.app $top/package/dosbox-x
       - name: Build macOS ARM SDL2 OSFREE
+        if: steps.osfree.outputs.osfree != 'true'
         run: |
           top=`pwd`
           ./build-macos-sdl2
