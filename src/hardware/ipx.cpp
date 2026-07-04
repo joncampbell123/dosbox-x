@@ -1015,7 +1015,7 @@ public:
 			WriteOut("IPXNET [ CONNECT | DISCONNECT | STARTSERVER | STOPSERVER | PING | HELP |\n         STATUS ]\n\n");
 			return;
 		}
-		
+
 		if(cmd->FindCommand(1, temp_line)) {
 			if(strcasecmp("help", temp_line.c_str()) == 0) {
 				if(!cmd->FindCommand(2, temp_line)) {
@@ -1087,13 +1087,13 @@ public:
 				}
 
 				if(ConnectToServer(strHost)) {
-                	WriteOut("IPX Tunneling Client connected to server at %s.\n", strHost);
+					WriteOut("IPX Tunneling Client connected to server at %s.\n", strHost);
 				} else {
 					WriteOut("IPX Tunneling Client failed to connect to server at %s.\n", strHost);
 				}
 				return;
 			}
-			
+
 			if(strcasecmp("disconnect", temp_line.c_str()) == 0) {
 				if(!incomingPacket.connected) {
 					WriteOut("IPX Tunneling Client not connected.\n");
