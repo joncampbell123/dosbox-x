@@ -1016,9 +1016,9 @@ public:
 			return;
 		}
 
-		if(cmd->FindCommand(1, temp_line)) {
+		if(cmd->FindCommand(1, temp_line, /*remove*/true)) {
 			if(strcasecmp("help", temp_line.c_str()) == 0) {
-				if(!cmd->FindCommand(2, temp_line)) {
+				if(!cmd->FindCommand(1, temp_line, /*remove*/true)) {
 					WriteOut("The following are valid IPXNET commands:\n\n");
 					WriteOut("IPXNET CONNECT        IPXNET DISCONNECT       IPXNET STARTSERVER\n");
 					WriteOut("IPXNET STOPSERVER     IPXNET PING             IPXNET STATUS\n\n");
@@ -1038,7 +1038,7 @@ public:
 						return;
 					}
 					bool startsuccess;
-					if(!cmd->FindCommand(2, temp_line)) {
+					if(!cmd->FindCommand(1, temp_line, /*remove*/true)) {
 						udpPort = 213;
 					} else {
 						udpPort = (unsigned int)strtol(temp_line.c_str(), NULL, 10);
@@ -1074,13 +1074,13 @@ public:
 					WriteOut("IPX Tunneling Client already connected.\n");
 					return;
 				}
-				if(!cmd->FindCommand(2, temp_line)) {
+				if(!cmd->FindCommand(1, temp_line, /*remove*/true)) {
 					WriteOut("IPX Server address not specified.\n");
 					return;
 				}
 				strcpy(strHost, temp_line.c_str());
 
-				if(!cmd->FindCommand(3, temp_line)) {
+				if(!cmd->FindCommand(1, temp_line, /*remove*/true)) {
 					udpPort = 213;
 				} else {
 					udpPort = (unsigned int)strtol(temp_line.c_str(), NULL, 10);

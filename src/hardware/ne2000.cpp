@@ -97,7 +97,7 @@ bool is_IPX_ethernet_frame(const unsigned char *buf,unsigned int len,const unsig
 			 * or
 			 *
 			 * <16-bit len> 0xE0E003 0xFFFF    (LLC header between len and packet) */
-			if ( *((uint16_t*)(buf+14)) == 0xFFFF) {
+			if (*((uint16_t*)(buf+14)) == 0xFFFF) {
 				if (outbuf && outlen) {
 					*outbuf = buf+14;
 					*outlen = len-14;
@@ -107,7 +107,7 @@ bool is_IPX_ethernet_frame(const unsigned char *buf,unsigned int len,const unsig
 				return true;
 			}
 
-			if ( memcmp(buf+14,"\xE0\xE0\x03\xFF\xFF",5) == 0) {
+			if (memcmp(buf+14,"\xE0\xE0\x03\xFF\xFF",5) == 0) {
 				if (outbuf && outlen) {
 					*outbuf = buf+17;
 					*outlen = len-17;
