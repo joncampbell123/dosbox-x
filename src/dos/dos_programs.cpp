@@ -8083,6 +8083,7 @@ void SERIAL_ProgramStart(Program * * make);
 void CONFIG_ProgramStart(Program * * make);
 #endif
 void IPXNET_ProgramStart(Program * * make);
+void ETHNET_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
 void CGASNOW_ProgramStart(Program * * make);
 void PARALLEL_ProgramStart(Program * * make);
@@ -10257,7 +10258,10 @@ void Add_VFiles(bool usecp) {
 # if C_IPX
 	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
 # endif
-	if (addne2k) VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
+	if (addne2k) {
+		VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
+		PROGRAMS_MakeFile("ETHNET.COM",ETHNET_ProgramStart,"/SYSTEM/");
+	}
 	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
 #endif
 
