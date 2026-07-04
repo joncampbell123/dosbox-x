@@ -16,8 +16,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef DOSBOX_ETHERNET_ETHNET_H
-#define DOSBOX_ETHERNET_ETHNET_H
+#ifndef DOSBOX_ETHERNET_NOTHING_H
+#define DOSBOX_ETHERNET_NOTHING_H
 
 #include "config.h"
 
@@ -31,10 +31,10 @@
 
 /** This connection exists and it goes nowhere
  */
-class NothingEthernetConnection : public EthernetConnection {
+class EthnetEthernetConnection : public EthernetConnection {
 	public:
-		NothingEthernetConnection();
-		~NothingEthernetConnection();
+		EthnetEthernetConnection();
+		~EthnetEthernetConnection();
 		bool Initialize(Section* config) override;
 		void SendPacket(const uint8_t* packet, int len) override;
 		void GetPackets(std::function<void(const uint8_t*, int)> callback) override;

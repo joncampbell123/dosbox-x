@@ -16,28 +16,36 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef DOSBOX_ETHERNET_ETHNET_H
-#define DOSBOX_ETHERNET_ETHNET_H
-
 #include "config.h"
 
-#include "ethernet.h"
+#include "ethernet_ethnet.h"
+#include "dosbox.h"
+#include "logging.h"
+#include "support.h" /* strcasecmp */
 
-#ifdef WIN32
-#define HAVE_REMOTE
-#endif
+EthnetEthernetConnection::EthnetEthernetConnection()
+      : EthernetConnection()
+{
+}
 
-#include "support.h" /* Prevents snprintf conflict with pcap on Windows */
+EthnetEthernetConnection::~EthnetEthernetConnection()
+{
+}
 
-/** This connection exists and it goes nowhere
- */
-class NothingEthernetConnection : public EthernetConnection {
-	public:
-		NothingEthernetConnection();
-		~NothingEthernetConnection();
-		bool Initialize(Section* config) override;
-		void SendPacket(const uint8_t* packet, int len) override;
-		void GetPackets(std::function<void(const uint8_t*, int)> callback) override;
-};
+bool EthnetEthernetConnection::Initialize(Section* config)
+{
+	(void)config;
+	return true;
+}
 
-#endif
+void EthnetEthernetConnection::SendPacket(const uint8_t* packet, int len)
+{
+	(void)packet;
+	(void)len;
+}
+
+void EthnetEthernetConnection::GetPackets(std::function<void(const uint8_t*, int)> callback)
+{
+	(void)callback;
+}
+
