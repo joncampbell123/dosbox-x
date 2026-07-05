@@ -4,32 +4,135 @@ Next version
 2026.07.02
   - Prepare for release. This time release OSFREE first so that the normal
     version appears first on GitHub.
+  - Correct MMX FPU exception behavior: #UD if EM bit set, else #NM if TS bit 
+    set (joncampbell123)
+  - Cleanup PMULLW, enforce missing Pentium III requirement for one 
+    instruction, and add code to every MMX instruction to set FPU top of stack
+    to zero as a) documented by Intel b) implemented by Bochs and PCBox already
+    (joncampbell123)
+  - Fixed PMULLW signedness issues. (bachimusprime)
+  - MMX instructions set top of stack == 0 and all tags to available. 
+    (joncampbell123)
+  - EMMS no need to set FPU tags to valid, then set them to empty.
+    (joncampbell123)
+  - Move MMX register into FPU_Reg_80 where the X86 FPU emulation is storing 
+    state so that the MMX/FPU overlap can emulate properly. This fixes FPU/MMX 
+    bugs with Windows ME and Windows Media Player (joncampbell123)
+  - FPU: make p_regs and regs_80 an anonymous union to reduce memory use and to
+    make switching between dynamic and normal core easier (joncampbell123)
   - Fixed savestate format incompatibility between MSVC and MinGW builds.
     (AleWin32)
-  - Fixed PMULLW signedness issues. (bachimusprime)
-  - Fixed FPU_Reg_80 size (cimarronm)
   - gui/sdl_mapper: Fixed startup crash with joysticks reporting >1 hat switch
     (BoykoNeov)
+  - Extend MMX_reg to include FPU exponent field. (joncampbell123)
+  - Fixed MMX instructions write to FPU registers and set the exponent field to
+    all 1s as documented by Intel. (joncampbell123)
+  - Undo CMPXCHG8B revision (joncampbell123)
+  - Fixed FPU_Reg_80 size (cimarronm)
   - Added Nuked-CQM support to OPL emulation. (maron2000)
   - macOS: Build OSFREE nightly builds (maron2000)
   - D3D11: Fix Aspect ratio and Window size was not reflected when returning
     from fullscreen mode (maron2000)
+  - Debugger: fix F11 (trace into next instruction) collision being swallowed 
+    by Windows Terminal (AleWin32) 
+  - Removed output option stubs that have been deprecated removed long ago. 
+    (maron2000)
+  - Don't signal video mem write for S3 MMIO (joncampbell123)
+  - Revise mem handler (joncampbell123)
   - qcow2: Set logical (BIOS) CHS instead of physical (IDE) CHS when mounted
     with Drive numbers. (maron2000)
   - Debugger: fix F11 (trace into next instruction) collision being swallowed
     by Windows Terminal (AleWin32)
+  - MSCDEX UpdateDrive subUnit param is never changed and does not need to be a 
+    reference (joncampbell123)
+  - IDE: Add boolean to mark whether CD-ROM emulation is drawing from MSCDEX.
+    (joncampbell123)
+  - IMGMOUNT::Unmount(): Add device spec parsing and cleanup drive letter/spec
+    parsing in general. Device spec such as ":ide:1m" will allow mounting a CD-
+    ROM image directly to IDE emulation without ever attaching it to a drive
+    letter or MSCDEX emulation (joncampbell123)
+  - FindCommand():
+      Add remove parameter, so that it is possible in one step to read a cmd
+      arg and remove it.
+      Fix printf formatting for message.
+      Add debug dump for CommandLine object.
+  - Add CommandLine method to check if a command arg exists, IMGMOUNT should
+    use that instead of calling FindCommand() just to get a string and then
+    throw it away to check if it exists (joncampbell123)
+  - Drive letter can be "*" for FAT driver, update (joncampbell123)
+  - IMGMOUNT:
+      Use tdr for drive letter/number, do not call FindCommand() again to re-
+      read the drive letter/number
+      Use new FindCommand/EraseCommand methods to simplify file parsing
+      Use tdr and not temp_line for fstype auto and "*" drive (joncampbell123)
+  - DOS_SetDefaultDrive() do not do anything if DOS kernel disabled 
+    (joncampbell123)
+  - MSCDEX: CDROM_AllocateInterface does not need to modify the path, and it
+    never does, change path param to const char * which also allows the use of
+    std::string().c_str() with it. Add device spec ISO mounting, though only
+    the CD-ROM image loading and unloading at this time (joncampbell123)
+  - IDE device spec mount, ISO only (joncampbell123)
+  - IDE device spec CD-ROM swaplist with connection to Swap CD mapper shortcut
+    (joncampbell123)
+  - IDE ATAPI CDROM swaplist, if multiple CD images (joncampbell123)
+  - IMGMOUNT -u with IDE device spec (joncampbell123)
+  - IDE opt parse spec common function (joncampbell123)
+  - Revise various dropdown menu (joncampbell123)
+  - List all outputs, even ones not supported on the target platform, so that
+    the reference config files can list them all. Add comment on what output
+    code is expected to do for unsupported outputs (joncampbell123)
+  - Make the "DOS kernel shutdown do not touch MCB" flag unnecessary by 
+    allowing BOOT to provide the boot code as data to load later, after DOS
+    kernel shutdown, and force CPU back into real mode after DOS kernel shutdown
+    (joncampbell123)
+  - CD-ROM image allocation should free existing pointer it is about to replace.
+    (joncampbell123)
   - Show OSFREE in the title and help message to distinguish OSFREE builds.
     (maron2000)
+  - List direct IDE mounts under the Drives menu (joncampbell123)
   - Fixed possible boot failure when booted from "Boot from disk image" menu.
     (maron2000)
   - Fixed dialog box didn't show when an ISO was mounted via dropdown menu.
     (maron2000)
+  - Define IDE functions used elsewhere in the header file, cleanup
+    (joncampbell123)
+  - IDE: Move CD clearing into a method (joncampbell123)
+  - IDE device mount --replace support (joncampbell123)
+  - IDE menu unmount and swap commands. Update Eject handling to support :ide:
+    device mounts (joncampbell123)
+  - IDE: On attach or detach directly, update the IDE drive menu 
+    (joncampbell123)
+  - Fix IDEDrive menu item naming, add code to allow mounting an ISO image or
+    images directly from the menu for IDE device mounts (joncampbell123)
   - printer.cpp: Fixed various printer emulation issues (maron2000)
      Fixed handling of variable_length command
      Fixed a typo in ESC S command
      Skip DBCS processing for bit graphic data
      Fixed advancing cell position of DBCS characters
+  - BOOT: Store the SS:SP values in a var, have sdlmain.cpp set them when 
+    booting the guest OS. For IBM PC booter games, set SS:SP = 0x30:0x100
+    instead of 0x30:0x80. The smaller value cause Shamus to crash and was coded
+    based on a misunderstanding of the IBM PC BIOS source code (joncampbell123)
+  - COMMAND.COM emulation: After running an MS-DOS executable, set reg_al to
+    the error code returned by the DOS program. This fixes Microsoft Flight
+    Simulator 5.1 setup.com (joncampbell123)
+  - COMMAND.COM emulation: Free memory on shutdown only if and only if 
+    instructed by the shell start code that creates the initial shell, or the
+    config shell. For any other case, trust that we were run as a DOS program
+    and that INT 21h AH=4Ch will free the process memory normally.
+    (joncampbell123)
+  - Disabled formatting lockouts, which allows SubLogic Flight Simulator II to
+    run (joncampbell123)
+  - Disabled IBM PC geometry translation for PC-98 mode. PC-98 HDI images must
+    not do geometry translation, it breaks things (joncampbell123)
+  - INGMOUNT: If mounting a floppy to drive A or B, make sure the disk change
+    signal is cleared so that INT 13h works as expected, same as DOSBox SVN,
+    Staging, and any other fork others use (joncampbell123)
   - Fixed geometry detection of host folder converted drives (maron2000)
+  - Added another heuristic to detect QCOW2 image geometry. (caiiiycuk)
+  - FPU: Set exception flags in some FPU commands in double precision
+  - Fixed a character encoding issue with 0xe0 on non-PC-98 systems. (misty7666)
+  - SDL2: Remove deleted file (yuv_rgb.c). (maron2000)
     
 2026.06.02
   - Feature: Add 'Send Alt+SysRq/PrtScr' menu item (AleWin32)
