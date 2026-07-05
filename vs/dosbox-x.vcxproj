@@ -1399,6 +1399,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\libs\mt32\SampleRateConverter.cpp" />
     <ClCompile Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.c" />
     <ClCompile Include="..\src\libs\zmbv\zmbv.cpp" />
+    <ClCompile Include="..\src\misc\ethernet_ethnet.cpp" />
     <ClCompile Include="..\src\misc\iconvpp.cpp" />
     <ClCompile Include="..\src\misc\mkdir_p.cpp" />
     <ClCompile Include="..\src\misc\shiftjis.cpp" />
@@ -1921,6 +1922,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\libs\mt32\TVP.h" />
     <ClInclude Include="..\src\libs\mt32\Types.h" />
     <ClInclude Include="..\src\libs\tinyfiledialogs\tinyfiledialogs.h" />
+    <ClInclude Include="..\src\misc\ethernet_ethnet.h" />
     <ClInclude Include="..\src\misc\ethernet_pcap.h" />
     <ClInclude Include="..\src\misc\ethernet_slirp.h" />
     <ClInclude Include="..\src\output\direct3d\d3d_components.h" />
