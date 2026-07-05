@@ -18,6 +18,7 @@
 
 #include "config.h"
 
+#if defined(C_SDL_NET) || defined(C_SDL2_NET)
 #include "ethernet_ethnet.h"
 #include "dosbox.h"
 #include "logging.h"
@@ -326,3 +327,4 @@ void ETHNET_ProgramStart(Program * * make) {
 	*make=new ETHNET;
 }
 
+#endif
