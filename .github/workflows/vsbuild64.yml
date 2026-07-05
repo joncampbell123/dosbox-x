@@ -95,6 +95,7 @@ jobs:
           contrib\windows\installer\PatchPE.exe bin\x64\"Release SDL2"\dosbox-x.exe
       - name: Unit testing
         if: steps.osfree.outputs.osfree != 'true'
+        shell: bash
         run: |
           top=`pwd`
           $top/bin/x64/"Release SDL2"/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log || (echo Unit test completed: failure && exit 1)
