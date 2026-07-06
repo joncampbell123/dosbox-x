@@ -32,6 +32,8 @@
 #include "SDL_net.h"
 #endif
 
+#include <assert.h>
+
 #define ETHNETBUFFERSIZE 4096
 
 struct packetBuffer {
@@ -162,6 +164,8 @@ static void l2tp_avp_begin(unsigned char* &w,unsigned char *wf,bool mandatory,ui
 }
 
 static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf) {
+	(void)wf;
+
 	size_t sz = (w-base);
 	uint16_t t = be16toh(*((uint16_t*)base));
 	*((uint16_t*)base) = htobe16((t & ~0x3FFu) | (sz & 0x3FFu)); /* length is low 10 bits */
@@ -174,6 +178,129 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 # define AVP_CTRL_ASSN_CTRL_CONN_ID                 61
 # define AVP_CTRL_PSW_CAP_LIST                      62
 
+struct L2TPpacket {
+	std::vector<unsigned char>		raw; /* this is a way for the data to persist if desired */
+	bool					iscontrol=false; /*T*/
+	size_t					write=0;
+	size_t					length_field=0; /*length field offset or 0 if none */
+	size_t					seq_field=0; /* Nr/Ns field offset or 0 if none */
+	uint32_t				use_connection_id=0;
+
+	L2TPpacket &clear(void) {
+		raw.clear();
+		iscontrol=false;
+		write=0;
+		length_field=0;
+		seq_field=0;
+		use_connection_id=0;
+		return *this;
+	}
+	L2TPpacket &needs(const size_t sz) {//invalidates pointers!
+		if (raw.size() < sz)
+			raw.resize(sz);
+
+		return *this;
+	}
+	L2TPpacket &needsmore(const size_t sz) {//invalidates pointers!
+		return needs(sz+write);
+	}
+	unsigned char *writeptr(void) {
+		return raw.data()+write;
+	}
+	unsigned char *writefence(void) {
+		return raw.data()+raw.size();
+	}
+	void writeptrupdate(unsigned char *w) {
+		LOG_MSG("%p %p",w,writefence());
+		assert(w <= writefence());
+		write = size_t(w - raw.data());
+	}
+	size_t canwrite(void) {
+		return raw.size()-write;
+	}
+	L2TPpacket &connection_id(const uint32_t cid) {
+		use_connection_id = cid;
+		return *this;
+	}
+	L2TPpacket &begin_control(void) {
+		if (write == 0) {
+			/* [https://www.rfc-editor.org/info/rfc3931/#section-5.4.1] */
+			/* [https://www.rfc-editor.org/info/rfc3931/#section-3.1] */
+			iscontrol=true;
+			needsmore(12);
+			unsigned char *w = writeptr();
+			l2tp_ctrlmsg_hdr(w,writefence(),use_connection_id);
+			writeptrupdate(w);
+		}
+
+		return *this;
+	}
+	L2TPpacket &finishwrite(void) {
+		if (write) {
+			if (iscontrol) {
+				unsigned char *w = writeptr();
+				l2tp_ctrlmsg_hdr_update(raw.data(),w,writefence());
+			}
+		}
+
+		return *this;
+	}
+	void fillUDPpacket(UDPpacket &udp) {
+		memset(&udp,0,sizeof(udp));
+		if (write) udp.len = write;
+		else udp.len = raw.size();
+		udp.maxlen = raw.size();
+		udp.channel = UDPChannel;
+		udp.data = raw.data();
+	}
+	L2TPpacket &avp_message_type(const uint16_t mt) {
+		needsmore(32);
+		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
+		l2tp_avp_begin(w,wf,/*mandatory*/true,/*vendor*/0,/*attribute type*/AVP_CTRL_MSG_TYPE);
+		*((uint16_t*)w) = htobe16(mt);w+=2;
+		l2tp_avp_end(ab,w,wf);
+		writeptrupdate(w);
+		return *this;
+	}
+	L2TPpacket &avp_host_name(const char *n) {
+		const size_t len = strlen(n);
+		needsmore(8+len);
+		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
+		l2tp_avp_begin(w,wf,/*mandatory*/true,/*vendor*/0,/*attribute type*/AVP_CTRL_HOST_NAME);
+		if (len) { memcpy(w,n,len); w += len; }
+		l2tp_avp_end(ab,w,wf);
+		writeptrupdate(w);
+		return *this;
+	}
+	L2TPpacket &avp_router_id(const uint32_t rid) {
+		needsmore(32);
+		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
+		l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_ROUTER_ID);//FIXME: xl2tpd doesn't like this send as mandatory??
+		*((uint32_t*)w) = htobe32(rid);w+=4;
+		l2tp_avp_end(ab,w,wf);
+		writeptrupdate(w);
+		return *this;
+	}
+	L2TPpacket &avp_assigned_control_connection_id(const uint32_t ccid) {
+		needsmore(32);
+		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
+		l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_ASSN_CTRL_CONN_ID);//FIXME: xl2tpd doesn't like this send as mandatory??
+		*((uint32_t*)w) = htobe32(ccid);w+=4;
+		l2tp_avp_end(ab,w,wf);
+		writeptrupdate(w);
+		return *this;
+	}
+	L2TPpacket &avp_pseudowire_capabilities_list(const std::vector<uint16_t> &v) {
+		needsmore(8+(v.size()*2u));
+		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
+		l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_PSW_CAP_LIST);//FIXME: xl2tpd doesn't like this send as mandatory??
+		for (auto i=v.begin();i!=v.end();i++) { *((uint16_t*)w) = htobe16(*i);w+=2; }
+		l2tp_avp_end(ab,w,wf);
+		writeptrupdate(w);
+		return *this;
+	}
+};
+
 static bool ConnectToServer(char const *strAddr) {
 	int numsent;
 	UDPpacket regPacket={0};
@@ -181,14 +308,11 @@ static bool ConnectToServer(char const *strAddr) {
 		// Select an anonymous UDP port
 		ethnetClientSocket = SDLNet_UDP_Open(0);
 		if(ethnetClientSocket) {
-			unsigned char tmp[2048];
-			unsigned char *w,*wf=tmp+sizeof(tmp);
+			std::vector<uint16_t> pscl = {0x0005/*ethernet*/};
+			L2TPpacket pkt;
 
 			// Bind UDP port to address to channel
 			UDPChannel = SDLNet_UDP_Bind(ethnetClientSocket,-1,&ethnetServConnIp);
-
-			regPacket.maxlen = sizeof(tmp);
-			regPacket.channel = UDPChannel;
 
 			l2tp_ns = 0;
 			l2tp_nr = 0;
@@ -199,46 +323,20 @@ static bool ConnectToServer(char const *strAddr) {
 			/* SCCRQ [https://www.rfc-editor.org/info/rfc3931/#section-6.1] */
 			/* [https://www.rfc-editor.org/info/rfc3931/#section-5.4.1] */
 			/* [https://www.rfc-editor.org/info/rfc3931/#section-3.1] */
-			w=tmp; l2tp_ctrlmsg_hdr(w,wf,l2tp_cli_control_connection_id);
-			{/*Message Type*/
-				unsigned char *ab = w;
-				l2tp_avp_begin(w,wf,/*mandatory*/true,/*vendor*/0,/*attribute type*/AVP_CTRL_MSG_TYPE);
-				*((uint16_t*)w) = htobe16(AVP_CTRL_MSG_TYPE_SCCRQ);w+=2;
-				l2tp_avp_end(ab,w,wf);
-			}
+			pkt.clear().connection_id(l2tp_cli_control_connection_id).begin_control()
+				.avp_message_type(AVP_CTRL_MSG_TYPE_SCCRQ)
+				.avp_router_id(l2tp_router_id)
+				.avp_assigned_control_connection_id(l2tp_cli_control_connection_id)
+				.avp_pseudowire_capabilities_list(pscl);
 			{/*Host Name*/
 				uint32_t r1=(uint32_t)(rand()*rand());
 				uint32_t r2=(uint32_t)(rand()*rand());
-				unsigned char *ab = w;
-				l2tp_avp_begin(w,wf,/*mandatory*/true,/*vendor*/0,/*attribute type*/AVP_CTRL_HOST_NAME);
+				char tmp[128];
 				// FIXME: What would be more appropriate?
-				w += snprintf((char*)w,size_t(wf-w),"DOSBox-X.%u,%u",(unsigned int)r1,(unsigned int)r2);
-				l2tp_avp_end(ab,w,wf);
+				snprintf(tmp,sizeof(tmp),"DOSBox-X.%u,%u",(unsigned int)r1,(unsigned int)r2);
+				pkt.avp_host_name(tmp);
 			}
-			{/*Router ID*/
-				unsigned char *ab = w;
-				l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_ROUTER_ID);//FIXME: xl2tpd doesn't like this send as mandatory??
-				*((uint32_t*)w) = htobe32(l2tp_router_id);w+=4;
-				l2tp_avp_end(ab,w,wf);
-			}
-			{/*Assigned Control Connection ID*/
-				unsigned char *ab = w;
-				l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_ASSN_CTRL_CONN_ID);//FIXME: xl2tpd doesn't like this send as mandatory??
-				*((uint32_t*)w) = htobe32(l2tp_cli_control_connection_id);w+=4;
-				l2tp_avp_end(ab,w,wf);
-			}
-			{/*Pseudowire Capabilities List*/
-				unsigned char *ab = w;
-				l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_PSW_CAP_LIST);//FIXME: xl2tpd doesn't like this send as mandatory??
-				*((uint16_t*)w) = htobe16(0x0005/*ethernet*/);w+=2;
-				l2tp_avp_end(ab,w,wf);
-			}
-			l2tp_ctrlmsg_hdr_update(tmp,w,wf);
-			regPacket.len = size_t(w-tmp);
-			regPacket.data = tmp;
-			LOG_MSG("ETHNET: Using Ns=%u Nr=%u router_id=%u our_control_conn_id=%u (%u,%u)",
-				l2tp_ns,l2tp_nr,l2tp_router_id,l2tp_cli_control_connection_id,
-				l2tp_cli_control_connection_id>>16,l2tp_cli_control_connection_id&0xFFFFu);
+			pkt.finishwrite().fillUDPpacket(/*&*/regPacket);
 			l2tp_ns++;
 			numsent = SDLNet_UDP_Send(ethnetClientSocket, regPacket.channel, &regPacket);
 			if(!numsent) {
