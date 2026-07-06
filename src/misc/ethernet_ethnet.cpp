@@ -173,7 +173,10 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 
 #define AVP_CTRL_MSG_TYPE                           0
 # define AVP_CTRL_MSG_TYPE_SCCRQ                    1
+# define AVP_CTRL_FRAMING_CAPS                      3
 # define AVP_CTRL_HOST_NAME                         7
+# define AVP_CTRL_ASSN_TUNNEL_ID                    9
+# define AVP_CTRL_FRAMING_TYPE                      19
 # define AVP_CTRL_ROUTER_ID                         60
 # define AVP_CTRL_ASSN_CTRL_CONN_ID                 61
 # define AVP_CTRL_PSW_CAP_LIST                      62
@@ -181,15 +184,20 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 struct L2TPpacket {
 	std::vector<unsigned char>		raw; /* this is a way for the data to persist if desired */
 	bool					iscontrol=false; /*T*/
+	bool					didrecv=false;
+	size_t					read=0;
 	size_t					write=0;
 	size_t					length_field=0; /*length field offset or 0 if none */
 	size_t					seq_field=0; /* Nr/Ns field offset or 0 if none */
+	uint8_t					ver=0;
+	uint16_t				Ns=0,Nr=0;
+	uint16_t				length=0;
 	uint32_t				use_connection_id=0;
 
 	L2TPpacket &clear(void) {
 		raw.clear();
 		iscontrol=false;
-		write=0;
+		write=read=0;
 		length_field=0;
 		seq_field=0;
 		use_connection_id=0;
@@ -211,16 +219,33 @@ struct L2TPpacket {
 		return raw.data()+raw.size();
 	}
 	void writeptrupdate(unsigned char *w) {
-		LOG_MSG("%p %p",w,writefence());
 		assert(w <= writefence());
 		write = size_t(w - raw.data());
 	}
 	size_t canwrite(void) {
 		return raw.size()-write;
 	}
+
+	unsigned char *readptr(void) {
+		return raw.data()+read;
+	}
+	unsigned char *readfence(void) {
+		return raw.data()+raw.size();
+	}
+	void readptrupdate(unsigned char *w) {
+		assert(w <= readfence());
+		read = size_t(w - raw.data());
+	}
+	size_t canread(void) {
+		return raw.size()-read;
+	}
+
 	L2TPpacket &connection_id(const uint32_t cid) {
 		use_connection_id = cid;
 		return *this;
+	}
+	uint32_t connection_id(void) {
+		return use_connection_id;
 	}
 	L2TPpacket &begin_control(void) {
 		if (write == 0) {
@@ -245,14 +270,26 @@ struct L2TPpacket {
 
 		return *this;
 	}
-	void fillUDPpacket(UDPpacket &udp) {
+	L2TPpacket &fillUDPpacket(UDPpacket &udp) {
 		memset(&udp,0,sizeof(udp));
 		if (write) udp.len = write;
 		else udp.len = raw.size();
 		udp.maxlen = raw.size();
 		udp.channel = UDPChannel;
 		udp.data = raw.data();
+		return *this;
 	}
+
+	L2TPpacket &fillUDPpacketForRecv(UDPpacket &udp,const uint32_t expect) {
+		needs(expect);
+		memset(&udp,0,sizeof(udp));
+		udp.len = 0;
+		udp.maxlen = expect;
+		udp.channel = UDPChannel;
+		udp.data = raw.data();
+		return *this;
+	}
+
 	L2TPpacket &avp_message_type(const uint16_t mt) {
 		needsmore(32);
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -290,6 +327,33 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
+	L2TPpacket &avp_assigned_tunnel_id(const uint16_t tid) {
+		needsmore(32);
+		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
+		l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_ASSN_TUNNEL_ID);//FIXME: xl2tpd doesn't like this send as mandatory??
+		*((uint16_t*)w) = htobe16(tid);w+=2;
+		l2tp_avp_end(ab,w,wf);
+		writeptrupdate(w);
+		return *this;
+	}
+	L2TPpacket &avp_framing_caps(const uint32_t fc) {
+		needsmore(32);
+		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
+		l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_FRAMING_CAPS);
+		*((uint32_t*)w) = htobe32(fc);w+=4;
+		l2tp_avp_end(ab,w,wf);
+		writeptrupdate(w);
+		return *this;
+	}
+	L2TPpacket &avp_framing_type(const uint16_t ft) {
+		needsmore(32);
+		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
+		l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_FRAMING_TYPE);//FIXME: xl2tpd doesn't like this send as mandatory??
+		*((uint16_t*)w) = htobe16(ft);w+=2;
+		l2tp_avp_end(ab,w,wf);
+		writeptrupdate(w);
+		return *this;
+	}
 	L2TPpacket &avp_pseudowire_capabilities_list(const std::vector<uint16_t> &v) {
 		needsmore(8+(v.size()*2u));
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -297,6 +361,32 @@ struct L2TPpacket {
 		for (auto i=v.begin();i!=v.end();i++) { *((uint16_t*)w) = htobe16(*i);w+=2; }
 		l2tp_avp_end(ab,w,wf);
 		writeptrupdate(w);
+		return *this;
+	}
+	L2TPpacket &didRecv(UDPpacket &udp) {
+		if (udp.len >= 0 && (size_t)udp.len <= raw.size() && udp.data == raw.data()) {
+			raw.resize((size_t)udp.len);
+			didrecv = true;
+			read = 0;
+
+			if (udp.len >= 2) {
+				unsigned char *r = readptr(),*rf = readfence();
+				uint16_t h = be16toh(*((uint16_t*)r)); r+=2;
+				ver = (h & 0xFu);
+				if ((h&0xC800u) == 0xC800u && udp.len >= 12) { /*If T=1, L=1, S=1*/
+					iscontrol = true; 
+					length_field = size_t(r-raw.data());
+					length = be16toh(*((uint16_t*)r)); r+=2;
+					use_connection_id = be32toh(*((uint32_t*)r)); r+=4;
+					seq_field = size_t(r-raw.data());
+					Ns = be16toh(*((uint16_t*)r)); r+=2;
+					Nr = be16toh(*((uint16_t*)r)); r+=2;
+				}
+				
+				readptrupdate(r);
+			}
+		}
+
 		return *this;
 	}
 };
@@ -316,17 +406,20 @@ static bool ConnectToServer(char const *strAddr) {
 
 			l2tp_ns = 0;
 			l2tp_nr = 0;
-			l2tp_cli_control_connection_id = 0;
+			l2tp_cli_control_connection_id = (uint32_t)(rand()*rand());
 			l2tp_svr_control_connection_id = 0;
 			l2tp_router_id = (uint32_t)(rand()*rand());
 
 			/* SCCRQ [https://www.rfc-editor.org/info/rfc3931/#section-6.1] */
 			/* [https://www.rfc-editor.org/info/rfc3931/#section-5.4.1] */
 			/* [https://www.rfc-editor.org/info/rfc3931/#section-3.1] */
-			pkt.clear().connection_id(l2tp_cli_control_connection_id).begin_control()
+			/* [https://www.rfc-editor.org/info/rfc2661/] Assigned Tunnel ID because xl2tpd doesn't know the control connection ID tag */
+			pkt.clear().connection_id(0).begin_control()
 				.avp_message_type(AVP_CTRL_MSG_TYPE_SCCRQ)
 				.avp_router_id(l2tp_router_id)
 				.avp_assigned_control_connection_id(l2tp_cli_control_connection_id)
+				.avp_assigned_tunnel_id(l2tp_cli_control_connection_id>>16)/*required by x2ltpd*/
+				.avp_framing_caps(0)/*A=1 S=1 required by x2ltpd*/
 				.avp_pseudowire_capabilities_list(pscl);
 			{/*Host Name*/
 				uint32_t r1=(uint32_t)(rand()*rand());
@@ -358,10 +451,17 @@ static bool ConnectToServer(char const *strAddr) {
 						return false;
 					}
 					CALLBACK_Idle();
+					pkt.clear().fillUDPpacketForRecv(/*&*/regPacket,4096);
 					result = SDLNet_UDP_Recv(ethnetClientSocket, &regPacket);
 					if (result != 0) {
-						LOG_MSG("YAY, RESPONSE");
-						break;
+						pkt.didRecv(/*&*/regPacket);
+						LOG_MSG("In: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u(%u,%u)",
+							pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),
+							pkt.connection_id()>>16,pkt.connection_id()&0xFFFFu);
+						if (pkt.iscontrol) {
+							LOG_MSG("YAY, RESPONSE (result %u) len %u",(unsigned int)result,(unsigned int)regPacket.len);
+							break;
+						}
 					}
 				}
 			}
