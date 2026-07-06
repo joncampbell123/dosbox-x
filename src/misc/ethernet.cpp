@@ -38,8 +38,10 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
         backend = "slirp";
 #elif defined(C_PCAP)
         backend = "pcap";
-#else
+#elif defined(C_SDL_NET) || defined(C_SDL2_NET)
         backend = "ethnet";
+#else
+        backend = "none";
 #endif
     } else {
         backend = backendstr;

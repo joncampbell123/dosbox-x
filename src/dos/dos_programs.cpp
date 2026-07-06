@@ -10262,8 +10262,10 @@ void Add_VFiles(bool usecp) {
 # endif
 	if (addne2k) {
 		VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
-		PROGRAMS_MakeFile("ETHNET.COM",ETHNET_ProgramStart,"/SYSTEM/");
-	}
+#if defined(C_SDL_NET) || defined(C_SDL2_NET)
+        PROGRAMS_MakeFile("ETHNET.COM",ETHNET_ProgramStart,"/SYSTEM/");
+#endif
+    }
 	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
 #endif
 
