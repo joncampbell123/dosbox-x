@@ -132,7 +132,8 @@ static uint16_t l2tp_ns = 0;
 static uint16_t l2tp_nr = 0;
 static uint32_t l2tp_cli_control_connection_id = 0;/*NTS: L2TPv2 defines this as 16:16 tunnel_id:session_id*/
 static uint32_t l2tp_svr_control_connection_id = 0;
-static uint32_t l2tp_router_id = 0;
+static uint32_t l2tp_cli_router_id = 0;
+static uint32_t l2tp_svr_router_id = 0;
 
 static void l2tp_ctrlmsg_hdr(unsigned char* &w,unsigned char *wf,uint32_t ctrl_conn_id) {
 	if ((w+12) > wf) return;
@@ -173,13 +174,14 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 
 #define AVP_CTRL_MSG_TYPE                           0
 # define AVP_CTRL_MSG_TYPE_SCCRQ                    1
-# define AVP_CTRL_FRAMING_CAPS                      3
-# define AVP_CTRL_HOST_NAME                         7
-# define AVP_CTRL_ASSN_TUNNEL_ID                    9
-# define AVP_CTRL_FRAMING_TYPE                      19
-# define AVP_CTRL_ROUTER_ID                         60
-# define AVP_CTRL_ASSN_CTRL_CONN_ID                 61
-# define AVP_CTRL_PSW_CAP_LIST                      62
+# define AVP_CTRL_MSG_TYPE_SCCRP                    2
+#define AVP_CTRL_FRAMING_CAPS                       3
+#define AVP_CTRL_HOST_NAME                          7
+#define AVP_CTRL_ASSN_TUNNEL_ID                     9
+#define AVP_CTRL_FRAMING_TYPE                       19
+#define AVP_CTRL_ROUTER_ID                          60
+#define AVP_CTRL_ASSN_CTRL_CONN_ID                  61
+#define AVP_CTRL_PSW_CAP_LIST                       62
 
 struct L2TPpacket {
 	std::vector<unsigned char>		raw; /* this is a way for the data to persist if desired */
@@ -194,8 +196,22 @@ struct L2TPpacket {
 	uint16_t				length=0;
 	uint32_t				use_connection_id=0;
 
+	struct avp_t {
+		bool				M=false;
+		bool				H=false;
+		uint16_t			vendor_id=0;
+		uint16_t			attribute_type=0;
+		uint16_t			length=0;
+		unsigned char*			data=NULL;
+	};
+
+	std::vector<struct avp_t>		recv_avp;//WARNING: points at buffer on recv, invalidated on resize
+	std::map<uint16_t,uint16_t>		recv_avp_map;//NTS: There is no way any packet would have more than 0xFFFF AVPs!
+
 	L2TPpacket &clear(void) {
 		raw.clear();
+		recv_avp.clear();
+		recv_avp_map.clear();
 		iscontrol=false;
 		write=read=0;
 		length_field=0;
@@ -204,8 +220,11 @@ struct L2TPpacket {
 		return *this;
 	}
 	L2TPpacket &needs(const size_t sz) {//invalidates pointers!
-		if (raw.size() < sz)
+		if (raw.size() < sz) {
 			raw.resize(sz);
+			recv_avp.clear();//pointers in struct, this invalidates them!
+			recv_avp_map.clear();
+		}
 
 		return *this;
 	}
@@ -290,6 +309,12 @@ struct L2TPpacket {
 		return *this;
 	}
 
+	struct avp_t *recv_lookup_avp(const uint16_t a) {
+		auto i = recv_avp_map.find(a);
+		if (i != recv_avp_map.end() && i->second < recv_avp.size()) return &recv_avp[i->second];
+		return NULL;
+	}
+
 	L2TPpacket &avp_message_type(const uint16_t mt) {
 		needsmore(32);
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -298,6 +323,16 @@ struct L2TPpacket {
 		l2tp_avp_end(ab,w,wf);
 		writeptrupdate(w);
 		return *this;
+	}
+	uint16_t avp_message_type(void) {
+		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_MSG_TYPE);
+		if (avp && avp->length >= 2) {
+			unsigned char *r = avp->data,*rf = avp->data+avp->length;
+			uint16_t mt = be16toh(*((uint16_t*)r)); r+=2;
+			assert(r <= rf);
+			return mt;
+		}
+		return 0;
 	}
 	L2TPpacket &avp_host_name(const char *n) {
 		const size_t len = strlen(n);
@@ -318,6 +353,16 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
+	uint32_t avp_router_id(void) {
+		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ROUTER_ID);
+		if (avp && avp->length >= 4) {
+			unsigned char *r = avp->data,*rf = avp->data+avp->length;
+			uint32_t rid = be32toh(*((uint32_t*)r)); r+=4;
+			assert(r <= rf);
+			return rid;
+		}
+		return 0;
+	}
 	L2TPpacket &avp_assigned_control_connection_id(const uint32_t ccid) {
 		needsmore(32);
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -336,6 +381,16 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
+	uint16_t avp_assigned_tunnel_id(void) {
+		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ASSN_TUNNEL_ID);
+		if (avp && avp->length >= 2) {
+			unsigned char *r = avp->data,*rf = avp->data+avp->length;
+			uint16_t tid = be16toh(*((uint16_t*)r)); r+=2;
+			assert(r <= rf);
+			return tid;
+		}
+		return 0;
+	}
 	L2TPpacket &avp_framing_caps(const uint32_t fc) {
 		needsmore(32);
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -344,6 +399,16 @@ struct L2TPpacket {
 		l2tp_avp_end(ab,w,wf);
 		writeptrupdate(w);
 		return *this;
+	}
+	uint32_t avp_framing_caps(void) {
+		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_FRAMING_CAPS);
+		if (avp && avp->length >= 4) {
+			unsigned char *r = avp->data,*rf = avp->data+avp->length;
+			uint32_t fc = be32toh(*((uint32_t*)r)); r+=4;
+			assert(r <= rf);
+			return fc;
+		}
+		return 0;
 	}
 	L2TPpacket &avp_framing_type(const uint16_t ft) {
 		needsmore(32);
@@ -381,8 +446,43 @@ struct L2TPpacket {
 					seq_field = size_t(r-raw.data());
 					Ns = be16toh(*((uint16_t*)r)); r+=2;
 					Nr = be16toh(*((uint16_t*)r)); r+=2;
+
+					/* followed by AVPs */
+					while ((r+6) <= rf) {
+						/* [https://www.rfc-editor.org/info/rfc3931/#section-5.1] */
+						struct avp_t a;
+
+						unsigned char *ab = r;
+
+						uint16_t hml = be16toh(*((uint16_t*)r)); r+=2;
+						a.M = !!(hml & 0x8000u);
+						a.H = !!(hml & 0x4000u);
+						a.length = hml & 0x3FFu;
+						if (a.length < 6) break;
+
+						a.vendor_id = be16toh(*((uint16_t*)r)); r+=2;
+						a.attribute_type = be16toh(*((uint16_t*)r)); r+=2;
+
+						LOG_MSG("M=%u H=%u length=%u vendor_id=%u attr=%u",
+							a.M,a.H,a.length,a.vendor_id,a.attribute_type);
+
+						if ((ab+a.length) > rf) break;
+
+						a.length -= 6;
+						a.data = r;
+
+						if (a.vendor_id == 0) {
+							auto i=recv_avp_map.find(a.attribute_type);
+							if (i==recv_avp_map.end()) recv_avp_map[a.attribute_type] = recv_avp.size();
+						}
+
+						recv_avp.push_back(a);
+						r += a.length;
+					}
+
+					//if (r < rf) LOG_MSG("%u bytes left to parse",(unsigned int)(rf-r));
 				}
-				
+
 				readptrupdate(r);
 			}
 		}
@@ -408,7 +508,8 @@ static bool ConnectToServer(char const *strAddr) {
 			l2tp_nr = 0;
 			l2tp_cli_control_connection_id = (uint32_t)(rand()*rand());
 			l2tp_svr_control_connection_id = 0;
-			l2tp_router_id = (uint32_t)(rand()*rand());
+			l2tp_cli_router_id = (uint32_t)(rand()*rand());
+			l2tp_svr_router_id = 0;
 
 			/* SCCRQ [https://www.rfc-editor.org/info/rfc3931/#section-6.1] */
 			/* [https://www.rfc-editor.org/info/rfc3931/#section-5.4.1] */
@@ -416,10 +517,10 @@ static bool ConnectToServer(char const *strAddr) {
 			/* [https://www.rfc-editor.org/info/rfc2661/] Assigned Tunnel ID because xl2tpd doesn't know the control connection ID tag */
 			pkt.clear().connection_id(0).begin_control()
 				.avp_message_type(AVP_CTRL_MSG_TYPE_SCCRQ)
-				.avp_router_id(l2tp_router_id)
+				.avp_router_id(l2tp_cli_router_id)
 				.avp_assigned_control_connection_id(l2tp_cli_control_connection_id)
 				.avp_assigned_tunnel_id(l2tp_cli_control_connection_id>>16)/*required by x2ltpd*/
-				.avp_framing_caps(0)/*A=1 S=1 required by x2ltpd*/
+				.avp_framing_caps(3)/*A=1 S=1 required by x2ltpd*/
 				.avp_pseudowire_capabilities_list(pscl);
 			{/*Host Name*/
 				uint32_t r1=(uint32_t)(rand()*rand());
@@ -430,6 +531,10 @@ static bool ConnectToServer(char const *strAddr) {
 				pkt.avp_host_name(tmp);
 			}
 			pkt.finishwrite().fillUDPpacket(/*&*/regPacket);
+			LOG_MSG("ETHNET: Starting L2TP with assigned ctrlconnid=%u (tunnel=%u session=%u)",
+				l2tp_cli_control_connection_id,
+				l2tp_cli_control_connection_id>>16,
+				l2tp_cli_control_connection_id&0xFFFFu);
 			l2tp_ns++;
 			numsent = SDLNet_UDP_Send(ethnetClientSocket, regPacket.channel, &regPacket);
 			if(!numsent) {
@@ -438,6 +543,7 @@ static bool ConnectToServer(char const *strAddr) {
 				return false;
 			}
 
+			/* SCCRP [https://www.rfc-editor.org/info/rfc3931/#section-6.2] */
 			{
 				Bits result;
 				uint32_t ticks;
@@ -454,13 +560,34 @@ static bool ConnectToServer(char const *strAddr) {
 					pkt.clear().fillUDPpacketForRecv(/*&*/regPacket,4096);
 					result = SDLNet_UDP_Recv(ethnetClientSocket, &regPacket);
 					if (result != 0) {
+						bool ok = false;
+
 						pkt.didRecv(/*&*/regPacket);
 						LOG_MSG("In: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u(%u,%u)",
 							pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),
 							pkt.connection_id()>>16,pkt.connection_id()&0xFFFFu);
-						if (pkt.iscontrol) {
-							LOG_MSG("YAY, RESPONSE (result %u) len %u",(unsigned int)result,(unsigned int)regPacket.len);
+
+						if (pkt.iscontrol && pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_SCCRP) {
+							uint32_t sfc = pkt.avp_framing_caps();
+							uint16_t tunnel_id = pkt.avp_assigned_tunnel_id();
+							l2tp_svr_router_id = pkt.avp_router_id();
+							LOG_MSG("router_id: svr(just recv)=%u cli=%u",l2tp_svr_router_id,l2tp_cli_router_id);
+							LOG_MSG("framing_caps: svr(just recv)=%u",sfc);
+							LOG_MSG("assigned_tunnel_id: svr(just recv)=%u",tunnel_id);
+
+							if (tunnel_id)
+								l2tp_svr_control_connection_id = tunnel_id << 16u;
+
+							if (sfc != 0 && tunnel_id != 0 && (pkt.connection_id()>>16) == (l2tp_cli_control_connection_id>>16)) ok = true;
+						}
+
+						if (ok) {
 							break;
+						}
+						else {
+							LOG_MSG("Failed to connect to server %s", strAddr);
+							SDLNet_UDP_Close(ethnetClientSocket);
+							return false;
 						}
 					}
 				}
