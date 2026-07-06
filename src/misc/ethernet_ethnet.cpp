@@ -126,15 +126,147 @@ bool ETHNET_StartServer(uint16_t portnum) {
 	return false;
 }
 
+static uint16_t l2tp_ns = 0;
+static uint16_t l2tp_nr = 0;
+static uint32_t l2tp_cli_control_connection_id = 0;/*NTS: L2TPv2 defines this as 16:16 tunnel_id:session_id*/
+static uint32_t l2tp_svr_control_connection_id = 0;
+static uint32_t l2tp_router_id = 0;
+
+static void l2tp_ctrlmsg_hdr(unsigned char* &w,unsigned char *wf,uint32_t ctrl_conn_id) {
+	if ((w+12) > wf) return;
+
+	/* [https://www.rfc-editor.org/info/rfc3931/#section-3.2.1] */
+	*w++ = 0xC8;/* TLxxSxxx T=1 L=1 S=1 */
+	*w++ = 2; /* xxxxVVVV L2TP version -- FIXME: xl2tpd rejects version 3 becuase it thinks ver==3 means PPTP(??) */
+	*((uint16_t*)w) = 0; w+=2; /* length (set to 0 for now) */
+	*((uint32_t*)w) = htobe32(ctrl_conn_id); w+=4; /* Control Connection ID */
+	*((uint16_t*)w) = htobe16(l2tp_ns); w+=2;
+	*((uint16_t*)w) = htobe16(l2tp_nr); w+=2;
+}
+
+static void l2tp_ctrlmsg_hdr_update(unsigned char *base,unsigned char* &w,unsigned char *wf) {
+	(void)wf;
+
+	size_t sz = (w-base);
+	*((uint16_t*)(base+2)) = htobe16((uint16_t)sz);
+}
+
+static void l2tp_avp_begin(unsigned char* &w,unsigned char *wf,bool mandatory,uint16_t vendor_id,uint16_t attribute_type) {
+	if ((w+6) > wf) return;
+
+	/* [https://www.rfc-editor.org/info/rfc3931/#section-5.1] */
+	*((uint16_t*)w) = htobe16((mandatory?0x8000u:0u)); w+=2; /* MHrrrrLLLLLLLLLL M=mandatory H=0 */
+	*((uint16_t*)w) = htobe16(vendor_id); w+=2;
+	*((uint16_t*)w) = htobe16(attribute_type); w+=2;
+	/* attribute value follows, so start writing! */
+}
+
+static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf) {
+	size_t sz = (w-base);
+	uint16_t t = be16toh(*((uint16_t*)base));
+	*((uint16_t*)base) = htobe16((t & ~0x3FFu) | (sz & 0x3FFu)); /* length is low 10 bits */
+}
+
+#define AVP_CTRL_MSG_TYPE                           0
+# define AVP_CTRL_MSG_TYPE_SCCRQ                    1
+# define AVP_CTRL_HOST_NAME                         7
+# define AVP_CTRL_ROUTER_ID                         60
+# define AVP_CTRL_ASSN_CTRL_CONN_ID                 61
+# define AVP_CTRL_PSW_CAP_LIST                      62
+
 static bool ConnectToServer(char const *strAddr) {
 	int numsent;
-	UDPpacket regPacket;
+	UDPpacket regPacket={0};
 	if(!SDLNet_ResolveHost(&ethnetServConnIp, strAddr, (uint16_t)udpPort)) {
 		// Select an anonymous UDP port
 		ethnetClientSocket = SDLNet_UDP_Open(0);
 		if(ethnetClientSocket) {
+			unsigned char tmp[2048];
+			unsigned char *w,*wf=tmp+sizeof(tmp);
+
 			// Bind UDP port to address to channel
 			UDPChannel = SDLNet_UDP_Bind(ethnetClientSocket,-1,&ethnetServConnIp);
+
+			regPacket.maxlen = sizeof(tmp);
+			regPacket.channel = UDPChannel;
+
+			l2tp_ns = 0;
+			l2tp_nr = 0;
+			l2tp_cli_control_connection_id = 0;
+			l2tp_svr_control_connection_id = 0;
+			l2tp_router_id = (uint32_t)(rand()*rand());
+
+			/* SCCRQ [https://www.rfc-editor.org/info/rfc3931/#section-6.1] */
+			/* [https://www.rfc-editor.org/info/rfc3931/#section-5.4.1] */
+			/* [https://www.rfc-editor.org/info/rfc3931/#section-3.1] */
+			w=tmp; l2tp_ctrlmsg_hdr(w,wf,l2tp_cli_control_connection_id);
+			{/*Message Type*/
+				unsigned char *ab = w;
+				l2tp_avp_begin(w,wf,/*mandatory*/true,/*vendor*/0,/*attribute type*/AVP_CTRL_MSG_TYPE);
+				*((uint16_t*)w) = htobe16(AVP_CTRL_MSG_TYPE_SCCRQ);w+=2;
+				l2tp_avp_end(ab,w,wf);
+			}
+			{/*Host Name*/
+				uint32_t r1=(uint32_t)(rand()*rand());
+				uint32_t r2=(uint32_t)(rand()*rand());
+				unsigned char *ab = w;
+				l2tp_avp_begin(w,wf,/*mandatory*/true,/*vendor*/0,/*attribute type*/AVP_CTRL_HOST_NAME);
+				// FIXME: What would be more appropriate?
+				w += snprintf((char*)w,size_t(wf-w),"DOSBox-X.%u,%u",(unsigned int)r1,(unsigned int)r2);
+				l2tp_avp_end(ab,w,wf);
+			}
+			{/*Router ID*/
+				unsigned char *ab = w;
+				l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_ROUTER_ID);//FIXME: xl2tpd doesn't like this send as mandatory??
+				*((uint32_t*)w) = htobe32(l2tp_router_id);w+=4;
+				l2tp_avp_end(ab,w,wf);
+			}
+			{/*Assigned Control Connection ID*/
+				unsigned char *ab = w;
+				l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_ASSN_CTRL_CONN_ID);//FIXME: xl2tpd doesn't like this send as mandatory??
+				*((uint32_t*)w) = htobe32(l2tp_cli_control_connection_id);w+=4;
+				l2tp_avp_end(ab,w,wf);
+			}
+			{/*Pseudowire Capabilities List*/
+				unsigned char *ab = w;
+				l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_PSW_CAP_LIST);//FIXME: xl2tpd doesn't like this send as mandatory??
+				*((uint16_t*)w) = htobe16(0x0005/*ethernet*/);w+=2;
+				l2tp_avp_end(ab,w,wf);
+			}
+			l2tp_ctrlmsg_hdr_update(tmp,w,wf);
+			regPacket.len = size_t(w-tmp);
+			regPacket.data = tmp;
+			LOG_MSG("ETHNET: Using Ns=%u Nr=%u router_id=%u our_control_conn_id=%u (%u,%u)",
+				l2tp_ns,l2tp_nr,l2tp_router_id,l2tp_cli_control_connection_id,
+				l2tp_cli_control_connection_id>>16,l2tp_cli_control_connection_id&0xFFFFu);
+			l2tp_ns++;
+			numsent = SDLNet_UDP_Send(ethnetClientSocket, regPacket.channel, &regPacket);
+			if(!numsent) {
+				LOG_MSG("ETHNET: Unable to connect to server: %s", SDLNet_GetError());
+				SDLNet_UDP_Close(ethnetClientSocket);
+				return false;
+			}
+
+			{
+				Bits result;
+				uint32_t ticks;
+				ticks = GetTicks();
+
+				while(true) {
+					uint32_t elapsed = GetTicks() - ticks;
+					if(elapsed > 5000) {
+						LOG_MSG("Timeout connecting to server at %s", strAddr);
+						SDLNet_UDP_Close(ethnetClientSocket);
+						return false;
+					}
+					CALLBACK_Idle();
+					result = SDLNet_UDP_Recv(ethnetClientSocket, &regPacket);
+					if (result != 0) {
+						LOG_MSG("YAY, RESPONSE");
+						break;
+					}
+				}
+			}
 
 			LOG_MSG("ETHNET: Connected to server.");
 
