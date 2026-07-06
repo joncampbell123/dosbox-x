@@ -8083,7 +8083,9 @@ void SERIAL_ProgramStart(Program * * make);
 void CONFIG_ProgramStart(Program * * make);
 #endif
 void IPXNET_ProgramStart(Program * * make);
+#if (defined(C_SDL_NET) || defined(C_SDL2_NET))
 void ETHNET_ProgramStart(Program * * make);
+#endif
 void A20GATE_ProgramStart(Program * * make);
 void CGASNOW_ProgramStart(Program * * make);
 void PARALLEL_ProgramStart(Program * * make);
