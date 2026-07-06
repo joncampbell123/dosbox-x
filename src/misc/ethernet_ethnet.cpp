@@ -175,6 +175,7 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 #define AVP_CTRL_MSG_TYPE                           0
 # define AVP_CTRL_MSG_TYPE_SCCRQ                    1
 # define AVP_CTRL_MSG_TYPE_SCCRP                    2
+# define AVP_CTRL_MSG_TYPE_SCCCN                    3
 #define AVP_CTRL_FRAMING_CAPS                       3
 #define AVP_CTRL_HOST_NAME                          7
 #define AVP_CTRL_ASSN_TUNNEL_ID                     9
@@ -578,10 +579,12 @@ static bool ConnectToServer(char const *strAddr) {
 							if (tunnel_id)
 								l2tp_svr_control_connection_id = tunnel_id << 16u;
 
-							if (sfc != 0 && tunnel_id != 0 && (pkt.connection_id()>>16) == (l2tp_cli_control_connection_id>>16)) ok = true;
+							if (sfc != 0 && tunnel_id != 0 && pkt.Ns == l2tp_nr/*Ns from server was the value we expected*/ &&
+								(pkt.connection_id()>>16) == (l2tp_cli_control_connection_id>>16)) ok = true;
 						}
 
 						if (ok) {
+							l2tp_nr++;
 							break;
 						}
 						else {
@@ -591,6 +594,22 @@ static bool ConnectToServer(char const *strAddr) {
 						}
 					}
 				}
+			}
+
+			/* SCCCN [https://www.rfc-editor.org/info/rfc3931/#section-6.3] */
+			pkt.clear().connection_id(l2tp_svr_control_connection_id).begin_control()
+				.avp_message_type(AVP_CTRL_MSG_TYPE_SCCCN);
+			pkt.finishwrite().fillUDPpacket(/*&*/regPacket);
+			LOG_MSG("ETHNET: Completing L2TP with assigned ctrlconnid=%u (tunnel=%u session=%u)",
+				l2tp_cli_control_connection_id,
+				l2tp_cli_control_connection_id>>16,
+				l2tp_cli_control_connection_id&0xFFFFu);
+			l2tp_ns++;
+			numsent = SDLNet_UDP_Send(ethnetClientSocket, regPacket.channel, &regPacket);
+			if(!numsent) {
+				LOG_MSG("ETHNET: Unable to connect to server: %s", SDLNet_GetError());
+				SDLNet_UDP_Close(ethnetClientSocket);
+				return false;
 			}
 
 			LOG_MSG("ETHNET: Connected to server.");
