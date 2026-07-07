@@ -19,6 +19,12 @@
 #include "config.h"
 
 #if defined(C_SDL_NET) || defined(C_SDL2_NET)
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#endif
 #include "ethernet_ethnet.h"
 #include "dosbox.h"
 #include "logging.h"

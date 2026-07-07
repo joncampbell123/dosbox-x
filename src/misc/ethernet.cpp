@@ -38,8 +38,10 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
         backend = "slirp";
 #elif defined(C_PCAP)
         backend = "pcap";
-#else
+#elif defined(C_SDL_NET) || defined(C_SDL2_NET)
         backend = "ethnet";
+#else
+        backend = "none";
 #endif
     } else {
         backend = backendstr;
@@ -62,6 +64,7 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
         if (!conn->Initialize(settings)) { delete conn; conn = NULL; }
     }
 #endif
+#if defined(C_SDL_NET) || defined(C_SDL2_NET)
     if (backendstr == "auto" && !conn) backend = "ethnet";
     if (backend == "ethnet") {
         assert(conn == NULL);
@@ -69,7 +72,7 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
         settings = control->GetSection("ethernet, pcap");//NTS: The ethnet uses no settings, but there is an assert below to ensure settings != NULL
         if (!conn->Initialize(settings)) { delete conn; conn = NULL; }
     }
-
+#endif
     if (backendstr == "auto" && !conn) backend = "nothing";
     if (backend == "nothing") {
         assert(conn == NULL);
