@@ -708,7 +708,7 @@ public:
 					}
 					bool startsuccess;
 					if(!cmd->FindCommand(1, temp_line, /*remove*/true)) {
-						udpPort = 1701;/* We're going for our own implementation of L2TP so use the same port number */
+						udpPort = 11701;
 					} else {
 						udpPort = (unsigned int)strtol(temp_line.c_str(), NULL, 10);
 					}
@@ -750,7 +750,7 @@ public:
 				strcpy(strHost, temp_line.c_str());
 
 				if(!cmd->FindCommand(1, temp_line, /*remove*/true)) {
-					udpPort = 1701;/* We're going for our own implementation of L2TP so use the same port number */
+					udpPort = 11701;
 				} else {
 					udpPort = (unsigned int)strtol(temp_line.c_str(), NULL, 10);
 				}
