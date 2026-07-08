@@ -45,16 +45,19 @@ static uint16_t memAllocStrategy = 0x00;
 
 void DOS_Mem_MCBdump(void) {
 	uint16_t mcb_segment=dos_kernel_disabled ? guest_msdos_mcb_chain : dos.firstMCB;
-	DOS_MCB mcb(mcb_segment);
-	DOS_MCB mcb_next(0);
 	Bitu counter=0;
 	std::string name;
 	char c;
+	DOS_MCB final_mcb(mcb_segment);
+	uint16_t final_mcb_segment = mcb_segment;
 
 	if (mcb_segment == 0) return;
 
 	LOG_MSG("DOS MCB dump:\n");
-	while (!mcb.isLastMCB()) {
+	for (auto mcb : DOS_MCB(mcb_segment)) {
+		final_mcb = mcb;
+		final_mcb_segment = mcb.GetSeg();
+
 		c = (char)mcb.GetType(); if (c < 32) c = '.';
 		if (counter++ > 10000) break;
 		if (c != 'M') break;
@@ -62,19 +65,17 @@ void DOS_Mem_MCBdump(void) {
 		name = mcb.GetFileName();
 		LOG_MSG(" Type=0x%02x(%c) Seg=0x%04x size=0x%04x PSP=0x%04x name='%s'\n",
 			mcb.GetType(),c,
-			mcb_segment+1,
+			final_mcb_segment+1,
 			mcb.GetSize(),
 			mcb.GetPSPSeg(),
 			name.c_str());
-		mcb_next.SetPt((uint16_t)(mcb_segment+mcb.GetSize()+1));
-		mcb_segment+=mcb.GetSize()+1;
-		mcb.SetPt(mcb_segment);
+
 	}
 
-	name = mcb.GetFileName();
-	c = (char)mcb.GetType(); if (c < 32) c = '.';
+	name = final_mcb.GetFileName();
+	c = (char)final_mcb.GetType(); if (c < 32) c = '.';
 	LOG_MSG("FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x PSP=0x%04x name='%s'\n",
-		mcb.GetType(),c,mcb_segment+1,mcb.GetSize(),mcb.GetPSPSeg(),name.c_str());
+		final_mcb.GetType(),c,final_mcb_segment+1,final_mcb.GetSize(),final_mcb.GetPSPSeg(),name.c_str());
 	LOG_MSG("End dump\n");
 }
 
@@ -129,30 +130,24 @@ void DOS_CompressMemory(uint16_t first_segment=0/*default*/,uint32_t healfrom=0x
 
 void DOS_FreeProcessMemory(uint16_t pspseg) {
 	uint16_t mcb_segment=dos.firstMCB;
-	DOS_MCB mcb(mcb_segment);
 	Bitu counter = 0;
 
-	for (;;) {
+	for (auto mcb : DOS_MCB(mcb_segment)) {
 		if(counter++ > 10000000) DOS_Mem_E_Exit("DOS_FreeProcessMemory: DOS MCB list corrupted.");
+		if (GCC_UNLIKELY(!mcb.isValid())) DOS_Mem_E_Exit("Corrupt MCB chain");
 		if (mcb.GetPSPSeg()==pspseg) {
 			mcb.SetPSPSeg(MCB_FREE);
 		}
-		if (mcb.isLastMCB()) break;
-		if (GCC_UNLIKELY(!mcb.isValid())) DOS_Mem_E_Exit("Corrupt MCB chain");
-		mcb_segment+=mcb.GetSize()+1;
-		mcb.SetPt(mcb_segment);
 	}
 
 	uint16_t umb_start=dos_infoblock.GetStartOfUMBChain();
 	if (umb_start==UMB_START_SEG) {
-		DOS_MCB umb_mcb(umb_start);
-		for (;;) {
+		for (auto umb_mcb : DOS_MCB(umb_start)) {
+			if (!umb_mcb.isValid())
+				break;
 			if (umb_mcb.GetPSPSeg()==pspseg) {
 				umb_mcb.SetPSPSeg(MCB_FREE);
 			}
-			if (!umb_mcb.isValid() || umb_mcb.isLastMCB()) break;
-			umb_start+=umb_mcb.GetSize()+1;
-			umb_mcb.SetPt(umb_start);
 		}
 	} else if (umb_start!=0xffff) LOG(LOG_DOSMISC,LOG_ERROR)("Corrupt UMB chain: %x",umb_start);
 
@@ -195,17 +190,11 @@ void DOS_zeromem(uint16_t seg,uint16_t para) {
 static uint16_t GetMaximumMCBFreeSize(uint16_t mcb_segment)
 {
 	uint16_t largestSize = 0;
-	DOS_MCB mcb(mcb_segment);
-	uint16_t last_mcb_segment;
-	for (bool endOfChain = false; !endOfChain; mcb.SetPt(mcb_segment))
-	{
-		auto size = mcb.GetSize();
-		if (mcb.GetPSPSeg()==MCB_FREE) largestSize = (std::max)(largestSize, size);
-		endOfChain = mcb.isLastMCB();
-		last_mcb_segment = mcb_segment;
-		mcb_segment += size+1;
-		if (mcb_segment == last_mcb_segment) // Check for infinite loop
+	for (const auto mcb : DOS_MCB(mcb_segment)) {
+		if (!mcb.isValid())
 			break;
+		const auto size = mcb.GetSize();
+		if (mcb.GetPSPSeg()==MCB_FREE) largestSize = (std::max)(largestSize, size);
 	}
 	return largestSize;
 }
@@ -540,11 +529,11 @@ void DOS_BuildUMBChain(bool umb_active,bool /*ems_active*/) {
 		umb_mcb.SetType(DOS_MCB::MCBType::LastBlock);
 
 		/* Scan MCB-chain for last block */
+		DOS_MCB mcb(dos.firstMCB);
 		uint16_t mcb_segment=dos.firstMCB;
-		DOS_MCB mcb(mcb_segment);
-		while (!mcb.isLastMCB()) {
-			mcb_segment+=mcb.GetSize()+1;
-			mcb.SetPt(mcb_segment);
+		for (const auto current_mcb : DOS_MCB(dos.firstMCB)) {
+			mcb = current_mcb;
+			mcb_segment = current_mcb.GetSeg();
 		}
 
 		/* A system MCB has to cover the space between the
@@ -584,10 +573,12 @@ bool DOS_LinkUMBsToMemChain(uint16_t linkstate) {
 	uint16_t mcb_segment=dos.firstMCB;
 	uint16_t prev_mcb_segment=dos.firstMCB;
 	DOS_MCB mcb(mcb_segment);
-	while ((mcb_segment!=umb_start) && !mcb.isLastMCB()) {
-		prev_mcb_segment=mcb_segment;
-		mcb_segment+=mcb.GetSize()+1;
-		mcb.SetPt(mcb_segment);
+	for (const auto current_mcb : DOS_MCB(dos.firstMCB)) {
+		mcb = current_mcb;
+		mcb_segment = current_mcb.GetSeg();
+		if ((mcb_segment == umb_start) || current_mcb.isLastMCB())
+			break;
+		prev_mcb_segment = mcb_segment;
 	}
 	DOS_MCB prev_mcb(prev_mcb_segment);
 
