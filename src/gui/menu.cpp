@@ -2498,9 +2498,7 @@ void UnMount(int i_drive) {
     i_drive = toupper(i_drive);
     if(i_drive-'A' == DOS_GetDefaultDrive()) {
         DOS_MCB mcb(dos.psp()-1);
-        static char name[9];
-        name = mcb.GetFileName();
-        if (!strlen(name)) goto umount;
+        if (mcb.GetFileName().empty()) goto umount;
         LOG_MSG("GUI:Drive %c is being used. Aborted.",i_drive);
         return;
     }
