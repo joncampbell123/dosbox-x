@@ -98,8 +98,8 @@ void DOS_CompressMemory(uint16_t first_segment=0/*default*/,uint32_t healfrom=0x
 
 	while (!mcb.isLastMCB()) {
 		if(counter++ > 10000000) DOS_Mem_E_Exit("DOS_CompressMemory: DOS MCB list corrupted.");
-		const uint16_t nseg = (uint16_t)(mcb_segment+mcb.GetSize()+1); 
-		mcb_next.SetPt(nseg);
+		mcb_next = mcb.nextMCB();
+		const uint16_t nseg = mcb_next.GetSeg();
 		if (GCC_UNLIKELY(!mcb_next.isValid())) {
 			/* there are some programs that chain load other programs, but when they shrink their MCB down
 			 * to their EXE resident size they put the stack or other data in the way of the next MCB free
@@ -122,8 +122,8 @@ void DOS_CompressMemory(uint16_t first_segment=0/*default*/,uint32_t healfrom=0x
 			mcb.SetSize(mcb.GetSize()+mcb_next.GetSize()+1);
 			mcb.SetType(mcb_next.GetType());
 		} else {
-			mcb_segment+=mcb.GetSize()+1;
-			mcb.SetPt(mcb_segment);
+			mcb = mcb_next;
+			mcb_segment = mcb.GetSeg();
 		}
 	}
 }
@@ -361,7 +361,10 @@ bool DOS_AllocateMemory(uint16_t * segment,uint16_t * blocks) {
 				DOS_SetError(DOSERR_INSUFFICIENT_MEMORY);
 				return false;
 			}
-		} else mcb_segment+=mcb.GetSize()+1;
+		} else {
+			mcb = mcb.nextMCB();
+			mcb_segment = mcb.GetSeg();
+		}
 	}
 
 #ifdef DEBUG_ALLOC
