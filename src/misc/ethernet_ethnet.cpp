@@ -77,6 +77,52 @@ static UDPsocket ethnetClientSocket;
 
 static packetBuffer incomingPacket;
 
+struct l2tp_client_t {
+	uint32_t		control_connection_id = 0;
+	uint32_t		router_id = 0;
+	uint16_t		Ns = 0,Nr = 0;
+	bool			active = false;
+	IPaddress		clientIP;
+};
+
+#define MAX_CLIENTS		(64)
+
+static l2tp_client_t l2tp_client[MAX_CLIENTS];
+
+struct l2tp_client_t *lookup_client_by_ip(const IPaddress &ip) {
+	size_t i=0;
+
+	while (i < MAX_CLIENTS) {
+		l2tp_client_t *c = &l2tp_client[i++];
+
+		if (c->active && c->clientIP.host == ip.host && c->clientIP.port == ip.port)
+			return c;
+	}
+
+	return NULL;
+}
+
+struct l2tp_client_t *new_client_by_ip(const IPaddress &ip) {
+	size_t i=0;
+
+	while (i < MAX_CLIENTS) {
+		l2tp_client_t *c = &l2tp_client[i++];
+
+		if (c->active) {
+			if (c->clientIP.host == ip.host && c->clientIP.port == ip.port)
+				return c;
+		}
+		else {
+			*c = l2tp_client_t();
+			c->clientIP = ip;
+			c->active = true;
+			return c;
+		}
+	}
+
+	return NULL;
+}
+
 EthnetEthernetConnection::EthnetEthernetConnection()
       : EthernetConnection()
 {
@@ -109,36 +155,11 @@ bool ETHNET_isConnectedToServer(Bits tableNum, IPaddress ** ptrAddr) {
 	return false;
 }
 
-static void ETHNET_ClientLoop(void) {
-	//TODO
-}
-
-static void ETHNET_ServerLoop() {
-	//TODO
-}
-
-void ETHNET_StopServer() {
-	TIMER_DelTickHandler(&ETHNET_ServerLoop);
-	SDLNet_UDP_Close(ethnetServerSocket);
-}
-
-bool ETHNET_StartServer(uint16_t portnum) {
-	if(!SDLNet_ResolveHost(&ethnetServerIp, NULL, portnum)) {
-		//serverSocketSet = SDLNet_AllocSocketSet(SOCKETTABLESIZE);
-		ethnetServerSocket = SDLNet_UDP_Open(portnum);
-		if(!ethnetServerSocket) return false;
-
-		TIMER_AddTickHandler(&ETHNET_ServerLoop);
-		return true;
-	}
-	return false;
-}
-
 static uint16_t l2tp_ns = 0;
 static uint16_t l2tp_nr = 0;
 static uint32_t l2tp_cli_control_connection_id = 0;/*NTS: L2TPv2 defines this as 16:16 tunnel_id:session_id*/
 static uint32_t l2tp_svr_control_connection_id = 0;
-static uint32_t l2tp_cli_router_id = 0;
+static uint32_t l2tp_cli_router_id = 0;/*NTS: L2TPv2 defines this as 16:16 tunnel_id:session_id*/
 static uint32_t l2tp_svr_router_id = 0;
 
 static void l2tp_ctrlmsg_hdr(unsigned char* &w,unsigned char *wf,uint32_t ctrl_conn_id) {
@@ -146,7 +167,7 @@ static void l2tp_ctrlmsg_hdr(unsigned char* &w,unsigned char *wf,uint32_t ctrl_c
 
 	/* [https://www.rfc-editor.org/info/rfc3931/#section-3.2.1] */
 	*w++ = 0xC8;/* TLxxSxxx T=1 L=1 S=1 */
-	*w++ = 2; /* xxxxVVVV L2TP version -- FIXME: xl2tpd rejects version 3 becuase it thinks ver==3 means PPTP(??) */
+	*w++ = 3;
 	*((uint16_t*)w) = 0; w+=2; /* length (set to 0 for now) */
 	*((uint32_t*)w) = htobe32(ctrl_conn_id); w+=4; /* Control Connection ID */
 	*((uint16_t*)w) = htobe16(l2tp_ns); w+=2;
@@ -184,11 +205,13 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 # define AVP_CTRL_MSG_TYPE_SCCCN                    3
 #define AVP_CTRL_FRAMING_CAPS                       3
 #define AVP_CTRL_HOST_NAME                          7
-#define AVP_CTRL_ASSN_TUNNEL_ID                     9
+#define AVP_CTRL_VENDOR_NAME                        8
 #define AVP_CTRL_FRAMING_TYPE                       19
 #define AVP_CTRL_ROUTER_ID                          60
 #define AVP_CTRL_ASSN_CTRL_CONN_ID                  61
 #define AVP_CTRL_PSW_CAP_LIST                       62
+#define AVP_CTRL_ASSN_LOCAL_SESSION_ID              63
+#define AVP_CTRL_ASSN_REMOTE_SESSION_ID             64
 
 struct L2TPpacket {
 	std::vector<unsigned char>		raw; /* this is a way for the data to persist if desired */
@@ -296,12 +319,12 @@ struct L2TPpacket {
 
 		return *this;
 	}
-	L2TPpacket &fillUDPpacket(UDPpacket &udp) {
+	L2TPpacket &fillUDPpacket(UDPpacket &udp,int channel) {
 		memset(&udp,0,sizeof(udp));
 		if (write) udp.len = write;
 		else udp.len = raw.size();
 		udp.maxlen = raw.size();
-		udp.channel = UDPChannel;
+		udp.channel = channel;
 		udp.data = raw.data();
 		return *this;
 	}
@@ -311,7 +334,7 @@ struct L2TPpacket {
 		memset(&udp,0,sizeof(udp));
 		udp.len = 0;
 		udp.maxlen = expect;
-		udp.channel = UDPChannel;
+		udp.channel = -1;
 		udp.data = raw.data();
 		return *this;
 	}
@@ -341,6 +364,7 @@ struct L2TPpacket {
 		}
 		return 0;
 	}
+
 	L2TPpacket &avp_host_name(const char *n) {
 		const size_t len = strlen(n);
 		needsmore(8+len);
@@ -351,6 +375,18 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
+
+	L2TPpacket &avp_vendor_name(const char *n) {
+		const size_t len = strlen(n);
+		needsmore(8+len);
+		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
+		l2tp_avp_begin(w,wf,/*mandatory*/true,/*vendor*/0,/*attribute type*/AVP_CTRL_VENDOR_NAME);
+		if (len) { memcpy(w,n,len); w += len; }
+		l2tp_avp_end(ab,w,wf);
+		writeptrupdate(w);
+		return *this;
+	}
+
 	L2TPpacket &avp_router_id(const uint32_t rid) {
 		needsmore(32);
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -364,12 +400,13 @@ struct L2TPpacket {
 		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ROUTER_ID);
 		if (avp && avp->length >= 4) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
-			uint32_t rid = be32toh(*((uint32_t*)r)); r+=4;
+			uint32_t rid = be32toh(*((uint16_t*)r)); r+=4;
 			assert(r <= rf);
 			return rid;
 		}
 		return 0;
 	}
+
 	L2TPpacket &avp_assigned_control_connection_id(const uint32_t ccid) {
 		needsmore(32);
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -379,25 +416,17 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
-	L2TPpacket &avp_assigned_tunnel_id(const uint16_t tid) {
-		needsmore(32);
-		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
-		l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/0,/*attribute type*/AVP_CTRL_ASSN_TUNNEL_ID);//FIXME: xl2tpd doesn't like this send as mandatory??
-		*((uint16_t*)w) = htobe16(tid);w+=2;
-		l2tp_avp_end(ab,w,wf);
-		writeptrupdate(w);
-		return *this;
-	}
-	uint16_t avp_assigned_tunnel_id(void) {
-		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ASSN_TUNNEL_ID);
-		if (avp && avp->length >= 2) {
+	uint32_t avp_assigned_control_connection_id(void) {
+		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ASSN_CTRL_CONN_ID);
+		if (avp && avp->length >= 4) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
-			uint16_t tid = be16toh(*((uint16_t*)r)); r+=2;
+			uint32_t ccid = be32toh(*((uint16_t*)r)); r+=4;
 			assert(r <= rf);
-			return tid;
+			return ccid;
 		}
 		return 0;
 	}
+
 	L2TPpacket &avp_framing_caps(const uint32_t fc) {
 		needsmore(32);
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -417,6 +446,7 @@ struct L2TPpacket {
 		}
 		return 0;
 	}
+
 	L2TPpacket &avp_framing_type(const uint16_t ft) {
 		needsmore(32);
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -426,6 +456,17 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
+	uint16_t avp_framing_type(void) {
+		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_FRAMING_CAPS);
+		if (avp && avp->length >= 2) {
+			unsigned char *r = avp->data,*rf = avp->data+avp->length;
+			uint16_t ft = be16toh(*((uint16_t*)r)); r+=2;
+			assert(r <= rf);
+			return ft;
+		}
+		return 0;
+	}
+
 	L2TPpacket &avp_pseudowire_capabilities_list(const std::vector<uint16_t> &v) {
 		needsmore(8+(v.size()*2u));
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -435,6 +476,7 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
+
 	L2TPpacket &didRecv(UDPpacket &udp) {
 		if (udp.len >= 0 && (size_t)udp.len <= raw.size() && udp.data == raw.data()) {
 			raw.resize((size_t)udp.len);
@@ -498,6 +540,66 @@ struct L2TPpacket {
 	}
 };
 
+static void ETHNET_ClientLoop(void) {
+	//TODO
+}
+
+static void ETHNET_ServerLoop() {
+	UDPpacket inPacket,outPacket;
+	L2TPpacket pkt;
+	Bits result;
+
+	pkt.clear().fillUDPpacketForRecv(/*&*/inPacket,4096);
+	result = SDLNet_UDP_Recv(ethnetServerSocket, &inPacket);
+	if (result) {
+		pkt.didRecv(/*&*/inPacket);
+
+		LOG_MSG("Server in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u",
+			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id());
+
+		if (pkt.iscontrol) {
+			L2TPpacket resp;
+
+			if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_SCCRP) {
+				uint32_t sfc = pkt.avp_framing_caps();
+				uint32_t accid = pkt.avp_assigned_control_connection_id();
+				if ((sfc&3) && pkt.connection_id() == 0 && accid != 0) {
+					struct l2tp_client_t *c = lookup_client_by_ip(inPacket.address);
+					if (c == NULL) c = new_client_by_ip(inPacket.address);
+					if (c) {
+						pkt.clear().connection_id(0).begin_control().finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+						outPacket.address = inPacket.address;
+						result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
+					}
+				}
+			}
+
+			if (resp.write == 0) { /* error packet apparently is just 12 bytes long, no AVPs */
+				pkt.clear().connection_id(0).begin_control().finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+				outPacket.address = inPacket.address;
+				result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
+			}
+		}
+	}
+}
+
+void ETHNET_StopServer() {
+	TIMER_DelTickHandler(&ETHNET_ServerLoop);
+	SDLNet_UDP_Close(ethnetServerSocket);
+}
+
+bool ETHNET_StartServer(uint16_t portnum) {
+	if(!SDLNet_ResolveHost(&ethnetServerIp, NULL, portnum)) {
+		//serverSocketSet = SDLNet_AllocSocketSet(SOCKETTABLESIZE);
+		ethnetServerSocket = SDLNet_UDP_Open(portnum);
+		if(!ethnetServerSocket) return false;
+
+		TIMER_AddTickHandler(&ETHNET_ServerLoop);
+		return true;
+	}
+	return false;
+}
+
 static bool ConnectToServer(char const *strAddr) {
 	int numsent;
 	UDPpacket regPacket={0};
@@ -506,6 +608,7 @@ static bool ConnectToServer(char const *strAddr) {
 		ethnetClientSocket = SDLNet_UDP_Open(0);
 		if(ethnetClientSocket) {
 			std::vector<uint16_t> pscl = {0x0005/*ethernet*/};
+			uint32_t ticks = GetTicks(); // start timeout from now
 			L2TPpacket pkt;
 
 			// Bind UDP port to address to channel
@@ -524,11 +627,11 @@ static bool ConnectToServer(char const *strAddr) {
 			/* [https://www.rfc-editor.org/info/rfc2661/] Assigned Tunnel ID because xl2tpd doesn't know the control connection ID tag */
 			pkt.clear().connection_id(0).begin_control()
 				.avp_message_type(AVP_CTRL_MSG_TYPE_SCCRQ)
-				.avp_router_id(l2tp_cli_router_id)
 				.avp_assigned_control_connection_id(l2tp_cli_control_connection_id)
-				.avp_assigned_tunnel_id(l2tp_cli_control_connection_id>>16)/*required by x2ltpd*/
-				.avp_framing_caps(3)/*A=1 S=1 required by x2ltpd*/
-				.avp_pseudowire_capabilities_list(pscl);
+				.avp_framing_caps(3)/*A=1 S=1*/
+				.avp_router_id(l2tp_cli_router_id)
+				.avp_pseudowire_capabilities_list(pscl)
+				.avp_vendor_name("DOSBox-X");
 			{/*Host Name*/
 				uint32_t r1=(uint32_t)(rand()*rand());
 				uint32_t r2=(uint32_t)(rand()*rand());
@@ -537,11 +640,9 @@ static bool ConnectToServer(char const *strAddr) {
 				snprintf(tmp,sizeof(tmp),"DOSBox-X.%u,%u",(unsigned int)r1,(unsigned int)r2);
 				pkt.avp_host_name(tmp);
 			}
-			pkt.finishwrite().fillUDPpacket(/*&*/regPacket);
-			LOG_MSG("ETHNET: Starting L2TP with assigned ctrlconnid=%u (tunnel=%u session=%u)",
-				l2tp_cli_control_connection_id,
-				l2tp_cli_control_connection_id>>16,
-				l2tp_cli_control_connection_id&0xFFFFu);
+			pkt.finishwrite().fillUDPpacket(/*&*/regPacket,UDPChannel);
+			LOG_MSG("ETHNET: Starting L2TP with assigned ctrlconnid=%u",
+				l2tp_cli_control_connection_id);
 			l2tp_ns++;
 			numsent = SDLNet_UDP_Send(ethnetClientSocket, regPacket.channel, &regPacket);
 			if(!numsent) {
@@ -553,8 +654,6 @@ static bool ConnectToServer(char const *strAddr) {
 			/* SCCRP [https://www.rfc-editor.org/info/rfc3931/#section-6.2] */
 			{
 				Bits result;
-				uint32_t ticks;
-				ticks = GetTicks();
 
 				while(true) {
 					uint32_t elapsed = GetTicks() - ticks;
@@ -570,23 +669,13 @@ static bool ConnectToServer(char const *strAddr) {
 						bool ok = false;
 
 						pkt.didRecv(/*&*/regPacket);
-						LOG_MSG("In: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u(%u,%u)",
-							pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),
-							pkt.connection_id()>>16,pkt.connection_id()&0xFFFFu);
+						LOG_MSG("In: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u",
+							pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id());
 
 						if (pkt.iscontrol && pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_SCCRP) {
 							uint32_t sfc = pkt.avp_framing_caps();
-							uint16_t tunnel_id = pkt.avp_assigned_tunnel_id();
-							l2tp_svr_router_id = pkt.avp_router_id();
-							LOG_MSG("router_id: svr(just recv)=%u cli=%u",l2tp_svr_router_id,l2tp_cli_router_id);
 							LOG_MSG("framing_caps: svr(just recv)=%u",sfc);
-							LOG_MSG("assigned_tunnel_id: svr(just recv)=%u",tunnel_id);
-
-							if (tunnel_id)
-								l2tp_svr_control_connection_id = tunnel_id << 16u;
-
-							if (sfc != 0 && tunnel_id != 0 && pkt.Ns == l2tp_nr/*Ns from server was the value we expected*/ &&
-								(pkt.connection_id()>>16) == (l2tp_cli_control_connection_id>>16)) ok = true;
+							ok = true;
 						}
 
 						if (ok) {
@@ -605,11 +694,9 @@ static bool ConnectToServer(char const *strAddr) {
 			/* SCCCN [https://www.rfc-editor.org/info/rfc3931/#section-6.3] */
 			pkt.clear().connection_id(l2tp_svr_control_connection_id).begin_control()
 				.avp_message_type(AVP_CTRL_MSG_TYPE_SCCCN);
-			pkt.finishwrite().fillUDPpacket(/*&*/regPacket);
-			LOG_MSG("ETHNET: Completing L2TP with assigned ctrlconnid=%u (tunnel=%u session=%u)",
-				l2tp_cli_control_connection_id,
-				l2tp_cli_control_connection_id>>16,
-				l2tp_cli_control_connection_id&0xFFFFu);
+			pkt.finishwrite().fillUDPpacket(/*&*/regPacket,UDPChannel);
+			LOG_MSG("ETHNET: Completing L2TP with assigned ctrlconnid=%u",
+				l2tp_cli_control_connection_id);
 			l2tp_ns++;
 			numsent = SDLNet_UDP_Send(ethnetClientSocket, regPacket.channel, &regPacket);
 			if(!numsent) {
