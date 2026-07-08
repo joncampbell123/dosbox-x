@@ -23,7 +23,7 @@
 using namespace std;
 
 extern uint32_t RunningProgramHash[4];
-extern const char* RunningProgram;
+extern std::string RunningProgram;
 
 #if !defined(C_SDL2)
 #error "gamelink output requires SDL2"
@@ -262,7 +262,7 @@ void OUTPUT_GAMELINK_Transfer()
     //LOG_MSG("OUTPUT_GAMELINK: Transfer");
     GameLink::Out( (uint16_t)sdl.clip.w+2*sdl.clip.x, (uint16_t)sdl.clip.h+2*sdl.clip.y, render.src.ratio,
         sdl.gamelink.want_mouse,
-        RunningProgram,
+        RunningProgram.c_str(),
         RunningProgramHash,
         (const uint8_t*)sdl.gamelink.framebuf,
         MemBase );

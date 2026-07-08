@@ -305,7 +305,7 @@ bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
 }
 
 extern bool toscale;
-extern const char* RunningProgram;
+extern std::string RunningProgram;
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
 
@@ -325,7 +325,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     dos.loaded_codepage = cpbak;
 
     // Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
-    shell_idle = !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN") && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
+    shell_idle = !dos_kernel_disabled && RunningProgram != "LOADLIN" && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
 
     int sx, sy, sw, sh, scalex, scaley, scale;
     bool fs;
@@ -3113,7 +3113,7 @@ public:
                     temp="-force -t "+temp+" \""+std::string(lTheSaveFileName)+"\"";
                     void runImgmake(const char *str);
                     runImgmake(temp.c_str());
-                    if (!dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN")) {
+                    if (!dos_kernel_disabled && RunningProgram != "LOADLIN") {
                         DOS_Shell shell;
                         shell.ShowPrompt();
                     }

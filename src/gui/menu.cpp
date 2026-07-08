@@ -2061,10 +2061,9 @@ std::string MSCDEX_Output(int num) {
 void SetVal(const std::string& secname, const std::string& preval, const std::string& val) {
     if(preval=="keyboardlayout" && !dos_kernel_disabled) {
         DOS_MCB mcb(dos.psp()-1);
-        static char name[9];
-        mcb.GetFileName(name);
-        if (strlen(name)) {
-            LOG_MSG("GUI: Exit %s running in DOSBox-X, and then try again.",name);
+        std::string name = mcb.GetFileName();
+        if (!name.empty()) {
+            LOG_MSG("GUI: Exit %s running in DOSBox-X, and then try again.",name.c_str());
             return;
         }
     }
@@ -2500,7 +2499,7 @@ void UnMount(int i_drive) {
     if(i_drive-'A' == DOS_GetDefaultDrive()) {
         DOS_MCB mcb(dos.psp()-1);
         static char name[9];
-        mcb.GetFileName(name);
+        name = mcb.GetFileName();
         if (!strlen(name)) goto umount;
         LOG_MSG("GUI:Drive %c is being used. Aborted.",i_drive);
         return;

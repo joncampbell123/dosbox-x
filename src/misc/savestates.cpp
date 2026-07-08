@@ -47,7 +47,7 @@ extern unsigned int page;
 extern int autosave_last[10], autosave_count;
 extern std::string autosave_name[10], savefilename;
 extern bool use_save_file, clearline, dos_kernel_disabled;
-extern const char* RunningProgram;
+extern std::string RunningProgram;
 bool auto_save_state=false;
 bool noremark_save_state = false;
 bool force_load_state = false;
@@ -246,7 +246,7 @@ namespace
 	void LastAutoSaveSlot(bool pressed) {
 		if (!pressed) return;
 		int index=0;
-		for (int i=1; i<10&&i<=autosave_count; i++) if (autosave_name[i].size()&&!strcasecmp(RunningProgram, autosave_name[i].c_str())) index=i;
+		for (int i=1; i<10&&i<=autosave_count; i++) if (autosave_name[i].size()&&!strcasecmp(RunningProgram.c_str(), autosave_name[i].c_str())) index=i;
 		if (autosave_last[index]<1) return;
 
 		char name[6]="slot0";
@@ -610,7 +610,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 #else
         SDL_PauseAudio(0);
 #endif
-	extern const char* RunningProgram;
+	extern std::string RunningProgram;
 	std::string path;
 	int err;
 	bool Get_Custom_SaveDir(std::string& savedir);
@@ -696,10 +696,10 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		char buffer[4096];
 		size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer)-1); buffer[length] = 0;
 
-		if (!length||(size_t)length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
+		if (!length||(size_t)length!=RunningProgram.size()||strncmp(buffer,RunningProgram.c_str(),length)) {
 			buffer[length]='\0';
 			loadstate_detail_saved = length ? std::string(buffer) : std::string("(none)");
-			loadstate_detail_current = RunningProgram ? std::string(RunningProgram) : std::string("(none)");
+			loadstate_detail_current = RunningProgram.empty() ? std::string("(none)") : RunningProgram;
 			if(!force_load_state&&!loadstateconfirm(1)) {
 				LOG_MSG("Aborted. Check your program name: %s",buffer);
 				load_err=true;
@@ -947,4 +947,3 @@ std::string SaveState::getName(size_t slot, bool nl) const {
     unzClose(zf);
 	return ret;
 }
-

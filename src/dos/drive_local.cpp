@@ -2615,10 +2615,10 @@ uint8_t localDrive::GetMediaByte(void) {
 bool localDrive::isRemote(void) {
 	if (remote==1) return true;
 	if (remote==0) return false;
-	char psp_name[9];
+	std::string psp_name;
 	DOS_MCB psp_mcb(dos.psp()-1);
-	psp_mcb.GetFileName(psp_name);
-	if (!strcmp(psp_name, "SCANDISK") || !strcmp(psp_name, "CHKDSK")) {
+	psp_name = psp_mcb.GetFileName();
+	if (psp_name == "SCANDISK" || psp_name == "CHKDSK") {
 		/* Check for SCANDISK.EXE (or CHKDSK.EXE) and return true (Wengier) */
 		return true;
 	}
@@ -2978,7 +2978,7 @@ bool LocalFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 	return bRet;
 }
 
-extern const char* RunningProgram;
+extern std::string RunningProgram;
 bool LocalFile::Seek(uint32_t * pos,uint32_t type) {
 	int seektype;
 	switch (type) {
@@ -2993,7 +2993,7 @@ bool LocalFile::Seek(uint32_t * pos,uint32_t type) {
     if (file_access_tries>0) {
         HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
         DWORD dwPtr = SetFilePointer(hFile, *pos, NULL, type);
-        if (dwPtr == INVALID_SET_FILE_POINTER && !strcmp(RunningProgram, "BTHORNE"))	// Fix for Black Thorne
+        if (dwPtr == INVALID_SET_FILE_POINTER && RunningProgram == "BTHORNE")	// Fix for Black Thorne
             dwPtr = SetFilePointer(hFile, 0, NULL, DOS_SEEK_END);
         if (dwPtr != INVALID_SET_FILE_POINTER) {										// If success
             *pos = (uint32_t)dwPtr;

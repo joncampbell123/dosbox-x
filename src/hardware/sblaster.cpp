@@ -3167,9 +3167,9 @@ Bitu SB_INFO::read_sb(Bitu port,Bitu /*iolen*/) {
 				mode = MODE_DMA;
 			}
 
-			extern const char* RunningProgram; // Wengier: Hack for Desert Strike & Jungle Strike
-			if (!IS_PC98_ARCH && port>0x220 && port%0x10==0xE && !dsp.out.used && (!strcmp(RunningProgram, "DESERT") || !strcmp(RunningProgram, "JUNGLE"))) {
-				LOG_MSG("Check status by game: %s\n", RunningProgram);
+			extern std::string RunningProgram; // Wengier: Hack for Desert Strike & Jungle Strike
+			if (!IS_PC98_ARCH && port>0x220 && port%0x10==0xE && !dsp.out.used && (RunningProgram == "DESERT" || RunningProgram == "JUNGLE")) {
+				LOG_MSG("Check status by game: %s\n", RunningProgram.c_str());
 				dsp.out.used++;
 			}
 			if (ess_type == ESS_NONE && (type == SBT_1 || type == SBT_2 || type == SBT_PRO1 || type == SBT_PRO2))

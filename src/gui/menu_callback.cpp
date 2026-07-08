@@ -66,7 +66,7 @@ extern int posx, posy, wheel_key, mbutton, enablelfn, dos_clipboard_device_acces
 extern bool addovl, clearline, pcibus_enable, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top, macosx_on_top, rtl, gbk, chinasea, uselangcp;
 extern bool mountfro[26], mountiro[26];
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
-extern const char* RunningProgram;
+extern std::string RunningProgram;
 extern bool video_debug_overlay;
 
 void MSG_Init(void);
@@ -525,7 +525,7 @@ bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
             chdir(Temp_CurrentDir);
             return true;
         }
-    if (dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return false;
+    if (dos_kernel_disabled || RunningProgram == "LOADLIN") return false;
     Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
     uint32_t freeMB = sec->Get_int("convert fat free space"), timeout = sec->Get_int("convert fat timeout");
     imageDisk *imagedrv = new imageDisk(Drives[drive], drive, freeMB, timeout);
@@ -2216,7 +2216,7 @@ bool clear_screen() {
 }
 
 void show_prompt() {
-    if (!dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
+    if (!dos_kernel_disabled && RunningProgram == "COMMAND") {
         DOS_Shell temp;
         temp.exit = true;
         temp.ShowPrompt();

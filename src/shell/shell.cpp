@@ -64,7 +64,7 @@ extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
 extern bool halfwidthkana, force_conversion, gbk, uselangcp, chinasea;
-extern const char* RunningProgram;
+extern std::string RunningProgram;
 extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
@@ -489,7 +489,7 @@ public:
 		return true;
 	}
 	bool Close() override { return true; }
-	uint16_t GetInformation(void) override { return (strcmp(RunningProgram, "WCLIP") ? DeviceInfoFlags::Device : 0) | DeviceInfoFlags::EofOnInput; }
+	uint16_t GetInformation(void) override { return (RunningProgram == "WCLIP" ? 0 : DeviceInfoFlags::Device) | DeviceInfoFlags::EofOnInput; }
 	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
 	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
 };
@@ -2713,4 +2713,3 @@ void CONFIGSHELL_Run() {
 	}
 #endif
 }
-

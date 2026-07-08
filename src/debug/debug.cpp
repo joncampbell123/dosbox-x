@@ -5092,7 +5092,7 @@ static void LogDEVChain(uint32_t devhdr) {
 // Display the content of the MCB chain starting with the MCB at the specified segment.
 static void LogMCBChain(uint16_t mcb_segment) {
 	DOS_MCB mcb(mcb_segment);
-	char filename[9]; // 8 characters plus a terminating NUL
+	std::string filename;
 	const char *psp_seg_note;
 	uint16_t DOS_dataOfs = static_cast<uint16_t>(dataOfs); //Realmode addressing only
 	PhysPt dataAddr = PhysMake(dataSeg,DOS_dataOfs);// location being viewed in the "Data Overview"
@@ -5100,12 +5100,12 @@ static void LogMCBChain(uint16_t mcb_segment) {
 	// loop forever, breaking out of the loop once we've processed the last MCB
 	while (true) {
 		// verify that the type field is valid
-		if (mcb.GetType()!=0x4d && mcb.GetType()!=0x5a) {
+		if (!mcb.isValid()) {
 			DEBUG_ShowMsg("MCB chain broken at %04X:0000!",mcb_segment);
 			return;
 		}
 
-		mcb.GetFileName(filename);
+		filename = mcb.GetFileName();
 
 		// some PSP segment values have special meanings
 		switch (mcb.GetPSPSeg()) {
@@ -5119,7 +5119,7 @@ static void LogMCBChain(uint16_t mcb_segment) {
 				psp_seg_note = "";
 		}
 
-		DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",mcb_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename);
+		DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",mcb_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename.c_str());
 
 		// print a message if dataAddr is within this MCB's memory range
 		PhysPt mcbStartAddr = PhysMake(mcb_segment+1,0);
@@ -5130,7 +5130,7 @@ static void LogMCBChain(uint16_t mcb_segment) {
 
 		// if we've just processed the last MCB in the chain, break out of the loop
 		mcb_segment+=mcb.GetSize()+1;
-		if (mcb.GetType()==0x5a)
+		if (mcb.isLastMCB())
 			break;
 
 		// else, move to the next MCB in the chain
@@ -6229,5 +6229,3 @@ void DEBUG_StopLog(void) {
 
 
 #endif // DEBUG
-
-

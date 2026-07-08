@@ -277,7 +277,7 @@ extern bool vga_page_flip_occurred;
 extern bool egavga_per_scanline_hpel;
 extern bool vga_enable_hpel_effects;
 extern bool vga_enable_hretrace_effects;
-extern const char* RunningProgram;
+extern std::string RunningProgram;
 extern unsigned int vga_display_start_hretrace;
 extern float hretrace_fx_avg_weight;
 extern bool ignore_vblank_wraparound;
@@ -2610,7 +2610,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 #if defined(USE_TTF)
                    && dbcs_sbcs
 #endif
-                   && showdbcs) && CurMode && CurMode->type == M_TEXT && !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN"));
+                   && showdbcs) && CurMode && CurMode->type == M_TEXT && !dos_kernel_disabled && RunningProgram != "LOADLIN");
 
     if (usedbcs && (vga.draw.height < 16u || vga.draw.width < 8u)) return dst;
 
@@ -6531,7 +6531,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		if (ticksNew-ticksPrev>(unsigned int)autosave_second*1000) {
 			auto_save_state=true;
 			int index=0;
-			for (int i=1; i<10&&i<=autosave_count; i++) if (autosave_name[i].size()&&!strcasecmp(RunningProgram, autosave_name[i].c_str())) index=i;
+			for (int i=1; i<10&&i<=autosave_count; i++) if (autosave_name[i].size()&&!strcasecmp(RunningProgram.c_str(), autosave_name[i].c_str())) index=i;
 			if (autosave_start[index]>=1&&autosave_start[index]<=100) {
 				if (autosave_end[index]>=autosave_start[index]&&autosave_end[index]<=100&&autosave_end[index]>autosave_start[index]) {
 					if (autosave_end[index]>autosave_last[index]&&autosave_last[index]>=autosave_start[index]) autosave_last[index]++;
