@@ -103,33 +103,4 @@ public:
 
 	Iterator begin() const { return Iterator(GetSeg()); }
 	Iterator end()   const { return Iterator(0); }
-
-    // class Iterator
-    // {
-    // public:
-    //     Iterator(const DOS_MCB& startMCB) : currentMCB(startMCB) {}
-    //     Iterator& operator++()
-    //     {
-    //         if (currentMCB.isValid() && !currentMCB.isLastMCB())
-    //             currentMCB = currentMCB.nextMCB();
-    //         else
-    //             currentMCB = DOS_MCB(0); // Invalidate iterator
-    //         return *this;
-    //     }
-    //     const DOS_MCB& operator*() const
-    //     {
-    //         return currentMCB;
-    //     }
-    //     bool operator==(const Iterator& other) const
-    //     {
-    //         return currentMCB == other.currentMCB;
-    //     }
-    // private:
-    //     DOS_MCB currentMCB;
-    // };
-
-    // Iterator begin() { return Iterator(*this); }
-    // const Iterator cbegin() { return Iterator(*this); }
-    // Iterator end() { return Iterator(DOS_MCB(0)); }
-    // const Iterator cend() { return Iterator(DOS_MCB(0)); }
 };
