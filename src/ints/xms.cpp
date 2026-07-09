@@ -1027,8 +1027,6 @@ public:
 };
 
 static XMS* test = NULL;
-extern std::string RunningProgram;
-
 void XMS_DoShutDown() {
 	if (test != NULL) {
 		if (RunningProgram != "LOADLIN") delete test;

@@ -2096,7 +2096,6 @@ public:
 	
 #if !defined(OSFREE)
 static EMS* test = NULL;
-extern std::string RunningProgram;
 void CALLBACK_DeAllocate(Bitu in);
 #endif
 

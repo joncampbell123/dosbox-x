@@ -277,7 +277,6 @@ extern bool vga_page_flip_occurred;
 extern bool egavga_per_scanline_hpel;
 extern bool vga_enable_hpel_effects;
 extern bool vga_enable_hretrace_effects;
-extern std::string RunningProgram;
 extern unsigned int vga_display_start_hretrace;
 extern float hretrace_fx_avg_weight;
 extern bool ignore_vblank_wraparound;

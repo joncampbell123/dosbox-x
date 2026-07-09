@@ -23,6 +23,7 @@
 #include <math.h>
 
 #include "dosbox.h"
+#include "dos_inc.h"
 #include "logging.h"
 #include "sdlmain.h"
 #include "render.h"
@@ -102,7 +103,6 @@ static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, 
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
 extern int posx, posy, eurAscii, transparency, NonUserResizeCounter;
 extern bool rtl, gbk, chinasea, switchttf, force_conversion, blinking, showdbcs, loadlang, window_was_maximized;
-extern std::string RunningProgram;
 extern uint8_t ccount;
 extern uint16_t cpMap[512], cpMap_PC98[256];
 uint16_t cpMap_copy[256];

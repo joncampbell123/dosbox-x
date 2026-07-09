@@ -52,8 +52,6 @@ extern bool isa_memory_hole_15mb;
 extern bool vbe_window_size_literal;
 extern unsigned int vbe_window_granularity;
 extern unsigned int vbe_window_size;
-extern std::string RunningProgram;
-
 static inline void vga_vram_write_trigger_update(void) {
 	vga.draw.must_complete_frame = true;
 }

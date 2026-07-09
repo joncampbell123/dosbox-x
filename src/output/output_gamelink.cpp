@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "dosbox.h"
+#include "dos_inc.h"
 #include "logging.h"
 #include "menudef.h"
 #include "sdlmain.h"
@@ -23,8 +24,6 @@
 using namespace std;
 
 extern uint32_t RunningProgramHash[4];
-extern std::string RunningProgram;
-
 #if !defined(C_SDL2)
 #error "gamelink output requires SDL2"
 #endif

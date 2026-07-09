@@ -2978,7 +2978,6 @@ bool LocalFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 	return bRet;
 }
 
-extern std::string RunningProgram;
 bool LocalFile::Seek(uint32_t * pos,uint32_t type) {
 	int seektype;
 	switch (type) {

@@ -73,7 +73,6 @@ unsigned char exepack_handling = EXEPACK_UNPACK;
 static bool first_run=true;
 bool sync_time = false, manualtime = false;
 extern std::string log_dev_con_str;
-extern std::string RunningProgram;
 extern bool use_quick_reboot;
 #if !defined(OSFREE)
 extern bool j3100_start;

@@ -26,6 +26,7 @@
 
 #include <list>
 #include <stddef.h> //for offsetof
+#include <string>
 
  /* Macros SSET_* and SGET_* are used to safely access fields in memory-mapped
   * DOS structures represented via classes inheriting from MemStruct class.
@@ -81,6 +82,7 @@ struct CommandTail{
 #endif
 
 extern bool dos_kernel_disabled;
+extern std::string RunningProgram;
 
 #if !defined(OSFREE)
 #define IS_DOS_JAPANESE (!dos_kernel_disabled && mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0x81 && mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0x9F)

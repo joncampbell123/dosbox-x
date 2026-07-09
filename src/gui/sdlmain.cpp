@@ -128,6 +128,7 @@ char* revert_escape_newlines(const char* aMessage);
 #endif
 
 #include "control.h"
+#include "dos_inc.h"
 #include "dosbox.h"
 #include "menudef.h"
 #include "pic.h"
@@ -964,7 +965,6 @@ void                        GUI_LoadFonts();
 void                        GUI_Run(bool);
 
 const char*                 titlebar = NULL;
-extern std::string          RunningProgram;
 extern bool                 CPU_CycleAutoAdjust;
 extern                      cpu_cycles_count_t CPU_CyclePercUsed;
 #if !(ENVIRON_INCLUDED)

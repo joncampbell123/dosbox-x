@@ -339,7 +339,6 @@ std::string capturedir;
 extern std::string savefilename;
 extern bool showdbcs, use_save_file, noremark_save_state, force_load_state;
 extern unsigned int hostkeyalt, sendkeymap;
-extern std::string RunningProgram;
 Bitu CaptureState = 0;
 
 void OPL_SaveRawEvent(bool pressed), SetGameState_Run(int value), ResolvePath(std::string& in);

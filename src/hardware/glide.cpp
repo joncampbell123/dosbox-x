@@ -56,7 +56,6 @@ using namespace std;
 extern bool OpenGL_using(void);
 extern void GFX_Stop(void);
 extern void GFX_ResetScreen(void);
-extern std::string RunningProgram;
 extern bool dpi_aware_enable;
 extern bool DOS_GetMemory_unmapped;
 

@@ -106,7 +106,6 @@ static Bitu INT2A_Handler(void) {
 	return CBRET_NONE;
 }
 
-extern std::string RunningProgram;
 extern std::string strPasteBuffer;
 extern bool i4dos, shellrun, clipboard_dosapi, swapad;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list

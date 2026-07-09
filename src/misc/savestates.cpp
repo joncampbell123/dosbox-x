@@ -47,7 +47,6 @@ extern unsigned int page;
 extern int autosave_last[10], autosave_count;
 extern std::string autosave_name[10], savefilename;
 extern bool use_save_file, clearline, dos_kernel_disabled;
-extern std::string RunningProgram;
 bool auto_save_state=false;
 bool noremark_save_state = false;
 bool force_load_state = false;
@@ -610,7 +609,6 @@ void SaveState::load(size_t slot) const { //throw (Error)
 #else
         SDL_PauseAudio(0);
 #endif
-	extern std::string RunningProgram;
 	std::string path;
 	int err;
 	bool Get_Custom_SaveDir(std::string& savedir);

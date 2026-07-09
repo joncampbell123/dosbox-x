@@ -3174,8 +3174,6 @@ public:
                 }
             }
         } else {
-            extern std::string RunningProgram;
-
             if (max_seg < (IS_PC98_ARCH?0x2000:0x0800)) LOG(LOG_MISC,LOG_WARN)("Booting a guest OS with too small amount of RAM may not work correctly");
 
             /* Other versions of MS-DOS/PC-DOS have their own requirements about memory:

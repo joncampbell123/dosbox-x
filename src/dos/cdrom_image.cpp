@@ -574,8 +574,6 @@ bool CDROM_Interface_Image::GetAudioTrackInfo(int track, TMSF& start, unsigned c
 	return true;
 }
 
-extern std::string RunningProgram;
-
 bool CDROM_Interface_Image::GetAudioSub(unsigned char& attr, unsigned char& track, unsigned char& index, TMSF& relPos, TMSF& absPos)
 {
 	int cur_track = GetTrack(player.currFrame);
