@@ -1,5 +1,7 @@
 Next version
-  - 
+  - Debugger: normalize 16-bit segmented offsets for address display/lookup and
+    avoid false "[illegal]" memory operand reports in AnalyzeInstruction()
+    (cimarronm)
 
 2026.07.02
   - Prepare for release. This time release OSFREE first so that the normal

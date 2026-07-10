@@ -442,8 +442,26 @@ uint64_t LinMakeProt(uint16_t selector, uint32_t offset)
 	return mem_no_address;
 }
 
+static bool Is16BitSegment(const uint16_t seg)
+{
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		if (seg == SegValue(cs))
+			return !cpu.code.big;
+
+		Descriptor desc;
+		return cpu.gdt.GetDescriptor(seg, desc) ? !desc.saved.seg.big : false;
+	}
+
+	return true;
+}
+
 uint64_t GetAddress(uint16_t seg, uint32_t offset)
 {
+	/* In 16-bit modes, segment offsets wrap to 16 bits. This also normalizes
+	 * values that came from signed arithmetic (for example, -1 -> 0xFFFF). */
+	if (Is16BitSegment(seg))
+		offset &= 0xffffu;
+
 	/* For the current CS, always use the cached hidden base (SegPhys(cs)).
 	 * Real x86 segment registers have a hidden descriptor cache that is only
 	 * updated when a new selector is loaded. After LMSW sets CR0.PE=1 but
@@ -4120,30 +4138,53 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 			} else
 				pos++;
 		}
-		uint32_t address = (uint32_t)GetAddress(seg,adr);
-		if (!(get_tlb_readhandler(address)->flags & PFLAG_INIT)) {
-			static char outmask[] = "%s:[%04X]=%02X";
-
-			if (cpu.pmode) outmask[6] = '8';
-				switch (DasmLastOperandSize()) {
-				case 8 : {	uint8_t val = mem_readb(address);
-							outmask[12] = '2';
-							sprintf(result,outmask,prefix,adr,val);
-						}	break;
-				case 16: {	uint16_t val = mem_readw(address);
-							outmask[12] = '4';
-							sprintf(result,outmask,prefix,adr,val);
-						}	break;
-				case 32: {	uint32_t val = mem_readd(address);
-							outmask[12] = '8';
-							sprintf(result,outmask,prefix,adr,val);
-						}	break;
-			}
-		} else {
+		if (Is16BitSegment(seg))
+			adr &= 0xffffu;
+		const uint64_t address64 = GetAddress(seg,adr);
+		const uint32_t address = (uint32_t)address64;
+		if (address64 == mem_no_address) {
 			sprintf(result,"[illegal]");
 		}
+		else {
+			static char outmask[] = "%s:[%04X]=%02X";
+			bool illegal = false;
+
+			if (cpu.pmode) outmask[6] = '8';
+			switch (DasmLastOperandSize()) {
+			case 8: {
+				uint8_t val = 0;
+				illegal = mem_readb_checked(address,&val);
+				if (!illegal) {
+					outmask[12] = '2';
+					sprintf(result,outmask,prefix,adr,val);
+				}
+			} break;
+			case 16: {
+				uint16_t val = 0;
+				illegal = mem_readw_checked(address,&val);
+				if (!illegal) {
+					outmask[12] = '4';
+					sprintf(result,outmask,prefix,adr,val);
+				}
+			} break;
+			case 32: {
+				uint32_t val = 0;
+				illegal = mem_readd_checked(address,&val);
+				if (!illegal) {
+					outmask[12] = '8';
+					sprintf(result,outmask,prefix,adr,val);
+				}
+			} break;
+			default:
+				illegal = true;
+				break;
+			}
+
+			if (illegal)
+				sprintf(result,"[illegal]");
+		}
 		// Variable found ?
-		CDebugVar* var = CDebugVar::FindVar(address);
+		CDebugVar* var = (address64 != mem_no_address) ? CDebugVar::FindVar(address) : NULL;
 		if (var) {
 			// Replace occurrence
 			char* pos1 = strchr(inst,'[');
@@ -6229,5 +6270,3 @@ void DEBUG_StopLog(void) {
 
 
 #endif // DEBUG
-
-
