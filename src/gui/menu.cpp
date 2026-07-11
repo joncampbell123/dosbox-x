@@ -2184,11 +2184,17 @@ void DOSBox_NoMenu(void) {
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if(!menu.gui) return;
+
+    HMENU pMenu = GetMenu(GetHWND());
+
     menu.toggle=false;
-    NonUserResizeCounter=1;
     SDL1_hax_SetMenu(NULL);
     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
     RENDER_CallBack( GFX_CallBackReset );
+
+    if(pMenu != NULL)
+        NonUserResizeCounter = 1;
+
 #endif
 #if defined(USE_TTF)
     if (ttf.inUse) resetFontSize();
