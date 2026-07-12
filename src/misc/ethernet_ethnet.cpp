@@ -56,7 +56,6 @@ struct PackedIP {
 	Uint16 port;
 } GCC_ATTRIBUTE(packed);
 
-#define SOCKETTABLESIZE 16
 #define CONVIP(hostvar) hostvar & 0xff, (hostvar >> 8) & 0xff, (hostvar >> 16) & 0xff, (hostvar >> 24) & 0xff
 #define CONVIPX(hostvar) hostvar[0], hostvar[1], hostvar[2], hostvar[3], hostvar[4], hostvar[5]
 
@@ -73,19 +72,25 @@ static IPaddress ethnetServerIp;  // IPAddress for server's listening port
 static IPaddress ethnetServConnIp;			// IPAddress for client connection to server
 static UDPsocket ethnetServerSocket;  // Listening server socket
 static UDPsocket ethnetClientSocket;
+static pic_tickindex_t ethnetServerTimeoutCheck = 0;
 //static uint8_t recvBuffer[ETHNETBUFFERSIZE];	// Incoming packet buffer
 
 static packetBuffer incomingPacket;
 
 struct l2tp_client_t {
-	uint32_t		control_connection_id = 0;
+	uint32_t		their_control_connection_id = 0;
+	uint32_t		my_control_connection_id = 0;
 	uint32_t		router_id = 0;
 	uint16_t		Ns = 0,Nr = 0;
-	bool			active = false;
+	pic_tickindex_t		timeout = 0;
+	pic_tickindex_t		hello = 0;
+	pic_tickindex_t		hello_accept = 0;
 	IPaddress		clientIP;
+	bool			active = false;
 };
 
 #define MAX_CLIENTS		(64)
+#define SOCKETTABLESIZE		MAX_CLIENTS
 
 static l2tp_client_t l2tp_client[MAX_CLIENTS];
 
@@ -114,6 +119,7 @@ struct l2tp_client_t *new_client_by_ip(const IPaddress &ip) {
 		}
 		else {
 			*c = l2tp_client_t();
+			c->timeout = PIC_FullIndex() + 15000.0;
 			c->clientIP = ip;
 			c->active = true;
 			return c;
@@ -150,10 +156,14 @@ void EthnetEthernetConnection::GetPackets(std::function<void(const uint8_t*, int
 }
 
 bool ETHNET_isConnectedToServer(Bits tableNum, IPaddress ** ptrAddr) {
-	(void)tableNum;
-	(void)ptrAddr;
-	return false;
+	if(tableNum >= SOCKETTABLESIZE) return false;
+	*ptrAddr = &l2tp_client[tableNum].clientIP;
+	return l2tp_client[tableNum].active;
 }
+
+// WARNING: This is a non-standard protocol loosely based on L2TP (Layer 2 Tunneling Protocol).
+//          If there is any interest in making this work with other standard L2TP ethernet tunneling implementations,
+//          patches are welcome.
 
 static uint16_t l2tp_ns = 0;
 static uint16_t l2tp_nr = 0;
@@ -161,8 +171,11 @@ static uint32_t l2tp_cli_control_connection_id = 0;/*NTS: L2TPv2 defines this as
 static uint32_t l2tp_svr_control_connection_id = 0;
 static uint32_t l2tp_cli_router_id = 0;/*NTS: L2TPv2 defines this as 16:16 tunnel_id:session_id*/
 static uint32_t l2tp_svr_router_id = 0;
+static pic_tickindex_t l2tp_cli_hello = 0;
+static pic_tickindex_t l2tp_cli_timeout = 0;
+static pic_tickindex_t l2tp_cli_hello_accept = 0;
 
-static void l2tp_ctrlmsg_hdr(unsigned char* &w,unsigned char *wf,uint32_t ctrl_conn_id) {
+static void l2tp_ctrlmsg_hdr(unsigned char* &w,unsigned char *wf,uint32_t ctrl_conn_id,uint16_t ns,uint16_t nr) {
 	if ((w+12) > wf) return;
 
 	/* [https://www.rfc-editor.org/info/rfc3931/#section-3.2.1] */
@@ -170,8 +183,8 @@ static void l2tp_ctrlmsg_hdr(unsigned char* &w,unsigned char *wf,uint32_t ctrl_c
 	*w++ = 3;
 	*((uint16_t*)w) = 0; w+=2; /* length (set to 0 for now) */
 	*((uint32_t*)w) = htobe32(ctrl_conn_id); w+=4; /* Control Connection ID */
-	*((uint16_t*)w) = htobe16(l2tp_ns); w+=2;
-	*((uint16_t*)w) = htobe16(l2tp_nr); w+=2;
+	*((uint16_t*)w) = htobe16(ns); w+=2;
+	*((uint16_t*)w) = htobe16(nr); w+=2;
 }
 
 static void l2tp_ctrlmsg_hdr_update(unsigned char *base,unsigned char* &w,unsigned char *wf) {
@@ -203,6 +216,7 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 # define AVP_CTRL_MSG_TYPE_SCCRQ                    1
 # define AVP_CTRL_MSG_TYPE_SCCRP                    2
 # define AVP_CTRL_MSG_TYPE_SCCCN                    3
+# define AVP_CTRL_MSG_TYPE_HELLO                    6
 #define AVP_CTRL_FRAMING_CAPS                       3
 #define AVP_CTRL_HOST_NAME                          7
 #define AVP_CTRL_VENDOR_NAME                        8
@@ -247,6 +261,11 @@ struct L2TPpacket {
 		length_field=0;
 		seq_field=0;
 		use_connection_id=0;
+		return *this;
+	}
+	L2TPpacket &setseq(const uint16_t ns,const uint16_t nr) {
+		Ns=ns;
+		Nr=nr;
 		return *this;
 	}
 	L2TPpacket &needs(const size_t sz) {//invalidates pointers!
@@ -303,7 +322,7 @@ struct L2TPpacket {
 			iscontrol=true;
 			needsmore(12);
 			unsigned char *w = writeptr();
-			l2tp_ctrlmsg_hdr(w,writefence(),use_connection_id);
+			l2tp_ctrlmsg_hdr(w,writefence(),use_connection_id,Ns,Nr);
 			writeptrupdate(w);
 		}
 
@@ -540,45 +559,143 @@ struct L2TPpacket {
 	}
 };
 
-static void ETHNET_ClientLoop(void) {
-	//TODO
-}
+static void DisconnectFromServer(bool unexpected);
 
-static void ETHNET_ServerLoop() {
+static void ETHNET_ClientLoop(void) {
+	pic_tickindex_t now = PIC_FullIndex();
 	UDPpacket inPacket,outPacket;
 	L2TPpacket pkt;
 	Bits result;
+
+	if (now >= l2tp_cli_timeout) {
+		LOG_MSG("ETHNET: Client timeout");
+		DisconnectFromServer(true);
+		return;
+	}
+	else if (now >= l2tp_cli_hello) {
+		l2tp_cli_hello = now + 2000.0 + ((int)rand() % 250);
+
+		pkt.clear().setseq(l2tp_ns,l2tp_nr).connection_id(l2tp_svr_control_connection_id).begin_control().avp_message_type(AVP_CTRL_MSG_TYPE_HELLO);
+		pkt.finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+		result = SDLNet_UDP_Send(ethnetClientSocket, outPacket.channel, &outPacket);
+
+		LOG_MSG("ETHNET: Hello client to server");
+	}
+
+	pkt.clear().fillUDPpacketForRecv(/*&*/inPacket,4096);
+	result = SDLNet_UDP_Recv(ethnetClientSocket, &inPacket);
+	if (result) {
+		pkt.didRecv(/*&*/inPacket);
+
+		LOG_MSG("Client in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u",
+			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id());
+
+		bool ignore = false;
+
+		if (pkt.iscontrol) {
+			L2TPpacket resp;
+
+			if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_HELLO) {
+				if (now < l2tp_cli_hello_accept) ignore = true;/*avoid HELLO storms*/
+				l2tp_cli_hello_accept = PIC_FullIndex() + 500.0;
+			}
+			else if (pkt.avp_message_type() == 0/*ACK*/) {
+				ignore = true;
+			}
+
+			if (resp.write == 0 && !ignore) { /* ACK, no AVPs */
+				pkt.clear().setseq(/*Ns=*/pkt.Nr,/*Nr=*/pkt.Ns+1u).connection_id(l2tp_svr_control_connection_id).begin_control().finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+				result = SDLNet_UDP_Send(ethnetClientSocket, outPacket.channel, &outPacket);
+			}
+		}
+
+		l2tp_cli_timeout = PIC_FullIndex() + 15000.0;
+		l2tp_cli_hello = PIC_FullIndex() + 3000.0;
+	}
+}
+
+static void ETHNET_ServerLoop() {
+	pic_tickindex_t now = PIC_FullIndex();
+	UDPpacket inPacket,outPacket;
+	L2TPpacket pkt;
+	Bits result;
+
+	if (now >= ethnetServerTimeoutCheck) {
+		for (unsigned int ci=0;ci < SOCKETTABLESIZE;ci++) {
+			struct l2tp_client_t *c = &l2tp_client[ci];
+			if (c->active) {
+				if (now >= c->timeout) {
+					LOG_MSG("ETHNET: Server client timeout");
+					c->active = false;
+				}
+				else if (now >= c->hello) {
+					c->hello = now + 3000.0 + ((int)rand() % 250);
+
+					// FIXME: Needs to use Ns = Last Nr from client
+					pkt.clear().setseq(/*Ns=*/0,/*Nr=*/0).connection_id(c->their_control_connection_id).begin_control().avp_message_type(AVP_CTRL_MSG_TYPE_HELLO);
+					pkt.finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+					outPacket.address = c->clientIP;
+					result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
+
+					LOG_MSG("ETHNET: Hello server to client");
+				}
+			}
+		}
+		ethnetServerTimeoutCheck = now + 100.0;
+	}
 
 	pkt.clear().fillUDPpacketForRecv(/*&*/inPacket,4096);
 	result = SDLNet_UDP_Recv(ethnetServerSocket, &inPacket);
 	if (result) {
 		pkt.didRecv(/*&*/inPacket);
 
-		LOG_MSG("Server in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u",
-			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id());
+		struct l2tp_client_t *c = lookup_client_by_ip(inPacket.address);
+		bool ignore = false;
+
+		LOG_MSG("Server in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u knownConnection=%u",
+			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),c?1:0);
 
 		if (pkt.iscontrol) {
 			L2TPpacket resp;
 
-			if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_SCCRP) {
+			if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_SCCRQ) {
 				uint32_t sfc = pkt.avp_framing_caps();
 				uint32_t accid = pkt.avp_assigned_control_connection_id();
-				if ((sfc&3) && pkt.connection_id() == 0 && accid != 0) {
-					struct l2tp_client_t *c = lookup_client_by_ip(inPacket.address);
-					if (c == NULL) c = new_client_by_ip(inPacket.address);
-					if (c) {
-						pkt.clear().connection_id(0).begin_control().finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
-						outPacket.address = inPacket.address;
-						result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
-					}
+
+				/* create new connection only for SCCRQ */
+				if (c == NULL) c = new_client_by_ip(inPacket.address);
+
+				if ((sfc&3) && pkt.connection_id() == 0 && accid != 0 && c) {
+					std::vector<uint16_t> pscl = {0x0005/*ethernet*/};
+
+					c->their_control_connection_id = accid;
+					if (c->my_control_connection_id == 0) c->my_control_connection_id = (uint32_t)rand()*rand();
+					pkt.clear().setseq(/*Ns=*/pkt.Nr,/*Nr=*/pkt.Ns+1u).connection_id(c->their_control_connection_id).begin_control().avp_message_type(AVP_CTRL_MSG_TYPE_SCCRP);
+					pkt.avp_assigned_control_connection_id(c->my_control_connection_id).avp_vendor_name("DOSBox-X");
+					pkt.avp_pseudowire_capabilities_list(pscl).avp_framing_caps(3);/*A=1 S=1*/
+					pkt.finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+					outPacket.address = inPacket.address;
+					result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
 				}
 			}
+			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_HELLO) {
+				if (now < c->hello_accept) ignore = true;/*avoid HELLO storms*/
+				c->hello_accept = PIC_FullIndex() + 500.0;
+			}
+			else if (pkt.avp_message_type() == 0/*ACK*/) {
+				ignore = true;
+			}
 
-			if (resp.write == 0) { /* error packet apparently is just 12 bytes long, no AVPs */
-				pkt.clear().connection_id(0).begin_control().finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+			if (resp.write == 0 && !ignore) { /* ACK, no AVPs */
+				pkt.clear().setseq(/*Ns=*/pkt.Nr,/*Nr=*/pkt.Ns+1u).connection_id(c?c->their_control_connection_id:0).begin_control().finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
 				outPacket.address = inPacket.address;
 				result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
 			}
+		}
+
+		if (c) {
+			c->timeout = PIC_FullIndex() + 15000.0;
+			c->hello = PIC_FullIndex() + 4000.0;
 		}
 	}
 }
@@ -620,12 +737,14 @@ static bool ConnectToServer(char const *strAddr) {
 			l2tp_svr_control_connection_id = 0;
 			l2tp_cli_router_id = (uint32_t)(rand()*rand());
 			l2tp_svr_router_id = 0;
+			l2tp_cli_hello = 0;
+			l2tp_cli_timeout = 0;
 
 			/* SCCRQ [https://www.rfc-editor.org/info/rfc3931/#section-6.1] */
 			/* [https://www.rfc-editor.org/info/rfc3931/#section-5.4.1] */
 			/* [https://www.rfc-editor.org/info/rfc3931/#section-3.1] */
 			/* [https://www.rfc-editor.org/info/rfc2661/] Assigned Tunnel ID because xl2tpd doesn't know the control connection ID tag */
-			pkt.clear().connection_id(0).begin_control()
+			pkt.clear().connection_id(0).setseq(l2tp_ns,l2tp_nr).begin_control()
 				.avp_message_type(AVP_CTRL_MSG_TYPE_SCCRQ)
 				.avp_assigned_control_connection_id(l2tp_cli_control_connection_id)
 				.avp_framing_caps(3)/*A=1 S=1*/
@@ -668,14 +787,21 @@ static bool ConnectToServer(char const *strAddr) {
 					if (result != 0) {
 						bool ok = false;
 
-						pkt.didRecv(/*&*/regPacket);
-						LOG_MSG("In: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u",
-							pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id());
+						/* Ns should match the Nr we sent */
 
-						if (pkt.iscontrol && pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_SCCRP) {
+						pkt.didRecv(/*&*/regPacket);
+						LOG_MSG("In: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u NsExpect=%u",
+							pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),l2tp_nr);
+
+						if (pkt.iscontrol && pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_SCCRP && pkt.Ns == l2tp_nr) {
 							uint32_t sfc = pkt.avp_framing_caps();
+							uint32_t accid = pkt.avp_assigned_control_connection_id();
 							LOG_MSG("framing_caps: svr(just recv)=%u",sfc);
-							ok = true;
+							LOG_MSG("assigned_control_connection_id: svr(just recv)=%u",accid);
+							if (sfc && accid) {
+								l2tp_svr_control_connection_id = accid;
+								ok = true;
+							}
 						}
 
 						if (ok) {
@@ -692,7 +818,7 @@ static bool ConnectToServer(char const *strAddr) {
 			}
 
 			/* SCCCN [https://www.rfc-editor.org/info/rfc3931/#section-6.3] */
-			pkt.clear().connection_id(l2tp_svr_control_connection_id).begin_control()
+			pkt.clear().setseq(l2tp_ns,l2tp_nr).connection_id(l2tp_svr_control_connection_id).setseq(l2tp_ns,l2tp_nr).begin_control()
 				.avp_message_type(AVP_CTRL_MSG_TYPE_SCCCN);
 			pkt.finishwrite().fillUDPpacket(/*&*/regPacket,UDPChannel);
 			LOG_MSG("ETHNET: Completing L2TP with assigned ctrlconnid=%u",
@@ -706,6 +832,9 @@ static bool ConnectToServer(char const *strAddr) {
 			}
 
 			LOG_MSG("ETHNET: Connected to server.");
+
+			l2tp_cli_hello = PIC_FullIndex() + 3000.0;
+			l2tp_cli_timeout = PIC_FullIndex() + 15000.0;
 
 			incomingPacket.connected = true;
 			TIMER_AddTickHandler(&ETHNET_ClientLoop);
