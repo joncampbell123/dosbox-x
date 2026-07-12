@@ -216,6 +216,7 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 # define AVP_CTRL_MSG_TYPE_SCCRQ                    1
 # define AVP_CTRL_MSG_TYPE_SCCRP                    2
 # define AVP_CTRL_MSG_TYPE_SCCCN                    3
+# define AVP_CTRL_MSG_TYPE_StopCCN                  4
 # define AVP_CTRL_MSG_TYPE_HELLO                    6
 #define AVP_CTRL_FRAMING_CAPS                       3
 #define AVP_CTRL_HOST_NAME                          7
@@ -650,6 +651,7 @@ static void ETHNET_ServerLoop() {
 		pkt.didRecv(/*&*/inPacket);
 
 		struct l2tp_client_t *c = lookup_client_by_ip(inPacket.address);
+		bool disconnect = false;
 		bool ignore = false;
 
 		LOG_MSG("Server in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u knownConnection=%u",
@@ -682,6 +684,11 @@ static void ETHNET_ServerLoop() {
 				if (now < c->hello_accept) ignore = true;/*avoid HELLO storms*/
 				c->hello_accept = GetTicks() + 500;
 			}
+			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_StopCCN) {
+				/* client wishes to tear down control connection and sessions */
+				LOG_MSG("Server: Client wants to disconnect");
+				disconnect = true;
+			}
 			else if (pkt.avp_message_type() == 0/*ACK*/) {
 				ignore = true;
 			}
@@ -690,6 +697,10 @@ static void ETHNET_ServerLoop() {
 				pkt.clear().setseq(/*Ns=*/pkt.Nr,/*Nr=*/pkt.Ns+1u).connection_id(c?c->their_control_connection_id:0).begin_control().finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
 				outPacket.address = inPacket.address;
 				result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
+			}
+
+			if (disconnect) {
+				c->active = false;
 			}
 		}
 
@@ -848,9 +859,23 @@ static bool ConnectToServer(char const *strAddr) {
 	return false;
 }
 
+static void ClientStopCCN(void) {
+	if (incomingPacket.connected) {
+		UDPpacket regPacket={0};
+		L2TPpacket pkt;
+		pkt.clear().setseq(l2tp_ns,l2tp_nr).connection_id(l2tp_svr_control_connection_id).setseq(l2tp_ns,l2tp_nr).begin_control()
+			.avp_message_type(AVP_CTRL_MSG_TYPE_StopCCN);
+		pkt.finishwrite().fillUDPpacket(/*&*/regPacket,UDPChannel);
+		LOG_MSG("ETHNET: Client sending StopCCN to server");
+		l2tp_ns++;
+		SDLNet_UDP_Send(ethnetClientSocket, regPacket.channel, &regPacket);
+	}
+}
+
 static void DisconnectFromServer(bool unexpected) {
 	if(unexpected) LOG_MSG("ETHNET: Server disconnected unexpectedly");
 	if(incomingPacket.connected) {
+		if (!unexpected) ClientStopCCN(); // Let the server know!
 		incomingPacket.connected = false;
 		TIMER_DelTickHandler(&ETHNET_ClientLoop);
 		SDLNet_UDP_Close(ethnetClientSocket);
