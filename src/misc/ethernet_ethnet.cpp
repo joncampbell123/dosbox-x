@@ -72,7 +72,7 @@ static IPaddress ethnetServerIp;  // IPAddress for server's listening port
 static IPaddress ethnetServConnIp;			// IPAddress for client connection to server
 static UDPsocket ethnetServerSocket;  // Listening server socket
 static UDPsocket ethnetClientSocket;
-static pic_tickindex_t ethnetServerTimeoutCheck = 0;
+static uint32_t ethnetServerTimeoutCheck = 0;
 //static uint8_t recvBuffer[ETHNETBUFFERSIZE];	// Incoming packet buffer
 
 static packetBuffer incomingPacket;
@@ -82,9 +82,9 @@ struct l2tp_client_t {
 	uint32_t		my_control_connection_id = 0;
 	uint32_t		router_id = 0;
 	uint16_t		Ns = 0,Nr = 0;
-	pic_tickindex_t		timeout = 0;
-	pic_tickindex_t		hello = 0;
-	pic_tickindex_t		hello_accept = 0;
+	uint32_t		timeout = 0;
+	uint32_t		hello = 0;
+	uint32_t		hello_accept = 0;
 	IPaddress		clientIP;
 	bool			active = false;
 };
@@ -119,7 +119,7 @@ struct l2tp_client_t *new_client_by_ip(const IPaddress &ip) {
 		}
 		else {
 			*c = l2tp_client_t();
-			c->timeout = PIC_FullIndex() + 15000.0;
+			c->timeout = GetTicks() + 15000;
 			c->clientIP = ip;
 			c->active = true;
 			return c;
@@ -171,9 +171,9 @@ static uint32_t l2tp_cli_control_connection_id = 0;/*NTS: L2TPv2 defines this as
 static uint32_t l2tp_svr_control_connection_id = 0;
 static uint32_t l2tp_cli_router_id = 0;/*NTS: L2TPv2 defines this as 16:16 tunnel_id:session_id*/
 static uint32_t l2tp_svr_router_id = 0;
-static pic_tickindex_t l2tp_cli_hello = 0;
-static pic_tickindex_t l2tp_cli_timeout = 0;
-static pic_tickindex_t l2tp_cli_hello_accept = 0;
+static uint32_t l2tp_cli_hello = 0;
+static uint32_t l2tp_cli_timeout = 0;
+static uint32_t l2tp_cli_hello_accept = 0;
 
 static void l2tp_ctrlmsg_hdr(unsigned char* &w,unsigned char *wf,uint32_t ctrl_conn_id,uint16_t ns,uint16_t nr) {
 	if ((w+12) > wf) return;
@@ -562,7 +562,7 @@ struct L2TPpacket {
 static void DisconnectFromServer(bool unexpected);
 
 static void ETHNET_ClientLoop(void) {
-	pic_tickindex_t now = PIC_FullIndex();
+	uint32_t now = GetTicks();
 	UDPpacket inPacket,outPacket;
 	L2TPpacket pkt;
 	Bits result;
@@ -573,7 +573,7 @@ static void ETHNET_ClientLoop(void) {
 		return;
 	}
 	else if (now >= l2tp_cli_hello) {
-		l2tp_cli_hello = now + 2000.0 + ((int)rand() % 250);
+		l2tp_cli_hello = now + 2000 + ((int)rand() % 250);
 
 		pkt.clear().setseq(l2tp_ns,l2tp_nr).connection_id(l2tp_svr_control_connection_id).begin_control().avp_message_type(AVP_CTRL_MSG_TYPE_HELLO);
 		pkt.finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
@@ -597,7 +597,7 @@ static void ETHNET_ClientLoop(void) {
 
 			if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_HELLO) {
 				if (now < l2tp_cli_hello_accept) ignore = true;/*avoid HELLO storms*/
-				l2tp_cli_hello_accept = PIC_FullIndex() + 500.0;
+				l2tp_cli_hello_accept = GetTicks() + 500;
 			}
 			else if (pkt.avp_message_type() == 0/*ACK*/) {
 				ignore = true;
@@ -609,13 +609,13 @@ static void ETHNET_ClientLoop(void) {
 			}
 		}
 
-		l2tp_cli_timeout = PIC_FullIndex() + 15000.0;
-		l2tp_cli_hello = PIC_FullIndex() + 3000.0;
+		l2tp_cli_timeout = GetTicks() + 15000;
+		l2tp_cli_hello = GetTicks() + 3000;
 	}
 }
 
 static void ETHNET_ServerLoop() {
-	pic_tickindex_t now = PIC_FullIndex();
+	uint32_t now = GetTicks();
 	UDPpacket inPacket,outPacket;
 	L2TPpacket pkt;
 	Bits result;
@@ -680,7 +680,7 @@ static void ETHNET_ServerLoop() {
 			}
 			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_HELLO) {
 				if (now < c->hello_accept) ignore = true;/*avoid HELLO storms*/
-				c->hello_accept = PIC_FullIndex() + 500.0;
+				c->hello_accept = GetTicks() + 500;
 			}
 			else if (pkt.avp_message_type() == 0/*ACK*/) {
 				ignore = true;
@@ -694,8 +694,8 @@ static void ETHNET_ServerLoop() {
 		}
 
 		if (c) {
-			c->timeout = PIC_FullIndex() + 15000.0;
-			c->hello = PIC_FullIndex() + 4000.0;
+			c->timeout = GetTicks() + 15000;
+			c->hello = GetTicks() + 4000;
 		}
 	}
 }
@@ -833,8 +833,8 @@ static bool ConnectToServer(char const *strAddr) {
 
 			LOG_MSG("ETHNET: Connected to server.");
 
-			l2tp_cli_hello = PIC_FullIndex() + 3000.0;
-			l2tp_cli_timeout = PIC_FullIndex() + 15000.0;
+			l2tp_cli_hello = GetTicks() + 3000;
+			l2tp_cli_timeout = GetTicks() + 15000;
 
 			incomingPacket.connected = true;
 			TIMER_AddTickHandler(&ETHNET_ClientLoop);
