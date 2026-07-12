@@ -729,7 +729,7 @@ void DrawCursor() {
     }
     INT10_SetCurMode();
     // In Textmode ?
-    if (CurMode->type==M_TEXT || (IS_DOSV && DOSV_CheckCJKVideoMode())) {
+    if (CurMode->type==M_TEXT || (IS_DOSV && DOSV_CheckCJKVideoMode() && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x12)) {
         DrawCursorText();
         return;
     }

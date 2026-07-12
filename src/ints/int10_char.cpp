@@ -839,8 +839,9 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 		return;
 	}
 
-	if(real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x72) {
+	if(real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x72 || real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x12) {
 		if(attr & 0x80) {
+			IO_Write(0x3ce, 0x08); IO_Write(0x3cf, 0xff);
 			IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
 			IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
 			IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x18);
@@ -870,6 +871,7 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 	off = row * width * height + col;
 	select = StartBankSelect(off);
 
+	IO_Write(0x3ce, 0x08); IO_Write(0x3cf, 0xff);
 	IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
 	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr >> 4);
 	real_writeb(0xa000, off, 0xff); dummy = real_readb(0xa000, off);
@@ -886,6 +888,7 @@ static void DrawCharDOSVDbcsHalf(Bitu off, uint8_t *font, uint8_t attr, Bitu wid
 {
 	volatile uint8_t dummy;
 	uint8_t data;
+	IO_Write(0x3ce, 0x08); IO_Write(0x3cf, 0xff);
 	if(xor_flag) {
 		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
 		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
@@ -920,6 +923,7 @@ static inline void DrawCharDOSVDbcs(Bitu off, uint16_t *font, uint8_t attr, Bitu
 	volatile uint16_t dummy;
 	uint16_t data;
 
+	IO_Write(0x3ce, 0x08); IO_Write(0x3cf, 0xff);
 	IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
 	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr >> 4);
 	real_writew(0xa000, off, 0xffff); dummy = real_readw(0xa000, off);
@@ -960,7 +964,7 @@ void WriteCharDOSVDbcs(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr) {
 	uint8_t *font = GetDbcsFont(chr);
 	Bitu off = row * width * height + col;
 	uint8_t select = StartBankSelect(off);
-	if(real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x72) {
+	if(real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x72 || real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x12) {
 		if(attr & 0x80) {
 			DrawCharDOSVDbcsHalf(off, font, prevattr, width, height, select, true);
 			if(col != width - 1) {
@@ -1305,8 +1309,14 @@ void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
     }
 #endif
 
-    if (IS_DOSV && DOSV_CheckCJKVideoMode()) DOSV_OffCursor();
-    else if(J3_IsJapanese()) J3_OffCursor();
+    if (IS_DOSV && DOSV_CheckCJKVideoMode()) {
+        DOSV_OffCursor();
+        page = 0;
+    }
+    else if(J3_IsJapanese()) {
+        J3_OffCursor();
+        page = 0;
+    }
     if (page>7) LOG(LOG_INT10,LOG_ERROR)("INT10_SetCursorPos page %d",page);
     // Bios cursor pos
     if (IS_PC98_ARCH) {
