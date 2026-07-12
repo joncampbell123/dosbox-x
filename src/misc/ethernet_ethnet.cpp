@@ -488,6 +488,23 @@ struct L2TPpacket {
 		return 0;
 	}
 
+	bool get_avp_pseudowire_capabilities_list(std::vector<uint16_t> &v) {
+		v.clear();
+		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_PSW_CAP_LIST);
+		if (avp) {
+			const size_t sz = size_t(avp->length / 2u);
+			unsigned char *r = avp->data,*rf = avp->data+avp->length;
+
+			v.resize(sz);
+			uint16_t *d = v.data();
+			for (size_t i=0;i < sz;i++) { *d++ = be16toh(*((uint16_t*)r)); r+=2; }
+
+			assert(r <= rf);
+			return true;
+		}
+		return false;
+	}
+
 	L2TPpacket &avp_pseudowire_capabilities_list(const std::vector<uint16_t> &v) {
 		needsmore(8+(v.size()*2u));
 		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
@@ -685,12 +702,20 @@ static void ETHNET_ServerLoop() {
 			if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_SCCRQ) {
 				uint32_t sfc = pkt.avp_framing_caps();
 				uint32_t accid = pkt.avp_assigned_control_connection_id();
+				std::vector<uint16_t> got_pscl;
+				bool can_ethernet = false;
+
+				pkt.get_avp_pseudowire_capabilities_list(got_pscl);
+				for (const auto &pw : got_pscl) {
+					if (pw == 0x0005/*ethernet*/)
+						can_ethernet = true;
+				}
 
 				/* create new connection only for SCCRQ */
 				if (c == NULL) c = new_client_by_ip(inPacket.address);
 
 				ignore = false;
-				if ((sfc&3) && pkt.connection_id() == 0 && accid != 0 && c) {
+				if ((sfc&3) && pkt.connection_id() == 0 && accid != 0 && c && can_ethernet) {
 					std::vector<uint16_t> pscl = {0x0005/*ethernet*/};
 
 					c->their_control_connection_id = accid;
@@ -858,9 +883,19 @@ static bool ConnectToServer(char const *strAddr) {
 						if (pkt.iscontrol && pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_SCCRP && pkt.Ns == l2tp_nr) {
 							uint32_t sfc = pkt.avp_framing_caps();
 							uint32_t accid = pkt.avp_assigned_control_connection_id();
+							std::vector<uint16_t> got_pscl;
+							bool can_ethernet = false;
+
+							pkt.get_avp_pseudowire_capabilities_list(got_pscl);
+							for (const auto &pw : got_pscl) {
+								if (pw == 0x0005/*ethernet*/)
+									can_ethernet = true;
+							}
+
 							LOG_MSG("framing_caps: svr(just recv)=%u",sfc);
 							LOG_MSG("assigned_control_connection_id: svr(just recv)=%u",accid);
-							if (sfc && accid) {
+							LOG_MSG("pseudowire can ethernet: %u",can_ethernet);
+							if (sfc && accid && can_ethernet) {
 								l2tp_svr_control_connection_id = accid;
 								ok = true;
 							}
