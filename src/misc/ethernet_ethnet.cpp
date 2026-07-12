@@ -218,6 +218,7 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 # define AVP_CTRL_MSG_TYPE_SCCCN                    3
 # define AVP_CTRL_MSG_TYPE_StopCCN                  4
 # define AVP_CTRL_MSG_TYPE_HELLO                    6
+# define AVP_CTRL_MSG_TYPE_ACK                      20
 #define AVP_CTRL_FRAMING_CAPS                       3
 #define AVP_CTRL_HOST_NAME                          7
 #define AVP_CTRL_VENDOR_NAME                        8
@@ -588,8 +589,8 @@ static void ETHNET_ClientLoop(void) {
 	if (result) {
 		pkt.didRecv(/*&*/inPacket);
 
-		LOG_MSG("Client in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u",
-			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id());
+		LOG_MSG("Client in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u messagetype=%u",
+			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),pkt.avp_message_type());
 
 		bool ignore = false;
 
@@ -600,12 +601,18 @@ static void ETHNET_ClientLoop(void) {
 				if (now < l2tp_cli_hello_accept) ignore = true;/*avoid HELLO storms*/
 				l2tp_cli_hello_accept = GetTicks() + 500;
 			}
-			else if (pkt.avp_message_type() == 0/*ACK*/) {
+			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_ACK) {
 				ignore = true;
 			}
 
-			if (resp.write == 0 && !ignore) { /* ACK, no AVPs */
-				pkt.clear().setseq(/*Ns=*/pkt.Nr,/*Nr=*/pkt.Ns+1u).connection_id(l2tp_svr_control_connection_id).begin_control().finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+			if (resp.write == 0 && !ignore) { /* ACK */
+				pkt.clear()
+					.setseq(/*Ns=*/pkt.Nr,/*Nr=*/pkt.Ns+1u)
+					.connection_id(l2tp_svr_control_connection_id)
+					.begin_control()
+					.avp_message_type(AVP_CTRL_MSG_TYPE_ACK)
+					.finishwrite()
+					.fillUDPpacket(/*&*/outPacket,UDPChannel);
 				result = SDLNet_UDP_Send(ethnetClientSocket, outPacket.channel, &outPacket);
 			}
 		}
@@ -633,8 +640,13 @@ static void ETHNET_ServerLoop() {
 					c->hello = now + 3000.0 + ((int)rand() % 250);
 
 					// FIXME: Needs to use Ns = Last Nr from client
-					pkt.clear().setseq(/*Ns=*/0,/*Nr=*/0).connection_id(c->their_control_connection_id).begin_control().avp_message_type(AVP_CTRL_MSG_TYPE_HELLO);
-					pkt.finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+					pkt.clear()
+						.setseq(/*Ns=*/0,/*Nr=*/0)
+						.connection_id(c->their_control_connection_id)
+						.begin_control()
+						.avp_message_type(AVP_CTRL_MSG_TYPE_HELLO)
+						.finishwrite()
+						.fillUDPpacket(/*&*/outPacket,UDPChannel);
 					outPacket.address = c->clientIP;
 					result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
 
@@ -654,8 +666,8 @@ static void ETHNET_ServerLoop() {
 		bool disconnect = false;
 		bool ignore = false;
 
-		LOG_MSG("Server in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u knownConnection=%u",
-			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),c?1:0);
+		LOG_MSG("Server in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u knownConnection=%u messagetype=%u",
+			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),c?1:0,pkt.avp_message_type());
 
 		if (pkt.iscontrol) {
 			L2TPpacket resp;
@@ -672,10 +684,17 @@ static void ETHNET_ServerLoop() {
 
 					c->their_control_connection_id = accid;
 					if (c->my_control_connection_id == 0) c->my_control_connection_id = (uint32_t)rand()*rand();
-					pkt.clear().setseq(/*Ns=*/pkt.Nr,/*Nr=*/pkt.Ns+1u).connection_id(c->their_control_connection_id).begin_control().avp_message_type(AVP_CTRL_MSG_TYPE_SCCRP);
-					pkt.avp_assigned_control_connection_id(c->my_control_connection_id).avp_vendor_name("DOSBox-X");
-					pkt.avp_pseudowire_capabilities_list(pscl).avp_framing_caps(3);/*A=1 S=1*/
-					pkt.finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+					pkt.clear()
+						.setseq(/*Ns=*/pkt.Nr,/*Nr=*/pkt.Ns+1u)
+						.connection_id(c->their_control_connection_id)
+						.begin_control()
+						.avp_message_type(AVP_CTRL_MSG_TYPE_SCCRP)
+						.avp_assigned_control_connection_id(c->my_control_connection_id)
+						.avp_vendor_name("DOSBox-X")
+						.avp_pseudowire_capabilities_list(pscl)
+						.avp_framing_caps(3)/*A=1 S=1*/
+						.finishwrite()
+						.fillUDPpacket(/*&*/outPacket,UDPChannel);
 					outPacket.address = inPacket.address;
 					result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
 				}
@@ -689,12 +708,18 @@ static void ETHNET_ServerLoop() {
 				LOG_MSG("Server: Client wants to disconnect");
 				disconnect = true;
 			}
-			else if (pkt.avp_message_type() == 0/*ACK*/) {
+			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_ACK) {
 				ignore = true;
 			}
 
 			if (resp.write == 0 && !ignore) { /* ACK, no AVPs */
-				pkt.clear().setseq(/*Ns=*/pkt.Nr,/*Nr=*/pkt.Ns+1u).connection_id(c?c->their_control_connection_id:0).begin_control().finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+				pkt.clear()
+					.setseq(/*Ns=*/pkt.Nr,/*Nr=*/pkt.Ns+1u)
+					.connection_id(c?c->their_control_connection_id:0)
+					.begin_control()
+					.avp_message_type(AVP_CTRL_MSG_TYPE_ACK)
+					.finishwrite()
+					.fillUDPpacket(/*&*/outPacket,UDPChannel);
 				outPacket.address = inPacket.address;
 				result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
 			}
