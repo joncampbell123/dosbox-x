@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <vector>
+
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "drives.h"
@@ -202,65 +204,167 @@ void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b, const char *
 }
 
 uint16_t fztime=0, fzdate=0;
-void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *dir) {
-    if (vfpos>=MAX_VFILES) return;
+// Helper function for case-insensitive string comparison using std::string
+bool case_insensitive_equal(const std::string& str1, const std::string& str2) {
+    if(str1.size() != str2.size()) return false;
+    return std::equal(str1.begin(), str1.end(), str2.begin(), [](unsigned char a, unsigned char b) {
+        return std::tolower(a) == std::tolower(b);
+        });
+}
+
+void VFILE_Register(const char* name, uint8_t* data, uint32_t size, const char* dir) {
+    if(vfpos >= MAX_VFILES) return;
+
+    std::string name_str(name);
+    std::string dir_str(dir);
+
     std::istringstream in(hidefiles);
-    bool hidden=false;
-    bool isdir=!strcmp(dir,"/")||!strcmp(name,".")||!strcmp(name,"..");
-    unsigned int onpos=0;
+    bool hidden = false;
+
+    bool isdir = (dir_str == "/" || name_str == "." || name_str == "..") || (data == nullptr && size == 0);
+
+    unsigned int onpos = 0;
     char fullname[CROSS_LEN], fullsname[CROSS_LEN];
-    if (strlen(dir)>2&&dir[0]=='/'&&dir[strlen(dir)-1]=='/') {
-        for (unsigned int i=1; i<vfpos; i++)
-            if (!strcasecmp((std::string(vfsnames[i])+"/").c_str(), dir+1)||!strcasecmp((std::string(vfnames[i])+"/").c_str(), dir+1)) {
-                onpos=i;
+
+    static std::string last_normalized_dir = "";
+    static unsigned int last_resolved_onpos = 0;
+
+    std::string current_normalized_dir = dir_str;
+    if(current_normalized_dir.front() == '/' || current_normalized_dir.front() == '\\') current_normalized_dir.erase(0, 1);
+    if(!current_normalized_dir.empty() && (current_normalized_dir.back() == '/' || current_normalized_dir.back() == '\\')) current_normalized_dir.pop_back();
+
+    // Improvement: To avoid catching its own name during the search, the global arrays (vfnames/vfsnames) 
+    // are not modified at all until the parent directory lookup is completely resolved.
+    if(dir_str.size() > 1) {
+        if(!current_normalized_dir.empty() && current_normalized_dir == last_normalized_dir) {
+            onpos = last_resolved_onpos;
+        }
+        else {
+            std::string search_path = current_normalized_dir;
+
+            if(!search_path.empty()) {
+                std::vector<std::string> components;
+                std::stringstream ss(search_path);
+                std::string item;
+                while(std::getline(ss, item, '/')) {
+                    std::stringstream ss2(item);
+                    std::string subitem;
+                    while(std::getline(ss2, subitem, '\\')) {
+                        if(!subitem.empty()) components.push_back(subitem);
+                    }
+                }
+
+                unsigned int current_lookup_onpos = 0;
+
+                for(const auto& comp : components) {
+                    unsigned int next_onpos = 0;
+
+                    // Safe because the search target is strictly limited to entries that have already been fully registered (less than the current vfpos).
+                    for(unsigned int i = 1; i < vfpos; i++) {
+                        if(strcasecmp(vfsnames[i], comp.c_str()) == 0 || strcasecmp(vfnames[i], comp.c_str()) == 0) {
+
+                            const VFILE_Block* scan = first_file;
+                            bool context_matched = false;
+                            while(scan) {
+                                if((scan->name == vfsnames[i] || scan->lname == vfnames[i]) &&
+                                    scan->onpos == current_lookup_onpos) {
+                                    context_matched = true;
+                                    break;
+                                }
+                                scan = scan->next;
+                            }
+
+                            if(context_matched) {
+                                next_onpos = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    if(next_onpos != 0) {
+                        current_lookup_onpos = next_onpos;
+                    }
+                    else {
+                        current_lookup_onpos = 0;
+                        break;
+                    }
+                }
+
+                onpos = current_lookup_onpos;
+
+                if(onpos != 0) {
+                    last_normalized_dir = current_normalized_dir;
+                    last_resolved_onpos = onpos;
+                }
+            }
+        }
+    }
+
+    // Deduplication check
+    const VFILE_Block* cur_file = first_file;
+    while(cur_file) {
+        if(onpos == cur_file->onpos && case_insensitive_equal(name_str, cur_file->name)) return;
+        cur_file = cur_file->next;
+    }
+
+    // Standard SFN generation
+    std::string sname = filename_not_strict_8x3(name) ? VFILE_Generate_SFN(name, onpos) : name;
+
+    if(in) {
+        for(std::string file; in >> file; ) {
+            if(dir_str.size() > 2 && dir_str.front() == '/' && dir_str.back() == '/') {
+                strncpy(fullname, dir + 1, dir_str.size() - 2);
+                *(fullname + dir_str.size() - 2) = 0;
+                strcat(fullname, "\\");
+                strcpy(fullsname, "\\");
+                strcat(fullsname, sname.c_str());
+                strcat(fullname, name);
+            }
+            else {
+                strcpy(fullname, name);
+                strcpy(fullsname, sname.c_str());
+            }
+            if(case_insensitive_equal(fullname, file) || case_insensitive_equal("\"" + std::string(fullname) + "\"", file) ||
+                case_insensitive_equal(fullsname, file) || case_insensitive_equal("\"" + std::string(fullsname) + "\"", file))
+                return;
+            if(case_insensitive_equal("/" + std::string(fullname), file) || case_insensitive_equal("/\"" + std::string(fullname) + "\"", file) ||
+                case_insensitive_equal("/" + std::string(fullsname), file) || case_insensitive_equal("/\"" + std::string(fullsname) + "\"", file)) {
+                hidden = true;
                 break;
             }
-        if (onpos==0) return;
-    }
-    const VFILE_Block* cur_file = first_file;
-	while (cur_file) {
-		if (onpos==cur_file->onpos&&(strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->name)==0))) return;
-		cur_file=cur_file->next;
-	}
-    std::string sname=filename_not_strict_8x3(name)?VFILE_Generate_SFN(name,onpos):name;
-    if (in)	for (std::string file; in >> file; ) {
-        if (strlen(dir)>2&&dir[0]=='/'&&dir[strlen(dir)-1]=='/') {
-            strncpy(fullname, dir+1, strlen(dir)-2);
-            *(fullname+strlen(dir)-2)=0;
-            strcat(fullname, "\\");
-            strcpy(fullsname, "\\");
-            strcat(fullsname, sname.c_str());
-            strcat(fullname, name);
-        } else {
-            strcpy(fullname, name);
-            strcpy(fullsname, sname.c_str());
-        }
-        if (!strcasecmp(fullname,file.c_str())||!strcasecmp(("\""+std::string(fullname)+"\"").c_str(),file.c_str())
-        || !strcasecmp(fullsname,file.c_str())||!strcasecmp(("\""+std::string(fullsname)+"\"").c_str(),file.c_str()))
-            return;
-        if (!strcasecmp(("/"+std::string(fullname)).c_str(),file.c_str())||!strcasecmp(("/\""+std::string(fullname)+"\"").c_str(),file.c_str())
-        || !strcasecmp(("/"+std::string(fullsname)).c_str(),file.c_str())||!strcasecmp(("/\""+std::string(fullsname)+"\"").c_str(),file.c_str())) {
-            hidden=true;
-            break;
         }
     }
-    strcpy(vfnames[vfpos],name);
-    strcpy(vfsnames[vfpos],sname.c_str());
-    if (!strlen(trim(vfnames[vfpos]))||!strlen(trim(vfsnames[vfpos]))) return;
-	VFILE_Block * new_file=new VFILE_Block;
-	new_file->name=vfsnames[vfpos];
-	new_file->lname=vfnames[vfpos];
-	vfpos++;
-	new_file->intprog = internal_program;
-	new_file->data=data;
-	new_file->size=size;
-	new_file->date=fztime||fzdate?fzdate:DOS_PackDate(2002,10,1);
-	new_file->time=fztime||fzdate?fztime:DOS_PackTime(12,34,56);
-	new_file->onpos=onpos;
-	new_file->isdir=isdir;
-	new_file->hidden=hidden;
-	new_file->next=first_file;
-	first_file=new_file;
+
+    std::string trimmed_name(name);
+    std::string trimmed_sname = sname;
+    trim(trimmed_name);
+    trim(trimmed_sname);
+    if(trimmed_name.empty() || trimmed_sname.empty()) return;
+
+    // Safely register its own information to the global arrays only after the parent has been successfully resolved.
+    unsigned int assigned_index = vfpos;
+    strcpy(vfnames[assigned_index], name);
+    strcpy(vfsnames[assigned_index], sname.c_str());
+
+    VFILE_Block* new_file = new VFILE_Block;
+    new_file->name = vfsnames[assigned_index];
+    new_file->lname = vfnames[assigned_index];
+    vfpos++;
+
+    new_file->intprog = internal_program;
+    new_file->data = data;
+    new_file->size = size;
+    new_file->date = fztime || fzdate ? fzdate : DOS_PackDate(2002, 10, 1);
+    new_file->time = fztime || fzdate ? fztime : DOS_PackTime(12, 34, 56);
+    new_file->onpos = onpos;
+    new_file->isdir = isdir;
+    new_file->hidden = hidden;
+
+    new_file->next = first_file;
+    first_file = new_file;
+
+    //LOG_MSG("[DEBUG Register] SUCCESS: Created entry '%s' at array slot index: %u (Parent onpos context: %u, isdir: %d)",
+    //    name, assigned_index, new_file->onpos, new_file->isdir);
 }
 
 void VFILE_Remove(const char *name,const char *dir = "") {
@@ -384,28 +488,108 @@ Virtual_Drive::Virtual_Drive() {
     if (parent_dir == NULL) parent_dir = new VFILE_Block;
 }
 
-bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
-	if (*name == 0) {
-		DOS_SetError(DOSERR_ACCESS_DENIED);
-		return false;
-	}
-    /* Scan through the internal list of files */
+bool Virtual_Drive::FileOpen(DOS_File** file, const char* name, uint32_t flags) {
+    if(*name == 0) {
+        DOS_SetError(DOSERR_ACCESS_DENIED);
+        return false;
+    }
+
+    std::string path_str(name);
+    if(path_str.size() >= 2 && path_str[1] == ':') {
+        path_str.erase(0, 2);
+    }
+
+    unsigned int current_lookup_onpos = 0;
+    if(!path_str.empty() && (path_str.front() == '\\' || path_str.front() == '/')) {
+        current_lookup_onpos = 0;
+        while(!path_str.empty() && (path_str.front() == '\\' || path_str.front() == '/')) {
+            path_str.erase(0, 1);
+        }
+    }
+
+    std::string target_file_name = path_str;
+    std::string dir_part = "";
+    size_t last_slash = path_str.find_last_of("\\/");
+    if(last_slash != std::string::npos) {
+        dir_part = path_str.substr(0, last_slash);
+        target_file_name = path_str.substr(last_slash + 1);
+    }
+
+    if(!dir_part.empty()) {
+        std::vector<std::string> components;
+        std::stringstream ss(dir_part);
+        std::string item;
+        while(std::getline(ss, item, '\\')) {
+            std::stringstream ss2(item);
+            std::string subitem;
+            while(std::getline(ss2, subitem, '/')) {
+                if(!subitem.empty()) components.push_back(subitem);
+            }
+        }
+
+        for(const auto& comp : components) {
+            unsigned int next_onpos = 0;
+            const VFILE_Block* scan = first_file;
+
+            while(scan) {
+                // Fix: Find the correct structural block whose parent ID (onpos) and name match exactly.
+                if(scan->onpos == current_lookup_onpos &&
+                    (!strcasecmp(scan->name, comp.c_str()) || !strcasecmp(scan->lname, comp.c_str()))) {
+
+                    // Fix: Instead of a simple pointer comparison loop, accurately reverse-lookup the index 
+                    // in the global arrays (vfnames/vfsnames) that the scan object points to.
+                    for(unsigned int i = 1; i < vfpos; i++) {
+                        if((vfsnames[i] == scan->name || vfnames[i] == scan->lname) &&
+                            (vfsnames[i] != nullptr)) {
+
+                            // To be absolutely safe, verify that the parent of the VFILE_Block corresponding to 
+                            // this array index [i] matches the current layer being searched to prevent any false positives.
+                            const VFILE_Block* verify = first_file;
+                            while(verify) {
+                                if((verify->name == vfsnames[i] || verify->lname == vfnames[i]) &&
+                                    verify->onpos == current_lookup_onpos) {
+                                    next_onpos = i;
+                                    break;
+                                }
+                                verify = verify->next;
+                            }
+                            if(next_onpos != 0) break;
+                        }
+                    }
+                    if(next_onpos != 0) break;
+                }
+                scan = scan->next;
+            }
+
+            if(next_onpos != 0) {
+                current_lookup_onpos = next_onpos;
+            }
+            else {
+                current_lookup_onpos = 0;
+                break;
+            }
+        }
+    }
+
     const VFILE_Block* cur_file = first_file;
-	while (cur_file) {
-		unsigned int onpos=cur_file->onpos;
-		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
-            (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
-            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
-            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0))) {
-			/* We have a match */
-			*file=new Virtual_File(cur_file->data,cur_file->size);
-            (*file)->SetName(cur_file->name);
-			(*file)->flags=flags;
-			return true;
-		}
-		cur_file=cur_file->next;
-	}
-	return false;
+    while(cur_file) {
+        if(cur_file->onpos == current_lookup_onpos) {
+            bool match = (strcasecmp(target_file_name.c_str(), cur_file->name) == 0) ||
+                (strcasecmp(target_file_name.c_str(), cur_file->lname) == 0);
+
+            if(match) {
+                Virtual_File* vfile = new Virtual_File(cur_file->data, cur_file->size);
+                vfile->SetName(cur_file->name);
+                vfile->flags = flags;
+                *file = vfile;
+                return true;
+            }
+        }
+        cur_file = cur_file->next;
+    }
+
+    DOS_SetError(DOSERR_FILE_NOT_FOUND);
+    return false;
 }
 
 bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
@@ -448,16 +632,85 @@ bool Virtual_Drive::MakeDir(const char * dir) {
 	return false;
 }
 
-bool Virtual_Drive::TestDir(const char * dir) {
-	if (!dir[0]) return true;		//root directory
-	const VFILE_Block* cur_file = first_file;
-	while (cur_file) {
-		if (cur_file->isdir&&(!strcasecmp(cur_file->name, dir)||!strcasecmp(cur_file->lname, dir))) return true;
-		cur_file=cur_file->next;
-	}
-	return false;
-}
+bool Virtual_Drive::TestDir(const char* fulldir) {
+#define ENABLE_LOGGING 0
+#if ENABLE_LOGGING
+    LOG_MSG("--- [DEBUG TestDir Start] ---");
+    LOG_MSG("Target fulldir: '%s'", fulldir ? fulldir : "NULL");
+#endif
+    if(!fulldir || fulldir[0] == '\0' || (fulldir[0] == '\\' && fulldir[1] == '\0')) {
+#if ENABLE_LOGGING
+        LOG_MSG("[DEBUG] Root directory matched directly. Return true.");
+#endif
 
+        return true;
+    }
+
+    std::vector<std::string> path_components;
+    std::stringstream ss(fulldir);
+    std::string component;
+    while(std::getline(ss, component, '\\')) {
+        if(!component.empty()) {
+            path_components.push_back(component);
+        }
+    }
+
+#if ENABLE_LOGGING
+    LOG_MSG("[DEBUG] Path components count: %d", (int)path_components.size());
+#endif
+
+    unsigned int current_onpos = 0;
+
+    for(size_t depth = 0; depth < path_components.size(); ++depth) {
+        const auto& dir_name = path_components[depth];
+        bool match_found = false;
+        unsigned int next_onpos = 0;
+        const VFILE_Block* scan = first_file;
+#if ENABLE_LOGGING
+        LOG_MSG("[DEBUG] Layer %d: Searching for '%s' under parent onpos: %u", (int)depth, dir_name.c_str(), current_onpos);
+#endif
+        while(scan) {
+            // Check context parent mapping and match string contents first
+            if(scan->onpos == current_onpos &&
+                (case_insensitive_equal(scan->name, dir_name) ||
+                    case_insensitive_equal(scan->lname, dir_name))) {
+#if ENABLE_LOGGING
+                LOG_MSG("    => Target Structure Block Found! Resolving index safely...");
+#endif
+                //  POINTER REFERENCE FIX: Find the unique slot index by matching 
+                // raw memory addresses instead of string value iterations.
+                for(unsigned int i = 1; i < vfpos; i++) {
+                    if(vfsnames[i] == scan->name || vfnames[i] == scan->lname) {
+                        next_onpos = i;
+                        break;
+                    }
+                }
+                if(next_onpos != 0) break;
+            }
+            scan = scan->next;
+        }
+
+        if(next_onpos != 0) {
+#if ENABLE_LOGGING
+            LOG_MSG("      => Target index found. current_onpos updated: %u -> %u", current_onpos, next_onpos);
+#endif
+            current_onpos = next_onpos;
+            match_found = true;
+        }
+
+        if(!match_found) {
+#if ENABLE_LOGGING
+            LOG_MSG("[DEBUG TestDir End] FAILED at layer %d ('%s'). Return false.", (int)depth, dir_name.c_str());
+#endif
+            return false;
+        }
+    }
+#if ENABLE_LOGGING
+    LOG_MSG("[DEBUG TestDir End] SUCCESS! Path verified. Return true.");
+#endif
+    return true;
+#undef ENABLE_LOGGING
+}
 bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block){
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
@@ -477,18 +730,96 @@ bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 	return false;
 }
 
-bool Virtual_Drive::FileExists(const char* name){
+bool Virtual_Drive::FileExists(const char* name) {
+    if(*name == 0) return false;
+
+    std::string path_str(name);
+    if(path_str.size() >= 2 && path_str[1] == ':') {
+        path_str.erase(0, 2);
+    }
+
+    unsigned int current_lookup_onpos = 0;
+    if(!path_str.empty() && (path_str.front() == '\\' || path_str.front() == '/')) {
+        current_lookup_onpos = 0;
+        while(!path_str.empty() && (path_str.front() == '\\' || path_str.front() == '/')) {
+            path_str.erase(0, 1);
+        }
+    }
+
+    std::string target_file_name = path_str;
+    std::string dir_part = "";
+    size_t last_slash = path_str.find_last_of("\\/");
+    if(last_slash != std::string::npos) {
+        dir_part = path_str.substr(0, last_slash);
+        target_file_name = path_str.substr(last_slash + 1);
+    }
+
+    // 1. Correctly resolve the directory hierarchy to identify the final onpos, which will be the parent of the target file.
+    if(!dir_part.empty()) {
+        std::vector<std::string> components;
+        std::stringstream ss(dir_part);
+        std::string item;
+        while(std::getline(ss, item, '\\')) {
+            std::stringstream ss2(item);
+            std::string subitem;
+            while(std::getline(ss2, subitem, '/')) {
+                if(!subitem.empty()) components.push_back(subitem);
+            }
+        }
+
+        for(const auto& comp : components) {
+            unsigned int next_onpos = 0;
+            const VFILE_Block* scan = first_file;
+
+            while(scan) {
+                if(scan->onpos == current_lookup_onpos &&
+                    (!strcasecmp(scan->name, comp.c_str()) || !strcasecmp(scan->lname, comp.c_str()))) {
+
+                    for(unsigned int i = 1; i < vfpos; i++) {
+                        if((vfsnames[i] == scan->name || vfnames[i] == scan->lname) &&
+                            (vfsnames[i] != nullptr)) {
+
+                            const VFILE_Block* verify = first_file;
+                            while(verify) {
+                                if((verify->name == vfsnames[i] || verify->lname == vfnames[i]) &&
+                                    verify->onpos == current_lookup_onpos) {
+                                    next_onpos = i;
+                                    break;
+                                }
+                                verify = verify->next;
+                            }
+                            if(next_onpos != 0) break;
+                        }
+                    }
+                    if(next_onpos != 0) break;
+                }
+                scan = scan->next;
+            }
+
+            if(next_onpos != 0) {
+                current_lookup_onpos = next_onpos;
+            }
+            else {
+                current_lookup_onpos = 0;
+                return false; // Return false if the intermediate directory is not found, as the file cannot exist.
+            }
+        }
+    }
+
+    // 2. Check if the target file exists under the identified parent (current_lookup_onpos).
     const VFILE_Block* cur_file = first_file;
-	while (cur_file) {
-		unsigned int onpos=cur_file->onpos;
-		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
-            (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
-            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
-            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0)))
-            return !cur_file->isdir;
-		cur_file=cur_file->next;
-	}
-	return false;
+    while(cur_file) {
+        if(cur_file->onpos == current_lookup_onpos) {
+            bool match = (strcasecmp(target_file_name.c_str(), cur_file->name) == 0) ||
+                (strcasecmp(target_file_name.c_str(), cur_file->lname) == 0);
+            if(match) {
+                return !cur_file->isdir; // Return true if it is a file, not a directory.
+            }
+        }
+        cur_file = cur_file->next;
+    }
+
+    return false;
 }
 
 bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
@@ -498,11 +829,56 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
             DOS_SetError(DOSERR_FILE_NOT_FOUND);
             return false;
         }
-        for (unsigned int i=1; i<vfpos; i++) {
-            if (!strcasecmp(vfsnames[i], _dir)||!strcasecmp(vfnames[i], _dir)) {
-                onpos=i;
-                break;
+
+        // Fix: Instead of a simple name loop, correctly parse the passed path (dir) level by level to identify the onpos.
+        std::string search_path(_dir);
+        if(search_path.front() == '/' || search_path.front() == '\\') search_path.erase(0, 1);
+        if(!search_path.empty() && (search_path.back() == '/' || search_path.back() == '\\')) search_path.pop_back();
+
+        if(!search_path.empty()) {
+            std::vector<std::string> components;
+            std::stringstream ss(search_path);
+            std::string item;
+            while(std::getline(ss, item, '/')) {
+                std::stringstream ss2(item);
+                std::string subitem;
+                while(std::getline(ss2, subitem, '\\')) {
+                    if(!subitem.empty()) components.push_back(subitem);
+                }
             }
+
+            unsigned int current_lookup_onpos = 0;
+            for(const auto& comp : components) {
+                unsigned int next_onpos = 0;
+                // Accurately search for an entry with the same name whose parent is the layer currently being searched (current_lookup_onpos).
+                for(unsigned int i = 1; i < vfpos; i++) {
+                    if(strcasecmp(vfsnames[i], comp.c_str()) == 0 || strcasecmp(vfnames[i], comp.c_str()) == 0) {
+                        const VFILE_Block* scan = first_file;
+                        bool context_matched = false;
+                        while(scan) {
+                            if((scan->name == vfsnames[i] || scan->lname == vfnames[i]) &&
+                                scan->onpos == current_lookup_onpos) {
+                                context_matched = true;
+                                break;
+                            }
+                            scan = scan->next;
+                        }
+                        if(context_matched) {
+                            next_onpos = i;
+                            break;
+                        }
+                    }
+                }
+
+                if(next_onpos != 0) {
+                    current_lookup_onpos = next_onpos;
+                }
+                else {
+                    current_lookup_onpos = 0;
+                    break;
+                }
+            }
+            onpos = current_lookup_onpos;
         }
         if (!onpos) {
             DOS_SetError(DOSERR_PATH_NOT_FOUND);
@@ -546,34 +922,54 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
         if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
             search_file=first_file;
         else
-            lfn_search[lfn_filefind_handle]=first_file;
-        if (cmp) return true;
+            lfn_search[lfn_filefind_handle] = first_file;
+        if(cmp) return true;
     }
 
-	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
-		while (search_file) {
-			if (!(skipintprog && search_file->intprog) && pos==search_file->onpos&&((attr & DOS_ATTR_DIRECTORY)||!search_file->isdir)&&(WildFileCmp(search_file->name,pattern)||LWildFileCmp(search_file->lname,pattern))) {
-				dta.SetResult(search_file->name,search_file->lname,search_file->size,0,search_file->date,search_file->time,search_file->isdir?(search_file->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(search_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
-				search_file=search_file->next;
-				return true;
-			}
-			search_file=search_file->next;
-		}
-	else
-		while (lfn_search[lfn_filefind_handle]) {
-			if (!(skipintprog && search_file->intprog) && pos==lfn_search[lfn_filefind_handle]->onpos&&((attr & DOS_ATTR_DIRECTORY)||!lfn_search[lfn_filefind_handle]->isdir)&&(WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)||LWildFileCmp(lfn_search[lfn_filefind_handle]->lname,pattern))) {
-				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,0,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,lfn_search[lfn_filefind_handle]->isdir?(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
-				lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
-				return true;
-			}
-			lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
-		}
-	if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
-		lfn_id[lfn_filefind_handle]=0;
-		lfn_search[lfn_filefind_handle]=nullptr;
-	}
-	DOS_SetError(DOSERR_NO_MORE_FILES);
-	return false;
+    if(lfn_filefind_handle >= LFN_FILEFIND_MAX) {
+        while(search_file) {
+            // Fix: Now that the data structure is clean, we only need to enumerate entries where the parent ID (onpos) matches the current position (pos).
+            // All previous ad-hoc guards that forcibly excluded directories with the same name can be safely removed.
+            bool is_current_dir = (pos == search_file->onpos);
+
+            if(!(skipintprog && search_file->intprog) &&
+                is_current_dir &&
+                ((attr & DOS_ATTR_DIRECTORY) || !search_file->isdir) &&
+                (WildFileCmp(search_file->name, pattern) || LWildFileCmp(search_file->lname, pattern)))
+            {
+                dta.SetResult(search_file->name, search_file->lname, search_file->size, 0, search_file->date, search_file->time,
+                    search_file->isdir ? (search_file->hidden ? DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN : DOS_ATTR_DIRECTORY)
+                    : (search_file->hidden ? DOS_ATTR_ARCHIVE | DOS_ATTR_HIDDEN : DOS_ATTR_ARCHIVE));
+                search_file = search_file->next;
+                return true;
+            }
+            search_file = search_file->next;
+        }
+    }
+    else {
+        while(lfn_search[lfn_filefind_handle]) {
+            bool is_current_dir = (pos == lfn_search[lfn_filefind_handle]->onpos);
+
+            if(!(skipintprog && lfn_search[lfn_filefind_handle]->intprog) &&
+                is_current_dir &&
+                ((attr & DOS_ATTR_DIRECTORY) || !lfn_search[lfn_filefind_handle]->isdir) &&
+                (WildFileCmp(lfn_search[lfn_filefind_handle]->name, pattern) || LWildFileCmp(lfn_search[lfn_filefind_handle]->lname, pattern)))
+            {
+                dta.SetResult(lfn_search[lfn_filefind_handle]->name, lfn_search[lfn_filefind_handle]->lname, lfn_search[lfn_filefind_handle]->size, 0, lfn_search[lfn_filefind_handle]->date, lfn_search[lfn_filefind_handle]->time,
+                    lfn_search[lfn_filefind_handle]->isdir ? (lfn_search[lfn_filefind_handle]->hidden ? DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN : DOS_ATTR_DIRECTORY)
+                    : (lfn_search[lfn_filefind_handle]->hidden ? DOS_ATTR_ARCHIVE | DOS_ATTR_HIDDEN : DOS_ATTR_ARCHIVE));
+                lfn_search[lfn_filefind_handle] = lfn_search[lfn_filefind_handle]->next;
+                return true;
+            }
+            lfn_search[lfn_filefind_handle] = lfn_search[lfn_filefind_handle]->next;
+        }
+    }
+    if(lfn_filefind_handle < LFN_FILEFIND_MAX) {
+        lfn_id[lfn_filefind_handle] = 0;
+        lfn_search[lfn_filefind_handle] = nullptr;
+    }
+    DOS_SetError(DOSERR_NO_MORE_FILES);
+    return false;
 }
 
 bool Virtual_Drive::SetFileAttr(const char * name,uint16_t attr) {
@@ -603,19 +999,98 @@ bool Virtual_Drive::GetFileAttr(const char * name,uint16_t * attr) {
 		*attr=DOS_ATTR_DIRECTORY;
 		return true;
 	}
-	const VFILE_Block* cur_file = first_file;
-	while (cur_file) {
-		unsigned int onpos=cur_file->onpos;
-		if (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||(uselfn&&
-            (strcasecmp(name,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0||
-            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0||
-            strcasecmp(name,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0))) {
-			*attr = cur_file->isdir?(cur_file->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(cur_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE);	//Maybe readonly ?
-			return true;
-		}
-		cur_file=cur_file->next;
-	}
-	return false;
+
+    std::string path_str(name);
+    if(path_str.size() >= 2 && path_str[1] == ':') {
+        path_str.erase(0, 2);
+    }
+
+    unsigned int current_lookup_onpos = 0;
+    if(!path_str.empty() && (path_str.front() == '\\' || path_str.front() == '/')) {
+        current_lookup_onpos = 0;
+        while(!path_str.empty() && (path_str.front() == '\\' || path_str.front() == '/')) {
+            path_str.erase(0, 1);
+        }
+    }
+
+    std::string target_name = path_str;
+    std::string dir_part = "";
+    size_t last_slash = path_str.find_last_of("\\/");
+    if(last_slash != std::string::npos) {
+        dir_part = path_str.substr(0, last_slash);
+        target_name = path_str.substr(last_slash + 1);
+    }
+
+    if(!dir_part.empty()) {
+        std::vector<std::string> components;
+        std::stringstream ss(dir_part);
+        std::string item;
+        while(std::getline(ss, item, '\\')) {
+            std::stringstream ss2(item);
+            std::string subitem;
+            while(std::getline(ss2, subitem, '/')) {
+                if(!subitem.empty()) components.push_back(subitem);
+            }
+        }
+
+        for(const auto& comp : components) {
+            unsigned int next_onpos = 0;
+            const VFILE_Block* scan = first_file;
+
+            while(scan) {
+                if(scan->onpos == current_lookup_onpos &&
+                    (!strcasecmp(scan->name, comp.c_str()) || !strcasecmp(scan->lname, comp.c_str()))) {
+
+                    // Fix: Just like in FileOpen, strictly identify the correct index belonging to the proper hierarchy layer.
+                    for(unsigned int i = 1; i < vfpos; i++) {
+                        if((vfsnames[i] == scan->name || vfnames[i] == scan->lname) &&
+                            (vfsnames[i] != nullptr)) {
+
+                            const VFILE_Block* verify = first_file;
+                            while(verify) {
+                                if((verify->name == vfsnames[i] || verify->lname == vfnames[i]) &&
+                                    verify->onpos == current_lookup_onpos) {
+                                    next_onpos = i;
+                                    break;
+                                }
+                                verify = verify->next;
+                            }
+                            if(next_onpos != 0) break;
+                        }
+                    }
+                    if(next_onpos != 0) break;
+                }
+                scan = scan->next;
+            }
+
+            if(next_onpos != 0) {
+                current_lookup_onpos = next_onpos;
+            }
+            else {
+                current_lookup_onpos = 0;
+                break;
+            }
+        }
+    }
+
+    const VFILE_Block* cur_file = first_file;
+    while(cur_file) {
+        if(cur_file->onpos == current_lookup_onpos) {
+            bool match = (strcasecmp(target_name.c_str(), cur_file->name) == 0) ||
+                (strcasecmp(target_name.c_str(), cur_file->lname) == 0);
+
+            if(match) {
+                // Cleanup: Now that the data structure is perfectly clean, all ad-hoc fallback checks are completely unnecessary.
+                *attr = cur_file->isdir ?
+                    (cur_file->hidden ? DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN : DOS_ATTR_DIRECTORY) :
+                    (cur_file->hidden ? DOS_ATTR_ARCHIVE | DOS_ATTR_HIDDEN : DOS_ATTR_ARCHIVE);
+                return true;
+            }
+        }
+        cur_file = cur_file->next;
+    }
+
+    return false;
 }
 
 bool Virtual_Drive::GetFileAttrEx(char* name, struct stat *status) {
