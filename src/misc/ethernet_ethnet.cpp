@@ -441,7 +441,7 @@ struct L2TPpacket {
 		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ASSN_CTRL_CONN_ID);
 		if (avp && avp->length >= 4) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
-			uint32_t ccid = be32toh(*((uint16_t*)r)); r+=4;
+			uint32_t ccid = be32toh(*((uint32_t*)r)); r+=4;
 			assert(r <= rf);
 			return ccid;
 		}
@@ -587,22 +587,31 @@ static void ETHNET_ClientLoop(void) {
 	pkt.clear().fillUDPpacketForRecv(/*&*/inPacket,4096);
 	result = SDLNet_UDP_Recv(ethnetClientSocket, &inPacket);
 	if (result) {
+		bool ignore = true;
+
 		pkt.didRecv(/*&*/inPacket);
 
-		LOG_MSG("Client in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u messagetype=%u",
-			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),pkt.avp_message_type());
-
-		bool ignore = false;
+		LOG_MSG("Client in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u myConnection=%u theirConnection=%u messagetype=%u",
+			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),
+			l2tp_cli_control_connection_id,l2tp_svr_control_connection_id,pkt.avp_message_type());
 
 		if (pkt.iscontrol) {
 			L2TPpacket resp;
 
 			if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_HELLO) {
-				if (now < l2tp_cli_hello_accept) ignore = true;/*avoid HELLO storms*/
-				l2tp_cli_hello_accept = GetTicks() + 500;
+				if (l2tp_svr_control_connection_id == pkt.connection_id()) {
+					if (now < l2tp_cli_hello_accept) ignore = true;/*avoid HELLO storms*/
+					l2tp_cli_hello_accept = GetTicks() + 500;
+					ignore = false;
+				}
 			}
 			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_ACK) {
 				ignore = true;
+			}
+			else {
+				if (l2tp_svr_control_connection_id == pkt.connection_id()) {
+					ignore = false;
+				}
 			}
 
 			if (resp.write == 0 && !ignore) { /* ACK */
@@ -664,10 +673,11 @@ static void ETHNET_ServerLoop() {
 
 		struct l2tp_client_t *c = lookup_client_by_ip(inPacket.address);
 		bool disconnect = false;
-		bool ignore = false;
+		bool ignore = true;
 
-		LOG_MSG("Server in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u knownConnection=%u messagetype=%u",
-			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),c?1:0,pkt.avp_message_type());
+		LOG_MSG("Server in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u knownConnection=%u myConnection=%u theirConnection=%u messagetype=%u",
+			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),c?1:0,
+			c?c->my_control_connection_id:0,c?c->their_control_connection_id:0,pkt.avp_message_type());
 
 		if (pkt.iscontrol) {
 			L2TPpacket resp;
@@ -679,6 +689,7 @@ static void ETHNET_ServerLoop() {
 				/* create new connection only for SCCRQ */
 				if (c == NULL) c = new_client_by_ip(inPacket.address);
 
+				ignore = false;
 				if ((sfc&3) && pkt.connection_id() == 0 && accid != 0 && c) {
 					std::vector<uint16_t> pscl = {0x0005/*ethernet*/};
 
@@ -700,16 +711,27 @@ static void ETHNET_ServerLoop() {
 				}
 			}
 			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_HELLO) {
-				if (now < c->hello_accept) ignore = true;/*avoid HELLO storms*/
-				c->hello_accept = GetTicks() + 500;
+				if (c && c->my_control_connection_id == pkt.connection_id()) {
+					if (now < c->hello_accept) ignore = true;/*avoid HELLO storms*/
+					c->hello_accept = GetTicks() + 500;
+					ignore = false;
+				}
 			}
 			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_StopCCN) {
-				/* client wishes to tear down control connection and sessions */
-				LOG_MSG("Server: Client wants to disconnect");
-				disconnect = true;
+				if (c && c->my_control_connection_id == pkt.connection_id()) {
+					/* client wishes to tear down control connection and sessions */
+					LOG_MSG("Server: Client wants to disconnect");
+					disconnect = true;
+					ignore = false;
+				}
 			}
 			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_ACK) {
 				ignore = true;
+			}
+			else {
+				if (c && c->my_control_connection_id == pkt.connection_id()) {
+					ignore = false;
+				}
 			}
 
 			if (resp.write == 0 && !ignore) { /* ACK, no AVPs */
