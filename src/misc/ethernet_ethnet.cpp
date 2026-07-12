@@ -764,10 +764,14 @@ void ETHNET_StopServer() {
 }
 
 bool ETHNET_StartServer(uint16_t portnum) {
+	uint16_t i;
+
 	if(!SDLNet_ResolveHost(&ethnetServerIp, NULL, portnum)) {
 		//serverSocketSet = SDLNet_AllocSocketSet(SOCKETTABLESIZE);
 		ethnetServerSocket = SDLNet_UDP_Open(portnum);
 		if(!ethnetServerSocket) return false;
+
+		for(i=0;i<SOCKETTABLESIZE;i++) l2tp_client[i].active = false;
 
 		TIMER_AddTickHandler(&ETHNET_ServerLoop);
 		return true;

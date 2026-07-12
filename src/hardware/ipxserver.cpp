@@ -233,7 +233,6 @@ bool IPX_StartServer(uint16_t portnum) {
 	uint16_t i;
 
 	if(!SDLNet_ResolveHost(&ipxServerIp, NULL, portnum)) {
-	
 		//serverSocketSet = SDLNet_AllocSocketSet(SOCKETTABLESIZE);
 		ipxServerSocket = SDLNet_UDP_Open(portnum);
 		if(!ipxServerSocket) return false;
