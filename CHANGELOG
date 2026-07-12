@@ -2,6 +2,13 @@ Next version
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
     avoid false "[illegal]" memory operand reports in AnalyzeInstruction()
     (cimarronm)
+  - Fixed character rendering and mouse cursor display in DOS/V Japanese mode.
+    (nanshiki)
+  - Fixed build error of OSFREE release builds (maron2000)
+  - Added floppy BPB sanity check, and rearranged existing floppy BPB check code
+    (maron2000)
+  - Fixed window resizing (OpenGL, SDL2) (misty7666)
+  - Updated Nuked-OPL3-fast to v1.8-fast.3 (tgies)
 
 2026.07.02
   - Prepare for release. This time release OSFREE first so that the normal
