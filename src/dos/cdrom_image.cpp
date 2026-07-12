@@ -574,8 +574,6 @@ bool CDROM_Interface_Image::GetAudioTrackInfo(int track, TMSF& start, unsigned c
 	return true;
 }
 
-extern const char* RunningProgram;
-
 bool CDROM_Interface_Image::GetAudioSub(unsigned char& attr, unsigned char& track, unsigned char& index, TMSF& relPos, TMSF& absPos)
 {
 	int cur_track = GetTrack(player.currFrame);
@@ -585,7 +583,7 @@ bool CDROM_Interface_Image::GetAudioSub(unsigned char& attr, unsigned char& trac
 	index = 1;
 	FRAMES_TO_MSF(player.currFrame, &absPos.min, &absPos.sec, &absPos.fr);
 	FRAMES_TO_MSF(player.currFrame - tracks[track - 1].start, &relPos.min, &relPos.sec, &relPos.fr);
-	if(IS_PC98_ARCH && player.playbackRemaining == 0 && !strcmp(RunningProgram, "ITP")) {
+	if(IS_PC98_ARCH && player.playbackRemaining == 0 && RunningProgram == "ITP") {
 		// POLICENAUTS
 		// It freeze at the end of the Konami logo or opening.
 		// It seems that the end of CD-DA output is checked by the time and frame of the current track,

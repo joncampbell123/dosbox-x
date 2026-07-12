@@ -51,7 +51,7 @@ Bitu XMS_GetEnabledA20(void);
 uint32_t RunningProgramHash[4] = {0,0,0,0};
 uint32_t RunningProgramLoadAddress = 0;
 
-const char * RunningProgram="DOSBOX-X";
+std::string RunningProgram="DOSBOX-X";
 
 #ifdef _MSC_VER
 #pragma pack(1)
@@ -96,12 +96,9 @@ extern uint8_t ZDRIVE_NUM;
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), menu_update_autocycle(void);
 void DOS_UpdatePSPName(void) {
 	DOS_MCB mcb(dos.psp()-1);
-	static char name[9];
-	mcb.GetFileName(name);
-	name[8] = 0;
-	if (!strlen(name)) strcpy(name,"DOSBOX-X");
-	for(Bitu i = 0;i < 8;i++) { //Don't put garbage in the title bar. Mac OS X doesn't like it
-		if (name[i] == 0) break;
+	std::string name = mcb.GetFileName();
+	if (name.empty()) name = "DOSBOX-X";
+	for(Bitu i = 0;i < 8 && i < name.size();i++) { //Don't put garbage in the title bar. Mac OS X doesn't like it
 		if ( !isprint(*reinterpret_cast<unsigned char*>(&name[i])) ) name[i] = '?';
 	}
 	RunningProgram = name;

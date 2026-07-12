@@ -23,6 +23,7 @@
 #include <math.h>
 
 #include "dosbox.h"
+#include "dos_inc.h"
 #include "logging.h"
 #include "sdlmain.h"
 #include "render.h"
@@ -102,7 +103,6 @@ static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, 
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
 extern int posx, posy, eurAscii, transparency, NonUserResizeCounter;
 extern bool rtl, gbk, chinasea, switchttf, force_conversion, blinking, showdbcs, loadlang, window_was_maximized;
-extern const char* RunningProgram;
 extern uint8_t ccount;
 extern uint16_t cpMap[512], cpMap_PC98[256];
 uint16_t cpMap_copy[256];
@@ -555,7 +555,7 @@ int setTTFCodePage() {
 		LOG_MSG("Loaded system codepage: %d\n", cp);
 		int notMapped = setTTFMap(true);
 #if !defined(OSFREE)
-		if (strcmp(RunningProgram, "LOADLIN") && !dos_kernel_disabled)
+		if (RunningProgram != "LOADLIN" && !dos_kernel_disabled)
 			initcodepagefont();
 #endif
 #if defined(WIN32) && !defined(HX_DOS)
@@ -768,8 +768,8 @@ void OUTPUT_TTF_Select(int fsize) {
                 c=80;
                 r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
             } else {
-                c=strcmp(RunningProgram, "LOADLIN")?real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS):80;
-                r=(uint16_t)(IS_EGAVGA_ARCH&&strcmp(RunningProgram, "LOADLIN")?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
+                c=RunningProgram != "LOADLIN" ? real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS) : 80;
+                r=(uint16_t)(IS_EGAVGA_ARCH&&RunningProgram != "LOADLIN"?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
             }
             if (ttf.lins<1||ttf.cols<1)	{
                 if (ttf.cols<1)
@@ -805,8 +805,8 @@ void OUTPUT_TTF_Select(int fsize) {
                 c=80;
                 r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
             } else {
-                c=strcmp(RunningProgram, "LOADLIN")?real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS):80;
-                r=(uint16_t)(IS_EGAVGA_ARCH&&strcmp(RunningProgram, "LOADLIN")?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
+                c=RunningProgram != "LOADLIN" ? real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS) : 80;
+                r=(uint16_t)(IS_EGAVGA_ARCH&&RunningProgram != "LOADLIN"?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
             }
             ttf.cols=c;
             ttf.lins=r;
@@ -1440,7 +1440,7 @@ void ttf_switch_on(bool ss=true) {
          * protected mode (e.g. a game using a DOS extender). CALLBACK_RunRealInt()
          * would push a real-mode-style frame and corrupt the extender,
          * causing a #GP storm on the handler's IRETD. */
-        if (strcmp(RunningProgram, "LOADLIN") && !cpu.pmode) {
+        if (RunningProgram != "LOADLIN" && !cpu.pmode) {
             uint16_t oldax=reg_ax;
             reg_ax=0x1600;
             CALLBACK_RunRealInt(0x2F);

@@ -5091,21 +5091,22 @@ static void LogDEVChain(uint32_t devhdr) {
 
 // Display the content of the MCB chain starting with the MCB at the specified segment.
 static void LogMCBChain(uint16_t mcb_segment) {
-	DOS_MCB mcb(mcb_segment);
-	char filename[9]; // 8 characters plus a terminating NUL
+	std::string filename;
 	const char *psp_seg_note;
 	uint16_t DOS_dataOfs = static_cast<uint16_t>(dataOfs); //Realmode addressing only
 	PhysPt dataAddr = PhysMake(dataSeg,DOS_dataOfs);// location being viewed in the "Data Overview"
+	uint16_t end_of_chain_segment = mcb_segment;
 
-	// loop forever, breaking out of the loop once we've processed the last MCB
-	while (true) {
+	for (const auto mcb : DOS_MCB(mcb_segment)) {
+		const auto current_segment = mcb.GetSeg();
+
 		// verify that the type field is valid
-		if (mcb.GetType()!=0x4d && mcb.GetType()!=0x5a) {
-			DEBUG_ShowMsg("MCB chain broken at %04X:0000!",mcb_segment);
+		if (!mcb.isValid()) {
+			DEBUG_ShowMsg("MCB chain broken at %04X:0000!",current_segment);
 			return;
 		}
 
-		mcb.GetFileName(filename);
+		filename = mcb.GetFileName();
 
 		// some PSP segment values have special meanings
 		switch (mcb.GetPSPSeg()) {
@@ -5119,25 +5120,18 @@ static void LogMCBChain(uint16_t mcb_segment) {
 				psp_seg_note = "";
 		}
 
-		DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",mcb_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename);
+		DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",current_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename.c_str());
 
 		// print a message if dataAddr is within this MCB's memory range
-		PhysPt mcbStartAddr = PhysMake(mcb_segment+1,0);
-		PhysPt mcbEndAddr = PhysMake(mcb_segment+1+mcb.GetSize(),0);
+		PhysPt mcbStartAddr = PhysMake(current_segment+1,0);
+		PhysPt mcbEndAddr = PhysMake(current_segment+1+mcb.GetSize(),0);
 		if (dataAddr >= mcbStartAddr && dataAddr < mcbEndAddr) {
 			DEBUG_ShowMsg("   (data addr %04hX:%04X is %u bytes past this MCB)",dataSeg,DOS_dataOfs,dataAddr - mcbStartAddr);
 		}
-
-		// if we've just processed the last MCB in the chain, break out of the loop
-		mcb_segment+=mcb.GetSize()+1;
-		if (mcb.GetType()==0x5a)
-			break;
-
-		// else, move to the next MCB in the chain
-		mcb.SetPt(mcb_segment);
+		end_of_chain_segment = static_cast<uint16_t>(current_segment + mcb.GetSize() + 1);
 	}
 
-	DEBUG_ShowMsg("   %04X  END OF CHAIN",mcb_segment);
+	DEBUG_ShowMsg("   %04X  END OF CHAIN",end_of_chain_segment);
 }
 
 #include "regionalloctracking.h"
@@ -6229,5 +6223,3 @@ void DEBUG_StopLog(void) {
 
 
 #endif // DEBUG
-
-

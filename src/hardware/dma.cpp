@@ -451,10 +451,10 @@ Bitu DmaChannel::Read(Bitu want, uint8_t * buffer) {
     /* You cannot read a DMA channel configured for writing (to memory) */
     if (transfer_mode != DMAT_READ) {
         LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel read when DMA channel is configured by guest for writing (to memory)");
-        char psp_name[9];
+        std::string psp_name;
         DOS_MCB psp_mcb(dos.psp()-1);
-        psp_mcb.GetFileName(psp_name);
-        if (strcmp(psp_name, "DIAGNOSE")) // Wengier: Hack for Creative DIAGNOSE.EXE tool for now until the DMA recording function is implemented
+        psp_name = psp_mcb.GetFileName();
+        if (psp_name != "DIAGNOSE") // Wengier: Hack for Creative DIAGNOSE.EXE tool for now until the DMA recording function is implemented
             return 0;
     }
 

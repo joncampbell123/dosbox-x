@@ -52,8 +52,6 @@ extern bool isa_memory_hole_15mb;
 extern bool vbe_window_size_literal;
 extern unsigned int vbe_window_granularity;
 extern unsigned int vbe_window_size;
-extern const char* RunningProgram;
-
 static inline void vga_vram_write_trigger_update(void) {
 	vga.draw.must_complete_frame = true;
 }
@@ -2764,8 +2762,8 @@ void VGA_SetupHandlers(void) {
 	}
 
 	// Workaround for ETen Chinese DOS system (e.g. ET24VA)
-	if ((dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) enveten = true;
-	runeten = !vga_fill_inactive_ram && enveten && (dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || !TTF_using());
+	if ((dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && RunningProgram.size() > 3 && !strncmp(RunningProgram.c_str(), "ET", 2)) enveten = true;
+	runeten = !vga_fill_inactive_ram && enveten && (dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && ((RunningProgram.size() > 3 && !strncmp(RunningProgram.c_str(), "ET", 2)) || !TTF_using());
 
 	if (vga.dosboxig.force_A0000) {
 		vgapages.base = VGA_PAGE_A0;

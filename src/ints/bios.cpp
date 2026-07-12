@@ -11140,7 +11140,6 @@ private:
 #endif
             if (control->opt_fastlaunch) return CBRET_NONE;
         }
-        extern const char* RunningProgram;
         extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
         RunningProgram = "DOSBOX-X";
         GFX_SetTitle(-1,-1,-1,false);
@@ -13200,4 +13199,3 @@ void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed)
 
 #endif
 }
-

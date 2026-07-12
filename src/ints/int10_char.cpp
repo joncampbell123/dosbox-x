@@ -1211,7 +1211,6 @@ void INT10_SetActivePage(uint8_t page) {
     INT10_SetCursorPos(cur_row,cur_col,page);
 }
 
-extern const char* RunningProgram;
 void INT10_SetCursorShape(uint8_t first,uint8_t last) {
     real_writew(BIOSMEM_SEG,BIOSMEM_CURSOR_TYPE,last|(first<<8u));
     if (machine==MCH_CGA || IS_TANDY_ARCH) goto dowrite;

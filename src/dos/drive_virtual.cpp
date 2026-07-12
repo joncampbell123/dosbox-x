@@ -679,10 +679,10 @@ bool Virtual_Drive::isRemote(void) {
     else if (!strcmp(opt,"0") || !strcmp(opt,"false")) {
         return false;
     }
-	char psp_name[9];
+	std::string psp_name;
 	DOS_MCB psp_mcb(dos.psp()-1);
-	psp_mcb.GetFileName(psp_name);
-	if (!strcmp(psp_name, "SCANDISK") || !strcmp(psp_name, "CHKDSK")) {
+	psp_name = psp_mcb.GetFileName();
+	if (psp_name == "SCANDISK" || psp_name == "CHKDSK") {
 		/* Check for SCANDISK.EXE (or CHKDSK.EXE) and return true (Wengier) */
 		return true;
 	}

@@ -56,7 +56,6 @@ using namespace std;
 extern bool OpenGL_using(void);
 extern void GFX_Stop(void);
 extern void GFX_ResetScreen(void);
-extern const char* RunningProgram;
 extern bool dpi_aware_enable;
 extern bool DOS_GetMemory_unmapped;
 
@@ -923,8 +922,8 @@ static void process_msg(Bitu value)
 	FP.grFunction0();
 
 	// Enable Tomb Rider displaying shadow
-	if(!strncasecmp(RunningProgram, "Tombub", 6)) tomb = 2;
-	else if(!strncasecmp(RunningProgram, "Tomb", 4)) tomb = 1;
+	if(!strncasecmp(RunningProgram.c_str(), "Tombub", 6)) tomb = 2;
+	else if(!strncasecmp(RunningProgram.c_str(), "Tomb", 4)) tomb = 1;
 	else tomb = 0;
 
 	// Send LFB to the OVL (so it can map it in linear address)

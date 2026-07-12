@@ -73,7 +73,6 @@ unsigned char exepack_handling = EXEPACK_UNPACK;
 static bool first_run=true;
 bool sync_time = false, manualtime = false;
 extern std::string log_dev_con_str;
-extern const char* RunningProgram;
 extern bool use_quick_reboot;
 #if !defined(OSFREE)
 extern bool j3100_start;
@@ -1484,7 +1483,7 @@ static Bitu DOS_21Handler(void) {
         case 0x25:      /* Set Interrupt Vector */
             // Magical Girl Pretty Sammy
             // Patch sound driver bugs. Swap the order of "mov sp" and "mov ss".
-            if(IS_PC98_ARCH && reg_al == 0x60 && !strcmp(RunningProgram, "SNDCDDRV")
+            if(IS_PC98_ARCH && reg_al == 0x60 && RunningProgram == "SNDCDDRV"
               && real_readd(SegValue(ds), reg_dx + 47) == 0x0fa6268b && real_readd(SegValue(ds), reg_dx + 52) == 0x0fa4168e) {
                 real_writed(SegValue(ds), reg_dx + 47, 0x0fa4168e);
                 real_writed(SegValue(ds), reg_dx + 52, 0x0fa6268b);
@@ -2650,7 +2649,7 @@ static Bitu DOS_21Handler(void) {
 #endif
                 {
                     strcat(name1, "               ");									// Simply add 15 spaces
-                    if (!strcmp(RunningProgram, "4DOS") || (reg_ip == 0xeb31 && (reg_sp == 0xc25e || reg_sp == 0xc26e))) {	// 4DOS expects it to be 0 terminated (not documented)
+                    if (RunningProgram == "4DOS" || (reg_ip == 0xeb31 && (reg_sp == 0xc25e || reg_sp == 0xc26e))) {	// 4DOS expects it to be 0 terminated (not documented)
                         name1[16] = 0;
                         MEM_BlockWrite(SegPhys(ds)+reg_dx, name1, 17);
                     } else {
@@ -5068,7 +5067,7 @@ void DOS_EnableDriveMenu(char drv) {
 		}
 		name = std::string("drive_") + drv + "_saveimg";
 		mainMenu.get_item(name).enable(Drives[drv-'A'] != NULL && !dynamic_cast<fatDrive*>(Drives[drv-'A'])).refresh_item(mainMenu);
-		if (dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) {
+		if (dos_kernel_disabled || RunningProgram == "LOADLIN") {
 			bool found = false;
 			for (int i=0; i<MAX_DISK_IMAGES; i++)
 				if (imageDiskList[i] && imageDiskList[i]->ffdd && imageDiskList[i]->drvnum == drv-'A') {
@@ -5082,7 +5081,7 @@ void DOS_EnableDriveMenu(char drv) {
 
 void DOS_DoShutDown() {
 	if (test != NULL) {
-		if (strcmp(RunningProgram, "LOADLIN")) delete test;
+		if (RunningProgram != "LOADLIN") delete test;
 		test = NULL;
 	}
 

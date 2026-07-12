@@ -1003,10 +1003,10 @@ void MenuBrowseProgramFile() {
 		return;
 	std::string drive_warn;
 	DOS_MCB mcb(dos.psp()-1);
-	static char psp_name[9];
-	mcb.GetFileName(psp_name);
-	if(strlen(psp_name)&&strcmp(psp_name, "COMMAND")) {
-		drive_warn=strcmp(psp_name, "4DOS")? MSG_Get("PROGRAM_PROGRAM_ALREADY"): MSG_Get("PROGRAM_PROGRAM_ALREADY");
+	static std::string psp_name;
+	psp_name = mcb.GetFileName();
+	if(!psp_name.empty()&&psp_name!="COMMAND") {
+		drive_warn=psp_name!="4DOS"? MSG_Get("PROGRAM_PROGRAM_ALREADY"): MSG_Get("PROGRAM_PROGRAM_ALREADY");
 		systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
 		return;
 	}
@@ -3174,8 +3174,6 @@ public:
                 }
             }
         } else {
-            extern const char* RunningProgram;
-
             if (max_seg < (IS_PC98_ARCH?0x2000:0x0800)) LOG(LOG_MISC,LOG_WARN)("Booting a guest OS with too small amount of RAM may not work correctly");
 
             /* Other versions of MS-DOS/PC-DOS have their own requirements about memory:

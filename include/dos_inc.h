@@ -26,6 +26,7 @@
 
 #include <list>
 #include <stddef.h> //for offsetof
+#include <string>
 
  /* Macros SSET_* and SGET_* are used to safely access fields in memory-mapped
   * DOS structures represented via classes inheriting from MemStruct class.
@@ -81,6 +82,7 @@ struct CommandTail{
 #endif
 
 extern bool dos_kernel_disabled;
+extern std::string RunningProgram;
 
 #if !defined(OSFREE)
 #define IS_DOS_JAPANESE (!dos_kernel_disabled && mem_readb(Real2Phys(dos.tables.dbcs) + 0x02) == 0x81 && mem_readb(Real2Phys(dos.tables.dbcs) + 0x03) == 0x9F)
@@ -459,7 +461,7 @@ static INLINE uint16_t DOS_PackDate(uint16_t year,uint16_t mon,uint16_t day) {
 
 class MemStruct {
 public:
-    inline uint32_t GetIt(const uint32_t size, const PhysPt addr) {
+    inline uint32_t GetIt(const uint32_t size, const PhysPt addr) const {
 		switch (size) {
 		case 1:return mem_readb(pt+addr);
 		case 2:return mem_readw(pt+addr);
@@ -769,37 +771,7 @@ private:
 	#endif
 };
 
-class DOS_MCB : public MemStruct{
-public:
-	DOS_MCB(uint16_t seg) { SetPt(seg); }
-	void SetFileName(const char * const _name) { MEM_BlockWrite(pt+offsetof(sMCB,filename),_name,8); }
-	void GetFileName(char * const _name) { MEM_BlockRead(pt+offsetof(sMCB,filename),_name,8);_name[8]=0;}
-	void SetType(uint8_t _type) { sSave(sMCB,type,_type);}
-	void SetSize(uint16_t _size) { sSave(sMCB,size,_size);}
-	void SetPSPSeg(uint16_t _pspseg) { sSave(sMCB,psp_segment,_pspseg);}
-	uint8_t GetType(void) { return (uint8_t)sGet(sMCB,type);}
-	uint16_t GetSize(void) { return (uint16_t)sGet(sMCB,size);}
-	uint16_t GetPSPSeg(void) { return (uint16_t)sGet(sMCB,psp_segment);}
-	enum class MCBType : uint8_t
-	{
-		ValidBlock = 'M',
-		LastBlock = 'Z'
-	};
-private:
-	#ifdef _MSC_VER
-	#pragma pack (1)
-	#endif
-	struct sMCB {
-		uint8_t type;
-		uint16_t psp_segment;
-		uint16_t size;	
-		uint8_t unused[3];
-		uint8_t filename[8];
-	} GCC_ATTRIBUTE(packed);
-	#ifdef _MSC_VER
-	#pragma pack ()
-	#endif
-};
+#include "dos_mcb.h"
 
 class DOS_SDA : public MemStruct {
 public:

@@ -128,6 +128,7 @@ char* revert_escape_newlines(const char* aMessage);
 #endif
 
 #include "control.h"
+#include "dos_inc.h"
 #include "dosbox.h"
 #include "menudef.h"
 #include "pic.h"
@@ -964,7 +965,6 @@ void                        GUI_LoadFonts();
 void                        GUI_Run(bool);
 
 const char*                 titlebar = NULL;
-extern const char*          RunningProgram;
 extern bool                 CPU_CycleAutoAdjust;
 extern                      cpu_cycles_count_t CPU_CyclePercUsed;
 #if !(ENVIRON_INCLUDED)
@@ -1142,8 +1142,8 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
     if (showbasic) {
         sprintf(title, "%s%s%s %s", dosbox_title.c_str(), dosbox_title.empty() ? "" : " - ", dosbox_name, VERSION);
 
-        const char *what = RunningProgram;
-        if (what != NULL && *what != 0) {
+        const char *what = RunningProgram.c_str();
+        if (!RunningProgram.empty()) {
             char *p = title + strlen(title); // append to end of string
 
             sprintf(p,": %s - ", what);
@@ -1357,7 +1357,7 @@ bool CheckQuit(void) {
             return systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_CONFIRM"),"yesno", "question", 1);
     } else if (warn == "false")
         return true;
-    if (dos_kernel_disabled&&strcmp(RunningProgram, "DOSBOX-X")) {
+    if (dos_kernel_disabled && RunningProgram != "DOSBOX-X") {
         if (!quit) {
             systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_GUEST_DISABLED"),"ok", "warning", 1);
             return false;
@@ -1374,7 +1374,7 @@ bool CheckQuit(void) {
                     return systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_FILE_OPEN_CONFIRM"),"yesno", "question", 1);
             }
         }
-    else if (RunningProgram&&strcmp(RunningProgram, "DOSBOX-X")&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS")) {
+    else if (!RunningProgram.empty() && RunningProgram != "DOSBOX-X" && RunningProgram != "COMMAND" && RunningProgram != "4DOS") {
         if (!quit) {
             systemmessagebox("Quit DOSBox-X warning",MSG_Get("QUIT_PROGRAM_DISABLED"),"ok", "warning", 1);
             return false;
@@ -6479,7 +6479,7 @@ void GFX_Events() {
                             GFX_CaptureMouse();
                         SetPriority(sdl.priority.focus);
                         CPU_Disable_SkipAutoAdjust();
-                        if (strcmp(RunningProgram, "LOADLIN") && IsSafeToMemIOOnBehalfOfGuest()) {
+                        if (RunningProgram != "LOADLIN" && IsSafeToMemIOOnBehalfOfGuest()) {
                             BIOS_SynchronizeNumLock();
                             BIOS_SynchronizeCapsLock();
                             BIOS_SynchronizeScrollLock();
@@ -10297,7 +10297,7 @@ fresh_boot:
             dos_kernel_disabled = true;
 
             std::string core(static_cast<Section_prop *>(control->GetSection("cpu"))->Get_string("core"));
-            if (!strcmp(RunningProgram, "LOADLIN") && core == "auto") {
+            if (RunningProgram == "LOADLIN" && core == "auto") {
                 cpudecoder=&CPU_Core_Normal_Run;
                 mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
 #if (C_DYNAMIC_X86) || (C_DYNREC)
