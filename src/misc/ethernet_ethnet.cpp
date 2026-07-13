@@ -77,7 +77,13 @@ static uint32_t ethnetServerTimeoutCheck = 0;
 
 static packetBuffer incomingPacket;
 
+struct l2tp_ethernet_mac_addr_t {
+	unsigned char		a[6]={0};
+};
+
 struct l2tp_client_t {
+	struct l2tp_ethernet_mac_addr_t their_mac_address;
+	struct l2tp_ethernet_mac_addr_t my_mac_address;
 	uint32_t		their_control_connection_id = 0;
 	uint32_t		my_control_connection_id = 0;
 	uint32_t		router_id = 0;
@@ -170,6 +176,8 @@ bool ETHNET_isConnectedToServer(Bits tableNum, IPaddress ** ptrAddr) {
 
 static uint16_t l2tp_ns = 0;
 static uint16_t l2tp_nr = 0;
+static struct l2tp_ethernet_mac_addr_t l2tp_cli_mac_addr;
+static struct l2tp_ethernet_mac_addr_t l2tp_svr_mac_addr;
 static uint32_t l2tp_cli_control_connection_id = 0;/*NTS: L2TPv2 defines this as 16:16 tunnel_id:session_id*/
 static uint32_t l2tp_svr_control_connection_id = 0;
 static uint32_t l2tp_cli_session_id = 0;/*NTS: L2TPv2 defines this as 16:16 tunnel_id:session_id*/
@@ -237,6 +245,10 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 #define AVP_CTRL_ASSN_LOCAL_SESSION_ID              63
 #define AVP_CTRL_ASSN_REMOTE_SESSION_ID             64
 
+/* L2TP AVPs have a vendor ID field---use it for our extensions */
+#define AVP_VENDOR_ID_DOSBOX                        0xD05B
+# define AVP_CTRL_MSG_DOSBOX_MAC_ADDRESS            0x4000 /* client/server: provide each other the ethernet MAC address of the network card */
+
 struct L2TPpacket {
 	std::vector<unsigned char>		raw; /* this is a way for the data to persist if desired */
 	bool					iscontrol=false; /*T*/
@@ -260,7 +272,7 @@ struct L2TPpacket {
 	};
 
 	std::vector<struct avp_t>		recv_avp;//WARNING: points at buffer on recv, invalidated on resize
-	std::map<uint16_t,uint16_t>		recv_avp_map;//NTS: There is no way any packet would have more than 0xFFFF AVPs!
+	std::map<uint32_t/*vendor:attr*/,uint16_t> recv_avp_map;//NTS: There is no way any packet would have more than 0xFFFF AVPs!
 
 	L2TPpacket &clear(void) {
 		raw.clear();
@@ -368,8 +380,9 @@ struct L2TPpacket {
 		return *this;
 	}
 
-	struct avp_t *recv_lookup_avp(const uint16_t a) {
-		auto i = recv_avp_map.find(a);
+	struct avp_t *recv_lookup_avp(const uint16_t a,const uint16_t v=0) {
+		const uint32_t key = a | (v << 16u);
+		auto i = recv_avp_map.find(key);
 		if (i != recv_avp_map.end() && i->second < recv_avp.size()) return &recv_avp[i->second];
 		return NULL;
 	}
@@ -454,6 +467,26 @@ struct L2TPpacket {
 			return ccid;
 		}
 		return 0;
+	}
+
+	L2TPpacket &avp_dosbox_mac_address(const struct l2tp_ethernet_mac_addr_t &ema) {
+		needsmore(48);
+		unsigned char *w = writeptr(),*ab = w,*wf = writefence();
+		l2tp_avp_begin(w,wf,/*mandatory*/false,/*vendor*/AVP_VENDOR_ID_DOSBOX,/*attribute type*/AVP_CTRL_MSG_DOSBOX_MAC_ADDRESS);//FIXME: xl2tpd doesn't like this send as mandatory??
+		memcpy(w,ema.a,6);w+=6;
+		l2tp_avp_end(ab,w,wf);
+		writeptrupdate(w);
+		return *this;
+	}
+	bool avp_get_dosbox_mac_address(struct l2tp_ethernet_mac_addr_t &ema) {
+		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_MSG_DOSBOX_MAC_ADDRESS,AVP_VENDOR_ID_DOSBOX);
+		if (avp && avp->length >= 6) {
+			unsigned char *r = avp->data,*rf = avp->data+avp->length;
+			memcpy(ema.a,r,6);r+=6;
+			assert(r <= rf);
+			return true;
+		}
+		return false;
 	}
 
 	L2TPpacket &avp_remote_session_id(const uint32_t ccid) {
@@ -606,9 +639,10 @@ struct L2TPpacket {
 						a.length -= 6;
 						a.data = r;
 
-						if (a.vendor_id == 0) {
-							auto i=recv_avp_map.find(a.attribute_type);
-							if (i==recv_avp_map.end()) recv_avp_map[a.attribute_type] = recv_avp.size();
+						{
+							const uint32_t key = a.attribute_type | (a.vendor_id << 16u);
+							auto i=recv_avp_map.find(key);
+							if (i==recv_avp_map.end()) recv_avp_map[key] = recv_avp.size();
 						}
 
 						recv_avp.push_back(a);
@@ -696,6 +730,9 @@ static void ETHNET_ClientLoop(void) {
 	}
 }
 
+bool NE2K_IsInit(void);
+bool NE2K_GetMacAddress(unsigned char *buf);
+
 static void ETHNET_ServerLoop() {
 	uint32_t now = GetTicks();
 	UDPpacket inPacket,outPacket;
@@ -765,6 +802,14 @@ static void ETHNET_ServerLoop() {
 				ignore = false;
 				if ((sfc&3) && pkt.connection_id() == 0 && accid != 0 && c && can_ethernet) {
 					std::vector<uint16_t> pscl = {0x0005/*ethernet*/};
+					bool has_my_mac = false;
+					bool has_their_mac = pkt.avp_get_dosbox_mac_address(c->their_mac_address);
+
+					if (NE2K_IsInit()) {
+						if (NE2K_GetMacAddress(c->my_mac_address.a)) {
+							has_my_mac = true;
+						}
+					}
 
 					c->their_control_connection_id = accid;
 					if (c->my_control_connection_id == 0) c->my_control_connection_id = (uint32_t)rand()*rand();
@@ -776,11 +821,29 @@ static void ETHNET_ServerLoop() {
 						.avp_assigned_control_connection_id(c->my_control_connection_id)
 						.avp_vendor_name("DOSBox-X")
 						.avp_pseudowire_capabilities_list(pscl)
-						.avp_framing_caps(3)/*A=1 S=1*/
-						.finishwrite()
+						.avp_framing_caps(3);/*A=1 S=1*/
+					if (has_my_mac)
+						pkt.avp_dosbox_mac_address(c->my_mac_address);
+					pkt.finishwrite()
 						.fillUDPpacket(/*&*/outPacket,UDPChannel);
 					outPacket.address = inPacket.address;
 					result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
+
+					LOG_MSG("Server: SCCRQ hasmymac=%u hastheirmac=%u my_mac=%02X:%02X:%02X:%02X:%02X:%02X their_mac=%02X:%02X:%02X:%02X:%02X:%02X",
+						has_my_mac,
+						has_their_mac,
+						c->my_mac_address.a[0],
+						c->my_mac_address.a[1],
+						c->my_mac_address.a[2],
+						c->my_mac_address.a[3],
+						c->my_mac_address.a[4],
+						c->my_mac_address.a[5],
+						c->their_mac_address.a[0],
+						c->their_mac_address.a[1],
+						c->their_mac_address.a[2],
+						c->their_mac_address.a[3],
+						c->their_mac_address.a[4],
+						c->their_mac_address.a[5]);
 				}
 			}
 			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_ICRQ) {
@@ -904,12 +967,21 @@ static bool ConnectToServer(char const *strAddr) {
 			l2tp_nr = 0;
 			l2tp_cli_control_connection_id = (uint32_t)(rand()*rand());
 			l2tp_svr_control_connection_id = 0;
+			l2tp_cli_mac_addr = l2tp_ethernet_mac_addr_t();
+			l2tp_svr_mac_addr = l2tp_ethernet_mac_addr_t();
 			l2tp_cli_session_id = 0;
 			l2tp_svr_session_id = 0;
 			l2tp_cli_router_id = (uint32_t)(rand()*rand());
 			l2tp_svr_router_id = 0;
 			l2tp_cli_hello = 0;
 			l2tp_cli_timeout = 0;
+
+			bool has_mac = false;
+			if (NE2K_IsInit()) {
+				if (NE2K_GetMacAddress(l2tp_cli_mac_addr.a)) {
+					has_mac = true;
+				}
+			}
 
 			/* SCCRQ [https://www.rfc-editor.org/info/rfc3931/#section-6.1] */
 			/* [https://www.rfc-editor.org/info/rfc3931/#section-5.4.1] */
@@ -930,9 +1002,17 @@ static bool ConnectToServer(char const *strAddr) {
 				snprintf(tmp,sizeof(tmp),"DOSBox-X.%u,%u",(unsigned int)r1,(unsigned int)r2);
 				pkt.avp_host_name(tmp);
 			}
+			if (has_mac) pkt.avp_dosbox_mac_address(l2tp_cli_mac_addr);
 			pkt.finishwrite().fillUDPpacket(/*&*/regPacket,UDPChannel);
-			LOG_MSG("ETHNET: Starting L2TP with assigned ctrlconnid=%u",
-				l2tp_cli_control_connection_id);
+			LOG_MSG("ETHNET: Starting L2TP with assigned ctrlconnid=%u hasmac=%u MAC=%02X:%02X:%02X:%02X:%02X:%02X",
+				l2tp_cli_control_connection_id,
+				has_mac,
+				l2tp_cli_mac_addr.a[0],
+				l2tp_cli_mac_addr.a[1],
+				l2tp_cli_mac_addr.a[2],
+				l2tp_cli_mac_addr.a[3],
+				l2tp_cli_mac_addr.a[4],
+				l2tp_cli_mac_addr.a[5]);
 			l2tp_ns++;
 			numsent = SDLNet_UDP_Send(ethnetClientSocket, regPacket.channel, &regPacket);
 			if(!numsent) {
