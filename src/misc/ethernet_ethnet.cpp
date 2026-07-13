@@ -346,6 +346,15 @@ struct L2TPpacket {
 		return use_session_id;
 	}
 
+	L2TPpacket &rewrite_session_id(void) {
+		if (isdata && read >= 8 && raw.size() >= 8) {
+			unsigned char *p = raw.data()+4;
+			*((uint32_t*)p) = htobe32(use_session_id);
+		}
+
+		return *this;
+	}
+
 	L2TPpacket &connection_id(const uint32_t cid) {
 		use_connection_id = cid;
 		return *this;
@@ -974,7 +983,7 @@ static void ETHNET_ServerLoop() {
 			}
 		}
 		else if (pkt.isdata) {
-			if (c->my_session_id && pkt.session_id() == c->my_session_id) {
+			if (c && c->my_session_id && pkt.session_id() == c->my_session_id) {
 				size_t sz = pkt.canread();
 				if (sz >= 14) {
 					unsigned char *r = pkt.readptr(),*rf = pkt.readfence();
@@ -988,6 +997,47 @@ static void ETHNET_ServerLoop() {
 						r[0],r[1],r[2],r[3],r[4],r[5],
 						r[6],r[7],r[8],r[9],r[10],r[11],
 						be16toh(*((uint16_t*)(r+12))));
+
+					/* [https://en.wikipedia.org/wiki/Multicast_address#Ethernet] */
+					/* "Ethernet frames with a value of 1 in the least-significant bit of the first octet[c]
+					 * of the destination MAC address are treated as multicast frames and are flooded to all
+					 * points on the network. While frames with ones in all bits of the destination address
+					 * (FF-FF-FF-FF-FF-FF) are sometimes referred to as broadcasts, Ethernet generally does
+					 * not distinguish between multicast and broadcast frames." */
+					bool dst_is_broadcast = !!(r[0]&1);
+
+					if (dst_is_broadcast) {
+						for (unsigned int ci=0;ci < SOCKETTABLESIZE;ci++) {
+							struct l2tp_client_t &c = l2tp_client[ci];
+							if (c.active && c.ethpkt_ok) {
+								/* don't send it back! */
+								if (!memcmp(c.their_mac_address.a,r+6,6)) continue;
+
+								pkt.write = pkt.read;
+								pkt.session_id(c.their_session_id).rewrite_session_id().fillUDPpacket(/*&*/outPacket,UDPChannel);
+								outPacket.address = c.clientIP;
+								result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
+								LOG_MSG("Server: Relaying packet to connection=%u theirconnection=%u",
+									ci,c.their_control_connection_id);
+							}
+						}
+					}
+					else {
+						for (unsigned int ci=0;ci < SOCKETTABLESIZE;ci++) {
+							struct l2tp_client_t &c = l2tp_client[ci];
+							if (c.active && c.ethpkt_ok) {
+								if (!memcmp(c.their_mac_address.a,r,6)) {
+									pkt.write = pkt.read;
+									pkt.session_id(c.their_session_id).rewrite_session_id().fillUDPpacket(/*&*/outPacket,UDPChannel);
+									outPacket.address = c.clientIP;
+									result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
+									LOG_MSG("Server: Relaying packet to connection=%u theirconnection=%u",
+										ci,c.their_control_connection_id);
+									break;
+								}
+							}
+						}
+					}
 				}
 			}
 		}
