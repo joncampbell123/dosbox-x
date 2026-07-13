@@ -21,6 +21,8 @@
 #include <string.h>
 #include <time.h>
 #include <vector>
+#include <cctype>
+#include <algorithm>
 
 #include "dosbox.h"
 #include "dos_inc.h"
