@@ -8380,6 +8380,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     Config myconf(&com_line);
     bool saved_opt_test;
 
+    srand(time(NULL));
+
     control=&myconf;
 
 #if defined(WIN32) && !defined(HX_DOS)

@@ -154,11 +154,6 @@ bool EthnetEthernetConnection::Initialize(Section* config)
 	return true;
 }
 
-void EthnetEthernetConnection::GetPackets(std::function<void(const uint8_t*, int)> callback)
-{
-	(void)callback;
-}
-
 bool ETHNET_isConnectedToServer(Bits tableNum, IPaddress ** ptrAddr) {
 	if(tableNum >= SOCKETTABLESIZE) return false;
 	*ptrAddr = &l2tp_client[tableNum].clientIP;
@@ -255,6 +250,7 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 # define AVP_CTRL_MSG_DOSBOX_MAC_ADDRESS            0x4000 /* client/server: provide each other the ethernet MAC address of the network card for routing purposes */
 
 struct L2TPpacket {
+	/* NTS: There is nothing in this struct that requires a custom move or copy constructor---yet */
 	std::vector<unsigned char>		raw; /* this is a way for the data to persist if desired */
 	bool					iscontrol=false; /*T*/
 	bool					isdata=false; /*T*/
@@ -717,6 +713,8 @@ struct L2TPpacket {
 
 static void DisconnectFromServer(bool unexpected);
 
+static std::vector<L2TPpacket> ethnet_client_recv;
+
 static void ETHNET_ClientLoop(void) {
 	uint32_t now = GetTicks();
 	UDPpacket inPacket,outPacket;
@@ -777,6 +775,32 @@ static void ETHNET_ClientLoop(void) {
 					.finishwrite()
 					.fillUDPpacket(/*&*/outPacket,UDPChannel);
 				result = SDLNet_UDP_Send(ethnetClientSocket, outPacket.channel, &outPacket);
+			}
+		}
+		else if (pkt.isdata) {
+			if (l2tp_cli_session_id && pkt.session_id() == l2tp_cli_session_id) {
+				size_t sz = pkt.canread();
+				if (sz >= 14) {
+					unsigned char *r = pkt.readptr(),*rf = pkt.readfence();
+
+					/* bytes 0-5: destination Ethernet MAC
+					 * bytes 6-11: source Ethernet MAC
+					 * bytes 12-13: EtherType (or length if less than 1536) */
+					LOG_MSG("Client: Incoming data packet ofs=%u len=%u dest=%02X:%02X:%02X:%02X:%02X:%02X src=%02X:%02X:%02X:%02X:%02X:%02X type=0x%04x",
+						(unsigned int)pkt.read,
+						(unsigned int)(rf-r),
+						r[0],r[1],r[2],r[3],r[4],r[5],
+						r[6],r[7],r[8],r[9],r[10],r[11],
+						be16toh(*((uint16_t*)(r+12))));
+
+					if (ethnet_client_recv.size() < 256) {
+						ethnet_client_recv.push_back(std::move(pkt));
+						pkt.clear();
+					}
+					else {
+						LOG_MSG("Client: Receive buffer overrun");
+					}
+				}
 			}
 		}
 
@@ -1013,7 +1037,7 @@ static void ETHNET_ServerLoop() {
 								/* don't send it back! */
 								if (!memcmp(c.their_mac_address.a,r+6,6)) continue;
 
-								pkt.write = pkt.read;
+								pkt.write = pkt.length;
 								pkt.session_id(c.their_session_id).rewrite_session_id().fillUDPpacket(/*&*/outPacket,UDPChannel);
 								outPacket.address = c.clientIP;
 								result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
@@ -1027,7 +1051,7 @@ static void ETHNET_ServerLoop() {
 							struct l2tp_client_t &c = l2tp_client[ci];
 							if (c.active && c.ethpkt_ok) {
 								if (!memcmp(c.their_mac_address.a,r,6)) {
-									pkt.write = pkt.read;
+									pkt.write = pkt.length;
 									pkt.session_id(c.their_session_id).rewrite_session_id().fillUDPpacket(/*&*/outPacket,UDPChannel);
 									outPacket.address = c.clientIP;
 									result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
@@ -1316,6 +1340,7 @@ static bool ConnectToServer(char const *strAddr) {
 			l2tp_cli_timeout = GetTicks() + 15000;
 
 			l2tp_ethpkt_ok = true;
+			ethnet_client_recv.clear();
 			incomingPacket.connected = true;
 			TIMER_AddTickHandler(&ETHNET_ClientLoop);
 			return true;
@@ -1343,6 +1368,7 @@ static void ClientStopCCN(void) {
 
 static void DisconnectFromServer(bool unexpected) {
 	l2tp_ethpkt_ok = false;
+	ethnet_client_recv.clear();
 	if(unexpected) LOG_MSG("ETHNET: Server disconnected unexpectedly");
 	if(incomingPacket.connected) {
 		if (!unexpected) ClientStopCCN(); // Let the server know!
@@ -1350,6 +1376,19 @@ static void DisconnectFromServer(bool unexpected) {
 		TIMER_DelTickHandler(&ETHNET_ClientLoop);
 		SDLNet_UDP_Close(ethnetClientSocket);
 	}
+}
+
+void EthnetEthernetConnection::GetPackets(std::function<void(const uint8_t*, int)> callback)
+{
+	std::vector<L2TPpacket> recv = std::move(ethnet_client_recv);
+	ethnet_client_recv.clear();
+
+	for (auto &pkt : recv) {
+		unsigned char *r = pkt.readptr(),*rf = pkt.readfence();
+		if (r < rf) callback((const uint8_t*)r,(int)(rf-r));
+	}
+
+	ethnet_client_recv.clear();
 }
 
 void EthnetEthernetConnection::SendPacket(const uint8_t* packet, int len)
