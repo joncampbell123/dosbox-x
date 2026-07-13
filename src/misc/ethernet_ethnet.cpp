@@ -247,7 +247,7 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 
 /* L2TP AVPs have a vendor ID field---use it for our extensions */
 #define AVP_VENDOR_ID_DOSBOX                        0xD05B
-# define AVP_CTRL_MSG_DOSBOX_MAC_ADDRESS            0x4000 /* client/server: provide each other the ethernet MAC address of the network card */
+# define AVP_CTRL_MSG_DOSBOX_MAC_ADDRESS            0x4000 /* client/server: provide each other the ethernet MAC address of the network card for routing purposes */
 
 struct L2TPpacket {
 	std::vector<unsigned char>		raw; /* this is a way for the data to persist if desired */
