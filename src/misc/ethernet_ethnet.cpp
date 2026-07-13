@@ -753,7 +753,7 @@ static void ETHNET_ClientLoop(void) {
 			L2TPpacket resp;
 
 			if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_HELLO) {
-				if (l2tp_svr_control_connection_id == pkt.connection_id()) {
+				if (l2tp_cli_control_connection_id == pkt.connection_id()) {
 					if (now < l2tp_cli_hello_accept) ignore = true;/*avoid HELLO storms*/
 					l2tp_cli_hello_accept = GetTicks() + 500;
 					ignore = false;
@@ -763,7 +763,7 @@ static void ETHNET_ClientLoop(void) {
 				ignore = true;
 			}
 			else {
-				if (l2tp_svr_control_connection_id == pkt.connection_id()) {
+				if (l2tp_cli_control_connection_id == pkt.connection_id()) {
 					ignore = false;
 				}
 			}
