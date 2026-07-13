@@ -1192,7 +1192,8 @@ void getdrivezpath(std::string &path, std::string const& dirname) {
     }
 }
 
-void drivezRegister(std::string const& path, std::string const& dir, bool usecp) {
+//  Change the argument name 'dir' to 'target_dir' to completely prevent shadowing issues
+void drivezRegister(std::string const& path, std::string const& target_dir, bool usecp) {
     int cp = dos.loaded_codepage;
     if (!usecp || !cp) {
         force_conversion = true;
@@ -1253,36 +1254,19 @@ void drivezRegister(std::string const& path, std::string const& dir, bool usecp)
     uint8_t *f_data;
     struct stat temp_stat;
     const struct tm* ltime;
-    const host_cnv_char_t* host_name;
-    for (std::string name: names) {
-        if (!name.size()) continue;
-        if ((!strcasecmp(name.c_str(), "AUTOEXEC.BAT") || !strcasecmp(name.c_str(), "CONFIG.SYS")) && dir=="/") continue;
-        if (name.back()=='/' && dir=="/") {
-            ht_stat_t temp_stat;
-            host_name = CodePageGuestToHost((path+CROSS_FILESPLIT+name).c_str());
-            res = host_name == NULL ? 1 : ht_stat(host_name,&temp_stat);
-            if (res) {
-                host_name = CodePageGuestToHost((GetDOSBoxXPath()+path+CROSS_FILESPLIT+name).c_str());
-                res = ht_stat(host_name,&temp_stat);
-            }
-            if (res==0&&(ltime=
-#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
-            _localtime64
-#else
-            localtime
-#endif
-            (&temp_stat.st_mtime))!=nullptr) {
-                fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
-                fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
-            }
-            VFILE_Register(name.substr(0, name.size()-1).c_str(), nullptr, 0, dir.c_str());
-            fztime = fzdate = 0;
-            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name, usecp);
-            continue;
-        }
-        FILE * f = NULL;
-        host_cnv_char_t *host_name = CodePageGuestToHost((path+CROSS_FILESPLIT+name).c_str());
-        if (host_name != NULL) {
+    const host_cnv_char_t* host_name_ptr;
+
+    // Format target directory string cleanly for VFILE registration context
+    std::string vfile_dir_context = (target_dir == "/") ? "" : target_dir;
+
+    // PHASE 1: Register all regular files in the current directory first
+    for(std::string const& name : names) {
+        if(!name.size() || name.back() == '/') continue;
+        if((!strcasecmp(name.c_str(), "AUTOEXEC.BAT") || !strcasecmp(name.c_str(), "CONFIG.SYS")) && target_dir == "/") continue;
+
+        FILE* f = NULL;
+        host_cnv_char_t* host_name = CodePageGuestToHost((path + CROSS_FILESPLIT + name).c_str());
+        if(host_name != NULL) {
 #ifdef host_cnv_use_wchar
             f = _wfopen(host_name, L"rb");
 #else
@@ -1316,9 +1300,46 @@ void drivezRegister(std::string const& path, std::string const& dir, bool usecp)
             if (f_data) fread(f_data, sizeof(char), f_size, f);
             fclose(f);
         }
-        if (f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
+        if(f_data) VFILE_Register(name.c_str(), f_data, f_size, vfile_dir_context.c_str());
         fztime = fzdate = 0;
     }
+
+    // PHASE 2: Process subdirectories and recurse down afterwards
+    for(std::string const& name : names) {
+        if(!name.size() || name.back() != '/') continue;
+
+        ht_stat_t temp_stat;
+        host_name_ptr = CodePageGuestToHost((path + CROSS_FILESPLIT + name).c_str());
+        res = host_name_ptr == NULL ? 1 : ht_stat(host_name_ptr, &temp_stat);
+        if(res) {
+            host_name_ptr = CodePageGuestToHost((GetDOSBoxXPath() + path + CROSS_FILESPLIT + name).c_str());
+            res = ht_stat(host_name_ptr, &temp_stat);
+        }
+        if(res == 0 && (ltime =
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+            _localtime64
+#else
+            localtime
+#endif
+            (&temp_stat.st_mtime)) != nullptr) {
+            fztime = DOS_PackTime((uint16_t)ltime->tm_hour, (uint16_t)ltime->tm_min, (uint16_t)ltime->tm_sec);
+            fzdate = DOS_PackDate((uint16_t)(ltime->tm_year + 1900), (uint16_t)(ltime->tm_mon + 1), (uint16_t)ltime->tm_mday);
+        }
+
+        // Register the subdirectory directory entity under the current tier context safely
+        VFILE_Register(name.substr(0, name.size() - 1).c_str(), nullptr, 0, vfile_dir_context.c_str());
+        fztime = fzdate = 0;
+
+        // Build the next recursion path strings cleanly
+        std::string next_target_dir = target_dir;
+        if(next_target_dir.empty() || next_target_dir.back() != '/') {
+            next_target_dir += "/";
+        }
+        next_target_dir += name.substr(0, name.size() - 1);
+
+        drivezRegister(path + CROSS_FILESPLIT + name.substr(0, name.size() - 1), next_target_dir, usecp);
+    }
+
     dos.loaded_codepage = cp;
 }
 
@@ -1399,10 +1420,16 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
     FILE * hand;
     if (enable_share_exe && (!existing_file || special_attributes)) {
 #if defined(WIN32)
+        // 🌟 Fix: Safely combine multiple standard DOS attribute bits into a single bitmask 
+        // to prevent attributes from overriding/erasing each other.
         int attribs = FILE_ATTRIBUTE_NORMAL;
-        if (attributes&3) attribs = attributes&3;
-        HANDLE handle = CreateFileW(host_name, GENERIC_READ|GENERIC_WRITE, enable_share_exe?(FILE_SHARE_READ|FILE_SHARE_WRITE):0, NULL, CREATE_ALWAYS, attribs, NULL);
-        if (handle == INVALID_HANDLE_VALUE) return false;
+        if(attributes & 0x01) attribs |= FILE_ATTRIBUTE_READONLY;
+        if(attributes & 0x02) attribs |= FILE_ATTRIBUTE_HIDDEN;
+        if(attributes & 0x04) attribs |= FILE_ATTRIBUTE_SYSTEM;
+        if(attributes & 0x20) attribs |= FILE_ATTRIBUTE_ARCHIVE;
+
+        HANDLE handle = CreateFileW(host_name, GENERIC_READ | GENERIC_WRITE, enable_share_exe ? (FILE_SHARE_READ | FILE_SHARE_WRITE) : 0, NULL, CREATE_ALWAYS, attribs, NULL);
+        if(handle == INVALID_HANDLE_VALUE) return false;
         int nHandle = _open_osfhandle((intptr_t)handle, _O_RDONLY);
         if (nHandle == -1) {CloseHandle(handle);return false;}
         hand = _wfdopen(nHandle, L"wb+");
