@@ -154,12 +154,6 @@ bool EthnetEthernetConnection::Initialize(Section* config)
 	return true;
 }
 
-void EthnetEthernetConnection::SendPacket(const uint8_t* packet, int len)
-{
-	(void)packet;
-	(void)len;
-}
-
 void EthnetEthernetConnection::GetPackets(std::function<void(const uint8_t*, int)> callback)
 {
 	(void)callback;
@@ -696,12 +690,11 @@ struct L2TPpacket {
 					 */
 					isdata = true;
 					use_session_id = 0;
-					read = 8;
+					length = udp.len;
+					r += 2;
 
-					if (udp.len >= 8) {
-						unsigned char *r = readptr(),*rf = readfence();
+					if ((r+4) <= rf) {
 						use_session_id = be32toh(*((uint32_t*)r)); r+=4;
-						readptrupdate(r);
 					}
 				}
 
@@ -830,9 +823,10 @@ static void ETHNET_ServerLoop() {
 		bool disconnect = false;
 		bool ignore = true;
 
-		LOG_MSG("Server in: ctrl=%u ver=%u length=%u Ns=%u Nr=%u conn=%u knownConnection=%u myConnection=%u theirConnection=%u messagetype=%u",
-			pkt.iscontrol,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),c?1:0,
-			c?c->my_control_connection_id:0,c?c->their_control_connection_id:0,pkt.avp_message_type());
+		LOG_MSG("Server in: ctrl=%u data=%u ver=%u length=%u Ns=%u Nr=%u conn=%u knownConnection=%u myConnection=%u theirConnection=%u messagetype=%u session_id=%u mysession=%u theirsession=%u ofs=%u",
+			pkt.iscontrol,pkt.isdata,pkt.ver,pkt.length,pkt.Ns,pkt.Nr,pkt.connection_id(),c?1:0,
+			c?c->my_control_connection_id:0,c?c->their_control_connection_id:0,pkt.avp_message_type(),
+			pkt.session_id(),c?c->my_session_id:0,c?c->their_session_id:0,(unsigned int)pkt.read);
 
 		if (pkt.iscontrol) {
 			L2TPpacket resp;
@@ -977,6 +971,24 @@ static void ETHNET_ServerLoop() {
 			if (disconnect) {
 				c->ethpkt_ok = false;
 				c->active = false;
+			}
+		}
+		else if (pkt.isdata) {
+			if (c->my_session_id && pkt.session_id() == c->my_session_id) {
+				size_t sz = pkt.canread();
+				if (sz >= 14) {
+					unsigned char *r = pkt.readptr(),*rf = pkt.readfence();
+
+					/* bytes 0-5: destination Ethernet MAC
+					 * bytes 6-11: source Ethernet MAC
+					 * bytes 12-13: EtherType (or length if less than 1536) */
+					LOG_MSG("Server: Incoming data packet ofs=%u len=%u dest=%02X:%02X:%02X:%02X:%02X:%02X src=%02X:%02X:%02X:%02X:%02X:%02X type=0x%04x",
+						(unsigned int)pkt.read,
+						(unsigned int)(rf-r),
+						r[0],r[1],r[2],r[3],r[4],r[5],
+						r[6],r[7],r[8],r[9],r[10],r[11],
+						be16toh(*((uint16_t*)(r+12))));
+				}
 			}
 		}
 
@@ -1287,6 +1299,35 @@ static void DisconnectFromServer(bool unexpected) {
 		incomingPacket.connected = false;
 		TIMER_DelTickHandler(&ETHNET_ClientLoop);
 		SDLNet_UDP_Close(ethnetClientSocket);
+	}
+}
+
+void EthnetEthernetConnection::SendPacket(const uint8_t* packet, int len)
+{
+	if (l2tp_ethpkt_ok && len >= 14) {
+		/* encapsulate into a data packet and send to server.
+		 * packet data includes ethernet header */
+		/* bytes 0-5: destination Ethernet MAC
+		 * bytes 6-11: source Ethernet MAC
+		 * bytes 12-13: EtherType (or length if less than 1536) */
+		UDPpacket outPacket;
+		L2TPpacket pkt;
+		Bits result;
+
+		pkt.clear()
+			.session_id(l2tp_svr_session_id)
+			.begin_data()
+			.needs(len+64);
+		{
+			unsigned char *w = pkt.writeptr(),*wf = pkt.writefence();
+			memcpy(w,packet,len); w+=len;
+			pkt.writeptrupdate(w);
+		}
+		pkt.finishwrite().fillUDPpacket(/*&*/outPacket,UDPChannel);
+		result = SDLNet_UDP_Send(ethnetClientSocket, outPacket.channel, &outPacket);
+		if (!result) DisconnectFromServer(true);
+
+		LOG_MSG("SendPacket ethlen=%u pktlen=%u",(unsigned int)len,(unsigned int)pkt.write);
 	}
 }
 
