@@ -9,6 +9,7 @@ Next version
     (maron2000)
   - Fixed window resizing (OpenGL, SDL2) (misty7666)
   - Updated Nuked-OPL3-fast to v1.8-fast.3 (tgies)
+  - Added support for nested subdirectories in Z drive (maron2000)
 
 2026.07.02
   - Prepare for release. This time release OSFREE first so that the normal
