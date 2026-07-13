@@ -96,6 +96,7 @@ struct l2tp_client_t {
 	IPaddress		clientIP;
 	bool			active = false;
 	bool			call_active = false;
+	bool			ethpkt_ok = false;
 };
 
 #define MAX_CLIENTS		(64)
@@ -187,6 +188,16 @@ static uint32_t l2tp_svr_router_id = 0;
 static uint32_t l2tp_cli_hello = 0;
 static uint32_t l2tp_cli_timeout = 0;
 static uint32_t l2tp_cli_hello_accept = 0;
+static bool l2tp_ethpkt_ok = false;
+
+static void l2tp_datamsg_hdr(unsigned char* &w,unsigned char *wf,uint32_t session_id) {
+	if ((w+12) > wf) return;
+
+	*w++ = 0x00;/* Txxxxxxx T=0 */
+	*w++ = 3;
+	*((uint16_t*)w) = 0; w+=2; /* reserved */
+	*((uint32_t*)w) = htobe32(session_id); w+=4; /* Control Connection ID */
+}
 
 static void l2tp_ctrlmsg_hdr(unsigned char* &w,unsigned char *wf,uint32_t ctrl_conn_id,uint16_t ns,uint16_t nr) {
 	if ((w+12) > wf) return;
@@ -252,6 +263,7 @@ static void l2tp_avp_end(unsigned char *base,unsigned char* &w,unsigned char *wf
 struct L2TPpacket {
 	std::vector<unsigned char>		raw; /* this is a way for the data to persist if desired */
 	bool					iscontrol=false; /*T*/
+	bool					isdata=false; /*T*/
 	bool					didrecv=false;
 	size_t					read=0;
 	size_t					write=0;
@@ -261,6 +273,7 @@ struct L2TPpacket {
 	uint16_t				Ns=0,Nr=0;
 	uint16_t				length=0;
 	uint32_t				use_connection_id=0;
+	uint32_t				use_session_id=0;
 
 	struct avp_t {
 		bool				M=false;
@@ -283,6 +296,7 @@ struct L2TPpacket {
 		length_field=0;
 		seq_field=0;
 		use_connection_id=0;
+		use_session_id=0;
 		return *this;
 	}
 	L2TPpacket &setseq(const uint16_t ns,const uint16_t nr) {
@@ -330,6 +344,14 @@ struct L2TPpacket {
 		return raw.size()-read;
 	}
 
+	L2TPpacket &session_id(const uint32_t sid) {
+		use_session_id = sid;
+		return *this;
+	}
+	uint32_t session_id(void) {
+		return use_session_id;
+	}
+
 	L2TPpacket &connection_id(const uint32_t cid) {
 		use_connection_id = cid;
 		return *this;
@@ -345,6 +367,17 @@ struct L2TPpacket {
 			needsmore(12);
 			unsigned char *w = writeptr();
 			l2tp_ctrlmsg_hdr(w,writefence(),use_connection_id,Ns,Nr);
+			writeptrupdate(w);
+		}
+
+		return *this;
+	}
+	L2TPpacket &begin_data(void) {
+		if (write == 0) {
+			isdata=true;
+			needsmore(12);
+			unsigned char *w = writeptr();
+			l2tp_datamsg_hdr(w,writefence(),use_session_id);
 			writeptrupdate(w);
 		}
 
@@ -651,6 +684,26 @@ struct L2TPpacket {
 
 					//if (r < rf) LOG_MSG("%u bytes left to parse",(unsigned int)(rf-r));
 				}
+				else if ((h&0x8000u) == 0) { /* data packet */
+					/* session header over UDP:
+					 *
+					 * <Txxxxxxxxxx ver> <reserved> T=0
+					 * <session ID>
+					 *
+					 * <optional L2-specific sublayer> (but we don't use this, so it's not there in OUR conversations)
+					 *
+					 * <payload>
+					 */
+					isdata = true;
+					use_session_id = 0;
+					read = 8;
+
+					if (udp.len >= 8) {
+						unsigned char *r = readptr(),*rf = readfence();
+						use_session_id = be32toh(*((uint32_t*)r)); r+=4;
+						readptrupdate(r);
+					}
+				}
 
 				readptrupdate(r);
 			}
@@ -880,6 +933,11 @@ static void ETHNET_ServerLoop() {
 					result = SDLNet_UDP_Send(ethnetServerSocket, -1, &outPacket);
 				}
 			}
+			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_ICCN) {
+				if (c && c->my_control_connection_id == pkt.connection_id()) {
+					c->ethpkt_ok = true;
+				}
+			}
 			else if (pkt.avp_message_type() == AVP_CTRL_MSG_TYPE_HELLO) {
 				if (c && c->my_control_connection_id == pkt.connection_id()) {
 					if (now < c->hello_accept) ignore = true;/*avoid HELLO storms*/
@@ -917,6 +975,7 @@ static void ETHNET_ServerLoop() {
 			}
 
 			if (disconnect) {
+				c->ethpkt_ok = false;
 				c->active = false;
 			}
 		}
@@ -975,6 +1034,7 @@ static bool ConnectToServer(char const *strAddr) {
 			l2tp_svr_router_id = 0;
 			l2tp_cli_hello = 0;
 			l2tp_cli_timeout = 0;
+			l2tp_ethpkt_ok = false;
 
 			bool has_mac = false;
 			if (NE2K_IsInit()) {
@@ -1193,6 +1253,7 @@ static bool ConnectToServer(char const *strAddr) {
 			l2tp_cli_hello = GetTicks() + 3000;
 			l2tp_cli_timeout = GetTicks() + 15000;
 
+			l2tp_ethpkt_ok = true;
 			incomingPacket.connected = true;
 			TIMER_AddTickHandler(&ETHNET_ClientLoop);
 			return true;
@@ -1219,6 +1280,7 @@ static void ClientStopCCN(void) {
 }
 
 static void DisconnectFromServer(bool unexpected) {
+	l2tp_ethpkt_ok = false;
 	if(unexpected) LOG_MSG("ETHNET: Server disconnected unexpectedly");
 	if(incomingPacket.connected) {
 		if (!unexpected) ClientStopCCN(); // Let the server know!
