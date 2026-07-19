@@ -1155,7 +1155,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 		LOG(LOG_INT10,LOG_NORMAL)("AX CRT BIOS 82xxh is called.");
 		switch (reg_al) {
 		case 0x00:
-			if (reg_bl == -1) {//Read scroll mode
+			if (reg_bl == 0xff) {//Read scroll mode
 				reg_al = real_readb(BIOSMEM_AX_SEG, BIOSMEM_AX_JPNSTATUS) & 0x01;
 			}
 			else {//Set scroll mode

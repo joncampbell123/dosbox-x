@@ -2717,6 +2717,7 @@ void AdjustIMEFontSize()
 #elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
 	IME_SetFontSize(cheight);
 #endif
+	(void)cheight;
 }
 
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode)
