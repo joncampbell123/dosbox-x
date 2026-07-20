@@ -232,7 +232,7 @@ void VFILE_Register(const char* name, uint8_t* data, uint32_t size, const char* 
     static unsigned int last_resolved_onpos = 0;
 
     std::string current_normalized_dir = dir_str;
-    if(current_normalized_dir.front() == '/' || current_normalized_dir.front() == '\\') current_normalized_dir.erase(0, 1);
+    if(!current_normalized_dir.empty() && (current_normalized_dir.front() == '/' || current_normalized_dir.front() == '\\')) current_normalized_dir.erase(0, 1);
     if(!current_normalized_dir.empty() && (current_normalized_dir.back() == '/' || current_normalized_dir.back() == '\\')) current_normalized_dir.pop_back();
 
     // Improvement: To avoid catching its own name during the search, the global arrays (vfnames/vfsnames) 
