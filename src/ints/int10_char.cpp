@@ -727,7 +727,6 @@ void WriteCharDOSVSbcs24(uint8_t col, uint8_t row, uint8_t chr, uint8_t attr)
 	uint8_t *font;
 	Bitu off;
 	Bitu width = (real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) == 85) ? 128 : 160;
-	volatile uint8_t dummy;
 
 	font = GetSbcs24Font(chr);
 
@@ -754,12 +753,12 @@ void WriteCharDOSVSbcs24(uint8_t col, uint8_t row, uint8_t chr, uint8_t attr)
 		for(uint8_t x = 0 ; x < 2 ; x++) {
 			IO_Write(0x3ce, 8); IO_Write(0x3cf, data[x]);
 			IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
-			dummy = real_readb(0xa000, off);
+			(void)real_readb(0xa000, off);
 			real_writeb(0xa000, off, 0xff);
 
 			IO_Write(0x3ce, 8); IO_Write(0x3cf, data[x] ^ mask_data[col & 1][x]);
 			IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
-			dummy = real_readb(0xa000, off);
+			(void)real_readb(0xa000, off);
 			real_writeb(0xa000, off, 0xff);
 
 			off++;
@@ -779,7 +778,6 @@ void WriteCharDOSVDbcs24(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr)
 	uint8_t *font;
 	Bitu off;
 	Bitu width = (real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) == 85) ? 128 : 160;
-	volatile uint8_t dummy;
 
 	font = GetDbcs24Font(chr);
 
@@ -810,12 +808,12 @@ void WriteCharDOSVDbcs24(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr)
 			if(mask_data[col & 1][x] != 0) {
 				IO_Write(0x3ce, 8); IO_Write(0x3cf, data[x]);
 				IO_Write(0x3ce, 0); IO_Write(0x3cf, attr);
-				dummy = real_readb(0xa000, off);
+				(void)real_readb(0xa000, off);
 				real_writeb(0xa000, off, 0xff);
 
 				IO_Write(0x3ce, 8); IO_Write(0x3cf, data[x] ^ mask_data[col & 1][x]);
 				IO_Write(0x3ce, 0); IO_Write(0x3cf, back);
-				dummy = real_readb(0xa000, off);
+				(void)real_readb(0xa000, off);
 				real_writeb(0xa000, off, 0xff);
 			}
 			off++;
@@ -846,14 +844,13 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 			IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
 			IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x18);
 
-			volatile uint8_t dummy;
 			Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
 			uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
 			font = height == 16 ? GetSbcsFont(chr) : GetSbcs19Font(chr);
 			off = row * width * height + col;
 			select = StartBankSelect(off);
 			for(uint8_t h = 0 ; h < height ; h++) {
-				dummy = real_readb(0xa000, off);
+				(void)real_readb(0xa000, off);
 				data = *font++;
 				real_writeb(0xa000, off, data);
 				off += width;
@@ -864,7 +861,6 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 		}
 		attr &= 0x0f;
 	}
-	volatile uint8_t dummy;
 	Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
 	uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
 	font = height == 16 ? GetSbcsFont(chr) : GetSbcs19Font(chr);
@@ -874,7 +870,7 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 	IO_Write(0x3ce, 0x08); IO_Write(0x3cf, 0xff);
 	IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
 	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr >> 4);
-	real_writeb(0xa000, off, 0xff); dummy = real_readb(0xa000, off);
+	real_writeb(0xa000, off, 0xff); (void)real_readb(0xa000, off);
 	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
 	for(uint8_t h = 0 ; h < height ; h++) {
 		data = *font++;
@@ -886,7 +882,6 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 
 static void DrawCharDOSVDbcsHalf(Bitu off, uint8_t *font, uint8_t attr, Bitu width, uint8_t height, uint8_t select, bool xor_flag)
 {
-	volatile uint8_t dummy;
 	uint8_t data;
 	IO_Write(0x3ce, 0x08); IO_Write(0x3cf, 0xff);
 	if(xor_flag) {
@@ -896,12 +891,12 @@ static void DrawCharDOSVDbcsHalf(Bitu off, uint8_t *font, uint8_t attr, Bitu wid
 	} else {
 		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
 		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr >> 4);
-		real_writeb(0xa000, off, 0xff); dummy = real_readb(0xa000, off);
+		real_writeb(0xa000, off, 0xff); (void)real_readb(0xa000, off);
 		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
 	}
 	for(uint8_t h = 0 ; h < height ; h++) {
 		if(xor_flag) {
-			dummy = real_readb(0xa000, off);
+			(void)real_readb(0xa000, off);
 		}
 		if(height == 19 && (h == 0 || h > 16)) {
 			data = 0;
@@ -920,13 +915,12 @@ static void DrawCharDOSVDbcsHalf(Bitu off, uint8_t *font, uint8_t attr, Bitu wid
 
 static inline void DrawCharDOSVDbcs(Bitu off, uint16_t *font, uint8_t attr, Bitu width, uint8_t height, uint8_t select)
 {
-	volatile uint16_t dummy;
 	uint16_t data;
 
 	IO_Write(0x3ce, 0x08); IO_Write(0x3cf, 0xff);
 	IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
 	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr >> 4);
-	real_writew(0xa000, off, 0xffff); dummy = real_readw(0xa000, off);
+	real_writew(0xa000, off, 0xffff); (void)real_readw(0xa000, off);
 	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
 
 	for(uint8_t h = 0 ; h < height ; h++) {
@@ -1900,7 +1894,6 @@ void INT10_TeletypeOutput(uint8_t chr,uint8_t attr) {
 static void DrawExtendAttribute(uint16_t col, uint16_t row, uint8_t attr, uint8_t ex_attr)
 {
 	Bitu off, off_start;
-	volatile uint8_t dummy;
 	Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
 	uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
 	uint8_t no, select;
@@ -1919,12 +1912,12 @@ static void DrawExtendAttribute(uint16_t col, uint16_t row, uint8_t attr, uint8_
 		select = StartBankSelect(off);
 		if(height == 24) {
 			IO_Write(0x3ce, 0x08); IO_Write(0x3cf, mask_data[col & 1][0]);
-			dummy = real_readb(0xa000, off);
+			(void)real_readb(0xa000, off);
 			real_writeb(0xa000, off, 0x07);
 			off++;
 			select = CheckBankSelect(select, off);
 			IO_Write(0x3ce, 0x08); IO_Write(0x3cf, mask_data[col & 1][1]);
-			dummy = real_readb(0xa000, off);
+			(void)real_readb(0xa000, off);
 			real_writeb(0xa000, off, 0x07);
 		} else {
 			IO_Write(0x3ce, 0x08); IO_Write(0x3cf, 0xff);
@@ -1941,7 +1934,7 @@ static void DrawExtendAttribute(uint16_t col, uint16_t row, uint8_t attr, uint8_
 			IO_Write(0x3cf, 0x08);
 		}
 		for(no = 0 ; no < height ; no++) {
-			dummy = real_readb(0xa000, off);
+			(void)real_readb(0xa000, off);
 			real_writeb(0xa000, off, 0x07);
 			off += width;
 			select = CheckBankSelect(select, off);
@@ -1952,12 +1945,12 @@ static void DrawExtendAttribute(uint16_t col, uint16_t row, uint8_t attr, uint8_
 		select = StartBankSelect(off);
 		if(height == 24) {
 			IO_Write(0x3ce, 0x08); IO_Write(0x3cf, mask_data[col & 1][0]);
-			dummy = real_readb(0xa000, off);
+			(void)real_readb(0xa000, off);
 			real_writeb(0xa000, off, attr & 0x0f);
 			off++;
 			select = CheckBankSelect(select, off);
 			IO_Write(0x3ce, 0x08); IO_Write(0x3cf, mask_data[col & 1][1]);
-			dummy = real_readb(0xa000, off);
+			(void)real_readb(0xa000, off);
 			real_writeb(0xa000, off, attr & 0x0f);
 		} else {
 			IO_Write(0x3ce, 0x08); IO_Write(0x3cf, 0xff);
