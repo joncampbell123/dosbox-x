@@ -19,7 +19,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '14'
       - name: Build minimal
@@ -106,7 +106,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '14'
       - name: Install libraries
