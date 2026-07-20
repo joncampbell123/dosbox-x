@@ -2176,7 +2176,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
                 }
 
                 if(DiskGeometryList[i].ksize == 0) {
-                    LOG_MSG("Rejecting image, boot sector has invalid BPB, and disk image size %d kB is not a supported floppy size", loadedDisk->diskSizeK);
+                    LOG_MSG("Rejecting image, boot sector has invalid BPB, and disk image size %d kB is not a supported floppy size",
+                        (unsigned int)loadedDisk->diskSizeK);
                     created_successfully = false;
                     return;
                 }
@@ -3044,6 +3045,8 @@ static bool VolumeLabelCmp(const char* label11, const char* pattern)
 bool fatDrive::FindNextInternal(uint32_t dirClustNumber, DOS_DTA &dta, direntry *foundEntry) {
 	if (unformatted) return false;
 
+	bool sectbuf_valid = false;
+	uint32_t sectbuf_sector = 0;
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
 	uint32_t logentsector; /* Logical entry sector */
 	uint32_t entryoffset;  /* Index offset within sector */
@@ -3072,6 +3075,8 @@ nextfile:
 	logentsector = (uint32_t)((size_t)dirPos / dirent_per_sector);
 	entryoffset = (uint32_t)((size_t)dirPos % dirent_per_sector);
 
+	//LOG_MSG("sec=%lu ofs=%u",(unsigned long)logentsector,(unsigned int)entryoffset);
+
 	if(dirClustNumber==0) {
 		if (BPB.is_fat32()) return false;
 
@@ -3083,7 +3088,13 @@ nextfile:
 			DOS_SetError(DOSERR_NO_MORE_FILES);
 			return false;
 		}
-		readSector(firstRootDirSect+logentsector,sectbuf);
+
+		if (!sectbuf_valid || sectbuf_sector != (firstRootDirSect+logentsector)) {
+			//LOG_MSG("read %lu",(unsigned long)(firstRootDirSect+logentsector));
+			readSector(firstRootDirSect+logentsector,sectbuf);
+			sectbuf_sector = (firstRootDirSect+logentsector);
+			sectbuf_valid = true;
+		}
 	} else {
 		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
 		/* A zero sector number can't happen */
@@ -3095,7 +3106,13 @@ nextfile:
 			DOS_SetError(DOSERR_NO_MORE_FILES);
 			return false;
 		}
-		readSector(tmpsector,sectbuf);
+
+		if (!sectbuf_valid || sectbuf_sector != tmpsector) {
+			//LOG_MSG("read %lu",(unsigned long)tmpsector);
+			readSector(tmpsector,sectbuf);
+			sectbuf_sector = tmpsector;
+			sectbuf_valid = true;
+		}
 	}
 	dirPos++;
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) dta.SetDirID(dirPos);
@@ -3123,7 +3140,7 @@ nextfile:
 	memcpy(find_name,&sectbuf[entryoffset].entryname[0],8);
 	// recover the SFN initial E5, which was converted to 05
 	// to distinguish with a free directory entry
-	if (find_name[0] == 0x05) find_name[0] = 0xe5;
+	if (find_name[0] == 0x05) find_name[0] = (char)0xe5;
 	memcpy(extension,&sectbuf[entryoffset].entryname[8],3);
 
 	if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
@@ -3964,7 +3981,7 @@ void fatDrive::clusterChainMemory::clear(void) {
 }
 
 void fatDrive::checkDiskChange(void) {
-	bool chg = false;
+	//bool chg = false;
 
 	/* Hack for "Bliss" by DeathStar (1995).
 	 * The demo runs A:\GO.EXE, but the floppy disk doesn't actually exist, it's brought into
