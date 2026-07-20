@@ -216,6 +216,7 @@ bool case_insensitive_equal(const std::string& str1, const std::string& str2) {
 
 void VFILE_Register(const char* name, uint8_t* data, uint32_t size, const char* dir) {
     if(vfpos >= MAX_VFILES) return;
+    if(!name || !dir) return; // Null pointer guard
 
     std::string name_str(name);
     std::string dir_str(dir);
@@ -226,7 +227,6 @@ void VFILE_Register(const char* name, uint8_t* data, uint32_t size, const char* 
     bool isdir = (dir_str == "/" || name_str == "." || name_str == "..") || (data == nullptr && size == 0);
 
     unsigned int onpos = 0;
-    char fullname[CROSS_LEN], fullsname[CROSS_LEN];
 
     static std::string last_normalized_dir = "";
     static unsigned int last_resolved_onpos = 0;
@@ -237,8 +237,8 @@ void VFILE_Register(const char* name, uint8_t* data, uint32_t size, const char* 
 
     // Improvement: To avoid catching its own name during the search, the global arrays (vfnames/vfsnames) 
     // are not modified at all until the parent directory lookup is completely resolved.
-    if(dir_str.size() > 1) {
-        if(!current_normalized_dir.empty() && current_normalized_dir == last_normalized_dir) {
+    if(dir_str.size() > 1 && !current_normalized_dir.empty()) {
+        if(current_normalized_dir == last_normalized_dir) {
             onpos = last_resolved_onpos;
         }
         else {
@@ -268,8 +268,8 @@ void VFILE_Register(const char* name, uint8_t* data, uint32_t size, const char* 
                             const VFILE_Block* scan = first_file;
                             bool context_matched = false;
                             while(scan) {
-                                if((scan->name == vfsnames[i] || scan->lname == vfnames[i]) &&
-                                    scan->onpos == current_lookup_onpos) {
+                                if(scan->onpos == current_lookup_onpos &&
+                                    (scan->name == vfsnames[i] || scan->lname == vfnames[i])) {
                                     context_matched = true;
                                     break;
                                 }
@@ -314,23 +314,23 @@ void VFILE_Register(const char* name, uint8_t* data, uint32_t size, const char* 
 
     if(in) {
         for(std::string file; in >> file; ) {
+            std::string fullname, fullsname;
+
             if(dir_str.size() > 2 && dir_str.front() == '/' && dir_str.back() == '/') {
-                strncpy(fullname, dir + 1, dir_str.size() - 2);
-                *(fullname + dir_str.size() - 2) = 0;
-                strcat(fullname, "\\");
-                strcpy(fullsname, "\\");
-                strcat(fullsname, sname.c_str());
-                strcat(fullname, name);
+                fullname = dir_str.substr(1, dir_str.size() - 2) + "\\" + name;
+                fullsname = "\\" + sname;
             }
             else {
-                strcpy(fullname, name);
-                strcpy(fullsname, sname.c_str());
+                fullname = name;
+                fullsname = sname;
             }
-            if(case_insensitive_equal(fullname, file) || case_insensitive_equal("\"" + std::string(fullname) + "\"", file) ||
-                case_insensitive_equal(fullsname, file) || case_insensitive_equal("\"" + std::string(fullsname) + "\"", file))
+
+            if(case_insensitive_equal(fullname, file) || case_insensitive_equal("\"" + fullname + "\"", file) ||
+                case_insensitive_equal(fullsname, file) || case_insensitive_equal("\"" + fullsname + "\"", file))
                 return;
-            if(case_insensitive_equal("/" + std::string(fullname), file) || case_insensitive_equal("/\"" + std::string(fullname) + "\"", file) ||
-                case_insensitive_equal("/" + std::string(fullsname), file) || case_insensitive_equal("/\"" + std::string(fullsname) + "\"", file)) {
+
+            if(case_insensitive_equal("/" + fullname, file) || case_insensitive_equal("/\"" + fullname + "\"", file) ||
+                case_insensitive_equal("/" + fullsname, file) || case_insensitive_equal("/\"" + fullsname + "\"", file)) {
                 hidden = true;
                 break;
             }
@@ -345,8 +345,15 @@ void VFILE_Register(const char* name, uint8_t* data, uint32_t size, const char* 
 
     // Safely register its own information to the global arrays only after the parent has been successfully resolved.
     unsigned int assigned_index = vfpos;
-    strcpy(vfnames[assigned_index], name);
-    strcpy(vfsnames[assigned_index], sname.c_str());
+    if(trimmed_name.size() >= CROSS_LEN || trimmed_sname.size() >= CROSS_LEN) {
+        return; // Reject malformed overly long paths safely
+    }
+
+    // Safely assign data to structural boundaries
+    strncpy(vfnames[assigned_index], name, CROSS_LEN - 1);
+    vfnames[assigned_index][CROSS_LEN - 1] = '\0';
+    strncpy(vfsnames[assigned_index], sname.c_str(), CROSS_LEN - 1);
+    vfsnames[assigned_index][CROSS_LEN - 1] = '\0';
 
     VFILE_Block* new_file = new VFILE_Block;
     new_file->name = vfsnames[assigned_index];
