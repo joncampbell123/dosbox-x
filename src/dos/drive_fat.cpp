@@ -703,20 +703,20 @@ uint32_t fatDrive::getClusterValue(uint32_t clustNum) {
 	fatsectnum = BPB.v.BPB_RsvdSecCnt + (fatoffset / BPB.v.BPB_BytsPerSec) + partSectOff;
 	fatentoff = fatoffset % BPB.v.BPB_BytsPerSec;
 
-    if (BPB.is_fat32()) {
-        if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v32.BPB_FATSz32 + partSectOff)) {
-            LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to read cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
-            return 0;
-        }
-    }
-    else {
-        if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v.BPB_FATSz16 + partSectOff)) {
-            LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to read cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
-            return 0;
-        }
-    }
+	if (BPB.is_fat32()) {
+		if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v32.BPB_FATSz32 + partSectOff)) {
+			LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to read cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
+			return 0;
+		}
+	}
+	else {
+		if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v.BPB_FATSz16 + partSectOff)) {
+			LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to read cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
+			return 0;
+		}
+	}
 
-    assert((BPB.v.BPB_BytsPerSec * (Bitu)2) <= sizeof(fatSectBuffer));
+	assert((BPB.v.BPB_BytsPerSec * (Bitu)2) <= sizeof(fatSectBuffer));
 
 	if(curFatSect != fatsectnum) {
 		/* Load two sectors at once for FAT12 */
