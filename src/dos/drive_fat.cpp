@@ -307,6 +307,7 @@ class fatFile : public DOS_File {
 
                 bool modified = false;
                 bool loadedSector = false;
+                fatDrive::clusterChainMemory file_ccm;
                 fatDrive *myDrive;
 };
 #endif
@@ -387,6 +388,9 @@ fatFile::fatFile(const char* /*name*/, uint32_t startCluster, uint32_t fileLen, 
 
 #if !defined(OSFREE)
 void fatFile::Flush(void) {
+	//TODO
+	file_ccm = fatDrive::clusterChainMemory();
+
 	if (loadedSector) {
 		myDrive->writeSector(currentSector, sectorBuffer);
 		loadedSector = false;
@@ -430,7 +434,7 @@ bool fatFile::Read(uint8_t * data, uint16_t *size) {
 	}
 
 	if (!loadedSector) {
-		currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+		currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 		if(currentSector == 0) {
 			/* EOC reached before EOF */
 			*size = 0;
@@ -452,7 +456,7 @@ bool fatFile::Read(uint8_t * data, uint16_t *size) {
 		data[sizecount++] = sectorBuffer[curSectOff++];
 		seekpos++;
 		if(curSectOff >= myDrive->getSectorSize()) {
-			currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+			currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 			if(currentSector == 0) {
 				/* EOC reached before EOF */
 				//LOG_MSG("EOC reached before EOF, seekpos %d, filelen %d", seekpos, filelength);
@@ -478,6 +482,9 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
+
+	//TODO
+	file_ccm = fatDrive::clusterChainMemory();
 
 	direntry tmpentry = {};
 	uint16_t sizedec, sizecount;
@@ -619,7 +626,7 @@ bool fatFile::Seek(uint32_t *pos, uint32_t type) {
 
 	if(seekto<0) seekto = 0;
 	seekpos = (uint32_t)seekto;
-	currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+	currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 	if (currentSector == 0) {
 		/* not within file size, thus no sector is available */
 		loadedSector = false;
@@ -635,6 +642,9 @@ bool fatFile::Seek(uint32_t *pos, uint32_t type) {
 
 #if !defined(OSFREE)
 bool fatFile::Close() {
+	//TODO
+	file_ccm = fatDrive::clusterChainMemory();
+
 	/* Flush buffer */
 	if (loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 
@@ -767,20 +777,20 @@ void fatDrive::setClusterValue(uint32_t clustNum, uint32_t clustValue) {
 	fatsectnum = BPB.v.BPB_RsvdSecCnt + (fatoffset / BPB.v.BPB_BytsPerSec) + partSectOff;
 	fatentoff = fatoffset % BPB.v.BPB_BytsPerSec;
 
-    if (BPB.is_fat32()) {
-        if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v32.BPB_FATSz32 + partSectOff)) {
-            LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to write cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
-            return;
-        }
-    }
-    else {
-        if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v.BPB_FATSz16 + partSectOff)) {
-            LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to write cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
-            return;
-        }
-    }
+	if (BPB.is_fat32()) {
+		if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v32.BPB_FATSz32 + partSectOff)) {
+			LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to write cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
+			return;
+		}
+	}
+	else {
+		if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v.BPB_FATSz16 + partSectOff)) {
+			LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to write cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
+			return;
+		}
+	}
 
-    assert((BPB.v.BPB_BytsPerSec * (Bitu)2) <= sizeof(fatSectBuffer));
+	assert((BPB.v.BPB_BytsPerSec * (Bitu)2) <= sizeof(fatSectBuffer));
 
 	if(curFatSect != fatsectnum) {
 		/* Load two sectors at once for FAT12 */
@@ -860,25 +870,25 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 void fatDrive::UpdateBootVolumeLabel(const char *label) {
 	if (unformatted) return;
 
-    FAT_BootSector bootbuffer = {};
+	FAT_BootSector bootbuffer = {};
 
-    if (BPB.v.BPB_BootSig == 0x28 || BPB.v.BPB_BootSig == 0x29) {
-        unsigned int i = 0;
-        char upcasebuf[12] = {0};
-        const char *upcaseptr = upcasebuf;
+	if (BPB.v.BPB_BootSig == 0x28 || BPB.v.BPB_BootSig == 0x29) {
+		unsigned int i = 0;
+		char upcasebuf[12] = {0};
+		const char *upcaseptr = upcasebuf;
 
-        loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
+		loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
 
-        strncpy(upcasebuf, label, 11);
-        DBCS_upcase(upcasebuf);
-        // initial 0xe5 substituted to 0x05 in the same way as other SFN
-        // even though this is in BPB and 0xe5 shouldn't matter
-        if (upcasebuf[0] == (char)0xe5) upcasebuf[0] = 0x05;
-        while (i < 11 && *upcaseptr != 0) bootbuffer.bpb.v.BPB_VolLab[i++] = *upcaseptr++;
-        while (i < 11)                    bootbuffer.bpb.v.BPB_VolLab[i++] = ' ';
+		strncpy(upcasebuf, label, 11);
+		DBCS_upcase(upcasebuf);
+		// initial 0xe5 substituted to 0x05 in the same way as other SFN
+		// even though this is in BPB and 0xe5 shouldn't matter
+		if (upcasebuf[0] == (char)0xe5) upcasebuf[0] = 0x05;
+		while (i < 11 && *upcaseptr != 0) bootbuffer.bpb.v.BPB_VolLab[i++] = *upcaseptr++;
+		while (i < 11)                    bootbuffer.bpb.v.BPB_VolLab[i++] = ' ';
 
-        loadedDisk->Write_AbsoluteSector(0+partSectOff,&bootbuffer);
-    }
+		loadedDisk->Write_AbsoluteSector(0+partSectOff,&bootbuffer);
+	}
 }
 
 void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/) {
