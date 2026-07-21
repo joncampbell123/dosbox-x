@@ -1242,8 +1242,8 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 	assert(indxClust<=targClust);
 
 	if (ccm != NULL) {
-		ccm->current_cluster_index = currentClust;
-		ccm->current_cluster_no = indxClust;
+		ccm->current_cluster_no = currentClust;
+		ccm->current_cluster_index = indxClust;
 	}
 
 	/* this should not happen! */
