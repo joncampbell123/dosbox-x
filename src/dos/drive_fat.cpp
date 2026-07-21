@@ -479,7 +479,7 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 		return false;
 	}
 
-    direntry tmpentry = {};
+	direntry tmpentry = {};
 	uint16_t sizedec, sizecount;
 	sizedec = *size;
 	sizecount = 0;
@@ -3045,6 +3045,7 @@ static bool VolumeLabelCmp(const char* label11, const char* pattern)
 bool fatDrive::FindNextInternal(uint32_t dirClustNumber, DOS_DTA &dta, direntry *foundEntry) {
 	if (unformatted) return false;
 
+	clusterChainMemory dir_ccm;
 	bool sectbuf_valid = false;
 	uint32_t sectbuf_sector = 0;
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
@@ -3096,7 +3097,7 @@ nextfile:
 			sectbuf_valid = true;
 		}
 	} else {
-		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector, &dir_ccm);
 		/* A zero sector number can't happen */
 		if(tmpsector == 0) {
 			if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
