@@ -375,11 +375,11 @@ static void convToDirFile(const char *filename, char *filearray) {
 
 #if !defined(OSFREE)
 fatFile::fatFile(const char* /*name*/, uint32_t startCluster, uint32_t fileLen, fatDrive *useDrive) : firstCluster(startCluster), filelength(fileLen), myDrive(useDrive) {
-	uint32_t seekto = 0;
-	open = true;
 	memset(&sectorBuffer[0], 0, sizeof(sectorBuffer));
+	open = true;
 	
 	if(filelength > 0) {
+		uint32_t seekto = 0;
 		Seek(&seekto, DOS_SEEK_SET);
 	}
 }
