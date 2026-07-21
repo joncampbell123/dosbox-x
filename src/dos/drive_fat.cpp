@@ -3522,32 +3522,32 @@ bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEnt
 	if (lfn != NULL && *lfn != 0) {
 		/* 13 characters per LFN entry */
 		bool lead = false;
-        char text[3];
-        uint16_t uname[4];
-        for (const char *scan = lfn; *scan; scan++) {
-            if (lead) {
-                lead = false;
-                text[0]=*(scan-1)&0xFF;
-                text[1]=*scan&0xFF;
-                text[2]=0;
-                uname[0]=0;
-                uname[1]=0;
-                if (CodePageGuestToHostUTF16(uname,text)&&uname[0]!=0&&uname[1]==0) {
-                    lfnw[len++] = uname[0];
-                } else {
-                    lfnw[len++] = *(scan-1)&0xFF;
-                    if (len < LFN_NAMELENGTH) lfnw[len++] = *scan&0xFF;
-                }
-            } else if (*(scan+1) && ((IS_PC98_ARCH && shiftjis_lead_byte(*scan&0xFF)) || (isDBCSCP() && isKanji1_gbk(*scan&0xFF)))) lead = true;
-            else if (dos.loaded_codepage != 437) {
-                text[0]=*scan&0xFF;
-                text[1]=0;
-                lfnw[len++] = CodePageGuestToHostUTF16(uname,text)&&uname[0]!=0&&uname[1]==0 ? uname[0] : (uint16_t)((unsigned char)(*scan));
-            } else
-                lfnw[len++] = (uint16_t)((unsigned char)(*scan));
-        }
-        lfnw[len] = 0;
-        need = (unsigned int)(1 + (len + 12) / 13); /*round up*/;
+		char text[3];
+		uint16_t uname[4];
+		for (const char *scan = lfn; *scan; scan++) {
+			if (lead) {
+				lead = false;
+				text[0]=*(scan-1)&0xFF;
+				text[1]=*scan&0xFF;
+				text[2]=0;
+				uname[0]=0;
+				uname[1]=0;
+				if (CodePageGuestToHostUTF16(uname,text)&&uname[0]!=0&&uname[1]==0) {
+					lfnw[len++] = uname[0];
+				} else {
+					lfnw[len++] = *(scan-1)&0xFF;
+					if (len < LFN_NAMELENGTH) lfnw[len++] = *scan&0xFF;
+				}
+			} else if (*(scan+1) && ((IS_PC98_ARCH && shiftjis_lead_byte(*scan&0xFF)) || (isDBCSCP() && isKanji1_gbk(*scan&0xFF)))) lead = true;
+			else if (dos.loaded_codepage != 437) {
+				text[0]=*scan&0xFF;
+				text[1]=0;
+				lfnw[len++] = CodePageGuestToHostUTF16(uname,text)&&uname[0]!=0&&uname[1]==0 ? uname[0] : (uint16_t)((unsigned char)(*scan));
+			} else
+				lfnw[len++] = (uint16_t)((unsigned char)(*scan));
+		}
+		lfnw[len] = 0;
+		need = (unsigned int)(1 + (len + 12) / 13); /*round up*/;
 	}
 
 	size_t dirent_per_sector = getSectSize() / sizeof(direntry);
@@ -3678,15 +3678,15 @@ bool fatDrive::MakeDir(const char *dir) {
 
 	const char *lfn = NULL;
 
-    if (readonly) {
+	if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
-        return false;
-    }
+		return false;
+	}
 	uint32_t dummyClust, dirClust, subEntry;
 	direntry tmpentry;
 	char dirName[DOS_NAMELENGTH_ASCII];
-    char pathName[11], path[DOS_PATHLENGTH];
-    uint16_t ct,cd;
+	char pathName[11], path[DOS_PATHLENGTH];
+	uint16_t ct,cd;
 
 	/* you cannot mkdir root directory */
 	if (*dir == 0) {
@@ -3742,9 +3742,9 @@ bool fatDrive::MakeDir(const char *dir) {
 	tmpentry.loFirstClust = (uint16_t)(dummyClust & 0xffff);
 	tmpentry.hiFirstClust = (uint16_t)(dummyClust >> 16);
 	tmpentry.attrib = DOS_ATTR_DIRECTORY;
-    tmpentry.modTime = ct;
-    tmpentry.modDate = cd;
-    addDirectoryEntry(dirClust, tmpentry, lfn);
+	tmpentry.modTime = ct;
+	tmpentry.modDate = cd;
+	addDirectoryEntry(dirClust, tmpentry, lfn);
 
 	/* Add the [.] and [..] entries to our new directory*/
 	/* [.] entry */
@@ -3753,8 +3753,8 @@ bool fatDrive::MakeDir(const char *dir) {
 	tmpentry.loFirstClust = (uint16_t)(dummyClust & 0xffff);
 	tmpentry.hiFirstClust = (uint16_t)(dummyClust >> 16);
 	tmpentry.attrib = DOS_ATTR_DIRECTORY;
-    tmpentry.modTime = ct;
-    tmpentry.modDate = cd;
+	tmpentry.modTime = ct;
+	tmpentry.modDate = cd;
 	addDirectoryEntry(dummyClust, tmpentry);
 
 	/* [..] entry */
@@ -3772,8 +3772,8 @@ bool fatDrive::MakeDir(const char *dir) {
 		tmpentry.hiFirstClust = (uint16_t)(dirClust >> 16);
 	}
 	tmpentry.attrib = DOS_ATTR_DIRECTORY;
-    tmpentry.modTime = ct;
-    tmpentry.modDate = cd;
+	tmpentry.modTime = ct;
+	tmpentry.modDate = cd;
 	addDirectoryEntry(dummyClust, tmpentry);
 	//if(!getDirClustNum(dir, &dummyClust, false)) return false;
 
