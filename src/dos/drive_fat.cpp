@@ -483,15 +483,15 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 		return false;
 	}
 
-	//TODO
-	file_ccm = fatDrive::clusterChainMemory();
-
 	direntry tmpentry = {};
 	uint16_t sizedec, sizecount;
 	sizedec = *size;
 	sizecount = 0;
 
 	if(seekpos < filelength && *size == 0) {
+		//TODO
+		file_ccm = fatDrive::clusterChainMemory();
+
 		/* Truncate file to current position */
 		if(firstCluster != 0) myDrive->deleteClustChain(firstCluster, seekpos);
 		if(seekpos == 0) firstCluster = 0;
@@ -502,6 +502,9 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 	}
 
 	if(seekpos > filelength) {
+		//TODO
+		file_ccm = fatDrive::clusterChainMemory();
+
 		/* Extend file to current position */
 		uint32_t clustSize = myDrive->getClusterSize();
 		if(filelength == 0) {
@@ -535,7 +538,11 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 				firstCluster = myDrive->getFirstFreeClust();
 				if(firstCluster == 0) goto finalizeWrite; // out of space
 				myDrive->allocateCluster(firstCluster, 0);
-				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+
+				//TODO
+				file_ccm = fatDrive::clusterChainMemory();
+
+				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 				if (currentSector == 0) {
 					/* I guess allocateCluster() didn't work after all. This check is necessary to prevent
 					 * this condition from treating the BOOT SECTOR as a file. */
@@ -546,21 +553,25 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 				loadedSector = true;
 			}
 			if (!loadedSector) {
-				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 				if(currentSector == 0) {
 					/* EOC reached before EOF - try to increase file allocation */
 					myDrive->appendCluster(firstCluster);
+
+					//TODO
+					file_ccm = fatDrive::clusterChainMemory();
+
 					/* Try getting sector again */
-					currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+					currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 					if(currentSector == 0) {
 						/* No can do. lets give up and go home.  We must be out of room */
 						goto finalizeWrite;
 					}
 				}
 				curSectOff = seekpos % myDrive->getSectorSize();
-					myDrive->readSector(currentSector, sectorBuffer);
-					loadedSector = true;
-				}
+				myDrive->readSector(currentSector, sectorBuffer);
+				loadedSector = true;
+			}
 			filelength = seekpos+1;
 		}
 		--sizedec;
@@ -571,13 +582,17 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 			if(loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 			loadedSector = false;
 
-			currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+			currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 			if(currentSector == 0) {
-			    if (sizedec == 0) goto finalizeWrite;
+				if (sizedec == 0) goto finalizeWrite;
 				/* EOC reached before EOF - try to increase file allocation */
 				myDrive->appendCluster(firstCluster);
+
+				//TODO
+				file_ccm = fatDrive::clusterChainMemory();
+
 				/* Try getting sector again */
-				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 				if(currentSector == 0) {
 					/* No can do. lets give up and go home.  We must be out of room */
 					goto finalizeWrite;
@@ -590,6 +605,7 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 	}
 	if(curSectOff>0 && loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 
+	/* FIXME: MS-DOS as far as I know does not update the dirent until you flush or close */
 finalizeWrite:
 	myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
 	tmpentry.entrysize = filelength;
