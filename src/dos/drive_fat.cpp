@@ -1407,7 +1407,9 @@ uint32_t fatDrive::appendCluster(uint32_t startCluster) {
 	//
 	//        Windows XP takes the time and effort to zero out clusters when extending the file.
 	//        The trick doesn't work anymore. --J.C.
-	zeroOutCluster(newClust);
+	//
+	//        Caller zeros the cluster if needed. The directory handling code already calls zeroOutCluster().
+	//        This function's job is to extend the allocation chain not zero clusters.
 
 	return newClust;
 }
