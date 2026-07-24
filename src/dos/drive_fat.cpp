@@ -388,9 +388,6 @@ fatFile::fatFile(const char* /*name*/, uint32_t startCluster, uint32_t fileLen, 
 
 #if !defined(OSFREE)
 void fatFile::Flush(void) {
-	//TODO
-	file_ccm = fatDrive::clusterChainMemory();
-
 	if (loadedSector) {
 		myDrive->writeSector(currentSector, sectorBuffer);
 		loadedSector = false;
