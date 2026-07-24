@@ -76,6 +76,10 @@ namespace
 				return "MCH_HERC";
 			case MCH_CGA:
 				return "MCH_CGA";
+			case MCH_OLIVETTI:
+				return "MCH_OLIVETTI";
+			case MCH_3270PC:
+				return "MCH_3270PC";
 			case MCH_TANDY:
 				return "MCH_TANDY";
 			case MCH_PCJR:

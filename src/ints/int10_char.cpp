@@ -1211,7 +1211,7 @@ void INT10_SetActivePage(uint8_t page) {
 
 void INT10_SetCursorShape(uint8_t first,uint8_t last) {
     real_writew(BIOSMEM_SEG,BIOSMEM_CURSOR_TYPE,last|(first<<8u));
-    if (machine==MCH_CGA || IS_TANDY_ARCH) goto dowrite;
+    if (machine==MCH_CGA || machine==MCH_OLIVETTI || machine==MCH_3270PC || IS_TANDY_ARCH) goto dowrite;
     /* Skip CGA cursor emulation if EGA/VGA system is active */
     if (machine==MCH_HERC || !(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0x8)) { /* if video subsystem is ACTIVE (bit is cleared) [https://www.stanislavs.org/helppc/bios_data_area.html] */
         /* Check for CGA type 01, invisible */
@@ -1568,7 +1568,7 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
     /* Externally used by the mouse routine */
     PhysPt fontdata;
     uint16_t cols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-    uint8_t back, cheight = IS_PC98_ARCH ? 16 : (machine == MCH_CGA || machine == MCH_AMSTRAD) ? 8 : real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+    uint8_t back, cheight = IS_PC98_ARCH ? 16 : (machine == MCH_CGA || machine == MCH_AMSTRAD || machine == MCH_OLIVETTI || machine == MCH_3270PC) ? 8 : real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
 
     if (CurMode->type != M_PC98)
         chr &= 0xFF;

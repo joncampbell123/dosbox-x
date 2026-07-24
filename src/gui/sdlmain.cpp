@@ -2356,7 +2356,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-    if ((!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && ((machine != MCH_CGA && !IS_VGA_ARCH && !IS_PC98_ARCH && height == 350) || height == 400))) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
+    if ((!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && ((machine != MCH_CGA && machine != MCH_OLIVETTI && machine != MCH_3270PC && !IS_VGA_ARCH && !IS_PC98_ARCH && height == 350) || height == 400))) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
         RECT r;
         bool res = GetWindowRect(GetHWND(), &r);
         unsigned int maxWidth, maxHeight;
@@ -9850,8 +9850,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("doublescan").enable(!IS_PC98_ARCH);
 
         blinking=static_cast<Section_prop *>(control->GetSection("video"))->Get_bool("high intensity blinking");
-        mainMenu.get_item("text_background").enable(!IS_PC98_ARCH&&machine!=MCH_CGA).check(!blinking).refresh_item(mainMenu);
-        mainMenu.get_item("text_blinking").enable(!IS_PC98_ARCH&&machine!=MCH_CGA).check(blinking).refresh_item(mainMenu);
+        mainMenu.get_item("text_background").enable(!IS_PC98_ARCH&&machine!=MCH_CGA&&machine!=MCH_OLIVETTI&&machine!=MCH_3270PC).check(!blinking).refresh_item(mainMenu);
+        mainMenu.get_item("text_blinking").enable(!IS_PC98_ARCH&&machine!=MCH_CGA&&machine!=MCH_OLIVETTI&&machine!=MCH_3270PC).check(blinking).refresh_item(mainMenu);
         mainMenu.get_item("line_80x25").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_80x43").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_80x50").enable(!IS_PC98_ARCH);

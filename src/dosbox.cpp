@@ -1272,6 +1272,11 @@ void DOSBOX_RealInit() {
     else if (mtype == "svga_paradise") { svgaCard = SVGA_ParadisePVGA1A; }
     else if (mtype == "vgaonly")       { svgaCard = SVGA_None; }
     else if (mtype == "amstrad")       { machine = MCH_AMSTRAD; }
+    else if (mtype == "olivetti")      { machine = MCH_OLIVETTI; mono_cga = false; } /* Olivetti M24 / AT&T 6300 OGC */
+    else if (mtype == "m24")           { machine = MCH_OLIVETTI; mono_cga = false; } /* alias */
+    else if (mtype == "att6300")       { machine = MCH_OLIVETTI; mono_cga = false; } /* alias */
+    else if (mtype == "pc3270")        { machine = MCH_3270PC; mono_cga = false; } /* IBM 3270 PC (5271) */
+    else if (mtype == "3270pc")        { machine = MCH_3270PC; mono_cga = false; } /* alias */
     else if (mtype == "pc98")          { machine = MCH_PC98; }
     else if (mtype == "pc9801")        { machine = MCH_PC98; } /* Future differentiation */
     else if (mtype == "pc9821")        { machine = MCH_PC98; } /* Future differentiation */
@@ -1525,6 +1530,8 @@ void DOSBOX_SetupConfigSections(void) {
         "tandy",
         "pcjr", "pcjr_composite", "pcjr_composite2",
         "amstrad",
+        "olivetti", "m24", "att6300",
+        "pc3270", "3270pc",
         "ega",
         "ega200",
         "jega",

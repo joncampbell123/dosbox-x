@@ -10650,6 +10650,8 @@ private:
                 case MCH_MCGA:
                 case TANDY_ARCH_CASE:
                 case MCH_AMSTRAD:
+                case MCH_OLIVETTI:
+                case MCH_3270PC:
                     //Startup 80x25 color
                     config|=0x20;
                     break;
@@ -11448,6 +11450,12 @@ startfunction:
             case MCH_CGA:
                 card = "IBM Color Graphics Adapter";
                 break;
+            case MCH_OLIVETTI:
+                card = "Olivetti M24 / AT&T 6300 OGC";
+                break;
+            case MCH_3270PC:
+                card = "IBM 3270 PC display";
+                break;
             case MCH_MCGA:
                 card = "IBM Multi Color Graphics Adapter";
                 break;
@@ -12048,6 +12056,8 @@ public:
         if (machine==MCH_TANDY || machine==MCH_AMSTRAD) phys_writeb(0xffffe,0xff);  /* Tandy model */
         else if (machine==MCH_PCJR) phys_writeb(0xffffe,0xfd);  /* PCJr model */
         else if (machine==MCH_MCGA) phys_writeb(0xffffe,0xfa);  /* PC/2 model 30 model */
+        else if (machine==MCH_OLIVETTI) phys_writeb(0xffffe,0xfe); /* Olivetti M24 / AT&T 6300: XT-class 8086 */
+        else if (machine==MCH_3270PC) phys_writeb(0xffffe,0xfe); /* IBM 3270 PC (5271): XT-class */
         else phys_writeb(0xffffe,0xfc); /* PC (FIXME: This is listed as model byte PS/2 model 60) */
 
         // signature
