@@ -20,6 +20,27 @@
  * set tabstop=8 | set softtabstop=8 | set shiftwidth=8 | set expandtab
  *
  */
+/* TASK FOR THIS CODE [DOSBox-X]
+ *
+ * This code could be simplified AND with performance optimizations if
+ * this code were to use the file object for all file allocation chains,
+ * including directories.
+ *
+ * Reduce the seek/read/write functions of the allocation chain to an
+ * optimized set of core functions everyone else uses, and then directory
+ * management can just call that and focus on the task of working with
+ * directory entries and long filenames.
+ *
+ * For non-FAT32 partitions, there would be support for the root directory,
+ * which is NOT a file allocation chain.
+ *
+ * Another optimization that perhaps MS-DOS does, is that the file object
+ * would cache the location of it's dirent (cluster and offset into cluster)
+ * so that when updating file size, date, etc. it wouldn't do a full dirent
+ * lookup every time.
+ *
+ * Hopefully this can be done without breaking things --J.C.
+ */
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -499,9 +520,6 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 	}
 
 	if(seekpos > filelength) {
-		//TODO
-		file_ccm = fatDrive::clusterChainMemory();
-
 		/* Extend file to current position */
 		uint32_t clustSize = myDrive->getClusterSize();
 		if(filelength == 0) {
@@ -509,6 +527,9 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 			if(firstCluster == 0) goto finalizeWrite; // out of space
 			myDrive->allocateCluster(firstCluster, 0);
 			filelength = clustSize;
+
+			//TODO
+			file_ccm = fatDrive::clusterChainMemory();
 		}
 
 		/* round up */
@@ -516,8 +537,9 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 		filelength -= filelength % clustSize;
 
 		/* add clusters until the file length is correct */
+		/* use cluster memory so that each call to appendCluster can work efficiently without re-reading the entire allocation chain per call */
 		while(filelength < seekpos) {
-			if(myDrive->appendCluster(firstCluster) == 0) goto finalizeWrite; // out of space
+			if(myDrive->appendCluster(firstCluster,/*in*/&file_ccm,/*out*/&file_ccm) == 0) goto finalizeWrite; // out of space
 			filelength += clustSize;
 		}
 		assert(filelength < (seekpos+clustSize));
@@ -1239,7 +1261,7 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 
 	uint32_t currentClust = startClustNum;
 
-	if (ccm != NULL && ccm->current_cluster_no >= 2 && targClust != 0/*never for the first cluster*/) {
+	if (ccm != NULL && ccm->current_cluster_no >= 2 && targClust != 0/*never for the first cluster, there is no point*/) {
 		/* If the cluster index is the same as last time or farther down, avoid re-reading the
 		 * entire allocation chain again and start from where we last read from. If the
 		 * cluster index is going back from current, then re-read the entire allocation chain again.
@@ -1258,15 +1280,16 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 
 	while(indxClust<targClust) {
 		const uint32_t testvalue = getClusterValue(currentClust);
-		++indxClust;
 
 		if (iseofFAT(testvalue)) {
-			if (indxClust!=targClust) LOG(LOG_MISC,LOG_DEBUG)("FAT: Seek past allocation chain");
+			if ((indxClust+1u)!=targClust) LOG(LOG_MISC,LOG_DEBUG)("FAT: Seek past allocation chain wantedClusterIndex=%u targetClusterIndex=%u",(unsigned int)indxClust+1u,(unsigned int)targClust);
 			return 0;
 		}
 
 		currentClust = testvalue;
+		indxClust++;
 
+		/* remember where we are so append is fast */
 		if (ccm != NULL) {
 			ccm->current_cluster_no = currentClust;
 			ccm->current_cluster_index = indxClust;
@@ -1360,16 +1383,19 @@ void fatDrive::deleteClustChain(uint32_t startCluster, uint32_t bytePos) {
 	}
 }
 
-// FIXME: This appends ONE cluster at the cost of re-reading the ENTIRE allocation chain!
 uint32_t fatDrive::appendCluster(uint32_t startCluster,clusterChainMemory *ccm,clusterChainMemory *ccm_out) {
 	if (unformatted) return 0;
 	if (startCluster < 2) return 0; /* do not corrupt the FAT media ID. The file has no chain. Do nothing. */
 
 	uint32_t currentClust = startCluster;
+	uint32_t indxClust = (uint32_t)0;
 	uint32_t eofClust = 0;
 
 	/* instead of re-reading the entire FAT chain, start from chain memory */
-	if (ccm && ccm->current_cluster_no >= 2) currentClust = ccm->current_cluster_no;
+	if (ccm && ccm->current_cluster_no >= 2) {
+		currentClust = ccm->current_cluster_no;
+		indxClust = ccm->current_cluster_index;
+	}
 
 	switch(fattype) {
 		case FAT12:
@@ -1386,7 +1412,10 @@ uint32_t fatDrive::appendCluster(uint32_t startCluster,clusterChainMemory *ccm,c
 	}
 
 	/* remember where we are so append is fast */
-	if (ccm_out && ccm_out->current_cluster_no >= 2) ccm_out->current_cluster_no = currentClust;
+	if (ccm_out != NULL) {
+		ccm_out->current_cluster_no = currentClust;
+		ccm_out->current_cluster_index = indxClust;
+	}
 
 	while (1) {
 		uint32_t testvalue = getClusterValue(currentClust);
@@ -1400,9 +1429,13 @@ uint32_t fatDrive::appendCluster(uint32_t startCluster,clusterChainMemory *ccm,c
 		}
 
 		currentClust = testvalue;
+		indxClust++;
 
 		/* remember where we are so append is fast */
-		if (ccm_out && ccm_out->current_cluster_no >= 2) ccm_out->current_cluster_no = currentClust;
+		if (ccm_out != NULL) {
+			ccm_out->current_cluster_no = currentClust;
+			ccm_out->current_cluster_index = indxClust;
+		}
 	}
 
 	uint32_t newClust = getFirstFreeClust();
