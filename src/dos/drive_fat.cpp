@@ -552,8 +552,8 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 			if (!loadedSector) {
 				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 				if(currentSector == 0) {
-					/* EOC reached before EOF - try to increase file allocation---should not affect file_ccm cached cluster numbers */
-					myDrive->appendCluster(firstCluster);
+					/* EOC reached before EOF - try to increase file allocation */
+					myDrive->appendCluster(firstCluster, &file_ccm);
 
 					/* Try getting sector again */
 					currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
@@ -579,8 +579,8 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 			currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 			if(currentSector == 0) {
 				if (sizedec == 0) goto finalizeWrite;
-				/* EOC reached before EOF - try to increase file allocation---should not affect file_ccm cached cluster numbers */
-				myDrive->appendCluster(firstCluster);
+				/* EOC reached before EOF - try to increase file allocation */
+				myDrive->appendCluster(firstCluster, &file_ccm);
 
 				/* Try getting sector again */
 				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
@@ -1239,7 +1239,7 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 
 	uint32_t currentClust = startClustNum;
 
-	if (ccm != NULL && ccm->current_cluster_no >= 2) {
+	if (ccm != NULL && ccm->current_cluster_no >= 2 && targClust != 0/*never for the first cluster*/) {
 		/* If the cluster index is the same as last time or farther down, avoid re-reading the
 		 * entire allocation chain again and start from where we last read from. If the
 		 * cluster index is going back from current, then re-read the entire allocation chain again.
@@ -1249,6 +1249,11 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 			indxClust = ccm->current_cluster_index;
 			currentClust = ccm->current_cluster_no;
 		}
+	}
+
+	if (ccm != NULL) {
+		ccm->current_cluster_no = currentClust;
+		ccm->current_cluster_index = indxClust;
 	}
 
 	while(indxClust<targClust) {
@@ -1261,16 +1266,15 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 		}
 
 		currentClust = testvalue;
-	}
 
-	assert(indxClust<=targClust);
-
-	if (ccm != NULL) {
-		ccm->current_cluster_no = currentClust;
-		ccm->current_cluster_index = indxClust;
+		if (ccm != NULL) {
+			ccm->current_cluster_no = currentClust;
+			ccm->current_cluster_index = indxClust;
+		}
 	}
 
 	/* this should not happen! */
+	assert(indxClust<=targClust);
 	assert(currentClust != 0);
 
 	return (getClustFirstSect(currentClust) + sectClust);
@@ -1357,12 +1361,15 @@ void fatDrive::deleteClustChain(uint32_t startCluster, uint32_t bytePos) {
 }
 
 // FIXME: This appends ONE cluster at the cost of re-reading the ENTIRE allocation chain!
-uint32_t fatDrive::appendCluster(uint32_t startCluster) {
+uint32_t fatDrive::appendCluster(uint32_t startCluster,clusterChainMemory *ccm,clusterChainMemory *ccm_out) {
 	if (unformatted) return 0;
 	if (startCluster < 2) return 0; /* do not corrupt the FAT media ID. The file has no chain. Do nothing. */
 
 	uint32_t currentClust = startCluster;
 	uint32_t eofClust = 0;
+
+	/* instead of re-reading the entire FAT chain, start from chain memory */
+	if (ccm && ccm->current_cluster_no >= 2) currentClust = ccm->current_cluster_no;
 
 	switch(fattype) {
 		case FAT12:
@@ -1378,6 +1385,9 @@ uint32_t fatDrive::appendCluster(uint32_t startCluster) {
 			abort();
 	}
 
+	/* remember where we are so append is fast */
+	if (ccm_out && ccm_out->current_cluster_no >= 2) ccm_out->current_cluster_no = currentClust;
+
 	while (1) {
 		uint32_t testvalue = getClusterValue(currentClust);
 		if (testvalue == 0) {
@@ -1390,6 +1400,9 @@ uint32_t fatDrive::appendCluster(uint32_t startCluster) {
 		}
 
 		currentClust = testvalue;
+
+		/* remember where we are so append is fast */
+		if (ccm_out && ccm_out->current_cluster_no >= 2) ccm_out->current_cluster_no = currentClust;
 	}
 
 	uint32_t newClust = getFirstFreeClust();
