@@ -729,6 +729,7 @@ typedef struct VGA_Type_t {
     VGA_HERC herc = {};
     VGA_TANDY tandy = {};
     VGA_AMSTRAD amstrad = {};
+    uint8_t olivetti_ctrl = 0; // Olivetti M24 / AT&T 6300 OGC control register (port 0x3DE)
     VGA_OTHER other = {};
     VGA_Memory mem;
     VGA_LFB lfb = {};

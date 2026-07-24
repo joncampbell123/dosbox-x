@@ -2026,7 +2026,7 @@ static Bitu INT13_DiskHandler(void) {
              */
             if (any_images && driveInactive(drivenum)) {
                 /* driveInactive sets carry flag if the specified drive is not available */
-                if ((machine==MCH_CGA) || (machine==MCH_AMSTRAD) || (machine==MCH_PCJR)) {
+                if ((machine==MCH_CGA) || (machine==MCH_AMSTRAD) || (machine==MCH_PCJR) || (machine==MCH_OLIVETTI) || (machine==MCH_3270PC)) {
                     /* those bioses call floppy drive reset for invalid drive values */
                     if (((imageDiskList[0]) && (imageDiskList[0]->active)) || ((imageDiskList[1]) && (imageDiskList[1]->active))) {
                         if (machine!=MCH_PCJR && reg_dl<0x80) reg_ip++;

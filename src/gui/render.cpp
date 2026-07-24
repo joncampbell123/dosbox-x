@@ -1112,7 +1112,7 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
     // figure out doublewidth/height values
     bool dblw = false;
     bool dblh = false;
-    bool do_not_dblh = (IS_VGA_ARCH && vga.draw.doublescan_set) || machine == MCH_MDA || machine == MCH_HERC;
+    bool do_not_dblh = (IS_VGA_ARCH && vga.draw.doublescan_set) || machine == MCH_MDA || machine == MCH_HERC || (machine == MCH_OLIVETTI && vga.mode == M_DCGA) || (machine == MCH_3270PC && (vga.mode == M_CGA2 || vga.mode == M_CGA4)); // M24 640x400 / 3270 APA 720x350 are already full physical lines
     double ratio = (((double)width)/((double)height))/scrn_ratio;
     if(ratio > 1.6 && !do_not_dblh) {
         dblh=true;

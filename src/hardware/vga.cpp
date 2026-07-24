@@ -1067,6 +1067,14 @@ void VGA_Reset(Section*) {
 		case MCH_CGA:
 			if (vga.mem.memsize < _KB_bytes(16)) vga.mem.memsize = _KB_bytes(16);
 			break;
+		case MCH_OLIVETTI:
+			/* Olivetti M24 / AT&T 6300 OGC: 32KB refresh RAM (needed for 640x400 mono) */
+			if (vga.mem.memsize < _KB_bytes(32)) vga.mem.memsize = _KB_bytes(32);
+			break;
+		case MCH_3270PC:
+			/* IBM 3270 PC APA board: 32KB at B8000 (720x350 mono = 31500 bytes) */
+			if (vga.mem.memsize < _KB_bytes(32)) vga.mem.memsize = _KB_bytes(32);
+			break;
 		case MCH_TANDY:
 		case MCH_PCJR:
 			if (vga.mem.memsize < _KB_bytes(128)) vga.mem.memsize = _KB_bytes(128); /* FIXME: Right? */
