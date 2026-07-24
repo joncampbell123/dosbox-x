@@ -3594,7 +3594,10 @@ bool fatDrive::directoryChange(uint32_t dirClustNumber, const direntry *useEntry
 bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEntry,const char *lfn) {
 	if (unformatted) return false;
 
+	clusterChainMemory dir_ccm;
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
+	uint32_t sectbuf_sector = 0;
+	bool sectbuf_valid = false;
 	uint32_t tmpsector;
 	uint16_t dirPos = 0;
 	unsigned int need = 1;
@@ -3647,19 +3650,24 @@ bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEnt
 			if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
 			tmpsector = firstRootDirSect+logentsector;
 		} else {
-			tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+			tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector, &dir_ccm);
 			/* A zero sector number can't happen - we need to allocate more room for this directory*/
 			if(tmpsector == 0) {
 				uint32_t newClust;
-				newClust = appendCluster(dirClustNumber);
+				newClust = appendCluster(dirClustNumber, &dir_ccm);
 				if(newClust == 0) return false;
 				zeroOutCluster(newClust);
 				/* Try again to get tmpsector */
-				tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+				tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector, &dir_ccm);
 				if(tmpsector == 0) return false; /* Give up if still can't get more room for directory */
 			}
 		}
-		readSector(tmpsector,sectbuf);
+
+		if (!sectbuf_valid || sectbuf_sector != tmpsector) {
+			readSector(tmpsector,sectbuf);
+			sectbuf_sector = tmpsector;
+			sectbuf_valid = true;
+		}
 
 		/* Deleted file entry or end of directory list */
 		if ((sectbuf[entryoffset].entryname[0] == 0xe5) || (sectbuf[entryoffset].entryname[0] == 0x00)) {
@@ -3706,7 +3714,7 @@ bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEnt
 							if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
 							tmpsector = firstRootDirSect+logentsector;
 						} else {
-							tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+							tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector, &dir_ccm);
 							/* A zero sector number can't happen - we need to allocate more room for this directory*/
 							if(tmpsector == 0) return false;
 						}
