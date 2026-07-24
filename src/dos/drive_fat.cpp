@@ -1397,19 +1397,19 @@ uint32_t fatDrive::appendCluster(uint32_t startCluster) {
 
 	if(!allocateCluster(newClust, currentClust)) return 0;
 
-	// FIXME: MS-DOS and the Windows 95/98/ME FAT driver are known NOT to zero out newly allocated clusters
-	//        for files (but it probably does for directories---not verified).
+	// MS-DOS and the Windows 95/98/ME FAT driver are known NOT to zero out newly allocated clusters
+	// for files (but it probably does for directories---not verified).
 	//
-	//        Back in the day my favorite method to recover random blocks of deleted data on Windows 98
-	//        was to create a file, lseek() out to some offset, write ONE byte, and let Windows 98 create
-	//        the allocation chain which would then contain whatever random data was left behind AND the
-	//        one byte I wrote.
+	// Back in the day my favorite method to recover random blocks of deleted data on Windows 98
+	// was to create a file, lseek() out to some offset, write ONE byte, and let Windows 98 create
+	// the allocation chain which would then contain whatever random data was left behind AND the
+	// one byte I wrote.
 	//
-	//        Windows XP takes the time and effort to zero out clusters when extending the file.
-	//        The trick doesn't work anymore. --J.C.
+	// Windows XP takes the time and effort to zero out clusters when extending the file.
+	// The trick doesn't work anymore. --J.C.
 	//
-	//        Caller zeros the cluster if needed. The directory handling code already calls zeroOutCluster().
-	//        This function's job is to extend the allocation chain not zero clusters.
+	// Caller zeros the cluster if needed. The directory handling code already calls zeroOutCluster().
+	// This function's job is to extend the allocation chain not zero clusters.
 
 	return newClust;
 }
