@@ -552,11 +552,8 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 			if (!loadedSector) {
 				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 				if(currentSector == 0) {
-					/* EOC reached before EOF - try to increase file allocation */
+					/* EOC reached before EOF - try to increase file allocation---should not affect file_ccm cached cluster numbers */
 					myDrive->appendCluster(firstCluster);
-
-					//TODO
-					file_ccm = fatDrive::clusterChainMemory();
 
 					/* Try getting sector again */
 					currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
@@ -582,11 +579,8 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 			currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 			if(currentSector == 0) {
 				if (sizedec == 0) goto finalizeWrite;
-				/* EOC reached before EOF - try to increase file allocation */
+				/* EOC reached before EOF - try to increase file allocation---should not affect file_ccm cached cluster numbers */
 				myDrive->appendCluster(firstCluster);
-
-				//TODO
-				file_ccm = fatDrive::clusterChainMemory();
 
 				/* Try getting sector again */
 				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
@@ -602,7 +596,14 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 	}
 	if(curSectOff>0 && loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 
-	/* FIXME: MS-DOS as far as I know does not update the dirent until you flush or close */
+	/* FIXME: MS-DOS as far as I know does not update the dirent until you flush or close.
+	 *        You can verify this by writing a program to create a file, write data to it,
+	 *        then reboot the system without flushing or closing the file. The allocation
+	 *        chain will be there but the dirent will have the file size set to whatever
+	 *        it was when first created/opened, which should be zero. SCANDISK will helpfully
+	 *        point this out, and either update the file size or truncate the file to the
+	 *        dirent's size and write the extra data to those FILE*.CHK files in the root
+	 *        directory. --J.C. */
 finalizeWrite:
 	myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
 	tmpentry.entrysize = filelength;
@@ -1355,6 +1356,7 @@ void fatDrive::deleteClustChain(uint32_t startCluster, uint32_t bytePos) {
 	}
 }
 
+// FIXME: This appends ONE cluster at the cost of re-reading the ENTIRE allocation chain!
 uint32_t fatDrive::appendCluster(uint32_t startCluster) {
 	if (unformatted) return 0;
 	if (startCluster < 2) return 0; /* do not corrupt the FAT media ID. The file has no chain. Do nothing. */
@@ -1395,6 +1397,16 @@ uint32_t fatDrive::appendCluster(uint32_t startCluster) {
 
 	if(!allocateCluster(newClust, currentClust)) return 0;
 
+	// FIXME: MS-DOS and the Windows 95/98/ME FAT driver are known NOT to zero out newly allocated clusters
+	//        for files (but it probably does for directories---not verified).
+	//
+	//        Back in the day my favorite method to recover random blocks of deleted data on Windows 98
+	//        was to create a file, lseek() out to some offset, write ONE byte, and let Windows 98 create
+	//        the allocation chain which would then contain whatever random data was left behind AND the
+	//        one byte I wrote.
+	//
+	//        Windows XP takes the time and effort to zero out clusters when extending the file.
+	//        The trick doesn't work anymore. --J.C.
 	zeroOutCluster(newClust);
 
 	return newClust;
