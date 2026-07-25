@@ -18,7 +18,8 @@ Next version
     structure as the "ipx" command used to set up an IPX network in DOSBox and
     DOSBox-X. (joncampbell123)
   - FAT driver performance improvements, at least for directory enumeration,
-    file creation, reading, and writing. (joncampbell123).
+    file creation, reading, and writing (joncampbell123).
+  - Added PC3270 and Olivetti machine types (firevaran).
 
 2026.07.02
   - Prepare for release. This time release OSFREE first so that the normal
