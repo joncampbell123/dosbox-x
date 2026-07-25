@@ -741,6 +741,30 @@ static uint8_t * VGA_Draw_2BPP_Line(Bitu vidstart, Bitu line) {
 	return VGA_Draw_2BPP_Line_Common<MCH_CGA,uint8_t>(TempLine,vidstart,line);
 }
 
+// IBM 3270 PC APA modes are LINEAR (350 lines of 90 bytes, no bank interleave), unlike the CGA/Hercules
+// layout. address_add is set to address_line_total*blocks so consecutive scanlines are contiguous, and
+// we reconstruct the linear byte offset as vidstart + line*blocks. addr_mask is widened to 0x7FFF (32KB).
+static uint8_t * VGA_Draw_3270_1BPP_Line(Bitu vidstart, Bitu line) {
+	Bitu addr = vidstart + line * vga.draw.blocks; // 720x350 mono: 90 bytes/line -> 720 pixels
+	uint32_t *draw = (uint32_t *)TempLine;
+	for (Bitu x=vga.draw.blocks;x>0;x--,addr++) {
+		const uint8_t val = vga.tandy.draw_base[addr & vga.tandy.addr_mask];
+		*draw++ = CGA_2_Table[val >> 4];
+		*draw++ = CGA_2_Table[val & 0xf];
+	}
+	return TempLine;
+}
+
+static uint8_t * VGA_Draw_3270_2BPP_Line(Bitu vidstart, Bitu line) {
+	Bitu addr = vidstart + line * vga.draw.blocks; // 360x350 4-color: 90 bytes/line -> 360 pixels
+	uint32_t *draw = (uint32_t *)TempLine;
+	for (Bitu x=vga.draw.blocks;x>0;x--,addr++) {
+		const uint8_t val = vga.tandy.draw_base[addr & vga.tandy.addr_mask];
+		*draw++ = CGA_4_Table[val];
+	}
+	return TempLine;
+}
+
 extern uint32_t CGA_4_HiRes_TableNP[256];
 
 template <const unsigned int card,typename templine_type_t> static uint8_t * VGA_Draw_2BPPHiRes_Line_Common(uint8_t *dst,Bitu vidstart, Bitu line) {
@@ -6153,6 +6177,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 			// fall-through
 		case MCH_AMSTRAD:
 		case MCH_CGA:
+		case MCH_OLIVETTI:
+		case MCH_3270PC:
 		case MCH_MDA:
 		case MCH_MCGA:
 		case MCH_HERC:
@@ -6957,12 +6983,17 @@ void VGA_CheckScanLength(void) {
 		case M_AMSTRAD: // Next line.
 			if (IS_EGAVGA_ARCH)
 				vga.draw.address_add=vga.config.scan_len*(2u<<vga.config.addr_shift);
+			else if (machine == MCH_3270PC && vga.mode == M_CGA2) // 3270 APA 720x350: linear, scanlines contiguous
+				vga.draw.address_add=vga.draw.blocks*vga.draw.address_line_total;
 			else
 				vga.draw.address_add=vga.draw.blocks;
 			break;
 		case M_CGA4:
 			// 2023/04/26: This path M_CGA2 and M_CGA4 is no longer set for EGA/VGA.
-			vga.draw.address_add=vga.draw.blocks;
+			if (machine == MCH_3270PC) // 3270 APA 360x350: linear, scanlines contiguous
+				vga.draw.address_add=vga.draw.blocks*vga.draw.address_line_total;
+			else
+				vga.draw.address_add=vga.draw.blocks;
 			break;
 		case M_TANDY2:
 			if (machine == MCH_MCGA)
@@ -7381,6 +7412,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			}
 		}
 
+		// Olivetti M24 / AT&T 6300 OGC 640x400: the display controller always produces 400 lines
+		// via the 4-bank interleave once bit0 of the OGC control register is set, regardless of how
+		// the 6845 max-scanline register was programmed (M24-native software often enables it after
+		// setting a plain CGA mode, leaving max_scanline at the CGA value).
+		if (machine == MCH_OLIVETTI && vga.mode == M_DCGA)
+			vga.draw.address_line_total = 4;
+
 		vtotal = vga.draw.address_line_total * (vga.other.vtotal+1u)+vga.other.vadjust;
 		vdend = vga.draw.address_line_total * vga.other.vdend;
 		vrstart = vga.draw.address_line_total * vga.other.vsyncp;
@@ -7415,6 +7453,37 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 					clock=oscclock/9;
 
 				if (vga.herc.mode_control & 0x2) clock /= 2;
+				break;
+			case MCH_OLIVETTI:
+				if (vga.mode == M_DCGA) {
+					// Olivetti M24 / AT&T 6300 640x400 mono: fixed 640-wide, no pixel-doubling.
+					// ponytail: dot clock is a calibration knob — the M24/6300 manuals cite ~25/19/12 MHz
+					//           by mode and ~25 kHz H / ~50-56 Hz V. Tune oscclock if refresh looks off.
+					oscclock = 16000000;
+					clock = oscclock / 8;
+				} else {
+					// standard CGA-compatible modes (digital RGB, no composite)
+					clock = (PIT_TICK_RATE*12)/8;
+					if (vga.mode != M_TANDY2) {
+						if (!(vga.tandy.mode_control & 1)) clock /= 2;
+					}
+					oscclock = clock * 8;
+				}
+				break;
+			case MCH_3270PC:
+				if (vga.mode == M_CGA2 || vga.mode == M_CGA4) {
+					// IBM 3270 PC APA modes (720x350 mono / 360x350 4-color).
+					// ponytail: dot clock is a calibration knob — the 5271 uses 16.257/21.676 MHz crystals.
+					oscclock = 16257000;
+					clock = oscclock / 8;
+				} else {
+					// standard CGA-compatible modes
+					clock = (PIT_TICK_RATE*12)/8;
+					if (vga.mode != M_TANDY2) {
+						if (!(vga.tandy.mode_control & 1)) clock /= 2;
+					}
+					oscclock = clock * 8;
+				}
 				break;
 			default:
 				clock = (PIT_TICK_RATE*12)/8;
@@ -7831,6 +7900,15 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 					/* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
 					vga.tandy.draw_base = vga.mem.linear + 0x8000;
 				}
+				else if (machine == MCH_3270PC) {
+					// IBM 3270 PC APA mode 0x31: 360x350 4-color, LINEAR (90 bytes/line, no interleave)
+					vga.draw.blocks = width;             // 90 bytes -> 360 pixels (4 per byte)
+					vga.tandy.draw_base = vga.mem.linear;
+					vga.tandy.addr_mask = 0x7FFFu;       // 32KB linear framebuffer
+					pix_per_char = 4;                    // width(90)*4 = 360 pixels
+					VGA_DrawLine = VGA_Draw_3270_2BPP_Line;
+					// bpp stays 8 (CGA-indexed via CGA_4_Table)
+				}
 				else {
 					VGA_DrawLine=VGA_Draw_2BPP_Line;
 					VGA_DrawRawLine=VGA_RawDraw_2BPP_Line;
@@ -7838,10 +7916,20 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 				}
 				break;
 			case M_DCGA:
-				// if (IS_EGAVGA_ARCH && J3_IsCga4Dcga()) ...
-				vga.draw.blocks=width;
-				VGA_DrawLine=VGA_Draw_1BPP_Line_as_VGA_J3_Cga4Dcga;
-				bpp = 32;
+				if (machine == MCH_OLIVETTI) {
+					// Olivetti M24 / AT&T 6300 native 640x400 mono. Rendered by the CGA-class 1bpp
+					// scanout; the 4-bank interleave is line_mask=3/line_shift=13 (VGA_SetupOther
+					// defaults) combined with max_scanline=3 programmed by INT10 mode 0x40.
+					vga.draw.blocks=width;
+					VGA_DrawLine=VGA_Draw_1BPP_Line;
+					VGA_DrawRawLine=VGA_RawDraw_1BPP_Line;
+					// bpp stays 8 (CGA-indexed via CGA_2_Table)
+				} else {
+					// if (IS_EGAVGA_ARCH && J3_IsCga4Dcga()) ...
+					vga.draw.blocks=width;
+					VGA_DrawLine=VGA_Draw_1BPP_Line_as_VGA_J3_Cga4Dcga;
+					bpp = 32;
+				}
 				break;
 			case M_CGA2:
 				// CGA 2-color mode on EGA/VGA is just EGA 16-color planar mode with one bitplane enabled and a
@@ -7866,6 +7954,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
 					if (vga.other.mcga_mode_control & 2) // 640x480 2-color
 						vga.draw.address_line_total = 1;
+				}
+				else if (machine == MCH_3270PC) {
+					// IBM 3270 PC APA mode 0x30: 720x350 mono, LINEAR (90 bytes/line, no interleave)
+					vga.draw.blocks = width;             // width=hde=90 -> 90 bytes -> 720 pixels
+					vga.tandy.draw_base = vga.mem.linear;
+					vga.tandy.addr_mask = 0x7FFFu;       // 32KB linear framebuffer
+					VGA_DrawLine = VGA_Draw_3270_1BPP_Line;
+					// bpp stays 8 (CGA-indexed via CGA_2_Table)
 				}
 				else {
 					VGA_DrawLine=VGA_Draw_1BPP_Line;
@@ -8088,6 +8184,16 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		case MCH_PCJR:
 		case MCH_TANDY:
 			scanfield_ratio = 1.382;
+			break;
+		case MCH_OLIVETTI:
+			// ponytail: M24/6300 monitor is ~4:3; 1.382 (CGA-class) is a close default for both the
+			//           CGA-compatible modes and native 640x400. Tune if the 640x400 aspect looks off.
+			scanfield_ratio = 1.382;
+			break;
+		case MCH_3270PC:
+			// ponytail: 3270 PC 5272 monitor ~4:3; use the MDA/Hercules 720x350-class field ratio for the
+			//           APA modes and CGA-class otherwise. Tune if the APA aspect looks off.
+			scanfield_ratio = (vga.mode == M_CGA2 || vga.mode == M_CGA4) ? 1.535 : 1.382;
 			break;
 		case MCH_MDA:
 		case MCH_HERC:
@@ -8414,6 +8520,8 @@ void POD_Save_VGA_Draw( std::ostream& stream )
 	else if( VGA_DrawLine == VGA_TEXT_Draw_Line ) drawline_idx = 14;
 	else if( VGA_DrawLine == VGA_TEXT8_Herc_Draw_Line ) drawline_idx = 15;
 	else if( VGA_DrawLine == VGA_TEXT_Xlat32_Draw_Line ) drawline_idx = 17;
+	else if( VGA_DrawLine == VGA_Draw_3270_1BPP_Line ) drawline_idx = 18;
+	else if( VGA_DrawLine == VGA_Draw_3270_2BPP_Line ) drawline_idx = 19;
 
 	//**********************************************
 	//**********************************************
@@ -8562,5 +8670,7 @@ void POD_Load_VGA_Draw( std::istream& stream )
 		case 14: VGA_DrawLine = VGA_TEXT_Draw_Line; break;
 		case 15: VGA_DrawLine = VGA_TEXT8_Herc_Draw_Line; break;
 		case 17: VGA_DrawLine = VGA_TEXT_Xlat32_Draw_Line; break;
+		case 18: VGA_DrawLine = VGA_Draw_3270_1BPP_Line; break;
+		case 19: VGA_DrawLine = VGA_Draw_3270_2BPP_Line; break;
 	}
 }

@@ -603,6 +603,12 @@ VideoModeBlock ModeList_OTHER[]={
 { 0x009  ,M_TANDY16,320 ,200 ,40 ,25 ,8 ,8  ,8 ,0xB8000 ,0x2000 ,113 ,63  ,80 ,50  ,0, 0},
 { 0x00A  ,M_CGA4   ,640 ,200 ,80 ,25 ,8 ,8  ,8 ,0xB8000 ,0x2000 ,113 ,63  ,80 ,50  ,0, 0},
 //{ 0x00E  ,M_TANDY16,640 ,200 ,80 ,25 ,8 ,8  ,8 ,0xA0000 ,0x10000 ,113 ,256 ,80 ,200 ,0, 0},
+/* Olivetti M24 / AT&T 6300 native 640x400 mono. vde(100)*(max_scanline+1=4)=400 visible lines. */
+{ 0x040  ,M_DCGA   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xB8000 ,0x8000 ,113 ,110 ,80 ,100 ,0, 0},
+/* IBM 3270 PC APA modes (LINEAR, 350 lines of 90 bytes at B8000). vde(25)*(cheight=14)=350 lines.
+ * hde=90 char-clocks; mode 0x30 renders 8 px/byte (720 wide), mode 0x31 renders 4 px/byte (360 wide). */
+{ 0x030  ,M_CGA2   ,720 ,350 ,90 ,25 ,8 ,14 ,1 ,0xB8000 ,0x8000 ,110 ,30  ,90 ,25  ,0, 0},
+{ 0x031  ,M_CGA4   ,360 ,350 ,45 ,25 ,8 ,14 ,1 ,0xB8000 ,0x8000 ,110 ,30  ,90 ,25  ,0, 0},
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 , 0},
 };
 
@@ -835,6 +841,12 @@ bool INT10_SetCurMode(void) {
 		case MCH_CGA:
 			if (bios_mode<7) mode_changed=SetCurMode(ModeList_OTHER,bios_mode);
 			break;
+		case MCH_OLIVETTI:
+			if (bios_mode<7 || bios_mode==0x40) mode_changed=SetCurMode(ModeList_OTHER,bios_mode);
+			break;
+		case MCH_3270PC:
+			if (bios_mode<7 || bios_mode==0x30 || bios_mode==0x31) mode_changed=SetCurMode(ModeList_OTHER,bios_mode);
+			break;
 		case MCH_MCGA:
 			mode_changed=SetCurMode(ModeList_MCGA,bios_mode);
 			break;
@@ -907,7 +919,7 @@ static void FinishSetMode(bool clearmem) {
                 }
             }
             else {
-                for (uint16_t ct=0;ct<((CurMode->type == M_DCGA || CurMode->type == M_TANDY16)?32:16)*1024;ct+=2) {
+                for (uint16_t ct=0;ct<((CurMode->type == M_DCGA || CurMode->type == M_TANDY16 || machine==MCH_3270PC)?32:16)*1024;ct+=2) {
                     real_writew( 0xb800,ct,0x0000);
                 }
             }
@@ -1016,8 +1028,38 @@ uint8_t TandyGetCRTPage(void) {
 extern bool en_int33;
 extern std::string j3type;
 void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
+
+// IBM 3270 PC (5271) palette: it approximates each CGA colour with 4 primary levels (#30/#80/#A0/#C0).
+// ponytail: these are John Elliott's measured approximations for colours 0-7; tune if colours look off.
+static const uint8_t palette_5271[8][3] = {
+	{0x00,0x00,0x00}, // 0 black
+	{0x60,0x80,0xA8}, // 1 blue
+	{0x00,0x80,0x00}, // 2 green
+	{0x60,0xC0,0xA8}, // 3 cyan
+	{0xA8,0x30,0x00}, // 4 red
+	{0xC0,0x60,0x80}, // 5 magenta
+	{0xA0,0x80,0x00}, // 6 yellow/brown
+	{0xA0,0xA0,0x80}, // 7 white
+};
+
 bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 	switch (machine) {
+		case MCH_OLIVETTI:
+			// Olivetti M24 / AT&T 6300: CGA modes 0-6 plus native 640x400 mono (mode 0x40)
+			if (mode>6 && mode!=0x40) return false;
+			if (!SetCurMode(ModeList_OTHER,mode)) {
+				LOG(LOG_INT10,LOG_ERROR)("Trying to set illegal mode %X",mode);
+				return false;
+			}
+			break;
+		case MCH_3270PC:
+			// IBM 3270 PC: CGA modes 0-6 plus APA modes 0x30 (720x350 mono) / 0x31 (360x350 4-color)
+			if (mode>6 && mode!=0x30 && mode!=0x31) return false;
+			if (!SetCurMode(ModeList_OTHER,mode)) {
+				LOG(LOG_INT10,LOG_ERROR)("Trying to set illegal mode %X",mode);
+				return false;
+			}
+			break;
 		case MCH_CGA:
 		case MCH_AMSTRAD:
 			if (mode>6) return false;
@@ -1104,7 +1146,12 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 			else scanline=8;
 			break;
 		case M_CGA2: // graphics mode: even/odd banks interleaved
-			if (machine == MCH_MCGA && CurMode->mode >= 0x11)
+			// This switch is on CurMode->type, and plain CGA mode 6 is M_CGA2 as well (cheight 8).
+			// Gate on the mode number, or mode 6 gets max_scanline 7 -> address_line_total 8, and the
+			// CGA bank walk (line & line_mask=3) reaches the never-written banks 2/3 -> half the raster black.
+			if (machine == MCH_3270PC && CurMode->mode == 0x30) // 3270 APA 720x350 is linear; use the mode's cell height (14) as row height
+				scanline = CurMode->cheight;
+			else if (machine == MCH_MCGA && CurMode->mode >= 0x11)
 				scanline = 1; // as seen on real hardware, modes 0x11 and 0x13 have max scanline register == 0x00
 			else
 				scanline = 2;
@@ -1116,12 +1163,18 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 				scanline = 2;
 			break;
 		case M_CGA4:
-			if (CurMode->mode!=0xa) scanline=2;
+			// Same as M_CGA2 above: plain CGA modes 4/5 are M_CGA4 too, so gate on the mode number.
+			if (machine == MCH_3270PC && CurMode->mode == 0x31) // 3270 APA 360x350 is linear; use the mode's cell height (14)
+				scanline = CurMode->cheight;
+			else if (CurMode->mode!=0xa) scanline=2;
 			else scanline=4;
 			break;
 		case M_TANDY16:
 			if (CurMode->mode!=0x9) scanline=2;
 			else scanline=4;
+			break;
+		case M_DCGA: // Olivetti M24 / AT&T 6300 640x400 mono: 4 scanlines per char row (max_scanline=3)
+			scanline=4;
 			break;
 		default:
 			break;
@@ -1171,9 +1224,27 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 			break;
 		case MCH_AMSTRAD:
 			IO_WriteB( 0x3d9, 0x0f );
+		case MCH_OLIVETTI:
+		case MCH_3270PC:
 		case MCH_CGA:
 		case MCH_MCGA:
-			if (CurMode->mode == 0x13 && machine == MCH_MCGA)
+			if (machine == MCH_3270PC && (CurMode->mode == 0x30 || CurMode->mode == 0x31)) {
+				// 3270 PC APA graphics: linear framebuffer, set the render mode + 5271 palette directly
+				// (these modes are programmed via the SCN2672 ports, not the CGA 0x3D8 register).
+				VGA_SetMode(CurMode->mode == 0x30 ? M_CGA2 : M_CGA4);
+				for (uint8_t ct=0;ct<8;ct++)
+					VGA_DAC_SetEntry(ct,palette_5271[ct][0]>>2,palette_5271[ct][1]>>2,palette_5271[ct][2]>>2);
+				for (uint8_t ct=0;ct<16;ct++) VGA_DAC_CombineColor(ct,ct&7);
+				if (CurMode->mode == 0x30) VGA_SetCGA2Table(0,7);       // mono: 0=black, 1=white
+				else                       VGA_SetCGA4Table(0,1,2,3);   // 4-color subset of the 5271 palette
+				break;
+			}
+			if (machine == MCH_OLIVETTI && CurMode->mode == 0x40) {
+				// M24 640x400 mono: enable OGC 640x400 (0x3DE bit0), then CGA graphics+hi-res control
+				IO_WriteB(0x3de,vga.olivetti_ctrl | 0x01);
+				mode_control=0x1e; // graphics + hi-res + video-enable (as CGA mode 6)
+			}
+			else if (CurMode->mode == 0x13 && machine == MCH_MCGA)
 				mode_control=0x0a;
 			else if (CurMode->mode == 0x11 && machine == MCH_MCGA)
 				mode_control=0x1e;
@@ -1184,6 +1255,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 
 			if (CurMode->mode == 0x6) color_select=0x3f;
 			else if (CurMode->mode == 0x11) color_select=0x3f;
+			else if (machine == MCH_OLIVETTI && CurMode->mode == 0x40) color_select=0x3f;
 			else color_select=0x30;
 			IO_WriteB(0x3d8,mode_control);
 			IO_WriteB(0x3d9,color_select);

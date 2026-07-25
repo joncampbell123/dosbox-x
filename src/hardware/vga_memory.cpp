@@ -2077,14 +2077,19 @@ public:
 		CPU_IODelayRemoved += delaycyc;
 	}
 
+	// Olivetti M24 / AT&T 6300 has 32KB of refresh RAM (needed for 640x400); plain CGA has 16KB
+	// aliased twice across the B8000-BFFFF window. Masking to 16KB on the M24 would fold banks 2-3
+	// of the 640x400 image onto banks 0-1, losing half the picture.
 	uint8_t readb(PhysPt addr) override {
 		delay();
-		return vga.tandy.mem_base[(PAGING_GetPhysicalAddress(addr) - 0xb8000) & 0x3FFF];
+		const PhysPt mask = (machine==MCH_OLIVETTI || machine==MCH_3270PC) ? 0x7FFFu : 0x3FFFu;
+		return vga.tandy.mem_base[(PAGING_GetPhysicalAddress(addr) - 0xb8000) & mask];
 	}
 	void writeb(PhysPt addr,uint8_t val) override {
 		delay();
 		vga_vram_write_trigger_update();
-		vga.tandy.mem_base[(PAGING_GetPhysicalAddress(addr) - 0xb8000) & 0x3FFF] = val;
+		const PhysPt mask = (machine==MCH_OLIVETTI || machine==MCH_3270PC) ? 0x7FFFu : 0x3FFFu;
+		vga.tandy.mem_base[(PAGING_GetPhysicalAddress(addr) - 0xb8000) & mask] = val;
 	}
 	
 };
@@ -2543,6 +2548,8 @@ void VGA_SetupHandlers(void) {
 	bool runeten = false;
 	PageHandler *newHandler;
 	switch (machine) {
+	case MCH_OLIVETTI: // Olivetti M24 / AT&T 6300: CGA-class B8000 window (32KB)
+	case MCH_3270PC:   // IBM 3270 PC: CGA-class B8000 window (32KB for the APA board)
 	case MCH_CGA:
 		MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );            // B0000-B7FFF is unmapped
 		if (enableCGASnow && (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT))
@@ -2927,7 +2934,7 @@ void VGA_StartUpdateLFB(void) {
 static bool VGA_Memory_ShutDown_init = false;
 
 static void VGA_Memory_ShutDown(Section * /*sec*/) {
-	if (machine == MCH_CGA)
+	if (machine == MCH_CGA || machine == MCH_OLIVETTI || machine == MCH_3270PC)
 		MEM_SetPageHandler(VGA_PAGE_B8,8,&vgaph.empty);
 	else if (machine == MCH_HERC || machine == MCH_MDA)
 		MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.empty);
