@@ -10,6 +10,15 @@ Next version
   - Fixed window resizing (OpenGL, SDL2) (misty7666)
   - Updated Nuked-OPL3-fast to v1.8-fast.3 (tgies)
   - Added support for nested subdirectories in Z drive (maron2000)
+  - Added experimental "ethnet" command and protocol for NE2000 emulation. Instead
+    of using the pcap promiscious mode, which doesn't work over Wi-fi, a client
+    server setup can be configured to emulate a private lan between instances of
+    DOSBox-X either on localhost or on the local area network. The ethnet command
+    is deliberately built so that client and server set up is the same command
+    structure as the "ipx" command used to set up an IPX network in DOSBox and
+    DOSBox-X. (joncampbell123)
+  - FAT driver performance improvements, at least for directory enumeration,
+    file creation, reading, and writing. (joncampbell123).
 
 2026.07.02
   - Prepare for release. This time release OSFREE first so that the normal
