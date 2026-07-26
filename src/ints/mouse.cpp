@@ -1626,6 +1626,7 @@ static Bitu INT33_Handler(void) {
         goto software_reset;
     case 0x01:  /* MS MOUSE v1.0+ - SHOW MOUSE CURSOR */
         if (mouse.hidden) mouse.hidden--;
+        if(pc98_nec_mouse) mouse.hidden = 0;
         mouse.updateRegion_y[1] = -1; //offscreen
         DrawCursor();
         if(!mouse.hidden) Mouse_Used();
