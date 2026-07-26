@@ -23,6 +23,8 @@ Next version
   - Fixed fatDrive error paths so truncated boot-sector reads no longer look
     like successful mounts, and early returns now close diskfile handles
     instead of leaking them. (cimarronm)
+  - INT 33h: In PC-98 mode, do not maintain a hide/show display count to match
+    real mouse driver behavior (nanshiki)
 
 2026.07.02
   - Prepare for release. This time release OSFREE first so that the normal
