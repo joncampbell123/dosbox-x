@@ -20,6 +20,9 @@ Next version
   - FAT driver performance improvements, at least for directory enumeration,
     file creation, reading, and writing (joncampbell123).
   - Added PC3270 and Olivetti machine types (firevaran).
+  - Fixed fatDrive error paths so truncated boot-sector reads no longer look
+    like successful mounts, and early returns now close diskfile handles
+    instead of leaking them. (cimarronm)
 
 2026.07.02
   - Prepare for release. This time release OSFREE first so that the normal

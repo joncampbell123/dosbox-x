@@ -1499,22 +1499,18 @@ fatDrive::~fatDrive() {
 
 FILE * fopen_lock(const char * fname, const char * mode, bool &readonly);
 fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, std::vector<std::string>& options) {
-	FILE *diskfile;
-	uint64_t filesize;
-	unsigned char bootcode[256];
-
 	if(!dos_kernel_disabled && imgDTASeg == 0) {
 		imgDTASeg = DOS_GetMemory(4,"imgDTASeg");
 		imgDTAPtr = RealMake(imgDTASeg, 0);
 		imgDTA    = new DOS_DTA(imgDTAPtr);
 	}
 
-	std::vector<std::string>::iterator it = std::find(options.begin(), options.end(), "readonly");
-	bool roflag = it!=options.end();
-	readonly = wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':';
-	const char *fname=readonly?sysFilename+1:sysFilename;
-	diskfile = fopen_lock(fname, readonly||roflag?"rb":"rb+", readonly);
+	const bool roflag = std::find(options.begin(), options.end(), "readonly") != options.end();
+	readonly = wpcolon && strlen(sysFilename) > 1 && sysFilename[0] == ':';
+	const char *fname = readonly ? sysFilename + 1 : sysFilename;
+	FILE *diskfile = fopen_lock(fname, readonly || roflag ? "rb" : "rb+", readonly);
 	if (!diskfile) {created_successfully = false;return;}
+
 	opts.bytesector = bytesector;
 	opts.cylsector = cylsector;
 	opts.headscyl = headscyl;
@@ -1527,65 +1523,55 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 	// where stdio buffering can cause loss of data.
 	setbuf(diskfile,NULL);
 
-	QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(diskfile);
+	// size in KB, filled in by whichever image loader below claims the file.
+	uint64_t filesize;
 
-	if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)){
+	QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(diskfile);
+	if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
 		uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
-		if ((bytesector < 512) || ((cluster_size % bytesector) != 0)){
+		if ((bytesector < 512) || ((cluster_size % bytesector) != 0)) {
+			fclose(diskfile);
 			created_successfully = false;
 			return;
 		}
-        filesize = (uint32_t)(qcow2_header.size / 1024L);
+		filesize = (uint32_t)(qcow2_header.size / 1024L);
 		loadedDisk = new QCow2Disk(qcow2_header, diskfile, fname, qcow2_header.size, bytesector, (filesize > 2880));
-        loadedDisk->sector_size = bytesector; // sector size
-        loadedDisk->sectors = cylsector;     // sectors
-        loadedDisk->heads =   headscyl;      // heads
-        loadedDisk->cylinders = cylinders;   // cylinders
-        uint64_t LBA = loadedDisk->getLBA();
-        if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
-            LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)LBA * 512.0 / (1024.0 * 1024 * 1024));
+		loadedDisk->sector_size = bytesector;
+		loadedDisk->sectors = cylsector;
+		loadedDisk->heads = headscyl;
+		loadedDisk->cylinders = cylinders;
 
-
+		uint64_t LBA = loadedDisk->getLBA();
+		if(!int13_enable_48bitLBA && (LBA > 0x0FFFFFFF))
+			LOG_MSG("Warning: Disk size (%lf GB) exceeds 128GB limit for 28-bit LBA. You may need to enable 48-bit LBA support.", (double)LBA * 512.0 / (1024.0 * 1024 * 1024));
 	}
-	else{
+	else {
+		unsigned char bootcode[256];
 		fseeko64(diskfile, 0L, SEEK_SET);
-		assert(sizeof(bootcode) >= 256);
-		size_t readResult = fread(bootcode,256,1,diskfile); // look for magic signatures
-		if (readResult != 1) {
+		if (fread(bootcode,sizeof(bootcode),1,diskfile) != 1) { // look for magic signatures
 			LOG(LOG_IO, LOG_ERROR) ("Reading error in fatDrive constructor\n");
+			fclose(diskfile);
+			created_successfully = false;
 			return;
 		}
 
-		const char *ext = strrchr(sysFilename,'.');
-		bool is_hdd = false;
-		if((ext != NULL) && (!strcasecmp(ext, ".hdi") || !strcasecmp(ext, ".nhd"))) is_hdd = true;
+		fseeko64(diskfile, 0L, SEEK_END);
+		const uint64_t rawsize = (uint64_t)ftello64(diskfile);
+		filesize = rawsize / 1024L;
 
-		if (ext != NULL && !strcasecmp(ext, ".d88")) {
-			fseeko64(diskfile, 0L, SEEK_END);
-			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
+		const char *ext = strrchr(sysFilename,'.');
+		const bool is_hdd = (ext != NULL) && (!strcasecmp(ext, ".hdi") || !strcasecmp(ext, ".nhd"));
+
+		if (ext != NULL && !strcasecmp(ext, ".d88"))
 			loadedDisk = new imageDiskD88(diskfile, fname, (uint32_t)filesize, false);
-		}
-		else if (!memcmp(bootcode,"VFD1.",5)) { /* FDD files */
-			fseeko64(diskfile, 0L, SEEK_END);
-			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
+		else if (!memcmp(bootcode,"VFD1.",5)) /* FDD files */
 			loadedDisk = new imageDiskVFD(diskfile, fname, (uint32_t)filesize, false);
-		}
-		else if (!memcmp(bootcode,"T98FDDIMAGE.R0\0\0",16)) {
-			fseeko64(diskfile, 0L, SEEK_END);
-			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
+		else if (!memcmp(bootcode,"T98FDDIMAGE.R0\0\0",16))
 			loadedDisk = new imageDiskNFD(diskfile, fname, (uint32_t)filesize, false, 0);
-		}
-		else if (!memcmp(bootcode,"T98FDDIMAGE.R1\0\0",16)) {
-			fseeko64(diskfile, 0L, SEEK_END);
-			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
+		else if (!memcmp(bootcode,"T98FDDIMAGE.R1\0\0",16))
 			loadedDisk = new imageDiskNFD(diskfile, fname, (uint32_t)filesize, false, 1);
-		}
-		else {
-			fseeko64(diskfile, 0L, SEEK_END);
-			filesize = ftello64(diskfile);
-			loadedDisk = new imageDisk(diskfile, fname, filesize, (is_hdd | (filesize > 2880 * 1024)));
-            filesize /= 1024L;
-		}
+		else
+			loadedDisk = new imageDisk(diskfile, fname, rawsize, (is_hdd | (rawsize > 2880 * 1024)));
 	}
 
 	fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize, options);
