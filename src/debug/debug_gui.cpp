@@ -595,9 +595,14 @@ void DBGUI_StartUp(void) {
 	/* Start the main window */
 
 #ifdef WIN32
-    if(!AttachConsole(ATTACH_PARENT_PROCESS)) { // Make sure console window is opened
+    typedef BOOL(WINAPI* AttachConsoleProc)(DWORD);
+
+    HMODULE kernel = GetModuleHandle(TEXT("kernel32.dll"));
+    AttachConsoleProc pAttachConsole =
+        (AttachConsoleProc)GetProcAddress(kernel, "AttachConsole");
+
+    if(!pAttachConsole || !pAttachConsole(ATTACH_PARENT_PROCESS))
         AllocConsole();
-    }
     freopen("CONIN$", "r", stdin);
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
