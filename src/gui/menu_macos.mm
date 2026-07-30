@@ -581,13 +581,13 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
         const std::string &st = item.get_shortcut_text();
         std::string ft;
 
+        int cp = dos.loaded_codepage;
+        InitCodePage();
+
         if (CodePageGuestToHostUTF8(tempstr,it.c_str()))
             ft += tempstr;
         else
             ft += it;
-
-        int cp = dos.loaded_codepage;
-        InitCodePage();
 
         NSMutableAttributedString *titleas;
         {
