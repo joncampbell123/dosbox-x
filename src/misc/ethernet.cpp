@@ -21,6 +21,7 @@
 #include "ethernet.h"
 #include "ethernet_pcap.h"
 #include "ethernet_slirp.h"
+#include "ethernet_ethnet.h"
 #include "ethernet_nothing.h"
 #include "logging.h"
 #include <cstring>
@@ -37,8 +38,10 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
         backend = "slirp";
 #elif defined(C_PCAP)
         backend = "pcap";
+#elif defined(C_SDL_NET) || defined(C_SDL2_NET)
+        backend = "ethnet";
 #else
-        backend = "nothing";
+        backend = "none";
 #endif
     } else {
         backend = backendstr;
@@ -61,6 +64,15 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
         if (!conn->Initialize(settings)) { delete conn; conn = NULL; }
     }
 #endif
+#if defined(C_SDL_NET) || defined(C_SDL2_NET)
+    if (backendstr == "auto" && !conn) backend = "ethnet";
+    if (backend == "ethnet") {
+        assert(conn == NULL);
+        conn = ((EthernetConnection*)new EthnetEthernetConnection);
+        settings = control->GetSection("ethernet, pcap");//NTS: The ethnet uses no settings, but there is an assert below to ensure settings != NULL
+        if (!conn->Initialize(settings)) { delete conn; conn = NULL; }
+    }
+#endif
     if (backendstr == "auto" && !conn) backend = "nothing";
     if (backend == "nothing") {
         assert(conn == NULL);
@@ -74,7 +86,7 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
             LOG_MSG("ETHERNET: Backend not supported in this build: %s", backend.c_str());
 	else if (backend == "nothing")
             LOG_MSG("ETHERNET: Somehow, the nothing backend failed");
-        else if (backend == "none")
+        else if (backend == "none" || backend == "ethnet")
             LOG_MSG("ETHERNET: Explicitly no backend for NE2000 emulation");
         else
             LOG_MSG("ETHERNET: Unknown ethernet backend: %s", backend.c_str());

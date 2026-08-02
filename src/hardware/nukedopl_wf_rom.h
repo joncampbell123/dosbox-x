@@ -11,6 +11,11 @@
  *     python3 gen_logsin.py > wf_rom.h
  */
 
+#ifndef OPL_WF_ROM_H
+#define OPL_WF_ROM_H
+
+#include <stdint.h>
+
 static const uint16_t logsin_wf[8][1024] = {
     {
         0x0859, 0x06c3, 0x0607, 0x058b, 0x052e, 0x04e4, 0x04a6, 0x0471,
@@ -1053,3 +1058,5 @@ static const uint16_t logsin_wf[8][1024] = {
         0x8038, 0x8030, 0x8028, 0x8020, 0x8018, 0x8010, 0x8008, 0x8000
     }
 };
+
+#endif /* OPL_WF_ROM_H */

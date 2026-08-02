@@ -1003,10 +1003,10 @@ void MenuBrowseProgramFile() {
 		return;
 	std::string drive_warn;
 	DOS_MCB mcb(dos.psp()-1);
-	static char psp_name[9];
-	mcb.GetFileName(psp_name);
-	if(strlen(psp_name)&&strcmp(psp_name, "COMMAND")) {
-		drive_warn=strcmp(psp_name, "4DOS")? MSG_Get("PROGRAM_PROGRAM_ALREADY"): MSG_Get("PROGRAM_PROGRAM_ALREADY");
+	static std::string psp_name;
+	psp_name = mcb.GetFileName();
+	if(!psp_name.empty()&&psp_name!="COMMAND") {
+		drive_warn=psp_name!="4DOS"? MSG_Get("PROGRAM_PROGRAM_ALREADY"): MSG_Get("PROGRAM_PROGRAM_ALREADY");
 		systemmessagebox(MSG_Get("ERROR"),drive_warn.c_str(),"ok","error", 1);
 		return;
 	}
@@ -3174,8 +3174,6 @@ public:
                 }
             }
         } else {
-            extern const char* RunningProgram;
-
             if (max_seg < (IS_PC98_ARCH?0x2000:0x0800)) LOG(LOG_MISC,LOG_WARN)("Booting a guest OS with too small amount of RAM may not work correctly");
 
             /* Other versions of MS-DOS/PC-DOS have their own requirements about memory:
@@ -8083,6 +8081,9 @@ void SERIAL_ProgramStart(Program * * make);
 void CONFIG_ProgramStart(Program * * make);
 #endif
 void IPXNET_ProgramStart(Program * * make);
+#if (defined(C_SDL_NET) || defined(C_SDL2_NET))
+void ETHNET_ProgramStart(Program * * make);
+#endif
 void A20GATE_ProgramStart(Program * * make);
 void CGASNOW_ProgramStart(Program * * make);
 void PARALLEL_ProgramStart(Program * * make);
@@ -10257,7 +10258,12 @@ void Add_VFiles(bool usecp) {
 # if C_IPX
 	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
 # endif
-	if (addne2k) VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
+	if (addne2k) {
+		VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
+#if defined(C_SDL_NET) || defined(C_SDL2_NET)
+        PROGRAMS_MakeFile("ETHNET.COM",ETHNET_ProgramStart,"/SYSTEM/");
+#endif
+    }
 	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
 #endif
 

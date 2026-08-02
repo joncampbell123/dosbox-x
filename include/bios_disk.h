@@ -37,6 +37,7 @@ struct diskGeo {
 	uint16_t rootentries;  /* Root directory entries */
 	uint8_t sectcluster;   /* Sectors per cluster */
 	uint8_t mediaid;       /* Media ID */
+    uint8_t fatsz;         /* FAT size in sectors */
 };
 extern diskGeo DiskGeometryList[];
 

@@ -128,6 +128,7 @@ char* revert_escape_newlines(const char* aMessage);
 #endif
 
 #include "control.h"
+#include "dos_inc.h"
 #include "dosbox.h"
 #include "menudef.h"
 #include "pic.h"
@@ -964,7 +965,6 @@ void                        GUI_LoadFonts();
 void                        GUI_Run(bool);
 
 const char*                 titlebar = NULL;
-extern const char*          RunningProgram;
 extern bool                 CPU_CycleAutoAdjust;
 extern                      cpu_cycles_count_t CPU_CyclePercUsed;
 #if !(ENVIRON_INCLUDED)
@@ -1142,8 +1142,8 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
     if (showbasic) {
         sprintf(title, "%s%s%s %s", dosbox_title.c_str(), dosbox_title.empty() ? "" : " - ", dosbox_name, VERSION);
 
-        const char *what = RunningProgram;
-        if (what != NULL && *what != 0) {
+        const char *what = RunningProgram.c_str();
+        if (!RunningProgram.empty()) {
             char *p = title + strlen(title); // append to end of string
 
             sprintf(p,": %s - ", what);
@@ -1357,7 +1357,7 @@ bool CheckQuit(void) {
             return systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_CONFIRM"),"yesno", "question", 1);
     } else if (warn == "false")
         return true;
-    if (dos_kernel_disabled&&strcmp(RunningProgram, "DOSBOX-X")) {
+    if (dos_kernel_disabled && RunningProgram != "DOSBOX-X") {
         if (!quit) {
             systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_GUEST_DISABLED"),"ok", "warning", 1);
             return false;
@@ -1374,7 +1374,7 @@ bool CheckQuit(void) {
                     return systemmessagebox("Quit DOSBox-X warning", MSG_Get("QUIT_FILE_OPEN_CONFIRM"),"yesno", "question", 1);
             }
         }
-    else if (RunningProgram&&strcmp(RunningProgram, "DOSBOX-X")&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS")) {
+    else if (!RunningProgram.empty() && RunningProgram != "DOSBOX-X" && RunningProgram != "COMMAND" && RunningProgram != "4DOS") {
         if (!quit) {
             systemmessagebox("Quit DOSBox-X warning",MSG_Get("QUIT_PROGRAM_DISABLED"),"ok", "warning", 1);
             return false;
@@ -2356,7 +2356,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-    if ((!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && ((machine != MCH_CGA && !IS_VGA_ARCH && !IS_PC98_ARCH && height == 350) || height == 400))) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
+    if ((!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && ((machine != MCH_CGA && machine != MCH_OLIVETTI && machine != MCH_3270PC && !IS_VGA_ARCH && !IS_PC98_ARCH && height == 350) || height == 400))) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
         RECT r;
         bool res = GetWindowRect(GetHWND(), &r);
         unsigned int maxWidth, maxHeight;
@@ -6479,7 +6479,7 @@ void GFX_Events() {
                             GFX_CaptureMouse();
                         SetPriority(sdl.priority.focus);
                         CPU_Disable_SkipAutoAdjust();
-                        if (strcmp(RunningProgram, "LOADLIN") && IsSafeToMemIOOnBehalfOfGuest()) {
+                        if (RunningProgram != "LOADLIN" && IsSafeToMemIOOnBehalfOfGuest()) {
                             BIOS_SynchronizeNumLock();
                             BIOS_SynchronizeCapsLock();
                             BIOS_SynchronizeScrollLock();
@@ -8380,6 +8380,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     Config myconf(&com_line);
     bool saved_opt_test;
 
+    srand(time(NULL));
+
     control=&myconf;
 
 #if defined(WIN32) && !defined(HX_DOS)
@@ -9848,8 +9850,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("doublescan").enable(!IS_PC98_ARCH);
 
         blinking=static_cast<Section_prop *>(control->GetSection("video"))->Get_bool("high intensity blinking");
-        mainMenu.get_item("text_background").enable(!IS_PC98_ARCH&&machine!=MCH_CGA).check(!blinking).refresh_item(mainMenu);
-        mainMenu.get_item("text_blinking").enable(!IS_PC98_ARCH&&machine!=MCH_CGA).check(blinking).refresh_item(mainMenu);
+        mainMenu.get_item("text_background").enable(!IS_PC98_ARCH&&machine!=MCH_CGA&&machine!=MCH_OLIVETTI&&machine!=MCH_3270PC).check(!blinking).refresh_item(mainMenu);
+        mainMenu.get_item("text_blinking").enable(!IS_PC98_ARCH&&machine!=MCH_CGA&&machine!=MCH_OLIVETTI&&machine!=MCH_3270PC).check(blinking).refresh_item(mainMenu);
         mainMenu.get_item("line_80x25").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_80x43").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_80x50").enable(!IS_PC98_ARCH);
@@ -10297,7 +10299,7 @@ fresh_boot:
             dos_kernel_disabled = true;
 
             std::string core(static_cast<Section_prop *>(control->GetSection("cpu"))->Get_string("core"));
-            if (!strcmp(RunningProgram, "LOADLIN") && core == "auto") {
+            if (RunningProgram == "LOADLIN" && core == "auto") {
                 cpudecoder=&CPU_Core_Normal_Run;
                 mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
 #if (C_DYNAMIC_X86) || (C_DYNREC)

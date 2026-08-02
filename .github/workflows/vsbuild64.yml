@@ -39,18 +39,33 @@ jobs:
             VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/' || echo "unknown")
             echo "VERSION=$VERSION" >> $GITHUB_ENV
           fi
+      - name: Detect OSFREE build
+        id: osfree
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "main-osfree" ]] || \
+             grep -q '^#define C_OSFREE 1' vs/config_package.h 2>/dev/null; then
+            echo "osfree=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "osfree=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Build Visual Studio Win64 SDL1
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=x64 
           if (-not(Test-Path -Path bin\x64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
           contrib\windows\installer\PatchPE.exe bin\x64\Release\dosbox-x.exe
-      - name: Package Visual Studio Win64 SDL1
+      - name: Unit testing
+        if: steps.osfree.outputs.osfree != 'true'
         shell: bash
         run: |
           top=`pwd`
           $top/bin/x64/Release/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log || (echo Unit test completed: failure && exit 1)
           cat tests.log
+      - name: Package Visual Studio Win64 SDL1
+        shell: bash
+        run: |
+          top=`pwd`
           mkdir -p $top/package/bin/x64/Release/drivez
           mkdir -p $top/package/bin/x64/Release/scripts
           mkdir -p $top/package/bin/x64/Release/shaders
@@ -78,12 +93,17 @@ jobs:
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=x64
           if (-not(Test-Path -Path bin\x64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
           contrib\windows\installer\PatchPE.exe bin\x64\"Release SDL2"\dosbox-x.exe
-      - name: Package Visual Studio Win64 SDL2
+      - name: Unit testing
+        if: steps.osfree.outputs.osfree != 'true'
         shell: bash
         run: |
           top=`pwd`
           $top/bin/x64/"Release SDL2"/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log || (echo Unit test completed: failure && exit 1)
           cat tests.log
+      - name: Package Visual Studio Win64 SDL2
+        shell: bash
+        run: |
+          top=`pwd`
           mkdir -p $top/package/bin/x64/"Release SDL2"/drivez
           mkdir -p $top/package/bin/x64/"Release SDL2"/scripts
           mkdir -p $top/package/bin/x64/"Release SDL2"/shaders

@@ -205,6 +205,8 @@ static void LogEMUMachine(void) {
         switch (machine) {
             case MCH_HERC:      m="Hercules";   break;
             case MCH_CGA:       m="CGA";        break;
+            case MCH_OLIVETTI:  m="Olivetti M24"; break;
+            case MCH_3270PC:    m="IBM 3270 PC"; break;
             case MCH_TANDY:     m="Tandy";      break;
             case MCH_PCJR:      m="PCjr";       break;
             case MCH_EGA:       m="EGA";        break;
@@ -442,8 +444,26 @@ uint64_t LinMakeProt(uint16_t selector, uint32_t offset)
 	return mem_no_address;
 }
 
+static bool Is16BitSegment(const uint16_t seg)
+{
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		if (seg == SegValue(cs))
+			return !cpu.code.big;
+
+		Descriptor desc;
+		return cpu.gdt.GetDescriptor(seg, desc) ? !desc.saved.seg.big : false;
+	}
+
+	return true;
+}
+
 uint64_t GetAddress(uint16_t seg, uint32_t offset)
 {
+	/* In 16-bit modes, segment offsets wrap to 16 bits. This also normalizes
+	 * values that came from signed arithmetic (for example, -1 -> 0xFFFF). */
+	if (Is16BitSegment(seg))
+		offset &= 0xffffu;
+
 	/* For the current CS, always use the cached hidden base (SegPhys(cs)).
 	 * Real x86 segment registers have a hidden descriptor cache that is only
 	 * updated when a new selector is loaded. After LMSW sets CR0.PE=1 but
@@ -4120,30 +4140,53 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 			} else
 				pos++;
 		}
-		uint32_t address = (uint32_t)GetAddress(seg,adr);
-		if (!(get_tlb_readhandler(address)->flags & PFLAG_INIT)) {
-			static char outmask[] = "%s:[%04X]=%02X";
-
-			if (cpu.pmode) outmask[6] = '8';
-				switch (DasmLastOperandSize()) {
-				case 8 : {	uint8_t val = mem_readb(address);
-							outmask[12] = '2';
-							sprintf(result,outmask,prefix,adr,val);
-						}	break;
-				case 16: {	uint16_t val = mem_readw(address);
-							outmask[12] = '4';
-							sprintf(result,outmask,prefix,adr,val);
-						}	break;
-				case 32: {	uint32_t val = mem_readd(address);
-							outmask[12] = '8';
-							sprintf(result,outmask,prefix,adr,val);
-						}	break;
-			}
-		} else {
+		if (Is16BitSegment(seg))
+			adr &= 0xffffu;
+		const uint64_t address64 = GetAddress(seg,adr);
+		const uint32_t address = (uint32_t)address64;
+		if (address64 == mem_no_address) {
 			sprintf(result,"[illegal]");
 		}
+		else {
+			static char outmask[] = "%s:[%04X]=%02X";
+			bool illegal = false;
+
+			if (cpu.pmode) outmask[6] = '8';
+			switch (DasmLastOperandSize()) {
+			case 8: {
+				uint8_t val = 0;
+				illegal = mem_readb_checked(address,&val);
+				if (!illegal) {
+					outmask[12] = '2';
+					sprintf(result,outmask,prefix,adr,val);
+				}
+			} break;
+			case 16: {
+				uint16_t val = 0;
+				illegal = mem_readw_checked(address,&val);
+				if (!illegal) {
+					outmask[12] = '4';
+					sprintf(result,outmask,prefix,adr,val);
+				}
+			} break;
+			case 32: {
+				uint32_t val = 0;
+				illegal = mem_readd_checked(address,&val);
+				if (!illegal) {
+					outmask[12] = '8';
+					sprintf(result,outmask,prefix,adr,val);
+				}
+			} break;
+			default:
+				illegal = true;
+				break;
+			}
+
+			if (illegal)
+				sprintf(result,"[illegal]");
+		}
 		// Variable found ?
-		CDebugVar* var = CDebugVar::FindVar(address);
+		CDebugVar* var = (address64 != mem_no_address) ? CDebugVar::FindVar(address) : NULL;
 		if (var) {
 			// Replace occurrence
 			char* pos1 = strchr(inst,'[');
@@ -5091,21 +5134,22 @@ static void LogDEVChain(uint32_t devhdr) {
 
 // Display the content of the MCB chain starting with the MCB at the specified segment.
 static void LogMCBChain(uint16_t mcb_segment) {
-	DOS_MCB mcb(mcb_segment);
-	char filename[9]; // 8 characters plus a terminating NUL
+	std::string filename;
 	const char *psp_seg_note;
 	uint16_t DOS_dataOfs = static_cast<uint16_t>(dataOfs); //Realmode addressing only
 	PhysPt dataAddr = PhysMake(dataSeg,DOS_dataOfs);// location being viewed in the "Data Overview"
+	uint16_t end_of_chain_segment = mcb_segment;
 
-	// loop forever, breaking out of the loop once we've processed the last MCB
-	while (true) {
+	for (const auto mcb : DOS_MCB(mcb_segment)) {
+		const auto current_segment = mcb.GetSeg();
+
 		// verify that the type field is valid
-		if (mcb.GetType()!=0x4d && mcb.GetType()!=0x5a) {
-			DEBUG_ShowMsg("MCB chain broken at %04X:0000!",mcb_segment);
+		if (!mcb.isValid()) {
+			DEBUG_ShowMsg("MCB chain broken at %04X:0000!",current_segment);
 			return;
 		}
 
-		mcb.GetFileName(filename);
+		filename = mcb.GetFileName();
 
 		// some PSP segment values have special meanings
 		switch (mcb.GetPSPSeg()) {
@@ -5119,25 +5163,18 @@ static void LogMCBChain(uint16_t mcb_segment) {
 				psp_seg_note = "";
 		}
 
-		DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",mcb_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename);
+		DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",current_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename.c_str());
 
 		// print a message if dataAddr is within this MCB's memory range
-		PhysPt mcbStartAddr = PhysMake(mcb_segment+1,0);
-		PhysPt mcbEndAddr = PhysMake(mcb_segment+1+mcb.GetSize(),0);
+		PhysPt mcbStartAddr = PhysMake(current_segment+1,0);
+		PhysPt mcbEndAddr = PhysMake(current_segment+1+mcb.GetSize(),0);
 		if (dataAddr >= mcbStartAddr && dataAddr < mcbEndAddr) {
 			DEBUG_ShowMsg("   (data addr %04hX:%04X is %u bytes past this MCB)",dataSeg,DOS_dataOfs,dataAddr - mcbStartAddr);
 		}
-
-		// if we've just processed the last MCB in the chain, break out of the loop
-		mcb_segment+=mcb.GetSize()+1;
-		if (mcb.GetType()==0x5a)
-			break;
-
-		// else, move to the next MCB in the chain
-		mcb.SetPt(mcb_segment);
+		end_of_chain_segment = static_cast<uint16_t>(current_segment + mcb.GetSize() + 1);
 	}
 
-	DEBUG_ShowMsg("   %04X  END OF CHAIN",mcb_segment);
+	DEBUG_ShowMsg("   %04X  END OF CHAIN",end_of_chain_segment);
 }
 
 #include "regionalloctracking.h"
@@ -6229,5 +6266,3 @@ void DEBUG_StopLog(void) {
 
 
 #endif // DEBUG
-
-

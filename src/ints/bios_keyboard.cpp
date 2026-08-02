@@ -377,7 +377,7 @@ bool BIOS_AddKeyToBuffer(uint16_t code) {
         start=0x502;
         end=0x522;
     }
-    else if (machine==MCH_PCJR || machine==MCH_CGA) {
+    else if (machine==MCH_PCJR || machine==MCH_CGA || machine==MCH_OLIVETTI || machine==MCH_3270PC) {
         /* should be done for others as well, to be tested */
         start=0x1e;
         end=0x3e;
@@ -466,7 +466,7 @@ static bool get_key(uint16_t &code) {
         start=0x502;
         end=0x522;
     }
-    else if (machine==MCH_PCJR || machine==MCH_CGA) {
+    else if (machine==MCH_PCJR || machine==MCH_CGA || machine==MCH_OLIVETTI || machine==MCH_3270PC) {
         /* should be done for others as well, to be tested */
         start=0x1e;
         end=0x3e;

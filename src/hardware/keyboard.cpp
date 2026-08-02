@@ -730,7 +730,7 @@ static Bitu read_p61(Bitu, Bitu) {
     // Always return bit 6 as set for early PCs and as cleared for PCjr or Tandy. See https://www.vogons.org/viewtopic.php?t=50417.
     if(machine == MCH_PCJR || machine == MCH_TANDY)
         dbg &= 0xBF;
-    else if(machine == MCH_CGA || machine == MCH_HERC || machine == MCH_MDA)
+    else if(machine == MCH_CGA || machine == MCH_HERC || machine == MCH_MDA || machine == MCH_OLIVETTI || machine == MCH_3270PC)
         dbg |= 0x40;
 
     return dbg;
@@ -2870,7 +2870,7 @@ void KEYBOARD_OnReset(Section *sec) {
         IO_RegisterReadHandler(0x60,read_p60,IO_MB);
         IO_RegisterWriteHandler(0x61,write_p61,IO_MB);
         IO_RegisterReadHandler(0x61,read_p61,IO_MB);
-        if (machine==MCH_CGA || machine==MCH_HERC) IO_RegisterReadHandler(0x62,read_p62,IO_MB);
+        if (machine==MCH_CGA || machine==MCH_HERC || machine==MCH_OLIVETTI || machine==MCH_3270PC) IO_RegisterReadHandler(0x62,read_p62,IO_MB);
         IO_RegisterWriteHandler(0x64,write_p64,IO_MB);
         IO_RegisterReadHandler(0x64,read_p64,IO_MB);
     }

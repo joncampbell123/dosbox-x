@@ -64,7 +64,6 @@ extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
 extern bool halfwidthkana, force_conversion, gbk, uselangcp, chinasea;
-extern const char* RunningProgram;
 extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
@@ -489,7 +488,7 @@ public:
 		return true;
 	}
 	bool Close() override { return true; }
-	uint16_t GetInformation(void) override { return (strcmp(RunningProgram, "WCLIP") ? DeviceInfoFlags::Device : 0) | DeviceInfoFlags::EofOnInput; }
+	uint16_t GetInformation(void) override { return (RunningProgram == "WCLIP" ? 0 : DeviceInfoFlags::Device) | DeviceInfoFlags::EofOnInput; }
 	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
 	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) override { (void)bufptr; (void)size; (void)retcode; return false; }
 };
@@ -932,7 +931,7 @@ void showWelcome(Program *shell) {
         if (IS_DOSV) {
             shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace(MSG_Get("SHELL_STARTUP_DOSV"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
             shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-        } else if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
+        } else if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_OLIVETTI || machine == MCH_3270PC) {
             shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace(MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
             shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
         } else if (machine == MCH_HERC || machine == MCH_MDA) {
@@ -2713,4 +2712,3 @@ void CONFIGSHELL_Run() {
 	}
 #endif
 }
-

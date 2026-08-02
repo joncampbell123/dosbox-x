@@ -1424,64 +1424,86 @@ void DOS_Shell::CMD_POPD(char * args) {
     olddirs.pop_back();
 }
 
-void DOS_Shell::CMD_CHDIR(char * args) {
-	HELP("CHDIR");
-	StripSpaces(args);
-	char sargs[CROSS_LEN];
-	if (*args && !DOS_GetSFNPath(args,sargs,false)) {
-		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
-		return;
-	}
-	uint8_t drive = DOS_GetDefaultDrive()+'A';
-	char dir[DOS_PATHLENGTH];
-	if (!*args) {
-		DOS_GetCurrentDir(0,dir,true);
-		WriteOut("%c:\\",drive);
-		WriteOut_NoParsing(dir, true);
-		WriteOut("\n");
-	} else if(strlen(args) == 2 && args[1]==':') {
-		uint8_t targetdrive = (args[0] | 0x20)-'a' + 1;
-		unsigned char targetdisplay = *reinterpret_cast<unsigned char*>(&args[0]);
-        if(!DOS_GetCurrentDir(targetdrive,dir,true)) { // verify that this should be true
-			if(drive == 'Z') {
-				WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(targetdisplay));
-			} else {
-				WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
-			}
-			return;
-		}
-		WriteOut("%c:\\",toupper(targetdisplay));
-		WriteOut_NoParsing(dir, true);
-		WriteOut("\n");
-		if(drive == 'Z')
-			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT"),toupper(targetdisplay));
-	} else if (!DOS_ChangeDir(sargs)) {
-		/* Changedir failed. Check if the filename is longer than 8 and/or contains spaces */
+void DOS_Shell::CMD_CHDIR(char* args) {
+    HELP("CHDIR");
+    StripSpaces(args);
+    char sargs[CROSS_LEN];
 
-		std::string temps(args),slashpart;
-		std::string::size_type separator = temps.find_first_of("\\/");
-		if(!separator) {
-			slashpart = temps.substr(0,1);
-			temps.erase(0,1);
-		}
-        separator = temps.find_first_of("\"");
-        if(separator != std::string::npos) temps.erase(separator);
-		separator = temps.rfind('.');
-		if(separator != std::string::npos) temps.erase(separator);
-		separator = temps.find(' ');
-		if(separator != std::string::npos) {/* Contains spaces */
-			temps.erase(separator);
-			if(temps.size() >6) temps.erase(6);
-			temps += "~1";
-			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_2"),temps.insert(0,slashpart).c_str());
-		} else {
-			if (drive == 'Z') {
-				WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_3"));
-			} else {
-				WriteOut(MSG_Get("SHELL_CMD_CHDIR_ERROR"),args);
-			}
-		}
-	}
+    uint8_t drive = DOS_GetDefaultDrive() + 'A';
+    char dir[DOS_PATHLENGTH];
+
+    if(!*args) {
+        // Display the current directory of the active drive
+        DOS_GetCurrentDir(0, dir, true);
+        WriteOut("%c:\\", drive);
+        WriteOut_NoParsing(dir, true);
+        WriteOut("\n");
+    }
+    else if(strlen(args) == 2 && args[1] == ':') {
+        // Display the current directory of the specified drive (e.g., "C:")
+        uint8_t targetdrive = (args[0] | 0x20) - 'a' + 1;
+        unsigned char targetdisplay = *reinterpret_cast<unsigned char*>(&args[0]);
+
+        if(!DOS_GetCurrentDir(targetdrive, dir, true)) {
+            if(drive == 'Z') {
+                WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"), toupper(targetdisplay));
+            }
+            else {
+                WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+            }
+            return;
+        }
+        WriteOut("%c:\\", toupper(targetdisplay));
+        WriteOut_NoParsing(dir, true);
+        WriteOut("\n");
+
+        if(drive == 'Z')
+            WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT"), toupper(targetdisplay));
+    }
+    else {
+        // Try to change directory using the raw input (e.g., "sed") first
+        bool cddone = DOS_ChangeDir(args);
+
+        if(!cddone) {
+            // If the raw path failed (e.g., LFN/long folder names), try resolving via SFN (8x3) path conversion
+            if(DOS_GetSFNPath(args, sargs, false)) {
+                cddone = DOS_ChangeDir(sargs);
+            }
+        }
+
+        if(!cddone) {
+            // Change directory failed. Check if the filename is longer than 8 and/or contains spaces.
+            std::string temps(args), slashpart;
+            std::string::size_type separator = temps.find_first_of("\\/");
+            if(separator == 0) { // Fix: Safely verify if slash is at index 0
+                slashpart = temps.substr(0, 1);
+                temps.erase(0, 1);
+            }
+
+            separator = temps.find_first_of("\"");
+            if(separator != std::string::npos) temps.erase(separator);
+
+            separator = temps.rfind('.');
+            if(separator != std::string::npos) temps.erase(separator);
+
+            separator = temps.find(' ');
+            if(separator != std::string::npos) {
+                // Handle hint generation for directory paths containing spaces
+                temps.erase(separator);
+                if(temps.size() > 6) temps.erase(6);
+                temps += "~1";
+                WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_2"), temps.insert(0, slashpart).c_str());
+            }
+            else {
+                if(drive == 'Z') {
+                    WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_3"));
+                }
+                else {
+                    WriteOut(MSG_Get("SHELL_CMD_CHDIR_ERROR"), args);
+                }
+            }
+        }
+    }
 }
 
 #if !defined(OSFREE)

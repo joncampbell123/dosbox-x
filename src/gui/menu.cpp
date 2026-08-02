@@ -2061,10 +2061,9 @@ std::string MSCDEX_Output(int num) {
 void SetVal(const std::string& secname, const std::string& preval, const std::string& val) {
     if(preval=="keyboardlayout" && !dos_kernel_disabled) {
         DOS_MCB mcb(dos.psp()-1);
-        static char name[9];
-        mcb.GetFileName(name);
-        if (strlen(name)) {
-            LOG_MSG("GUI: Exit %s running in DOSBox-X, and then try again.",name);
+        std::string name = mcb.GetFileName();
+        if (!name.empty()) {
+            LOG_MSG("GUI: Exit %s running in DOSBox-X, and then try again.",name.c_str());
             return;
         }
     }
@@ -2184,11 +2183,17 @@ void DOSBox_NoMenu(void) {
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if(!menu.gui) return;
+
+    HMENU pMenu = GetMenu(GetHWND());
+
     menu.toggle=false;
-    NonUserResizeCounter=1;
     SDL1_hax_SetMenu(NULL);
     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
     RENDER_CallBack( GFX_CallBackReset );
+
+    if(pMenu != NULL)
+        NonUserResizeCounter = 1;
+
 #endif
 #if defined(USE_TTF)
     if (ttf.inUse) resetFontSize();
@@ -2499,9 +2504,7 @@ void UnMount(int i_drive) {
     i_drive = toupper(i_drive);
     if(i_drive-'A' == DOS_GetDefaultDrive()) {
         DOS_MCB mcb(dos.psp()-1);
-        static char name[9];
-        mcb.GetFileName(name);
-        if (!strlen(name)) goto umount;
+        if (mcb.GetFileName().empty()) goto umount;
         LOG_MSG("GUI:Drive %c is being used. Aborted.",i_drive);
         return;
     }

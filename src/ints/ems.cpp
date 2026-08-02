@@ -2096,7 +2096,6 @@ public:
 	
 #if !defined(OSFREE)
 static EMS* test = NULL;
-extern const char* RunningProgram;
 void CALLBACK_DeAllocate(Bitu in);
 #endif
 
@@ -2108,7 +2107,7 @@ RealPt Get_EMS_vm86control() {
 
 #if !defined(OSFREE)
 void EMS_DoShutDown() {
-    if (!strcmp(RunningProgram, "LOADLIN")) {
+    if (RunningProgram == "LOADLIN") {
         test = NULL;
         return;
     }
@@ -2204,4 +2203,3 @@ public:
 } dummy;
 }
 #endif
-

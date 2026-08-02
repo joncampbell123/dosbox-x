@@ -752,10 +752,10 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 
 	// Silence CHKDSK "Invalid sub-directory entry"
 	if (fcb_findfirst && !strcmp(search+1, ":????????.???") && attr==30) {
-		char psp_name[9];
+		std::string psp_name;
 		DOS_MCB psp_mcb(dos.psp()-1);
-		psp_mcb.GetFileName(psp_name);
-		if (!strcmp(psp_name, "CHKDSK")) attr&=~DOS_ATTR_DIRECTORY;
+		psp_name = psp_mcb.GetFileName();
+		if (psp_name == "CHKDSK") attr&=~DOS_ATTR_DIRECTORY;
 	}
 
 	sdrive=drive;

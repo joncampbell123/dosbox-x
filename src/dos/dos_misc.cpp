@@ -106,7 +106,6 @@ static Bitu INT2A_Handler(void) {
 	return CBRET_NONE;
 }
 
-extern const char* RunningProgram;
 extern std::string strPasteBuffer;
 extern bool i4dos, shellrun, clipboard_dosapi, swapad;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
@@ -271,10 +270,10 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x1611:    /* Get shell parameters */
 		{
 			if (dos.version.major < 7) return false;
-			char psp_name[9];
+			std::string psp_name;
 			DOS_MCB psp_mcb(dos.psp()-1);
-			psp_mcb.GetFileName(psp_name);
-			if (!strcmp(psp_name, "DOSSETUP") || !strcmp(psp_name, "KRNL386")) {
+			psp_name = psp_mcb.GetFileName();
+			if (psp_name == "DOSSETUP" || psp_name == "KRNL386") {
 				/* Hack for Windows 98 SETUP.EXE (Wengier) */
 				return false;
 			}
@@ -309,7 +308,7 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x1600:    /* Windows enhanced mode installation check */
         // Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode, Windows/386 2.x
         // nor Windows 95 are running, nor is XMS version 1 driver installed
-		if (!control->SecureMode() && ((reg_sp == 0xFFF6 && mem_readw(SegPhys(ss)+reg_sp) == 0x142A) || (reg_sp == 0xFF88 && mem_readw(SegPhys(ss)+reg_sp) == 0xFF9D) || !strcmp(RunningProgram, "DOSCLIP") || !strcmp(RunningProgram, "TOCLIP"))) // Hack for DOSCLIP/TOCLIP
+		if (!control->SecureMode() && ((reg_sp == 0xFFF6 && mem_readw(SegPhys(ss)+reg_sp) == 0x142A) || (reg_sp == 0xFF88 && mem_readw(SegPhys(ss)+reg_sp) == 0xFF9D) || RunningProgram == "DOSCLIP" || RunningProgram == "TOCLIP")) // Hack for DOSCLIP/TOCLIP
 			reg_ax = 0x301;
         return true;
 	case 0x1605:	/* Windows init broadcast */
@@ -436,11 +435,11 @@ static bool DOS_MultiplexFunctions(void) {
 		else return false;
 	case 0x160A:
 	{
-		char psp_name[9];
+		std::string psp_name;
 		DOS_MCB psp_mcb(dos.psp()-1);
-		psp_mcb.GetFileName(psp_name);
+		psp_name = psp_mcb.GetFileName();
 		// Report Windows version 4.0 (95) to PEDIT and NESTICLE x.xx so that they use LFN when available
-		if (uselfn && (!strcmp(psp_name, "PEDIT") || !strcmp(psp_name, "PEDITLGT") || ((!strcmp(psp_name, "EDIT") || reg_sp/0x100 == 0xF) && mem_readw(SegPhys(ss)+reg_sp) == 0x4A) || !strcmp(psp_name, "NESTICLE") || (reg_sp == 0x220A && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1F))) {
+		if (uselfn && (psp_name == "PEDIT" || psp_name == "PEDITLGT" || ((psp_name == "EDIT" || reg_sp/0x100 == 0xF) && mem_readw(SegPhys(ss)+reg_sp) == 0x4A) || psp_name == "NESTICLE" || (reg_sp == 0x220A && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1F))) {
 			reg_ax = 0;
 			reg_bx = 0x400;
 			reg_cx = 2;
@@ -468,13 +467,13 @@ static bool DOS_MultiplexFunctions(void) {
 			static constexpr std::array<const char*, 7> blacklisted {
 				"DEFRAG", "DISKEDIT", "NDD", "NDIAGS", "UNERASE", "UNFORMAT", "WINCHECK"
 			};
-            char psp_name[9];
+            std::string psp_name;
             DOS_MCB psp_mcb(dos.psp()-1);
-            psp_mcb.GetFileName(psp_name);
+            psp_name = psp_mcb.GetFileName();
 	    	// NTS: DEFRAG.EXE for MS-DOS 6.22 assumes Windows is running if this call responds affirmatively, because it would mean WINOLDAP is resident.
-            for (auto prog : blacklisted) if (!std::strcmp(psp_name, prog)) return false;
+            for (auto prog : blacklisted) if (psp_name == prog) return false;
             // Special case for INSTALL/INSTALLD
-            if (((!strcmp(psp_name, "INSTALL") || !strcmp(psp_name, "INSTALLD")) && reg_sp >= 0xD000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1E)) return false;
+            if (((psp_name == "INSTALL" || psp_name == "INSTALLD") && reg_sp >= 0xD000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1E)) return false;
         }
 		reg_al = 1;
 		reg_ah = 1;
@@ -754,7 +753,7 @@ void DOS_SetupMisc(void) {
 void CALLBACK_DeAllocate(Bitu in);
 
 void DOS_UninstallMisc(void) {
-    if (!strcmp(RunningProgram, "LOADLIN")) return;
+    if (RunningProgram == "LOADLIN") return;
 	/* these vectors shouldn't exist when booting a guest OS */
 	if (call_int2a) {
 		RealSetVec(0x2a,0);
@@ -767,4 +766,3 @@ void DOS_UninstallMisc(void) {
 		call_int2f=0;
 	}
 }
-

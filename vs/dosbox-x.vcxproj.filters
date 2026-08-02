@@ -1692,6 +1692,9 @@
     <ClCompile Include="..\src\output\output_gamelink.cpp">
       <Filter>Sources\output</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet_ethnet.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2674,6 +2677,9 @@
     </ClInclude>
     <ClInclude Include="..\include\version_string.h">
       <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\misc\ethernet_ethnet.h">
+      <Filter>Sources\misc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
