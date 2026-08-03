@@ -104,41 +104,6 @@ struct l2tp_client_t {
 
 static l2tp_client_t l2tp_client[MAX_CLIENTS];
 
-struct l2tp_client_t *lookup_client_by_ip(const IPaddress &ip) {
-	size_t i=0;
-
-	while (i < MAX_CLIENTS) {
-		l2tp_client_t *c = &l2tp_client[i++];
-
-		if (c->active && c->clientIP.host == ip.host && c->clientIP.port == ip.port)
-			return c;
-	}
-
-	return NULL;
-}
-
-struct l2tp_client_t *new_client_by_ip(const IPaddress &ip) {
-	size_t i=0;
-
-	while (i < MAX_CLIENTS) {
-		l2tp_client_t *c = &l2tp_client[i++];
-
-		if (c->active) {
-			if (c->clientIP.host == ip.host && c->clientIP.port == ip.port)
-				return c;
-		}
-		else {
-			*c = l2tp_client_t();
-			c->timeout = GetTicks() + 15000;
-			c->clientIP = ip;
-			c->active = true;
-			return c;
-		}
-	}
-
-	return NULL;
-}
-
 EthnetEthernetConnection::EthnetEthernetConnection()
       : EthernetConnection()
 {
@@ -711,6 +676,47 @@ struct L2TPpacket {
 	}
 };
 
+struct l2tp_client_t *lookup_client(const IPaddress &ip,const L2TPpacket &pkt) {
+	size_t i=0;
+
+	while (i < MAX_CLIENTS) {
+		l2tp_client_t *c = &l2tp_client[i++];
+
+		if (c->active && c->clientIP.host == ip.host && c->clientIP.port == ip.port) {
+			if (pkt.iscontrol) {
+				if (c->my_control_connection_id && c->my_control_connection_id == pkt.connection_id())
+					return c;
+			}
+			else if (pkt.isdata) {
+				if (c->my_session_id && c->my_session_id == pkt.session_id())
+					return c;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+struct l2tp_client_t *new_client(const IPaddress &ip,const L2TPpacket &pkt) {
+	size_t i=0;
+
+	(void)pkt;
+
+	while (i < MAX_CLIENTS) {
+		l2tp_client_t *c = &l2tp_client[i++];
+
+		if (!c->active) {
+			*c = l2tp_client_t();
+			c->timeout = GetTicks() + 15000;
+			c->clientIP = ip;
+			c->active = true;
+			return c;
+		}
+	}
+
+	return NULL;
+}
+
 static void DisconnectFromServer(bool unexpected);
 
 static std::vector<L2TPpacket> ethnet_client_recv;
@@ -852,7 +858,7 @@ static void ETHNET_ServerLoop() {
 	if (result) {
 		pkt.didRecv(/*&*/inPacket);
 
-		struct l2tp_client_t *c = lookup_client_by_ip(inPacket.address);
+		struct l2tp_client_t *c = lookup_client(inPacket.address,pkt);
 		bool disconnect = false;
 		bool ignore = true;
 
@@ -877,7 +883,7 @@ static void ETHNET_ServerLoop() {
 				}
 
 				/* create new connection only for SCCRQ */
-				if (c == NULL) c = new_client_by_ip(inPacket.address);
+				if (c == NULL) c = new_client(inPacket.address,pkt);
 
 				ignore = false;
 				if ((sfc&3) && pkt.connection_id() == 0 && accid != 0 && c && can_ethernet) {
