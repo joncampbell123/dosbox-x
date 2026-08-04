@@ -98,6 +98,15 @@ static Bitu INT2F_Handler(void) {
 		if( (*it)() ) return CBRET_NONE;
    
 	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS:INT 2F Unhandled call AX=%4X",reg_ax);
+
+	/* Set carry flag.
+	 * Microsoft LAN Manager 2.2c requires this or else SETUP.EXE refuses to install anything because
+	 * it thinks "NET WORKSTATION" was already started. Of course "NET WORKSTATION" refuses to run anyway
+	 * even if you specify the correct DOS version because it does some extra additional checks of some
+	 * value in the List of Lists segment, comparing WORD lolseg:0004 vs WORD lolseg:128D to make sure they
+	 * match for some reason. --J.C. */
+	CALLBACK_SCF(true);
+
 	return CBRET_NONE;
 }
 
