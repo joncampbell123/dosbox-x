@@ -19,6 +19,7 @@
 
 #include "dosbox.h"
 
+#if !defined(OSFREE)
 #if C_IPX
 
 #include "dosbox.h"
@@ -245,4 +246,6 @@ bool IPX_StartServer(uint16_t portnum) {
 	return false;
 }
 
-#endif
+#endif // C_IPX
+#endif // !defined(OSFREE)
+
