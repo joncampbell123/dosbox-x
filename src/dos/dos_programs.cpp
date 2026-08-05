@@ -45,6 +45,7 @@
 #include "cdrom.h"
 #include "builtin.h"
 #include "bios_disk.h"
+#include "imagedisk_teledisk.h"
 #include "dos_system.h"
 #include "dos_inc.h"
 #include "bios.h"
@@ -654,8 +655,8 @@ void MenuBrowseFDImage(char drive, int num, int type) {
 	getcwd(Temp_CurrentDir, 512);
 	char const * lTheOpenFileName;
 	std::string files="", fname="";
-	const char *lFilterPatterns[] = {"*.ima","*.img","*.xdf","*.fdi","*.hdm","*.nfd","*.d88","*.IMA","*.IMG","*.XDF","*.FDI","*.HDM","*.NFD","*.D88"};
-	const char *lFilterDescription = "Floppy image files (*.ima, *.img, *.xdf, *.fdi, *.hdm, *.nfd, *.d88)";
+	const char *lFilterPatterns[] = {"*.ima","*.img","*.xdf","*.fdi","*.hdm","*.nfd","*.d88","*.td0","*.IMA","*.IMG","*.XDF","*.FDI","*.HDM","*.NFD","*.D88","*.TD0"};
+	const char *lFilterDescription = "Floppy image files (*.ima, *.img, *.xdf, *.fdi, *.hdm, *.nfd, *.d88, *.td0)";
 	lTheOpenFileName = tinyfd_openFileDialog("Select a floppy image file","",sizeof(lFilterPatterns)/sizeof(lFilterPatterns[0]), lFilterPatterns, lFilterDescription, 0);
 
 #if !defined(OSFREE)
@@ -740,7 +741,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple, const s
 			paths.push_back(lTheOpenFileName);
 		}
 	} else {
-		const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.fdi","*.hdi","*.nfd","*.nhd","*.d88","*.hdm","*.xdf","*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.ccd","*.inst","*.IMA","*.IMG","*.VHD","*.FDI","*.HDI","*.NFD","*.NHD","*.D88","*.HDM","*.XDF","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS","*.CCD","*.INST"};
+		const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.fdi","*.hdi","*.nfd","*.nhd","*.d88","*.td0","*.hdm","*.xdf","*.iso","*.cue","*.bin","*.chd","*.mdf","*.gog","*.ins","*.ccd","*.inst","*.IMA","*.IMG","*.VHD","*.FDI","*.HDI","*.NFD","*.NHD","*.D88","*.TD0","*.HDM","*.XDF","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.GOG","*.INS","*.CCD","*.INST"};
 		const char *lFilterDescription = "Disk/CD image files";
 		lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"", sizeof(lFilterPatterns) / sizeof(lFilterPatterns[0]),lFilterPatterns,lFilterDescription,multiple?1:0);
 		if (lTheOpenFileName) {
@@ -2644,6 +2645,8 @@ public:
 
             if(ext && !strcasecmp(ext, ".d88"))
                 newDiskSwap[index] = new imageDiskD88(usefile, fname, floppysize, false);
+            else if(!memcmp(hdr, "TD\0", 3))
+                newDiskSwap[index] = new imageDiskTeledisk(usefile, fname, floppysize, false);
             else if(!memcmp(hdr, "VFD1.", 5))
                 newDiskSwap[index] = new imageDiskVFD(usefile, fname, floppysize, false);
             else if(!memcmp(hdr, "T98FDDIMAGE.R0\0\0", 16))
@@ -6162,9 +6165,10 @@ class IMGMOUNT : public Program {
 							if (!paths.empty()) {
 								const char *ext = strrchr(paths[0].c_str(), '.');
 								if (ext != NULL) {
-									if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2")) ||
+									if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2") && strcasecmp(ext,".td0")) ||
 											(IS_PC98_ARCH && strcasecmp(ext,".hdi") && strcasecmp(ext,".nhd") && strcasecmp(ext,".img") && strcasecmp(ext,".ima"))){
 										WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+                                        LOG_MSG("IMGMOUNT: Warning: Unsupported extension '%s' for image file '%s'", ext, paths[0].c_str());
 									}
 								}
 							}
@@ -7691,6 +7695,13 @@ class IMGMOUNT : public Program {
 					imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
 					setbuf(newDisk, NULL);
 					newImage = new imageDiskD88(newDisk, fname, (uint32_t)imagesize, false/*this is a FLOPPY image format*/);
+				}
+				else if (!memcmp(tmp, "TD\0", 3)) {
+					fseeko64(newDisk, 0L, SEEK_END);
+					sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
+					imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
+					setbuf(newDisk, NULL);
+					newImage = new imageDiskTeledisk(newDisk, fname, (uint32_t)imagesize, false/*this is a FLOPPY image format*/);
 				}
 				else if (!memcmp(tmp, "VFD1.", 5)) { /* FDD files */
 					fseeko64(newDisk, 0L, SEEK_END);
