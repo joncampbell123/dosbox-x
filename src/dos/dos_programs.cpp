@@ -10258,14 +10258,17 @@ void Add_VFiles(bool usecp) {
 # if C_IPX
 	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
 # endif
-	if (addne2k) {
-		VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
-#if defined(C_SDL_NET) || defined(C_SDL2_NET)
-        PROGRAMS_MakeFile("ETHNET.COM",ETHNET_ProgramStart,"/SYSTEM/");
-#endif
-    }
 	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
 #endif
+
+	if (addne2k) {
+#if !defined(OSFREE)
+		VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
+#endif
+#if defined(C_SDL_NET) || defined(C_SDL2_NET)
+		PROGRAMS_MakeFile("ETHNET.COM",ETHNET_ProgramStart,"/SYSTEM/");
+#endif
+	}
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
 	if (!IS_PC98_ARCH) {
