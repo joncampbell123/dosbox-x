@@ -1514,7 +1514,11 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 	/* redirect the stack pointer */
 	CPU_SetSegGeneral(ss,dos.psp());
-	reg_esp = psp_sz - 2u;
+
+	// WARNING: We're going to call DOS_Execute() which calls CALLBACK_SCF() which modifies reg_sp+4 to set/clear CF.
+	//          Therefore instead of using psp_sz - 2 this code must use psp_sz - 6 or else CALLBACK_SCF() will corrupt
+	//          one bit in the next MCB block following ours.
+	reg_esp = psp_sz - 6u;
 
 	/* allocate a new memory block to hold the device driver image. */
 	/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */

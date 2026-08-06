@@ -473,7 +473,6 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 	/* Load the executable */
 	loadaddress=PhysMake(loadseg,0);
 	RunningProgramLoadAddress = loadaddress;
-
 	if (iscom) {	/* COM Load 64k - 256 bytes max */
 		/* how big is the COM image? make sure it fits */
 		pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_END);
