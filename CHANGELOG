@@ -1,3 +1,6 @@
+NEXT VERSION:
+  - 
+
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
     avoid false "[illegal]" memory operand reports in AnalyzeInstruction()

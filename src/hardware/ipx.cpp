@@ -19,6 +19,7 @@
 
 #include "dosbox.h"
 
+#if !defined(OSFREE)
 #if C_IPX
 
 #include <string.h>
@@ -1359,4 +1360,6 @@ void IPX_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_KERNEL,AddVMEventFunctionFuncPair(IPX_DOSExit));
 }
 
-#endif
+#endif // C_IPX
+#endif // !defined(OSFREE)
+

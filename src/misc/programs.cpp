@@ -1514,7 +1514,11 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 
 	/* redirect the stack pointer */
 	CPU_SetSegGeneral(ss,dos.psp());
-	reg_esp = psp_sz - 2u;
+
+	// WARNING: We're going to call DOS_Execute() which calls CALLBACK_SCF() which modifies reg_sp+4 to set/clear CF.
+	//          Therefore instead of using psp_sz - 2 this code must use psp_sz - 6 or else CALLBACK_SCF() will corrupt
+	//          one bit in the next MCB block following ours.
+	reg_esp = psp_sz - 6u;
 
 	/* allocate a new memory block to hold the device driver image. */
 	/* ownership remains with CONFIG unless successful driver init and initialization, so that on error it is freed automatically */
@@ -1525,6 +1529,7 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	if (!DOS_AllocateMemory(&devseg,&blocks))
 		return false;
 
+	uint16_t initfmcb = dos_infoblock.GetFirstMCB();
 	uint8_t devseg_mcb[16];
 	MEM_BlockRead(PhysMake(devseg-1,0),devseg_mcb,16);
 
@@ -1540,6 +1545,10 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			LOG(LOG_MISC,LOG_DEBUG)("Allocated memory for driver is the first in MCB chain, may adjust it forward");
 			adj_mcb_base = true;
 			devseg--; /* load overtop the MCB */
+
+			/* temporarily place the first MCB segment at ourself to avoid "corrupt MCB chain" faults if anything happens during this process */
+			LOG(LOG_MISC,LOG_DEBUG)("Temporarily setting MCB chain start to %x",(uint16_t)(dos.psp()-1));
+			dos_infoblock.SetFirstMCB(dos.firstMCB=(uint16_t)(dos.psp()-1));
 		}
 	}
 
@@ -1554,7 +1563,10 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 	 * If you've ever wondered how MS-DOS allows EMM386.EXE to work as both an executable program
 	 * AND a device driver, and how DEVICE=C:\DOS\EMM386.EXE is even allowed, that is how. */
 	if (!DOS_Execute(device.c_str(),devseg | ((devseg+blocks)<<16u),DOSEXEC_DEVICEDRIVER)) {
-		if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+		if (adj_mcb_base) {
+			MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+			dos_infoblock.SetFirstMCB(dos.firstMCB=initfmcb);
+		}
 		return false;
 	}
 

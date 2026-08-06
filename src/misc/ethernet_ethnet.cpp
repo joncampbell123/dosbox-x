@@ -104,41 +104,6 @@ struct l2tp_client_t {
 
 static l2tp_client_t l2tp_client[MAX_CLIENTS];
 
-struct l2tp_client_t *lookup_client_by_ip(const IPaddress &ip) {
-	size_t i=0;
-
-	while (i < MAX_CLIENTS) {
-		l2tp_client_t *c = &l2tp_client[i++];
-
-		if (c->active && c->clientIP.host == ip.host && c->clientIP.port == ip.port)
-			return c;
-	}
-
-	return NULL;
-}
-
-struct l2tp_client_t *new_client_by_ip(const IPaddress &ip) {
-	size_t i=0;
-
-	while (i < MAX_CLIENTS) {
-		l2tp_client_t *c = &l2tp_client[i++];
-
-		if (c->active) {
-			if (c->clientIP.host == ip.host && c->clientIP.port == ip.port)
-				return c;
-		}
-		else {
-			*c = l2tp_client_t();
-			c->timeout = GetTicks() + 15000;
-			c->clientIP = ip;
-			c->active = true;
-			return c;
-		}
-	}
-
-	return NULL;
-}
-
 EthnetEthernetConnection::EthnetEthernetConnection()
       : EthernetConnection()
 {
@@ -316,7 +281,7 @@ struct L2TPpacket {
 		assert(w <= writefence());
 		write = size_t(w - raw.data());
 	}
-	size_t canwrite(void) {
+	size_t canwrite(void) const {
 		return raw.size()-write;
 	}
 
@@ -330,7 +295,7 @@ struct L2TPpacket {
 		assert(w <= readfence());
 		read = size_t(w - raw.data());
 	}
-	size_t canread(void) {
+	size_t canread(void) const {
 		return raw.size()-read;
 	}
 
@@ -338,7 +303,7 @@ struct L2TPpacket {
 		use_session_id = sid;
 		return *this;
 	}
-	uint32_t session_id(void) {
+	uint32_t session_id(void) const {
 		return use_session_id;
 	}
 
@@ -355,7 +320,7 @@ struct L2TPpacket {
 		use_connection_id = cid;
 		return *this;
 	}
-	uint32_t connection_id(void) {
+	uint32_t connection_id(void) const {
 		return use_connection_id;
 	}
 	L2TPpacket &begin_control(void) {
@@ -412,7 +377,7 @@ struct L2TPpacket {
 		return *this;
 	}
 
-	struct avp_t *recv_lookup_avp(const uint16_t a,const uint16_t v=0) {
+	const struct avp_t *recv_lookup_avp(const uint16_t a,const uint16_t v=0) const {
 		const uint32_t key = a | (v << 16u);
 		auto i = recv_avp_map.find(key);
 		if (i != recv_avp_map.end() && i->second < recv_avp.size()) return &recv_avp[i->second];
@@ -428,8 +393,8 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
-	uint16_t avp_message_type(void) {
-		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_MSG_TYPE);
+	uint16_t avp_message_type(void) const {
+		const struct avp_t *avp = recv_lookup_avp(AVP_CTRL_MSG_TYPE);
 		if (avp && avp->length >= 2) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
 			uint16_t mt = be16toh(*((uint16_t*)r)); r+=2;
@@ -470,8 +435,8 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
-	uint32_t avp_router_id(void) {
-		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ROUTER_ID);
+	uint32_t avp_router_id(void) const {
+		const struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ROUTER_ID);
 		if (avp && avp->length >= 4) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
 			uint32_t rid = be32toh(*((uint16_t*)r)); r+=4;
@@ -490,8 +455,8 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
-	uint32_t avp_local_session_id(void) {
-		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ASSN_LOCAL_SESSION_ID);
+	uint32_t avp_local_session_id(void) const {
+		const struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ASSN_LOCAL_SESSION_ID);
 		if (avp && avp->length >= 4) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
 			uint32_t ccid = be32toh(*((uint32_t*)r)); r+=4;
@@ -510,8 +475,8 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
-	bool avp_get_dosbox_mac_address(struct l2tp_ethernet_mac_addr_t &ema) {
-		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_MSG_DOSBOX_MAC_ADDRESS,AVP_VENDOR_ID_DOSBOX);
+	bool avp_get_dosbox_mac_address(struct l2tp_ethernet_mac_addr_t &ema) const {
+		const struct avp_t *avp = recv_lookup_avp(AVP_CTRL_MSG_DOSBOX_MAC_ADDRESS,AVP_VENDOR_ID_DOSBOX);
 		if (avp && avp->length >= 6) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
 			memcpy(ema.a,r,6);r+=6;
@@ -530,8 +495,8 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
-	uint32_t avp_remote_session_id(void) {
-		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ASSN_REMOTE_SESSION_ID);
+	uint32_t avp_remote_session_id(void) const {
+		const struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ASSN_REMOTE_SESSION_ID);
 		if (avp && avp->length >= 4) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
 			uint32_t ccid = be32toh(*((uint32_t*)r)); r+=4;
@@ -550,8 +515,8 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
-	uint32_t avp_assigned_control_connection_id(void) {
-		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ASSN_CTRL_CONN_ID);
+	uint32_t avp_assigned_control_connection_id(void) const {
+		const struct avp_t *avp = recv_lookup_avp(AVP_CTRL_ASSN_CTRL_CONN_ID);
 		if (avp && avp->length >= 4) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
 			uint32_t ccid = be32toh(*((uint32_t*)r)); r+=4;
@@ -570,8 +535,8 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
-	uint32_t avp_framing_caps(void) {
-		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_FRAMING_CAPS);
+	uint32_t avp_framing_caps(void) const {
+		const struct avp_t *avp = recv_lookup_avp(AVP_CTRL_FRAMING_CAPS);
 		if (avp && avp->length >= 4) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
 			uint32_t fc = be32toh(*((uint32_t*)r)); r+=4;
@@ -590,8 +555,8 @@ struct L2TPpacket {
 		writeptrupdate(w);
 		return *this;
 	}
-	uint16_t avp_framing_type(void) {
-		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_FRAMING_CAPS);
+	uint16_t avp_framing_type(void) const {
+		const struct avp_t *avp = recv_lookup_avp(AVP_CTRL_FRAMING_CAPS);
 		if (avp && avp->length >= 2) {
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
 			uint16_t ft = be16toh(*((uint16_t*)r)); r+=2;
@@ -601,9 +566,9 @@ struct L2TPpacket {
 		return 0;
 	}
 
-	bool get_avp_pseudowire_capabilities_list(std::vector<uint16_t> &v) {
+	bool get_avp_pseudowire_capabilities_list(std::vector<uint16_t> &v) const {
 		v.clear();
-		struct avp_t *avp = recv_lookup_avp(AVP_CTRL_PSW_CAP_LIST);
+		const struct avp_t *avp = recv_lookup_avp(AVP_CTRL_PSW_CAP_LIST);
 		if (avp) {
 			const size_t sz = size_t(avp->length / 2u);
 			unsigned char *r = avp->data,*rf = avp->data+avp->length;
@@ -710,6 +675,47 @@ struct L2TPpacket {
 		return *this;
 	}
 };
+
+struct l2tp_client_t *lookup_client(const IPaddress &ip,const L2TPpacket &pkt) {
+	size_t i=0;
+
+	while (i < MAX_CLIENTS) {
+		l2tp_client_t *c = &l2tp_client[i++];
+
+		if (c->active && c->clientIP.host == ip.host && c->clientIP.port == ip.port) {
+			if (pkt.iscontrol) {
+				if (c->my_control_connection_id && c->my_control_connection_id == pkt.connection_id())
+					return c;
+			}
+			else if (pkt.isdata) {
+				if (c->my_session_id && c->my_session_id == pkt.session_id())
+					return c;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+struct l2tp_client_t *new_client(const IPaddress &ip,const L2TPpacket &pkt) {
+	size_t i=0;
+
+	(void)pkt;
+
+	while (i < MAX_CLIENTS) {
+		l2tp_client_t *c = &l2tp_client[i++];
+
+		if (!c->active) {
+			*c = l2tp_client_t();
+			c->timeout = GetTicks() + 15000;
+			c->clientIP = ip;
+			c->active = true;
+			return c;
+		}
+	}
+
+	return NULL;
+}
 
 static void DisconnectFromServer(bool unexpected);
 
@@ -852,7 +858,7 @@ static void ETHNET_ServerLoop() {
 	if (result) {
 		pkt.didRecv(/*&*/inPacket);
 
-		struct l2tp_client_t *c = lookup_client_by_ip(inPacket.address);
+		struct l2tp_client_t *c = lookup_client(inPacket.address,pkt);
 		bool disconnect = false;
 		bool ignore = true;
 
@@ -877,7 +883,7 @@ static void ETHNET_ServerLoop() {
 				}
 
 				/* create new connection only for SCCRQ */
-				if (c == NULL) c = new_client_by_ip(inPacket.address);
+				if (c == NULL) c = new_client(inPacket.address,pkt);
 
 				ignore = false;
 				if ((sfc&3) && pkt.connection_id() == 0 && accid != 0 && c && can_ethernet) {
@@ -1408,7 +1414,7 @@ void EthnetEthernetConnection::SendPacket(const uint8_t* packet, int len)
 			.begin_data()
 			.needs(len+64);
 		{
-			unsigned char *w = pkt.writeptr(),*wf = pkt.writefence();
+			unsigned char *w = pkt.writeptr();//,*wf = pkt.writefence();
 			memcpy(w,packet,len); w+=len;
 			pkt.writeptrupdate(w);
 		}

@@ -2559,13 +2559,13 @@ void CONFIGSHELL_Init() {
 	{
 		DOS_MCB mcb((uint16_t)(env_seg-1));
 		mcb.SetPSPSeg(psp_seg);
-		mcb.SetFileName("CONFIG");
+		mcb.SetFileName("CFGSHELL");
 	}
 
 	{
 		DOS_MCB mcb((uint16_t)(psp_seg-1));
 		mcb.SetPSPSeg(psp_seg);
-		mcb.SetFileName("CONFIG");
+		mcb.SetFileName("CFGSHELL");
 	}
 
 	// set the stack at 0x1A
