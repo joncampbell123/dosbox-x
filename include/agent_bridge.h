@@ -26,6 +26,7 @@ public:
 
     // Execution interface
     bool QueueCommand(const std::string& command, std::string& out_response_json);
+    bool FetchNextCommand(std::string& out_command);
     void StreamOutputBytes(const char* data, size_t length);
 
     // Shell state callback

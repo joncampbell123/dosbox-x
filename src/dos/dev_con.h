@@ -848,6 +848,21 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 		readcache=0;
 	}
 	while (*size>count) {
+		extern "C" bool AGENT_BRIDGE_FetchCommand(char* buf, size_t max_len);
+		static std::string agent_pending_cmd;
+		if (agent_pending_cmd.empty()) {
+			char bridge_buf[256];
+			if (AGENT_BRIDGE_FetchCommand(bridge_buf, sizeof(bridge_buf))) {
+				agent_pending_cmd = bridge_buf;
+				agent_pending_cmd += '\r';
+			}
+		}
+		if (!agent_pending_cmd.empty()) {
+			data[count++] = (uint8_t)agent_pending_cmd[0];
+			agent_pending_cmd.erase(0, 1);
+			continue;
+		}
+
         if (dev_con_pos < dev_con_max) {
             data[count++] = (uint8_t)dev_con_readbuf[dev_con_pos++];
             continue;

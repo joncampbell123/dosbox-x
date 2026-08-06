@@ -214,3 +214,22 @@ void AGENT_BRIDGE_StreamOutput(const char* data, size_t len) {
         AgentBridge::GetInstance().StreamOutputBytes(data, len);
     }
 }
+
+bool AgentBridge::FetchNextCommand(std::string& out_command) {
+    std::lock_guard<std::mutex> lock(command_mutex);
+    if (pending_commands.empty()) return false;
+    out_command = pending_commands.front();
+    pending_commands.pop();
+    return true;
+}
+
+extern "C" bool AGENT_BRIDGE_FetchCommand(char* buf, size_t max_len) {
+    if (!AgentBridge::GetInstance().IsEnabled()) return false;
+    std::string cmd;
+    if (AgentBridge::GetInstance().FetchNextCommand(cmd)) {
+        strncpy(buf, cmd.c_str(), max_len - 1);
+        buf[max_len - 1] = '\0';
+        return true;
+    }
+    return false;
+}
