@@ -1677,7 +1677,10 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 			while (s.drive_num<DOS_DRIVES && Drives[s.drive_num]) s.drive_num++;
 
 			if (s.drive_num >= DOS_DRIVES) {
-				if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+				if (adj_mcb_base) {
+					MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+					dos_infoblock.SetFirstMCB(dos.firstMCB=initfmcb);
+				}
 				LOG(LOG_MISC,LOG_DEBUG)("No available drive letters for block device");
 				return false;
 			}
@@ -1727,14 +1730,20 @@ bool DeviceLoad(const std::string &device,const std::string &devparm) {
 		if (newend_seg == 0 || PhysMake(newend_seg,newend_ofs) == PhysMake(devseg,0)) { /* normal error out */
 			/* don't need to say anything, the driver will normally say it failed and probably why */
 			LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates normal error out by setting the end_ptr to effectively remove itself from memory");
-			if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+			if (adj_mcb_base) {
+				MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+				dos_infoblock.SetFirstMCB(dos.firstMCB=initfmcb);
+			}
 			return false;
 		}
 		else if (
 			PhysMake(newend_seg,newend_ofs) < PhysMake(devseg,32)/*oh come on, keep at least 32 bytes of yourself around!*/ ||
 			PhysMake(newend_seg,newend_ofs) > PhysMake(devseg+blocks,0)/*you cannot make your driver bigger than the original size!*/) {
 			LOG(LOG_MISC,LOG_DEBUG)("Device driver indicates error with invalid end_ptr");
-			if (adj_mcb_base) MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+			if (adj_mcb_base) {
+				MEM_BlockWrite(PhysMake(devseg,0),devseg_mcb,16); /* put the MCB back */
+				dos_infoblock.SetFirstMCB(dos.firstMCB=initfmcb);
+			}
 			return false;
 		}
 
