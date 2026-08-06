@@ -4769,8 +4769,10 @@ public:
 
 		LOG(LOG_DOSMISC,LOG_DEBUG)("   min free:     seg 0x%04x",minimum_mcb_free);
 
-#if C_IPX
+#if !defined(OSFREE)
+# if C_IPX
 		IPX_Setup(NULL);
+# endif
 #endif
 
 		DOS_SetupPrograms();

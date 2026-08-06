@@ -7836,7 +7836,9 @@ void DOS_KeyboardLayout_Init();
 void CDROM_Image_Init();
 void MSCDEX_Init();
 void DRIVES_Init();
+#if !defined(OSFREE)
 void IPX_Init();
+#endif
 void IDE_Init();
 void NE2K_Init();
 void FDC_Primary_Init();
@@ -9765,8 +9767,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         EMS_Init();
 #endif
         AUTOEXEC_Init();
-#if C_IPX
+#if !defined(OSFREE)
+# if C_IPX
         IPX_Init();
+# endif
 #endif
         MSCDEX_Init();
         CDROM_Image_Init();
