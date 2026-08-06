@@ -11,6 +11,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstring>
+#include <cstdlib>
 
 #if defined(_WIN32) || defined(WIN32)
 #include <winsock2.h>
@@ -49,6 +50,13 @@ void AgentBridge::Initialize(uint16_t in_port, const std::string& in_token) {
     if (!in_token.empty()) {
         token = in_token;
     }
+    
+    if (const char* env_port = std::getenv("DOSBOX_AGENT_PORT")) {
+        port = (uint16_t)std::stoi(env_port);
+    }
+    if (const char* env_token = std::getenv("DOSBOX_AGENT_TOKEN")) {
+        token = env_token;
+    }
 
 #if defined(_WIN32) || defined(WIN32)
     WSADATA wsaData;
@@ -57,7 +65,7 @@ void AgentBridge::Initialize(uint16_t in_port, const std::string& in_token) {
 
     enabled = true;
     running = true;
-    server_thread = std::thread(&AgentBridge::ServerLoop, this);
+    server_thread = std::thread(&AgentBridge::StartServer, this);
     
     LOG_MSG("A-TRES: Agent Telemetry Subsystem listening on 127.0.0.1:%d", port);
 }
@@ -97,7 +105,7 @@ bool AgentBridge::QueueCommand(const std::string& command, std::string& out_resp
     return true;
 }
 
-void AgentBridge::ServerLoop() {
+void AgentBridge::StartServer() {
     socket_t listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (listen_fd == INVALID_SOCKET) {
         LOG_MSG("A-TRES Error: Could not create TCP socket.");
@@ -125,6 +133,11 @@ void AgentBridge::ServerLoop() {
         return;
     }
 
+    AcceptClientsLoop((int)listen_fd);
+    CLOSESOCKET(listen_fd);
+}
+
+void AgentBridge::AcceptClientsLoop(int listen_fd) {
     while (running) {
         fd_set read_fds;
         FD_ZERO(&read_fds);
@@ -146,8 +159,6 @@ void AgentBridge::ServerLoop() {
             }
         }
     }
-
-    CLOSESOCKET(listen_fd);
 }
 
 void AgentBridge::ProcessClient(int client_fd) {
@@ -170,6 +181,18 @@ void AgentBridge::ProcessClient(int client_fd) {
     send(client_fd, http_resp.c_str(), (int)http_resp.length(), 0);
 }
 
+std::string AgentBridge::EscapeJsonString(const std::string& input) {
+    std::string escaped;
+    for (char c : input) {
+        if (c == '\n') escaped += "\\n";
+        else if (c == '\r') escaped += "\\r";
+        else if (c == '"') escaped += "\\\"";
+        else if (c == '\\') escaped += "\\\\";
+        else escaped += c;
+    }
+    return escaped;
+}
+
 std::string AgentBridge::HandleJsonRpcRequest(const std::string& request_str) {
     // Health / Status ping check
     if (request_str.find("\"method\":\"get_status\"") != std::string::npos) {
@@ -188,24 +211,14 @@ std::string AgentBridge::HandleJsonRpcRequest(const std::string& request_str) {
         std::string out = current_output_buffer;
         current_output_buffer.clear();
         
-        // Escape newlines & quotes simple sanitize
-        std::string escaped;
-        for (char c : out) {
-            if (c == '\n') escaped += "\\n";
-            else if (c == '\r') escaped += "\\r";
-            else if (c == '"') escaped += "\\\"";
-            else if (c == '\\') escaped += "\\\\";
-            else escaped += c;
-        }
-
-        return "{\"jsonrpc\":\"2.0\",\"result\":{\"output\":\"" + escaped + "\"},\"id\":1}";
+        return "{\"jsonrpc\":\"2.0\",\"result\":{\"output\":\"" + EscapeJsonString(out) + "\"},\"id\":1}";
     }
 
     return "{\"jsonrpc\":\"2.0\",\"result\":{\"ready\":true,\"subsystem\":\"A-TRES\"},\"id\":1}";
 }
 
 void AGENT_BRIDGE_Init() {
-    // Initialize Agent Subsystem with default port 8090
+    // Initialize Agent Subsystem
     AgentBridge::GetInstance().Initialize(8090, "dosbox-agent-secret");
 }
 

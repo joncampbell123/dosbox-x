@@ -7,12 +7,14 @@ Exposes DOSBox control and terminal streaming functions to LLMs (AGY, Claude, Co
 """
 
 import sys
+import os
 import json
 import urllib.request
 import urllib.error
 
-DOSBOX_AGENT_URL = "http://127.0.0.1:8090"
-AUTH_TOKEN = "dosbox-agent-secret"
+DOSBOX_AGENT_PORT = os.environ.get("DOSBOX_AGENT_PORT", "8090")
+DOSBOX_AGENT_URL = f"http://127.0.0.1:{DOSBOX_AGENT_PORT}"
+AUTH_TOKEN = os.environ.get("DOSBOX_AGENT_TOKEN", "dosbox-agent-secret")
 
 def send_rpc_request(method, params=None):
     payload = {
@@ -36,6 +38,70 @@ def send_rpc_request(method, params=None):
     except urllib.error.URLError as e:
         return {"error": f"Failed to connect to DOSBox-X A-TRES agent bridge: {e}"}
 
+def handle_initialize(req_id):
+    return {
+        "jsonrpc": "2.0",
+        "id": req_id,
+        "result": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {"tools": {}},
+            "serverInfo": {"name": "dosbox-x-agent", "version": "1.0.0"}
+        }
+    }
+
+def handle_tools_list(req_id):
+    return {
+        "jsonrpc": "2.0",
+        "id": req_id,
+        "result": {
+            "tools": [
+                {
+                    "name": "dosbox_get_status",
+                    "description": "Check DOSBox-X execution status, active command state, and exit code",
+                    "inputSchema": {"type": "object", "properties": {}}
+                },
+                {
+                    "name": "dosbox_read_output",
+                    "description": "Read and flush the latest live output text/terminal stream from DOSBox-X",
+                    "inputSchema": {"type": "object", "properties": {}}
+                },
+                {
+                    "name": "dosbox_run_command",
+                    "description": "Execute a DOS command inside DOSBox-X shell",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "command": {"type": "string", "description": "DOS command"}
+                        },
+                        "required": ["command"]
+                    }
+                }
+            ]
+        }
+    }
+
+def handle_tools_call(req_id, params):
+    tool_name = params.get("name")
+    tool_args = params.get("arguments", {})
+
+    if tool_name == "dosbox_get_status":
+        rpc_res = send_rpc_request("get_status")
+    elif tool_name == "dosbox_read_output":
+        rpc_res = send_rpc_request("read_output")
+    elif tool_name == "dosbox_run_command":
+        cmd = tool_args.get("command", "")
+        rpc_res = send_rpc_request("run_command", {"command": cmd})
+    else:
+        rpc_res = {"error": f"Unknown tool: {tool_name}"}
+
+    return {
+        "jsonrpc": "2.0",
+        "id": req_id,
+        "result": {
+            "content": [{"type": "text", "text": json.dumps(rpc_res, indent=2)}]
+        }
+    }
+
 def main():
     print("==========================================================", file=sys.stderr)
     print("DOSBox-X Agent Subsystem (A-TRES) MCP Bridge Initialized", file=sys.stderr)
@@ -53,67 +119,11 @@ def main():
             req_id = req.get("id")
 
             if method == "initialize":
-                res = {
-                    "jsonrpc": "2.0",
-                    "id": req_id,
-                    "result": {
-                        "protocolVersion": "2024-11-05",
-                        "capabilities": {"tools": {}},
-                        "serverInfo": {"name": "dosbox-x-agent", "version": "1.0.0"}
-                    }
-                }
+                res = handle_initialize(req_id)
             elif method == "tools/list":
-                res = {
-                    "jsonrpc": "2.0",
-                    "id": req_id,
-                    "result": {
-                        "tools": [
-                            {
-                                "name": "dosbox_get_status",
-                                "description": "Check DOSBox-X execution status, active command state, and exit code",
-                                "inputSchema": {"type": "object", "properties": {}}
-                            },
-                            {
-                                "name": "dosbox_read_output",
-                                "description": "Read and flush the latest live output text/terminal stream from DOSBox-X",
-                                "inputSchema": {"type": "object", "properties": {}}
-                            },
-                            {
-                                "name": "dosbox_run_command",
-                                "description": "Execute a DOS command inside DOSBox-X shell",
-                                "inputSchema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "command": {"type": "string", "description": "DOS command (e.g. dir, tasm program.asm, wcl main.c)"}
-                                    },
-                                    "required": ["command"]
-                                }
-                            }
-                        ]
-                    }
-                }
+                res = handle_tools_list(req_id)
             elif method == "tools/call":
-                params = req.get("params", {})
-                tool_name = params.get("name")
-                tool_args = params.get("arguments", {})
-
-                if tool_name == "dosbox_get_status":
-                    rpc_res = send_rpc_request("get_status")
-                elif tool_name == "dosbox_read_output":
-                    rpc_res = send_rpc_request("read_output")
-                elif tool_name == "dosbox_run_command":
-                    cmd = tool_args.get("command", "")
-                    rpc_res = send_rpc_request("run_command", {"command": cmd})
-                else:
-                    rpc_res = {"error": f"Unknown tool: {tool_name}"}
-
-                res = {
-                    "jsonrpc": "2.0",
-                    "id": req_id,
-                    "result": {
-                        "content": [{"type": "text", "text": json.dumps(rpc_res, indent=2)}]
-                    }
-                }
+                res = handle_tools_call(req_id, req.get("params", {}))
             else:
                 res = {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": "Method not found"}}
 

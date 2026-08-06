@@ -40,9 +40,11 @@ private:
     AgentBridge();
     ~AgentBridge();
 
-    void ServerLoop();
+    void StartServer();
+    void AcceptClientsLoop(int listen_fd);
     void ProcessClient(int client_fd);
     std::string HandleJsonRpcRequest(const std::string& json_payload);
+    std::string EscapeJsonString(const std::string& input);
 
     bool enabled;
     uint16_t port;
