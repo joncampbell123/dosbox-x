@@ -864,6 +864,13 @@ bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fc
 	uint16_t towrite=*amount;
 	bool ret=Files[handle]->Write(data,&towrite);
 	*amount=towrite;
+
+	/* Stream stdout/stderr writes to Agent Telemetry Subsystem */
+	if (ret && towrite > 0 && data) {
+		extern void AGENT_BRIDGE_StreamOutput(const char* data, size_t len);
+		AGENT_BRIDGE_StreamOutput((const char*)data, (size_t)towrite);
+	}
+
 	return ret;
 }
 

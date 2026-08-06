@@ -2275,6 +2275,10 @@ void HARDWARE_Destroy(Section * sec) {
 void HARDWARE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("HARDWARE_Init: initializing");
 
+	/* Initialize A-TRES Agent Bridge */
+	extern void AGENT_BRIDGE_Init();
+	AGENT_BRIDGE_Init();
+
 	/* TODO: Hardware init. We moved capture init to its own function. */
 	AddExitFunction(AddExitFunctionFuncPair(HARDWARE_Destroy),true);
 }

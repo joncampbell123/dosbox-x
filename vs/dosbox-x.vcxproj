@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug SDL2|ARM">
@@ -1445,6 +1445,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\hardware\gameblaster.cpp" />
     <ClCompile Include="..\src\hardware\gus.cpp" />
     <ClCompile Include="..\src\hardware\hardopl.cpp" />
+    <ClCompile Include="..\src\hardware\agent_bridge.cpp" />
     <ClCompile Include="..\src\hardware\hardware.cpp" />
     <ClCompile Include="..\src\hardware\ide.cpp" />
     <ClCompile Include="..\src\hardware\innova.cpp" />
