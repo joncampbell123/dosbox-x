@@ -11916,7 +11916,7 @@ startfunction:
                             if (mod)
                                 BIOS_Int10RightJustifiedPrint(x,y,"              Save settings, exit Setup Utility and reboot  [Y/N]? ");
                             else
-                                BIOS_Int10RightJustifiedPrint(x,y,"              Exit the BIOS Setup Utility and boot systen   [Y/N]? ");
+                                BIOS_Int10RightJustifiedPrint(x,y,"              Exit the BIOS Setup Utility and boot system   [Y/N]? ");
                         }
                         askexit = true;
                     }
