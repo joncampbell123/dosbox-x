@@ -2154,7 +2154,6 @@ public:
         bool pc98_640x200 = true;
         bool pc98_show_graphics = false;
         bool bios_boot = false;
-        bool swaponedrive = false;
         bool convertro = false;
         bool zeromem = false;
         bool force = false;
@@ -2168,9 +2167,6 @@ public:
         boot_debug_break = false;
         if (cmd->FindExist("-debug",true))
             boot_debug_break = true;
-
-        if (cmd->FindExist("-swap-one-drive",true))
-            swaponedrive = true;
 
         if (cmd->FindExist("-zeromem",true))
             zeromem = true;
@@ -2334,7 +2330,6 @@ public:
             throw int(8);
         }
 
-        bool bootbyDrive=false;
         FILE *usefile_1=NULL;
         FILE *usefile_2=NULL;
         Bitu i=0;
@@ -2679,15 +2674,12 @@ public:
             /* No drives or images specified */
             if (Drives[0] && !strncmp(Drives[0]->GetInfo(), "fatDrive ", 9)) {
                 drive = 'A';
-                bootbyDrive = true;
             }
             else if (Drives[2] && !strncmp(Drives[2]->GetInfo(), "fatDrive ", 9)){
                 drive = 'C';
-                bootbyDrive = true;
             }
             else if(Drives[3] && !strncmp(Drives[3]->GetInfo(), "fatDrive ", 9)) {
                 drive = 'D';
-                bootbyDrive = true;
             }
             else {
                 printError();
@@ -2705,7 +2697,6 @@ public:
                     printError();
                     return;
                 }
-                bootbyDrive = true;
             }
             else if(temp_line.length() == 2 && ((temp_line == "/?") || (temp_line == "-?"))) {
                 printError();
@@ -2715,7 +2706,6 @@ public:
                 /* Drive number specified */
                 if(temp_line[0] == '0') drive = 'A';
                 else if(temp_line[0] == '2') drive = 'C';
-                bootbyDrive = true;
             }
             else {
                 /* Single image specified */
@@ -6312,7 +6302,6 @@ class IMGMOUNT : public Program {
 		bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 			char drive=commandLine[0];
 			bool nocont=false;
-			int num = 0;
 			while (!nocont&&cmd->ExistsCommand(1)) {
 				bool usedef=false;
 				if (!cmd->FindCommand(1, commandLine)) {
@@ -6399,7 +6388,6 @@ class IMGMOUNT : public Program {
 						temp_line = tmp;
 						int res = get_expanded_files(temp_line, paths, readonly);
 						if (res) {
-							num += res - 1;
 							temp_line = paths[0];
 							continue;
 						} else if ((!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) && !qmount) {
@@ -6420,7 +6408,6 @@ class IMGMOUNT : public Program {
 							temp_line = readonly?tmp+1:tmp;
 							int res = get_expanded_files(temp_line, paths, readonly);
 							if (res) {
-								num += res - 1;
 								temp_line = paths[0];
 								continue;
 							} else if (!qmount)
@@ -7276,7 +7263,6 @@ class IMGMOUNT : public Program {
 
 			uint32_t sectorsPerTrack;
 			uint32_t heads;
-			uint32_t cylinders;
 			uint32_t cylinderTimesHeads = 0;
 
 			if(totalSectors > 65535ULL * 16ULL * 255ULL)
@@ -7285,12 +7271,10 @@ class IMGMOUNT : public Program {
 			if(totalSectors > 65535ULL * 16ULL * 63ULL){
 				sectorsPerTrack = 255;
 				heads = 16;
-				cylinders = (uint32_t)(totalSectors / (heads * sectorsPerTrack));
 			}
 			else {
 				sectorsPerTrack = 63;
 				cylinderTimesHeads = (uint32_t)(totalSectors / sectorsPerTrack);
-				cylinders = (uint32_t)(totalSectors / sectorsPerTrack);
 				heads = (cylinderTimesHeads + 1023) / 1024;
 			}
 

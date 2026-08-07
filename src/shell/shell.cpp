@@ -2335,6 +2335,7 @@ void DOS_ConfigShell::Run(void) {
 			const char *e = cfgstr;
 			while (e > b && *(e-1) == ' ') e--;
 			name = std::string(b,size_t(e-b));
+			for (auto &c : name) c = toupper(c);
 		}
 
 		if (*cfgstr == '=') {

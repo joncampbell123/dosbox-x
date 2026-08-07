@@ -1724,8 +1724,11 @@ static bool IsFloppyBPBSane(const FAT_BootSector::bpb_union_t& bpb)
         return false;
     }
 
-    if(bpb.v.BPB_BytsPerSec != 512 &&
-        (!IS_PC98_ARCH || bpb.v.BPB_BytsPerSec != 1024))
+    uint32_t bytes =
+        bpb.v.BPB_BytsPerSec;
+
+    if(bytes < 256 || bytes > 2048 ||
+        (bytes & (bytes - 1)))
         return false;
 
     switch(bpb.v.BPB_SecPerClus) {
@@ -1738,23 +1741,20 @@ static bool IsFloppyBPBSane(const FAT_BootSector::bpb_union_t& bpb)
         return false;
     }
 
+    /**
     if(bpb.v.BPB_RsvdSecCnt < 1 || bpb.v.BPB_RsvdSecCnt > 8)
         return false;
-
+    */
     if(bpb.v.BPB_NumFATs != 1 && bpb.v.BPB_NumFATs != 2)
-        return false;
-
-    if(bpb.v.BPB_RootEntCnt == 0 ||
-        (bpb.v.BPB_RootEntCnt % 32) != 0 ||
-        bpb.v.BPB_RootEntCnt > 512)
         return false;
 
     if(bpb.v.BPB_FATSz16 == 0 || bpb.v.BPB_FATSz16 > 16)
         return false;
 
+    /**
     if(bpb.v.BPB_SecPerTrk < 8 || bpb.v.BPB_SecPerTrk > 36)
         return false;
-
+    */
     if(bpb.v.BPB_NumHeads < 1 || bpb.v.BPB_NumHeads > 2)
         return false;
 
