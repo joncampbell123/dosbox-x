@@ -8344,7 +8344,11 @@ void showBIOSSetup(const char* card, int x, int y) {
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "0000-00-00"), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "00:00:00"), true);
     updateDateTime(x,y,0);
+#if defined(OSFREE)
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Installed OS:", "(none)"), true);
+#else
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Installed OS:", "DOS"), true);
+#endif
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
 #define DOSNAMEBUF 256
     char pcname[DOSNAMEBUF];
