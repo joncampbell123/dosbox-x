@@ -8381,7 +8381,7 @@ void showBIOSSetup(const char* card, int x, int y) {
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video card:", card), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Video memory:", (std::to_string(vga.mem.memsize/1024)+"K").c_str()), true);
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Total memory:", (std::to_string(MEM_TotalPages()*4096/1024)+"K").c_str()), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System memory:", (std::to_string(MEM_TotalPages()*4096/1024)+"K").c_str()), true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
     BIOS_Int10RightJustifiedPrint(x,y,"\x0c8\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0bc", true);
     if (machine == MCH_PC98)
