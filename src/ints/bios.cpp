@@ -11823,7 +11823,10 @@ startfunction:
                                 reg_edx = 0xE100;
                                 CALLBACK_RunRealInt(0x18);
                             }
-                            goto startfunction;
+                            if (mod)
+                                goto startfunction;
+                            else
+                                break;
                         } else if (machine == MCH_PC98) {
                             const char *exitstr = "ESC = Exit";
                             unsigned int bo;
@@ -11911,9 +11914,9 @@ startfunction:
                             reg_edx = 0x1800u;
                             CALLBACK_RunRealInt(0x10);
                             if (mod)
-                                BIOS_Int10RightJustifiedPrint(x,y,"              Save settings and exit the BIOS Setup Utility [Y/N]? ");
+                                BIOS_Int10RightJustifiedPrint(x,y,"              Save settings, exit Setup Utility and reboot  [Y/N]? ");
                             else
-                                BIOS_Int10RightJustifiedPrint(x,y,"              Exit the BIOS Setup Utility and reboot system [Y/N]? ");
+                                BIOS_Int10RightJustifiedPrint(x,y,"              Exit the BIOS Setup Utility and boot systen   [Y/N]? ");
                         }
                         askexit = true;
                     }
