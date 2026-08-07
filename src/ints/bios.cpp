@@ -11762,6 +11762,7 @@ startfunction:
 
                     if ((machine != MCH_PC98 && reg_ax == 0x5300) || (machine == MCH_PC98 && reg_ax == 0x3900)) { // user hit Del
                         bios_setup = true;
+                        VGA_FreeBiosLogo();
                         showBIOSSetup(card, x, y);
                         break;
                     }
