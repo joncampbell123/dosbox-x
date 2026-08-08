@@ -8197,6 +8197,7 @@ static unsigned char BIN2BCD(unsigned char x) {
 
 bool (*setupGetDateTime)(struct setuptime_t *dt) = NULL;
 bool (*setupSetDateTime)(struct setuptime_t *dt) = NULL;
+bool (*setupStopClock)(bool stop) = NULL;
 
 bool setupGetDateTime_PC98(struct setuptime_t *dt) {
     //TODO
@@ -8208,7 +8209,17 @@ bool setupSetDateTime_PC98(struct setuptime_t *dt) {
     return true;
 }
 
+bool setupStopClock_PC98(bool stop) {
+    //TODO
+    return true;
+}
+
 bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
+    uint8_t pB;
+
+    IO_Write(0x70,0xB);
+    pB = IO_Read(0x71);
+
     IO_Write(0x70,0xB);
     IO_Write(0x71,0x82); // BCD | LOCK
 
@@ -8229,12 +8240,17 @@ bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
     dt->year += BCD2BIN(IO_Read(0x71))*100;
 
     IO_Write(0x70,0xB);
-    IO_Write(0x71,0x02); // BCD
+    IO_Write(0x71,pB);
 
     return true;
 }
 
 bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
+    uint8_t pB;
+
+    IO_Write(0x70,0xB);
+    pB = IO_Read(0x71);
+
     IO_Write(0x70,0xB);
     IO_Write(0x71,0x82); // BCD | LOCK
 
@@ -8255,9 +8271,21 @@ bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
     IO_Write(0x71,BIN2BCD(dt->year/100));
 
     IO_Write(0x70,0xB);
-    IO_Write(0x71,0x02); // BCD
+    IO_Write(0x71,pB);
 
     mem_writed(BIOS_TIMER,(uint32_t)((double)dt->hour*3600+dt->minute*60+dt->second)*18.206481481);
+
+    return true;
+}
+
+bool setupStopClock_CMOS(bool stop) {
+    uint8_t pB;
+
+    IO_Write(0x70,0xB);
+    pB = IO_Read(0x71);
+
+    IO_Write(0x70,0xB);
+    IO_Write(0x71,(pB & 0x7F) | (stop ? 0x80 : 0x00));
 
     return true;
 }
@@ -11795,10 +11823,12 @@ startfunction:
         if (IS_PC98_ARCH) {
             setupGetDateTime = setupGetDateTime_PC98;
             setupSetDateTime = setupSetDateTime_PC98;
+            setupStopClock   = setupStopClock_PC98;
         }
         else {
             setupGetDateTime = setupGetDateTime_CMOS;
             setupSetDateTime = setupSetDateTime_CMOS;
+            setupStopClock   = setupStopClock_CMOS;
         }
 
         // TODO: Then at this screen, we can print messages demonstrating the detection of
@@ -11818,6 +11848,7 @@ startfunction:
         if (!fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
             bool wait_for_user = false, bios_setup = false;
             int pos=1;
+            uint32_t startclockat=0;
             uint32_t lasttick=GetTicks();
             while ((GetTicks()-lasttick)<1000) {
                 if (machine == MCH_PC98) {
@@ -11886,6 +11917,12 @@ startfunction:
                     lasttick=GetTicks();
                     updateDateTime(x,y,pos);
                 }
+                if (startclockat) {
+                    if (GetTicks() >= startclockat) {
+                        if (setupStopClock) setupStopClock(false);
+                        startclockat = 0;
+                    }
+                }
                 if (machine == MCH_PC98) {
                     reg_eax = 0x0100;   // sense key
                     CALLBACK_RunRealInt(0x18);
@@ -11907,6 +11944,7 @@ startfunction:
                     }
                     if (askexit) {
                         if (reg_al == 'Y' || reg_al == 'y') {
+                            if (setupStopClock) setupStopClock(false);
                             if (machine == MCH_PC98) {
                                 reg_eax = 0x1600;
                                 reg_edx = 0xE100;
@@ -11952,6 +11990,7 @@ startfunction:
                         lasttick-=500;
                     } else if (machine != MCH_PC98 && reg_al == 43) { // '+' key
                         struct setuptime_t cmos_dt;
+                        if (setupStopClock) setupStopClock(true);
                         if (setupGetDateTime) setupGetDateTime(&cmos_dt);
                         if (pos==1&&dos.date.year<2100) cmos_dt.year++;
                         else if (pos==2) cmos_dt.month=cmos_dt.month<12?cmos_dt.month+1:1;
@@ -11962,9 +12001,11 @@ startfunction:
                         clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
+                        startclockat = GetTicks() + 200; /* delay unlock so that the user can modify seconds without jumps in the value */
                         lasttick-=500;
                     } else if (machine != MCH_PC98 && reg_al == 45) { // '-' key
                         struct setuptime_t cmos_dt;
+                        if (setupStopClock) setupStopClock(true);
                         if (setupGetDateTime) setupGetDateTime(&cmos_dt);
                         if (pos==1&&cmos_dt.year>1900) cmos_dt.year--;
                         else if (pos==2) cmos_dt.month=cmos_dt.month>1?cmos_dt.month-1:12;
@@ -11975,6 +12016,7 @@ startfunction:
                         clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
+                        startclockat = GetTicks() + 200; /* delay unlock so that the user can modify seconds without jumps in the value */
                         lasttick-=500;
                     } else if (reg_al == 27/*ESC*/) {
                         if (machine == MCH_PC98) {
