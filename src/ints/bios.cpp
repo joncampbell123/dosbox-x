@@ -8316,7 +8316,10 @@ void updateDateTime(int x, int y, int pos)
                 reg_edx = edx + j;
                 CALLBACK_RunRealInt(0x10);
                 reg_eax = 0x0900u+str[j];
-                reg_ebx = i==pos?0x001fu:0x001eu;
+                if (machine == MCH_MDA || machine == MCH_HERC)
+                    reg_ebx = i==pos?0x0009u:0x001eu;/* MDA/Herc doesn't have color, use underline attribute */
+                else
+                    reg_ebx = i==pos?0x001fu:0x001eu;
                 reg_ecx = 0x0001u;
                 CALLBACK_RunRealInt(0x10);
             }
