@@ -1,5 +1,5 @@
 NEXT VERSION:
-  - 
+  - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
