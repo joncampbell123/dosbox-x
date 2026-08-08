@@ -83,7 +83,8 @@ class imageDisk {
 			ID_NFD,
 			ID_EMPTY_DRIVE,
 			ID_INT13,
-			ID_MSDOSBLOCKDEV
+			ID_MSDOSBLOCKDEV,
+			ID_TELEDISK
 		};
 
 		virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
