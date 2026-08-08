@@ -53,6 +53,7 @@
 #include "cross.h"
 #include "bios.h"
 #include "bios_disk.h"
+#include "imagedisk_teledisk.h"
 #include "qcow2_disk.h"
 #include "bitop.h"
 #include "callback.h"
@@ -1564,6 +1565,8 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 
 		if (ext != NULL && !strcasecmp(ext, ".d88"))
 			loadedDisk = new imageDiskD88(diskfile, fname, (uint32_t)filesize, false);
+		else if (!memcmp(bootcode, "TD\0", 3))
+			loadedDisk = new imageDiskTeledisk(diskfile, fname, (uint32_t)filesize, false);
 		else if (!memcmp(bootcode,"VFD1.",5)) /* FDD files */
 			loadedDisk = new imageDiskVFD(diskfile, fname, (uint32_t)filesize, false);
 		else if (!memcmp(bootcode,"T98FDDIMAGE.R0\0\0",16))
@@ -2198,8 +2201,10 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
                 bootbuffer.magic1 = 0x55;	// to silence warning
                 bootbuffer.magic2 = 0xaa;
             }
-            else if(!IS_PC98_ARCH && loadedDisk->diskSizeK <= 360) {
-                /* Read media descriptor in FAT */
+            else if(!IS_PC98_ARCH) {
+                /* Before DOS 2.0 there was no BPB. DOS 1.x identified the floppy format
+                 * solely by the media descriptor byte at the start of the FAT. Read it and
+                 * build the BPB from that (done before matching against DiskGeometryList). */
                 uint8_t sectorBuffer[512];
                 loadedDisk->Read_AbsoluteSector(1, &sectorBuffer);
                 uint8_t mdesc = sectorBuffer[0];

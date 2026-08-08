@@ -603,6 +603,9 @@
     <ClCompile Include="..\src\ints\bios_disk.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ints\imagedisk_teledisk.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\ints\bios_keyboard.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
