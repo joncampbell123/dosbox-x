@@ -8309,7 +8309,7 @@ void updateDateTime(int x, int y, int pos)
             if (machine == MCH_PC98) {
                 bo = (((unsigned int)(edx/0x100) * 80u) + (unsigned int)(edx%0x100) + j) * 2u;
                 mem_writew(0xA0000+bo,str[j]);
-                mem_writeb(0xA2000+bo,0xE1);
+                mem_writeb(0xA2000+bo,i==pos?0xE5:0xE1);
             } else {
                 reg_eax = 0x0200u;
                 reg_ebx = 0x0000u;
