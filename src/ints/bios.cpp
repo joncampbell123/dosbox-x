@@ -8182,6 +8182,45 @@ char *getSetupLine(const char *capt, const char *cont) {
     return line;
 }
 
+struct setuptime_t {
+    unsigned int year=0;
+    unsigned char month=0,day=0,hour=0,minute=0,second=0;
+};
+
+static unsigned char BCD2BIN(unsigned char x) {
+	return ((x >> 4) * 10) + (x & 0xF);
+}
+
+bool (*setupGetDateTime)(struct setuptime_t *dt) = NULL;
+bool (*setupSetDateTime)(struct setuptime_t *dt) = NULL;
+
+bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
+    IO_Write(0x70,0xB);
+    IO_Write(0x71,0x02); // BCD
+
+    IO_Write(0x70,0);
+    dt->second = BCD2BIN(IO_Read(0x71));
+    IO_Write(0x70,2);
+    dt->minute = BCD2BIN(IO_Read(0x71));
+    IO_Write(0x70,4);
+    dt->hour = BCD2BIN(IO_Read(0x71));
+
+    IO_Write(0x70,7);
+    dt->day = BCD2BIN(IO_Read(0x71));
+    IO_Write(0x70,8);
+    dt->month = BCD2BIN(IO_Read(0x71));
+    IO_Write(0x70,9);
+    dt->year = BCD2BIN(IO_Read(0x71))%100;
+    IO_Write(0x70,0x32);
+    dt->year += BCD2BIN(IO_Read(0x71))*100;
+
+    return true;
+}
+
+bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
+    return true;
+}
+
 const char *GetCPUType();
 void updateDateTime(int x, int y, int pos)
 {
@@ -8190,44 +8229,41 @@ void updateDateTime(int x, int y, int pos)
     char str[50];
     time_t curtime = time(NULL);
     struct tm *loctime = localtime (&curtime);
-    Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
-    unsigned int sec=(uint8_t)((Bitu)time % 60);
-    time/=60;
-    unsigned int min=(uint8_t)((Bitu)time % 60);
-    time/=60;
-    unsigned int hour=(uint8_t)((Bitu)time % 24);
+    struct setuptime_t cmos_dt;
+    if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+    //Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
     int val=0;
     unsigned int bo;
     Bitu edx=0, pdx=0x0500u;
     for (int i=1; i<7; i++) {
         switch (i) {
             case 1:
-                val = machine==MCH_PC98?loctime->tm_year+1900:dos.date.year;
+                val = machine==MCH_PC98?loctime->tm_year+1900:cmos_dt.year;
                 reg_edx = 0x0326u;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 2:
-                val = machine==MCH_PC98?loctime->tm_mon+1:dos.date.month;
+                val = machine==MCH_PC98?loctime->tm_mon+1:cmos_dt.month;
                 reg_edx = 0x032bu;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 3:
-                val = machine==MCH_PC98?loctime->tm_mday:dos.date.day;
+                val = machine==MCH_PC98?loctime->tm_mday:cmos_dt.day;
                 reg_edx = 0x032eu;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 4:
-                val = machine==MCH_PC98?loctime->tm_hour:hour;
+                val = machine==MCH_PC98?loctime->tm_hour:cmos_dt.hour;
                 reg_edx = 0x0426u;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 5:
-                val = machine==MCH_PC98?loctime->tm_min:min;
+                val = machine==MCH_PC98?loctime->tm_min:cmos_dt.minute;
                 reg_edx = 0x0429u;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 6:
-                val = machine==MCH_PC98?loctime->tm_sec:sec;
+                val = machine==MCH_PC98?loctime->tm_sec:cmos_dt.second;
                 reg_edx = 0x042cu;
                 if (i==pos) pdx = reg_edx;
                 break;
@@ -8526,11 +8562,6 @@ static Bitu pc98_default_stop_handler(void) {
 
     return CBRET_NONE;
 }
-
-static unsigned char BCD2BIN(unsigned char x) {
-	return ((x >> 4) * 10) + (x & 0xF);
-}
-
 
 /* NTS: Remember the 8259 is non-sentient, and the term "slave" is used in a computer programming context */
 static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
@@ -11717,6 +11748,9 @@ startfunction:
             CALLBACK_RunRealInt(0x18);
         }
 #endif
+
+	setupGetDateTime = setupGetDateTime_CMOS;
+	setupSetDateTime = setupSetDateTime_CMOS;
 
         // TODO: Then at this screen, we can print messages demonstrating the detection of
         //       IDE devices, floppy, ISA PnP initialization, anything of importance.
