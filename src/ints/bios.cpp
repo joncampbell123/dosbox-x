@@ -8210,7 +8210,7 @@ bool setupSetDateTime_PC98(struct setuptime_t *dt) {
 
 bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
     IO_Write(0x70,0xB);
-    IO_Write(0x71,0x02); // BCD
+    IO_Write(0x71,0x82); // BCD | LOCK
 
     IO_Write(0x70,0);
     dt->second = BCD2BIN(IO_Read(0x71));
@@ -8228,12 +8228,15 @@ bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
     IO_Write(0x70,0x32);
     dt->year += BCD2BIN(IO_Read(0x71))*100;
 
+    IO_Write(0x70,0xB);
+    IO_Write(0x71,0x02); // BCD
+
     return true;
 }
 
 bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
     IO_Write(0x70,0xB);
-    IO_Write(0x71,0x02); // BCD
+    IO_Write(0x71,0x82); // BCD | LOCK
 
     IO_Write(0x70,0);
     IO_Write(0x71,BIN2BCD(dt->second));
@@ -8250,6 +8253,9 @@ bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
     IO_Write(0x71,BIN2BCD(dt->year%100));
     IO_Write(0x70,0x32);
     IO_Write(0x71,BIN2BCD(dt->year/100));
+
+    IO_Write(0x70,0xB);
+    IO_Write(0x71,0x02); // BCD
 
     mem_writed(BIOS_TIMER,(uint32_t)((double)dt->hour*3600+dt->minute*60+dt->second)*18.206481481);
 
