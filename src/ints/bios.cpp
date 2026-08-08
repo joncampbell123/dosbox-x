@@ -8191,6 +8191,10 @@ static unsigned char BCD2BIN(unsigned char x) {
 	return ((x >> 4) * 10) + (x & 0xF);
 }
 
+static unsigned char BIN2BCD(unsigned char x) {
+	return (x % 10) + ((x / 10) << 4);
+}
+
 bool (*setupGetDateTime)(struct setuptime_t *dt) = NULL;
 bool (*setupSetDateTime)(struct setuptime_t *dt) = NULL;
 
@@ -8218,6 +8222,27 @@ bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
 }
 
 bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
+    IO_Write(0x70,0xB);
+    IO_Write(0x71,0x02); // BCD
+
+    IO_Write(0x70,0);
+    IO_Write(0x71,BIN2BCD(dt->second));
+    IO_Write(0x70,2);
+    IO_Write(0x71,BIN2BCD(dt->minute));
+    IO_Write(0x70,4);
+    IO_Write(0x71,BIN2BCD(dt->hour));
+
+    IO_Write(0x70,7);
+    IO_Write(0x71,BIN2BCD(dt->day));
+    IO_Write(0x70,8);
+    IO_Write(0x71,BIN2BCD(dt->month));
+    IO_Write(0x70,9);
+    IO_Write(0x71,BIN2BCD(dt->year%100));
+    IO_Write(0x70,0x32);
+    IO_Write(0x71,BIN2BCD(dt->year/100));
+
+    mem_writed(BIOS_TIMER,(uint32_t)((double)dt->hour*3600+dt->minute*60+dt->second)*18.206481481);
+
     return true;
 }
 
@@ -11900,42 +11925,30 @@ startfunction:
                         else if (pos==2||pos==3) pos=6;
                         lasttick-=500;
                     } else if (machine != MCH_PC98 && reg_al == 43) { // '+' key
-                        if (pos==1&&dos.date.year<2100) dos.date.year++;
-                        else if (pos==2) dos.date.month=dos.date.month<12?dos.date.month+1:1;
-                        else if (pos==3) dos.date.day=dos.date.day<(dos.date.month==1||dos.date.month==3||dos.date.month==5||dos.date.month==7||dos.date.month==8||dos.date.month==10||dos.date.month==12?31:(dos.date.month==2?29:30))?dos.date.day+1:1;
-                        else if (pos==4||pos==5||pos==6) {
-                            Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
-                            unsigned int sec=(uint8_t)((Bitu)time % 60);
-                            time/=60;
-                            unsigned int min=(uint8_t)((Bitu)time % 60);
-                            time/=60;
-                            unsigned int hour=(uint8_t)((Bitu)time % 24);
-                            if (pos==4) hour=hour<23?hour+1:0;
-                            else if (pos==5) min=min<59?min+1:0;
-                            else if (pos==6) sec=sec<59?sec+1:0;
-                            mem_writed(BIOS_TIMER,(uint32_t)((double)hour*3600+min*60+sec)*18.206481481);
-                        }
+                        struct setuptime_t cmos_dt;
+                        if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+                        if (pos==1&&dos.date.year<2100) cmos_dt.year++;
+                        else if (pos==2) cmos_dt.month=cmos_dt.month<12?cmos_dt.month+1:1;
+                        else if (pos==3) cmos_dt.day=cmos_dt.day<(cmos_dt.month==1||cmos_dt.month==3||cmos_dt.month==5||cmos_dt.month==7||cmos_dt.month==8||cmos_dt.month==10||cmos_dt.month==12?31:(cmos_dt.month==2?29:30))?cmos_dt.day+1:1;
+                        else if (pos==4) cmos_dt.hour=cmos_dt.hour<23?cmos_dt.hour+1:0;
+                        else if (pos==5) cmos_dt.minute=cmos_dt.minute<59?cmos_dt.minute+1:0;
+                        else if (pos==6) cmos_dt.second=cmos_dt.second<59?cmos_dt.second+1:0;
                         mod = true;
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
+                        if (setupSetDateTime) setupSetDateTime(&cmos_dt);
                         lasttick-=500;
                     } else if (machine != MCH_PC98 && reg_al == 45) { // '-' key
-                        if (pos==1&&dos.date.year>1900) dos.date.year--;
-                        else if (pos==2) dos.date.month=dos.date.month>1?dos.date.month-1:12;
-                        else if (pos==3) dos.date.day=dos.date.day>1?dos.date.day-1:(dos.date.month==1||dos.date.month==3||dos.date.month==5||dos.date.month==7||dos.date.month==8||dos.date.month==10||dos.date.month==12?31:(dos.date.month==2?29:30));
-                        else if (pos==4||pos==5||pos==6) {
-                            Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
-                            unsigned int sec=(uint8_t)(time % 60);
-                            time/=60;
-                            unsigned int min=(uint8_t)(time % 60);
-                            time/=60;
-                            unsigned int hour=(uint8_t)(time % 24);
-                            if (pos==4) hour=hour>0?hour-1:23;
-                            else if (pos==5) min=min>0?min-1:59;
-                            else if (pos==6) sec=sec>0?sec-1:59;
-                            mem_writed(BIOS_TIMER,(uint32_t)((double)hour*3600+min*60+sec)*18.206481481);
-                        }
+                        struct setuptime_t cmos_dt;
+                        if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+                        if (pos==1&&cmos_dt.year>1900) cmos_dt.year--;
+                        else if (pos==2) cmos_dt.month=cmos_dt.month>1?cmos_dt.month-1:12;
+                        else if (pos==3) cmos_dt.day=cmos_dt.day>1?cmos_dt.day-1:(cmos_dt.month==1||cmos_dt.month==3||cmos_dt.month==5||cmos_dt.month==7||cmos_dt.month==8||cmos_dt.month==10||cmos_dt.month==12?31:(cmos_dt.month==2?29:30));
+                        else if (pos==4) cmos_dt.hour=cmos_dt.hour>0?cmos_dt.hour-1:23;
+                        else if (pos==5) cmos_dt.minute=cmos_dt.minute>0?cmos_dt.minute-1:59;
+                        else if (pos==6) cmos_dt.second=cmos_dt.second>0?cmos_dt.second-1:59;
                         mod = true;
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
+                        if (setupSetDateTime) setupSetDateTime(&cmos_dt);
                         lasttick-=500;
                     } else if (reg_al == 27/*ESC*/) {
                         if (machine == MCH_PC98) {
