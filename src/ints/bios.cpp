@@ -11870,7 +11870,7 @@ startfunction:
             }
 
             lasttick=GetTicks();
-            bool askexit = false, mod = false;
+            bool askexit = false, mod = false, clockmod = false;
             while (bios_setup) {
                 if (GetTicks()-lasttick>=500 && !askexit) {
                     lasttick=GetTicks();
@@ -11949,7 +11949,7 @@ startfunction:
                         else if (pos==4) cmos_dt.hour=cmos_dt.hour<23?cmos_dt.hour+1:0;
                         else if (pos==5) cmos_dt.minute=cmos_dt.minute<59?cmos_dt.minute+1:0;
                         else if (pos==6) cmos_dt.second=cmos_dt.second<59?cmos_dt.second+1:0;
-                        mod = true;
+                        clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
                         lasttick-=500;
@@ -11962,7 +11962,7 @@ startfunction:
                         else if (pos==4) cmos_dt.hour=cmos_dt.hour>0?cmos_dt.hour-1:23;
                         else if (pos==5) cmos_dt.minute=cmos_dt.minute>0?cmos_dt.minute-1:59;
                         else if (pos==6) cmos_dt.second=cmos_dt.second>0?cmos_dt.second-1:59;
-                        mod = true;
+                        clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
                         lasttick-=500;
