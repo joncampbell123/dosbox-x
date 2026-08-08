@@ -247,7 +247,7 @@ unsigned int APM_BIOS_minor_version = 2;    // what version to emulate e.g to em
 static bool apm_realmode_connected = false;
 
 /* default bios type/version/date strings */
-const char* const bios_type_string = "IBM COMPATIBLE BIOS for DOSBox-X";
+const char*       bios_type_string = "IBM COMPATIBLE BIOS for DOSBox-X";
 const char* const bios_version_string = "DOSBox-X BIOS v1.0";
 const char* const bios_date_string = "01/01/92";
 
@@ -8182,6 +8182,80 @@ char *getSetupLine(const char *capt, const char *cont) {
     return line;
 }
 
+struct setuptime_t {
+    unsigned int year=0;
+    unsigned char month=0,day=0,hour=0,minute=0,second=0;
+};
+
+static unsigned char BCD2BIN(unsigned char x) {
+	return ((x >> 4) * 10) + (x & 0xF);
+}
+
+static unsigned char BIN2BCD(unsigned char x) {
+	return (x % 10) + ((x / 10) << 4);
+}
+
+bool (*setupGetDateTime)(struct setuptime_t *dt) = NULL;
+bool (*setupSetDateTime)(struct setuptime_t *dt) = NULL;
+
+bool setupGetDateTime_PC98(struct setuptime_t *dt) {
+    //TODO
+    return true;
+}
+
+bool setupSetDateTime_PC98(struct setuptime_t *dt) {
+    //TODO
+    return true;
+}
+
+bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
+    IO_Write(0x70,0xB);
+    IO_Write(0x71,0x02); // BCD
+
+    IO_Write(0x70,0);
+    dt->second = BCD2BIN(IO_Read(0x71));
+    IO_Write(0x70,2);
+    dt->minute = BCD2BIN(IO_Read(0x71));
+    IO_Write(0x70,4);
+    dt->hour = BCD2BIN(IO_Read(0x71));
+
+    IO_Write(0x70,7);
+    dt->day = BCD2BIN(IO_Read(0x71));
+    IO_Write(0x70,8);
+    dt->month = BCD2BIN(IO_Read(0x71));
+    IO_Write(0x70,9);
+    dt->year = BCD2BIN(IO_Read(0x71))%100;
+    IO_Write(0x70,0x32);
+    dt->year += BCD2BIN(IO_Read(0x71))*100;
+
+    return true;
+}
+
+bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
+    IO_Write(0x70,0xB);
+    IO_Write(0x71,0x02); // BCD
+
+    IO_Write(0x70,0);
+    IO_Write(0x71,BIN2BCD(dt->second));
+    IO_Write(0x70,2);
+    IO_Write(0x71,BIN2BCD(dt->minute));
+    IO_Write(0x70,4);
+    IO_Write(0x71,BIN2BCD(dt->hour));
+
+    IO_Write(0x70,7);
+    IO_Write(0x71,BIN2BCD(dt->day));
+    IO_Write(0x70,8);
+    IO_Write(0x71,BIN2BCD(dt->month));
+    IO_Write(0x70,9);
+    IO_Write(0x71,BIN2BCD(dt->year%100));
+    IO_Write(0x70,0x32);
+    IO_Write(0x71,BIN2BCD(dt->year/100));
+
+    mem_writed(BIOS_TIMER,(uint32_t)((double)dt->hour*3600+dt->minute*60+dt->second)*18.206481481);
+
+    return true;
+}
+
 const char *GetCPUType();
 void updateDateTime(int x, int y, int pos)
 {
@@ -8190,44 +8264,41 @@ void updateDateTime(int x, int y, int pos)
     char str[50];
     time_t curtime = time(NULL);
     struct tm *loctime = localtime (&curtime);
-    Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
-    unsigned int sec=(uint8_t)((Bitu)time % 60);
-    time/=60;
-    unsigned int min=(uint8_t)((Bitu)time % 60);
-    time/=60;
-    unsigned int hour=(uint8_t)((Bitu)time % 24);
+    struct setuptime_t cmos_dt;
+    if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+    //Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
     int val=0;
     unsigned int bo;
     Bitu edx=0, pdx=0x0500u;
     for (int i=1; i<7; i++) {
         switch (i) {
             case 1:
-                val = machine==MCH_PC98?loctime->tm_year+1900:dos.date.year;
+                val = machine==MCH_PC98?loctime->tm_year+1900:cmos_dt.year;
                 reg_edx = 0x0326u;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 2:
-                val = machine==MCH_PC98?loctime->tm_mon+1:dos.date.month;
+                val = machine==MCH_PC98?loctime->tm_mon+1:cmos_dt.month;
                 reg_edx = 0x032bu;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 3:
-                val = machine==MCH_PC98?loctime->tm_mday:dos.date.day;
+                val = machine==MCH_PC98?loctime->tm_mday:cmos_dt.day;
                 reg_edx = 0x032eu;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 4:
-                val = machine==MCH_PC98?loctime->tm_hour:hour;
+                val = machine==MCH_PC98?loctime->tm_hour:cmos_dt.hour;
                 reg_edx = 0x0426u;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 5:
-                val = machine==MCH_PC98?loctime->tm_min:min;
+                val = machine==MCH_PC98?loctime->tm_min:cmos_dt.minute;
                 reg_edx = 0x0429u;
                 if (i==pos) pdx = reg_edx;
                 break;
             case 6:
-                val = machine==MCH_PC98?loctime->tm_sec:sec;
+                val = machine==MCH_PC98?loctime->tm_sec:cmos_dt.second;
                 reg_edx = 0x042cu;
                 if (i==pos) pdx = reg_edx;
                 break;
@@ -8238,14 +8309,17 @@ void updateDateTime(int x, int y, int pos)
             if (machine == MCH_PC98) {
                 bo = (((unsigned int)(edx/0x100) * 80u) + (unsigned int)(edx%0x100) + j) * 2u;
                 mem_writew(0xA0000+bo,str[j]);
-                mem_writeb(0xA2000+bo,0xE1);
+                mem_writeb(0xA2000+bo,i==pos?0xE5:0xE1);
             } else {
                 reg_eax = 0x0200u;
                 reg_ebx = 0x0000u;
                 reg_edx = edx + j;
                 CALLBACK_RunRealInt(0x10);
                 reg_eax = 0x0900u+str[j];
-                reg_ebx = i==pos?0x001fu:0x001eu;
+                if (machine == MCH_MDA || machine == MCH_HERC)
+                    reg_ebx = i==pos?0x0009u:0x001eu;/* MDA/Herc doesn't have color, use underline attribute */
+                else
+                    reg_ebx = i==pos?0x001fu:0x001eu;
                 reg_ecx = 0x0001u;
                 CALLBACK_RunRealInt(0x10);
             }
@@ -8341,9 +8415,8 @@ void showBIOSSetup(const char* card, int x, int y) {
     BIOS_Int10RightJustifiedPrint(x,y,p);
     BIOS_Int10RightJustifiedPrint(x,y,"\x0c9\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0bb", true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "0000-00-00"), true);
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "00:00:00"), true);
-    updateDateTime(x,y,0);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "....-..-.."), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "..:..:.."), true);
 #if defined(OSFREE)
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Installed OS:", "(none)"), true);
 #else
@@ -8526,11 +8599,6 @@ static Bitu pc98_default_stop_handler(void) {
 
     return CBRET_NONE;
 }
-
-static unsigned char BCD2BIN(unsigned char x) {
-	return ((x >> 4) * 10) + (x & 0xF);
-}
-
 
 /* NTS: Remember the 8259 is non-sentient, and the term "slave" is used in a computer programming context */
 static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
@@ -11718,6 +11786,15 @@ startfunction:
         }
 #endif
 
+        if (IS_PC98_ARCH) {
+            setupGetDateTime = setupGetDateTime_PC98;
+            setupSetDateTime = setupSetDateTime_PC98;
+        }
+        else {
+            setupGetDateTime = setupGetDateTime_CMOS;
+            setupSetDateTime = setupSetDateTime_CMOS;
+        }
+
         // TODO: Then at this screen, we can print messages demonstrating the detection of
         //       IDE devices, floppy, ISA PnP initialization, anything of importance.
         //       I also envision adding the ability to hit DEL or F2 at this point to enter
@@ -11768,6 +11845,7 @@ startfunction:
                         bios_setup = true;
                         VGA_FreeBiosLogo();
                         showBIOSSetup(card, x, y);
+                        updateDateTime(x,y,pos);
                         break;
                     }
                 }
@@ -11787,6 +11865,7 @@ startfunction:
                     bios_setup = true;
                     VGA_FreeBiosLogo();
                     showBIOSSetup(card, x, y);
+                    updateDateTime(x,y,pos);
                     break;
                 }
 
@@ -11795,7 +11874,7 @@ startfunction:
             }
 
             lasttick=GetTicks();
-            bool askexit = false, mod = false;
+            bool askexit = false, mod = false, clockmod = false;
             while (bios_setup) {
                 if (GetTicks()-lasttick>=500 && !askexit) {
                     lasttick=GetTicks();
@@ -11866,42 +11945,30 @@ startfunction:
                         else if (pos==2||pos==3) pos=6;
                         lasttick-=500;
                     } else if (machine != MCH_PC98 && reg_al == 43) { // '+' key
-                        if (pos==1&&dos.date.year<2100) dos.date.year++;
-                        else if (pos==2) dos.date.month=dos.date.month<12?dos.date.month+1:1;
-                        else if (pos==3) dos.date.day=dos.date.day<(dos.date.month==1||dos.date.month==3||dos.date.month==5||dos.date.month==7||dos.date.month==8||dos.date.month==10||dos.date.month==12?31:(dos.date.month==2?29:30))?dos.date.day+1:1;
-                        else if (pos==4||pos==5||pos==6) {
-                            Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
-                            unsigned int sec=(uint8_t)((Bitu)time % 60);
-                            time/=60;
-                            unsigned int min=(uint8_t)((Bitu)time % 60);
-                            time/=60;
-                            unsigned int hour=(uint8_t)((Bitu)time % 24);
-                            if (pos==4) hour=hour<23?hour+1:0;
-                            else if (pos==5) min=min<59?min+1:0;
-                            else if (pos==6) sec=sec<59?sec+1:0;
-                            mem_writed(BIOS_TIMER,(uint32_t)((double)hour*3600+min*60+sec)*18.206481481);
-                        }
-                        mod = true;
+                        struct setuptime_t cmos_dt;
+                        if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+                        if (pos==1&&dos.date.year<2100) cmos_dt.year++;
+                        else if (pos==2) cmos_dt.month=cmos_dt.month<12?cmos_dt.month+1:1;
+                        else if (pos==3) cmos_dt.day=cmos_dt.day<(cmos_dt.month==1||cmos_dt.month==3||cmos_dt.month==5||cmos_dt.month==7||cmos_dt.month==8||cmos_dt.month==10||cmos_dt.month==12?31:(cmos_dt.month==2?29:30))?cmos_dt.day+1:1;
+                        else if (pos==4) cmos_dt.hour=cmos_dt.hour<23?cmos_dt.hour+1:0;
+                        else if (pos==5) cmos_dt.minute=cmos_dt.minute<59?cmos_dt.minute+1:0;
+                        else if (pos==6) cmos_dt.second=cmos_dt.second<59?cmos_dt.second+1:0;
+                        clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
+                        if (setupSetDateTime) setupSetDateTime(&cmos_dt);
                         lasttick-=500;
                     } else if (machine != MCH_PC98 && reg_al == 45) { // '-' key
-                        if (pos==1&&dos.date.year>1900) dos.date.year--;
-                        else if (pos==2) dos.date.month=dos.date.month>1?dos.date.month-1:12;
-                        else if (pos==3) dos.date.day=dos.date.day>1?dos.date.day-1:(dos.date.month==1||dos.date.month==3||dos.date.month==5||dos.date.month==7||dos.date.month==8||dos.date.month==10||dos.date.month==12?31:(dos.date.month==2?29:30));
-                        else if (pos==4||pos==5||pos==6) {
-                            Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
-                            unsigned int sec=(uint8_t)(time % 60);
-                            time/=60;
-                            unsigned int min=(uint8_t)(time % 60);
-                            time/=60;
-                            unsigned int hour=(uint8_t)(time % 24);
-                            if (pos==4) hour=hour>0?hour-1:23;
-                            else if (pos==5) min=min>0?min-1:59;
-                            else if (pos==6) sec=sec>0?sec-1:59;
-                            mem_writed(BIOS_TIMER,(uint32_t)((double)hour*3600+min*60+sec)*18.206481481);
-                        }
-                        mod = true;
+                        struct setuptime_t cmos_dt;
+                        if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+                        if (pos==1&&cmos_dt.year>1900) cmos_dt.year--;
+                        else if (pos==2) cmos_dt.month=cmos_dt.month>1?cmos_dt.month-1:12;
+                        else if (pos==3) cmos_dt.day=cmos_dt.day>1?cmos_dt.day-1:(cmos_dt.month==1||cmos_dt.month==3||cmos_dt.month==5||cmos_dt.month==7||cmos_dt.month==8||cmos_dt.month==10||cmos_dt.month==12?31:(cmos_dt.month==2?29:30));
+                        else if (pos==4) cmos_dt.hour=cmos_dt.hour>0?cmos_dt.hour-1:23;
+                        else if (pos==5) cmos_dt.minute=cmos_dt.minute>0?cmos_dt.minute-1:59;
+                        else if (pos==6) cmos_dt.second=cmos_dt.second>0?cmos_dt.second-1:59;
+                        clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
+                        if (setupSetDateTime) setupSetDateTime(&cmos_dt);
                         lasttick-=500;
                     } else if (reg_al == 27/*ESC*/) {
                         if (machine == MCH_PC98) {
@@ -13026,6 +13093,9 @@ void ROMBIOS_Init() {
 		    }
 	    }
     }
+
+    if (IS_PC98_ARCH)
+        bios_type_string = "PC-98 COMPATIBLE BIOS for DOSBox-X";
 
     write_ID_version_string();
 
