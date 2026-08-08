@@ -8338,7 +8338,7 @@ void updateDateTime(int x, int y, int pos)
                 reg_edx = 0x0F26u + j;
                 CALLBACK_RunRealInt(0x10);
                 reg_eax = 0x0900u+str[j];
-                reg_ebx = 0x001eu;
+                reg_ebx = 0x001fu;
                 reg_ecx = 0x0001u;
                 CALLBACK_RunRealInt(0x10);
             }
@@ -8355,7 +8355,7 @@ void updateDateTime(int x, int y, int pos)
                 reg_edx = 0x1026u + j;
                 CALLBACK_RunRealInt(0x10);
                 reg_eax = 0x0900u+str[j];
-                reg_ebx = 0x001eu;
+                reg_ebx = 0x001fu;
                 reg_ecx = 0x0001u;
                 CALLBACK_RunRealInt(0x10);
             }
@@ -8398,7 +8398,7 @@ void showBIOSSetup(const char* card, int x, int y) {
         reg_edx = 0x0000u;
         CALLBACK_RunRealInt(0x10);
         reg_eax = 0x0600u;
-        reg_ebx = 0x1e00u;
+        reg_ebx = 0x1F00u;
         reg_ecx = 0x0000u;
         reg_edx =
 #if defined(USE_TTF)
