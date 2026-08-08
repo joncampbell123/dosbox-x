@@ -247,7 +247,7 @@ unsigned int APM_BIOS_minor_version = 2;    // what version to emulate e.g to em
 static bool apm_realmode_connected = false;
 
 /* default bios type/version/date strings */
-const char* const bios_type_string = "IBM COMPATIBLE BIOS for DOSBox-X";
+const char*       bios_type_string = "IBM COMPATIBLE BIOS for DOSBox-X";
 const char* const bios_version_string = "DOSBox-X BIOS v1.0";
 const char* const bios_date_string = "01/01/92";
 
@@ -13090,6 +13090,9 @@ void ROMBIOS_Init() {
 		    }
 	    }
     }
+
+    if (IS_PC98_ARCH)
+        bios_type_string = "PC-98 COMPATIBLE BIOS for DOSBox-X";
 
     write_ID_version_string();
 
