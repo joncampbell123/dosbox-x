@@ -8317,9 +8317,9 @@ void updateDateTime(int x, int y, int pos)
                 CALLBACK_RunRealInt(0x10);
                 reg_eax = 0x0900u+str[j];
                 if (machine == MCH_MDA || machine == MCH_HERC)
-                    reg_ebx = i==pos?0x0009u:0x001eu;/* MDA/Herc doesn't have color, use underline attribute */
+                    reg_ebx = i==pos?0x0070u:0x000Fu;/* MDA/Herc doesn't have color, use underline attribute */
                 else
-                    reg_ebx = i==pos?0x001fu:0x001eu;
+                    reg_ebx = i==pos?0x004Fu:0x001Eu;/* Award Software 1990s BIOS vibes [https://www.youtube.com/watch?v=Ejcz5L5uS70] */
                 reg_ecx = 0x0001u;
                 CALLBACK_RunRealInt(0x10);
             }
