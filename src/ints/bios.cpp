@@ -8198,6 +8198,16 @@ static unsigned char BIN2BCD(unsigned char x) {
 bool (*setupGetDateTime)(struct setuptime_t *dt) = NULL;
 bool (*setupSetDateTime)(struct setuptime_t *dt) = NULL;
 
+bool setupGetDateTime_PC98(struct setuptime_t *dt) {
+    //TODO
+    return true;
+}
+
+bool setupSetDateTime_PC98(struct setuptime_t *dt) {
+    //TODO
+    return true;
+}
+
 bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
     IO_Write(0x70,0xB);
     IO_Write(0x71,0x02); // BCD
@@ -11774,8 +11784,14 @@ startfunction:
         }
 #endif
 
-	setupGetDateTime = setupGetDateTime_CMOS;
-	setupSetDateTime = setupSetDateTime_CMOS;
+        if (IS_PC98_ARCH) {
+            setupGetDateTime = setupGetDateTime_PC98;
+            setupSetDateTime = setupSetDateTime_PC98;
+        }
+        else {
+            setupGetDateTime = setupGetDateTime_CMOS;
+            setupSetDateTime = setupSetDateTime_CMOS;
+        }
 
         // TODO: Then at this screen, we can print messages demonstrating the detection of
         //       IDE devices, floppy, ISA PnP initialization, anything of importance.
