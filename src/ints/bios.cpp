@@ -8412,9 +8412,8 @@ void showBIOSSetup(const char* card, int x, int y) {
     BIOS_Int10RightJustifiedPrint(x,y,p);
     BIOS_Int10RightJustifiedPrint(x,y,"\x0c9\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0cd\x0bb", true);
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("", ""), true);
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "0000-00-00"), true);
-    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "00:00:00"), true);
-    updateDateTime(x,y,0);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System date:", "....-..-.."), true);
+    BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("System time:", "..:..:.."), true);
 #if defined(OSFREE)
     BIOS_Int10RightJustifiedPrint(x,y,getSetupLine("Installed OS:", "(none)"), true);
 #else
@@ -11843,6 +11842,7 @@ startfunction:
                         bios_setup = true;
                         VGA_FreeBiosLogo();
                         showBIOSSetup(card, x, y);
+                        updateDateTime(x,y,pos);
                         break;
                     }
                 }
@@ -11862,6 +11862,7 @@ startfunction:
                     bios_setup = true;
                     VGA_FreeBiosLogo();
                     showBIOSSetup(card, x, y);
+                    updateDateTime(x,y,pos);
                     break;
                 }
 
