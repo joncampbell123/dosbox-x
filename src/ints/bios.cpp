@@ -8229,15 +8229,16 @@ static void waitBusyCMOS(void) {
     //       But in this emulation updates are instanstaneous as far as the guest is concerned.
 }
 
+static unsigned char cmos_regb = 0; /* well since CMOS emulation makes register B write-only */
+
 void CMOS_EnableUIE(bool enable) {
     uint8_t pB;
 
-    IO_Write(0x70,0xB);
-    pB = IO_Read(0x71);
+    pB = cmos_regb;
 
     if ((pB & 0x10) != (enable ? 0x10 : 0x00)) {
         IO_Write(0x70,0xB);
-        IO_Write(0x71,(pB & ~0x10) | (enable ? 0x10 : 0x00));
+        IO_Write(0x71,cmos_regb=((pB & ~0x10) | (enable ? 0x10 : 0x00)));
     }
 }
 
@@ -8246,11 +8247,10 @@ bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
 
     waitBusyCMOS();
 
-    IO_Write(0x70,0xB);
-    pB = IO_Read(0x71);
+    pB = cmos_regb;
 
     IO_Write(0x70,0xB);
-    IO_Write(0x71,0x82); // BCD | LOCK
+    IO_Write(0x71,pB | 0x80); // LOCK
 
     IO_Write(0x70,0);
     dt->second = BCD2BIN(IO_Read(0x71));
@@ -8279,11 +8279,10 @@ bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
 
     waitBusyCMOS();
 
-    IO_Write(0x70,0xB);
-    pB = IO_Read(0x71);
+    pB = cmos_regb;
 
     IO_Write(0x70,0xB);
-    IO_Write(0x71,0x82); // BCD | LOCK
+    IO_Write(0x71,pB | 0x80); // LOCK
 
     IO_Write(0x70,0);
     IO_Write(0x71,BIN2BCD(dt->second));
@@ -8314,11 +8313,10 @@ bool setupStopClock_CMOS(bool stop) {
 
     waitBusyCMOS();
 
-    IO_Write(0x70,0xB);
-    pB = IO_Read(0x71);
+    pB = cmos_regb;
 
     IO_Write(0x70,0xB);
-    IO_Write(0x71,(pB & 0x7F) | (stop ? 0x80 : 0x00));
+    IO_Write(0x71,cmos_regb=((pB & 0x7F) | (stop ? 0x80 : 0x00)));
 
     return true;
 }
@@ -11926,6 +11924,7 @@ startfunction:
                         if (IS_PC98_ARCH) {
                         }
                         else {
+                            cmos_regb=0x02;//BCD
                             CMOS_EnableUIE(true);
                         }
                         bios_setup = true;
@@ -11954,6 +11953,7 @@ startfunction:
                     if (IS_PC98_ARCH) {
                     }
                     else {
+                        cmos_regb=0x02;//BCD
                         CMOS_EnableUIE(true);
                     }
                     bios_setup = true;
@@ -12083,7 +12083,7 @@ startfunction:
                         clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
-                        startclockat = GetTicks() + 200; /* delay unlock so that the user can modify seconds without jumps in the value */
+                        startclockat = GetTicks() + 500; /* delay unlock so that the user can modify seconds without jumps in the value */
                         redrawclock = true;
                     } else if (machine != MCH_PC98 && reg_al == 45) { // '-' key
                         if (setupStopClock) setupStopClock(true);
@@ -12096,7 +12096,7 @@ startfunction:
                         clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
-                        startclockat = GetTicks() + 200; /* delay unlock so that the user can modify seconds without jumps in the value */
+                        startclockat = GetTicks() + 500; /* delay unlock so that the user can modify seconds without jumps in the value */
                         redrawclock = true;
                     } else if (reg_al == 27/*ESC*/) {
                         if (machine == MCH_PC98) {
