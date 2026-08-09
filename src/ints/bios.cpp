@@ -8214,8 +8214,23 @@ bool setupStopClock_PC98(bool stop) {
     return true;
 }
 
+static void waitBusyCMOS(void) {
+    uint8_t pB;
+
+    do {
+        IO_Write(0x70,0xA);
+        pB = IO_Read(0x71);
+        if (pB & 0x8)
+            CPU_Cycles=0; /* the clock is not likely to be busy in the next 1ms from now */
+        else
+            break;
+    } while (1);
+}
+
 bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
     uint8_t pB;
+
+    waitBusyCMOS();
 
     IO_Write(0x70,0xB);
     pB = IO_Read(0x71);
@@ -8247,6 +8262,8 @@ bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
 
 bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
     uint8_t pB;
+
+    waitBusyCMOS();
 
     IO_Write(0x70,0xB);
     pB = IO_Read(0x71);
@@ -8280,6 +8297,8 @@ bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
 
 bool setupStopClock_CMOS(bool stop) {
     uint8_t pB;
+
+    waitBusyCMOS();
 
     IO_Write(0x70,0xB);
     pB = IO_Read(0x71);
