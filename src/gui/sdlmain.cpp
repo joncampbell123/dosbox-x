@@ -8590,30 +8590,41 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* -- Parse configuration files */
         /* First search the current directory */
         control->ParseConfigFile("dosbox-x.conf");
-        if(!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
+        if(control->configfiles.size()) configfile = "dosbox-x.conf";
+        else {
+            control->ParseConfigFile("dosbox.conf");
+            if(control->configfiles.size()) configfile = "dosbox.conf";
+        }
 
         /* If conf file not found, search the directory where the executable exists */
         if (!control->configfiles.size() && exepath.size()) {
             control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
-            if (!control->configfiles.size()) control->ParseConfigFile((exepath + "dosbox.conf").c_str());
+            if(control->configfiles.size()) configfile = exepath + "dosbox-x.conf";
+            else {
+                control->ParseConfigFile((exepath + "dosbox.conf").c_str());
+                if(control->configfiles.size()) configfile = exepath + "dosbox.conf";
+            }
         }
 
         /* If conf file still not found, search the userconfig */
         config_combined = config_path + "dosbox-x.conf";
-        if (!control->configfiles.size() && stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode))
+        if(!control->configfiles.size() && stat(config_combined.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
             control->ParseConfigFile(config_combined.c_str());
-
+            if(control->configfiles.size()) configfile = config_combined;
+        }
         config_combined = config_path + "dosbox.conf";
-        if(!control->configfiles.size() && stat(config_combined.c_str(), &st) == 0 && S_ISREG(st.st_mode))
+        if(!control->configfiles.size() && stat(config_combined.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
             control->ParseConfigFile(config_combined.c_str());
+            if(control->configfiles.size()) configfile = config_combined;
+        }
 
         config_combined = config_path + tmp;
-        if (!control->configfiles.size() && stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode))
+        if (!control->configfiles.size() && stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode)) {
             control->ParseConfigFile(config_combined.c_str());
+            if(control->configfiles.size()) configfile = config_combined;
+        }
 
-        if(control->configfiles.size()) {
-            configfile = control->configfiles.front();
-
+        if(configfile.size()) {
             Section_prop* section = static_cast<Section_prop*>(control->GetSection("dosbox"));
             workdiropt = section->Get_string("working directory option");
             workdirdef = section->Get_path("working directory default")->realpath;
@@ -8679,13 +8690,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (control->opt_promptfolder < 0 && getcwd(cwd.get(), PATH_MAX) != nullptr)
             control->opt_promptfolder = (!isatty(0) || !strcmp(cwd.get(), "/")) ? 1 : 0;
 #endif
-        if (control->opt_promptfolder == 1 && workdiropt == "default" && workdirdef.size()) {
+        if (control->opt_promptfolder == 1 && (workdiropt == "default" || workdiropt == "autoprompt") && workdirdef.size()) {
             control->opt_promptfolder = 0;
             if(chdir(workdirdef.c_str()) == -1) {
                 LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to change directories for workdiropt 'default'.");
+                control->opt_promptfolder = 1;
             }
-            control->opt_used_defaultdir = true;
-            usecfgdir = false;
+            else {
+                control->opt_used_defaultdir = true;
+                usecfgdir = false;
+            }
         }
 
         /* When we're run from the Finder, the current working directory is often / (the
