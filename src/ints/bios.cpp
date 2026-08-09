@@ -8225,17 +8225,8 @@ bool setupPollClockUpdated_PC98(void) {
 }
 
 static void waitBusyCMOS(void) {
-    uint8_t pB;
-
-    do {
-        IO_Write(0x70,0xA);
-        pB = IO_Read(0x71);
-        if (pB & 0x80)
-            CPU_Cycles -= CPU_CycleMax / 100; /* the clock is not likely to be busy in the next 1ms from now */
-        else
-            break;
-        CALLBACK_Idle();
-    } while (1);
+    //FIXME: You're supposed to wait while bit 7 status register A is set indicating the clock is busy.
+    //       But in this emulation updates are instanstaneous as far as the guest is concerned.
 }
 
 void CMOS_EnableUIE(bool enable) {
@@ -8351,7 +8342,6 @@ void updateDateTime(int x, int y, int pos)
     char str[50];
     time_t curtime = time(NULL);
     struct tm *loctime = localtime (&curtime);
-    if (setupGetDateTime) setupGetDateTime(&cmos_dt);
     //Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
     int val=0;
     unsigned int bo;
@@ -11933,15 +11923,18 @@ startfunction:
                     }
 
                     if ((machine != MCH_PC98 && reg_ax == 0x5300) || (machine == MCH_PC98 && reg_ax == 0x3900)) { // user hit Del
-                        bios_setup = true;
-                        VGA_FreeBiosLogo();
-                        showBIOSSetup(card, x, y);
-                        updateDateTime(x,y,pos);
                         if (IS_PC98_ARCH) {
                         }
                         else {
                             CMOS_EnableUIE(true);
                         }
+                        bios_setup = true;
+                        VGA_FreeBiosLogo();
+                        showBIOSSetup(card, x, y);
+                        lasttick=GetTicks();
+                        lasttickdelay=1001;//give the clock update interrupt a chance
+                        if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+                        updateDateTime(x,y,pos);
                         break;
                     }
                 }
@@ -11958,15 +11951,18 @@ startfunction:
                 }
 
                 if ((machine != MCH_PC98 && reg_ax == 0x5300/*DEL*/) || (machine == MCH_PC98 && reg_ax == 0x3900)) {
-                    bios_setup = true;
-                    VGA_FreeBiosLogo();
-                    showBIOSSetup(card, x, y);
-                    updateDateTime(x,y,pos);
                     if (IS_PC98_ARCH) {
                     }
                     else {
                         CMOS_EnableUIE(true);
                     }
+                    bios_setup = true;
+                    VGA_FreeBiosLogo();
+                    showBIOSSetup(card, x, y);
+                    lasttick=GetTicks();
+                    lasttickdelay=1001;//give the clock update interrupt a chance
+                    if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+                    updateDateTime(x,y,pos);
                     break;
                 }
 
@@ -11982,17 +11978,20 @@ startfunction:
                 if (clockUpdate) {
                     clockUpdate = false;
                     lasttick=GetTicks();
+                    if (setupGetDateTime) setupGetDateTime(&cmos_dt);
                     updateDateTime(x,y,pos);
                     lasttickdelay=1100;
                     redrawclock = false;
                 }
                 else if (GetTicks()-lasttick>=lasttickdelay && !askexit) {
                     lasttick=GetTicks();
+                    if (setupGetDateTime) setupGetDateTime(&cmos_dt);
                     updateDateTime(x,y,pos);
                     lasttickdelay=500;
                     redrawclock = false;
                 }
                 else if (redrawclock) {
+                    /* do not re-read the clock, just update the display */
                     updateDateTime(x,y,pos);
                     redrawclock = false;
                 }
