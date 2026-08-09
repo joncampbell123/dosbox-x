@@ -149,7 +149,16 @@ Int13Status imageDiskTeledisk::Read_Sector(uint32_t head,uint32_t cylinder,uint3
 	if (ent->getSectorSize() != req_sector_size)
 		return Int13Status::SectorNotFound;
 
+	/* Copy the data regardless, mirroring real hardware which still transfers the
+	 * (possibly corrupt) sector before reporting the flagged condition. */
 	memcpy(data, ent->data.data(), req_sector_size);
+
+	/* Surface sector flags recorded in the .td0 image as INT 13h status. */
+	if (ent->flags & td0_sector_flags::crc_error)
+		return Int13Status::DataError;             /* recorded with a CRC error */
+	if (ent->flags & td0_sector_flags::deleted_mark)
+		return Int13Status::AddressMarkNotFound;   /* deleted-data address mark */
+
 	return Int13Status::NoError;
 }
 
