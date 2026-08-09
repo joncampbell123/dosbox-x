@@ -2782,10 +2782,14 @@ static Bitu ISAPNP_Handler_RM(void) {
     return ISAPNP_Handler(false);
 }
 
+static uint8_t INT70_RTC_last_status = 0;
+static uint8_t INT70_RTC_last_status_pending = 0;
+
 static Bitu INT70_Handler(void) {
     /* Acknowledge irq with cmos */
     IO_Write(0x70,0xc);
-    IO_Read(0x71);
+    INT70_RTC_last_status = IO_Read(0x71);
+    INT70_RTC_last_status_pending |= INT70_RTC_last_status;
     if (mem_readb(BIOS_WAIT_FLAG_ACTIVE)) {
         uint32_t count=mem_readd(BIOS_WAIT_FLAG_COUNT);
         if (count>997) {
@@ -8198,6 +8202,7 @@ static unsigned char BIN2BCD(unsigned char x) {
 bool (*setupGetDateTime)(struct setuptime_t *dt) = NULL;
 bool (*setupSetDateTime)(struct setuptime_t *dt) = NULL;
 bool (*setupStopClock)(bool stop) = NULL;
+bool (*setupPollClockUpdated)(void) = NULL;
 
 bool setupGetDateTime_PC98(struct setuptime_t *dt) {
     //TODO
@@ -8214,17 +8219,35 @@ bool setupStopClock_PC98(bool stop) {
     return true;
 }
 
+bool setupPollClockUpdated_PC98(void) {
+    //TODO
+    return false;
+}
+
 static void waitBusyCMOS(void) {
     uint8_t pB;
 
     do {
         IO_Write(0x70,0xA);
         pB = IO_Read(0x71);
-        if (pB & 0x8)
-            CPU_Cycles=0; /* the clock is not likely to be busy in the next 1ms from now */
+        if (pB & 0x80)
+            CPU_Cycles -= CPU_CycleMax / 100; /* the clock is not likely to be busy in the next 1ms from now */
         else
             break;
+        CALLBACK_Idle();
     } while (1);
+}
+
+void CMOS_EnableUIE(bool enable) {
+    uint8_t pB;
+
+    IO_Write(0x70,0xB);
+    pB = IO_Read(0x71);
+
+    if ((pB & 0x10) != (enable ? 0x10 : 0x00)) {
+        IO_Write(0x70,0xB);
+        IO_Write(0x71,(pB & ~0x10) | (enable ? 0x10 : 0x00));
+    }
 }
 
 bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
@@ -8307,6 +8330,15 @@ bool setupStopClock_CMOS(bool stop) {
     IO_Write(0x71,(pB & 0x7F) | (stop ? 0x80 : 0x00));
 
     return true;
+}
+
+bool setupPollClockUpdated_CMOS(void) {
+    /* Actually, The INT 70 handler (IRQ8) reads status for us. All we have to do is just enable the update interrupt */
+    if (INT70_RTC_last_status_pending & 0x10/*UIE*/) {
+        INT70_RTC_last_status_pending &= ~0x10;
+        return true;
+    }
+    return false;
 }
 
 static struct setuptime_t cmos_dt;
@@ -11841,14 +11873,16 @@ startfunction:
 #endif
 
         if (IS_PC98_ARCH) {
+            setupStopClock = setupStopClock_PC98;
             setupGetDateTime = setupGetDateTime_PC98;
             setupSetDateTime = setupSetDateTime_PC98;
-            setupStopClock   = setupStopClock_PC98;
+            setupPollClockUpdated = setupPollClockUpdated_PC98;
         }
         else {
+            setupStopClock = setupStopClock_CMOS;
             setupGetDateTime = setupGetDateTime_CMOS;
             setupSetDateTime = setupSetDateTime_CMOS;
-            setupStopClock   = setupStopClock_CMOS;
+            setupPollClockUpdated = setupPollClockUpdated_CMOS;
         }
 
         // TODO: Then at this screen, we can print messages demonstrating the detection of
@@ -11869,7 +11903,7 @@ startfunction:
             bool wait_for_user = false, bios_setup = false;
             int pos=1;
             uint32_t startclockat=0;
-            uint32_t lasttick=GetTicks();
+            uint32_t lasttick=GetTicks(),lasttickdelay=500;
             while ((GetTicks()-lasttick)<1000) {
                 if (machine == MCH_PC98) {
                     reg_eax = 0x0100;   // sense key
@@ -11903,6 +11937,11 @@ startfunction:
                         VGA_FreeBiosLogo();
                         showBIOSSetup(card, x, y);
                         updateDateTime(x,y,pos);
+                        if (IS_PC98_ARCH) {
+                        }
+                        else {
+                            CMOS_EnableUIE(true);
+                        }
                         break;
                     }
                 }
@@ -11923,6 +11962,11 @@ startfunction:
                     VGA_FreeBiosLogo();
                     showBIOSSetup(card, x, y);
                     updateDateTime(x,y,pos);
+                    if (IS_PC98_ARCH) {
+                    }
+                    else {
+                        CMOS_EnableUIE(true);
+                    }
                     break;
                 }
 
@@ -11931,12 +11975,28 @@ startfunction:
             }
 
             lasttick=GetTicks();
-            bool askexit = false, mod = false, clockmod = false;
+            bool askexit = false, mod = false, clockmod = false, clockUpdate = false,redrawclock = false;
             while (bios_setup) {
-                if (GetTicks()-lasttick>=500 && !askexit) {
+                if (setupPollClockUpdated_CMOS()) clockUpdate = true;
+
+                if (clockUpdate) {
+                    clockUpdate = false;
                     lasttick=GetTicks();
                     updateDateTime(x,y,pos);
+                    lasttickdelay=1100;
+                    redrawclock = false;
                 }
+                else if (GetTicks()-lasttick>=lasttickdelay && !askexit) {
+                    lasttick=GetTicks();
+                    updateDateTime(x,y,pos);
+                    lasttickdelay=500;
+                    redrawclock = false;
+                }
+                else if (redrawclock) {
+                    updateDateTime(x,y,pos);
+                    redrawclock = false;
+                }
+
                 if (startclockat) {
                     if (GetTicks() >= startclockat) {
                         if (setupStopClock) setupStopClock(false);
@@ -11965,6 +12025,11 @@ startfunction:
                     if (askexit) {
                         if (reg_al == 'Y' || reg_al == 'y') {
                             if (setupStopClock) setupStopClock(false);
+                            if (IS_PC98_ARCH) {
+                            }
+                            else {
+                                CMOS_EnableUIE(false);
+                            }
                             if (machine == MCH_PC98) {
                                 reg_eax = 0x1600;
                                 reg_edx = 0xE100;
@@ -11996,18 +12061,18 @@ startfunction:
                     }
                     if ((machine != MCH_PC98 && reg_ax == 0x4B00) || (machine == MCH_PC98 && reg_ax == 0x3B00)) { // Left key
                         pos=pos>1?pos-1:6;
-                        lasttick-=500;
+                        if (pos <= 6) redrawclock = true;
                     } else if ((machine != MCH_PC98 && reg_ax == 0x4D00) || (machine == MCH_PC98 && reg_ax == 0x3C00)) { // Right key
                         pos=pos<6?pos+1:1;
-                        lasttick-=500;
+                        if (pos <= 6) redrawclock = true;
                     } else if (((machine != MCH_PC98 && reg_ax == 0x4800) || (machine == MCH_PC98 && reg_ax == 0x3A00)) && pos>3) { // Up key
                         if (pos==4||pos==5) pos=1;
                         else if (pos==6) pos=2;
-                        lasttick-=500;
+                        if (pos <= 6) redrawclock = true;
                     } else if (((machine != MCH_PC98 && reg_ax == 0x5000) || (machine == MCH_PC98 && reg_ax == 0x3D00)) && pos<4) { // Down key
                         if (pos==1) pos=4;
                         else if (pos==2||pos==3) pos=6;
-                        lasttick-=500;
+                        if (pos <= 6) redrawclock = true;
                     } else if (machine != MCH_PC98 && reg_al == 43) { // '+' key
                         if (setupStopClock) setupStopClock(true);
                         if (pos==1&&dos.date.year<2100) cmos_dt.year++;
@@ -12020,7 +12085,7 @@ startfunction:
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
                         startclockat = GetTicks() + 200; /* delay unlock so that the user can modify seconds without jumps in the value */
-                        lasttick-=500;
+                        redrawclock = true;
                     } else if (machine != MCH_PC98 && reg_al == 45) { // '-' key
                         if (setupStopClock) setupStopClock(true);
                         if (pos==1&&cmos_dt.year>1900) cmos_dt.year--;
@@ -12033,7 +12098,7 @@ startfunction:
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
                         startclockat = GetTicks() + 200; /* delay unlock so that the user can modify seconds without jumps in the value */
-                        lasttick-=500;
+                        redrawclock = true;
                     } else if (reg_al == 27/*ESC*/) {
                         if (machine == MCH_PC98) {
                             const char *exitstr = "Exit[Y/N]?";
