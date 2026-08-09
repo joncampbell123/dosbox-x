@@ -1,5 +1,8 @@
 NEXT VERSION:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
+  - Fixed prompting of working directory option (maron2000)
+  - Relax sanity check of floppy image considering specially formatted disks
+    (maron2000)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
@@ -28,6 +31,7 @@ NEXT VERSION:
     instead of leaking them. (cimarronm)
   - INT 33h: In PC-98 mode, do not maintain a hide/show display count to match
     real mouse driver behavior (nanshiki)
+  - Fixed crash on loading lang files (macOS) (maron2000)
 
 2026.07.02
   - Prepare for release. This time release OSFREE first so that the normal
