@@ -1308,9 +1308,9 @@ uint8_t device_nextdrive = 0;
 #endif
 
 #if !defined(OSFREE)
-uint8_t imageDiskMSDOSBlockDevice::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+Int13Status imageDiskMSDOSBlockDevice::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 	const unsigned int max_sects = (bdevbuf_sz - 16) / sector_size;
-	if (max_sects == 0) return 0x05;
+	if (max_sects == 0) return Int13Status::SectorNotFound;
 
 	const uint16_t count = 1;
 	const uint32_t sector = sectnum;
@@ -1334,7 +1334,7 @@ uint8_t imageDiskMSDOSBlockDevice::Read_AbsoluteSector(uint32_t sectnum, void * 
 		req.start_sector32 = sector;
 	}
 	else {
-		if (sector > 0xFFFFu) return 0x05;
+		if (sector > 0xFFFFu) return Int13Status::SectorNotFound;
 		req.start_sector = sector;
 		req.start_sector32 = 0;
 	}
@@ -1359,18 +1359,18 @@ uint8_t imageDiskMSDOSBlockDevice::Read_AbsoluteSector(uint32_t sectnum, void * 
 	LOG(LOG_MISC,LOG_DEBUG)("--result status=%x count=%u",
 		req.hdr.status,req.count);
 
-	if (req.hdr.status & 0x8000) return 0x05;/*error*/
-	if (req.count == 0) return 0x05;/*error*/
+	if (req.hdr.status & 0x8000) return Int13Status::ControllerFailure;/*error*/
+	if (req.count == 0) return Int13Status::ControllerFailure;/*error*/
 
 	MEM_BlockRead(PhysMake(bdevbuf_seg+1,0),p_data,sector_size);
-        return 0;
+        return Int13Status::NoError;
 }
 #endif
 
 #if !defined(OSFREE)
-uint8_t imageDiskMSDOSBlockDevice::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
+Int13Status imageDiskMSDOSBlockDevice::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
 	const unsigned int max_sects = (bdevbuf_sz - 16) / sector_size;
-	if (max_sects == 0) return 0x05;
+	if (max_sects == 0) return Int13Status::SectorNotFound;
 
 	const uint16_t count = 1;
 	const uint32_t sector = sectnum;
@@ -1394,7 +1394,7 @@ uint8_t imageDiskMSDOSBlockDevice::Write_AbsoluteSector(uint32_t sectnum, const 
 		req.start_sector32 = sector;
 	}
 	else {
-		if (sector > 0xFFFFu) return 0x05;
+		if (sector > 0xFFFFu) return Int13Status::SectorNotFound;
 		req.start_sector = sector;
 		req.start_sector32 = 0;
 	}
@@ -1420,10 +1420,10 @@ uint8_t imageDiskMSDOSBlockDevice::Write_AbsoluteSector(uint32_t sectnum, const 
 	LOG(LOG_MISC,LOG_DEBUG)("--result status=%x count=%u",
 		req.hdr.status,req.count);
 
-	if (req.hdr.status & 0x8000) return 0x05;/*error*/
-	if (req.count == 0) return 0x05;/*error*/
+	if (req.hdr.status & 0x8000) return Int13Status::ControllerFailure;/*error*/
+	if (req.count == 0) return Int13Status::ControllerFailure;/*error*/
 
-        return 0;
+        return Int13Status::NoError;
 }
 #endif
 

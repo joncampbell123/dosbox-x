@@ -4920,7 +4920,7 @@ void PC98_BIOS_SCSI_CALL(void) {
 
                     for (i=0;i < ssize;i++) PC98_BIOS_FLOPPY_BUFFER[i] = mem_readb(memaddr+i);
 
-                    if (floppy->Write_AbsoluteSector(sector,PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                    if (floppy->Write_AbsoluteSector(sector,PC98_BIOS_FLOPPY_BUFFER) != Int13Status::NoError) {
                         reg_ah = 0xD0;
                         CALLBACK_SCF(true);
                         break;
@@ -4957,7 +4957,7 @@ void PC98_BIOS_SCSI_CALL(void) {
 //                    LOG_MSG(" ... memaddr=0x%lx ssize=0x%x sector=0x%lx",
 //                        (unsigned long)memaddr,(unsigned int)ssize,(unsigned long)sector);
 
-                    if (floppy->Read_AbsoluteSector(sector,PC98_BIOS_FLOPPY_BUFFER) == 0) {
+                    if (floppy->Read_AbsoluteSector(sector,PC98_BIOS_FLOPPY_BUFFER) == Int13Status::NoError) {
                         for (i=0;i < ssize;i++) mem_writeb(memaddr+i,PC98_BIOS_FLOPPY_BUFFER[i]);
                     }
                     else {
@@ -5200,10 +5200,10 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             while (size > 0) {
                 accsize = size > unitsize ? unitsize : size;
 
-                if (floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize) != 0) {
+                Int13Status status = floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize);
+                if (status != Int13Status::NoError) {
                     CALLBACK_SCF(true);
-                    reg_ah = 0x00;
-                    /* TODO? Error code? */
+                    reg_ah = (uint8_t)status;
                     return;
                 }
 
@@ -5282,10 +5282,10 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             while (size > 0) {
                 accsize = size > unitsize ? unitsize : size;
 
-                if (floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize) != 0) {
+                Int13Status status = floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize);
+                if (status != Int13Status::NoError) {
                     CALLBACK_SCF(true);
-                    reg_ah = 0x00;
-                    /* TODO? Error code? */
+                    reg_ah = (uint8_t)status;
                     return;
                 }
 
@@ -5389,10 +5389,10 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 for (unsigned int i=0;i < accsize;i++)
                     PC98_BIOS_FLOPPY_BUFFER[i] = mem_readb(memaddr+i);
 
-                if (floppy->Write_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize) != 0) {
+                Int13Status status = floppy->Write_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize);
+                if (status != Int13Status::NoError) {
                     CALLBACK_SCF(true);
-                    reg_ah = 0x00;
-                    /* TODO? Error code? */
+                    reg_ah = (uint8_t)status;
                     return;
                 }
 
