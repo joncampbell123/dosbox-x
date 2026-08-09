@@ -8635,6 +8635,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
             control->ClearExtraData();
             control->configfiles.clear();
+            // LOG_MSG("working directory default=%s, working directory option=%s", workdiropt.c_str(), workdirdef.c_str());
         }
     }
 
@@ -8688,7 +8689,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #else
         std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
         if (control->opt_promptfolder < 0 && getcwd(cwd.get(), PATH_MAX) != nullptr)
-            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd.get(), "/")) ? 1 : 0;
+            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd.get(), "/") || (workdiropt == "default" || workdiropt == "autoprompt")) ? 1 : 0;
 #endif
         if (control->opt_promptfolder == 1 && (workdiropt == "default" || workdiropt == "autoprompt") && workdirdef.size()) {
             control->opt_promptfolder = 0;
