@@ -158,6 +158,9 @@ Note that both of these options will only show image mounts, not folder mounts.<
 <li>
 <p>NEC PC-98 diskette images (typically ending in <code>.fdd</code>, <code>.fdi</code>, <code>.nfd</code> or <code>.d88</code>)</p>
 </li>
+<li>
+<p>Teledisk (<code>.td0</code> or <code>.TD0</code>)</p>
+</li>
 </ul>
 </div>
 <div class="admonitionblock note">
@@ -169,6 +172,19 @@ Note that both of these options will only show image mounts, not folder mounts.<
 <td class="content">
 The <code>.IMG</code> extension is also used for harddisk images, so there can be some confusion.
 Files with the extension <code>.IMA</code> are automatically treated as diskette images.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Teledisk diskette images are supported in read-only mode.
+Only normal <code>TD</code> compression is supported; advanced <code>td</code> compression is not supported.
 </td>
 </tr>
 </table>
@@ -202,9 +218,6 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 </li>
 <li>
 <p><a href="https://github.com/joncampbell123/dosbox-x/issues/4288">KryoFlux Stream files</a> (<code>.RAW</code>)</p>
-</li>
-<li>
-<p>Teledisk (<code>.TD0</code>)</p>
 </li>
 <li>
 <p>Transcopy (<code>.TC</code>)</p>
