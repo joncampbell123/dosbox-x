@@ -2782,10 +2782,14 @@ static Bitu ISAPNP_Handler_RM(void) {
     return ISAPNP_Handler(false);
 }
 
+static uint8_t INT70_RTC_last_status = 0;
+static uint8_t INT70_RTC_last_status_pending = 0;
+
 static Bitu INT70_Handler(void) {
     /* Acknowledge irq with cmos */
     IO_Write(0x70,0xc);
-    IO_Read(0x71);
+    INT70_RTC_last_status = IO_Read(0x71);
+    INT70_RTC_last_status_pending |= INT70_RTC_last_status;
     if (mem_readb(BIOS_WAIT_FLAG_ACTIVE)) {
         uint32_t count=mem_readd(BIOS_WAIT_FLAG_COUNT);
         if (count>997) {
@@ -8197,6 +8201,8 @@ static unsigned char BIN2BCD(unsigned char x) {
 
 bool (*setupGetDateTime)(struct setuptime_t *dt) = NULL;
 bool (*setupSetDateTime)(struct setuptime_t *dt) = NULL;
+bool (*setupStopClock)(bool stop) = NULL;
+bool (*setupPollClockUpdated)(void) = NULL;
 
 bool setupGetDateTime_PC98(struct setuptime_t *dt) {
     //TODO
@@ -8208,9 +8214,43 @@ bool setupSetDateTime_PC98(struct setuptime_t *dt) {
     return true;
 }
 
+bool setupStopClock_PC98(bool stop) {
+    //TODO
+    return true;
+}
+
+bool setupPollClockUpdated_PC98(void) {
+    //TODO
+    return false;
+}
+
+static void waitBusyCMOS(void) {
+    //FIXME: You're supposed to wait while bit 7 status register A is set indicating the clock is busy.
+    //       But in this emulation updates are instanstaneous as far as the guest is concerned.
+}
+
+static unsigned char cmos_regb = 0; /* well since CMOS emulation makes register B write-only */
+
+void CMOS_EnableUIE(bool enable) {
+    uint8_t pB;
+
+    pB = cmos_regb;
+
+    if ((pB & 0x10) != (enable ? 0x10 : 0x00)) {
+        IO_Write(0x70,0xB);
+        IO_Write(0x71,cmos_regb=((pB & ~0x10) | (enable ? 0x10 : 0x00)));
+    }
+}
+
 bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
+    uint8_t pB;
+
+    waitBusyCMOS();
+
+    pB = cmos_regb;
+
     IO_Write(0x70,0xB);
-    IO_Write(0x71,0x02); // BCD
+    IO_Write(0x71,pB | 0x80); // LOCK
 
     IO_Write(0x70,0);
     dt->second = BCD2BIN(IO_Read(0x71));
@@ -8228,12 +8268,21 @@ bool setupGetDateTime_CMOS(struct setuptime_t *dt) {
     IO_Write(0x70,0x32);
     dt->year += BCD2BIN(IO_Read(0x71))*100;
 
+    IO_Write(0x70,0xB);
+    IO_Write(0x71,pB);
+
     return true;
 }
 
 bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
+    uint8_t pB;
+
+    waitBusyCMOS();
+
+    pB = cmos_regb;
+
     IO_Write(0x70,0xB);
-    IO_Write(0x71,0x02); // BCD
+    IO_Write(0x71,pB | 0x80); // LOCK
 
     IO_Write(0x70,0);
     IO_Write(0x71,BIN2BCD(dt->second));
@@ -8251,10 +8300,37 @@ bool setupSetDateTime_CMOS(struct setuptime_t *dt) {
     IO_Write(0x70,0x32);
     IO_Write(0x71,BIN2BCD(dt->year/100));
 
+    IO_Write(0x70,0xB);
+    IO_Write(0x71,pB);
+
     mem_writed(BIOS_TIMER,(uint32_t)((double)dt->hour*3600+dt->minute*60+dt->second)*18.206481481);
 
     return true;
 }
+
+bool setupStopClock_CMOS(bool stop) {
+    uint8_t pB;
+
+    waitBusyCMOS();
+
+    pB = cmos_regb;
+
+    IO_Write(0x70,0xB);
+    IO_Write(0x71,cmos_regb=((pB & 0x7F) | (stop ? 0x80 : 0x00)));
+
+    return true;
+}
+
+bool setupPollClockUpdated_CMOS(void) {
+    /* Actually, The INT 70 handler (IRQ8) reads status for us. All we have to do is just enable the update interrupt */
+    if (INT70_RTC_last_status_pending & 0x10/*UIE*/) {
+        INT70_RTC_last_status_pending &= ~0x10;
+        return true;
+    }
+    return false;
+}
+
+static struct setuptime_t cmos_dt;
 
 const char *GetCPUType();
 void updateDateTime(int x, int y, int pos)
@@ -8264,8 +8340,6 @@ void updateDateTime(int x, int y, int pos)
     char str[50];
     time_t curtime = time(NULL);
     struct tm *loctime = localtime (&curtime);
-    struct setuptime_t cmos_dt;
-    if (setupGetDateTime) setupGetDateTime(&cmos_dt);
     //Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
     int val=0;
     unsigned int bo;
@@ -8317,9 +8391,9 @@ void updateDateTime(int x, int y, int pos)
                 CALLBACK_RunRealInt(0x10);
                 reg_eax = 0x0900u+str[j];
                 if (machine == MCH_MDA || machine == MCH_HERC)
-                    reg_ebx = i==pos?0x0009u:0x001eu;/* MDA/Herc doesn't have color, use underline attribute */
+                    reg_ebx = i==pos?0x0070u:0x000Fu;/* MDA/Herc doesn't have color, use underline attribute */
                 else
-                    reg_ebx = i==pos?0x001fu:0x001eu;
+                    reg_ebx = i==pos?0x004Fu:0x001Eu;/* Award Software 1990s BIOS vibes [https://www.youtube.com/watch?v=Ejcz5L5uS70] */
                 reg_ecx = 0x0001u;
                 CALLBACK_RunRealInt(0x10);
             }
@@ -8338,7 +8412,7 @@ void updateDateTime(int x, int y, int pos)
                 reg_edx = 0x0F26u + j;
                 CALLBACK_RunRealInt(0x10);
                 reg_eax = 0x0900u+str[j];
-                reg_ebx = 0x001eu;
+                reg_ebx = 0x001fu;
                 reg_ecx = 0x0001u;
                 CALLBACK_RunRealInt(0x10);
             }
@@ -8355,7 +8429,7 @@ void updateDateTime(int x, int y, int pos)
                 reg_edx = 0x1026u + j;
                 CALLBACK_RunRealInt(0x10);
                 reg_eax = 0x0900u+str[j];
-                reg_ebx = 0x001eu;
+                reg_ebx = 0x001fu;
                 reg_ecx = 0x0001u;
                 CALLBACK_RunRealInt(0x10);
             }
@@ -8398,7 +8472,7 @@ void showBIOSSetup(const char* card, int x, int y) {
         reg_edx = 0x0000u;
         CALLBACK_RunRealInt(0x10);
         reg_eax = 0x0600u;
-        reg_ebx = 0x1e00u;
+        reg_ebx = 0x1F00u;
         reg_ecx = 0x0000u;
         reg_edx =
 #if defined(USE_TTF)
@@ -11787,12 +11861,16 @@ startfunction:
 #endif
 
         if (IS_PC98_ARCH) {
+            setupStopClock = setupStopClock_PC98;
             setupGetDateTime = setupGetDateTime_PC98;
             setupSetDateTime = setupSetDateTime_PC98;
+            setupPollClockUpdated = setupPollClockUpdated_PC98;
         }
         else {
+            setupStopClock = setupStopClock_CMOS;
             setupGetDateTime = setupGetDateTime_CMOS;
             setupSetDateTime = setupSetDateTime_CMOS;
+            setupPollClockUpdated = setupPollClockUpdated_CMOS;
         }
 
         // TODO: Then at this screen, we can print messages demonstrating the detection of
@@ -11812,7 +11890,8 @@ startfunction:
         if (!fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
             bool wait_for_user = false, bios_setup = false;
             int pos=1;
-            uint32_t lasttick=GetTicks();
+            uint32_t startclockat=0;
+            uint32_t lasttick=GetTicks(),lasttickdelay=500;
             while ((GetTicks()-lasttick)<1000) {
                 if (machine == MCH_PC98) {
                     reg_eax = 0x0100;   // sense key
@@ -11842,9 +11921,18 @@ startfunction:
                     }
 
                     if ((machine != MCH_PC98 && reg_ax == 0x5300) || (machine == MCH_PC98 && reg_ax == 0x3900)) { // user hit Del
+                        if (IS_PC98_ARCH) {
+                        }
+                        else {
+                            cmos_regb=0x02;//BCD
+                            CMOS_EnableUIE(true);
+                        }
                         bios_setup = true;
                         VGA_FreeBiosLogo();
                         showBIOSSetup(card, x, y);
+                        lasttick=GetTicks();
+                        lasttickdelay=1001;//give the clock update interrupt a chance
+                        if (setupGetDateTime) setupGetDateTime(&cmos_dt);
                         updateDateTime(x,y,pos);
                         break;
                     }
@@ -11862,9 +11950,18 @@ startfunction:
                 }
 
                 if ((machine != MCH_PC98 && reg_ax == 0x5300/*DEL*/) || (machine == MCH_PC98 && reg_ax == 0x3900)) {
+                    if (IS_PC98_ARCH) {
+                    }
+                    else {
+                        cmos_regb=0x02;//BCD
+                        CMOS_EnableUIE(true);
+                    }
                     bios_setup = true;
                     VGA_FreeBiosLogo();
                     showBIOSSetup(card, x, y);
+                    lasttick=GetTicks();
+                    lasttickdelay=1001;//give the clock update interrupt a chance
+                    if (setupGetDateTime) setupGetDateTime(&cmos_dt);
                     updateDateTime(x,y,pos);
                     break;
                 }
@@ -11874,11 +11971,36 @@ startfunction:
             }
 
             lasttick=GetTicks();
-            bool askexit = false, mod = false, clockmod = false;
+            bool askexit = false, mod = false, clockmod = false, clockUpdate = false,redrawclock = false;
             while (bios_setup) {
-                if (GetTicks()-lasttick>=500 && !askexit) {
+                if (setupPollClockUpdated_CMOS()) clockUpdate = true;
+
+                if (clockUpdate) {
+                    clockUpdate = false;
                     lasttick=GetTicks();
+                    if (setupGetDateTime) setupGetDateTime(&cmos_dt);
                     updateDateTime(x,y,pos);
+                    lasttickdelay=1100;
+                    redrawclock = false;
+                }
+                else if (GetTicks()-lasttick>=lasttickdelay && !askexit) {
+                    lasttick=GetTicks();
+                    if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+                    updateDateTime(x,y,pos);
+                    lasttickdelay=500;
+                    redrawclock = false;
+                }
+                else if (redrawclock) {
+                    /* do not re-read the clock, just update the display */
+                    updateDateTime(x,y,pos);
+                    redrawclock = false;
+                }
+
+                if (startclockat) {
+                    if (GetTicks() >= startclockat) {
+                        if (setupStopClock) setupStopClock(false);
+                        startclockat = 0;
+                    }
                 }
                 if (machine == MCH_PC98) {
                     reg_eax = 0x0100;   // sense key
@@ -11901,6 +12023,12 @@ startfunction:
                     }
                     if (askexit) {
                         if (reg_al == 'Y' || reg_al == 'y') {
+                            if (setupStopClock) setupStopClock(false);
+                            if (IS_PC98_ARCH) {
+                            }
+                            else {
+                                CMOS_EnableUIE(false);
+                            }
                             if (machine == MCH_PC98) {
                                 reg_eax = 0x1600;
                                 reg_edx = 0xE100;
@@ -11932,21 +12060,20 @@ startfunction:
                     }
                     if ((machine != MCH_PC98 && reg_ax == 0x4B00) || (machine == MCH_PC98 && reg_ax == 0x3B00)) { // Left key
                         pos=pos>1?pos-1:6;
-                        lasttick-=500;
+                        if (pos <= 6) redrawclock = true;
                     } else if ((machine != MCH_PC98 && reg_ax == 0x4D00) || (machine == MCH_PC98 && reg_ax == 0x3C00)) { // Right key
                         pos=pos<6?pos+1:1;
-                        lasttick-=500;
+                        if (pos <= 6) redrawclock = true;
                     } else if (((machine != MCH_PC98 && reg_ax == 0x4800) || (machine == MCH_PC98 && reg_ax == 0x3A00)) && pos>3) { // Up key
                         if (pos==4||pos==5) pos=1;
                         else if (pos==6) pos=2;
-                        lasttick-=500;
+                        if (pos <= 6) redrawclock = true;
                     } else if (((machine != MCH_PC98 && reg_ax == 0x5000) || (machine == MCH_PC98 && reg_ax == 0x3D00)) && pos<4) { // Down key
                         if (pos==1) pos=4;
                         else if (pos==2||pos==3) pos=6;
-                        lasttick-=500;
+                        if (pos <= 6) redrawclock = true;
                     } else if (machine != MCH_PC98 && reg_al == 43) { // '+' key
-                        struct setuptime_t cmos_dt;
-                        if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+                        if (setupStopClock) setupStopClock(true);
                         if (pos==1&&dos.date.year<2100) cmos_dt.year++;
                         else if (pos==2) cmos_dt.month=cmos_dt.month<12?cmos_dt.month+1:1;
                         else if (pos==3) cmos_dt.day=cmos_dt.day<(cmos_dt.month==1||cmos_dt.month==3||cmos_dt.month==5||cmos_dt.month==7||cmos_dt.month==8||cmos_dt.month==10||cmos_dt.month==12?31:(cmos_dt.month==2?29:30))?cmos_dt.day+1:1;
@@ -11956,10 +12083,15 @@ startfunction:
                         clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
-                        lasttick-=500;
+                        if (pos == 6) { /* seconds */
+                            startclockat = GetTicks() + 500; /* delay unlock so that the user can modify seconds without jumps in the value */
+                        }
+                        else {
+                            if (setupStopClock) setupStopClock(false);
+                        }
+                        redrawclock = true;
                     } else if (machine != MCH_PC98 && reg_al == 45) { // '-' key
-                        struct setuptime_t cmos_dt;
-                        if (setupGetDateTime) setupGetDateTime(&cmos_dt);
+                        if (setupStopClock) setupStopClock(true);
                         if (pos==1&&cmos_dt.year>1900) cmos_dt.year--;
                         else if (pos==2) cmos_dt.month=cmos_dt.month>1?cmos_dt.month-1:12;
                         else if (pos==3) cmos_dt.day=cmos_dt.day>1?cmos_dt.day-1:(cmos_dt.month==1||cmos_dt.month==3||cmos_dt.month==5||cmos_dt.month==7||cmos_dt.month==8||cmos_dt.month==10||cmos_dt.month==12?31:(cmos_dt.month==2?29:30));
@@ -11969,7 +12101,13 @@ startfunction:
                         clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
-                        lasttick-=500;
+                        if (pos == 6) { /* seconds */
+                            startclockat = GetTicks() + 500; /* delay unlock so that the user can modify seconds without jumps in the value */
+                        }
+                        else {
+                            if (setupStopClock) setupStopClock(false);
+                        }
+                        redrawclock = true;
                     } else if (reg_al == 27/*ESC*/) {
                         if (machine == MCH_PC98) {
                             const char *exitstr = "Exit[Y/N]?";
