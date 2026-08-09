@@ -12083,7 +12083,12 @@ startfunction:
                         clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
-                        startclockat = GetTicks() + 500; /* delay unlock so that the user can modify seconds without jumps in the value */
+                        if (pos == 6) { /* seconds */
+                            startclockat = GetTicks() + 500; /* delay unlock so that the user can modify seconds without jumps in the value */
+                        }
+                        else {
+                            if (setupStopClock) setupStopClock(false);
+                        }
                         redrawclock = true;
                     } else if (machine != MCH_PC98 && reg_al == 45) { // '-' key
                         if (setupStopClock) setupStopClock(true);
@@ -12096,7 +12101,12 @@ startfunction:
                         clockmod = true;//changing the clock time/date is no reason to reboot the system on exit
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
                         if (setupSetDateTime) setupSetDateTime(&cmos_dt);
-                        startclockat = GetTicks() + 500; /* delay unlock so that the user can modify seconds without jumps in the value */
+                        if (pos == 6) { /* seconds */
+                            startclockat = GetTicks() + 500; /* delay unlock so that the user can modify seconds without jumps in the value */
+                        }
+                        else {
+                            if (setupStopClock) setupStopClock(false);
+                        }
                         redrawclock = true;
                     } else if (reg_al == 27/*ESC*/) {
                         if (machine == MCH_PC98) {
