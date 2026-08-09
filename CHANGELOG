@@ -3,6 +3,12 @@ NEXT VERSION:
   - Fixed prompting of working directory option (maron2000)
   - Relax sanity check of floppy image considering specially formatted disks
     (maron2000)
+  - Disk sector I/O now returns typed INT 13h status codes instead of a
+    catch-all error, and the INT 13h handler propagates the specific code
+    (seek failed, controller failure, CRC/data error, etc.) into register
+    AH on read/write errors rather than collapsing every failure to 0x04.
+    Also fixes AH being left stale on write errors and a VFD fill-sector
+    write that reported failure after succeeding. (cimarronm)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
