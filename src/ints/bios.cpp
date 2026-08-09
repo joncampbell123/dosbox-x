@@ -8309,6 +8309,8 @@ bool setupStopClock_CMOS(bool stop) {
     return true;
 }
 
+static struct setuptime_t cmos_dt;
+
 const char *GetCPUType();
 void updateDateTime(int x, int y, int pos)
 {
@@ -8317,7 +8319,6 @@ void updateDateTime(int x, int y, int pos)
     char str[50];
     time_t curtime = time(NULL);
     struct tm *loctime = localtime (&curtime);
-    struct setuptime_t cmos_dt;
     if (setupGetDateTime) setupGetDateTime(&cmos_dt);
     //Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
     int val=0;
@@ -12008,9 +12009,7 @@ startfunction:
                         else if (pos==2||pos==3) pos=6;
                         lasttick-=500;
                     } else if (machine != MCH_PC98 && reg_al == 43) { // '+' key
-                        struct setuptime_t cmos_dt;
                         if (setupStopClock) setupStopClock(true);
-                        if (setupGetDateTime) setupGetDateTime(&cmos_dt);
                         if (pos==1&&dos.date.year<2100) cmos_dt.year++;
                         else if (pos==2) cmos_dt.month=cmos_dt.month<12?cmos_dt.month+1:1;
                         else if (pos==3) cmos_dt.day=cmos_dt.day<(cmos_dt.month==1||cmos_dt.month==3||cmos_dt.month==5||cmos_dt.month==7||cmos_dt.month==8||cmos_dt.month==10||cmos_dt.month==12?31:(cmos_dt.month==2?29:30))?cmos_dt.day+1:1;
@@ -12023,9 +12022,7 @@ startfunction:
                         startclockat = GetTicks() + 200; /* delay unlock so that the user can modify seconds without jumps in the value */
                         lasttick-=500;
                     } else if (machine != MCH_PC98 && reg_al == 45) { // '-' key
-                        struct setuptime_t cmos_dt;
                         if (setupStopClock) setupStopClock(true);
-                        if (setupGetDateTime) setupGetDateTime(&cmos_dt);
                         if (pos==1&&cmos_dt.year>1900) cmos_dt.year--;
                         else if (pos==2) cmos_dt.month=cmos_dt.month>1?cmos_dt.month-1:12;
                         else if (pos==3) cmos_dt.day=cmos_dt.day>1?cmos_dt.day-1:(cmos_dt.month==1||cmos_dt.month==3||cmos_dt.month==5||cmos_dt.month==7||cmos_dt.month==8||cmos_dt.month==10||cmos_dt.month==12?31:(cmos_dt.month==2?29:30));
