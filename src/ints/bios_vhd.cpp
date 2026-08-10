@@ -397,19 +397,19 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 	return ERROR_OPENING; //return ERROR_OPENING if the file does not exist, cannot be accessed, etc
 }
 
-uint8_t imageDiskVHD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+Int13Status imageDiskVHD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
     if(vhdType == VHD_TYPE_FIXED) return fixedDisk->Read_AbsoluteSector(sectnum, data);
 	uint32_t blockNumber = sectnum / sectorsPerBlock;
 	uint32_t sectorOffset = sectnum % sectorsPerBlock;
-	if (!loadBlock(blockNumber)) return 0x05; //can't load block
+	if (!loadBlock(blockNumber)) return Int13Status::ControllerFailure; //can't load block
 	if (currentBlockAllocated) {
 		uint32_t byteNum = sectorOffset / 8;
 		uint32_t bitNum = sectorOffset % 8;
 		bool hasData = currentBlockDirtyMap[byteNum] & (1 << (7 - bitNum));
 		if (hasData) {
-			if (fseeko64(diskimg, (((uint64_t)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
-			if (fread(data, sizeof(uint8_t), 512, diskimg) != 512) return 0x05; //can't read
-			return 0;
+			if (fseeko64(diskimg, (((uint64_t)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512ull), SEEK_SET)) return Int13Status::SeekFailed; //can't seek
+			if (fread(data, sizeof(uint8_t), 512, diskimg) != 512) return Int13Status::ControllerFailure; //can't read
+			return Int13Status::NoError;
 		}
 	}
     //NOTE: should come first?
@@ -418,7 +418,7 @@ uint8_t imageDiskVHD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 	}
 	else {
 		memset(data, 0, 512);
-		return 0;
+		return Int13Status::NoError;
 	}
 }
 
@@ -433,46 +433,46 @@ bool imageDiskVHD::is_block_allocated(uint32_t blockNumber) {
     return false;
 }
 
-uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
+Int13Status imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
     if(vhdType == VHD_TYPE_FIXED) return fixedDisk->Write_AbsoluteSector(sectnum, data);
 	uint32_t blockNumber = sectnum / sectorsPerBlock;
 	uint32_t sectorOffset = sectnum % sectorsPerBlock;
     if(!loadBlock(blockNumber)) {
-        return 0x05; //can't load block
+        return Int13Status::ControllerFailure; //can't load block
     }
 	if (!currentBlockAllocated) {
         //an unallocated block is kept virtual until zeroed
         if(is_zeroed_sector(data)) {
-            if(vhdType != VHD_TYPE_DIFFERENCING) return 0;
-            if(!is_block_allocated(blockNumber)) return 0;
+            if(vhdType != VHD_TYPE_DIFFERENCING) return Int13Status::NoError;
+            if(!is_block_allocated(blockNumber)) return Int13Status::NoError;
         }
 
         if(!copiedFooter) {
             //write backup of footer at start of file (should already exist, but we never checked to be sure it is readable or matches the footer we used)
             if(fseeko64(diskimg, 0, SEEK_SET)) {
-                return 0x05;
+                return Int13Status::SeekFailed;
             }
             if(fwrite(&originalFooter, sizeof(uint8_t), 512, diskimg) != 512) {
-                return 0x05;
+                return Int13Status::ControllerFailure;
             }
 			copiedFooter = true;
 			//flush the data to disk after writing the backup footer
             if(fflush(diskimg)) {
-                return 0x05;
+                return Int13Status::ControllerFailure;
             }
 		}
 		//calculate new location of footer, and round up to nearest 512 byte increment "just in case"
         uint64_t newFooterPosition = (((footerPosition + blockMapSize + dynamicHeader.blockSize) + 511ull) / 512ull) * 512ull;
 		//attempt to extend the length appropriately first (on some operating systems this will extend the file)
         if(fseeko64(diskimg, newFooterPosition + 512, SEEK_SET)) {
-                return 0x05;
+                return Int13Status::SeekFailed;
         }
 		//now write the footer
         if(fseeko64(diskimg, newFooterPosition, SEEK_SET)) {
-            return 0x05;
+            return Int13Status::SeekFailed;
         }
         if(fwrite(&originalFooter, sizeof(uint8_t), 512, diskimg) != 512) {
-            return 0x05;
+            return Int13Status::ControllerFailure;
         }
 		//save the new block location and new footer position
 		uint32_t newBlockSectorNumber = (uint32_t)((footerPosition + 511ul) / 512ul);
@@ -481,28 +481,28 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) 
 		for (uint32_t i = 0; i < blockMapSize; i++) currentBlockDirtyMap[i] = 0;
 		//write the dirty map
         if(fseeko64(diskimg, (newBlockSectorNumber * 512ull), SEEK_SET)) {
-            return 0x05;
+            return Int13Status::SeekFailed;
         }
         if(fwrite(currentBlockDirtyMap, sizeof(uint8_t), blockMapSize, diskimg) != blockMapSize) {
-            return 0x05;
+            return Int13Status::ControllerFailure;
         }
 		//flush the data to disk after expanding the file, before allocating the block in the BAT
         if(fflush(diskimg)) {
-            return 0x05;
+            return Int13Status::ControllerFailure;
         }
 		//update the BAT
         if(fseeko64(diskimg, (dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) {
-            return 0x05;
+            return Int13Status::SeekFailed;
         }
 		uint32_t newBlockSectorNumberBE = SDL_SwapBE32(newBlockSectorNumber);
         if(fwrite(&newBlockSectorNumberBE, sizeof(uint8_t), 4, diskimg) != 4) {
-            return 0x05;
+            return Int13Status::ControllerFailure;
         }
 		currentBlockAllocated = true;
 		currentBlockSectorOffset = newBlockSectorNumber;
 		//flush the data to disk after allocating a block
         if(fflush(diskimg)) {
-            return 0x05;
+            return Int13Status::ControllerFailure;
         }
 	}
 	//current block has now been allocated
@@ -513,21 +513,21 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) 
 	if (!hasData) {
 		currentBlockDirtyMap[byteNum] |= 1 << (7 - bitNum);
         if(fseeko64(diskimg, (currentBlockSectorOffset * 512ull), SEEK_SET)) {
-            return 0x05; //can't seek
+            return Int13Status::SeekFailed; //can't seek
         }
         if(fwrite(currentBlockDirtyMap, sizeof(uint8_t), blockMapSize, diskimg) != blockMapSize) {
-            return 0x05;
+            return Int13Status::ControllerFailure;
         }
 	}
 	//current sector has now been marked as dirty
 	//write the sector
     if(fseeko64(diskimg, (((uint64_t)currentBlockSectorOffset + (uint64_t)blockMapSectors + (uint64_t)sectorOffset) * 512ull), SEEK_SET)) {
-        return 0x05; //can't seek
+        return Int13Status::SeekFailed; //can't seek
     }
     if(fwrite(data, sizeof(uint8_t), 512, diskimg) != 512) {
-        return 0x05; //can't write
+        return Int13Status::ControllerFailure; //can't write
     }
-	return 0;
+	return Int13Status::NoError;
 }
 
 imageDiskVHD::VHDTypes imageDiskVHD::GetVHDType(void) const {
@@ -1025,7 +1025,7 @@ bool imageDiskVHD::MergeSnapshot(uint32_t* totalSectorsMerged, uint32_t* totalBl
                 //LOG_MSG("Merging sector %d", absoluteSector);
                 (*totalSectorsMerged)++;
                 blockUpdated = true;
-                if(parentDisk->Write_AbsoluteSector(absoluteSector, data)) {
+                if(parentDisk->Write_AbsoluteSector(absoluteSector, data) != Int13Status::NoError) {
                     LOG_MSG("Couldn't update parent's sector %d, merging aborted!", absoluteSector);
                     return false;
                 }

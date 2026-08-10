@@ -136,36 +136,45 @@ const imageDiskTeledisk::td0entry *imageDiskTeledisk::findSector(uint8_t head,ui
 	return best;
 }
 
-uint8_t imageDiskTeledisk::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
+Int13Status imageDiskTeledisk::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
 	const td0entry *ent;
 
 	ent = findSector((uint8_t)head, (uint8_t)cylinder, (uint8_t)sector, req_sector_size);
 
 	if (ent == NULL || !ent->has_data)
-		return 0x05;
+		return Int13Status::SectorNotFound;
 
 	if (req_sector_size == 0) req_sector_size = ent->getSectorSize();
 
 	if (ent->getSectorSize() != req_sector_size)
-		return 0x05;
+		return Int13Status::SectorNotFound;
 
+	/* Copy the data regardless, mirroring real hardware which still transfers the
+	 * (possibly corrupt) sector before reporting the flagged condition. */
 	memcpy(data, ent->data.data(), req_sector_size);
-	return 0;
+
+	/* Surface sector flags recorded in the .td0 image as INT 13h status. */
+	if (ent->flags & td0_sector_flags::crc_error)
+		return Int13Status::DataError;             /* recorded with a CRC error */
+	if (ent->flags & td0_sector_flags::deleted_mark)
+		return Int13Status::AddressMarkNotFound;   /* deleted-data address mark */
+
+	return Int13Status::NoError;
 }
 
-uint8_t imageDiskTeledisk::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size) {
+Int13Status imageDiskTeledisk::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size) {
 	(void)head; (void)cylinder; (void)sector; (void)data; (void)req_sector_size;
 	/* TeleDisk images are read-only: writes cannot be re-encoded back into the .td0 archive,
 	 * so accepting a write in memory only would silently discard the guest's data on remount.
 	 * Report the disk as write-protected instead. */
-	return 0x03;
+	return Int13Status::WriteProtected;
 }
 
-uint8_t imageDiskTeledisk::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+Int13Status imageDiskTeledisk::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 	unsigned int c,h,s;
 
 	if (sectors == 0 || heads == 0)
-		return 0x05;
+		return Int13Status::SectorNotFound;
 
 	s = (sectnum % sectors) + 1;
 	h = (sectnum / sectors) % heads;
@@ -173,11 +182,11 @@ uint8_t imageDiskTeledisk::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 	return Read_Sector(h,c,s,data);
 }
 
-uint8_t imageDiskTeledisk::Write_AbsoluteSector(uint32_t sectnum,const void *data) {
+Int13Status imageDiskTeledisk::Write_AbsoluteSector(uint32_t sectnum,const void *data) {
 	unsigned int c,h,s;
 
 	if (sectors == 0 || heads == 0)
-		return 0x05;
+		return Int13Status::SectorNotFound;
 
 	s = (sectnum % sectors) + 1;
 	h = (sectnum / sectors) % heads;

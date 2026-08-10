@@ -99,10 +99,10 @@ public:
 		rle                    = 2
 	};
 
-	uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0) override;
-	uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0) override;
-	uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) override;
-	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data) override;
+	Int13Status Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0) override;
+	Int13Status Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0) override;
+	Int13Status Read_AbsoluteSector(uint32_t sectnum, void * data) override;
+	Int13Status Write_AbsoluteSector(uint32_t sectnum, const void * data) override;
 
 	imageDiskTeledisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
 	virtual ~imageDiskTeledisk();

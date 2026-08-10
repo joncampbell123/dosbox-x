@@ -247,13 +247,13 @@ void imageDiskMemory::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t 
 }
 
 // Read a specific sector from the ramdrive
-uint8_t imageDiskMemory::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+Int13Status imageDiskMemory::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 	//sector number is a zero-based offset
 
 	//verify the sector number is valid
 	if (sectnum >= total_sectors) {
 		LOG_MSG("Invalid sector number in Read_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
-		return 0x05;
+		return Int13Status::SectorNotFound;
 	}
 
 	//calculate which chunk the sector is located within, and which sector within the chunk
@@ -271,7 +271,7 @@ uint8_t imageDiskMemory::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 			return this->underlyingImage->Read_AbsoluteSector(sectnum, data);
 		}
 		memset(data, 0, sector_size);
-		return 0x00;
+		return Int13Status::NoError;
 	}
 
 	//update the address to the specific sector within the chunk
@@ -279,17 +279,17 @@ uint8_t imageDiskMemory::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 
 	//copy the data to the output and return success
 	memcpy(data, datalocation, sector_size);
-	return 0x00;
+	return Int13Status::NoError;
 }
 
 // Write a specific sector from the ramdrive
-uint8_t imageDiskMemory::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
+Int13Status imageDiskMemory::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
 	//sector number is a zero-based offset
 
 	//verify the sector number is valid
 	if (sectnum >= total_sectors) {
 		LOG_MSG("Invalid sector number in Write_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
-		return 0x05;
+		return Int13Status::SectorNotFound;
 	}
 
 	//calculate which chunk the sector is located within, and which sector within the chunk
@@ -310,14 +310,14 @@ uint8_t imageDiskMemory::Write_AbsoluteSector(uint32_t sectnum, const void * dat
 				anyData |= ((uint8_t*)data)[i];
 			}
 			//if it's all zeros, return success
-			if (anyData == 0) return 0x00;
+			if (anyData == 0) return Int13Status::NoError;
 		}
 
 		//allocate a new memory chunk
 		datalocation = (uint8_t*)malloc(chunk_size);
 		if (datalocation == NULL) {
 			LOG_MSG("Could not allocate memory in Write_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
-			return 0x05;
+			return Int13Status::ControllerFailure;
 		}
 		//save the memory chunk address within the memory map
 		ChunkMap[chunknum] = datalocation;
@@ -343,7 +343,7 @@ uint8_t imageDiskMemory::Write_AbsoluteSector(uint32_t sectnum, const void * dat
 
 	//write the sector to the chunk and return success
 	memcpy(datalocation, data, sector_size);
-	return 0x00;
+	return Int13Status::NoError;
 }
 
 // Partition and format the ramdrive
