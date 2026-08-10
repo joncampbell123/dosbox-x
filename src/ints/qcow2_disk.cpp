@@ -450,12 +450,12 @@ using namespace std;
 
 
 //Public function to a read a sector.
-	uint8_t QCow2Disk::Read_AbsoluteSector(uint32_t sectnum, void* data){
-		return qcowImage.read_sector(sectnum, (uint8_t*)data);
+	Int13Status QCow2Disk::Read_AbsoluteSector(uint32_t sectnum, void* data){
+		return qcowImage.read_sector(sectnum, (uint8_t*)data) ? Int13Status::ControllerFailure : Int13Status::NoError;
 	}
 
 
 //Public function to a write a sector.
-	uint8_t QCow2Disk::Write_AbsoluteSector(uint32_t sectnum,const void* data){
-		return qcowImage.write_sector(sectnum, (const uint8_t*)data);
+	Int13Status QCow2Disk::Write_AbsoluteSector(uint32_t sectnum,const void* data){
+		return qcowImage.write_sector(sectnum, (const uint8_t*)data) ? Int13Status::ControllerFailure : Int13Status::NoError;
 	}

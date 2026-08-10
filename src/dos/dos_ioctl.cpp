@@ -374,8 +374,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                 while (nsect > 0) {
                     MEM_BlockRead(xfer_ptr,sectbuf,sectsize);
 
-                    uint8_t status = fdp->loadedDisk->Write_Sector(head,cyl,sect,sectbuf);
-                    if (status != 0) {
+                    Int13Status status = fdp->loadedDisk->Write_Sector(head,cyl,sect,sectbuf);
+                    if (status != Int13Status::NoError) {
                         LOG(LOG_IOCTL,LOG_DEBUG)("IOCTL 0D:61 write error at C/H/S %u/%u/%u",cyl,head,sect);
                         DOS_SetError(DOSERR_ACCESS_DENIED);//FIXME
                         return false;
@@ -450,8 +450,8 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                         drive,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
 
                 while (nsect > 0) {
-                    uint8_t status = fdp->loadedDisk->Read_Sector(head,cyl,sect,sectbuf);
-                    if (status != 0) {
+                    Int13Status status = fdp->loadedDisk->Read_Sector(head,cyl,sect,sectbuf);
+                    if (status != Int13Status::NoError) {
                         LOG(LOG_IOCTL,LOG_DEBUG)("IOCTL 0D:61 read error at C/H/S %u/%u/%u",cyl,head,sect);
                         DOS_SetError(DOSERR_ACCESS_DENIED);//FIXME
                         return false;

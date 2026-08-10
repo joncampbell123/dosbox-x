@@ -124,9 +124,9 @@ public:
 
 	~QCow2Disk();
 	
-	uint8_t Read_AbsoluteSector(uint32_t sectnum, void* data) override;
+	Int13Status Read_AbsoluteSector(uint32_t sectnum, void* data) override;
 
-	uint8_t Write_AbsoluteSector(uint32_t sectnum, const void* data) override;
+	Int13Status Write_AbsoluteSector(uint32_t sectnum, const void* data) override;
 
 private:
 

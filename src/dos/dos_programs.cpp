@@ -2921,10 +2921,10 @@ public:
         if (!has_read && IS_PC98_ARCH && drive < 'C') {
             /* this may be one of those odd FDD images where track 0, head 0 is all 128-byte sectors
              * and the rest of the disk is 256-byte sectors. */
-            if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (uint8_t *)&bootarea, 128) == 0 &&
-                imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (uint8_t *)&bootarea + 128, 128) == 0 &&
-                imageDiskList[drive - 65]->Read_Sector(0, 0, 3, (uint8_t *)&bootarea + 256, 128) == 0 &&
-                imageDiskList[drive - 65]->Read_Sector(0, 0, 4, (uint8_t *)&bootarea + 384, 128) == 0) {
+            if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (uint8_t *)&bootarea, 128) == Int13Status::NoError &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (uint8_t *)&bootarea + 128, 128) == Int13Status::NoError &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 3, (uint8_t *)&bootarea + 256, 128) == Int13Status::NoError &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 4, (uint8_t *)&bootarea + 384, 128) == Int13Status::NoError) {
                 LOG_MSG("First sector is 128 byte/sector. Booting from first four sectors.");
                 has_read = true;
                 bootsize = 512; // 128 x 4
@@ -2934,10 +2934,10 @@ public:
 
         if (!has_read && IS_PC98_ARCH && drive < 'C') {
             /* another nonstandard one with track 0 having 256 bytes/sector while the rest have 1024 bytes/sector */
-            if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (uint8_t *)&bootarea,       256) == 0 &&
-                imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (uint8_t *)&bootarea + 256, 256) == 0 &&
-                imageDiskList[drive - 65]->Read_Sector(0, 0, 3, (uint8_t *)&bootarea + 512, 256) == 0 &&
-                imageDiskList[drive - 65]->Read_Sector(0, 0, 4, (uint8_t *)&bootarea + 768, 256) == 0) {
+            if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (uint8_t *)&bootarea,       256) == Int13Status::NoError &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (uint8_t *)&bootarea + 256, 256) == Int13Status::NoError &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 3, (uint8_t *)&bootarea + 512, 256) == Int13Status::NoError &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 4, (uint8_t *)&bootarea + 768, 256) == Int13Status::NoError) {
                 LOG_MSG("First sector is 256 byte/sector. Booting from first two sectors.");
                 has_read = true;
                 bootsize = 1024; // 256 x 4
@@ -2958,7 +2958,7 @@ public:
         }
 
         if (!has_read) {
-            if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (uint8_t *)&bootarea) != 0) {
+            if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (uint8_t *)&bootarea) != Int13Status::NoError) {
                 if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_DRIVE_READERROR"));
                 return;
             }
