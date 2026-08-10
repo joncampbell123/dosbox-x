@@ -1425,8 +1425,12 @@ bool DOS_Canonicalize(char const * const name,char * const big) {
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
 # define MAX(a,b) ((a) > (b) ? (a) : (b))
 #else
-# define MIN(a,b) std::min(a,b)
-# define MAX(a,b) std::max(a,b)
+# ifndef MIN
+#  define MIN(a,b) std::min(a,b)
+# endif
+# ifndef MAX
+#  define MAX(a,b) std::max(a,b)
+# endif
 #endif
 
 /* Common routine to take larger allocation information (such as FAT32) and convert it to values
