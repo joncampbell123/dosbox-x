@@ -295,23 +295,27 @@ int main(int argc, const char **argv) {
   /* get destination pathname (with trailing backspace) and */
   /* filename/-pattern */
   if (fileargc < 2) {
-    /* no destination path specified -> use current */
-    getcwd(dest_pathname, MAXPATH);
-    strmcpy(dest_filename, "*.*", sizeof(dest_filename));
+      /* No destination specified -> use current directory */
+      if (getcwd(dest_pathname, MYMAXPATH) == NULL) {
+          dest_pathname[0] = '\0';
+      }
+      strmcpy(dest_filename, "*.*", sizeof(dest_filename));
   }
   else {
     /* destination path specified */
     length = strlen(fileargv[1]);
     if (length > (MAXPATH - 1)) {
-      printf("%s\n", catgets(cat, 1, 8, "Destination path too long"));
-      catclose(cat);
-      exit(4);
+        printf("%s\n", catgets(cat, 1, 8, "Destination path too long"));
+        catclose(cat);
+        exit(4);
     }
+
+    /* Get absolute path */
     _fullpath(dest_pathname, fileargv[1], MYMAXPATH);
     if (dest_pathname[0] == '\0') {
-      printf("%s\n", catgets(cat, 1, 9, "Invalid destination drive specification"));
-      catclose(cat);
-      exit(4);
+        printf("%s\n", catgets(cat, 1, 9, "Invalid destination drive specification"));
+        catclose(cat);
+        exit(4);
     }
     /* check destination path */
     if (fileargv[1][length - 1] != *DIR_SEPARATOR &&
@@ -368,6 +372,11 @@ int main(int argc, const char **argv) {
     exit(4);
   }
 
+  /**
+  printf("Debug: src_pathname='%s' src_filename='%s' dest_pathname='%s' dest_filename='%s'\n",
+	  src_pathname, src_filename, dest_pathname, dest_filename);
+  */
+
   /* check for cyclic path */
   if ((switch_emptydir || switch_subdir) &&
       cyclic_path(src_pathname, dest_pathname)) {
@@ -403,7 +412,7 @@ int main(int argc, const char **argv) {
 /* SUB-PROGRAMS                                                            */
 /*-------------------------------------------------------------------------*/
 void print_help(void) {
-  printf("XCOPY v1.9a - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
+  printf("XCOPY v1.9ax - Copyright 2001-2003 Rene Ableidinger (patches 2005: Eric Auer)\n");
   	/* VERSION! */
   printf("%s\n\n", catgets(cat, 2, 1, "Copies files and directory trees."));
   printf("%s\n\n", catgets(cat, 2, 2, "XCOPY source [destination] [/switches]"));
