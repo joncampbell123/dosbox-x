@@ -6306,12 +6306,15 @@ class IMGMOUNT : public Program {
 		bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 			char drive=commandLine[0];
 			bool nocont=false;
-			while (!nocont&&cmd->ExistsCommand(1)) {
+            if(!isalpha(drive) && !isdigit(drive)) return false;
+
+			while (!nocont) {
 				bool usedef=false;
 				if (!cmd->FindCommand(1, commandLine)) {
 					if (!nodef && !paths.size()) {
 						commandLine="IMGMAKE.IMG";
 						usedef=true;
+                        LOG_MSG("IMGMOUNT: No file specified, using default 'IMGMAKE.IMG'");
 					}
 					else {
 						break;
@@ -6425,6 +6428,7 @@ class IMGMOUNT : public Program {
 					return false;
 				}
 				paths.push_back(commandLine);
+                if(usedef) break;
 			}
 			return false;
 		}
