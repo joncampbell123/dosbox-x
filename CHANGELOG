@@ -9,6 +9,9 @@ NEXT VERSION:
     AH on read/write errors rather than collapsing every failure to 0x04.
     Also fixes AH being left stale on write errors and a VFD fill-sector
     write that reported failure after succeeding. (cimarronm)
+  - On non-MSC, only define MIN/MAX if not already defined (skitt)
+  - Fixed FreeDOS XCOPY failed to copy files when destination directory was
+    not specified (maron2000)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
