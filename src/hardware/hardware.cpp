@@ -1288,10 +1288,27 @@ skip_shot:
 			#else
 			ffmpeg_aud_ctx->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
 			#endif
-
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(61, 13, 100)
+            // Legacy support for FFmpeg not supporting avcodec_get_supported_config()
 			if (ffmpeg_aud_codec->sample_fmts != NULL)
 				ffmpeg_aud_ctx->sample_fmt = (ffmpeg_aud_codec->sample_fmts)[0];
-			else
+#else
+            // For FFmpeg supporting avcodec_get_supported_config()
+            const enum AVSampleFormat* formats = NULL;
+
+            const int ret = avcodec_get_supported_config(
+                NULL,
+                ffmpeg_aud_codec,
+                AV_CODEC_CONFIG_SAMPLE_FORMAT,
+                0,
+                reinterpret_cast<const void**>(&formats),
+                NULL
+            );
+
+            if(ret >= 0 && formats != NULL)
+                ffmpeg_aud_ctx->sample_fmt = formats[0];
+#endif
+            else
 				ffmpeg_aud_ctx->sample_fmt = AV_SAMPLE_FMT_FLT;
 
 			if (avcodec_open2(ffmpeg_aud_ctx,ffmpeg_aud_codec,NULL) < 0) {
