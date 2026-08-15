@@ -16,6 +16,10 @@ NEXT VERSION:
     image was specified (maron2000)
   - Fixed a build error when FFmpeg is upgraded to FFmpeg 9 (maron2000)
   - Fixed capture and savestate directory locations (maron2000)
+  - Refactored the imageDisk subclasses into their own source files and headers
+    (VFD, D88, NFD, empty drive, INT 13h passthrough, El Torito floppy, and
+    MS-DOS block device), leaving the base imageDisk class and BIOS disk-list
+    plumbing in bios_disk. (cimarronm)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
