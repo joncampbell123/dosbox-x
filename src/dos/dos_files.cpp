@@ -39,6 +39,7 @@
 #include "cdrom.h"
 #include "ide.h"
 #include "bios_disk.h"
+#include "imagedisk_eltorito.h"
 
 #define DOS_FILESTART 4
 
