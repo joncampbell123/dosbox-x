@@ -55,6 +55,14 @@ bool isKanji1_gbk(uint8_t chr), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,co
 #define _mkdir(x) mkdir(x)
 #endif
 
+#ifndef PATH_MAX
+#if defined(WIN32)
+#define PATH_MAX MAX_PATH
+#else
+#define PATH_MAX 4096 /* LINUX sets to 4096, while this varies from 260 to 4096 depending on platforms */
+#endif
+#endif
+
 int resolveopt = 1;
 void autoExpandEnvironmentVariables(std::string & text, bool dosvar) {
     static std::regex env(dosvar?"\\%([^%]+)%":"\\$\\{([^}]+)\\}");
@@ -296,6 +304,18 @@ bool Cross::IsPathAbsolute(std::string const& in) {
 	if (in.size() > 1 && in[0] == '/' ) return true;
 #endif
 	return false;
+}
+
+std::string Cross::GetCurDir(void) {
+    std::string cur_dir;
+    std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
+    if(getcwd(cwd.get(), PATH_MAX) != nullptr) {
+        cur_dir = std::string(cwd.get()) + CROSS_FILESPLIT;
+    }
+    else {
+        cur_dir.clear();
+    }
+    return cur_dir;
 }
 
 #if defined (WIN32)
