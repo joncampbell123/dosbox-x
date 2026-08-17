@@ -2167,7 +2167,7 @@ void CAPTURE_Init() {
 	// grab and store capture path
 	Prop_path *proppath = section->Get_path("captures");
 	assert(proppath != NULL);
-    std::string captures_value = proppath->GetValue();
+    std::string captures_value = proppath->GetValue().ToString();
     if(captures_value.empty()) {
         LOG_MSG("HARDWARE: CAPTURE_Init(): Capture path is empty, using working directory.");
         capturedir = working_dir;
