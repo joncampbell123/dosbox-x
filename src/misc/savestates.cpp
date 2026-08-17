@@ -54,6 +54,7 @@ std::string saveloaderr="";
 void refresh_slots(void);
 void GFX_LosingFocus(void), GFX_ReleaseMouse(void), MAPPER_ReleaseAllKeys(void), resetFontSize(void);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+extern std::string working_dir;
 
 namespace
 {
@@ -465,21 +466,11 @@ void SaveState::save(size_t slot) { //throw (Error)
 	int errclose;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
-	if(Get_Custom_SaveDir(path)) {
-		path+=CROSS_FILESPLIT;
-	} else {
-		extern std::string capturedir;
-		const size_t last_slash_idx = capturedir.find_last_of("\\/");
-		if (std::string::npos != last_slash_idx) {
-			path = capturedir.substr(0, last_slash_idx);
-		} else {
-			path = ".";
-		}
-		path+=CROSS_FILESPLIT;
-		path+="save";
-		Cross::CreateDir(path);
-		path+=CROSS_FILESPLIT;
-	}
+	if(!Get_Custom_SaveDir(path)) {
+        path = working_dir + CROSS_FILESPLIT + "save";
+        Cross::CreateDir(path);
+    }
+    path += CROSS_FILESPLIT;
 
 	std::string temp, save2;
 	std::stringstream slotname;
@@ -616,20 +607,11 @@ void SaveState::load(size_t slot) const { //throw (Error)
 	std::string path;
 	int err;
 	bool Get_Custom_SaveDir(std::string& savedir);
-	if(Get_Custom_SaveDir(path)) {
-		path+=CROSS_FILESPLIT;
-	} else {
-		extern std::string capturedir;
-		const size_t last_slash_idx = capturedir.find_last_of("\\/");
-		if (std::string::npos != last_slash_idx) {
-			path = capturedir.substr(0, last_slash_idx);
-		} else {
-			path = ".";
-		}
-		path += CROSS_FILESPLIT;
-		path +="save";
-		path += CROSS_FILESPLIT;
-	}
+	if(!Get_Custom_SaveDir(path)) {
+        path = working_dir + CROSS_FILESPLIT + "save";
+    }
+    path += CROSS_FILESPLIT;
+
 	std::string temp;
 	temp = path;
 	std::stringstream slotname;
