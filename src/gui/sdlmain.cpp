@@ -10708,7 +10708,7 @@ bool Get_Custom_SaveDir(std::string& savedir) {
         else {
             savedir = working_dir + CROSS_FILESPLIT + custom_savedir;
         }
-        LOG(LOG_MISC, LOG_DEBUG)("savestate: Set custom save directory to: %s", savedir);
+        LOG(LOG_MISC, LOG_DEBUG)("savestate: Set custom save directory to: %s", savedir.c_str());
         return true;
     }
     return false;
