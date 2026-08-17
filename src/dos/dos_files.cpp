@@ -64,6 +64,7 @@ extern const char *dos_clipboard_device_name;
 #include <errno.h>
 #include <time.h>
 
+#ifndef _MACPORTS_TIME_H_
 typedef enum {
     _CLOCK_REALTIME = 0,
 #if !defined(CLOCK_REALTIME)
@@ -178,6 +179,7 @@ int clock_gettime(clockid_t clk_id, struct timespec* tp) {
 #ifdef __cplusplus
 }
 #endif
+#endif // _MACPORTS_TIME_H_
 
 #endif // __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
 

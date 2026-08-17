@@ -31,6 +31,8 @@
 extern std::string niclist;
 
 #if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
+
+#ifndef _MACPORTS_TIME_H_
 typedef enum {
     _CLOCK_REALTIME = 0,
 #if !defined(CLOCK_REALTIME)
@@ -72,7 +74,8 @@ extern "C" {
 /* clock_gettime() only available in macOS 10.12+ (Sierra) */
 int clock_gettime(clockid_t clk_id, struct timespec *tp);
 }
-#endif
+#endif // _MACPORTS_TIME_H_
+#endif // __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
 
 #ifdef WIN32
 #if _WIN32_WINNT < 0x600
