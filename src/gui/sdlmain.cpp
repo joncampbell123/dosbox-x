@@ -206,6 +206,8 @@ void OUTPUT_Metal_Shutdown();
 void OUTPUT_Metal_CheckSourceResolution();
 #endif
 
+std::string working_dir = ""; // Store working directory 
+
 #if defined(WIN32)
 #include "resource.h"
 #if !defined(HX_DOS)
@@ -9259,9 +9261,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         {
             std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
-            if(getcwd(cwd.get(), PATH_MAX))
-                LOG_MSG("DOSBox-X's working directory: %s\n", cwd.get());
-            else
+            if(getcwd(cwd.get(), PATH_MAX)){
+                working_dir = cwd.get();
+                LOG_MSG("DOSBox-X's working directory: %s\n", working_dir.c_str());
+            } else
                 LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
         }
     const char *imestr = section->Get_string("ime");
