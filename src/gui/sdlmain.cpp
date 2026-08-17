@@ -10701,8 +10701,14 @@ bool TTF_using(void) {
 }
 
 bool Get_Custom_SaveDir(std::string& savedir) {
-    if (custom_savedir.length() != 0) {
-        savedir=custom_savedir;
+    if(custom_savedir.length() != 0) {
+        if(Cross::IsPathAbsolute(custom_savedir)) {
+            savedir = custom_savedir; // use the absolute path as is
+        }
+        else {
+            savedir = working_dir + CROSS_FILESPLIT + custom_savedir;
+        }
+        LOG(LOG_MISC, LOG_DEBUG)("savestate: Set custom save directory to: %s", savedir);
         return true;
     }
     return false;
