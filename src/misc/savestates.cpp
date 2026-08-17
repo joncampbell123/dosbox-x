@@ -178,7 +178,7 @@ namespace
 
 		try
 		{
-			LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
+			//LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
 			SaveState::instance().save(currentSlot);
 			if (page!=GetGameState()/SaveState::SLOT_COUNT)
 				SetGameState((int)currentSlot);
@@ -203,7 +203,7 @@ namespace
 
 		try
 		{
-			LOG_MSG("Loading state from slot: %d", (int)currentSlot + 1);
+			//LOG_MSG("Loading state from slot: %d", (int)currentSlot + 1);
 			SaveState::instance().load(currentSlot);
 #if defined(USE_TTF)
 			if (ttf.inUse) resetFontSize();
@@ -477,6 +477,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	slotname << slot+1;
 	temp=path;
 	std::string save=use_save_file&&savefilename.size()?savefilename:temp+slotname.str()+".sav";
+    LOG_MSG("Saving state to slot: %d (%s)", (int)slot + 1, save.c_str());
 
 	zipFile zf;
 	{
@@ -626,6 +627,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		return;
 	}
 	check_slot.close();
+    LOG_MSG("Loading state from slot: %d (%s)", (int)slot + 1, save.c_str());
 
 	unz_file_info64 file_info;
 	unzFile zf;
