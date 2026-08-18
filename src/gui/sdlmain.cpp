@@ -8574,6 +8574,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     std::string res_path = Cross::GetPlatformResDir();
     std::string tmp = Cross::GetPlatformConfigName();
     std::string config_combined = config_path + tmp;
+    bool default_config = false;
 
     struct stat st;
 
@@ -8612,6 +8613,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             if(control->configfiles.size()) {
                 std::string cur_dir = Cross::GetCurDir();
                 configfile = cur_dir + configfile;
+                default_config = true;
             }
         }
 
@@ -8704,11 +8706,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* A Windows application cannot detect with isatty() if run from the command prompt.
         *  isatty() returns true even though STDIN/STDOUT/STDERR do not exist even if run from the command prompt. */
         if (control->opt_promptfolder < 0)
-            control->opt_promptfolder = 1;
+            control->opt_promptfolder = !default_config ? 1 : 0;
 #else
         std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
         if (control->opt_promptfolder < 0 && getcwd(cwd.get(), PATH_MAX) != nullptr)
-            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd.get(), "/") || (workdiropt == "default" || workdiropt == "autoprompt")) ? 1 : 0;
+            control->opt_promptfolder = ((!isatty(0) && !default_config) || !strcmp(cwd.get(), "/") || ((workdiropt == "default" && !default_config) || workdiropt == "autoprompt")) ? 1 : 0;
 #endif
         if (control->opt_promptfolder == 1 && (workdiropt == "default" || workdiropt == "autoprompt") && workdirdef.size()) {
             control->opt_promptfolder = 0;
