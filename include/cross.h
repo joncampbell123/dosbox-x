@@ -73,6 +73,7 @@ public:
 	static void ResolveHomedir(std::string & temp_line);
 	static void CreateDir(std::string const& in);
 	static bool IsPathAbsolute(std::string const& in);
+    static std::string GetCurDir(void);
 };
 
 

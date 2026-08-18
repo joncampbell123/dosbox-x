@@ -15,6 +15,7 @@ NEXT VERSION:
   - IMGMOUNT: Fixed a regression that didn't try loading IMGMAKE.IMG if no 
     image was specified (maron2000)
   - Fixed a build error when FFmpeg is upgraded to FFmpeg 9 (maron2000)
+  - Fixed capture and savestate directory locations (maron2000)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
