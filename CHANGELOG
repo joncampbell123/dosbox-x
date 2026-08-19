@@ -20,6 +20,8 @@ NEXT VERSION:
     (VFD, D88, NFD, empty drive, INT 13h passthrough, El Torito floppy, and
     MS-DOS block device), leaving the base imageDisk class and BIOS disk-list
     plumbing in bios_disk. (cimarronm)
+  - Debugger: fixed disassembler showing 16-bit register names for byte-sized
+    operands. (cimarronm)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
