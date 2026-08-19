@@ -1527,7 +1527,13 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\hardware\glide.cpp" />
     <ClCompile Include="..\src\ints\bios.cpp" />
     <ClCompile Include="..\src\ints\bios_disk.cpp" />
+    <ClCompile Include="..\src\ints\imagedisk_d88.cpp" />
+    <ClCompile Include="..\src\ints\imagedisk_emptydrive.cpp" />
+    <ClCompile Include="..\src\ints\imagedisk_int13.cpp" />
+    <ClCompile Include="..\src\ints\imagedisk_msdosblockdev.cpp" />
+    <ClCompile Include="..\src\ints\imagedisk_nfd.cpp" />
     <ClCompile Include="..\src\ints\imagedisk_teledisk.cpp" />
+    <ClCompile Include="..\src\ints\imagedisk_vfd.cpp" />
     <ClCompile Include="..\src\ints\bios_keyboard.cpp" />
     <ClCompile Include="..\src\ints\ems.cpp" />
     <ClCompile Include="..\src\ints\int10.cpp" />

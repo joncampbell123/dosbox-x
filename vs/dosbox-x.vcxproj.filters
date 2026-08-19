@@ -603,7 +603,25 @@
     <ClCompile Include="..\src\ints\bios_disk.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ints\imagedisk_d88.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\imagedisk_emptydrive.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\imagedisk_int13.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\imagedisk_msdosblockdev.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\imagedisk_nfd.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\ints\imagedisk_teledisk.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\imagedisk_vfd.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ints\bios_keyboard.cpp">
