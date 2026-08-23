@@ -2670,6 +2670,21 @@ void POD_Load_DOS_Files( std::istream& stream )
             READ_POD( &lalloc, lalloc);
             READ_POD( &oalloc, oalloc);
             READ_POD( &opts, opts);
+#if !defined(WIN32)
+            /* The mount path is stored verbatim, so a state saved on Windows
+             * carries '\' separators. The code below unmounts the current
+             * drive and rebuilds it from this string, so without translation
+             * the new drive's base directory is a name containing a literal
+             * backslash. localDrive does not validate it, so nothing is
+             * logged and the guest simply fails every file access.
+             *
+             * Bounded by sizeof: READ_POD fills these buffers straight from
+             * the file and does not guarantee a terminator. */
+            for (size_t q = 0; q < sizeof(dinfo) && dinfo[q]; q++)
+                if (dinfo[q] == '\\') dinfo[q] = CROSS_FILESPLIT;
+            for (size_t q = 0; q < sizeof(overlaydir) && overlaydir[q]; q++)
+                if (overlaydir[q] == '\\') overlaydir[q] = CROSS_FILESPLIT;
+#endif
             if( Drives[lcv] && strcasecmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory ",16) || !strncmp(dinfo,"CDRom ",6) || !strncmp(dinfo,"PhysFS directory ",17) || !strncmp(dinfo,"PhysFS CDRom ",13) || (!strncmp(dinfo,"isoDrive ",9) || !strncmp(dinfo,"fatDrive ",9))))
                 unmount(lcv);
             if( !Drives[lcv] ) {
