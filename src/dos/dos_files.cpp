@@ -2440,7 +2440,12 @@ struct Opts {
     int mounttype;
     uint8_t mediaid;
     unsigned char CDROM_drive;
-    unsigned long cdrom_sector_offset;
+    /* NOT `unsigned long`: that is 4 bytes on Windows (LLP64) and 8 on
+     * Linux/macOS (LP64), and this struct is written verbatim by WRITE_POD,
+     * so its size is part of the on-disk savestate format -- widening it
+     * makes a saved state unreadable on the other platform. A CD sector
+     * offset does not need more than 32 bits. */
+    uint32_t cdrom_sector_offset;
     unsigned char floppy_emu_type;
 };
 Opts opts;
