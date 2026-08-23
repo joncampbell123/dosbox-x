@@ -1957,6 +1957,7 @@ static Bitu INT13_DiskHandler(void) {
     uint8_t sectbuf[2048/*CD-ROM support*/];
     uint8_t  drivenum;
     Bitu  i,t;
+    uint32_t rd_cyl = 0, rd_sect = 0;
     uint64_t LBA = 0;
     last_drive = reg_dl;
     drivenum = GetDosDriveNumber(reg_dl);
@@ -2070,10 +2071,15 @@ static Bitu INT13_DiskHandler(void) {
             return CBRET_NONE;
         }
 
+        /* Floppies (DL bit 7 clear) use an 8-bit cylinder in CH and an 8-bit sector in CL.
+         * Hard disks (DL bit 7 set) use a 10-bit cylinder (upper 2 bits in CL bits 6-7)
+         * and a 6-bit sector (CL bits 0-5). */
+        rd_cyl  = (reg_dl & 0x80) ? (uint32_t)(reg_ch | ((reg_cl & 0xc0) << 2)) : (uint32_t)reg_ch;
+        rd_sect = (reg_dl & 0x80) ? (uint32_t)(reg_cl & 63) : (uint32_t)reg_cl;
         segat = SegValue(es);
         bufptr = reg_bx;
         for(i=0;i<reg_al;i++) {
-            last_status = imageDiskList[drivenum]->Read_Sector((uint32_t)reg_dh, (uint32_t)(reg_ch | ((reg_cl & 0xc0)<< 2)), (uint32_t)((reg_cl & 63)+i), sectbuf);
+            last_status = imageDiskList[drivenum]->Read_Sector((uint32_t)reg_dh, rd_cyl, rd_sect+i, sectbuf);
 
             if (imageDiskList[drivenum]->class_id == imageDisk::ID_EL_TORITO_FLOPPY)
                 diskio_delay(512);
@@ -2083,7 +2089,7 @@ static Bitu INT13_DiskHandler(void) {
                 diskio_delay(512);
 
             /* IDE emulation: simulate change of IDE state that would occur on a real machine after INT 13h */
-            IDE_EmuINT13DiskReadByBIOS(reg_dl, (uint32_t)(reg_ch | ((reg_cl & 0xc0)<< 2)), (uint32_t)reg_dh, (uint32_t)((reg_cl & 63)+i));
+            IDE_EmuINT13DiskReadByBIOS(reg_dl, rd_cyl, (uint32_t)reg_dh, rd_sect+i);
 
             if((last_status != Int13Status::NoError) || killRead) {
                 LOG_MSG("Error in disk read");
@@ -2122,6 +2128,9 @@ static Bitu INT13_DiskHandler(void) {
             return CBRET_NONE;
         }
 
+        /* See INT 13h AH=02h read: floppies use 8-bit cylinder/8-bit sector, hard disks 10-bit/6-bit. */
+        rd_cyl  = (reg_dl & 0x80) ? (uint32_t)(reg_ch | ((reg_cl & 0xc0) << 2)) : (uint32_t)reg_ch;
+        rd_sect = (reg_dl & 0x80) ? (uint32_t)(reg_cl & 63) : (uint32_t)reg_cl;
         bufptr = reg_bx;
         for(i=0;i<reg_al;i++) {
             for(t=0;t<imageDiskList[drivenum]->getSectSize();t++) {
@@ -2134,7 +2143,7 @@ static Bitu INT13_DiskHandler(void) {
             else
                 diskio_delay(512);
 
-            last_status = imageDiskList[drivenum]->Write_Sector((uint32_t)reg_dh, (uint32_t)(reg_ch | ((reg_cl & 0xc0) << 2)), (uint32_t)((reg_cl & 63) + i), &sectbuf[0]);
+            last_status = imageDiskList[drivenum]->Write_Sector((uint32_t)reg_dh, rd_cyl, rd_sect + i, &sectbuf[0]);
             if(last_status != Int13Status::NoError) {
                 reg_ah = (uint8_t)last_status;
                 CALLBACK_SCF(true);
@@ -2160,7 +2169,7 @@ static Bitu INT13_DiskHandler(void) {
         segat = SegValue(es);
         bufptr = reg_bx;
         for(i=0;i<reg_al;i++) {
-            last_status = imageDiskList[drivenum]->Read_Sector((uint32_t)reg_dh, (uint32_t)(reg_ch | ((reg_cl & 0xc0)<< 2)), (uint32_t)((reg_cl & 63)+i), sectbuf);
+            last_status = imageDiskList[drivenum]->Read_Sector((uint32_t)reg_dh, rd_cyl, rd_sect+i, sectbuf);
             if(last_status != 0x00) {
                 LOG_MSG("Error in disk read");
                 CALLBACK_SCF(true);
@@ -2258,7 +2267,10 @@ static Bitu INT13_DiskHandler(void) {
         }
 
         reg_ch = (uint8_t)(tmpcyl & 0xff);
-        reg_cl = (uint8_t)(((tmpcyl >> 2) & 0xc0) | (tmpsect & 0x3f)); 
+        if (reg_dl & 0x80) /* hard disk: 10-bit cylinder, 6-bit sector */
+            reg_cl = (uint8_t)(((tmpcyl >> 2) & 0xc0) | (tmpsect & 0x3f));
+        else /* floppy: 8-bit cylinder in CH, 8-bit sector in CL */
+            reg_cl = (uint8_t)(tmpsect & 0xff);
         reg_dh = (uint8_t)tmpheads;
         last_status = Int13Status::NoError;
         if (reg_dl&0x80) {  // harddisks
