@@ -23,6 +23,8 @@ NEXT VERSION:
   - Shell init: allocate the COMMAND.COM environment block after allocating the
     shell binary/PSP in both SHELL_Init() and CONFIGSHELL_Init(), so memory
     layout and ownership ordering match expected MCB-chain behavior. (cimarronm)
+  - Debugger: fixed disassembler showing 16-bit register names for byte-sized
+    operands. (cimarronm)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
