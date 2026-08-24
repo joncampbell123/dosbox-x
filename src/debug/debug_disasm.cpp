@@ -64,13 +64,14 @@ Any comments/updates/bug reports to:
 */
 #include "dosbox.h"
 #if C_DEBUG
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include "paging.h"
-#include "logging.h"
+#include <cstdio>
+#include <cstring>
+#include <cstdarg>
+#include <cstdlib>
+
 #include "cpu.h"
+#include "logging.h"
+#include "paging.h"
 
 typedef uint8_t  UINT8;
 typedef uint16_t UINT16;
@@ -888,7 +889,7 @@ static void reg_name(int regnum, char size)
   }
   if ((((size == 'c') || (size == 'v')) && (opsize == 32)) || (size == 'd'))
     uputchar('e');
-  if ((size=='q' || size == 'b' || size=='c') && !wordop) {
+  if (size == 'b' || ((size=='q' || size=='c') && !wordop)) {
     uputchar("acdbacdb"[regnum]);
     uputchar("llllhhhh"[regnum]);
   } else {
@@ -1049,7 +1050,7 @@ static void floating_point(int e1)
 static void percent(char type, char subtype)
 {
   INT32 vofs = 0;
-  char *name=NULL;
+  char *name=nullptr;
   int extend = (addrsize == 32) ? 4 : 2;
   UINT8 c;
 
@@ -1362,4 +1363,3 @@ int DasmLastOperandSize()
 
 
 #endif
-
