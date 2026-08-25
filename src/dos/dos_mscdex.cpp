@@ -1802,7 +1802,7 @@ void POD_Save_DOS_Mscdex( std::ostream& stream )
 	if (!dos_kernel_disabled) {
 		uint16_t dnum=GetNumDrives();
 		WRITE_POD( &dnum, dnum);
-		for (uint8_t drive_unit=0; drive_unit<dnum; drive_unit++) {
+		for (uint16_t drive_unit=0; drive_unit<dnum; drive_unit++) {
 			TMSF pos, start, end;
 			bool playing, pause;
 
@@ -1838,7 +1838,15 @@ void POD_Load_DOS_Mscdex( std::istream& stream )
 				}
 			}
 		}
-		for (uint8_t drive_unit=0; drive_unit<dnum; drive_unit++) {
+		/* dnum comes from the savestate and is not trustworthy. It must be
+		 * compared against a counter wide enough to hold it, or a value above
+		 * 255 wraps the uint8_t and the loop never terminates. */
+		if (dnum > MSCDEX_MAX_DRIVES) {
+			LOG_MSG("MSCDEX: savestate declares %u CD drives, more than the %u supported; ignoring",
+				(unsigned)dnum, (unsigned)MSCDEX_MAX_DRIVES);
+			dnum = 0;
+		}
+		for (uint16_t drive_unit=0; drive_unit<dnum; drive_unit++) {
 			TMSF pos, start, end;
 			uint32_t msf_time, play_len;
 			bool playing, pause;

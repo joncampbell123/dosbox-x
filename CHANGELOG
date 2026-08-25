@@ -25,6 +25,13 @@ NEXT VERSION:
     layout and ownership ordering match expected MCB-chain behavior. (cimarronm)
   - Debugger: fixed disassembler showing 16-bit register names for byte-sized
     operands. (cimarronm)
+  - Fixed savestates written by a Windows build failing to load on Linux
+    builds. The per-drive Opts struct in the DOS component held an unsigned
+    long, which is 4 bytes on Windows and 8 on LP64 hosts, so the saved stream
+    desynchronized and the load ran off the end of the component. Also fixed
+    POD_Load_DOS_Mscdex looping forever on an out-of-range CD drive count, and
+    mounted drive paths keeping their Windows path separators when a state is
+    restored on a non-Windows host. (ozy24)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
