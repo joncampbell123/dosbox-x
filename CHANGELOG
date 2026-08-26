@@ -25,6 +25,10 @@ NEXT VERSION:
     layout and ownership ordering match expected MCB-chain behavior. (cimarronm)
   - Debugger: fixed disassembler showing 16-bit register names for byte-sized
     operands. (cimarronm)
+  - Fixed INT 13h CHS decoding for floppies, which incorrectly used the hard
+    disk layout (10-bit cylinder / 6-bit sector) instead of the floppy layout
+    (8-bit cylinder in CH / 8-bit sector in CL) on read, write, and get drive
+    parameters. (cimarronm)
   - Fixed savestates written by a Windows build failing to load on Linux
     builds. The per-drive Opts struct in the DOS component held an unsigned
     long, which is 4 bytes on Windows and 8 on LP64 hosts, so the saved stream
