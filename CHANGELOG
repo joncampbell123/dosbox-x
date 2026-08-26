@@ -36,6 +36,9 @@ NEXT VERSION:
     POD_Load_DOS_Mscdex looping forever on an out-of-range CD drive count, and
     mounted drive paths keeping their Windows path separators when a state is
     restored on a non-Windows host. (ozy24)
+  - Fixed chs_write packing the high cylinder bits into the sector field of the
+    synthesized MBR partition table, which corrupted the end-CHS entry for disks
+    with an end cylinder above 255. (cimarronm)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and

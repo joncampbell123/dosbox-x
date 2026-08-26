@@ -897,7 +897,7 @@ struct fatFromDOSDrive
 		if (head > 0xFF || sector > 0x3F || cylinder > 0x3FF)
             LOG_MSG("Warning: Invalid CHS data - %X, %X, %X\n", head, sector, cylinder);
 		chs[0] = (uint8_t)(head & 0xFF);
-		chs[1] = (uint8_t)((sector & 0x3F) | ((cylinder >> 8) & 0x3));
+		chs[1] = (uint8_t)((sector & 0x3F) | ((cylinder >> 2) & 0xC0));
 		chs[2] = (uint8_t)(cylinder & 0xFF);
 	}
 
