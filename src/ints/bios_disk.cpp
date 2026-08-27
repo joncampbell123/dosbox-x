@@ -1975,13 +1975,24 @@ char INT13_ElTorito_NoEmuCDROMDrive = 0;
 
 bool GetMSCDEXDrive(unsigned char drive_letter, CDROM_Interface **_cdrom);
 
+/* Bytes/sector for a floppy transfer as a real BIOS would use it: taken from the disk
+ * base table pointed to by INT 1Eh (offset +3, sector-size code 0=128,1=256,2=512,3=1024,...)
+ * rather than assuming 512. A guest may reprogram INT 1Eh to access non-512 media. */
+static uint32_t floppyDPT_sector_size(void) {
+    RealPt dpt = RealGetVec(0x1E);
+    if (dpt) {
+        uint8_t code = real_readb(RealSeg(dpt), RealOff(dpt) + 3);
+        if (code <= 6) return 128u << code;
+    }
+    return 512;
+}
 
 static Bitu INT13_DiskHandler(void) {
     uint16_t segat, bufptr;
     uint8_t sectbuf[2048/*CD-ROM support*/];
     uint8_t  drivenum;
     Bitu  i,t;
-    uint32_t rd_cyl = 0, rd_sect = 0;
+    uint32_t rd_cyl = 0, rd_sect = 0, secsz = 512;
     uint64_t LBA = 0;
     last_drive = reg_dl;
     drivenum = GetDosDriveNumber(reg_dl);
@@ -2102,6 +2113,12 @@ static Bitu INT13_DiskHandler(void) {
         rd_sect = (reg_dl & 0x80) ? (uint32_t)(reg_cl & 63) : (uint32_t)reg_cl;
         segat = SegValue(es);
         bufptr = reg_bx;
+        /* Floppies transfer the bytes/sector given by the INT 1Eh disk base table; hard disks use 512. */
+        secsz = (reg_dl & 0x80) ? 512 : floppyDPT_sector_size();
+        if (secsz > sizeof(sectbuf)) {
+            LOG(LOG_BIOS,LOG_ERROR)("INT 13h: DPT bytes/sector %u exceeds buffer, clamping to %u",(unsigned int)secsz,(unsigned int)sizeof(sectbuf));
+            secsz = sizeof(sectbuf);
+        }
         for(i=0;i<reg_al;i++) {
             last_status = imageDiskList[drivenum]->Read_Sector((uint32_t)reg_dh, rd_cyl, rd_sect+i, sectbuf);
 
@@ -2122,7 +2139,7 @@ static Bitu INT13_DiskHandler(void) {
                 CALLBACK_SCF(true);
                 return CBRET_NONE;
             }
-            for(t=0;t<512;t++) {
+            for(t=0;t<secsz;t++) {
                 real_writeb(segat,bufptr,sectbuf[t]);
                 bufptr++;
             }
@@ -2156,8 +2173,14 @@ static Bitu INT13_DiskHandler(void) {
         rd_cyl  = (reg_dl & 0x80) ? (uint32_t)(reg_ch | ((reg_cl & 0xc0) << 2)) : (uint32_t)reg_ch;
         rd_sect = (reg_dl & 0x80) ? (uint32_t)(reg_cl & 63) : (uint32_t)reg_cl;
         bufptr = reg_bx;
+        /* Floppies transfer the bytes/sector given by the INT 1Eh disk base table; hard disks use the image sector size. */
+        secsz = (reg_dl & 0x80) ? imageDiskList[drivenum]->getSectSize() : floppyDPT_sector_size();
+        if (secsz > sizeof(sectbuf)) {
+            LOG(LOG_BIOS,LOG_ERROR)("INT 13h: DPT bytes/sector %u exceeds buffer, clamping to %u",(unsigned int)secsz,(unsigned int)sizeof(sectbuf));
+            secsz = sizeof(sectbuf);
+        }
         for(i=0;i<reg_al;i++) {
-            for(t=0;t<imageDiskList[drivenum]->getSectSize();t++) {
+            for(t=0;t<secsz;t++) {
                 sectbuf[t] = real_readb(SegValue(es),bufptr);
                 bufptr++;
             }
