@@ -556,6 +556,7 @@ private:
 public:
 	static void       InsertVariable(char* name, PhysPt adr);
 	static CDebugVar* FindVar       (PhysPt pt);
+	static CDebugVar* FindVar       (const std::string& name);
 	static void       DeleteAll     ();
 	static bool       SaveVars      (char* name);
 	static bool       LoadVars      (char* name);
@@ -564,6 +565,45 @@ public:
 };
 
 std::vector<CDebugVar*> CDebugVar::varList;
+
+static void AnnotateDirectBranch(char* line, const size_t line_size)
+{
+	char* mnemonic = line;
+	while (*mnemonic == ' ' || *mnemonic == '\t') ++mnemonic;
+
+	char* operand = mnemonic;
+	while (isalpha(static_cast<unsigned char>(*operand))) ++operand;
+	const std::string instruction(mnemonic, operand - mnemonic);
+	if (instruction != "call" && instruction != "jmp" &&
+	    (instruction.empty() || instruction[0] != 'j') &&
+	    instruction.compare(0, 4, "loop") != 0)
+		return;
+
+	while (*operand == ' ' || *operand == '\t') ++operand;
+	for (const char* qualifier : {"far ", "near ", "short "}) {
+		const size_t length = strlen(qualifier);
+		if (strncmp(operand, qualifier, length) == 0) {
+			operand += length;
+			break;
+		}
+	}
+
+	char* end = operand;
+	while (isxdigit(static_cast<unsigned char>(*end))) ++end;
+	if (end == operand || (*end != '\0' && *end != ' ' && *end != '\t')) return;
+
+	char* parse_end = nullptr;
+	const unsigned long target = strtoul(operand, &parse_end, 16);
+	if (parse_end != end || target > UINT32_MAX) return;
+
+	CDebugVar* variable = CDebugVar::FindVar(static_cast<PhysPt>(target));
+	if (!variable) return;
+
+	const size_t used = strlen(line);
+	const size_t available = used < line_size ? line_size - used : 0;
+	if (available > 1)
+		snprintf(line + used, available, " <%s>", variable->GetName());
+}
 
 
 /********************/
@@ -1384,6 +1424,7 @@ static void DrawCode(void) {
             drawsize=size=1;
             dline[0]=0;
         }
+		AnnotateDirectBranch(dline, sizeof(dline));
 		mvwprintw(dbg.win_code,i,0,"%04X:%08X ",codeViewData.useCS,disEIP);
 
 		if (drawsize>10) { toolarge = true; drawsize = 9; }
@@ -1658,6 +1699,7 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
             else if (something == "DTASEG") { regval = (!dos_kernel_disabled) ? (dos.dta() >> 16u)    : 0; }
             else if (something == "DTAOFF") { regval = (!dos_kernel_disabled) ? (dos.dta() & 0xFFFFu) : 0; }
             else if (something == "PSPSEG") { regval = (!dos_kernel_disabled) ?  dos.psp()            : 0; }
+            else if (CDebugVar* variable = CDebugVar::FindVar(something)) { regval = variable->GetAdr(); }
             else if (hexnumber) { regval = (uint32_t)strtoul(something.c_str(),NULL,16/*hexadecimal*/); }
             else { if (parsed) *parsed = 0; return 0; }
         }
@@ -5908,6 +5950,14 @@ CDebugVar* CDebugVar::FindVar(PhysPt pt)
 	for(std::vector<CDebugVar*>::size_type i = 0; i != s; i++) {
 		CDebugVar* bp = varList[i];
 		if (bp->GetAdr() == pt) return bp;
+	}
+	return nullptr;
+}
+
+CDebugVar* CDebugVar::FindVar(const std::string& name)
+{
+	for (auto* variable : varList) {
+		if (strcasecmp(name.c_str(), variable->GetName()) == 0) return variable;
 	}
 	return nullptr;
 }
