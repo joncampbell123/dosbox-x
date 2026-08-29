@@ -42,6 +42,7 @@ NEXT VERSION:
   - Floppy INT 13h sector reads/writes now honor the bytes-per-sector code from
     the disk base table pointed to by INT 1Eh instead of assuming 512, allowing
     guests that reprogram INT 1Eh to access non-512 media. (cimarronm)
+  - Simplified the MCB filename-stripping logic in DOS_Execute(). (cimarronm)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
