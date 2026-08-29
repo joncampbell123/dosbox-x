@@ -17,8 +17,11 @@
  */
 
 
-#include <string.h>
-#include <ctype.h>
+#include <array>
+#include <cctype>
+#include <cstdint>
+#include <cstring>
+#include <string>
 
 #include "dosbox.h"
 #include "logging.h"
@@ -293,7 +296,11 @@ static void SetupCMDLine(uint16_t pspseg, const DOS_ParamBlock& block) {
 bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 	EXE_Header head;Bitu i;
 	uint16_t fhandle;uint16_t len;uint32_t pos;
-	uint16_t pspseg,envseg,loadseg,memsize=0xffff,readsize;
+	uint16_t pspseg;
+	uint16_t envseg = 0;
+	uint16_t loadseg;
+	uint16_t memsize=0xffff;
+	uint16_t readsize;
 	uint16_t maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
 	uint32_t headersize = 0, imagesize = 0,memimagesize = 0;
@@ -885,22 +892,16 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 		if ( (d2>=DOS_DRIVES) || !Drives[d2] ) reg_bh = 0xFF; else reg_bh = 0;
 
 		/* Write filename in new program MCB */
-		char stripname[8]= { 0 };Bitu index=0;
-		while (char chr=*name++) {
-			switch (chr) {
-			case ':':case '\\':case '/':index=0;break;
-			default:if (index<8) stripname[index++]=(char)toupper(chr);
-			}
-		}
-		index=0;
-		while (index<8) {
-			if (stripname[index]=='.') break;
-			if (!stripname[index]) break;	
-			index++;
-		}
-		memset(&stripname[index],0,8-index);
+		const char *base = name;
+		for (const char *p = name; *p; p++)
+			if (*p == ':' || *p == '\\' || *p == '/') base = p + 1;
+
+		std::array<char, 9> stripname = {};
+		size_t index = 0;
+		for (; index < stripname.size() - 1 && base[index] && base[index] != '.'; index++)
+			stripname[index] = (char)toupper(base[index]);
 		DOS_MCB pspmcb(dos.psp()-1);
-		pspmcb.SetFileName(stripname);
+		pspmcb.SetFileName(stripname.data());
 		DOS_UpdatePSPName();
 		RunningProgramHash[0] = head.checksum;
 		RunningProgramHash[1] = checksum_bytes;
@@ -913,7 +914,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 			if (s != 0) {
 				DOS_MCB envmcb(s-1);
 				envmcb.SetPSPSeg(dos.psp());
-				envmcb.SetFileName(stripname);
+				envmcb.SetFileName(stripname.data());
 			}
 		}
 	}
