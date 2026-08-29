@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:German
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:2026.08.02
+:DOSBOX-X:VERSION:2026.08.29
 :DOSBOX-X:REMARK:
 :PROGRAM_BOOT_BOOTING
 Starte von Laufwerk 
@@ -204,7 +204,7 @@ Speichere Sprachdatei
 Speichern & Neustart
 .
 :PASTE_CLIPBOARD
-Clipboard einfügen
+Zwischenablage einfügen
 .
 :APPEND_HISTORY
 History hinzufügen
@@ -356,7 +356,7 @@ Wähle ein Event oder klick auf die Buttons Hinzf/Entf/Weiter.
 Joystick bewegen oder Button drücken.
 .
 :CAPTURE_ENABLED
-Aufnahme aktiv. ESC drücken zum Beenden.
+Aufnahme aktiv. Esc drücken zum Beenden.
 .
 :MAPPER_FILE_SAVED
 Mapper-Datei gespeichert
@@ -1980,7 +1980,7 @@ Drücke ←[31mStrg+F8←[37m zum Wechseln der horizontalen Blende (nur im Grafi
 VIEL SPASS MIT DOSBOX-X !
 .
 :SHELL_CMD_BREAK_HELP
-Setzt oder entfernt erweiterte Prüfung für CTRL+C.
+Setzt oder entfernt erweiterte Prüfung für Strg+C.
 
 .
 :SHELL_CMD_BREAK_HELP_LONG
