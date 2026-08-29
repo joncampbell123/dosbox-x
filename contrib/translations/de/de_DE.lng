@@ -1957,16 +1957,16 @@ Tippe ←[32mHELP←[37m für Shell-Kommandos und ←[32mINTRO←[37m für eine 
 ←[32mDOS/V Modus←[37m aktiviert. Probiere auch den ←[32mTTF CJK mode←[37m für allg. DOS-Emulation.
 .
 :SHELL_STARTUP_CGA
-Composite-CGA-Modus unterstützt. Drücke ←[31mCtrl+F8←[37m für Composite-Output ON/OFF.
-Drücke ←[31mCtrl+Shift+[F7/F8]←[37m für andere Farben; ←[31mCtrl+F7←[37m wählt frühes/spätes CGA-Modell. 
+Composite-CGA-Modus unterstützt. Drücke ←[31mStrg+F8←[37m für Composite-Output ON/OFF.
+Drücke ←[31mStrg+Shift+[F7/F8]←[37m für andere Farben; ←[31mStrg+F7←[37m wählt frühes/spätes CGA-Modell. 
 .
 :SHELL_STARTUP_CGA_MONO
-Drücke ←[31mCtrl+F7←[37m zum Wechseln zwischen grün, gelb und weißer Monochrom-Farbe,      
-und ←[31mCtrl+F8←[37m zum Ändern von Kontrast/Helligkeit.                         
+Drücke ←[31mStrg+F7←[37m zum Wechseln zwischen grün, gelb und weißer Monochrom-Farbe,      
+und ←[31mStrg+F8←[37m zum Ändern von Kontrast/Helligkeit.                         
 .
 :SHELL_STARTUP_HERC
-Drücke ←[31mCtrl+F7←[37m zum Wechseln zwischen grün, gelb und weißer Monochrom-Farbe.      
-Drücke ←[31mCtrl+F8←[37m zum Wechseln der horizontalen Blende (nur im Grafikmodus).          
+Drücke ←[31mStrg+F7←[37m zum Wechseln zwischen grün, gelb und weißer Monochrom-Farbe.      
+Drücke ←[31mStrg+F8←[37m zum Wechseln der horizontalen Blende (nur im Grafikmodus).          
 .
 :SHELL_STARTUP_HEAD3
 ←[36mDOSBox-X-Project im Web:                                                    ←[37m
@@ -4180,7 +4180,7 @@ The command execution is completed.
 Starting %s...
 .
 :PROGRAM_START_CTRLC
-(Press Ctrl+C to exit immediately)
+(Press Strg+C to exit immediately)
 .
 :PROGRAM_START_HOST_ERROR
 Error: START cannot launch application to run on your current host system.
