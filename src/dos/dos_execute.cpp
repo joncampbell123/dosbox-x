@@ -17,8 +17,11 @@
  */
 
 
-#include <string.h>
-#include <ctype.h>
+#include <array>
+#include <cctype>
+#include <cstdint>
+#include <cstring>
+#include <string>
 
 #include "dosbox.h"
 #include "logging.h"
@@ -293,7 +296,11 @@ static void SetupCMDLine(uint16_t pspseg, const DOS_ParamBlock& block) {
 bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 	EXE_Header head;Bitu i;
 	uint16_t fhandle;uint16_t len;uint32_t pos;
-	uint16_t pspseg,envseg,loadseg,memsize=0xffff,readsize;
+	uint16_t pspseg;
+	uint16_t envseg = 0;
+	uint16_t loadseg;
+	uint16_t memsize=0xffff;
+	uint16_t readsize;
 	uint16_t maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
 	uint32_t headersize = 0, imagesize = 0,memimagesize = 0;
