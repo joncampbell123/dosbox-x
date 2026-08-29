@@ -194,7 +194,9 @@ retry:
 #endif
     }
 
-    if (fixedWidth == 0 || fixedHeight == 0) 
+    bool isModeswitchSet = vga.draw.modeswitch_set;
+
+    if (((fixedWidth == 0 || fixedHeight == 0)) && !isModeswitchSet )
     {
         Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
         Bitu consider_width = menu.maxwindow ? currentWindowWidth : 0;
@@ -204,12 +206,15 @@ retry:
         fixedWidth = final_width;
         fixedHeight = final_height;
     }
+    else
+	fixedHeight = 0;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* scale the menu bar if the window is large enough */
     /* SDL drawn menus cannot coexist with 3Dfx emulation. In fact, there is a serious
      * bug in SDL1 builds that rapidly expands the vertical size of the menu every frame. */
-    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) {
+    
+    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen && isModeswitchSet) {
     }
     else {
         int cw = fixedWidth, ch = fixedHeight;
@@ -267,7 +272,7 @@ retry:
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     if (mainMenu.isVisible() && !sdl.desktop.fullscreen) 
     {
-        if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) {
+        if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen && isModeswitchSet ) {
         }
         else {
             windowHeight += mainMenu.menuBox.h;
