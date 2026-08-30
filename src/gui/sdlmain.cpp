@@ -1908,11 +1908,12 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 	/*
 	 * When modeswitching _is_ enabled let's go with sane values.
 	 */
-	bool p_modeswitch = vga.draw.modeswitch_set;
-	if(p_modeswitch) {
+	bool isModeSwicthSet = vga.draw.modeswitch_set;
+
+	if(isModeSwicthSet) {
 		flags = SDL_WINDOW_FULLSCREEN;
-		width = sdl.draw.width;
-		height = sdl.draw.height;
+		width = vga.draw.width;
+		height = vga.draw.height;
 	}
 #endif
 
