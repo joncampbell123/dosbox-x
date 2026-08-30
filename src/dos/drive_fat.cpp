@@ -3294,7 +3294,10 @@ nextfile:
 #endif
 
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) || !VolumeLabelCmp((const char*)sectbuf[entryoffset].entryname, srch_pattern)) goto nextfile;
-		labelCache.SetLabel(find_name, false, true);
+		std::array<char, 12> volume_label = {};
+		memcpy(volume_label.data(), sectbuf[entryoffset].entryname, 11);
+		trimString(volume_label.data());
+		labelCache.SetLabel(volume_label.data(), false, true);
 #if !defined(OSFREE)
 	} else if ((dos.version.major >= 7 || uselfn) && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
 		struct direntry_lfn *dlfn = (struct direntry_lfn*)(&sectbuf[entryoffset]);
