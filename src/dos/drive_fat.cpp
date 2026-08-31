@@ -41,11 +41,17 @@
  *
  * Hopefully this can be done without breaking things --J.C.
  */
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <vector>
+
+#include "dos_system.h"
 #include "dosbox.h"
 #include "dos_inc.h"
 #include "drives.h"
@@ -64,7 +70,6 @@
 #include "callback.h"
 #include "regs.h"
 
-#include <algorithm>
 
 #if defined(__linux__) && !defined(__GLIBC__)
 // musl libc does not need 64 suffix to work with files > 2 GiB
@@ -94,12 +99,10 @@ extern bool gbk, isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-extern bool dos_kernel_disabled;
-extern bool int13_enable_48bitLBA;
-std::string formatString(const char* format, ...);
-#endif
 
-extern diskGeo DiskGeometryList[];
+extern bool int13_enable_48bitLBA;
+
+#endif
 
 char* removeTrailingSpaces(char* str) {
 	char* end = str + strlen(str) - 1;
@@ -306,7 +309,7 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
                 if(!getFileDirEntry(fullname, &fileEntry, &dirClust, &subEntry,/*dirOk*/true)) return sfn;
                 k++;
         }
-        return NULL;
+        return nullptr;
 }
 #endif
 
@@ -318,10 +321,10 @@ class fatFile : public DOS_File {
                 bool Write(const uint8_t * data,uint16_t * size) override;
                 bool Seek(uint32_t * pos,uint32_t type) override;
                 bool Close() override;
-                uint16_t GetInformation(void) override;
-                void Flush(void) override;
-                bool UpdateDateTimeFromHost(void) override;
-                uint32_t GetSeekPos(void) override;
+                uint16_t GetInformation() override;
+                void Flush() override;
+                bool UpdateDateTimeFromHost() override;
+                uint32_t GetSeekPos() override;
                 uint32_t firstCluster;
                 uint32_t seekpos = 0;
                 uint32_t filelength;
@@ -432,7 +435,7 @@ void fatFile::Flush(void) {
 		else {
 			uint16_t ct,cd;
 
-			time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
+			time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(nullptr));
 
 			tmpentry.modTime = ct;
 			tmpentry.modDate = cd;
@@ -552,7 +555,7 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 
 		/* limit file length to seekpos, then bail out if write count is zero */
 		modified = true;
-		if(filelength > seekpos) filelength = seekpos;
+		filelength = std::min(filelength, seekpos);
 		if(*size == 0) goto finalizeWrite;
 	}
 
@@ -666,7 +669,7 @@ bool fatFile::Seek(uint32_t *pos, uint32_t type) {
 	}
 //	LOG_MSG("Seek to %d with type %d (absolute value %d)", *pos, type, seekto);
 
-	if(seekto<0) seekto = 0;
+	seekto = std::max(seekto, 0);
 	seekpos = (uint32_t)seekto;
 	currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos, &file_ccm);
 	if (currentSector == 0) {
@@ -702,7 +705,7 @@ bool fatFile::Close() {
 		else {
 			uint16_t ct,cd;
 
-			time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
+			time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(nullptr));
 
 			tmpentry.modTime = ct;
 			tmpentry.modDate = cd;
@@ -716,11 +719,11 @@ bool fatFile::Close() {
 #endif
 
 #if !defined(OSFREE)
-uint16_t fatFile::GetInformation(void) {
+uint16_t fatFile::GetInformation() {
 	return 0;
 }
 
-bool fatFile::UpdateDateTimeFromHost(void) {
+bool fatFile::UpdateDateTimeFromHost() {
 	return true;
 }
 
@@ -728,7 +731,7 @@ uint32_t fatFile::GetSeekPos() {
 	return seekpos;
 }
 
-uint32_t fatDrive::getClustFirstSect(uint32_t clustNum) {
+uint32_t fatDrive::getClustFirstSect(uint32_t clustNum)  const {
 	if (unformatted) return 0;
 	return ((clustNum - 2) * BPB.v.BPB_SecPerClus) + firstDataSector;
 }
@@ -1004,7 +1007,7 @@ nextfile:
 				while (j < 11)            sectbuf[entryoffset].entryname[j++] = ' ';
 			}
             uint16_t ct, cd;
-            time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd, ::time(NULL));
+            time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd, ::time(nullptr));
             sectbuf[entryoffset].modTime = ct;
             sectbuf[entryoffset].modDate = cd;
             sectbuf[entryoffset].accessDate = cd;
@@ -3291,7 +3294,10 @@ nextfile:
 #endif
 
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) || !VolumeLabelCmp((const char*)sectbuf[entryoffset].entryname, srch_pattern)) goto nextfile;
-		labelCache.SetLabel(find_name, false, true);
+		std::array<char, 12> volume_label = {};
+		memcpy(volume_label.data(), sectbuf[entryoffset].entryname, 11);
+		trimString(volume_label.data());
+		labelCache.SetLabel(volume_label.data(), false, true);
 #if !defined(OSFREE)
 	} else if ((dos.version.major >= 7 || uselfn) && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
 		struct direntry_lfn *dlfn = (struct direntry_lfn*)(&sectbuf[entryoffset]);
@@ -4152,4 +4158,3 @@ void fatDrive::checkDiskChange(void) {
 	}
 }
 #endif
-
