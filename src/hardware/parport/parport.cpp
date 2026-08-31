@@ -39,6 +39,7 @@
 #include "directlpt.h"
 #include "printer_redir.h"
 #include "filelpt.h"
+#include "extlpt.h"
 #include "dos_inc.h"
 
 uint16_t parallel_baseaddr[9] = {0x378,0x278,0x3bc,0,0,0,0,0,0};
@@ -415,6 +416,18 @@ class PARPORTS:public Module_base {
 							parallelPortObjects[i] = nullptr;
 						}
 					} else
+						if (str == "extlpt") {
+							CExtLPT* cxlpt = new CExtLPT(i, defaultirq[i], &cmd);
+							if(cxlpt->InstallationSuccessful) {
+								parallelPortObjects[i]=cxlpt;
+								parallelPortObjects[i]->parallelType = PARALLEL_TYPE_EXTLPT;
+								cmd.Shift(1);
+								cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
+							} else {
+								delete cxlpt;
+								parallelPortObjects[i] = nullptr;
+							}
+						} else
 #if C_PRINTER
 						// allow printer redirection on a single port
 						if (str == "printer" && !printer_used)
@@ -490,6 +503,7 @@ static const char *parallelTypes[PARALLEL_TYPE_COUNT] = {
 #if C_PRINTER
 	"printer",
 #endif
+	"extlpt",
 	"disney",
 };
 
@@ -642,6 +656,12 @@ void PARALLEL::Run()
 				{
 					CFileLPT* cflpt= new CFileLPT(port-1, defaultirq[port-1], &cmd, squote);
 					if(cflpt->InstallationSuccessful) parallelPortObjects[port-1]=cflpt;
+					break;
+				}
+			case PARALLEL_TYPE_EXTLPT:
+				{
+					CExtLPT* cxlpt= new CExtLPT(port-1, defaultirq[port-1], &cmd);
+					if(cxlpt->InstallationSuccessful) parallelPortObjects[port-1]=cxlpt;
 					break;
 				}
 #if C_PRINTER
