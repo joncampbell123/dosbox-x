@@ -558,6 +558,9 @@
     <ClCompile Include="..\src\hardware\parport\directlpt.cpp">
       <Filter>Sources\hardware\parport</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\parport\extlpt.cpp">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\parport\filelpt.cpp">
       <Filter>Sources\hardware\parport</Filter>
     </ClCompile>
@@ -1629,6 +1632,9 @@
     <ClCompile Include="..\src\misc\mkdir_p.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\localpipe.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\snd_pc98\cbus\pcm86io.c">
       <Filter>Sources\hardware\snd_pc98\cbus</Filter>
     </ClCompile>
@@ -1878,6 +1884,9 @@
       <Filter>Sources\hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\parport\directlpt.h">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\parport\extlpt.h">
       <Filter>Sources\hardware\parport</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\parport\filelpt.h">
@@ -2205,6 +2214,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\keyboard.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\localpipe.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\logging.h">

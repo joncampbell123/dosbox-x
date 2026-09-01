@@ -42,7 +42,19 @@
 #include "misc_util.h"
 #include "timer.h"
 #include <cassert>
+#include <cstring>
 #include <limits.h>
+
+#ifdef NATIVESOCKETS
+#if defined(WIN32)
+#ifndef TCP_NODELAY
+#define TCP_NODELAY 0x0001
+#endif
+#else
+#include <netinet/tcp.h>
+#include <sys/time.h>
+#endif
+#endif
 
 #ifdef NATIVESOCKETS
  #define CAPWORD (NETWRAPPER_TCP|NETWRAPPER_TCP_NATIVESOCKET)
@@ -97,6 +109,8 @@ NETClientSocket *NETClientSocket::NETClientFactory(SocketTypesE socketType,
 	case SOCKET_TYPE_ENET: return new ENETClientSocket(destination, port);
 #endif
 
+	case SOCKET_TYPE_NAMEDPIPE: return new NamedPipeClientSocket(destination);
+
 	default: return nullptr;
 	}
 	return nullptr;
@@ -147,7 +161,8 @@ NETServerSocket::~NETServerSocket()
 {}
 
 NETServerSocket *NETServerSocket::NETServerFactory(SocketTypesE socketType,
-                                                   uint16_t port)
+                                                   uint16_t port,
+                                                   const char *bindTarget)
 {
 	switch (socketType) {
 	case SOCKET_TYPE_TCP: return new TCPServerSocket(port);
@@ -155,6 +170,8 @@ NETServerSocket *NETServerSocket::NETServerFactory(SocketTypesE socketType,
 #if defined(WITH_ENET_IMPLEMENTATION)
 	case SOCKET_TYPE_ENET: return new ENETServerSocket(port);
 #endif
+
+	case SOCKET_TYPE_NAMEDPIPE: return new NamedPipeServerSocket(bindTarget ? bindTarget : "");
 
 	default: return nullptr;
 	}
@@ -588,6 +605,40 @@ bool NetWrapper_InitializeSDLNet()
 }
 
 #ifdef NATIVESOCKETS
+// SDL_net gives no public way to reach the underlying socket for a
+// TCPsocket it opened/accepted itself, but its private layout is exactly
+// _TCPsocketX (same trick the platformsocket constructor below uses in
+// reverse) - so this is safe. Nagle otherwise adds tens to hundreds of ms
+// of stall on a real network link when combined with a peer's delayed ACK;
+// harmless to skip on loopback, but every caller here (nullmodem, softmodem,
+// extlpt transport:tcp) is a small-message request/response protocol that
+// never benefits from Nagle's coalescing.
+static void SetTcpNoDelay(TCPsocket sock)
+{
+	if (!sock) return;
+	int flag = 1;
+	setsockopt(((_TCPsocketX *)sock)->channel, IPPROTO_TCP, TCP_NODELAY,
+	           (const char *)&flag, sizeof(flag));
+}
+
+// Bound a blocking send() so a peer that has stopped reading (full receive
+// window) fails the write instead of hanging the emulator core forever. Ample
+// for any live small-message link; a stall this long is a dead connection.
+static void SetTcpSendTimeout(TCPsocket sock)
+{
+	if (!sock) return;
+	const SOCKET fd = ((_TCPsocketX *)sock)->channel;
+#if defined(WIN32)
+	DWORD ms = 15000;
+	setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (const char *)&ms, sizeof(ms));
+#else
+	struct timeval tv;
+	tv.tv_sec = 15;
+	tv.tv_usec = 0;
+	setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+#endif
+}
+
 TCPClientSocket::TCPClientSocket(int platformsocket)
 {
 	if (!NetWrapper_InitializeSDLNet())
@@ -641,7 +692,10 @@ TCPClientSocket::TCPClientSocket(TCPsocket source)
 		listensocketset = SDLNet_AllocSocketSet(1);
 		if(!listensocketset) return;
 		SDLNet_TCP_AddSocket(listensocketset, source);
-
+#ifdef NATIVESOCKETS
+		SetTcpNoDelay(mysock);
+		SetTcpSendTimeout(mysock);
+#endif
 		isopen=true;
 	}
 }
@@ -660,6 +714,10 @@ TCPClientSocket::TCPClientSocket(const char *destination, uint16_t port)
 		if (!mysock)
 			return;
 		SDLNet_TCP_AddSocket(listensocketset, mysock);
+#ifdef NATIVESOCKETS
+		SetTcpNoDelay(mysock);
+		SetTcpSendTimeout(mysock);
+#endif
 		isopen=true;
 	}
 }
@@ -783,4 +841,113 @@ NETClientSocket *TCPServerSocket::Accept()
 	
 	return new TCPClientSocket(new_tcpsock);
 }
+
+// --- LOCAL NAMED PIPE / AF_UNIX NET INTERFACE -----------------------------
+
+NamedPipeClientSocket::NamedPipeClientSocket(const char *path)
+{
+	LocalPipeOpenResult r = LocalPipe_Open(path ? path : "", /*serverMode*/false);
+	if (r.handle == LOCALPIPE_INVALID) {
+		LOG_MSG("NAMEDPIPE: %s", r.error.c_str());
+		return;
+	}
+	handle = r.handle;
+	LocalPipe_SetNonBlocking(handle);
+	isopen = true;
+}
+
+NamedPipeClientSocket::NamedPipeClientSocket(localpipe_t alreadyConnected)
+{
+	handle = alreadyConnected;
+	if (handle != LOCALPIPE_INVALID) {
+		LocalPipe_SetNonBlocking(handle);
+		isopen = true;
+	}
+}
+
+NamedPipeClientSocket::~NamedPipeClientSocket()
+{
+	LocalPipe_Close(handle);
+	handle = LOCALPIPE_INVALID;
+}
+
+SocketState NamedPipeClientSocket::GetcharNonBlock(uint8_t &val)
+{
+	uint8_t b;
+	long g = LocalPipe_Recv(handle, &b, 1);
+	if (g < 0) { isopen = false; return SocketState::Closed; }
+	if (g == 0) return SocketState::Empty;
+	val = b;
+	return SocketState::Good;
+}
+
+bool NamedPipeClientSocket::SendArray(const uint8_t *data, size_t n)
+{
+	// Best-effort: a local pipe/socket almost never refuses a small write,
+	// but spin briefly if it does rather than dropping bytes.
+	size_t done = 0;
+	int spins = 0;
+	while (done < n) {
+		long put = LocalPipe_Send(handle, data + done, n - done);
+		if (put < 0) { isopen = false; return false; }
+		if (put == 0) {
+			if (++spins > 1000) { isopen = false; return false; } // ~1s
+			SDL_Delay(1);
+			continue;
+		}
+		done += (size_t)put;
+		spins = 0;
+	}
+	return true;
+}
+
+bool NamedPipeClientSocket::ReceiveArray(uint8_t *data, size_t &n)
+{
+	long g = LocalPipe_Recv(handle, data, n);
+	if (g < 0) { isopen = false; n = 0; return false; }
+	n = (size_t)g;
+	return true;
+}
+
+bool NamedPipeClientSocket::Putchar(uint8_t val)
+{
+	return SendArray(&val, 1);
+}
+
+bool NamedPipeClientSocket::GetRemoteAddressString(char *buffer)
+{
+	// A local pipe peer is by definition on this host; report a loopback
+	// address so callers applying a "localhost only" policy accept it.
+	strcpy(buffer, "127.0.0.1");
+	return true;
+}
+
+NamedPipeServerSocket::NamedPipeServerSocket(const char *path)
+	: bindpath(path ? path : "")
+{
+	std::string err;
+	listener = LocalPipe_Listen(bindpath, &err);
+	if (listener == LOCALPIPE_INVALID) {
+		LOG_MSG("NAMEDPIPE: %s", err.c_str());
+		return;
+	}
+	isopen = true;
+}
+
+NamedPipeServerSocket::~NamedPipeServerSocket()
+{
+	LocalPipe_Close(listener);
+	listener = LOCALPIPE_INVALID;
+	LocalPipe_Unlink(bindpath); // POSIX: don't leave the socket file behind
+}
+
+NETClientSocket *NamedPipeServerSocket::Accept()
+{
+	bool consumed = false;
+	localpipe_t c = LocalPipe_TryAccept(listener, &consumed);
+	if (c == LOCALPIPE_INVALID) return nullptr;
+	if (consumed) listener = LOCALPIPE_INVALID; // Windows: the handle became the client
+	return new NamedPipeClientSocket(c);
+}
+
 #endif // #if C_MODEM

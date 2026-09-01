@@ -485,20 +485,21 @@ void CSerialModem::DoCommand() {
 				}
 				break;
 			}
-			// +SOCK1 enables enet.  +SOCK0 is TCP.
+			// +SOCK0 is TCP, +SOCK1 enables enet. (Named pipe has no
+			// host:port to dial, so it is not offered here - use nullmodem
+			// sock:2 for a local pipe.)
 			if (is_next_token("SOCK", scanbuf)) {
 				scanbuf += 4;
 				const uint32_t requested_mode = ScanNumber(scanbuf);
-				if (requested_mode >= SOCKET_TYPE_COUNT) {
+				if (requested_mode >= SOCKET_TYPE_COUNT ||
+				    requested_mode == SOCKET_TYPE_NAMEDPIPE) {
 					SendRes(ResERROR);
 					return;
 				}
 				socketType = (SocketTypesE)requested_mode;
-				// This will break when there's more than two
-				// socket types.
 				LOG_MSG("SERIAL: Port %u socket type %s",
 				        (int)idnumber + 1,
-				        socketType ? "ENet" : "TCP");
+				        socketType == SOCKET_TYPE_ENET ? "ENet" : "TCP");
 				// Reset port state.
 				EnterIdleState();
 				break;

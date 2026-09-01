@@ -81,7 +81,9 @@
 
 uint32_t Netwrapper_GetCapabilities();
 
-enum SocketTypesE { SOCKET_TYPE_TCP = 0, SOCKET_TYPE_ENET, SOCKET_TYPE_COUNT };
+#include "localpipe.h"
+
+enum SocketTypesE { SOCKET_TYPE_TCP = 0, SOCKET_TYPE_ENET, SOCKET_TYPE_NAMEDPIPE, SOCKET_TYPE_COUNT };
 
 // helper functions
 bool NetWrapper_InitializeSDLNet();
@@ -132,8 +134,11 @@ public:
 	NETServerSocket(const NETServerSocket &) = delete; // prevent copying
 	NETServerSocket &operator=(const NETServerSocket &) = delete; // prevent assignment
 
+	// bindTarget is used only by SOCKET_TYPE_NAMEDPIPE (the pipe/socket
+	// path); the TCP/ENET server sockets ignore it and use `port`.
 	static NETServerSocket *NETServerFactory(SocketTypesE socketType,
-	                                         uint16_t port);
+	                                         uint16_t port,
+	                                         const char *bindTarget = nullptr);
 
 	virtual NETClientSocket *Accept() = 0;
 
@@ -239,6 +244,46 @@ public:
 	~TCPServerSocket();
 
 	NETClientSocket *Accept() override;
+};
+
+// --- LOCAL NAMED PIPE / AF_UNIX NET INTERFACE -----------------------------
+// Same byte-stream contract as the TCP sockets, but over a local named pipe
+// (Windows) / AF_UNIX stream socket (POSIX) via the shared LocalPipe_* helper
+// - lowest latency, no network stack. `port` is meaningless here; the
+// endpoint is a path.
+
+class NamedPipeClientSocket : public NETClientSocket {
+public:
+	explicit NamedPipeClientSocket(const char *path); // connect to `path`
+	explicit NamedPipeClientSocket(localpipe_t alreadyConnected); // adopt a handle
+	NamedPipeClientSocket(const NamedPipeClientSocket&) = delete;
+	NamedPipeClientSocket& operator=(const NamedPipeClientSocket&) = delete;
+
+	~NamedPipeClientSocket();
+
+	SocketState GetcharNonBlock(uint8_t &val) override;
+	bool Putchar(uint8_t val) override;
+	bool SendArray(const uint8_t *data, size_t n) override;
+	bool ReceiveArray(uint8_t *data, size_t &n) override;
+	bool GetRemoteAddressString(char *buffer) override;
+
+private:
+	localpipe_t handle = LOCALPIPE_INVALID;
+};
+
+class NamedPipeServerSocket : public NETServerSocket {
+public:
+	explicit NamedPipeServerSocket(const char *path);
+	NamedPipeServerSocket(const NamedPipeServerSocket&) = delete;
+	NamedPipeServerSocket& operator=(const NamedPipeServerSocket&) = delete;
+
+	~NamedPipeServerSocket();
+
+	NETClientSocket *Accept() override;
+
+private:
+	localpipe_t listener = LOCALPIPE_INVALID;
+	std::string bindpath; // POSIX: socket file to unlink when done listening
 };
 
 #endif // C_MODEM
