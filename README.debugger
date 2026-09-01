@@ -142,6 +142,10 @@ interactive debugger prompt. For example:
 returns the same CPU state text that the interactive CPU command would write
 to the debugger output window.
 
+Resume commands (`RUN`, `RUNWATCH`, and `VRT`) are acknowledged before
+DOSBox-X leaves the debugger loop. Their response is only a successful
+acceptance of the command, not a post-resume state snapshot.
+
 Output is captured from DEBUG_ShowMsg while an MCP command is running. Paged
 debugger output is not paused for terminal input during this capture, so
 commands such as HELP, GDT, LDT, IDT, and DOS memory listings can be returned

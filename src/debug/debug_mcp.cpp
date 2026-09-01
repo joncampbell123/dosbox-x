@@ -106,6 +106,25 @@ std::string SanitizeProtocolLine(std::string line)
     return line;
 }
 
+std::string FirstWordUpper(const std::string& value)
+{
+    const auto begin = value.find_first_not_of(" \t");
+    if (begin == std::string::npos)
+        return {};
+
+    const auto end = value.find_first_of(" \t", begin);
+    if (end == std::string::npos)
+        return UpperAscii(value.substr(begin));
+
+    return UpperAscii(value.substr(begin, end - begin));
+}
+
+bool IsResumeDebuggerCommand(const std::string& command)
+{
+    const auto word = FirstWordUpper(command);
+    return word == "RUN" || word == "RUNWATCH" || word == "VRT";
+}
+
 void BeginCapture()
 {
     std::lock_guard<std::mutex> lock(g_capture_mutex);
@@ -500,6 +519,28 @@ void SendErrorResponse(const std::string& id, const std::string& error)
     SendResponse(id.empty() ? "0" : id, false, {error});
 }
 
+bool OutgoingQueueEmpty()
+{
+    std::lock_guard<std::mutex> lock(g_outgoing_mutex);
+    return g_outgoing.empty();
+}
+
+void WaitForOutgoingDrain()
+{
+    constexpr int max_wait_ms = 250;
+    constexpr int sleep_step_ms = 5;
+
+    for (int elapsed_ms = 0;
+         elapsed_ms < max_wait_ms && g_running.load();
+         elapsed_ms += sleep_step_ms) {
+        if (OutgoingQueueEmpty() || !g_connected.load())
+            return;
+
+        std::this_thread::sleep_for(
+                std::chrono::milliseconds(sleep_step_ms));
+    }
+}
+
 void ProcessControlCommand(const std::string& line)
 {
     ControlRequest request;
@@ -512,6 +553,14 @@ void ProcessControlCommand(const std::string& line)
 
     if (request.command == "PING") {
         SendResponse(request.id, true, {"PONG"});
+        return;
+    }
+
+    if (request.command == "EXEC" &&
+            IsResumeDebuggerCommand(request.payload)) {
+        SendResponse(request.id, true, {"OK"});
+        WaitForOutgoingDrain();
+        DEBUG_ExecuteCommand(request.payload.c_str());
         return;
     }
 
