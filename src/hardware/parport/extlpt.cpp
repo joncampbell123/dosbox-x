@@ -40,7 +40,6 @@
 // transport:tcp reuses the serialport networking layer, hence the C_MODEM gate.
 #include "timer.h"                         // GetTicks() / SDL_Delay()
 #include "hardware/serialport/misc_util.h" // NETClientSocket, NET*Factory
-#include <thread>
 #endif
 
 // extlpt forwards raw LPT register accesses to a separate process that speaks
@@ -171,8 +170,7 @@ private:
 	// clearly not imminent. False = deadline passed.
 	bool backoff(DWORD start, unsigned &spins) {
 		if (GetTickCount() - start >= FRAME_IO_TIMEOUT_MS) return false;
-		if (spins < 64)          YieldProcessor();
-		else if (spins < 4096)   SwitchToThread();
+		if (spins < 4096)        SwitchToThread();
 		else                     Sleep(1);
 		++spins;
 		return true;
@@ -327,7 +325,7 @@ public:
 			done += got;
 			if (got != 0) { spins = 0; continue; }
 			if (GetTicks() - start >= FRAME_IO_TIMEOUT_MS) return fail("recv timed out");
-			if (spins < 4096) { std::this_thread::yield(); ++spins; }
+			if (spins < 4096) { SDL_Delay(0); ++spins; }
 			else SDL_Delay(1);
 		}
 		return true;
