@@ -1,0 +1,5670 @@
+# ----------------------------------------------------------------------------
+# DOSBox-X. Fitxer d'idioma català.
+# Traductor: Joan Homar
+#
+# Criteris de traducció i vocabulari
+#
+# 1. Traducció del MS-DOS 5.0
+#    https://archive.org/details/ms-dos-5-cat-disquets
+#    https://archive.org/details/ms-dos-5-cat-manual
+#
+# 2. Traducció de Windows 98
+#    https://archive.org/details/microsoft-windows-98-catala
+#
+# 3. Criteris de https://www.softcatala.org/ per a la traducció d'altres
+#    programes al català
+#
+# 4. Material i vocabulari de https://www.termcat.cat/ca
+#
+# 5. La traducció s'ha fet en base a la versió per a Linux i s'ha
+#    revisat sobre Windows.
+#
+# 6. No s'han traduït algunes paraules tècniques o d'argot informàtic
+#    que requereixen massa explicació o frases massa llargues. Moltes
+#    d'aquestes paraules s'han envoltat amb «cometes» tipogràfiques, com:
+#    «MAPPER», «slot», «joystick», «El Torito», «overlay», «Frameskip»,
+#    «syncrate», «Overscan», «Boot» o «prefetch».
+#
+# 7. No s'han traduït missatges relacionats amb els idiomes japonès,
+#    xinès i coreà, especialment PC98, CJK i DOS/V
+#
+#
+# NOTA: Per a suggeriments o millores poseu-vos en contacte per correu
+#       electrònic amb joan.homar@gmail.com
+# ----------------------------------------------------------------------------
+:DOSBOX-X:LANGUAGE: Catalan
+:DOSBOX-X:CODEPAGE: 850
+:DOSBOX-X:VERSION:2026.08.02
+:DOSBOX-X:REMARK:
+:AUTOEXEC_CONFIGFILE_HELP
+Les línies d'aquesta secció s'executaran a l'inici.
+Podeu posar les vostres línies MOUNT aquí.
+
+.
+:CONFIGFILE_INTRO
+# Aquest és el fitxer de configuració de DOSBox-X %s.
+# (Si us plau, utilitzeu l'última versió de DOSBox-X)
+# Les línies que comencen amb un # són comentaris i DOSBox-X les ignora.
+# Es fan servir per documentar (breument) l'efecte de cada opció.
+# Per escriure TOTES les opcions, utilitzeu l'ordre 'config -all' amb les
+# opcions -wc o -writeconf.
+
+.
+:CONFIG_SUGGESTED_VALUES
+Valors possibles
+.
+:CONFIG_ADVANCED_OPTION
+Opcions avançades (vegeu el fitxer de configuració 
+[dosbox-x.reference.full.conf] per a més detalls)
+.
+:CONFIG_TOOL
+Configuració de DOSBox-X
+.
+:CONFIG_TOOL_EXIT
+Surt de l'eina de configuració
+.
+:MAPPER_EDITOR_EXIT
+Surt de l'editor del «MAPPER»
+.
+:SAVE_MAPPER_FILE
+Desa el fitxer del «MAPPER»
+.
+:WARNING
+Avís
+.
+:ERROR
+Error
+.
+:INFORMATION
+Informació
+.
+:YES
+Sí
+.
+:NO
+No
+.
+:OK
+D'acord
+.
+:CANCEL
+Cancel·la
+.
+:CLOSE
+Tanca
+.
+:THEME
+Tema
+.
+:DEBUGCMD
+Introduïu l'ordre del depurador
+.
+:ADD
+Afegeix
+.
+:DEL
+Suprimeix
+.
+:NEXT
+Següent
+.
+:SAVE
+Desa
+.
+:EXIT
+Surt
+.
+:CAPTURE
+Captura
+.
+:SAVE_CONFIGURATION
+Desa la configuració
+.
+:SAVE_LANGUAGE
+Desa el fitxer d'idioma
+.
+:SAVE_RESTART
+Desa i reinicia
+.
+:PASTE_CLIPBOARD
+Enganxa porta-retalls
+.
+:APPEND_HISTORY
+Afegeix a l'historial
+.
+:EXECUTE_NOW
+Executa ara
+.
+:ADDITION_CONTENT
+Contingut addicional:
+.
+:CONTENT
+Contingut:
+.
+:EDIT_FOR
+Edita %s
+.
+:HELP_FOR
+Ajuda de %s
+.
+:SELECT_VALUE
+Seleccioneu el valor de la propietat
+.
+:CONFIGURATION
+Fitxer
+.
+:SETTINGS
+Configuració
+.
+:LOGGING_OUTPUT
+Sortida del registre DOSBox-X
+.
+:CODE_OVERVIEW
+Visió general del codi
+.
+:VISIT_HOMEPAGE
+Visiteu la pàgina d'inici
+.
+:GET_STARTED
+Primers passos
+.
+:CDROM_SUPPORT
+Suport de CD-ROM
+.
+:DRIVE_INFORMATION
+Informació de la unitat
+.
+:MOUNTED_DRIVE_NUMBER
+Números de les unitats muntades
+.
+:IDE_CONTROLLER_ASSIGNMENT
+Assignació del controlador IDE
+.
+:HELP_COMMAND
+Ajuda de l'ordre de DOS
+.
+:CURRENT_VOLUME
+Volums actuals del mesclador de so
+.
+:CURRENT_SBCONFIG
+Configuració de Sound Blaster
+.
+:CURRENT_MIDICONFIG
+Configuració actual de MIDI/OPL
+.
+:CREATE_IMAGE
+Crea una imatge de disc en blanc
+.
+:NETWORK_LIST
+Llista d'interfícies de xarxa
+.
+:PRINTER_LIST
+Llista de dispositius d'impressora
+.
+:INTRODUCTION
+Introducció
+.
+:SHOW_ADVOPT
+Visualitza opcions avançades
+.
+:USE_PRIMARYCONFIG
+Configuració principal
+.
+:USE_PORTABLECONFIG
+Configuració portable
+.
+:USE_USERCONFIG
+Configuració d'usuari
+.
+:CONFIG_SAVETO
+Nom del fitxer de configuració:
+.
+:CONFIG_SAVEALL
+Desa les opcions avançades al fitxer de configuració
+.
+:LANG_FILENAME
+Nom del fitxer d'idioma:
+.
+:LANG_LANGNAME
+Nom de l'idioma (opcional):
+.
+:INTRO_MESSAGE
+Us donem la benvinguda a DOSBox-X, un emulador de DOS gratuït i de codi obert.
+DOSBox-X té un intèrpret d'ordres que funciona com un DOS real.
+També podeu executar Windows 3.x i 9x/Me dins de la màquina DOS.
+.
+:DRIVE
+Unitat
+.
+:TYPE
+Tipus
+.
+:LABEL
+Etiqueta
+.
+:DRIVE_NUMBER
+Núm. unitat
+.
+:DISK_NAME
+Nom disc
+.
+:IDE_POSITION
+IDE posició
+.
+:SWAP_SLOT
+Commuta «slot»
+.
+:EMPTY_SLOT
+«Slot» buit
+.
+:SLOT
+«Slot»
+.
+:SELECT_EVENT
+Seleccioneu un esdeveniment a canviar.
+.
+:SELECT_DIFFERENT_EVENT
+Seleccioneu un esdeveniment o premeu els botons Afegeix/Suprimeix/Següent.
+.
+:PRESS_JOYSTICK_KEY
+Premeu una tecla, un botó del «joystick» o moveu el «joystick».
+.
+:CAPTURE_ENABLED
+Captura activada. Premeu ESC per alliberar la captura.
+.
+:MAPPER_FILE_SAVED
+S'ha desat el fitxer «MAPPER»
+.
+:AUTO_CYCLE_MAX
+Cicles automàtics [màxim]
+.
+:AUTO_CYCLE_AUTO
+Cicles automàtics [auto]
+.
+:AUTO_CYCLE_OFF
+Cicles automàtics [off]
+.
+:LANG_LOAD_ERROR
+No s'ha pogut carregar el fitxer de missatges d'idioma %s.
+S'utilitzarà l'idioma predeterminat.
+.
+# ----------------------------------------------------------------------------
+# No traduït. Suport per a japonès, xinès o coreà !
+#
+:LANG_JP_INCOMPATIBLE
+You have specified a language file which uses a code page incompatible with the Japanese PC-98 or JEGA/AX system.
+
+Are you sure to use the language file for this machine type?
+.
+:LANG_DOSV_INCOMPATIBLE
+You have specified a language file which uses a code page incompatible with the current DOS/V system.
+
+Are you sure to use the language file for this system type?
+.
+#
+# ----------------------------------------------------------------------------
+:LANG_CHANGE_CP
+El fitxer d'idioma especificat utilitza la taula de codis %d.
+Voleu canviar a aquesta taula de codis en conseqüència?
+.
+:HELP_ABOUT_VERSION
+DOSBox-X ver.%s (%s %s %s-bit)%s
+.
+:HELP_ABOUT_UPDATED
+Data/hora de compilació: %s
+.
+:HELP_ABOUT_COPYRIGHT
+Copyright %s-%s %s
+.
+:HELP_ABOUT_MAINTAINER
+Mantenidor del projecte: %s
+.
+:HELP_ABOUT_HOMEPAGE
+Pàgina d'inici de DOSBox-X: %s
+.
+:PROGRAM_CONFIG_PROPERTY_ERROR
+No hi ha cap secció o propietat.
+
+.
+:PROGRAM_CONFIG_NO_PROPERTY
+No hi ha cap propietat %s a la secció %s.
+
+.
+:PROGRAM_CONFIG_SET_SYNTAX
+La sintaxi de l'opció -set és incorrecta.
+
+.
+:PROGRAM_CONFIG_NOCONFIGFILE
+No s'ha carregat cap fitxer de configuració.
+
+.
+:PROGRAM_CONFIG_PRIMARY_CONF
+Fitxer de configuració principal: 
+%s
+
+.
+:PROGRAM_CONFIG_ADDITIONAL_CONF
+Fitxers de configuració addicionals:
+
+.
+:PROGRAM_CONFIG_GLOBAL_CONF
+
+Fitxer de configuració global: 
+%s
+
+.
+:PROGRAM_CONFIG_CONFDIR
+Directori de configuració d'usuari de DOSBox-X %s: 
+%s
+
+
+.
+:PROGRAM_CONFIG_WORKDIR
+Directori de treball de DOSBox-X: 
+%s
+
+
+.
+:PROGRAM_CONFIG_FILE_ERROR
+
+No es pot obrir el fitxer %s
+
+.
+:PROGRAM_CONFIG_FILE_WHICH
+S'està desant el fitxer de configuració %s
+
+.
+:PROGRAM_LANGUAGE_FILE_WHICH
+Desat el fitxer d'idioma %s
+
+.
+:PROGRAM_CONFIG_USAGE
+Utilitat de configuració de la línia d'ordres
+
+←[1mCONFIG [options]←[0m
+  -? -h -help○Mostra l'ajuda.
+  -? sections○Llista les seccions del fitxer de configuració.
+  -? secció○Llista les propietats de l'una secció concreta.
+  -? propietat○Mostra els valors possibles de la propietat.
+  -gui○○Inicia la configuració gràfica. Equivalent a CFGTOOL.
+  -startmapper○Inicia l'editor del «MAPPER».
+  -avistart○Engega la gravació AVI
+  -avistop○Atura la gravació AVI.
+  -securemode○Mode segur. Es desactiven funcions com el muntatge.
+
+←[1mOpcions per visualitzar/modificar la configuració←[0m
+  -l○○○○  Llista els paràmetres de la configuració.
+  -get secció propietat○○  Retorna el valor de la propietat i assigna
+○○○○  el valor a la variable %%CONFIG%%.
+  -set "secció propietat=valor"○  Assigna valor a la propietat.
+  -setf "secció propietat=valor"  Força l'assignació del valor.
+  -axclear○○○  Esborra la secció [autoexec].
+  -axadd "línia"○○  Afegeix la "línia" a la secció [autoexec].
+  -axtype○○○  Imprimeix contingut secció [autoexec].
+
+←[1mOpcions sobre els fitxers de configuració←[0m
+  -wc -writeconf  Desa configuració al fitxer des d'on s'ha llegit en iniciar.
+  -wc ←[1mfitxer←[0m○  Desa a ←[1mfitxer←[0m en el directori de configuració.
+  -wcp○○  Desa ←[1mdosbox-x.conf←[0m en el directori del programa.
+  -wcp ←[1mfitxer←[0m○  Desa a ←[1mfitxer←[0m en el directori del programa.
+  -wcd○○  Desa la configuració per defecte.
+  -norem○  Amb -wc, -wcp o -wcd per no desar els comentaris.
+  -all○○  Amb -wc, -wcp o -wcd per desar totes les opcions.
+  -mod○○  Amb -wc, -wcp o -wcd desa només les opcions modificades.
+  -wcboot○  Com -wc i reinicia després.
+  -wcpboot○  Com -wcp i reinicia després.
+  -wcdboot○  Com -wcd i reinicia després.
+  -bc○○  Reinicia amb el fitxer de configuració especificat.
+  -ln -langname○  Visualitza o especifica el nom de l'idioma.
+  -wl ←[1mfitxer←[0m○  Desa els textos de l'idioma actiu a ←[1mfitxer←[0m.
+
+←[0mEscriviu ←[1mCONFIG -? | MORE←[0m per veure l'ajuda paginada.
+
+.
+:PROGRAM_CONFIG_HLP_PROPHLP
+Propòsit de la propietat "%s" (continguda a la secció "%s"):
+%s
+
+Possibles valors: %s
+Valor per defecte: %s
+Valor actual: %s
+
+.
+:PROGRAM_CONFIG_HLP_LINEHLP
+Propòsit de la secció "%s":
+%s
+Valor actual:
+%s
+
+.
+:PROGRAM_CONFIG_HLP_NOCHANGE
+Aquesta propietat no es pot canviar en temps d'execució.
+
+.
+:PROGRAM_CONFIG_APPLY_RESTART
+Voleu reiniciar ara per aplicar la configuració [Y/N]?
+.
+:PROGRAM_CONFIG_HLP_POSINT
+enter positiu
+.
+:PROGRAM_CONFIG_HLP_SECTHLP
+La secció %s conté les propietats següents:
+
+.
+:PROGRAM_CONFIG_HLP_SECTLIST
+La configuració conté les seccions següents:
+
+
+.
+:PROGRAM_CONFIG_SECURE_ON
+S'ha canviat al mode segur.
+
+.
+:PROGRAM_CONFIG_SECURE_DISALLOW
+Aquesta operació no està permesa en mode segur.
+
+.
+:PROGRAM_CONFIG_SECTION_ERROR
+La secció %s no existeix.
+
+.
+:PROGRAM_CONFIG_VALUE_ERROR
+"%s" no és un valor vàlid per a la propietat %s.
+
+.
+:PROGRAM_CONFIG_PROPERTY_DUPLICATE
+Pot haver-hi altres seccions amb el mateix nom de propietat.
+
+.
+:PROGRAM_CONFIG_GET_SYNTAX
+Sintaxi correcta: config -get "propietat de la secció".
+
+.
+:PROGRAM_CONFIG_PRINT_STARTUP
+
+DOSBox-X s'ha iniciat amb els següents paràmetres de línia d'ordres:
+%s
+
+.
+:PROGRAM_CONFIG_MISSINGPARAM
+Falta un paràmetre.
+
+.
+:PROGRAM_MOUSE_INSTALL
+Instal·lat al port PS/2.
+
+.
+:PROGRAM_MOUSE_VERTICAL
+Eix Y invers activat.
+
+.
+:PROGRAM_MOUSE_VERTICAL_BACK
+Eix Y invers desactivat.
+
+.
+:PROGRAM_MOUSE_UNINSTALL
+El controlador s'ha descarregat correctament...
+
+.
+:PROGRAM_MOUSE_ERROR
+Ja instal·lat al port PS/2.
+
+.
+:PROGRAM_MOUSE_NOINSTALLED
+El controlador no està instal·lat.
+
+.
+:PROGRAM_MOUSE_HELP
+Activa o desactiva el ratolí.
+
+MOUSE [/?] [/U] [/V]
+
+  /U: Desinstal·la
+  /V: Inverteix eix Y
+
+.
+:PROGRAM_MOUNT_CDROMS_FOUND
+CDROMs trobats: %d
+
+.
+:PROGRAM_MOUNT_STATUS_FORMAT
+%-5s  %-58s %-12s
+
+.
+:PROGRAM_MOUNT_STATUS_ELTORITO
+La unitat %c està muntada com a unitat de disquet «El Torito»
+
+.
+:PROGRAM_MOUNT_STATUS_RAMDRIVE
+La unitat %c està muntada com a unitat RAM
+
+.
+:PROGRAM_MOUNT_STATUS_2
+La unitat %c està muntada com a %s
+
+.
+:PROGRAM_MOUNT_STATUS_1
+Les unitats muntades actualment són:
+
+.
+:PROGRAM_MOUNT_NOT_FORMATTED
+La unitat no està formatada. Formateu-la abans d'accedir a la unitat.
+
+.
+:PROGRAM_MOUNT_UNSUPPORTED_EXT
+Extensió no admesa %s: Muntada com a imatge .IMG en brut.
+
+.
+:PROGRAM_IMGMOUNT_STATUS_FORMAT
+%-5s  %-47s  %-12s  %s
+
+.
+:PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT
+%-12s  %-40s  %-12s  %s
+
+.
+:PROGRAM_IMGMOUNT_STATUS_2
+Els números de unitats muntats actualment són:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_1
+Les unitats FAT/ISO muntades actualment són:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_NONE
+No hi ha unitat disponible
+
+.
+:PROGRAM_IMGSWAP_STATUS
+Les unitats disponibles actualment per intercanviar són:
+
+.
+:PROGRAM_IMGSWAP_ERROR
+La posició ha d'estar entre 1 i %d per a aquesta unitat.
+
+.
+:PROGRAM_MOUNT_ERROR_1
+El directori %s no existeix.
+
+.
+:PROGRAM_MOUNT_ERROR_2
+%s no és un directori
+
+.
+:PROGRAM_MOUNT_IMGMOUNT
+Per muntar fitxers d'imatge, utilitzeu l'ordre ←[1mIMGMOUNT←[0m, no l'ordre ←[1mMOUNT←[0m.
+
+.
+:PROGRAM_MOUNT_ILL_TYPE
+Tipus il·legal %s
+
+.
+:PROGRAM_MOUNT_ALREADY_MOUNTED
+La unitat %c ja està muntada amb %s
+
+.
+:PROGRAM_MOUNT_USAGE
+Munta directoris o unitats del sistema amfitrió com unitats de DOSBox-X.
+
+←[1mMOUNT unitat dir_local [opcions]←[0m
+
+  unitat           Lletra de la unitat on el directori o la unitat serà muntat.
+  dir_local        Directori local o unitat del sistema amfitrió a muntar.
+  opcions          Accepta les opcions següents:
+  -t               Tipus d'unitat muntada: dir, floppy, cdrom, «overlay»
+                   («overlay» redirigeix l'escriptura a un altre directori)
+  -label [nom]     Estableix l'etiqueta del volum de la unitat (majúscules).
+  -nl              Utilitza la següent lletra, si la unitat ja està muntada.
+  -ro              Munta la unitat en mode de només lectura.
+  -pr              Indica la ruta relativa a la ubicació del fitxer config.
+  -cd              Genera una llista dels valors de la unitat de CD local.
+  -usecd [disc#]   Emulació directa de maquinari, p.e. la reproducció d'àudio.
+  -ioctl           Accés nivell més baix maquinari (després de -usecd).
+  -aspi            Utilitza la capa ASPI instal·lada (després de -usecd).
+  -freesize [mida] Especifica l'espai lliure en disc en MB (kB en disquets).
+  -nocachedir      No utilitza la memòria cau per a la unitat.
+  -z unitat        Mou la unitat virtual Z: a una lletra diferent.
+  -o               Informa de la unitat com a: local, remota.
+  -q               Mode silenciós (sense sortida de missatges).
+  -u               Desmunta la unitat.
+  -examples        Visualitza alguns exemples d'ús.
+
+MOUNT, sense paràmetres, visualitza la llista d'unitats muntades.
+
+Escriviu ←[1mMOUNT /? | MORE←[0m per veure l'ajuda paginada.
+
+.
+:PROGRAM_MOUNT_EXAMPLE
+Un exemple bàsic de l'ordre MOUNT:
+
+←[1mMOUNT c %s←[0m
+
+Fa que el directori %s actuï com a unitat C: dins de DOSBox-X.
+
+El directori ha d'existir en el sistema amfitrió. Si el directori conté espais,
+assegureu-vos d'escriure correctament el seu nom entre cometes dobles, per
+exemple: %s
+
+Altres exemples de MOUNT
+
+←[1mMOUNT←[0m                            llista totes les unitats muntades
+←[1mMOUNT -cd←[0m                        llista totes les unitats de CD
+←[1mMOUNT d %s←[0m            munta el directori indicat a la unitat D:
+←[1mMOUNT c %s -t cdrom←[0m      munta C: com a CD-ROM
+←[1mMOUNT c %s -ro←[0m           munta C: en mode de només lectura
+←[1mMOUNT c %s -label TEST←[0m   munta C: amb l'etiqueta TEST
+←[1mMOUNT c %s -nocachedir ←[0m  munta C: sense fer servir la memòria cau
+←[1mMOUNT c %s -freesize 128←[0m munta C: amb 128MB d'espai lliure al disc
+←[1mMOUNT c %s -u←[0m            força muntatge C: fins i tot si ja ho està
+←[1mMOUNT c %s -t overlay←[0m  munta C: amb el directori superposat
+←[1mMOUNT c -u←[0m                       desmunta la unitat C:
+
+.
+:PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
+Unitat %c no muntada.
+
+.
+:PROGRAM_MOUNT_UMOUNT_SUCCESS
+La unitat %c s'ha eliminat correctament.
+
+.
+:PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
+La unitat número %c s'ha eliminat correctament.
+
+.
+:PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
+Les unitats virtuals no es poden desmuntar.
+
+.
+:PROGRAM_MOUNT_WARNING_WIN
+Avís: no es recomana muntar C:\.
+
+.
+:PROGRAM_MOUNT_WARNING_OTHER
+Avís: no es recomana el muntatge de /.
+
+.
+:PROGRAM_MOUNT_PHYSFS_ERROR
+No s'ha pogut muntar la unitat «PhysFS» amb el fitxer d'arxiu.
+
+.
+:PROGRAM_MOUNT_OVERLAY_NO_BASE
+Si us plau, MOUNT un directori normal abans d'afegir un «overlay» a sobre.
+
+.
+:PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
+Un «overlay» NO és compatible amb la unitat especificada.
+
+.
+:PROGRAM_MOUNT_OVERLAY_MIXED_BASE
+Un «overlay» s'ha d'especificar utilitzant el mateix adreçament que la unitat
+subjacent. Sense la barreja de camins relatius i absoluts.
+.
+:PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
+Un directori «overlay» no pot ser el mateix que la unitat subjacent.
+
+.
+:PROGRAM_MOUNT_OVERLAY_ERROR
+S'ha produït un error en intentar crear una unitat «overlay».
+
+.
+:PROGRAM_MOUNT_OVERLAY_STATUS
+«overlay» %s de la unitat %c muntat.
+
+.
+:PROGRAM_MOUNT_OVERLAY_REPLACE
+«overlay» existent s'ha substituït per un nou.
+
+.
+:PROGRAM_LOADFIX_ALLOC
+%d kB assignat.
+
+.
+:PROGRAM_LOADFIX_DEALLOC
+%d kB alliberat.
+
+.
+:PROGRAM_LOADFIX_DEALLOCALL
+Memòria usada alliberada.
+
+.
+:PROGRAM_LOADFIX_ERROR
+Error d'assignació de memòria.
+
+.
+:PROGRAM_LOADFIX_EMS_FREE
+Control d'EMS %u: no es pot alliberar
+
+.
+:PROGRAM_LOADFIX_XMS_FREE
+Control XMS %u: no es pot alliberar
+
+.
+:PROGRAM_LOADFIX_EMS_ALLOC
+Bloc EMS assignat (%u kB)
+
+.
+:PROGRAM_LOADFIX_EMS_ALLOCERROR
+No s'ha pogut assignar el bloc EMS
+
+.
+:PROGRAM_LOADFIX_NOEMS
+EMS no activa
+
+.
+:PROGRAM_LOADFIX_XMS_ALLOC
+Bloc XMS assignat (%u kB)
+
+.
+:PROGRAM_LOADFIX_XMS_ALLOCERROR
+No s'ha pogut assignar el bloc XMS
+
+.
+:PROGRAM_LOADFIX_NOXMS
+XMS no activa
+
+.
+:PROGRAM_LOADFIX_NOALLOC
+El MCB més baix està per sobre de 64 kB, res assignat
+
+.
+:PROGRAM_LOADFIX_HELP
+Carrega un programa per sobre dels primers 64 kB de memòria
+reduint la memòria disponible.
+
+LOADFIX [-xms] [-ems] [-{ram}] [{programa}] [{opcions}]
+LOADFIX -f [-xms] [-ems]
+
+  -xms        Assigna memòria XMS en lloc de memòria convencional
+  -ems        Assigna memòria EMS en lloc de memòria convencional
+  -{ram}      Especifica la quantitat de memòria que cal assignar en kB
+              Per defecte, 64 kB de memòria convencional
+              i 1 MB de memòria XMS/EMS
+  -a          Assigna prou memòria per omplir la memòria de 64 kB més baixa
+  -f (o -d)   Allibera la memòria prèviament assignada
+  {programa}  Executa el programa especificat
+  {opcions}   Opcions del programa (si n'hi ha)
+
+Exemples:
+  ←[1mLOADFIX joc.exe←[0m   Assigna 64 kB de memòria convencional i executa joc.exe
+  ←[1mLOADFIX -a←[0m        Assigna automàticament prou memòria convencional
+  ←[1mLOADFIX -128←[0m      Assigna 128 kB de memòria convencional
+  ←[1mLOADFIX -xms←[0m      Assigna 1MB de memòria XMS
+  ←[1mLOADFIX -f←[0m        Allibera la memòria convencional assignada
+
+.
+:MSCDEX_SUCCESS
+MSCDEX instal-lat.
+
+.
+:MSCDEX_ERROR_MULTIPLE_CDROMS
+MSCDEX: Error: les lletres d'unitat de múltiples CD-ROM han de ser contínues.
+
+.
+:MSCDEX_ERROR_NOT_SUPPORTED
+MSCDEX: Error, encara no s'admet.
+
+.
+:MSCDEX_ERROR_PATH
+MSCDEX: La ubicació indicada no és una unitat de CD-ROM.
+
+.
+:MSCDEX_ERROR_OPEN
+MSCDEX: Error: fitxer no vàlid o no es pot obrir.
+
+.
+:MSCDEX_TOO_MANY_DRIVES
+MSCDEX: Error: massa unitats de CD-ROM (màxim 5). La instal·lació de MSCDEX ha fallat.
+
+.
+:MSCDEX_LIMITED_SUPPORT
+MSCDEX: Subdirectori muntat: suport limitat.
+
+.
+:MSCDEX_INVALID_FILEFORMAT
+MSCDEX: Error: el fitxer no és cap imatge ISO/CUE o conté errors.
+
+.
+:MSCDEX_UNKNOWN_ERROR
+MSCDEX: Error: error desconegut.
+
+.
+:PROGRAM_RESCAN_SUCCESS
+S'ha esborrat la memòria cau de la unitat.
+
+.
+:PROGRAM_RESCAN_HELP
+Busca canvis i actualitza les unitats muntades esborrant la memòria cau.
+
+RESCAN [/A] [/Q]
+RESCAN [unitat:] [/Q]
+
+  /A          Torna a llegir totes les unitats
+  /Q          Activa el mode silenciós
+  unitat:     Unitat de disc que es tornarà a llegir
+
+RESCAN, sense paràmetres, actualitza la unitat actual.
+
+.
+:PROGRAM_INTRO
+←[2J←[1mUs donem la benvinguda a DOSBox-X←[0m, un emulador de codi obert amb so i gràfics.
+DOSBox-X té un intèrpret d'ordres que funciona com un DOS real.
+
+←[31;1mAtenció: DOSBox-X pot aturar-se sense avís si es produeix un error.←[0m
+
+
+.
+# ----------------------------------------------------------------------------
+# Atenció màxim 21 caràcters !
+#
+:PROGRAM_INTRO_MENU_UP
+Inici a DOSBox-X
+.
+#
+# ----------------------------------------------------------------------------
+:PROGRAM_INTRO_MENU_BASIC
+Muntatge bàsic
+.
+:PROGRAM_INTRO_MENU_CDROM
+Suport de CD-ROM
+.
+:PROGRAM_INTRO_MENU_USAGE
+Paràmetres d'inici de DOSBox
+.
+:PROGRAM_INTRO_MENU_INFO
+Informació
+.
+:PROGRAM_INTRO_MENU_QUIT
+Surt
+.
+:PROGRAM_INTRO_MENU_BASIC_HELP
+
+   ←[1m←[KMOUNT us permet connectar maquinari real al PC emulat amb DOSBox-X.←[0m
+
+.
+:PROGRAM_INTRO_MENU_CDROM_HELP
+
+   ←[1m←[KPer muntar el vostre CD-ROM a DOSBox-X, heu d'especificar opcions
+   addicionals.←[0m
+
+.
+:PROGRAM_INTRO_MENU_USAGE_HELP
+
+   ←[1m←[KVisió general de les opcions de línia d'ordres que podeu donar a DOSBox-X.←[0m
+
+.
+:PROGRAM_INTRO_MENU_INFO_HELP
+
+   ←[1m←[KCom obtenir més informació sobre DOSBox-X.←[0m
+
+.
+:PROGRAM_INTRO_MENU_QUIT_HELP
+
+   ←[1m←[KSurt de la introducció.←[0m
+
+.
+:PROGRAM_INTRO_USAGE_TOP
+←[2J←[36;1mVisió general de les opcions de línia d'ordres que podeu donar a DOSBox-X←[0m
+Els usuaris de Windows han d'obrir ←[1mcmd.exe←[0m o editar la drecera a DOSBox-X.exe
+
+dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
+         [-conf congfigfile] [-lang languagefile] [-machine machinetype]
+         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
+         [-o options] [-c command] [-set <section property=value>]
+
+.
+:PROGRAM_INTRO_USAGE_1
+←[1m  name←[0m
+        Si ←[1mname←[0m és un directori, el muntarà com a unitat C:.
+        Si ←[1mname←[0m és un programa executable, muntarà el directori
+        com a unitat C: i executarà el programa.
+
+←[1m  -exit←[0m
+        DOSBox-X es tancarà quan finalitzi l'execució de l'aplicació ←[1mname←[0m
+
+←[1m  -version←[0m
+        Informa de la versió de DOSBox-X i surt. Útil per a interfícies.
+
+←[1m  -fastlaunch←[0m
+        Mode d'inici ràpid (omet el logo de la BIOS i el bàner de benvinguda).
+
+←[1m  -fullscreen←[0m
+        Inicia DOSBox-X en mode de pantalla completa.
+
+.
+:PROGRAM_INTRO_USAGE_2
+←[1m  -conf←[0m configfile
+        DOSBox-X s'inicia amb les opcions del fitxer de configuració.
+        Consulteu la documentació per a més detalls.
+
+←[1m  -lang←[0m languagefile
+        DOSBox-X s'inicia utilitzant l'idioma especificat al fitxer d'idioma.
+
+←[1m  -startmapper←[0m
+        Activa l'editor «MAPPER» a l'inici. Útil per als usuaris amb
+        problemes de teclat.
+
+←[1m  -machine←[0m machinetype
+        Configura DOSBox-X per emular un tipus específic de màquina. Opcions:
+        hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
+        pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (per defecte).
+        El tipus de màquina afecta tant la targeta de vídeo com les
+        targetes de so disponibles.
+
+.
+:PROGRAM_INTRO_USAGE_3
+←[1m  -noautoexec←[0m
+        Omet la secció [autoexec] del fitxer de configuració carregat.
+
+←[1m  -o←[0m options
+        Proporciona opcions de línia d'ordres per a ←[1mname←[0m, quan s'especifica.
+
+←[1m  -c←[0m command
+        Executa l'ordre especificada abans d'executar ←[1mname←[0m. Es poden
+        especificar diverses ordres. Tot i això, cada comanda hauria de
+        començar amb -c. Una ordre pot ser: un programa intern, una ordre
+        DOS o un executable en una unitat muntada.
+
+←[1m  -set←[0m <section property=value>
+        Estableix una opció, substituint l'opció del fitxer de configuració.
+        Es poden especificar diverses opcions.
+        Tot i això, cada opció hauria de començar amb -set.
+
+.
+:PROGRAM_INTRO_INFO
+←[36;1mInformació←[0m
+
+Per informació sobre el muntatge bàsic, escriviu ←[1mintro mount←[0m
+Per informació sobre el suport de CD-ROM, escriviu ←[1mintro cdrom←[0m
+Per informació sobre els paràmetres d'inici, escriviu ←[1mintro usage←[0m
+
+Per obtenir l'última versió de DOSBox-X, vegeu a←[0m
+
+    ←[1mhttps://dosbox-x.com/←[0m o ←[1mhttp://dosbox-x.software←[0m
+
+Per a més informació sobre DOSBox-X doneu feu una ullada al seu wiki
+
+    ←[1mhttps://dosbox-x.com/wiki←[0m
+
+.
+:PROGRAM_INTRO_MOUNT_START
+←[36;1mAquí teniu algunes ordres per començar←[0m
+
+Abans de poder utilitzar els fitxers que es troben al vostre propi
+sistema de fitxers, heu de muntar el directori que conté els fitxers.
+
+
+.
+# ----------------------------------------------------------------------------
+# no esborreu els espais al final de les línies
+# ----------------------------------------------------------------------------
+:PROGRAM_INTRO_MOUNT_EXST_WINDOWS
+←[32mmount c c:\jocs\←[37m crearà la unitat de disc C, amb c:\jocs com a contingut
+.
+:PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
+←[32mc:\jocs←[37m és un exemple. Escriviu el directori on són els vostres jocs    
+.
+:PROGRAM_INTRO_MOUNT_EXST_OTHER
+←[32mmount c ~/jocs←[37m crearà la unitat C, amb el contingut de ~/jocs        
+.
+:PROGRAM_INTRO_MOUNT_EXEN_OTHER
+←[32m~/jocs←[37m és un exemple. Escriviu el directori on són els vostres jocs  
+.
+:PROGRAM_INTRO_MOUNT_END
+
+Quan el muntatge s'hagi completat correctament, podeu escriure ←[1mC:←[0m per
+anar a la unitat C acabada de muntar. Teclejant ←[1mDIR←[0m veureu el seu
+contingut. Amb ←[1mCD←[0m podeu canviar a un directori (els reconeixereu
+per nom entre claudàtors ←[1m[nom_directori]←[0m a la llista de fitxers).
+Podeu executar els programes que acabin en ←[1m.EXE←[0m, ←[1m.BAT←[0m o ←[1m.COM←[0m.
+
+.
+:PROGRAM_INTRO_CDROM
+←[2J←[36;1mCom muntar una unitat de CD-ROM real o virtual a DOSBox-X←[0m
+DOSBox-X proporciona emulació de CD-ROM a diferents nivells.
+
+1. El nivell més simple funciona en unitats de CD-ROM i directoris normals:
+   instal·la MSCDEX i marca els fitxers només de lectura. En general, això
+   és suficient per a la majoria de jocs.
+       ←[1mmount d ←[33mD:\←[37m -t cdrom←[0m (munta una unitat de CD)
+       ←[1mmount d ←[33mc:\exemple←[37m -t cdrom←[0m (munta un directori)
+   Si no funciona, potser heu d'indicar a DOSBox-X l'etiqueta del CD-ROM:
+       ←[1mmount d ←[33mc:\exemple←[37m -t cdrom -label ←[33mCDLABEL←[0m
+
+2. Podeu obtenir suport de baix nivell, per a unitats reals de CD-ROM.
+       ←[1mmount d ←[33mD:\←[37;1m -t cdrom -usecd ←[33m0←[0m
+
+3. El darrer nivell de suport depèn del sistema operatiu amfitrió.
+   Per a ←[1mWindows 2000←[0m, ←[37;1mWindows XP←[0m i ←[37;1mLinux←[0m:
+       ←[1mmount d ←[33mD:\←[37;1m -t cdrom -usecd ←[33m0 ←[37m-ioctl←[0m
+   Per a ←[1mWindows 9x←[0m amb una capa ASPI instal·lada:
+       ←[1mmount d ←[33mD:\←[37;1m -t cdrom -usecd ←[33m0 ←[37m-aspi←[0m
+
+   Substituïu ←[33;1mD:\←[37;0m per la ubicació del vostre CD-ROM.
+   Substituïu el ←[33;1m0←[0m a ←[37;1m-usecd ←[33m0←[0m pel número indicat per al vostre CD-ROM
+   que obtindreu amb l'ordre ←[37;1mmount -cd←[0m
+
+.
+:PROGRAM_BOOT_NOT_EXIST
+El fitxer del disc d'arrencada no existeix. Fallant.
+
+.
+:PROGRAM_BOOT_NOT_OPEN
+No es pot obrir el fitxer del disc d'arrencada. Fallant.
+
+.
+:PROGRAM_BOOT_WRITE_PROTECTED
+El fitxer d'imatge és només de lectura. Arrencada en mode protegit contra escriptura.
+
+.
+:PROGRAM_BOOT_PRINT_ERROR
+Arranca DOSBox-X des d'un disquet, un cartutx PCjr o una imatge de disc dur.
+
+←[1mBOOT [driveletter:|drivenumber] [-convertfat|-convertfatro|-noconvertfat]←[0m
+←[1mBOOT floppyimg1.img [floppyimg2.img ...] [-E <command>]←[0m
+←[1mBOOT harddrive.img←[0m
+
+  driveletter:     A: per a disquet, C: o D: per a disc dur.
+  drivenumber      0 per a disquet, 2 o 3 per a disc dur.
+                   (La unitat ha d'estar muntada amb l'ordre ←[1mIMGMOUNT←[0m.)
+  floppyimg.img    Indica una o més imatges de disquet/PCjr per arrencar.
+                   Imatges múltiples fan una llista d'intercanvi a la unitat A:.
+  harddrive.img    Indica una única imatge de disc dur per arrencar des de
+                   la unitat C:. Escriviu dos punts (:) davant del nom per
+                   tractar la imatge com només de lectura.
+  -E <command>     Indica una cadena d'ordres per imatges de cartutx PCjr.
+  -L driveletter   Opció ignorada, acceptada per compatibilitat.
+
+Exemples:
+←[1mBOOT A:←[0m       Inici des de la unitat A:, si està muntada i és iniciable.
+←[1mBOOT disk1.img disk2.img←[0m Inici des d'imatges canviables, a la unitat A:.
+←[1mBOOT :DOS.IMG←[0m Inici des d'una imatge DOS.IMG en mode només de lectura.
+
+.
+:PROGRAM_BOOT_UNABLE
+No es pot arrencar fora de la unitat %c.
+
+.
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Les imatges de disquet ja estan muntades.
+
+.
+:PROGRAM_BOOT_IMAGE_OPEN
+Obertura del fitxer d'imatge: %s
+
+.
+:PROGRAM_BOOT_IMAGE_NOT_OPEN
+No es pot obrir %s
+
+.
+:PROGRAM_BOOT_CART_WO_PCJR
+S'ha trobat un cartutx PCjr, però la màquina no és PCjr
+.
+:PROGRAM_BOOT_CART_LIST_CMDS
+Ordres de cartutx PCjr disponibles: %s
+.
+:PROGRAM_BOOT_CART_NO_CMDS
+No s'han trobat ordres de cartutx PCjr
+.
+:PROGRAM_BOOT_BOOTING
+Arrencada des de la unitat 
+.
+:PROGRAM_BOOT_UNSUPPORTED
+Mode d'arrencada no compatible
+.
+:PROGRAM_BOOT_SWAP_ALREADY
+S'han especificat diverses imatges de disc i una altra unitat ja està
+connectada a la llista d'intercanvi
+.
+:PROGRAM_BOOT_NOT_SPECIFIED
+No s'ha especificat cap imatge
+.
+:PROGRAM_BOOT_IS_PC88
+La imatge del D88 sembla apuntar a PC-88 i no es pot arrencar.
+.
+:PROGRAM_BOOT_BPS_TOOLARGE
+Bytes/sector massa gran
+.
+:PROGRAM_BOOT_DRIVE_READERROR
+S'ha produït un error en llegir la unitat
+.
+:PROGRAM_BOOT_UNKNOWN_BOOTHAX
+Mode «boothax» desconegut
+.
+:PROGRAM_BOOT_SPECIFY_FILE
+Cal especificar la imatge de la BIOS per arrencar
+
+.
+:PROGRAM_BOOT_BIOS_OPEN_ERROR
+No es pot obrir la imatge de la BIOS
+
+.
+:PROGRAM_LOADROM_HELP
+Carrega fitxer d'una imatge ROM per a la BIOS de vídeo o l'IBM BASIC.
+
+LOADROM fitxer_ROM
+
+.
+:PROGRAM_LOADROM_SPECIFY_FILE
+S'ha d'especificar el fitxer ROM per carregar.
+
+.
+:PROGRAM_LOADROM_CANT_OPEN
+Fitxer ROM no accessible.
+
+.
+:PROGRAM_LOADROM_TOO_LARGE
+El fitxer ROM és massa gran.
+
+.
+:PROGRAM_LOADROM_INCOMPATIBLE
+La BIOS de vídeo no és compatible amb el tipus de màquina.
+
+.
+:PROGRAM_LOADROM_UNRECOGNIZED
+Fitxer ROM no reconegut.
+
+.
+:PROGRAM_LOADROM_BASIC_LOADED
+S'ha carregat la ROM BASICA.
+
+.
+:PROGRAM_BIOSTEST_HELP
+S'inicia en una imatge de la BIOS per executar la BIOS del provador de CPU.
+
+BIOSTEST image_file
+
+.
+:PROGRAM_BIOSTEST_SPECIFY_FILE
+S'ha d'especificar el fitxer de la BIOS per carregar.
+
+.
+:PROGRAM_BIOSTEST_OPEN_ERROR
+No es pot obrir un fitxer
+.
+:PROGRAM_BIOSTEST_TOO_LARGE
+El fitxer de la BIOS és massa gran
+.
+:VHD_ERROR_OPENING
+No s'ha pogut obrir el fitxer VHD especificat.
+
+.
+:VHD_INVALID_DATA
+El fitxer VHD especificat està malmès i no es pot obrir.
+
+.
+:VHD_UNSUPPORTED_TYPE
+El fitxer VHD especificat és d'un tipus no compatible.
+
+.
+:VHD_ERROR_OPENING_PARENT
+No s'ha pogut trobar el pare del fitxer VHD especificat.
+
+.
+:VHD_PARENT_INVALID_DATA
+El pare del fitxer VHD especificat està malmès i no es pot obrir.
+
+.
+:VHD_PARENT_UNSUPPORTED_TYPE
+El tipus principal del fitxer VHD especificat és d'un tipus no compatible.
+
+.
+:VHD_PARENT_INVALID_MATCH
+El pare del fitxer VHD especificat no conté l'identificador esperat.
+
+.
+:VHD_PARENT_INVALID_DATE
+S'ha canviat el pare del fitxer VHD especificat i no es pot carregar.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_DRIVE
+Cal especificar la lletra de la unitat per muntar la imatge.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY2
+Cal especificar el número d'unitat (de 0 a %d) per muntar
+la imatge a (0, 1 = fda, fdb; 2, 3 = hda, hdb).
+
+.
+:PROGRAM_IMGMOUNT_INVALID_IMAGE
+No s'ha pogut carregar el fitxer d'imatge.
+Comproveu que el camí sigui correcte i que la imatge sigui accessible.
+
+.
+:PROGRAM_IMGMOUNT_INVALID_GEOMETRY
+No s'ha pogut obtenir la geometria de la unitat de la imatge.
+Utilitzeu el paràmetre -size bps,spc,hpc,cyl per especificar la geometria.
+
+.
+:PROGRAM_IMGMOUNT_AUTODET_VALUES
+Detecció automàtica de la geometria de la imatge: -mida %u,%u,%u,%u
+
+.
+:PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED
+El tipus "%s" no és compatible. Especifiqueu "hdd", "floppy" o "iso".
+
+.
+:PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED
+El format "%s" no és compatible. Especifiqueu "fat", "iso" o "none".
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_FILE
+Cal especificar fitxers d'imatge per muntar.
+
+.
+:PROGRAM_IMGMOUNT_FILE_NOT_FOUND
+No s'ha trobat el fitxer d'imatge.
+
+.
+:PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND
+No s'ha trobat el fitxer d'imatge: IMGMAKE.IMG.
+
+.
+:PROGRAM_IMGMOUNT_MOUNT
+Per muntar directoris, utilitzeu l'ordre ←[1mMOUNT←[0m, no l'ordre ←[1mIMGMOUNT←[0m.
+
+.
+:PROGRAM_IMGMOUNT_ALREADY_MOUNTED
+La unitat ja està muntada en aquesta lletra.
+
+.
+:PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER
+La unitat número %d ja està muntada.
+
+.
+:PROGRAM_IMGMOUNT_CANT_CREATE
+No es pot crear una unitat des del fitxer.
+
+.
+:PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS
+No es pot crear la unitat PhysFS.
+
+.
+:PROGRAM_IMGMOUNT_MOUNT_NUMBER
+La unitat número %d s'ha muntat com a %s
+
+.
+:PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
+La imatge ha d'estar en una unitat host, local o de xarxa.
+
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
+L'ús de diversos fitxers només és compatible amb imatges cue/iso.
+
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_USED
+S'han donat diverses imatges i una altra unitat ja utilitza diverses imatges
+
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NOTSUPPORTED
+No s'admeten diverses imatges de disc per a aquesta unitat
+
+.
+:PROGRAM_IMGMOUNT_HD_FDPOSITION
+No es pot muntar el disc dur en posició de disquet.
+
+.
+:PROGRAM_IMGMOUNT_FD_HDPOSITION
+No es pot muntar el disquet a la posició del disc dur.
+
+.
+:PROGRAM_IMGMOUNT_NOT_ASSIGNED
+L'índex del disc de la BIOS no té una imatge assignada
+.
+:PROGRAM_IMGMOUNT_INVALID_NUMBER
+Número de muntatge no vàlid
+
+.
+:PROGRAM_IMGMOUNT_INVALID_FSTYPE
+Fstype no vàlid
+
+.
+:PROGRAM_IMGMOUNT_INVALID_SIZE
+El paràmetre de mida no és vàlid
+
+.
+:PROGRAM_IMGMOUNT_NOT_MOUNTED_NUMBER
+La unitat número %d no està muntada.
+
+.
+:PROGRAM_IMGMOUNT_UMOUNT_USAGE
+Ús incorrecte de desmuntar IMGMOUNT.
+
+.
+:PROGRAM_IMGMOUNT_INVALID_LETTER
+La lletra de la unitat no és vàlida
+.
+:PROGRAM_IMGMOUNT_CHOOSE_LETTER
+Les particions no es poden muntar en conflicte amb l'assignació estàndard de
+disc dur INT 13h. Trieu una lletra de unitat diferent per muntar-les.
+.
+:PROGRAM_IMGMOUNT_ELTORITO_NO_FILE
+No especifiqueu fitxers quan munteu les unitats de disquet des
+d'un CD d'arrencada «El Torito»
+
+.
+:PROGRAM_IMGMOUNT_RAMDRIVE_NO_FILE
+No especifiqueu fitxers quan munteu unitats RAM
+
+.
+:PROGRAM_IMGMOUNT_INVALID_SECTORSIZE
+La mida del sector ha de ser superior a 512 bytes i dividir uniformement
+la mida del clúster d'imatges de %lu bytes.
+
+.
+:PROGRAM_IMGMOUNT_OPEN_ERROR
+No es pot obrir '%s'
+
+.
+:PROGRAM_IMGMOUNT_QCOW2_INVALID
+La imatge «qcow2» '%s' no és compatible
+
+.
+:PROGRAM_IMGMOUNT_GEOMETRY_ERROR
+No es pot detectar la geometria
+
+.
+:PROGRAM_IMGMOUNT_DOS_VERSION
+Muntar aquest fitxer d'imatge requereix una versió de DOS informada de %u.%u o superior.
+%s
+.
+:PROGRAM_IMGMOUNT_INVALID_FLOPPYSIZE
+No es reconeix la mida del disquet
+
+.
+:PROGRAM_IMGMOUNT_HELP
+Munta imatges de disquet, disc dur o disc òptic.
+←[1mIMGMOUNT drive file←[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
+←[1mIMGMOUNT drive file←[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]
+←[1mIMGMOUNT driveNum file←[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
+←[1mIMGMOUNT drive file←[0m [-t iso] [-fs iso]
+←[1mIMGMOUNT drive←[0m [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)
+←[1mIMGMOUNT drive←[0m -t ram -size size
+←[1mIMGMOUNT←[0m -u ←[1mdrive|driveNum←[0m (or ←[1mIMGMOUNT drive|driveNum file [options] -u←[0m)
+ ←[1mdrive←[0m               Lletra de la unitat per muntar la imatge.
+ ←[1mdriveNum←[0m            Número d'unitat, on 0-1 disquets, 2-5 discos durs.
+ ←[1mfile←[0m                Nom(s) de fitxer d'imatge o ←[1mIMGMAKE.IMG←[0m si no s'indica.
+ -t iso              El tipus és ISO de disc òptic o imatge de cue/bin.
+ -t hdd|floppy|ram   El tipus és disc dur (inc. VHD/HDI)|disquet|unitat RAM.
+ -fs iso             El sistema de fitxers és ISO 9660 (automàtic .iso/.cue).
+ -fs fat             Sistemes de fitxers FAT-FAT12, FAT16 i FAT32 suportats.
+ -fs none            No detecta sistema fitxers (assumit per núm. d'unitat).
+ -reservecyl #       Informa nombre de cilindres inferior al real a la BIOS.
+ -ide controller     Controlador IDE (1m, 1s, 2m, 2s) per muntar la unitat.
+ -size size|ss,s,h,c Mida en kB, o la mida del sector i la geometria CHS.
+ -bootcd cdDrive     Unitat de CD des d'on carregar el disquet d'arrencada.
+ -o partidx=#        Número de partició del disc per muntar-la com a unitat.
+ -ro                 Munta imatges només lectura (també amb ':' inicial).
+ -u                  Desmunta la unitat o el número de la unitat.
+ ←[1m-examples←[0m           Visualitza alguns exemples d'ús.
+.
+:PROGRAM_IMGMOUNT_EXAMPLE
+Alguns exemples d'IMGMOUNT
+
+ ←[1mIMGMOUNT←[0m                       Llista unitats FAT/ISO i núms. d'unitat
+ ←[1mIMGMOUNT C←[0m                     Munta imatge de disc dur ←[1mIMGMAKE.IMG←[0m com C:
+ ←[1mIMGMOUNT C ~/image.img←[0m         Munta imatge de disc dur ~/image.img com C:
+ ←[1mIMGMOUNT D ~/files/game.iso←[0m    Munta CD imatge ~/files/game.iso com D:
+ ←[1mIMGMOUNT D cdaudio.cue←[0m         Munta fitxer .cue com a unitat de CD
+ ←[1mIMGMOUNT 0 dos.ima←[0m             Munta disquet dos.ima com a unitat núm. 0
+                                (←[1mBOOT A:←[0m arrencarà des d'A: si és pot)
+ ←[1mIMGMOUNT A -ro dos.ima←[0m         Munta imatge dos.ima com A: només de lectura
+ ←[1mIMGMOUNT A :dsk1.img dsk2.img←[0m  Munta dsk1.img and dsk2.img a la unitat A:,
+                                intercanviables amb opció "Canvia el disquet"
+                                del menú, amb imatge dsk1.img només de lectura
+                                (però no dsk2.img)
+ ←[1mIMGMOUNT A -bootcd D←[0m           Munta disquet d'arrencada A: del CD D:
+ ←[1mIMGMOUNT C -t ram -size 10000←[0m  Munta disc dur C: com unitat RAM de 10 MB
+ ←[1mIMGMOUNT D d.img -o partidx=4←[0m  Munta 1a partició lògica de d.img com a D:
+ ←[1mIMGMOUNT C disk.img -u←[0m         Força muntatge imatge disk.img com a C:,
+                                desmuntant la unitat abans si cal.
+ ←[1mIMGMOUNT A -u←[0m                  Desmunta la unitat A:
+
+.
+:PROGRAM_IMGMAKE_SYNTAX
+Crea imatges de disquet o de disc dur
+
+←[1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]
+       [-bat] [-fat] [-fatcopies] [-rootdir] [-force]←[0m
+
+  file       nom del fitxer imatge a crear, ←[1mIMGMAKE.IMG←[0m si no s'indica,
+             (el camí al fitxer és el camí de l'amfitrió).
+  -t         Tipus d'imatge
+               ←[1mDisquets←[0m: fd_160 fd_180 fd_200 fd_320 fd_360 fd_400
+                         fd_720 fd_1200 fd_1440 fd_2880
+               ←[1mDisc dur←[0m: hd_250: 250MB, hd_520: 520MB, hd_1gig: 1GB,
+                         hd_2gig: 2GB, hd_4gig: 4GB, hd_8gig: 8GB,
+                         hd_st251: 40MB, hd_st225: 20MB (discos antics)
+               ←[1mDisc dur personalitzat←[0m: hd, vhd (cal -size o -chs)
+  -size      Mida de la imatge de disc en MB (vhd: fins a 2088960).
+  -chs       Geometria disc en cylinders(1-1023), heads(1-255), sectors(1-63).
+  -nofs      Per crear una imatge en blanc, sense format.
+  -force     Sobreescriu una imatge existent.
+  -bat       Crea un .BAT amb l'ordre IMGMOUNT requerida per muntar la imatge.
+  -fat       12, 16 o 32 (tipus de FAT).
+  -fatcopies 1-4 (còpies de la FAT).
+  -spc       Sectors per clúster (ha de ser una potència de 2).
+  -label     Etiqueta.
+  -rootdir   Número d'entrades del directori arrel.
+  -partofs   Inici de la partició del disc dur.
+  -align     Alinea estructura sistema fitxers. En sectors, o afegiu 'K' (kB).
+  -source    lletra unitat disquet física des d'on es llegirà la imatge.
+  -retries   núm. reintents llegint disquet defectuós (1-99).
+  -examples  Visualitza alguns exemples d'ús.
+
+Escriviu ←[1mIMGMAKE /? | MORE←[0m per veure l'ajuda paginada.
+
+.
+:IMAGEMOUNT_CHANGE_DOSVER
+Muntar aquestes imatges de disc requereix una versió de DOS %s o superior.
+Voleu canviar la versió de DOS a %s ara i muntar la imatge de disc? 
+.
+:PROGRAM_IMGMAKE_EXAMPLE
+Exemples d'←[1mIMGMAKE←[0m
+
+  ←[1mIMGMAKE -t fd←[0m                     crea imatge disquet 1.44MB ←[1mIMGMAKE.IMG←[0m
+  ←[1mIMGMAKE -t fd_1440 -force←[0m         força creació imatge disquet ←[1mIMGMAKE.IMG←[0m
+  ←[1mIMGMAKE dos.img -t fd_2880←[0m        crea disquet de 2.88MB anomenat dos.img
+  ←[1mIMGMAKE new.vhd -t vhd -size 520←[0m  crea VHD de 520MB anomenat new.vhd
+  ←[1mIMGMAKE ~/disk.img -t hd -size 50←[0m       crea imatge HDD de 50MB ~/disk.img
+  ←[1mIMGMAKE ~/disk.img -t hd_520 -nofs←[0m      crea imatge HDD de 520MB en blanc
+  ←[1mIMGMAKE ~/disk.img -t hd_2gig -fat 32←[0m   crea imatge HDD de 2GB FAT32
+  ←[1mIMGMAKE ~/disk.img -t hd -chs 130,2,17←[0m  crea imatge HDD indicant CHS
+  ←[1mIMGMAKE ~/disk.img -source a←[0m            llegeix imatge unitat física a:
+
+.
+:PROGRAM_IMGMAKE_FLREAD
+Geometria del disc: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes
+
+
+.
+:PROGRAM_IMGMAKE_FLREAD2
+%s =bé, %s =bé després de reintents, ! =CRC error, x =sector no trobat, ? =desconegut
+
+
+.
+:PROGRAM_IMGMAKE_FILE_EXISTS
+El fitxer "%s" ja existeix. Podeu especificar "-force" per sobreescriure'l.
+
+.
+:PROGRAM_IMGMAKE_CANNOT_WRITE
+El fitxer "%s" no es pot obrir per escriure.
+
+.
+:PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
+No hi ha prou espai disponible per al fitxer d'imatge. Necessita %llu bytes.
+
+.
+:PROGRAM_IMGMAKE_PRINT_CHS
+Creant un fitxer d'imatge "%s" de %u «cylinders», %u «heads» i %u «sectors»
+
+.
+:PROGRAM_IMGMAKE_CANT_READ_FLOPPY
+
+
+No es pot llegir el disquet.
+.
+:PROGRAM_IMGMAKE_BADSIZE
+Arguments -size o -chs incorrectes.
+
+
+.
+:PROGRAM_IMGMAKE_ALIGNMENT
+Alineació no vàlida
+
+.
+:PROGRAM_IMGMAKE_PARTOFS
+Valor -partofs no vàlid
+
+.
+:PROGRAM_IMGMAKE_FAT
+Opció -fat no vàlida. Ha de ser 12, 16 o 32
+
+.
+:PROGRAM_IMGMAKE_FATCOPIES
+Opció -fatcopies no vàlida
+
+.
+:PROGRAM_IMGMAKE_SPC
+Opció -spc no vàlida, fora de rang
+
+.
+:PROGRAM_IMGMAKE_SPC2
+Opció -spc no vàlida, ha de ser una potència de 2
+
+.
+:PROGRAM_IMGMAKE_ROOTDIR
+Opció -rootdir no vàlida
+
+.
+:PROGRAM_IMGMAKE_BOOTSECT
+Posició del sector d'arrencada no vàlida
+
+.
+:PROGRAM_IMGMAKE_VOLUME_ALIGN
+Ha fallat la comprovació: la mida del volum no està alineada
+
+.
+:PROGRAM_IMGMAKE_FAT_ALIGN
+Ha fallat la comprovació: les taules FAT no estan alineades
+
+.
+:PROGRAM_IMGMAKE_SECTPERFAT
+Error: el sistema de fitxers generat té més de 256 sectors per FAT i no és FAT32
+
+.
+:PROGRAM_IMGMAKE_VOLSIZE
+Ha fallat la comprovació: la mida del volum no està alineada
+
+.
+:PROGRAM_IMGMAKE_CLUSTERS
+Error: el sistema de fitxers generat té massa pocs clústers donats els paràmetres
+
+.
+:PROGRAM_IMGMAKE_CLUSTERCOUNT
+Avís: el nombre de clústers és massa alt donada la mida del volum.
+Informe d'un recompte de sectors més petit.
+
+.
+:PROGRAM_IMGMAKE_CLUSTER_ALIGN
+Ha fallat la comprovació: El primer clúster no està alineat
+
+.
+:PROGRAM_IMGMAKE_CLUSTER_SIZE
+Avís: Els clúster de mida >= 64 kB no són compatibles amb MS-DOS i SCANDISK
+
+.
+:PROGRAM_KEYB_INFO
+La taula de codis %i s'ha carregat
+
+.
+:PROGRAM_KEYB_INFO_LAYOUT
+La taula de codis %i s'ha carregat per al disseny %s
+
+.
+:PROGRAM_KEYB_SHOWHELP
+Configura un teclat per a un idioma en concret.
+
+KEYB [layout_ID [cp_núm [cp_fitxer]]]
+
+  layout_ID      Nom del disseny o fitxer de teclat (.KL) a carregar
+  cp_núm         Número de la taula de codis a carregar
+  cp_fitxer      .CPI/.CPX fitxer de la taula de codis especificada
+
+Nota: els fitxers .KL, .CPI o .CPX han de trobar-se al directori
+      de l'executable de DOSBox-X.
+
+Alguns exemples:
+  ←[1mKEYB←[0m                 Visualitza la taula de codis carregada actualment.
+  ←[1mKEYB SP←[0m              Carrega SP, utilitza la taula de codis adequada.
+  ←[1mKEYB SP 850←[0m          Carrega SP, utilitza la taula de codis 850.
+  ←[1mKEYB SP 850 MYCP.CPI←[0m Igual que l'anterior, però utilitza el fitxer MYCP.CPI.
+  ←[1mKEYB SP_MOD 850←[0m      Carrega el fitxer SP_MOD.KL, i la taula de codis 850.
+
+.
+:PROGRAM_KEYB_NOERROR
+La disposició del teclat %s s'ha carregat per a la taula de codis %i
+
+.
+:PROGRAM_KEYB_FILENOTFOUND
+No s'ha trobat el fitxer de teclat %s (o no és un ID vàlid)
+
+
+.
+:PROGRAM_KEYB_INVALIDFILE
+El fitxer de teclat %s no és vàlid
+
+.
+:PROGRAM_KEYB_LAYOUTNOTFOUND
+No hi ha disseny a %s per a la taula de codis %i
+
+.
+:PROGRAM_KEYB_INVCPFILE
+Cap fitxer de taula de codis o no és vàlid per al disseny %s
+
+
+.
+:INT21_6523_YESNO_CHARS
+sn
+.
+:PROGRAM_LABEL_HELP
+Crea, canvia o suprimeix l'etiqueta de volum d'una unitat.
+
+LABEL [unitat:][etiqueta]
+
+  unitat:     Especifica la lletra de la unitat
+  etiqueta    Especifica l'etiqueta del volum
+
+.
+:PROGRAM_LABEL_DELETE
+Voleu suprimir l'etiqueta de volum (S/N)? 
+.
+:PROGRAM_LABEL_TOOLONG
+L'etiqueta és massa llarga (màxim 11 caràcters).
+
+.
+:PROGRAM_LABEL_BADCHARS
+L'etiqueta té caràcters no vàlids.
+
+.
+:PROGRAM_LABEL_VOLUMEIS
+El volum de la unitat %c és %s
+
+.
+:PROGRAM_LABEL_NOLABEL
+El volum de la unitat %c no té cap etiqueta
+
+.
+:PROGRAM_MODE_USAGE
+Configura els dispositius del sistema.
+
+←[1mMODE←[0m tipus              tipus pot ser ←[1mCO80←[0m, ←[1mBW80←[0m, ←[1mCO40←[0m, ←[1mBW40←[0m, o ←[1mMONO←[0m
+←[1mMODE CON COLS=←[0mc ←[1mLINES=←[0mn COLS 80 o 132, LINES 25, 43, 50, o 60.
+←[1mMODE CON RATE=←[0mr ←[1mDELAY=←[0md RATE 1-32 (32=ràpid), DELAY 1-4 (1=mínim)
+                        Escriptura automàtica
+                        Velocitat (RATE), temps d'espera (DELAY)
+
+←[1mMODE←[0m o ←[1mMODE CON←[0m visualitza l'estat del dispositiu.
+
+.
+:PROGRAM_MODE_INVALID_PARAMETERS
+Paràmetre(s) no vàlid(s).
+
+.
+:PROGRAM_MODE_STATUS
+Estat del dispositiu CON:
+-------------------------
+Columnes=%d
+Línies=%d
+
+.
+:PROGRAM_MODE_NOTSUPPORTED
+
+La funció de taula de codis no és compatible amb aquest dispositiu
+
+.
+:PROGRAM_MODE_RATE_DELAY
+La velocitat i el retard s'han d'especificar conjuntament
+
+.
+:PROGRAM_PORT_INVALID_NUMBER
+Cal especificar el número de port entre 1 i 9.
+
+.
+:PROGRAM_VHDMAKE_WRITERR
+No s'ha pogut desar a la nova imatge VHD "%s".
+
+.
+:PROGRAM_VHDMAKE_REMOVEERR
+No s'ha pogut esborrar el fitxer "%s"
+
+.
+:PROGRAM_VHDMAKE_RENAME
+Haureu de renombrar la imatge VHD que s'acaba de crear.
+
+.
+:PROGRAM_VHDMAKE_SUCCESS
+S'ha creat una imatge VHD nova. Podeu muntar-la amb ←[1mIMGMOUNT←[0m.
+
+.
+:PROGRAM_VHDMAKE_ERROPEN
+Error, no s'ha pogut obrir el fitxer d'imatge "%s".
+
+.
+:PROGRAM_VHDMAKE_BADSIZE
+S'ha especificat una mida de VHD incorrecta, cancel·lant.
+
+.
+:PROGRAM_VHDMAKE_FNEEDED
+La imatge VHD preexistent no es pot sobreescriure en silenci sense l'opció -f.
+
+.
+:PROGRAM_VHDMAKE_BADPARENT
+La imatge VHD principal "%s" no es pot obrir per enllaçar-la, cancel·lant.
+
+.
+:PROGRAM_VHDMAKE_NOINFO
+No s'ha pogut consultar la informació de "%s".
+
+.
+:PROGRAM_VHDMAKE_BLOCKSTATS
+ amb %d/%d blocs assignats.
+
+.
+:PROGRAM_VHDMAKE_INFO
+El tipus de VHD "%s" és %s.
+La seva mida virtual és %.02f MB
+.
+:PROGRAM_VHDMAKE_CANTMERGE
+%s no és un disc VHD de diferencia, no es pot combinar.
+
+.
+:PROGRAM_VHDMAKE_MERGEREPORT
+%d sectors en %d blocs de "%s" fusionats a "%s".
+
+.
+:PROGRAM_VHDMAKE_MERGENODELETE
+No es pot eliminar la instantània "%s", haureu de fer-ho vosaltres mateixos.
+
+.
+:PROGRAM_VHDMAKE_MERGEOKDELETE
+Instantània VHD combinada i suprimida.
+
+.
+:PROGRAM_VHDMAKE_MERGEFAILED
+Error durant la fusió, cancel·lat.
+
+.
+:PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
+La imatge VHD principal "%s" pot estar malmesa.
+
+.
+:PROGRAM_VHDMAKE_ABSPATH
+Avís: un camí absolut a la imatge VHD principal impedeix la portabilitat.
+És preferible un camí relatiu al fitxer d'imatge de diferencia.
+
+.
+:PROGRAM_VHDMAKE_HELP
+Crea imatges VHD (VirtualPC) dinàmiques o de diferència, converteix imatges de
+disc en brut a imatges VHD de mida fixa, visualitza informació i les fusiona.
+
+←[1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
+←[1mVHDMAKE -convert←[0m raw.hdd new.vhd
+←[1mVHDMAKE←[0m [-f] ←[1m-link←[0m parent.vhd new.vhd
+←[1mVHDMAKE -merge←[0m delta.vhd
+←[1mVHDMAKE -info←[0m abc.vhd
+
+  new.vhd        nom de la nova imatge VHD dinàmica que es crearà.
+  size           mida de la nova imatge VHD.
+  -c | -convert  converteix una imatge de disc en brut (raw.hdd) a una
+                 imatge VHD de mida fixa i la reanomena a new.vhd.
+  -l | -link     crea la imatge VHD de diferència new.vhd i l'enllaça amb
+                 la imatge principal preexistent parent.vhd.
+  -f | -force    força a sobreescriure un fitxer d'imatge preexistent.
+  -i | -info     visualitza informació útil sobre la imatge abc.vhd.
+  -m | -merge    combina la imatge VHD de diferència delta.vhd amb la seva
+                 imatge principal
+
+En convertir una imatge de disc en brut a una imatge VHD de mida fixa, cal
+crear les particions amb l'esquema MBR i formatar-les amb FAT.
+La mida d'una imatge VHD dinàmica ha d'estar entre 3 MB i 2040 GB.
+Una imatge VHD dinàmica acabada de crear no té particions ni format. En lloc de
+muntar-la com unitat amb una lletra (←[1mIMGMOUNT←[0m), considereu utilitzar ←[1mIMGMAKE←[0m.
+Una imatge de diferència s'elimina automàticament quan la combinació té èxit.
+
+Escriviu ←[1mVHDMAKE /? | MORE←[0m per veure l'ajuda paginada.
+
+.
+:PROGRAM_COLOR_HELP
+Estableix els colors de primer pla i de fons de la consola per defecte.
+
+COLOR [atribut]
+
+  atribut     Especifica l'atribut de color de la sortida de la consola
+
+El colors s'especifiquen amb ←[1mDOS←[0m dígits hexadecimals, El primer correspon al
+color del fons i el segon al color del primer pla. Els dígits possibles són:
+
+  0 = Negre     4 = Vermell     8 = Gris              C = Vermell lluminós
+  1 = Blau      5 = Porpra      9 = Blau lluminós     D = Porpra lluminós
+  2 = Verd      6 = Groc        A = Verd lluminós     E = Groc lluminós
+  3 = Cian      7 = Blanc       B = Cian lluminós     F = White brillant
+
+L'ordre COLOR estableix ERRORLEVEL a 1 si s'intenta executar l'ordre COLOR
+amb un color de primer pla i de fons iguals.
+
+Exemple: "COLOR 4F" produeix ←[37;41;1m blanc brillant sobre vermell ←[0m.
+
+COLOR, sense paràmetres, restaura el color original.
+
+.
+:PROGRAM_FLAGSAVE_UNFLAGALL
+Tots els fitxers han estat desmarcats per desar-los.
+
+.
+:PROGRAM_FLAGSAVE_UNFLAGGED
+El fitxer %s ha estat desmarcat per desar-lo.
+
+.
+:PROGRAM_FLAGSAVE_FLAGGED
+El fitxer ja estava marcat per desar-lo - %s
+
+.
+:PROGRAM_FLAGSAVE_TOOMANY
+Massa fitxers a ser marcats per desar-los.
+
+.
+:PROGRAM_FLAGSAVE_SAVED
+S'ha marcat el fitxer %s per desar-lo.
+
+.
+:PROGRAM_FLAGSAVE_LIST
+Fitxers marcats per desar-los:
+
+.
+:PROGRAM_FLAGSAVE_HLP
+Marca els fitxers que s'han de desar amb la funció de "desar estat".
+
+FLAGSAVE [fitxer(s) [/F] [/R]] [/U]
+
+  file(s)     Especifica un o més fitxers que s'han de marcar per desar-los.
+  /F          Força a marcar els fitxers encara que no es trobin.
+  /R          Elimina les marques dels fitxers especificats.
+  /U          Elimina les marques de tots els fitxers marcats.
+
+FLAGSAVE, sense paràmetres, llista els fitxers marcats.
+
+.
+# ----------------------------------------------------------------------------
+# No traduït. Llenguatge mot tècnic, d'ús poc habitual
+#
+:PROGRAM_INT2FDBG_NOT_SET
+INT 2Fh hook has not been set.
+
+.
+:PROGRAM_INT2FDBG_ALREADY
+INT 2Fh hook has already been set.
+
+.
+:PROGRAM_INT2FDBG_HELP
+Hooks INT 2Fh for debugging purposes.
+
+INT2FDBG [option]
+  /I      Installs hook
+
+It will hook INT 2Fh at the top of the call chain for debugging information.
+
+Type INT2FDBG without a parameter to show the current hook status.
+
+.
+#
+# ----------------------------------------------------------------------------
+:PROGRAM_SET80x25
+Canvia al mode de text 80x25.
+.
+:PROGRAM_SET80x43
+Canvia al mode de text 80x43.
+
+.
+:PROGRAM_SET80x50
+Canvia al mode de text 80x50.
+
+.
+:PROGRAM_SET80x60
+Canvia al mode de text 80x60.
+
+.
+:PROGRAM_SET132x25
+Canvia al mode de text 132x25.
+
+.
+:PROGRAM_SET132x43
+Canvia al mode de text 132x43.
+
+.
+:PROGRAM_SET132x50
+Canvia al mode de text 132x50.
+
+.
+:PROGRAM_SET132x60
+Canvia al mode de text 132x60.
+
+.
+:PROGRAM_DELTREE_HELP
+Suprimeix un directori i tots els subdirectoris i fitxers que conté.
+
+Per suprimir un o més fitxers i directoris:
+DELTREE [/Y] [unitat:]camí [[unitat:]camí[...]]
+
+  /Y             Suprimeix la sol·licitud de confirmació.
+  [unitat:]camí  Especifica el nom del directori que voleu suprimir.
+
+Nota: Utilitzeu DELTREE amb precaució. Tots els fitxers i subdirectoris
+del directori especificat seran eliminats.
+
+.
+:PROGRAM_TREE_HELP
+Visualitza gràficament l'estructura de directoris d'una unitat o camí.
+
+TREE [unitat:][camí] [/F] [/A]
+
+  /F    Visualitza els noms dels fitxers de cada directori.
+  /A    Utilitza caràcters ASCII en comptes de caràcters estesos.
+
+.
+:PROGRAM_TITLE_HELP
+Estableix el títol de la finestra de DOSBox-X.
+
+TITLE [cadena]
+
+  cadena  Especifica el títol de la finestra de DOSBox-X.
+
+.
+:PROGRAM_CFGTOOL_HELP
+Inicia l'eina de configuració gràfica de DOSBox-X.
+
+CFGTOOL
+
+Nota: Utilitzeu CONFIG per a configuracions des de la línia d'ordres.
+
+.
+:PROGRAM_IMGSWAP_HELP
+Intercanvia imatges de disquet, disc dur i disc òptic.
+
+IMGSWAP unitat: [posició]
+
+  unitat    Lletra de la unitat per intercanviar la imatge.
+  posició   Posició del disc per intercanviar.
+
+.
+:PROGRAM_INTRO_HELP
+Una introducció a pantalla completa a DOSBox-X.
+
+INTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]
+
+.
+:PROGRAM_ELTORITO_LETTER
+L'emulació «El Torito» requereix una lletra de la unitat de CD-ROM adequada
+
+.
+:PROGRAM_ELTORITO_DRIVE_EXISTS
+La unitat de CD-ROM «El Torito» especificada ja existeix com a dispositiu
+que no és de CD-ROM
+
+.
+:PROGRAM_ELTORITO_NOT_CDDRIVE
+La unitat de CD-ROM «El Torito» especificada no és realment una unitat de CD-ROM
+
+.
+:PROGRAM_ELTORITO_REQUIRE_FLOPPY
+L'emulació «El Torito» s'ha d'utilitzar amb -t floppy en aquest moment
+
+.
+:PROGRAM_ELTORITO_NO_BOOT_RECORD
+No s'ha trobat el registre d'arrencada del CD-ROM «El Torito»
+
+.
+:PROGRAM_ELTORITO_ENTRY_UNREADABLE
+Entrades il·legibles a «El Torito»
+
+.
+:PROGRAM_ELTORITO_NO_BOOTABLE_FLOPPY
+No s'ha trobat el disquet d'arrencada «El Torito»
+
+.
+:PROGRAM_ELTORITO_BOOTABLE_SECTION
+No s'ha pogut localitzar la secció d'arrencada
+
+.
+:PROGRAM_ELTORITO_BOOTSECTOR
+Sector d'arrencada «El Torito» il·legible
+
+.
+:PROGRAM_ELTORITO_ISOMOUNT
+CD d'arrencada «El Torito»: -fs iso muntatge no suportat
+
+.
+:PROGRAM_START_HELP_WIN
+Obre una nova finestra per executar el programa o l'ordre especificats.
+
+START [+|-|_] ordre [paràmetres]
+
+  [+|-|_]       Per maximitzar/minimitzar/amagar el programa.
+                També s'accepten les opcions /MAX, /MIN, /HID.
+  ordre         L'ordre, programa o fitxer a engegar.
+  paràmetres    Arguments a passar a l'aplicació.
+
+START obre automàticament l'indicador d'ordres de Windows per executar aquestes
+ordres i espera que premeu una tecla abans de sortir (especificat per l'opció
+"startincon"): %s
+
+Nota: El camí especificat en aquesta ordre és el camí del sistema amfitrió.
+
+.
+:PROGRAM_START_HELP
+Inicia una finestra independent per executar un programa o una ordre especificats.
+
+START /OPEN fitxer
+START ordre [paràmetres]
+
+  /OPEN         Per obrir un fitxer o URL amb el programa associat.
+  fitxer        El fitxer o URL que cal obrir amb el programa associat.
+  ordre         L'ordre o programa per engegar o executar.
+  paràmetres    Arguments a passar a l'aplicació.
+
+Nota: El camí especificat en aquesta ordre és el camí del sistema amfitrió.
+
+.
+:PROGRAM_START_COMPLETED
+S'ha completat l'execució de l'ordre.
+.
+:PROGRAM_START_COMMAND
+Començant %s...
+
+.
+:PROGRAM_START_CTRLC
+(Premeu Ctrl+C per sortir immediatament)
+
+.
+:PROGRAM_START_HOST_ERROR
+Error: START no pot engegar l'aplicació per executar-se al vostre sistema
+amfitrió actual.
+
+.
+:PROGRAM_START_LAUNCH_ERROR
+Error: START no ha pogut engegar l'aplicació.
+
+.
+:PROGRAM_UTF8_HELP
+Converteix text en format UTF-8 per veure'l a la taula de codis actual.
+
+UTF8 < [unitat:][camí]fitxer
+ordre | UTF8
+
+.
+:PROGRAM_UTF8_NO_TEXT
+No s'ha trobat cap text d'entrada.
+
+.
+:PROGRAM_UTF8_INVALIDCP
+La taula de codis per a la conversió de text no és vàlida.
+
+.
+:PROGRAM_UTF8_NOT_UTF8
+El text d'entrada és UTF-16.
+
+.
+:PROGRAM_UTF8_CONVERSION_ERROR
+S'ha produït un error durant la conversió de text.
+
+.
+:PROGRAM_UTF16_HELP
+Converteix text en format UTF-16 per veure'l a la taula de codis actual.
+
+UTF16 [/BE|/LE] < [unitat:][camí]fitxer
+ordre | UTF16 [/BE|/LE]
+
+  /BE   Utilitza UTF-16 Big Endian
+  /LE   Utilitza UTF-16 Little Endian
+
+.
+# ----------------------------------------------------------------------------
+# No traduït. Suport per a japonès, xinès o coreà !
+#
+:PROGRAM_VTEXT_HELP
+Changes V-text mode for the DOS/V emulation.
+
+VTEXT [mode]
+
+[mode] can be 0, 1, 2, for no V-text, V-text 1, and V-text 2 respectively.
+
+Type VTEXT without a parameter to show the current V-text mode status.
+
+.
+#
+# ----------------------------------------------------------------------------
+:PROGRAM_NMITEST_HELP
+Genera una interrupció no emmascarable (NMI).
+
+NMITEST
+
+Nota: Aquesta és una eina de depuració per provar si el controlador
+      d'interrupcions funciona correctament.
+
+.
+:PROGRAM_NMITEST_GENERATE_NMI
+S'està generant una interrupció no emmascarable (NMI)...
+
+.
+:PROGRAM_CAPMOUSE_HELP
+Captura o allibera el ratolí dins de DOSBox-X.
+
+CAPMOUSE [/C|/R]
+  /C   Captura el ratolí
+  /R   Allibera el ratolí
+
+CAPMOUSE, sense paràmetres, visualitza l'estat de la captura del ratolí.
+
+.
+:PROGRAM_CAPMOUSE_MOUSE
+El ratolí 
+.
+:PROGRAM_CAPMOUSE_CURRENTLY
+està 
+.
+:PROGRAM_CAPMOUSE_CAPTURED
+capturat
+.
+:PROGRAM_CAPMOUSE_RELEASED
+alliberat
+.
+:PROGRAM_AUTOTYPE_HELP
+Realitza l'entrada de teclat amb guió («script») en un programa DOS en execució
+
+AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]
+
+  -list      imprimeix tots els noms de tecles disponibles.
+  -w WAIT    Temps d'espera abans de començar a escriure.
+             Dos segons per defecte; màxim de 30.
+  -p PACE    Ritme de pulsació de les tecles. Per defecte
+             mig segon; màxim de 10.
+
+  La seqüència està formada per una o més tecles separades per espais.
+  L'escriptura automàtica comença després d'una espera de «WAIT» segons
+  i les pulsacions s'introdueixen a un ritme de «PACE» segons.
+  El caràcter , insereix un retard «PACE» addicional.
+
+Alguns exemples:
+  ←[1mAUTOTYPE -w 1 -p 0.3 up enter , right enter←[0m
+  ←[1mAUTOTYPE -p 0.2 f1 kp_8 , , enter←[0m
+  ←[1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter←[0m
+
+.
+:PROGRAM_AUTOTYPE_NO_BINDINGS
+AUTOTYPE: el «MAPPER» no té vinculacions de tecles
+
+.
+:PROGRAM_AUTOTYPE_CLAMP_VALUE
+AUTOTYPE: %s no accepta el valor %.2f . El límit és %.2f
+
+.
+:PROGRAM_AUTOTYPE_INVALID_VALUE
+AUTOTYPE: %s amb un valor '%s' no és un nombre de coma flotant vàlid
+
+.
+:PROGRAM_ADDKEY_HELP
+Genera teclejos artificials.
+
+ADDKEY [pmsec] [key]
+
+Per exemple, l'ordre següent escriu "dir" seguit d'ENTER al cap d'1 segon:
+
+ADDKEY p1000 d i r enter
+
+També podeu provar l'ordre AUTOTYPE en lloc d'aquesta ordre
+per programar un tecleig amb guió en un programa DOS en execució.
+
+.
+:PROGRAM_SETCOLOR_HELP
+Visualitza o canvia la configuració de l'esquema de colors del mode text.
+
+SETCOLOR [núm_color [valor]]
+
+Exemples:
+
+  SETCOLOR 0 (50,50,50)     Canvia el color 0 al valor de color especificat
+  SETCOLOR 7 -              Torna el color 7 al valor de color predeterminat
+  SETCOLOR 3 +              Torna el color 3 al valor de color preestablert
+  SETCOLOR MONO             Visualitza l'estat actual del mode MONO
+
+Per canviar els colors de fons i primer pla actuals, utilitzeu l'ordre COLOR.
+
+.
+:PROGRAM_SETCOLOR_STATUS
+Estat del mode MONO: %s (mode de vídeo %d)
+
+.
+:PROGRAM_SETCOLOR_ACTIVE
+actiu
+.
+:PROGRAM_SETCOLOR_INACTIVE
+inactiu
+.
+:PROGRAM_SETCOLOR_UNAVAILABLE
+no disponible
+.
+:PROGRAM_SETCOLOR_MONO_MODE7
+Estat del mode MONO => actiu (mode de vídeo 7)
+
+.
+:PROGRAM_SETCOLOR_MONO_MODE3
+Estat del mode MONO => inactiu (mode de vídeo 3)
+
+.
+:PROGRAM_SETCOLOR_MONO_FAIL
+No s'ha pogut canviar el mode MONO
+
+.
+:PROGRAM_SETCOLOR_MONO_SYNTAX
+Ha de ser + o - per a MONO: %s
+
+.
+:PROGRAM_SETCOLOR_COLOR
+Color %d: (%d,%d,%d) o #%02x%02x%02x
+
+.
+:PROGRAM_SETCOLOR_INVALID_NUMBER
+Número de color no vàlid: %s
+
+.
+:PROGRAM_SETCOLOR_INVALID_VALUE
+Valor de color no vàlid: %s
+
+.
+:PROGRAM_SETCOLOR_NOT_SUPPORTED
+El canvi de l'esquema de colors no és compatible amb el mode de vídeo actual.
+
+.
+:PROGRAM_SWITCH_LANG
+Heu canviat la taula de codis activa a %d. Voleu carregar el fitxer
+d'idioma %s per a aquesta taula de codis?
+.
+:PROGRAM_ALREADY_MOUNTED
+La unitat %s: ja està muntada. Desmunteu-la primer i torneu-ho a provar.
+.
+:PROGRAM_DRIVE_NO_EXIST
+La unitat %s: no existeix al sistema.
+.
+:PROGRAM_DRIVE_WARN
+Realment voleu donar accés a DOSBox-X a la vostra unitat %s real %s?
+.
+:DRIVE_TYPE_FLOPPY
+disquet
+.
+:DRIVE_TYPE_REMOVABLE
+extraïble
+.
+:DRIVE_TYPE_NETWORK
+xarxa
+.
+:DRIVE_TYPE_HARD
+dur
+.
+:DRIVE_TYPE_LOCAL
+local
+.
+:DRIVE_TYPE_CDROM
+CD-ROM
+.
+:PROGRAM_CDDRIVE_WARN
+La unitat de CD %s està muntada actualment amb la imatge:
+
+%s
+
+Voleu canviar la imatge del CD ara?
+.
+:PROGRAM_CDMOUNT_ERROR
+No s'ha pogut muntar la imatge del CD seleccionada.
+.
+:ELTORITO_IMAGE
+Imatge de disquet «El Torito»
+.
+:RAM_FLOPPY_IMAGE
+Imatge del disquet RAM
+.
+:PROGRAM_FLOPPY_WARN
+La unitat de disquet %s està actualment muntada amb la imatge:
+
+%s
+
+Voleu canviar la imatge del disquet ara?
+.
+:PROGRAM_FLOPPYMOUNT_ERROR
+No s'ha pogut muntar la imatge del disquet seleccionada.
+.
+:PROGRAM_MOUNT_MORE_IMAGES
+Voleu muntar més fitxers d'imatge?
+.
+:PROGRAM_MOUNT_PATH_TOOLONG
+El camí dels fitxers a muntar és massa llarg.
+.
+:PROGRAM_BOOT_FAILED
+La unitat %s: no s'ha pogut arrencar.
+.
+:PROGRAM_MOUNT_FAILED
+La unitat %s: no s'ha pogut muntar.
+.
+:PROGRAM_MOUNT_IMAGE
+%s muntat a la unitat %s:
+%s %s
+.
+:ARCHIVE
+arxiu
+.
+:DISK_IMAGE
+imatge de disc
+.
+:READONLY_MODE
+Mode de només lectura
+.
+:PROGRAM_MOUNT_SELECT_DRIVE
+Seleccioneu una unitat/directori per muntar per a la unitat %s: com a %s
+.
+:PROGRAM_MOUNT_CDROM_SUPPORT
+Muntar un directori com a CD-ROM ofereix un suport limitat
+.
+:PROGRAM_MOUNT_NOT_MOUNTED
+La unitat %s: encara no està muntada.
+.
+:PROGRAM_PROGRAM_ALREADY
+Un altre programa ja s'està executant.
+.
+:PROGRAM_SHELL_ALREADY
+Un altre intèrpret d'ordres s'està executant actualment.
+.
+:PROGRAM_MOUNT_SUCCESS
+La unitat %s ara està muntada a:
+%s
+.
+:PROGRAM_WARN_QUICKLAUNCH
+L'inici ràpid munta automàticament la unitat C a DOSBox-X.
+La unitat C ja s'ha muntat. Vols continuar?
+.
+:PROGRAM_NO_EXECUTABLE
+No s'ha trobat el fitxer executable.
+.
+:PROGRAM_EXEC_FINISHED
+El programa s'ha acabat d'executar. Voleu desmuntar la unitat %s ara?
+.
+:PROGRAM_ASK_CHCP
+Unitat %c: pot requerir la taula de codis %d per accedir correctament.
+
+Voleu canviar la pàgina de codi actual a %d ara?
+
+.
+:PROGRAM_CHANGING_CODEPAGE
+Canvi de taula de codis
+.
+:MENU_DRIVE_NOTEXIST
+La unitat no existeix o està muntada des de la imatge de disc.
+.
+:MENU_SAVE_IMAGE_FAILED
+No s'ha pogut desar la imatge del disc.
+.
+# ----------------------------------------------------------------------------
+# No traduït. Suport per a japonès, xinès o coreà !
+#
+:MENU_JP_CPONLY
+This function is only available for the Japanese code page (932).
+.
+:MENU_CH_CPONLY
+This function is only available for the Chinese code pages (936, 950, or 951).
+.
+#
+# ----------------------------------------------------------------------------
+:MENU_GLIDE_ERROR
+No es pot activar «Glide passthrough». Comproveu la instal·lació de l'embolcall «Glide».
+.
+:MENU_HIGH_INTENSITY_ERROR
+La intensitat alta no és compatible amb el mode de vídeo actual.
+.
+:MENU_SAVE_FILE_ERROR
+No es pot desar al fitxer: %s
+.
+:MENU_INT2F_SUCCESS
+INT 2Fh hook s'ha configurat correctament.
+.
+:MENU_INT2F_ALREADY_SET
+INT 2Fh hook ja està configurat.
+.
+:QUIT_DISABLED
+La sortida de DOSBox-X està actualment desactivada.
+.
+:QUIT_CONFIRM
+Això sortirà de DOSBox-X.
+N'esteu segurs?
+.
+:QUIT_GUEST_DISABLED
+No podeu sortir de DOSBox-X mentre executeu un sistema convidat.
+.
+:QUIT_GUEST_CONFIRM
+Actualment esteu executant un sistema convidat.
+Sortir de totes maneres?
+.
+:QUIT_FILE_OPEN_DISABLED
+No podeu sortir de DOSBox-X mentre un o més fitxers estan oberts.
+.
+:QUIT_FILE_OPEN_CONFIRM
+Pot ser que no sigui segur sortir de DOSBox-X ara mateix
+perquè hi ha un o més fitxers oberts.
+Sortir de totes maneres?
+.
+:QUIT_PROGRAM_DISABLED
+No podeu sortir de DOSBox-X mentre executeu un programa o joc.
+.
+:QUIT_PROGRAM_CONFIRM
+Actualment esteu executant un programa o joc.
+Esteu segurs de sortir ara de totes maneres?
+.
+:SCALER_LOAD_WARN
+Aquest «scaler» potser no funcionarà bé o tindrà efectes no desitjats:
+
+%s
+
+Voleu forçar la càrrega del «scaler»?
+.
+:PIXEL_SHADER_WARN
+Aquest «pixelshader» pot ser innecessari o tenir efectes no desitjats:
+
+%s
+
+Voleu carregar el «pixelshader» de totes maneres?
+
+(Podeu afegir «forced» a la configuració de «pixelshader» per forçar-ne
+la càrrega sense veure aquest missatge)
+
+.
+:PIXEL_SHADER_LOADED
+Carregat el «pixelshader» - %s
+.
+:MAPPEREDITOR_NOT_AVAILABLE
+L'editor del «MAPPER» no està disponible actualment.
+.
+:OPL_REC_COMPLETED
+Sortida OPL en brut desada al fitxer:
+
+%s
+.
+:OPL_CAPTURE_FAILED
+No es pot capturar la sortida de RAW OPL perquè l'aplicació actual està
+utilitzant el mode natiu ESFM, que no és compatible amb el format RAW OPL.
+.
+# ----------------------------------------------------------------------------
+# No traduït. Suport per a japonès, xinès o coreà !
+#
+:TTF_DBCS_ONLY
+This function is only available for the Chinese/Japanese/Korean code pages.
+.
+#
+# ----------------------------------------------------------------------------
+:SAVE_FAILED
+No s'ha pogut desar l'estat actual.
+.
+:SAVE_CORRUPTED
+Desament de l'estat corrupte. És possible que el programa no funcioni.
+.
+:SAVE_SCREENSHOT
+Captura de pantalla desada al fitxer:
+
+%s
+.
+:SHELL_CMD_TREE_ERROR
+No existeixen subdirectoris
+
+.
+:SHELL_CMD_VOL_TREE
+Arbre de directoris del volum %s
+
+.
+:SHELL_CMD_VOL_DRIVE
+
+ El volum de la unitat %c 
+.
+:SHELL_CMD_VOL_SERIAL
+ El número de sèrie del volum és 
+.
+:SHELL_CMD_VOL_SERIAL_NOLABEL
+no té etiqueta
+
+.
+:SHELL_CMD_VOL_SERIAL_LABEL
+és %s
+
+.
+:SHELL_ILLEGAL_PATH
+Camí no trobat
+
+.
+:SHELL_ILLEGAL_DRIVE
+Especificació d'unitat no vàlida
+
+.
+:SHELL_CMD_HELP
+Si voleu una llista de totes les ordres internes, escriviu ←[1mHELP /ALL←[0m.
+Podeu trobar les ordres externes a la unitat Z: com a programes.
+Una breu llista de les ordres més utilitzades:
+
+.
+:SHELL_CMD_HELP_END1
+
+Les ordres externes com ara ←[1mMOUNT←[0m i ←[1mIMGMOUNT←[0m es poden trobar a la unitat Z:.
+
+.
+:SHELL_CMD_HELP_END2
+Escriviu ←[1mHELP ordre←[0m o ←[1mordre /?←[0m per obtenir l'ajuda de l'←[1mordre←[0m indicada.
+
+.
+:SHELL_CMD_ECHO_ON
+L'ECHO està ON
+
+.
+:SHELL_CMD_ECHO_OFF
+L'ECHO està OFF
+
+.
+:SHELL_ILLEGAL_SWITCH
+Commutador no vàlid - %s
+
+.
+:SHELL_INVALID_PARAMETER
+Paràmetre no vàlid - %s
+
+.
+:SHELL_MISSING_PARAMETER
+Falta el paràmetre obligatori.
+
+.
+:SHELL_MISSING_FILE
+Falta el fitxer següent o està malmès: %s
+
+.
+:SHELL_CMD_CHDIR_ERROR
+Directori no vàlid - %s
+
+.
+:SHELL_CMD_CHDIR_HINT
+Suggeriment: per canviar a un tipus d'unitat diferent ←[1m%C:←[0m
+
+.
+:SHELL_CMD_CHDIR_HINT_2
+nom_directori conté espais i no està envoltat amb cometes.
+Proveu ←[1mcd %s←[0m o envolteu-lo correctament amb cometes.
+
+.
+:SHELL_CMD_CHDIR_HINT_3
+Encara sou a la unitat Z: i no es pot trobar el directori especificat.
+Per accedir a una unitat muntada, canvieu d'unitat amb una ordre com ←[1mC:←[0m.
+
+.
+:SHELL_CMD_DATE_HELP
+Visualitza o defineix la data.
+
+.
+:SHELL_CMD_DATE_ERROR
+La data indicada no és correcta.
+
+.
+:SHELL_CMD_DATE_DAYS
+3Dg.Dl.Dm.Dc.Dj.Dv.Ds.
+.
+:SHELL_CMD_DATE_NOW
+Data actual: 
+.
+:SHELL_CMD_DATE_SETHLP
+Teclegeu ←[1mdate %s←[0m per canviar-la.
+
+.
+:SHELL_CMD_DATE_HELP_LONG
+DATE [[/T] [/H] [/S] | data]
+  data  Nova data a definir
+  /S    Fa servir la data i l'hora del sistema amfitrió en DOS
+  /F    Torna a la data i l'hora internes de DOSBox-X (invers a /S)
+  /T    Només visualitza la data
+  /H    Sincronitza amb l'amfitrió
+
+.
+:SHELL_CMD_TIME_HELP
+Visualitza o defineix l'hora del sistema.
+
+.
+:SHELL_CMD_TIME_ERROR
+L'hora especificada no és correcta.
+
+.
+:SHELL_CMD_TIME_NOW
+Hora actual: 
+.
+:SHELL_CMD_TIME_SETHLP
+Teclegeu ←[1mtime %s←[0m per canviar-la.
+
+.
+:SHELL_CMD_TIME_HELP_LONG
+TIME [[/T] [/H] | hora]
+  hora  Nova hora a definir
+  /T    Només visualitza l'hora
+  /H    Sincronitza amb l'amfitrió
+
+.
+:SHELL_CMD_MKDIR_EXIST
+Aquest directori ja existeix - %s
+
+.
+:SHELL_CMD_MKDIR_ERROR
+Impossible de crear el directori - %s
+
+.
+:SHELL_CMD_RMDIR_ERROR
+Camí incorrecte, no existeix el directori, o bé el directori no és buit - %s
+
+.
+:SHELL_CMD_RMDIR_FULLTREE_CONFIRM
+Voleu suprimir el directori "%s" i tots els subdirectoris? (S/N)
+.
+:SHELL_CMD_RMDIR_SINGLE_CONFIRM
+Voleu suprimir el fitxer "%s"? (S/N)
+.
+:SHELL_CMD_RENAME_ERROR
+No es pot canviar el nom de %s
+
+.
+:SHELL_CMD_ATTRIB_GET_ERROR
+No s'han pogut obtenir els atributs de %s
+
+.
+:SHELL_CMD_ATTRIB_SET_ERROR
+No s'han pogut definir els atributs de %s
+
+.
+:SHELL_CMD_DEL_ERROR
+No s'ha pogut suprimir %s
+
+.
+:SHELL_CMD_DEL_CONFIRM
+Suprimir %s? (S/N)
+.
+:SHELL_CMD_DEL_SURE
+Tots els fitxers del directori se suprimiran
+Esteu segur? (S/N)
+.
+:SHELL_SYNTAXERROR
+Error de sintaxi
+
+.
+:SHELL_CMD_SET_NOT_SET
+La variable d'entorn %s no està definida.
+
+.
+:SHELL_CMD_SET_OUT_OF_SPACE
+No queda prou espai d'entorn.
+
+.
+:SHELL_CMD_IF_EXIST_MISSING_FILENAME
+IF EXIST: Fitxer inexistent.
+
+.
+:SHELL_CMD_IF_ERRORLEVEL_MISSING_NUMBER
+IF ERRORLEVEL: Falta número.
+
+.
+:SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER
+IF ERRORLEVEL: Número no vàlid.
+
+.
+:SHELL_CMD_GOTO_MISSING_LABEL
+No s'ha proporcionat cap etiqueta (LABEL) a l'ordre GOTO.
+
+.
+:SHELL_CMD_GOTO_LABEL_NOT_FOUND
+GOTO: Etiqueta %s no trobada.
+
+.
+:SHELL_CMD_FILE_ACCESS_DENIED
+Accés no autoritzat - %s
+
+.
+:SHELL_CMD_FILE_NOT_FOUND
+Fitxer no trobat - %s
+
+.
+:SHELL_CMD_FILE_EXISTS
+El fitxer %s ja existeix.
+
+.
+:SHELL_CMD_DIR_INTRO
+ Directori de %s
+
+
+.
+:SHELL_CMD_DIR_BYTES_USED
+%5d Fitxer(s) %17s Bytes
+
+.
+:SHELL_CMD_DIR_BYTES_FREE
+%5d Dir(s)  %17s Bytes lliures
+
+.
+:SHELL_CMD_DIR_FILES_LISTED
+Total de fitxers llistats:
+
+.
+:SHELL_EXECUTE_DRIVE_NOT_FOUND
+La unitat %c no existeix.
+Heu de ←[1mmuntar-la←[0m abans. Teclegeu ←[1mINTRO←[0m o ←[1mINTRO MOUNTmount←[0m per a més detalls.
+
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_CDROM
+Voleu permetre que DOSBox-X accedeixi a la unitat de CD-ROM real %c (S/N)?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY
+Voleu permetre que DOSBox-X accedeixi a la unitat de disquet real %c (S/N)?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
+Voleu permetre que DOSBox-X accedeixi a la unitat extraïble real? %c (S/N)?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
+Voleu permetre que DOSBox-X accedeixi a la unitat de xarxa real %c (S/N)?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FIXED
+Voleu permetre que DOSBox-X accedeixi a la unitat de disco dur real %c (S/N)?
+.
+:SHELL_EXECUTE_ILLEGAL_COMMAND
+Ordre o nom de fitxer incorrecte - "%s"
+
+.
+:SHELL_CMD_PAUSE
+Premeu qualsevol tecla per continuar...
+
+.
+:SHELL_CMD_PAUSE_HELP
+Espera que es premi una tecla per continuar.
+
+.
+:SHELL_CMD_PAUSE_HELP_LONG
+PAUSE
+
+.
+:SHELL_CMD_COPY_FAILURE
+Error de còpia - %s
+
+.
+:SHELL_CMD_COPY_SUCCESS
+   %d Fitxer(s) copiat(s).
+
+.
+:SHELL_CMD_COPY_CONFIRM
+Voleu sobreescriure %s (Sí/No/Tots)?
+.
+:SHELL_CMD_COPY_NOSPACE
+Insuficient espai en disc - %s
+
+.
+:SHELL_CMD_COPY_ERROR
+Error de còpia - %s
+
+.
+:SHELL_CMD_COPY_NOSELF
+El fitxer no es pot copiar sobre ell mateix.
+
+.
+:SHELL_CMD_SUBST_DRIVE_LIST
+Les unitats locals actualment muntades són:
+
+.
+:SHELL_CMD_SUBST_NO_REMOVE
+No s'ha pogut eliminar, la unitat no està en ús.
+
+.
+:SHELL_CMD_SUBST_IN_USE
+La unitat de destí està en ús.
+
+.
+:SHELL_CMD_SUBST_NOT_LOCAL
+Només es pot utilitzar SUBST en les unitats locals.
+
+.
+:SHELL_CMD_SUBST_INVALID_PATH
+El camí o la unitat especificada no és vàlid.
+
+.
+:SHELL_CMD_SUBST_FAILURE
+SUBST: Hi ha un error a la línia d'ordres.
+
+.
+# ----------------------------------------------------------------------------
+# No traduït. Suport per a japonès, xinès o coreà !
+#
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text is currently enabled.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text is currently disabled.
+
+.
+#
+# ----------------------------------------------------------------------------
+:SHELL_ALLFILES_CHAR
+a
+.
+# ----------------------------------------------------------------------------
+# Atenció màxim 30 caràcters !
+#
+:SHELL_STARTUP_TITLE
+Benvinguts a DOSBox-X
+.
+#
+# ----------------------------------------------------------------------------
+#
+# ----------------------------------------------------------------------------
+# No traduït. Suport per a japonès, xinès o coreà !
+# No esborreu els espais al final de les línies
+#
+:SHELL_STARTUP_HEAD1_PC98
+←[36mGetting Started with DOSBox-X:←[37m                                    ←[0m
+.
+:SHELL_STARTUP_TEXT1_PC98
+Type ←[32mHELP←[37m for shell commands, and ←[32mINTRO←[37m for a short introduction. ←[0m
+You could also complete various tasks through the ←[33mdrop-down menus←[37m.
+.
+:SHELL_STARTUP_EXAMPLE_PC98
+←[32mExample←[37m: Try select ←[33mTrueType font←[37m or ←[33mOpenGL perfect←[37m output option.
+.
+:SHELL_STARTUP_TEXT2_PC98
+To launch the ←[33mConfiguration Tool←[37m, use ←[31mhost+C←[37m. Host key is ←[32mF12←[37m.    ←[0m
+To activate the ←[33mMapper Editor←[37m for key assignments, use ←[31mhost+M←[37m.    ←[0m
+To switch between windowed and full-screen mode, use ←[31mhost+F←[37m.      ←[0m
+To adjust the emulated CPU speed, use ←[31mhost+Plus←[37m and ←[31mhost+Minus←[37m.   ←[0m
+.
+:SHELL_STARTUP_INFO_PC98
+←[36mDOSBox-X is now running in ←[32mJapanese NEC PC-98←[36m emulation mode.←[37m     ←[0m
+.
+:SHELL_STARTUP_TEXT3_PC98
+←[32mDOSBox-X project ←[33mhttps://dosbox-x.com/     ←[36mComplete DOS emulations←[37m
+←[32mDOSBox-X guide   ←[33mhttps://dosbox-x.com/wiki←[37m ←[36mDOS, Windows 3.x and 9x←[37m
+←[32mDOSBox-X support ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m
+.
+#
+# ----------------------------------------------------------------------------
+:SHELL_STARTUP_HEAD1
+←[36mIntroducció                                                                 ←[37m
+.
+:SHELL_STARTUP_TEXT1
+  Escriviu ←[33mHELP←[37m per veure la llista d'ordres o ←[33mINTRO←[37m per a una introducció. ←[37m
+  Podeu fer més tasques a DOSBox-X amb els ←[33mmenús desplegables←[37m.              ←[37m
+.
+:SHELL_STARTUP_EXAMPLE
+  ←[37mAl menú ←[33mVídeo > Sortida←[37m proveu ←[33mLletra TrueType←[37m o ←[33mOpenGL perfect           ←[37m
+.
+:SHELL_STARTUP_HEAD2
+←[36mDreceres útils ←[37m(la tecla ←[32mHost←[37m és ←[33mF11←[37m per a Win i ←[33mF12←[37m per a altres sistemes) ←[37m
+.
+:SHELL_STARTUP_TEXT2
+- Commuteu entre finestra normal i pantalla completa amb ←[32mHost←[37m+←[31mF←[37m             ←[37m
+- Modifiqueu la ←[33mconfiguració←[37m amb ←[32mHost←[37m+←[31mC←[37m                                     ←[37m
+- Editeu el ←[33mmapeig del teclat («MAPPER»)←[37m amb ←[32mHost←[37m+←[31mM←[37m                         ←[37m
+- Pugeu ←[32mHost←[37m+←[31m'←[37m o baixeu ←[32mHost←[37m+←[31m¡←[37m la velocitat de l'emulació (amb teclat SP)   ←[37m
+.
+# ----------------------------------------------------------------------------
+# No traduït. Suport per a japonès, xinès o coreà !
+#
+:SHELL_STARTUP_DOSV
+←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
+.
+#
+# ----------------------------------------------------------------------------
+#
+# ----------------------------------------------------------------------------
+# no esborreu els espais al final de les línies
+#
+:SHELL_STARTUP_CGA
+Utilitzeu ←[31mCtrl+F8←[37m per activar/desactivar el mode CGA compost.               ←[0m
+←[31mCtrl+Maj+[F7/F8]←[37m canvia la tonalitat; ←[31mCtrl+F7←[37m tria el mode CGA early/late   ←[0m
+.
+:SHELL_STARTUP_CGA_MONO
+Utilitzeu ←[31mCtrl+F7←[37m  per rotar entre colors monocromàtics blanc, ambre i verd.
+i ←[31mCtrl+F8←[37m pels paràmetres de contrast i brillantor.                         ←[0m
+.
+:SHELL_STARTUP_HERC
+Utilitzeu ←[31mCtrl+F7←[37m  per rotar entre colors monocromàtics blanc, ambre i verd.
+i ←[31mCtrl+F8←[37m  per alternar la combinació horitzontal (en mode gràfic).         ←[0m
+.
+:SHELL_STARTUP_HEAD3
+←[36mDOSBox-X a Internet                                                         ←[37m
+.
+:SHELL_STARTUP_TEXT3
+←[37mWeb del projecte        ←[33mhttps://dosbox-x.com         ←[36mEmulació completa DOS  ←[37m
+←[37mWiki amb documentació   ←[33mhttps://dosbox-x.com/wiki    ←[36mDOS, Windows 3.x, Win9x←[37m
+←[37mErrors o suggeriments   ←[33mhttps://github.com/joncampbell123/dosbox-x/issues   ←[37m
+.
+#
+# ----------------------------------------------------------------------------
+:SHELL_STARTUP_LAST
+Divertiu-vos amb DOSBox-X ;)
+.
+:SHELL_CMD_BREAK_HELP
+Activa o desactiva la comprovació freqüent de Ctrl+C.
+
+.
+:SHELL_CMD_BREAK_HELP_LONG
+BREAK [ON | OFF]
+
+BREAK, sense paràmetres, visualitza la configuració actual de BREAK.
+
+.
+:SHELL_CMD_CHDIR_HELP
+Visualitza el nom del directori actiu o canvia el directori actiu.
+
+.
+:SHELL_CMD_CHDIR_HELP_LONG
+CHDIR [unitat:][camí]
+CHDIR [..]
+CD [unitat:][camí]
+CD [..]
+
+  ..    Indica que voleu canviar al directori superior.
+
+CD [unitat:] visualitza el directori actiu de la unitat indicada.
+CD, sense paràmetres, visualitza la unitat i directori actuals.
+
+.
+:SHELL_CMD_CLS_HELP
+Neteja la pantalla.
+
+.
+:SHELL_CMD_CLS_HELP_LONG
+CLS
+
+.
+:SHELL_CMD_DIR_HELP
+Visualitza la llista de fitxers i de subdirectoris d'un directori.
+
+.
+:SHELL_CMD_DIR_HELP_LONG
+DIR [unitat:][camí][fitxer] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
+
+  [unitat:][camí][fitxer]
+            Indica unitat, directori i/o fitxers dels quals voleu la llista.
+  /W        Utilitza el format de llista ampla.
+  /B        Utilitza el format simple (sense capçalera ni resum).
+  /S        Visualitza els fitxers del directori i dels subdirectoris.
+  /P        S'atura després de cada pantalla d'informació.
+  /A        Visualitza els fitxers amb els atributs especificats.
+  atributs   D  Directoris                 R  Fitxers només de lectura
+             H  Fitxers ocults             A  Fitxers preparats per arxivar
+             S  Fitxers del sistema        -  Prefix de negació
+  /O        Visualitza una llista ordenada dels fitxers.
+  ordenació  N  Pel nom (alfabètica)       S  Per la mida (de petit a gran)
+             E  Per extensió (alfabètica)  D  Per data i hora (antics primer)
+             G  Els directoris primer      -  Prefix per invertir l'ordre
+
+Podeu predefinir els modificadors amb la variable d'entorn DIRCMD.
+Per anul·lar un modificador poseu un guió (-) al davant: per exemple, /-W.
+
+.
+:SHELL_CMD_ECHO_HELP
+Visualitza missatges, o bé, activa i desactiva l'ordre ECHO.
+
+.
+:SHELL_CMD_ECHO_HELP_LONG
+  ECHO [ON | OFF]
+  ECHO [missatge]
+
+ECHO, sense paràmetres, visualitza l'estat actual de l'ordre ECHO.
+
+.
+:SHELL_CMD_EXIT_HELP
+Surt del programa COMMAND.COM (l'intèrpret d'ordres).
+
+.
+:SHELL_CMD_EXIT_HELP_LONG
+EXIT
+
+.
+:SHELL_CMD_HELP_HELP
+Visualitza l'ajuda de les ordres de DOSBox-X.
+
+.
+:SHELL_CMD_HELP_HELP_LONG
+HELP [/A o /ALL]
+HELP [ordre]
+
+  /A o /ALL    Llista totes les ordres internes compatibles.
+  ordre        Visualitza l'ajuda de l'ordre indicada.
+
+Exemple: ←[1mHELP COPY←[0m o ←[1mCOPY /?←[0m visualitza l'ajuda per a l'ordre COPY.
+
+Les ordres externes com ←[1mMOUNT←[0m o ←[1mIMGMOUNT←[0m no es mostren a HELP /A.
+Les podeu trobar a la unitat Z: com a programes (per exemple, MOUNT.COM).
+Escriviu ←[1mordre /?←[0m o ←[1mHELP ordre←[0m per obtenir ajuda de l'←[1mordre←[0m.
+
+.
+:SHELL_CMD_LS_HELP
+Llista el contingut del directori.
+
+.
+:SHELL_CMD_LS_HELP_LONG
+LS [unitat:][camí][fitxer] [/A] [/L] [/P] [/Z]
+
+  /A     Llista també els fitxers ocults i del sistema.
+  /L     Llista els noms un per línia.
+  /P     S'atura després de cada pantalla d'informació.
+  /Z     Visualitza noms curts encara que hi hagi suport LFN disponible.
+
+.
+:SHELL_CMD_MKDIR_HELP
+Crea un directori.
+
+.
+:SHELL_CMD_MKDIR_HELP_LONG
+MKDIR [unitat:]camí
+MD [unitat:]camí
+
+.
+:SHELL_CMD_RMDIR_HELP
+Suprimeix un directori.
+
+.
+:SHELL_CMD_RMDIR_HELP_LONG
+RMDIR [unitat:][camí]
+RD [unitat:][camí]
+
+.
+:SHELL_CMD_SET_HELP
+Visualitza, defineix o suprimeix variables d'entorn.
+
+.
+:SHELL_CMD_SET_HELP_LONG
+SET [variable=[cadena]]
+
+  variable  Indica el nom de la variable d'entorn.
+  cadena    Indica una sèrie de caràcters per assignar a la variable.
+
+SET variable= , sense especificar la cadena, elimina la variable de l'entorn.
+SET, sense paràmetres, visualitza les variables d'entorn actuals.
+
+.
+:SHELL_CMD_IF_HELP
+Processament condicional als programes .BAT.
+
+.
+:SHELL_CMD_IF_HELP_LONG
+IF [NOT] ERRORLEVEL núm. ordre
+IF [NOT] cadena1==cadena2 ordre
+IF [NOT] EXIST fitxer ordre
+
+  NOT               Indica que el DOS només executarà l'ordre si la
+                    condició és falsa.
+
+  ERRORLEVEL núm.   Indica una condició de veritat si el darrer programa
+                    executat ha retornat un codi de sortida igual o major que
+                    el número indicat.
+
+  cadena1==cadena2  Indica una condició de veritat si les cadenes de
+                    text indicades coincideixen.
+
+  EXIST fitxer      Indica una condició de veritat si existeix el fitxer
+                    indicat.
+
+  ordre             Indica l'ordre que s'executarà si la condició es
+                    compleix.
+
+.
+:SHELL_CMD_GOTO_HELP
+Desplaça el DOS a la línia d'un fitxer .BAT on hi ha l'etiqueta.
+
+.
+:SHELL_CMD_GOTO_HELP_LONG
+GOTO etiqueta
+
+   etiqueta   Indica la línia on cal desplaçar-se.
+
+L'etiqueta ha d'estar sola a la línia i anar precedida de dos punts (:).
+L'ordre GOTO OPCIO1 faria que l'execució del fitxer .BAT saltés a la línia
+que comença per :OPCIO1.
+
+.
+:SHELL_CMD_HISTORY_HELP
+Visualitza o suprimeix l'historial d'ordres.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  Suprimeix l'historial d'ordres.
+
+.
+:SHELL_CMD_SHIFT_HELP
+Modifica la posició dels paràmetres substituïbles d'un fitxer BAT.
+
+.
+:SHELL_CMD_SHIFT_HELP_LONG
+SHIFT
+
+.
+:SHELL_CMD_FOR_HELP
+Executa l'ordre especificada per cadascun dels fitxers d'un grup.
+
+.
+:SHELL_CMD_FOR_HELP_LONG
+FOR %%variable IN (grup) DO ordre [paràmetres]
+
+  %%variable   Indica un paràmetre substituïble.
+  (grup)      Indica un grup de fitxers. Admet comodins.
+  ordre       Indica l'ordre que cal executar per a cada fitxer.
+  paràmetres  Indica els paràmetres/modificadors de l'ordre especificada.
+
+En un programa .BAT utilitzeu la %%%%variable en lloc de %%variable.
+
+.
+:SHELL_CMD_LFNFOR_HELP
+Activa o desactiva els noms llargs executant FOR amb comodins.
+
+.
+:SHELL_CMD_LFNFOR_HELP_LONG
+LFNFOR [ON | OFF]
+
+LFNFOR, sense paràmetres, visualitza la configuració actual.
+
+Aquesta ordre només és útil si el suport LFN està activat.
+
+.
+:SHELL_CMD_TYPE_HELP
+Visualitza el contingut d'un fitxer de text.
+
+.
+:SHELL_CMD_TYPE_HELP_LONG
+TYPE [unitat:][camí]fitxer
+
+.
+:SHELL_CMD_REM_HELP
+Afegeix comentaris en un fitxer tipus .BAT.
+
+.
+:SHELL_CMD_REM_HELP_LONG
+REM [comentari]
+
+.
+:SHELL_CMD_RENAME_HELP
+Canvia el nom d'un fitxer, un directori o diversos fitxers.
+
+.
+:SHELL_CMD_RENAME_HELP_LONG
+RENAME [unitat:][camí]directori1|fitxer1 directori2|fitxer2
+REN [unitat:][camí]directori1|fitxer1 directori2|fitxer2
+
+No podeu indicar una unitat o un camí diferents per al(s) fitxer(s) de
+destinació.
+
+Els comodins (* i ?) estan permesos per als fitxers. Per exemple, l'ordre
+següent canvia el nom dels fitxers amb l'extensió .TXT: ←[1mREN *.TXT *.BAK←[0m
+
+.
+:SHELL_CMD_DELETE_HELP
+Suprimeix un o més d'un fitxer.
+
+.
+:SHELL_CMD_DELETE_HELP_LONG
+DEL [/P] [/F] [/Q] [unitat:][camí]fitxer(s)
+ERASE [/P] [/F] [/Q] [unitat:][camí]fitxer(s)
+
+  [unitat:][camí]fitxer(s)
+        Indica el fitxer o fitxers a suprimir.
+        Feu servir comodins per suprimir un grup de fitxers.
+        Si s'especifica un directori, tots els fitxers que contingui
+        seran suprimits.
+  /P    Demana confirmació abans de suprimir un o més fitxers.
+  /F    Força la supressió de fitxers marcats com a només de lectura
+  /Q    Mode silenciós, no demana confirmació quan suprimeix amb *.*
+
+.
+:SHELL_CMD_COPY_HELP
+Copia un o més fitxers a un altre emplaçament.
+
+.
+:SHELL_CMD_COPY_HELP_LONG
+COPY [/Y | /-Y] origen [+origen [+ ...]] [destinació]
+
+  origen      Indica els fitxers per copiar.
+  destinació  Indica el directori i/o el nom del fitxer nou.
+  /Y          Suprimeix la sol·licitud de confirmació de sobreescriptura
+              d'un fitxer de destinació existent.
+  /-Y         Activa la sol·licitud de confirmació de sobreescriptura d'un
+              fitxer de destinació existent.
+
+El modificador /Y pot estar preestablert a la variable d'entorn COPYCMD.
+Es pot desactivar amb /-Y a la línia d'ordres.
+
+Per afegir fitxers, especifiqueu un sol fitxer de destinació, però diversos
+fitxers d'origen (utilitzant comodins o el format fitxer1+fitxer2+fitxer3).
+
+.
+:SHELL_CMD_CALL_HELP
+Crida un programa .BAT des d'un altre programa .BAT.
+
+.
+:SHELL_CMD_CALL_HELP_LONG
+CALL [unitat:][camí]fitxer [paràmetres]
+
+  paràmetres   Especifica qualsevol informació de la línia d'ordres
+               que requereix el programa .BAT cridat.
+
+.
+:SHELL_CMD_SUBST_HELP
+Associa un camí a una lletra d'unitat.
+
+.
+:SHELL_CMD_SUBST_HELP_LONG
+SUBST [unitat1: [unitat2:]camí]
+SUBST unitat: /D
+
+  unitat1:       Indica la unitat virtual a la qual voleu assignar el camí.
+  [unitat:]camí  Indica la unitat física i el camí que voleu assignar a
+                 la unitat virtual.
+  /D             Suprimeix una unitat substituïda o una unitat muntada.
+
+SUBST, sense paràmetres, visualitza una llista de les unitats virtuals
+i unitats muntades actives.
+
+.
+:SHELL_CMD_LOADHIGH_HELP
+Carrega un programa a la memòria superior (requereix XMS i UMB).
+
+.
+:SHELL_CMD_LOADHIGH_HELP_LONG
+  LH              [unitat:][camí]fitxer [paràmetres]
+  LOADHIGH        [unitat:][camí]fitxer [paràmetres]
+
+  paràmetres      Indica qualsevol informació que necessiti el programa
+                  que voleu carregar a la memòria.
+
+.
+:SHELL_CMD_CHOICE_HELP
+Espera que l'usuari triï una opció entre una sèrie.
+
+.
+:SHELL_CMD_CHOICE_HELP_LONG
+CHOICE [/C:opcions] [/N] [/S] [/T[:]c,nn] [text]
+
+  /C[:]opcions  Indica les tecles permeses. El valor per defecte és SN.
+  /N            No visualitza les opcions al final de l'indicador d'ordres.
+  /S            Distingeix majúscules de minúscules a les tecles d'opció.
+  /T[:]c,nn     Per defecte, selecciona l'opció c després de nn segons.
+  text          Text a visualitzar com a indicador d'ordres.
+
+ERRORLEVEL pren per valor la posició de l'opció que escolleix l'usuari.
+
+.
+:SHELL_CMD_ATTRIB_HELP
+Visualitza o canvia els atributs dels fitxers.
+
+.
+:SHELL_CMD_ATTRIB_HELP_LONG
+ATTRIB [+R|-R] [+A|-A] [+S|-S] [+H|-H] [[unitat:][camí]fitxer] [/S]
+
+  +     Activa un atribut.
+  -     Desactiva un atribut.
+  R     Atribut de fitxer d'accés només de lectura.
+  A     Atribut de fitxer d'arxivament.
+  S     Atribut de fitxer del sistema.
+  H     Atribut de fitxer ocult.
+  [unitat:][camí]fitxer
+        Indica els fitxers a processar amb ATTRIB.
+  /S    Processa els fitxers de tots els directoris i subdirectoris
+        del camí especificat.
+
+ATTRIB, sense paràmetres, visualitza els atributs del fitxers del directori
+actual
+
+.
+:SHELL_CMD_PATH_HELP
+Visualitza o defineix un camí de cerca per als fitxers executables.
+
+.
+:SHELL_CMD_PATH_HELP_LONG
+  PATH [[unitat:]camí[;...][;%PATH%]
+  PATH ;
+
+PATH ; suprimeix tots els camins de cerca.
+PATH, sense paràmetres, visualitza el camí actiu.
+
+.
+:SHELL_CMD_PUSHD_HELP
+Emmagatzema directori actual a una llista per utilitzar-lo, més tard,
+amb l'ordre POPD; després canvia al directori indicat.
+
+.
+:SHELL_CMD_PUSHD_HELP_LONG
+PUSHD [camí]
+
+  camí  Indica el directori destí on canviar
+
+PUSHD, sense paràmetres, llista els directoris emmagatzemats.
+
+.
+:SHELL_CMD_POPD_HELP
+Canvia al directori emmagatzemat amb l'odre PUSHD.
+
+.
+:SHELL_CMD_POPD_HELP_LONG
+POPD
+
+.
+:SHELL_CMD_VERIFY_HELP
+Quan està ON, verifica que els fitxers s'escriuen correctament.
+
+.
+:SHELL_CMD_VERIFY_HELP_LONG
+  VERIFY [ON | OFF]
+
+VERIFY, sense paràmetres, visualitza la configuració actual.
+
+.
+:SHELL_CMD_VER_HELP
+Visualitza o estableix la versió de DOS informada per DOSBox-X.
+
+.
+:SHELL_CMD_VER_HELP_LONG
+VER [/R]
+VER [SET núm.] o VER [SET núm. núm.]
+
+  /R             Visualitza la versió de DOSBox-X, la versió de DOS informada
+                 per a les aplicacions, la versió del repositori GIT,
+                 la data de compilació i la plataforma.
+  SET núm.       Estableix núm. com a versió de DOS per les aplicacions.
+  SET núm. núm.  Estableix la versió de DOS amb decimals
+
+  Per exemple:
+  ←[1mVER 6.0←[0m o ←[1mVER 7.1←[0m estableix la versió DOS 6.0 o 7.1.
+  Però, ←[1mVER SET 7 1←[0m estableix la versió DOS com 7.01 en lloc de 7.1.
+
+VER, sense paràmetres, visualitza la versió de DOSBox-X i la versió
+de DOS informada.
+
+.
+:SHELL_CMD_VER_VER
+DOSBox-X versió %s (%s). Versió de DOS informada %d.%02d.
+
+.
+:SHELL_CMD_VER_INVALID
+La versió DOS indicada no és correcta.
+
+.
+:SHELL_CMD_VOL_HELP
+Visualitza el nom del volum i el número de sèrie del disc.
+
+.
+:SHELL_CMD_VOL_HELP_LONG
+  VOL [unitat:]
+
+.
+:SHELL_CMD_PROMPT_HELP
+Canvia l'indicador d'ordres del DOS.
+
+.
+:SHELL_CMD_PROMPT_HELP_LONG
+PROMPT [text]
+  text  Podeu personalitzar l'indicador de l'MS-DOS i visualitzar qualsevol
+        text que pot estar constituït per caràcters normals i els següents
+        codis especials
+
+  $A    & («ampersand»)
+  $B    | (barra)
+  $C    ( (parèntesis esquerre)
+  $D    Data actual
+  $E    Codi d'escapament (codi ASCII 27)
+  $F    ) (parèntesis dret)
+  $G    > (signe major que)
+  $H    Retrocés (esborra el caràcter anterior)
+  $L    < (signe menor que)
+  $N    Unitat activa
+  $P    Unitat i camí actuals
+  $Q    = (signe igual)
+  $S      (espai)
+  $T    Hora actual
+  $V    Número de versió del DOS
+  $_    Retorn de carro i salt de línia
+  $$    $ (signe del dòlar)
+
+PROMPT, sense paràmetres, reinicia l'indicador d'ordes al valor per defecte.
+
+Escriviu ←[1mPROMPT /? | MORE←[0m per veure l'ajuda paginada.
+
+.
+:SHELL_CMD_ALIAS_HELP
+Defineix o visualitza els àlies.
+
+.
+:SHELL_CMD_ALIAS_HELP_LONG
+ALIAS [nom[=valor] ... ]
+
+ALIAS, sense paràmetres, visualitza la llista d'àlies amb el format
+"ALIAS NOM = VALOR"
+
+.
+:SHELL_CMD_ASSOC_HELP
+Visualitza o canvia les associacions de les extensions dels fitxers.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.ext[=ordre] ... ]
+
+ASSOC, sense paràmetres, visualitza les associacions de fitxers actuals.
+Les extensions de fitxer han de començar amb un punt (.); es permeten els
+comodins (* i ?).
+
+.
+:SHELL_CMD_CHCP_HELP
+Visualitza o canvia la taula de codis DOS actual.
+
+.
+:SHELL_CMD_CHCP_HELP_LONG
+CHCP [número [fitxer]]
+CHCP número[:[idioma]]
+
+  número   Especifica el número de la taula de codis.
+  fitxer   Especifica el fitxer de la taula de codis.
+  idioma   Especifica el nom del fitxer d'idioma corresponent.
+
+Pàgines de codi admeses per canviar la sortida a lletra TrueType:
+437, 737, 775, 808, 850, 852, 853, 855-869, 872, 874, 1250-1258 i 3021.
+
+També les pàgines de codis de dos bytes que inclouen 932, 936, 949 i 950/951.
+
+Les pàgines de codi personalitzades s'admeten proporcionant els fitxers de
+pàgines de codi corresponents.
+
+El nom del fitxer d'idioma acostuma a ser del tipus ←[1men_us.lng←[0m per a l'anglès
+o ←[1mca_es.lng←[0m per al català.
+.
+:SHELL_CMD_CHCP_ACTIVE
+Pàgina de codis activa: %d
+
+.
+:SHELL_CMD_CHCP_MISSING
+Caràcters ASCII no definits a la lletra TTF: %d
+
+.
+:SHELL_CMD_CHCP_INVALID
+Número de pàgina de codis no vàlid: %s
+
+.
+:SHELL_CMD_COUNTRY_HELP
+Visualitza o canvia el país actual.
+
+.
+:SHELL_CMD_COUNTRY_HELP_LONG
+COUNTRY [nnn]
+
+  nnn   Indica un codi de país.
+
+La informació específica del país, com ara els formats de data i hora,
+es veurà afectada.
+
+.
+:SHELL_CMD_CTTY_HELP
+Canvia el dispositiu terminal que controla el sistema.
+
+.
+:SHELL_CMD_CTTY_HELP_LONG
+CTTY dispositiu
+  dispositiu   El terminal que voleu utilitzar, com ara CON.
+
+.
+:SHELL_CMD_MORE_HELP
+Visualitza la sortida pantalla a pantalla.
+
+.
+:SHELL_CMD_MORE_HELP_LONG
+MORE [unitat:][camí]fitxer
+MORE < [unitat:][camí]fitxer
+ordre | MORE
+
+  [unitat:][camí]  Indica el fitxer que voleu veure pantalla a pantalla
+  ordre            Es visualitzarà el resultat de l'execució de l'ordre
+
+.
+:SHELL_CMD_TRUENAME_HELP
+Cerca el nom complet d'un fitxer.
+
+.
+:SHELL_CMD_TRUENAME_HELP_LONG
+TRUENAME [/H] fitxer
+
+  /H    Visualitza el camí complet a l'amfitrió
+
+.
+:SHELL_CMD_DXCAPTURE_HELP
+Executa un programa amb la captura de vídeo o d'àudio.
+
+.
+:SHELL_CMD_DXCAPTURE_HELP_LONG
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [/O|/-O] [/D|/-D] [ordre] [opcions]
+
+  /V    vídeo
+  /A    àudio
+  /M    àudio multipista
+  /O    OPL FM (format DROv2)
+  /-D   desactiva el retard posterior a la sortida.
+
+Inicia la captura de vídeo o d'àudio, executa el programa i, quan el
+programa acaba, atura automàticament la captura.
+
+.
+:SHELL_CMD_DEBUGBOX_HELP
+Executa el programa i entra en el depurador en el punt d'entrada.
+
+.
+:SHELL_CMD_DEBUGBOX_HELP_LONG
+DEBUGBOX [ordre] [opcions]
+
+DEBUGBOX, sense paràmetres, engega el depurador.
+
+.
+:SHELL_CMD_COMMAND_HELP
+Inicia un altre intèrpret d'ordres de DOSBox-X.
+
+Opcions:
+
+  /C    Executa l'ordre especificada i retorna.
+  /K    Executa l'ordre especificada i continua executant-se.
+  /P    Carrega una còpia permanent de l'intèrpret d'ordres.
+  /INIT Inicialitza l'intèrpret d'ordres.
+
+.
+:MENU:mapper_reset
+Restableix la màquina virtual
+.
+:MENU:mapper_reboot
+Reinicia el sistema convidat
+.
+:MENU:mapper_loadmap
+Carrega un fitxer del «MAPPER»...
+.
+:MENU:mapper_quickrun
+Execució ràpida d'un programa...
+.
+:MENU:mapper_shutdown
+Surt de DOSBox-X
+.
+:MENU:mapper_capmouse
+Captura el ratolí
+.
+:MENU:mapper_capkeyboard
+Captura el teclat
+.
+:MENU:mapper_fastedit
+Edició ràpida: copia en seleccionar i enganxar text
+.
+:MENU:mapper_copyall
+Copia tot el text de la pantalla
+.
+:MENU:mapper_paste
+Enganxa des del porta-retalls
+.
+:MENU:mapper_pasteend
+Deixa d'enganxar el porta-retalls
+.
+:MENU:mapper_ejectpage
+Envia un salt de pàgina a la impressora
+.
+:MENU:mapper_printtext
+Imprimeix la pantalla de text
+.
+:MENU:mapper_pause
+Posa en pausa l'emulació
+.
+:MENU:mapper_pauseints
+Pausa amb les interrupcions activades
+.
+:MENU:mapper_gui
+Configuració
+.
+:MENU:mapper_mapper
+Editor del «MAPPER»
+.
+:MENU:mapper_fullscr
+Commuta a pantalla completa
+.
+:MENU:mapper_resetsize
+Restableix la mida de la finestra
+.
+# ----------------------------------------------------------------------------
+# No traduït. Suport per a japonès, xinès o coreà !
+#
+:MENU:mapper_dbcssbcs
+CJK: Switch between DBCS/SBCS modes
+.
+:MENU:mapper_autoboxdraw
+CJK: Auto-detect box-drawing characters
+.
+#
+# ----------------------------------------------------------------------------
+:MENU:mapper_incsize
+Augmenta la mida de la lletra TTF
+.
+:MENU:mapper_decsize
+Redueix la mida de la lletra TTF
+.
+:MENU:mapper_resetcolor
+Restableix l'esquema de colors TTF
+.
+:MENU:mapper_pwrbutton
+APM Botó ON/OFF
+.
+:MENU:mapper_togmenu
+Visualitza o amaga la barra de menús
+.
+:MENU:MainMenu
+Principal
+.
+:MENU:MainSendKey
+Envia tecla especial
+.
+:MENU:MainHostKey
+Selecciona la tecla «HOST»
+.
+:MENU:WheelToArrow
+Moviments de la roda del ratolí
+.
+:MENU:SharedClipboard
+Funcions compartides del porta-retalls
+.
+:MENU:CpuMenu
+CPU
+.
+:MENU:CpuCoreMenu
+Nucli de la CPU
+.
+:MENU:CpuTypeMenu
+Tipus de CPU
+.
+:MENU:CpuSpeedMenu
+Emula velocitat de la CPU
+.
+:MENU:cpu88-4
+8088 XT 4.77MHz (~240 cicles)
+.
+:MENU:cpu286-8
+286 8MHz (~750 cicles)
+.
+:MENU:cpu286-12
+286 12MHz (~1510 cicles)
+.
+:MENU:cpu286-25
+286 25MHz (~3300 cicles)
+.
+:MENU:cpu386-25
+386DX 25MHz (~4595 cicles)
+.
+:MENU:cpu386-33
+386DX 33MHz (~6075 cicles)
+.
+:MENU:cpu486-33
+486DX 33MHz (~12010 cicles)
+.
+:MENU:cpu486-66
+486DX2 66MHz (~23880 cicles)
+.
+:MENU:cpu486-100
+486DX4 100MHz (~33445 cicles)
+.
+:MENU:cpu486-133
+486DX5 133MHz (~47810 cicles)
+.
+:MENU:cpu586-60
+Pentium 60MHz (~32090 cicles)
+.
+:MENU:cpu586-66
+Pentium 66MHz (~35620 cicles)
+.
+:MENU:cpu586-75
+Pentium 75MHz (~40072 cicles)
+.
+:MENU:cpu586-90
+Pentium 90MHz (~48087 cicles)
+.
+:MENU:cpu586-100
+Pentium 100MHz (~53430 cicles)
+.
+:MENU:cpu586-120
+Pentium 120MHz (~64180 cicles)
+.
+:MENU:cpu586-133
+Pentium 133MHz (~71240 cicles)
+.
+:MENU:cpu586-166
+Pentium 166MHz MMX (~95548 cicles)
+.
+:MENU:cpu586-200
+Pentium 200MHz MMX (~114657 cicles)
+.
+:MENU:cpuak6-200
+AMD K6 200MHz (~130000 cicles)
+.
+:MENU:cpuak6-300
+AMD K6-2 300MHz (~193000 cicles)
+.
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 cicles)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 cicles)
+.
+:MENU:VideoMenu
+Vídeo
+.
+:MENU:VideoFrameskipMenu
+«Frameskip»
+.
+:MENU:frameskip_0
+Apagat
+.
+:MENU:frameskip_1
+1 frame
+.
+:MENU:frameskip_2
+2 frame
+.
+:MENU:frameskip_3
+3 frame
+.
+:MENU:frameskip_4
+4 frame
+.
+:MENU:frameskip_5
+5 frame
+.
+:MENU:frameskip_6
+6 frame
+.
+:MENU:frameskip_7
+7 frame
+.
+:MENU:frameskip_8
+8 frame
+.
+:MENU:frameskip_9
+9 frame
+.
+:MENU:frameskip_10
+10 frame
+.
+:MENU:VideoRatioMenu
+Relació d'aspecte
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_3_2
+3:2
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+Relació original
+.
+:MENU:video_ratio_set
+Estableix la proporció
+.
+:MENU:VideoPreventCaptureMenu
+Control de la captura de pantalla
+.
+:MENU:prevcap_none
+Permet
+.
+:MENU:prevcap_blank
+Mostra en blanc
+.
+:MENU:prevcap_invisible
+Fes invisible
+.
+:MENU:VideoScalerMenu
+Escalador
+.
+:MENU:scaler_set_none
+Cap
+.
+:MENU:scaler_set_normal2x
+Normal 2X
+.
+:MENU:scaler_set_normal3x
+Normal 3X
+.
+:MENU:scaler_set_normal4x
+Normal 4X
+.
+:MENU:scaler_set_normal5x
+Normal 5X
+.
+:MENU:scaler_set_hardware_none
+Hardware None
+.
+:MENU:scaler_set_hardware2x
+Hardware 2X
+.
+:MENU:scaler_set_hardware3x
+Hardware 3X
+.
+:MENU:scaler_set_hardware4x
+Hardware 4X
+.
+:MENU:scaler_set_hardware5x
+Hardware 5X
+.
+:MENU:scaler_set_gray
+Grayscale
+.
+:MENU:scaler_set_gray2x
+Grayscale 2X
+.
+:MENU:scaler_set_tv2x
+TV 2X
+.
+:MENU:scaler_set_tv3x
+TV 3X
+.
+:MENU:scaler_set_scan2x
+Scan 2X
+.
+:MENU:scaler_set_scan3x
+Scan 3X
+.
+:MENU:scaler_set_rgb2x
+RGB 2X
+.
+:MENU:scaler_set_rgb3x
+RGB 3X
+.
+:MENU:scaler_set_advmame2x
+Advanced MAME 2X
+.
+:MENU:scaler_set_advmame3x
+Advanced MAME 3X
+.
+:MENU:scaler_set_hq2x
+HQ 2X
+.
+:MENU:scaler_set_hq3x
+HQ 3X
+.
+:MENU:scaler_set_advinterp2x
+Advanced Interpolation 2X
+.
+:MENU:scaler_set_advinterp3x
+Advanced Interpolation 3X
+.
+:MENU:scaler_set_2xsai
+2xSai
+.
+:MENU:scaler_set_super2xsai
+Super2xSai
+.
+:MENU:scaler_set_supereagle
+SuperEagle
+.
+:MENU:scaler_set_xbrz
+xBRZ
+.
+:MENU:scaler_set_xbrz_bilinear
+xBRZ Bilinear
+.
+:MENU:center_window
+Centra la finestra
+.
+:MENU:set_titletext
+Estableix el text de la barra de títol...
+.
+:MENU:set_transparency
+Estableix la transparència...
+.
+:MENU:refresh_rate
+Ajusta la freqüència d'actualització...
+.
+:MENU:VideoOutputMenu
+Sortida
+.
+:MENU:output_surface
+Software (Surface)
+.
+:MENU:output_direct3d
+Direct3D
+.
+:MENU:output_direct3d11
+Direct3D11 (Experimental)
+.
+:MENU:output_opengl
+OpenGL
+.
+:MENU:output_openglnb
+OpenGL nearest
+.
+:MENU:output_openglpp
+OpenGL perfect
+.
+:MENU:output_ttf
+Lletra TrueType
+.
+:MENU:output_gamelink
+Game Link
+.
+:MENU:doublescan
+Doublescan
+.
+:MENU:modeswitch
+Modeswitch
+.
+:MENU:VideoVsyncMenu
+V-Sync
+.
+:MENU:vsync_on
+On
+.
+:MENU:vsync_force
+Force
+.
+:MENU:vsync_host
+Host
+.
+:MENU:vsync_off
+Off
+.
+:MENU:vsync_set_syncrate
+Estableix «syncrate»
+.
+:MENU:VideoOverscanMenu
+«Overscan»
+.
+:MENU:overscan_0
+Apagat
+.
+:MENU:overscan_1
+1
+.
+:MENU:overscan_2
+2
+.
+:MENU:overscan_3
+3
+.
+:MENU:overscan_4
+4
+.
+:MENU:overscan_5
+5
+.
+:MENU:overscan_6
+6
+.
+:MENU:overscan_7
+7
+.
+:MENU:overscan_8
+8
+.
+:MENU:overscan_9
+9
+.
+:MENU:overscan_10
+10
+.
+:MENU:VideoTextmodeMenu
+Text-mode
+.
+:MENU:clear_screen
+Neteja la pantalla
+.
+:MENU:vga_9widetext
+Permet lletra de 9 píxels d'ample
+.
+:MENU:text_background
+Alta intensitat: color de fons
+.
+:MENU:text_blinking
+Alta intensitat: text parpellejant
+.
+:MENU:line_80x25
+Pantalla: 80 columnes x 25 línies
+.
+:MENU:line_80x43
+Pantalla: 80 columnes x 43 línies
+.
+:MENU:line_80x50
+Pantalla: 80 columnes x 50 línies
+.
+:MENU:line_80x60
+Pantalla: 80 columnes x 60 línies
+.
+:MENU:line_132x25
+Pantalla: 132 columnes x 25 línies
+.
+:MENU:line_132x43
+Pantalla: 132 columnes x 43 línies
+.
+:MENU:line_132x50
+Pantalla: 132 columnes x 50 línies
+.
+:MENU:line_132x60
+Pantalla: 132 columnes x 60 línies
+.
+:MENU:VideoTTFMenu
+Opcions TTF
+.
+:MENU:ttf_showbold
+Visualitza el text TTF en negreta
+.
+:MENU:ttf_showital
+Visualitza el text TTF en cursiva
+.
+:MENU:ttf_showline
+Visualitza el text TTF subratllat
+.
+:MENU:ttf_showsout
+Visualitza el text TTF ratllat
+.
+:MENU:ttf_wpno
+Processador de textos TTF: cap
+.
+:MENU:ttf_wpwp
+Processador de textos TTF: WordPerfect
+.
+:MENU:ttf_wpws
+Processador de textos TTF: WordStar
+.
+:MENU:ttf_wpxy
+Processador de textos TTF: XyWrite
+.
+:MENU:ttf_wpfe
+Processador de textos TTF: FastEdit
+.
+:MENU:ttf_blinkc
+Visualitza el cursor TTF parpellejant
+.
+:MENU:ttf_right_left
+Visualitza el text de dreta a esquerra
+.
+:MENU:ttf_printfont
+Utilitza la lletra TTF actual per imprimir
+.
+# ----------------------------------------------------------------------------
+# No traduït. Suport per a japonès, xinès o coreà !
+#
+:MENU:ttf_halfwidthkana
+CJK: Allow half-width Japanese Katakana
+.
+:MENU:ttf_extcharset
+CJK: Enable extended Chinese character set
+.
+:MENU:VideoPC98Menu
+PC-98 options
+.
+:MENU:pc98_5mhz_gdc
+5MHz GDC clock
+.
+:MENU:pc98_allow_200scanline
+Allow 200-line scanline effect
+.
+:MENU:pc98_allow_4partitions
+Allow 4 display partitions in graphics layer
+.
+:MENU:pc98_enable_egc
+Enable EGC
+.
+:MENU:pc98_enable_grcg
+Enable GRCG
+.
+:MENU:pc98_enable_analog
+Enable analog display
+.
+:MENU:pc98_enable_analog256
+Enable analog 256-color display
+.
+:MENU:pc98_enable_188user
+Enable 188+ user CG cells
+.
+:MENU:pc98_clear_text
+Clear text layer
+.
+:MENU:pc98_clear_graphics
+Clear graphics layer
+.
+#
+# ----------------------------------------------------------------------------
+:MENU:Video3dfxMenu
+Emulació 3dfx
+.
+:MENU:3dfx_voodoo
+Targeta Voodoo interna
+.
+:MENU:3dfx_glide
+«Glide passthrough»
+.
+:MENU:load_d3d_shader
+Selecciona Direct3D pixel shader...
+.
+:MENU:load_glsl_shader
+Selecciona l'ombrejat OpenGL (GLSL)...
+.
+:MENU:load_ttf_font
+Selecciona la lletra TrueType (TTF/OTF)...
+.
+:MENU:SoundMenu
+So
+.
+:MENU:mixer_swapstereo
+Commuta l'estèreo
+.
+:MENU:mixer_mute
+Mute
+.
+:MENU:mixer_info
+Visualitza els volums del mesclador de so
+.
+:MENU:sb_info
+Visualitza la configuració de Sound Blaster
+.
+:MENU:midi_info
+Visualitza la configuració del dispositiu MIDI/OPL
+.
+:MENU:DOSMenu
+DOS
+.
+:MENU:enable_a20gate
+Activa «A20 gate»
+.
+:MENU:change_currentcd
+Canvia imatge del CD actual...
+.
+:MENU:change_currentfd
+Canvia imatge del disquet actual...
+.
+:MENU:DOSMouseMenu
+Emulació del ratolí
+.
+:MENU:dos_mouse_enable_int33
+Emulació interna
+.
+:MENU:dos_mouse_y_axis_reverse
+Inverteix Y-axis
+.
+:MENU:dos_mouse_sensitivity
+Sensibilitat
+.
+:MENU:DOSVerMenu
+Versió de DOS informada
+.
+:MENU:dos_ver_330
+3.30
+.
+:MENU:dos_ver_500
+5.00
+.
+:MENU:dos_ver_622
+6.22
+.
+:MENU:dos_ver_710
+7.10
+.
+:MENU:dos_ver_edit
+Edita
+.
+:MENU:DOSLFNMenu
+Suport de noms llargs de fitxer
+.
+:MENU:dos_lfn_auto
+Automàtic en base a la versió de DOS informada
+.
+:MENU:dos_lfn_enable
+Activa l'emulació de noms llargs de fitxer
+.
+:MENU:dos_lfn_disable
+Desactiva l'emulació de noms llargs de fitxer
+.
+# ----------------------------------------------------------------------------
+# No traduït. Suport per a japonès, xinès o coreà !
+#
+:MENU:DOSPC98Menu
+PC-98 PIT master clock
+.
+:MENU:dos_pc98_pit_4mhz
+4MHz/8MHz PIT master clock
+.
+:MENU:dos_pc98_pit_5mhz
+5MHz/10MHz PIT master clock
+.
+#
+# ----------------------------------------------------------------------------
+:MENU:DOSEMSMenu
+Memòria expandida (EMS)
+.
+:MENU:dos_ems_true
+Activa emulació EMS
+.
+:MENU:dos_ems_board
+Emulació placa EMS
+.
+:MENU:dos_ems_emm386
+Emulació EMM386
+.
+:MENU:dos_ems_false
+Desactiva emulació EMS
+.
+:MENU:DOSDiskRateMenu
+Limita la velocitat de transferència del disc
+.
+:MENU:limit_hdd_rate
+Limita la velocitat de dades del disc dur
+.
+:MENU:limit_floppy_rate
+Limita la velocitat de dades del disquet
+.
+:MENU:DOSWinMenu
+Aplicacions del sistema host
+.
+:MENU:dos_win_autorun
+Executa a l'amfitrió de Windows
+.
+:MENU:dos_win_transpath
+Tradueix camins a camins del sistema amfitrió
+.
+:MENU:dos_win_wait
+Espera l'aplicació si és possible
+.
+:MENU:dos_win_quiet
+Mode silenciós: sense missatges d'inici
+.
+:MENU:CaptureMenu
+Captura
+.
+:MENU:CaptureFormatMenu
+Format de captura de vídeo
+.
+:MENU:capture_fmt_avi_zmbv
+AVI + ZMBV
+.
+:MENU:capture_fmt_mpegts_h264
+MPEG-TS + H.264
+.
+:MENU:saveoptionmenu
+Opcions Desa/Carrega l'estat
+.
+:MENU:saveslotmenu
+Selecciona un «slot»
+.
+:MENU:enable_autosave
+Activa desat automàtic de l'estat
+.
+:MENU:noremark_savestate
+Desa l'estat sense comentaris
+.
+:MENU:force_loadstate
+Carrega l'estat sense avisos
+.
+:MENU:removestate
+Suprimeix l'estat desat a l'«slot» actiu
+.
+:MENU:refreshslot
+Actualitza l'estat de la pantalla
+.
+:MENU:lastautosaveslot
+Selecciona el darrer «slot» desat automàticament
+.
+:MENU:usesavefile
+Desa a fitxer en lloc de desar a «slot»
+.
+:MENU:autosavecfg
+Desa automàticament la configuració...
+.
+:MENU:browsesavefile
+Navega pel fitxer desat...
+.
+:MENU:current_page
+Pàgina actual: 1/10
+.
+:MENU:prev_page
+Pàgina anterior
+.
+:MENU:next_page
+Pàgina següent
+.
+:MENU:first_page
+Vés a la primera pàgina
+.
+:MENU:last_page
+Vés a l'última pàgina
+.
+:MENU:DriveMenu
+Unitat
+.
+:MENU:drive_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:drive_mounthd
+Munta el directori com a disc dur
+.
+:MENU:drive_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:drive_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:drive_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:drive_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:drive_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:drive_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:drive_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:drive_unmount
+Desmunta la unitat
+.
+:MENU:drive_rescan
+Rellegeix la unitat
+.
+:MENU:drive_swap
+Canvia el disc
+.
+:MENU:drive_info
+Informació de la unitat
+.
+:MENU:drive_boot
+«Boot» des de la unitat
+.
+:MENU:drive_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:drive_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive1m
+IDE 1m
+.
+:MENU:IDEDrive1m_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive1m_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive1m_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive1m_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive1m_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive1m_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive1m_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive1m_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive1m_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive1m_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive1m_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive1m_swap
+Canvia el disc
+.
+:MENU:IDEDrive1m_info
+Informació de la unitat
+.
+:MENU:IDEDrive1m_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive1m_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive1m_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive1s
+IDE 1s
+.
+:MENU:IDEDrive1s_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive1s_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive1s_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive1s_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive1s_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive1s_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive1s_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive1s_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive1s_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive1s_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive1s_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive1s_swap
+Canvia el disc
+.
+:MENU:IDEDrive1s_info
+Informació de la unitat
+.
+:MENU:IDEDrive1s_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive1s_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive1s_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive2m
+IDE 2m
+.
+:MENU:IDEDrive2m_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive2m_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive2m_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive2m_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive2m_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive2m_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive2m_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive2m_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive2m_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive2m_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive2m_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive2m_swap
+Canvia el disc
+.
+:MENU:IDEDrive2m_info
+Informació de la unitat
+.
+:MENU:IDEDrive2m_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive2m_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive2m_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive2s
+IDE 2s
+.
+:MENU:IDEDrive2s_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive2s_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive2s_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive2s_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive2s_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive2s_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive2s_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive2s_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive2s_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive2s_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive2s_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive2s_swap
+Canvia el disc
+.
+:MENU:IDEDrive2s_info
+Informació de la unitat
+.
+:MENU:IDEDrive2s_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive2s_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive2s_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive3m
+IDE 3m
+.
+:MENU:IDEDrive3m_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive3m_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive3m_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive3m_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive3m_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive3m_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive3m_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive3m_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive3m_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive3m_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive3m_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive3m_swap
+Canvia el disc
+.
+:MENU:IDEDrive3m_info
+Informació de la unitat
+.
+:MENU:IDEDrive3m_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive3m_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive3m_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive3s
+IDE 3s
+.
+:MENU:IDEDrive3s_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive3s_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive3s_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive3s_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive3s_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive3s_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive3s_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive3s_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive3s_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive3s_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive3s_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive3s_swap
+Canvia el disc
+.
+:MENU:IDEDrive3s_info
+Informació de la unitat
+.
+:MENU:IDEDrive3s_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive3s_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive3s_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive4m
+IDE 4m
+.
+:MENU:IDEDrive4m_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive4m_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive4m_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive4m_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive4m_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive4m_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive4m_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive4m_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive4m_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive4m_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive4m_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive4m_swap
+Canvia el disc
+.
+:MENU:IDEDrive4m_info
+Informació de la unitat
+.
+:MENU:IDEDrive4m_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive4m_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive4m_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive4s
+IDE 4s
+.
+:MENU:IDEDrive4s_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive4s_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive4s_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive4s_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive4s_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive4s_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive4s_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive4s_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive4s_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive4s_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive4s_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive4s_swap
+Canvia el disc
+.
+:MENU:IDEDrive4s_info
+Informació de la unitat
+.
+:MENU:IDEDrive4s_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive4s_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive4s_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive5m
+IDE 5m
+.
+:MENU:IDEDrive5m_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive5m_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive5m_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive5m_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive5m_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive5m_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive5m_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive5m_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive5m_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive5m_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive5m_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive5m_swap
+Canvia el disc
+.
+:MENU:IDEDrive5m_info
+Informació de la unitat
+.
+:MENU:IDEDrive5m_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive5m_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive5m_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive5s
+IDE 5s
+.
+:MENU:IDEDrive5s_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive5s_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive5s_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive5s_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive5s_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive5s_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive5s_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive5s_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive5s_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive5s_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive5s_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive5s_swap
+Canvia el disc
+.
+:MENU:IDEDrive5s_info
+Informació de la unitat
+.
+:MENU:IDEDrive5s_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive5s_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive5s_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive6m
+IDE 6m
+.
+:MENU:IDEDrive6m_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive6m_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive6m_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive6m_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive6m_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive6m_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive6m_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive6m_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive6m_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive6m_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive6m_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive6m_swap
+Canvia el disc
+.
+:MENU:IDEDrive6m_info
+Informació de la unitat
+.
+:MENU:IDEDrive6m_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive6m_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive6m_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive6s
+IDE 6s
+.
+:MENU:IDEDrive6s_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive6s_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive6s_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive6s_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive6s_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive6s_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive6s_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive6s_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive6s_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive6s_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive6s_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive6s_swap
+Canvia el disc
+.
+:MENU:IDEDrive6s_info
+Informació de la unitat
+.
+:MENU:IDEDrive6s_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive6s_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive6s_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive7m
+IDE 7m
+.
+:MENU:IDEDrive7m_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive7m_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive7m_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive7m_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive7m_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive7m_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive7m_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive7m_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive7m_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive7m_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive7m_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive7m_swap
+Canvia el disc
+.
+:MENU:IDEDrive7m_info
+Informació de la unitat
+.
+:MENU:IDEDrive7m_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive7m_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive7m_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive7s
+IDE 7s
+.
+:MENU:IDEDrive7s_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive7s_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive7s_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive7s_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive7s_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive7s_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive7s_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive7s_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive7s_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive7s_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive7s_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive7s_swap
+Canvia el disc
+.
+:MENU:IDEDrive7s_info
+Informació de la unitat
+.
+:MENU:IDEDrive7s_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive7s_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive7s_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive8m
+IDE 8m
+.
+:MENU:IDEDrive8m_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive8m_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive8m_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive8m_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive8m_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive8m_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive8m_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive8m_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive8m_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive8m_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive8m_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive8m_swap
+Canvia el disc
+.
+:MENU:IDEDrive8m_info
+Informació de la unitat
+.
+:MENU:IDEDrive8m_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive8m_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive8m_saveimg
+Desa a imatge de disc
+.
+:MENU:IDEDrive8s
+IDE 8s
+.
+:MENU:IDEDrive8s_mountauto
+Muntatge automàtic de la unitat de Windows
+.
+:MENU:IDEDrive8s_mounthd
+Munta el directori com a disc dur
+.
+:MENU:IDEDrive8s_mountcd
+Munta el directori com a unitat de CD
+.
+:MENU:IDEDrive8s_mountfd
+Munta el directori com a unitat de disquet
+.
+:MENU:IDEDrive8s_mountfro
+Opció: munta el directori com a "només de lectura"
+.
+:MENU:IDEDrive8s_mountarc
+Munta un fitxer d'arxiu (ZIP/7Z)
+.
+:MENU:IDEDrive8s_mountimg
+Munta un disc o un fitxer d'imatge de CD
+.
+:MENU:IDEDrive8s_mountimgs
+Munta múltiples discos/imatges de CD
+.
+:MENU:IDEDrive8s_mountiro
+Opció: munta imatges "només de lectura"
+.
+:MENU:IDEDrive8s_unmount
+Desmunta la unitat
+.
+:MENU:IDEDrive8s_rescan
+Rellegeix la unitat
+.
+:MENU:IDEDrive8s_swap
+Canvia el disc
+.
+:MENU:IDEDrive8s_info
+Informació de la unitat
+.
+:MENU:IDEDrive8s_boot
+«Boot» des de la unitat
+.
+:MENU:IDEDrive8s_bootimg
+«Boot» des de la imatge de disc
+.
+:MENU:IDEDrive8s_saveimg
+Desa a imatge de disc
+.
+:MENU:HelpMenu
+Ajuda
+.
+:MENU:help_intro
+Introducció
+.
+:MENU:help_homepage
+Pàgina web de DOSBox-X
+.
+:MENU:help_wiki
+Wiki de DOSBox-X
+.
+:MENU:help_issue
+Suport de DOSBox-X
+.
+:MENU:help_nic
+Llista interfícies de xarxa
+.
+:MENU:help_prt
+Llista els dispositius d'impressora
+.
+:MENU:help_about
+Quant a DOSBox-X
+.
+:MENU:show_console
+Mostra la consola de registre
+.
+:MENU:clear_console
+Esborra la consola de registre
+.
+:MENU:disable_logging
+Desactiva el registre de sortida
+.
+:MENU:wait_on_error
+La consola espera per error
+.
+:MENU:show_codetext
+Mostra la visió general del codi
+.
+:MENU:show_logtext
+Mostra el text del registre
+.
+:MENU:save_logas
+Desa el registre com a...
+.
+:MENU:debugger_rundebug
+Depurador opció: Executa el depurador
+.
+:MENU:debugger_runnormal
+Depurador opció: Execució normal
+.
+:MENU:debugger_runwatch
+Opció del Depurador: Run watch
+.
+:MENU:video_debug_overlay
+Video debug overlay
+.
+:MENU:HelpCommandMenu
+Ordres del DOS
+.
+:MENU:DebugMenu
+Debug
+.
+:MENU:HelpDebugMenu
+Consola de registre
+.
+:MENU:debug_blankrefreshtest
+Prova d'actualització (pantalla en blanc)
+.
+:MENU:debug_generatenmi
+Genera interrupció NMI
+.
+:MENU:debug_int2fhook
+Hook INT 2Fh calls
+.
+:MENU:debug_logint21
+Log INT 21h calls
+.
+:MENU:debug_logfileio
+Log file I/O
+.
+:MENU:mapper_speedlock
+«Turbo»: ràfega
+.
+:MENU:mapper_speedlock2
+Botó «Turbo»
+.
+:MENU:mapper_speednorm
+Velocitat normal
+.
+:MENU:mapper_speedup
+Augmenta la velocitat
+.
+:MENU:mapper_slowdown
+Redueix la velocitat
+.
+:MENU:mapper_editcycles
+Edita cicles
+.
+:MENU:mapper_savestate
+Desa un estat
+.
+:MENU:mapper_loadstate
+Carrega un estat
+.
+:MENU:mapper_showstate
+Visualitza informació de l'estat
+.
+:MENU:mapper_prevslot
+Selecciona «slot» previ
+.
+:MENU:mapper_nextslot
+Selecciona «slot» següent
+.
+:MENU:mapper_decfskip
+Redueix «frameskip»
+.
+:MENU:mapper_incfskip
+Incrementa «frameskip»
+.
+:MENU:mapper_aspratio
+Ajusta a la proporció d'aspecte
+.
+:MENU:mapper_fscaler
+Força l'escalador
+.
+:MENU:mapper_recwave
+Grava àudio a WAV
+.
+:MENU:mapper_recmtwave
+Grava àudio a AVI multipista
+.
+:MENU:mapper_caprawmidi
+Grava la sortida MIDI
+.
+:MENU:mapper_caprawopl
+Grava la sortida FM (OPL)
+.
+:MENU:mapper_capnetrf
+Registra el trànsit de la xarxa
+.
+:MENU:mapper_video
+Grava vídeo a AVI
+.
+:MENU:mapper_scrshot
+Captura de pantalla
+.
+:MENU:mapper_rawscrshot
+Captura de pantalla en brut
+.
+:MENU:mapper_cycledown
+Redueix els cicles
+.
+:MENU:mapper_cycleup
+Augmenta els cicles
+.
+:MENU:mapper_normal
+Nucli normal
+.
+:MENU:mapper_dynamic
+Nucli dinàmic (dynamic_x86)
+.
+:MENU:mapper_simple
+Nucli simple
+.
+:MENU:mapper_full
+Nucli complet
+.
+:MENU:cputype_auto
+Auto
+.
+:MENU:cputype_8086
+8086
+.
+:MENU:cputype_8086_prefetch
+8086 amb «prefetch»
+.
+:MENU:cputype_80186
+80186
+.
+:MENU:cputype_80186_prefetch
+80186 amb «prefetch»
+.
+:MENU:cputype_286
+286
+.
+:MENU:cputype_286_prefetch
+286 amb «prefetch»
+.
+:MENU:cputype_386
+386
+.
+:MENU:cputype_386_prefetch
+386 amb «prefetch»
+.
+:MENU:cputype_486old
+486 (antic)
+.
+:MENU:cputype_486old_prefetch
+486 (antic) amb «prefetch»
+.
+:MENU:cputype_486
+486
+.
+:MENU:cputype_486_prefetch
+486 amb «prefetch»
+.
+:MENU:cputype_pentium
+Pentium
+.
+:MENU:cputype_pentium_mmx
+Pentium MMX
+.
+:MENU:cputype_ppro_slow
+Pentium Pro
+.
+:MENU:cputype_pentium_ii
+Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
+.
+:MENU:cputype_experimental
+Experimental
+.
+:MENU:mapper_volup
+Incrementa el volum
+.
+:MENU:mapper_voldown
+Redueix el volum
+.
+:MENU:mapper_recvolup
+Incrementa el volum de gravació
+.
+:MENU:mapper_recvoldown
+Redueix el volum de gravació
+.
+:MENU:mapper_sendkey_mapper
+Envia una tecla especial
+.
+:MENU:debug_pageflip
+Page flip debug line
+.
+:MENU:debug_retracepoll
+Retrace poll debug line
+.
+:MENU:mapper_swapimg
+Canvia el disquet
+.
+:MENU:mapper_swapcd
+Canvia el CDROM
+.
+:MENU:mapper_debugger
+Inicia el Debugger de DOSBox-X
+.
+:MENU:mapper_rescanall
+Torna a llegir totes les unitats de disc
+.
+:MENU:hostkey_mapper
+Definida pel «MAPPER»
+.
+:MENU:showdetails
+Visualitza FPS i velocitat RT a la barra del títol
+.
+:MENU:restartinst
+Reinicia DOSBox-X
+.
+:MENU:restartconf
+Reinicia DOSBox-X amb un fitxer de configuració...
+.
+:MENU:loadlang
+Carrega un fitxer d'idioma...
+.
+:MENU:auto_lock_mouse
+Bloqueig automàtic del ratolí
+.
+:MENU:clipboard_right
+Amb el botó dret del ratolí
+.
+:MENU:clipboard_middle
+Amb el botó central del ratolí
+.
+:MENU:clipboard_arrows
+Amb tecles del cursor (Inici=comença, Fi=acaba)
+.
+:MENU:screen_to_clipboard
+Copia tot el text de la pantalla de DOS
+.
+:MENU:clipboard_device
+Activa l'accés al dispositiu del porta-retalls DOS
+.
+:MENU:clipboard_dosapi
+Activa l'API del porta-retalls de DOS per a les aplicacions
+.
+:MENU:clipboard_biospaste
+Utilitza la funció de la BIOS per enganxar el porta-retalls
+.
+:MENU:sendkey_winlogo
+Envia la tecla «Win»
+.
+:MENU:sendkey_winmenu
+Envia la tecla «Menú»
+.
+:MENU:sendkey_alttab
+Envia Alt+Tab
+.
+:MENU:sendkey_altsysrq
+Envia Alt+SysRq/PrtScr
+.
+:MENU:sendkey_ctrlesc
+Envia Ctrl+Esc
+.
+:MENU:sendkey_ctrlbreak
+Envia Ctrl+Break
+.
+:MENU:sendkey_cad
+Envia Ctrl+Alt+Del
+.
+:MENU:hostkey_ctrlalt
+Ctrl+Alt
+.
+:MENU:hostkey_ctrlshift
+Ctrl+Shift
+.
+:MENU:hostkey_altshift
+Alt+Shift
+.
+:MENU:sendkey_mapper_winlogo
+«MAPPER» Envia tecla especial: "Win"
+.
+:MENU:sendkey_mapper_winmenu
+«MAPPER» Envia tecla especial: "Menú"
+.
+:MENU:sendkey_mapper_alttab
+«MAPPER» Envia tecla especial: Alt+Tab
+.
+:MENU:sendkey_mapper_ctrlesc
+«MAPPER» Envia tecla especial: Ctrl+Esc
+.
+:MENU:sendkey_mapper_ctrlbreak
+«MAPPER» Envia tecla especial: Ctrl+Break
+.
+:MENU:sendkey_mapper_cad
+«MAPPER» Envia tecla especial: Ctrl+Alt+Del
+.
+:MENU:wheel_none
+No convertir a tecles de cursor
+.
+:MENU:wheel_updown
+Converteix en tecles Amunt/Avall
+.
+:MENU:wheel_leftright
+Converteix en tecles Esquerra/Dreta
+.
+:MENU:wheel_pageupdown
+Converteix en tecles RePag/AvPag
+.
+:MENU:wheel_ctrlupdown
+Converteix en tecles Ctrl+Amunt/Avall
+.
+:MENU:wheel_ctrlleftright
+Converteix en tecles Ctrl+Esquerra/Dreta
+.
+:MENU:wheel_ctrlpageupdown
+Converteix en tecles Ctrl+RePag/AvPag
+.
+:MENU:wheel_ctrlwz
+Converteix en tecles Ctrl+W/Z
+.
+:MENU:wheel_guest
+Habilita també per als sistemes convidats
+.
+:MENU:doublebuf
+Double buffering (fullscreen)
+.
+:MENU:alwaysontop
+Sempre a dalt
+.
+:MENU:highdpienable
+Activa «High DPI»
+.
+:MENU:sync_host_datetime
+Sincronitza la data/hora amb l'amfitrió
+.
+:MENU:shell_config_commands
+Opcions de CONFIG.SYS com a ordres
+.
+:MENU:quick_reboot
+Activa el reinici ràpid
+.
+:MENU:make_diskimage
+Crea una imatge de disc en blanc...
+.
+:MENU:list_drivenum
+Visualitza els números de les unitats muntades
+.
+:MENU:list_ideinfo
+Visualitza l'estat del disc IDE o del CD
+.
+:MENU:pc98_use_uskb
+Utilitza teclat USA
+.
+:MAPPER:capnetrf
+Grava el trànsit de la xarxa
+.
+:MAPPER:caprawopl
+Grava la sortida FM/OPL
+.
+:MAPPER:copyall
+Copia al porta-retalls
+.
+:MAPPER:cycauto
+Commuta auto cycles
+.
+:MAPPER:debugger
+Visualitza el depurador
+.
+:MAPPER:decsize
+Redueix la mida de la lletra TTF
+.
+:MAPPER:dynamic
+CPU: nucli dinàmic
+.
+:MAPPER:fastedit
+Mode d'edició ràpida
+.
+:MAPPER:full
+CPU: nucli complet
+.
+:MAPPER:incsize
+Augmenta la mida de la lletra TTF
+.
+:MAPPER:loadmap
+Carrega el fitxer del «MAPPER»
+.
+:MAPPER:nextslot
+Següent «slot» on guardar
+.
+:MAPPER:normal
+CPU: nucli normal
+.
+:MAPPER:paste
+Enganxa des del porta-retalls
+.
+:MAPPER:pasteend
+Atura l'enganxament del porta-retalls
+.
+:MAPPER:pauseints
+Pausa amb les interrupcions activades
+.
+:MAPPER:prevslot
+Anterior «slot» on guardar
+.
+:MAPPER:printtext
+Imprimeix la pantalla de text
+.
+:MAPPER:quickrun
+Execució ràpida d'un programa
+.
+:MAPPER:reboot
+Reinicia el sistema DOS
+.
+:MAPPER:recmtwave
+Grava AVI multipista
+.
+:MAPPER:rescanall
+Rellegeix les unitats de disc
+.
+:MAPPER:reset
+Restableix DOSBox-X
+.
+:MAPPER:resetcolor
+Restableix l'esquema de colors
+.
+:MAPPER:showstate
+Visualitza informació de l'estat
+.
+:MAPPER:simple
+CPU: nucli simple
+.
+:MAPPER:speedlock
+«Turbo»: ràfega
+.
+:MAPPER:speedlock2
+Botó «Turbo»
+.
+:MAPPER:togmenu
+Commutador de la barra de menús
+.
