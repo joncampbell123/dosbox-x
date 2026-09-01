@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,2026.08.02,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,2026.08.31,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 COPYRIGHT_YEAR=`echo $PACKAGE_VERSION | cut -c1-4`
 AC_SUBST([COPYRIGHT_YEAR])
 AC_PREREQ(2.60)
@@ -997,16 +997,6 @@ if test x$enable_freetype = xyes; then
   fi
 fi
 
-dnl LIBRARY TEST: FFMPEG support
-pkg-config --exists libavcodec; RES=$?
-if test x$RES = x0; then
-  have_avcodec_h=yes
-  have_ffmpeg=yes
-else
-  have_avcodec_h=no
-  have_ffmpeg=no
-fi
-
 dnl LIBRARY TEST: OpenGL support
 AC_CHECK_LIB(GL, main, have_gl_lib=yes, have_gl_lib=no , )
 AC_CHECK_LIB(opengl32, main, have_opengl32_lib=yes,have_opengl32_lib=no , )
@@ -1409,16 +1399,35 @@ fi
 dnl FEATURE: FFMPEG output support
 AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
 AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),enable_ffmpeg=$enableval,enable_ffmpeg=yes)
+
+dnl LIBRARY TEST: FFMPEG support
+AC_MSG_CHECKING([for FFmpeg libavcodec])
+if test x$enable_ffmpeg = xno; then
+    have_ffmpeg=no
+    AC_MSG_RESULT([disabled])
+else
+    if pkg-config --exists libavcodec; then
+        have_ffmpeg=yes
+        AC_MSG_RESULT([yes])
+    else
+        have_ffmpeg=no
+        AC_MSG_RESULT([no])
+    fi
+fi
+
+dnl FEATURE: FFMPEG output support
 if test x$enable_ffmpeg = xyes; then
     if test x$have_ffmpeg = xyes; then
-        if test x$have_avcodec_h = xyes; then
-            PKGS="libavcodec libavformat libavutil libswscale libswresample"
-            CFLAGS="$CFLAGS "`pkg-config $PKGS --cflags`
-            CPPFLAGS="$CPPFLAGS "`pkg-config $PKGS --cflags`
-            LIBS=`pkg-config $PKGS --libs`" $LIBS"
-            AC_MSG_RESULT(yes)
-            AC_DEFINE(C_AVCODEC,1)
-        fi
+        PKGS="libavcodec libavformat libavutil libswscale libswresample"
+        FFMPEG_CFLAGS=`pkg-config $PKGS --cflags`
+        FFMPEG_LIBS=`pkg-config $PKGS --libs`
+
+        CFLAGS="$CFLAGS $FFMPEG_CFLAGS"
+        CPPFLAGS="$CPPFLAGS $FFMPEG_CFLAGS"
+        LIBS="$FFMPEG_LIBS $LIBS"
+
+        AC_DEFINE([C_AVCODEC], [1])
+        AC_MSG_NOTICE([using FFmpeg libraries])
     fi
 fi
 

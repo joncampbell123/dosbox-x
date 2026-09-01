@@ -2052,11 +2052,6 @@ void SHELL_Init() {
 		DOS_SetMemAllocStrategy(savedMemAllocStrategy | 0x80);
 	}
 
-	// COMMAND.COM environment block
-	tmp = dosbox_shell_env_size>>4;
-	if (!DOS_AllocateMemory(&env_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate environment block segment");
-	LOG_MSG("COMMAND.COM environment block:    0x%04x sz=0x%04x",env_seg,tmp);
-
 	// COMMAND.COM main binary (including PSP and stack)
 	if (tiny_memory_mode)
 		tmp = 0x13 + (1536/16);
@@ -2073,6 +2068,13 @@ void SHELL_Init() {
 	}
 
 	LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
+
+	// COMMAND.COM environment block
+	// Allocate the environment after the shell body/PSP so the MCB chain and
+	// ownership layout matches DOS expectations for COMMAND.COM.
+	tmp = dosbox_shell_env_size>>4;
+	if (!DOS_AllocateMemory(&env_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate environment block segment");
+	LOG_MSG("COMMAND.COM environment block:    0x%04x sz=0x%04x",env_seg,tmp);
 
 	DOS_SetMemAllocStrategy(savedMemAllocStrategy);
 
@@ -2529,11 +2531,6 @@ void CONFIGSHELL_Init() {
 	auto savedMemAllocStrategy = DOS_GetMemAllocStrategy();
 	DOS_SetMemAllocStrategy(2/*last fit*/);
 
-	// COMMAND.COM environment block
-	tmp = dosbox_shell_env_size>>4;
-	if (!DOS_AllocateMemory(&env_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate environment block segment");
-	LOG_MSG("COMMAND.COM environment block:    0x%04x sz=0x%04x",env_seg,tmp);
-
 	// COMMAND.COM main binary (including PSP and stack)
 	if (tiny_memory_mode)
 		tmp = 0x13 + (1536/16);
@@ -2550,6 +2547,14 @@ void CONFIGSHELL_Init() {
 	}
 
 	LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
+
+	// COMMAND.COM environment block
+	// Keep the same allocation order as SHELL_Init(): allocate environment
+	// after shell body/PSP so config-phase COMMAND.COM has expected MCB layout
+	// for DOS-era software that scans ownership via MCB traversal.
+	tmp = dosbox_shell_env_size>>4;
+	if (!DOS_AllocateMemory(&env_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate environment block segment");
+	LOG_MSG("COMMAND.COM environment block:    0x%04x sz=0x%04x",env_seg,tmp);
 
 	DOS_SetMemAllocStrategy(savedMemAllocStrategy);
 

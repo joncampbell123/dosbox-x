@@ -45,7 +45,13 @@
 #include "cdrom.h"
 #include "builtin.h"
 #include "bios_disk.h"
+#include "imagedisk_d88.h"
+#include "imagedisk_eltorito.h"
+#include "imagedisk_emptydrive.h"
+#include "imagedisk_int13.h"
+#include "imagedisk_nfd.h"
 #include "imagedisk_teledisk.h"
+#include "imagedisk_vfd.h"
 #include "dos_system.h"
 #include "dos_inc.h"
 #include "bios.h"
@@ -6306,12 +6312,15 @@ class IMGMOUNT : public Program {
 		bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 			char drive=commandLine[0];
 			bool nocont=false;
-			while (!nocont&&cmd->ExistsCommand(1)) {
+            if(!isalpha(drive) && !isdigit(drive)) return false;
+
+			while (!nocont) {
 				bool usedef=false;
 				if (!cmd->FindCommand(1, commandLine)) {
 					if (!nodef && !paths.size()) {
 						commandLine="IMGMAKE.IMG";
 						usedef=true;
+                        LOG_MSG("IMGMOUNT: No file specified, using default 'IMGMAKE.IMG'");
 					}
 					else {
 						break;
@@ -6425,6 +6434,7 @@ class IMGMOUNT : public Program {
 					return false;
 				}
 				paths.push_back(commandLine);
+                if(usedef) break;
 			}
 			return false;
 		}
@@ -9907,6 +9917,7 @@ int flagged_backup(char *zip)
 					uint16_t handle = 0;
 					if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES || !DOS_OpenFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
 						LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
+						i++;
 						continue;
 					}
 

@@ -206,6 +206,8 @@ void OUTPUT_Metal_Shutdown();
 void OUTPUT_Metal_CheckSourceResolution();
 #endif
 
+std::string working_dir = ""; // Store working directory 
+
 #if defined(WIN32)
 #include "resource.h"
 #if !defined(HX_DOS)
@@ -1906,11 +1908,12 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 	/*
 	 * When modeswitching _is_ enabled let's go with sane values.
 	 */
-	bool p_modeswitch = vga.draw.modeswitch_set;
-	if(p_modeswitch) {
+	bool isModeSwicthSet = vga.draw.modeswitch_set;
+
+	if(isModeSwicthSet) {
 		flags = SDL_WINDOW_FULLSCREEN;
-		width = sdl.draw.width;
-		height = sdl.draw.height;
+		width = vga.draw.width;
+		height = vga.draw.height;
 	}
 #endif
 
@@ -8572,6 +8575,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     std::string res_path = Cross::GetPlatformResDir();
     std::string tmp = Cross::GetPlatformConfigName();
     std::string config_combined = config_path + tmp;
+    bool default_config = false;
 
     struct stat st;
 
@@ -8584,16 +8588,34 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         control->configfiles.clear();
     }
 
-    if (!control->opt_defaultconf && control->config_file_list.empty()) {
-        /* load the global config file first */
+    if(!control->opt_defaultconf) {
+        if(control->opt_userconf) {
+            control->ParseConfigFile(config_combined.c_str()); // Load the userconfig file if -userconf option is specified on the command line
+            if(control->configfiles.size()) configfile = config_combined;
+        }
 
-        /* -- Parse configuration files */
-        /* First search the current directory */
-        control->ParseConfigFile("dosbox-x.conf");
-        if(control->configfiles.size()) configfile = "dosbox-x.conf";
-        else {
-            control->ParseConfigFile("dosbox.conf");
-            if(control->configfiles.size()) configfile = "dosbox.conf";
+        if(control->config_file_list.size()) {
+            for(size_t si = 0; si < control->config_file_list.size(); si++) {
+                std::string configfile_path = control->config_file_list[si]; // use config files specified by -conf option on the command line
+                if(!control->config_file_list[si].empty()) control->ParseConfigFile(configfile_path.c_str());
+                if(control->configfiles.size()) configfile = configfile_path;
+            }
+        }
+
+        /* -- Search for configuration files */
+        if(!control->configfiles.size()) {
+            /* First search the current directory */
+            control->ParseConfigFile("dosbox-x.conf");
+            if(control->configfiles.size()) configfile = "dosbox-x.conf";
+            else {
+                control->ParseConfigFile("dosbox.conf");
+                if(control->configfiles.size()) configfile = "dosbox.conf";
+            }
+            if(control->configfiles.size()) {
+                std::string cur_dir = Cross::GetCurDir();
+                configfile = cur_dir + configfile;
+                default_config = true;
+            }
         }
 
         /* If conf file not found, search the directory where the executable exists */
@@ -8623,20 +8645,20 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             control->ParseConfigFile(config_combined.c_str());
             if(control->configfiles.size()) configfile = config_combined;
         }
+    }
 
-        if(configfile.size()) {
-            Section_prop* section = static_cast<Section_prop*>(control->GetSection("dosbox"));
-            workdiropt = section->Get_string("working directory option");
-            workdirdef = section->Get_path("working directory default")->realpath;
-            std::string resolvestr = section->Get_string("resolve config path");
-            resolveopt = resolvestr == "true" || resolvestr == "1" ? 1 : (resolvestr == "dosvar" ? 2 : (resolvestr == "tilde" ? 3 : 0));
-            void ResolvePath(std::string & in);
-            ResolvePath(workdirdef);
+    if(control->configfiles.size()) {
+        Section_prop* section = static_cast<Section_prop*>(control->GetSection("dosbox"));
+        workdiropt = section->Get_string("working directory option");
+        workdirdef = section->Get_path("working directory default")->realpath;
+        std::string resolvestr = section->Get_string("resolve config path");
+        resolveopt = resolvestr == "true" || resolvestr == "1" ? 1 : (resolvestr == "dosvar" ? 2 : (resolvestr == "tilde" ? 3 : 0));
+        void ResolvePath(std::string & in);
+        ResolvePath(workdirdef);
 
-            control->ClearExtraData();
-            control->configfiles.clear();
-            // LOG_MSG("working directory default=%s, working directory option=%s", workdiropt.c_str(), workdirdef.c_str());
-        }
+        control->ClearExtraData();
+        control->configfiles.clear();
+        // LOG_MSG("working directory default=%s, working directory option=%s", workdiropt.c_str(), workdirdef.c_str());
     }
 
     if (workdiropt == "prompt" && control->opt_promptfolder < 0) control->opt_promptfolder = 1;
@@ -8671,8 +8693,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         usecfgdir = true;
     }
 
-    /* default do not prompt if -set, -conf, -userconf, -defaultconf, or -defaultdir is used */
-    if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || !control->opt_set.empty() || control->opt_userconf || control->opt_defaultconf || control->opt_used_defaultdir || control->opt_fastlaunch || control->opt_test || workdiropt == "noprompt")) {
+    /* default do not prompt if -set, -defaultconf, or -defaultdir is used */
+    if (control->opt_promptfolder < 0 && (!control->opt_set.empty() || control->opt_defaultconf || control->opt_used_defaultdir || control->opt_fastlaunch || control->opt_test || workdiropt == "noprompt")) {
         control->opt_promptfolder = 0;
     }
 
@@ -8685,11 +8707,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* A Windows application cannot detect with isatty() if run from the command prompt.
         *  isatty() returns true even though STDIN/STDOUT/STDERR do not exist even if run from the command prompt. */
         if (control->opt_promptfolder < 0)
-            control->opt_promptfolder = 1;
+            control->opt_promptfolder = !default_config ? 1 : 0;
 #else
         std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
         if (control->opt_promptfolder < 0 && getcwd(cwd.get(), PATH_MAX) != nullptr)
-            control->opt_promptfolder = (!isatty(0) || !strcmp(cwd.get(), "/") || (workdiropt == "default" || workdiropt == "autoprompt")) ? 1 : 0;
+            control->opt_promptfolder = ((!isatty(0) && !default_config) || !strcmp(cwd.get(), "/") || ((workdiropt == "default" && !default_config) || workdiropt == "autoprompt")) ? 1 : 0;
 #endif
         if (control->opt_promptfolder == 1 && (workdiropt == "default" || workdiropt == "autoprompt") && workdirdef.size()) {
             control->opt_promptfolder = 0;
@@ -8858,7 +8880,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         tmp = Cross::GetPlatformConfigName();
         config_combined = config_path + tmp;
-        /* -- -- first the user config file */
+        /* -- -- first handle the -userconf option */
         if (control->opt_userconf || workdirsave>0) {
             LOG(LOG_MISC,LOG_DEBUG)("Loading config file according to -userconf from %s",config_combined.c_str());
             control->ParseConfigFile(config_combined.c_str());
@@ -8908,15 +8930,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
     if (!control->opt_defaultconf) {
-        /* -- -- if none found, use dosbox-x.conf or dosbox.conf */
-        std::string cur_dir;
-        std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
-        if(getcwd(cwd.get(), PATH_MAX) != nullptr) {
-            cur_dir = std::string(cwd.get()) + CROSS_FILESPLIT;
-        }
-        else {
-            cur_dir.clear();
-        }
+        /* -- -- if -userconf and -conf option not found, search for conf files */
+        /* Current directory -> Program directory -> User config directory      */
+
+        std::string cur_dir = Cross::GetCurDir();
         const std::string config_paths[] = {
             cur_dir + "dosbox-x.conf",
             cur_dir + "dosbox.conf",
@@ -8924,6 +8941,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             exepath.empty() ? "" : exepath + "dosbox.conf",
             res_path.empty() ? "": res_path + "dosbox-x.conf", /* resource level conf */
             config_path.empty() ? "" : config_path + "dosbox-x.conf", /* user level conf */
+            config_path.empty() ? "" : config_path + "dosbox.conf", /* user level conf */
             config_combined /* user level conf (default name)*/
         };
 
@@ -9226,6 +9244,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		}
 
     {
+        /**
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         workdiropt = section->Get_string("working directory option");
         workdirdef = section->Get_path("working directory default")->realpath;
@@ -9256,36 +9275,36 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 }
             }
         }
+        */
+        working_dir = Cross::GetCurDir();
+        if(working_dir.empty())
+            LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
+        else
+            LOG_MSG("DOSBox-X's working directory: %s\n", working_dir.c_str());
 
-        {
-            std::unique_ptr<char[]> cwd(new char[PATH_MAX]);
-            if(getcwd(cwd.get(), PATH_MAX))
-                LOG_MSG("DOSBox-X's working directory: %s\n", cwd.get());
-            else
-                LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
-        }
-    const char *imestr = section->Get_string("ime");
-    enableime = !strcasecmp(imestr, "true") || !strcasecmp(imestr, "1");
-    if (!strcasecmp(imestr, "auto")) {
-        const char *machine = section->Get_string("machine");
-        if (!strcasecmp(machine, "pc98") || !strcasecmp(machine, "pc9801") || !strcasecmp(machine, "pc9821") || !strcasecmp(machine, "jega") || strcasecmp(static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("dosv"), "off")) enableime = true;
-        else {
-            force_conversion = true;
-            int cp=dos.loaded_codepage;
-            if (InitCodePage() && isDBCSCP()) enableime = true;
-            else if (control->opt_langcp) tonoime = true;
-            force_conversion = false;
-            dos.loaded_codepage=cp;
+        Section_prop* section = static_cast<Section_prop*>(control->GetSection("dosbox"));
+        const char *imestr = section->Get_string("ime");
+        enableime = !strcasecmp(imestr, "true") || !strcasecmp(imestr, "1");
+        if (!strcasecmp(imestr, "auto")) {
+            const char *machine = section->Get_string("machine");
+            if (!strcasecmp(machine, "pc98") || !strcasecmp(machine, "pc9801") || !strcasecmp(machine, "pc9821") || !strcasecmp(machine, "jega") || strcasecmp(static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("dosv"), "off")) enableime = true;
+            else {
+                force_conversion = true;
+                int cp=dos.loaded_codepage;
+                if (InitCodePage() && isDBCSCP()) enableime = true;
+                else if (control->opt_langcp) tonoime = true;
+                force_conversion = false;
+                dos.loaded_codepage=cp;
 #if defined (WIN32)
-            if (!enableime&&!tonoime) {
-                const Section_prop* section = static_cast<Section_prop*>(control->GetSection("dos"));
-                const char * layoutname=section->Get_string("keyboardlayout");
-                WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
-                if (!strcmp(layoutname, "jp") || !strcmp(layoutname, "ko") || !strcmp(layoutname, "cn") || !strcmp(layoutname, "tw") || !strcmp(layoutname, "hk") || !strcmp(layoutname, "zh") || !strcmp(layoutname, "zhs") || !strcmp(layoutname, "zht") || (!strcmp(layoutname, "auto") && (cur_kb_layout == 1028 || cur_kb_layout == 1041 || cur_kb_layout == 1042 || cur_kb_layout == 2052 || cur_kb_layout == 3076))) enableime = true;
-            }
+                if (!enableime&&!tonoime) {
+                    const Section_prop* section = static_cast<Section_prop*>(control->GetSection("dos"));
+                    const char * layoutname=section->Get_string("keyboardlayout");
+                    WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
+                    if (!strcmp(layoutname, "jp") || !strcmp(layoutname, "ko") || !strcmp(layoutname, "cn") || !strcmp(layoutname, "tw") || !strcmp(layoutname, "hk") || !strcmp(layoutname, "zh") || !strcmp(layoutname, "zhs") || !strcmp(layoutname, "zht") || (!strcmp(layoutname, "auto") && (cur_kb_layout == 1028 || cur_kb_layout == 1041 || cur_kb_layout == 1042 || cur_kb_layout == 2052 || cur_kb_layout == 3076))) enableime = true;
+                }
 #endif
+            }
         }
-    }
 #if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         if (!enableime&&!tonoime) ImmDisableIME((DWORD)(-1));
 #endif
@@ -10698,8 +10717,14 @@ bool TTF_using(void) {
 }
 
 bool Get_Custom_SaveDir(std::string& savedir) {
-    if (custom_savedir.length() != 0) {
-        savedir=custom_savedir;
+    if(custom_savedir.length() != 0) {
+        if(Cross::IsPathAbsolute(custom_savedir)) {
+            savedir = custom_savedir; // use the absolute path as is
+        }
+        else {
+            savedir = working_dir + CROSS_FILESPLIT + custom_savedir;
+        }
+        LOG(LOG_MISC, LOG_DEBUG)("savestate: Set custom save directory to: %s", savedir.c_str());
         return true;
     }
     return false;

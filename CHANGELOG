@@ -1,4 +1,4 @@
-NEXT VERSION:
+2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
   - Fixed prompting of working directory option (maron2000)
   - Relax sanity check of floppy image considering specially formatted disks
@@ -9,6 +9,46 @@ NEXT VERSION:
     AH on read/write errors rather than collapsing every failure to 0x04.
     Also fixes AH being left stale on write errors and a VFD fill-sector
     write that reported failure after succeeding. (cimarronm)
+  - On non-MSC, only define MIN/MAX if not already defined (skitt)
+  - Fixed FreeDOS XCOPY failed to copy files when destination directory was
+    not specified (maron2000)
+  - IMGMOUNT: Fixed a regression that didn't try loading IMGMAKE.IMG if no 
+    image was specified (maron2000)
+  - Fixed a build error when FFmpeg is upgraded to FFmpeg 9 (maron2000)
+  - Fixed freeze when savestate flagged file not found (rebb)
+  - Fixed capture and savestate directory locations (maron2000)
+  - Refactored the imageDisk subclasses into their own source files and headers
+    (VFD, D88, NFD, empty drive, INT 13h passthrough, El Torito floppy, and
+    MS-DOS block device), leaving the base imageDisk class and BIOS disk-list
+    plumbing in bios_disk. (cimarronm)
+  - Shell init: allocate the COMMAND.COM environment block after allocating the
+    shell binary/PSP in both SHELL_Init() and CONFIGSHELL_Init(), so memory
+    layout and ownership ordering match expected MCB-chain behavior. (cimarronm)
+  - Debugger: fixed disassembler showing 16-bit register names for byte-sized
+    operands. (cimarronm)
+  - Fixed INT 13h CHS decoding for floppies, which incorrectly used the hard
+    disk layout (10-bit cylinder / 6-bit sector) instead of the floppy layout
+    (8-bit cylinder in CH / 8-bit sector in CL) on read, write, and get drive
+    parameters. (cimarronm)
+  - Fixed savestates written by a Windows build failing to load on Linux
+    builds. The per-drive Opts struct in the DOS component held an unsigned
+    long, which is 4 bytes on Windows and 8 on LP64 hosts, so the saved stream
+    desynchronized and the load ran off the end of the component. Also fixed
+    POD_Load_DOS_Mscdex looping forever on an out-of-range CD drive count, and
+    mounted drive paths keeping their Windows path separators when a state is
+    restored on a non-Windows host. (ozy24)
+  - Fixed chs_write packing the high cylinder bits into the sector field of the
+    synthesized MBR partition table, which corrupted the end-CHS entry for disks
+    with an end cylinder above 255. (cimarronm)
+  - Floppy INT 13h sector reads/writes now honor the bytes-per-sector code from
+    the disk base table pointed to by INT 1Eh instead of assuming 512, allowing
+    guests that reprogram INT 1Eh to access non-512 media. (cimarronm)
+  - Debugger: Resolved named variables in expressions (zlatkok)
+  - OpenGL: Fixed fullscreen and modeswitching positional offsets. (DieSkaarj)
+  - Simplified the MCB filename-stripping logic in DOS_Execute(). (cimarronm)
+  - Fixed FAT volume labels being displayed as 8.3 filenames. (cimarronm)
+  - Fixed crash of Win9x lowend build at launch due to use of AttachConsole()
+    function (maron2000)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and

@@ -49,7 +49,9 @@ is set to the instruction pointer, but it can be set anywhere.
 Decoding is based on the CPU mode.
 
 The variable list is used when the debugger is given variables
-to debug by.
+to debug by. Variable names can be used anywhere a debugger expression is
+accepted. Direct call and jump targets in the code view are also annotated
+when their address has a matching variable.
 
 The output window allows you to scroll through the last 1000
 or so log messages written from within the codebase by LOG()

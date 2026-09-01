@@ -73,6 +73,7 @@ bool video_debug_overlay = false;
 bool skip_encoding_unchanged_frames = false, show_recorded_filename = true;
 std::string pathvid = "", pathwav = "", pathmtw = "", pathmid = "", pathopl = "", pathscr = "", pathprt = "", pathpcap = "";
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+extern std::string working_dir;
 
 FILE* pcap_fp = NULL;
 
@@ -1288,10 +1289,27 @@ skip_shot:
 			#else
 			ffmpeg_aud_ctx->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
 			#endif
-
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(61, 13, 100)
+            // Legacy support for FFmpeg not supporting avcodec_get_supported_config()
 			if (ffmpeg_aud_codec->sample_fmts != NULL)
 				ffmpeg_aud_ctx->sample_fmt = (ffmpeg_aud_codec->sample_fmts)[0];
-			else
+#else
+            // For FFmpeg supporting avcodec_get_supported_config()
+            const enum AVSampleFormat* formats = NULL;
+
+            const int ret = avcodec_get_supported_config(
+                NULL,
+                ffmpeg_aud_codec,
+                AV_CODEC_CONFIG_SAMPLE_FORMAT,
+                0,
+                reinterpret_cast<const void**>(&formats),
+                NULL
+            );
+
+            if(ret >= 0 && formats != NULL)
+                ffmpeg_aud_ctx->sample_fmt = formats[0];
+#endif
+            else
 				ffmpeg_aud_ctx->sample_fmt = AV_SAMPLE_FMT_FLT;
 
 			if (avcodec_open2(ffmpeg_aud_ctx,ffmpeg_aud_codec,NULL) < 0) {
@@ -2141,7 +2159,7 @@ void ParseAutoSaveArg(std::string arg) {
 void CAPTURE_Init() {
 	DOSBoxMenu::item *item;
 
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing screenshot and A/V capture system");
+	LOG(LOG_MISC,LOG_DEBUG)("HARDWARE: Initializing screenshot and A/V capture system");
 
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
@@ -2149,7 +2167,19 @@ void CAPTURE_Init() {
 	// grab and store capture path
 	Prop_path *proppath = section->Get_path("captures");
 	assert(proppath != NULL);
-	capturedir = proppath->realpath;
+    std::string captures_value = proppath->GetValue().ToString();
+    if(captures_value.empty()) {
+        LOG_MSG("HARDWARE: CAPTURE_Init(): Capture path is empty, using working directory.");
+        capturedir = working_dir;
+    }
+    else if(Cross::IsPathAbsolute(captures_value)) {
+         capturedir = captures_value; // use the absolute path as is
+    }
+    else {
+         capturedir = working_dir + CROSS_FILESPLIT + captures_value;
+    }
+    LOG(LOG_MISC, LOG_DEBUG)("HARDWARE: Capture directory set to %s", capturedir.c_str());
+
     SetGameState_Run(section->Get_int("saveslot")-1);
     noremark_save_state = !section->Get_bool("saveremark");
     video_debug_overlay = section->Get_bool("video debug at startup");

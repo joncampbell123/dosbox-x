@@ -94,12 +94,12 @@ jobs:
         with:
           name: dosbox-x-linux-x86_64-${{ env.timestamp }}
           path: ${{ github.workspace }}/src/bin/
-  Test_cxx11:
+  Test_Linux_Preview:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
       contents: read  # for actions/checkout to fetch code
-    if: false # github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-26.04
     steps:
       - name: Cancel previous runs
         uses: styfle/cancel-workflow-action@0.13.1
@@ -112,18 +112,18 @@ jobs:
       - name: Install libraries
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libavcodec-extra
           mkdir src/bin
       - name: Build Linux SDL1
         run: |
           top=`pwd`
-          ./build-debug  --enable-force-cxx11
+          CC=clang CXX=clang++ ./build-debug --enable-avcodec
           strip -s $top/src/dosbox-x
           cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl1
       - name: Build Linux SDL2
         run: |
           top=`pwd`
-          ./build-debug-sdl2  --enable-force-cxx11
+          CC=clang CXX=clang++ ./build-debug-sdl2 --enable-avcodec
           strip -s $top/src/dosbox-x
           cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl2
       - name: Unit testing
@@ -132,4 +132,24 @@ jobs:
           chmod +x $top/src/bin/dosbox-x-sdl1 $top/src/bin/dosbox-x-sdl2
           $top/src/bin/dosbox-x-sdl1 -tests
           $top/src/bin/dosbox-x-sdl2 -tests
-
+      - name: Package build
+        run: |
+          top=`pwd`
+          mkdir -p $top/src/bin/drivez
+          mkdir -p $top/src/bin/glshaders
+          mkdir -p $top/src/bin/languages
+          cp $top/CHANGELOG $top/src/bin/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/src/bin/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/src/bin/dosbox-x.reference.full.conf
+          cp $top/contrib/fonts/FREECG98.BMP $top/src/bin/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/src/bin/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/src/bin/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/src/bin/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/src/bin/drivez/readme.txt
+          cp $top/contrib/glshaders/* $top/src/bin/glshaders/
+          cp $top/contrib/translations/*/*.lng $top/src/bin/languages/
+      - name: Upload preview package
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dosbox-x-linux-x86_64-26.04LTS_${{ env.timestamp }}
+          path: ${{ github.workspace }}/src/bin/

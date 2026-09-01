@@ -39,6 +39,7 @@
 #include "pic.h"
 #include "midi.h"
 #include "bios_disk.h"
+#include "imagedisk_eltorito.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
 

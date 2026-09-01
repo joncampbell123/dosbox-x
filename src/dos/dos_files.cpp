@@ -39,6 +39,7 @@
 #include "cdrom.h"
 #include "ide.h"
 #include "bios_disk.h"
+#include "imagedisk_eltorito.h"
 
 #define DOS_FILESTART 4
 
@@ -64,6 +65,7 @@ extern const char *dos_clipboard_device_name;
 #include <errno.h>
 #include <time.h>
 
+#ifndef _MACPORTS_TIME_H_
 typedef enum {
     _CLOCK_REALTIME = 0,
 #if !defined(CLOCK_REALTIME)
@@ -178,6 +180,7 @@ int clock_gettime(clockid_t clk_id, struct timespec* tp) {
 #ifdef __cplusplus
 }
 #endif
+#endif // _MACPORTS_TIME_H_
 
 #endif // __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
 
@@ -1425,8 +1428,12 @@ bool DOS_Canonicalize(char const * const name,char * const big) {
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
 # define MAX(a,b) ((a) > (b) ? (a) : (b))
 #else
-# define MIN(a,b) std::min(a,b)
-# define MAX(a,b) std::max(a,b)
+# ifndef MIN
+#  define MIN(a,b) std::min(a,b)
+# endif
+# ifndef MAX
+#  define MAX(a,b) std::max(a,b)
+# endif
 #endif
 
 /* Common routine to take larger allocation information (such as FAT32) and convert it to values
@@ -2433,7 +2440,12 @@ struct Opts {
     int mounttype;
     uint8_t mediaid;
     unsigned char CDROM_drive;
-    unsigned long cdrom_sector_offset;
+    /* NOT `unsigned long`: that is 4 bytes on Windows (LLP64) and 8 on
+     * Linux/macOS (LP64), and this struct is written verbatim by WRITE_POD,
+     * so its size is part of the on-disk savestate format -- widening it
+     * makes a saved state unreadable on the other platform. A CD sector
+     * offset does not need more than 32 bits. */
+    uint32_t cdrom_sector_offset;
     unsigned char floppy_emu_type;
 };
 Opts opts;
@@ -2658,6 +2670,21 @@ void POD_Load_DOS_Files( std::istream& stream )
             READ_POD( &lalloc, lalloc);
             READ_POD( &oalloc, oalloc);
             READ_POD( &opts, opts);
+#if !defined(WIN32)
+            /* The mount path is stored verbatim, so a state saved on Windows
+             * carries '\' separators. The code below unmounts the current
+             * drive and rebuilds it from this string, so without translation
+             * the new drive's base directory is a name containing a literal
+             * backslash. localDrive does not validate it, so nothing is
+             * logged and the guest simply fails every file access.
+             *
+             * Bounded by sizeof: READ_POD fills these buffers straight from
+             * the file and does not guarantee a terminator. */
+            for (size_t q = 0; q < sizeof(dinfo) && dinfo[q]; q++)
+                if (dinfo[q] == '\\') dinfo[q] = CROSS_FILESPLIT;
+            for (size_t q = 0; q < sizeof(overlaydir) && overlaydir[q]; q++)
+                if (overlaydir[q] == '\\') overlaydir[q] = CROSS_FILESPLIT;
+#endif
             if( Drives[lcv] && strcasecmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory ",16) || !strncmp(dinfo,"CDRom ",6) || !strncmp(dinfo,"PhysFS directory ",17) || !strncmp(dinfo,"PhysFS CDRom ",13) || (!strncmp(dinfo,"isoDrive ",9) || !strncmp(dinfo,"fatDrive ",9))))
                 unmount(lcv);
             if( !Drives[lcv] ) {
