@@ -49,6 +49,7 @@
   - Fixed FAT volume labels being displayed as 8.3 filenames. (cimarronm)
   - Fixed crash of Win9x lowend build at launch due to use of AttachConsole()
     function (maron2000)
+  - Fixed a out-of-bounds array access bug in drive_virtual.cpp (maron2000)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
