@@ -15,6 +15,7 @@ NEXT VERSION:
   - IMGMOUNT: Fixed a regression that didn't try loading IMGMAKE.IMG if no 
     image was specified (maron2000)
   - Fixed a build error when FFmpeg is upgraded to FFmpeg 9 (maron2000)
+  - Fixed freeze when savestate flagged file not found (rebb)
   - Fixed capture and savestate directory locations (maron2000)
   - Refactored the imageDisk subclasses into their own source files and headers
     (VFD, D88, NFD, empty drive, INT 13h passthrough, El Torito floppy, and
@@ -42,8 +43,12 @@ NEXT VERSION:
   - Floppy INT 13h sector reads/writes now honor the bytes-per-sector code from
     the disk base table pointed to by INT 1Eh instead of assuming 512, allowing
     guests that reprogram INT 1Eh to access non-512 media. (cimarronm)
+  - Debugger: Resolved named variables in expressions (zlatkok)
+  - OpenGL: Fixed fullscreen and modeswitching positional offsets. (DieSkaarj)
   - Simplified the MCB filename-stripping logic in DOS_Execute(). (cimarronm)
   - Fixed FAT volume labels being displayed as 8.3 filenames. (cimarronm)
+  - Fixed crash of Win9x lowend build at launch due to use of AttachConsole()
+    function (maron2000)
 
 2026.08.02
   - Debugger: normalize 16-bit segmented offsets for address display/lookup and
