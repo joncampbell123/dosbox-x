@@ -3,7 +3,7 @@
 #include "config.h"
 
 #if defined(C_DEBUG) && C_DEBUG && \
-        ((defined(C_SDL2_NET) && C_SDL2_NET) || (defined(C_SDL_NET) && C_SDL_NET))
+        ((defined(C_SDL2) && C_SDL2) || (defined(C_SDL) && C_SDL))
 
 #include "debug.h"
 

@@ -5147,6 +5147,13 @@ void dyn_core_dh_debug_flush (void);
 
 Bitu DEBUG_Loop(void) {
     dosbox_agent::AGENT_BridgePump();
+
+    ControlServer_Poll();
+
+    // MCP commands such as RUN or VRT can switch back to the normal loop.
+    if (DOSBOX_GetLoop() != DEBUG_Loop)
+        return 0;
+
     if (debug_running) {
         Bitu now = SDL_GetTicks();
 
