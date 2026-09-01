@@ -1,3 +1,6 @@
+Next version:
+  - 
+
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
   - Fixed prompting of working directory option (maron2000)
