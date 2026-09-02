@@ -3712,6 +3712,13 @@ void AllocCallback1() {
 #  else
                 enable(false);
 #  endif
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_mpegts_h265").set_text("MPEG-TS + H.265").
+                    set_callback_function(capture_fmt_menu_callback).
+#  if (C_AVCODEC)
+                enable(true);
+#  else
+                enable(false);
+#  endif
             }
         }
 # endif

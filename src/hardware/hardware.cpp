@@ -335,6 +335,7 @@ void ffmpeg_flushout() {
 /* FIXME: This needs to be an enum */
 bool native_zmbv = false;
 bool export_ffmpeg = false;
+std::string export_ffmpeg_codec;
 
 std::string capturedir;
 extern std::string savefilename;
@@ -1200,7 +1201,14 @@ skip_shot:
 			}
 
 			ffmpeg_aud_codec = avcodec_find_encoder(AV_CODEC_ID_AAC);
-			ffmpeg_vid_codec = avcodec_find_encoder(AV_CODEC_ID_H264);
+
+			if (export_ffmpeg_codec == "h265")
+				ffmpeg_vid_codec = avcodec_find_encoder(AV_CODEC_ID_H265);
+			else if (export_ffmpeg_codec == "h264")
+				ffmpeg_vid_codec = avcodec_find_encoder(AV_CODEC_ID_H264);
+			else
+				ffmpeg_vid_codec = NULL;
+
 			if (ffmpeg_aud_codec == NULL || ffmpeg_vid_codec == NULL) {
 				LOG_MSG("H.264 or AAC encoder not available");
 				goto skip_video;
@@ -2247,8 +2255,21 @@ void CAPTURE_Init() {
 		LOG_MSG("Capture format is MPEGTS H.264+AAC");
 		native_zmbv = false;
 		export_ffmpeg = true;
+		export_ffmpeg_codec = "h264";
 #else
 		LOG_MSG("MPEGTS H.264+AAC not compiled in to this DOSBox-X binary. Using AVI+ZMBV");
+		native_zmbv = true;
+		export_ffmpeg = false;
+#endif
+	}
+	else if (capfmt == "mpegts-h265") {
+#if (C_AVCODEC)
+		LOG_MSG("Capture format is MPEGTS H.265+AAC");
+		native_zmbv = false;
+		export_ffmpeg = true;
+		export_ffmpeg_codec = "h265";
+#else
+		LOG_MSG("MPEGTS H.265+AAC not compiled in to this DOSBox-X binary. Using AVI+ZMBV");
 		native_zmbv = true;
 		export_ffmpeg = false;
 #endif
@@ -2257,10 +2278,12 @@ void CAPTURE_Init() {
 		LOG_MSG("USING AVI+ZMBV");
 		native_zmbv = true;
 		export_ffmpeg = false;
+		export_ffmpeg_codec.clear();
 	}
 	else {
 		LOG_MSG("Unknown capture format, using AVI+ZMBV");
 		native_zmbv = true;
+		export_ffmpeg_codec.clear();
 		export_ffmpeg = false;
 	}
 
@@ -2314,7 +2337,8 @@ void update_capture_fmt_menu(void) {
 # if (C_SSHOT)
     mainMenu.get_item("capture_fmt_avi_zmbv").check(native_zmbv).refresh_item(mainMenu);
 #  if (C_AVCODEC)
-    mainMenu.get_item("capture_fmt_mpegts_h264").check(export_ffmpeg).refresh_item(mainMenu);
+    mainMenu.get_item("capture_fmt_mpegts_h264").check(export_ffmpeg && export_ffmpeg_codec == "h264").refresh_item(mainMenu);
+    mainMenu.get_item("capture_fmt_mpegts_h265").check(export_ffmpeg && export_ffmpeg_codec == "h265").refresh_item(mainMenu);
 #  endif
 # endif
 }
@@ -2323,6 +2347,7 @@ void update_capture_fmt_menu(void) {
 bool capture_fmt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;
 
+    std::string new_export_ffmpeg_codec = export_ffmpeg_codec;
     const char *ts = menuitem->get_name().c_str();
     Bitu old_CaptureState = CaptureState;
     bool new_native_zmbv = native_zmbv;
@@ -2335,20 +2360,28 @@ bool capture_fmt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
     if (!strcmp(ts,"mpegts_h264")) {
         new_native_zmbv = false;
         new_export_ffmpeg = true;
+        new_export_ffmpeg_codec = "h264";
+    }
+    else if (!strcmp(ts,"mpegts_h265")) {
+        new_native_zmbv = false;
+        new_export_ffmpeg = true;
+        new_export_ffmpeg_codec = "h265";
     }
     else
 #endif
     {
         new_native_zmbv = true;
         new_export_ffmpeg = false;
+        export_ffmpeg_codec.clear();
     }
 
-    if (native_zmbv != new_native_zmbv || export_ffmpeg != new_export_ffmpeg) {
+    if (native_zmbv != new_native_zmbv || export_ffmpeg != new_export_ffmpeg || export_ffmpeg_codec != new_export_ffmpeg_codec) {
         void CAPTURE_StopCapture(void);
         CAPTURE_StopCapture();
 
         native_zmbv = new_native_zmbv;
         export_ffmpeg = new_export_ffmpeg;
+        export_ffmpeg_codec = new_export_ffmpeg_codec;
     }
 
     if (old_CaptureState & CAPTURE_VIDEO) {

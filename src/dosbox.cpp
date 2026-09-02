@@ -1427,7 +1427,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* cyclest[] = { "auto","fixed","max","%u", nullptr };
     const char* mputypes[] = { "intelligent", "uart", "none", nullptr };
     const char* vsyncmode[] = { "off", "on" ,"force", "host", nullptr };
-    const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", nullptr };
+    const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", "mpegts-h265", nullptr };
     const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", nullptr };
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", nullptr };
     const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", nullptr }; // Future work: Tandy(?) and USB
@@ -1821,7 +1821,9 @@ void DOSBOX_SetupConfigSections(void) {
             "default                     Use compiled-in default (avi-zmbv)\n"
             "avi-zmbv                    Use DOSBox-style AVI + ZMBV codec with PCM audio\n"
             "mpegts-h264                 Use MPEG transport stream + H.264 + AAC audio. Resolution & refresh rate changes can be contained\n"
-            "                            within one file with this choice, however not all software can support mid-stream format changes.");
+            "                            within one file with this choice, however not all software can support mid-stream format changes.\n"
+            "mpegts-h265                 Use MPEG transport stream + H.265 + AAC audio. Resolution & refresh rate changes handled same as h264"
+            );
 
     Pint = secprop->Add_int("shell environment size",Property::Changeable::OnlyAtStart,0);
     Pint->SetMinMax(0,65280);
