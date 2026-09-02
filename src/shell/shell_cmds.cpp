@@ -4220,6 +4220,7 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 #  if C_DEBUG
 extern bool tohide;
 bool debugger_break_on_exec = false;
+unsigned int debugger_box_depth = 0;
 void DEBUG_Enable_Handler(bool pressed);
 void DOS_Shell::CMD_DEBUGBOX(char * args) {
     while (*args == ' ') args++;
@@ -4236,9 +4237,11 @@ void DOS_Shell::CMD_DEBUGBOX(char * args) {
 		args[0]='/';
 		HELP("DEBUGBOX");
 		return;
-	}
+    }
     debugger_break_on_exec = true;
+    ++debugger_box_depth;
     DoCommand((char *)argv.c_str());
+    --debugger_box_depth;
     debugger_break_on_exec = false;
 }
 # endif

@@ -1578,6 +1578,7 @@ src/libs/fluidsynth/Makefile
 src/libs/decoders/internal/Makefile
 src/output/Makefile
 src/output/direct3d/Makefile
+src/agent/Makefile
 src/builtin/Makefile
 src/misc/Makefile
 src/shell/Makefile

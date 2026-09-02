@@ -77,6 +77,10 @@ uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 Bitu call_int23 = 0;
 
+uint16_t DOS_ShellGetPSP() {
+	return shell_psp;
+}
+
 std::string GetDOSBoxXPath(bool withexe=false);
 const char* DOS_GetLoadedLayout(void);
 Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage), DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp);

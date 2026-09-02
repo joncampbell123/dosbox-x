@@ -32,6 +32,11 @@
 # endif
 #endif
 
+#if defined(C_DOSBOX_AGENT)
+#include "agent/agent_bridge.h"
+#include "agent/agent_server.h"
+#endif
+
 #ifdef OS2
 # define INCL_DOS
 # define INCL_WIN
@@ -7482,6 +7487,10 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n");
             fprintf(stderr,"  -nolog                                  Do not log anything to log file\n");
             fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n");
+#if defined(C_DOSBOX_AGENT)
+            fprintf(stderr,"  -agent-config <path>                    Load agent configuration from an explicit file\n");
+            fprintf(stderr,"  -agent-self-test                        Verify agent startup and emulation queue behavior\n");
+#endif
             fprintf(stderr,"  -print-ticks                            (Debug) Print emulator time and SDL_GetTicks()\n");
             fprintf(stderr,"  -force-gfx-hardware                     Force render scaler system to act as if GFX_HARDWARE\n");
             fprintf(stderr,"\n");
@@ -7507,6 +7516,14 @@ bool DOSBOX_parse_argv() {
         else if (optname == "log-con") {
             control->opt_log_con = true;
         }
+#if defined(C_DOSBOX_AGENT)
+        else if (optname == "agent-config") {
+            if (!control->cmdline->NextOptArgv(control->opt_agent_config)) return false;
+        }
+        else if (optname == "agent-self-test") {
+            control->opt_agent_self_test = true;
+        }
+#endif
         else if (optname == "nolog") {
             control->opt_nolog = true;
         }
@@ -8384,6 +8401,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
     bool saved_opt_test;
+#if defined(C_DOSBOX_AGENT)
+    dosbox_agent::AgentServer agent_server;
+#endif
 
     srand(time(NULL));
 
@@ -8414,6 +8434,34 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     /* -- Early logging init, in case these details are needed to debug problems at this level */
     /*    If --early-debug was given this opens up logging to STDERR until Log::Init() */
     LOG::EarlyInit();
+
+#if defined(C_DOSBOX_AGENT)
+    if (control->opt_agent_self_test && control->opt_agent_config.empty()) {
+        LOG_MSG("Agent self-test requires --agent-config <path>");
+        return 1;
+    }
+    if (!control->opt_agent_config.empty()) {
+        std::string agent_error;
+        if (!agent_server.StartFromConfigFile(control->opt_agent_config, &agent_error)) {
+            LOG_MSG("Agent startup failed: %s", agent_error.c_str());
+            return 1;
+        }
+        LOG_MSG("%s", dosbox_agent::AGENT_FormatStartupLog(*agent_server.GetConfig()).c_str());
+    }
+    if (control->opt_agent_self_test) {
+        std::string agent_error;
+        if (!dosbox_agent::AGENT_RunQueueSelfTest(&agent_error)) {
+            LOG_MSG("Agent queue self-test failed: %s", agent_error.c_str());
+            return 1;
+        }
+        if (!agent_server.RunProtocolSelfTest(&agent_error)) {
+            LOG_MSG("Agent protocol self-test failed: %s", agent_error.c_str());
+            return 1;
+        }
+        LOG_MSG("Agent self-test completed: success");
+        return 0;
+    }
+#endif
 
     /* -- Init the configuration system and add default values */
     CheckNumLockState();
@@ -10622,6 +10670,11 @@ fresh_boot:
 		duk_destroy_heap(js_heap);
 		js_heap = NULL;
 	}
+#endif
+
+#if defined(C_DOSBOX_AGENT)
+        agent_server.Stop();
+        dosbox_agent::AGENT_BridgeShutdown();
 #endif
 
         LOG::Exit();

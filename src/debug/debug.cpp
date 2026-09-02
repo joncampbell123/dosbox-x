@@ -18,11 +18,15 @@
 
 
 #include "dosbox.h"
+#if defined(C_DOSBOX_AGENT)
+#include "agent/agent_bridge.h"
+#endif
 #if C_DEBUG
 
 #include "../../tests/tests.h"
 
 #include <string.h>
+#include <atomic>
 #include <list>
 #include <vector>
 #include <ctype.h>
@@ -33,6 +37,7 @@
 using namespace std;
 
 #include "debug.h"
+#include "agent/agent_bridge.h"
 #include "cross.h" //snprintf
 #include "fpu.h"
 #include "bios.h"
@@ -54,6 +59,11 @@ using namespace std;
 bool Clear_SYSENTER_Debug();
 bool Toggle_BreakSYSEnter();
 bool Toggle_BreakSYSExit();
+
+#if !defined(OSFREE)
+extern bool debugger_break_on_exec;
+extern unsigned int debugger_box_depth;
+#endif
 
 /* [https://github.com/joncampbell123/dosbox-x/issues/1264] ncurses non-ASCII keys are outside ASCII range (start at octal 0400 == hex 0x100) */
 static inline int ncurses_aware_toupper(int x) {
@@ -336,6 +346,7 @@ extern Bitu cycle_count;
 static bool debugging = false;
 static bool debug_running = false;
 static bool check_rescroll = false;
+static std::atomic<uint64_t> agent_entry_breakpoint_sequence(0);
 
 static FPU_rec oldfpu;
 static bool warn_dynamic = false;
@@ -655,9 +666,11 @@ public:
 	static CBreakpoint*		FindOtherActiveBreakpoint(PhysPt adr, CBreakpoint* skip);
 	static bool				IsBreakpoint		(uint16_t seg, uint32_t off);
 	static bool				DeleteBreakpoint	(uint16_t seg, uint32_t off);
+	static bool				DeleteBreakpoint		(CBreakpoint* breakpoint);
 	static bool				DeleteByIndex		(uint16_t index);
 	static void				DeleteAll			(void);
 	static void				ShowList			(void);
+	static CBreakpoint*				ConsumeLastTriggered			(void);
 
 
 private:
@@ -678,6 +691,7 @@ private:
 	bool		once;
 
 	static std::list<CBreakpoint*>	BPoints;
+	static CBreakpoint*	lastTriggered;
 #if C_HEAVY_DEBUG
 	friend bool DEBUG_HeavyIsBreakpoint(void);
 #endif
@@ -731,6 +745,7 @@ void CBreakpoint::Activate(bool _active)
 
 // Statics
 std::list<CBreakpoint*> CBreakpoint::BPoints;
+CBreakpoint* CBreakpoint::lastTriggered = nullptr;
 
 CBreakpoint* CBreakpoint::AddBreakpoint(uint16_t seg, uint32_t off, bool once)
 {
@@ -802,6 +817,7 @@ bool CBreakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 		if ((bp->GetType() == BKPNT_PHYSICAL) && bp->IsActive() &&
 		    (bp->GetLocation() == GetAddress(seg, off))) {
 			// Found
+			lastTriggered = bp;
 			if (bp->GetOnce()) {
 				// delete it, if it should only be used once
 				(BPoints.erase)(i);
@@ -845,6 +861,7 @@ bool CBreakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
                     }
 					DEBUG_ShowMsg("DEBUG: Memory breakpoint %s: %04X:%04X - %02X -> %02X\n",(bp->GetType()==BKPNT_MEMORY_PROT)?"(Prot)":"",bp->GetSegment(),bp->GetOffset(),bp->GetValue(),value);
 					bp->SetValue(value);
+					lastTriggered = bp;
 					return true;
 				}
 			}
@@ -892,6 +909,7 @@ void CBreakpoint::DeleteAll()
 		delete bp;
 	}
 	(BPoints.clear)();
+	lastTriggered = nullptr;
 }
 
 
@@ -960,13 +978,31 @@ bool CBreakpoint::IsBreakpoint(uint16_t seg, uint32_t off)
 bool CBreakpoint::DeleteBreakpoint(uint16_t seg, uint32_t off)
 {
 	CBreakpoint* bp = FindPhysBreakpoint(seg, off, false);
-	if (bp) {
-		BPoints.remove(bp);
-		delete bp;
+	return DeleteBreakpoint(bp);
+}
+
+bool CBreakpoint::DeleteBreakpoint(CBreakpoint* breakpoint)
+{
+	if (breakpoint == nullptr)
+		return false;
+	for (std::list<CBreakpoint*>::iterator it = BPoints.begin(); it != BPoints.end(); ++it) {
+		if (*it != breakpoint)
+			continue;
+		BPoints.erase(it);
+		breakpoint->Activate(false);
+		if (lastTriggered == breakpoint)
+			lastTriggered = nullptr;
+		delete breakpoint;
 		return true;
 	}
-
 	return false;
+}
+
+CBreakpoint* CBreakpoint::ConsumeLastTriggered(void)
+{
+	CBreakpoint* result = lastTriggered;
+	lastTriggered = nullptr;
+	return result;
 }
 
 
@@ -1043,6 +1079,144 @@ static bool StepOver()
 	} 
 	return false;
 }
+
+void DrawRegistersUpdateOld(void);
+int32_t DEBUG_Run(int32_t amount,bool quickexit);
+bool ParseCommand(char* str);
+
+bool DEBUG_AgentStep(bool over, bool* continued)
+{
+	if (continued == nullptr || !debugging || debug_running)
+		return false;
+
+	DEBUG_AgentClearLastBreakpoint();
+	DrawRegistersUpdateOld();
+	if (over && StepOver()) {
+		mustCompleteInstruction = true;
+		inhibit_int_breakpoint = true;
+		DEBUG_Run(1,false);
+		inhibit_int_breakpoint = false;
+		mustCompleteInstruction = false;
+		*continued = true;
+		return true;
+	}
+
+	exitLoop = false;
+	mustCompleteInstruction = true;
+	DEBUG_Run(1,true);
+	mustCompleteInstruction = false;
+	*continued = false;
+	return true;
+}
+
+bool DEBUG_AgentResumeAfterTerminate(void)
+{
+	if (!debugging || debug_running)
+		return true;
+
+	// ParseCommand("RUN") always executes one instruction before returning to
+	// the normal loop. TerminateTarget has already restored CS:IP to the
+	// callback stop trampoline that must be observed by the enclosing
+	// CALLBACK_RunRealInt invocation. Stepping here consumes that trampoline
+	// inside the debugger and strands the synchronous DEBUGBOX command frame.
+	DrawRegistersUpdateOld();
+	debug_running = false;
+	debugging = false;
+	DrawCode();
+	DrawInput();
+	logBuffSuppressConsole = false;
+	if (logBuffSuppressConsoleNeedUpdate) {
+		logBuffSuppressConsoleNeedUpdate = false;
+		DEBUG_RefreshPage(0);
+	}
+	CBreakpoint::ActivateBreakpoints();
+	mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+	mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+	mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+	DOSBOX_SetNormalLoop();
+	GFX_SetTitle(-1,-1,-1,is_paused);
+	return true;
+}
+
+bool DEBUG_AgentCanStartTarget(void)
+{
+#if !defined(OSFREE)
+    return !debugging && !debug_running && !debugger_break_on_exec && debugger_box_depth == 0;
+#else
+	return false;
+#endif
+}
+
+uint64_t DEBUG_AgentEntryBreakpointSequence(void)
+{
+	return agent_entry_breakpoint_sequence.load(std::memory_order_relaxed);
+}
+
+bool DEBUG_AgentCreateExecutionBreakpoint(uint16_t seg, uint32_t off, bool once, uintptr_t* handle)
+{
+	if (handle == nullptr || GetAddress(seg,off) == mem_no_address)
+		return false;
+	CBreakpoint* breakpoint = CBreakpoint::AddBreakpoint(seg,off,once);
+	*handle = reinterpret_cast<uintptr_t>(breakpoint);
+	return breakpoint != nullptr;
+}
+
+bool DEBUG_AgentCreateMemoryBreakpoint(uint16_t seg,
+                                       uint32_t off,
+                                       bool protected_mode,
+                                       bool linear,
+                                       uintptr_t* handle)
+{
+#if C_HEAVY_DEBUG
+	if (handle == nullptr || (protected_mode && linear))
+		return false;
+	const uint64_t address = linear ? static_cast<uint64_t>(off) : GetAddress(seg,off);
+	if (address == mem_no_address)
+		return false;
+	uint8_t value = 0;
+	if (mem_readb_checked(static_cast<PhysPt>(address), &value))
+		return false;
+	CBreakpoint* breakpoint = CBreakpoint::AddMemBreakpoint(seg,off);
+	if (breakpoint == nullptr)
+		return false;
+	if (protected_mode)
+		breakpoint->SetType(BKPNT_MEMORY_PROT);
+	else if (linear)
+		breakpoint->SetType(BKPNT_MEMORY_LINEAR);
+	breakpoint->SetValue(value);
+	*handle = reinterpret_cast<uintptr_t>(breakpoint);
+	return true;
+#else
+	(void)seg;
+	(void)off;
+	(void)protected_mode;
+	(void)linear;
+	(void)handle;
+	return false;
+#endif
+}
+
+bool DEBUG_AgentDeleteBreakpoint(uintptr_t handle)
+{
+	return CBreakpoint::DeleteBreakpoint(reinterpret_cast<CBreakpoint*>(handle));
+}
+
+uintptr_t DEBUG_AgentConsumeLastBreakpoint(void)
+{
+	return reinterpret_cast<uintptr_t>(CBreakpoint::ConsumeLastTriggered());
+}
+
+void DEBUG_AgentClearLastBreakpoint(void)
+{
+	(void)CBreakpoint::ConsumeLastTriggered();
+}
+
+#if C_HEAVY_DEBUG
+bool DEBUG_AgentStartTrace(uint32_t instruction_count);
+bool DEBUG_AgentStopTrace(uint32_t* event_count);
+bool DEBUG_AgentTraceIsActive(void);
+void DEBUG_AgentCopyTraceEvents(std::vector<DEBUG_AgentTraceEvent>* events);
+#endif
 
 bool DEBUG_ExitLoop(void)
 {
@@ -4953,6 +5127,7 @@ void dyn_core_dh_debug_flush (void);
 #endif
 
 Bitu DEBUG_Loop(void) {
+    dosbox_agent::AGENT_BridgePump();
     if (debug_running) {
         Bitu now = SDL_GetTicks();
 
@@ -5139,6 +5314,9 @@ void DEBUG_Enable_Handler(bool pressed) {
 	//KEYBOARD_ClrBuffer();
     GFX_SetTitle(-1,-1,-1,false);
     runnormal = false;
+#if defined(C_DOSBOX_AGENT)
+    dosbox_agent::AGENT_NotifyDebuggerStopped(SegValue(cs), reg_eip);
+#endif
     if (debugrunmode==1) {char command[] = "RUN"; ParseCommand(command);}
     else if (debugrunmode==2) {char command[] = "RUNWATCH"; ParseCommand(command);}
 }
@@ -5802,19 +5980,18 @@ private:
 };
 #endif
 
-#if !defined(OSFREE)
-# if C_DEBUG
-extern bool debugger_break_on_exec;
-# endif
-#endif
-
 void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off)
 {
 #if !defined(OSFREE)
 # if C_DEBUG
     if (debugger_break_on_exec) {
-		CBreakpoint::AddBreakpoint(seg,off,true);
-		CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
+		// The new entry breakpoint is created at the current CS:IP. The
+		// existing bulk activation intentionally skips that address, so arm
+		// this one explicitly before preserving the other breakpoint state.
+		CBreakpoint* const entry_breakpoint = CBreakpoint::AddBreakpoint(seg,off,true);
+		entry_breakpoint->Activate(true);
+        CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
+		agent_entry_breakpoint_sequence.fetch_add(1, std::memory_order_relaxed);
         debugger_break_on_exec = false;
     }
 # endif
@@ -6169,11 +6346,15 @@ struct TLogInst {
 	bool a;
 	bool p;
 	bool i;
+	uint32_t flags;
 	char dline[31];
 	char res[23];
 };
 
 TLogInst logInst[LOGCPUMAX];
+static bool agent_trace_active = false;
+static uint32_t agent_trace_remaining = 0;
+static vector<DEBUG_AgentTraceEvent> agent_trace_events;
 
 void DEBUG_HeavyLogInstruction(void) {
 
@@ -6222,8 +6403,68 @@ void DEBUG_HeavyLogInstruction(void) {
 	inst.a    = get_AF()>0;
 	inst.p    = get_PF()>0;
 	inst.i    = GETFLAGBOOL(IF);
+	inst.flags = static_cast<uint32_t>(reg_flags);
 
 	if (++logCount >= LOGCPUMAX) logCount = 0;
+}
+
+bool DEBUG_AgentStartTrace(const uint32_t instruction_count)
+{
+	if (instruction_count == 0 || agent_trace_active)
+		return false;
+	agent_trace_events.clear();
+	agent_trace_events.reserve(instruction_count);
+	agent_trace_remaining = instruction_count;
+	agent_trace_active = true;
+	return true;
+}
+
+bool DEBUG_AgentStopTrace(uint32_t* event_count)
+{
+	if (event_count == nullptr)
+		return false;
+	agent_trace_active = false;
+	agent_trace_remaining = 0;
+	*event_count = static_cast<uint32_t>(agent_trace_events.size());
+	return true;
+}
+
+bool DEBUG_AgentTraceIsActive(void)
+{
+	return agent_trace_active;
+}
+
+void DEBUG_AgentCopyTraceEvents(vector<DEBUG_AgentTraceEvent>* events)
+{
+	if (events != nullptr)
+		*events = agent_trace_events;
+}
+
+static void DEBUG_AgentCaptureTraceEvent(void)
+{
+	DEBUG_HeavyLogInstruction();
+	const uint32_t last_index = logCount == 0 ? LOGCPUMAX - 1 : logCount - 1;
+	const TLogInst& inst = logInst[last_index];
+	DEBUG_AgentTraceEvent event;
+	event.cs = inst.s_cs;
+	event.instruction_pointer = inst.eip;
+	event.eax = inst.eax;
+	event.ebx = inst.ebx;
+	event.ecx = inst.ecx;
+	event.edx = inst.edx;
+	event.esi = inst.esi;
+	event.edi = inst.edi;
+	event.ebp = inst.ebp;
+	event.esp = inst.esp;
+	event.ds = inst.s_ds;
+	event.es = inst.s_es;
+	event.fs = inst.s_fs;
+	event.gs = inst.s_gs;
+	event.ss = inst.s_ss;
+	event.flags = inst.flags;
+	event.instruction = inst.dline;
+	event.analysis = inst.res;
+	agent_trace_events.push_back(event);
 }
 
 void DEBUG_HeavyWriteLogInstruction(void) {
@@ -6266,6 +6507,15 @@ void DEBUG_HeavyWriteLogInstruction(void) {
 }
 
 bool DEBUG_HeavyIsBreakpoint(void) {
+	const bool agent_trace_was_active = agent_trace_active;
+	if (agent_trace_active) {
+		DEBUG_AgentCaptureTraceEvent();
+		if (--agent_trace_remaining == 0) {
+			agent_trace_active = false;
+			DEBUG_EnableDebugger();
+			return true;
+		}
+	}
 	if (cpuLog) {
 		if (cpuLogCounter>0) {
 			LogInstruction(SegValue(cs),reg_eip,cpuLogFile);
@@ -6281,7 +6531,7 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 		}
 	}
 	// LogInstruction
-	if (logHeavy) DEBUG_HeavyLogInstruction();
+	if (logHeavy && !agent_trace_was_active) DEBUG_HeavyLogInstruction();
 	if (zeroProtect) {
 		static Bitu zero_count = 0;
 		uint32_t value = 0;

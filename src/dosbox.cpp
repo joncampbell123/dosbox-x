@@ -52,6 +52,7 @@
 #include <ctime>
 #include <unistd.h>
 #include "dosbox.h"
+#include "agent/agent_bridge.h"
 #include "debug.h"
 #include "cpu.h"
 #include "logging.h"
@@ -466,6 +467,7 @@ static Bitu Normal_Loop(void) {
 
     try {
         while (1) {
+            dosbox_agent::AGENT_BridgePump();
             if (PIC_RunQueue()) {
                 /* now is the time to check for the NMI (Non-maskable interrupt) */
                 CPU_Check_NMI();
@@ -737,6 +739,8 @@ volatile int runmachine_recursion = 0;
 
 void DOSBOX_RunMachine(void){
     Bitu ret;
+
+    dosbox_agent::AGENT_BridgeAttachToCurrentThread();
 
     extern unsigned int last_callback;
     unsigned int p_last_callback = last_callback;
