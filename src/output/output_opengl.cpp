@@ -196,7 +196,9 @@ retry:
 
     bool isModeswitchSet = vga.draw.modeswitch_set;
 
-    if (((fixedWidth == 0 || fixedHeight == 0)) && !isModeswitchSet )
+    if (isModeswitchSet)
+        fixedHeight = 0;
+    else if (fixedWidth == 0 || fixedHeight == 0)
     {
         Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
         Bitu consider_width = menu.maxwindow ? currentWindowWidth : 0;
@@ -206,8 +208,6 @@ retry:
         fixedWidth = final_width;
         fixedHeight = final_height;
     }
-    else
-	fixedHeight = 0;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* scale the menu bar if the window is large enough */
