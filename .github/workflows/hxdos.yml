@@ -93,15 +93,17 @@ jobs:
           echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
           cd $top
       - name: Wait for VS 32bit build to finish (Release only)
-        if: startsWith(github.ref, 'refs/tags/')
+        if: false
         shell: bash
         run: |
           sleep 40m
       - name: Get releases
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         run: |
           curl -s https://api.github.com/repos/joncampbell123/dosbox-x/releases?per_page=100 > releases.json
       - name: Find valid tag (no osfree)
         id: decide
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         shell: bash
         run: |
           TAG=$(jq -r '
@@ -117,12 +119,12 @@ jobs:
           echo "Selected tag: $TAG"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
       - name: Download Windows build
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: robinraju/release-downloader@v1.13
         with:
           repository: "joncampbell123/dosbox-x"
           tag: ${{ steps.decide.outputs.tag }}
           filename: "dosbox-x-vsbuild-win32-*.zip"
-          
       - name: Run in Windows build
         if: false
         shell: bash
