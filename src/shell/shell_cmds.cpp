@@ -2362,10 +2362,10 @@ struct copysource {
 void DOS_Shell::CMD_COPY(char * args) {
 	HELP("COPY");
 	static std::string defaulttarget = ".";
-    const char char_yes_upper = toupper(char_yes);
-    const char char_no_upper = toupper(char_no);
-    const char ch_a = MSG_Get("SHELL_ALLFILES_CHAR")[0];
-    const char ch_A = toupper(ch_a);
+	const char char_yes_upper = toupper(char_yes);
+	const char char_no_upper = toupper(char_no);
+	const char ch_a = MSG_Get("SHELL_ALLFILES_CHAR")[0];
+	const char ch_A = toupper(ch_a);
 	StripSpaces(args);
 	/* Command uses dta so set it to our internal dta */
 	RealPt save_dta=dos.dta();
@@ -2440,21 +2440,21 @@ void DOS_Shell::CMD_COPY(char * args) {
 				}
 			}
 			if (!has_drive_spec  && !strpbrk(source_p,"*?") ) { //doubt that fu*\*.* is valid
-                char spath[DOS_PATHLENGTH];
-                if (DOS_GetSFNPath(source_p,spath,false)) {
+				char spath[DOS_PATHLENGTH];
+				if (DOS_GetSFNPath(source_p,spath,false)) {
 					bool root=false;
 					if (strlen(spath)==3&&spath[1]==':'&&spath[2]=='\\') {
 						root=true;
 						strcat(spath, "*.*");
 					}
 					if (DOS_FindFirst(spath,0xffff & ~DOS_ATTR_VOLUME)) {
-                    dta.GetResult(name,lname,size,hsize,date,time,attr);
-					if (attr & DOS_ATTR_DIRECTORY || root)
-						strcat(source_x,"\\*.*");
+						dta.GetResult(name,lname,size,hsize,date,time,attr);
+						if (attr & DOS_ATTR_DIRECTORY || root)
+							strcat(source_x,"\\*.*");
 					}
 				}
 			}
-            std::string source_xString = std::string(source_x);
+			std::string source_xString = std::string(source_x);
 			sources.push_back(copysource(source_xString,(plus)?true:false));
 			source_p = plus;
 		} while(source_p && *source_p);
@@ -2546,7 +2546,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 		char * ext = nullptr;
 		size_t replacementOffset = 0;
 		if (pathTarget[pathTargetLen-1]!='\\') {
-				// only if it's not a directory
+			// only if it's not a directory
 			ext = strchr(pathTarget, '.');
 			if (ext > pathTarget) { // no possible substitution
 				if (ext[-1] == '*') {
@@ -2603,20 +2603,20 @@ void DOS_Shell::CMD_COPY(char * args) {
 			dta.GetResult(name,lname,size,hsize,date,time,attr);
 
 			if ((attr & DOS_ATTR_DIRECTORY)==0) {
-                uint16_t ftime,fdate;
+				uint16_t ftime,fdate;
 
 				strcpy(nameSource,pathSource);
 				strcat(nameSource,name);
 
 				// Open Source
 				if (DOS_OpenFile(nameSource,0,&sourceHandle)) {
-                    // record the file date/time
-                    bool ftdvalid = DOS_GetFileDate(sourceHandle, &ftime, &fdate);
-                    if (!ftdvalid) LOG_MSG("WARNING: COPY cannot obtain file date/time");
+					// record the file date/time
+					bool ftdvalid = DOS_GetFileDate(sourceHandle, &ftime, &fdate);
+					if (!ftdvalid) LOG_MSG("WARNING: COPY cannot obtain file date/time");
 
 					// Create Target or open it if in concat mode
 					strcpy(nameTarget,q);
-                    strcat(nameTarget,pathTarget);
+					strcat(nameTarget,pathTarget);
 
 					if (ext) { // substitute parts if necessary
 						if (!ext[-1]) { // substitute extension
@@ -2629,8 +2629,8 @@ void DOS_Shell::CMD_COPY(char * args) {
 						}
 					}
 
-                    if (nameTarget[strlen(nameTarget)-1]=='\\') strcat(nameTarget,uselfn?lname:name);
-                    strcat(nameTarget,q);
+					if (nameTarget[strlen(nameTarget)-1]=='\\') strcat(nameTarget,uselfn?lname:name);
+					strcat(nameTarget,q);
 
 					//Special variable to ensure that copy * a_file, where a_file is not a directory concats.
 					bool special = second_file_of_current_source && target_is_file && strchr(target.filename.c_str(), '*')==NULL;
@@ -2671,25 +2671,25 @@ void DOS_Shell::CMD_COPY(char * args) {
 						}
 						if (!exist&&size) {
 							int drive=strlen(nameTarget)>1&&(nameTarget[1]==':'||nameTarget[2]==':')?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;
-                            if(drive >= 0 && Drives[drive]) {
-                                uint16_t bytes_sector; uint8_t sectors_cluster; uint16_t total_clusters; uint16_t free_clusters;
-                                uint32_t bytes32 = 0, sectors32 = 0, clusters32 = 0, free32 = 0;
-                                bool no_free_space = true;
-                                rsize = true;
-                                freec = 0;
-                                if(dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) {
-                                    Drives[drive]->AllocationInfo32(&bytes32, &sectors32, &clusters32, &free32);
-                                    no_free_space = (uint64_t)bytes32 * (uint64_t)sectors32 * (uint64_t)free32 < size ? true : false;
-                                    //LOG_MSG("drive=%u, no_free_space = %d bytes32=%u, sectors32=%u, free32 =%u, free_space=%u, size=%u",
-                                    //  drive, no_free_space ? 1 : 0, bytes32, sectors32, free32, bytes32*sectors32*free32, size);
-                                }
-                                if(bytes32 == 0 || sectors32 == 0 || dos.version.major < 7 || (dos.version.major == 7 && dos.version.minor < 10)) {
-                                    Drives[drive]->AllocationInfo(&bytes_sector, &sectors_cluster, &total_clusters, &free_clusters);
-                                    no_free_space = (Bitu)bytes_sector* (Bitu)sectors_cluster* (Bitu)(freec ? freec : free_clusters) < size ? true : false;
-                                    //LOG_MSG("no_free_space = %d bytes=%u, sectors=%u, free =%u, free_space=%u, size=%u",
-                                    // no_free_space ? 1 : 0, bytes_sector, sectors_cluster, freec, bytes_sector*sectors_cluster*free_clusters, size);
-                                }
-                                rsize = false;
+							if(drive >= 0 && Drives[drive]) {
+								uint16_t bytes_sector; uint8_t sectors_cluster; uint16_t total_clusters; uint16_t free_clusters;
+								uint32_t bytes32 = 0, sectors32 = 0, clusters32 = 0, free32 = 0;
+								bool no_free_space = true;
+								rsize = true;
+								freec = 0;
+								if(dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) {
+									Drives[drive]->AllocationInfo32(&bytes32, &sectors32, &clusters32, &free32);
+									no_free_space = (uint64_t)bytes32 * (uint64_t)sectors32 * (uint64_t)free32 < size ? true : false;
+									//LOG_MSG("drive=%u, no_free_space = %d bytes32=%u, sectors32=%u, free32 =%u, free_space=%u, size=%u",
+									//  drive, no_free_space ? 1 : 0, bytes32, sectors32, free32, bytes32*sectors32*free32, size);
+								}
+								if(bytes32 == 0 || sectors32 == 0 || dos.version.major < 7 || (dos.version.major == 7 && dos.version.minor < 10)) {
+									Drives[drive]->AllocationInfo(&bytes_sector, &sectors_cluster, &total_clusters, &free_clusters);
+									no_free_space = (Bitu)bytes_sector* (Bitu)sectors_cluster* (Bitu)(freec ? freec : free_clusters) < size ? true : false;
+									//LOG_MSG("no_free_space = %d bytes=%u, sectors=%u, free =%u, free_space=%u, size=%u",
+									// no_free_space ? 1 : 0, bytes_sector, sectors_cluster, freec, bytes_sector*sectors_cluster*free_clusters, size);
+								}
+								rsize = false;
 								if (no_free_space) {
 									WriteOut(MSG_Get("SHELL_CMD_COPY_NOSPACE"), uselfn?lname:name);
 									DOS_CloseFile(sourceHandle);
@@ -2703,8 +2703,8 @@ void DOS_Shell::CMD_COPY(char * args) {
 					if (oldsource.concat || DOS_CreateFile(nameTarget,0,&targetHandle)) {
 						uint32_t dummy=0;
 
-                        if (DOS_FindDevice(name) == DOS_DEVICES && !DOS_SetFileDate(targetHandle, ftime, fdate))
-                            LOG_MSG("WARNING: COPY unable to apply date/time to dest");
+						if (DOS_FindDevice(name) == DOS_DEVICES && !DOS_SetFileDate(targetHandle, ftime, fdate))
+							LOG_MSG("WARNING: COPY unable to apply date/time to dest");
 
 						//In concat mode. Open the target and seek to the eof
 						if (!oldsource.concat || (DOS_OpenFile(nameTarget,OPEN_READWRITE,&targetHandle) &&
@@ -2748,11 +2748,11 @@ void DOS_Shell::CMD_COPY(char * args) {
 #endif
 							if (!DOS_CloseFile(targetHandle)) failed=true;
 							if (failed)
-                                WriteOut(MSG_Get("SHELL_CMD_COPY_ERROR"),uselfn?lname:name);
-                            else if (strcmp(name,lname)&&uselfn)
-                                WriteOut(" %s [%s]\n",lname,name);
-                            else
-                                WriteOut(" %s\n",uselfn?lname:name);
+								WriteOut(MSG_Get("SHELL_CMD_COPY_ERROR"),uselfn?lname:name);
+							else if (strcmp(name,lname)&&uselfn)
+								WriteOut(" %s [%s]\n",lname,name);
+							else
+								WriteOut(" %s\n",uselfn?lname:name);
 							if(!source.concat && !special && !failed) count++; //Only count concat files once
 						} else {
 							DOS_CloseFile(sourceHandle);
