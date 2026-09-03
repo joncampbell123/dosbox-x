@@ -21,6 +21,7 @@
 #include <sstream>
 #include <utility>
 #include <vector>
+#include <thread>
 
 #ifdef WIN32
 #include <windows.h>
