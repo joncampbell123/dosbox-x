@@ -4647,6 +4647,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable XMS support.");
     Pbool->SetBasic(true);
 
+    Pint = secprop->Add_int("ext dev read limit",Property::Changeable::WhenIdle,0);
+    Pint->Set_help("If nonzero, limit device reads to this many bytes. If the device driver cannot handle anything other than single-byte reads, set this to 1");
+    Pint->SetBasic(true);
+
+    Pint = secprop->Add_int("ext dev write limit",Property::Changeable::WhenIdle,0);
+    Pint->Set_help("If nonzero, limit device writes to this many bytes. If the device driver cannot handle anything other than single-byte writes, set this to 1");
+    Pint->SetBasic(true);
+
     /* maybe this will stop the endless "it's broken and it only works once you point out LOADFIX -a" bug reports */
     Pbool = secprop->Add_bool("turn off a20 gate on load if loadfix needed",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If enabled, and loading a program below the 64kb boundary, turn off the A20 gate.\n"
