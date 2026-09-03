@@ -662,6 +662,13 @@ void DBGUI_StartUp(void) {
 int debugPageCounter = 0;
 int debugPageStopAt = 0;
 
+#if C_DEBUG
+static bool agent_output_capture_active = false;
+static std::string agent_output_capture;
+static int agent_saved_debug_page_counter = 0;
+static int agent_saved_debug_page_stop_at = 0;
+#endif
+
 bool DEBUG_IsPagingOutput(void) {
     return debugPageStopAt > 0;
 }
@@ -670,6 +677,8 @@ void DEBUG_DrawInput(void);
 
 void DEBUG_BeginPagedContent(void) {
 #if C_DEBUG
+	if (agent_output_capture_active)
+		return;
 	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
 
     debugPageCounter = 0;
@@ -679,6 +688,8 @@ void DEBUG_BeginPagedContent(void) {
 
 void DEBUG_EndPagedContent(void) {
 #if C_DEBUG
+	if (agent_output_capture_active)
+		return;
     debugPageCounter = 0;
     debugPageStopAt = 0;
     DEBUG_DrawInput();
@@ -690,6 +701,29 @@ extern bool gfx_in_mapper;
 bool in_debug_showmsg = false;
 
 bool IsDebuggerActive(void);
+
+#if C_DEBUG
+bool DEBUG_AgentBeginOutputCapture(void)
+{
+    if (agent_output_capture_active)
+        return false;
+    agent_saved_debug_page_counter = debugPageCounter;
+    agent_saved_debug_page_stop_at = debugPageStopAt;
+    debugPageCounter = 0;
+    debugPageStopAt = 0;
+    agent_output_capture.clear();
+    agent_output_capture_active = true;
+    return true;
+}
+
+std::string DEBUG_AgentEndOutputCapture(void)
+{
+    agent_output_capture_active = false;
+    debugPageCounter = agent_saved_debug_page_counter;
+    debugPageStopAt = agent_saved_debug_page_stop_at;
+    return agent_output_capture;
+}
+#endif
 
 void DEBUG_ShowMsg(char const* format,...) {
 	bool stderrlog = false;
@@ -731,6 +765,14 @@ void DEBUG_ShowMsg(char const* format,...) {
 
     /* remove newlines if present */
     while (len > 0 && buf[len-1] == '\n') buf[--len] = 0;
+
+#if C_DEBUG
+    if (agent_output_capture_active) {
+        if (!agent_output_capture.empty())
+            agent_output_capture += '\n';
+        agent_output_capture += buf;
+    }
+#endif
 
 #if C_DEBUG
 	if (dbg.win_out != NULL)

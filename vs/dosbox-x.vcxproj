@@ -17,6 +17,14 @@
       <Configuration>Debug SDL2</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Agent Debug SDL2|x64">
+      <Configuration>Agent Debug SDL2</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Agent Debug No Heavy SDL2|x64">
+      <Configuration>Agent Debug No Heavy SDL2</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|ARM">
       <Configuration>Debug</Configuration>
       <Platform>ARM</Platform>
@@ -161,6 +169,18 @@
     <CharacterSet>MultiByte</CharacterSet>
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Agent Debug SDL2|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Agent Debug No Heavy SDL2|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
@@ -264,6 +284,20 @@
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Agent Debug SDL2|x64'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\Debug SDL2\</LibraryPath>
+    <AgentLibraryConfiguration>Debug SDL2</AgentLibraryConfiguration>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Agent Debug No Heavy SDL2|x64'">
+    <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\Debug SDL2\</LibraryPath>
+    <AgentLibraryConfiguration>Debug SDL2</AgentLibraryConfiguration>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
@@ -625,6 +659,44 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
       <Message>
       </Message>
     </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Agent Debug SDL2|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;C_DEBUG=1;C_HEAVY_DEBUG=1;C_DOSBOX_AGENT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(AgentLibraryConfiguration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(AgentLibraryConfiguration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(AgentLibraryConfiguration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(AgentLibraryConfiguration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(AgentLibraryConfiguration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(AgentLibraryConfiguration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(AgentLibraryConfiguration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Agent Debug No Heavy SDL2|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;C_DEBUG=1;C_DOSBOX_AGENT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(AgentLibraryConfiguration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(AgentLibraryConfiguration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(AgentLibraryConfiguration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(AgentLibraryConfiguration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(AgentLibraryConfiguration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(AgentLibraryConfiguration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(AgentLibraryConfiguration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM64'">
     <Midl />
@@ -1152,6 +1224,13 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\cpu\modrm.cpp" />
     <ClCompile Include="..\src\cpu\paging.cpp" />
     <ClCompile Include="..\src\debug\debug.cpp" />
+    <ClCompile Include="..\src\agent\bridge\agent_bridge.cpp" />
+    <ClCompile Include="..\src\agent\debugger\debugger_adapter.cpp" />
+	<ClCompile Include="..\src\agent\parser\debugger_output_parser.cpp" />
+    <ClCompile Include="..\src\agent\protocol\agent_protocol.cpp" />
+    <ClCompile Include="..\src\agent\server\agent_server.cpp" />
+	<ClCompile Include="..\src\agent\trace\trace_store.cpp" />
+    <ClCompile Include="..\src\agent\transport\local_transport.cpp" />
     <ClCompile Include="..\src\debug\debug_disasm.cpp" />
     <ClCompile Include="..\src\debug\debug_gui.cpp" />
     <ClCompile Include="..\src\debug\debug_win32.cpp" />
@@ -1677,6 +1756,13 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\include\cross.h" />
     <ClInclude Include="..\include\crypt.h" />
     <ClInclude Include="..\include\debug.h" />
+    <ClInclude Include="..\include\agent\agent_bridge.h" />
+    <ClInclude Include="..\include\agent\agent_protocol.h" />
+    <ClInclude Include="..\include\agent\agent_server.h" />
+    <ClInclude Include="..\include\agent\debugger_adapter.h" />
+	<ClInclude Include="..\include\agent\debugger_output_parser.h" />
+	<ClInclude Include="..\include\agent\trace_store.h" />
+    <ClInclude Include="..\src\agent\transport\rpc_transport.h" />
     <ClInclude Include="..\include\dma.h" />
     <ClInclude Include="..\include\dosbox.h" />
     <ClInclude Include="..\include\dos_inc.h" />

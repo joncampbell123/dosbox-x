@@ -5,7 +5,7 @@ if EMSCRIPTEN
 dosbox_x_LDFLAGS = -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['$$ERRNO_CODES']
 endif
 
-SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform aviwriter output
+SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform aviwriter output agent
 
 bin_PROGRAMS = dosbox-x
 
@@ -33,7 +33,7 @@ dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuilt
                ints/libints.a hardware/serialport/libserial.a hardware/parport/libparallel.a \
                libs/passthroughio/libpassthroughio.a gui/libgui.a libs/gui_tk/libgui_tk.a hardware/libhardware.a \
 	       cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
-		   misc/libmisc.a output/liboutput.a hardware/mame/libmame.a libs/zmbv/libzmbv.a libs/decoders/internal/libopusint.a dos/libdos.a ints/libints.a
+		   misc/libmisc.a output/liboutput.a hardware/mame/libmame.a libs/zmbv/libzmbv.a libs/decoders/internal/libopusint.a dos/libdos.a ints/libints.a agent/libagent.a
 
 if OS2
 dosbox_x_LDADD += os2res.res
