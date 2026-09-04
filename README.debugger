@@ -91,6 +91,78 @@ DEBUGBOX [command] [options]
 You can also type DEBUGBOX without a parameter to start the
 debugger.
 
+Debugger MCP control protocol
+-----------------------------
+
+When the debugger is enabled, DOSBox-X also starts a minimal TCP control
+client for external debugger tooling. This is used by the companion
+[dosbox-x-mcp-server](https://github.com/caiiiycuk/dosbox-x-mcp-server) project.
+
+DOSBox-X connects to:
+
+  127.0.0.1:58991
+
+The external MCP server must be started first and listen on that address.
+If the server is not available, DOSBox-X keeps running normally and retries
+the connection in the background. If the connection is lost, DOSBox-X will
+try to reconnect.
+
+The control channel is intentionally line-oriented text, not JSON. The MCP
+server sends one request line:
+
+  REQ <id> PING
+  REQ <id> BREAK
+  REQ <id> EXEC <debugger command>
+
+DOSBox-X replies with:
+
+  BEGIN <id> OK
+  <zero or more output lines>
+  END <id>
+
+or:
+
+  BEGIN <id> ERR
+  <one or more error lines>
+  END <id>
+
+Only one debugger command is expected to be pending at a time. The MCP
+server serializes calls before sending them to DOSBox-X.
+
+PING returns PONG and is used to check the active connection.
+
+BREAK enters the built-in debugger, equivalent to invoking the debugger
+break action.
+
+EXEC runs one existing debugger command through the same parser used by the
+interactive debugger prompt. For example:
+
+  REQ 7 EXEC CPU
+
+returns the same CPU state text that the interactive CPU command would write
+to the debugger output window.
+
+Resume commands (`RUN`, `RUNWATCH`, and `VRT`) are acknowledged before
+DOSBox-X leaves the debugger loop. Their response is only a successful
+acceptance of the command, not a post-resume state snapshot.
+
+Output is captured from DEBUG_ShowMsg while an MCP command is running. Paged
+debugger output is not paused for terminal input during this capture, so
+commands such as HELP, GDT, LDT, IDT, and DOS memory listings can be returned
+to the MCP client without hanging on the debugger pager.
+
+The MCP control queue is polled both from the normal timer path and directly
+from the active debugger loop. This lets MCP clients issue commands after a
+BREAK has stopped emulation in the debugger; concurrent MCP tool calls are
+still serialized by the MCP server before they reach DOSBox-X.
+
+Unknown commands return ERR and include the normal debugger
+"command not recognized" text. Commands behind build options, such as
+C_HEAVY_DEBUG-only commands, may be unavailable in some builds. MCP clients
+should call HELP for the live command list from the running DOSBox-X build,
+or use their own static command catalog as a hint before falling back to raw
+EXEC.
+
 Debugger keyboard shortcuts
 ---------------------------
 

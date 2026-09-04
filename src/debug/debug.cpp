@@ -56,6 +56,8 @@ using namespace std;
 #include "keyboard.h"
 #include "control.h"
 
+#include "debug_mcp.h"
+
 bool Clear_SYSENTER_Debug();
 bool Toggle_BreakSYSEnter();
 bool Toggle_BreakSYSExit();
@@ -4314,6 +4316,23 @@ bool ParseCommand(char* str) {
 	return false;
 }
 
+bool DEBUG_ExecuteCommand(const char* command)
+{
+	if (command == NULL || *command == 0) {
+		DEBUG_ShowMsg("*** Debugger command not recognized");
+		return false;
+	}
+
+	std::vector<char> buffer(command, command + strlen(command));
+	buffer.push_back(0);
+
+	if (ParseCommand(buffer.data()))
+		return true;
+
+	DEBUG_ShowMsg("*** Debugger command not recognized");
+	return false;
+}
+
 char* AnalyzeInstruction(char* inst, bool saveSelector) {
 	static char result[256];
 
@@ -5128,6 +5147,13 @@ void dyn_core_dh_debug_flush (void);
 
 Bitu DEBUG_Loop(void) {
     dosbox_agent::AGENT_BridgePump();
+
+    ControlServer_Poll();
+
+    // MCP commands such as RUN or VRT can switch back to the normal loop.
+    if (DOSBOX_GetLoop() != DEBUG_Loop)
+        return 0;
+
     if (debug_running) {
         Bitu now = SDL_GetTicks();
 
@@ -6061,6 +6087,9 @@ void DEBUG_SetupConsole(void) {
 }
 
 void DEBUG_ShutDown(Section * /*sec*/) {
+	TIMER_DelTickHandler(ControlServer_Poll);
+	ControlServer_Stop();
+
 	CBreakpoint::DeleteAll();
 	CDebugVar::DeleteAll();
 	if (dbg.win_main != NULL) {
@@ -6091,6 +6120,9 @@ void DEBUG_ReinitCallback(void) {
 
 void DEBUG_Init() {
     LOG(LOG_MISC, LOG_DEBUG)("Initializing debug system");
+
+	ControlServer_Start(58991);
+	TIMER_AddTickHandler(ControlServer_Poll);
 
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
