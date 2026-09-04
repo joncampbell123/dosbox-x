@@ -96,7 +96,7 @@ Debugger MCP control protocol
 
 When the debugger is enabled, DOSBox-X also starts a minimal TCP control
 client for external debugger tooling. This is used by the companion
-dosbox-x-mcp-server project.
+[dosbox-x-mcp-server](https://github.com/caiiiycuk/dosbox-x-mcp-server) project.
 
 DOSBox-X connects to:
 
