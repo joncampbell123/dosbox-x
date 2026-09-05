@@ -1931,6 +1931,7 @@ void SHELL_MessagesInit() {
 	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER [/R]\n"
 			"VER [SET] number or VER SET [major minor]\n\n"
 			"  /R                 Display DOSBox-X's Git commit version and build date.\n"
+			"  /V                 Display DOSBox-X's reported DOS version.\n"
 			"  [SET] number       Set the specified number as the reported DOS version.\n"
 			"  SET [major minor]  Set the reported DOS version in major and minor format.\n\n"
 			"  \033[0mE.g., \033[37;1mVER 6.0\033[0m or \033[37;1mVER 7.1\033[0m sets the DOS version to 6.0 and 7.1, respectively.\n"
