@@ -1426,13 +1426,13 @@ bool CommandLine::FindStringFullBegin(char const* const begin,std::string & valu
             if (remove) cmds.erase(it);
             if (q) {
                 std::string str=value;
-                if (str.back()==c)
+                if (str.size() && str.back()==c)
                     value.pop_back();
                 else while (str.size()&&++it!=cmds.end()) {
                     str=(*it);
                     if (remove) cmds.erase(it);
                     value+=" "+str;
-                    if (str.back()==c) {
+                    if (str.size()&&str.back()==c) {
                         value.pop_back();
                         break;
                     }
