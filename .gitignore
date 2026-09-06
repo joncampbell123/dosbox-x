@@ -145,3 +145,4 @@ contrib/macos/dosbox-x.plist
 # ignore default dosbox config files (used for manual testing)
 /dosbox-x.conf
 /src/dosbox-x.conf
+AI_RULES.md
