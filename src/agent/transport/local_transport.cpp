@@ -1,3 +1,4 @@
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #include "rpc_transport.h"
 
 #include <algorithm>
@@ -329,3 +330,4 @@ std::unique_ptr<IRpcTransport> AGENT_CreateLocalTransport(const AgentTransport t
 }
 
 } // namespace dosbox_agent
+#endif // defined(C_DEBUG) && defined(C_DOSBOX_AGENT)

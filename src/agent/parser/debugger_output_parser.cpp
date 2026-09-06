@@ -1,3 +1,4 @@
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #include "agent/debugger_output_parser.h"
 
 #include <cctype>
@@ -62,3 +63,4 @@ DebuggerOutputParseResult AGENT_ParseDebuggerRegisterOutput(const std::string& o
 }
 
 } // namespace dosbox_agent
+#endif // defined(C_DEBUG) && defined(C_DOSBOX_AGENT)

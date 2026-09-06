@@ -4239,9 +4239,13 @@ void DOS_Shell::CMD_DEBUGBOX(char * args) {
 		return;
     }
     debugger_break_on_exec = true;
+#if defined(C_DOSBOX_AGENT)
     ++debugger_box_depth;
+#endif
     DoCommand((char *)argv.c_str());
+#if defined(C_DOSBOX_AGENT)
     --debugger_box_depth;
+#endif
     debugger_break_on_exec = false;
 }
 # endif

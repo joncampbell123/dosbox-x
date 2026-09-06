@@ -1,6 +1,7 @@
 #ifndef DOSBOX_AGENT_RPC_TRANSPORT_H
 #define DOSBOX_AGENT_RPC_TRANSPORT_H
 
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #include "agent/agent_protocol.h"
 
 #include <functional>
@@ -27,5 +28,5 @@ public:
 std::unique_ptr<IRpcTransport> AGENT_CreateLocalTransport(AgentTransport transport);
 
 } // namespace dosbox_agent
-
+#endif // defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #endif

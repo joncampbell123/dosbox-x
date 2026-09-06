@@ -1,3 +1,4 @@
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #include "dosbox.h"
 #include "agent/debugger_adapter.h"
 #include "agent/agent_bridge.h"
@@ -741,3 +742,4 @@ bool DebuggerAdapter::TerminateTarget(std::string* error) const
 }
 
 } // namespace dosbox_agent
+#endif // defined(C_DEBUG) && defined(C_DOSBOX_AGENT)

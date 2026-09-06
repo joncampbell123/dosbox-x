@@ -1,3 +1,4 @@
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #include "agent/agent_bridge.h"
 
 #include <atomic>
@@ -259,3 +260,5 @@ bool AGENT_RunQueueSelfTest(std::string* error)
 }
 
 } // namespace dosbox_agent
+
+#endif // defined(C_DEBUG) && defined(C_DOSBOX_AGENT)

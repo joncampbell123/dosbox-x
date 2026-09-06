@@ -77,9 +77,11 @@ uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 Bitu call_int23 = 0;
 
+#if defined(C_DOSBOX_SGENT)
 uint16_t DOS_ShellGetPSP() {
 	return shell_psp;
 }
+#endif
 
 std::string GetDOSBoxXPath(bool withexe=false);
 const char* DOS_GetLoadedLayout(void);
