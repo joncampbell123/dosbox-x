@@ -6121,8 +6121,12 @@ void DEBUG_ReinitCallback(void) {
 void DEBUG_Init() {
     LOG(LOG_MISC, LOG_DEBUG)("Initializing debug system");
 
-	ControlServer_Start(58991);
-	TIMER_AddTickHandler(ControlServer_Poll);
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+	const int mcp_server_port = section != NULL ? section->Get_int("mcp_server") : 0;
+	if (mcp_server_port > 0) {
+		ControlServer_Start(static_cast<uint16_t>(mcp_server_port));
+		TIMER_AddTickHandler(ControlServer_Poll);
+	}
 
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
