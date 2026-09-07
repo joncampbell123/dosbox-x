@@ -1,5 +1,6 @@
 Next version:
-  - 
+  - Fixed DOS FCB operations trying to read/write from device_CON when performed
+    on an unopened or non-existent file. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
