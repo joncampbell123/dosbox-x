@@ -64,7 +64,9 @@ bool Toggle_BreakSYSExit();
 
 #if !defined(OSFREE)
 extern bool debugger_break_on_exec;
+# if defined(C_DOSBOX_AGENT)
 extern unsigned int debugger_box_depth;
+# endif
 #endif
 
 /* [https://github.com/joncampbell123/dosbox-x/issues/1264] ncurses non-ASCII keys are outside ASCII range (start at octal 0400 == hex 0x100) */
@@ -980,9 +982,19 @@ bool CBreakpoint::IsBreakpoint(uint16_t seg, uint32_t off)
 bool CBreakpoint::DeleteBreakpoint(uint16_t seg, uint32_t off)
 {
 	CBreakpoint* bp = FindPhysBreakpoint(seg, off, false);
-	return DeleteBreakpoint(bp);
+#if defined(C_DOSBOX_AGENT)
+    return DeleteBreakpoint(bp);
+#else
+    if(bp) {
+        BPoints.remove(bp);
+        delete bp;
+        return true;
+    }
+    return false;
+#endif
 }
 
+#if defined(C_DOSBOX_AGENT)
 bool CBreakpoint::DeleteBreakpoint(CBreakpoint* breakpoint)
 {
 	if (breakpoint == nullptr)
@@ -1006,7 +1018,7 @@ CBreakpoint* CBreakpoint::ConsumeLastTriggered(void)
 	lastTriggered = nullptr;
 	return result;
 }
-
+#endif // C_DOSBOX_AGENT
 
 void CBreakpoint::ShowList(void)
 {
@@ -1082,6 +1094,7 @@ static bool StepOver()
 	return false;
 }
 
+#if defined(C_DOSBOX_AGENT)
 void DrawRegistersUpdateOld(void);
 int32_t DEBUG_Run(int32_t amount,bool quickexit);
 bool ParseCommand(char* str);
@@ -1219,6 +1232,8 @@ bool DEBUG_AgentStopTrace(uint32_t* event_count);
 bool DEBUG_AgentTraceIsActive(void);
 void DEBUG_AgentCopyTraceEvents(std::vector<DEBUG_AgentTraceEvent>* events);
 #endif
+
+#endif // C_DEBUG && C_DOSBOX_AGENT
 
 bool DEBUG_ExitLoop(void)
 {
@@ -5146,8 +5161,9 @@ void dyn_core_dh_debug_flush (void);
 #endif
 
 Bitu DEBUG_Loop(void) {
+#if defined(C_DOSBOX_AGENT)
     dosbox_agent::AGENT_BridgePump();
-
+#endif
     ControlServer_Poll();
 
     // MCP commands such as RUN or VRT can switch back to the normal loop.
@@ -6011,13 +6027,18 @@ void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off)
 #if !defined(OSFREE)
 # if C_DEBUG
     if (debugger_break_on_exec) {
-		// The new entry breakpoint is created at the current CS:IP. The
+#  if defined(C_DOSBOX_AGENT)
+        // The new entry breakpoint is created at the current CS:IP. The
 		// existing bulk activation intentionally skips that address, so arm
 		// this one explicitly before preserving the other breakpoint state.
 		CBreakpoint* const entry_breakpoint = CBreakpoint::AddBreakpoint(seg,off,true);
 		entry_breakpoint->Activate(true);
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
 		agent_entry_breakpoint_sequence.fetch_add(1, std::memory_order_relaxed);
+#  else
+        CBreakpoint::AddBreakpoint(seg, off, true);
+        CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs) + reg_eip);
+#  endif
         debugger_break_on_exec = false;
     }
 # endif
@@ -6444,6 +6465,7 @@ void DEBUG_HeavyLogInstruction(void) {
 	if (++logCount >= LOGCPUMAX) logCount = 0;
 }
 
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 bool DEBUG_AgentStartTrace(const uint32_t instruction_count)
 {
 	if (instruction_count == 0 || agent_trace_active)
@@ -6502,6 +6524,7 @@ static void DEBUG_AgentCaptureTraceEvent(void)
 	event.analysis = inst.res;
 	agent_trace_events.push_back(event);
 }
+#endif
 
 void DEBUG_HeavyWriteLogInstruction(void) {
 	if (!logHeavy) return;
@@ -6544,7 +6567,8 @@ void DEBUG_HeavyWriteLogInstruction(void) {
 
 bool DEBUG_HeavyIsBreakpoint(void) {
 	const bool agent_trace_was_active = agent_trace_active;
-	if (agent_trace_active) {
+#if defined(C_DOSBOX_AGENT)
+    if (agent_trace_active) {
 		DEBUG_AgentCaptureTraceEvent();
 		if (--agent_trace_remaining == 0) {
 			agent_trace_active = false;
@@ -6552,6 +6576,7 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 			return true;
 		}
 	}
+#endif
 	if (cpuLog) {
 		if (cpuLogCounter>0) {
 			LogInstruction(SegValue(cs),reg_eip,cpuLogFile);
@@ -6567,7 +6592,11 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 		}
 	}
 	// LogInstruction
-	if (logHeavy && !agent_trace_was_active) DEBUG_HeavyLogInstruction();
+	if (logHeavy
+#if defined (C_DOSBOX_AGENT)
+        && !agent_trace_was_active
+#endif
+       ) DEBUG_HeavyLogInstruction();
 	if (zeroProtect) {
 		static Bitu zero_count = 0;
 		uint32_t value = 0;
