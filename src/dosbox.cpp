@@ -1763,6 +1763,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("bochs debug port e9",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, emulate Bochs debug port E9h. ASCII text written to this I/O port is assumed to be debug output, and logged.");
 
+    Pint = secprop->Add_int("mcp_server", Property::Changeable::OnlyAtStart, 0);
+    Pint->SetMinMax(0, 65535);
+    Pint->Set_help("TCP port of the external debugger MCP server on 127.0.0.1. Set to 0 to disable debugger MCP control.");
+
     Pstring = secprop->Add_string("machine",Property::Changeable::OnlyAtStart,"svga_s3");
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox-X tries to emulate.");

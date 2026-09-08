@@ -392,6 +392,28 @@ TEST_F(DOS_FilesTest, DOS_FindFirst_FindFile_Nonexistant)
 	EXPECT_EQ(dos.errorcode, DOSERR_NO_MORE_FILES);
 }
 
+// A file is not a directory. CHDIR onto one has to fail on the Z: drive the
+// same way it does on local and FAT drives, and leave the current directory
+// where it was.
+TEST_F(DOS_FilesTest, DOS_ChangeDir_Rejects_File_As_Directory)
+{
+	char olddir[DOS_PATHLENGTH];
+	safe_strcpy(olddir, Drives[25]->curdir);
+
+	// a directory on Z: is still accepted
+	dos.errorcode = DOSERR_NONE;
+	EXPECT_TRUE(DOS_ChangeDir("Z:\\SYSTEM"));
+	EXPECT_STREQ(Drives[25]->curdir, "SYSTEM");
+
+	// a file on the same drive is not
+	dos.errorcode = DOSERR_NONE;
+	EXPECT_FALSE(DOS_ChangeDir("Z:\\AUTOEXEC.BAT"));
+	EXPECT_EQ(dos.errorcode, DOSERR_PATH_NOT_FOUND);
+	EXPECT_STREQ(Drives[25]->curdir, "SYSTEM");
+
+	safe_strcpy(Drives[25]->curdir, olddir);
+}
+
 // this probably isn't a desirable quality, but figure that out later
 TEST_F(DOS_FilesTest, DOS_DTAExtendName_Mutates_Input)
 {

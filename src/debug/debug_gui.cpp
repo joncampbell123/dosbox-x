@@ -34,6 +34,7 @@
 #include "control.h"
 #include "menu.h"
 #include "debug.h"
+#include "debug_mcp.h"
 #include "debug_inc.h"
 #include "pic.h"
 
@@ -677,8 +678,9 @@ void DEBUG_DrawInput(void);
 
 void DEBUG_BeginPagedContent(void) {
 #if C_DEBUG
-	if (agent_output_capture_active)
+	if (agent_output_capture_active || DEBUG_MCP_IsCapturingOutput())
 		return;
+
 	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
 
     debugPageCounter = 0;
@@ -688,8 +690,9 @@ void DEBUG_BeginPagedContent(void) {
 
 void DEBUG_EndPagedContent(void) {
 #if C_DEBUG
-	if (agent_output_capture_active)
+	if (agent_output_capture_active || DEBUG_MCP_IsCapturingOutput())
 		return;
+
     debugPageCounter = 0;
     debugPageStopAt = 0;
     DEBUG_DrawInput();
@@ -772,6 +775,8 @@ void DEBUG_ShowMsg(char const* format,...) {
             agent_output_capture += '\n';
         agent_output_capture += buf;
     }
+
+    DEBUG_MCP_CaptureMessage(buf);
 #endif
 
 #if C_DEBUG
