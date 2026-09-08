@@ -30,7 +30,7 @@ jobs:
       - name: Install libraries
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libavcodec-extra
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libavcodec-extra dpkg-dev
           mkdir src/bin
       - name: Update build info
         shell: bash
@@ -94,6 +94,92 @@ jobs:
         with:
           name: dosbox-x-linux-x86_64-${{ env.timestamp }}
           path: ${{ github.workspace }}/src/bin/
+      - name: Create deb package
+        run: |
+          top=`pwd`
+          pkg="$top/deb"
+          rm -rf "$pkg"
+          mkdir -p "$pkg/DEBIAN"
+          mkdir -p "$pkg/usr/bin"
+          mkdir -p "$pkg/usr/share/dosbox-x/drivez"
+          mkdir -p "$pkg/usr/share/dosbox-x/glshaders"
+          mkdir -p "$pkg/usr/share/dosbox-x/languages"
+
+          cp "$top/src/bin/dosbox-x-sdl1" "$pkg/usr/bin/dosbox-x-sdl1"
+          cp "$top/src/bin/dosbox-x-sdl2" "$pkg/usr/bin/dosbox-x-sdl2"
+          ln -s dosbox-x-sdl2 "$pkg/usr/bin/dosbox-x"
+          cp "$top/CHANGELOG" "$pkg/usr/share/dosbox-x/CHANGELOG.txt"
+          cp "$top/dosbox-x.reference.conf" "$pkg/usr/share/dosbox-x/dosbox-x.reference.conf"
+          cp "$top/dosbox-x.reference.full.conf" "$pkg/usr/share/dosbox-x/dosbox-x.reference.full.conf"
+          cp "$top/contrib/fonts/FREECG98.BMP" "$pkg/usr/share/dosbox-x/FREECG98.BMP"
+          cp "$top/contrib/fonts/"wqy_1?pt.bdf "$pkg/usr/share/dosbox-x/"
+          cp "$top/contrib/fonts/Nouveau_IBM.ttf" "$pkg/usr/share/dosbox-x/Nouveau_IBM.ttf"
+          cp "$top/contrib/fonts/SarasaGothicFixed.ttf" "$pkg/usr/share/dosbox-x/SarasaGothicFixed.ttf"
+          cp "$top/contrib/windows/installer/drivez_readme.txt" "$pkg/usr/share/dosbox-x/drivez/readme.txt"
+          cp "$top/contrib/glshaders/"* "$pkg/usr/share/dosbox-x/glshaders/"
+          cp "$top/contrib/translations/"*/*.lng "$pkg/usr/share/dosbox-x/languages/"
+
+          cat > "$pkg/DEBIAN/control" <<EOF
+          Package: dosbox-x
+          Version: ${{ env.timestamp }}
+          Section: otherosfs
+          Priority: optional
+          Architecture: amd64
+          Depends: \${shlibs:Depends}
+          Maintainer: DOSBox-X Team
+          Description: DOS emulator with extended features
+           DOSBox-X is a DOS emulator with extended features.
+          EOF
+
+          # Needs $top/debian/control file to run dpkg-shlibdeps
+          mkdir -p "$top/debian"
+          cat > "$top/debian/control" <<EOF
+          Source: dosbox-x
+          Section: otherosfs
+          Priority: optional
+          Maintainer: DOSBox-X Team
+          Build-Depends: debhelper
+
+          Package: dosbox-x
+          Architecture: amd64
+          Depends: \${shlibs:Depends}
+          Description: DOS emulator with extended features
+           DOSBox-X is a DOS emulator with extended features.
+          EOF
+
+          dpkg-shlibdeps \
+            -T"$top/debian/substvars" \
+            "$pkg/usr/bin/dosbox-x-sdl1" \
+            "$pkg/usr/bin/dosbox-x-sdl2"
+
+          deps=$(sed -n 's/^shlibs:Depends=//p' "$top/debian/substvars")
+          sed -i "s|^Depends:.*|Depends: $deps|" "$pkg/DEBIAN/control"
+
+          rm -rf "$top/debian"
+
+          cat "$pkg/DEBIAN/control"
+
+          deb="$top/dosbox-x_${{ env.timestamp }}nightly_amd64.deb"
+          rm -f "$deb"
+
+          ls -la "$pkg/usr/bin/"
+
+          dpkg-deb --build "$pkg" "$deb"
+
+          dpkg-deb --info "$deb"
+          dpkg-deb --contents "$deb"
+          dpkg-deb --field "$deb" Package Version Architecture Depends
+
+          echo Test installation
+          sudo apt install "$deb"
+
+
+      - name: Upload Ubuntu package
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dosbox-x-ubuntu24.04-x86_64-${{ env.timestamp }}_nightly
+          path: ${{ github.workspace }}/dosbox-x_${{ env.timestamp }}nightly_amd64.deb
+          
   Test_Linux_Preview:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
@@ -112,8 +198,30 @@ jobs:
       - name: Install libraries
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libavcodec-extra
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libavcodec-extra dpkg-dev
           mkdir src/bin
+      - name: Update build info
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Detect OSFREE build
+        id: osfree
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "main-osfree" ]] || \
+             grep -q '^#define C_OSFREE 1' vs/config_package.h 2>/dev/null; then
+            echo "osfree=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "osfree=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Build Linux SDL1
         run: |
           top=`pwd`
@@ -127,6 +235,7 @@ jobs:
           strip -s $top/src/dosbox-x
           cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl2
       - name: Unit testing
+        if: steps.osfree.outputs.osfree != 'true'
         run: |
           top=`pwd`
           chmod +x $top/src/bin/dosbox-x-sdl1 $top/src/bin/dosbox-x-sdl2
@@ -153,3 +262,87 @@ jobs:
         with:
           name: dosbox-x-linux-x86_64-26.04LTS_${{ env.timestamp }}
           path: ${{ github.workspace }}/src/bin/
+      - name: Create deb package
+        run: |
+          top=`pwd`
+          pkg="$top/deb"
+          rm -rf "$pkg"
+          mkdir -p "$pkg/DEBIAN"
+          mkdir -p "$pkg/usr/bin"
+          mkdir -p "$pkg/usr/share/dosbox-x/drivez"
+          mkdir -p "$pkg/usr/share/dosbox-x/glshaders"
+          mkdir -p "$pkg/usr/share/dosbox-x/languages"
+
+          cp "$top/src/bin/dosbox-x-sdl1" "$pkg/usr/bin/dosbox-x-sdl1"
+          cp "$top/src/bin/dosbox-x-sdl2" "$pkg/usr/bin/dosbox-x-sdl2"
+          ln -s dosbox-x-sdl2 "$pkg/usr/bin/dosbox-x"
+          cp "$top/CHANGELOG" "$pkg/usr/share/dosbox-x/CHANGELOG.txt"
+          cp "$top/dosbox-x.reference.conf" "$pkg/usr/share/dosbox-x/dosbox-x.reference.conf"
+          cp "$top/dosbox-x.reference.full.conf" "$pkg/usr/share/dosbox-x/dosbox-x.reference.full.conf"
+          cp "$top/contrib/fonts/FREECG98.BMP" "$pkg/usr/share/dosbox-x/FREECG98.BMP"
+          cp "$top/contrib/fonts/"wqy_1?pt.bdf "$pkg/usr/share/dosbox-x/"
+          cp "$top/contrib/fonts/Nouveau_IBM.ttf" "$pkg/usr/share/dosbox-x/Nouveau_IBM.ttf"
+          cp "$top/contrib/fonts/SarasaGothicFixed.ttf" "$pkg/usr/share/dosbox-x/SarasaGothicFixed.ttf"
+          cp "$top/contrib/windows/installer/drivez_readme.txt" "$pkg/usr/share/dosbox-x/drivez/readme.txt"
+          cp "$top/contrib/glshaders/"* "$pkg/usr/share/dosbox-x/glshaders/"
+          cp "$top/contrib/translations/"*/*.lng "$pkg/usr/share/dosbox-x/languages/"
+          
+          cat > "$pkg/DEBIAN/control" <<EOF
+          Package: dosbox-x
+          Version: ${{ env.timestamp }}
+          Section: otherosfs
+          Priority: optional
+          Architecture: amd64
+          Depends: \${shlibs:Depends}
+          Maintainer: DOSBox-X Team
+          Description: DOS emulator with extended features
+           DOSBox-X is a DOS emulator with extended features.
+          EOF
+
+          # Needs $top/debian/control file to run dpkg-shlibdeps
+          mkdir -p "$top/debian"
+          cat > "$top/debian/control" <<EOF
+          Source: dosbox-x
+          Section: otherosfs
+          Priority: optional
+          Maintainer: DOSBox-X Team
+          Build-Depends: debhelper
+
+          Package: dosbox-x
+          Architecture: amd64
+          Depends: \${shlibs:Depends}
+          Description: DOS emulator with extended features
+           DOSBox-X is a DOS emulator with extended features.
+          EOF
+
+          dpkg-shlibdeps \
+            -T"$top/debian/substvars" \
+            "$pkg/usr/bin/dosbox-x-sdl1" \
+            "$pkg/usr/bin/dosbox-x-sdl2"
+
+          deps=$(sed -n 's/^shlibs:Depends=//p' "$top/debian/substvars")
+          sed -i "s|^Depends:.*|Depends: $deps|" "$pkg/DEBIAN/control"
+
+          rm -rf "$top/debian"
+
+          cat "$pkg/DEBIAN/control"
+
+          deb="$top/dosbox-x_${{ env.timestamp }}nightly_amd64.deb"
+          rm -f "$deb"
+
+          ls -la "$pkg/usr/bin/"
+
+          dpkg-deb --build "$pkg" "$deb"
+
+          dpkg-deb --info "$deb"
+          dpkg-deb --contents "$deb"
+          dpkg-deb --field "$deb" Package Version Architecture Depends
+
+          echo Test installation
+          sudo apt install "$deb"
+
+      - name: Upload Ubuntu package
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dosbox-x-ubuntu26.04-x86_64-${{ env.timestamp }}_nightly
+          path: ${{ github.workspace }}/dosbox-x_${{ env.timestamp }}nightly_amd64.deb
