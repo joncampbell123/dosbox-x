@@ -1862,7 +1862,10 @@ bool DOS_FCBOpen(uint16_t seg,uint16_t offset) {
 	/* Search for file if name has wildcards */
 	if (strpbrk(shortname,"*?")) {
 		LOG(LOG_FCB,LOG_WARN)("Wildcards in filename");
-		if (!DOS_FCBFindFirst(seg,offset)) return false;
+		if (!DOS_FCBFindFirst(seg,offset)) {
+			fcb.SetSeqData(0xff,0);
+			return false;
+		}
 		DOS_DTA find_dta(dos.tables.tempdta);
 		DOS_FCB find_fcb(RealSeg(dos.tables.tempdta),RealOff(dos.tables.tempdta));
 		char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH],file_name[9],ext[4];
@@ -1876,7 +1879,10 @@ bool DOS_FCBOpen(uint16_t seg,uint16_t offset) {
 	/* First check if the name is correct */
 	uint8_t drive;
 	char fullname[DOS_PATHLENGTH];
-	if (!DOS_MakeName(shortname,fullname,&drive)) return false;
+	if (!DOS_MakeName(shortname,fullname,&drive)) {
+		fcb.SetSeqData(0xff,0);
+		return false;
+	}
 	
 	/* Check, if file is already opened */
 	for (uint8_t i = 0;i < DOS_FILES;i++) {
@@ -1887,7 +1893,10 @@ bool DOS_FCBOpen(uint16_t seg,uint16_t offset) {
 		}
 	}
 	
-	if (!DOS_OpenFile(shortname,OPEN_READWRITE,&handle,true)) return false;
+	if (!DOS_OpenFile(shortname,OPEN_READWRITE,&handle,true)) {
+		fcb.SetSeqData(0xff,0);
+		return false;
+	}
 	fcb.FileOpen((uint8_t)handle);
 	return true;
 }
@@ -1897,6 +1906,9 @@ bool DOS_FCBClose(uint16_t seg,uint16_t offset) {
 	if(!fcb.Valid()) return false;
 	uint8_t fhandle;
 	fcb.FileClose(fhandle);
+	if (fhandle == 0xff || fhandle < 3 || fhandle >= DOS_FILES || !Files[fhandle] || !Files[fhandle]->IsOpen()) {
+		return false;
+	}
 	DOS_CloseFile(fhandle,true);
 	return true;
 }
@@ -1926,7 +1938,7 @@ uint8_t DOS_FCBRead(uint16_t seg,uint16_t offset,uint16_t recno) {
 	DOS_FCB fcb(seg,offset);
 	uint8_t fhandle,cur_rec;uint16_t cur_block,rec_size;
 	fcb.GetSeqData(fhandle,rec_size);
-	if (fhandle==0xff && rec_size!=0) {
+	if (fhandle == 0xff || fhandle < 3 || fhandle >= DOS_FILES || !Files[fhandle] || !Files[fhandle]->IsOpen()) {
 		if (!DOS_FCBOpen(seg,offset)) return FCB_READ_NODATA;
 		LOG(LOG_FCB,LOG_WARN)("Reopened closed FCB");
 		fcb.GetSeqData(fhandle,rec_size);
@@ -1956,8 +1968,8 @@ uint8_t DOS_FCBWrite(uint16_t seg,uint16_t offset,uint16_t recno) {
 	DOS_FCB fcb(seg,offset);
 	uint8_t fhandle,cur_rec;uint16_t cur_block,rec_size;
 	fcb.GetSeqData(fhandle,rec_size);
-	if (fhandle==0xffu && rec_size!=0u) {
-		if (!DOS_FCBOpen(seg,offset)) return FCB_READ_NODATA;
+	if (fhandle == 0xff || fhandle < 3 || fhandle >= DOS_FILES || !Files[fhandle] || !Files[fhandle]->IsOpen()) {
+		if (!DOS_FCBOpen(seg,offset)) return FCB_ERR_WRITE;
 		LOG(LOG_FCB,LOG_WARN)("Reopened closed FCB");
 		fcb.GetSeqData(fhandle,rec_size);
 	}
@@ -1994,6 +2006,10 @@ uint8_t DOS_FCBIncreaseSize(uint16_t seg,uint16_t offset) {
 	DOS_FCB fcb(seg,offset);
 	uint8_t fhandle,cur_rec;uint16_t cur_block,rec_size;
 	fcb.GetSeqData(fhandle,rec_size);
+	if (fhandle == 0xff || fhandle < 3 || fhandle >= DOS_FILES || !Files[fhandle] || !Files[fhandle]->IsOpen()) {
+		if (!DOS_FCBOpen(seg,offset)) return FCB_ERR_WRITE;
+		fcb.GetSeqData(fhandle,rec_size);
+	}
 	fcb.GetRecord(cur_block,cur_rec);
 	uint32_t pos=((cur_block*128u)+cur_rec)*rec_size;
 	if (!DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET,true)) return FCB_ERR_WRITE; 
