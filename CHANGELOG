@@ -1,5 +1,8 @@
 Next version:
-  - 
+  - Fixed VHD fixed-disk geometry detection to correctly decode the partition
+    start cylinder from the MBR CHS fields (the high bits were not shifted),
+    reject malformed CHS/LBA partition entries instead of producing a bad or
+    out-of-bounds sector address. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
