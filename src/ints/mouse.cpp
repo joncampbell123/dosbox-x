@@ -78,6 +78,7 @@ uint16_t GetTextSeg();
 /* hardware/keyboard.cpp */
 void AUX_INT33_Takeover();
 int KEYBOARD_AUX_Active();
+void KEYBOARD_SetAUXActive(bool on);
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 extern bool MOUSE_IsLocked();
 extern bool usesystemcursor, dbcs_sbcs, showdbcs, del_flag;
@@ -878,6 +879,15 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
         KEYBOARD_AUX_Event(xrel,yrel,mouse.buttons,mouse.scrollwheel);
         mouse.scrollwheel = 0;
+        if (!useps2callback)
+            return;
+        mouse.ps2x += xrel;
+        mouse.ps2y += yrel;
+        if (mouse.ps2x >= 32768.0)       mouse.ps2x -= 65536.0;
+        else if (mouse.ps2x <= -32769.0) mouse.ps2x += 65536.0;
+        if (mouse.ps2y >= 32768.0)       mouse.ps2y -= 65536.0;
+        else if (mouse.ps2y <= -32769.0) mouse.ps2y += 65536.0;
+        Mouse_AddEvent(MOUSE_HAS_MOVED);
         return;
     }
 
@@ -1256,6 +1266,14 @@ void Mouse_ButtonPressed(uint8_t button) {
 
         KEYBOARD_AUX_Event(0,0,mouse.buttons,mouse.scrollwheel);
         mouse.scrollwheel = 0;
+        if (!useps2callback)
+            return;
+        switch (button) {
+            case 0: Mouse_AddEvent(MOUSE_LEFT_PRESSED); break;
+            case 1: Mouse_AddEvent(MOUSE_RIGHT_PRESSED); break;
+            case 2: Mouse_AddEvent(MOUSE_MIDDLE_PRESSED); break;
+            default: break;
+        }
         return;
     }
 
@@ -1319,6 +1337,14 @@ void Mouse_ButtonReleased(uint8_t button) {
 
         KEYBOARD_AUX_Event(0,0,mouse.buttons,mouse.scrollwheel);
         mouse.scrollwheel = 0;
+        if (!useps2callback)
+            return;
+        switch (button) {
+            case 0: Mouse_AddEvent(MOUSE_LEFT_RELEASED); break;
+            case 1: Mouse_AddEvent(MOUSE_RIGHT_RELEASED); break;
+            case 2: Mouse_AddEvent(MOUSE_MIDDLE_RELEASED); break;
+            default: Mouse_AddEvent(MOUSE_HAS_MOVED); break;
+        }
         return;
     }
 
@@ -2355,6 +2381,8 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
     if (!enable_slave_pic || machine == MCH_PCJR) return;
 
     if (!en_bios_ps2mouse) return;
+
+    KEYBOARD_SetAUXActive(true);
 
     if (MouseTypeNone()) {
         LOG(LOG_MOUSE, LOG_WARN)("INT 15H PS/2 emulation NOT enabled. biosps2=1 but mouse type=none");

@@ -77,7 +77,7 @@ uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 Bitu call_int23 = 0;
 
-#if defined(C_DOSBOX_SGENT)
+#if defined(C_DOSBOX_AGENT)
 uint16_t DOS_ShellGetPSP() {
 	return shell_psp;
 }
@@ -1344,10 +1344,32 @@ public:
                     cmd += "@if not '%CONFIG%'=='' %CONFIG%";
                 } else {
                     std::string batname;
+                    std::string batargs;
                     //LOG_MSG("auto_bat_additional %s\n", str.c_str());
 
-                    std::replace(str.begin(),str.end(),'/','\\');
                     size_t pos = std::string::npos;
+                    size_t argpos = std::string::npos;
+                    size_t extpos = std::string::npos;
+                    const char* exts[] = { ".bat", ".exe", ".com" };
+                    for(size_t p = 0; p + 4 <= str.size() && extpos == std::string::npos; p++) {
+                        if(str[p] == '.') {
+                            size_t end = p + 4;
+                            for(size_t i = 0; i < 3; i++) {
+                                if(!strcasecmp(str.substr(p, 4).c_str(), exts[i]) &&
+                                    (end == str.size() || str[end] == ' ')) {
+                                    extpos = p;
+                                    argpos = end;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if(argpos != std::string::npos && argpos < str.size()) {
+                        batargs = str.substr(argpos);
+                        trim(batargs);
+                        str.erase(argpos);
+                    }
+                    std::replace(str.begin(), str.end(), '/', '\\');
                     bool lead = false;
                     for (unsigned int j=0; j<str.size(); j++) {
                         if (lead) lead = false;
@@ -1377,7 +1399,11 @@ public:
 #endif
                     cmd += "@CALL \"";
                     cmd += batname;
-                    cmd += "\"" + opt + "\n";
+                    cmd += "\"";
+                    if(!batargs.empty()) {
+                        cmd += " " + batargs;
+                    }
+                    cmd += opt + "\n";
                     if (templfn) cmd += "@config -set lfn=" + std::string(enablelfn==-1?"auto":"autostart") + "\n";
 #if defined(WIN32) && !defined(HX_DOS)
                     if (!winautorun) cmd += "@config -set startcmd=false\n";
@@ -1933,6 +1959,7 @@ void SHELL_MessagesInit() {
 	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER [/R]\n"
 			"VER [SET] number or VER SET [major minor]\n\n"
 			"  /R                 Display DOSBox-X's Git commit version and build date.\n"
+			"  /V                 Display DOSBox-X's reported DOS version.\n"
 			"  [SET] number       Set the specified number as the reported DOS version.\n"
 			"  SET [major minor]  Set the reported DOS version in major and minor format.\n\n"
 			"  \033[0mE.g., \033[37;1mVER 6.0\033[0m or \033[37;1mVER 7.1\033[0m sets the DOS version to 6.0 and 7.1, respectively.\n"

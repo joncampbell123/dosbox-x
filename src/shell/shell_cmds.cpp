@@ -3871,11 +3871,18 @@ bool set_ver(char *s);
 void DOS_Shell::CMD_VER(char *args) {
 	HELP("VER");
 	bool optR=ScanCMDBool(args,"R");
+    bool optV=ScanCMDBool(args,"V");
 	if (char* rem = ScanCMDRemain(args)) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), rem);
 		return;
 	}
-	if(!optR && args && *args) {
+    if (optV)
+    {
+        WriteOut("%d.%02d\n", dos.version.major, dos.version.minor);
+        if (optR) WriteOut("%s / %s / %d-bit", GIT_COMMIT_HASH, OS_PLATFORM_LONG, OS_BIT_INT);
+        return;
+    }
+	if (!optR && args && *args) {
 		char* word = StripWord(args);
 		if(strcasecmp(word,"set")) {
 			if (*word=='=') word=trim(word+1);

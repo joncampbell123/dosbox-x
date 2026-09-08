@@ -18,6 +18,9 @@
 
 
 #include "dosbox.h"
+#if defined(C_DOSBOX_AGENT)
+#include "agent/agent_bridge.h"
+#endif
 #if C_DEBUG
 
 #include "../../tests/tests.h"
@@ -34,9 +37,7 @@
 using namespace std;
 
 #include "debug.h"
-#if defined(C_DOSBOX_AGENT)
 #include "agent/agent_bridge.h"
-#endif
 #include "cross.h" //snprintf
 #include "fpu.h"
 #include "bios.h"
@@ -54,6 +55,8 @@ using namespace std;
 #include "../cpu/lazyflags.h"
 #include "keyboard.h"
 #include "control.h"
+
+#include "debug_mcp.h"
 
 bool Clear_SYSENTER_Debug();
 bool Toggle_BreakSYSEnter();
@@ -4328,6 +4331,23 @@ bool ParseCommand(char* str) {
 	return false;
 }
 
+bool DEBUG_ExecuteCommand(const char* command)
+{
+	if (command == NULL || *command == 0) {
+		DEBUG_ShowMsg("*** Debugger command not recognized");
+		return false;
+	}
+
+	std::vector<char> buffer(command, command + strlen(command));
+	buffer.push_back(0);
+
+	if (ParseCommand(buffer.data()))
+		return true;
+
+	DEBUG_ShowMsg("*** Debugger command not recognized");
+	return false;
+}
+
 char* AnalyzeInstruction(char* inst, bool saveSelector) {
 	static char result[256];
 
@@ -5144,6 +5164,12 @@ Bitu DEBUG_Loop(void) {
 #if defined(C_DOSBOX_AGENT)
     dosbox_agent::AGENT_BridgePump();
 #endif
+    ControlServer_Poll();
+
+    // MCP commands such as RUN or VRT can switch back to the normal loop.
+    if (DOSBOX_GetLoop() != DEBUG_Loop)
+        return 0;
+
     if (debug_running) {
         Bitu now = SDL_GetTicks();
 
@@ -5999,8 +6025,9 @@ private:
 void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off)
 {
 #if !defined(OSFREE)
+# if C_DEBUG
     if (debugger_break_on_exec) {
-# if defined(C_DOSBOX_AGENT)
+#  if defined(C_DOSBOX_AGENT)
         // The new entry breakpoint is created at the current CS:IP. The
 		// existing bulk activation intentionally skips that address, so arm
 		// this one explicitly before preserving the other breakpoint state.
@@ -6008,12 +6035,13 @@ void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off)
 		entry_breakpoint->Activate(true);
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
 		agent_entry_breakpoint_sequence.fetch_add(1, std::memory_order_relaxed);
-# else
+#  else
         CBreakpoint::AddBreakpoint(seg, off, true);
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs) + reg_eip);
-# endif
+#  endif
         debugger_break_on_exec = false;
     }
+# endif
 #endif
 #if 0
 	if (pDebugcom && pDebugcom->IsActive()) {
@@ -6080,6 +6108,9 @@ void DEBUG_SetupConsole(void) {
 }
 
 void DEBUG_ShutDown(Section * /*sec*/) {
+	TIMER_DelTickHandler(ControlServer_Poll);
+	ControlServer_Stop();
+
 	CBreakpoint::DeleteAll();
 	CDebugVar::DeleteAll();
 	if (dbg.win_main != NULL) {
@@ -6110,6 +6141,13 @@ void DEBUG_ReinitCallback(void) {
 
 void DEBUG_Init() {
     LOG(LOG_MISC, LOG_DEBUG)("Initializing debug system");
+
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+	const int mcp_server_port = section != NULL ? section->Get_int("mcp_server") : 0;
+	if (mcp_server_port > 0) {
+		ControlServer_Start(static_cast<uint16_t>(mcp_server_port));
+		TIMER_AddTickHandler(ControlServer_Poll);
+	}
 
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
@@ -6555,10 +6593,10 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 	}
 	// LogInstruction
 	if (logHeavy
-#if defined(C_DOSBOX_AGENT)
+#if defined (C_DOSBOX_AGENT)
         && !agent_trace_was_active
-#endif  
-        ) DEBUG_HeavyLogInstruction();
+#endif
+       ) DEBUG_HeavyLogInstruction();
 	if (zeroProtect) {
 		static Bitu zero_count = 0;
 		uint32_t value = 0;

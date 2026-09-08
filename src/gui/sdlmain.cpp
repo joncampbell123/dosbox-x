@@ -7759,22 +7759,65 @@ bool DOSBOX_parse_argv() {
         control->cmdline->GetCurrentArgv(tmp);
         trim(tmp);
         localname = tmp;
-        int rescp = FileDirExistCP(tmp.c_str()), resutf8 = rescp||!tmp.size()?0:FileDirExistUTF8(localname, tmp.c_str());
+        std::string args;
+        size_t argpos = std::string::npos;
+        size_t p = 0;
+        while((p = tmp.find('.', p)) != std::string::npos) {
+            size_t end = p + 4;
+            if((end == tmp.size() || tmp[end] == ' ') &&
+                (!strcasecmp(tmp.substr(p, 4).c_str(), ".bat") ||
+                    !strcasecmp(tmp.substr(p, 4).c_str(), ".exe") ||
+                    !strcasecmp(tmp.substr(p, 4).c_str(), ".com"))) {
+                argpos = end;
+            }
+            p = end;
+        }
+        if(argpos != std::string::npos && argpos < tmp.size()) {
+            args = tmp.substr(argpos);
+            trim(args);
+            localname = tmp.substr(0, argpos);
+            trim(localname);
+            
+        }
+        int rescp = FileDirExistCP(localname.c_str()), resutf8 = rescp || !localname.size() ? 0 : FileDirExistUTF8(localname, localname.c_str());
         if (!rescp && resutf8) {
             tmp = localname;
             rescp = resutf8;
         }
         const char *ext = strrchr(tmp.c_str(),'.'); /* if it looks like a file... with an extension */
+        if(ext != NULL && (!strcasecmp(ext, ".bat") || !strcasecmp(ext, ".exe") || !strcasecmp(ext, ".com"))) {
+                        /* no arguments */
+        }
+        else if(ext != NULL) {
+            const char* space = strchr(ext, ' ');
+            if(space != NULL && (size_t)(space - ext) == 4) {
+                localname = tmp.substr(0, space - tmp.c_str());
+                ext = strrchr(localname.c_str(), '.');
+            }
+        }
         if (rescp) {
             if (rescp == 2 || (ext != NULL && rescp == 1 && (!strcasecmp(ext,".zip") || !strcasecmp(ext,".7z")))) {
                 control->auto_bat_additional.push_back("@mount c: \""+tmp+"\" -nl");
                 control->cmdline->EatCurrentArgv();
                 continue;
             } else if (ext != NULL && rescp == 1 && (!strcasecmp(ext,".bat") || !strcasecmp(ext,".exe") || !strcasecmp(ext,".com"))) { /* .BAT files given on the command line trigger automounting C: to run it */
+                // FIX_ME: Should we mount the directory of the executable to C:? (Code currently disabled)
+                /**
+                std::string mountpath = ".";
+                size_t pos = tmp.find_last_of("\\/");
+                if(pos != std::string::npos) {
+                    mountpath = tmp.substr(0, pos);
+                    if(mountpath.empty()) mountpath = "\\";
+                }
+                control->auto_bat_additional.push_back("@mount c: \"" + mountpath + "\" -nl"); // mount the directory of the executable to C:
+                */
                 control->auto_bat_additional.push_back(tmp);
                 control->cmdline->EatCurrentArgv();
                 continue;
             }
+        }
+        else if(ext != NULL && (!strcasecmp(ext, ".bat") || !strcasecmp(ext, ".exe") || !strcasecmp(ext, ".com"))) {
+            LOG_MSG("WARNING: Executable specified on the command line was not found and ignored: %s\n", localname.c_str());
         }
 
         control->cmdline->NextArgv();

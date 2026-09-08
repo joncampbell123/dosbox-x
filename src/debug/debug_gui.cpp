@@ -34,6 +34,7 @@
 #include "control.h"
 #include "menu.h"
 #include "debug.h"
+#include "debug_mcp.h"
 #include "debug_inc.h"
 #include "pic.h"
 
@@ -677,11 +678,13 @@ void DEBUG_DrawInput(void);
 
 void DEBUG_BeginPagedContent(void) {
 #if C_DEBUG
+	if (
 # if defined(C_DOSBOX_AGENT)
-    if (agent_output_capture_active)
-		return;
+		agent_output_capture_active ||
 #endif
-    int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
+		DEBUG_MCP_IsCapturingOutput())
+		return;
+	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
 
     debugPageCounter = 0;
     debugPageStopAt = maxy;
@@ -690,10 +693,12 @@ void DEBUG_BeginPagedContent(void) {
 
 void DEBUG_EndPagedContent(void) {
 #if C_DEBUG
+	if (
 # if defined(C_DOSBOX_AGENT)
-    if (agent_output_capture_active)
+		agent_output_capture_active ||
+#endif
+		DEBUG_MCP_IsCapturingOutput())
 		return;
-# endif
     debugPageCounter = 0;
     debugPageStopAt = 0;
     DEBUG_DrawInput();
@@ -770,12 +775,15 @@ void DEBUG_ShowMsg(char const* format,...) {
     /* remove newlines if present */
     while (len > 0 && buf[len-1] == '\n') buf[--len] = 0;
 
-#if C_DEBUG && defined(C_DOSBOX_AGENT)
+#if C_DEBUG
+# if defined(C_DOSBOX_AGENT)
     if (agent_output_capture_active) {
         if (!agent_output_capture.empty())
             agent_output_capture += '\n';
         agent_output_capture += buf;
     }
+# endif
+	DEBUG_MCP_CaptureMessage(buf);
 #endif
 
 #if C_DEBUG
