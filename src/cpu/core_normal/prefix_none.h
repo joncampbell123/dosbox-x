@@ -1325,9 +1325,10 @@
         opcode_f0:
 #endif
 		REMEMBER_PREFIX(MP_NONE);
-// todo: make an option to show this
-//		LOG(LOG_CPU,LOG_NORMAL)("CPU:LOCK"); /* FIXME: see case D_LOCK in core_full/load.h */
-		break;
+		if (CPU_CORE >= CPU_ARCHTYPE_80186 &&
+			!CPU_LockPrefixValid(core.cseip, LockPrefixRead))
+			EXCEPTION(EXCEPTION_UD);
+		goto restart_opcode;
 #if CPU_CORE >= CPU_ARCHTYPE_80186
 	CASE_B(0xf1)												/* ICEBP */
 		CPU_SW_Interrupt_NoIOPLCheck(1,GETIP);
@@ -1596,6 +1597,3 @@
 			break;
 		}
 			
-
-
-

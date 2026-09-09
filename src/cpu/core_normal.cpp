@@ -54,6 +54,11 @@ extern bool ignore_opcode_63;
 #define SaveMd(off,val)	mem_writed_inline(off,val)
 #define SaveMq(off,val) {mem_writed_inline(off,((uint32_t)(val))&0xffffffff);mem_writed_inline(off+4,(((uint64_t)(val))>>((uint64_t)32))&0xffffffff);}
 
+#include "lock.h"
+static INLINE uint8_t LockPrefixRead(PhysPt address) {
+	return mem_readb_inline(address);
+}
+
 Bitu cycle_count;
 
 #if C_FPU
@@ -240,4 +245,3 @@ Bits CPU_Core_Normal_Trap_Run(void) {
 void CPU_Core_Normal_Init(void) {
 
 }
-
