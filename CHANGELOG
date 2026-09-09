@@ -5,10 +5,10 @@ Next version:
     start cylinder from the MBR CHS fields (the high bits were not shifted),
     reject malformed CHS/LBA partition entries instead of producing a bad or
     out-of-bounds sector address. (cimarronm)
-  - Fixed the LOCK (0xF0) prefix in the normal and full CPU cores to prefix
-    the following instruction instead of executing as its own no-op, and
-    raise a #UD exception on 80186+ if it precedes an instruction LOCK is
-    not legal on. (cimarronm)
+  - Fixed the LOCK (0xF0) prefix in the normal, full, and dynamic (dyn_x86 and
+    dynrec) CPU cores to prefix the following instruction instead of
+    executing as its own no-op, and raise a #UD exception on 80186+ if it
+    precedes an instruction LOCK is not legal on. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
