@@ -159,7 +159,7 @@ jobs:
 
           cat "$pkg/DEBIAN/control"
 
-          deb="$top/dosbox-x_${{ env.timestamp }}nightly_amd64.deb"
+          deb="$top/dosbox-x_Ubuntu24.04_${{ env.timestamp }}nightly_amd64.deb"
           rm -f "$deb"
 
           ls -la "$pkg/usr/bin/"
@@ -173,12 +173,18 @@ jobs:
           echo Test installation
           sudo apt install "$deb"
 
+          cd "$top"
+          package="$top/ubuntu-package"
+          rm -rf "$package"
+          mkdir -p "$package"
+          cp "$deb" "$package/"
+          cp "$top/contrib/linux/instructions.md" "$package/"
 
       - name: Upload Ubuntu package
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: dosbox-x-ubuntu24.04-x86_64-${{ env.timestamp }}_nightly
-          path: ${{ github.workspace }}/dosbox-x_${{ env.timestamp }}nightly_amd64.deb
+          name: dosbox-x-ubuntu24.04-x86_64-${{ env.timestamp }}_nightly_deb
+          path: ${{ github.workspace }}/ubuntu-package/
           
   Test_Linux_Preview:
     permissions:
@@ -327,7 +333,7 @@ jobs:
 
           cat "$pkg/DEBIAN/control"
 
-          deb="$top/dosbox-x_${{ env.timestamp }}nightly_amd64.deb"
+          deb="$top/dosbox-x_Ubuntu26.04_${{ env.timestamp }}nightly_amd64.deb"
           rm -f "$deb"
 
           ls -la "$pkg/usr/bin/"
@@ -341,8 +347,15 @@ jobs:
           echo Test installation
           sudo apt install "$deb"
 
+          cd "$top"
+          package="$top/ubuntu-package"
+          rm -rf "$package"
+          mkdir -p "$package"
+          cp "$deb" "$package/"
+          cp "$top/contrib/linux/instructions.md" "$package/"
+
       - name: Upload Ubuntu package
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: dosbox-x-ubuntu26.04-x86_64-${{ env.timestamp }}_nightly
-          path: ${{ github.workspace }}/dosbox-x_${{ env.timestamp }}nightly_amd64.deb
+          name: dosbox-x-ubuntu26.04-x86_64-${{ env.timestamp }}_nightly_deb
+          path: ${{ github.workspace }}/ubuntu-package/
