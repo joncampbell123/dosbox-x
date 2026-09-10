@@ -52,7 +52,10 @@ typedef PhysPt EAPoint;
 #define LoadD(reg) reg
 #define SaveD(reg,val)	reg=val
 
-
+#include "lock.h"
+static INLINE uint8_t LockPrefixRead(PhysPt address) {
+	return mem_readb_inline(address);
+}
 
 #include "core_full/loadwrite.h"
 #include "core_full/support.h"

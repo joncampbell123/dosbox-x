@@ -78,6 +78,10 @@ static void SaveMw(Bitu off,Bitu val) {
 
 #define SaveMd(off,val)	mem_writed_inline(off,val)
 
+static INLINE uint8_t LockPrefixRead(PhysPt address) {
+	return mem_readb_inline(address);
+}
+
 extern Bitu cycle_count;
 
 #if C_FPU
@@ -333,4 +337,3 @@ Bits CPU_Core_Prefetch_Trap_Run(void) {
 
 	return ret;
 }
-

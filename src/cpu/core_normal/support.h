@@ -17,6 +17,7 @@
  */
 
 #include <math.h>
+#include "lock.h"
 
 #define LoadMbs(off) (int8_t)(LoadMb(off))
 #define LoadMws(off) (int16_t)(LoadMw(off))
@@ -855,5 +856,3 @@ typedef PhysPt (*EA_LookupHandler)(void);
 # include "table_ea.h"
 #endif
 #include "../modrm.h"
-
-

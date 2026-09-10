@@ -484,11 +484,11 @@ l_M_Ed:
 	case D_WAIT:
 	case D_NOP:
 		goto nextopcode;
-	case D_LOCK: /* FIXME: according to intel, LOCK should raise an exception if it's not followed by one of a small set of instructions;
-			probably doesn't matter for our purposes as it is a pentium prefix anyhow */
-// todo: make an option to show this
-//		LOG(LOG_CPU,LOG_NORMAL)("CPU:LOCK");
-		goto nextopcode;
+	case D_LOCK:
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_80186 &&
+			!CPU_LockPrefixValid(inst.cseip, LockPrefixRead))
+			EXCEPTION(EXCEPTION_UD);
+		goto restartopcode;
 	case D_ENTERw:
 		{
 			Bitu bytes=Fetchw();
@@ -567,4 +567,3 @@ l_M_Ed:
 		LOG(LOG_CPU,LOG_ERROR)("LOAD:Unhandled code %d opcode %lx",inst.code.load,(unsigned long)inst.entry);
 		goto illegalopcode;
 }
-

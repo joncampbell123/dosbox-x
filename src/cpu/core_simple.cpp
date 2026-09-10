@@ -50,6 +50,11 @@ extern bool ignore_opcode_63;
 #define SaveMd(off,val) mem_writed(off,val)
 #define SaveMq(off,val) {mem_writed(off,val&0xffffffff);mem_writed(off+4,(val>>32)&0xffffffff);}
 
+#include "lock.h"
+static INLINE uint8_t LockPrefixRead(HostPt address) {
+	return *address;
+}
+
 extern Bitu cycle_count;
 
 #if C_FPU
