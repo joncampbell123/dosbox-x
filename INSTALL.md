@@ -152,7 +152,7 @@ Starting from the unzipped folder mentioned above, use ```cd``` command to go to
 If you see a dialog asking you to select a folder after you launch DOSBox-X, please select one which will then become your DOSBox-X working directory. You can choose to save this folder after you select one so that the folder selection dialog will no show up again next time, or let DOSBox-X show the folder selection dialog every time you run it.
 
 ### Troubleshooting
-#### I get a dialogue stating “The app is not from the Mac App Store”
+#### I get a dialogue stating “The app is not from the Mac App Store” or "Apple could not verify DOSBox-X is free of malware that may harm your Mac or compromise your privacy."
 
 You need change your settings to allow launching apps from known developers.
 1. Choose Apple menu  > System Settings, then click Privacy & Security  in the sidebar. (You may need to scroll down.)
@@ -168,7 +168,7 @@ You should be able to solve the problem by running the following command once in
 2. Run ``xattr -cr .``
 
 ### macOS Packages (Homebrew)
-Homebrew provides [packages](https://formulae.brew.sh/formula/dosbox-x) for macOS Ventura and after.
+Homebrew provides [packages](https://formulae.brew.sh/formula/dosbox-x) for typically the latest stable or prerelease and the two preceding macOS versions.
 You can install the package by the following steps.
 1. Install [Homebrew](https://brew.sh)
 2. In macOS Terminal (Applications -> Utilities -> Terminal) run `brew install dosbox-x`
@@ -177,7 +177,7 @@ You can install the package by the following steps.
 Please note that these packages are NOT built or updated by the DOSBox-X team.
 
 ### macOS Packages (MacPorts)
-[MacPorts](https://www.macports.org/) provides [packages](https://ports.macports.org/port/dosbox-x/details/) for High Sierra (10.13) and after. 
+[MacPorts](https://www.macports.org/) provides [packages](https://ports.macports.org/port/dosbox-x/details/) for Sierra (10.12) and after. 
 You can install the package by the following steps.
 1. [Install MacPorts](https://www.macports.org/install.php)
 2. In macOS terminal (Applications -> Utilities -> Terminal) run `sudo port install dosbox-x`
@@ -186,8 +186,7 @@ You can install the package by the following steps.
 Please note that these packages are NOT built or updated by the DOSBox-X team.
 
 ### DOSBox-X for older macOS versions
-Official portable packages for macOS versions 10.14 (Mojave) and earlier are no longer provided. Low-end builds named `DOSBox-X-macos-(version)-high-sierra.zip` were available up to [2022.09.0 (0.84.3)](https://github.com/joncampbell123/dosbox-x/releases/tag/dosbox-x-v0.84.3) for 10.12 (Sierra) and after.
-Binaries for macOS versions earlier than 10.12 (Sierra) have not been provided. You may try to build yourself with the help of [MacPorts](https://www.macports.org/). 
+Binaries for macOS versions earlier than 10.12 (Sierra) have not been provided. You may try to build it yourself. See [Build instructions](https://github.com/joncampbell123/dosbox-x/blob/master/BUILD.md) for details. 
 
 ## DOS Packages (Portable)
 
