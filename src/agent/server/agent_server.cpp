@@ -1,3 +1,4 @@
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #include "agent/agent_server.h"
 
 #include "agent/agent_bridge.h"
@@ -3135,3 +3136,4 @@ bool AgentServer::RunProtocolSelfTest(std::string* error)
 }
 
 } // namespace dosbox_agent
+#endif // defined(C_DEBUG) && defined(C_DOSBOX_AGENT)

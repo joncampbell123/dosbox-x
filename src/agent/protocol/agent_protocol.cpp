@@ -1,3 +1,4 @@
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #include "agent/agent_protocol.h"
 
 #include <cerrno>
@@ -807,3 +808,4 @@ std::string AGENT_MakeJsonRpcError(const JsonValue& id,
 }
 
 } // namespace dosbox_agent
+#endif // defined(C_DEBUG) && defined(C_DOSBOX_AGENT)

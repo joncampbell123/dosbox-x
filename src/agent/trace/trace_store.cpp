@@ -1,3 +1,4 @@
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #include "agent/trace_store.h"
 
 #include <iomanip>
@@ -163,3 +164,4 @@ bool TraceStore::Read(const bool has_cursor,
 }
 
 } // namespace dosbox_agent
+#endif // defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
