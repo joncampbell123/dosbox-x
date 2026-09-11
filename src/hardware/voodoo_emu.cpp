@@ -904,8 +904,9 @@ void ncc_table_write(ncc_table *n, UINT32 regnum, UINT32 data)
 		n->qb[regnum] = (INT32)(data << 23) >> 23;
 	}
 
-	/* mark the table dirty */
+	/* mark the table dirty, including cached GL colors derived from it */
 	n->dirty = true;
+	palette_changed = true;
 }
 
 
@@ -1089,17 +1090,15 @@ INLINE INT32 prepare_tmu(tmu_state *t)
 
 	/* if the texture parameters are dirty, update them */
 	if (t->regdirty)
-	{
 		recompute_texture_params(t);
 
-		/* ensure that the NCC tables are up to date */
-		if ((TEXMODE_FORMAT(t->reg[textureMode].u) & 7) == 1)
-		{
-			ncc_table *n = &t->ncc[TEXMODE_NCC_TABLE_SELECT(t->reg[textureMode].u)];
-			t->texel[1] = t->texel[9] = n->texel;
-			if (n->dirty)
-				ncc_table_update(n);
-		}
+	/* NCC writes dirty the table independently of texture layout registers. */
+	if ((TEXMODE_FORMAT(t->reg[textureMode].u) & 7) == 1)
+	{
+		ncc_table *n = &t->ncc[TEXMODE_NCC_TABLE_SELECT(t->reg[textureMode].u)];
+		t->texel[1] = t->texel[9] = n->texel;
+		if (n->dirty)
+			ncc_table_update(n);
 	}
 
 	/* compute (ds^2 + dt^2) in both X and Y as 28.36 numbers */
@@ -2613,26 +2612,25 @@ INT32 texture_w(UINT32 offset, UINT32 data) {
 		tbaseaddr &= t->mask;
 
 		bool changed = false;
-		if (dest[BYTE4_XOR_LE(tbaseaddr + 0)] != ((data >> 0) & 0xff)) {
-			dest[BYTE4_XOR_LE(tbaseaddr + 0)] = (data >> 0) & 0xff;
+		if (dest[BYTE4_XOR_LE((tbaseaddr + 0) & t->mask)] != ((data >> 0) & 0xff)) {
+			dest[BYTE4_XOR_LE((tbaseaddr + 0) & t->mask)] = (data >> 0) & 0xff;
 			changed = true;
 		}
-		if (dest[BYTE4_XOR_LE(tbaseaddr + 1)] != ((data >> 8) & 0xff)) {
-			dest[BYTE4_XOR_LE(tbaseaddr + 1)] = (data >> 8) & 0xff;
+		if (dest[BYTE4_XOR_LE((tbaseaddr + 1) & t->mask)] != ((data >> 8) & 0xff)) {
+			dest[BYTE4_XOR_LE((tbaseaddr + 1) & t->mask)] = (data >> 8) & 0xff;
 			changed = true;
 		}
-		if (dest[BYTE4_XOR_LE(tbaseaddr + 2)] != ((data >> 16) & 0xff)) {
-			dest[BYTE4_XOR_LE(tbaseaddr + 2)] = (data >> 16) & 0xff;
+		if (dest[BYTE4_XOR_LE((tbaseaddr + 2) & t->mask)] != ((data >> 16) & 0xff)) {
+			dest[BYTE4_XOR_LE((tbaseaddr + 2) & t->mask)] = (data >> 16) & 0xff;
 			changed = true;
 		}
-		if (dest[BYTE4_XOR_LE(tbaseaddr + 3)] != ((data >> 24) & 0xff)) {
-			dest[BYTE4_XOR_LE(tbaseaddr + 3)] = (data >> 24) & 0xff;
+		if (dest[BYTE4_XOR_LE((tbaseaddr + 3) & t->mask)] != ((data >> 24) & 0xff)) {
+			dest[BYTE4_XOR_LE((tbaseaddr + 3) & t->mask)] = (data >> 24) & 0xff;
 			changed = true;
 		}
 
 		if (changed && v->ogl && v->active) {
-			voodoo_ogl_texture_clear(t->lodoffset[lod],tmunum);
-			voodoo_ogl_texture_clear(t->lodoffset[t->lodmin],tmunum);
+			voodoo_ogl_texture_clear(tbaseaddr,tmunum);
 		}
 	}
 
@@ -2665,18 +2663,17 @@ INT32 texture_w(UINT32 offset, UINT32 data) {
 		tbaseaddr >>= 1;
 
 		bool changed = false;
-		if (dest[BYTE_XOR_LE(tbaseaddr + 0)] != ((data >> 0) & 0xffff)) {
-			dest[BYTE_XOR_LE(tbaseaddr + 0)] = (data >> 0) & 0xffff;
+		if (dest[BYTE_XOR_LE((tbaseaddr + 0) & (t->mask >> 1))] != ((data >> 0) & 0xffff)) {
+			dest[BYTE_XOR_LE((tbaseaddr + 0) & (t->mask >> 1))] = (data >> 0) & 0xffff;
 			changed = true;
 		}
-		if (dest[BYTE_XOR_LE(tbaseaddr + 1)] != ((data >> 16) & 0xffff)) {
-			dest[BYTE_XOR_LE(tbaseaddr + 1)] = (data >> 16) & 0xffff;
+		if (dest[BYTE_XOR_LE((tbaseaddr + 1) & (t->mask >> 1))] != ((data >> 16) & 0xffff)) {
+			dest[BYTE_XOR_LE((tbaseaddr + 1) & (t->mask >> 1))] = (data >> 16) & 0xffff;
 			changed = true;
 		}
 
 		if (changed && v->ogl && v->active) {
-			voodoo_ogl_texture_clear(t->lodoffset[lod],tmunum);
-			voodoo_ogl_texture_clear(t->lodoffset[t->lodmin],tmunum);
+			voodoo_ogl_texture_clear(tbaseaddr << 1,tmunum);
 		}
 	}
 
