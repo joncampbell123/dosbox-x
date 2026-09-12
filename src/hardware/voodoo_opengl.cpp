@@ -231,7 +231,7 @@ void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_dat
 		INT64 s, t;
 		INT32 lod=0;
 
-		UINT32 texmode=v->tmu[i].reg[textureMode].u;
+		UINT32 texmode = (UINT32)(i == 0 ? extra->r_textureMode0 : extra->r_textureMode1);
 		UINT32 TEXMODE = texmode;
 		INT32 LODBASE = (i==0) ? extra->lodbase0 : extra->lodbase1;
 
@@ -372,16 +372,69 @@ static UINT32 crc_32_tab[] = { /* CRC polynomial 0xedb88320 */
 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-UINT32 calculate_palsum(UINT32 tmunum) {
+static bool ogl_palette_format(UINT32 format) {
+	return format == 1 || format == 9 || format == 5 || format == 14;
+}
+
+UINT32 calculate_palsum(UINT32 tmunum, UINT32 texmode) {
+	const UINT32 format = TEXMODE_FORMAT(texmode);
+	const rgb_t *colors = (format & 7) == 1
+		? v->tmu[tmunum].ncc[TEXMODE_NCC_TABLE_SELECT(texmode)].texel
+		: v->tmu[tmunum].palette;
 	UINT32 csum = 0;
 	for (Bitu pct=0; pct<256; pct++) {
-		UINT32 pval = v->tmu[tmunum].palette[pct];
+		UINT32 pval = colors[pct];
 		csum = crc_32_tab[(csum ^ pval) & 0xff] ^ (csum>>8);
 		csum = crc_32_tab[(csum ^ (pval>>8)) & 0xff] ^ (csum>>8);
 		csum = crc_32_tab[(csum ^ (pval>>16)) & 0xff] ^ (csum>>8);
 		csum = crc_32_tab[(csum ^ (pval>>24)) & 0xff] ^ (csum>>8);
 	}
 	return csum;
+}
+
+static void ogl_destroy_cached_texture(ogl_texmap &texture) {
+	if (texture.ids != NULL) {
+		for (std::map<const UINT32, GLuint>::iterator i = texture.ids->begin();
+		     i != texture.ids->end(); ++i) {
+			glDeleteTextures(1, &i->second);
+		}
+		delete texture.ids;
+		texture.ids = NULL;
+	} else {
+		glDeleteTextures(1, &texture.current_id);
+	}
+	texture.current_id = 0;
+}
+
+// Writes only accumulate a conservative byte interval. Visit cached textures
+// once before the next draw, after pending GL primitives have been completed.
+struct ogl_dirty_range {
+	bool pending = false;
+	UINT32 first = 0;
+	UINT32 last = 0;
+};
+static ogl_dirty_range texture_dirty[2];
+
+static void ogl_flush_texture_writes(int TMU) {
+	ogl_dirty_range &dirty = texture_dirty[TMU];
+	if (!dirty.pending) return;
+	const UINT32 mask = v->tmu[TMU].mask;
+	for (auto t = textures[TMU].begin(); t != textures[TMU].end();) {
+		const UINT32 size = t->second.width * t->second.height *
+			(t->second.format < 8 ? 1 : 2);
+		const UINT32 last = t->first + size - 1;
+		const bool overlaps = last <= mask
+			? t->first <= dirty.last && last >= dirty.first
+			: t->first <= dirty.last || (last & mask) >= dirty.first;
+		if (overlaps) {
+			VOGL_ClearBeginMode();
+			ogl_destroy_cached_texture(t->second);
+			textures[TMU].erase(t++);
+		} else {
+			++t;
+		}
+	}
+	dirty.pending = false;
 }
 
 void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
@@ -396,29 +449,39 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 	if (v->tmu[1].ram != NULL) num_tmus++;
 
 	for (UINT32 j=0; j<num_tmus; j++) {
+		ogl_flush_texture_writes(j);
 		UINT32 TEXMODE = (UINT32)(j==0 ? extra->r_textureMode0 : extra->r_textureMode1);
+		const UINT32 format = TEXMODE_FORMAT(TEXMODE);
+		const UINT32 ncc_table = (format & 7) == 1 ? TEXMODE_NCC_TABLE_SELECT(TEXMODE) : 0;
 
-		UINT32 ilod = (UINT32)(v->tmu[j].lodmin >> 8);
-		if (!((v->tmu[j].lodmask >> ilod) & 1))
-			ilod++;
+		td[j].enable = false;
+		if (j < extra->texcount && v->tmu[j].lodmin < (8 << 8)) {
+			UINT32 ilod = (UINT32)(v->tmu[j].lodmin >> 8);
+			if (!((v->tmu[j].lodmask >> ilod) & 1))
+				ilod++;
 
-		texbase = v->tmu[j].lodoffset[ilod];
+			texbase = v->tmu[j].lodoffset[ilod];
 
-		if ( extra->texcount && (extra->texcount >= j) && (v->tmu[j].lodmin < (8 << 8)) ) {
+			const UINT32 width = (v->tmu[j].wmask >> ilod) + 1;
+			const UINT32 height = (v->tmu[j].hmask >> ilod) + 1;
 			bool valid_texid = true;
 			std::map<const UINT32, ogl_texmap>::iterator t;
 			t = textures[j].find(texbase);
-			bool reuse_id = false;
+			// A RAM address can be reused with a different texture layout.
+			if (t != textures[j].end() &&
+			    (t->second.format != format || t->second.width != width ||
+			     t->second.height != height || t->second.ilod != ilod ||
+			     t->second.lodmask != v->tmu[j].lodmask || t->second.ncc_table != ncc_table)) {
+				VOGL_ClearBeginMode();
+				ogl_destroy_cached_texture(t->second);
+				textures[j].erase(t);
+				t = textures[j].end();
+			}
 			if (t != textures[j].end())  {
 				if (t->second.valid_pal) {
 					texID = t->second.current_id;
-					if (!t->second.valid_data) {
-						valid_texid = false;
-						reuse_id = true;
-						t->second.valid_data = true;
-					}
 				} else {
-					UINT32 psum = calculate_palsum(j);
+					UINT32 psum = calculate_palsum(j, TEXMODE);
 					std::map<const UINT32, GLuint>::iterator u = t->second.ids->find(psum);
 					if (u != t->second.ids->end()) {
 						t->second.valid_pal = true;
@@ -440,20 +503,18 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 				valid_texid = false;
 			}
 			if (!valid_texid) {
-				smax = (INT32)(v->tmu[j].wmask >> ilod) + 1;
-				tmax = (INT32)(v->tmu[j].hmask >> ilod) + 1;
+				smax = (INT32)width;
+				tmax = (INT32)height;
 
 				UINT32 texboffset = texbase;
 				texrgbp = (UINT32 *)&texrgb[0];
 				memset(texrgbp,0,256*256*4);
 
-				if (!reuse_id) {
-					texID = ogl_texture_index++;
-					glGenTextures(1, &texID);
-				}
+				texID = ogl_texture_index++;
+				glGenTextures(1, &texID);
 
-				if (TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u) < 8) {
-					if (TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u) != 5) {
+				if (format < 8) {
+					if (format != 5) {
 						for (int i=0; i<(smax*tmax); i++) {
 							UINT8 *texptr8 = (UINT8 *)&v->tmu[j].ram[(texboffset) & v->tmu[j].mask];
 							UINT32 data = v->tmu[j].lookup[*texptr8];
@@ -471,7 +532,7 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 							texrgbp++;
 						}
 					}
-				} else if (TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u) >= 10 && TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u) <= 12) {
+				} else if (format >= 10 && format <= 12) {
 					for (int i=0; i<(smax*tmax); i++) {
 						UINT16 *texptr16 = (UINT16 *)&v->tmu[j].ram[(texboffset) & v->tmu[j].mask];
 						UINT32 data = v->tmu[j].lookup[*texptr16];
@@ -479,7 +540,7 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 						texboffset+=2;
 						texrgbp++;
 					}
-				} else if (TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u) != 14) {
+				} else if (format != 14) {
 					for (int i=0; i<(smax*tmax); i++) {
 						UINT16 *texptr16 = (UINT16 *)&v->tmu[j].ram[(texboffset) & v->tmu[j].mask];
 						UINT32 data = (v->tmu[j].lookup[*texptr16 & 0xFF] & 0xFFFFFF) | ((*texptr16 & 0xff00u) << 16u);
@@ -500,7 +561,7 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 
 				texrgbp = (UINT32 *)&texrgb[0];
 //				LOG_MSG("texid %d format %d -- %d x %d",
-//					texID,TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u),smax,tmax);
+//					texID,format,smax,tmax);
 
 				glBindTexture(GL_TEXTURE_2D, texID);
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
@@ -510,29 +571,27 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, smax, tmax, 0, GL_BGRA_EXT, GL_UNSIGNED_INT_8_8_8_8_REV, texrgbp);
 				extern PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT;
 				glGenerateMipmapEXT(GL_TEXTURE_2D);
-				if ((TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u)==0x05) || (TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u)==0x0e)) {
-					UINT32 palsum = calculate_palsum(j);
+				if (ogl_palette_format(format)) {
+					UINT32 palsum = calculate_palsum(j, TEXMODE);
 					if (t == textures[j].end()) {
 						std::map<const UINT32, GLuint>* ids = new std::map<const UINT32, GLuint>();
 						(*ids)[palsum] = texID;
-						ogl_texmap tex = { true, true, TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u),
-											texID, ids };
+						ogl_texmap tex = { true, format, texID, ids,
+							width, height, ilod, v->tmu[j].lodmask, ncc_table };
 						textures[j][texbase] = tex;
 					} else {
 						(*textures[j][texbase].ids)[palsum] = texID;
 						textures[j][texbase].current_id = texID;
 					}
 				} else {
-					ogl_texmap tex = { true, true, TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u),
-										texID, NULL };
+					ogl_texmap tex = { true, format, texID, NULL,
+						width, height, ilod, v->tmu[j].lodmask, ncc_table };
 					textures[j][texbase] = tex;
 				}
 			}
 
 			td[j].texID = texID;
 			td[j].enable = true;
-		} else {
-			td[j].enable = false;
 		}
 	}
 }
@@ -541,7 +600,7 @@ void voodoo_ogl_invalidate_paltex(void) {
 	std::map<const UINT32, ogl_texmap>::iterator t;
 	for (int j=0; j<2; j++) {
 		for (t=textures[j].begin(); t!=textures[j].end(); ++t) {
-			if ((t->second.format == 0x05) || (t->second.format == 0x0e)) {
+			if (ogl_palette_format(t->second.format)) {
 				t->second.valid_pal = false;
 			}
 		}
@@ -569,7 +628,7 @@ void ogl_printInfoLog(GLhandleARB obj)
 void ogl_sh_tex_combine(std::string *strFShader, const int TMU, const poly_extra_data *extra) {
 	v=(voodoo_state*)extra->state;
 
-	UINT32 TEXMODE     = v->tmu[TMU].reg[textureMode].u;
+	UINT32 TEXMODE = (UINT32)(TMU == 0 ? extra->r_textureMode0 : extra->r_textureMode1);
 
 	if (!TEXMODE_TC_ZERO_OTHER(TEXMODE))
 		*strFShader += "  tt.rgb = cother.rgb;\n";
@@ -1124,7 +1183,7 @@ void ogl_shaders(const poly_extra_data *extra) {
 
 void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 	v=extra->state;
-	ogl_texture_data td[2];
+	ogl_texture_data td[2] = {};
 	ogl_vertex_data vd[3];
 
 	VOGL_ClearBeginMode();
@@ -1191,7 +1250,7 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 	if (extra->texcount > 0) {
 		for (unsigned int t=0; t<2; t++)
 		if ( td[t].enable ) {
-			UINT32 TEXMODE = v->tmu[t].reg[textureMode].u;
+			UINT32 TEXMODE = (UINT32)(t == 0 ? extra->r_textureMode0 : extra->r_textureMode1);
 			glActiveTexture(GL_TEXTURE0_ARB+t);
 			glBindTexture (GL_TEXTURE_2D, td[t].texID);
 			if (!extra->info->shader_ready) {
@@ -1310,25 +1369,27 @@ void voodoo_ogl_swap_buffer() {
 }
 
 
-void voodoo_ogl_texture_clear(UINT32 texbase, int TMU) {
-	std::map<const UINT32, ogl_texmap>::iterator t;
-	t=textures[TMU].find(texbase);
-	if (t != textures[TMU].end()) {
-		VOGL_ClearBeginMode();
-		if (t->second.ids != NULL) {
-			std::map<const UINT32, GLuint>::iterator u;
-			for (u=t->second.ids->begin(); u!=t->second.ids->end(); ++u) {
-				glDeleteTextures(1,&u->second);
-			}
-			delete t->second.ids;
-			t->second.ids = NULL;
-		} else {
-			t->second.valid_data = false;
-		}
-		glDeleteTextures(1, (GLuint*)&t->second.current_id);
-		textures[TMU].erase(t);
+void voodoo_ogl_texture_clear(UINT32 address, int TMU) {
+	if (textures[TMU].empty()) return;
+	const UINT32 mask = v->tmu[TMU].mask;
+	UINT32 first = address & mask;
+	UINT32 last = (first + 3) & mask;
+	// A wrapped dword conservatively dirties the whole circular address space.
+	if (last < first) {
+		first = 0;
+		last = mask;
+	}
+	ogl_dirty_range &dirty = texture_dirty[TMU];
+	if (!dirty.pending) {
+		dirty.first = first;
+		dirty.last = last;
+		dirty.pending = true;
+	} else {
+		if (first < dirty.first) dirty.first = first;
+		if (last > dirty.last) dirty.last = last;
 	}
 }
+
 
 void voodoo_ogl_draw_pixel(int x, int y, bool has_rgb, bool has_alpha, int r, int g, int b, int a) {
 	if (m_hProgramObject != 0) {
@@ -1917,19 +1978,10 @@ void voodoo_ogl_leave(bool leavemode) {
 	std::map<const UINT32, ogl_texmap>::iterator t;
 	for (int j=0; j<2; j++) {
 		for (t=textures[j].begin(); t!=textures[j].end(); ++t) {
-			if (t->second.ids != NULL) {
-				std::map<const UINT32, GLuint>::iterator u;
-				for (u=t->second.ids->begin(); u!=t->second.ids->end(); ++u) {
-					glDeleteTextures(1,&u->second);
-				}
-				if (!t->second.ids->empty()) t->second.ids->clear();
-				delete t->second.ids;
-				t->second.ids = NULL;
-			} else {
-				glDeleteTextures(1,&t->second.current_id);
-			}
+			ogl_destroy_cached_texture(t->second);
 		}
-		if (!textures[j].empty()) textures[j].clear();
+		textures[j].clear();
+		texture_dirty[j].pending = false;
 	}
 
 
