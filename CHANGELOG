@@ -9,6 +9,10 @@ Next version:
     dynrec) CPU cores to prefix the following instruction instead of
     executing as its own no-op, and raise a #UD exception on 80186+ if it
     precedes an instruction LOCK is not legal on. (cimarronm)
+  - Fixed PIT timer emulation: prevented float-to-unsigned saturation on ARM
+    architectures when Mode 0/4 counts past terminal count, fixed gate pause
+    delay calculation for Mode 0/4, and unified Mode 2/3 gate trigger handling
+    per 8253/8254 specification. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)

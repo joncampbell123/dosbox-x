@@ -162,6 +162,8 @@ struct PIT_Block {
         /* NTS: Remember, the counter counts DOWN, not up, so the delay is how long it takes to get there */
         if (mode == 2)
             c_delay = ((pic_tickindex_t)(1000ull * (0xFFFFu - counter))) / PIT_TICK_RATE; /* counts down to ONE, not ZERO */
+        else if (mode == 0 || mode == 4)
+            c_delay = ((pic_tickindex_t)(1000ull * ((uint16_t)(cntr_cur - counter)))) / PIT_TICK_RATE;
         else
             c_delay = ((pic_tickindex_t)(1000ull * (0x10000u - counter))) / PIT_TICK_RATE;
 
@@ -235,25 +237,16 @@ struct PIT_Block {
                     /* TODO */
                     break;
                 case 2:     /* Rate Generator */
+                case 3:     /* Square Wave Mode */
                     /* output goes HIGH immediately */
                     if (on) {
                         reset_count_at(now);
                         latch_next_counter();
+                        set_output(true);
                     }
                     else {
                         set_output(true);
                     }
-                    /* TODO */
-                    break;
-                case 3:     /* Square Wave Mode */
-                    if (on) {
-                        reset_count_at(now);
-                        latch_next_counter();
-                    }
-                    else {
-                        set_output(true);
-                    }
-                    /* TODO */
                     break;
                 case 5:     /* Hardware Triggered Strobe */
                     if (on) {
@@ -335,24 +328,18 @@ struct PIT_Block {
         read_counter_result ret;
 
         switch (mode) {
-            case 4:		/* Software Triggered Strobe */
             case 0:		/* Interrupt on Terminal Count */
+            case 4:		/* Software Triggered Strobe */
                 {
-                    pic_tickindex_t tmp;
-
                     /* Counter keeps on counting after passing terminal count */
-                    if (bcd) {
-                        tmp = pic_tickfmod(index,((pic_tickindex_t)(1000ul *   10000ul)) / PIT_TICK_RATE);
-                        ret.counter = (uint16_t)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) %   10000ul);
-                    } else {
-                        tmp = pic_tickfmod(index,((pic_tickindex_t)(1000ul * 0x10000ul)) / PIT_TICK_RATE);
-                        ret.counter = (uint16_t)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) % 0x10000ul);
-                    }
+                    const uint64_t elapsed_ticks = (uint64_t)((index * PIT_TICK_RATE) / 1000.0);
 
-                    if (index > delay)
-                        ret.cycle = 1;
+                    if (bcd)
+                        ret.counter = (uint16_t)((cntr_cur - (elapsed_ticks % 10000ul) + 10000ul) % 10000ul);
                     else
-                        ret.cycle = 0;
+                        ret.counter = (uint16_t)(cntr_cur - elapsed_ticks);
+
+                    ret.cycle = index > delay ? 1 : 0;
                 }
                 break;
             case 5:     /* Hardware Triggered Strobe */
