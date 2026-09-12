@@ -359,3 +359,274 @@ jobs:
         with:
           name: dosbox-x-ubuntu26.04-x86_64-${{ env.timestamp }}_nightly_deb
           path: ${{ github.workspace }}/ubuntu-package/
+
+  Linux_AppImage_build:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: read  # for actions/checkout to fetch code
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.13.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '14'
+      - name: Build minimal
+        if: false
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          ./build --disable-freetype --disable-libfluidsynth --disable-mt32 --disable-screenshots
+      - name: Install libraries
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libpng-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libavcodec-extra dpkg-dev
+          mkdir src/bin
+      - name: Update build info
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
+      - name: Detect OSFREE build
+        id: osfree
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "main-osfree" ]] || \
+             grep -q '^#define C_OSFREE 1' vs/config_package.h 2>/dev/null; then
+            echo "osfree=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "osfree=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build Linux SDL1
+        run: |
+          top=`pwd`
+          ./build-debug --enable-avcodec
+          strip -s $top/src/dosbox-x
+          cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl1
+      - name: Build Linux SDL2
+        run: |
+          top="${{ github.workspace }}"
+          cd "$top"
+          ./autogen.sh || exit 1
+          chmod +x vs/sdl/build-scripts/strip_fPIC.sh
+          echo "Compiling our internal SDL 2.x"
+          (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
+          CPPFLAGS="${CPPFLAGS} -I${top}/vs/sdl2/linux-host/include"
+          LDFLAGS="${LDFLAGS} -L${top}/vs/sdl2/linux-host/lib"
+          export CPPFLAGS LDFLAGS
+          echo "Compiling our internal SDLnet 2.x"
+          chmod +x vs/sdl2net/*.sh
+          (cd vs/sdl2net && ./build-dosbox.sh) || exit 1
+          CPPFLAGS="${CPPFLAGS} -I${top}/vs/sdl2net/linux-host/include"
+          LDFLAGS="${LDFLAGS} -L${top}/vs/sdl2net/linux-host/lib"
+          export CPPFLAGS LDFLAGS
+          echo "Compiling DOSBox-X"
+          chmod +x configure
+          ./configure --enable-debug=heavy --prefix=/usr --enable-sdl2 --enable-avcodec || exit 1
+          make -j3 || exit 1
+          cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl2
+
+      - name: Unit testing
+        if: steps.osfree.outputs.osfree != 'true'
+        run: |
+          top=`pwd`
+          chmod +x $top/src/bin/dosbox-x-sdl1 $top/src/bin/dosbox-x-sdl2
+          $top/src/bin/dosbox-x-sdl1 -tests
+          $top/src/bin/dosbox-x-sdl2 -tests
+      - name: Create deb package
+        run: |
+          top=`pwd`
+          pkg="$top/deb"
+          rm -rf "$pkg"
+          mkdir -p "$pkg/DEBIAN"
+          mkdir -p "$pkg/usr/bin"
+          mkdir -p "$pkg/usr/share/dosbox-x/drivez"
+          mkdir -p "$pkg/usr/share/dosbox-x/glshaders"
+          mkdir -p "$pkg/usr/share/dosbox-x/languages"
+          strip $top/src/bin/dosbox-x-sdl1
+          strip $top/src/bin/dosbox-x-sdl2
+          cp "$top/src/bin/dosbox-x-sdl1" "$pkg/usr/bin/dosbox-x-sdl1"
+          cp "$top/src/bin/dosbox-x-sdl2" "$pkg/usr/bin/dosbox-x-sdl2"
+          ln -s dosbox-x-sdl2 "$pkg/usr/bin/dosbox-x"
+          cp "$top/CHANGELOG" "$pkg/usr/share/dosbox-x/CHANGELOG.txt"
+          cp "$top/dosbox-x.reference.conf" "$pkg/usr/share/dosbox-x/dosbox-x.reference.conf"
+          cp "$top/dosbox-x.reference.full.conf" "$pkg/usr/share/dosbox-x/dosbox-x.reference.full.conf"
+          cp "$top/contrib/fonts/FREECG98.BMP" "$pkg/usr/share/dosbox-x/FREECG98.BMP"
+          cp "$top/contrib/fonts/"wqy_1?pt.bdf "$pkg/usr/share/dosbox-x/"
+          cp "$top/contrib/fonts/Nouveau_IBM.ttf" "$pkg/usr/share/dosbox-x/Nouveau_IBM.ttf"
+          cp "$top/contrib/fonts/SarasaGothicFixed.ttf" "$pkg/usr/share/dosbox-x/SarasaGothicFixed.ttf"
+          cp "$top/contrib/windows/installer/drivez_readme.txt" "$pkg/usr/share/dosbox-x/drivez/readme.txt"
+          cp "$top/contrib/glshaders/"* "$pkg/usr/share/dosbox-x/glshaders/"
+          cp "$top/contrib/translations/"*/*.lng "$pkg/usr/share/dosbox-x/languages/"
+
+          cat > "$pkg/DEBIAN/control" <<EOF
+          Package: dosbox-x
+          Version: ${{ env.timestamp }}
+          Section: otherosfs
+          Priority: optional
+          Architecture: amd64
+          Depends: \${shlibs:Depends}
+          Maintainer: DOSBox-X Team
+          Description: DOS emulator with extended features
+           DOSBox-X is a DOS emulator with extended features.
+          EOF
+
+          # Needs $top/debian/control file to run dpkg-shlibdeps
+          mkdir -p "$top/debian"
+          cat > "$top/debian/control" <<EOF
+          Source: dosbox-x
+          Section: otherosfs
+          Priority: optional
+          Maintainer: DOSBox-X Team
+          Build-Depends: debhelper
+
+          Package: dosbox-x
+          Architecture: amd64
+          Depends: \${shlibs:Depends}
+          Description: DOS emulator with extended features
+           DOSBox-X is a DOS emulator with extended features.
+          EOF
+
+          dpkg-shlibdeps \
+            -T"$top/debian/substvars" \
+            "$pkg/usr/bin/dosbox-x-sdl1" \
+            "$pkg/usr/bin/dosbox-x-sdl2"
+
+          deps=$(sed -n 's/^shlibs:Depends=//p' "$top/debian/substvars")
+          sed -i "s|^Depends:.*|Depends: $deps|" "$pkg/DEBIAN/control"
+
+          rm -rf "$top/debian"
+
+          cat "$pkg/DEBIAN/control"
+
+          deb="$top/dosbox-x_Ubuntu22.04_${{ env.timestamp }}nightly_amd64.deb"
+          rm -f "$deb"
+
+          ls -la "$pkg/usr/bin/"
+
+          dpkg-deb --build "$pkg" "$deb"
+
+          dpkg-deb --info "$deb"
+          dpkg-deb --contents "$deb"
+          dpkg-deb --field "$deb" Package Version Architecture Depends
+
+          echo Test installation
+          sudo apt install "$deb"
+
+          cd "$top"
+          package="$top/ubuntu-package"
+          rm -rf "$package"
+          mkdir -p "$package"
+          cp "$deb" "$package/"
+          cp "$top/contrib/linux/instructions.md" "$package/"
+
+      - name: Upload Ubuntu package
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dosbox-x-ubuntu22.04-x86_64-${{ env.timestamp }}_nightly_deb
+          path: ${{ github.workspace }}/ubuntu-package/
+
+      - name: Prepare AppImage
+        shell: bash
+        run: |
+          top="${{ github.workspace }}"
+          cd "$top"
+          appdir="$top/DOSBox-X.AppDir"
+          rm -rf "$appdir"
+          mkdir -p "$appdir/usr/bin"
+          mkdir -p "$appdir/usr/share/dosbox-x"
+          mkdir -p "$appdir/usr/share/dosbox-x/drivez"
+          mkdir -p "$appdir/usr/share/dosbox-x/glshaders"
+          mkdir -p "$appdir/usr/share/dosbox-x/languages"
+          cp "$top/src/bin/dosbox-x-sdl1" "$appdir/usr/bin/"
+          cp "$top/src/bin/dosbox-x-sdl2" "$appdir/usr/bin/"
+          ln -s dosbox-x-sdl2 "$appdir/usr/bin/dosbox-x"
+          cp "$top/CHANGELOG" "$appdir/usr/share/dosbox-x/CHANGELOG.txt"
+          cp "$top/dosbox-x.reference.conf" "$appdir/usr/share/dosbox-x/"
+          cp "$top/dosbox-x.reference.full.conf" "$appdir/usr/share/dosbox-x/"
+          cp "$top/contrib/fonts/FREECG98.BMP" "$appdir/usr/share/dosbox-x/"
+          cp "$top/contrib/fonts/"wqy_1?pt.bdf "$appdir/usr/share/dosbox-x/"
+          cp "$top/contrib/fonts/Nouveau_IBM.ttf" "$appdir/usr/share/dosbox-x/"
+          cp "$top/contrib/fonts/SarasaGothicFixed.ttf" "$appdir/usr/share/dosbox-x/"
+          cp "$top/contrib/windows/installer/drivez_readme.txt" "$appdir/usr/share/dosbox-x/drivez/readme.txt"
+          cp "$top/contrib/glshaders"/* "$appdir/usr/share/dosbox-x/glshaders/"
+          cp "$top/contrib/translations/"*/*.lng "$appdir/usr/share/dosbox-x/languages/"
+          mkdir -p "$appdir/usr/share/icons/hicolor/256x256/apps"
+          cp "$top/contrib/icons/dosbox-x.svg" \
+             "$appdir/usr/share/icons/hicolor/256x256/apps/dosbox-x.svg"
+          
+          cat > "$appdir/dosbox-x.desktop" <<'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=DOSBox-X
+          Comment=DOSBox-X DOS emulator
+          Exec=dosbox-x
+          Icon=dosbox-x
+          Categories=Game;Emulator;
+          Terminal=true
+          EOF
+          
+          cat > "$appdir/AppRun" <<'EOF'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          case "$1" in
+              --sdl1)
+                  shift
+                  exec "$HERE/usr/bin/dosbox-x-sdl1" "$@"
+                  ;;
+              --appimage-help)
+                  echo "Usage: $0 [OPTION] [DOSBox-X options]"
+                  echo
+                  echo "Options:"
+                  echo "  --sdl1            Run the SDL1 version"
+                  echo "  --appimage-help   Show this help"
+                  echo
+                  echo "The SDL2 version is used by default."
+                  exit 0
+                  ;;
+          esac
+          exec "$HERE/usr/bin/dosbox-x-sdl2" "$@"
+          EOF
+          chmod +x "$appdir/AppRun"
+
+      - name: Download AppImage tools
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage appimagetool-x86_64.AppImage
+
+      - name: Build AppImage
+        run: |
+          top="${{ github.workspace }}"
+          cd "$top"
+          appdir="$top/DOSBox-X.AppDir"
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir "$appdir" \
+            --desktop-file "$appdir/dosbox-x.desktop" \
+            --executable "$appdir/usr/bin/dosbox-x-sdl1" \
+            --executable "$appdir/usr/bin/dosbox-x-sdl2"
+          appimage="$top/dosbox-x_${{ env.timestamp }}nightly_amd64.AppImage"
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage \
+            "$appdir" \
+            "$appimage"
+          package="$top/appimage-package"
+          rm -rf "$package"
+          mkdir -p "$package"
+          cp "$top/dosbox-x_${{ env.timestamp }}nightly_amd64.AppImage" "$package/"
+          cp "$top/contrib/linux/instructions_appimage.md" "$package/"
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dosbox-x-${{ env.timestamp }}_nightly_AppImage
+          path: ${{ github.workspace }}/appimage-package/

@@ -933,13 +933,16 @@ dnl Check SDL2_net using headers + library first
 have_sdl2_net_h=no
 have_sdl2_net_lib=no
 
-if test "x$SDL_STRING" = "xSDL2"; then
-  AC_CHECK_HEADERS([SDL2/SDL_net.h], [have_sdl2_net_h=yes])
-  AC_CHECK_LIB([SDL2_net], [SDLNet_Init], [have_sdl2_net_lib=yes], [have_sdl2_net_lib=no],[$SDLNETLIB])
-fi
-
 if test x$enable_hx = xyes; then
   SDLNETLIB=""
+fi
+
+if test "x$SDL_STRING" = "xSDL2"; then
+  AC_CHECK_HEADERS([SDL2/SDL_net.h], [have_sdl2_net_h=yes])
+  AC_CHECK_LIB([SDL2_net], [SDLNet_Init],
+               [have_sdl2_net_lib=yes],
+               [have_sdl2_net_lib=no],
+               [$SDLNETLIB])
 fi
 
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
@@ -1250,18 +1253,21 @@ AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires 
 
 if test x$disable_sdl_net = xyes ; then
   AC_MSG_WARN([SDL_net is disabled in parameters])
-elif test x$have_sdl2_net_lib = xyes ; then
+elif test "x$SDL_STRING" = "xSDL2" &&
+     test x$have_sdl2_net_h = xyes &&
+     test x$have_sdl2_net_lib = xyes ; then
   AC_DEFINE(C_SDL2_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
   LIBS="$LIBS -lSDL2_net $SDLNETLIB"
   AC_MSG_NOTICE([Using SDL2_net (SDL2): internal modem and IPX enabled])
-elif test x$have_sdl_net_lib = xyes ; then
+elif test x$have_sdl_net_h = xyes &&
+     test x$have_sdl_net_lib = xyes ; then
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
   LIBS="$LIBS -lSDL_net $SDLNETLIB"
-  AC_MSG_NOTICE([Using SDL_net (SDL1): internal modem and IPX enabled])
+  AC_MSG_NOTICE([Using SDL_net: internal modem and IPX enabled])
 else
   AC_MSG_WARN([Can't find SDL_net or SDL2_net, internal modem and IPX disabled])
 fi
