@@ -1,18 +1,34 @@
 Next version:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
     on an unopened or non-existent file. (cimarronm)
+  - Don't prompt for working directory when -conf or -userconf is used
+    (maron2000)
+  - Added RPC debugger agent interface (freeng)
+  - Fix OpenGL scaling when modeswitch is off (jpernst)
+  - Modesetting resolution change exclusive to fullscreen. (DieSkarrj)
+  - Added MCP Protocol support (caiiiycuk)
+  - Fixed parsing of command-line executable arguments (maron2000)
+  - Enable PS2 mouse events (cyberfox)
   - Fixed VHD fixed-disk geometry detection to correctly decode the partition
     start cylinder from the MBR CHS fields (the high bits were not shifted),
     reject malformed CHS/LBA partition entries instead of producing a bad or
     out-of-bounds sector address. (cimarronm)
+  - Added /V arg for `VER` command to just report the version (bushtail)
+  - drive_virtual: fixed CHDIR succeeding on a file on drive Z:
+    (MaxFreedomPollard)
   - Fixed the LOCK (0xF0) prefix in the normal, full, and dynamic (dyn_x86 and
     dynrec) CPU cores to prefix the following instruction instead of
     executing as its own no-op, and raise a #UD exception on 80186+ if it
     precedes an instruction LOCK is not legal on. (cimarronm)
+  - Fixed IDE CHS cylinder carry handling (caiiiycuk）
+  - Fixed Voodoo OpenGL texture cache invalidation (caiiiycuk）
   - Fixed PIT timer emulation: prevented float-to-unsigned saturation on ARM
     architectures when Mode 0/4 counts past terminal count, fixed gate pause
     delay calculation for Mode 0/4, and unified Mode 2/3 gate trigger handling
     per 8253/8254 specification. (cimarronm)
+  - Experimental: Added Pre-compiled .deb package for Ubuntu 22.04/24.04/26.04
+    (maron2000)
+  - Experimental: Added support for AppImage on x64 Linux (maron2000)
   - Fixed PIT timer emulation BCD write handling to keep packed BCD values
     intact across two-byte counter writes before converting to binary. (cimarronm)
 
