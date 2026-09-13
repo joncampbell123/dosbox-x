@@ -16,8 +16,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <assert.h>
-#include <math.h>
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <cstdint>
+
 #include "dosbox.h"
 #include "inout.h"
 #include "logging.h"
@@ -156,7 +159,7 @@ struct PIT_Block {
         last_counter.cycle = 0;
         last_counter.counter = cntr_cur;
     }
-    void latch_next_counter(void) {
+    void latch_next_counter() {
         set_active_counter(cntr);
     }
     void reset_count_at(pic_tickindex_t t) {
@@ -218,7 +221,7 @@ struct PIT_Block {
         if (now < start)
             now = start;
     }
-    pic_tickindex_t reltime(void) const {
+    pic_tickindex_t reltime() const {
         return now - start;
     }
 
@@ -327,7 +330,7 @@ struct PIT_Block {
         return true;
     }
 
-    read_counter_result read_counter(void) const {//This assumes you call track_time()
+    read_counter_result read_counter() const {//This assumes you call track_time()
         if (!gate || new_mode || (mode == 0 && write_state == WriteState::WAIT_MSB)/*mode 0 midway through 16-bit write also halts counter*/)
             return last_counter;
 
@@ -393,7 +396,7 @@ static PIT_Block pit[3];
 
 unsigned long PIT_TICK_RATE = PIT_TICK_RATE_IBM;
 
-pic_tickindex_t VGA_PITSync_delay(void);
+pic_tickindex_t VGA_PITSync_delay();
 
 static void PIT0_Event(Bitu /*val*/) {
 	/* HACK: Despite edge trigger, force IRQ */
@@ -439,7 +442,7 @@ static void PIT0_Event(Bitu /*val*/) {
 	}
 }
 
-uint32_t PIT0_GetAssignedCounter(void) {
+uint32_t PIT0_GetAssignedCounter() {
     return (uint32_t)pit[0].cntr;
 }
 
@@ -501,23 +504,23 @@ static void counter_latch(Bitu counter,bool do_latch=true) {
     }
 }
 
-void TIMER_IRQ0Poll(void) {
+void TIMER_IRQ0Poll() {
     counter_latch(0,false/*do not latch*/);
 }
 
-pic_tickindex_t speaker_pit_delta(void) {
+pic_tickindex_t speaker_pit_delta() {
     unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
     return pic_tickfmod(pit[speaker_pit].now - pit[speaker_pit].start, pit[speaker_pit].delay);
 }
 
-void speaker_pit_update(void) {
+void speaker_pit_update() {
     unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
     pit[speaker_pit].track_time(PIC_FullIndex());
 }
 
-void PCSPEAKER_UpdateType(void);
+void PCSPEAKER_UpdateType();
 
-bool TIMER2_ClockGateEnabled(void) {
+bool TIMER2_ClockGateEnabled() {
     /* PC speaker emulation should treat "new mode" as if the clock gate is disabled.
      * On real hardware, mode 3 does not cycle if you write a control word but then
      * do not write a counter value. */
@@ -725,7 +728,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 }
 
-static bool pit_any_status(void) {
+static bool pit_any_status() {
 	for (unsigned int c=0;c < 3;c++) {
 		if (pit[c].counterstatus_set)
 			return true;
@@ -1223,7 +1226,7 @@ void TIMER_OnPowerOn(Section*) {
     }
 }
 
-void TIMER_OnEnterPC98_Phase2_UpdateBDA(void) {
+void TIMER_OnEnterPC98_Phase2_UpdateBDA() {
 	if (!cpu.pmode) {
 		/* BIOS data area at 0x501 tells the DOS application which clock rate to use */
 		phys_writeb(0x501,
