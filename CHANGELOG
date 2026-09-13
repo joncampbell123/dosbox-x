@@ -13,6 +13,8 @@ Next version:
     architectures when Mode 0/4 counts past terminal count, fixed gate pause
     delay calculation for Mode 0/4, and unified Mode 2/3 gate trigger handling
     per 8253/8254 specification. (cimarronm)
+  - Fixed PIT timer emulation BCD write handling to keep packed BCD values
+    intact across two-byte counter writes before converting to binary. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
