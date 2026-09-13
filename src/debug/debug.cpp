@@ -18,26 +18,23 @@
 
 
 #include "dosbox.h"
-#if defined(C_DOSBOX_AGENT)
-#include "agent/agent_bridge.h"
-#endif
 #if C_DEBUG
-
-#include "../../tests/tests.h"
-
-#include <string.h>
-#include <atomic>
+#include <cctype>
+#include <cstring>
 #include <list>
 #include <vector>
-#include <ctype.h>
 #include <fstream>
 #include <iomanip>
 #include <string>
 #include <sstream>
 using namespace std;
 
+#include "../../tests/tests.h"
+
 #include "debug.h"
+#if defined(C_DOSBOX_AGENT)
 #include "agent/agent_bridge.h"
+#endif
 #include "cross.h" //snprintf
 #include "fpu.h"
 #include "bios.h"
@@ -50,10 +47,8 @@ using namespace std;
 #include "callback.h"
 #include "inout.h"
 #include "paging.h"
-#include "shell.h"
 #include "debug_inc.h"
 #include "../cpu/lazyflags.h"
-#include "keyboard.h"
 #include "control.h"
 
 #include "debug_mcp.h"
@@ -350,7 +345,9 @@ extern Bitu cycle_count;
 static bool debugging = false;
 static bool debug_running = false;
 static bool check_rescroll = false;
+#if defined(C_DOSBOX_AGENT)
 static std::atomic<uint64_t> agent_entry_breakpoint_sequence(0);
+#endif
 
 static FPU_rec oldfpu;
 static bool warn_dynamic = false;
@@ -6411,8 +6408,10 @@ struct TLogInst {
 };
 
 TLogInst logInst[LOGCPUMAX];
+#if defined(C_DOSBOX_AGENT)
 static bool agent_trace_active = false;
 static uint32_t agent_trace_remaining = 0;
+#endif
 static vector<DEBUG_AgentTraceEvent> agent_trace_events;
 
 void DEBUG_HeavyLogInstruction(void) {
@@ -6568,8 +6567,8 @@ void DEBUG_HeavyWriteLogInstruction(void) {
 }
 
 bool DEBUG_HeavyIsBreakpoint(void) {
-	const bool agent_trace_was_active = agent_trace_active;
 #if defined(C_DOSBOX_AGENT)
+	const bool agent_trace_was_active = agent_trace_active;
     if (agent_trace_active) {
 		DEBUG_AgentCaptureTraceEvent();
 		if (--agent_trace_remaining == 0) {
