@@ -32,6 +32,7 @@
 
 extern bool PS1AudioCard;
 #define DAC_CLOCK 1000000
+#define PS1_PSG_CLOCK 4000000
 // 950272?
 #define MAX_OUTPUT 0x7fff
 #define STEP 0x10000
@@ -351,7 +352,7 @@ private:
 	IO_WriteHandleObject WriteHandler[2];
 	MixerObject MixerChanDAC, MixerChanSN;
 public:
-	PS1SOUND(Section* configuration):Module_base(configuration), sn(machine_config(), nullptr, nullptr, 4000000){
+	PS1SOUND(Section* configuration):Module_base(configuration), sn(machine_config(), nullptr, nullptr, PS1_PSG_CLOCK){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
 		PS1AudioCard=false;
