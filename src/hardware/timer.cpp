@@ -16,8 +16,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <assert.h>
-#include <math.h>
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <cstdint>
+
 #include "dosbox.h"
 #include "inout.h"
 #include "logging.h"
@@ -97,9 +100,16 @@ struct PIT_Block {
     uint16_t read_latch = 0;  /* counter value, latched for read back */
     uint16_t write_latch = 0; /* counter value, written by host */
 
+    enum class WriteState : uint8_t {
+        WAIT_MSB = 0,   /* 0=write MSB, switch to LSB (midway through 16-bit write) */
+        LSB_ONLY = 1,   /* 1=LSB only */
+        MSB_ONLY = 2,   /* 2=MSB only */
+        WAIT_LSB = 3    /* 3=write LSB, switch to MSB (initial state for 16-bit write) */
+    };
+
     uint8_t mode = 0;         /* 8254 mode (mode 0 through 5 inclusive) */
     uint8_t read_state = 0;   /* 0=read MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=read LSB, switch to MSB, latch next value */
-    uint8_t write_state = 0;  /* 0=write MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=write MSB, switch to LSB, accept value */
+    WriteState write_state = WriteState::WAIT_MSB;
     uint8_t cycle_base = 0;
 
     bool bcd = false;               /* BCD mode */
@@ -149,7 +159,7 @@ struct PIT_Block {
         last_counter.cycle = 0;
         last_counter.counter = cntr_cur;
     }
-    void latch_next_counter(void) {
+    void latch_next_counter() {
         set_active_counter(cntr);
     }
     void reset_count_at(pic_tickindex_t t) {
@@ -211,7 +221,7 @@ struct PIT_Block {
         if (now < start)
             now = start;
     }
-    pic_tickindex_t reltime(void) const {
+    pic_tickindex_t reltime() const {
         return now - start;
     }
 
@@ -320,8 +330,8 @@ struct PIT_Block {
         return true;
     }
 
-    read_counter_result read_counter(void) const {//This assumes you call track_time()
-        if (!gate || new_mode || (mode == 0 && write_state == 0)/*mode 0 midway through 16-bit write also halts counter*/)
+    read_counter_result read_counter() const {//This assumes you call track_time()
+        if (!gate || new_mode || (mode == 0 && write_state == WriteState::WAIT_MSB)/*mode 0 midway through 16-bit write also halts counter*/)
             return last_counter;
 
         const pic_tickindex_t index = reltime();
@@ -386,7 +396,7 @@ static PIT_Block pit[3];
 
 unsigned long PIT_TICK_RATE = PIT_TICK_RATE_IBM;
 
-pic_tickindex_t VGA_PITSync_delay(void);
+pic_tickindex_t VGA_PITSync_delay();
 
 static void PIT0_Event(Bitu /*val*/) {
 	/* HACK: Despite edge trigger, force IRQ */
@@ -432,7 +442,7 @@ static void PIT0_Event(Bitu /*val*/) {
 	}
 }
 
-uint32_t PIT0_GetAssignedCounter(void) {
+uint32_t PIT0_GetAssignedCounter() {
     return (uint32_t)pit[0].cntr;
 }
 
@@ -494,23 +504,23 @@ static void counter_latch(Bitu counter,bool do_latch=true) {
     }
 }
 
-void TIMER_IRQ0Poll(void) {
+void TIMER_IRQ0Poll() {
     counter_latch(0,false/*do not latch*/);
 }
 
-pic_tickindex_t speaker_pit_delta(void) {
+pic_tickindex_t speaker_pit_delta() {
     unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
     return pic_tickfmod(pit[speaker_pit].now - pit[speaker_pit].start, pit[speaker_pit].delay);
 }
 
-void speaker_pit_update(void) {
+void speaker_pit_update() {
     unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
     pit[speaker_pit].track_time(PIC_FullIndex());
 }
 
-void PCSPEAKER_UpdateType(void);
+void PCSPEAKER_UpdateType();
 
-bool TIMER2_ClockGateEnabled(void) {
+bool TIMER2_ClockGateEnabled() {
     /* PC speaker emulation should treat "new mode" as if the clock gate is disabled.
      * On real hardware, mode 3 does not cycle if you write a control word but then
      * do not write a counter value. */
@@ -569,27 +579,30 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 
 	Bitu counter=port-0x40;
 	PIT_Block * p=&pit[counter];
-	if(p->bcd == true) BIN2BCD(p->write_latch);
 
 	switch (p->write_state) {
-		case 0:
+		case PIT_Block::WriteState::WAIT_MSB:
 			p->write_latch = p->write_latch | ((val & 0xff) << 8);
-			p->write_state = 3;
+			p->write_state = PIT_Block::WriteState::WAIT_LSB;
 			break;
-		case 3:
+		case PIT_Block::WriteState::WAIT_LSB:
 			p->write_latch = val & 0xff;
-			p->write_state = 0;
+			p->write_state = PIT_Block::WriteState::WAIT_MSB;
 			if (p->mode == 0 || p->mode == 4) counter_latch(counter,false);
 			break;
-		case 1:
+		case PIT_Block::WriteState::LSB_ONLY:
 			p->write_latch = val & 0xff;
 			break;
-		case 2:
+		case PIT_Block::WriteState::MSB_ONLY:
 			p->write_latch = (val & 0xff) << 8;
 			break;
 	}
-	if (p->bcd==true) BCD2BIN(p->write_latch);
-	if (p->write_state != 0) {
+	/* Keep both bytes in packed BCD while a two-byte write is in progress.
+	 * Converting after the first byte corrupts the value assembled by the
+	 * second byte. */
+	if (p->bcd && p->write_state != PIT_Block::WriteState::WAIT_MSB)
+		BCD2BIN(p->write_latch);
+	if (p->write_state != PIT_Block::WriteState::WAIT_MSB) {
 		Bitu old_cntr = p->cntr;
 
 		// Intel 8254 datasheet says the counter output latch holds the count
@@ -715,7 +728,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 }
 
-static bool pit_any_status(void) {
+static bool pit_any_status() {
 	for (unsigned int c=0;c < 3;c++) {
 		if (pit[c].counterstatus_set)
 			return true;
@@ -848,7 +861,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			pit[latch].update_count = false;
 			pit[latch].counting = false;
 			pit[latch].read_state  = (val >> 4) & 0x03;
-			pit[latch].write_state = (val >> 4) & 0x03;
+			pit[latch].write_state = static_cast<PIT_Block::WriteState>((val >> 4) & 0x03);
 			uint8_t mode             = (val >> 1) & 0x07;
 			if (mode > 5)
 				mode -= 4; //6,7 become 2 and 3
@@ -993,7 +1006,7 @@ void TIMER_BIOS_INIT_Configure() {
     pit[0].output = true;
     pit[0].gate = true;
 	pit[0].cntr = 0x10000;
-	pit[0].write_state = 3;
+	pit[0].write_state = PIT_Block::WriteState::WAIT_LSB;
 	pit[0].read_state = 3;
 	pit[0].read_latch = 0;
 	pit[0].write_latch = 0;
@@ -1012,7 +1025,7 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[1].go_read_latch = true;
 	pit[1].cntr = 18;
 	pit[1].mode = 2;
-	pit[1].write_state = 3;
+	pit[1].write_state = PIT_Block::WriteState::WAIT_LSB;
 	pit[1].counterstatus_set = false;
 	pit[1].reset_count_at(PIC_FullIndex());
     pit[1].track_time(PIC_FullIndex());
@@ -1024,7 +1037,7 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[2].go_read_latch = true;
 	pit[2].cntr = 18;
 	pit[2].mode = 2;
-	pit[2].write_state = 3;
+	pit[2].write_state = PIT_Block::WriteState::WAIT_LSB;
 	pit[2].counterstatus_set = false;
 	pit[2].reset_count_at(PIC_FullIndex());
     pit[2].track_time(PIC_FullIndex());
@@ -1065,7 +1078,7 @@ void TIMER_BIOS_INIT_Configure() {
 
 		pit[pcspeaker_pit].cntr = div;
 		pit[pcspeaker_pit].read_latch = div;
-		pit[pcspeaker_pit].write_state = 3; /* Chuck Yeager */
+		pit[pcspeaker_pit].write_state = PIT_Block::WriteState::WAIT_LSB; /* Chuck Yeager */
 		pit[pcspeaker_pit].read_state = 3;
 		pit[pcspeaker_pit].mode = 3;
 		pit[pcspeaker_pit].bcd = false;
@@ -1213,7 +1226,7 @@ void TIMER_OnPowerOn(Section*) {
     }
 }
 
-void TIMER_OnEnterPC98_Phase2_UpdateBDA(void) {
+void TIMER_OnEnterPC98_Phase2_UpdateBDA() {
 	if (!cpu.pmode) {
 		/* BIOS data area at 0x501 tells the DOS application which clock rate to use */
 		phys_writeb(0x501,
@@ -1239,7 +1252,7 @@ void TIMER_Init() {
 
 	for (i=0;i < 3;i++) {
 		pit[i].cntr = 0x10000;
-		pit[i].write_state = 0;
+		pit[i].write_state = PIT_Block::WriteState::WAIT_MSB;
 		pit[i].read_state = 0;
 		pit[i].read_latch = 0;
 		pit[i].write_latch = 0;
