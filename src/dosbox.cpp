@@ -2351,7 +2351,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti = secprop->Add_multi("monochrome_pal",Property::Changeable::Always," ");
     Pmulti->SetValue("green",/*init*/true);
     Pmulti->Set_help("Specify the color of monochrome display.\n"
-            "Append 'bright' for a brighter look.");
+            "Append ' bright' (space-separated) for a brighter look (only applies to machine=cga_mono; has no effect on Hercules/MDA).");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("color",Property::Changeable::Always,"green");
     const char* monochrome_pal_colors[]={"green","amber","gray","white",nullptr};
