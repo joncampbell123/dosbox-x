@@ -18,26 +18,23 @@
 
 
 #include "dosbox.h"
-#if defined(C_DOSBOX_AGENT)
-#include "agent/agent_bridge.h"
-#endif
 #if C_DEBUG
-
-#include "../../tests/tests.h"
-
-#include <string.h>
-#include <atomic>
+#include <cctype>
+#include <cstring>
 #include <list>
 #include <vector>
-#include <ctype.h>
 #include <fstream>
 #include <iomanip>
 #include <string>
 #include <sstream>
 using namespace std;
 
+#include "../../tests/tests.h"
+
 #include "debug.h"
+#if defined(C_DOSBOX_AGENT)
 #include "agent/agent_bridge.h"
+#endif
 #include "cross.h" //snprintf
 #include "fpu.h"
 #include "bios.h"
@@ -50,10 +47,8 @@ using namespace std;
 #include "callback.h"
 #include "inout.h"
 #include "paging.h"
-#include "shell.h"
 #include "debug_inc.h"
 #include "../cpu/lazyflags.h"
-#include "keyboard.h"
 #include "control.h"
 
 #include "debug_mcp.h"
@@ -169,8 +164,8 @@ void DEBUG_PrintRTC();
 static void DrawCode(void);
 static void DrawInput(void);
 static void DEBUG_RaiseTimerIrq(void);
-static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num);
-static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num);
+static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num, const char *filename);
+static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num, const char *filename);
 static void LogDEVS(void);
 static void LogMCBS(void);
 static void LogGDT(void);
@@ -350,7 +345,9 @@ extern Bitu cycle_count;
 static bool debugging = false;
 static bool debug_running = false;
 static bool check_rescroll = false;
+#if defined(C_DOSBOX_AGENT)
 static std::atomic<uint64_t> agent_entry_breakpoint_sequence(0);
+#endif
 
 static FPU_rec oldfpu;
 static bool warn_dynamic = false;
@@ -2248,7 +2245,8 @@ bool ParseCommand(char* str) {
 		uint16_t seg = (uint16_t)GetHexValue(found,found); found++;
 		uint32_t ofs = GetHexValue(found,found); found++;
 		uint32_t num = GetHexValue(found,found); found++;
-		SaveMemory(seg,ofs,num);
+		SkipSpace(found);
+		SaveMemory(seg,ofs,num,*found ? found : "MEMDUMP.TXT");
 		return true;
 	}
 
@@ -2256,7 +2254,8 @@ bool ParseCommand(char* str) {
 		uint16_t seg = (uint16_t)GetHexValue(found,found); found++;
 		uint32_t ofs = GetHexValue(found,found); found++;
 		uint32_t num = GetHexValue(found,found); found++;
-		SaveMemoryBin(seg,ofs,num);
+		SkipSpace(found);
+		SaveMemoryBin(seg,ofs,num,*found ? found : "MEMDUMP.BIN");
 		return true;
 	}
 
@@ -4281,8 +4280,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("VGA cmd                   - VGA related debugging commands.\n");
 		DEBUG_ShowMsg("PC98 cmd                  - PC98 related debugging commands.\n");
 		DEBUG_ShowMsg("EMU MEM/MACHINE           - Show emulator memory or machine info.\n");
-		DEBUG_ShowMsg("MEMDUMP [seg]:[off] [len] - Write memory to file memdump.txt.\n");
-		DEBUG_ShowMsg("MEMDUMPBIN [s]:[o] [len]  - Write memory to file memdump.bin.\n");
+		DEBUG_ShowMsg("MEMDUMP [seg]:[off] [len] [filename] - Write memory to a text file (default: MEMDUMP.TXT).\n");
+		DEBUG_ShowMsg("MEMDUMPBIN [s]:[o] [len] [filename]  - Write memory to a binary file (default: MEMDUMP.BIN).\n");
         DEBUG_ShowMsg("MEMFIND [seg]:[off] [.].. - Start memory find search instance.\n");
 		DEBUG_ShowMsg("MEMS [operator] [value]   - Search value within instance.\n");
 		DEBUG_ShowMsg("SELINFO [segName]         - Show selector info.\n");
@@ -6246,8 +6245,8 @@ bool CDebugVar::LoadVars(char* name)
 	return true;
 }
 
-static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num) {
-	FILE* f = fopen("MEMDUMP.TXT","wt");
+static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num, const char *filename) {
+	FILE* f = fopen(filename,"wt");
 	if (!f) {
 		DEBUG_ShowMsg("DEBUG: Memory dump failed.\n");
 		return;
@@ -6283,8 +6282,8 @@ static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num) {
 	DEBUG_ShowMsg("DEBUG: Memory dump success.\n");
 }
 
-static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num) {
-	FILE* f = fopen("MEMDUMP.BIN","wb");
+static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num, const char *filename) {
+	FILE* f = fopen(filename,"wb");
 	if (!f) {
 		DEBUG_ShowMsg("DEBUG: Memory binary dump failed.\n");
 		return;
@@ -6409,8 +6408,10 @@ struct TLogInst {
 };
 
 TLogInst logInst[LOGCPUMAX];
+#if defined(C_DOSBOX_AGENT)
 static bool agent_trace_active = false;
 static uint32_t agent_trace_remaining = 0;
+#endif
 static vector<DEBUG_AgentTraceEvent> agent_trace_events;
 
 void DEBUG_HeavyLogInstruction(void) {
@@ -6566,8 +6567,8 @@ void DEBUG_HeavyWriteLogInstruction(void) {
 }
 
 bool DEBUG_HeavyIsBreakpoint(void) {
-	const bool agent_trace_was_active = agent_trace_active;
 #if defined(C_DOSBOX_AGENT)
+	const bool agent_trace_was_active = agent_trace_active;
     if (agent_trace_active) {
 		DEBUG_AgentCaptureTraceEvent();
 		if (--agent_trace_remaining == 0) {

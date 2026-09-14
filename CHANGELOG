@@ -31,6 +31,8 @@ Next version:
   - Experimental: Added support for AppImage on x64 Linux (maron2000)
   - Fixed PIT timer emulation BCD write handling to keep packed BCD values
     intact across two-byte counter writes before converting to binary. (cimarronm)
+  - Debugger: Added optional filename arguments to MEMDUMP and MEMDUMPBIN,
+    defaulting to MEMDUMP.TXT and MEMDUMP.BIN. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
