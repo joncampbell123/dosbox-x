@@ -1544,14 +1544,42 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
     //Prop_path *sh = section->Get_path("glshader");
 
 #if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+    std::string CurrentDir(512, '\0');
+    if(getcwd(&CurrentDir[0], CurrentDir.size()) == NULL) {
         LOG(LOG_GUI, LOG_ERROR)("vid_select_glsl_shader_menu_callback failed to get the current working directory.");
         return false;
     }
+    CurrentDir.resize(strlen(CurrentDir.c_str()));
+
     struct stat st;
-    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"glshaders"+CROSS_FILESPLIT;
+    std::string res_path = Cross::GetPlatformResDir(), exepath = GetDOSBoxXPath(), config_path = Cross::GetPlatformConfigDir();
+
+    std::vector<std::string> base_paths = {
+        CurrentDir, exepath, config_path, res_path
+    };
+
+    std::string cwd;
+    for(const auto& base : base_paths) {
+        if(base.empty())
+            continue;
+
+        std::string path = base;
+        if(path.back() != CROSS_FILESPLIT)
+            path += CROSS_FILESPLIT;
+        path += "glshaders";
+        path += CROSS_FILESPLIT;
+
+        if(stat(path.c_str(), &st) == 0 && (st.st_mode & S_IFDIR)) {
+            cwd = path;
+            break;
+        }
+
+        if(!cwd.empty())
+            break;
+    }
+
+    if(cwd.empty()) cwd = CurrentDir;
+
 # if defined(MACOSX)
     /* Hey, Mac OS! When I ask for files that end in *.glsl I expect your finder
        to actually let users select files that end in *.glsl! What gives? 2022/06/29 */
@@ -1563,13 +1591,6 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
     const char *lFilterPatterns[] = {"*.glsl","*.GLSL"};
     const char *lFilterDescription = "OpenGL shader files (*.glsl)";
 # endif
-
-    /* Mac OS Monterey: osascript will refuse to present any dialog box if the path does not exist.
-       Make sure we give it something that exists */
-    if (stat(cwd.c_str(),&st) != 0)
-        cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"contrib/glshaders"+CROSS_FILESPLIT;
-    if (stat(cwd.c_str(),&st) != 0)
-        cwd = std::string(Temp_CurrentDir);
 
     char const * lTheOpenFileName = tinyfd_openFileDialog("Select OpenGL shader",cwd.c_str(),nFilterPatterns,lFilterPatterns,lFilterDescription,0);
 
@@ -1622,7 +1643,7 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
             GFX_ForceRedrawScreen();
         }
     }
-    if(chdir(Temp_CurrentDir) == -1) {
+    if(chdir(CurrentDir.c_str()) == -1) {
         LOG(LOG_GUI, LOG_ERROR)("vid_select_glsl_shader_menu_callback failed to change directories.");
         return false;
     }
@@ -1919,22 +1940,48 @@ void Restart_config_file() {
 
 void Load_language_file() {
 #if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+    std::string CurrentDir(512, '\0');
+    if(getcwd(&CurrentDir[0], CurrentDir.size()) == NULL) {
         LOG(LOG_GUI, LOG_ERROR)("Load_language_file failed to get the current working directory.");
         return;
     }
+    CurrentDir.resize(strlen(CurrentDir.c_str()));
+
     struct stat st;
-    std::string res_path, exepath = GetDOSBoxXPath();
-    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"languages"+CROSS_FILESPLIT;
-    res_path = Cross::GetPlatformResDir();
-    if (stat(cwd.c_str(),&st) != 0 && exepath.size())
-        cwd = exepath+(exepath.back()==CROSS_FILESPLIT?"":std::string(1, CROSS_FILESPLIT))+"languages"+CROSS_FILESPLIT;
-    if (stat(cwd.c_str(),&st) != 0 && res_path.size())
-        cwd = res_path+(res_path.back()==CROSS_FILESPLIT?"":std::string(1, CROSS_FILESPLIT))+"languages"+CROSS_FILESPLIT;
-    if (stat(cwd.c_str(),&st) != 0)
-        cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
+    std::string res_path = Cross::GetPlatformResDir(), exepath = GetDOSBoxXPath(), config_path = Cross::GetPlatformConfigDir();
+
+    std::vector<std::string> base_paths = {
+        CurrentDir, exepath, config_path, res_path
+    };
+
+    std::vector<std::string> lng_paths = {
+        "languages", "language"
+    };
+
+    std::string cwd;
+    for(const auto& base : base_paths) {
+        if(base.empty())
+            continue;
+
+        for(const auto& lng_path : lng_paths) {
+            std::string path = base;
+            if(path.back() != CROSS_FILESPLIT)
+                path += CROSS_FILESPLIT;
+            path += lng_path;
+            path += CROSS_FILESPLIT;
+
+            if(stat(path.c_str(), &st) == 0 && (st.st_mode & S_IFDIR)) {
+                cwd = path;
+                break;
+            }
+        }
+
+        if(!cwd.empty())
+            break;
+    }
+
+    if(cwd.empty()) cwd = CurrentDir;
+
     const char *lFilterPatterns[] = {"*.lng","*.LNG","*.txt","*.TXT"};
     const char *lFilterDescription = "DOSBox-X language files (*.lng, *.txt)";
     char const * lTheOpenFileName = tinyfd_openFileDialog("Select language file",cwd.c_str(),4,lFilterPatterns,lFilterDescription,0);
@@ -1968,7 +2015,7 @@ void Load_language_file() {
             }
         }
     }
-    if(chdir(Temp_CurrentDir) == -1) {
+    if(chdir(CurrentDir.c_str()) == -1) {
         LOG(LOG_GUI, LOG_ERROR)("Load_language_file failed to change directories.");
     }
 #endif
