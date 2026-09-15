@@ -394,7 +394,6 @@ static void dyn_fpu_esc2(){
 
 static void dyn_fpu_esc3(){
 	dyn_get_modrm();  
-//	if (decode.modrm.val >= 0xc0) { 
 	if (decode.modrm.mod == 3) {
 		switch (decode.modrm.reg) {
 		case 0x04:
@@ -416,6 +415,14 @@ static void dyn_fpu_esc3(){
 			default:
 				E_Exit("ESC 3:ILLEGAL OPCODE group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
 			}
+			break;
+		case 0x05: /* FUCOMI STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FUCOMI,FC_OP1,FC_OP2);
+			break;
+		case 0x06: /* FCOMI STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FCOMI,FC_OP1,FC_OP2);
 			break;
 		default:
 			LOG(LOG_FPU,LOG_WARN)("ESC 3:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
@@ -673,6 +680,16 @@ static void dyn_fpu_esc7(){
 					LOG(LOG_FPU,LOG_WARN)("ESC 7:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
 					break;
 			}
+			break;
+		case 0x05: /* FUCOMIP STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FUCOMI,FC_OP1,FC_OP2);
+			gen_call_function_raw(FPU_FPOP);
+			break;
+		case 0x06: /* FCOMIP STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FCOMI,FC_OP1,FC_OP2);
+			gen_call_function_raw(FPU_FPOP);
 			break;
 		default:
 			LOG(LOG_FPU,LOG_WARN)("ESC 7:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);

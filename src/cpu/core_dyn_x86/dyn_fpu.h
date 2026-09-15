@@ -414,6 +414,14 @@ static void dyn_fpu_esc3(){
 				E_Exit("ESC 3:ILLEGAL OPCODE group %d subfunction %d",(int)group,(int)sub);
 			}
 			break;
+		case 0x05: /* FUCOMI STi */
+			dyn_fpu_top();
+			gen_call_function((void *)&FPU_FUCOMI,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			break;
+		case 0x06: /* FCOMI STi */
+			dyn_fpu_top();
+			gen_call_function((void *)&FPU_FCOMI,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			break;
 		default:
 			FPU_LOG_WARN(3,false,group,sub);
 			break;
@@ -659,6 +667,16 @@ static void dyn_fpu_esc7(){
 					FPU_LOG_WARN(7,false,4,sub);
 					break;
 			}
+			break;
+		case 0x05: /* FUCOMIP STi */
+			dyn_fpu_top();
+			gen_call_function((void *)&FPU_FUCOMI,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			gen_call_function((void *)&FPU_FPOP,"");
+			break;
+		case 0x06: /* FCOMIP STi */
+			dyn_fpu_top();
+			gen_call_function((void *)&FPU_FCOMI,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			gen_call_function((void *)&FPU_FPOP,"");
 			break;
 		default:
 			FPU_LOG_WARN(7,false,group,sub);
