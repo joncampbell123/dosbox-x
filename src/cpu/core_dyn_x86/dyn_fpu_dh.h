@@ -230,6 +230,8 @@ static void dh_fpu_esc1(){
 static void dh_fpu_esc2(){
 	dyn_get_modrm();  
 	if (decode.modrm.val >= 0xc0) { 
+		const Bitu group = (decode.modrm.val >> 3) & 7;
+		if (group <= 3) gen_needflags(); /* FCMOVcc reads EFLAGS */
 		cache_addb(0xda);
 		cache_addb((uint8_t)decode.modrm.val);
 	} else {
@@ -245,6 +247,14 @@ static void dh_fpu_esc3(){
 		Bitu group=(decode.modrm.val >> 3) & 7;
 		Bitu sub=(decode.modrm.val & 7);
 		switch (group) {
+		case 0x00: /* FCMOVNB STi */
+		case 0x01: /* FCMOVNE STi */
+		case 0x02: /* FCMOVNBE STi */
+		case 0x03: /* FCMOVNU STi */
+			gen_needflags();
+			cache_addb(0xdb);
+			cache_addb((uint8_t)decode.modrm.val);
+			break;
 		case 0x04:
 			switch (sub) {
 			case 0x00:				//FNENI

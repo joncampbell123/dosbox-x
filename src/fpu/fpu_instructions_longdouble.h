@@ -392,6 +392,15 @@ static inline void FPU_FCMOV(Bitu st, Bitu other){
 	fpu.tags[st] = fpu.tags[other];
 }
 
+static inline void FPU_FCMOV_B(Bitu st, Bitu other)   { if (TFLG_B)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_E(Bitu st, Bitu other)   { if (TFLG_Z)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_BE(Bitu st, Bitu other)  { if (TFLG_BE)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_U(Bitu st, Bitu other)   { if (TFLG_P)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NB(Bitu st, Bitu other)  { if (TFLG_NB)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NE(Bitu st, Bitu other)  { if (TFLG_NZ)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NBE(Bitu st, Bitu other) { if (TFLG_NBE) FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NU(Bitu st, Bitu other)  { if (TFLG_NP)  FPU_FCMOV(st, other); }
+
 static void FPU_FCOM(Bitu st, Bitu other){
 	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
 		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
@@ -693,4 +702,3 @@ static INLINE void FPU_FDIVR_EA(Bitu op1){
 static INLINE void FPU_FCOM_EA(Bitu op1){
 	FPU_FCOM(op1,8);
 }
-

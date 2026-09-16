@@ -354,6 +354,30 @@ static void dyn_fpu_esc2(){
 		Bitu group=(decode.modrm.val >> 3) & 7;
 		Bitu sub=(decode.modrm.val & 7);
 		switch(group){
+		case 0x00: /* FCMOVB STi */
+			dyn_fpu_top();
+			dyn_flags_gen_to_host();
+			gen_call_function((void *)&DestroyConditionFlags,"");
+			gen_call_function((void *)&FPU_FCMOV_B,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			break;
+		case 0x01: /* FCMOVE STi */
+			dyn_fpu_top();
+			dyn_flags_gen_to_host();
+			gen_call_function((void *)&DestroyConditionFlags,"");
+			gen_call_function((void *)&FPU_FCMOV_E,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			break;
+		case 0x02: /* FCMOVBE STi */
+			dyn_fpu_top();
+			dyn_flags_gen_to_host();
+			gen_call_function((void *)&DestroyConditionFlags,"");
+			gen_call_function((void *)&FPU_FCMOV_BE,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			break;
+		case 0x03: /* FCMOVU STi */
+			dyn_fpu_top();
+			dyn_flags_gen_to_host();
+			gen_call_function((void *)&DestroyConditionFlags,"");
+			gen_call_function((void *)&FPU_FCMOV_U,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			break;
 		case 0x05:
 			switch(sub){
 			case 0x01:		/* FUCOMPP */
@@ -394,6 +418,30 @@ static void dyn_fpu_esc3(){
 		Bitu group=(decode.modrm.val >> 3) & 7;
 		Bitu sub=(decode.modrm.val & 7);
 		switch (group) {
+		case 0x00: /* FCMOVNB STi */
+			dyn_fpu_top();
+			dyn_flags_gen_to_host();
+			gen_call_function((void *)&DestroyConditionFlags,"");
+			gen_call_function((void *)&FPU_FCMOV_NB,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			break;
+		case 0x01: /* FCMOVNE STi */
+			dyn_fpu_top();
+			dyn_flags_gen_to_host();
+			gen_call_function((void *)&DestroyConditionFlags,"");
+			gen_call_function((void *)&FPU_FCMOV_NE,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			break;
+		case 0x02: /* FCMOVNBE STi */
+			dyn_fpu_top();
+			dyn_flags_gen_to_host();
+			gen_call_function((void *)&DestroyConditionFlags,"");
+			gen_call_function((void *)&FPU_FCMOV_NBE,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			break;
+		case 0x03: /* FCMOVNU STi */
+			dyn_fpu_top();
+			dyn_flags_gen_to_host();
+			gen_call_function((void *)&DestroyConditionFlags,"");
+			gen_call_function((void *)&FPU_FCMOV_NU,"%Drd%Drd",DREG(TMPB),DREG(EA));
+			break;
 		case 0x04:
 			switch (sub) {
 			case 0x00:				//FNENI

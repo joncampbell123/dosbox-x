@@ -17,6 +17,7 @@
  */
 
 #include "cpu.h"
+#include "cpu/lazyflags.h"
 #include "fpu.h"
 #include "mem.h"
 #include "regs.h"
@@ -1264,6 +1265,15 @@ static inline void FPU_FCMOV(Bitu st, Bitu other){
 	fpu.p_regs[st] = fpu.p_regs[other];
 	fpu.tags[st] = fpu.tags[other];
 }
+
+static inline void FPU_FCMOV_B(Bitu st, Bitu other)   { if (TFLG_B)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_E(Bitu st, Bitu other)   { if (TFLG_Z)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_BE(Bitu st, Bitu other)  { if (TFLG_BE)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_U(Bitu st, Bitu other)   { if (TFLG_P)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NB(Bitu st, Bitu other)  { if (TFLG_NB)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NE(Bitu st, Bitu other)  { if (TFLG_NZ)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NBE(Bitu st, Bitu other) { if (TFLG_NBE) FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NU(Bitu st, Bitu other)  { if (TFLG_NP)  FPU_FCMOV(st, other); }
 
 /* FPU_P_Reg holds the raw data fed to the host x86 FPU registers.
  * We can't guarantee that std::isinf() can handle that or that anything

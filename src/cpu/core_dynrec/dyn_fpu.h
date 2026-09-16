@@ -61,7 +61,6 @@ static void FPU_FFREE(Bitu st) {
 #include "../../fpu/fpu_instructions.h"
 #endif
 
-
 static INLINE void dyn_fpu_top() {
 	gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);
 	gen_shr_imm(FC_OP2,11); /* stack top is 3-bit value starting at bit 11 */
@@ -83,7 +82,6 @@ static INLINE void dyn_fpu_top_swapped() {
 }
 
 static void dyn_eatree() {
-//	Bitu group = (decode.modrm.val >> 3) & 7;
 	Bitu group = decode.modrm.reg&7; //It is already that, but compilers.
 	switch (group){
 	case 0x00:		// FADD ST,STi
@@ -118,7 +116,6 @@ static void dyn_eatree() {
 
 static void dyn_fpu_esc0(){
 	dyn_get_modrm(); 
-//	if (decode.modrm.val >= 0xc0) {
 	if (decode.modrm.mod == 3) { 
 		dyn_fpu_top();
 		switch (decode.modrm.reg){
@@ -163,7 +160,6 @@ static void dyn_fpu_esc0(){
 
 static void dyn_fpu_esc1(){
 	dyn_get_modrm();  
-//	if (decode.modrm.val >= 0xc0) { 
 	if (decode.modrm.mod == 3) {
 		switch (decode.modrm.reg){
 		case 0x00: /* FLD STi */
@@ -356,9 +352,24 @@ static void dyn_fpu_esc1(){
 
 static void dyn_fpu_esc2(){
 	dyn_get_modrm();  
-//	if (decode.modrm.val >= 0xc0) { 
 	if (decode.modrm.mod == 3) {
 		switch(decode.modrm.reg){
+		case 0x00: /* FCMOVB STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FCMOV_B,FC_OP1,FC_OP2);
+			break;
+		case 0x01: /* FCMOVE STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FCMOV_E,FC_OP1,FC_OP2);
+			break;
+		case 0x02: /* FCMOVBE STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FCMOV_BE,FC_OP1,FC_OP2);
+			break;
+		case 0x03: /* FCMOVU STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FCMOV_U,FC_OP1,FC_OP2);
+			break;
 		case 0x05:
 			switch(decode.modrm.rm){
 			case 0x01:		/* FUCOMPP */
@@ -396,6 +407,22 @@ static void dyn_fpu_esc3(){
 	dyn_get_modrm();  
 	if (decode.modrm.mod == 3) {
 		switch (decode.modrm.reg) {
+		case 0x00: /* FCMOVNB STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FCMOV_NB,FC_OP1,FC_OP2);
+			break;
+		case 0x01: /* FCMOVNE STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FCMOV_NE,FC_OP1,FC_OP2);
+			break;
+		case 0x02: /* FCMOVNBE STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FCMOV_NBE,FC_OP1,FC_OP2);
+			break;
+		case 0x03: /* FCMOVNU STi */
+			dyn_fpu_top();
+			gen_call_function_RR(FPU_FCMOV_NU,FC_OP1,FC_OP2);
+			break;
 		case 0x04:
 			switch (decode.modrm.rm) {
 			case 0x00:				//FNENI
@@ -468,7 +495,6 @@ static void dyn_fpu_esc3(){
 
 static void dyn_fpu_esc4(){
 	dyn_get_modrm();  
-//	if (decode.modrm.val >= 0xc0) { 
 	if (decode.modrm.mod == 3) {
 		switch(decode.modrm.reg){
 		case 0x00:	/* FADD STi,ST*/
@@ -519,7 +545,6 @@ static void dyn_fpu_esc4(){
 
 static void dyn_fpu_esc5(){
 	dyn_get_modrm();  
-//	if (decode.modrm.val >= 0xc0) { 
 	if (decode.modrm.mod == 3) {
 		dyn_fpu_top();
 		switch(decode.modrm.reg){
@@ -590,7 +615,6 @@ static void dyn_fpu_esc5(){
 
 static void dyn_fpu_esc6(){
 	dyn_get_modrm();  
-//	if (decode.modrm.val >= 0xc0) { 
 	if (decode.modrm.mod == 3) {
 		switch(decode.modrm.reg){
 		case 0x00:	/*FADDP STi,ST*/
@@ -652,7 +676,6 @@ static void dyn_fpu_esc6(){
 
 static void dyn_fpu_esc7(){
 	dyn_get_modrm();  
-//	if (decode.modrm.val >= 0xc0) { 
 	if (decode.modrm.mod == 3) {
 		switch (decode.modrm.reg){
 		case 0x00: /* FFREEP STi */
