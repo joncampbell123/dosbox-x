@@ -28,12 +28,8 @@
 #include "dosbox.h"
 #if C_FPU
 
-#include <math.h>
-#include <float.h>
-#include "cross.h"
 #include "mem.h"
 #include "fpu.h"
-#include "cpu.h"
 
 
 static void FPU_FDECSTP(){
@@ -82,7 +78,7 @@ static INLINE void dyn_fpu_top_swapped() {
 }
 
 static void dyn_eatree() {
-	Bitu group = decode.modrm.reg&7; //It is already that, but compilers.
+	auto group = decode.modrm.reg; //It is already that, but compilers.
 	switch (group){
 	case 0x00:		// FADD ST,STi
 		gen_call_function_R(FPU_FADD_EA,FC_OP1);

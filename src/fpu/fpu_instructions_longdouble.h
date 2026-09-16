@@ -17,8 +17,10 @@
  */
 
 #include <cfenv> /* for std::feholdexcept */
-#include <math.h> /* for isinf, etc */
+#include <cmath> /* for isinf, etc */
+
 #include "cpu/lazyflags.h"
+#include "fpu.h"
 
 static void FPU_FINIT(void) {
 	fenv_t buf;

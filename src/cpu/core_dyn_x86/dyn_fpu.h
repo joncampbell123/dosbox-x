@@ -28,12 +28,8 @@
 #include "dosbox.h"
 #if C_FPU
 
-#include <math.h>
-#include <float.h>
-#include "cross.h"
 #include "mem.h"
 #include "fpu.h"
-#include "cpu.h"
 
 
 static void FPU_FDECSTP(){
@@ -81,7 +77,7 @@ static void dyn_save_fpu_top_for_pagefault() {
 }
 
 static void dyn_eatree() {
-	Bitu group=(decode.modrm.val >> 3) & 7;
+	auto group = decode.modrm.reg;
 	switch (group){
 	case 0x00:		/* FADD ST,STi */
 		gen_call_function((void*)&FPU_FADD_EA,"%Drd",DREG(TMPB));
@@ -115,10 +111,9 @@ static void dyn_eatree() {
 
 static void dyn_fpu_esc0(){
 	dyn_get_modrm(); 
-	if (decode.modrm.val >= 0xc0) { 
+	if (decode.modrm.mod == 3) {
 		dyn_fpu_top();
-		Bitu group=(decode.modrm.val >> 3) & 7;
-		switch (group){
+		switch (decode.modrm.reg) {
 		case 0x00:		//FADD ST,STi /
 			gen_call_function((void*)&FPU_FADD,"%Drd%Drd",DREG(TMPB),DREG(EA));
 			break;
@@ -158,10 +153,10 @@ static void dyn_fpu_esc0(){
 }
 
 static void dyn_fpu_esc1(){
-	dyn_get_modrm();  
-	if (decode.modrm.val >= 0xc0) { 
-		Bitu group=(decode.modrm.val >> 3) & 7;
-		Bitu sub=(decode.modrm.val & 7);
+	dyn_get_modrm();
+	if (decode.modrm.mod == 3) {
+		auto group=decode.modrm.reg;
+		auto sub=decode.modrm.rm;
 		switch (group){
 		case 0x00: /* FLD STi */
 			gen_protectflags(); 
@@ -306,8 +301,8 @@ static void dyn_fpu_esc1(){
 			break;
 		}
 	} else {
-		Bitu group=(decode.modrm.val >> 3) & 7;
-		Bitu sub=(decode.modrm.val & 7);
+		auto group=decode.modrm.reg;
+		auto sub=decode.modrm.rm;
 		dyn_fill_ea(); 
 		switch(group){
 		case 0x00: /* FLD float*/
@@ -349,10 +344,10 @@ static void dyn_fpu_esc1(){
 }
 
 static void dyn_fpu_esc2(){
-	dyn_get_modrm();  
-	if (decode.modrm.val >= 0xc0) { 
-		Bitu group=(decode.modrm.val >> 3) & 7;
-		Bitu sub=(decode.modrm.val & 7);
+	dyn_get_modrm();
+	if (decode.modrm.mod == 3) {
+		auto group=decode.modrm.reg;
+		auto sub=decode.modrm.rm;
 		switch(group){
 		case 0x00: /* FCMOVB STi */
 			dyn_fpu_top();
@@ -413,10 +408,10 @@ static void dyn_fpu_esc2(){
 }
 
 static void dyn_fpu_esc3(){
-	dyn_get_modrm();  
-	if (decode.modrm.val >= 0xc0) { 
-		Bitu group=(decode.modrm.val >> 3) & 7;
-		Bitu sub=(decode.modrm.val & 7);
+	dyn_get_modrm();
+	if (decode.modrm.mod == 3) {
+		auto group=decode.modrm.reg;
+		auto sub=decode.modrm.rm;
 		switch (group) {
 		case 0x00: /* FCMOVNB STi */
 			dyn_fpu_top();
@@ -475,8 +470,8 @@ static void dyn_fpu_esc3(){
 			break;
 		}
 	} else {
-		Bitu group=(decode.modrm.val >> 3) & 7;
-		Bitu sub=(decode.modrm.val & 7);
+		auto group=decode.modrm.reg;
+		auto sub=decode.modrm.rm;
 		dyn_fill_ea(); 
 		switch(group){
 		case 0x00:	/* FILD */
@@ -515,9 +510,9 @@ static void dyn_fpu_esc3(){
 }
 
 static void dyn_fpu_esc4(){
-	dyn_get_modrm();  
-	Bitu group=(decode.modrm.val >> 3) & 7;
-	if (decode.modrm.val >= 0xc0) { 
+	dyn_get_modrm();
+	auto group=decode.modrm.reg;
+	if (decode.modrm.mod == 3) {
 		dyn_fpu_top();
 		switch(group){
 		case 0x00:	/* FADD STi,ST*/
@@ -559,10 +554,10 @@ static void dyn_fpu_esc4(){
 }
 
 static void dyn_fpu_esc5(){
-	dyn_get_modrm();  
-	Bitu group=(decode.modrm.val >> 3) & 7;
-	Bitu sub=(decode.modrm.val & 7);
-	if (decode.modrm.val >= 0xc0) { 
+	dyn_get_modrm();
+	auto group=decode.modrm.reg;
+	auto sub=decode.modrm.rm;
+	if (decode.modrm.mod == 3) {
 		dyn_fpu_top();
 		switch(group){
 		case 0x00: /* FFREE STi */
@@ -632,10 +627,10 @@ static void dyn_fpu_esc5(){
 }
 
 static void dyn_fpu_esc6(){
-	dyn_get_modrm();  
-	Bitu group=(decode.modrm.val >> 3) & 7;
-	Bitu sub=(decode.modrm.val & 7);
-	if (decode.modrm.val >= 0xc0) { 
+	dyn_get_modrm();
+	auto group=decode.modrm.reg;
+	auto sub=decode.modrm.rm;
+	if (decode.modrm.mod == 3) {
 		dyn_fpu_top();
 		switch(group){
 		case 0x00:	/*FADDP STi,ST*/
@@ -686,10 +681,10 @@ static void dyn_fpu_esc6(){
 }
 
 static void dyn_fpu_esc7(){
-	dyn_get_modrm();  
-	Bitu group=(decode.modrm.val >> 3) & 7;
-	Bitu sub=(decode.modrm.val & 7);
-	if (decode.modrm.val >= 0xc0) { 
+	dyn_get_modrm();
+	auto group=decode.modrm.reg;
+	auto sub=decode.modrm.rm;
+	if (decode.modrm.mod == 3) {
 		switch (group){
 		case 0x00: /* FFREEP STi*/
 			dyn_fpu_top();

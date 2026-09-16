@@ -16,8 +16,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <math.h> /* for isinf, etc */
+#include <cmath> /* for isinf, etc */
+
+#include "cross.h"
 #include "cpu/lazyflags.h"
+#include "fpu.h"
 
 // Helper functions for 64-bit memory access
 static inline uint64_t mem_readq(PhysPt addr) {
@@ -481,13 +484,8 @@ static void FPU_FDIV(Bitu st, Bitu other){
     fpu.use80[st] = false;
     fpu.regs[st].d = a / b;
 
-    if(std::isinf(fpu.regs[st].d) &&
-        std::isfinite(a) &&
-        std::isfinite(b) &&
-        b != 0)
+    if (std::isinf(fpu.regs[st].d) && std::isfinite(a) && std::isfinite(b) && b != 0)
         FPU_SetException(FPU_EX_OVERFLOW);
-
-	return;
 }
 
 static void FPU_FDIVR(Bitu st, Bitu other){
