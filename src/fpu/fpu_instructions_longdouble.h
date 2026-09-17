@@ -440,6 +440,8 @@ static void FPU_FUCOMI(Bitu st, Bitu other){
 	
 	FillFlags();
 	SETFLAGBIT(OF,false);
+	SETFLAGBIT(SF,false);
+	SETFLAGBIT(AF,false);
 
 	if(fpu.regs_80[st].v == fpu.regs_80[other].v){
 		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;

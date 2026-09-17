@@ -652,6 +652,8 @@ static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	
 	FillFlags();
 	SETFLAGBIT(OF,false);
+	SETFLAGBIT(SF,false);
+	SETFLAGBIT(AF,false);
 
     if(fpu.tags[st] == TAG_Empty ||
         fpu.tags[other] == TAG_Empty) {

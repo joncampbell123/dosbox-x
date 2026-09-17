@@ -1313,6 +1313,8 @@ static void FPU_FUCOMI(Bitu st, Bitu other){
 
 	FillFlags();
 	SETFLAGBIT(OF,false);
+	SETFLAGBIT(SF,false);
+	SETFLAGBIT(AF,false);
 
     if (fpu.sw & (1u << 14u)/*C3*/) {//if(fpu.regs[st].d == fpu.regs[other].d){
 		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
