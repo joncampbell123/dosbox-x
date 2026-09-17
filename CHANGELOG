@@ -33,6 +33,9 @@ Next version:
     intact across two-byte counter writes before converting to binary. (cimarronm)
   - Debugger: Added optional filename arguments to MEMDUMP and MEMDUMPBIN,
     defaulting to MEMDUMP.TXT and MEMDUMP.BIN. (cimarronm)
+  - Added Pentium Pro x87 FCMOVcc, FCOMI/FCOMIP, and FUCOMI/FUCOMIP support
+    to the dyn_x86 and dynrec CPU cores, and fixed FCOMI/FUCOMI to clear AF,
+    SF, and OF. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
