@@ -42,6 +42,7 @@ void CMS_Init(Section* sec);
 void CMS_ShutDown(Section* sec);
 
 bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma);
+unsigned int SB_GetPASType(void); /* 0=none 1=PAS 2=PAS Plus 3=PAS 16 */
 bool TS_Get_Address(Bitu& tsaddr, Bitu& tsirq, Bitu& tsdma);
 
 extern uint8_t adlib_commandreg;
