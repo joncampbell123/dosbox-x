@@ -1470,6 +1470,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", nullptr };
     const char* guspantables[] = { "old", "accurate", "default", nullptr };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", nullptr };
+    const char *wssbaseno[] = { "530", "604", "e80", "f40", nullptr };
     const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none", nullptr};
 //    const char* joydeadzone[] = { "0.26", nullptr };
 //    const char* joyresponse[] = { "1.0", nullptr };
@@ -4201,6 +4202,18 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(qualityno);
     Pint->Set_help("Set SID emulation quality level (0 to 3).");
     Pint->SetBasic(true);
+
+    secprop = control->AddSection_prop("wss",&Null_Init,true);
+    Pbool = secprop->Add_bool("wss",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Enable Windows Sound System (CS4231) emulation.");
+    Pbool->SetBasic(true);
+    Phex = secprop->Add_hex("wssbase",Property::Changeable::WhenIdle,0x530);
+    Phex->Set_values(wssbaseno);
+    Phex->Set_help("WSS base port. Codec registers are at base+4.");
+    Phex->SetBasic(true);
+    Pbool = secprop->Add_bool("wssmixer",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow the CS4231 mixer to modify the DOSBox-X mixer.");
+    Pbool->SetBasic(true);
 
     secprop = control->AddSection_prop("imfc", &Null_Init, Property::Changeable::WhenIdle);
     Pbool = secprop->Add_bool("imfc", Property::Changeable::WhenIdle, false);
