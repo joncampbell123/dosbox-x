@@ -654,10 +654,11 @@ static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	SETFLAGBIT(OF,false);
 	SETFLAGBIT(SF,false);
 	SETFLAGBIT(AF,false);
+    fpu.sw.C1 = 0;
 
     if(fpu.tags[st] == TAG_Empty ||
         fpu.tags[other] == TAG_Empty) {
-        FPU_SetException(FPU_EX_INVALID);
+        FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
         SETFLAGBIT(ZF, true);
         SETFLAGBIT(PF, true);
         SETFLAGBIT(CF, true);
