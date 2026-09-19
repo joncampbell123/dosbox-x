@@ -1626,6 +1626,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\ints\int10_pal.cpp" />
     <ClCompile Include="..\src\ints\int10_put_pixel.cpp" />
     <ClCompile Include="..\src\ints\int10_vesa.cpp" />
+    <ClCompile Include="..\src\ints\int10_vesa_ai.cpp" />
     <ClCompile Include="..\src\ints\int10_video_state.cpp" />
     <ClCompile Include="..\src\ints\int10_vptable.cpp" />
     <ClCompile Include="..\src\ints\mouse.cpp" />

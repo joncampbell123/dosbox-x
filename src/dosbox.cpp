@@ -4219,6 +4219,16 @@ void DOSBOX_SetupConfigSections(void) {
         "  on:        Filter the output (default).\n"
         "  off:       Don't filter the output.");
 
+    secprop = control->AddSection_prop("vbeai",&Null_Init,true);//done
+    Pbool = secprop->Add_bool("vbeai",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Enable the VESA VBE/AI (VESA Audio Interface) provider, INT 10h AX=4F13h.\n"
+                    "DOSBox-X answers VBE/AI calls directly from its own emulated BIOS, the same way\n"
+                    "it answers the VESA VBE video calls, so no VBE/AI driver needs to be loaded in\n"
+                    "the guest. Audio is rendered through the 'VBEAI' mixer channel; no I/O port\n"
+                    "range, IRQ or DMA channel is used. Only the WAVE device class is provided;\n"
+                    "MIDI and Volume device classes are not. See docs/vbeai.md for details.");
+    Pbool->SetBasic(true);
+
     secprop = control->AddSection_prop("speaker",&Null_Init,true);//done
     Pbool = secprop->Add_bool("pcspeaker",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable PC-Speaker emulation.");

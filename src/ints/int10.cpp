@@ -807,6 +807,12 @@ CX	640x480	800x600	  1024x768/1280x1024
 		}
 		break;
 	case 0x4f:								/* VESA Calls */
+		/* VESA VBE/AI (Audio Interface) is handled before the video checks below:
+		 * it is an audio interface and has nothing to do with which SVGA card is
+		 * being emulated. If the provider is disabled we fall through to the
+		 * normal "unsupported function" path. See docs/vbeai.md. */
+		if (reg_al == 0x13 && INT10_VBEAI_Handler())
+			break;
 		if ((!IS_VGA_ARCH) || !(svgaCard==SVGA_S3Trio||svgaCard==SVGA_DOSBoxIG))
 			break;
 		if (int10.vesa_oldvbe10 && reg_al >= 6) /* Functions 6 and up did not exist until VBE 1.2 (or 1.1?) */
@@ -1818,6 +1824,10 @@ extern bool VGA_BIOS_use_rom;
 void INT10_Startup(Section *sec) {
     (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
+
+	/* VESA VBE/AI audio interface (INT 10h AX=4F13h). Set up alongside the rest
+	 * of the INT 10h BIOS, independently of the emulated video hardware. */
+	VBEAI_Setup();
 
     Section_prop * video_section = static_cast<Section_prop *>(control->GetSection("video"));
 

@@ -660,6 +660,9 @@
     <ClCompile Include="..\src\ints\int10_vesa.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ints\int10_vesa_ai.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\ints\int10_video_state.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
