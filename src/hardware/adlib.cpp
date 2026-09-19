@@ -1497,11 +1497,15 @@ void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
 	module->PortWrite( port, val, iolen );
 }
 
-/* Original Pro AudioSpectrum: its two OPL2s sit at 388h (left) and 38Ah (right), and 788h
- * writes both. Translate to the Sound Blaster Pro 1 layout (220h left, 222h right, 228h
- * both) that the dual OPL2 mode already decodes. */
+bool PAS_FMSplit(void);
+
+/* Original Pro AudioSpectrum: two OPL2s. With the FM split on (B88h bit 7 clear) 388h
+ * drives the left one and 38Ah the right; with it off 388h drives both, so AdLib-only
+ * software plays in both channels. 788h always writes both. Translate to the Sound
+ * Blaster Pro 1 layout (220h left, 222h right, 228h both) that dual OPL2 mode decodes. */
 static Bitu PAS_OPL_Port(Bitu port) {
-	return (port & 0x400) ? (0x228 | (port & 1)) : (0x220 | (port & 3));
+	if ((port & 0x400) || (!(port & 2) && !PAS_FMSplit())) return 0x228 | (port & 1);
+	return 0x220 | (port & 3);
 }
 
 static Bitu OPL_PAS_Read(Bitu port,Bitu iolen) {

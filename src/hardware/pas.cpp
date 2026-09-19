@@ -21,8 +21,10 @@
 
 /* What this file owns, per board:
  *
- *   PAS (original)  base fixed at 388h. Two OPL2s (388h left, 38Ah right, 788h both;
- *                   routed in adlib.cpp). 8-bit DMA PCM clocked by the 8253 at 1388h.
+ *   PAS (original)  base fixed at 388h. Two OPL2s (routed in adlib.cpp): with the FM split
+ *                   on (B88h bit 7 clear) 388h is left and 38Ah right; with it off 388h
+ *                   drives both. 788h always drives both. 8-bit DMA PCM clocked by the
+ *                   8253 at 1388h.
  *                   National LMC1982/LMC835 serial mixer. YM3802 MIDI. No Sound Blaster.
  *   PAS Plus        base relocatable through 9A01h. OPL3 at 388h (adlib.cpp). Same PCM
  *                   and serial mixer, MIDI UART, plus a Sound Blaster 2.0 DSP whose
@@ -57,8 +59,9 @@ enum { PCM_MONO = 0x20, PCM_ENA = 0x40, PCM_DMA_ENA = 0x80 };             /* F8A
 enum { SC2_16BIT = 0x04, SC2_12BIT = 0x08, SC2_MSBINV = 0x10 };           /* 8389h */
 enum { FILT_UNMUTE = 0x20, FILT_GATE0 = 0x40, FILT_GATE1 = 0x80 };        /* B8Ah */
 
-/* B88h serial mixer lines (PAS/PAS Plus) */
-enum { SM_DATA = 0x01, SM_CLOCK = 0x02, SM_STROBE = 0x04, SM_IDENT = 0x10 };
+/* B88h serial mixer lines (PAS/PAS Plus), and on the original PAS the FM split switch:
+ * bit 7 set = split off, 388h writes both OPL2s (AdLib compatible) */
+enum { SM_DATA = 0x01, SM_CLOCK = 0x02, SM_STROBE = 0x04, SM_IDENT = 0x10, SM_FM_MONO = 0x80 };
 
 /* Serial mixer receive states. The low bits count the bit being shifted in. */
 enum {
@@ -951,6 +954,9 @@ void PAS_Init(unsigned int type, Bitu sb_base, Bitu irq, Bitu dma, bool use_mixe
     if (type == PAS_ORIGINAL) {
         pas->irq = (irq == 0xff) ? -1 : (int)irq;
         PAS_SetDMA((dma == 0xff) ? 4 : (int)dma);
+        /* Power up with the FM split off, so AdLib-only software is not
+         * left-only without MVSOUND.SYS. The real board's reset state is unverified. */
+        pas->audio_mixer = SM_FM_MONO;
     }
     else {
         /* 86Box defaults; MVSOUND.SYS reprograms them through F389h/F38Ah */
@@ -976,6 +982,11 @@ void PAS_Init(unsigned int type, Bitu sb_base, Bitu irq, Bitu dma, bool use_mixe
 
     LOG(LOG_SB, LOG_NORMAL)("Pro AudioSpectrum%s at %03Xh, IRQ %d, DMA %d",
         type == PAS_16 ? " 16" : (type == PAS_PLUS ? " Plus" : ""), (unsigned int)pas->base, pas->irq, pas->dma);
+}
+
+/* adlib.cpp: does 388h drive only the left OPL2 (FM split on, B88h bit 7 clear)? */
+bool PAS_FMSplit(void) {
+    return pas && pas->type == PAS_ORIGINAL && !(pas->audio_mixer & SM_FM_MONO);
 }
 
 void PAS_ShutDown(void) {
