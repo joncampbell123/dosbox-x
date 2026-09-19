@@ -17,6 +17,7 @@
  */
 
 #include "dosbox.h"
+#include "bios.h"
 #include "callback.h"
 #include "cpu.h"
 #include "int10.h"
@@ -87,15 +88,14 @@
 #define GDC_LENGTH              (12 + WAVEINFO_LENGTH)   /* 138 */
 #define WAVESERVICE_LENGTH      84
 
-/* Layout of the memory block the application donates at open time.  The
- * services structure goes at offset 0; the real-mode trampolines the
- * application will far-call live above it.  The spec's own rationale for the
- * donated block is that a ROM-resident driver has nowhere else to put its
- * per-open state, so this is exactly what it is for. */
+/* The services structure is written at offset 0 of the memory block the
+ * application donates at open time.  Nothing else goes in there: the
+ * real-mode trampolines live in BIOS ROM instead, so an application that
+ * clears or reuses its own buffer cannot destroy the driver's code. */
 #define VBEAI_SERVICE_OFF       0x0000
-#define VBEAI_STUB_OFF          0x0060      /* 14 stubs, 10 bytes each */
-#define VBEAI_STUB_SIZE         10
-#define VBEAI_MEMREQ            0x0100      /* what we report in wimemreq */
+#define VBEAI_MEMREQ            0x0080      /* what we report in wimemreq */
+
+#define VBEAI_STUB_SIZE         10          /* MOV AX,imm16 / callback / RETF imm16 */
 
 /* offsets within WAVEService */
 #define WS_OFF_NAME             0
@@ -234,6 +234,14 @@ static struct {
 static Bitu vbeai_callback = 0;
 static bool vbeai_callback_allocated = false;
 
+/* Real-mode entry points, in BIOS ROM: VF_COUNT stubs of VBEAI_STUB_SIZE bytes. */
+static RealPt vbeai_stubs = 0;
+
+static inline RealPt VBEAI_StubPtr(uint16_t index) {
+    return RealMake(RealSeg(vbeai_stubs),
+                    (uint16_t)(RealOff(vbeai_stubs) + index * VBEAI_STUB_SIZE));
+}
+
 /* ---------------------------------------------------------------------------
  * Small helpers
  * ------------------------------------------------------------------------- */
@@ -315,6 +323,20 @@ static void VBEAI_ApplyFormat(void) {
     vbeai.chan->SetFreq(vbeai.rate);
 }
 
+/* Block playback reached its end: go idle and hand the buffer back.  The spec
+ * wants the callback to happen once the data has been heard; handing it to the
+ * mixer is the closest thing to "out the DAC" we have. */
+static void VBEAI_FinishBlock(void) {
+    const RealPt ptr = vbeai.playptr;
+    const uint32_t len = vbeai.playlen;
+
+    vbeai.playing = false;
+    vbeai.playhandle = 0;
+    if (vbeai.chan) vbeai.chan->Enable(false);
+
+    VBEAI_QueueCallback(ptr, len, false);
+}
+
 /* Render from guest memory into the mixer.  Runs in the emulator's mixing
  * context, never in guest CPU context, so it must not touch guest registers or
  * the guest stack -- completion callbacks are queued, not delivered, here. */
@@ -362,6 +384,11 @@ static void VBEAI_MixerCallback(Bitu len) {
                 vbeai.divdone = 0;
                 continue;
             }
+            /* Block mode: fewer than one whole frame left, so nothing further
+             * is playable. Finish the block rather than sitting here busy for
+             * the rest of time -- a block length that is not a whole number of
+             * frames would otherwise never complete and never call back. */
+            if (!vbeai.continuous) VBEAI_FinishBlock();
             break;
         }
         stall = 0;
@@ -409,15 +436,7 @@ static void VBEAI_MixerCallback(Bitu len) {
             }
         }
         else if (vbeai.playpos >= vbeai.playlen) {
-            /* Block finished.  The spec wants the callback to happen once the
-             * data has been heard; handing it to the mixer is the closest thing
-             * to "out the DAC" we have. */
-            const RealPt ptr = vbeai.playptr;
-            const uint32_t plen = vbeai.playlen;
-            vbeai.playing = false;
-            vbeai.playhandle = 0;
-            if (vbeai.chan) vbeai.chan->Enable(false);
-            VBEAI_QueueCallback(ptr, plen, false);
+            VBEAI_FinishBlock();
             break;
         }
     }
@@ -449,8 +468,7 @@ static bool VBEAI_DeliverPending(void) {
 
     if (cb == 0) return false;      /* application registered no callback */
 
-    const RealPt syncret = RealMake(vbeai.memseg,
-        (uint16_t)(VBEAI_STUB_OFF + VF_SYNCRET * VBEAI_STUB_SIZE));
+    const RealPt syncret = VBEAI_StubPtr(VF_SYNCRET);
 
     /* Pascal: push left to right, so the first declared argument ends up at the
      * highest address.  wsApplPSyncCB(int han, void far *ptr, long len, long) */
@@ -789,13 +807,7 @@ static void VBEAI_WriteStub(PhysPt at, uint16_t index) {
 }
 
 static void VBEAI_PublishServices(uint16_t seg) {
-    const PhysPt base = PhysMake(seg, 0);
-
-    /* trampolines first -- the structure points at them */
-    for (uint16_t i = 0; i < VF_COUNT; i++)
-        VBEAI_WriteStub(base + VBEAI_STUB_OFF + i * VBEAI_STUB_SIZE, i);
-
-    const PhysPt s = base + VBEAI_SERVICE_OFF;
+    const PhysPt s = PhysMake(seg, 0) + VBEAI_SERVICE_OFF;
 
     phys_writeb(s + WS_OFF_NAME + 0, 'W');
     phys_writeb(s + WS_OFF_NAME + 1, 'A');
@@ -805,10 +817,8 @@ static void VBEAI_PublishServices(uint16_t seg) {
     for (unsigned int i = 0; i < 16; i++) phys_writeb(s + WS_OFF_FUTURE + i, 0);
 
     /* the 13 driver-supplied functions, in structure order */
-    for (uint16_t i = 0; i < VF_SYNCRET; i++) {
-        phys_writed(s + WS_OFF_FIRSTFUNC + i * 4,
-            (uint32_t)RealMake(seg, (uint16_t)(VBEAI_STUB_OFF + i * VBEAI_STUB_SIZE)));
-    }
+    for (uint16_t i = 0; i < VF_SYNCRET; i++)
+        phys_writed(s + WS_OFF_FIRSTFUNC + i * 4, (uint32_t)VBEAI_StubPtr(i));
 
     /* the application fills these in itself */
     phys_writed(s + WS_OFF_APPLPSYNCCB, 0);
@@ -1039,6 +1049,22 @@ void VBEAI_Setup(void) {
      * point we publish is a stub we write by hand, because the Pascal calling
      * convention needs a per-function RETF imm16 that CB_RETF cannot express. */
     CALLBACK_Setup(vbeai_callback, &VBEAI_ServiceHandler, CB_RETN, "VBE/AI services");
+
+    /* Put the entry points in BIOS ROM, where a VBE/AI driver would live on a
+     * real machine.  Reallocated on each INT 10h (re)init, alongside the rest
+     * of the BIOS. */
+    {
+        const Bitu base = ROMBIOS_GetMemory(VF_COUNT * VBEAI_STUB_SIZE,
+                                            "VBE/AI service entry points", 1, 0);
+        if (base == 0) {
+            LOG(LOG_MISC, LOG_WARN)("VBE/AI: no ROM BIOS space for entry points, disabling");
+            vbeai.enabled = false;
+            return;
+        }
+        vbeai_stubs = RealMake((uint16_t)(base >> 4), (uint16_t)(base & 0x0f));
+        for (uint16_t i = 0; i < VF_COUNT; i++)
+            VBEAI_WriteStub((PhysPt)(base + i * VBEAI_STUB_SIZE), i);
+    }
 
     if (vbeai.chan == NULL) {
         /* Created once and kept for the lifetime of the process: the channel is

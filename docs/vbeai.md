@@ -463,6 +463,13 @@ without an open device as the spec requires. Hooking `INT 08h` internally would 
 limitation entirely and is the obvious next step if a real-world consumer turns out to need
 it.
 
+**Callback delivery mechanics.** `wsApplPSyncCB` is entered by pushing its Pascal frame onto
+the guest stack and letting the `wsTimerTick` stub's own `RETF` land on the application's
+callback, with the internal sync-return stub as that callback's return address. When the
+application's `RETF 14` returns into the sync-return stub, its handler drains the next queued
+callback the same way, so a backlog is delivered in one pass before control goes back to the
+caller of `wsTimerTick`.
+
 **Configuration.** A dedicated `[vbeai]` section with a single `vbeai = true|false` key,
 matching how `[sblaster]`, `[gus]` and friends are structured. Default **on**: the interface
 is purely additive — `AX=4F13h` currently returns "unsupported" — and the whole point is that

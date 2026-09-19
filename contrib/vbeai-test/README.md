@@ -9,6 +9,12 @@ A minimal real-mode DOS program that plays a RIFF/WAVE file through
 Open Watcom, 16-bit real mode, large model:
 
 ```bash
+WATCOM=/path/to/open-watcom sh ./build.sh
+```
+
+which is just:
+
+```bash
 wcl -0 -ml -bcl=dos -fe=vbeaiwav.exe vbeaiwav.c
 ```
 
@@ -40,7 +46,7 @@ Expected output:
 ```
 VBE/AI version 1.0 present.
 Device: DOSBox-X / VBE/AI Provider (DOSBox-X Mixer)
-        features=3004A529 memreq=256 ticks/sec=100
+        features=3004A529 memreq=128 ticks/sec=100
 GUPPY.WAV: 1 ch, 11025 Hz, 8 bit, ... bytes
 Playing -- ESC to stop.
 Playback complete.
