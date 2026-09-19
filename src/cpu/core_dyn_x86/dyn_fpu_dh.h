@@ -278,6 +278,12 @@ static void dh_fpu_esc3(){
 				E_Exit("ESC 3:ILLEGAL OPCODE group %d subfunction %d",(int)group,(int)sub);
 			}
 			break;
+		case 0x05: /* FUCOMI STi */
+		case 0x06: /* FCOMI STi */
+			gen_discardflags();
+			cache_addb(0xdb);
+			cache_addb((uint8_t)decode.modrm.val);
+			break;
 		default:
 			FPU_LOG_WARN(3,false,group,sub);
 			break;
@@ -420,6 +426,12 @@ static void dh_fpu_esc7(){
 					FPU_LOG_WARN(7,false,4,sub);
 					break;
 			}
+			break;
+		case 0x05: /* FUCOMIP STi */
+		case 0x06: /* FCOMIP STi */
+			gen_discardflags();
+			cache_addb(0xdf);
+			cache_addb((uint8_t)decode.modrm.val);
 			break;
 		default:
 			FPU_LOG_WARN(7,false,group,sub);
