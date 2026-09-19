@@ -482,7 +482,7 @@ Three layers, because "it made a noise" is not evidence that the right samples c
 
 **Host-side white-box check** — `contrib/vbeai-test/hostcheck/`. Compiles the provider against
 stub headers faking DOSBox-X's guest memory, registers, callbacks and mixer, then drives it
-directly: 73 assertions covering the trampoline encoding, the `INT 10h` subfunctions, the
+directly: 84 assertions covering the trampoline encoding, the `INT 10h` subfunctions, the
 structure byte offsets, Pascal argument decoding, block and continuous playback stepping, and
 the exact shape of the completion-callback frame left on the guest stack.
 
