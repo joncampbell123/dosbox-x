@@ -27,6 +27,8 @@
 #include "mixer.h"
 #include "regs.h"
 #include "setup.h"
+#include "support.h"
+#include "vbeai_fm.h"
 
 /* ---------------------------------------------------------------------------
  * Specification constants (VBE/AI 1.0, 02/04/94)
@@ -300,20 +302,53 @@ static struct {
     MixerChannel*   chan = NULL;
 } vbeai;
 
-/* MIDI device state.  Much smaller than the WAVE device: we are a MIDI
- * transmitter, so there is no synthesis, no voice allocation and no patch
- * storage here -- messages are handed straight to DOSBox-X's MIDI output. */
+/* DOSBox-X's MIDI output, for the transmitter path.  Declared the same way
+ * src/hardware/mpu401.cpp does. */
+extern void MIDI_RawOutByte(uint8_t data);
+extern bool MIDI_Available(void);
+
+/* What kind of MIDI device we present, from [vbeai] midimode.  The choice is a
+ * VBE/AI-level one -- it changes the advertised feature bits, the chip name,
+ * the voice count and whether a patch library is relevant -- which is why it
+ * lives here rather than in [midi]. */
+enum VBEAI_MidiMode {
+    VBEAI_MIDI_AUTO = 0,        /* transmitter if a MIDI output exists, else none */
+    VBEAI_MIDI_TRANSMITTER,     /* forward to [midi] mididevice                   */
+    VBEAI_MIDI_OPL2,            /* interpret the stream on a private OPL2         */
+    VBEAI_MIDI_OPL3,            /* ditto, OPL3, 18 voices                         */
+    VBEAI_MIDI_NONE             /* no MIDI device at all                          */
+};
+
 static struct {
     bool            opened = false;
     uint16_t        memseg = 0;
     int16_t         devpref = 0;
     uint16_t        lasterror = 0;
     uint32_t        msgbytes = 0;   /* application MIDI bytes forwarded */
+    VBEAI_MidiMode  mode = VBEAI_MIDI_AUTO;
 } vbeai_midi;
 
-extern void MIDI_RawOutByte(uint8_t data);
-extern bool MIDI_Available(void);
+/* Is the device an FM synthesiser rather than a forwarding transmitter? */
+static inline bool VBEAI_MidiIsFM(void) {
+    return vbeai_midi.mode == VBEAI_MIDI_OPL2 || vbeai_midi.mode == VBEAI_MIDI_OPL3;
+}
 
+/* Does a MIDI device exist at all under the current mode?  A transmitter needs
+ * somewhere to transmit to; an FM synthesiser is self-contained. */
+static bool VBEAI_MidiPresent(void) {
+    switch (vbeai_midi.mode) {
+    case VBEAI_MIDI_NONE:        return false;
+    case VBEAI_MIDI_OPL2:
+    case VBEAI_MIDI_OPL3:        return VBEAI_FM_Active();
+    case VBEAI_MIDI_TRANSMITTER:
+    case VBEAI_MIDI_AUTO:
+    default:                     return MIDI_Available();
+    }
+}
+
+/* MIDI device state.  Small next to the WAVE device: in transmitter mode there
+ * is nothing to keep, and in FM mode the synthesiser state lives in
+ * vbeai_fm.cpp rather than here. */
 static Bitu vbeai_callback = 0;
 static bool vbeai_callback_allocated = false;
 
@@ -856,19 +891,27 @@ static void VBEAI_Svc_TimerTick(void) {
  * this is the second line of defence, since availability can change when the
  * user reconfigures [midi] between our enumeration and the guest's call. */
 static inline void VBEAI_MidiOut(uint8_t b) {
+    if (VBEAI_MidiIsFM()) { VBEAI_FM_Byte(b); return; }
     if (MIDI_Available()) MIDI_RawOutByte(b);
 }
 
 static uint32_t VBEAI_MidiDeviceCheck(uint16_t msg, uint32_t param) {
     switch (msg) {
     case MIDITONES:
-        /* "In the case of MIDI devices that do not know the tone count, such as
-         * MIDI transmitter/receivers, this function can just return 0xFFFF" */
+        /* "the current count of unused tones".  A transmitter cannot know what
+         * the far end is doing, and the spec says such devices "can just return
+         * 0xFFFF to all calls"; an FM synthesiser knows exactly. */
+        if (VBEAI_MidiIsFM()) return VBEAI_FM_FreeVoices();
         return 0xffffu;
 
     case MIDIPATCHTYPE:
-        /* The registered types are OPL2/OPL3 patch formats, which a transmitter
-         * does not interpret. */
+        /* The registered types are the OPL2 and OPL3 patch formats.  A
+         * transmitter does not interpret them; the FM device does. */
+        if (VBEAI_MidiIsFM()) {
+            if ((param & 0xffffu) == VBEAI_PATCH_OPL2) return 1;
+            if ((param & 0xffffu) == VBEAI_PATCH_OPL3 &&
+                vbeai_midi.mode == VBEAI_MIDI_OPL3) return 1;
+        }
         return 0;
 
     case MIDISETPREFERENCE: {
@@ -877,9 +920,21 @@ static uint32_t VBEAI_MidiDeviceCheck(uint16_t msg, uint32_t param) {
         return (uint16_t)old;
     }
 
-    case MIDIVOICESTEAL:
-        /* Same guidance as MIDITONES for transmitter/receivers. */
-        return 0xffffu;
+    case MIDIVOICESTEAL: {
+        /* LOWORD 0 disable / 1 enable / 2 query, HIWORD a 16-channel mask.
+         * A transmitter cannot control this and returns 0xFFFF; the FM device
+         * honours it when allocating voices. */
+        if (!VBEAI_MidiIsFM()) return 0xffffu;
+
+        const uint16_t op   = (uint16_t)(param & 0xffffu);
+        const uint16_t mask = (uint16_t)(param >> 16);
+        uint16_t cur = VBEAI_FM_GetVoiceSteal();
+
+        if (op == 0)      { cur = (uint16_t)(cur & ~mask); VBEAI_FM_SetVoiceSteal(cur); }
+        else if (op == 1) { cur = (uint16_t)(cur |  mask); VBEAI_FM_SetVoiceSteal(cur); }
+        else if (op == 2) return (uint16_t)(cur & mask);
+        return cur;
+    }
 
     case MIDIGETFIFOSIZES:
         return 0;                       /* no physical FIFO either way */
@@ -914,6 +969,15 @@ static void VBEAI_Svc_MidiGlobalReset(void) {
     /* "Resets the driver and all voices to an inactive state."  For a
      * transmitter that means silencing the downstream device: All Notes Off and
      * Reset All Controllers on every channel, the same thing mpu401.cpp sends. */
+    if (VBEAI_MidiIsFM()) {
+        /* The synthesiser can do this properly: silence every voice and put
+         * the default bank back, which is what "all pointers to patches that
+         * have been retained will now be returned" amounts to for us. */
+        VBEAI_FM_Reset();
+        VBEAI_RetW(1);
+        return;
+    }
+
     for (uint8_t ch = 0; ch < 16; ch++) {
         VBEAI_MidiOut((uint8_t)(0xb0 | ch));
         VBEAI_MidiOut(0x7b);          /* All Notes Off          */
@@ -959,6 +1023,7 @@ static void VBEAI_Svc_MidiPreLoadPatch(void) {
     const uint32_t length = VBEAI_ArgD(0);
     const uint16_t off = VBEAI_ArgW(4);
     const uint16_t seg = VBEAI_ArgW(6);
+    const uint16_t program = VBEAI_ArgW(10);
 
     if ((seg == 0 && off == 0) || length == 0) {
         vbeai_midi.lasterror = MID_UNKNOWNPATCH;
@@ -967,6 +1032,20 @@ static void VBEAI_Svc_MidiPreLoadPatch(void) {
     }
 
     const PhysPt src = PhysMake(seg, off);
+
+    if (VBEAI_MidiIsFM()) {
+        /* An interpreting driver installs the patch rather than transmitting
+         * it.  The block starts with the registered patch type word (7.2). */
+        const uint16_t type = mem_readw(src);
+        if (!VBEAI_FM_LoadPatch(type, program, src, length)) {
+            vbeai_midi.lasterror = MID_UNKNOWNPATCH;
+            VBEAI_RetW(0);
+            return;
+        }
+        VBEAI_RetW(1);
+        return;
+    }
+
     if (mem_readb(src) != 0xf0) {       /* not a sysex block */
         vbeai_midi.lasterror = MID_UNKNOWNPATCH;
         VBEAI_RetW(0);
@@ -980,8 +1059,10 @@ static void VBEAI_Svc_MidiPreLoadPatch(void) {
 }
 
 static void VBEAI_Svc_MidiUnloadPatch(void) {
-    /* Nothing is retained on this side, so there is nothing to release and no
-     * msApplFreeCB to make. */
+    /* (int patch, int channel).  A transmitter retains nothing, so there is
+     * nothing to release and no msApplFreeCB to make.  The FM device puts its
+     * built-in patch back for that program. */
+    if (VBEAI_MidiIsFM()) VBEAI_FM_UnloadPatch(VBEAI_ArgW(2));
     VBEAI_RetW(1);
 }
 
@@ -1150,7 +1231,11 @@ static void VBEAI_WriteMidiDeviceClass(uint16_t seg, uint16_t off) {
     phys_writed(m + 8, 0x0100);                         /* miversion, BCD 1.00 */
     VBEAI_WriteString(m + 12, "DOSBox-X", 32);          /* mivname   */
     VBEAI_WriteString(m + 44, "VBE/AI Provider", 32);   /* miprod    */
-    VBEAI_WriteString(m + 76, "DOSBox-X MIDI Out", 32); /* michip    */
+    switch (vbeai_midi.mode) {                          /* michip    */
+    case VBEAI_MIDI_OPL2: VBEAI_WriteString(m + 76, "Yamaha OPL2", 32); break;
+    case VBEAI_MIDI_OPL3: VBEAI_WriteString(m + 76, "Yamaha OPL3", 32); break;
+    default:              VBEAI_WriteString(m + 76, "DOSBox-X MIDI Out", 32); break;
+    }
     phys_writeb(m + 108, 0);                            /* miboardid */
     phys_writeb(m + 109, 0);
     phys_writeb(m + 110, 0);
@@ -1158,14 +1243,19 @@ static void VBEAI_WriteMidiDeviceClass(uint16_t seg, uint16_t off) {
     /* milibrary: empty.  We advertise MIDIFPRELD, so there is no disk-resident
      * patch library for the application to load from. */
     VBEAI_WriteString(m + 112, "", 14);
-    phys_writed(m + 126, VBEAI_MIDI_FEATURES);
+    /* A transmitter advertises MIDIFXMITR; an interpreting FM driver does not,
+     * because it makes the sound itself.  Both advertise MIDIFPRELD: we have a
+     * patch for every program either way, so no application needs to go to a
+     * patch library before a program change. */
+    phys_writed(m + 126, VBEAI_MidiIsFM() ? MIDIFPRELD : VBEAI_MIDI_FEATURES);
     phys_writew(m + 130, (uint16_t)vbeai_midi.devpref);
     phys_writew(m + 132, VBEAI_MEMREQ);
     phys_writew(m + 134, 0);                            /* mitimerticks: none  */
-    /* miactivetones: unknowable for a transmitter, whose downstream device we
-     * cannot interrogate.  0xFFFF is what the spec tells such devices to report
-     * for the equivalent MIDITONES device check. */
-    phys_writew(m + 136, 0xffffu);
+    /* miactivetones: for FM this is the real voice count -- 9 two-operator
+     * voices on an OPL2, 18 on an OPL3.  For a transmitter it is unknowable,
+     * the downstream device being beyond our reach, and 0xFFFF is what the spec
+     * tells such devices to report for the equivalent MIDITONES device check. */
+    phys_writew(m + 136, VBEAI_MidiIsFM() ? (uint16_t)VBEAI_FM_TotalVoices() : 0xffffu);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1186,10 +1276,15 @@ static inline void VBEAI_SetSIDI(uint32_t v) {
  * no patch memory and no DMA/IRQ, so silencing the device is the whole job. */
 static void VBEAI_MidiClose(void) {
     if (vbeai_midi.opened) {
-        for (uint8_t ch = 0; ch < 16; ch++) {
-            VBEAI_MidiOut((uint8_t)(0xb0 | ch));
-            VBEAI_MidiOut(0x7b);                /* All Notes Off */
-            VBEAI_MidiOut(0x00);
+        if (VBEAI_MidiIsFM()) {
+            VBEAI_FM_Reset();
+        }
+        else {
+            for (uint8_t ch = 0; ch < 16; ch++) {
+                VBEAI_MidiOut((uint8_t)(0xb0 | ch));
+                VBEAI_MidiOut(0x7b);            /* All Notes Off */
+                VBEAI_MidiOut(0x00);
+            }
         }
     }
     if (vbeai_midi.opened)
@@ -1215,7 +1310,7 @@ static void VBEAI_Close(void) {
  * device exists only when DOSBox-X has a MIDI output to hand it to. */
 static bool VBEAI_HandleLive(uint16_t handle) {
     if (handle == VBEAI_WAVE_HANDLE) return true;
-    if (handle == VBEAI_MIDI_HANDLE) return MIDI_Available();
+    if (handle == VBEAI_MIDI_HANDLE) return VBEAI_MidiPresent();
     return false;
 }
 
@@ -1419,18 +1514,52 @@ void VBEAI_ShutDown(void) {
 /* Called from INT10_Startup(), i.e. every time the emulated INT 10h BIOS is
  * (re)built.  Callback numbers are allocated once and reused; the trampolines
  * themselves live in the application's block and are rewritten at every open. */
+static VBEAI_MidiMode VBEAI_ParseMidiMode(const char *s) {
+    if (s == NULL)                  return VBEAI_MIDI_AUTO;
+    if (!strcasecmp(s, "none"))     return VBEAI_MIDI_NONE;
+    if (!strcasecmp(s, "opl2"))     return VBEAI_MIDI_OPL2;
+    if (!strcasecmp(s, "opl3"))     return VBEAI_MIDI_OPL3;
+    if (!strcasecmp(s, "transmitter")) return VBEAI_MIDI_TRANSMITTER;
+    return VBEAI_MIDI_AUTO;
+}
+
+static const char *VBEAI_MidiModeName(VBEAI_MidiMode m) {
+    switch (m) {
+    case VBEAI_MIDI_NONE:        return "none";
+    case VBEAI_MIDI_OPL2:        return "opl2";
+    case VBEAI_MIDI_OPL3:        return "opl3";
+    case VBEAI_MIDI_TRANSMITTER: return "transmitter";
+    default:                     return "auto";
+    }
+}
+
 void VBEAI_Setup(void) {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("vbeai"));
     const bool enable = (section != NULL) ? section->Get_bool("vbeai") : false;
+    const char *modestr = (section != NULL) ? section->Get_string("midimode") : NULL;
 
     VBEAI_MidiClose();
     VBEAI_Close();
     vbeai.enabled = enable;
+    vbeai_midi.mode = VBEAI_ParseMidiMode(modestr);
 
     if (!enable) {
+        VBEAI_FM_ShutDown();
         if (vbeai.chan) { vbeai.chan->Enable(false); }
         LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: disabled");
         return;
+    }
+
+    /* Bring the FM synthesiser up, or take it down if we are not using it.
+     * It owns a private OPL and mixer channel, so nothing else is disturbed. */
+    if (VBEAI_MidiIsFM()) {
+        if (!VBEAI_FM_Init(vbeai_midi.mode == VBEAI_MIDI_OPL3)) {
+            LOG(LOG_MISC, LOG_WARN)("VBE/AI: FM synthesiser unavailable, no MIDI device");
+            vbeai_midi.mode = VBEAI_MIDI_NONE;
+        }
+    }
+    else {
+        VBEAI_FM_ShutDown();
     }
 
     if (!vbeai_callback_allocated) {
@@ -1468,7 +1597,8 @@ void VBEAI_Setup(void) {
     }
     if (vbeai.chan) vbeai.chan->Enable(false);
 
-    LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: enabled, WAVE device (handle %u)%s",
-        VBEAI_WAVE_HANDLE,
-        MIDI_Available() ? ", MIDI device (handle 2)" : ", no MIDI output so no MIDI device");
+    LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: enabled, WAVE device (handle %u); midimode=%s, %s",
+        VBEAI_WAVE_HANDLE, VBEAI_MidiModeName(vbeai_midi.mode),
+        VBEAI_MidiPresent() ? "MIDI device present (handle 2)"
+                            : "no MIDI device");
 }

@@ -409,7 +409,7 @@ The driver zeroes the stored error once it has been read.
 
 ## 5. Volume (not implemented; recorded for completeness)
 
-MIDI is implemented -- see section 8.
+MIDI is implemented -- see sections 8 and 9.
 
 **Volume** — `VolumeInfo` and `VolumeService` (`"VOLS"`), reached only through subfunction 2
 queries 3–6. Services: `vsDeviceCheck`, `vsSetVolume(int,int,int)`, `vsSetFieldVol`,
@@ -467,7 +467,8 @@ application's `RETF 14` returns into the sync-return stub, its handler drains th
 callback the same way, so a backlog is delivered in one pass before control goes back to the
 caller of `wsTimerTick`.
 
-**Configuration.** A dedicated `[vbeai]` section with a single `vbeai = true|false` key,
+**Configuration.** A dedicated `[vbeai]` section with `vbeai = true|false` and
+`midimode` (section 9),
 matching how `[sblaster]`, `[gus]` and friends are structured. Default **on**: the interface
 is purely additive — `AX=4F13h` currently returns "unsupported" — and the whole point is that
 software finds it without setup, exactly as VESA intended drivers to be preloaded before an
@@ -591,3 +592,100 @@ VBE/AI: MIDI forwarded 4828 application bytes
 
 An exact match means the DOS sequencer parsed the file, merged all ten tracks and delivered
 every event, and the provider forwarded all of it.
+
+## 9. `midimode` and the FM synthesiser
+
+VBE/AI's MIDI class covers two quite different kinds of driver, and the provider implements
+both. `[vbeai] midimode` selects which one a guest sees:
+
+| Value | Device presented |
+| --- | --- |
+| `auto` (default) | `transmitter` if a MIDI output is configured, otherwise no MIDI device |
+| `transmitter` | MIDI transmitter/receiver forwarding to `[midi] mididevice` |
+| `opl2` | FM synthesiser on a private OPL2, 9 two-operator voices |
+| `opl3` | FM synthesiser on a private OPL3, 18 two-operator voices |
+| `none` | No MIDI device; only the WAVE device is offered |
+
+The setting lives under `[vbeai]` rather than `[midi]` because the choice is a VBE/AI-level
+one: it changes `mifeatures`, `michip`, `miactivetones`, and whether a patch library is
+meaningful. It is *not* named `mididevice`, deliberately — a `[vbeai] mididevice` sitting next
+to `[midi] mididevice` would be a support trap.
+
+Note what the mode does **not** do: VBE/AI's enumeration and `midevpref` exist precisely so that
+several MIDI devices can coexist and the application picks one, which is how a period machine
+with both `MPU.COM` and `OPL2.COM` resident would have behaved. An exclusive switch forecloses
+that. It is still the better trade here — coexistence relies on every application honouring
+`midevpref`, and a user debugging "why is the music coming out of the wrong thing" is far
+better served by a setting that says plainly which device exists.
+
+### Which OPL
+
+The FM modes use a **private** `DBOPL::Handler` and their own `VBEAIFM` mixer channel, not the
+chip `[sblaster] oplmode` drives. Sharing would have been more faithful to a real 1994 machine,
+which had exactly one OPL and in which `OPL2.COM` programmed it directly. It was rejected
+because it makes `midimode = opl2` silently produce nothing whenever `oplmode = none`, and
+because a game's own Adlib writes and the VBE/AI stream would then fight over the same
+registers. A private chip also preserves the provider's "claims no hardware" property.
+
+### Device personality
+
+An interpreting driver is not a transmitter, so in FM mode:
+
+- `mifeatures` advertises `MIDIFPRELD` only — **not** `MIDIFXMITR`.
+- `michip` reads `Yamaha OPL2` / `Yamaha OPL3`.
+- `miactivetones` and `MIDITONES` report real numbers: the total voice count, and the count
+  currently free. The spec lets a transmitter answer `0xFFFF` to both because it cannot know;
+  a synthesiser can.
+- `MIDIVOICESTEAL` is honoured per channel rather than being a stub. With stealing disabled on
+  a channel and no free voice, the note is dropped instead.
+- `MIDIPATCHTYPE` answers true for `0x10` (OPL2), and for `0x11` (OPL3) in `opl3` mode.
+
+### Patches
+
+`msPreLoadPatch` installs a patch for one GM program. The OPL2 form (§7.2.1) arrives as
+thirteen one-byte fields per operator, which are packed back into the five registers the chip
+wants. One subtlety: the spec's `opl2fm` field is 1 for *frequency* modulation, while the
+chip's connection bit is 1 for *additive*, so it inverts. The OPL3 form (§7.2.2) is raw
+four-operator register images; since the provider runs two-operator voices, the first operator
+pair is taken. `msUnloadPatch` restores the built-in.
+
+**The built-in bank is original and deliberately plain**: one rough voice per General MIDI
+family, plus six percussion voices for channel 10. The obvious candidate for a real bank — The
+Fat Man's `FATV10.BNK`, which ships with the VESA SDK — turns out **not to be redistributable**.
+Its `TERMS` file requires a per-product licence fee, an on-screen credit, and a copy of the
+finished product sent to Fat Labs, none of which is compatible with bundling into DOSBox-X. The
+alternative to writing originals was to ship nothing and force every application down the
+patch-library path, which would have made `midimode = opl2` useless out of the box.
+
+Pitch comes from an F-number table computed directly from `fnum = freq * 2^(20-block) / 49716`,
+which is within 0.03% of equal temperament. The table most period drivers used is a systematic
+9 cents flat; there was no reason to reproduce that.
+
+### Verification
+
+The host check drives the synthesiser through the stub `DBOPL::Handler`, recording every
+register write: enumeration under each mode, the mode-dependent personality, note on/off,
+running status, voice exhaustion and stealing, `MIDIVOICESTEAL`, both patch formats field by
+field, the OPL3 second register bank, and pitch accuracy decoded back out of the F-number and
+block actually written.
+
+End to end, `SAKURA2A.MID` plays through `midimode = opl2` with `[midi] mididevice = none`,
+proving the FM device needs nothing from `[midi]`, and the captured mixer output is tonal with
+a shifting dominant pitch.
+
+#### A bug this found
+
+Feeding the file's real byte stream through the synthesiser on the host and comparing voice
+usage against an independent count of the music's polyphony exposed a genuine fault. The piece
+peaks at 8 keys held, or **14** once the sustain pedal is accounted for — but the synthesiser
+was using every voice it had, 9 of 9 and 18 of 18.
+
+The cause: re-striking a key while the pedal is down went through the normal note-off path,
+which *sustains* the old voice rather than freeing it, and then allocated a second voice for
+the same pitch. Under a heavily pedalled piece — and `SAKURA2A.MID` presses the pedal 85 times,
+the only controller it uses at all — those accumulate until the chip is starved and starts
+stealing notes that should still be sounding. A re-strike now hard-releases the old voice
+first, after which OPL3 peaks at exactly 14 of 18, matching the computed demand.
+
+Worth noting how it presented: nothing crashed, nothing hung, no note was stuck at the end, and
+every byte was accounted for. It was audible only as music that was subtly wrong.

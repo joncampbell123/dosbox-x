@@ -19,6 +19,7 @@
 #include "setup.h"
 #include "control.h"
 #include "logging.h"
+#include "hardware/dbopl.h"
 
 /* ---- stub state ---- */
 uint8_t GuestMem[0x110000];
@@ -29,10 +30,13 @@ Config* control;
 MIXER_Handler TheMixerHandler = NULL;
 
 static MixerChannel TheChannel;
+static MixerChannel TheFMChannel;
 static Section_prop TheSection;
 static bool section_enable = true;
 
+static const char *section_midimode = "auto";
 bool Section_prop::Get_bool(const char*) const { return section_enable; }
+const char *Section_prop::Get_string(const char*) const { return section_midimode; }
 Section* Config::GetSection(const char*) const { return (Section*)&TheSection; }
 
 static Bitu rom_next = 0xF8000;
@@ -41,7 +45,8 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char*,Bitu,Bitu){ Bitu r=rom_next; rom_n
 uint8_t CALLBACK_Allocate(){ return 42; }
 bool CALLBACK_Setup(Bitu,CallBack_Handler,Bitu,const char*){ return true; }
 
-MixerChannel* MIXER_AddChannel(MIXER_Handler h,Bitu f,const char*){
+MixerChannel* MIXER_AddChannel(MIXER_Handler h,Bitu f,const char* name){
+    if (name && strcmp(name,"VBEAIFM")==0) { TheFMChannel.freq=f; return &TheFMChannel; }
     TheMixerHandler=h; TheChannel.freq=f; return &TheChannel;
 }
 
@@ -51,7 +56,17 @@ static bool midi_present = true;
 void MIDI_RawOutByte(uint8_t data) { MidiOut.push_back(data); }
 bool MIDI_Available(void) { return midi_present; }
 
+/* every OPL register write the synthesiser makes */
+std::vector<std::pair<uint32_t,uint8_t> > OplWrites;
+uint8_t OplRegs[512];
+void DBOPL::Handler::WriteReg(uint32_t addr, uint8_t val) {
+    OplWrites.push_back(std::make_pair(addr, val));
+    if (addr < 512) OplRegs[addr] = val;
+}
+
+
 /* ---- the code under test ---- */
+#include "vbeai_fm.cpp"
 #include "int10_vesa_ai.cpp"
 
 /* ---- test scaffolding ---- */
@@ -508,6 +523,297 @@ int main(void) {
       a.push_back(std::make_pair(2, MIDITONES)); a.push_back(std::make_pair(4, 0));
       CallService(VF_MS_DEVICECHECK, a); }
     check("services inert after close", RetLong(), 0);
+
+    /* ================= midimode ================= */
+
+    printf("== midimode none / transmitter ==\n");
+    section_midimode = "none";
+    VBEAI_Setup();
+    reg_bx = 0x0001; reg_cx = 0; reg_dx = 0x0002;
+    INT10_VBEAI_Handler();
+    check("midimode=none: no MIDI device", reg_cx, 0);
+    reg_bx = 0x0001; reg_cx = 0; reg_dx = 0x0001;
+    INT10_VBEAI_Handler();
+    check("midimode=none: WAVE still there", reg_cx, 1);
+
+    section_midimode = "transmitter";
+    midi_present = false;
+    VBEAI_Setup();
+    reg_bx = 0x0001; reg_cx = 0; reg_dx = 0x0002;
+    INT10_VBEAI_Handler();
+    check("transmitter with no output: absent", reg_cx, 0);
+    midi_present = true;
+    VBEAI_Setup();
+    reg_bx = 0x0001; reg_cx = 0; reg_dx = 0x0002;
+    INT10_VBEAI_Handler();
+    check("transmitter with an output: present", reg_cx, 2);
+
+    /* ================= OPL FM ================= */
+
+    printf("== midimode opl2 ==\n");
+    section_midimode = "opl2";
+    midi_present = false;            /* the FM device must not need [midi] */
+    VBEAI_Setup();
+    check("FM synthesiser active", VBEAI_FM_Active(), 1);
+    check("9 two-operator voices", VBEAI_FM_TotalVoices(), 9);
+    reg_bx = 0x0001; reg_cx = 0; reg_dx = 0x0002;
+    INT10_VBEAI_Handler();
+    check("MIDI device present without any MIDI output", reg_cx, 2);
+
+    reg_bx = 0x0002; reg_cx = 2; reg_dx = 0x0002;
+    reg_si = 0x3000; reg_di = 0x0000;
+    INT10_VBEAI_Handler();
+    {
+        PhysPt m = PhysMake(0x3000,0) + 12;
+        char chip[32]; for (int i=0;i<31;i++) chip[i]=(char)phys_readb(m+76+i); chip[31]=0;
+        check("michip says Yamaha OPL2", strcmp(chip,"Yamaha OPL2")==0, 1);
+        check("mifeatures: preloaded, not a transmitter", phys_readd(m+126), 0x20);
+        check("miactivetones = real voice count", phys_readw(m+136), 9);
+    }
+
+    reg_bx = 0x0003; reg_cx = 2; reg_dx = 0; reg_si = 0x4000;
+    INT10_VBEAI_Handler();
+    check("opened", reg_ax & 0xFFFF, 0x004F);
+
+    printf("== FM note handling ==\n");
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, MIDITONES)); a.push_back(std::make_pair(4, 0));
+      CallService(VF_MS_DEVICECHECK, a); }
+    check("MIDITONES = 9 free voices", RetLong(), 9);
+
+    {   /* note on, middle C, channel 0 */
+        const uint8_t msg[] = { 0x90, 0x3C, 0x7F };
+        for (unsigned i=0;i<sizeof(msg);i++) phys_writeb(PhysMake(0x5000,0)+i, msg[i]);
+        OplWrites.clear();
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(4, ((uint32_t)0x5000<<16)|0));
+        a.push_back(std::make_pair(2, (uint32_t)sizeof(msg)));
+        CallService(VF_MS_MIDIMSG, a);
+    }
+    check("one voice taken", VBEAI_FM_FreeVoices(), 8);
+    check("key-on written to B0", (OplRegs[0xB0] & 0x20) != 0, 1);
+    check("programmed the voice registers", (long long)(OplWrites.size() >= 12), 1);
+
+    {   /* note off */
+        const uint8_t msg[] = { 0x80, 0x3C, 0x00 };
+        for (unsigned i=0;i<sizeof(msg);i++) phys_writeb(PhysMake(0x5010,0)+i, msg[i]);
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(4, ((uint32_t)0x5010<<16)|0));
+        a.push_back(std::make_pair(2, (uint32_t)sizeof(msg)));
+        CallService(VF_MS_MIDIMSG, a);
+    }
+    check("voice released", VBEAI_FM_FreeVoices(), 9);
+    check("key-on cleared", (OplRegs[0xB0] & 0x20) == 0, 1);
+
+    {   /* ten notes on nine voices: the tenth must steal, not be dropped */
+        uint8_t msg[30]; unsigned n = 0;
+        for (uint8_t k = 0; k < 10; k++) {
+            msg[n++] = 0x90; msg[n++] = (uint8_t)(60+k); msg[n++] = 0x7F;
+        }
+        for (unsigned i=0;i<n;i++) phys_writeb(PhysMake(0x5020,0)+i, msg[i]);
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(4, ((uint32_t)0x5020<<16)|0));
+        a.push_back(std::make_pair(2, n));
+        CallService(VF_MS_MIDIMSG, a);
+    }
+    check("all nine voices in use", VBEAI_FM_FreeVoices(), 0);
+
+    {   /* running status: note offs with the status byte sent once */
+        uint8_t msg[21]; unsigned n = 0;
+        msg[n++] = 0x80;
+        for (uint8_t k = 0; k < 10; k++) { msg[n++] = (uint8_t)(60+k); msg[n++] = 0x00; }
+        for (unsigned i=0;i<n;i++) phys_writeb(PhysMake(0x5040,0)+i, msg[i]);
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(4, ((uint32_t)0x5040<<16)|0));
+        a.push_back(std::make_pair(2, n));
+        CallService(VF_MS_MIDIMSG, a);
+    }
+    check("running status understood, all released", VBEAI_FM_FreeVoices(), 9);
+
+    {   /* Re-striking a key while the sustain pedal is down must reclaim the
+         * old voice, not leave it pedal-held and take a second one. Getting
+         * this wrong starves the chip on any pedalled piece. */
+        uint8_t msg[] = { 0xB0, 64, 127,        /* sustain on            */
+                          0x90, 0x40, 0x7F,     /* note on              */
+                          0x80, 0x40, 0x00,     /* note off (pedal holds)*/
+                          0x90, 0x40, 0x7F,     /* same note again      */
+                          0x80, 0x40, 0x00 };
+        for (unsigned i=0;i<sizeof(msg);i++) phys_writeb(PhysMake(0x5080,0)+i, msg[i]);
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(4, ((uint32_t)0x5080<<16)|0));
+        a.push_back(std::make_pair(2, (uint32_t)sizeof(msg)));
+        CallService(VF_MS_MIDIMSG, a);
+    }
+    check("re-strike under pedal reuses one voice", VBEAI_FM_FreeVoices(), 8);
+    {   /* lifting the pedal releases it */
+        const uint8_t msg[] = { 0xB0, 64, 0 };
+        for (unsigned i=0;i<sizeof(msg);i++) phys_writeb(PhysMake(0x5090,0)+i, msg[i]);
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(4, ((uint32_t)0x5090<<16)|0));
+        a.push_back(std::make_pair(2, (uint32_t)sizeof(msg)));
+        CallService(VF_MS_MIDIMSG, a);
+    }
+    check("pedal release frees the voice", VBEAI_FM_FreeVoices(), 9);
+
+    {   /* Pitch: decode the F-number and block actually written back into a
+         * frequency and compare with equal temperament. The OPL's F-number
+         * table is coarse, so allow 1%, but a wrong octave or a wrong table
+         * index would be far outside that. */
+        static const struct { uint8_t note; double hz; const char *name; } tones[] = {
+            { 57, 220.00, "A3" }, { 60, 261.63, "C4" },
+            { 69, 440.00, "A4" }, { 81, 880.00, "A5" }
+        };
+        bool all_ok = true;
+        double worst = 0.0;
+        for (unsigned t = 0; t < sizeof(tones)/sizeof(tones[0]); t++) {
+            VBEAI_FM_Reset();
+            const uint8_t msg[] = { 0x90, tones[t].note, 0x7F };
+            for (unsigned i=0;i<sizeof(msg);i++) phys_writeb(PhysMake(0x50A0,0)+i, msg[i]);
+            std::vector<std::pair<int,uint32_t> > a;
+            a.push_back(std::make_pair(4, ((uint32_t)0x50A0<<16)|0));
+            a.push_back(std::make_pair(2, (uint32_t)sizeof(msg)));
+            CallService(VF_MS_MIDIMSG, a);
+
+            const unsigned fnum  = OplRegs[0xA0] | ((OplRegs[0xB0] & 0x03) << 8);
+            const unsigned block = (OplRegs[0xB0] >> 2) & 0x07;
+            const double hz = (double)fnum * 49716.0 / (double)(1u << (20 - block));
+            const double err = (hz - tones[t].hz) / tones[t].hz;
+            if (err > worst || -err > worst) worst = (err < 0) ? -err : err;
+            if (err > 0.0015 || err < -0.0015) all_ok = false;
+            printf("        %-3s wanted %7.2f Hz, chip gives %7.2f Hz (%+.2f%%)\n",
+                   tones[t].name, tones[t].hz, hz, err * 100.0);
+        }
+        check("every test pitch within 0.15% of equal temperament", all_ok, 1);
+        printf("        worst deviation %.2f%%\n", worst * 100.0);
+        VBEAI_FM_Reset();
+    }
+
+    printf("== FM device checks ==\n");
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, MIDIPATCHTYPE));
+      a.push_back(std::make_pair(4, VBEAI_PATCH_OPL2));
+      CallService(VF_MS_DEVICECHECK, a); }
+    check("understands the OPL2 patch type", RetLong(), 1);
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, MIDIPATCHTYPE));
+      a.push_back(std::make_pair(4, VBEAI_PATCH_OPL3));
+      CallService(VF_MS_DEVICECHECK, a); }
+    check("OPL3 patch type refused on an OPL2", RetLong(), 0);
+
+    {   /* MIDIVOICESTEAL: disable stealing on channel 0, then exhaust it */
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(2, MIDIVOICESTEAL));
+        a.push_back(std::make_pair(4, (uint32_t)(0x0001u) << 16 | 0));  /* mask ch0, disable */
+        CallService(VF_MS_DEVICECHECK, a);
+        check("stealing disabled on channel 0", (VBEAI_FM_GetVoiceSteal() & 1), 0);
+    }
+    {
+        uint8_t msg[30]; unsigned n = 0;
+        for (uint8_t k = 0; k < 10; k++) { msg[n++] = 0x90; msg[n++] = (uint8_t)(60+k); msg[n++] = 0x7F; }
+        for (unsigned i=0;i<n;i++) phys_writeb(PhysMake(0x5060,0)+i, msg[i]);
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(4, ((uint32_t)0x5060<<16)|0));
+        a.push_back(std::make_pair(2, n));
+        CallService(VF_MS_MIDIMSG, a);
+    }
+    check("tenth note dropped rather than stealing", VBEAI_FM_FreeVoices(), 0);
+    VBEAI_FM_SetVoiceSteal(0xFFFF);
+    VBEAI_FM_Reset();
+
+    printf("== msPreLoadPatch (OPL2) ==\n");
+    {
+        /* patchtype(2) mode(1) percVoice(1) op0(13) op1(13) wave0(1) wave1(1) */
+        PhysPt p = PhysMake(0x5200,0);
+        for (int i=0;i<32;i++) phys_writeb(p+i, 0);
+        phys_writew(p+0, VBEAI_PATCH_OPL2);
+        /* op0: ksl=2 mult=5 feedback=3 attack=12 sustLevel=4 sustain=1
+         *      decay=7 release=9 output=0x1A am=1 vib=0 ksr=1 fm=1        */
+        phys_writeb(p+4+0, 2); phys_writeb(p+4+1, 5);  phys_writeb(p+4+2, 3);
+        phys_writeb(p+4+3, 12); phys_writeb(p+4+4, 4); phys_writeb(p+4+5, 1);
+        phys_writeb(p+4+6, 7); phys_writeb(p+4+7, 9);  phys_writeb(p+4+8, 0x1A);
+        phys_writeb(p+4+9, 1); phys_writeb(p+4+10, 0); phys_writeb(p+4+11, 1);
+        phys_writeb(p+4+12, 1);
+        phys_writeb(p+4+26, 2);                 /* wave0 */
+
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(2, 5));                          /* program */
+        a.push_back(std::make_pair(2, 0));                          /* channel */
+        a.push_back(std::make_pair(4, ((uint32_t)0x5200<<16)|0));   /* data    */
+        a.push_back(std::make_pair(4, 32));                         /* length  */
+        CallService(VF_MS_PRELOADPATCH, a);
+        check("OPL2 patch accepted", reg_ax, 1);
+    }
+    {
+        const FMPatch &p = fm.patch[5];
+        check("  AM|EG|KSR|MULT packed", p.op[0].am_vib_eg_ksr_mult, 0x80|0x20|0x10|5);
+        check("  KSL|TL packed", p.op[0].ksl_tl, (2<<6)|0x1A);
+        check("  attack|decay packed", p.op[0].ar_dr, (12<<4)|7);
+        check("  sustain|release packed", p.op[0].sl_rr, (4<<4)|9);
+        check("  waveform taken", p.op[0].waveform, 2);
+        /* opl2fm=1 means frequency modulation, and the chip's connection bit
+         * is 1 for additive, so it must have inverted */
+        check("  feedback|connection, FM inverted", p.fb_cnt, (3<<1)|0);
+    }
+    {   /* a type we do not understand must be refused */
+        PhysPt p = PhysMake(0x5300,0);
+        phys_writew(p+0, 0x1234);
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(2, 6)); a.push_back(std::make_pair(2, 0));
+        a.push_back(std::make_pair(4, ((uint32_t)0x5300<<16)|0));
+        a.push_back(std::make_pair(4, 32));
+        CallService(VF_MS_PRELOADPATCH, a);
+        check("unknown patch type refused", reg_ax, 0);
+    }
+    {   /* msUnloadPatch restores the built-in */
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(2, 5)); a.push_back(std::make_pair(2, 0));
+        CallService(VF_MS_UNLOADPATCH, a);
+        check("unload restores the built-in patch",
+              fm.patch[5].op[0].am_vib_eg_ksr_mult == fm_family[5/8].op[0].am_vib_eg_ksr_mult, 1);
+    }
+
+    printf("== midimode opl3 ==\n");
+    section_midimode = "opl3";
+    VBEAI_Setup();
+    check("18 voices", VBEAI_FM_TotalVoices(), 18);
+    check("OPL3 NEW bit set", OplRegs[0x105] & 1, 1);
+    reg_bx = 0x0002; reg_cx = 2; reg_dx = 0x0002;
+    reg_si = 0x3100; reg_di = 0x0000;
+    INT10_VBEAI_Handler();
+    {
+        PhysPt m = PhysMake(0x3100,0) + 12;
+        char chip[32]; for (int i=0;i<31;i++) chip[i]=(char)phys_readb(m+76+i); chip[31]=0;
+        check("michip says Yamaha OPL3", strcmp(chip,"Yamaha OPL3")==0, 1);
+        check("miactivetones = 18", phys_readw(m+136), 18);
+    }
+    reg_bx = 0x0003; reg_cx = 2; reg_dx = 0; reg_si = 0x4100;
+    INT10_VBEAI_Handler();
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, MIDIPATCHTYPE));
+      a.push_back(std::make_pair(4, VBEAI_PATCH_OPL3));
+      CallService(VF_MS_DEVICECHECK, a); }
+    check("understands the OPL3 patch type", RetLong(), 1);
+
+    {   /* eighteen notes must all fit */
+        uint8_t msg[54]; unsigned n = 0;
+        for (uint8_t k = 0; k < 18; k++) { msg[n++] = 0x90; msg[n++] = (uint8_t)(48+k); msg[n++] = 0x7F; }
+        for (unsigned i=0;i<n;i++) phys_writeb(PhysMake(0x5400,0)+i, msg[i]);
+        OplWrites.clear();
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(4, ((uint32_t)0x5400<<16)|0));
+        a.push_back(std::make_pair(2, n));
+        CallService(VF_MS_MIDIMSG, a);
+    }
+    check("all 18 voices in use", VBEAI_FM_FreeVoices(), 0);
+    {   /* voices 9..17 must be programmed in the second register bank */
+        bool high_bank = false;
+        for (size_t i = 0; i < OplWrites.size(); i++)
+            if (OplWrites[i].first >= 0x100) high_bank = true;
+        check("second register bank used", high_bank, 1);
+    }
+
+    section_midimode = "auto";       /* leave the harness as it found things */
+    VBEAI_Setup();
 
     printf("\n%s (%d failure%s)\n", failures ? "FAILED" : "PASSED",
            failures, failures == 1 ? "" : "s");

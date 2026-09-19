@@ -63,12 +63,21 @@ Playback complete.
 VBEAIWAV SAKURA2A.MID
 ```
 
-needs a MIDI output configured, since the provider does not offer a MIDI device
-without one:
+The provider's MIDI device comes in two flavours, chosen by `[vbeai] midimode`.
+The default, `auto`, forwards to whatever `[midi]` is set to and offers no MIDI
+device at all if that is `none`:
 
 ```ini
 [midi]
 mididevice = default
+```
+
+To hear it through an emulated FM chip instead, which needs nothing from
+`[midi]`:
+
+```ini
+[vbeai]
+midimode = opl2        ; or opl3 for 18 voices instead of 9
 ```
 
 `ALFRE.MID` (format 0) and `SAKURA2A.MID` (format 1, ten tracks) both ship with

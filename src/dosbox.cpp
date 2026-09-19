@@ -4231,6 +4231,25 @@ void DOSBOX_SetupConfigSections(void) {
                     "Volume device class are not. See docs/vbeai.md for details.");
     Pbool->SetBasic(true);
 
+    Pstring = secprop->Add_string("midimode",Property::Changeable::WhenIdle,"auto");
+    const char* vbeaimidimodes[] = { "auto", "transmitter", "opl2", "opl3", "none", 0 };
+    Pstring->Set_values(vbeaimidimodes);
+    Pstring->Set_help("What kind of MIDI device the VBE/AI provider presents. This is a VBE/AI-level\n"
+                      "choice, not a [midi] one: it decides the advertised feature bits, chip name and\n"
+                      "voice count that a VBE/AI application sees.\n"
+                      "  auto:        Same as 'transmitter' if a MIDI output is configured in [midi],\n"
+                      "               otherwise no MIDI device is offered at all.\n"
+                      "  transmitter: Advertise a MIDI transmitter/receiver and forward the stream to\n"
+                      "               whatever [midi] mididevice is set to. Needs such an output.\n"
+                      "  opl2:        Interpret the MIDI stream on a private OPL2, 9 voices.\n"
+                      "  opl3:        Interpret the MIDI stream on a private OPL3, 18 voices.\n"
+                      "  none:        Provide no MIDI device, leaving only the WAVE device.\n"
+                      "The OPL modes use their own OPL chip and mixer channel, separate from the one\n"
+                      "[sblaster] oplmode drives, so they work regardless of that setting and cannot\n"
+                      "collide with a game's own Adlib writes. Their built-in instruments are rough\n"
+                      "originals; an application can replace any of them via msPreLoadPatch.");
+    Pstring->SetBasic(true);
+
     secprop = control->AddSection_prop("speaker",&Null_Init,true);//done
     Pbool = secprop->Add_bool("pcspeaker",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable PC-Speaker emulation.");
