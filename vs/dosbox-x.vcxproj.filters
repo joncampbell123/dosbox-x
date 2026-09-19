@@ -393,6 +393,9 @@
     <ClCompile Include="..\src\hardware\disney.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\pas.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\dma.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
