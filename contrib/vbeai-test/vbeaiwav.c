@@ -18,6 +18,8 @@
 #include <dos.h>
 #include <conio.h>
 #include <i86.h>
+#include <io.h>
+#include <fcntl.h>
 
 /* ------------------------------------------------------------------ */
 /* VBE/AI, as far as this test needs it                               */
@@ -197,8 +199,8 @@ int main(int argc, char *argv[])
     GeneralDeviceClass gdc;
     WavInfo wav;
     FILE *fp;
-    unsigned long remaining;
-    unsigned seg;
+    unsigned long done;
+    int fh;
     long best;
     int state;
 
@@ -275,20 +277,45 @@ int main(int argc, char *argv[])
         fclose(fp); cleanup(); return 1;
     }
 
-    fseek(fp, wav.data_off, SEEK_SET);
-    remaining = wav.data_len;
-    seg = data_seg;
-    while (remaining > 0) {
-        unsigned chunk = (remaining > 0x8000UL) ? 0x8000u : (unsigned)remaining;
-        unsigned got;
-        if (_dos_read(fileno(fp), (void __far *)MK_FP(seg, 0), chunk, &got) != 0 || got == 0) {
-            printf("Read error.\n");
-            fclose(fp); cleanup(); return 1;
-        }
-        remaining -= got;
-        seg += (unsigned)(got >> 4);
-    }
+    /* Read the samples through a raw DOS handle rather than the stdio stream
+     * used for parsing: the two keep separate file positions, and a far
+     * destination needs _dos_read anyway. */
     fclose(fp);
+    fp = NULL;
+
+    if (_dos_open(path, O_RDONLY, &fh) != 0) {
+        printf("Cannot reopen %s\n", path);
+        cleanup(); return 1;
+    }
+    if (lseek(fh, wav.data_off, SEEK_SET) == -1L) {
+        printf("Seek to sample data failed.\n");
+        _dos_close(fh); cleanup(); return 1;
+    }
+
+    done = 0;
+    while (done < wav.data_len) {
+        unsigned long left = wav.data_len - done;
+        unsigned chunk = (left > 0x8000UL) ? 0x8000u : (unsigned)left;
+        unsigned got = 0;
+        void __far *dst = MK_FP((unsigned)(data_seg + (unsigned)(done >> 4)),
+                                (unsigned)(done & 0x0FUL));
+        if (_dos_read(fh, dst, chunk, &got) != 0) {
+            printf("Read failed at offset %lu.\n", done);
+            _dos_close(fh); cleanup(); return 1;
+        }
+        if (got == 0) {                 /* short file: play what we have */
+            printf("Short file: %lu of %lu bytes.\n", done, wav.data_len);
+            wav.data_len = done;
+            break;
+        }
+        done += got;
+    }
+    _dos_close(fh);
+
+    if (wav.data_len == 0) {
+        printf("No sample data read.\n");
+        cleanup(); return 1;
+    }
 
     /* --- subfunction 3: open the device --- */
 

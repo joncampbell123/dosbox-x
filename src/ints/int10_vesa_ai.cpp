@@ -19,6 +19,7 @@
 #include "dosbox.h"
 #include "bios.h"
 #include "callback.h"
+#include "control.h"
 #include "cpu.h"
 #include "int10.h"
 #include "logging.h"
@@ -421,6 +422,9 @@ static void VBEAI_MixerCallback(Bitu len) {
 
         if (vbeai.continuous) {
             /* Hand back every division as it drains. */
+            /* NTS: divdone counts divisions completed within the current lap and
+             * is only reset by the wrap below.  Resetting it here would make the
+             * condition immediately true again and spin forever. */
             while (vbeai.divlen != 0 &&
                    vbeai.playpos >= (vbeai.divdone + 1u) * vbeai.divlen) {
                 const uint32_t off = vbeai.divdone * vbeai.divlen;
@@ -428,7 +432,6 @@ static void VBEAI_MixerCallback(Bitu len) {
                                              (uint16_t)(RealOff(vbeai.playptr) + off)),
                                     vbeai.divlen, false);
                 vbeai.divdone++;
-                if (vbeai.divdone * vbeai.divlen >= vbeai.playlen) vbeai.divdone = 0;
             }
             if (vbeai.playpos >= vbeai.playlen) {
                 vbeai.playpos = 0;

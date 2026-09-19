@@ -17,6 +17,7 @@
 #include "mixer.h"
 #include "callback.h"
 #include "setup.h"
+#include "control.h"
 #include "logging.h"
 
 /* ---- stub state ---- */
@@ -265,6 +266,78 @@ int main(void) {
         check("RETF 14 lands back on the caller's CS", phys_readw(f+20), RET_CS);
     }
     check("queue drained", vbeai.pending.count, 0);
+
+    /* --- wsPlayCont: circular buffer with division callbacks --- */
+    printf("== wsPlayCont ==\n");
+    vbeai.chan->got.clear();
+    for (int i = 0; i < 512; i++) phys_writeb(PhysMake(0x6000,0)+i, (uint8_t)(0x80 + (i & 0x0F)));
+
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(4, ((uint32_t)0x6000<<16)|0));  /* void far * */
+      a.push_back(std::make_pair(4, 512));                       /* length     */
+      a.push_back(std::make_pair(4, 128));                       /* division   */
+      CallService(VF_PLAYCONT, a); }
+    check("wsPlayCont returns TRUE", reg_ax, 1);
+    check("continuous mode", vbeai.continuous, 1);
+    check("division length", vbeai.divlen, 128);
+
+    /* a buffer crossing the 64K page must be refused */
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(4, ((uint32_t)0x7000<<16)|0xFF00));
+      a.push_back(std::make_pair(4, 512));
+      a.push_back(std::make_pair(4, 128));
+      CallService(VF_PLAYCONT, a); }
+    check("buffer crossing 64K refused", reg_ax, 0);
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, 0)); a.push_back(std::make_pair(4, 0));
+      CallService(VF_GETLASTERROR, a); }
+    check("  reported as WAV_BADBLOCKADDR", reg_ax, 4);
+
+    /* restart it -- the refused call did not disturb the running stream */
+    check("still playing after the refusal", vbeai.playing, 1);
+    vbeai.chan->got.clear();
+    vbeai.pending.clear();
+
+    /* drain exactly one lap of the ring */
+    for (int i = 0; i < 8; i++) TheMixerHandler(64);
+    check("still running (circular)", vbeai.playing, 1);
+    check("one lap rendered", (long long)vbeai.chan->got.size(), 512);
+    check("four division callbacks queued", vbeai.pending.count, 4);
+    {
+        bool ptrs_ok = true;
+        for (unsigned d = 0; d < 4; d++) {
+            const VBEAI_Pending &q = vbeai.pending.item[(vbeai.pending.head + d) % VBEAI_PENDING_MAX];
+            if (RealSeg(q.ptr) != 0x6000 || RealOff(q.ptr) != d * 128 || q.len != 128) ptrs_ok = false;
+        }
+        check("each points at its own division, len 128", ptrs_ok, 1);
+    }
+    check("ring wrapped back to the start", vbeai.playpos, 0);
+
+    { std::vector<std::pair<int,uint32_t> > a; a.push_back(std::make_pair(2, 0));
+      CallService(VF_PAUSEIO, a); }
+    check("wsPauseIO returns TRUE", reg_ax, 1);
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, WAVEDRIVERSTATE)); a.push_back(std::make_pair(4, 0));
+      CallService(VF_DEVICECHECK, a); }
+    check("WAVEDRIVERSTATE busy|paused", RetLong(), 0x81);
+    { std::vector<std::pair<int,uint32_t> > a; a.push_back(std::make_pair(2, 0));
+      CallService(VF_RESUMEIO, a); }
+    check("wsResumeIO returns TRUE", reg_ax, 1);
+    { std::vector<std::pair<int,uint32_t> > a; a.push_back(std::make_pair(2, 0));
+      CallService(VF_STOPIO, a); }
+    check("wsStopIO stops the stream", vbeai.playing, 0);
+
+    /* --- record is not provided --- */
+    printf("== unsupported paths ==\n");
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, 1)); a.push_back(std::make_pair(4, 0));
+      CallService(VF_RECORDBLOCK, a); }
+    check("wsRecordBlock returns FALSE", reg_ax, 0);
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, 0)); a.push_back(std::make_pair(4, 0));
+      CallService(VF_GETLASTERROR, a); }
+    check("  reported as WAV_NOSUPPORT", reg_ax, 1);
+    check("  and the error is cleared once read", vbeai.lasterror, 0);
 
     /* --- close --- */
     printf("== close ==\n");

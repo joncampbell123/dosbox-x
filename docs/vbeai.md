@@ -475,3 +475,53 @@ matching how `[sblaster]`, `[gus]` and friends are structured. Default **on**: t
 is purely additive — `AX=4F13h` currently returns "unsupported" — and the whole point is that
 software finds it without setup, exactly as VESA intended drivers to be preloaded before an
 application runs.
+
+## 7. Verification
+
+Three layers, because "it made a noise" is not evidence that the right samples came out.
+
+**Host-side white-box check** — `contrib/vbeai-test/hostcheck/`. Compiles the provider against
+stub headers faking DOSBox-X's guest memory, registers, callbacks and mixer, then drives it
+directly: 73 assertions covering the trampoline encoding, the `INT 10h` subfunctions, the
+structure byte offsets, Pascal argument decoding, block and continuous playback stepping, and
+the exact shape of the completion-callback frame left on the guest stack.
+
+**End-to-end under the emulator** — `contrib/vbeai-test/vbeaiwav.c` run inside the modified
+DOSBox-X. Its `Playback complete.` line is printed only when the driver's `wsApplPSyncCB`
+callback actually fired, so it exercises the whole chain, guest stack frame included.
+
+**The audio itself.** DOSBox-X's bundled SDL 1.x includes the disk audio driver, so the mixer
+output can be captured to a file rather than a sound card:
+
+```bash
+SDL_AUDIODRIVER=disk SDL_DISKAUDIOFILE=mix.raw dosbox-x -conf dosbox-x.conf
+```
+
+With `[mixer] rate = 22050` matching the sample, `mix.raw` is raw 16-bit stereo at the source
+rate. Cross-correlating each captured 1024-frame block against the source WAV gives:
+
+```
+block 14 -> source offset   2746   correlation 0.99995
+block 15 -> source offset   6076   correlation 1.00000
+...
+block 25 -> source offset  39305   correlation 0.99999
+```
+
+Twelve blocks, every correlation ≥ 0.9998, offsets strictly increasing and evenly spaced from
+the start of the file to near its end (41727 bytes), with the mono source correctly duplicated
+to both channels. The disk driver's pacing drops buffers between captures, which is why the
+blocks are sampled rather than contiguous; what matters is that each one *is* the source
+waveform at the expected position. Correlation rather than exact equality because the mixer
+interpolates.
+
+### Bugs this caught
+
+Worth recording, since both would have presented as a hang rather than an error:
+
+- **Continuous mode spun forever at the end of a lap.** The division-callback loop reset
+  `divdone` to zero *inside* the loop, so `playpos >= (divdone+1)*divlen` became true again
+  immediately. `divdone` must only be reset by the wrap that follows the loop. This ran in
+  DOSBox-X's mixer, so it would have frozen the emulator.
+- **A block whose length was not a whole number of frames never completed.** The sub-frame
+  tail could never be played, `playpos` never reached `playlen`, the device stayed busy
+  forever and the completion callback never fired.
