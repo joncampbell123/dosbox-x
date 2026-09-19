@@ -36,6 +36,8 @@ Next version:
   - Added Pentium Pro x87 FCMOVcc, FCOMI/FCOMIP, and FUCOMI/FUCOMIP support
     to the dyn_x86 and dynrec CPU cores, and fixed FCOMI/FUCOMI to clear AF,
     SF, and OF. (cimarronm)
+  - FPU: Restored x87 stack metadata if a push-and-load instruction faults on
+    its memory operand. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
