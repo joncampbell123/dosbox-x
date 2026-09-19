@@ -39,8 +39,9 @@
 #define VBEAI_CLASS_MIDI        0x0002
 #define VBEAI_CLASS_VOLUME      0x0003
 
-/* the one device we provide */
+/* the devices we provide, enumerated in ascending handle order */
 #define VBEAI_WAVE_HANDLE       0x0001
+#define VBEAI_MIDI_HANDLE       0x0002
 
 /* subfunction 2 general queries */
 #define VBEAI_Q_GDC_LENGTH      0x01
@@ -66,6 +67,21 @@
 #define WAVEGETPCMFORMAT        0x001C
 #define WAVEENAPCMFORMAT        0x001D
 
+/* MIDI msDeviceCheck messages */
+#define MIDITONES               0x0011
+#define MIDIPATCHTYPE           0x0012
+#define MIDISETPREFERENCE       0x0013
+#define MIDIVOICESTEAL          0x0014
+#define MIDIGETFIFOSIZES        0x0015
+#define MIDIGETDMAIRQ           0x0016
+#define MIDIGETIOADDRESS        0x0017
+#define MIDIGETMEMADDRESS       0x0018
+#define MIDIGETMEMFREE          0x0019
+
+/* MIDI error codes (msGetLastError) */
+#define MID_NOSUPPORT           0x01
+#define MID_UNKNOWNPATCH        0x02
+
 /* WAVE error codes (wsGetLastError) */
 #define WAV_NOSUPPORT           1
 #define WAV_BADSAMPLERATE       2
@@ -84,10 +100,25 @@
  * formats -- unsigned 8 bit and signed 16 bit -- directly). */
 #define VBEAI_WAVE_FEATURES     0x3004A529UL
 
+/* MIDI mifeatures: a transmitter/receiver with the General MIDI patches already
+ * present downstream, which is what DOSBox-X's MIDI output always is.  No input
+ * support, so none of the timestamp/interrupt/polled bits.
+ *
+ * NTS: the spec's prose (5.4) puts "patches preloaded" at 0x40 and internal time
+ * stamping at 0x80, leaving 0x20 unassigned.  VBEAI.H *and* VBEAI.INC both put
+ * them at 0x20 and 0x40 with no gap.  The headers are what period drivers and
+ * applications actually compiled against, so the headers win. */
+#define MIDIFXMITR              0x00000010UL    /* transmitter/receiver only  */
+#define MIDIFPRELD              0x00000020UL    /* GM patches preloaded       */
+#define VBEAI_MIDI_FEATURES     (MIDIFXMITR | MIDIFPRELD)
+
 /* structure sizes */
 #define WAVEINFO_LENGTH         126
-#define GDC_LENGTH              (12 + WAVEINFO_LENGTH)   /* 138 */
+#define MIDIINFO_LENGTH         138
+#define GDC_WAVE_LENGTH         (12 + WAVEINFO_LENGTH)   /* 138 */
+#define GDC_MIDI_LENGTH         (12 + MIDIINFO_LENGTH)   /* 150 */
 #define WAVESERVICE_LENGTH      84
+#define MIDISERVICE_LENGTH      96
 
 /* The services structure is written at offset 0 of the memory block the
  * application donates at open time.  Nothing else goes in there: the
@@ -106,9 +137,21 @@
 #define WS_OFF_APPLPSYNCCB      76
 #define WS_OFF_APPLRSYNCCB      80
 
-/* service function indices -- the order here IS the order of the pointers in
- * WAVEService, so the table below can be walked linearly when publishing it. */
+/* offsets within MIDIService.  Note the 32-byte mspatches[16] and the 16-byte
+ * msfuture[16] before the function table. */
+#define MS_OFF_NAME             0
+#define MS_OFF_LENGTH           4
+#define MS_OFF_PATCHES          8
+#define MS_OFF_FUTURE           40
+#define MS_OFF_FIRSTFUNC        56
+#define MS_OFF_APPLFREECB       88
+#define MS_OFF_APPLMIDIIN       92
+
+/* Service function indices.  For each device class the run of indices from the
+ * first entry is the order of the pointers in its services structure, so the
+ * table can be walked linearly when publishing it. */
 enum {
+    /* WAVE */
     VF_DEVICECHECK = 0,
     VF_PCMINFO,
     VF_PLAYBLOCK,
@@ -122,26 +165,51 @@ enum {
     VF_WAVEREGISTER,
     VF_GETLASTERROR,
     VF_TIMERTICK,
-    VF_SYNCRET,             /* not published; used as the callback return address */
+    VF_WAVE_COUNT,          /* 13 published WAVE functions */
+
+    /* MIDI */
+    VF_MS_DEVICECHECK = VF_WAVE_COUNT,
+    VF_MS_GLOBALRESET,
+    VF_MS_MIDIMSG,
+    VF_MS_POLLMIDI,
+    VF_MS_PRELOADPATCH,
+    VF_MS_UNLOADPATCH,
+    VF_MS_TIMERTICK,
+    VF_MS_GETLASTERROR,
+    VF_MIDI_END,            /* 8 published MIDI functions */
+
+    VF_SYNCRET = VF_MIDI_END,   /* not published; the callback return address */
     VF_COUNT
 };
 
+#define VF_MIDI_COUNT   (VF_MIDI_END - VF_MS_DEVICECHECK)
+
 /* Pascal argument byte counts, i.e. the operand of the stub's RETF. */
 static const uint16_t vbeai_func_argbytes[VF_COUNT] = {
-    6,      /* wsDeviceCheck  (int, long)                        */
-    12,     /* wsPCMInfo      (int, long, int, int, int)          */
-    6,      /* wsPlayBlock    (int, long)                        */
-    12,     /* wsPlayCont     (void far *, long, long)           */
-    6,      /* wsRecordBlock  (int, long)                        */
-    12,     /* wsRecordCont   (void far *, long, long)           */
-    2,      /* wsPauseIO      (int)                              */
-    2,      /* wsResumeIO     (int)                              */
-    2,      /* wsStopIO       (int)                              */
-    14,     /* wsWavePrepare  (int, int, int, void far *, long)  */
-    8,      /* wsWaveRegister (void huge *, long)                */
-    0,      /* wsGetLastError (void)                             */
-    0,      /* wsTimerTick    (void)                             */
-    0       /* sync callback return trampoline                   */
+    6,      /* wsDeviceCheck   (int, long)                        */
+    12,     /* wsPCMInfo       (int, long, int, int, int)         */
+    6,      /* wsPlayBlock     (int, long)                        */
+    12,     /* wsPlayCont      (void far *, long, long)           */
+    6,      /* wsRecordBlock   (int, long)                        */
+    12,     /* wsRecordCont    (void far *, long, long)           */
+    2,      /* wsPauseIO       (int)                              */
+    2,      /* wsResumeIO      (int)                              */
+    2,      /* wsStopIO        (int)                              */
+    14,     /* wsWavePrepare   (int, int, int, void far *, long)  */
+    8,      /* wsWaveRegister  (void huge *, long)                */
+    0,      /* wsGetLastError  (void)                             */
+    0,      /* wsTimerTick     (void)                             */
+
+    6,      /* msDeviceCheck   (int, long)                        */
+    0,      /* msGlobalReset   (void)                             */
+    6,      /* msMIDImsg       (char far *, int)                  */
+    2,      /* msPollMIDI      (int)                              */
+    12,     /* msPreLoadPatch  (int, int, void huge *, long)      */
+    4,      /* msUnloadPatch   (int, int)                         */
+    0,      /* msTimerTick     (void)                             */
+    0,      /* msGetLastError  (void)                             */
+
+    0       /* sync callback return trampoline                    */
 };
 
 #define VBEAI_MAX_BLOCKS        32          /* the spec's stated limit */
@@ -231,6 +299,20 @@ static struct {
 
     MixerChannel*   chan = NULL;
 } vbeai;
+
+/* MIDI device state.  Much smaller than the WAVE device: we are a MIDI
+ * transmitter, so there is no synthesis, no voice allocation and no patch
+ * storage here -- messages are handed straight to DOSBox-X's MIDI output. */
+static struct {
+    bool            opened = false;
+    uint16_t        memseg = 0;
+    int16_t         devpref = 0;
+    uint16_t        lasterror = 0;
+    uint32_t        msgbytes = 0;   /* application MIDI bytes forwarded */
+} vbeai_midi;
+
+extern void MIDI_RawOutByte(uint8_t data);
+extern bool MIDI_Available(void);
 
 static Bitu vbeai_callback = 0;
 static bool vbeai_callback_allocated = false;
@@ -758,6 +840,162 @@ static void VBEAI_Svc_TimerTick(void) {
 }
 
 /* ---------------------------------------------------------------------------
+ * MIDI device
+ *
+ * We present a MIDI transmitter/receiver (MIDIFXMITR) whose downstream already
+ * has the General MIDI patches (MIDIFPRELD), because that is exactly what
+ * DOSBox-X's MIDI output is -- whatever the user configured in [midi], be that
+ * MT-32, FluidSynth or the host synthesiser.  So there is no synthesis and no
+ * patch library here: msMIDImsg hands bytes to MIDI_RawOutByte, which already
+ * implements running status, sysex framing and realtime messages.
+ * ------------------------------------------------------------------------- */
+
+/* MIDI_RawOutByte dereferences the MIDI handler without checking it, and that
+ * handler is null when no MIDI output is configured, so every byte we emit goes
+ * through here.  The MIDI device is also not enumerated at all in that case --
+ * this is the second line of defence, since availability can change when the
+ * user reconfigures [midi] between our enumeration and the guest's call. */
+static inline void VBEAI_MidiOut(uint8_t b) {
+    if (MIDI_Available()) MIDI_RawOutByte(b);
+}
+
+static uint32_t VBEAI_MidiDeviceCheck(uint16_t msg, uint32_t param) {
+    switch (msg) {
+    case MIDITONES:
+        /* "In the case of MIDI devices that do not know the tone count, such as
+         * MIDI transmitter/receivers, this function can just return 0xFFFF" */
+        return 0xffffu;
+
+    case MIDIPATCHTYPE:
+        /* The registered types are OPL2/OPL3 patch formats, which a transmitter
+         * does not interpret. */
+        return 0;
+
+    case MIDISETPREFERENCE: {
+        const int16_t old = vbeai_midi.devpref;
+        if ((int32_t)param != -1) vbeai_midi.devpref = (int16_t)param;
+        return (uint16_t)old;
+    }
+
+    case MIDIVOICESTEAL:
+        /* Same guidance as MIDITONES for transmitter/receivers. */
+        return 0xffffu;
+
+    case MIDIGETFIFOSIZES:
+        return 0;                       /* no physical FIFO either way */
+
+    case MIDIGETDMAIRQ:
+        return 0xffffffffUL;            /* no DMA, no IRQ */
+
+    case MIDIGETIOADDRESS:
+        return 0;                       /* no I/O port range */
+
+    case MIDIGETMEMADDRESS:
+        return 0xffffffffUL;            /* not memory mapped */
+
+    case MIDIGETMEMFREE:
+        return 0;                       /* no on-board memory */
+
+    default:
+        LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: unhandled MIDI device check 0x%04x", (unsigned)msg);
+        vbeai_midi.lasterror = MID_NOSUPPORT;
+        return 0;
+    }
+}
+
+static void VBEAI_Svc_MidiDeviceCheck(void) {
+    /* (int msg, long param) */
+    const uint32_t param = VBEAI_ArgD(0);
+    const uint16_t msg = VBEAI_ArgW(4);
+    VBEAI_RetD(VBEAI_MidiDeviceCheck(msg, param));
+}
+
+static void VBEAI_Svc_MidiGlobalReset(void) {
+    /* "Resets the driver and all voices to an inactive state."  For a
+     * transmitter that means silencing the downstream device: All Notes Off and
+     * Reset All Controllers on every channel, the same thing mpu401.cpp sends. */
+    for (uint8_t ch = 0; ch < 16; ch++) {
+        VBEAI_MidiOut((uint8_t)(0xb0 | ch));
+        VBEAI_MidiOut(0x7b);          /* All Notes Off          */
+        VBEAI_MidiOut(0x00);
+        VBEAI_MidiOut((uint8_t)(0xb0 | ch));
+        VBEAI_MidiOut(0x79);          /* Reset All Controllers  */
+        VBEAI_MidiOut(0x00);
+    }
+    VBEAI_RetW(1);
+}
+
+static void VBEAI_Svc_MidiMsg(void) {
+    /* (char far *msgs, int len) -- a block of MIDI bytes, all at delta time 0.
+     * The spec requires the driver to behave as if the data arrived one byte at
+     * a time, running status included; MIDI_RawOutByte does exactly that. */
+    const uint16_t len = VBEAI_ArgW(0);
+    const uint16_t off = VBEAI_ArgW(2);
+    const uint16_t seg = VBEAI_ArgW(4);
+
+    if (len == 0) { VBEAI_RetW(1); return; }
+
+    const PhysPt src = PhysMake(seg, off);
+    for (uint16_t i = 0; i < len; i++)
+        VBEAI_MidiOut(mem_readb(src + (PhysPt)i));
+
+    vbeai_midi.msgbytes += len;
+    VBEAI_RetW(1);
+}
+
+static void VBEAI_Svc_MidiPollMIDI(void) {
+    /* MIDI input is not provided (neither MIDIINTR nor MIDIPOLL is advertised),
+     * so there is nothing to poll and no msApplMIDIIn callback to make. */
+}
+
+static void VBEAI_Svc_MidiPreLoadPatch(void) {
+    /* (int patch, int channel, void huge *data, long length)
+     *
+     * "for MIDI transmitter/receiver devices, the msPreloadPatch function will
+     * transmit the whole patch to the external device.  This means the patch
+     * data within the library must be in the SYSEX format".  So we forward it
+     * verbatim -- but only if it really is sysex, rather than spraying an OPL
+     * patch blob at the synthesiser. */
+    const uint32_t length = VBEAI_ArgD(0);
+    const uint16_t off = VBEAI_ArgW(4);
+    const uint16_t seg = VBEAI_ArgW(6);
+
+    if ((seg == 0 && off == 0) || length == 0) {
+        vbeai_midi.lasterror = MID_UNKNOWNPATCH;
+        VBEAI_RetW(0);
+        return;
+    }
+
+    const PhysPt src = PhysMake(seg, off);
+    if (mem_readb(src) != 0xf0) {       /* not a sysex block */
+        vbeai_midi.lasterror = MID_UNKNOWNPATCH;
+        VBEAI_RetW(0);
+        return;
+    }
+
+    for (uint32_t i = 0; i < length; i++)
+        VBEAI_MidiOut(mem_readb(src + (PhysPt)i));
+
+    VBEAI_RetW(1);
+}
+
+static void VBEAI_Svc_MidiUnloadPatch(void) {
+    /* Nothing is retained on this side, so there is nothing to release and no
+     * msApplFreeCB to make. */
+    VBEAI_RetW(1);
+}
+
+static void VBEAI_Svc_MidiTimerTick(void) {
+    /* mitimerticks is 0: we need no periodic service. */
+}
+
+static void VBEAI_Svc_MidiGetLastError(void) {
+    const uint16_t e = vbeai_midi.lasterror;
+    vbeai_midi.lasterror = 0;
+    VBEAI_RetW(e);
+}
+
+/* ---------------------------------------------------------------------------
  * Trampoline dispatch.  One DOSBox-X callback serves every entry point; the
  * stub loads its own index into AX before invoking us.
  * ------------------------------------------------------------------------- */
@@ -765,8 +1003,11 @@ static void VBEAI_Svc_TimerTick(void) {
 static Bitu VBEAI_ServiceHandler(void) {
     const uint16_t index = reg_ax;
 
-    if (!vbeai.opened && index != VF_SYNCRET) {
-        /* Services are only live between open and close. */
+    /* Services are only live between that device's own open and close. */
+    const bool is_midi = (index >= VF_MS_DEVICECHECK && index < VF_MIDI_END);
+    const bool live = is_midi ? vbeai_midi.opened : vbeai.opened;
+
+    if (!live && index != VF_SYNCRET) {
         reg_ax = 0;
         reg_dx = 0;
         return CBRET_NONE;
@@ -786,6 +1027,15 @@ static Bitu VBEAI_ServiceHandler(void) {
     case VF_WAVEREGISTER:   VBEAI_Svc_WaveRegister();       break;
     case VF_GETLASTERROR:   VBEAI_Svc_GetLastError();       break;
     case VF_TIMERTICK:      VBEAI_Svc_TimerTick();          break;
+
+    case VF_MS_DEVICECHECK:  VBEAI_Svc_MidiDeviceCheck();   break;
+    case VF_MS_GLOBALRESET:  VBEAI_Svc_MidiGlobalReset();   break;
+    case VF_MS_MIDIMSG:      VBEAI_Svc_MidiMsg();           break;
+    case VF_MS_POLLMIDI:     VBEAI_Svc_MidiPollMIDI();      break;
+    case VF_MS_PRELOADPATCH: VBEAI_Svc_MidiPreLoadPatch();  break;
+    case VF_MS_UNLOADPATCH:  VBEAI_Svc_MidiUnloadPatch();   break;
+    case VF_MS_TIMERTICK:    VBEAI_Svc_MidiTimerTick();     break;
+    case VF_MS_GETLASTERROR: VBEAI_Svc_MidiGetLastError();  break;
     case VF_SYNCRET:        VBEAI_DeliverPending();         break;
     default:
         LOG(LOG_MISC, LOG_WARN)("VBE/AI: bad service index %u", (unsigned)index);
@@ -820,7 +1070,7 @@ static void VBEAI_PublishServices(uint16_t seg) {
     for (unsigned int i = 0; i < 16; i++) phys_writeb(s + WS_OFF_FUTURE + i, 0);
 
     /* the 13 driver-supplied functions, in structure order */
-    for (uint16_t i = 0; i < VF_SYNCRET; i++)
+    for (uint16_t i = 0; i < VF_WAVE_COUNT; i++)
         phys_writed(s + WS_OFF_FIRSTFUNC + i * 4, (uint32_t)VBEAI_StubPtr(i));
 
     /* the application fills these in itself */
@@ -828,12 +1078,39 @@ static void VBEAI_PublishServices(uint16_t seg) {
     phys_writed(s + WS_OFF_APPLRSYNCCB, 0);
 }
 
+static void VBEAI_PublishMidiServices(uint16_t seg) {
+    const PhysPt s = PhysMake(seg, 0) + VBEAI_SERVICE_OFF;
+
+    phys_writeb(s + MS_OFF_NAME + 0, 'M');
+    phys_writeb(s + MS_OFF_NAME + 1, 'I');
+    phys_writeb(s + MS_OFF_NAME + 2, 'D');
+    phys_writeb(s + MS_OFF_NAME + 3, 'S');
+    phys_writed(s + MS_OFF_LENGTH, MIDISERVICE_LENGTH);
+
+    /* mspatches[16]: which patches are loaded.  We advertise MIDIFPRELD, so
+     * every patch is present and every bit is set -- an application checking
+     * this before a program change will never need to send us one. */
+    for (unsigned int i = 0; i < 16; i++)
+        phys_writew(s + MS_OFF_PATCHES + i * 2, 0xffffu);
+
+    for (unsigned int i = 0; i < 16; i++) phys_writeb(s + MS_OFF_FUTURE + i, 0);
+
+    /* the 8 driver-supplied functions, in structure order */
+    for (uint16_t i = 0; i < VF_MIDI_COUNT; i++)
+        phys_writed(s + MS_OFF_FIRSTFUNC + i * 4,
+                    (uint32_t)VBEAI_StubPtr((uint16_t)(VF_MS_DEVICECHECK + i)));
+
+    /* the application fills these in itself */
+    phys_writed(s + MS_OFF_APPLFREECB, 0);
+    phys_writed(s + MS_OFF_APPLMIDIIN, 0);
+}
+
 static void VBEAI_WriteGeneralDeviceClass(uint16_t seg, uint16_t off) {
     const PhysPt p = PhysMake(seg, off);
 
     phys_writeb(p + 0, 'V'); phys_writeb(p + 1, 'E');
     phys_writeb(p + 2, 'S'); phys_writeb(p + 3, 'A');
-    phys_writed(p + 4, GDC_LENGTH);
+    phys_writed(p + 4, GDC_WAVE_LENGTH);
     phys_writew(p + 8, VBEAI_CLASS_WAVE);
     phys_writew(p + 10, VBEAI_VERSION);
 
@@ -857,6 +1134,40 @@ static void VBEAI_WriteGeneralDeviceClass(uint16_t seg, uint16_t off) {
     phys_writew(w + 124, 0x0003);                       /* 8 and 16 bit playback */
 }
 
+static void VBEAI_WriteMidiDeviceClass(uint16_t seg, uint16_t off) {
+    const PhysPt p = PhysMake(seg, off);
+
+    phys_writeb(p + 0, 'V'); phys_writeb(p + 1, 'E');
+    phys_writeb(p + 2, 'S'); phys_writeb(p + 3, 'A');
+    phys_writed(p + 4, GDC_MIDI_LENGTH);
+    phys_writew(p + 8, VBEAI_CLASS_MIDI);
+    phys_writew(p + 10, VBEAI_VERSION);
+
+    const PhysPt m = p + 12;                            /* MIDIInfo */
+    phys_writeb(m + 0, 'M'); phys_writeb(m + 1, 'I');
+    phys_writeb(m + 2, 'D'); phys_writeb(m + 3, 'I');
+    phys_writed(m + 4, MIDIINFO_LENGTH);
+    phys_writed(m + 8, 0x0100);                         /* miversion, BCD 1.00 */
+    VBEAI_WriteString(m + 12, "DOSBox-X", 32);          /* mivname   */
+    VBEAI_WriteString(m + 44, "VBE/AI Provider", 32);   /* miprod    */
+    VBEAI_WriteString(m + 76, "DOSBox-X MIDI Out", 32); /* michip    */
+    phys_writeb(m + 108, 0);                            /* miboardid */
+    phys_writeb(m + 109, 0);
+    phys_writeb(m + 110, 0);
+    phys_writeb(m + 111, 0);
+    /* milibrary: empty.  We advertise MIDIFPRELD, so there is no disk-resident
+     * patch library for the application to load from. */
+    VBEAI_WriteString(m + 112, "", 14);
+    phys_writed(m + 126, VBEAI_MIDI_FEATURES);
+    phys_writew(m + 130, (uint16_t)vbeai_midi.devpref);
+    phys_writew(m + 132, VBEAI_MEMREQ);
+    phys_writew(m + 134, 0);                            /* mitimerticks: none  */
+    /* miactivetones: unknowable for a transmitter, whose downstream device we
+     * cannot interrogate.  0xFFFF is what the spec tells such devices to report
+     * for the equivalent MIDITONES device check. */
+    phys_writew(m + 136, 0xffffu);
+}
+
 /* ---------------------------------------------------------------------------
  * INT 10h AX=4F13h
  * ------------------------------------------------------------------------- */
@@ -870,6 +1181,27 @@ static inline void VBEAI_SetSIDI(uint32_t v) {
     reg_di = (uint16_t)(v & 0xffffu);
 }
 
+/* "For MIDI Drivers: Turns off all voices.  Frees the DMA, clears any IRQ
+ * requests.  Frees any of the applications patch data memory blocks."  We hold
+ * no patch memory and no DMA/IRQ, so silencing the device is the whole job. */
+static void VBEAI_MidiClose(void) {
+    if (vbeai_midi.opened) {
+        for (uint8_t ch = 0; ch < 16; ch++) {
+            VBEAI_MidiOut((uint8_t)(0xb0 | ch));
+            VBEAI_MidiOut(0x7b);                /* All Notes Off */
+            VBEAI_MidiOut(0x00);
+        }
+    }
+    if (vbeai_midi.opened)
+        LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: MIDI forwarded %lu application bytes",
+            (unsigned long)vbeai_midi.msgbytes);
+
+    vbeai_midi.opened = false;
+    vbeai_midi.memseg = 0;
+    vbeai_midi.lasterror = 0;
+    vbeai_midi.msgbytes = 0;
+}
+
 static void VBEAI_Close(void) {
     VBEAI_StopPlayback(false);
     vbeai.pending.clear();
@@ -877,6 +1209,32 @@ static void VBEAI_Close(void) {
     vbeai.opened = false;
     vbeai.memseg = 0;
     if (vbeai.chan) vbeai.chan->Enable(false);
+}
+
+/* Is this handle one of ours, and is the device actually present?  The MIDI
+ * device exists only when DOSBox-X has a MIDI output to hand it to. */
+static bool VBEAI_HandleLive(uint16_t handle) {
+    if (handle == VBEAI_WAVE_HANDLE) return true;
+    if (handle == VBEAI_MIDI_HANDLE) return MIDI_Available();
+    return false;
+}
+
+/* Enumeration walks our devices in ascending handle order, returning the first
+ * one past `prev` that matches the requested class (0 meaning any).  Zero means
+ * there are no more, which is what ends the application's loop. */
+static uint16_t VBEAI_NextHandle(uint16_t prev, uint8_t cls) {
+    static const struct { uint16_t handle; uint8_t cls; } devs[] = {
+        { VBEAI_WAVE_HANDLE, VBEAI_CLASS_WAVE },
+        { VBEAI_MIDI_HANDLE, VBEAI_CLASS_MIDI }
+    };
+
+    for (unsigned int i = 0; i < (sizeof(devs)/sizeof(devs[0])); i++) {
+        if (devs[i].handle <= prev) continue;
+        if (cls != 0 && cls != devs[i].cls) continue;
+        if (!VBEAI_HandleLive(devs[i].handle)) continue;
+        return devs[i].handle;
+    }
+    return 0;
 }
 
 bool INT10_VBEAI_Handler(void) {
@@ -891,39 +1249,39 @@ bool INT10_VBEAI_Handler(void) {
 
     case 0x01: {    /* Get Next Device Handle */
         if (reg_bh != 0) { VBEAI_Fail(); break; }
-        const uint16_t prev = reg_cx;
-        const uint8_t cls = reg_dl;
-        if (prev == 0 && (cls == 0 || cls == VBEAI_CLASS_WAVE)) reg_cx = VBEAI_WAVE_HANDLE;
-        else reg_cx = 0;        /* our own handle came back, or not our class */
+        reg_cx = VBEAI_NextHandle(reg_cx, reg_dl);
         VBEAI_Ok();
         break;
     }
 
     case 0x02: {    /* Query Device Class Info */
         if (reg_bh != 0) { VBEAI_Fail(); break; }
-        if (reg_cx != VBEAI_WAVE_HANDLE) { VBEAI_Fail(); break; }
+        if (!VBEAI_HandleLive(reg_cx)) { VBEAI_Fail(); break; }
         if (reg_dh != 0) { VBEAI_Fail(); break; }   /* 32-bit flat not supported */
 
+        const bool midi = (reg_cx == VBEAI_MIDI_HANDLE);
         const uint8_t query = reg_dl;
 
         if (query >= 0x10) {
             /* device check; SI:DI in, SI:DI out */
             const uint32_t param = ((uint32_t)reg_si << 16) | (uint32_t)reg_di;
-            VBEAI_SetSIDI(VBEAI_DeviceCheck(query, param));
+            VBEAI_SetSIDI(midi ? VBEAI_MidiDeviceCheck(query, param)
+                               : VBEAI_DeviceCheck(query, param));
             VBEAI_Ok();
             break;
         }
 
         switch (query) {
         case VBEAI_Q_GDC_LENGTH:
-            VBEAI_SetSIDI(GDC_LENGTH);
+            VBEAI_SetSIDI(midi ? GDC_MIDI_LENGTH : GDC_WAVE_LENGTH);
             VBEAI_Ok();
             break;
 
         case VBEAI_Q_GDC_COPY:
             /* SI:DI is the caller's buffer and must come back unchanged --
              * VESA.C casts it straight to fpGDC after the call. */
-            VBEAI_WriteGeneralDeviceClass(reg_si, reg_di);
+            if (midi) VBEAI_WriteMidiDeviceClass(reg_si, reg_di);
+            else      VBEAI_WriteGeneralDeviceClass(reg_si, reg_di);
             VBEAI_Ok();
             break;
 
@@ -950,8 +1308,31 @@ bool INT10_VBEAI_Handler(void) {
 
     case 0x03: {    /* Open Device */
         if (reg_bh != 0) { VBEAI_Fail(); break; }
-        if (reg_cx != VBEAI_WAVE_HANDLE) { VBEAI_Fail(); break; }
+        if (!VBEAI_HandleLive(reg_cx)) { VBEAI_Fail(); break; }
         if (reg_dx != 0) { VBEAI_Fail(); break; }   /* 32-bit interface */
+
+        if (reg_cx == VBEAI_MIDI_HANDLE) {
+            if (vbeai_midi.opened) {
+                reg_si = 0; reg_cx = 0;     /* already in use */
+                VBEAI_Ok();
+                break;
+            }
+
+            const uint16_t mseg = reg_si;
+            if (mseg == 0) { VBEAI_Fail(); break; }
+
+            vbeai_midi.memseg = mseg;
+            vbeai_midi.opened = true;
+            vbeai_midi.lasterror = 0;
+            VBEAI_PublishMidiServices(mseg);
+
+            LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: MIDI device opened, block at %04x:0000", (unsigned)mseg);
+
+            reg_si = mseg;
+            reg_cx = VBEAI_SERVICE_OFF;
+            VBEAI_Ok();
+            break;
+        }
 
         if (vbeai.opened) {
             /* "The driver will return a zero if the requested API is not
@@ -984,9 +1365,15 @@ bool INT10_VBEAI_Handler(void) {
 
     case 0x04:      /* Close Device */
         if (reg_bh != 0) { VBEAI_Fail(); break; }
-        if (reg_cx != VBEAI_WAVE_HANDLE) { VBEAI_Fail(); break; }
-        VBEAI_Close();
-        LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: WAVE device closed");
+        if (!VBEAI_HandleLive(reg_cx)) { VBEAI_Fail(); break; }
+        if (reg_cx == VBEAI_MIDI_HANDLE) {
+            VBEAI_MidiClose();
+            LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: MIDI device closed");
+        }
+        else {
+            VBEAI_Close();
+            LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: WAVE device closed");
+        }
         VBEAI_Ok();
         break;
 
@@ -1024,6 +1411,7 @@ bool VBEAI_IsEnabled(void) {
 }
 
 void VBEAI_ShutDown(void) {
+    VBEAI_MidiClose();
     VBEAI_Close();
     vbeai.enabled = false;
 }
@@ -1035,6 +1423,7 @@ void VBEAI_Setup(void) {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("vbeai"));
     const bool enable = (section != NULL) ? section->Get_bool("vbeai") : false;
 
+    VBEAI_MidiClose();
     VBEAI_Close();
     vbeai.enabled = enable;
 
@@ -1079,5 +1468,7 @@ void VBEAI_Setup(void) {
     }
     if (vbeai.chan) vbeai.chan->Enable(false);
 
-    LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: enabled, one WAVE device (handle %u)", VBEAI_WAVE_HANDLE);
+    LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: enabled, WAVE device (handle %u)%s",
+        VBEAI_WAVE_HANDLE,
+        MIDI_Available() ? ", MIDI device (handle 2)" : ", no MIDI output so no MIDI device");
 }

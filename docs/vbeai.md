@@ -9,14 +9,16 @@ self-contradictory the conflict is called out explicitly rather than smoothed ov
 | Source | Status | Notes |
 | --- | --- | --- |
 | **`VBEAI100.pdf`** — *VESA VBE/AI 1.0 Standard*, 02/04/94 | **Primary, complete** | Found in the `volkertb/vbe-ai-sdk` mirror. This is the full 90-page standard, not an abstract. All register-level and structure-level detail below comes from it. |
-| **`VBEAI.H` / `VBEAI.INC`** (same SDK) | Primary | Machine-readable structure and constant definitions. Agrees with the PDF throughout. |
+| **`VBEAI.H` / `VBEAI.INC`** (same SDK) | Primary | Machine-readable structure and constant definitions. Agrees with the PDF on the WAVE side; **disagrees on the MIDI feature bits**, where the two headers agree with each other against the prose (see §8). |
+| **`OPL2.COM`, `MPU.COM`, `SBWAVE.COM`…** (same SDK) | Primary | The shipped driver binaries. Consulted to confirm the four-character structure tags (`"VESA"`, `"WAVI"`, `"WAVS"`, `"MIDI"`, `"MIDS"`) rather than guessing them. |
 | **`VESA.C` / `VESA.H`** (same SDK) | Primary | VESA's own mid-level helper layer. Contains the actual inline-asm `INT 10h` call sites — the authoritative statement of which register holds what. |
 | **`PLAY.C`, `TESTW.C`** (same SDK) | Primary | Reference applications. Settle the buffer/streaming model by demonstration. |
 | Ralf Brown's Interrupt List | **Not needed** | The SDK spec turned out to be complete, so RBIL was not used as evidence. Its known `???` markers are moot. |
 | Miles AIL `VESADIG.ADV`, DIGPAK `DIGVESA.COM` | **Not needed** | Consulting period consumers was contingency for an incomplete spec. The spec is not incomplete. |
 
 The SDK's `README.txt` claims an OPL3 MIDI driver is included; it is not. Only `OPL2.COM`
-and `MPU.COM` ship. This does not affect the WAVE path.
+and `MPU.COM` ship. `MPU.COM`, the MPU-401 transmitter driver, is the closest analogue to
+what this provider's MIDI device does.
 
 ## 1. The shape of the interface (and why it matters)
 
@@ -405,14 +407,9 @@ exactly what a RIFF/WAVE file contains.
 
 The driver zeroes the stored error once it has been read.
 
-## 5. MIDI and Volume (not implemented; recorded for completeness)
+## 5. Volume (not implemented; recorded for completeness)
 
-**MIDI** — `MIDIService` is tagged `"MIDS"`. Services: `msDeviceCheck`, `msGlobalReset`,
-`msMIDImsg(char far*, int)`, `msPollMIDI(int)`, `msPreLoadPatch`, `msUnloadPatch`,
-`msTimerTick`, `msGetLastError`, plus app callbacks `msApplFreeCB` and `msApplMIDIIn`. The
-structure carries a 16-entry `mspatches` bitfield of loaded patches and a `milibrary[14]`
-patch-library filename. Registered patch types: `0x10` OPL2, `0x11` OPL3. A future MIDI device
-would map `msMIDImsg` onto DOSBox-X's existing MIDI/OPL handling.
+MIDI is implemented -- see section 8.
 
 **Volume** — `VolumeInfo` and `VolumeService` (`"VOLS"`), reached only through subfunction 2
 queries 3–6. Services: `vsDeviceCheck`, `vsSetVolume(int,int,int)`, `vsSetFieldVol`,
@@ -507,12 +504,16 @@ block 15 -> source offset   6076   correlation 1.00000
 block 25 -> source offset  39305   correlation 0.99999
 ```
 
-Twelve blocks, every correlation ≥ 0.9998, offsets strictly increasing and evenly spaced from
-the start of the file to near its end (41727 bytes), with the mono source correctly duplicated
-to both channels. The disk driver's pacing drops buffers between captures, which is why the
-blocks are sampled rather than contiguous; what matters is that each one *is* the source
-waveform at the expected position. Correlation rather than exact equality because the mixer
-interpolates.
+Every correlation ≥ 0.9998, offsets strictly increasing and evenly spaced from the start of the
+file to near its end (41727 bytes), with the mono source correctly duplicated to both channels.
+The disk driver's pacing drops buffers between captures, which is why the blocks are sampled
+rather than contiguous; what matters is that each one *is* the source waveform at the expected
+position. Correlation rather than exact equality because the mixer interpolates.
+
+One analysis caveat: **skip any block that is not fully filled**. Playback generally begins
+partway through a block, so the first one is part silence, and correlating that against the
+source scores around 0.79 — an artefact of the measurement, not of the audio. Only blocks with
+1024 non-zero frames are meaningful.
 
 ### Bugs this caught
 
@@ -525,3 +526,68 @@ Worth recording, since both would have presented as a hang rather than an error:
 - **A block whose length was not a whole number of frames never completed.** The sub-frame
   tail could never be played, `playpos` never reached `playlen`, the device stayed busy
   forever and the completion callback never fired.
+
+## 8. MIDI device
+
+Implemented as a **MIDI transmitter/receiver** (`MIDIFXMITR`) whose downstream already holds the
+General MIDI patches (`MIDIFPRELD`), because that is exactly what DOSBox-X's MIDI output is:
+whatever the user configured in `[midi]` — MT-32, FluidSynth, or the host synthesiser.
+
+That framing removes most of chapter 5's complexity. There is no synthesis here, no voice
+allocation, and no patch library: `msMIDImsg` hands bytes to `MIDI_RawOutByte`, which already
+implements running status, sysex framing and realtime messages — precisely what the spec
+requires of a driver ("the drivers are required to handle the data as if it came in one byte at
+a time… handle running status, and process the MIDI protocol").
+
+> **Header/spec conflict.** §5.4's prose puts *patches preloaded* at `0x40` and *internal time
+> stamping* at `0x80`, leaving `0x20` unassigned. `VBEAI.H` **and** `VBEAI.INC` both put them at
+> `0x20` and `0x40` with no gap. Two independent machine-readable headers from the same SDK
+> agree with each other and disagree with the PDF, and the headers are what period drivers and
+> applications actually compiled against — so the implementation follows the headers.
+
+The `"MIDI"` / `"MIDS"` structure tags were taken from the SDK's own shipped drivers
+(`OPL2.COM`, `MPU.COM`) rather than guessed; the same check confirmed `"VESA"`, `"WAVI"` and
+`"WAVS"` on the WAVE side.
+
+### What is provided
+
+| | |
+| --- | --- |
+| `msDeviceCheck` | All nine messages. `MIDITONES` and `MIDIVOICESTEAL` return `0xFFFF`, which the spec explicitly sanctions for transmitter/receivers that cannot know the answer. |
+| `msGlobalReset` | All Notes Off + Reset All Controllers on all 16 channels. |
+| `msMIDImsg` | Forwards the block verbatim, byte by byte. |
+| `msPreLoadPatch` | Forwards sysex to the downstream device, as the spec requires of a transmitter — but only if the block really begins `F0`, rather than spraying an OPL patch blob at the synthesiser. Anything else fails with `MID_UNKNOWNPATCH`. |
+| `msUnloadPatch` | Succeeds; nothing is retained on this side. |
+| `msPollMIDI`, `msTimerTick` | No-ops. `mitimerticks` is 0 and no input bits are advertised, so neither is needed. |
+
+**Not provided:** MIDI input. Neither `MIDIINTR` nor `MIDIPOLL` is advertised, so
+`msApplMIDIIn` is never called. `miactivetones` reports `0xFFFF` because the downstream device
+cannot be interrogated.
+
+**Presence.** `MIDI_RawOutByte` dereferences DOSBox-X's MIDI handler without checking it, and
+that handler is null when no MIDI output is configured. So the MIDI device is **not enumerated
+at all** unless `MIDI_Available()`, and every byte the provider emits additionally goes through
+a guarded helper — availability can change if the user reconfigures `[midi]` between
+enumeration and use.
+
+**Handles.** WAVE is 1, MIDI is 2, and subfunction 1 walks them in ascending order, returning
+the first past the caller's previous handle that matches the requested class.
+
+### Verification
+
+The host check covers enumeration (including that the MIDI device disappears when no output is
+configured), the `MIDIInfo`/`MIDIService` byte offsets, verbatim byte forwarding, the device
+checks, `msGlobalReset`'s exact 96-byte output, and both `msPreLoadPatch` paths.
+
+End to end, `vbeaiwav` plays a Standard MIDI File through the device. Because MIDI leaves
+through the MIDI handler rather than the mixer, the audio-correlation trick used for WAVE does
+not apply; instead the provider counts the application bytes it forwards and logs the total at
+close, which can be checked against an independent parse of the file:
+
+```
+SAKURA2A.MID (format 1, 10 tracks)  expected 4828 bytes
+VBE/AI: MIDI forwarded 4828 application bytes
+```
+
+An exact match means the DOS sequencer parsed the file, merged all ten tracks and delivered
+every event, and the provider forwarded all of it.

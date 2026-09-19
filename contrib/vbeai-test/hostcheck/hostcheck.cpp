@@ -45,6 +45,12 @@ MixerChannel* MIXER_AddChannel(MIXER_Handler h,Bitu f,const char*){
     TheMixerHandler=h; TheChannel.freq=f; return &TheChannel;
 }
 
+/* every byte the provider emits, in order */
+static std::vector<uint8_t> MidiOut;
+static bool midi_present = true;
+void MIDI_RawOutByte(uint8_t data) { MidiOut.push_back(data); }
+bool MIDI_Available(void) { return midi_present; }
+
 /* ---- the code under test ---- */
 #include "int10_vesa_ai.cpp"
 
@@ -124,9 +130,9 @@ int main(void) {
     reg_bx = 0x0001; reg_cx = 1; reg_dx = 0x0001;
     INT10_VBEAI_Handler();
     check("fn1 second call returns 0", reg_cx, 0);
-    reg_bx = 0x0001; reg_cx = 0; reg_dx = 0x0002;   /* MIDI */
+    reg_bx = 0x0001; reg_cx = 0; reg_dx = 0x0003;   /* Volume: not provided */
     INT10_VBEAI_Handler();
-    check("fn1 MIDI class returns 0", reg_cx, 0);
+    check("fn1 unprovided class returns 0", reg_cx, 0);
 
     /* --- subfunction 2: GeneralDeviceClass --- */
     printf("== query device class ==\n");
@@ -165,8 +171,8 @@ int main(void) {
         check("wsname 'WAVS'", phys_readd(s)==0x53564157, 1);
         check("wslength", phys_readd(s+4), 84);
         bool ptrs_ok = true;
-        for (int i = 0; i < VF_SYNCRET; i++)
-            if (phys_readd(s+24+i*4) != (uint32_t)VBEAI_StubPtr(i)) ptrs_ok = false;
+        for (int i = 0; i < VF_WAVE_COUNT; i++)
+            if (phys_readd(s+24+i*4) != (uint32_t)VBEAI_StubPtr((uint16_t)i)) ptrs_ok = false;
         check("13 service pointers point at the ROM stubs", ptrs_ok, 1);
         check("wsApplPSyncCB starts NULL", phys_readd(s+76), 0);
     }
@@ -348,6 +354,159 @@ int main(void) {
     { std::vector<std::pair<int,uint32_t> > a;
       a.push_back(std::make_pair(2, WAVEDRIVERSTATE)); a.push_back(std::make_pair(4, 0));
       CallService(VF_DEVICECHECK, a); }
+    check("services inert after close", RetLong(), 0);
+
+    /* ================= MIDI device ================= */
+
+    printf("== MIDI enumeration ==\n");
+    reg_bx = 0x0001; reg_cx = 0; reg_dx = 0x0000;   /* any class */
+    INT10_VBEAI_Handler();
+    check("any-class first  -> WAVE handle", reg_cx, 1);
+    reg_bx = 0x0001; reg_cx = 1; reg_dx = 0x0000;
+    INT10_VBEAI_Handler();
+    check("any-class second -> MIDI handle", reg_cx, 2);
+    reg_bx = 0x0001; reg_cx = 2; reg_dx = 0x0000;
+    INT10_VBEAI_Handler();
+    check("any-class third  -> none left", reg_cx, 0);
+
+    reg_bx = 0x0001; reg_cx = 0; reg_dx = 0x0002;   /* MIDI class */
+    INT10_VBEAI_Handler();
+    check("MIDI class -> handle 2", reg_cx, 2);
+    reg_bx = 0x0001; reg_cx = 2; reg_dx = 0x0002;
+    INT10_VBEAI_Handler();
+    check("MIDI class -> none left", reg_cx, 0);
+
+    /* with no MIDI output configured the device must not be offered at all */
+    midi_present = false;
+    reg_bx = 0x0001; reg_cx = 0; reg_dx = 0x0002;
+    INT10_VBEAI_Handler();
+    check("no MIDI output -> device not enumerated", reg_cx, 0);
+    reg_bx = 0x0001; reg_cx = 1; reg_dx = 0x0000;
+    INT10_VBEAI_Handler();
+    check("no MIDI output -> any-class stops after WAVE", reg_cx, 0);
+    midi_present = true;
+
+    printf("== MIDI device class ==\n");
+    reg_bx = 0x0002; reg_cx = 2; reg_dx = 0x0001;
+    INT10_VBEAI_Handler();
+    check("q1 MIDI GDC length", ((uint32_t)reg_si<<16)|reg_di, 150);
+
+    reg_bx = 0x0002; reg_cx = 2; reg_dx = 0x0002;
+    reg_si = 0x3000; reg_di = 0x0000;
+    INT10_VBEAI_Handler();
+    {
+        PhysPt g = PhysMake(0x3000,0);
+        check("gdname 'VESA'", phys_readd(g)==0x41534556, 1);
+        check("gdlength", phys_readd(g+4), 150);
+        check("gdclassid MIDI", phys_readw(g+8), 2);
+        PhysPt m = g + 12;
+        check("miname 'MIDI'", phys_readd(m)==0x4944494D, 1);
+        check("milength", phys_readd(m+4), 138);
+        check("milibrary empty (patches preloaded)", phys_readb(m+112), 0);
+        check("mifeatures = XMITR|PRELD", phys_readd(m+126), 0x30);
+        check("mimemreq", phys_readw(m+132), 128);
+        check("mitimerticks (none needed)", phys_readw(m+134), 0);
+        check("miactivetones (unknowable)", phys_readw(m+136), 0xFFFF);
+    }
+
+    printf("== MIDI open ==\n");
+    reg_bx = 0x0003; reg_cx = 2; reg_dx = 0; reg_si = 0x4000;
+    INT10_VBEAI_Handler();
+    check("fn3 AX", reg_ax & 0xFFFF, 0x004F);
+    check("fn3 SI = block segment", reg_si, 0x4000);
+    {
+        PhysPt s = PhysMake(0x4000,0);
+        check("msname 'MIDS'", phys_readd(s)==0x5344494D, 1);
+        check("mslength", phys_readd(s+4), 96);
+        bool patches_ok = true;
+        for (int i = 0; i < 16; i++) if (phys_readw(s+8+i*2) != 0xFFFF) patches_ok = false;
+        check("mspatches: all present", patches_ok, 1);
+        bool ptrs_ok = true;
+        for (int i = 0; i < VF_MIDI_COUNT; i++)
+            if (phys_readd(s+56+i*4) != (uint32_t)VBEAI_StubPtr((uint16_t)(VF_MS_DEVICECHECK+i))) ptrs_ok = false;
+        check("8 service pointers point at the ROM stubs", ptrs_ok, 1);
+        check("msApplFreeCB starts NULL", phys_readd(s+88), 0);
+        check("msApplMIDIIn starts NULL", phys_readd(s+92), 0);
+    }
+
+    printf("== msMIDImsg ==\n");
+    {
+        /* Note On ch0 middle C, Note Off, with a running-status second note */
+        const uint8_t msg[] = { 0x90, 0x3C, 0x7F, 0x3E, 0x60, 0x80, 0x3C, 0x00 };
+        for (unsigned i = 0; i < sizeof(msg); i++) phys_writeb(PhysMake(0x5000,0)+i, msg[i]);
+        MidiOut.clear();
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(4, ((uint32_t)0x5000<<16)|0));  /* char far * */
+        a.push_back(std::make_pair(2, (uint32_t)sizeof(msg)));     /* int len    */
+        CallService(VF_MS_MIDIMSG, a);
+        check("returns TRUE", reg_ax, 1);
+        check("byte count forwarded", (long long)MidiOut.size(), (long long)sizeof(msg));
+        bool same = (MidiOut.size()==sizeof(msg));
+        for (unsigned i = 0; same && i < sizeof(msg); i++) if (MidiOut[i]!=msg[i]) same=false;
+        check("bytes forwarded verbatim, in order", same, 1);
+    }
+
+    printf("== MIDI device checks ==\n");
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, MIDITONES)); a.push_back(std::make_pair(4, 0));
+      CallService(VF_MS_DEVICECHECK, a); }
+    check("MIDITONES -> 0xFFFF (transmitter)", RetLong(), 0xFFFF);
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, MIDIGETDMAIRQ)); a.push_back(std::make_pair(4, 0));
+      CallService(VF_MS_DEVICECHECK, a); }
+    check("MIDIGETDMAIRQ -> no DMA, no IRQ", RetLong(), 0xFFFFFFFFUL);
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, MIDIPATCHTYPE)); a.push_back(std::make_pair(4, 0x10));
+      CallService(VF_MS_DEVICECHECK, a); }
+    check("MIDIPATCHTYPE OPL2 -> not understood", RetLong(), 0);
+
+    printf("== msGlobalReset / msPreLoadPatch ==\n");
+    MidiOut.clear();
+    { std::vector<std::pair<int,uint32_t> > none; CallService(VF_MS_GLOBALRESET, none); }
+    check("emits 16 channels x 2 controllers x 3 bytes", (long long)MidiOut.size(), 96);
+    check("first message is ch0 All Notes Off", (MidiOut[0]==0xB0 && MidiOut[1]==0x7B), 1);
+    check("second is ch0 Reset All Controllers", (MidiOut[3]==0xB0 && MidiOut[4]==0x79), 1);
+
+    {   /* a non-sysex patch must be refused rather than sprayed at the synth */
+        phys_writeb(PhysMake(0x5100,0), 0x20);
+        MidiOut.clear();
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(2, 0));                          /* patch   */
+        a.push_back(std::make_pair(2, 0));                          /* channel */
+        a.push_back(std::make_pair(4, ((uint32_t)0x5100<<16)|0));   /* data    */
+        a.push_back(std::make_pair(4, 4));                          /* length  */
+        CallService(VF_MS_PRELOADPATCH, a);
+        check("non-sysex patch refused", reg_ax, 0);
+        check("nothing transmitted", (long long)MidiOut.size(), 0);
+        std::vector<std::pair<int,uint32_t> > b;
+        b.push_back(std::make_pair(2,0)); b.push_back(std::make_pair(4,0));
+        CallService(VF_MS_GETLASTERROR, b);
+        check("  reported as MID_UNKNOWNPATCH", reg_ax, 2);
+    }
+    {   /* a sysex patch is forwarded to the external device */
+        const uint8_t sx[] = { 0xF0, 0x41, 0x10, 0x42, 0xF7 };
+        for (unsigned i = 0; i < sizeof(sx); i++) phys_writeb(PhysMake(0x5200,0)+i, sx[i]);
+        MidiOut.clear();
+        std::vector<std::pair<int,uint32_t> > a;
+        a.push_back(std::make_pair(2, 0)); a.push_back(std::make_pair(2, 0));
+        a.push_back(std::make_pair(4, ((uint32_t)0x5200<<16)|0));
+        a.push_back(std::make_pair(4, (uint32_t)sizeof(sx)));
+        CallService(VF_MS_PRELOADPATCH, a);
+        check("sysex patch accepted", reg_ax, 1);
+        check("sysex transmitted verbatim", (long long)MidiOut.size(), (long long)sizeof(sx));
+    }
+
+    printf("== MIDI close ==\n");
+    MidiOut.clear();
+    reg_bx = 0x0004; reg_cx = 2;
+    INT10_VBEAI_Handler();
+    check("fn4 AX", reg_ax & 0xFFFF, 0x004F);
+    check("closed", vbeai_midi.opened, 0);
+    check("silenced all 16 channels on close", (long long)MidiOut.size(), 48);
+    MidiOut.clear();
+    { std::vector<std::pair<int,uint32_t> > a;
+      a.push_back(std::make_pair(2, MIDITONES)); a.push_back(std::make_pair(4, 0));
+      CallService(VF_MS_DEVICECHECK, a); }
     check("services inert after close", RetLong(), 0);
 
     printf("\n%s (%d failure%s)\n", failures ? "FAILED" : "PASSED",

@@ -1,8 +1,11 @@
-# vbeaiwav — VBE/AI WAVE playback test
+# vbeaiwav — VBE/AI playback test
 
-A minimal real-mode DOS program that plays a RIFF/WAVE file through
-`INT 10h, AX=4F13h`. It exists to prove the DOSBox-X built-in VBE/AI provider
-(`src/ints/int10_vesa_ai.cpp`) end to end — nothing more.
+A minimal real-mode DOS program that plays a RIFF/WAVE file or a Standard MIDI
+File through `INT 10h, AX=4F13h`. It exists to prove the DOSBox-X built-in
+VBE/AI provider (`src/ints/int10_vesa_ai.cpp`) end to end — nothing more.
+
+It sniffs the file's magic rather than its extension: `RIFF`/`WAVE` goes to the
+WAVE device, `MThd` to the MIDI device.
 
 ## Build
 
@@ -54,7 +57,42 @@ Playback complete.
 
 …and the file should be audible.
 
+### MIDI
+
+```
+VBEAIWAV SAKURA2A.MID
+```
+
+needs a MIDI output configured, since the provider does not offer a MIDI device
+without one:
+
+```ini
+[midi]
+mididevice = default
+```
+
+`ALFRE.MID` (format 0) and `SAKURA2A.MID` (format 1, ten tracks) both ship with
+the VESA SDK. Expected output:
+
+```
+VBE/AI version 1.0 present.
+Device: DOSBox-X / VBE/AI Provider (DOSBox-X MIDI Out)
+        features=00000030 memreq=128 tones=65535
+sakura2a.mid: 6578 bytes, format 1, 10 track(s), 192 ticks/quarter
+Playing -- ESC to stop.
+Playback complete.
+```
+
+VBE/AI puts tempo and scheduling on the *application* — the driver only ever
+sees events that are already due — so this contains a small sequencer: it reads
+the file, merges the tracks, follows tempo meta events, and feeds each event to
+`msMIDImsg` at the right moment. Timing comes from the BIOS tick combined with
+a live read of PIT channel 0, because the 55 ms tick alone is far too coarse
+for music.
+
 ## What it exercises
+
+### WAVE
 
 | Step | Call |
 | --- | --- |
@@ -71,6 +109,17 @@ Playback complete.
 | Stop early on ESC | `wsStopIO` |
 | Unregister and close | `wsWaveRegister(NULL,h)`, `AX=4F13h BX=0004h` |
 
-It does not exercise `wsPlayCont`, recording, MIDI or Volume. Recording, MIDI
-and Volume are not implemented by the provider; `wsPlayCont` is, but a single
-block is enough to prove the path.
+### MIDI
+
+| Step | Call |
+| --- | --- |
+| Locate a MIDI device | `AX=4F13h BX=0001h`, `DL=2` |
+| Query the device class | `AX=4F13h BX=0002h`, `DL=2` |
+| Open, donating `mimemreq` bytes | `AX=4F13h BX=0003h` |
+| Silence before and after | `msGlobalReset` |
+| Feed each event at delta time 0 | `msMIDImsg` |
+| Close | `AX=4F13h BX=0004h` |
+
+It does not exercise `wsPlayCont`, recording, MIDI input, `msPreLoadPatch` or
+Volume. Recording, MIDI input and Volume are not implemented by the provider;
+`wsPlayCont` and `msPreLoadPatch` are, and are covered by `hostcheck/` instead.

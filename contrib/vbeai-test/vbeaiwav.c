@@ -1,15 +1,20 @@
 /*
- *  vbeaiwav -- minimal VESA VBE/AI WAVE playback test for DOSBox-X
+ *  vbeaiwav -- minimal VESA VBE/AI playback test for DOSBox-X
  *
- *  Plays a RIFF/WAVE file through INT 10h AX=4F13h.  Its only purpose is to
- *  prove the DOSBox-X built-in VBE/AI provider end to end; it is deliberately
- *  not a general-purpose player.
+ *  Plays a RIFF/WAVE file through the VBE/AI WAVE device, or a Standard MIDI
+ *  File through the VBE/AI MIDI device, both via INT 10h AX=4F13h.  The file's
+ *  magic decides which.  Its only purpose is to prove the DOSBox-X built-in
+ *  VBE/AI provider end to end; it is deliberately not a general-purpose player.
+ *
+ *  Note that VBE/AI leaves tempo and scheduling to the application -- the
+ *  driver is only ever handed events that are already due -- so the MIDI path
+ *  carries a small sequencer of its own.
  *
  *  Build with Open Watcom (16-bit real mode, large model):
  *
  *      wcl -0 -ml -bcl=dos -fe=vbeaiwav.exe vbeaiwav.c
  *
- *  Usage:  VBEAIWAV [file.wav]        (defaults to TEST.WAV)
+ *  Usage:  VBEAIWAV [file.wav | file.mid]      (defaults to TEST.WAV)
  */
 
 #include <stdio.h>
@@ -89,7 +94,53 @@ typedef struct {
     void (__pascal __far *wsApplRSyncCB )(int, void __far *, long, long);
 } WAVEService;
 
+typedef struct {
+    char            miname[4];
+    long            milength;
+    long            miversion;
+    char            mivname[32];
+    char            miprod[32];
+    char            michip[32];
+    char            miboardid;
+    char            miunused[3];
+    char            milibrary[14];
+    long            mifeatures;
+    int             midevpref;
+    int             mimemreq;
+    int             mitimerticks;
+    int             miactivetones;
+} MIDIInfo;
+
+typedef struct {
+    char            gdname[4];
+    long            gdlength;
+    int             gdclassid;
+    int             gdvbever;
+    MIDIInfo        mi;
+} MidiDeviceClass;
+
+typedef struct {
+    char            msname[4];
+    long            mslength;
+    int             mspatches[16];
+    char            msfuture[16];
+
+    long (__pascal __far *msDeviceCheck  )(int, long);
+    int  (__pascal __far *msGlobalReset  )(void);
+    int  (__pascal __far *msMIDImsg      )(char __far *, int);
+    void (__pascal __far *msPollMIDI     )(int);
+    int  (__pascal __far *msPreLoadPatch )(int, int, void __far *, long);
+    int  (__pascal __far *msUnloadPatch  )(int, int);
+    void (__pascal __far *msTimerTick    )(void);
+    int  (__pascal __far *msGetLastError )(void);
+
+    void (__pascal __far *msApplFreeCB   )(int, int, void __far *, long);
+    void (__pascal __far *msApplMIDIIn   )(int, int, char, long);
+} MIDIService;
+
 #pragma pack(pop)
+
+#define MIDDEVICE       0x0002
 
 /* ------------------------------------------------------------------ */
 
@@ -192,6 +243,360 @@ static void cleanup(void)
     if (data_seg)     { _dos_freemem(data_seg);     data_seg = 0; }
 }
 
+/* ------------------------------------------------------------------ */
+/* Standard MIDI File playback                                        */
+/*                                                                    */
+/* VBE/AI puts tempo and scheduling on the application: the driver is */
+/* handed events that are already at delta time zero. So this is a    */
+/* small sequencer -- read the file, merge the tracks, and feed each  */
+/* event to msMIDImsg at the right moment.                            */
+/* ------------------------------------------------------------------ */
+
+#define MAX_TRACKS      32
+#define MIDI_BUFSEG_MAX 0xFFFFUL
+
+typedef struct {
+    unsigned long   pos;        /* read cursor, offset into the file image */
+    unsigned long   end;        /* one past this track's last byte         */
+    unsigned long   nexttick;   /* absolute tick of its pending event      */
+    unsigned char   running;    /* running status byte                     */
+    int             done;
+} Track;
+
+static unsigned      mid_seg = 0;       /* segment holding the whole file */
+static Track         tracks[MAX_TRACKS];
+static int           ntracks = 0;
+static unsigned long tempo_us = 500000UL;   /* SMF default: 120 bpm */
+static unsigned      division = 96;
+
+/* The schedule is accumulated rather than recomputed from tick 0, for two
+ * reasons: a tempo change must only affect the music after it, not retime
+ * everything before it; and tick*us_per_tick would overflow 32 bits on a long
+ * file. The split multiply keeps the intermediate in range while staying exact. */
+static unsigned long cur_tick = 0;
+static unsigned long cur_us   = 0;
+
+static unsigned long advance_to(unsigned long tick)
+{
+    unsigned long d = tick - cur_tick;
+
+    cur_us  += (d / division) * tempo_us + ((d % division) * tempo_us) / division;
+    cur_tick = tick;
+    return cur_us;
+}
+
+static unsigned char mbyte(unsigned long off)
+{
+    return *(unsigned char __far *)MK_FP((unsigned)(mid_seg + (unsigned)(off >> 4)),
+                                         (unsigned)(off & 0x0FUL));
+}
+
+static unsigned long mbe32(unsigned long off)
+{
+    return ((unsigned long)mbyte(off)   << 24) | ((unsigned long)mbyte(off+1) << 16) |
+           ((unsigned long)mbyte(off+2) <<  8) |  (unsigned long)mbyte(off+3);
+}
+
+static unsigned mbe16(unsigned long off)
+{
+    return ((unsigned)mbyte(off) << 8) | mbyte(off+1);
+}
+
+/* Variable-length quantity: 7 bits per byte, high bit means "continues". */
+static unsigned long read_vlq(unsigned long *p)
+{
+    unsigned long v = 0;
+    unsigned char b;
+    int guard = 0;
+
+    do {
+        b = mbyte((*p)++);
+        v = (v << 7) | (unsigned long)(b & 0x7F);
+    } while ((b & 0x80) && ++guard < 4);
+
+    return v;
+}
+
+/* A free-running microsecond clock. The BIOS tick alone is 55ms, far too
+ * coarse for music, so combine it with the PIT channel 0 counter. */
+static unsigned long base_ticks = 0;
+
+static unsigned long now_us(void)
+{
+    unsigned long t1, t2;
+    unsigned int cnt;
+
+    do {
+        t1 = *(unsigned long __far *)MK_FP(0x40, 0x6C);
+        _disable();
+        outp(0x43, 0x00);                       /* latch counter 0 */
+        cnt  = (unsigned int)inp(0x40);
+        cnt |= (unsigned int)inp(0x40) << 8;
+        _enable();
+        t2 = *(unsigned long __far *)MK_FP(0x40, 0x6C);
+    } while (t1 != t2);                          /* retry across a tick edge */
+
+    /* counter 0 counts down from 65536 across one 54925us tick */
+    return (t1 - base_ticks) * 54925UL
+         + (((65536UL - (unsigned long)cnt) * 54925UL) >> 16);
+}
+
+static int parse_smf(unsigned long size)
+{
+    unsigned long off;
+    int i;
+
+    if (size < 14 || mbe32(0) != 0x4D546864UL) {     /* 'MThd' */
+        printf("Not a Standard MIDI File.\n");
+        return 0;
+    }
+
+    division = mbe16(12);
+    if (division & 0x8000) {
+        printf("SMPTE timing is not supported.\n");
+        return 0;
+    }
+    if (division == 0) division = 96;
+
+    printf("format %u, %u track(s), %u ticks/quarter\n",
+           mbe16(8), mbe16(10), division);
+
+    off = 8 + mbe32(4);                              /* past the MThd chunk */
+    ntracks = 0;
+    while (off + 8 <= size && ntracks < MAX_TRACKS) {
+        unsigned long id  = mbe32(off);
+        unsigned long len = mbe32(off + 4);
+        if (id == 0x4D54726BUL) {                    /* 'MTrk' */
+            tracks[ntracks].pos     = off + 8;
+            tracks[ntracks].end     = off + 8 + len;
+            if (tracks[ntracks].end > size) tracks[ntracks].end = size;
+            tracks[ntracks].running = 0;
+            tracks[ntracks].done    = 0;
+            tracks[ntracks].nexttick = 0;
+            ntracks++;
+        }
+        off += 8 + len;
+    }
+
+    if (ntracks == 0) { printf("No MTrk chunks.\n"); return 0; }
+
+    /* prime each track with its first delta time */
+    for (i = 0; i < ntracks; i++) {
+        if (tracks[i].pos >= tracks[i].end) { tracks[i].done = 1; continue; }
+        tracks[i].nexttick = read_vlq(&tracks[i].pos);
+    }
+    return 1;
+}
+
+/* Emit one event from track t, which is due now. Returns 0 at end of track. */
+static int play_event(MIDIService __far *ms, Track *t)
+{
+    static char __far *msgbuf = 0;
+    static char buf[4];
+    unsigned char status;
+    unsigned long len;
+    int n;
+
+    if (t->pos >= t->end) { t->done = 1; return 0; }
+
+    status = mbyte(t->pos);
+    if (status & 0x80) t->pos++;
+    else               status = t->running;      /* running status */
+
+    if (status == 0xFF) {                        /* meta event */
+        unsigned char type = mbyte(t->pos++);
+        len = read_vlq(&t->pos);
+        if (type == 0x2F) { t->done = 1; return 0; }        /* end of track */
+        if (type == 0x51 && len == 3) {                     /* set tempo */
+            tempo_us = ((unsigned long)mbyte(t->pos)   << 16) |
+                       ((unsigned long)mbyte(t->pos+1) <<  8) |
+                        (unsigned long)mbyte(t->pos+2);
+            if (tempo_us == 0) tempo_us = 500000UL;
+        }
+        t->pos += len;
+        return 1;
+    }
+
+    if (status == 0xF0 || status == 0xF7) {      /* sysex */
+        len = read_vlq(&t->pos);
+        /* Hand it over one chunk at a time through the app's own buffer; the
+         * driver forwards raw bytes, so reconstruct the leading F0. */
+        msgbuf = (char __far *)MK_FP((unsigned)(mid_seg + (unsigned)(t->pos >> 4)),
+                                     (unsigned)(t->pos & 0x0FUL));
+        if (status == 0xF0) { buf[0] = (char)0xF0; (ms->msMIDImsg)(buf, 1); }
+        if (len > 0 && len < 0x4000UL) (ms->msMIDImsg)(msgbuf, (int)len);
+        t->pos += len;
+        return 1;
+    }
+
+    /* channel voice message */
+    t->running = status;
+    n = ((status & 0xF0) == 0xC0 || (status & 0xF0) == 0xD0) ? 1 : 2;
+    buf[0] = (char)status;
+    buf[1] = (char)mbyte(t->pos++);
+    if (n == 2) buf[2] = (char)mbyte(t->pos++);
+    (ms->msMIDImsg)(buf, n + 1);
+    return 1;
+}
+
+static int play_midi(const char *path)
+{
+    union REGS r;
+    MidiDeviceClass gdc;
+    MIDIService __far *ms = 0;
+    unsigned memseg = 0;
+    int hMIDI = 0;
+    int fh, i, stopped = 0;
+    unsigned long size, done, tick = 0, start;
+    long fsize;
+
+    /* --- locate a MIDI device --- */
+    r.w.ax = VESAFUNCID;
+    r.w.bx = VF_LOCATE;
+    r.w.cx = 0;
+    r.w.dx = MIDDEVICE;
+    int86(0x10, &r, &r);
+    if (r.w.ax != VESAOK || r.w.cx == 0) {
+        printf("No VBE/AI MIDI device found.\n");
+        printf("Is a MIDI output configured in the [midi] section?\n");
+        return 1;
+    }
+    hMIDI = (int)r.w.cx;
+
+    /* --- query it --- */
+    r.w.ax = VESAFUNCID;
+    r.w.bx = VF_QUERY;
+    r.w.cx = (unsigned)hMIDI;
+    r.w.dx = Q_GDC_COPY;
+    r.w.si = FP_SEG((void __far *)&gdc);
+    r.w.di = FP_OFF((void __far *)&gdc);
+    int86(0x10, &r, &r);
+    if (r.w.ax != VESAOK) { printf("MIDI query failed.\n"); return 1; }
+
+    printf("Device: %s / %s (%s)\n", gdc.mi.mivname, gdc.mi.miprod, gdc.mi.michip);
+    printf("        features=%08lX memreq=%u tones=%u\n",
+           gdc.mi.mifeatures, (unsigned)gdc.mi.mimemreq,
+           (unsigned)gdc.mi.miactivetones);
+
+    /* --- load the file --- */
+    if (_dos_open(path, O_RDONLY, &fh) != 0) {
+        printf("Cannot open %s\n", path); return 1;
+    }
+    fsize = lseek(fh, 0L, SEEK_END);
+    if (fsize <= 0) { printf("Empty file.\n"); _dos_close(fh); return 1; }
+    size = (unsigned long)fsize;
+    lseek(fh, 0L, SEEK_SET);
+
+    if (_dos_allocmem((unsigned)((size + 15UL) / 16UL), &mid_seg) != 0) {
+        printf("Out of memory for %lu bytes.\n", size);
+        _dos_close(fh); return 1;
+    }
+
+    done = 0;
+    while (done < size) {
+        unsigned long left = size - done;
+        unsigned chunk = (left > 0x8000UL) ? 0x8000u : (unsigned)left;
+        unsigned got = 0;
+        void __far *dst = MK_FP((unsigned)(mid_seg + (unsigned)(done >> 4)),
+                                (unsigned)(done & 0x0FUL));
+        if (_dos_read(fh, dst, chunk, &got) != 0 || got == 0) break;
+        done += got;
+    }
+    _dos_close(fh);
+    size = done;
+
+    printf("%s: %lu bytes, ", path, size);
+    if (!parse_smf(size)) { _dos_freemem(mid_seg); return 1; }
+
+    /* --- open the device --- */
+    if (_dos_allocmem((unsigned)((gdc.mi.mimemreq + 15) / 16), &memseg) != 0) {
+        printf("Out of memory for the driver block.\n");
+        _dos_freemem(mid_seg); return 1;
+    }
+
+    r.w.ax = VESAFUNCID;
+    r.w.bx = VF_OPEN;
+    r.w.cx = (unsigned)hMIDI;
+    r.w.dx = 0;
+    r.w.si = memseg;
+    int86(0x10, &r, &r);
+    if (r.w.ax != VESAOK || (r.w.si == 0 && r.w.cx == 0)) {
+        printf("MIDI open failed.\n");
+        _dos_freemem(memseg); _dos_freemem(mid_seg); return 1;
+    }
+    ms = (MIDIService __far *)MK_FP(r.w.si, r.w.cx);
+    if (memcmp(ms->msname, "MIDS", 4) != 0) {
+        printf("Services structure is not tagged MIDS.\n");
+        _dos_freemem(memseg); _dos_freemem(mid_seg); return 1;
+    }
+
+    (ms->msGlobalReset)();
+
+    printf("Playing -- ESC to stop.\n");
+
+    base_ticks = *(unsigned long __far *)MK_FP(0x40, 0x6C);
+    cur_tick = 0;
+    cur_us = 0;
+    start = now_us();
+
+    for (;;) {
+        unsigned long soonest = 0xFFFFFFFFUL;
+        unsigned long due_us;
+        int any = 0, t;
+
+        for (i = 0; i < ntracks; i++) {
+            if (tracks[i].done) continue;
+            any = 1;
+            if (tracks[i].nexttick < soonest) soonest = tracks[i].nexttick;
+        }
+        if (!any) break;
+
+        /* Wait until that tick's wall-clock moment.  advance_to() is called
+         * before the events at this tick are emitted, so a tempo change here
+         * governs the interval that follows it, not the one before. */
+        tick = soonest;
+        due_us = start + advance_to(tick);
+        while (now_us() < due_us) {
+            if (kbhit() && getch() == 0x1b) { stopped = 1; break; }
+        }
+        if (stopped) break;
+
+        /* fire every track that is due at this tick */
+        for (t = 0; t < ntracks; t++) {
+            while (!tracks[t].done && tracks[t].nexttick == tick) {
+                if (!play_event(ms, &tracks[t])) break;
+                if (tracks[t].pos >= tracks[t].end) { tracks[t].done = 1; break; }
+                tracks[t].nexttick = tick + read_vlq(&tracks[t].pos);
+            }
+        }
+    }
+
+    (ms->msGlobalReset)();
+    printf(stopped ? "Stopped.\n" : "Playback complete.\n");
+
+    r.w.ax = VESAFUNCID;
+    r.w.bx = VF_CLOSE;
+    r.w.cx = (unsigned)hMIDI;
+    int86(0x10, &r, &r);
+
+    _dos_freemem(memseg);
+    _dos_freemem(mid_seg);
+    return 0;
+}
+
+/* Sniff the file rather than trusting the extension. */
+static int file_is_midi(const char *path)
+{
+    FILE *f = fopen(path, "rb");
+    char hdr[4];
+    size_t n;
+
+    if (f == NULL) return 0;
+    n = fread(hdr, 1, 4, f);
+    fclose(f);
+    return (n == 4 && memcmp(hdr, "MThd", 4) == 0);
+}
+
 int main(int argc, char *argv[])
 {
     const char *path = (argc > 1) ? argv[1] : "TEST.WAV";
@@ -217,6 +622,9 @@ int main(int argc, char *argv[])
     }
     printf("VBE/AI version %d.%d present.\n",
            (r.h.bl >> 4) & 0x0f, r.h.bl & 0x0f);
+
+    /* A Standard MIDI File goes down the MIDI device path instead. */
+    if (file_is_midi(path)) return play_midi(path);
 
     /* --- subfunction 1: find a WAVE device --- */
 

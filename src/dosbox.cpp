@@ -4224,9 +4224,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable the VESA VBE/AI (VESA Audio Interface) provider, INT 10h AX=4F13h.\n"
                     "DOSBox-X answers VBE/AI calls directly from its own emulated BIOS, the same way\n"
                     "it answers the VESA VBE video calls, so no VBE/AI driver needs to be loaded in\n"
-                    "the guest. Audio is rendered through the 'VBEAI' mixer channel; no I/O port\n"
-                    "range, IRQ or DMA channel is used. Only the WAVE device class is provided;\n"
-                    "MIDI and Volume device classes are not. See docs/vbeai.md for details.");
+                    "the guest. WAVE audio is rendered through the 'VBEAI' mixer channel and MIDI\n"
+                    "is forwarded to whatever [midi] mididevice is set to; no I/O port range, IRQ\n"
+                    "or DMA channel is used. The WAVE and MIDI device classes are provided (the\n"
+                    "MIDI one only when a MIDI output is configured); recording, MIDI input and the\n"
+                    "Volume device class are not. See docs/vbeai.md for details.");
     Pbool->SetBasic(true);
 
     secprop = control->AddSection_prop("speaker",&Null_Init,true);//done
