@@ -1304,36 +1304,63 @@ static void FPU_FCOM(Bitu op1, Bitu op2){
 	FPUD_COMPARE(fcompp)
 }
 
-static void FPU_FUCOMI(Bitu st, Bitu other){
-    LOG_MSG("FPU WARNING: FPU_FUCOMI called, needs testing");
+static void FPU_FUCOM(Bitu op1, Bitu op2);
 
-    FPU_FCOM(st,other);
-
-    Bitu FillFlags(void);//Why is this needed for VS2015?
-
+static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	FillFlags();
 	SETFLAGBIT(OF,false);
 	SETFLAGBIT(SF,false);
 	SETFLAGBIT(AF,false);
+	fpu.sw.C1 = 0;
 
-    if (fpu.sw & (1u << 14u)/*C3*/) {//if(fpu.regs[st].d == fpu.regs[other].d){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
-    }
-    else if (fpu.sw & (1u << 8u)/*C0*/) {//if(fpu.regs[st].d < fpu.regs[other].d){
-		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
-    }
-	// st > other
-	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
-}
-
-static inline void FPU_FCOMI(Bitu st, Bitu other){
-	FPU_FUCOMI(st,other);
-
-	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
-		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
+	if (fpu.tags[st] == TAG_Empty || fpu.tags[other] == TAG_Empty) {
+		FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,true);
+		SETFLAGBIT(CF,true);
+		return;
 	}
 
+	const auto old_c0 = fpu.sw.C0;
+	const auto old_c2 = fpu.sw.C2;
+	const auto old_c3 = fpu.sw.C3;
+
+	if (raise_invalid_for_nan)
+		FPU_FCOM(st, other);
+	else
+		FPU_FUCOM(st, other);
+
+	const auto compare_c0 = fpu.sw.C0;
+	const auto compare_c2 = fpu.sw.C2;
+	const auto compare_c3 = fpu.sw.C3;
+
+	// FCOMI and FUCOMI leave C0, C2, and C3 unchanged and always clear C1.
+	fpu.sw.C0 = old_c0;
+	fpu.sw.C1 = 0;
+	fpu.sw.C2 = old_c2;
+	fpu.sw.C3 = old_c3;
+
+	if (compare_c3 && compare_c2 && compare_c0) {
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,true);
+		SETFLAGBIT(CF,true);
+	} else if (compare_c3) {
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,false);
+	} else if (compare_c0) {
+		SETFLAGBIT(ZF,false);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,true);
+	} else {
+		SETFLAGBIT(ZF,false);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,false);
+	}
+}
+
+static inline void FPU_FUCOMI(Bitu st, Bitu other){
+	FPU_FCOMI(st, other, false);
 }
 
 static void FPU_FCOM_EA(Bitu op1){

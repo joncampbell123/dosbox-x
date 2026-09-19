@@ -682,7 +682,6 @@ static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	else if(a < b){
 		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
 	}
-	// st > other
 	else {
         SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
     }

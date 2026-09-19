@@ -436,31 +436,50 @@ static void FPU_FUCOM(Bitu st, Bitu other){
 	FPU_FCOM(st,other);
 }
 
-static void FPU_FUCOMI(Bitu st, Bitu other){
-	
+static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	FillFlags();
 	SETFLAGBIT(OF,false);
 	SETFLAGBIT(SF,false);
 	SETFLAGBIT(AF,false);
+	fpu.sw.C1 = 0;
 
-	if(fpu.regs_80[st].v == fpu.regs_80[other].v){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+	if (fpu.tags[st] == TAG_Empty || fpu.tags[other] == TAG_Empty) {
+		FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,true);
+		SETFLAGBIT(CF,true);
+		return;
 	}
-	if(fpu.regs_80[st].v < fpu.regs_80[other].v){
-		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
+
+	const auto a = fpu.regs_80[st].v;
+	const auto b = fpu.regs_80[other].v;
+
+	if ((std::isnan)(a) || (std::isnan)(b)) {
+		if (raise_invalid_for_nan)
+			FPU_SetException(FPU_EX_INVALID);
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,true);
+		SETFLAGBIT(CF,true);
+		return;
 	}
-	// st > other
-	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+
+	if (a == b) {
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,false);
+	} else if (a < b) {
+		SETFLAGBIT(ZF,false);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,true);
+	} else {
+		SETFLAGBIT(ZF,false);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,false);
+	}
 }
 
-static inline void FPU_FCOMI(Bitu st, Bitu other){
-	FPU_FUCOMI(st,other);
-
-	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
-		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
-	}
-
+static inline void FPU_FUCOMI(Bitu st, Bitu other){
+	FPU_FCOMI(st, other, false);
 }
 
 static void FPU_FRNDINT(void){
