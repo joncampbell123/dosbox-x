@@ -480,7 +480,7 @@ Three layers, because "it made a noise" is not evidence that the right samples c
 
 **Host-side white-box check** — `contrib/vbeai-test/hostcheck/`. Compiles the provider against
 stub headers faking DOSBox-X's guest memory, registers, callbacks and mixer, then drives it
-directly: 84 assertions covering the trampoline encoding, the `INT 10h` subfunctions, the
+directly: 187 assertions covering the trampoline encoding, the `INT 10h` subfunctions, the
 structure byte offsets, Pascal argument decoding, block and continuous playback stepping, and
 the exact shape of the completion-callback frame left on the guest stack.
 
@@ -649,7 +649,8 @@ chip's connection bit is 1 for *additive*, so it inverts. The OPL3 form (§7.2.2
 four-operator register images; since the provider runs two-operator voices, the first operator
 pair is taken. `msUnloadPatch` restores the built-in.
 
-**The built-in bank is original and deliberately plain**: one rough voice per General MIDI
+**The built-in bank is original and deliberately plain**, and `midibank` below exists to
+replace it: one rough voice per General MIDI
 family, plus six percussion voices for channel 10. The obvious candidate for a real bank — The
 Fat Man's `FATV10.BNK`, which ships with the VESA SDK — turns out **not to be redistributable**.
 Its `TERMS` file requires a per-product licence fee, an on-screen credit, and a copy of the
@@ -660,6 +661,60 @@ patch-library path, which would have made `midimode = opl2` useless out of the b
 Pitch comes from an F-number table computed directly from `fnum = freq * 2^(20-block) / 49716`,
 which is within 0.03% of equal temperament. The table most period drivers used is a systematic
 9 cents flat; there was no reason to reproduce that.
+
+### Loading a real bank: `midibank`
+
+`[vbeai] midibank` points the FM modes at an instrument bank file, because the built-in
+timbres are a stopgap and should be treated as one. Two formats are understood, told apart by
+signature rather than extension:
+
+| Format | Signature | Layout |
+| --- | --- | --- |
+| DMX `GENMIDI` | `#OPL_II#` at 0 | 175 instruments of 36 bytes — 128 melodic then 47 percussion for notes 35–81 — followed by 175 names of 32 bytes. Each instrument holds two voices; the first is used, since this synthesiser runs single two-operator voices. |
+| Ad Lib `.BNK` | `ADLIB-` at 2 | Header, name index, then 30-byte timbres. The timbre is field for field the VBE/AI OPL2 patch minus its leading type word, so the same packing applies. Names follow the SDK convention: `AM000`–`AM127` melodic, `APO035`… percussion by GM note. |
+
+A bank that cannot be read is reported and ignored, leaving the built-in instruments in place.
+Malformed input is expected here — these files come from the user — so the loader checks the
+signature, the length, and every offset it follows, and the host check feeds it a bad
+signature, a truncated file and a missing file to prove the built-in bank survives each.
+
+The GENMIDI `base_note_offset` becomes the patch transpose; the fixed-pitch flag and note
+become the percussion patch's fixed note. Waveforms are masked to what the chip supports —
+two bits on OPL2, three on OPL3 — since banks written for an OPL3 do use the wider set.
+
+### How the built-in bank measures up
+
+Loading each bank through the same loader and counting how many genuinely distinct timbres
+come out the other side:
+
+| Bank | Melodic, of 128 | Percussion, of 47 |
+| --- | --- | --- |
+| Built-in | **16** (12%) | **6** (13%) |
+| Freedoom `genmidi.lmp` | **128** (100%) | **47** (100%) |
+| Fat Man `FATV10.BNK` | 127 (99%) | 27 (57%) |
+
+The built-in bank maps eight consecutive GM programs onto one family voice, so a piece that
+changes instrument inside a family hears no change at all. That is the cost of writing sixteen
+voices by hand instead of a hundred and seventy-five, and it is the single strongest reason to
+point `midibank` at something better.
+
+Rendering the same file through OPL3 and measuring the captured mixer output:
+
+| | Built-in | Freedoom |
+| --- | --- | --- |
+| RMS level | 2813 | 1439 |
+| Spectral centroid | 1428 Hz | 990 Hz |
+| Dynamic variation (σ/mean of the envelope) | 0.13 | **0.25** |
+
+Freedoom's is quieter, considerably darker, and has roughly twice the dynamic movement — its
+notes decay and breathe where the built-in voices sit at a more uniform level, which is the
+same over-sustaining that made the envelope look suspiciously flat during verification.
+
+**Freedoom's bank is the one to use.** Its provenance is clean: the instruments derive from
+OpenBSD's kernel and the project requires original content, with the build scripts under
+BSD-3-Clause. Its own README is candid that the set "isn't so good" compared with Doom's
+proprietary one — but it is comprehensively better than sixteen hand-written voices, and it is
+genuinely free, which `FATV10.BNK` is not.
 
 ### Verification
 

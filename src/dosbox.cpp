@@ -4247,7 +4247,20 @@ void DOSBOX_SetupConfigSections(void) {
                       "The OPL modes use their own OPL chip and mixer channel, separate from the one\n"
                       "[sblaster] oplmode drives, so they work regardless of that setting and cannot\n"
                       "collide with a game's own Adlib writes. Their built-in instruments are rough\n"
-                      "originals; an application can replace any of them via msPreLoadPatch.");
+                      "originals; an application can replace any of them via msPreLoadPatch,\n"
+                      "or you can point 'midibank' at a proper instrument bank.");
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("midibank",Property::Changeable::WhenIdle,"");
+    Pstring->Set_help("Instrument bank for the opl2/opl3 midimodes. Leave empty to use the built-in\n"
+                      "instruments, which are rough originals. Two formats are understood, told\n"
+                      "apart by their signature:\n"
+                      "  DMX GENMIDI, as used by Doom and its descendants ('#OPL_II#'). Freedoom's\n"
+                      "    genmidi.lmp is a freely licensed one.\n"
+                      "  Ad Lib .BNK ('ADLIB-'), such as the FATV10.BNK that ships with the VESA\n"
+                      "    VBE/AI SDK. Note that one is not free: see its TERMS file.\n"
+                      "A bank that cannot be read is reported and ignored, leaving the built-in\n"
+                      "instruments in place. Has no effect in the other midimodes.");
     Pstring->SetBasic(true);
 
     secprop = control->AddSection_prop("speaker",&Null_Init,true);//done

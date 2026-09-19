@@ -21,6 +21,8 @@
  */
 
 #include <math.h>           /* adlib.h, via dbopl.h, uses fmod() without including it */
+#include <stdio.h>
+#include <string.h>
 
 #include "dosbox.h"
 #include "logging.h"
@@ -130,6 +132,18 @@ static uint8_t PercVoiceFor(uint8_t note) {
     }
 }
 
+/* The default bank: what a program sounds like before any msPreLoadPatch, and
+ * what msUnloadPatch restores.  Starts as the built-in voices above and is
+ * replaced wholesale by [vbeai] midibank. */
+#define PERC_FIRST_NOTE 35
+#define PERC_LAST_NOTE  81
+#define PERC_NOTES      (PERC_LAST_NOTE - PERC_FIRST_NOTE + 1)   /* 47 */
+
+static FMPatch  bank_melodic[128];
+static FMPatch  bank_perc[PERC_NOTES];
+static bool     bank_perc_valid = false;
+static char     bank_label[64] = "built-in";
+
 /* ---------------------------------------------------------------------------
  * Chip state
  * ------------------------------------------------------------------------- */
@@ -216,7 +230,13 @@ static void FM_MixerCallback(Bitu len) {
  * ------------------------------------------------------------------------- */
 
 static const FMPatch *PatchFor(uint8_t channel, uint8_t note) {
-    if (channel == 9) return &fm_perc[PercVoiceFor(note)];
+    if (channel == 9) {
+        /* A loaded bank carries a patch per drum note; the built-in set has
+         * only six voices, so it maps the whole kit onto those. */
+        if (bank_perc_valid && note >= PERC_FIRST_NOTE && note <= PERC_LAST_NOTE)
+            return &bank_perc[note - PERC_FIRST_NOTE];
+        return &fm_perc[PercVoiceFor(note)];
+    }
     return &fm.patch[fm.ch[channel].program & 0x7f];
 }
 
@@ -581,18 +601,21 @@ void VBEAI_FM_Byte(uint8_t b) {
  * which we pack back into the five registers the chip actually wants. */
 #define OPL2OPR_LEN     13
 
-static void PackOp(FMOp *out, PhysPt src, uint8_t waveform) {
-    const uint8_t ksl       = mem_readb(src + 0)  & 0x03;
-    const uint8_t freqMult  = mem_readb(src + 1)  & 0x0f;
-    const uint8_t attack    = mem_readb(src + 3)  & 0x0f;
-    const uint8_t sustLevel = mem_readb(src + 4)  & 0x0f;
-    const uint8_t sustain   = mem_readb(src + 5)  & 0x01;
-    const uint8_t decay     = mem_readb(src + 6)  & 0x0f;
-    const uint8_t release   = mem_readb(src + 7)  & 0x0f;
-    const uint8_t output    = mem_readb(src + 8)  & 0x3f;
-    const uint8_t am        = mem_readb(src + 9)  & 0x01;
-    const uint8_t vib       = mem_readb(src + 10) & 0x01;
-    const uint8_t ksr       = mem_readb(src + 11) & 0x01;
+/* The thirteen one-byte fields of an Ad Lib OPERATOR / VBE/AI opl2opr, packed
+ * into the five registers the chip actually wants.  Shared by msPreLoadPatch
+ * (reading guest memory) and the .BNK loader (reading a host buffer). */
+static void PackOpBytes(FMOp *out, const uint8_t *f, uint8_t waveform) {
+    const uint8_t ksl       = f[0]  & 0x03;
+    const uint8_t freqMult  = f[1]  & 0x0f;
+    const uint8_t attack    = f[3]  & 0x0f;
+    const uint8_t sustLevel = f[4]  & 0x0f;
+    const uint8_t sustain   = f[5]  & 0x01;
+    const uint8_t decay     = f[6]  & 0x0f;
+    const uint8_t release   = f[7]  & 0x0f;
+    const uint8_t output    = f[8]  & 0x3f;
+    const uint8_t am        = f[9]  & 0x01;
+    const uint8_t vib       = f[10] & 0x01;
+    const uint8_t ksr       = f[11] & 0x01;
 
     out->am_vib_eg_ksr_mult = (uint8_t)((am << 7) | (vib << 6) | (sustain << 5) |
                                         (ksr << 4) | freqMult);
@@ -600,6 +623,12 @@ static void PackOp(FMOp *out, PhysPt src, uint8_t waveform) {
     out->ar_dr    = (uint8_t)((attack << 4) | decay);
     out->sl_rr    = (uint8_t)((sustLevel << 4) | release);
     out->waveform = (uint8_t)(waveform & 0x07);
+}
+
+static void PackOp(FMOp *out, PhysPt src, uint8_t waveform) {
+    uint8_t f[OPL2OPR_LEN];
+    for (unsigned i = 0; i < OPL2OPR_LEN; i++) f[i] = mem_readb(src + (PhysPt)i);
+    PackOpBytes(out, f, waveform);
 }
 
 bool VBEAI_FM_LoadPatch(uint16_t type, uint16_t program, PhysPt data, uint32_t len) {
@@ -659,9 +688,202 @@ bool VBEAI_FM_LoadPatch(uint16_t type, uint16_t program, PhysPt data, uint32_t l
 
 void VBEAI_FM_UnloadPatch(uint16_t program) {
     if (program >= GM_PROGRAMS) return;
-    fm.patch[program] = fm_family[program / 8];
+    fm.patch[program] = bank_melodic[program];
     fm.patch_custom[program] = false;
 }
+
+/* ---------------------------------------------------------------------------
+ * Instrument banks
+ *
+ * Two formats, told apart by signature:
+ *
+ *   DMX GENMIDI  "#OPL_II#" -- 175 instruments of 36 bytes (128 melodic plus
+ *                47 percussion for notes 35..81), then 175 names of 32 bytes.
+ *                Each instrument holds two voices; we use the first, since this
+ *                synthesiser runs single two-operator voices.
+ *   Ad Lib .BNK  "ADLIB-" at offset 2 -- a header, a name index, and 30-byte
+ *                timbres. The timbre is field for field the VBE/AI OPL2 patch
+ *                minus its leading type word, so the same packing applies.
+ *                Names follow the SDK's convention: AM000..AM127 melodic,
+ *                APO035.. percussion by GM note.
+ * ------------------------------------------------------------------------- */
+
+static void DefaultBank(void) {
+    for (unsigned i = 0; i < GM_PROGRAMS; i++) bank_melodic[i] = fm_family[i / 8];
+    bank_perc_valid = false;
+    strcpy(bank_label, "built-in");
+}
+
+static inline uint16_t rd16(const uint8_t *p) { return (uint16_t)(p[0] | (p[1] << 8)); }
+static inline int16_t  rds16(const uint8_t *p) { return (int16_t)rd16(p); }
+
+/* One GENMIDI voice: modulator(6) feedback(1) carrier(6) unused(1) offset(2) */
+static void GenmidiVoice(FMPatch *out, const uint8_t *v, uint8_t wavemask) {
+    static const unsigned MOD = 0, CAR = 7;
+
+    out->op[0].am_vib_eg_ksr_mult = v[MOD + 0];
+    out->op[0].ar_dr              = v[MOD + 1];
+    out->op[0].sl_rr              = v[MOD + 2];
+    out->op[0].waveform           = (uint8_t)(v[MOD + 3] & wavemask);
+    out->op[0].ksl_tl             = (uint8_t)((v[MOD + 4] & 0xc0) | (v[MOD + 5] & 0x3f));
+
+    out->op[1].am_vib_eg_ksr_mult = v[CAR + 0];
+    out->op[1].ar_dr              = v[CAR + 1];
+    out->op[1].sl_rr              = v[CAR + 2];
+    out->op[1].waveform           = (uint8_t)(v[CAR + 3] & wavemask);
+    out->op[1].ksl_tl             = (uint8_t)((v[CAR + 4] & 0xc0) | (v[CAR + 5] & 0x3f));
+
+    out->fb_cnt = (uint8_t)(v[6] & 0x0f);
+
+    const int16_t off = rds16(v + 14);
+    out->transpose = (int8_t)((off < -120) ? -120 : ((off > 120) ? 120 : off));
+    out->fixed_note = 0;
+}
+
+static bool LoadGenmidi(const uint8_t *d, size_t len) {
+    const size_t need = 8 + 175 * 36;
+    if (len < need) return false;
+
+    const uint8_t wavemask = fm.opl3 ? 0x07 : 0x03;
+
+    for (unsigned i = 0; i < 175; i++) {
+        const uint8_t *e = d + 8 + i * 36;
+        const uint16_t flags = rd16(e);
+        const uint8_t  note  = e[3];
+
+        FMPatch p;
+        GenmidiVoice(&p, e + 4, wavemask);
+
+        if (i < 128) {
+            bank_melodic[i] = p;
+        }
+        else {
+            /* 128..174 are the drum kit, one per note from 35 upward. */
+            const unsigned slot = i - 128;
+            if (slot >= PERC_NOTES) continue;
+            if (flags & 0x01) {                 /* fixed pitch */
+                p.fixed_note = note ? note : 1;
+                p.transpose = 0;
+            }
+            bank_perc[slot] = p;
+        }
+    }
+
+    bank_perc_valid = true;
+    return true;
+}
+
+static bool LoadBnk(const uint8_t *d, size_t len) {
+    if (len < 28) return false;
+
+    const uint16_t nrEntry  = rd16(d + 10);
+    const uint32_t offIndex = (uint32_t)rd16(d + 12) | ((uint32_t)rd16(d + 14) << 16);
+    const uint32_t offTimbre= (uint32_t)rd16(d + 16) | ((uint32_t)rd16(d + 18) << 16);
+
+    if (nrEntry == 0 || offIndex >= len || offTimbre >= len) return false;
+    if ((size_t)offIndex + (size_t)nrEntry * 12 > len) return false;
+
+    unsigned melodic = 0, perc = 0;
+
+    for (unsigned i = 0; i < nrEntry; i++) {
+        const uint8_t *ix = d + offIndex + i * 12;
+        if (!ix[2]) continue;                               /* not used */
+
+        char name[10];
+        memcpy(name, ix + 3, 9);
+        name[9] = 0;
+
+        int slot = -1, isperc = 0;
+        unsigned n = 0;
+        if (!strncmp(name, "AM", 2) && sscanf(name + 2, "%u", &n) == 1 && n < GM_PROGRAMS)
+            slot = (int)n;
+        else if (!strncmp(name, "APO", 3) && sscanf(name + 3, "%u", &n) == 1 &&
+                 n >= PERC_FIRST_NOTE && n <= PERC_LAST_NOTE)
+            { slot = (int)(n - PERC_FIRST_NOTE); isperc = 1; }
+
+        if (slot < 0) continue;
+
+        const size_t at = (size_t)offTimbre + (size_t)rd16(ix) * 30;
+        if (at + 30 > len) continue;
+        const uint8_t *t = d + at;
+
+        FMPatch p;
+        PackOpBytes(&p.op[0], t + 2,                  t[2 + OPL2OPR_LEN * 2]);
+        PackOpBytes(&p.op[1], t + 2 + OPL2OPR_LEN,    t[2 + OPL2OPR_LEN * 2 + 1]);
+        /* feedback and the FM/AM flag live in operator 0; opl2fm is 1 for
+         * frequency modulation while the chip's bit is 1 for additive. */
+        p.fb_cnt = (uint8_t)(((t[2 + 2] & 0x07) << 1) | ((t[2 + 12] & 1) ? 0 : 1));
+        p.transpose = 0;
+        p.fixed_note = 0;
+
+        if (isperc) { bank_perc[slot] = p; perc++; }
+        else        { bank_melodic[slot] = p; melodic++; }
+    }
+
+    if (melodic == 0) return false;
+    if (perc > 0) bank_perc_valid = true;
+
+    LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: .BNK supplied %u melodic and %u percussion patches",
+        melodic, perc);
+    return true;
+}
+
+bool VBEAI_FM_LoadBank(const char *path) {
+    if (path == NULL || *path == 0) { DefaultBank(); return true; }
+
+    FILE *f = fopen(path, "rb");
+    if (f == NULL) {
+        LOG(LOG_MISC, LOG_WARN)("VBE/AI: cannot open instrument bank '%s'", path);
+        return false;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    if (size < 28 || size > (1 << 20)) {
+        LOG(LOG_MISC, LOG_WARN)("VBE/AI: '%s' is not a plausible instrument bank", path);
+        fclose(f);
+        return false;
+    }
+
+    uint8_t *d = new uint8_t[(size_t)size];
+    const size_t got = fread(d, 1, (size_t)size, f);
+    fclose(f);
+
+    bool ok = false;
+    const char *kind = "";
+
+    if (got == (size_t)size) {
+        if (!memcmp(d, "#OPL_II#", 8))           { ok = LoadGenmidi(d, got); kind = "GENMIDI"; }
+        else if (!memcmp(d + 2, "ADLIB-", 6))    { ok = LoadBnk(d, got);     kind = ".BNK"; }
+        else LOG(LOG_MISC, LOG_WARN)("VBE/AI: '%s' has no GENMIDI or ADLIB- signature", path);
+    }
+
+    delete [] d;
+
+    if (!ok) {
+        LOG(LOG_MISC, LOG_WARN)("VBE/AI: could not use instrument bank '%s'", path);
+        return false;
+    }
+
+    /* keep a short label for the log: the file name and the format */
+    const char *base = path;
+    for (const char *p = path; *p; p++) if (*p == '/' || *p == '\\') base = p + 1;
+    snprintf(bank_label, sizeof(bank_label), "%s (%s)", base, kind);
+
+    /* The live patches still hold whatever the previous bank said, so adopt
+     * the new one wholesale; any msPreLoadPatch override is discarded with it. */
+    for (unsigned i = 0; i < GM_PROGRAMS; i++) {
+        fm.patch[i] = bank_melodic[i];
+        fm.patch_custom[i] = false;
+    }
+
+    LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: loaded instrument bank %s", bank_label);
+    return true;
+}
+
+const char *VBEAI_FM_BankName(void) { return bank_label; }
 
 /* ---------------------------------------------------------------------------
  * Lifecycle
@@ -736,6 +958,8 @@ bool VBEAI_FM_Init(bool opl3) {
     fm.chip->Init(49716);
     fm.active = true;
 
+    DefaultBank();
+
     /* OPL3 needs the NEW bit before the second bank or the wider waveforms
      * respond to anything. */
     if (opl3) FM_Write(0x105, 0x01);
@@ -744,8 +968,8 @@ bool VBEAI_FM_Init(bool opl3) {
     VBEAI_FM_Reset();
     if (fm.chan) fm.chan->Enable(true);
 
-    LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: FM synthesiser ready, %s, %u voices",
-        opl3 ? "OPL3" : "OPL2", fm.voices);
+    LOG(LOG_MISC, LOG_DEBUG)("VBE/AI: FM synthesiser ready, %s, %u voices, bank %s",
+        opl3 ? "OPL3" : "OPL2", fm.voices, bank_label);
     return true;
 }
 

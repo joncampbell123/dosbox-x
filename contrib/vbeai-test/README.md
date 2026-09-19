@@ -80,6 +80,15 @@ To hear it through an emulated FM chip instead, which needs nothing from
 midimode = opl2        ; or opl3 for 18 voices instead of 9
 ```
 
+The built-in instruments are rough originals — sixteen family voices covering
+all 128 GM programs — so point `midibank` at a real bank for anything you
+actually want to listen to. Freedoom's `genmidi.lmp` is freely licensed and
+has a distinct timbre for every program:
+
+```ini
+midibank = GENMIDI.LMP
+```
+
 `ALFRE.MID` (format 0) and `SAKURA2A.MID` (format 1, ten tracks) both ship with
 the VESA SDK. Expected output:
 

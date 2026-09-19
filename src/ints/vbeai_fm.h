@@ -33,8 +33,17 @@ void     VBEAI_FM_Byte(uint8_t b);
  * patch type is not one we understand or the block is malformed. */
 bool     VBEAI_FM_LoadPatch(uint16_t type, uint16_t program, PhysPt data, uint32_t len);
 
-/* msUnloadPatch: put the built-in patch back. */
+/* msUnloadPatch: put the default patch back -- the one from the loaded bank
+ * if there is one, otherwise the built-in. */
 void     VBEAI_FM_UnloadPatch(uint16_t program);
+
+/* Replace the default bank from a file. Understands DMX GENMIDI ("#OPL_II#")
+ * and Ad Lib .BNK ("ADLIB-"), telling them apart by their signature. Returns
+ * false and leaves the previous bank in place if the file cannot be used. */
+bool     VBEAI_FM_LoadBank(const char *path);
+
+/* Short description of the bank in use, for logging. */
+const char *VBEAI_FM_BankName(void);
 
 /* MIDITONES wants the count of tones *not* currently in use. */
 unsigned VBEAI_FM_FreeVoices(void);

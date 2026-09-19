@@ -772,6 +772,67 @@ int main(void) {
               fm.patch[5].op[0].am_vib_eg_ksr_mult == fm_family[5/8].op[0].am_vib_eg_ksr_mult, 1);
     }
 
+    printf("== instrument banks ==\n");
+    {
+        /* A one-instrument GENMIDI, enough to prove the field mapping. The
+         * loader must survive anything here: these files are user-supplied. */
+        unsigned char g[8 + 175*36 + 175*32];
+        memset(g, 0, sizeof(g));
+        memcpy(g, "#OPL_II#", 8);
+        unsigned char *e = g + 8;               /* instrument 0 */
+        e[0] = 0x00; e[1] = 0x00;               /* flags        */
+        e[2] = 128;                             /* finetune     */
+        e[3] = 0;                               /* note         */
+        unsigned char *v = e + 4;               /* voice 1      */
+        v[0]=0x31; v[1]=0xF2; v[2]=0x53; v[3]=0x02; v[4]=0x80; v[5]=0x25;  /* modulator */
+        v[6]=0x0A;                                                         /* feedback  */
+        v[7]=0x11; v[8]=0xE4; v[9]=0x74; v[10]=0x01; v[11]=0x40; v[12]=0x07;/* carrier  */
+        v[14]=0xF4; v[15]=0xFF;                 /* base note offset = -12   */
+        /* percussion slot 0 = note 35, fixed pitch */
+        unsigned char *p0 = g + 8 + 128*36;
+        p0[0] = 0x01; p0[3] = 40;
+
+        FILE *f = fopen("bank_test.tmp", "wb");
+        fwrite(g, 1, sizeof(g), f);
+        fclose(f);
+
+        check("GENMIDI accepted", VBEAI_FM_LoadBank("bank_test.tmp"), 1);
+        check("  reported as GENMIDI", strstr(VBEAI_FM_BankName(),"GENMIDI") != NULL, 1);
+        const FMPatch &q = bank_melodic[0];
+        check("  modulator 0x20 taken verbatim", q.op[0].am_vib_eg_ksr_mult, 0x31);
+        check("  modulator attack/decay", q.op[0].ar_dr, 0xF2);
+        check("  modulator KSL|TL merged", q.op[0].ksl_tl, 0x80|0x25);
+        check("  carrier KSL|TL merged", q.op[1].ksl_tl, 0x40|0x07);
+        check("  feedback byte is the C0 value", q.fb_cnt, 0x0A);
+        check("  base note offset -> transpose", q.transpose, -12);
+        check("  percussion set loaded", bank_perc_valid, 1);
+        check("  fixed-pitch drum keeps its note", bank_perc[0].fixed_note, 40);
+
+        /* waveform must be masked to what the chip supports */
+        check("  waveform masked for OPL3", q.op[0].waveform, 0x02);
+    }
+    {   /* rejection paths: the built-in bank must survive all of them */
+        FILE *f = fopen("bank_bad.tmp", "wb");
+        const char junk[64] = "not a bank at all";
+        fwrite(junk, 1, sizeof(junk), f);
+        fclose(f);
+        check("unsigned file rejected", VBEAI_FM_LoadBank("bank_bad.tmp"), 0);
+
+        f = fopen("bank_short.tmp", "wb");
+        fwrite("#OPL_II#", 1, 8, f);             /* magic but no instruments */
+        char pad[64]; memset(pad,0,sizeof(pad));
+        fwrite(pad, 1, sizeof(pad), f);
+        fclose(f);
+        check("truncated GENMIDI rejected", VBEAI_FM_LoadBank("bank_short.tmp"), 0);
+
+        check("missing file rejected", VBEAI_FM_LoadBank("no_such_bank.tmp"), 0);
+
+        check("empty path restores the built-in", VBEAI_FM_LoadBank(""), 1);
+        check("  reported as built-in", strcmp(VBEAI_FM_BankName(),"built-in")==0, 1);
+        check("  built-in has no per-note drum kit", bank_perc_valid, 0);
+        remove("bank_test.tmp"); remove("bank_bad.tmp"); remove("bank_short.tmp");
+    }
+
     printf("== midimode opl3 ==\n");
     section_midimode = "opl3";
     VBEAI_Setup();

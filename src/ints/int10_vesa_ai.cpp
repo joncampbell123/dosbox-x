@@ -1537,6 +1537,7 @@ void VBEAI_Setup(void) {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("vbeai"));
     const bool enable = (section != NULL) ? section->Get_bool("vbeai") : false;
     const char *modestr = (section != NULL) ? section->Get_string("midimode") : NULL;
+    const char *bankstr = (section != NULL) ? section->Get_string("midibank") : NULL;
 
     VBEAI_MidiClose();
     VBEAI_Close();
@@ -1556,6 +1557,11 @@ void VBEAI_Setup(void) {
         if (!VBEAI_FM_Init(vbeai_midi.mode == VBEAI_MIDI_OPL3)) {
             LOG(LOG_MISC, LOG_WARN)("VBE/AI: FM synthesiser unavailable, no MIDI device");
             vbeai_midi.mode = VBEAI_MIDI_NONE;
+        }
+        else {
+            /* A bank that will not load is not fatal: the built-in one stays,
+             * and the warning says which file was at fault. */
+            VBEAI_FM_LoadBank(bankstr);
         }
     }
     else {
