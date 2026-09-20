@@ -1774,6 +1774,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\include\dos_system.h" />
     <ClInclude Include="..\include\ethernet.h" />
     <ClInclude Include="..\include\fpu.h" />
+    <ClInclude Include="..\include\gusmax.h" />
     <ClInclude Include="..\include\hardware.h" />
     <ClInclude Include="..\include\ide.h" />
     <ClInclude Include="..\include\informational.h" />

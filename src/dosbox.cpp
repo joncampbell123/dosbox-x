@@ -4072,6 +4072,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
     Pbool->SetBasic(true);
+    Pbool = secprop->Add_bool("gusmixer",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow the GUS mixer to modify the DOSBox-X mixer.");
+    Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("global register read alias", Property::Changeable::WhenIdle, "auto");
     Pstring->Set_values(truefalseautoopt);
