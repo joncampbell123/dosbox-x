@@ -387,6 +387,9 @@
     <ClCompile Include="..\src\hardware\cmos.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\cs4231.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\dbopl.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
@@ -538,6 +541,9 @@
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\vga_xga.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\wss.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\voodoo.cpp">
@@ -2172,6 +2178,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\crypt.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cs4231.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\debug.h">
