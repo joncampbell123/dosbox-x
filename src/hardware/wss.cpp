@@ -97,10 +97,13 @@ WSS::WSS(Section *configuration):Module_base(configuration) {
 	if (!section->Get_bool("wss") || control->opt_silent || IS_PC98_ARCH)
 		return;
 
+	int irq = section->Get_int("irq");
+	int dma = section->Get_int("dma");
+
 	base = (Bitu)section->Get_hex("wssbase");
 	codec.Reset();
-	codec.SetIRQ(7);
-	codec.SetPlaybackDMA(3);
+	codec.SetIRQ(irq);
+	codec.SetPlaybackDMA(dma);
 	codec.SetMixerShim(section->Get_bool("wssmixer"));
 	codec.SetAux(0, CS4231_AUX_CD);
 	config = 0;

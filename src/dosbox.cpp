@@ -1515,6 +1515,8 @@ void DOSBOX_SetupConfigSections(void) {
     const char* fpu_settings[] = { "true", "false", "1", "0", "auto", "8087", "287", "387", nullptr };
     const char* sb_recording_sources[] = { "silence", "hiss", "1khz tone", "microphone", nullptr };
     const char* int10usevp[] = { "auto", "true", "false", "1", "0", nullptr };
+    const char* irqwss[] = {"5", "7", "9", "10", "11", "12", "14", "15", nullptr};
+    const char* dmawss[] = {"0", "1", "3", nullptr};
 
     const char* hostkeys[] = {
         "ctrlalt", "ctrlshift", "altshift", "mapper", nullptr };
@@ -4218,6 +4220,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("wssmixer",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Allow the CS4231 mixer to modify the DOSBox-X mixer.");
     Pbool->SetBasic(true);
+    Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,7);
+    Pint->Set_values(irqwss);
+    Pint->Set_help("The initial IRQ number of the Windows Sound System interface");
+    Pint->SetBasic(true);
+    Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,3);
+    Pint->Set_values(dmawss);
+    Pint->Set_help("The initial DMA channel of the Windows Sound System interface");
+    Pint->SetBasic(true);
 
     secprop = control->AddSection_prop("imfc", &Null_Init, Property::Changeable::WhenIdle);
     Pbool = secprop->Add_bool("imfc", Property::Changeable::WhenIdle, false);
