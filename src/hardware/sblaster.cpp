@@ -101,6 +101,8 @@ using namespace std;
 int MPU401_GetIRQ();
 void MIDI_RawOutByte(uint8_t data);
 bool MIDI_Available(void);
+void PAS_Init(unsigned int type, Bitu sb_base, Bitu irq, Bitu dma, bool use_mixer);
+void PAS_ShutDown(void);
 bool JOYSTICK_IsEnabled(Bitu which);
 Bitu DEBUG_EnableDebugger(void);
 
@@ -457,6 +459,8 @@ struct SB_INFO {
 	SB_SUBTYPES subtype;
 	REVEAL_SC_TYPES reveal_sc_type; // Reveal SC400 type
 	ESS_TYPES ess_type; // ESS chipset emulation, to be set only if type == SBT_PRO2
+	unsigned int pas_type; // Pro AudioSpectrum: 0=none 1=PAS 2=PAS Plus 3=PAS 16 (pas.cpp)
+	bool mvd201_e1_toggle; // Media Vision DSP answers E1h with 2.00, then 1.30
 	bool ess_extended_mode;
 	int min_dma_user;
 	int busy_cycle_hz;
@@ -2374,7 +2378,13 @@ is responsible for some failures such as [https://github.com/joncampbell123/dosb
 					else { DSP_AddData(0x1); DSP_AddData(0x5); }
 					break;
 				case SBT_2:
-					if (subtype == SBST_200) { DSP_AddData(0x2); DSP_AddData(0x0); }
+					if (pas_type != 0) {
+						/* MVD201 "Thunder" DSP on the PAS Plus/16, as 86Box does it */
+						if (mvd201_e1_toggle) { DSP_AddData(0x1); DSP_AddData(0x30); }
+						else { DSP_AddData(0x2); DSP_AddData(0x0); }
+						mvd201_e1_toggle = !mvd201_e1_toggle;
+					}
+					else if (subtype == SBST_200) { DSP_AddData(0x2); DSP_AddData(0x0); }
 					else { DSP_AddData(0x2); DSP_AddData(0x1); }
 					break;
 				case SBT_PRO1:
@@ -3115,6 +3125,9 @@ uint8_t SB_INFO::CTMIXER_Read(void) {
 }
 
 std::string SB_INFO::GetSBtype() {
+	if (pas_type == 1) return "PAS";
+	if (pas_type == 2) return "PAS Plus";
+	if (pas_type == 3) return "PAS 16";
 	switch (type) {
 		case SBT_NONE:
 			return "None";
@@ -3918,6 +3931,8 @@ class SBLASTER: public Module_base {
 			sb[ci].reveal_sc_type = RSC_NONE;
 			sb[ci].ess_extended_mode = false;
 			sb[ci].subtype = SBST_NONE;
+			sb[ci].pas_type = 0;
+			sb[ci].mvd201_e1_toggle = false;
 			const char * sbtype=config->Get_string("sbtype");
 			if (control->opt_silent) type = SBT_NONE;
 			else if (!strcasecmp(sbtype,"sb1.0")) { type=SBT_1; sb[ci].subtype=SBST_100; }
@@ -3932,6 +3947,11 @@ class SBLASTER: public Module_base {
 			else if (!strcasecmp(sbtype,"sb16")) type=SBT_16;
 			else if (!strcasecmp(sbtype,"gb")) type=SBT_GB;
 			else if (!strcasecmp(sbtype,"none")) type=SBT_NONE;
+			/* Pro AudioSpectrum (pas.cpp). The original has no Sound Blaster side at all;
+			 * the Plus and 16 carry an SB 2.0 DSP that the PAS driver can move around. */
+			else if (!strcasecmp(sbtype,"pas")) { type=SBT_NONE; sb[ci].pas_type=1; }
+			else if (!strcasecmp(sbtype,"pasplus")) { type=SBT_2; sb[ci].subtype=SBST_200; sb[ci].pas_type=2; }
+			else if (!strcasecmp(sbtype,"pas16")) { type=SBT_2; sb[ci].subtype=SBST_200; sb[ci].pas_type=3; }
 			else if (!strcasecmp(sbtype,"ess688")) {
 				type=SBT_PRO2;
 				sb[ci].ess_type=ESS_688;
@@ -3954,6 +3974,12 @@ class SBLASTER: public Module_base {
 				LOG(LOG_SB,LOG_WARN)("ESS ES1688 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming.");
 			}
 			else type=SBT_16;
+
+			if (sb[ci].pas_type != 0 && (ci != 0 || IS_PC98_ARCH)) {
+				LOG(LOG_SB,LOG_WARN)("Pro AudioSpectrum emulation is only available on the first card, and not in PC-98 mode");
+				sb[ci].pas_type = 0;
+				type = SBT_NONE;
+			}
 
 			if (type == SBT_16) {
 				/* NTS: mainline DOSBox forces the type to SBT_PRO2 if !IS_EGAVGA_ARCH or no secondary DMA controller.
@@ -3987,6 +4013,9 @@ class SBLASTER: public Module_base {
 			else if (!strcasecmp(omode,"hardwaregb")) opl_mode=OPL_hardwareCMS;
 			else if (!strcasecmp(omode,"esfm")) opl_mode=OPL_esfm;
 			/* Else assume auto */
+			else if (sb[ci].pas_type != 0) {
+				opl_mode = (sb[ci].pas_type == 1) ? OPL_dualopl2 : OPL_opl3;
+			}
 			else {
 				switch (type) {
 					case SBT_NONE:
@@ -4027,7 +4056,30 @@ class SBLASTER: public Module_base {
 				}
 			}
 		}
+		void InstallDSPPorts() {
+			for (Bitu i=4;i<=0xf;i++) {
+				if (i==8 || i==9) continue;
+				//Disable mixer ports for lower soundblaster
+				if ((sb[ci].type==SBT_1 || sb[ci].type==SBT_2) && (i==4 || i==5)) continue;
+				ReadHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),read_sbs[ci],IO_MB);
+				WriteHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),write_sbs[ci],IO_MB);
+			}
+		}
 	public:
+		/* The PAS Plus/16 driver turns the Sound Blaster emulation on and off and moves its
+		 * base/IRQ/DMA through the PAS registers (F788h, F789h, FB8Ah). */
+		void PAS_SetCompat(bool enable, Bitu base, Bitu irq, Bitu dma) {
+			if (sb[ci].type == SBT_NONE) return;
+			sb[ci].hw.irq = irq;
+			sb[ci].hw.dma8 = (uint8_t)dma;
+			for (Bitu i=4;i<=0xf;i++) {
+				ReadHandler[i].Uninstall();
+				WriteHandler[i].Uninstall();
+			}
+			sb[ci].hw.base = base;
+			if (enable) InstallDSPPorts();
+		}
+
 		SBLASTER(const size_t n_ci,Section* configuration):Module_base(configuration) {
 			bool bv;
 			string s;
@@ -4268,6 +4320,9 @@ class SBLASTER: public Module_base {
 				CMS_Init(section);
 			}
 
+			if (sb[ci].pas_type != 0)
+				PAS_Init(sb[ci].pas_type, sb[ci].hw.base, sb[ci].hw.irq, sb[ci].hw.dma8, sb[ci].mixer.enabled);
+
 			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
 
 			sb[ci].chan=MixerChan.Install(SBLASTER_CallBacks[ci],22050,sbMixerChanNames[ci]);
@@ -4276,13 +4331,7 @@ class SBLASTER: public Module_base {
 			sb[ci].dsp.out.lastval=0xaa;
 			sb[ci].dma.chan=NULL;
 
-			for (i=4;i<=0xf;i++) {
-				if (i==8 || i==9) continue;
-				//Disable mixer ports for lower soundblaster
-				if ((sb[ci].type==SBT_1 || sb[ci].type==SBT_2) && (i==4 || i==5)) continue;
-				ReadHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),read_sbs[ci],IO_MB);
-				WriteHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),write_sbs[ci],IO_MB);
-			}
+			InstallDSPPorts();
 
 			// TODO: read/write handler for ESS AudioDrive ES1688 (and later) MPU-401 ports (3x0h/3x1h; prevents Windows drivers from working with default settings if missing)
 
@@ -4534,6 +4583,7 @@ ASP>
 		}
 
 		~SBLASTER() {
+			if (sb[ci].pas_type != 0) PAS_ShutDown();
 			switch (oplmode) {
 				case OPL_none:
 					break;
@@ -4556,6 +4606,19 @@ ASP>
 }; //End of SBLASTER class
 
 static SBLASTER* test[MAX_CARDS] = {NULL};
+
+/* Pro AudioSpectrum hooks (pas.cpp, adlib.cpp). The PAS is only ever card 0. */
+void SB_PAS_SetCompat(bool enable, Bitu base, Bitu irq, Bitu dma) {
+	if (test[0] != NULL) test[0]->PAS_SetCompat(enable, base, irq, dma);
+}
+
+bool SB_PAS_IRQPending(void) {
+	return sb[0].irq.pending_8bit;
+}
+
+unsigned int SB_GetPASType(void) {
+	return sb[0].pas_type;
+}
 
 void SBLASTER_DOS_Shutdown() {
 	for (size_t ci=0;ci < MAX_CARDS;ci++) {

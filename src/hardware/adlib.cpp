@@ -1497,6 +1497,25 @@ void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
 	module->PortWrite( port, val, iolen );
 }
 
+bool PAS_FMSplit(void);
+
+/* Original Pro AudioSpectrum: two OPL2s. With the FM split on (B88h bit 7 clear) 388h
+ * drives the left one and 38Ah the right; with it off 388h drives both, so AdLib-only
+ * software plays in both channels. 788h always writes both. Translate to the Sound
+ * Blaster Pro 1 layout (220h left, 222h right, 228h both) that dual OPL2 mode decodes. */
+static Bitu PAS_OPL_Port(Bitu port) {
+	if ((port & 0x400) || (!(port & 2) && !PAS_FMSplit())) return 0x228 | (port & 1);
+	return 0x220 | (port & 3);
+}
+
+static Bitu OPL_PAS_Read(Bitu port,Bitu iolen) {
+	return OPL_Read(PAS_OPL_Port(port), iolen);
+}
+
+static void OPL_PAS_Write(Bitu port,Bitu val,Bitu iolen) {
+	OPL_Write(PAS_OPL_Port(port), val, iolen);
+}
+
 /*
 	Save the current state of the operators as instruments in an reality adlib tracker file
 */
@@ -1730,6 +1749,12 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 		ReadHandler[8].Install(sb_addr+0x2800,OPL_Read,IO_MB, 1 );
 		WriteHandler[9].Install(sb_addr+0x2900,OPL_Write,IO_MB, 1 );
 		//      ReadHandler[9].Install(sb_addr+0x2900,OPL_Read,IO_MB, 1 );
+	}
+	else if (SB_GetPASType() == 1 && mode == MODE_DUALOPL2) {
+		WriteHandler[0].Install(0x388,OPL_PAS_Write,IO_MB, 4 );
+		ReadHandler[0].Install(0x388,OPL_PAS_Read,IO_MB, 4 );
+		WriteHandler[1].Install(0x788,OPL_PAS_Write,IO_MB, 2 );
+		ReadHandler[1].Install(0x788,OPL_PAS_Read,IO_MB, 2 );
 	}
 	else {
 		//0x388 range
