@@ -694,7 +694,10 @@ if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       LIBS="$LIBS -lwinmm -ldsound -limm32 -lole32 -loleaut32 -lversion -lsetupapi"
+       dnl -luuid carries the PROPERTYKEY and IID constants the WASAPI microphone
+       dnl input needs. MSVC picks that up from the #pragma comment(lib,"uuid.lib")
+       dnl in src/hardware/mic_input_win32.cpp, which GCC ignores, so name it here.
+       LIBS="$LIBS -lwinmm -ldsound -limm32 -lole32 -loleaut32 -luuid -lversion -lsetupapi"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
        dnl FEATURE: Whether to support direct parallel port pass-through
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel pass-through support (Win32, Linux and BSD).])
