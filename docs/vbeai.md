@@ -767,6 +767,32 @@ End to end, `SAKURA2A.MID` plays through `midimode = opl2` with `[midi] mididevi
 proving the FM device needs nothing from `[midi]`, and the captured mixer output is tonal with
 a shifting dominant pitch.
 
+#### Both devices at once
+
+`vbeaiwav.exe GUPPY.WAV DRUMS.MID` opens the WAVE and MIDI devices together and services
+both from one loop in which neither call blocks. Under the default `midimode = auto` the two
+leave the emulator by different routes entirely — the WAVE device into the DOSBox-X mixer, the
+MIDI device out through whatever `[midi]` names — and both complete.
+
+Measured against a mixer capture of the same run under `midimode = opl3`, where the FM output
+is in the mixer too and can therefore be seen:
+
+| | WAVE alone | WAVE + MIDI |
+| --- | --- | --- |
+| Correlation with the source WAV, whole block | 0.9892 | **0.9920** |
+| Worst 4096-frame window | 0.9737 | 0.9200 |
+| Reproduction gain | — | 0.999 |
+
+Sharing the loop costs the WAVE stream nothing measurable: no dropped or duplicated samples,
+a constant alignment throughout, and unity gain. Subtracting the aligned source leaves a
+residual at 0.0274 RMS whose envelope peaks every 0.5 s — the drum strikes, at the same level
+as the 0.0227 measured after the WAVE has finished. The two really are sounding together, not
+taking turns.
+
+One caution for anyone repeating this: aligning each window independently invents glitches
+that are not there. Windows over quiet or self-similar passages find spurious correlation
+peaks, which show up as offsets that jump and then cancel out. Find one alignment and hold it.
+
 #### A bug this found
 
 Feeding the file's real byte stream through the synthesiser on the host and comparing voice

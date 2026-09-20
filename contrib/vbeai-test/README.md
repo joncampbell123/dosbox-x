@@ -1,11 +1,13 @@
 # vbeaiwav — VBE/AI playback test
 
-A minimal real-mode DOS program that plays a RIFF/WAVE file or a Standard MIDI
-File through `INT 10h, AX=4F13h`. It exists to prove the DOSBox-X built-in
-VBE/AI provider (`src/ints/int10_vesa_ai.cpp`) end to end — nothing more.
+A minimal real-mode DOS program that plays a RIFF/WAVE file, a Standard MIDI
+File, or both at once through `INT 10h, AX=4F13h`. It exists to prove the
+DOSBox-X built-in VBE/AI provider (`src/ints/int10_vesa_ai.cpp`) end to end
+— nothing more.
 
-It sniffs the file's magic rather than its extension: `RIFF`/`WAVE` goes to the
-WAVE device, `MThd` to the MIDI device.
+It sniffs each file's magic rather than its extension: `RIFF`/`WAVE` goes to
+the WAVE device, `MThd` to the MIDI device. Give it one of each and it plays
+them together.
 
 ## Build
 
@@ -48,10 +50,10 @@ Expected output:
 
 ```
 VBE/AI version 1.0 present.
-Device: DOSBox-X / VBE/AI Provider (DOSBox-X Mixer)
+WAVE:   DOSBox-X / VBE/AI Provider (DOSBox-X Mixer)
         features=3004A529 memreq=128 ticks/sec=100
 GUPPY.WAV: 1 ch, 11025 Hz, 8 bit, ... bytes
-Playing -- ESC to stop.
+Playing WAVE -- ESC to stop.
 Playback complete.
 ```
 
@@ -94,10 +96,10 @@ the VESA SDK. Expected output:
 
 ```
 VBE/AI version 1.0 present.
-Device: DOSBox-X / VBE/AI Provider (DOSBox-X MIDI Out)
+MIDI:   DOSBox-X / VBE/AI Provider (DOSBox-X MIDI Out)
         features=00000030 memreq=128 tones=65535
 sakura2a.mid: 6578 bytes, format 1, 10 track(s), 192 ticks/quarter
-Playing -- ESC to stop.
+Playing MIDI -- ESC to stop.
 Playback complete.
 ```
 
@@ -107,6 +109,44 @@ the file, merges the tracks, follows tempo meta events, and feeds each event to
 `msMIDImsg` at the right moment. Timing comes from the BIOS tick combined with
 a live read of PIT channel 0, because the 55 ms tick alone is far too coarse
 for music.
+
+### Both at once
+
+Give it a WAVE file and a MIDI file together and it opens both devices, then
+runs them from one loop:
+
+```
+VBEAIWAV GUPPY.WAV SAKURA2A.MID
+```
+
+```
+VBE/AI version 1.0 present.
+WAVE:   DOSBox-X / VBE/AI Provider (DOSBox-X Mixer)
+        features=3004A529 memreq=128 ticks/sec=100
+guppy.wav: 1 ch, 22050 Hz, 8 bit, 41727 bytes
+MIDI:   DOSBox-X / VBE/AI Provider (DOSBox-X MIDI Out)
+        features=00000030 memreq=128 tones=65535
+sakura2a.mid: 6578 bytes, format 1, 10 track(s), 192 ticks/quarter
+Playing both -- ESC to stop.
+Playback complete.
+```
+
+The order of the arguments does not matter, and whichever finishes first
+simply stops being serviced while the other carries on.
+
+This is the arrangement a real application would use, and it is the reason
+neither half of the program is allowed to block. `wave_poll()` calls
+`wsTimerTick` and asks whether the block is still going; `midi_poll()` hands
+over whatever the sequencer has fallen due and returns immediately if nothing
+has. The sequencer therefore cannot sit in a wait loop the way it does when
+it is the only thing running, so the tick it is waiting on and the moment
+that tick falls due are latched across calls -- `advance_to()` accumulates,
+so it must be called exactly once per tick.
+
+The default `midimode = auto` is the interesting case here: the WAVE device
+renders into the DOSBox-X mixer while the MIDI device forwards to whatever
+`[midi]` names, so the two leave the emulator by completely different routes
+and still have to stay in step.
 
 ## What it exercises
 
@@ -137,6 +177,15 @@ for music.
 | Silence before and after | `msGlobalReset` |
 | Feed each event at delta time 0 | `msMIDImsg` |
 | Close | `AX=4F13h BX=0004h` |
+
+### Both
+
+| Step | Call |
+| --- | --- |
+| Open both devices before starting either | `AX=4F13h BX=0003h` twice |
+| Two devices held open at once | two handles, two services structures |
+| Service both without blocking | `wsTimerTick` and `msMIDImsg` from one loop |
+| Close both | `AX=4F13h BX=0004h` twice |
 
 It does not exercise `wsPlayCont`, recording, MIDI input, `msPreLoadPatch` or
 Volume. Recording, MIDI input and Volume are not implemented by the provider;

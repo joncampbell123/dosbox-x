@@ -1,20 +1,23 @@
 /*
  *  vbeaiwav -- minimal VESA VBE/AI playback test for DOSBox-X
  *
- *  Plays a RIFF/WAVE file through the VBE/AI WAVE device, or a Standard MIDI
- *  File through the VBE/AI MIDI device, both via INT 10h AX=4F13h.  The file's
- *  magic decides which.  Its only purpose is to prove the DOSBox-X built-in
- *  VBE/AI provider end to end; it is deliberately not a general-purpose player.
+ *  Plays a RIFF/WAVE file through the VBE/AI WAVE device, a Standard MIDI
+ *  File through the VBE/AI MIDI device, or both at once, all via INT 10h
+ *  AX=4F13h.  Each file's magic decides which device it goes to.  Its only
+ *  purpose is to prove the DOSBox-X built-in VBE/AI provider end to end; it
+ *  is deliberately not a general-purpose player.
  *
  *  Note that VBE/AI leaves tempo and scheduling to the application -- the
  *  driver is only ever handed events that are already due -- so the MIDI path
- *  carries a small sequencer of its own.
+ *  carries a small sequencer of its own.  Both devices are therefore driven
+ *  from one loop in which neither call blocks: wave_poll() services the
+ *  driver's timer tick, midi_poll() releases whatever has fallen due.
  *
  *  Build with Open Watcom (16-bit real mode, large model):
  *
  *      wcl -0 -ml -bcl=dos -fe=vbeaiwav.exe vbeaiwav.c
  *
- *  Usage:  VBEAIWAV [file.wav | file.mid]      (defaults to TEST.WAV)
+ *  Usage:  VBEAIWAV [file.wav] [file.mid]        (defaults to TEST.WAV)
  */
 
 #include <stdio.h>
@@ -439,15 +442,24 @@ static int play_event(MIDIService __far *ms, Track *t)
     return 1;
 }
 
-static int play_midi(const char *path)
+static MIDIService __far *ms = 0;
+static unsigned      midi_memseg = 0;
+static int           hMIDI = 0;
+static unsigned long midi_start = 0;
+
+/* The tick the sequencer is waiting on, and the moment it falls due. Held
+ * across calls because midi_poll() returns to its caller while waiting, and
+ * advance_to() may be called only once per tick -- it accumulates. */
+static unsigned long midi_due_tick = 0;
+static unsigned long midi_due_us   = 0;
+static int           midi_due_valid = 0;
+
+static int midi_setup(const char *path)
 {
     union REGS r;
     MidiDeviceClass gdc;
-    MIDIService __far *ms = 0;
-    unsigned memseg = 0;
-    int hMIDI = 0;
-    int fh, i, stopped = 0;
-    unsigned long size, done, tick = 0, start;
+    int fh;
+    unsigned long size, done;
     long fsize;
 
     /* --- locate a MIDI device --- */
@@ -473,7 +485,7 @@ static int play_midi(const char *path)
     int86(0x10, &r, &r);
     if (r.w.ax != VESAOK) { printf("MIDI query failed.\n"); return 1; }
 
-    printf("Device: %s / %s (%s)\n", gdc.mi.mivname, gdc.mi.miprod, gdc.mi.michip);
+    printf("MIDI:   %s / %s (%s)\n", gdc.mi.mivname, gdc.mi.miprod, gdc.mi.michip);
     printf("        features=%08lX memreq=%u tones=%u\n",
            gdc.mi.mifeatures, (unsigned)gdc.mi.mimemreq,
            (unsigned)gdc.mi.miactivetones);
@@ -506,100 +518,115 @@ static int play_midi(const char *path)
     size = done;
 
     printf("%s: %lu bytes, ", path, size);
-    if (!parse_smf(size)) { _dos_freemem(mid_seg); return 1; }
+    if (!parse_smf(size)) return 1;
 
     /* --- open the device --- */
-    if (_dos_allocmem((unsigned)((gdc.mi.mimemreq + 15) / 16), &memseg) != 0) {
+    if (_dos_allocmem((unsigned)((gdc.mi.mimemreq + 15) / 16), &midi_memseg) != 0) {
         printf("Out of memory for the driver block.\n");
-        _dos_freemem(mid_seg); return 1;
+        return 1;
     }
 
     r.w.ax = VESAFUNCID;
     r.w.bx = VF_OPEN;
     r.w.cx = (unsigned)hMIDI;
     r.w.dx = 0;
-    r.w.si = memseg;
+    r.w.si = midi_memseg;
     int86(0x10, &r, &r);
     if (r.w.ax != VESAOK || (r.w.si == 0 && r.w.cx == 0)) {
         printf("MIDI open failed.\n");
-        _dos_freemem(memseg); _dos_freemem(mid_seg); return 1;
+        return 1;
     }
     ms = (MIDIService __far *)MK_FP(r.w.si, r.w.cx);
     if (memcmp(ms->msname, "MIDS", 4) != 0) {
         printf("Services structure is not tagged MIDS.\n");
-        _dos_freemem(memseg); _dos_freemem(mid_seg); return 1;
+        ms = 0;
+        return 1;
     }
 
     (ms->msGlobalReset)();
 
-    printf("Playing -- ESC to stop.\n");
-
     base_ticks = *(unsigned long __far *)MK_FP(0x40, 0x6C);
-    cur_tick = 0;
-    cur_us = 0;
-    start = now_us();
+    cur_tick  = 0;
+    cur_us    = 0;
+    midi_start = now_us();
+    midi_due_valid = 0;
+    return 0;
+}
 
-    for (;;) {
+/* One non-blocking pass of the sequencer.  Returns 0 once every track has
+ * ended.  It never waits: if the next event is not due yet it returns and
+ * lets the caller get on with the WAVE device, which is what makes running
+ * both at once possible. */
+static int midi_poll(void)
+{
+    int i, t;
+
+    if (ms == 0) return 0;
+
+    if (!midi_due_valid) {
         unsigned long soonest = 0xFFFFFFFFUL;
-        unsigned long due_us;
-        int any = 0, t;
+        int any = 0;
 
         for (i = 0; i < ntracks; i++) {
             if (tracks[i].done) continue;
             any = 1;
             if (tracks[i].nexttick < soonest) soonest = tracks[i].nexttick;
         }
-        if (!any) break;
+        if (!any) return 0;
 
-        /* Wait until that tick's wall-clock moment.  advance_to() is called
-         * before the events at this tick are emitted, so a tempo change here
-         * governs the interval that follows it, not the one before. */
-        tick = soonest;
-        due_us = start + advance_to(tick);
-        while (now_us() < due_us) {
-            if (kbhit() && getch() == 0x1b) { stopped = 1; break; }
-        }
-        if (stopped) break;
+        /* advance_to() accumulates, so it must be called exactly once per
+         * tick -- hence the latch.  It is called before the events at this
+         * tick are emitted, so a tempo change here governs the interval that
+         * follows it, not the one before. */
+        midi_due_tick  = soonest;
+        midi_due_us    = midi_start + advance_to(soonest);
+        midi_due_valid = 1;
+    }
 
-        /* fire every track that is due at this tick */
-        for (t = 0; t < ntracks; t++) {
-            while (!tracks[t].done && tracks[t].nexttick == tick) {
-                if (!play_event(ms, &tracks[t])) break;
-                if (tracks[t].pos >= tracks[t].end) { tracks[t].done = 1; break; }
-                tracks[t].nexttick = tick + read_vlq(&tracks[t].pos);
-            }
+    if (now_us() < midi_due_us) return 1;        /* not yet -- come back */
+
+    for (t = 0; t < ntracks; t++) {
+        while (!tracks[t].done && tracks[t].nexttick == midi_due_tick) {
+            if (!play_event(ms, &tracks[t])) break;
+            if (tracks[t].pos >= tracks[t].end) { tracks[t].done = 1; break; }
+            tracks[t].nexttick = midi_due_tick + read_vlq(&tracks[t].pos);
         }
     }
 
-    (ms->msGlobalReset)();
-    printf(stopped ? "Stopped.\n" : "Playback complete.\n");
-
-    r.w.ax = VESAFUNCID;
-    r.w.bx = VF_CLOSE;
-    r.w.cx = (unsigned)hMIDI;
-    int86(0x10, &r, &r);
-
-    _dos_freemem(memseg);
-    _dos_freemem(mid_seg);
-    return 0;
+    midi_due_valid = 0;
+    return 1;
 }
 
-/* Sniff the file rather than trusting the extension. */
-static int file_is_midi(const char *path)
+static void midi_teardown(void)
 {
-    FILE *f = fopen(path, "rb");
-    char hdr[4];
-    size_t n;
+    union REGS r;
 
-    if (f == NULL) return 0;
-    n = fread(hdr, 1, 4, f);
-    fclose(f);
-    return (n == 4 && memcmp(hdr, "MThd", 4) == 0);
+    if (ms != 0) {
+        (ms->msGlobalReset)();
+        ms = 0;
+    }
+    if (hMIDI != 0) {
+        r.w.ax = VESAFUNCID;
+        r.w.bx = VF_CLOSE;
+        r.w.cx = (unsigned)hMIDI;
+        int86(0x10, &r, &r);
+        hMIDI = 0;
+    }
+    if (midi_memseg) { _dos_freemem(midi_memseg); midi_memseg = 0; }
+    if (mid_seg)     { _dos_freemem(mid_seg);     mid_seg = 0; }
 }
 
-int main(int argc, char *argv[])
+
+/* ------------------------------------------------------------------ */
+/* WAVE playback                                                      */
+/* ------------------------------------------------------------------ */
+
+/* Everything up to, but not including, starting the block.  Kept separate
+ * from wave_start() so that when both devices are used the WAVE block is
+ * only set going once the MIDI file has been loaded and its device opened,
+ * which is what puts the two in step at the top of the loop. */
+static int wave_setup(const char *path)
 {
-    const char *path = (argc > 1) ? argv[1] : "TEST.WAV";
     union REGS r;
     GeneralDeviceClass gdc;
     WavInfo wav;
@@ -607,24 +634,6 @@ int main(int argc, char *argv[])
     unsigned long done;
     int fh;
     long best;
-    int state;
-
-    /* --- subfunction 0: is a VBE/AI provider there at all? --- */
-
-    r.w.ax = VESAFUNCID;
-    r.w.bx = VF_DRIVERCHECK;
-    r.w.cx = 0;
-    int86(0x10, &r, &r);
-    if (r.w.ax != VESAOK) {
-        printf("No VBE/AI interface present (AX=%04X).\n", r.w.ax);
-        printf("Is 'vbeai=true' set in the [vbeai] section of dosbox-x.conf?\n");
-        return 1;
-    }
-    printf("VBE/AI version %d.%d present.\n",
-           (r.h.bl >> 4) & 0x0f, r.h.bl & 0x0f);
-
-    /* A Standard MIDI File goes down the MIDI device path instead. */
-    if (file_is_midi(path)) return play_midi(path);
 
     /* --- subfunction 1: find a WAVE device --- */
 
@@ -650,11 +659,10 @@ int main(int argc, char *argv[])
     int86(0x10, &r, &r);
     if (r.w.ax != VESAOK) {
         printf("Device query failed (AX=%04X).\n", r.w.ax);
-        hWave = 0;
         return 1;
     }
 
-    printf("Device: %s / %s (%s)\n", gdc.wi.wivname, gdc.wi.wiprod, gdc.wi.wichip);
+    printf("WAVE:   %s / %s (%s)\n", gdc.wi.wivname, gdc.wi.wiprod, gdc.wi.wichip);
     printf("        features=%08lX memreq=%u ticks/sec=%u\n",
            gdc.wi.wifeatures, (unsigned)gdc.wi.wimemreq,
            (unsigned)gdc.wi.witimerticks);
@@ -662,42 +670,41 @@ int main(int argc, char *argv[])
     /* --- read the WAV file --- */
 
     fp = fopen(path, "rb");
-    if (fp == NULL) { printf("Cannot open %s\n", path); hWave = 0; return 1; }
+    if (fp == NULL) { printf("Cannot open %s\n", path); return 1; }
     if (!read_wav_header(fp, &wav)) {
         printf("Cannot parse %s\n", path);
-        fclose(fp); hWave = 0; return 1;
+        fclose(fp); return 1;
     }
     printf("%s: %d ch, %ld Hz, %d bit, %lu bytes\n",
            path, wav.channels, wav.rate, wav.bits, wav.data_len);
 
     if (wav.data_len == 0) {
-        printf("No sample data.\n"); fclose(fp); hWave = 0; return 1;
+        printf("No sample data.\n"); fclose(fp); return 1;
     }
 
     /* --- allocate the driver's block and the sample buffer --- */
 
     if (_dos_allocmem((unsigned)((gdc.wi.wimemreq + 15) / 16), &memblock_seg) != 0) {
         printf("Out of memory for the driver block.\n");
-        fclose(fp); hWave = 0; return 1;
+        fclose(fp); return 1;
     }
     if (_dos_allocmem((unsigned)((wav.data_len + 15UL) / 16UL), &data_seg) != 0) {
         printf("Out of memory for %lu bytes of samples.\n", wav.data_len);
-        fclose(fp); cleanup(); return 1;
+        fclose(fp); return 1;
     }
 
     /* Read the samples through a raw DOS handle rather than the stdio stream
      * used for parsing: the two keep separate file positions, and a far
      * destination needs _dos_read anyway. */
     fclose(fp);
-    fp = NULL;
 
     if (_dos_open(path, O_RDONLY, &fh) != 0) {
         printf("Cannot reopen %s\n", path);
-        cleanup(); return 1;
+        return 1;
     }
     if (lseek(fh, wav.data_off, SEEK_SET) == -1L) {
         printf("Seek to sample data failed.\n");
-        _dos_close(fh); cleanup(); return 1;
+        _dos_close(fh); return 1;
     }
 
     done = 0;
@@ -709,7 +716,7 @@ int main(int argc, char *argv[])
                                 (unsigned)(done & 0x0FUL));
         if (_dos_read(fh, dst, chunk, &got) != 0) {
             printf("Read failed at offset %lu.\n", done);
-            _dos_close(fh); cleanup(); return 1;
+            _dos_close(fh); return 1;
         }
         if (got == 0) {                 /* short file: play what we have */
             printf("Short file: %lu of %lu bytes.\n", done, wav.data_len);
@@ -722,7 +729,7 @@ int main(int argc, char *argv[])
 
     if (wav.data_len == 0) {
         printf("No sample data read.\n");
-        cleanup(); return 1;
+        return 1;
     }
 
     /* --- subfunction 3: open the device --- */
@@ -735,13 +742,14 @@ int main(int argc, char *argv[])
     int86(0x10, &r, &r);
     if (r.w.ax != VESAOK || (r.w.si == 0 && r.w.cx == 0)) {
         printf("Open failed (AX=%04X).\n", r.w.ax);
-        cleanup(); return 1;
+        return 1;
     }
     ws = (WAVEService __far *)MK_FP(r.w.si, r.w.cx);
 
     if (memcmp(ws->wsname, "WAVS", 4) != 0) {
         printf("Services structure is not tagged WAVS.\n");
-        cleanup(); return 1;
+        ws = 0;
+        return 1;
     }
 
     ws->wsApplPSyncCB = PlayDone;
@@ -752,47 +760,154 @@ int main(int argc, char *argv[])
     best = ws->wsPCMInfo(wav.channels, wav.rate, 0, 0, wav.bits);
     if (best == 0) {
         printf("wsPCMInfo rejected the format (error %d).\n", ws->wsGetLastError());
-        cleanup(); return 1;
+        return 1;
     }
     if (best != wav.rate) printf("Driver chose %ld Hz.\n", best);
 
-    /* --- register the sample block and start it --- */
+    /* --- register the sample block --- */
 
     block_handle = ws->wsWaveRegister((void __far *)MK_FP(data_seg, 0),
                                       (long)wav.data_len);
     if (block_handle == 0) {
         printf("wsWaveRegister failed (error %d).\n", ws->wsGetLastError());
-        cleanup(); return 1;
+        return 1;
     }
 
+    return 0;
+}
+
+static int wave_start(void)
+{
     if (!ws->wsPlayBlock(block_handle, 0L)) {
         printf("wsPlayBlock failed (error %d).\n", ws->wsGetLastError());
-        cleanup(); return 1;
+        return 1;
+    }
+    return 0;
+}
+
+/* One pass of the driver's timer tick.  Returns 0 when the block has
+ * finished.  Calling more often than witimerticks is harmless; this is the
+ * application's half of the bargain, and also where the completion callback
+ * gets delivered. */
+static int wave_poll(void)
+{
+    if (ws == 0) return 0;
+
+    ws->wsTimerTick();
+
+    if (playback_done) return 0;
+
+    /* backstop in case the callback never arrives */
+    if ((int)ws->wsDeviceCheck(WAVEDRIVERSTATE, 0L) == 0) return 0;
+
+    return 1;
+}
+
+/* ------------------------------------------------------------------ */
+
+#define KIND_NONE   0
+#define KIND_WAVE   1
+#define KIND_MIDI   2
+
+/* Sniff the file rather than trusting the extension. */
+static int file_kind(const char *path)
+{
+    FILE *f = fopen(path, "rb");
+    char hdr[12];
+    size_t n;
+
+    if (f == NULL) return KIND_NONE;
+    n = fread(hdr, 1, 12, f);
+    fclose(f);
+
+    if (n >= 4 && memcmp(hdr, "MThd", 4) == 0) return KIND_MIDI;
+    if (n >= 12 && memcmp(hdr, "RIFF", 4) == 0 &&
+                   memcmp(hdr + 8, "WAVE", 4) == 0) return KIND_WAVE;
+    return KIND_NONE;
+}
+
+static void usage(void)
+{
+    printf("Usage: VBEAIWAV [file.wav] [file.mid]\n");
+    printf("       Give both to play them together; either alone plays alone.\n");
+    printf("       With no arguments, plays TEST.WAV.\n");
+}
+
+int main(int argc, char *argv[])
+{
+    const char *wavpath = 0;
+    const char *midpath = 0;
+    union REGS r;
+    int i, wave_on = 0, midi_on = 0, stopped = 0;
+
+    /* --- subfunction 0: is a VBE/AI provider there at all? --- */
+
+    r.w.ax = VESAFUNCID;
+    r.w.bx = VF_DRIVERCHECK;
+    r.w.cx = 0;
+    int86(0x10, &r, &r);
+    if (r.w.ax != VESAOK) {
+        printf("No VBE/AI interface present (AX=%04X).\n", r.w.ax);
+        printf("Is 'vbeai=true' set in the [vbeai] section of dosbox-x.conf?\n");
+        return 1;
+    }
+    printf("VBE/AI version %d.%d present.\n",
+           (r.h.bl >> 4) & 0x0f, r.h.bl & 0x0f);
+
+    /* --- work out what was asked for --- */
+
+    if (argc < 2) {
+        wavpath = "TEST.WAV";
+    }
+    else for (i = 1; i < argc; i++) {
+        switch (file_kind(argv[i])) {
+        case KIND_WAVE:
+            if (wavpath) { printf("Only one WAVE file, please.\n"); usage(); return 1; }
+            wavpath = argv[i];
+            break;
+        case KIND_MIDI:
+            if (midpath) { printf("Only one MIDI file, please.\n"); usage(); return 1; }
+            midpath = argv[i];
+            break;
+        default:
+            printf("%s: not a RIFF/WAVE or Standard MIDI File.\n", argv[i]);
+            usage();
+            return 1;
+        }
     }
 
-    printf("Playing -- ESC to stop.\n");
+    /* --- open both devices before either is set going --- */
 
-    /* The driver asked for timer ticks, so drive it.  Calling more often than
-     * witimerticks is harmless; this loop is the application's half of the
-     * bargain and is also where the completion callback gets delivered. */
-    for (;;) {
-        ws->wsTimerTick();
+    if (wavpath && wave_setup(wavpath) != 0) { cleanup(); return 1; }
+    if (midpath && midi_setup(midpath) != 0) { midi_teardown(); cleanup(); return 1; }
 
-        if (playback_done) break;
+    if (wavpath) {
+        if (wave_start() != 0) { midi_teardown(); cleanup(); return 1; }
+        wave_on = 1;
+    }
+    midi_on = (midpath != 0);
 
-        /* backstop in case the callback never arrives */
-        state = (int)ws->wsDeviceCheck(WAVEDRIVERSTATE, 0L);
-        if (state == 0) break;                   /* idle again */
+    printf("Playing %s -- ESC to stop.\n",
+           (wave_on && midi_on) ? "both" : (wave_on ? "WAVE" : "MIDI"));
+
+    /* Two devices, one loop, neither blocking.  wave_poll() services the
+     * driver's timer tick and midi_poll() releases whatever the sequencer
+     * has fallen due; both return promptly, so the one that is still going
+     * keeps being serviced after the other has finished. */
+    while (wave_on || midi_on) {
+        if (wave_on) wave_on = wave_poll();
+        if (midi_on) midi_on = midi_poll();
 
         if (kbhit() && getch() == 0x1b) {
-            ws->wsStopIO(0);
-            printf("Stopped.\n");
+            stopped = 1;
+            if (wave_on) ws->wsStopIO(0);
             break;
         }
     }
 
-    if (playback_done) printf("Playback complete.\n");
+    printf(stopped ? "Stopped.\n" : "Playback complete.\n");
 
+    midi_teardown();
     cleanup();
     return 0;
 }
