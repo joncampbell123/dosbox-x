@@ -698,6 +698,11 @@ changes instrument inside a family hears no change at all. That is the cost of w
 voices by hand instead of a hundred and seventy-five, and it is the single strongest reason to
 point `midibank` at something better.
 
+`ALFRE.MID` from the SDK makes it concrete: it uses program 0 and program 5, grand piano and
+electric piano, and under the built-in bank both resolve to the same packed register values —
+`01 4F F2 53 00` / `01 00 F2 74 00`, feedback/connection `06`. Two instruments the composer
+wrote as a contrast come out as one. Freedoom and Fat Man both keep them apart.
+
 Rendering the same file through OPL3 and measuring the captured mixer output:
 
 | | Built-in | Freedoom |
@@ -710,11 +715,45 @@ Freedoom's is quieter, considerably darker, and has roughly twice the dynamic mo
 notes decay and breathe where the built-in voices sit at a more uniform level, which is the
 same over-sustaining that made the envelope look suspiciously flat during verification.
 
-**Freedoom's bank is the one to use.** Its provenance is clean: the instruments derive from
-OpenBSD's kernel and the project requires original content, with the build scripts under
-BSD-3-Clause. Its own README is candid that the set "isn't so good" compared with Doom's
-proprietary one — but it is comprehensively better than sixteen hand-written voices, and it is
-genuinely free, which `FATV10.BNK` is not.
+### Recommended bank: Freedoom's `genmidi.lmp`
+
+**This is the bank to use.** Put the lump somewhere DOSBox-X can read it and point `midibank`
+at it:
+
+```ini
+[vbeai]
+vbeai    = true
+midimode = opl3
+midibank = GENMIDI.LMP
+```
+
+It ships inside Freedoom's own IWADs, and the project builds it from source in
+`lumps/genmidi` — `python mkgenmidi genmidi.lmp` regenerates it, so the file can be produced
+from the repository rather than extracted from a game.
+
+Why this one rather than the alternatives:
+
+| | Freedoom | Fat Man `FATV10.BNK` | Built-in |
+| --- | --- | --- | --- |
+| Distinct melodic timbres | 128 of 128 | 127 of 128 | 16 of 128 |
+| Distinct percussion timbres | 47 of 47 | 27 of 47 | 6 of 47 |
+| Percussion pinned to a fixed pitch | yes | no — the `.BNK` format has no such field | yes |
+| Redistributable | yes | **no** | n/a, it is ours |
+
+Fat Man's is competitive on melodic coverage and is more characterful on some individual
+patches, but it loses on percussion twice over: fewer distinct voices, and no fixed-pitch
+field, so kit pieces play at whatever pitch the file writes rather than at the pitch the drum
+was sampled for. That is a limitation of the Ad Lib format, not of that particular bank.
+
+Freedoom's provenance is clean: the instruments derive from OpenBSD's kernel, the build scripts
+are BSD-3-Clause, and the project requires original content — it explicitly refuses SBI files
+taken from the web, which is exactly the licensing trap `FATV10.BNK` fell into. Its own README
+is candid that the set "isn't so good" compared with Doom's proprietary one. That is fair, and
+it is still comprehensively better than sixteen hand-written voices.
+
+One caveat when switching: Freedoom's bank renders about 7 dB quieter than the built-in one, so
+the first impression is that something broke. It has not; the level difference is real and the
+timbres are better once matched.
 
 ### Verification
 
