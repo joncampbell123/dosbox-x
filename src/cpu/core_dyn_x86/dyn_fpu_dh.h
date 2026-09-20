@@ -230,6 +230,8 @@ static void dh_fpu_esc1(){
 static void dh_fpu_esc2(){
 	dyn_get_modrm();  
 	if (decode.modrm.val >= 0xc0) { 
+		const Bitu group = (decode.modrm.val >> 3) & 7;
+		if (group <= 3) gen_needflags(); /* FCMOVcc reads EFLAGS */
 		cache_addb(0xda);
 		cache_addb((uint8_t)decode.modrm.val);
 	} else {
@@ -245,6 +247,14 @@ static void dh_fpu_esc3(){
 		Bitu group=(decode.modrm.val >> 3) & 7;
 		Bitu sub=(decode.modrm.val & 7);
 		switch (group) {
+		case 0x00: /* FCMOVNB STi */
+		case 0x01: /* FCMOVNE STi */
+		case 0x02: /* FCMOVNBE STi */
+		case 0x03: /* FCMOVNU STi */
+			gen_needflags();
+			cache_addb(0xdb);
+			cache_addb((uint8_t)decode.modrm.val);
+			break;
 		case 0x04:
 			switch (sub) {
 			case 0x00:				//FNENI
@@ -267,6 +277,12 @@ static void dh_fpu_esc3(){
 			default:
 				E_Exit("ESC 3:ILLEGAL OPCODE group %d subfunction %d",(int)group,(int)sub);
 			}
+			break;
+		case 0x05: /* FUCOMI STi */
+		case 0x06: /* FCOMI STi */
+			gen_discardflags();
+			cache_addb(0xdb);
+			cache_addb((uint8_t)decode.modrm.val);
 			break;
 		default:
 			FPU_LOG_WARN(3,false,group,sub);
@@ -410,6 +426,12 @@ static void dh_fpu_esc7(){
 					FPU_LOG_WARN(7,false,4,sub);
 					break;
 			}
+			break;
+		case 0x05: /* FUCOMIP STi */
+		case 0x06: /* FCOMIP STi */
+			gen_discardflags();
+			cache_addb(0xdf);
+			cache_addb((uint8_t)decode.modrm.val);
 			break;
 		default:
 			FPU_LOG_WARN(7,false,group,sub);

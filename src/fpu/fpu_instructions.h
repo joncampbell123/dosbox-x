@@ -16,8 +16,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <math.h> /* for isinf, etc */
+#include <cmath> /* for isinf, etc */
+
+#include "cross.h"
 #include "cpu/lazyflags.h"
+#include "fpu.h"
 
 // Helper functions for 64-bit memory access
 static inline uint64_t mem_readq(PhysPt addr) {
@@ -481,13 +484,8 @@ static void FPU_FDIV(Bitu st, Bitu other){
     fpu.use80[st] = false;
     fpu.regs[st].d = a / b;
 
-    if(std::isinf(fpu.regs[st].d) &&
-        std::isfinite(a) &&
-        std::isfinite(b) &&
-        b != 0)
+    if (std::isinf(fpu.regs[st].d) && std::isfinite(a) && std::isfinite(b) && b != 0)
         FPU_SetException(FPU_EX_OVERFLOW);
-
-	return;
 }
 
 static void FPU_FDIVR(Bitu st, Bitu other){
@@ -595,6 +593,15 @@ static inline void FPU_FCMOV(Bitu st, Bitu other){
 	fpu.regs[st] = fpu.regs[other];
 }
 
+static inline void FPU_FCMOV_B(Bitu st, Bitu other)   { if (TFLG_B)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_E(Bitu st, Bitu other)   { if (TFLG_Z)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_BE(Bitu st, Bitu other)  { if (TFLG_BE)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_U(Bitu st, Bitu other)   { if (TFLG_P)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NB(Bitu st, Bitu other)  { if (TFLG_NB)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NE(Bitu st, Bitu other)  { if (TFLG_NZ)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NBE(Bitu st, Bitu other) { if (TFLG_NBE) FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NU(Bitu st, Bitu other)  { if (TFLG_NP)  FPU_FCMOV(st, other); }
+
 static void FPU_FCOM(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
     if(fpu.tags[st] == TAG_Empty || fpu.tags[other] == TAG_Empty) {
         FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
@@ -645,10 +652,13 @@ static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	
 	FillFlags();
 	SETFLAGBIT(OF,false);
+	SETFLAGBIT(SF,false);
+	SETFLAGBIT(AF,false);
+    fpu.sw.C1 = 0;
 
     if(fpu.tags[st] == TAG_Empty ||
         fpu.tags[other] == TAG_Empty) {
-        FPU_SetException(FPU_EX_INVALID);
+        FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
         SETFLAGBIT(ZF, true);
         SETFLAGBIT(PF, true);
         SETFLAGBIT(CF, true);
@@ -672,7 +682,6 @@ static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	else if(a < b){
 		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
 	}
-	// st > other
 	else {
         SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
     }
@@ -938,4 +947,3 @@ static INLINE void FPU_FDIVR_EA(Bitu op1){
 static INLINE void FPU_FCOM_EA(Bitu op1){
 	FPU_FCOM(op1,8);
 }
-

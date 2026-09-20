@@ -17,8 +17,10 @@
  */
 
 #include <cfenv> /* for std::feholdexcept */
-#include <math.h> /* for isinf, etc */
+#include <cmath> /* for isinf, etc */
+
 #include "cpu/lazyflags.h"
+#include "fpu.h"
 
 static void FPU_FINIT(void) {
 	fenv_t buf;
@@ -392,6 +394,15 @@ static inline void FPU_FCMOV(Bitu st, Bitu other){
 	fpu.tags[st] = fpu.tags[other];
 }
 
+static inline void FPU_FCMOV_B(Bitu st, Bitu other)   { if (TFLG_B)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_E(Bitu st, Bitu other)   { if (TFLG_Z)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_BE(Bitu st, Bitu other)  { if (TFLG_BE)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_U(Bitu st, Bitu other)   { if (TFLG_P)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NB(Bitu st, Bitu other)  { if (TFLG_NB)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NE(Bitu st, Bitu other)  { if (TFLG_NZ)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NBE(Bitu st, Bitu other) { if (TFLG_NBE) FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NU(Bitu st, Bitu other)  { if (TFLG_NP)  FPU_FCMOV(st, other); }
+
 static void FPU_FCOM(Bitu st, Bitu other){
 	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
 		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
@@ -425,29 +436,50 @@ static void FPU_FUCOM(Bitu st, Bitu other){
 	FPU_FCOM(st,other);
 }
 
-static void FPU_FUCOMI(Bitu st, Bitu other){
-	
+static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	FillFlags();
 	SETFLAGBIT(OF,false);
+	SETFLAGBIT(SF,false);
+	SETFLAGBIT(AF,false);
+	fpu.sw.C1 = 0;
 
-	if(fpu.regs_80[st].v == fpu.regs_80[other].v){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+	if (fpu.tags[st] == TAG_Empty || fpu.tags[other] == TAG_Empty) {
+		FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,true);
+		SETFLAGBIT(CF,true);
+		return;
 	}
-	if(fpu.regs_80[st].v < fpu.regs_80[other].v){
-		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
+
+	const auto a = fpu.regs_80[st].v;
+	const auto b = fpu.regs_80[other].v;
+
+	if ((std::isnan)(a) || (std::isnan)(b)) {
+		if (raise_invalid_for_nan)
+			FPU_SetException(FPU_EX_INVALID);
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,true);
+		SETFLAGBIT(CF,true);
+		return;
 	}
-	// st > other
-	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+
+	if (a == b) {
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,false);
+	} else if (a < b) {
+		SETFLAGBIT(ZF,false);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,true);
+	} else {
+		SETFLAGBIT(ZF,false);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,false);
+	}
 }
 
-static inline void FPU_FCOMI(Bitu st, Bitu other){
-	FPU_FUCOMI(st,other);
-
-	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
-		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
-	}
-
+static inline void FPU_FUCOMI(Bitu st, Bitu other){
+	FPU_FCOMI(st, other, false);
 }
 
 static void FPU_FRNDINT(void){
@@ -693,4 +725,3 @@ static INLINE void FPU_FDIVR_EA(Bitu op1){
 static INLINE void FPU_FCOM_EA(Bitu op1){
 	FPU_FCOM(op1,8);
 }
-
