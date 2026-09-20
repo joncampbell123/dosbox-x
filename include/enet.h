@@ -5140,6 +5140,7 @@ extern "C" {
 #define STR(x) STR2(x)
 #pragma message("__MAC_OS_X_VERSION_MIN_REQUIRED = " STR(__MAC_OS_X_VERSION_MIN_REQUIRED))
 
+#ifndef _MACPORTS_TIME_H_
 typedef enum {
     _CLOCK_REALTIME = 0,
 #if !defined(CLOCK_REALTIME)
@@ -5181,6 +5182,7 @@ typedef enum {
     /* clock_gettime() only available in macOS 10.12+ (Sierra) */
     int clock_gettime(clockid_t clk_id, struct timespec *tp);
 	}
+#endif // _MACPORTS_TIME_H_
 
 	#if 0
         #define CLOCK_MONOTONIC 0
