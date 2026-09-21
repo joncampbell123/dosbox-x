@@ -49,6 +49,8 @@ Next version:
     SF, and OF. (cimarronm)
   - Added Gravis Ultrasound Max support to the existing GUS implementation,
     building on the CS4231 codec (cyberfox1)
+  - FPU: Restored x87 stack metadata if a push-and-load instruction faults on
+    its memory operand. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)

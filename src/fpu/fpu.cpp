@@ -54,6 +54,37 @@ uint16_t FPU_GetTag(void){
 #include "fpu_instructions.h"
 #endif
 
+/* A load which pushes the x87 stack must be restartable after a page fault.
+ * FPU_PREP_PUSH changes both TOP and the pushed slot's metadata before the
+ * memory read takes place, so restoring TOP alone leaves a phantom value in
+ * the tag word. */
+class FPUStackPushState final {
+public:
+	FPUStackPushState()
+		: old_top(TOP), pushed_slot((old_top - 1) & 7), old_tag(fpu.tags[pushed_slot])
+#if !defined(HAS_LONG_DOUBLE)
+		, old_use80(fpu.use80[pushed_slot])
+#endif
+	{}
+
+	void restore() const
+	{
+		TOP = old_top;
+		fpu.tags[pushed_slot] = old_tag;
+#if !defined(HAS_LONG_DOUBLE)
+		fpu.use80[pushed_slot] = old_use80;
+#endif
+	}
+
+private:
+	const Bitu old_top;
+	const Bitu pushed_slot;
+	const FPU_Tag old_tag;
+#if !defined(HAS_LONG_DOUBLE)
+	const bool old_use80;
+#endif
+};
+
 /* MMX instructions set the top of stack to zero---Intel explicitly documents this.
  * There is code out there, including in Windows ME and Windows Media Player, that
  * will show minor artifacts without this. */
@@ -153,7 +184,7 @@ void FPU_ESC1_EA(Bitu rm,PhysPt addr, bool op16) {
 	switch(group){
 	case 0x00: /* FLD float*/
 		{
-			unsigned char old_TOP = TOP;
+			FPUStackPushState push_state;
 
 			try {
 				FPU_PREP_PUSH();
@@ -161,7 +192,7 @@ void FPU_ESC1_EA(Bitu rm,PhysPt addr, bool op16) {
 			}
             catch (const GuestPageFaultException& pf) {
 				(void)pf;
-				TOP = old_TOP;
+				push_state.restore();
 				throw;
 			}
 		}
@@ -383,7 +414,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 	switch(group){
 	case 0x00:	/* FILD */
 		{
-			unsigned char old_TOP = TOP;
+			FPUStackPushState push_state;
 
 			try {
 				FPU_PREP_PUSH();
@@ -391,7 +422,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 			}
             catch (const GuestPageFaultException& pf) {
 				(void)pf;
-				TOP = old_TOP;
+				push_state.restore();
 				throw;
 			}
 		}
@@ -414,7 +445,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 		break;
 	case 0x05:	/* FLD 80 Bits Real */
 		{
-			unsigned char old_TOP = TOP;
+			FPUStackPushState push_state;
 
 			try {
 				FPU_PREP_PUSH();
@@ -422,7 +453,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 			}
             catch (const GuestPageFaultException& pf) {
 				(void)pf;
-				TOP = old_TOP;
+				push_state.restore();
 				throw;
 			}
 		}
@@ -542,7 +573,7 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr, bool op16) {
 	switch(group){
 	case 0x00:  /* FLD double real*/
 		{
-			unsigned char old_TOP = TOP;
+			FPUStackPushState push_state;
 
 			try {
 				FPU_PREP_PUSH();
@@ -550,7 +581,7 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr, bool op16) {
 			}
             catch (const GuestPageFaultException& pf) {
 				(void)pf;
-				TOP = old_TOP;
+				push_state.restore();
 				throw;
 			}
 		}
@@ -670,7 +701,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 	switch(group){
 	case 0x00:  /* FILD int16_t */
 		{
-			unsigned char old_TOP = TOP;
+			FPUStackPushState push_state;
 
 			try {
 				FPU_PREP_PUSH();
@@ -678,7 +709,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 			}
             catch (const GuestPageFaultException& pf) {
 				(void)pf;
-				TOP = old_TOP;
+				push_state.restore();
 				throw;
 			}
 		}
@@ -701,7 +732,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 		break;
 	case 0x04:   /* FBLD packed BCD */
 		{
-			unsigned char old_TOP = TOP;
+			FPUStackPushState push_state;
 
 			try {
 				FPU_PREP_PUSH();
@@ -709,14 +740,14 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 			}
             catch (const GuestPageFaultException& pf) {
 				(void)pf;
-				TOP = old_TOP;
+				push_state.restore();
 				throw;
 			}
 		}
 		break;
 	case 0x05:  /* FILD int64_t */
 		{
-			unsigned char old_TOP = TOP;
+			FPUStackPushState push_state;
 
 			try {
 				FPU_PREP_PUSH();
@@ -724,7 +755,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 			}
             catch (const GuestPageFaultException& pf) {
 				(void)pf;
-				TOP = old_TOP;
+				push_state.restore();
 				throw;
 			}
 		}
