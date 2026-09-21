@@ -31,11 +31,24 @@ Next version:
   - Experimental: Added support for AppImage on x64 Linux (maron2000)
   - Fixed PIT timer emulation BCD write handling to keep packed BCD values
     intact across two-byte counter writes before converting to binary. (cimarronm)
+  - Enable PS1 audio (cyberfox1)
   - Debugger: Added optional filename arguments to MEMDUMP and MEMDUMPBIN,
     defaulting to MEMDUMP.TXT and MEMDUMP.BIN. (cimarronm)
+  - Fixed initial directories for GLSL and language file selection dialogs
+    (maron2000)
+  - Fixed redefinition of enums to enable building on Macports for legacy macOS
+    (maron2000)
+  - Fixed build error of MinGW 64-bit builds due to MSYS2 are gradually
+    dropping MinGW updates and migrate to UCRT64. (maron2000)
+  - Added Pro Audio Spectrum, Pro Audio Spectrum Plus and Pro Audio Spectrum 16
+    support (firevaran)
+  - Added Crystal CS4231 codec, along with a Windows Sound System (WSS) support
+    (cyberfox1)
   - Added Pentium Pro x87 FCMOVcc, FCOMI/FCOMIP, and FUCOMI/FUCOMIP support
     to the dyn_x86 and dynrec CPU cores, and fixed FCOMI/FUCOMI to clear AF,
     SF, and OF. (cimarronm)
+  - Added Gravis Ultrasound Max support to the existing GUS implementation,
+    building on the CS4231 codec (cyberfox1)
   - FPU: Restored x87 stack metadata if a push-and-load instruction faults on
     its memory operand. (cimarronm)
   - FPU: FSTENV/FNSTENV now masks all floating-point exceptions after saving the

@@ -892,7 +892,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple, const s
 					chdir( Temp_CurrentDir );
 					return;
 				}
-#if defined(MACOSX)
+#if defined(MACOSX) || defined(LINUX)
 				auto MSGX = MSG_GetUTF8;
 #else
 				auto MSGX = MSG_Get;
@@ -912,7 +912,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple, const s
 							GetNewStr(lTheOpenFileName).c_str(), readonly.c_str());
 				}
 				std::string title = MSGX("INFORMATION");
-#if defined(MACOSX)
+#if defined(MACOSX) || defined(LINUX)
 				tinyfd_messageBox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
 #else
 				systemmessagebox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
