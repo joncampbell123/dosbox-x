@@ -38,6 +38,8 @@ Next version:
     SF, and OF. (cimarronm)
   - FPU: Restored x87 stack metadata if a push-and-load instruction faults on
     its memory operand. (cimarronm)
+  - FPU: FSTENV/FNSTENV now masks all floating-point exceptions after saving the
+    environment. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)

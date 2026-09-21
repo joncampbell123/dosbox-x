@@ -1421,6 +1421,8 @@ static void FPU_FSTENV(PhysPt addr, bool op16){
 		mem_writed(addr+4,static_cast<uint32_t>(fpu.sw));
 		mem_writed(addr+8,static_cast<uint32_t>(FPU_GetTag()));
 	}
+	// FNSTENV masks all floating-point exceptions after saving the environment.
+	fpu.cw = fpu.cw.allMasked();
 }
 
 static void FPU_FLDENV(PhysPt addr, bool op16){
