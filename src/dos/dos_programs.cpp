@@ -2041,7 +2041,7 @@ extern uint16_t boot_code_image_stack_sp;
  */
 class BOOT : public Program {
 public:
-    BOOT() {
+    BOOT(const unsigned int fl=0) : Program(fl) {
         for (size_t i=0;i < MAX_SWAPPABLE_DISKS;i++) newDiskSwap[i] = NULL;
     }
     virtual ~BOOT() {
@@ -3498,7 +3498,7 @@ static void BOOT_ProgramStart(Program * * make) {
 }
 
 void runBoot(const char *str) {
-	BOOT boot;
+	BOOT boot(dos_kernel_disabled ? Program::prg_nopsp : 0);
 	boot.cmd=new CommandLine("BOOT", str);
 	boot.Run();
 }
