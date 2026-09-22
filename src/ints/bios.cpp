@@ -6868,6 +6868,7 @@ static Bitu INT14_Handler(void) {
 
 Bits HLT_Decode(void);
 void KEYBOARD_AUX_Write(Bitu val);
+void KEYBOARD_SetAUXActive(bool on);
 unsigned char KEYBOARD_AUX_GetType();
 unsigned char KEYBOARD_AUX_DevStatus();
 unsigned char KEYBOARD_AUX_Resolution();
@@ -7180,6 +7181,7 @@ static Bitu INT15_Handler(void) {
                     if (reg_bh==0) {    // disable
                         KEYBOARD_AUX_Write(0xF5);
                         Mouse_SetPS2State(false);
+                        KEYBOARD_SetAUXActive(false);
                         reg_ah=0;
                         CALLBACK_SCF(false);
                         KEYBOARD_ClrBuffer();
@@ -7189,6 +7191,7 @@ static Bitu INT15_Handler(void) {
                             CALLBACK_SCF(true);
                             break;
                         }
+                        KEYBOARD_SetAUXActive(true);
                         KEYBOARD_AUX_Write(0xF4);
                         KEYBOARD_ClrBuffer();
                         reg_ah=0;
