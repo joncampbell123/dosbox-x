@@ -237,6 +237,11 @@ void Program::ChangeToLongCmd() {
 bool resetcolor = false;
 static char last_written_character = 0;//For 0xA to OxD 0xA expansion
 void Program::WriteOut(const char * format,...) {
+	if (dos_kernel_disabled) {
+		LOG(LOG_MISC,LOG_WARN)("Call to Program::WriteOut while DOS kernel is disabled string format='%s'",format);
+		return;
+	}
+
 	uint8_t attr = DOS_GetAnsiAttr();
 	char buf[2048];
 	va_list msg;
@@ -271,6 +276,11 @@ void Program::WriteOut(const char * format,...) {
 }
 
 void Program::WriteOut(const char *format, const char *arguments) {
+	if (dos_kernel_disabled) {
+		LOG(LOG_MISC,LOG_WARN)("Call to Program::WriteOut while DOS kernel is disabled string format='%s'",format);
+		return;
+	}
+
 	char buf[2048 + CMD_MAXLINE];
 	sprintf(buf,format,arguments);
 
@@ -298,6 +308,11 @@ void Program::WriteOut(const char *format, const char *arguments) {
 }
 
 int Program::WriteOut_NoParsing(const char * format, bool dbcs) {
+	if (dos_kernel_disabled) {
+		LOG(LOG_MISC,LOG_WARN)("Call to Program::WriteOut_NoParsing while DOS kernel is disabled string format='%s'",format);
+		return 0;
+	}
+
 	uint16_t size = (uint16_t)strlen(format);
 	char const* buf = format;
 	char last2 = 0, last3 = 0;
