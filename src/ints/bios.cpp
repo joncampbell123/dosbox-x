@@ -12240,22 +12240,27 @@ startfunction:
         LOG(LOG_MISC,LOG_DEBUG)("BIOS boot SS:SP %04x:%04x",(unsigned int)0x60,(unsigned int)reg_esp);
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
-		if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {
-			MOUSE_Startup(NULL);
-			char drive[] = "-QQ A:";
-			drive[4]='A'+bootdrive;
-			runBoot(drive);
-		}
-		if (!bootguest&&!bootvm&&!bootfast&&bootdrive>=0) {
-			void IDE_CDROM_DetachAll();
-			IDE_CDROM_DetachAll();
-		}
-		if ((use_quick_reboot||IS_DOSV)&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
 
-		bootvm=false;
-		bootfast=false;
-		bootguest=false;
-		bootdrive=-1;
+        if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {
+                MOUSE_Startup(NULL);
+                char drive[] = "-QQ A:";
+                drive[4]='A'+bootdrive;
+                runBoot(drive);
+        }
+        if (!bootguest&&!bootvm&&!bootfast&&bootdrive>=0) {
+                void IDE_CDROM_DetachAll();
+                IDE_CDROM_DetachAll();
+        }
+        if ((use_quick_reboot||IS_DOSV)&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
+
+        void MSCDEX_Reset(Section* /*sec*/);
+        MSCDEX_Reset(NULL);
+
+        bootvm=false;
+        bootfast=false;
+        bootguest=false;
+        bootdrive=-1;
+
         // Begin booting the DOSBox-X shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
         if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox-X kernel");
         return CBRET_NONE;

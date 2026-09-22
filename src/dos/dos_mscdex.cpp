@@ -342,6 +342,7 @@ public:
 };
 
 void CDROM_FreeAllDrives(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("CDROM: Freeing all drives");
 	for (uint16_t i=0; i<GetNumDrives(); i++) {
 		if (cdrom[i]) {
 			cdrom[i]->Release();
