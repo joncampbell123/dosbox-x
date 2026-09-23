@@ -3562,10 +3562,22 @@ public:
         } else if ((sec = control->GetSection((const char *)sname))) {
             auto lookup = cfg_windows_active.find(sname);
             if (lookup == cfg_windows_active.end()) {
-                Section_prop *section = static_cast<Section_prop *>(sec);
-                auto *np = new SectionEditor(getScreen(), 50, 30, section);
+                Section_prop *section = dynamic_cast<Section_prop *>(sec);
+                Section_line *section_line = dynamic_cast<Section_line *>(sec);
+                GUI::ToplevelWindow *np;
+                if (section) {
+                    auto *se = new SectionEditor(getScreen(), 50, 30, section);
+                    se->cfg_sname = sname;
+                    np = se;
+                } else if (section_line) {
+                    auto *ae = new AutoexecEditor(getScreen(), 50, 30, section_line);
+                    ae->cfg_sname = sname;
+                    np = ae;
+                } else {
+                    LOG_MSG("Unknown section type for section: %s", (const char*) sname);
+                    return;
+                }
                 cfg_windows_active[sname] = np;
-                np->cfg_sname = sname;
                 np->raise();
             }
             else {
