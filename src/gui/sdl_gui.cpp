@@ -1552,7 +1552,7 @@ public:
 
         b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, MSG_Get("OK"), button_w);
 
-        int i = 0, j = 0;
+        int j = 0;
         Property *property;
         std::vector<Property*> properties;
         auto propertyIndex = 0;
@@ -1569,7 +1569,7 @@ public:
         
         for(const auto & prop : properties)
         {
-            if (!advopt->isChecked() && !prop->basic()) {i++;continue;}
+            if (!advopt->isChecked() && !prop->basic()) continue;
             Prop_bool   *pbool   = dynamic_cast<Prop_bool*>(prop);
             Prop_int    *pint    = dynamic_cast<Prop_int*>(prop);
             Prop_double  *pdouble  = dynamic_cast<Prop_double*>(prop);
@@ -1587,9 +1587,8 @@ public:
             else if (pstring) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
             else if (pmulti) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
             else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
-            else { i++; continue; }
+            else continue;
             b->addActionHandler(p);
-            i++;
             j++;
         }
         b->addActionHandler(this);
