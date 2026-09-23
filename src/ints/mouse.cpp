@@ -2797,6 +2797,9 @@ void VMWARE_ScreenParams(uint16_t clip_x, uint16_t clip_y, uint16_t res_x, uint1
 void *MOUSE_Limit_Events_PIC_Event = (void*)((uintptr_t)MOUSE_Limit_Events);
 
 
+void PC98_Mouse_SaveState(std::ostream& stream);       // Keyboard.cpp: the PC-98 bus mouse
+void PC98_Mouse_LoadState(std::istream& stream);
+
 namespace
 {
 class SerializeMouse : public SerializeGlobalPOD
@@ -2849,6 +2852,9 @@ private:
 		// - reloc ptr
 		WRITE_POD( &screenMask_idx, screenMask_idx );
 		WRITE_POD( &cursorMask_idx, cursorMask_idx );
+
+		// - PC-98 bus mouse registers (last, so older states without them still load)
+		PC98_Mouse_SaveState( stream );
 	}
 
 	void setBytes(std::istream& stream) override
@@ -2902,6 +2908,9 @@ private:
 		// reset
 		oldmouseX = static_cast<int16_t>(mouse.x);
 		oldmouseY = static_cast<int16_t>(mouse.y);
+
+		// - PC-98 bus mouse registers
+		PC98_Mouse_LoadState( stream );
 	}
 } dummy;
 }
