@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include "callback.h"
 #include "cpu.h"		// for 0x3da delay
+#include "mem.h"
 
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
@@ -120,6 +121,14 @@ struct XGAStatus {
 			int32_t  lindrawstartx;          /* +0174 */
 			uint32_t lindrawstarty;          /* +0178 */
 			uint32_t lindrawcounty;          /* +017C bit 31 is direction */
+			int32_t  polyrdx;                /* +0168 polygon right edge X delta */
+			int32_t  polyrxstart;            /* +016C polygon right edge X start */
+			int32_t  polyldx;                /* +0170 polygon left edge X delta */
+			int32_t  polylxstart;            /* +0174 polygon left edge X start */
+			uint32_t polyystart;             /* +0178 polygon Y start */
+			uint32_t polyycount;             /* +017C polygon Y count, bit 29 update left, bit 28 update right */
+			int32_t  polyledge;              /* current left edge accumulator (S11.20) */
+			int32_t  polyredge;              /* current right edge accumulator (S11.20) */
 
 			void set__src_base(uint32_t val); /* +00D4 */
 			void set__dst_base(uint32_t val); /* +00D8 */
@@ -175,6 +184,21 @@ struct XGAStatus {
 		colorpat_t                       colorpat;
 		unsigned int                     truecolor_bypp; /* ViRGE cards seem to prefer 24bpp? Windows drivers act like it */
 		uint32_t                         truecolor_mask;
+
+		/* Subsystem Status/Control (MM8504) */
+		uint32_t                         subsys_stat;    /* interrupt status bits 6-0 */
+		uint32_t                         subsys_ctl;     /* last value written, interrupt enables in bits 13-7 */
+
+		/* S3d Engine command DMA (MM8590-MM859C) */
+		uint32_t                         cmd_dma_base;
+		uint32_t                         cmd_dma_wp;
+		uint32_t                         cmd_dma_rp;
+		uint32_t                         cmd_dma_enable;
+		uint32_t                         cmd_dma_remain; /* doublewords left in the block being transferred */
+		uint32_t                         cmd_dma_reg;    /* next register offset, or image data if bit 31 */
+
+		/* Streams Processor registers MM8180-MM81FF as last written, for read back */
+		uint32_t                         streams_raw[0x20];
 
 		inline struct reggroup &bitblt_validate_port(const uint32_t port) {
 #ifdef S3_VALIDATE_VIRGE_PORTS
@@ -1482,31 +1506,33 @@ extern Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 
 uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel,uint8_t rop) {
 	switch (rop) {
-		/* S3 ViRGE Integrated 3D Accelerator Appendix A Listing of Raster Operations */
+		/* S3 ViRGE Integrated 3D Accelerator Appendix A Listing of Raster Operations. Common cases first. */
 		case 0x00/*0           */: return 0;
-		case 0x0A/*DPna        */: return (~patpixel) & dstpixel;
-		case 0x22/*DSna        */: return (~srcpixel) & dstpixel;
 		case 0x55/*Dn          */: return ~dstpixel;
 		case 0x5A/*DPx         */: return dstpixel ^ patpixel;
 		case 0x66/*DSx         */: return dstpixel ^ srcpixel;
-		case 0x69/*PDSxxn      */: return ~(srcpixel ^ dstpixel ^ patpixel);
 		case 0x88/*DSa         */: return dstpixel & srcpixel;
-		case 0xA5/*PDxn        */: return ~(patpixel ^ dstpixel);
 		case 0xAA/*D           */: return dstpixel;
-		case 0xB8/*PSDPxax     */: return ((dstpixel ^ patpixel) & srcpixel) ^ patpixel;
-		case 0xBB/*DSno        */: return (~srcpixel) | dstpixel;
-		case 0xC0/*PSa         */: return patpixel & srcpixel;
 		case 0xCC/*S           */: return srcpixel;
-		case 0xE2/*DSPDxax     */: return ((patpixel ^ dstpixel) & srcpixel) ^ dstpixel;
 		case 0xEE/*DSo         */: return dstpixel | srcpixel;
 		case 0xF0/*P           */: return patpixel;
 		case 0xFF/*1           */: return 0xFFFFFFFF;
 		default:
-			LOG_MSG("ViRGE ROP %02x unimpl",(unsigned int)rop);
 			break;
 	};
 
-	return srcpixel;
+	/* Any ternary raster operation: bit (P*4 + S*2 + D) of the ROP code is the result for
+	 * that combination of pattern, source and destination bits (Microsoft/S3 ROP3 encoding). */
+	uint32_t r = 0;
+	if (rop & 0x01) r |= ~patpixel & ~srcpixel & ~dstpixel;
+	if (rop & 0x02) r |= ~patpixel & ~srcpixel &  dstpixel;
+	if (rop & 0x04) r |= ~patpixel &  srcpixel & ~dstpixel;
+	if (rop & 0x08) r |= ~patpixel &  srcpixel &  dstpixel;
+	if (rop & 0x10) r |=  patpixel & ~srcpixel & ~dstpixel;
+	if (rop & 0x20) r |=  patpixel & ~srcpixel &  dstpixel;
+	if (rop & 0x40) r |=  patpixel &  srcpixel & ~dstpixel;
+	if (rop & 0x80) r |=  patpixel &  srcpixel &  dstpixel;
+	return r;
 }
 
 uint32_t XGA_VirgePatPixelMono(unsigned int x,unsigned int y) {
@@ -1783,42 +1809,26 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 				xga.virge.bitblt.command_set);
 #endif
 
-			if (xga.virge.imgxferport->command_set & 0x100) { /* mono pattern, color bitmap */
-				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
-					// TODO
-					LOG_MSG("BitBlt Color transparent mono pattern unimpl");
-				}
-				else {
-					if (xga.virge.bitbltstate.src_drem > 0) {
-						srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
-						dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+			/* Transparent color image transfers leave the destination alone wherever the image color
+			 * matches the source foreground color. Per the datasheet this works for 8 and 16 bits/pixel
+			 * but not 24 bits/pixel, where the TP bit is ignored. */
+			const bool transparent = (xga.virge.imgxferport->command_set & 0x200) && bypp <= 2;
+
+			if (xga.virge.bitbltstate.src_drem > 0) {
+				srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
+				if (!transparent || srcpixel != (xga.virge.bitblt.src_fgcolor & bypmsk)) {
+					dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+					if (xga.virge.imgxferport->command_set & 0x100) /* mono pattern, color bitmap */
 						patpixel = XGA_VirgePatPixelMono(x,y);
-						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
-						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
-						xga.virge.bitbltstate.src_drem--;
-					}
-
-					x++;
-				}
-			}
-			else { /* color pattern, color bitmap */
-				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
-					// TODO
-					LOG_MSG("BitBlt Color transparent color pattern unimpl");
-				}
-				else {
-					if (xga.virge.bitbltstate.src_drem > 0) {
-						srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
-						dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+					else /* color pattern, color bitmap */
 						patpixel = XGA_VirgePatPixel(x,y);
-						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
-						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
-						xga.virge.bitbltstate.src_drem--;
-					}
-
-					x++;
+					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+					XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
 				}
+				xga.virge.bitbltstate.src_drem--;
 			}
+
+			x++;
 
 			xga.virge.bitbltstate.itf_buffer >>= (uint64_t)(8u * bypp);
 			xga.virge.bitbltstate.itf_buffer_bytecount -= bypp;
@@ -1903,10 +1913,9 @@ void XGA_ViRGE_BitBlt(XGAStatus::XGA_VirgeState::reggroup &rset) {
 		xga.virge.imgxferport = NULL;
 		xga.virge.imgxferportfunc = NULL;
 
-		if (xga.virge.bitblt.command_set & 0x200) { /* transparent */
-			LOG_MSG("BitBlt VRAM to VRAM transparent");
-		}
-		else {
+		/* NTS: The datasheet says the TP (transparent) bit is only effective for image transfers
+		 *      (bit 7 IDS set), so a VRAM to VRAM BitBlt is always opaque. This used to draw nothing. */
+		{
 			unsigned int sxa,sya;
 			unsigned int rx,ry;
 			unsigned int dx,dy;
@@ -2113,14 +2122,9 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	unsigned int safety;
 	VIRGELineDDA ldda;
 
-	/* HACK: Why doesn't the Windows 98 S3 ViRGE driver set the stride for the line2d register set?
-	 *       I'm beginning to wonder if all dest/source offset and stride registers are really just
-	 *       tied together into one set in the back. This hack is needed to make sure lines and
-	 *       curves aren't jumbled up at the top of the screen when drawn. */
-	rset.src_stride = xga.virge.bitblt.src_stride;
-	rset.dst_stride = xga.virge.bitblt.dst_stride;
-	rset.src_base = xga.virge.bitblt.src_base;
-	rset.dst_base = xga.virge.bitblt.dst_base;
+	/* NTS: The Windows 98 S3 ViRGE driver never sets the stride through the line2d registers.
+	 *      It doesn't have to: the base, stride and clip registers are shared by all 2D commands
+	 *      (see XGA_Write), so rset already holds what was programmed through the BitBLT registers. */
 
 	xdir = (rset.lindrawcounty & 0x80000000u) ? 1/*left to right*/ : -1/*right to left*/;
 	ycount = (int)(rset.lindrawcounty & 0x1FFFu); /* bits [10:0] */
@@ -2308,13 +2312,63 @@ void XGA_ViRGE_Line2D_Execute_deferred(void) {
 	};
 }
 
-void XGA_ViRGE_Poly2D_Execute(void) {
+/* 2D polygon (trapezoid) fill. S3 ViRGE datasheet section 15.4.4 "Polygon Fill" and the PYCNT register:
+ * the engine keeps a left and a right edge accumulator (S11.20) and fills every scanline between them,
+ * bottom up. Bits 29/28 of PYCNT reload the left/right accumulator from PLXSTART/PRXSTART, so that
+ * consecutive trapezoids of one polygon only need to respecify the edge that changed. Like the other
+ * non-BitBLT operations only the ROP and clipping apply, and a pattern in the ROP is forced to the
+ * pattern foreground color. */
+void XGA_ViRGE_DrawPoly(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	uint32_t mixpixel,dstpixel;
+	int y,ycount;
+
+	if (rset.polyycount & (1u << 28u)) rset.polyredge = rset.polyrxstart;
+	if (rset.polyycount & (1u << 29u)) rset.polyledge = rset.polylxstart;
+
+	ycount = (int)(rset.polyycount & 0x7FFu);
+	y = (int)(rset.polyystart & 0x7FFu);
+
+	while (ycount > 0) {
+		int x = rset.polyledge >> 20;
+		int xend = rset.polyredge >> 20;
+		if (x > xend) std::swap(x,xend);
+		if (xend - x > 4095) xend = x + 4095;
+
+		for (;x <= xend;x++) {
+			if (x < 0) continue;
+			dstpixel = XGA_ReadDestVirgePixel(rset,(unsigned int)x,(unsigned int)y);
+			mixpixel = XGA_MixVirgePixel(0,rset.mono_pat_fgcolor/*See notes*/,dstpixel,(rset.command_set>>17u)&0xFFu);
+			XGA_DrawVirgePixelCR(rset,(unsigned int)x,(unsigned int)y,mixpixel);
+		}
+
+		rset.polyledge += rset.polyldx;
+		rset.polyredge += rset.polyrdx;
+		y = (y - 1) & 0x7FF;
+		ycount--;
+	}
+
+	rset.polyystart = (uint32_t)y;
+}
+
+void XGA_ViRGE_Poly2D_Execute(bool commandwrite) {
 	auto &rset = xga.virge.poly2d;
 
-	if (rset.command_set & (1u << 31u))
-		LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 3D unhandled command %08x",(unsigned int)rset.command_set);
-	else
-		LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 2D unhandled command %08x",(unsigned int)rset.command_set);
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
+
+	if (commandwrite)
+		rset.command_execute_on_register = 0;
+
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		case 0x05: /* 2D Polygon Fill */
+			XGA_ViRGE_DrawPoly(rset);
+			break;
+		case 0x0F: /* NOP */
+			break;
+		default:
+			LOG(LOG_VGA,LOG_DEBUG)("Poly2D unhandled command %08x",(unsigned int)rset.command_set);
+			break;
+	}
 }
 
 void XGA_ViRGE_Poly2D_Execute_deferred(void) {
@@ -2323,6 +2377,9 @@ void XGA_ViRGE_Poly2D_Execute_deferred(void) {
 	xga.virge.imgxferport = NULL;
 	xga.virge.imgxferportfunc = NULL;
 	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		case 0x05: /* 2D Polygon Fill */
+			rset.command_execute_on_register = 0x017C; /* AD7C */
+			break;
 		default:
 			if (rset.command_set & (1u << 31u))
 				LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 3D command %08x def",(unsigned int)rset.command_set);
@@ -2333,8 +2390,97 @@ void XGA_ViRGE_Poly2D_Execute_deferred(void) {
 	};
 }
 
+/* apply a register setter to all three ViRGE 2D register groups (see the NTS in XGA_Write) */
+#define XGA_VIRGE_2D_ALL(setter) do { \
+		xga.virge.bitblt.setter; \
+		xga.virge.line2d.setter; \
+		xga.virge.poly2d.setter; \
+	} while (0)
+
+bool S3D_Write(Bitu port, uint32_t val, Bitu len);
+bool S3D_Read(Bitu port, Bitu len, uint32_t &val);
+void S3D_Reset(void);
+void XGA_Write(Bitu port, Bitu val, Bitu len);
+
+/* Set interrupt status bits in the ViRGE Subsystem Status register (MM8504 read, bits 6-0).
+ * FIXME: The PCI interrupt line is not asserted even if the matching enable bit is set;
+ *        software that polls the status bits (such as the S3D Toolkit's flip wait) works. */
+void S3_ViRGE_SetSubsysStatus(uint32_t bits) {
+	xga.virge.subsys_stat |= bits & 0x7Fu;
+}
+
+/* Called on every vertical retrace: bit 0 of MM8504 is the VSY INT status */
+void S3_ViRGE_VSync(void) {
+	if (svgaCard == SVGA_S3Trio && s3Card >= S3_ViRGE)
+		S3_ViRGE_SetSubsysStatus(0x01u);
+}
+
+/* S3 ViRGE Subsystem Control Register (MM8504 write) */
+void XGA_ViRGE_SubsysControl(uint32_t val) {
+	/* bits 6-0 clear the corresponding interrupt status bits */
+	xga.virge.subsys_stat &= ~(val & 0x7Fu);
+	xga.virge.subsys_ctl = val & 0xFFFFu;
+
+	/* bits 15-14: S3d Engine software reset. 10b = reset, 01b = enable */
+	if (((val >> 14u) & 3u) == 2u) {
+		xga.virge.imgxferport = NULL;
+		xga.virge.imgxferportfunc = NULL;
+		xga.virge.cmd_dma_remain = 0;
+		S3D_Reset();
+	}
+}
+
+/* S3d Engine command DMA, S3 ViRGE datasheet section 15.6.2.
+ * The guest writes blocks into a circular buffer in system memory, each starting with a header
+ * doubleword (bits 15-0 count, bits 29-16 register offset >> 2, bit 31 image data), then updates
+ * the write pointer. Like the rest of the S3d Engine emulation this completes immediately: all
+ * data between the read and write pointers is consumed before the write pointer update returns. */
+void XGA_ViRGE_CommandDMA(void) {
+	if (!xga.virge.cmd_dma_enable) return;
+
+	const uint32_t bufmask = (xga.virge.cmd_dma_base & 2u) ? 0xFFFCu : 0x0FFCu;
+	const uint32_t base = xga.virge.cmd_dma_base & ((xga.virge.cmd_dma_base & 2u) ? 0xFFFF0000u : 0xFFFFF000u);
+	const uint32_t wp = xga.virge.cmd_dma_wp & bufmask;
+	unsigned int guard = 0x10000u / 4u; /* one full trip around the largest buffer */
+
+	while ((xga.virge.cmd_dma_rp & bufmask) != wp && guard-- > 0) {
+		const uint32_t rp = xga.virge.cmd_dma_rp & bufmask;
+		const uint32_t data = phys_readd((PhysPt)(base + rp));
+		xga.virge.cmd_dma_rp = (rp + 4u) & bufmask;
+
+		if (xga.virge.cmd_dma_remain == 0) {
+			/* header */
+			xga.virge.cmd_dma_remain = data & 0xFFFFu;
+			if (data & 0x80000000u) xga.virge.cmd_dma_reg = 0x80000000u;
+			else xga.virge.cmd_dma_reg = ((data >> 16u) & 0x3FFFu) << 2u;
+		}
+		else {
+			if (xga.virge.cmd_dma_reg & 0x80000000u) {
+				/* image data goes to the image transfer port */
+				XGA_Write(0x0000, data, 4);
+			}
+			else {
+				XGA_Write(xga.virge.cmd_dma_reg & 0xFFFCu, data, 4);
+				xga.virge.cmd_dma_reg = (xga.virge.cmd_dma_reg + 4u) & 0xFFFCu;
+			}
+			xga.virge.cmd_dma_remain--;
+		}
+	}
+
+	if ((xga.virge.cmd_dma_rp & bufmask) == wp)
+		S3_ViRGE_SetSubsysStatus(0x20u); /* CD DON: command DMA done */
+}
+
 void XGA_Write(Bitu port, Bitu val, Bitu len) {
 //	LOG_MSG("XGA: Write to port %x, val %8x, len %x", (unsigned int)port, (unsigned int)val, (unsigned int)len);
+
+	/* keep a copy of Streams Processor register writes so they can be read back (see XGA_Read) */
+	if (port >= 0x8180 && port < 0x8200 && (s3Card == S3_Trio64V || s3Card >= S3_ViRGE)) {
+		uint32_t &raw = xga.virge.streams_raw[(port - 0x8180u) >> 2u];
+		const unsigned int sh = ((unsigned int)port & 3u) * 8u;
+		const uint32_t msk = ((len >= 4) ? 0xFFFFFFFFu : ((1u << (len * 8u)) - 1u)) << sh;
+		raw = (raw & ~msk) | (((uint32_t)val << sh) & msk);
+	}
 
 #if 0
 	// streams processing debug
@@ -2672,113 +2818,61 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			XGA_DrawWait(val, len);
 			break;
 		case 0x83d4:
-			if(len==1) vga_write_p3d4(0,val,1);
-			else if(len==2) {
-				vga_write_p3d4(0,val&0xff,1);
-				vga_write_p3d5(0,val>>8,1);
-			}
-			else E_Exit("unimplemented XGA MMIO");
+			/* NTS: A doubleword write covers 3D4h-3D7h; 3D6h/3D7h do nothing here. This used to E_Exit(),
+			 *      which let any guest terminate the emulator with a single MMIO write. */
+			vga_write_p3d4(0,val&0xff,1);
+			if (len >= 2) vga_write_p3d5(0,(val>>8)&0xff,1);
 			break;
 		case 0x83d5:
-			if(len==1) vga_write_p3d5(0,val,1);
-			else E_Exit("unimplemented XGA MMIO");
+			vga_write_p3d5(0,val&0xff,1);
 			break;
-		case 0xa4d4:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_base(val);
+		/* S3 ViRGE S3d Engine 2D registers.
+		 *
+		 * The datasheet (section 19.1) says "All registers with the same mnemonic for different
+		 * commands are the same register with multiple addresses", so SRC_BASE, DEST_BASE, the clip
+		 * registers, DEST_SRC_STR, the mono pattern, the colors and the rectangle registers written
+		 * through the BitBLT, 2D Line or 2D Polygon address are visible to all three. The Windows 98
+		 * driver depends on this (it never programs the stride through the 2D Line registers).
+		 * CMD_SET is kept per command type because the command it holds decides which register
+		 * autoexecutes it. */
+		case 0xa4d4: case 0xa8d4: case 0xacd4:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__src_base(val)); }
 			else goto default_case;
 			break;
-		case 0xa8d4:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__src_base(val);
+		case 0xa4d8: case 0xa8d8: case 0xacd8:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__dst_base(val)); }
 			else goto default_case;
 			break;
-		case 0xacd4:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__src_base(val);
+		case 0xa4dc: case 0xa8dc: case 0xacdc:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__left_right_clip_00dc(val)); }
 			else goto default_case;
 			break;
-		case 0xa4d8:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__dst_base(val);
+		case 0xa4e0: case 0xa8e0: case 0xace0:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__top_bottom_clip_00e0(val)); }
 			else goto default_case;
 			break;
-		case 0xa8d8:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__dst_base(val);
+		case 0xa4e4: case 0xa8e4: case 0xace4:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__src_dest_stride_00e4(val)); }
 			else goto default_case;
 			break;
-		case 0xacd8:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__dst_base(val);
+		case 0xa4e8: case 0xa4ec: case 0xace8: case 0xacec:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__mono_pat_dword((port>>2u)&1u,val)); }
 			else goto default_case;
 			break;
-		case 0xa4dc:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__left_right_clip_00dc(val);
+		case 0xa4f0: case 0xacf0:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__mono_pat_bgcolor(val)); }
 			else goto default_case;
 			break;
-		case 0xa8dc:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__left_right_clip_00dc(val);
-			else goto default_case;
-			break;
-		case 0xacdc:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__left_right_clip_00dc(val);
-			else goto default_case;
-			break;
-		case 0xa4e0:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__top_bottom_clip_00e0(val);
-			else goto default_case;
-			break;
-		case 0xa8e0:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__top_bottom_clip_00e0(val);
-			else goto default_case;
-			break;
-		case 0xace0:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__top_bottom_clip_00e0(val);
-			else goto default_case;
-			break;
-		case 0xa4e4:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_dest_stride_00e4(val);
-			else goto default_case;
-			break;
-		case 0xa8e4:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__src_dest_stride_00e4(val);
-			else goto default_case;
-			break;
-		case 0xace4:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__src_dest_stride_00e4(val);
-			else goto default_case;
-			break;
-		case 0xa4e8:
-		case 0xa4ec:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__mono_pat_dword((port>>2u)&1u,val);
-			else goto default_case;
-			break;
-		case 0xace8:
-		case 0xacec:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__mono_pat_dword((port>>2u)&1u,val);
-			else goto default_case;
-			break;
-		case 0xa4f0:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__mono_pat_bgcolor(val);
-			else goto default_case;
-			break;
-		case 0xacf0:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__mono_pat_bgcolor(val);
-			else goto default_case;
-			break;
-		case 0xa4f4:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__mono_pat_fgcolor(val);
-			else goto default_case;
-			break;
-		case 0xa8f4:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__mono_pat_fgcolor(val);
-			else goto default_case;
-			break;
-		case 0xacf4:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__mono_pat_fgcolor(val);
+		case 0xa4f4: case 0xa8f4: case 0xacf4:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__mono_pat_fgcolor(val)); }
 			else goto default_case;
 			break;
 		case 0xa4f8:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_bgcolor(val);
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__src_bgcolor(val)); }
 			else goto default_case;
 			break;
 		case 0xa4fc:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_fgcolor(val);
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__src_fgcolor(val)); }
 			else goto default_case;
 			break;
 		case 0xa500:
@@ -2797,6 +2891,27 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
 				else XGA_ViRGE_Line2D_Execute(true);
 			}
+			else goto default_case;
+			break;
+		case 0xad00:
+			if (s3Card >= S3_ViRGE) {
+				auto &rg = xga.virge.poly2d_validate_port(port);
+				rg.set__command_set(val);
+				if (rg.command_set & 1) XGA_ViRGE_Poly2D_Execute_deferred();
+				else XGA_ViRGE_Poly2D_Execute(true);
+			}
+			else goto default_case;
+			break;
+		case 0xa504: case 0xa904: case 0xad04:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__rect_width_height_0104(val)); }
+			else goto default_case;
+			break;
+		case 0xa508: case 0xa908: case 0xad08:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__rect_src_xy_0108(val)); }
+			else goto default_case;
+			break;
+		case 0xa50c: case 0xa90c: case 0xad0c:
+			if (s3Card >= S3_ViRGE) { XGA_VIRGE_2D_ALL(set__rect_dst_xy_010c(val)); }
 			else goto default_case;
 			break;
 		case 0xA96C:
@@ -2819,64 +2934,96 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawcounty_017c(val);
 			else goto default_case;
 			break;
-		case 0xad00:
+		case 0xAD68: /* PRdX: right edge X delta */
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).polyrdx = (int32_t)val;
+			else goto default_case;
+			break;
+		case 0xAD6C: /* PRXSTART: right edge X start */
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).polyrxstart = (int32_t)val;
+			else goto default_case;
+			break;
+		case 0xAD70: /* PLdX: left edge X delta */
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).polyldx = (int32_t)val;
+			else goto default_case;
+			break;
+		case 0xAD74: /* PLXSTART: left edge X start */
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).polylxstart = (int32_t)val;
+			else goto default_case;
+			break;
+		case 0xAD78: /* PYSTART */
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).polyystart = (uint32_t)val & 0x7FFu;
+			else goto default_case;
+			break;
+		case 0xAD7C: /* PYCNT */
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).polyycount = (uint32_t)val & 0x300007FFu;
+			else goto default_case;
+			break;
+		case 0x850C: /* S3 ViRGE Advanced Function Control Register */
 			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.poly2d_validate_port(port);
-				rg.set__command_set(val);
-				if (rg.command_set & 1) XGA_ViRGE_Poly2D_Execute_deferred();
-				else XGA_ViRGE_Poly2D_Execute();
+				/* bit 0 ENB EHFC (ORed with CR66 bit 0), bit 1 RST DM, bit 4 LA ENB (ORed with CR58 bit 4) */
+				const uint16_t nv = (uint16_t)(val & 0x13u);
+				if ((nv ^ vga.s3.virge_advfunc) & 0x10u) {
+					vga.s3.virge_advfunc = nv;
+					VGA_StartUpdateLFB();
+				}
+				else {
+					vga.s3.virge_advfunc = nv;
+				}
 			}
 			else goto default_case;
 			break;
-		case 0xa504:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__rect_width_height_0104(val);
+		case 0x8504: /* S3 ViRGE Subsystem Control Register (write) */
+			if (s3Card >= S3_ViRGE) XGA_ViRGE_SubsysControl((uint32_t)val);
 			else goto default_case;
 			break;
-		case 0xa904:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__rect_width_height_0104(val);
+		case 0x8590: /* S3 ViRGE Command DMA Base Address */
+			if (s3Card >= S3_ViRGE) xga.virge.cmd_dma_base = (uint32_t)val & 0xFFFFF002u;
 			else goto default_case;
 			break;
-		case 0xad04:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__rect_width_height_0104(val);
+		case 0x8594: /* S3 ViRGE Command DMA Write Pointer */
+			if (s3Card >= S3_ViRGE) {
+				xga.virge.cmd_dma_wp = (uint32_t)val & 0xFFFCu;
+				if (val & 0x10000u) XGA_ViRGE_CommandDMA();
+			}
 			else goto default_case;
 			break;
-		case 0xa508:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__rect_src_xy_0108(val);
+		case 0x8598: /* S3 ViRGE Command DMA Read Pointer */
+			if (s3Card >= S3_ViRGE) {
+				xga.virge.cmd_dma_rp = (uint32_t)val & 0xFFFCu;
+				xga.virge.cmd_dma_remain = 0;
+			}
 			else goto default_case;
 			break;
-		case 0xa908:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__rect_src_xy_0108(val);
-			else goto default_case;
-			break;
-		case 0xad08:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__rect_src_xy_0108(val);
-			else goto default_case;
-			break;
-		case 0xa50c:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__rect_dst_xy_010c(val);
-			else goto default_case;
-			break;
-		case 0xa90c:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__rect_dst_xy_010c(val);
-			else goto default_case;
-			break;
-		case 0xad0c:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__rect_dst_xy_010c(val);
+		case 0x859C: /* S3 ViRGE Command DMA Enable */
+			if (s3Card >= S3_ViRGE) {
+				xga.virge.cmd_dma_enable = (uint32_t)val & 1u;
+				if (xga.virge.cmd_dma_enable) XGA_ViRGE_CommandDMA();
+			}
 			else goto default_case;
 			break;
 		default:
 		default_case:
-			if(port <= 0x4000) {
+			if (s3Card >= S3_ViRGE) {
+				if (port < 0x8000 || (port >= 0xD000 && port < 0xF000)) {
+					/* Image transfer data port: MMIO offsets 0000-7FFF and the alternate range D000-EFFF */
+					xga.waitcmd.newline = false;
+					XGA_DrawWait(val, len);
+				}
+				else if (port >= 0xA100 && port < 0xA1C0) {
+					/* color pattern registers */
+					const unsigned int i = (port-0xA100u)>>2u;
+					assert(i < 48);
+					xga.virge.colorpat.raw[i] = (uint32_t)val;
+				}
+				else if (!S3D_Write(port, (uint32_t)val, len)) {
+					LOG(LOG_VGA,LOG_DEBUG)("XGA: Wrote to port %x with %x, len %x", (int)port, (int)val, (int)len);
+				}
+			}
+			else if(port <= 0x4000) {
 				//LOG_MSG("XGA: Wrote to port %4x with %08x, len %x", port, val, len);
 				xga.waitcmd.newline = false;
 				XGA_DrawWait(val, len);
-				
-			}
-			else if (port >= 0xA100 && port < 0xA1C0 && s3Card >= S3_ViRGE) {
-				/* color pattern registers */
-				const unsigned int i = (port-0xA100u)>>2u;
-				assert(i < 48);
-				xga.virge.colorpat.raw[i] = (uint32_t)val;
+
 			}
 			else LOG_MSG("XGA: Wrote to port %x with %x, len %x", (int)port, (int)val, (int)len);
 			break;
@@ -2902,14 +3049,78 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				{
 					auto &rset = xga.virge.poly2d_validate_port(port);
 					if (rset.command_execute_on_register != 0 && rset.command_execute_on_register == (port&0x3FF))
-						XGA_ViRGE_Poly2D_Execute();
+						XGA_ViRGE_Poly2D_Execute(false);
 				}
 				break;
 		}
 	}
 }
 
+/* Read back a ViRGE S3d Engine 2D register (MMIO A100-A1BF color pattern, A4D4-AD7C) as the
+ * doubleword containing 'port'. The datasheet documents these registers as Read/Write; software
+ * such as the S3D Toolkit's initialization may write a register and read it back. */
+static bool XGA_ViRGE_Read2D(Bitu port, uint32_t &val) {
+	const unsigned int off = (unsigned int)port & 0x3FCu;
+	const unsigned int blk = (unsigned int)port & 0xFC00u;
+
+	if (blk == 0xA000u) {
+		if (off >= 0x100u && off < 0x1C0u) { val = xga.virge.colorpat.raw[(off - 0x100u) >> 2u]; return true; }
+		return false;
+	}
+	if (blk != 0xA400u && blk != 0xA800u && blk != 0xAC00u) return false;
+
+	const auto &r = (blk == 0xA400u) ? xga.virge.bitblt : ((blk == 0xA800u) ? xga.virge.line2d : xga.virge.poly2d);
+	switch (off) {
+		case 0x0D4: val = r.src_base; return true;
+		case 0x0D8: val = r.dst_base; return true;
+		case 0x0DC: val = (r.left_clip << 16u) | r.right_clip; return true;
+		case 0x0E0: val = (r.top_clip << 16u) | r.bottom_clip; return true;
+		case 0x0E4: val = (r.dst_stride << 16u) | r.src_stride; return true;
+		case 0x0E8: val = (uint32_t)(r.mono_pat & 0xFFFFFFFFu); return true;
+		case 0x0EC: val = (uint32_t)(r.mono_pat >> 32u); return true;
+		case 0x0F0: val = r.mono_pat_bgcolor; return true;
+		case 0x0F4: val = r.mono_pat_fgcolor; return true;
+		case 0x0F8: val = r.src_bgcolor; return true;
+		case 0x0FC: val = r.src_fgcolor; return true;
+		case 0x100: val = r.command_set; return true;
+		case 0x104: val = (((r.rect_width - 1u) & 0x7FFu) << 16u) | r.rect_height; return true; /* width is stored +1 */
+		case 0x108: val = (r.rect_src_x << 16u) | r.rect_src_y; return true;
+		case 0x10C: val = (r.rect_dst_x << 16u) | r.rect_dst_y; return true;
+		default: break;
+	}
+	if (blk == 0xA800u) {
+		switch (off) {
+			case 0x16C: val = (((uint32_t)r.lindrawend0 & 0xFFFFu) << 16u) | ((uint32_t)r.lindrawend1 & 0xFFFFu); return true;
+			case 0x170: val = (uint32_t)r.lindrawxdelta; return true;
+			case 0x174: val = (uint32_t)r.lindrawstartx; return true;
+			case 0x178: val = r.lindrawstarty; return true;
+			case 0x17C: val = r.lindrawcounty; return true;
+			default: break;
+		}
+	}
+	if (blk == 0xAC00u) {
+		switch (off) {
+			case 0x168: val = (uint32_t)r.polyrdx; return true;
+			case 0x16C: val = (uint32_t)r.polyrxstart; return true;
+			case 0x170: val = (uint32_t)r.polyldx; return true;
+			case 0x174: val = (uint32_t)r.polylxstart; return true;
+			case 0x178: val = r.polyystart; return true;
+			case 0x17C: val = r.polyycount; return true;
+			default: break;
+		}
+	}
+	return false;
+}
+
 Bitu XGA_Read(Bitu port, Bitu len) {
+	/* S3 Trio64V+/ViRGE Streams Processor registers read back what was written. The S3D Toolkit
+	 * (e.g. Battlerace) reads them to save and check the display setup before 3D rendering. */
+	if (port >= 0x8180 && port < 0x8200 && (s3Card == S3_Trio64V || s3Card >= S3_ViRGE)) {
+		uint32_t r = xga.virge.streams_raw[(port - 0x8180u) >> 2u] >> ((port & 3u) * 8u);
+		if (len < 4) r &= (1u << (len * 8u)) - 1u;
+		return r;
+	}
+
 	switch(port) {
 		case 0x8118:
 		case 0x9ae8:
@@ -2917,13 +3128,30 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 		case 0x81ec: // S3 video data processor
 			return 0x00007000;
 		case 0x8504: // S3 ViRGE Subsystem Status Register
-			if (s3Card >= S3_ViRGE) /* HACK: Always say S3D ENGINE is IDLE, or else Windows 98 will hang at startup */
-				return (16 << 8)/*S3D FIFO SLOTS FREE*/ | 0x2000/*S3D ENGINE IDLE*/;
+		case 0x8505:
+			if (s3Card >= S3_ViRGE) {
+				/* The S3d Engine is emulated synchronously, so it is always idle with all FIFO slots free.
+				 * (Reporting busy here would also hang Windows 98 at startup.) */
+				const uint32_t st = (16u << 8u)/*S3D FIFO SLOTS FREE*/ | 0x2000u/*S3D ENGINE IDLE*/ | 0x40u/*S3D FIFO EMPTY*/ | xga.virge.subsys_stat;
+				return (st >> ((port & 1u) * 8u)) & ((len == 1) ? 0xFFu : 0xFFFFFFFFu);
+			}
 			else
 				return 0xffffffff;
+		case 0x8590:
+			if (s3Card >= S3_ViRGE) return xga.virge.cmd_dma_base;
+			else return 0xffffffff;
+		case 0x8594:
+			if (s3Card >= S3_ViRGE) return xga.virge.cmd_dma_wp;
+			else return 0xffffffff;
+		case 0x8598:
+			if (s3Card >= S3_ViRGE) return xga.virge.cmd_dma_rp;
+			else return 0xffffffff;
+		case 0x859c:
+			if (s3Card >= S3_ViRGE) return xga.virge.cmd_dma_enable;
+			else return 0xffffffff;
 		case 0x850c: // S3 ViRGE Advanced Function Control Register
 			if (s3Card >= S3_ViRGE) /* HACK: Always say not busy, or Windows 98 will hang at startup */
-				return (8 << 6)/*COMMAND FIFO STATUS*/ | 1/*Enable SVGA*/ | 0x10/*Linear address enable*/;
+				return (8 << 6)/*COMMAND FIFO STATUS*/ | 1/*Enable SVGA*/ | 0x10/*Linear address enable*/ | (vga.s3.virge_advfunc & 2u)/*RST DM*/;
 			else
 				return 0xffffffff;
 		case 0x83da:
@@ -2936,12 +3164,9 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 			}
 		case 0x83d4:
 			if(len==1) return vga_read_p3d4(0,0);
-			else E_Exit("unimplemented XGA MMIO");
-			break;
+			return vga_read_p3d4(0,0) | (vga_read_p3d5(0,0) << 8u);
 		case 0x83d5:
-			if(len==1) return vga_read_p3d5(0,0);
-			else E_Exit("unimplemented XGA MMIO");
-			break;
+			return vga_read_p3d5(0,0);
 		case 0x9ae9:
 			if(xga.waitcmd.wait) return 0x4;
 			else return 0x0;
@@ -2958,10 +3183,19 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 		case 0xaee8:
 			return XGA_GetDualReg(xga.readmask);
 		default:
+			if (s3Card >= S3_ViRGE) {
+				uint32_t r;
+				if (S3D_Read(port, len, r)) return r;
+				if (XGA_ViRGE_Read2D(port, r)) {
+					r >>= (port & 3u) * 8u;
+					if (len < 4) r &= (1u << (len * 8u)) - 1u;
+					return r;
+				}
+			}
 			//LOG_MSG("XGA: Read from port %x, len %x", port, len);
 			break;
 	}
-	return 0xffffffff; 
+	return 0xffffffff;
 }
 
 void VGA_SetupXGA(void) {
@@ -2983,6 +3217,8 @@ void VGA_SetupXGA(void) {
 	xga.scissors.x1 = 0;
 	xga.scissors.y2 = 0xFFF;
 	xga.scissors.x2 = 0xFFF;
+
+	xga.virge.streams_raw[(0x81ECu - 0x8180u) >> 2u] = 0x00007000; /* previous hardcoded read value */
 
 	if (svgaCard != SVGA_S3Trio) return;
 
@@ -3077,6 +3313,9 @@ void VGA_SetupXGA(void) {
 }
 
 // save state support
+void POD_Save_VGA_S3D( std::ostream& stream );
+void POD_Load_VGA_S3D( std::istream& stream );
+
 void POD_Save_VGA_XGA( std::ostream& stream )
 {
 	// static globals
@@ -3084,6 +3323,8 @@ void POD_Save_VGA_XGA( std::ostream& stream )
 
 	// - pure struct data
 	WRITE_POD( &xga, xga );
+
+	POD_Save_VGA_S3D( stream );
 }
 
 
@@ -3094,10 +3335,22 @@ void POD_Load_VGA_XGA( std::istream& stream )
 
 	// - pure struct data
 	READ_POD( &xga, xga );
+
+	/* the image transfer callback is a host pointer and must not survive a state load */
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
+
+	POD_Load_VGA_S3D( stream );
 }
 
+/* CR66 bit 1: software reset of the S3d Engine and memory controller */
 void SD3_Reset(bool enable) {
-	// STUB
 	LOG(LOG_VGA,LOG_DEBUG)("S3D reset %s",enable?"begin":"end");
+	if (enable) {
+		xga.virge.imgxferport = NULL;
+		xga.virge.imgxferportfunc = NULL;
+		xga.virge.cmd_dma_remain = 0;
+		S3D_Reset();
+	}
 }
 
