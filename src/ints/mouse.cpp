@@ -140,7 +140,8 @@ void MOUSE_Unsetup_BIOS(void) {
 static uint16_t ps2cbseg,ps2cbofs;
 static bool useps2callback,ps2callbackinit;
 static RealPt ps2_callback,uir_callback;
-static int16_t oldmouseX, oldmouseY;
+static uint8_t aux_pkt[4];
+static uint8_t aux_pkt_len = 0;
 
 // serial mouse emulation
 void on_mouse_event_for_serial(int delta_x,int delta_y,uint8_t buttonstate);
@@ -279,7 +280,13 @@ inline uint8_t GetWheel16bit() {
 	return tmp;
 }
 
+void Mouse_PS2ResetFrame(void) {
+    aux_pkt_len = 0;
+    memset(aux_pkt, 0, sizeof(aux_pkt));
+}
+
 bool Mouse_SetPS2State(bool use) {
+    Mouse_PS2ResetFrame();
     if (use && (!ps2callbackinit)) {
         useps2callback = false;
 
@@ -298,15 +305,18 @@ bool Mouse_SetPS2State(bool use) {
 }
 
 void Mouse_PS2Reset(void) {
+	Mouse_PS2ResetFrame();
 	mouse.ps2_type       = TYPE_STANDARD;
 	mouse.ps2_rate       = RATE_100;
 	mouse.ps2_unlock_idx = 0;
+	mouse.ps2_packet_size = 3;
 }
 
 bool Mouse_PS2SetPacketSize(uint8_t packet_size) {
 	if ((packet_size==0x03) ||
 		(packet_size==0x04 && mouse.ps2_type==TYPE_INTELLIMOUSE)) {
 		mouse.ps2_packet_size = packet_size;
+		Mouse_PS2ResetFrame();
 	    return true;
 	}
 	return false;
@@ -341,48 +351,22 @@ void Mouse_ChangePS2Callback(uint16_t pseg, uint16_t pofs) {
 /* set to true in case of shitty INT 15h device callbacks that fail to preserve CPU registers */
 bool ps2_callback_save_regs = false;
 
-void DoPS2Callback(uint16_t data, int16_t mouseX, int16_t mouseY) {
-    if (useps2callback && ps2cbseg != 0 && ps2cbofs != 0) {
-        uint16_t mdat = (data & 0x03) | 0x08;
-        int16_t xdiff = mouseX-oldmouseX;
-        int16_t ydiff = oldmouseY-mouseY;
-        oldmouseX = mouseX;
-        oldmouseY = mouseY;
-        if ((xdiff>0xff) || (xdiff<-0xff)) mdat |= 0x40;        // x overflow
-        if ((ydiff>0xff) || (ydiff<-0xff)) mdat |= 0x80;        // y overflow
-        xdiff %= 256;
-        ydiff %= 256;
-        if (xdiff<0) {
-            xdiff = (0x100+xdiff);
-            mdat |= 0x10;
-        }
-        if (ydiff<0) {
-            ydiff = (0x100+ydiff);
-            mdat |= 0x20;
-        }
-        if (ps2_callback_save_regs) {
-            CPU_Push16(reg_ax);CPU_Push16(reg_cx);CPU_Push16(reg_dx);CPU_Push16(reg_bx);
-            CPU_Push16(reg_bp);CPU_Push16(reg_si);CPU_Push16(reg_di);
-            CPU_Push16(SegValue(ds)); CPU_Push16(SegValue(es));
-        }
-        switch (mouse.ps2_packet_size) {
-            case 0x04: // IntelliMouse protocol
-                CPU_Push16((uint16_t)(mdat + (xdiff % 256) * 256));
-                CPU_Push16((uint16_t)(ydiff % 256));
-                CPU_Push16((uint16_t)GetWheel8bit());
-                CPU_Push16((uint16_t)0);
-                break;
-            default:   // Standard protocol
-                CPU_Push16((uint16_t)mdat);
-                CPU_Push16((uint16_t)(xdiff % 256));
-                CPU_Push16((uint16_t)(ydiff % 256));
-                CPU_Push16((uint16_t)0);
-        }
-        CPU_Push16(RealSeg(ps2_callback));
-        CPU_Push16(RealOff(ps2_callback));
-        SegSet16(cs, ps2cbseg);
-        reg_ip = ps2cbofs;
+void DoPS2Callback(const uint8_t *pkt, uint8_t n) {
+    if (!(useps2callback && ps2cbseg != 0 && ps2cbofs != 0))
+        return;
+    if (ps2_callback_save_regs) {
+        CPU_Push16(reg_ax);CPU_Push16(reg_cx);CPU_Push16(reg_dx);CPU_Push16(reg_bx);
+        CPU_Push16(reg_bp);CPU_Push16(reg_si);CPU_Push16(reg_di);
+        CPU_Push16(SegValue(ds)); CPU_Push16(SegValue(es));
     }
+    CPU_Push16((uint16_t)pkt[0]);
+    CPU_Push16((uint16_t)pkt[1]);
+    CPU_Push16((uint16_t)pkt[2]);
+    CPU_Push16(n == 4 ? (uint16_t)pkt[3] : (uint16_t)0);
+    CPU_Push16(RealSeg(ps2_callback));
+    CPU_Push16(RealOff(ps2_callback));
+    SegSet16(cs, ps2cbseg);
+    reg_ip = ps2cbofs;
 }
 
 Bitu PS2_Handler(void) {
@@ -429,12 +413,8 @@ void ChangeMouseReportRate(unsigned int new_rate) {
 	}
 }
 
-int KEYBOARD_PS2REPORT_Active();
-
 bool MouseInterruptEnabled(void) {
 	if (!IS_PC98_ARCH && KEYBOARD_AUX_Active())
-		return true;
-	if (KEYBOARD_PS2REPORT_Active()) // FIXME: INT 15h needs to issue keyboard command "enable AUX"
 		return true;
 	if (mouse.polled)
 		return true;
@@ -455,6 +435,11 @@ void MOUSE_Limit_Events(Bitu /*val*/) {
         }
     }
 
+    if (useps2callback) {
+        mouse.events = 0;
+        return;
+    }
+
     if (mouse.events) {
         mouse.timer_in_progress = true;
         PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
@@ -467,6 +452,8 @@ void MOUSE_Limit_Events(Bitu /*val*/) {
 }
 
 INLINE void Mouse_AddEvent(uint8_t type) {
+    if (useps2callback)
+        return;
     if (mouse.events<QUEUE_SIZE) {
         if (mouse.events>0) {
             /* Skip duplicate events */
@@ -883,7 +870,6 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 
     if((fabs(xrel) > 1.0) || (mouse.senv_x < 1.0)) dx *= mouse.senv_x;
     if((fabs(yrel) > 1.0) || (mouse.senv_y < 1.0)) dy *= mouse.senv_y;
-    if (useps2callback) dy *= 2;    
 
     if (user_cursor_locked) {
         /* either device reports relative motion ONLY, and therefore requires that the user
@@ -995,16 +981,6 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
             mouse.x = mouse.max_x;
         if (mouse.y > mouse.max_y)
             mouse.y = mouse.max_y;
-    }
-
-    if (user_cursor_locked) {
-        /* send relative PS/2 mouse motion only if the cursor is captured */
-        mouse.ps2x += xrel;
-        mouse.ps2y += yrel;
-        if (mouse.ps2x >= 32768.0)       mouse.ps2x -= 65536.0;
-        else if (mouse.ps2x <= -32769.0) mouse.ps2x += 65536.0;
-        if (mouse.ps2y >= 32768.0)       mouse.ps2y -= 65536.0;
-        else if (mouse.ps2y <= -32769.0) mouse.ps2y += 65536.0;
     }
 
     Mouse_AddEvent(MOUSE_HAS_MOVED);
@@ -2048,7 +2024,8 @@ static Bitu INT33_Handler(void) {
             reg_bx = MOUSE_BUTTONS;
             Mouse_Reset();
             Mouse_Used();
-            AUX_INT33_Takeover();
+            if (!useps2callback)
+                AUX_INT33_Takeover();
             LOG(LOG_MOUSE, LOG_NORMAL)("INT 33h reset");
         }
         break;
@@ -2253,6 +2230,37 @@ static Bitu PC98_INT15_Handler(void) {
 }
 
 static Bitu INT74_Handler(void) {
+    if (useps2callback) {
+        if ((IO_ReadB(0x64) & 0x20) == 0) {
+            SegSet16(cs, RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
+            reg_ip = RealOff(CALLBACK_RealPointer(int74_ret_callback));
+            return CBRET_NONE;
+        }
+        uint8_t need = (mouse.ps2_packet_size == 0x04) ? 4 : 3;
+        uint8_t b = IO_ReadB(0x60);
+        if (aux_pkt_len == 0 && (b & 0x08) == 0) {
+            SegSet16(cs, RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
+            reg_ip = RealOff(CALLBACK_RealPointer(int74_ret_callback));
+            return CBRET_NONE;
+        }
+        if (aux_pkt_len < 4)
+            aux_pkt[aux_pkt_len++] = b;
+        if (aux_pkt_len >= need) {
+            aux_pkt_len = 0;
+            if (ps2cbseg && ps2cbofs) {
+                CPU_Push16(RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
+                CPU_Push16(RealOff(CALLBACK_RealPointer(int74_ret_callback)));
+                DoPS2Callback(aux_pkt, need);
+            } else {
+                SegSet16(cs, RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
+                reg_ip = RealOff(CALLBACK_RealPointer(int74_ret_callback));
+            }
+        } else {
+            SegSet16(cs, RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
+            reg_ip = RealOff(CALLBACK_RealPointer(int74_ret_callback));
+        }
+        return CBRET_NONE;
+    }
     if (mouse.events>0 && !mouse.in_UIR) {
         mouse.events--;
 
@@ -2281,10 +2289,6 @@ static Bitu INT74_Handler(void) {
             CPU_Push16(mouse.sub_seg);
             CPU_Push16(mouse.sub_ofs);
             mouse.in_UIR = true;
-        } else if (useps2callback) {
-            CPU_Push16(RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
-            CPU_Push16(RealOff(CALLBACK_RealPointer(int74_ret_callback)));
-            DoPS2Callback(mouse.event_queue[mouse.events].buttons, static_cast<int16_t>(mouse.ps2x), static_cast<int16_t>(mouse.ps2y));
         } else {
             SegSet16(cs, RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
             reg_ip = RealOff(CALLBACK_RealPointer(int74_ret_callback));
@@ -2322,8 +2326,13 @@ void MOUSE_OnReset(Section *sec) {
     else
         MOUSE_IRQ = 12; // IBM PC/AT standard
 
-    if (MOUSE_IRQ != 0)
-        PIC_SetIRQMask(MOUSE_IRQ,true);
+    if (MOUSE_IRQ != 0 && en_bios_ps2mouse)
+        PIC_SetIRQMask(MOUSE_IRQ,false);
+    useps2callback = false;
+    ps2callbackinit = false;
+    ps2cbseg = 0;
+    ps2cbofs = 0;
+    Mouse_PS2Reset();
 }
 
 void MOUSE_ShutDown(Section *sec) {
@@ -2402,6 +2411,7 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
     if (MOUSE_IRQ != 0) {
         uint8_t hwvec=(MOUSE_IRQ>7)?(0x70+MOUSE_IRQ-8):(0x8+MOUSE_IRQ);
         RealSetVec(hwvec,CALLBACK_RealPointer(call_int74));
+        PIC_SetIRQMask(MOUSE_IRQ, false);
     }
 
     // Callback for ps2 user callback handling
@@ -2532,9 +2542,6 @@ void MOUSE_Startup(Section *sec) {
     mouse.sub_mask=0;
     mouse.sub_seg=0x6362;   // magic value
     mouse.sub_ofs=0;
-
-    oldmouseX = oldmouseY = 0;
-    mouse.ps2x = mouse.ps2y = 0;
 
     Mouse_ResetHardware();
     Mouse_Reset();
@@ -2829,6 +2836,8 @@ private:
 		WRITE_POD( &ps2cbofs, ps2cbofs );
 		WRITE_POD( &useps2callback, useps2callback );
 		WRITE_POD( &ps2callbackinit, ps2callbackinit );
+		WRITE_POD( &aux_pkt, aux_pkt );
+		WRITE_POD( &aux_pkt_len, aux_pkt_len );
 		
 		WRITE_POD( &userdefScreenMask, userdefScreenMask );
 		WRITE_POD( &userdefCursorMask, userdefCursorMask );
@@ -2866,6 +2875,8 @@ private:
 		READ_POD( &ps2cbofs, ps2cbofs );
 		READ_POD( &useps2callback, useps2callback );
 		READ_POD( &ps2callbackinit, ps2callbackinit );
+		READ_POD( &aux_pkt, aux_pkt );
+		READ_POD( &aux_pkt_len, aux_pkt_len );
 		
 		READ_POD( &userdefScreenMask, userdefScreenMask );
 		READ_POD( &userdefCursorMask, userdefCursorMask );
@@ -2898,10 +2909,6 @@ private:
 		//*******************************************
 		//*******************************************
 		//*******************************************
-
-		// reset
-		oldmouseX = static_cast<int16_t>(mouse.x);
-		oldmouseY = static_cast<int16_t>(mouse.y);
 	}
 } dummy;
 }

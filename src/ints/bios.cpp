@@ -7181,9 +7181,7 @@ static Bitu INT15_Handler(void) {
                     if (reg_bh==0) {    // disable
                         KEYBOARD_AUX_Write(0xF5);
                         Mouse_SetPS2State(false);
-#if 0//FIXME this currently prevents mouse input from working in Windows
                         KEYBOARD_SetAUXActive(false);
-#endif
                         reg_ah=0;
                         CALLBACK_SCF(false);
                         KEYBOARD_ClrBuffer();
@@ -7193,9 +7191,7 @@ static Bitu INT15_Handler(void) {
                             CALLBACK_SCF(true);
                             break;
                         }
-#if 0//FIXME this currently prevents mouse input from working in Windows
                         KEYBOARD_SetAUXActive(true);
-#endif
                         KEYBOARD_AUX_Write(0xF4);
                         KEYBOARD_ClrBuffer();
                         reg_ah=0;

@@ -258,11 +258,6 @@ void KEYBOARD_SetAUXActive(bool on) {
     keyb.cb_irq12 = on;
 }
 
-int KEYBOARD_PS2REPORT_Active() {
-	/* HACK: INT 15h really needs to issue Enable AUX, but for now, report if PS/2 mouse reporting active */
-	return keyb.ps2mouse.reporting;
-}
-
 static void KEYBOARD_SetPort60(uint16_t val) {
     keyb.auxchanged=(val&AUX)>0;
     keyb.p60changed=true;
@@ -320,6 +315,7 @@ void KEYBOARD_ClrBuffer(void) {
     keyb.pos=0;
     PIC_RemoveEvents(KEYBOARD_TransferBuffer);
     keyb.scheduled=false;
+    Mouse_PS2ResetFrame();
 }
 
 size_t KEYBOARD_BufferSpaceAvail()   // emendelson from dbDOS
