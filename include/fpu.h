@@ -448,7 +448,7 @@ struct FPUStatusWord
 	template <class T>
 	FPUStatusWord& operator |=(T val)
 	{
-		*this |= reg | val;
+		*this = reg | val;
 		return *this;
 	}
 	void init() { reg = 0; }
