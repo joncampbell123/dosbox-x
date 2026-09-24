@@ -1146,6 +1146,8 @@ extern void *MIXER_Mix_PIC_Timer;
 
 extern void *fmport_a_pic_event_PIC_Event;
 extern void *fmport_b_pic_event_PIC_Event;
+extern void *PC98_Mouse_Tick_PIC_Event;						// Keyboard.cpp
+void PC98_Mouse_RestoreTick(void);
 
 const void *pic_state_event_table[] = {
 	NULL,
@@ -1180,6 +1182,7 @@ const void *pic_state_event_table[] = {
 	PIC_IRQCheckDelayed_PIC_Event,
 
 	//NE2000_TX_Event_PIC_Event,
+	PC98_Mouse_Tick_PIC_Event,	// last, so the indexes of the others stay as older states have them
 };
 
 
@@ -1479,6 +1482,10 @@ private:
 
 				// - static (leave alone)
 				//test->loadState(stream);
+
+				// the PC-98 bus mouse tick goes by the interrupt enable its own state restored
+				// (it loads before this), not by whatever tick the queue above held
+				if (IS_PC98_ARCH) PC98_Mouse_RestoreTick();
     }
 } dummy;
 }

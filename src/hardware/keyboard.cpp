@@ -2654,6 +2654,67 @@ public:
 
 static PC98_Mouse_8255 pc98_mouse_8255;
 
+/* Save state support for the bus mouse.
+ *
+ * The periodic mouse interrupt is a PIC event, and the PIC saves a pending event by looking its
+ * handler up in pic_state_event_table. Without an entry there a saved state held the tick with no
+ * handler, so after loading it the interrupt never fired again: the mouse driver stopped seeing
+ * movement while button presses, read straight from the port, still worked.
+ *
+ * The bus mouse registers go at the end of the INT 33h driver's "Mouse" component rather than into
+ * a component of their own, because loading stops at the first component a state file lacks and
+ * files saved before this would then no longer load; a state without them keeps the current values.
+ * Components load in name order, so the PIC queue is restored after the mouse registers, and
+ * PC98_Mouse_RestoreTick() (called at the end of the PIC's restore) drops whatever mouse tick the
+ * restored queue holds and schedules it again from the restored interrupt enable. That also brings
+ * the mouse back in a state saved without the table entry. */
+void *PC98_Mouse_Tick_PIC_Event = (void*)((uintptr_t)pc98_mouse_tick_event);
+
+void PC98_Mouse_SaveState(std::ostream& stream) {
+    const uint8_t regs[] = {
+        (uint8_t)p7fd9_8255_mouse_x,        (uint8_t)p7fd9_8255_mouse_y,
+        (uint8_t)p7fd9_8255_mouse_x_latch,  (uint8_t)p7fd9_8255_mouse_y_latch,
+        p7fd9_8255_mouse_sel,               p7fd9_8255_mouse_latch,
+        p7fd8_8255_mouse_int_enable,
+        pc98_mouse_8255.latchOutPortA,      pc98_mouse_8255.latchOutPortB,
+        pc98_mouse_8255.latchOutPortC,      pc98_mouse_8255.mode };
+    const uint32_t rate = pc98_mouse_rate_hz;
+
+    stream.write(reinterpret_cast<const char*>(regs), sizeof(regs));
+    stream.write(reinterpret_cast<const char*>(&rate), sizeof(rate));
+}
+
+void PC98_Mouse_LoadState(std::istream& stream) {
+    uint8_t regs[11];
+    uint32_t rate = 0;
+
+    stream.read(reinterpret_cast<char*>(regs), sizeof(regs));
+    stream.read(reinterpret_cast<char*>(&rate), sizeof(rate));
+    if (!stream) { /* saved before the bus mouse was part of the state */
+        stream.clear();
+        return;
+    }
+
+    p7fd9_8255_mouse_x = (int8_t)regs[0];
+    p7fd9_8255_mouse_y = (int8_t)regs[1];
+    p7fd9_8255_mouse_x_latch = (int8_t)regs[2];
+    p7fd9_8255_mouse_y_latch = (int8_t)regs[3];
+    p7fd9_8255_mouse_sel = regs[4];
+    p7fd9_8255_mouse_latch = regs[5];
+    p7fd8_8255_mouse_int_enable = regs[6];
+    pc98_mouse_8255.latchOutPortA = regs[7];
+    pc98_mouse_8255.latchOutPortB = regs[8];
+    pc98_mouse_8255.latchOutPortC = regs[9];
+    pc98_mouse_8255.mode = regs[10];
+    pc98_mouse_rate_hz = rate;
+}
+
+void PC98_Mouse_RestoreTick(void) {
+    PIC_RemoveEvents(pc98_mouse_tick_event);
+    pc98_mouse_tick_scheduled = false;
+    pc98_mouse_tick_schedule();
+}
+
 //// STUB: PC-98 MOUSE
 static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
     /* 0x7FD9-0x7FDF odd */
