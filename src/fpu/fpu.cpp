@@ -28,9 +28,19 @@
 #include "mem.h"
 #include "cpu.h"
 #include "fpu.h"
+#include "logging.h"
 #include "../cpu/lazyflags.h"
 
-FPU_rec fpu;
+FPU fpu;
+
+void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub)
+{
+	LOG(LOG_FPU, LOG_WARN)("ESC %lu%s:Unhandled group %lu subfunction %lu",
+	                        (long unsigned int)tree,
+	                        ea ? " EA" : "",
+	                        (long unsigned int)group,
+	                        (long unsigned int)sub);
+}
 
 void FPU_FLDCW(PhysPt addr)
 {

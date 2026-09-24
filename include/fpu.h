@@ -20,7 +20,6 @@
 #define DOSBOX_FPU_H
 
 #include "fpu_state.h"
-#include "logging.h"
 
 void FPU_ESC0_Normal(Bitu rm);
 void FPU_ESC0_EA(Bitu rm,PhysPt addr);
@@ -54,8 +53,6 @@ void   setFPUTagEmpty();
 #define LG2		0.30102999566398119521379L
 constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
 
-extern FPU_rec fpu;
-
 // TOP = macro for use in C/C++ for top of FPU stack
 // FPUSW = macro for the entire FPU status word for use in dynamic core
 // NTS: DOSBox-X until 2023/03/11 and all other forks have dynamic core code that generates memory loads
@@ -72,7 +69,7 @@ extern FPU_rec fpu;
 //      containing all FPU status word bits.
 #define TOP fpu.sw.top
 #define FPUSW fpu.sw.reg
-#define STV(i)  ( (fpu.sw.top + (i) ) & 7 )
+#define STV(i) FPU_StackIndex(i)
 
 
 uint16_t FPU_GetTag(void);
@@ -103,9 +100,7 @@ static INLINE void FPU_SET_D(Bitu C){
 	fpu.sw.DE = !!C;
 }
 
-static INLINE void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub) {
-	LOG(LOG_FPU,LOG_WARN)("ESC %lu%s:Unhandled group %lu subfunction %lu",(long unsigned int)tree,ea?" EA":"",(long unsigned int)group,(long unsigned int)sub);
-}
+void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub);
 
 /* FPU exception flags */
 enum {

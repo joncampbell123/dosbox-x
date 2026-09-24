@@ -19,6 +19,7 @@
 #include <stdio.h>
 
 #include "cpu.h"
+#include "logging.h"
 #include "lazyflags.h"
 #include "callback.h"
 #include "paging.h"

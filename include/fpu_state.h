@@ -19,6 +19,7 @@
 #ifndef DOSBOX_FPU_STATE_H
 #define DOSBOX_FPU_STATE_H
 
+#include <cstdint>
 #include <string>
 
 #include "cpu.h"
@@ -170,26 +171,34 @@ struct FPUStatusWord
 };
 
 
-typedef struct {
+struct FPU
+{
 #if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
-	FPU_Reg		_do_not_use__regs[9];
+	FPU_Reg		    _do_not_use__regs[9];
 #else
-	FPU_Reg		regs[9];
+	FPU_Reg		    regs[9];
 #endif
 	union {/*these two have the same format, so alias them as an anon union to make switching between dynamic and normal core easier!*/
 		FPU_P_Reg	p_regs[9];
 		FPU_Reg_80	regs_80[9];
 	};
 #if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
-	bool		_do_not_use__use80[9];		// if set, use the 80-bit precision version
+	bool		    _do_not_use__use80[9];		// if set, use the 80-bit precision version
 #else
-	bool		use80[9];		// if set, use the 80-bit precision version
+	bool		    use80[9];		// if set, use the 80-bit precision version
 #endif
-	FPU_Tag		tags[9];
+	FPU_Tag		    tags[9];
 	FPUControlWord  cw;
 	FPUStatusWord   sw;
 	XMM_Reg			xmmreg[8]; // SSE emulation
 	uint32_t		mxcsr; // SSE control register
-} FPU_rec;
+};
+
+extern FPU fpu;
+
+static INLINE Bitu FPU_StackIndex(Bitu index)
+{
+	return (fpu.sw.top + index) & 7;
+}
 
 #endif // DOSBOX_FPU_STATE_H
