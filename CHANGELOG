@@ -53,6 +53,8 @@ Next version:
     its memory operand. (cimarronm)
   - FPU: FSTENV/FNSTENV now masks all floating-point exceptions after saving the
     environment. (cimarronm)
+  - Configuration tool: Fixed a crash when selecting the Devices section.
+    (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
