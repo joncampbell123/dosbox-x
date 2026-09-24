@@ -36,6 +36,7 @@ Next version:
     defaulting to MEMDUMP.TXT and MEMDUMP.BIN. (cimarronm)
   - Fixed initial directories for GLSL and language file selection dialogs
     (maron2000)
+  - ethnet: Initialize SDLNet before initializing ethnet support (patcade)
   - Fixed redefinition of enums to enable building on Macports for legacy macOS
     (maron2000)
   - Fixed build error of MinGW 64-bit builds due to MSYS2 are gradually
@@ -53,6 +54,9 @@ Next version:
     its memory operand. (cimarronm)
   - FPU: FSTENV/FNSTENV now masks all floating-point exceptions after saving the
     environment. (cimarronm)
+  - Linux: Fixed garbled characters in image file open dialog (maron2000)
+  - Enabled PS/2 mouse on BIOS C200 call (cyberfox1)
+  - PC-98: keep the bus mouse interrupt running across save states (gymzatan)
   - Configuration tool: Fixed a crash when selecting the Devices section.
     (cimarronm)
 
