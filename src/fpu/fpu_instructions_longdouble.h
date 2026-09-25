@@ -22,6 +22,25 @@
 #include "cpu/lazyflags.h"
 #include "fpu.h"
 
+static inline uint16_t FPU_GetTag()
+{
+	uint16_t tags = 0;
+	for (auto i=0; i<8; i++) {
+        FPUTag tag;
+        if (!fpu.regvalid[i]) {
+            tag = FPUTag::Empty;
+        } else if (IsZero(fpu.regs_80[i])) {
+            tag = FPUTag::Zero;
+        } else if (IsSpecial(fpu.regs_80[i])) {
+            tag = FPUTag::Special;
+        } else {
+            tag = FPUTag::Valid;
+        }
+        tags |= static_cast<uint8_t>(tag) << (2*i);
+    }
+	return tags;
+}
+
 static void FPU_FINIT(void) {
 	fenv_t buf;
 
@@ -31,15 +50,8 @@ static void FPU_FINIT(void) {
 	std::feholdexcept(&buf);
 
     fpu.sw.init();
-	fpu.tags[0] = TAG_Empty;
-	fpu.tags[1] = TAG_Empty;
-	fpu.tags[2] = TAG_Empty;
-	fpu.tags[3] = TAG_Empty;
-	fpu.tags[4] = TAG_Empty;
-	fpu.tags[5] = TAG_Empty;
-	fpu.tags[6] = TAG_Empty;
-	fpu.tags[7] = TAG_Empty;
-	fpu.tags[8] = TAG_Valid; // is only used by us (FIXME: why?)
+    fpu.regvalid = {};
+    fpu.regvalid[8] = true;
 }
 
 static void FPU_FCLEX(void){
@@ -53,19 +65,18 @@ static void FPU_FNOP(void){
 static void FPU_PUSH(long double in){
 	TOP = (TOP - 1) &7;
 	//actually check if empty
-	fpu.tags[TOP] = TAG_Valid;
+	fpu.regvalid[TOP] = true;
 	fpu.regs_80[TOP].v = in;
-//	LOG(LOG_FPU,LOG_ERROR)("Pushed at %d  %g to the stack",newtop,in);
 	return;
 }
 
 static void FPU_PREP_PUSH(void){
 	TOP = (TOP - 1) &7;
-	fpu.tags[TOP] = TAG_Valid;
+	fpu.regvalid[TOP] = false;
 }
 
 static void FPU_FPOP(void){
-	fpu.tags[TOP]=TAG_Empty;
+	fpu.regvalid[TOP] = false;
 	//maybe set zero in it as well
 	TOP = ((TOP+1)&7);
 //	LOG(LOG_FPU,LOG_ERROR)("popped from %d  %g off the stack",top,fpu.regs[top].d);
@@ -374,24 +385,20 @@ static void FPU_FSUBR(Bitu st, Bitu other){
 }
 
 static void FPU_FXCH(Bitu st, Bitu other){
+    std::swap(fpu.regvalid[st], fpu.regvalid[other]);
 	FPU_Reg_80 reg80 = fpu.regs_80[other];
-	FPU_Tag tag = fpu.tags[other];
-
 	fpu.regs_80[other] = fpu.regs_80[st];
-	fpu.tags[other] = fpu.tags[st];
-
 	fpu.regs_80[st] = reg80;
-	fpu.tags[st] = tag;
 }
 
 static void FPU_FST(Bitu st, Bitu other){
 	fpu.regs_80[other] = fpu.regs_80[st];
-	fpu.tags[other] = fpu.tags[st];
+	fpu.regvalid[other] = fpu.regvalid[st];
 }
 
 static inline void FPU_FCMOV(Bitu st, Bitu other){
 	fpu.regs_80[st] = fpu.regs_80[other];
-	fpu.tags[st] = fpu.tags[other];
+	fpu.regvalid[st] = fpu.regvalid[other];
 }
 
 static inline void FPU_FCMOV_B(Bitu st, Bitu other)   { if (TFLG_B)   FPU_FCMOV(st, other); }
@@ -404,11 +411,6 @@ static inline void FPU_FCMOV_NBE(Bitu st, Bitu other) { if (TFLG_NBE) FPU_FCMOV(
 static inline void FPU_FCMOV_NU(Bitu st, Bitu other)  { if (TFLG_NP)  FPU_FCMOV(st, other); }
 
 static void FPU_FCOM(Bitu st, Bitu other){
-	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
-		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
-		FPU_SET_C3(1);FPU_SET_C2(1);FPU_SET_C0(1);return;
-	}
-
 	/* HACK: If emulating a 286 processor we want the guest to think it's talking to a 287.
 	 *       For more info, read [http://www.intel-assembler.it/portale/5/cpu-identification/asm-source-to-find-intel-cpu.asp]. */
 	/* TODO: This should eventually become an option, say, a dosbox.conf option named fputype where the user can enter
@@ -443,7 +445,7 @@ static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	SETFLAGBIT(AF,false);
 	fpu.sw.C1 = 0;
 
-	if (fpu.tags[st] == TAG_Empty || fpu.tags[other] == TAG_Empty) {
+	if (!fpu.regvalid[st] || !fpu.regvalid[other]) {
 		FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
 		SETFLAGBIT(ZF,true);
 		SETFLAGBIT(PF,true);
@@ -526,7 +528,7 @@ static void FPU_FXAM(void){
 	{
 		FPU_SET_C1(0);
 	}
-	if(fpu.tags[TOP] == TAG_Empty)
+	if(!fpu.regvalid[TOP])
 	{
 		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(1);
 		return;
@@ -702,7 +704,6 @@ static void FPU_FLDLN2(void){
 static void FPU_FLDZ(void){
 	FPU_PREP_PUSH();
 	fpu.regs_80[TOP].v = 0.0L;
-	fpu.tags[TOP] = TAG_Zero;
 }
 
 

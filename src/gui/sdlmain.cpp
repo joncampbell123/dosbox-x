@@ -282,6 +282,7 @@ typedef enum PROCESS_DPI_AWARENESS {
 #include "keyboard.h"
 #include "cpu.h"
 #include "fpu.h"
+#include "logging.h"
 #include "cross.h"
 #include "keymap.h"
 #include "voodoo.h"

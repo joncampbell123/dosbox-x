@@ -45,7 +45,7 @@ static void FPU_FNSTCW(PhysPt addr){
 }
 
 static void FPU_FFREE(Bitu st) {
-	fpu.tags[st]=TAG_Empty;
+	fpu.regvalid[st] = false;
 }
 
 

@@ -38,6 +38,7 @@
 #include "callback.h"
 #include "cpu.h"
 #include "debug.h"
+#include "logging.h"
 #include "paging.h"
 #include "fpu.h"
 

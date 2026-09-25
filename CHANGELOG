@@ -59,6 +59,8 @@ Next version:
   - PC-98: keep the bus mouse interrupt running across save states (gymzatan)
   - Configuration tool: Fixed a crash when selecting the Devices section.
     (cimarronm)
+  - FPU: Refactored the implementation and fixed x87 status-word
+    condition-code reporting and tag words saved with FPU state. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)

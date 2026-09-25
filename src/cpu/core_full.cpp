@@ -21,6 +21,7 @@
 #include "pic.h"
 #include "regs.h"
 #include "cpu.h"
+#include "logging.h"
 #include "lazyflags.h"
 #include "paging.h"
 #include "fpu.h"

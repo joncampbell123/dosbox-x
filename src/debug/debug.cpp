@@ -36,12 +36,12 @@ using namespace std;
 #include "agent/agent_bridge.h"
 #endif
 #include "cross.h" //snprintf
-#include "fpu.h"
+#include "fpu_state.h"
+#include "logging.h"
 #include "bios.h"
 #include "timer.h"
 #include "video.h"
 #include "vga.h"
-#include "mmx.h"
 #include "mapper.h"
 #include "pc98_gdc.h"
 #include "callback.h"
@@ -349,7 +349,7 @@ static bool check_rescroll = false;
 static std::atomic<uint64_t> agent_entry_breakpoint_sequence(0);
 #endif
 
-static FPU_rec oldfpu;
+static FPU oldfpu;
 static bool warn_dynamic = false;
 
 
@@ -1414,17 +1414,17 @@ static void DrawRegisters(void) {
 	SetColor(SegValue(cs)!=oldsegs[cs].val);mvwprintw (dbg.win_reg,1,31,"%04X",SegValue(cs));
 	
 	char x87buf[12] = {};
-	SetColor(F80TestUpdate(STV(0)));mvwprintw (dbg.win_reg,4,4,"%s", F80ToString(STV(0), x87buf));
-	SetColor(F80TestUpdate(STV(4)));mvwprintw (dbg.win_reg,5,4,"%s", F80ToString(STV(4), x87buf));
+	SetColor(F80TestUpdate(FPU_StackIndex(0)));mvwprintw (dbg.win_reg,4,4,"%s", F80ToString(FPU_StackIndex(0), x87buf));
+	SetColor(F80TestUpdate(FPU_StackIndex(4)));mvwprintw (dbg.win_reg,5,4,"%s", F80ToString(FPU_StackIndex(4), x87buf));
 	
-	SetColor(F80TestUpdate(STV(1)));mvwprintw (dbg.win_reg,4,18,"%s", F80ToString(STV(1), x87buf));
-	SetColor(F80TestUpdate(STV(5)));mvwprintw (dbg.win_reg,5,18,"%s", F80ToString(STV(5), x87buf));
+	SetColor(F80TestUpdate(FPU_StackIndex(1)));mvwprintw (dbg.win_reg,4,18,"%s", F80ToString(FPU_StackIndex(1), x87buf));
+	SetColor(F80TestUpdate(FPU_StackIndex(5)));mvwprintw (dbg.win_reg,5,18,"%s", F80ToString(FPU_StackIndex(5), x87buf));
 	
-	SetColor(F80TestUpdate(STV(2)));mvwprintw (dbg.win_reg,4,32,"%s", F80ToString(STV(2), x87buf));
-	SetColor(F80TestUpdate(STV(6)));mvwprintw (dbg.win_reg,5,32,"%s", F80ToString(STV(6), x87buf));
+	SetColor(F80TestUpdate(FPU_StackIndex(2)));mvwprintw (dbg.win_reg,4,32,"%s", F80ToString(FPU_StackIndex(2), x87buf));
+	SetColor(F80TestUpdate(FPU_StackIndex(6)));mvwprintw (dbg.win_reg,5,32,"%s", F80ToString(FPU_StackIndex(6), x87buf));
 	
-	SetColor(F80TestUpdate(STV(3)));mvwprintw (dbg.win_reg,4,46,"%s", F80ToString(STV(3), x87buf));
-	SetColor(F80TestUpdate(STV(7)));mvwprintw (dbg.win_reg,5,46,"%s", F80ToString(STV(7), x87buf));
+	SetColor(F80TestUpdate(FPU_StackIndex(3)));mvwprintw (dbg.win_reg,4,46,"%s", F80ToString(FPU_StackIndex(3), x87buf));
+	SetColor(F80TestUpdate(FPU_StackIndex(7)));mvwprintw (dbg.win_reg,5,46,"%s", F80ToString(FPU_StackIndex(7), x87buf));
 
 	/*Individual flags*/
 	Bitu changed_flags = reg_flags ^ oldflags;
@@ -5809,15 +5809,9 @@ void LogPages(char* selname) {
     DEBUG_EndPagedContent();
 }
 
-const char *FPU_tag(unsigned int i) {
-    switch (i) {
-        case TAG_Valid: return "Valid";
-        case TAG_Zero:  return "Zero";
-        case TAG_Weird: return "Weird";
-        case TAG_Empty: return "Empty";
-    }
-
-    return "?";
+const char *FPU_tag(bool regvalid)
+{
+    return regvalid ? "valid" : "empty";
 }
 
 static void LogFPUInfo(void) {
@@ -5826,20 +5820,20 @@ static void LogFPUInfo(void) {
     DEBUG_ShowMsg("status: %s", fpu.sw.to_string().c_str());
 
     for (unsigned int i=0;i < 8;i++) {
-        unsigned int adj = STV(i);
+        unsigned int adj = FPU_StackIndex(i);
 
 #if C_FPU_X86 && HAS_LONG_DOUBLE
-        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%08x%08x)", i, FPU_tag(fpu.tags[adj]),
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%08x%08x)", i, FPU_tag(fpu.regvalid[adj]),
                       reinterpret_cast<long double&>(fpu.p_regs[adj]), fpu.p_regs[adj].m3,
                       fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
 #elif C_FPU_X86
-        DEBUG_ShowMsg(" st(%u): %s val=0x%04x%08x%08x", i, FPU_tag(fpu.tags[adj]),
+        DEBUG_ShowMsg(" st(%u): %s val=0x%04x%08x%08x", i, FPU_tag(fpu.regvalid[adj]),
                       fpu.p_regs[adj].m3, fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
 #elif HAS_LONG_DOUBLE
-        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%016llx)", i, FPU_tag(fpu.tags[adj]),
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%016llx)", i, FPU_tag(fpu.regvalid[adj]),
                       fpu.regs_80[adj].v, fpu.regs_80[adj].raw.h, (unsigned long long)fpu.regs_80[adj].raw.l);
 #else
-        DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.16g (0x%016llx)", i, FPU_tag(fpu.tags[adj]),
+        DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.16g (0x%016llx)", i, FPU_tag(fpu.regvalid[adj]),
                       fpu.use80[adj], fpu.regs[adj].d, (unsigned long long)fpu.regs[adj].ll);
 #endif
     }
