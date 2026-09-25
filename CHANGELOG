@@ -59,8 +59,13 @@ Next version:
   - PC-98: keep the bus mouse interrupt running across save states (gymzatan)
   - Configuration tool: Fixed a crash when selecting the Devices section.
     (cimarronm)
+  - Added 3D Acceleration for S3 ViRGE (LeonG-ZA)
+  - Increased PAS/OPL volume to match DBX gain (cyberfox1)
   - FPU: Refactored the implementation and fixed x87 status-word
     condition-code reporting and tag words saved with FPU state. (cimarronm)
+  - CoreMIDI: Fixed device name matching for names starting with digits.
+    (maron2000)
+  - Added Sound Blaster AWE32 support for games that use EMU8K (cyberfox1)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
