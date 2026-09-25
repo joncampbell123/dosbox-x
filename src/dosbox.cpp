@@ -1458,7 +1458,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7", nullptr};
     const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7", nullptr};
     const char* gustypes[] = { "classic", "classic37", "max", "interwave", nullptr };
-    const char* sbtypes[] = { "sb1", "sb1.0", "sb1.5", "sb2", "sb2.0", "sb2.01", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "ess1688", "reveal_sc400", "pas", "pasplus", "pas16", "none", nullptr };
+    const char* sbtypes[] = { "sb1", "sb1.0", "sb1.5", "sb2", "sb2.0", "sb2.01", "sbpro1", "sbpro2", "sb16", "sb16vibra", "awe32", "gb", "ess688", "ess1688", "reveal_sc400", "pas", "pasplus", "pas16", "none", nullptr };
     const char* cms_settings[] = { "on", "off", "auto", nullptr };
     const char* oplmodes[] = { "auto", "opl2", "dualopl2", "opl3", "opl3gold", "none", "hardware", "hardwaregb", "esfm", nullptr };
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", nullptr };
@@ -3799,6 +3799,7 @@ void DOSBOX_SetupConfigSections(void) {
 			Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,def_sbtype[ci]);//"sb16"
 			Pstring->Set_values(sbtypes);
 			Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster.\n"
+					"'awe32' is Creative Sound Blaster 16 plus EMU8000 wavetable synthesizer.\n"
 					"'pas', 'pasplus' and 'pas16' are the Media Vision Pro AudioSpectrum, Pro AudioSpectrum Plus and\n"
 					"Pro AudioSpectrum 16 (first card only). The original PAS has no Sound Blaster mode; it uses irq= and dma=\n"
 					"for its own PCM. The Plus and 16 start their Sound Blaster 2.0 emulation at sbbase=, irq= and dma=,\n"
@@ -4066,6 +4067,18 @@ void DOSBOX_SetupConfigSections(void) {
 					"This is a hack for the Electromotive Force 'Internal Damage' demo which apparently\n"
 					"relies on this behavior for Sound Blaster output and should be enabled for accuracy in emulation.");
 		}
+	}
+
+	{
+		const char *emu8krams[] = { "0", "512", "2048", "8192", "28672", nullptr };
+		secprop=control->AddSection_prop("emu8k",&Null_Init,true);
+		Pstring = secprop->Add_string("rompath",Property::Changeable::WhenIdle,"awe32.raw");
+		Pstring->Set_help("Path to the 1MB AWE32 GM ROM dump (awe32.raw). The EMU8000 stays inactive if this file cannot be loaded.");
+		Pstring->SetBasic(true);
+		Pint = secprop->Add_int("memsize",Property::Changeable::WhenIdle,512);
+		Pint->Set_values(emu8krams);
+		Pint->Set_help("Onboard EMU8000 sample RAM in KB. Guest software uploads extra samples here.");
+		Pint->SetBasic(true);
 	}
 
     secprop=control->AddSection_prop("gus",&Null_Init,true); //done

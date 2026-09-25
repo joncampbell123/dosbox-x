@@ -88,6 +88,7 @@
 #include "support.h"
 #include "shell.h"
 #include "hardopl.h"
+#include "emu8k.h"
 using namespace std;
 
 #ifdef WIN32
@@ -432,6 +433,7 @@ struct SB_INFO {
 	bool speaker;
 	bool midi;
 	bool vibra;
+	bool awe32;
 	bool emit_blaster_var;
 	bool sbpro_stereo_bit_strict_mode; /* if set, stereo bit in mixer can only be set if emulating a Pro. if clear, SB16 can too */
 	bool sample_rate_limits; /* real SB hardware has limits on the sample rate */
@@ -615,6 +617,37 @@ static const char *sbMixerChanNames[MAX_CARDS] = {
 	"SB",
 	"SB2"
 };
+
+static EMU8K emu8k_chip;
+static MixerChannel *awe_chan = NULL;
+static const Bitu emu8k_base = 0x620;
+
+static void AWE_CallBack(Bitu len)
+{
+	int16_t tmp[EMU8K_MIXBUF * 2];
+	if (len > EMU8K_MIXBUF)
+		len = EMU8K_MIXBUF;
+	emu8k_chip.Generate(tmp, len);
+	if (awe_chan)
+		awe_chan->AddSamples_s16(len, tmp);
+}
+
+static Bitu read_emu8k(Bitu port, Bitu iolen)
+{
+	if (iolen == 2)
+		return emu8k_chip.Inw(port);
+	return emu8k_chip.Inb(port);
+}
+
+static void write_emu8k(Bitu port, Bitu val, Bitu iolen)
+{
+	if (awe_chan)
+		awe_chan->FillUp();
+	if (iolen == 2)
+		emu8k_chip.Outw(port, (uint16_t)val);
+	else
+		emu8k_chip.Outb(port, (uint8_t)val);
+}
 
 const char *sbGetSectionName(const size_t ci) {
 	if (ci < MAX_CARDS)
@@ -1874,6 +1907,18 @@ void SB_INFO::CTMIXER_UpdateVolumes(void) {
 	if (chan) chan->SetVolume(m0 * calc_vol(mixer.dac[0]), m1 * calc_vol(mixer.dac[1]));
 	chan = MIXER_FindChannel("FM");
 	if (chan) chan->SetVolume(m0 * calc_vol(mixer.fm[0]) , m1 * calc_vol(mixer.fm[1]) );
+	if (awe32) {
+		chan = MIXER_FindChannel("AWE");
+		if (chan) {
+			chan->FillUp();
+			chan->SetVolume(m0 * calc_vol(mixer.fm[0]), m1 * calc_vol(mixer.fm[1]));
+			if (mixer.index == 0x34 || mixer.index == 0x35) {
+				const char *side = (mixer.index == 0x34) ? "LEFT" : "RIGHT";
+				unsigned v = (mixer.index == 0x34) ? mixer.fm[0] : mixer.fm[1];
+				LOG(LOG_MISC,LOG_NORMAL)("EMU8000: %02Xh in AWE %s vol=%u", mixer.index, side, v);
+			}
+		}
+	}
 	chan = MIXER_FindChannel("CDAUDIO");
 	if (chan) chan->SetVolume(m0 * calc_vol(mixer.cda[0]), m1 * calc_vol(mixer.cda[1]));
 }
@@ -2401,7 +2446,11 @@ is responsible for some failures such as [https://github.com/joncampbell123/dosb
 					}
 					break;
 				case SBT_16:
-					if (vibra) {
+					if (awe32) {
+						DSP_AddData(4);
+						DSP_AddData(12);
+					}
+					else if (vibra) {
 						DSP_AddData(4); /* SB16 ViBRA DSP 4.13 */
 						DSP_AddData(13);
 					}
@@ -3917,16 +3966,20 @@ class SBLASTER: public Module_base {
 		/* Data */
 		IO_ReadHandleObject ReadHandler[0x10];
 		IO_WriteHandleObject WriteHandler[0x10];
+		IO_ReadHandleObject EmuReadHandler[3];
+		IO_WriteHandleObject EmuWriteHandler[3];
 #if !defined(OSFREE)
 		AutoexecObject autoexecline;
 #endif
 		MixerObject MixerChan;
+		MixerObject MixerChanAwe;
 		OPL_Mode oplmode;
 		size_t ci = 0;
 
 		/* Support Functions */
 		void Find_Type_And_Opl(Section_prop* config,SB_TYPES& type, OPL_Mode& opl_mode) const {
 			sb[ci].vibra = false;
+			sb[ci].awe32 = false;
 			sb[ci].ess_type = ESS_NONE;
 			sb[ci].reveal_sc_type = RSC_NONE;
 			sb[ci].ess_extended_mode = false;
@@ -3945,6 +3998,7 @@ class SBLASTER: public Module_base {
 			else if (!strcasecmp(sbtype,"sbpro2")) type=SBT_PRO2;
 			else if (!strcasecmp(sbtype,"sb16vibra")) type=SBT_16;
 			else if (!strcasecmp(sbtype,"sb16")) type=SBT_16;
+			else if (!strcasecmp(sbtype,"awe32")) { type=SBT_16; sb[ci].awe32=true; }
 			else if (!strcasecmp(sbtype,"gb")) type=SBT_GB;
 			else if (!strcasecmp(sbtype,"none")) type=SBT_NONE;
 			/* Pro AudioSpectrum (pas.cpp). The original has no Sound Blaster side at all;
@@ -4326,6 +4380,31 @@ class SBLASTER: public Module_base {
 			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
 
 			sb[ci].chan=MixerChan.Install(SBLASTER_CallBacks[ci],22050,sbMixerChanNames[ci]);
+
+			if (sb[ci].awe32 && (ci != 0 || IS_PC98_ARCH)) {
+				LOG_MSG("AWE32: EMU8000 is available on the first IBM-PC Sound Blaster only");
+				sb[ci].awe32 = false;
+			}
+			if (sb[ci].awe32) {
+				Section_prop *emusec = static_cast<Section_prop *>(control->GetSection("emu8k"));
+				std::string rompath = emusec->Get_string("rompath");
+				int memsize = emusec->Get_int("memsize");
+				if (!emu8k_chip.Init(rompath.c_str(), memsize)) {
+					LOG_MSG("AWE32: EMU8000 inactive (ROM not loaded)");
+					sb[ci].awe32 = false;
+				} else {
+					emu8k_chip.ChangeAddr(emu8k_base);
+					EmuReadHandler[0].Install(emu8k_base, read_emu8k, IO_MB | IO_MW, 4);
+					EmuWriteHandler[0].Install(emu8k_base, write_emu8k, IO_MB | IO_MW, 4);
+					EmuReadHandler[1].Install(emu8k_base + 0x400, read_emu8k, IO_MB | IO_MW, 4);
+					EmuWriteHandler[1].Install(emu8k_base + 0x400, write_emu8k, IO_MB | IO_MW, 4);
+					EmuReadHandler[2].Install(emu8k_base + 0x800, read_emu8k, IO_MB | IO_MW, 4);
+					EmuWriteHandler[2].Install(emu8k_base + 0x800, write_emu8k, IO_MB | IO_MW, 4);
+					awe_chan = MixerChanAwe.Install(AWE_CallBack, 44100, "AWE");
+					awe_chan->Enable(true);
+					LOG_MSG("AWE32: EMU8000 on port %03Xh RAM %d KB", (unsigned)emu8k_base, memsize);
+				}
+			}
 			sb[ci].dac.dac_pt = sb[ci].dac.dac_t = 0;
 			sb[ci].dsp.state=DSP_S_NORMAL;
 			sb[ci].dsp.out.lastval=0xaa;
@@ -4575,6 +4654,8 @@ ASP>
 						temp << " P" << hex << baseio;
 					}
 				}
+				if (sb[ci].awe32)
+					temp << " E" << hex << emu8k_base;
 				temp << " T" << static_cast<unsigned int>(sb[ci].type) << ends;
 
 				autoexecline.Install(temp.str());
@@ -4583,6 +4664,10 @@ ASP>
 		}
 
 		~SBLASTER() {
+			if (ci == 0) {
+				awe_chan = NULL;
+				emu8k_chip.Close();
+			}
 			if (sb[ci].pas_type != 0) PAS_ShutDown();
 			switch (oplmode) {
 				case OPL_none:
