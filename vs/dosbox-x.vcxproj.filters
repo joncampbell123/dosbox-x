@@ -390,6 +390,9 @@
     <ClCompile Include="..\src\hardware\cs4231.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\emu8k.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\dbopl.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
@@ -2184,6 +2187,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cs4231.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\emu8k.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\debug.h">

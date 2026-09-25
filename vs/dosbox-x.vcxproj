@@ -1517,6 +1517,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\hardware\adlib.cpp" />
     <ClCompile Include="..\src\hardware\cmos.cpp" />
     <ClCompile Include="..\src\hardware\cs4231.cpp" />
+    <ClCompile Include="..\src\hardware\emu8k.cpp" />
     <ClCompile Include="..\src\hardware\dbopl.cpp" />
     <ClCompile Include="..\src\hardware\disney.cpp" />
     <ClCompile Include="..\src\hardware\pas.cpp" />
@@ -1761,6 +1762,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\include\cross.h" />
     <ClInclude Include="..\include\crypt.h" />
     <ClInclude Include="..\include\cs4231.h" />
+    <ClInclude Include="..\include\emu8k.h" />
     <ClInclude Include="..\include\debug.h" />
     <ClInclude Include="..\include\agent\agent_bridge.h" />
     <ClInclude Include="..\include\agent\agent_protocol.h" />
