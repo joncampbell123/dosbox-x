@@ -10,7 +10,7 @@ noinst_LIBRARIES = libhardware.a
 libhardware_a_SOURCES = adlib.cpp dma.cpp gameblaster.cpp hardware.cpp imfc.cpp iohandler.cpp joystick.cpp keyboard.cpp \
 			memory.cpp mixer.cpp pcspeaker.cpp pci_bus.cpp pic.cpp sblaster.cpp tandy_sound.cpp timer.cpp \
 			vga.cpp vga_attr.cpp vga_crtc.cpp vga_dac.cpp vga_draw.cpp vga_gfx.cpp vga_other.cpp \
-			vga_memory.cpp vga_misc.cpp vga_seq.cpp vga_xga.cpp vga_s3.cpp vga_tseng.cpp vga_paradise.cpp \
+			vga_memory.cpp vga_misc.cpp vga_seq.cpp vga_xga.cpp vga_s3.cpp vga_s3d.cpp vga_tseng.cpp vga_paradise.cpp \
 			cmos.cpp cqm.c disney.cpp pas.cpp gus.cpp mpu401.cpp ipx.cpp ipxserver.cpp ne2000.cpp hardopl.cpp dbopl.cpp innova.cpp cs4231.cpp wss.cpp dongle.cpp \
 			voodoo.cpp voodoo_interface.cpp voodoo_emu.cpp ps1_sound.cpp sn76496.h ide.cpp floppy.cpp voodoo_vogl.cpp voodoo_opengl.cpp \
 			nukedopl.cpp pc98.cpp vga_pc98_gdc.cpp vga_pc98_gdc_draw.cpp vga_pc98_dac.cpp vga_pc98_crtc.cpp vga_pc98_cg.cpp \

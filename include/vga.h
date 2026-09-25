@@ -267,7 +267,9 @@ typedef struct {
 	uint8_t reg_55;
 	uint8_t reg_58;
 	uint8_t reg_63; // Extended control register
+	uint8_t reg_66; // Extended miscellaneous control 1 (ViRGE: enhanced mode enable, S3d reset)
 	uint8_t reg_6b; // LFB BIOS scratchpad
+	uint16_t virge_advfunc; // ViRGE MM850C Advanced Function Control (bits 0,1,4 read/write)
 	uint8_t ex_hor_overflow;
 	uint8_t ex_ver_overflow;
 	uint16_t la_window;
@@ -860,6 +862,7 @@ void VGA_CaptureStartNextFrame(void);
 void VGA_CaptureMarkError(void);
 bool VGA_CaptureValidateCurrentFrame(void);
 void SD3_Reset(bool enable);
+void S3_ViRGE_VSync(void);
 void SetClock_S3(Bitu which,Bitu target);
 
 // Amount of video memory required for a mode, implemented in int10_modes.cpp

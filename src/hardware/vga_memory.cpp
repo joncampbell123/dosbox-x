@@ -2903,8 +2903,10 @@ void VGA_StartUpdateLFB(void) {
 		 *  Some LSBs of this register are ignored because of the size-aligned boundary scheme" */
 		const unsigned int la_winmsk = ~((winsz - 1u) >> 16u); /* Register holds the upper 16 bits of the linear address */
 
-		/* The LFB register has an enable bit */
-		if (!(vga.s3.reg_58 & 0x10)) {
+		/* The LFB register has an enable bit. On the ViRGE, bit 4 of MM850C (Advanced Function Control)
+		 * is ORed with it: "This bit is ORed with bit 4 of CR58 and is equivalent to it." */
+		const bool lfb_enable = (vga.s3.reg_58 & 0x10) || (s3Card >= S3_ViRGE && (vga.s3.virge_advfunc & 0x10));
+		if (!lfb_enable) {
 			vga.lfb.page = (unsigned int)(vga.s3.la_window & la_winmsk) << 4u;
 			vga.lfb.addr = (unsigned int)(vga.s3.la_window & la_winmsk) << 16u;
 			vga.lfb.handler = NULL;
