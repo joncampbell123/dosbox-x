@@ -231,9 +231,9 @@ static void PAS_ApplyMixer(void) {
         const uint16_t *a = (pas->lmc835[LMC835_MODE] & 0x20) ? lmc835_att_05db : lmc835_att_1db;
         const uint16_t *b = (pas->lmc835[LMC835_MODE] & 0x08) ? lmc835_att_05db : lmc835_att_1db;
         pcm_l = a[pas->lmc835[LMC835_PCM_L] & 0x7f] / 32767.0f;
-        fm_l  = a[pas->lmc835[LMC835_FM_L] & 0x7f] / 32767.0f;
+        fm_l  = a[pas->lmc835[LMC835_FM_L] & 0x7f] / 8230.0f;
         pcm_r = b[pas->lmc835[LMC835_PCM_R] & 0x7f] / 32767.0f;
-        fm_r  = b[pas->lmc835[LMC835_FM_R] & 0x7f] / 32767.0f;
+        fm_r  = b[pas->lmc835[LMC835_FM_R] & 0x7f] / 8230.0f;
         sb_l = sb_r = 1.0f; /* the LMC835N has no Sound Blaster input; only master applies */
     }
 
