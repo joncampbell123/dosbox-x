@@ -72,12 +72,15 @@ constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
 #define STV(i) FPU_StackIndex(i)
 
 
-uint16_t FPU_GetTag(void);
 void FPU_FLDCW(PhysPt addr);
 
-static INLINE void FPU_SetTag(uint16_t tag){
-	for(Bitu i=0;i<8;i++)
-		fpu.tags[i] = static_cast<FPU_Tag>((tag >>(2*i))&3);
+static INLINE void FPU_SetTag(uint16_t tags){
+	for (auto i=0; i<8; i++)
+    {
+        auto tag = static_cast<FPUTag>(tags & 0x3);
+        fpu.regvalid[i] = (tag != FPUTag::Empty);
+        tags >>= 2;
+    }
 }
 
 static INLINE void FPU_SET_C0(Bitu C){
@@ -115,6 +118,26 @@ enum {
 
 static INLINE void FPU_SetException(uint16_t ex) {
     FPUSW |= ex;
+}
+
+static inline bool IsZero(const FPU_Reg& reg)
+{
+    return reg.d == 0.0;
+}
+
+static inline bool IsZero(const FPU_Reg_80& reg)
+{
+    return (reg.f.exponent == 0) && (reg.f.mantissa == 0);
+}
+
+static inline bool IsSpecial(const FPU_Reg& reg)
+{
+    return (reg.f.exponent == 0x7FF) || (reg.f.exponent == 0 && reg.f.mantissa != 0);
+}
+
+static inline bool IsSpecial(const FPU_Reg_80& reg)
+{
+    return (reg.f.exponent == 0x7FFF) || (reg.f.exponent == 0 && reg.f.mantissa != 0);
 }
 
 #endif

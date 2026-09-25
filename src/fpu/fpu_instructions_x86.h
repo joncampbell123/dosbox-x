@@ -22,6 +22,25 @@
 #include "mem.h"
 #include "regs.h"
 
+static inline uint16_t FPU_GetTag()
+{
+	uint16_t tags = 0;
+	for (auto i=0; i<8; i++) {
+        FPUTag tag;
+        if (!fpu.regvalid[i]) {
+            tag = FPUTag::Empty;
+        } else if (IsZero(fpu.regs_80[i])) {
+            tag = FPUTag::Zero;
+        } else if (IsSpecial(fpu.regs_80[i])) {
+            tag = FPUTag::Special;
+        } else {
+            tag = FPUTag::Valid;
+        }
+        tags |= static_cast<uint8_t>(tag) << (2*i);
+    }
+	return tags;
+}
+
 // #define WEAK_EXCEPTIONS
 
 #ifdef WEAK_EXCEPTIONS
@@ -1010,15 +1029,8 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 static void FPU_FINIT(void) {
 	fpu.cw.init();
 	fpu.sw.init();
-	fpu.tags[0]=TAG_Empty;
-	fpu.tags[1]=TAG_Empty;
-	fpu.tags[2]=TAG_Empty;
-	fpu.tags[3]=TAG_Empty;
-	fpu.tags[4]=TAG_Empty;
-	fpu.tags[5]=TAG_Empty;
-	fpu.tags[6]=TAG_Empty;
-	fpu.tags[7]=TAG_Empty;
-	fpu.tags[8]=TAG_Valid; // is only used by us
+    fpu.regvalid = {};
+    fpu.regvalid[8] = true;
 }
 
 static void FPU_FCLEX(void){
@@ -1030,13 +1042,11 @@ static void FPU_FNOP(void){
 
 static void FPU_PREP_PUSH(void){
 	TOP = (TOP - 1) &7;
-//	if (GCC_UNLIKELY(fpu.tags[TOP] != TAG_Empty)) E_Exit("FPU stack overflow");
-	fpu.tags[TOP] = TAG_Valid;
+	fpu.regvalid[TOP] = true;
 }
 
 static void FPU_FPOP(void){
-//	if (GCC_UNLIKELY(fpu.tags[TOP] == TAG_Empty)) E_Exit("FPU stack underflow");
-	fpu.tags[TOP] = TAG_Empty;
+	fpu.regvalid[TOP] = false;
 	TOP = ((TOP+1)&7);
 }
 
@@ -1234,9 +1244,7 @@ static void FPU_FSUBR_EA(Bitu op1){
 }
 
 static void FPU_FXCH(Bitu stv, Bitu other){
-	FPU_Tag tag = fpu.tags[other];
-	fpu.tags[other] = fpu.tags[stv];
-	fpu.tags[stv] = tag;
+    std::swap(fpu.regvalid[stv], fpu.regvalid[other]);
 
 	uint32_t m1s = fpu.p_regs[other].m1;
 	uint32_t m2s = fpu.p_regs[other].m2;
@@ -1252,7 +1260,7 @@ static void FPU_FXCH(Bitu stv, Bitu other){
 }
 
 static void FPU_FST(Bitu stv, Bitu other){
-	fpu.tags[other] = fpu.tags[stv];
+	fpu.regvalid[other] = fpu.regvalid[stv];
 
 	fpu.p_regs[other].m1 = fpu.p_regs[stv].m1;
 	fpu.p_regs[other].m2 = fpu.p_regs[stv].m2;
@@ -1263,7 +1271,7 @@ static void FPU_FST(Bitu stv, Bitu other){
 
 static inline void FPU_FCMOV(Bitu st, Bitu other){
 	fpu.p_regs[st] = fpu.p_regs[other];
-	fpu.tags[st] = fpu.tags[other];
+	fpu.regvalid[st] = fpu.regvalid[other];
 }
 
 static inline void FPU_FCMOV_B(Bitu st, Bitu other)   { if (TFLG_B)   FPU_FCMOV(st, other); }
@@ -1313,7 +1321,7 @@ static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	SETFLAGBIT(AF,false);
 	fpu.sw.C1 = 0;
 
-	if (fpu.tags[st] == TAG_Empty || fpu.tags[other] == TAG_Empty) {
+	if (!fpu.regvalid[st] || !fpu.regvalid[other]) {
 		FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
 		SETFLAGBIT(ZF,true);
 		SETFLAGBIT(PF,true);
@@ -1388,7 +1396,7 @@ static void FPU_FPREM1(void){
 static void FPU_FXAM(void){
 	FPUD_EXAMINE(fxam)
 	// handle empty registers (C1 set to sign in any way!)
-	if(fpu.tags[TOP] == TAG_Empty) {
+	if(!fpu.regvalid[TOP]) {
 		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(1);
 		return;
 	}
@@ -1505,5 +1513,4 @@ static void FPU_FLDLN2(void){
 
 static void FPU_FLDZ(void){
 	FPUD_LOAD_CONST(fldz)
-	fpu.tags[TOP]=TAG_Zero;
 }

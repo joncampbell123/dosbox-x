@@ -23,6 +23,25 @@
 #include "cross.h"
 #include "fpu.h"
 
+static inline uint16_t FPU_GetTag()
+{
+	uint16_t tags = 0;
+	for (auto i=0; i<8; i++) {
+        FPUTag tag;
+        if (!fpu.regvalid[i]) {
+            tag = FPUTag::Empty;
+        } else if ((fpu.use80[i] && IsZero(fpu.regs_80[i])) || IsZero(fpu.regs[i])) {
+            tag = FPUTag::Zero;
+        } else if ((fpu.use80[i] && IsSpecial(fpu.regs_80[i])) || IsSpecial(fpu.regs[i])) {
+            tag = FPUTag::Special;
+        } else {
+            tag = FPUTag::Valid;
+        }
+        tags |= static_cast<uint8_t>(tag) << (2*i);
+    }
+	return tags;
+}
+
 // Helper functions for 64-bit memory access
 static inline uint64_t mem_readq(PhysPt addr) {
 	uint64_t tmp;
@@ -39,6 +58,37 @@ static inline void mem_writeq(PhysPt addr,uint64_t v) {
 // Local "shadow" register file to store bit-perfect 64-bit integers.
 // Declared static to keep the change local to this file.
 static FPU_Reg fpu_regs_memcpy[9];
+
+static void FPU_PREP_PUSH(void){
+	TOP = (TOP - 1) &7;
+	fpu.regvalid[TOP] = true;
+	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
+}
+
+static double FROUND(double in){
+	switch (fpu.cw.RC){
+	case FPUControlWord::RoundMode::Nearest:
+		if (in-floor(in)>0.5) return (floor(in)+1);
+		else if (in-floor(in)<0.5) return (floor(in));
+		else return (((static_cast<int64_t>(floor(in)))&1)!=0)?(floor(in)+1):(floor(in));
+		break;
+	case FPUControlWord::RoundMode::Down:
+		return (floor(in));
+		break;
+	case FPUControlWord::RoundMode::Up:
+		return (ceil(in));
+		break;
+	case FPUControlWord::RoundMode::Chop:
+		return in; //the cast afterwards will do it right maybe cast here
+		break;
+	default:
+		return in;
+		break;
+	}
+}
+
+static void FPU_FSTENV(PhysPt addr, bool op16);
+static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80);
 
 static void FPU_F2XM1(void){
 	fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
@@ -157,7 +207,7 @@ static void FPU_FCOS(void){
 static inline void FPU_FCMOV(Bitu st, Bitu other){
 	fpu.regs_80[st] = fpu.regs_80[other];
 	fpu.use80[st] = fpu.use80[other];
-	fpu.tags[st] = fpu.tags[other];
+	fpu.regvalid[st] = fpu.regvalid[other];
 	fpu.regs[st] = fpu.regs[other];
 }
 
@@ -171,7 +221,7 @@ static inline void FPU_FCMOV_NBE(Bitu st, Bitu other) { if (TFLG_NBE) FPU_FCMOV(
 static inline void FPU_FCMOV_NU(Bitu st, Bitu other)  { if (TFLG_NP)  FPU_FCMOV(st, other); }
 
 static void FPU_FCOM(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
-    if(fpu.tags[st] == TAG_Empty || fpu.tags[other] == TAG_Empty) {
+    if(!fpu.regvalid[st] || !fpu.regvalid[other]) {
         FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
         FPU_SET_C3(1); FPU_SET_C2(1); FPU_SET_C0(1);
         return;
@@ -223,8 +273,7 @@ static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	SETFLAGBIT(AF,false);
     fpu.sw.C1 = 0;
 
-    if(fpu.tags[st] == TAG_Empty ||
-        fpu.tags[other] == TAG_Empty) {
+    if (!fpu.regvalid[st] || !fpu.regvalid[other]) {
         FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
         SETFLAGBIT(ZF, true);
         SETFLAGBIT(PF, true);
@@ -314,15 +363,8 @@ static void FPU_FINIT(void) {
 
 	fpu.cw.init();
 	fpu.sw.init();
-	fpu.tags[0] = TAG_Empty;
-	fpu.tags[1] = TAG_Empty;
-	fpu.tags[2] = TAG_Empty;
-	fpu.tags[3] = TAG_Empty;
-	fpu.tags[4] = TAG_Empty;
-	fpu.tags[5] = TAG_Empty;
-	fpu.tags[6] = TAG_Empty;
-	fpu.tags[7] = TAG_Empty;
-	fpu.tags[8] = TAG_Valid; // is only used by us (FIXME: why?)
+    fpu.regvalid = {};
+    fpu.regvalid[8] = true; // the 9th register is always valid, it's used for temporary storage
 	for (i=0;i < 9;i++) fpu.use80[i] = false;
 
 	for (i = 0; i < 9; i++) {
@@ -476,7 +518,6 @@ static void FPU_FLDZ(void){
 	FPU_PREP_PUSH();
 	fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
 	fpu.regs[TOP].d = 0.0;
-	fpu.tags[TOP] = TAG_Zero;
 }
 
 static void FPU_FMUL(Bitu st, Bitu other){
@@ -517,21 +558,20 @@ static void FPU_FNOP(void){
 	return;
 }
 
+static void FPU_FPOP(void){
+	fpu.regvalid[TOP] = false;
+	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
+	//maybe set zero in it as well
+	TOP = ((TOP+1)&7);
+//	LOG(LOG_FPU,LOG_ERROR)("popped from %d  %g off the stack",top,fpu.regs[top].d);
+	return;
+}
+
 static void FPU_FPATAN(void){
 	fpu.use80[STV(1)] = false; // we used the less precise version, drop the 80-bit precision
 	fpu.regs[STV(1)].d = atan2(fpu.regs[STV(1)].d,fpu.regs[TOP].d);
 	FPU_FPOP();
 	//flags and such :)
-	return;
-}
-
-static void FPU_FPOP(void){
-//	if (GCC_UNLIKELY(fpu.tags[TOP] == TAG_Empty)) E_Exit("FPU stack underflow");
-	fpu.tags[TOP]=TAG_Empty;
-	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
-	//maybe set zero in it as well
-	TOP = ((TOP+1)&7);
-//	LOG(LOG_FPU,LOG_ERROR)("popped from %d  %g off the stack",top,fpu.regs[top].d);
 	return;
 }
 
@@ -567,6 +607,14 @@ static void FPU_FPREM1(void){
 	FPU_SET_C2(0);
 }
 
+static void FPU_PUSH(double in){
+	FPU_PREP_PUSH();
+	fpu.regs[TOP].d = in;
+	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
+//	LOG(LOG_FPU,LOG_ERROR)("Pushed at %d  %g to the stack",newtop,in);
+	return;
+}
+
 static void FPU_FPTAN(void){
     //fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
     const double x = fpu.regs[TOP].d;
@@ -578,21 +626,6 @@ static void FPU_FPTAN(void){
     fpu.use80[TOP] = false;
     FPU_PUSH(1.0);
 	FPU_SET_C2(0);
-	return;
-}
-
-static void FPU_PREP_PUSH(void){
-	TOP = (TOP - 1) &7;
-//	if (GCC_UNLIKELY(fpu.tags[TOP] != TAG_Empty)) E_Exit("FPU stack overflow");
-	fpu.tags[TOP] = TAG_Valid;
-	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
-}
-
-static void FPU_PUSH(double in){
-	FPU_PREP_PUSH();
-	fpu.regs[TOP].d = in;
-	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
-//	LOG(LOG_FPU,LOG_ERROR)("Pushed at %d  %g to the stack",newtop,in);
 	return;
 }
 
@@ -625,28 +658,6 @@ static void FPU_FRNDINT(void){
     if(std::isfinite(before) && after != before)
         FPU_SetException(FPU_EX_PRECISION);
     return;
-}
-
-static double FROUND(double in){
-	switch (fpu.cw.RC){
-	case FPUControlWord::RoundMode::Nearest:
-		if (in-floor(in)>0.5) return (floor(in)+1);
-		else if (in-floor(in)<0.5) return (floor(in));
-		else return (((static_cast<int64_t>(floor(in)))&1)!=0)?(floor(in)+1):(floor(in));
-		break;
-	case FPUControlWord::RoundMode::Down:
-		return (floor(in));
-		break;
-	case FPUControlWord::RoundMode::Up:
-		return (ceil(in));
-		break;
-	case FPUControlWord::RoundMode::Chop:
-		return in; //the cast afterwards will do it right maybe cast here
-		break;
-	default:
-		return in;
-		break;
-	}
 }
 
 static void FPU_FRSTOR(PhysPt addr, bool op16){
@@ -720,7 +731,7 @@ static void FPU_FSQRT(void){
 static void FPU_FST(Bitu st, Bitu other){
 	fpu.regs_80[other] = fpu.regs_80[st];
 	fpu.use80[other] = fpu.use80[st];
-	fpu.tags[other] = fpu.tags[st];
+	fpu.regvalid[other] = fpu.regvalid[st];
 	fpu.regs[other] = fpu.regs[st];
 	fpu_regs_memcpy[other]  = fpu_regs_memcpy[st];
 }
@@ -894,7 +905,7 @@ static void FPU_FXAM(void){
 	{
 		FPU_SET_C1(0);
 	}
-	if(fpu.tags[TOP] == TAG_Empty)
+	if (!fpu.regvalid[TOP])
 	{
 		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(1);
 		return;
@@ -909,22 +920,21 @@ static void FPU_FXAM(void){
 	}
 }
 
-static void FPU_FXCH(Bitu st, Bitu other){
+static void FPU_FXCH(Bitu st, Bitu other)
+{
+    std::swap(fpu.regvalid[st], fpu.regvalid[other]);
 	FPU_Reg_80 reg80 = fpu.regs_80[other];
-	FPU_Tag tag = fpu.tags[other];
 	FPU_Reg reg = fpu.regs[other];
 	auto reg_memcpy = fpu_regs_memcpy[other];
 	bool use80 = fpu.use80[other];
 
 	fpu.regs_80[other] = fpu.regs_80[st];
 	fpu.use80[other] = fpu.use80[st];
-	fpu.tags[other] = fpu.tags[st];
 	fpu.regs[other] = fpu.regs[st];
 	fpu_regs_memcpy[other]  = fpu_regs_memcpy[st];
 
 	fpu.regs_80[st] = reg80;
 	fpu.use80[st] = use80;
-	fpu.tags[st] = tag;
 	fpu.regs[st] = reg;
 	fpu_regs_memcpy[st] = reg_memcpy;
 }

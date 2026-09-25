@@ -21,6 +21,15 @@
 
 #include <cstddef>
 #include <cstdint>
+
+enum class FPUTag
+{
+	Valid   = 0,
+	Zero    = 1,
+	Special = 2,
+	Empty   = 3
+};
+
 #pragma pack(push,1)
 typedef union alignas(8) {
 	struct {
@@ -246,8 +255,14 @@ static_assert( sizeof(FPU_Reg_80) == 16, "FPU_Reg_80 error" );/*NTS: GCC can and
  * as the "Fast Pentium memcpy trick" using the 80-bit versions of FLD/FST to
  * copy memory. */
 #pragma pack(push,1)
-typedef union alignas(8) {
+union alignas(8) FPU_Reg {
     double d;
+    struct
+    {
+        uint64_t mantissa:52;       // [51:0]
+        uint64_t exponent:11;       // [62:52]
+        uint64_t sign:1;            // [63:63]
+    } f;
 #ifndef WORDS_BIGENDIAN
     struct {
         uint32_t lower;
@@ -264,7 +279,7 @@ typedef union alignas(8) {
 	static_assert( sizeof(d) == 8, "FPU_Reg error" );
 	static_assert( sizeof(l) == 8, "FPU_Reg error" );
 	static_assert( sizeof(ll) == 8, "FPU_Reg error" );
-} FPU_Reg;
+};
 static_assert( sizeof(FPU_Reg) == 8, "FPU_Reg error" );
 #pragma pack(pop)
 

@@ -5809,15 +5809,9 @@ void LogPages(char* selname) {
     DEBUG_EndPagedContent();
 }
 
-const char *FPU_tag(unsigned int i) {
-    switch (i) {
-        case TAG_Valid: return "Valid";
-        case TAG_Zero:  return "Zero";
-        case TAG_Weird: return "Weird";
-        case TAG_Empty: return "Empty";
-    }
-
-    return "?";
+const char *FPU_tag(bool regvalid)
+{
+    return regvalid ? "valid" : "empty";
 }
 
 static void LogFPUInfo(void) {
@@ -5829,17 +5823,17 @@ static void LogFPUInfo(void) {
         unsigned int adj = FPU_StackIndex(i);
 
 #if C_FPU_X86 && HAS_LONG_DOUBLE
-        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%08x%08x)", i, FPU_tag(fpu.tags[adj]),
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%08x%08x)", i, FPU_tag(fpu.regvalid[adj]),
                       reinterpret_cast<long double&>(fpu.p_regs[adj]), fpu.p_regs[adj].m3,
                       fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
 #elif C_FPU_X86
-        DEBUG_ShowMsg(" st(%u): %s val=0x%04x%08x%08x", i, FPU_tag(fpu.tags[adj]),
+        DEBUG_ShowMsg(" st(%u): %s val=0x%04x%08x%08x", i, FPU_tag(fpu.regvalid[adj]),
                       fpu.p_regs[adj].m3, fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
 #elif HAS_LONG_DOUBLE
-        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%016llx)", i, FPU_tag(fpu.tags[adj]),
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%016llx)", i, FPU_tag(fpu.regvalid[adj]),
                       fpu.regs_80[adj].v, fpu.regs_80[adj].raw.h, (unsigned long long)fpu.regs_80[adj].raw.l);
 #else
-        DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.16g (0x%016llx)", i, FPU_tag(fpu.tags[adj]),
+        DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.16g (0x%016llx)", i, FPU_tag(fpu.regvalid[adj]),
                       fpu.use80[adj], fpu.regs[adj].d, (unsigned long long)fpu.regs[adj].ll);
 #endif
     }

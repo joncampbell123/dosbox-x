@@ -47,14 +47,6 @@ void FPU_FLDCW(PhysPt addr)
 	fpu.cw = mem_readw(addr);
 }
 
-uint16_t FPU_GetTag(void){
-	uint16_t tag=0;
-
-	for (Bitu i=0;i<8;i++)
-		tag |= (fpu.tags[i]&3) << (2*i);
-
-	return tag;
-}
 
 #if C_FPU_X86
 #include "fpu_instructions_x86.h"
@@ -71,7 +63,7 @@ uint16_t FPU_GetTag(void){
 class FPUStackPushState final {
 public:
 	FPUStackPushState()
-		: old_top(TOP), pushed_slot((old_top - 1) & 7), old_tag(fpu.tags[pushed_slot])
+		: old_top(TOP), pushed_slot((old_top - 1) & 7), old_regvalid(fpu.regvalid[pushed_slot])
 #if !defined(HAS_LONG_DOUBLE)
 		, old_use80(fpu.use80[pushed_slot])
 #endif
@@ -80,7 +72,7 @@ public:
 	void restore() const
 	{
 		TOP = old_top;
-		fpu.tags[pushed_slot] = old_tag;
+		fpu.regvalid[pushed_slot] = old_regvalid;
 #if !defined(HAS_LONG_DOUBLE)
 		fpu.use80[pushed_slot] = old_use80;
 #endif
@@ -89,7 +81,7 @@ public:
 private:
 	const Bitu old_top;
 	const Bitu pushed_slot;
-	const FPU_Tag old_tag;
+	const bool old_regvalid;
 #if !defined(HAS_LONG_DOUBLE)
 	const bool old_use80;
 #endif
@@ -632,7 +624,7 @@ void FPU_ESC5_Normal(Bitu rm) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00: /* FFREE STi */
-		fpu.tags[STV(sub)]=TAG_Empty;
+		fpu.regvalid[STV(sub)] = false;
 		break;
 	case 0x01: /* FXCH STi*/
 		FPU_FXCH(TOP,STV(sub));
@@ -789,7 +781,7 @@ void FPU_ESC7_Normal(Bitu rm) {
 	Bitu sub=(rm & 7);
 	switch (group){
 	case 0x00: /* FFREEP STi*/
-		fpu.tags[STV(sub)]=TAG_Empty;
+		fpu.regvalid[STV(sub)] = false;
 		FPU_FPOP();
 		break;
 	case 0x01: /* FXCH STi*/
@@ -1118,35 +1110,22 @@ void FPU_Init() {
 	FPU_FINIT();
 }
 
-static INLINE uint16_t fpu_tag_word_from_abridged(const uint8_t b) {
-	unsigned int i;
-	uint16_t r = 0;
-
-	/* yech... someone at Intel was trying to be too "clever" */
-	/* In the 8 bits they packed the valid/empty bitfield (with 8 bits reserved!) they could have just stored the 16-bit tag word instead! */
-	for (i=0;i < 8;i++) {
-		if (b & (1u << i)) {
-			/* TODO: Guessing the tag based on the FPU 80-bit value */
-			r |= TAG_Valid << (2u * i);
-		}
-		else {
-			r |= TAG_Empty << (2u * i);
-		}
-	}
-
-	return r;
+static void FPU_SetAbridgedTag(uint8_t b)
+{
+    for (auto& regvalid: fpu.regvalid) {
+        regvalid = !!(b & 1);
+        b >>= 1;
+    }
 }
 
-static INLINE uint8_t fpu_tag_word_abridged(void) {
-	unsigned int i;
-	uint8_t r = 0;
-
-	for (i=0;i < 8;i++) {
-		if (fpu.tags[i] != TAG_Empty)
-			r |= 1u << i;
-	}
-
-	return r;
+static uint8_t FPU_GetAbridgedTag()
+{
+    uint8_t b = 0;
+    auto i = 0;
+    for (auto regvalid: fpu.regvalid) {
+        if (regvalid) b |= 1u << i++;
+    }
+    return b;
 }
 
 void CPU_FXSAVE(PhysPt eaa) {
@@ -1155,7 +1134,7 @@ void CPU_FXSAVE(PhysPt eaa) {
 	/* Ref: [https://www.felixcloutier.com/x86/fxsave] */
 	mem_writew(eaa+0x000,fpu.cw);					/* +0x000 FPU control word */
 	mem_writew(eaa+0x002,fpu.sw);					/* +0x002 FPU status word */
-	mem_writeb(eaa+0x004,fpu_tag_word_abridged());			/* +0x004 FPU tag words, abridged to a bitfield of 1=not empty 0=empty, register order NOT from TOP */
+	mem_writeb(eaa+0x004,FPU_GetAbridgedTag());			/* +0x004 FPU tag words, abridged to a bitfield of 1=not empty 0=empty, register order NOT from TOP */
 	mem_writeb(eaa+0x005,0x00);					/* +0x005 reserved */
 	mem_writew(eaa+0x006,0x0000);					/* +0x006 x87 FPU opcode (??) */
 	mem_writed(eaa+0x008,reg_eip);					/* +0x008 x87 FPU instruction pointer (???) */
@@ -1217,10 +1196,7 @@ void CPU_FXRSTOR(PhysPt eaa) {
 #endif
 	}
 
-	{
-		uint16_t tw = fpu_tag_word_from_abridged(mem_readb(eaa+0x004));	/* +0x004 FPU tag words, abridged to a bitfield of 1=not empty 0=empty, register order NOT from TOP */
-		FPU_SetTag(tw);
-	}
+    FPU_SetAbridgedTag(mem_readb(eaa+0x004));	/* +0x004 FPU tag words, abridged to a bitfield of 1=not empty 0=empty, register order NOT from TOP */
 
 	if (CPU_SSE()) {
 		for (i=0;i < 8;i++) {
