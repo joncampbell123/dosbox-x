@@ -137,7 +137,8 @@ static inline bool IsSpecial(const FPU_Reg& reg)
 
 static inline bool IsSpecial(const FPU_Reg_80& reg)
 {
-    return (reg.f.exponent == 0x7FFF) || (reg.f.exponent == 0 && reg.f.mantissa != 0);
+    return (reg.f.exponent == 0x7FFF) || (reg.f.exponent == 0 && reg.f.mantissa != 0) ||
+           (reg.f.exponent != 0 && (reg.f.mantissa>>63 == 0));
 }
 
 #endif
