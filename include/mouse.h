@@ -30,6 +30,7 @@ enum MOUSE_EMULATION
 };
 
 bool Mouse_SetPS2State(bool use);
+void Mouse_PS2ResetFrame(void);
 
 void Mouse_ChangePS2Callback(uint16_t pseg, uint16_t pofs);
 
