@@ -31,7 +31,7 @@ enum class FPUTag
 };
 
 #pragma pack(push,1)
-typedef union alignas(8) {
+union alignas(8) FPU_Reg_64 {
 	struct {
 		uint64_t	mantissa:52;		// [51:0]
 		uint64_t	exponent:11;		// [62:52]
@@ -43,7 +43,7 @@ typedef union alignas(8) {
 	static_assert( sizeof(f) == 8, "FPU_Reg_64 error" );
 	static_assert( sizeof(v) == 8, "FPU_Reg_64 error" );
 	static_assert( sizeof(raw) == 8, "FPU_Reg_64 error" );
-} FPU_Reg_64;
+};
 static_assert( sizeof(FPU_Reg_64) == 8, "FPU_Reg_64 error" );
 #pragma pack(pop)
 

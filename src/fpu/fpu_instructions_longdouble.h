@@ -96,33 +96,6 @@ static void FPU_ST80(PhysPt addr,Bitu reg) {
 }
 
 
-static void FPU_FLD_F32(PhysPt addr,Bitu store_to) {
-    FPU_Reg_32 result;
-    result.raw = mem_readd(addr);
-	fpu.regs_80[store_to].v = static_cast<long double>(result.v);
-}
-
-static void FPU_FLD_F64(PhysPt addr,Bitu store_to) {
-    FPU_Reg_64 result;
-    result.raw = mem_readq(addr);
-	fpu.regs_80[store_to].v = static_cast<long double>(result.v);
-}
-
-static void FPU_FLD_I16(PhysPt addr,Bitu store_to) {
-	int16_t blah = (int16_t)mem_readw(addr);
-	fpu.regs_80[store_to].v = static_cast<long double>(blah);
-}
-
-static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
-	int32_t blah = (int32_t)mem_readd(addr);
-	fpu.regs_80[store_to].v = static_cast<long double>(blah);
-}
-
-static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
-    int64_t blah = (int64_t)mem_readq(addr);
-	fpu.regs_80[store_to].v = static_cast<long double>(blah);
-}
-
 static void FPU_FBLD(PhysPt addr,Bitu store_to) {
 	uint64_t val = 0;
 	Bitu in = 0;
@@ -142,20 +115,6 @@ static void FPU_FBLD(PhysPt addr,Bitu store_to) {
 	temp += ( (in&0xf) * base );
 	if(in&0x80) temp *= -1.0l;
 	fpu.regs_80[store_to].v = temp;
-}
-
-
-static INLINE void FPU_FLD_F32_EA(PhysPt addr) {
-	FPU_FLD_F32(addr,8);
-}
-static INLINE void FPU_FLD_F64_EA(PhysPt addr) {
-	FPU_FLD_F64(addr,8);
-}
-static INLINE void FPU_FLD_I32_EA(PhysPt addr) {
-	FPU_FLD_I32(addr,8);
-}
-static INLINE void FPU_FLD_I16_EA(PhysPt addr) {
-	FPU_FLD_I16(addr,8);
 }
 
 

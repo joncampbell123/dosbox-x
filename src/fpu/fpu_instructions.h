@@ -334,58 +334,6 @@ static INLINE void FPU_FDIVR_EA(Bitu op1){
 	FPU_FDIVR(op1,8);
 }
 
-static void FPU_FLD_F32(PhysPt addr,Bitu store_to) {
-	union {
-		float f;
-		uint32_t l;
-	}	blah;
-	blah.l = mem_readd(addr);
-	fpu.regs[store_to].d = static_cast<double>(blah.f);
-	fpu.use80[store_to] = false;
-}
-
-static INLINE void FPU_FLD_F32_EA(PhysPt addr) {
-	FPU_FLD_F32(addr,8);
-}
-
-static void FPU_FLD_F64(PhysPt addr,Bitu store_to) {
-	fpu.regs[store_to].l.lower = mem_readd(addr);
-	fpu.regs[store_to].l.upper = (int32_t)mem_readd(addr+4);
-	fpu.use80[store_to] = false;
-}
-
-static INLINE void FPU_FLD_F64_EA(PhysPt addr) {
-	FPU_FLD_F64(addr,8);
-}
-
-static void FPU_FLD_I16(PhysPt addr,Bitu store_to) {
-	int16_t blah = (int16_t)mem_readw(addr);
-	fpu.regs[store_to].d = static_cast<double>(blah);
-	fpu.use80[store_to] = false;
-}
-
-static INLINE void FPU_FLD_I16_EA(PhysPt addr) {
-	FPU_FLD_I16(addr,8);
-}
-
-static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
-	int32_t blah = (int32_t)mem_readd(addr);
-	fpu.regs[store_to].d = static_cast<double>(blah);
-	fpu.use80[store_to] = false;
-}
-
-static INLINE void FPU_FLD_I32_EA(PhysPt addr) {
-	FPU_FLD_I32(addr,8);
-}
-
-static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
-	const int64_t val = mem_readq(addr);
-
-	fpu.regs[store_to].d = static_cast<double>(val);
-	fpu_regs_memcpy[store_to].ll = val;
-	fpu.use80[store_to] = false;
-}
-
 static void FPU_FMUL(Bitu st, Bitu other){
 	//fpu.use80[st] = false; // we used the less precise version, drop the 80-bit precision
 	//fpu.regs[st].d*=fpu.regs[other].d;

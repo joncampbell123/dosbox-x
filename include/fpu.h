@@ -71,7 +71,17 @@ void FPU_FCHS();
 void FPU_FCLEX();
 void FPU_FFREE(int st);
 void FPU_FINIT();
+void FPU_FLD_F32(PhysPt addr);
+void FPU_FLD_F32_EA(PhysPt addr);
+void FPU_FLD_F64(PhysPt addr);
+void FPU_FLD_F64_EA(PhysPt addr);
 void FPU_FLD_F80(PhysPt addr);
+void FPU_FLD_I16(PhysPt addr);
+void FPU_FLD_I16_EA(PhysPt addr);
+void FPU_FLD_I32(PhysPt addr);
+void FPU_FLD_I32_EA(PhysPt addr);
+void FPU_FLD_I64(PhysPt addr);
+void FPU_FLD_I64_EA(PhysPt addr);
 void FPU_FLD1();
 void FPU_FLDCW(PhysPt addr);
 void FPU_FLDENV(PhysPt addr, bool op16);
@@ -130,6 +140,16 @@ static INLINE void FPU_SetException(uint16_t ex) {
     FPUSW |= ex;
 }
 
+static inline bool IsDenormal(const FPU_Reg_32& reg)
+{
+    return (reg.f.exponent == 0) && (reg.f.mantissa != 0);
+}
+
+static inline bool IsDenormal(const FPU_Reg_64& reg)
+{
+    return (reg.f.exponent == 0) && (reg.f.mantissa != 0);
+}
+
 static inline bool IsZero(const FPU_Reg& reg)
 {
     return reg.d == 0.0;
@@ -138,6 +158,16 @@ static inline bool IsZero(const FPU_Reg& reg)
 static inline bool IsZero(const FPU_Reg_80& reg)
 {
     return (reg.f.exponent == 0) && (reg.f.mantissa == 0);
+}
+
+static inline bool IsSNaN(const FPU_Reg_32& reg)
+{
+    return (reg.f.exponent == 0xff) && ((reg.f.mantissa>>22) == 0) && (reg.f.mantissa != 0);
+}
+
+static inline bool IsSNaN(const FPU_Reg_64& reg)
+{
+    return (reg.f.exponent == 0x7ff) && ((reg.f.mantissa>>51) == 0) && (reg.f.mantissa != 0);
 }
 
 static inline bool IsSpecial(const FPU_Reg& reg)

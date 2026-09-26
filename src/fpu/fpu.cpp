@@ -70,9 +70,60 @@ void fpu_Push(const FPU_Reg_80& input)
     fpu.regvalid[TOP] = true;
 #ifndef HAS_LONG_DOUBLE
     fpu.use80[TOP] = true;
-    auto cr = float80::convert(val);
-    fpu.regs[TOP].d = cr.value;
+    fpu.regs[TOP].d = float80::convert(val).value;
 #endif
+}
+
+void fpu_Push(FPU_Reg_64 val)
+{
+    TOP = (TOP-1) & 7;
+    if (fpu.regvalid[TOP]) {
+        fpu.sw.IE = 1;
+        fpu.sw.SF = 1;
+        fpu.sw.C1 = 1;
+        fpu_RaiseException();
+        val.raw = QNaN;
+    }
+    fpu.regvalid[TOP] = true;
+#ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[TOP].v = static_cast<long double>(val.v);
+#else
+    fpu.use80[TOP] = false;
+    fpu.regs[TOP].d = val.v;
+#endif
+    if (IsDenormal(val)) {
+        fpu.sw.DE = 1;
+        fpu_RaiseException();
+    } else if (IsSNaN(val)) {
+        fpu.sw.IE = 1;
+        fpu_RaiseException();
+    }
+}
+
+void fpu_Push(FPU_Reg_32 val)
+{
+    TOP = (TOP-1) & 7;
+    if (fpu.regvalid[TOP]) {
+        fpu.sw.IE = 1;
+        fpu.sw.SF = 1;
+        fpu.sw.C1 = 1;
+        fpu_RaiseException();
+        val.raw = 0xffc0'0000;
+    }
+    fpu.regvalid[TOP] = true;
+#ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[TOP].v = static_cast<long double>(val.v);
+#else
+    fpu.use80[TOP] = false;
+    fpu.regs[TOP].d = static_cast<double>(val.v);
+#endif
+    if (IsDenormal(val)) {
+        fpu.sw.DE = 1;
+        fpu_RaiseException();
+    } else if (IsSNaN(val)) {
+        fpu.sw.IE = 1;
+        fpu_RaiseException();
+    }
 }
 
 void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub)
@@ -125,6 +176,46 @@ void FPU_FINIT()
 
 }
 
+void FPU_FLD_F32(PhysPt addr)
+{
+    FPU_Reg_32 val;
+    val.raw = mem_readd(addr);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLD_F32_EA(PhysPt addr)
+{
+    FPU_Reg_32 val;
+    val.raw = mem_readd(addr);
+#ifdef HAS_LONG_DOUBLE
+	fpu.regs_80[8].v = static_cast<long double>(val.v);
+#else
+    fpu.regs[8].d = static_cast<double>(val.v);
+    fpu.use80[8] = false;
+#endif
+}
+
+void FPU_FLD_F64(PhysPt addr)
+{
+    FPU_Reg_64 val;
+    val.raw = mem_readq(addr);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLD_F64_EA(PhysPt addr)
+{
+    FPU_Reg_64 val;
+    val.raw = mem_readq(addr);
+#ifdef HAS_LONG_DOUBLE
+	fpu.regs_80[8].v = static_cast<long double>(val.v);
+#else
+    fpu.regs[8].d = val.v;
+    fpu.use80[8] = false;
+#endif
+}
+
 void FPU_FLD_F80(PhysPt addr)
 {
     FPU_Reg_80 val;
@@ -132,6 +223,63 @@ void FPU_FLD_F80(PhysPt addr)
 	val.raw.h = mem_readw(addr+8);
     fpu.sw.C1 = 0;
     fpu_Push(val);
+}
+
+void FPU_FLD_I16(PhysPt addr)
+{
+    FPU_Reg_80 val;
+    int64_t integer = static_cast<int16_t>(mem_readw(addr));
+    float80::convertFrom(val, integer);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLD_I16_EA(PhysPt addr)
+{
+    int64_t integer = static_cast<int16_t>(mem_readw(addr));
+    float80::convertFrom(fpu.regs_80[8], integer);
+#ifndef HAS_LONG_DOUBLE
+    fpu.regs[8].d = float80::convert(fpu.regs_80[8]).value;
+    fpu.use80[8] = true;
+#endif
+}
+
+void FPU_FLD_I32(PhysPt addr)
+{
+    FPU_Reg_80 val;
+    int64_t integer = static_cast<int32_t>(mem_readd(addr));
+    float80::convertFrom(val, integer);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLD_I32_EA(PhysPt addr)
+{
+    int64_t integer = static_cast<int32_t>(mem_readd(addr));
+    float80::convertFrom(fpu.regs_80[8], integer);
+#ifndef HAS_LONG_DOUBLE
+    fpu.regs[8].d = float80::convert(fpu.regs_80[8]).value;
+    fpu.use80[8] = true;
+#endif
+}
+
+void FPU_FLD_I64(PhysPt addr)
+{
+    FPU_Reg_80 val;
+    int64_t integer = mem_readq(addr);
+    float80::convertFrom(val, integer);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLD_I64_EA(PhysPt addr)
+{
+    int64_t integer = mem_readq(addr);
+    float80::convertFrom(fpu.regs_80[8], integer);
+#ifndef HAS_LONG_DOUBLE
+    fpu.regs[8].d = float80::convert(fpu.regs_80[8]).value;
+    fpu.use80[8] = true;
+#endif
 }
 
 void FPU_FLD1()
@@ -375,19 +523,7 @@ void FPU_ESC1_EA(Bitu rm,PhysPt addr, bool op16) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00: /* FLD float*/
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_F32(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_F32(addr);
 		break;
 	case 0x01: /* UNKNOWN */
 		LOG(LOG_FPU,LOG_WARN)("ESC EA 1:Unhandled group %d subfunction %d",(int)group,(int)sub);
@@ -605,19 +741,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 
 	switch(group){
 	case 0x00:	/* FILD */
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_I32(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_I32(addr);
 		break;
 	case 0x01:	/* FISTTP */
         if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
@@ -636,18 +760,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 		FPU_FPOP();
 		break;
 	case 0x05:	/* FLD 80 Bits Real */
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_FLD_F80(addr);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_F80(addr);
 		break;
 	case 0x07:	/* FSTP 80 Bits Real */
 		FPU_FST_F80(addr);
@@ -763,19 +876,7 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr, bool op16) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00:  /* FLD double real*/
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_F64(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_F64(addr);
 		break;
 	case 0x01:  /* FISTTP longint*/
         if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
@@ -891,19 +992,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00:  /* FILD int16_t */
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_I16(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_I16(addr);
 		break;
 	case 0x01:  /* FISTTP int16_t */
         if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
@@ -937,19 +1026,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 		}
 		break;
 	case 0x05:  /* FILD int64_t */
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_I64(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_I64(addr);
 		break;
 	case 0x06:	/* FBSTP packed BCD */
 		FPU_FBST(addr);

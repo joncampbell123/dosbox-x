@@ -150,6 +150,31 @@ ConvertResult convert(const FPU_Reg_80& val)
     return conversion;
 }
 
+void convertFrom(FPU_Reg_80& result, int64_t value)
+{
+    result.f.mantissa = 0;
+    result.f.exponent = 0;
+    result.f.sign = 0;
+
+    if (value == 0)
+        return;
+
+    const auto sign = value < 0;
+    auto magnitude = static_cast<uint64_t>(value);
+    if (sign)
+        magnitude = 0ULL - magnitude;
+
+    unsigned int shift = 0;
+    while (!(magnitude & 0x8000'0000'0000'0000ULL)) {
+        magnitude <<= 1;
+        ++shift;
+    }
+
+    result.f.mantissa = magnitude;
+    result.f.exponent = static_cast<uint16_t>(ExpBias + 63U - shift);
+    result.f.sign = sign;
+}
+
 void round(FPU_Reg_80& val, uint8_t extra_two_bits)
 {
     const auto round_mode = FPU_ArchitectureType >= FPU_ARCHTYPE_387
