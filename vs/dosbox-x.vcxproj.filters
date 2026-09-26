@@ -133,6 +133,9 @@
     <Filter Include="Sources\libs\tinyfiledialogs">
       <UniqueIdentifier>{d5990f4f-fb75-4276-9b30-a54d290d8822}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\agent">
+      <UniqueIdentifier>{0ef12a36-fabe-4cbe-b8e9-02a9601a7900}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -1740,6 +1743,27 @@
     <ClCompile Include="..\src\misc\ethernet_ethnet.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\agent\bridge\agent_bridge.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\protocol\agent_protocol.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\server\agent_server.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\debugger\debugger_adapter.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\parser\debugger_output_parser.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\transport\local_transport.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\trace\trace_store.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2743,6 +2767,27 @@
     </ClInclude>
     <ClInclude Include="..\src\misc\ethernet_ethnet.h">
       <Filter>Sources\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\agent_bridge.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\agent_protocol.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\agent_server.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\debugger_adapter.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\debugger_output_parser.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\agent\transport\rpc_transport.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\trace_store.h">
+      <Filter>Sources\agent</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
