@@ -634,6 +634,8 @@ static void AWE_CallBack(Bitu len)
 
 static Bitu read_emu8k(Bitu port, Bitu iolen)
 {
+	if (awe_chan)
+		awe_chan->FillUp();
 	if (iolen == 2)
 		return emu8k_chip.Inw(port);
 	return emu8k_chip.Inb(port);
