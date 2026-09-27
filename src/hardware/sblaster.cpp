@@ -4666,11 +4666,25 @@ ASP>
 		}
 
 		~SBLASTER() {
+			// DSP reset NOW: DSP_Reset will call Mixer FillUp() which will segfault if done any later in this destructor
+			if (!(sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB)) sb[ci].DSP_Reset(); // Stop everything
+
+			// Stop all mixer channels NOW.
+			// Once emu8k_chip.Close() is called, all emu8k RAM/ROM is freed.
+			// If the mixer calls the AWE callback function after that point a segfault will happen.
+			MixerChan.Uninstall(); sb[ci].chan = NULL;
+			MixerChanAwe.Uninstall();
+
+			// emu8k shutdown
 			if (ci == 0) {
 				awe_chan = NULL;
 				emu8k_chip.Close();
 			}
+
+			// Pro Audio Spectrum shutdown
 			if (sb[ci].pas_type != 0) PAS_ShutDown();
+
+			// Adlib/OPL shutdown
 			switch (oplmode) {
 				case OPL_none:
 					break;
@@ -4684,11 +4698,9 @@ ASP>
 				default:
 					break;
 			}
-			if(sb[ci].cms) {
-				CMS_ShutDown(m_configuration);
-			}
-			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
-			sb[ci].DSP_Reset(); // Stop everything
+
+			// CMS shutdown
+			if (sb[ci].cms) CMS_ShutDown(m_configuration);
 		}
 }; //End of SBLASTER class
 
