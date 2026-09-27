@@ -33,9 +33,9 @@ static inline uint16_t FPU_GetTag()
         FPUTag tag;
         if (!fpu.regvalid[i]) {
             tag = FPUTag::Empty;
-        } else if ((fpu.use80[i] && IsZero(fpu.regs_80[i])) || IsZero(fpu.regs[i])) {
+        } else if (fpu.use80[i] ? IsZero(fpu.regs_80[i]) : IsZero(fpu.regs[i])) {
             tag = FPUTag::Zero;
-        } else if ((fpu.use80[i] && IsSpecial(fpu.regs_80[i])) || IsSpecial(fpu.regs[i])) {
+        } else if (fpu.use80[i] ? IsSpecial(fpu.regs_80[i]) : IsSpecial(fpu.regs[i])) {
             tag = FPUTag::Special;
         } else {
             tag = FPUTag::Valid;
