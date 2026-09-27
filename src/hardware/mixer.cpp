@@ -1001,6 +1001,16 @@ MixerChannel* MixerObject::Install(MIXER_Handler handler,Bitu freq,const char * 
     }
 }
 
+bool MixerObject::Uninstall(void){
+    if (installed) {
+        MIXER_DelChannel(MIXER_FindChannel(m_name));
+        installed = false;
+        return true;
+    }
+
+    return false;
+}
+
 MixerObject::~MixerObject(){
     if(!installed) return;
     MIXER_DelChannel(MIXER_FindChannel(m_name));

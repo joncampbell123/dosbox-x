@@ -139,6 +139,7 @@ private:
 public:
 	MixerObject() {};
 	MixerChannel* Install(MIXER_Handler handler,Bitu freq,const char * name);
+	bool Uninstall(void);
 	~MixerObject();
 };
 
