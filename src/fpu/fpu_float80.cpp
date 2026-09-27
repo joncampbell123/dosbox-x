@@ -41,14 +41,63 @@ const FPU_Reg_80::raw_t LN2 = {
 };
 const uint8_t LN2_Extra2 = 3;
 
-ConvertResult convert(const FPU_Reg_80& val)
+namespace {
+
+constexpr uint64_t IntegerBit = 0x8000'0000'0000'0000ULL;
+
+void convertFromIEEE(FPU_Reg_80& result,
+                     uint64_t fraction,
+                     uint16_t source_exponent,
+                     bool sign,
+                     unsigned int fraction_bits,
+                     int source_bias,
+                     uint16_t max_exponent)
+{
+    const auto shift = 63U - fraction_bits;
+    result.f.sign = sign;
+
+    if (source_exponent == max_exponent) {
+        // Map the source quiet-NaN bit to bit 62 of the extended significand.
+        result.f.exponent = 0x7FFFU;
+        result.f.mantissa = IntegerBit | (fraction << shift);
+        return;
+    }
+
+    if (source_exponent != 0) {
+        result.f.exponent = static_cast<uint16_t>(
+                static_cast<int>(ExpBias) + static_cast<int>(source_exponent) - source_bias);
+        result.f.mantissa = IntegerBit | (fraction << shift);
+        return;
+    }
+
+    if (fraction == 0) {
+        result.f.exponent = 0;
+        result.f.mantissa = 0;
+        return;
+    }
+
+    // A binary32 or binary64 subnormal is normal in the 80-bit format.
+    auto mantissa = fraction << shift;
+    auto exponent = 1 - source_bias;
+    while (!(mantissa & IntegerBit)) {
+        mantissa <<= 1;
+        --exponent;
+    }
+
+    result.f.exponent = static_cast<uint16_t>(static_cast<int>(ExpBias) + exponent);
+    result.f.mantissa = mantissa;
+}
+
+} // namespace
+
+DoubleConversionResult convertToDouble(const FPU_Reg_80& val)
 {
     constexpr auto double_exponent_bias = 1023;
     constexpr auto double_fraction_mask = 0x000F'FFFF'FFFF'FFFFULL;
     constexpr auto double_quiet_nan_bit = 0x0008'0000'0000'0000ULL;
     constexpr auto extended_integer_bit = 0x8000'0000'0000'0000ULL;
 
-    ConvertResult conversion = {};
+    DoubleConversionResult conversion = {};
     FPU_Reg result = {};
     const auto sign = static_cast<bool>(val.f.sign);
     const auto exponent80 = val.f.exponent;
@@ -173,6 +222,28 @@ void convertFrom(FPU_Reg_80& result, int64_t value)
     result.f.mantissa = magnitude;
     result.f.exponent = static_cast<uint16_t>(ExpBias + 63U - shift);
     result.f.sign = sign;
+}
+
+void convertFrom(FPU_Reg_80& result, const FPU_Reg_32& value)
+{
+    convertFromIEEE(result,
+                    value.f.mantissa,
+                    static_cast<uint16_t>(value.f.exponent),
+                    static_cast<bool>(value.f.sign),
+                    23,
+                    127,
+                    0xFFU);
+}
+
+void convertFrom(FPU_Reg_80& result, const FPU_Reg_64& value)
+{
+    convertFromIEEE(result,
+                    value.f.mantissa,
+                    static_cast<uint16_t>(value.f.exponent),
+                    static_cast<bool>(value.f.sign),
+                    52,
+                    1023,
+                    0x7FFU);
 }
 
 void round(FPU_Reg_80& val, uint8_t extra_two_bits)

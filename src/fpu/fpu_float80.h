@@ -18,13 +18,15 @@ extern const uint8_t LG2_Extra2;
 extern const FPU_Reg_80::raw_t LN2;
 extern const uint8_t LN2_Extra2;
 
-struct ConvertResult {
+struct DoubleConversionResult {
     double value;
     uint16_t exceptions = 0;
 };
 
-ConvertResult convert(const FPU_Reg_80& val);
+DoubleConversionResult convertToDouble(const FPU_Reg_80& val);
 void convertFrom(FPU_Reg_80& result, int64_t value);
+void convertFrom(FPU_Reg_80& result, const FPU_Reg_32& value);
+void convertFrom(FPU_Reg_80& result, const FPU_Reg_64& value);
 void round(FPU_Reg_80& val, uint8_t extra_two_bits);
 
 } // namespace float80

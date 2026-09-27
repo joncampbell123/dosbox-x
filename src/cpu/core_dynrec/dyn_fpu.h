@@ -719,12 +719,8 @@ static void dyn_fpu_esc7(){
 			gen_call_function_raw(FPU_FPOP);
 			break;
 		case 0x04:   /* FBLD packed BCD */
-			gen_call_function_raw(FPU_PREP_PUSH);
 			dyn_fill_ea(FC_OP1);
-			gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);
-			gen_shr_imm(FC_OP2,11); /* stack top is 3-bit value starting at bit 11 */
-			gen_and_imm(FC_OP2,7);
-			gen_call_function_RR(FPU_FBLD,FC_OP1,FC_OP2);
+			gen_call_function_R(FPU_FBLD,FC_OP1);
 			break;
 		case 0x05:  /* FILD int64_t */
 			dyn_fill_ea(FC_OP1);

@@ -95,29 +95,6 @@ static void FPU_ST80(PhysPt addr,Bitu reg) {
     mem_writew(addr+8ul,fpu.regs_80[reg].raw.h);
 }
 
-
-static void FPU_FBLD(PhysPt addr,Bitu store_to) {
-	uint64_t val = 0;
-	Bitu in = 0;
-	uint64_t base = 1;
-	for(Bitu i = 0;i < 9;i++){
-		in = mem_readb(addr + i);
-		val += ( (in&0xf) * base); //in&0xf shouldn't be higher than 9
-		base *= 10;
-		val += ((( in>>4)&0xf) * base);
-		base *= 10;
-	}
-
-	//last number, only now convert to float in order to get
-	//the best signification
-	long double temp = static_cast<long double>(val);
-	in = mem_readb(addr + 9);
-	temp += ( (in&0xf) * base );
-	if(in&0x80) temp *= -1.0l;
-	fpu.regs_80[store_to].v = temp;
-}
-
-
 static void FPU_FST_F32(PhysPt addr) {
     FPU_Reg_32 result;
     result.v = static_cast<float>(fpu.regs_80[TOP].v);

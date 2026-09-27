@@ -113,28 +113,6 @@ static INLINE void FPU_FADD_EA(Bitu op1){
 	FPU_FADD(op1,8);
 }
 
-static void FPU_FBLD(PhysPt addr,Bitu store_to) {
-	uint64_t val = 0;
-	uint8_t in = 0;
-	uint64_t base = 1;
-	for(uint8_t i = 0;i < 9;i++){
-		in = mem_readb(addr + i);
-		val += ( (in&0xf) * base); //in&0xf shouldn't be higher than 9
-		base *= 10;
-		val += ((( in>>4)&0xf) * base);
-		base *= 10;
-	}
-
-	//last number, only now convert to float in order to get
-	//the best signification
-	double temp = static_cast<double>(val);
-	in = mem_readb(addr + 9);
-	temp += ( (in&0xf) * base );
-	if(in&0x80) temp *= -1.0;
-	fpu.regs[store_to].d = temp;
-	fpu.use80[store_to] = false;
-}
-
 static void FPU_FBST(PhysPt addr) {
 	FPU_Reg val = fpu.regs[TOP];
 	if(val.ll & LONGTYPE(0x8000000000000000)) { // MSB = sign

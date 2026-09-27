@@ -67,6 +67,7 @@ constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
 
 
 void FPU_FABS();
+void FPU_FBLD(PhysPt addr);
 void FPU_FCHS();
 void FPU_FCLEX();
 void FPU_FFREE(int st);
@@ -138,47 +139,6 @@ enum {
 
 static INLINE void FPU_SetException(uint16_t ex) {
     FPUSW |= ex;
-}
-
-static inline bool IsDenormal(const FPU_Reg_32& reg)
-{
-    return (reg.f.exponent == 0) && (reg.f.mantissa != 0);
-}
-
-static inline bool IsDenormal(const FPU_Reg_64& reg)
-{
-    return (reg.f.exponent == 0) && (reg.f.mantissa != 0);
-}
-
-static inline bool IsZero(const FPU_Reg& reg)
-{
-    return reg.d == 0.0;
-}
-
-static inline bool IsZero(const FPU_Reg_80& reg)
-{
-    return (reg.f.exponent == 0) && (reg.f.mantissa == 0);
-}
-
-static inline bool IsSNaN(const FPU_Reg_32& reg)
-{
-    return (reg.f.exponent == 0xff) && ((reg.f.mantissa>>22) == 0) && (reg.f.mantissa != 0);
-}
-
-static inline bool IsSNaN(const FPU_Reg_64& reg)
-{
-    return (reg.f.exponent == 0x7ff) && ((reg.f.mantissa>>51) == 0) && (reg.f.mantissa != 0);
-}
-
-static inline bool IsSpecial(const FPU_Reg& reg)
-{
-    return (reg.f.exponent == 0x7FF) || (reg.f.exponent == 0 && reg.f.mantissa != 0);
-}
-
-static inline bool IsSpecial(const FPU_Reg_80& reg)
-{
-    return (reg.f.exponent == 0x7FFF) || (reg.f.exponent == 0 && reg.f.mantissa != 0) ||
-           (reg.f.exponent != 0 && (reg.f.mantissa>>63 == 0));
 }
 
 #endif

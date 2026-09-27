@@ -20,6 +20,7 @@
 #include "dosbox.h"
 #if C_FPU
 
+#include <array>
 #include <cfenv>
 #include <string>
 
@@ -70,60 +71,39 @@ void fpu_Push(const FPU_Reg_80& input)
     fpu.regvalid[TOP] = true;
 #ifndef HAS_LONG_DOUBLE
     fpu.use80[TOP] = true;
-    fpu.regs[TOP].d = float80::convert(val).value;
+    fpu.regs[TOP].d = float80::convertToDouble(val).value;
 #endif
 }
 
-void fpu_Push(FPU_Reg_64 val)
+static void fpu_RaiseLoadExceptions(bool denormal, bool signaling_nan)
 {
-    TOP = (TOP-1) & 7;
-    if (fpu.regvalid[TOP]) {
-        fpu.sw.IE = 1;
-        fpu.sw.SF = 1;
-        fpu.sw.C1 = 1;
-        fpu_RaiseException();
-        val.raw = QNaN;
-    }
-    fpu.regvalid[TOP] = true;
-#ifdef HAS_LONG_DOUBLE
-    fpu.regs_80[TOP].v = static_cast<long double>(val.v);
-#else
-    fpu.use80[TOP] = false;
-    fpu.regs[TOP].d = val.v;
-#endif
-    if (IsDenormal(val)) {
+    if (denormal) {
         fpu.sw.DE = 1;
         fpu_RaiseException();
-    } else if (IsSNaN(val)) {
+    } else if (signaling_nan) {
         fpu.sw.IE = 1;
         fpu_RaiseException();
     }
 }
 
-void fpu_Push(FPU_Reg_32 val)
+static void fpu_PushReal(const FPU_Reg_32& source)
 {
-    TOP = (TOP-1) & 7;
-    if (fpu.regvalid[TOP]) {
-        fpu.sw.IE = 1;
-        fpu.sw.SF = 1;
-        fpu.sw.C1 = 1;
-        fpu_RaiseException();
-        val.raw = 0xffc0'0000;
-    }
-    fpu.regvalid[TOP] = true;
-#ifdef HAS_LONG_DOUBLE
-    fpu.regs_80[TOP].v = static_cast<long double>(val.v);
-#else
-    fpu.use80[TOP] = false;
-    fpu.regs[TOP].d = static_cast<double>(val.v);
-#endif
-    if (IsDenormal(val)) {
-        fpu.sw.DE = 1;
-        fpu_RaiseException();
-    } else if (IsSNaN(val)) {
-        fpu.sw.IE = 1;
-        fpu_RaiseException();
-    }
+    FPU_Reg_80 value;
+    const auto denormal = IsSubnormal(source);
+    const auto signaling_nan = IsSNaN(source);
+    float80::convertFrom(value, source);
+    fpu_Push(value);
+    fpu_RaiseLoadExceptions(denormal, signaling_nan);
+}
+
+static void fpu_PushReal(const FPU_Reg_64& source)
+{
+    FPU_Reg_80 value;
+    const auto denormal = IsSubnormal(source);
+    const auto signaling_nan = IsSNaN(source);
+    float80::convertFrom(value, source);
+    fpu_Push(value);
+    fpu_RaiseLoadExceptions(denormal, signaling_nan);
 }
 
 void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub)
@@ -144,6 +124,45 @@ void FPU_FABS()
 #endif
         fpu.sw.C1 = 0;
     }
+}
+
+void FPU_FBLD(PhysPt addr)
+{
+    std::array<uint8_t, 10> bcd = {};
+    const auto low = mem_readq(addr);
+    const auto high = mem_readw(addr + 8);
+
+    for (uint8_t i = 0; i < 8; ++i)
+        bcd[i] = static_cast<uint8_t>(low >> (i * 8U));
+    bcd[8] = static_cast<uint8_t>(high);
+    bcd[9] = static_cast<uint8_t>(high >> 8U);
+
+    uint64_t magnitude = 0;
+    uint64_t decimal_place = 1;
+
+    // Packed BCD has 18 digits in bytes 0 through 8. Both guest-memory reads
+    // complete before modifying the FPU stack, so a page fault leaves it unchanged.
+    for (uint8_t i = 0; i < 9; ++i) {
+        const auto digits = bcd[i];
+        magnitude += (digits & 0x0FU) * decimal_place;
+        decimal_place *= 10;
+        magnitude += ((digits >> 4) & 0x0FU) * decimal_place;
+        decimal_place *= 10;
+    }
+
+    // Bit 7 of the final byte is the sign; the other bits are reserved.
+    const auto negative = (bcd[9] & 0x80U) != 0;
+    auto value = static_cast<int64_t>(magnitude);
+    if (negative && value != 0)
+        value = -value;
+
+    FPU_Reg_80 result;
+    float80::convertFrom(result, value);
+    if (negative && value == 0)
+        result.f.sign = 1;
+
+    fpu.sw.C1 = 0;
+    fpu_Push(result);
 }
 
 void FPU_FCHS()
@@ -181,7 +200,7 @@ void FPU_FLD_F32(PhysPt addr)
     FPU_Reg_32 val;
     val.raw = mem_readd(addr);
     fpu.sw.C1 = 0;
-    fpu_Push(val);
+    fpu_PushReal(val);
 }
 
 void FPU_FLD_F32_EA(PhysPt addr)
@@ -201,7 +220,7 @@ void FPU_FLD_F64(PhysPt addr)
     FPU_Reg_64 val;
     val.raw = mem_readq(addr);
     fpu.sw.C1 = 0;
-    fpu_Push(val);
+    fpu_PushReal(val);
 }
 
 void FPU_FLD_F64_EA(PhysPt addr)
@@ -239,7 +258,7 @@ void FPU_FLD_I16_EA(PhysPt addr)
     int64_t integer = static_cast<int16_t>(mem_readw(addr));
     float80::convertFrom(fpu.regs_80[8], integer);
 #ifndef HAS_LONG_DOUBLE
-    fpu.regs[8].d = float80::convert(fpu.regs_80[8]).value;
+    fpu.regs[8].d = float80::convertToDouble(fpu.regs_80[8]).value;
     fpu.use80[8] = true;
 #endif
 }
@@ -258,7 +277,7 @@ void FPU_FLD_I32_EA(PhysPt addr)
     int64_t integer = static_cast<int32_t>(mem_readd(addr));
     float80::convertFrom(fpu.regs_80[8], integer);
 #ifndef HAS_LONG_DOUBLE
-    fpu.regs[8].d = float80::convert(fpu.regs_80[8]).value;
+    fpu.regs[8].d = float80::convertToDouble(fpu.regs_80[8]).value;
     fpu.use80[8] = true;
 #endif
 }
@@ -277,7 +296,7 @@ void FPU_FLD_I64_EA(PhysPt addr)
     int64_t integer = mem_readq(addr);
     float80::convertFrom(fpu.regs_80[8], integer);
 #ifndef HAS_LONG_DOUBLE
-    fpu.regs[8].d = float80::convert(fpu.regs_80[8]).value;
+    fpu.regs[8].d = float80::convertToDouble(fpu.regs_80[8]).value;
     fpu.use80[8] = true;
 #endif
 }
@@ -378,7 +397,7 @@ void FPU_FRSTOR(PhysPt addr, bool op16)
 		fpu.regs_80[STV(i)].raw.l = mem_readq(addr+start);
 		fpu.regs_80[STV(i)].raw.h = mem_readw(addr+start+8);
 #ifndef HAS_LONG_DOUBLE
-        auto cr = float80::convert(fpu.regs_80[STV(i)]);
+        auto cr = float80::convertToDouble(fpu.regs_80[STV(i)]);
         fpu.regs[STV(i)].d = cr.value;
 		fpu.use80[STV(i)] = true;
 #endif
@@ -393,37 +412,6 @@ void FPU_FRSTOR(PhysPt addr, bool op16)
 #else
 #include "fpu_instructions.h"
 #endif
-
-/* A load which pushes the x87 stack must be restartable after a page fault.
- * FPU_PREP_PUSH changes both TOP and the pushed slot's metadata before the
- * memory read takes place, so restoring TOP alone leaves a phantom value in
- * the tag word. */
-class FPUStackPushState final {
-public:
-	FPUStackPushState()
-		: old_top(TOP), pushed_slot((old_top - 1) & 7), old_regvalid(fpu.regvalid[pushed_slot])
-#if !defined(HAS_LONG_DOUBLE)
-		, old_use80(fpu.use80[pushed_slot])
-#endif
-	{}
-
-	void restore() const
-	{
-		TOP = old_top;
-		fpu.regvalid[pushed_slot] = old_regvalid;
-#if !defined(HAS_LONG_DOUBLE)
-		fpu.use80[pushed_slot] = old_use80;
-#endif
-	}
-
-private:
-	const Bitu old_top;
-	const Bitu pushed_slot;
-	const bool old_regvalid;
-#if !defined(HAS_LONG_DOUBLE)
-	const bool old_use80;
-#endif
-};
 
 /* MMX instructions set the top of stack to zero---Intel explicitly documents this.
  * There is code out there, including in Windows ME and Windows Media Player, that
@@ -1011,19 +999,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 		FPU_FPOP();
 		break;
 	case 0x04:   /* FBLD packed BCD */
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FBLD(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FBLD(addr);
 		break;
 	case 0x05:  /* FILD int64_t */
         FPU_FLD_I64(addr);
@@ -1458,7 +1434,7 @@ void CPU_FXRSTOR(PhysPt eaa) {
 #else
         fpu.regs_80[STV(i)].raw.l = mem_readq(eaa+0x020+(i*16));
         fpu.regs_80[STV(i)].raw.h = mem_readw(eaa+0x020+(i*16)+8);
-        auto cr = float80::convert(fpu.regs_80[STV(i)]);
+        auto cr = float80::convertToDouble(fpu.regs_80[STV(i)]);
         fpu.regs[STV(i)].d = cr.value;
 		fpu.use80[STV(i)] = true;
 #endif

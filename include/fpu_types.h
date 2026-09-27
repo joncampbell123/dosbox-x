@@ -48,10 +48,9 @@ static_assert( sizeof(FPU_Reg_64) == 8, "FPU_Reg_64 error" );
 #pragma pack(pop)
 
 #define FPU_Reg_64_exponent_bias	(1023)
-static const uint64_t FPU_Reg_64_implied_bit = ((uint64_t)1ULL << (uint64_t)52ULL);
 
 #pragma pack(push,1)
-typedef union alignas(4) {
+union alignas(4) FPU_Reg_32 {
 	struct {
 		uint32_t	mantissa:23;		// [22:0]
 		uint32_t	exponent:8;		// [30:23]
@@ -63,7 +62,7 @@ typedef union alignas(4) {
 	static_assert( sizeof(f) == 4, "FPU_Reg_32 error" );
 	static_assert( sizeof(v) == 4, "FPU_Reg_32 error" );
 	static_assert( sizeof(raw) == 4, "FPU_Reg_32 error" );
-} FPU_Reg_32;
+};
 static_assert( sizeof(FPU_Reg_32) == 4, "FPU_Reg_32 error" );
 #pragma pack(pop)
 
@@ -284,8 +283,142 @@ union alignas(8) FPU_Reg {
 static_assert( sizeof(FPU_Reg) == 8, "FPU_Reg error" );
 #pragma pack(pop)
 
+static inline bool IsZero(const FPU_Reg_32& reg)
+{
+    return reg.f.exponent == 0 && reg.f.mantissa == 0;
+}
+
+static inline bool IsZero(const FPU_Reg_64& reg)
+{
+    return reg.f.exponent == 0 && reg.f.mantissa == 0;
+}
+
+static inline bool IsZero(const FPU_Reg_80& reg)
+{
+    return reg.f.exponent == 0 && reg.f.mantissa == 0;
+}
+
+static inline bool IsZero(const FPU_Reg& reg)
+{
+    return reg.f.exponent == 0 && reg.f.mantissa == 0;
+}
+
+static inline bool IsSubnormal(const FPU_Reg_32& reg)
+{
+    return reg.f.exponent == 0 && reg.f.mantissa != 0;
+}
+
+static inline bool IsSubnormal(const FPU_Reg_64& reg)
+{
+    return reg.f.exponent == 0 && reg.f.mantissa != 0;
+}
+
+static inline bool IsSubnormal(const FPU_Reg_80& reg)
+{
+    return reg.f.exponent == 0 && reg.f.mantissa != 0;
+}
+
+static inline bool IsSubnormal(const FPU_Reg& reg)
+{
+    return reg.f.exponent == 0 && reg.f.mantissa != 0;
+}
+
+// Retain the x87 exception-oriented name for existing callers.
+static inline bool IsDenormal(const FPU_Reg_32& reg)
+{
+    return IsSubnormal(reg);
+}
+
+static inline bool IsDenormal(const FPU_Reg_64& reg)
+{
+    return IsSubnormal(reg);
+}
+
+static inline bool IsDenormal(const FPU_Reg_80& reg)
+{
+    return IsSubnormal(reg);
+}
+
+static inline bool IsDenormal(const FPU_Reg& reg)
+{
+    return IsSubnormal(reg);
+}
+
+static inline bool IsNormal(const FPU_Reg_32& reg)
+{
+    return reg.f.exponent != 0 && reg.f.exponent != 0xFFU;
+}
+
+static inline bool IsNormal(const FPU_Reg_64& reg)
+{
+    return reg.f.exponent != 0 && reg.f.exponent != 0x7FFU;
+}
+
+static inline bool IsNormal(const FPU_Reg_80& reg)
+{
+    constexpr uint64_t integer_bit = 0x8000'0000'0000'0000ULL;
+    return reg.f.exponent != 0 && reg.f.exponent != 0x7FFFU &&
+           (reg.f.mantissa & integer_bit) != 0;
+}
+
+static inline bool IsNormal(const FPU_Reg& reg)
+{
+    return reg.f.exponent != 0 && reg.f.exponent != 0x7FFU;
+}
+
+static inline bool IsSNaN(const FPU_Reg_32& reg)
+{
+    constexpr uint32_t quiet_nan_bit = 0x0040'0000U;
+    return reg.f.exponent == 0xFFU && reg.f.mantissa != 0 &&
+           (reg.f.mantissa & quiet_nan_bit) == 0;
+}
+
+static inline bool IsSNaN(const FPU_Reg_64& reg)
+{
+    constexpr uint64_t quiet_nan_bit = 0x0008'0000'0000'0000ULL;
+    return reg.f.exponent == 0x7FFU && reg.f.mantissa != 0 &&
+           (reg.f.mantissa & quiet_nan_bit) == 0;
+}
+
+static inline bool IsSNaN(const FPU_Reg_80& reg)
+{
+    constexpr uint64_t integer_bit = 0x8000'0000'0000'0000ULL;
+    constexpr uint64_t quiet_nan_bit = 0x4000'0000'0000'0000ULL;
+    constexpr uint64_t payload_mask = 0x3FFF'FFFF'FFFF'FFFFULL;
+    return reg.f.exponent == 0x7FFFU &&
+           (reg.f.mantissa & (integer_bit | quiet_nan_bit)) == integer_bit &&
+           (reg.f.mantissa & payload_mask) != 0;
+}
+
+static inline bool IsSNaN(const FPU_Reg& reg)
+{
+    constexpr uint64_t quiet_nan_bit = 0x0008'0000'0000'0000ULL;
+    return reg.f.exponent == 0x7FFU && reg.f.mantissa != 0 &&
+           (reg.f.mantissa & quiet_nan_bit) == 0;
+}
+
+static inline bool IsSpecial(const FPU_Reg_32& reg)
+{
+    return !IsNormal(reg) && !IsZero(reg);
+}
+
+static inline bool IsSpecial(const FPU_Reg_64& reg)
+{
+    return !IsNormal(reg) && !IsZero(reg);
+}
+
+static inline bool IsSpecial(const FPU_Reg_80& reg)
+{
+    return !IsNormal(reg) && !IsZero(reg);
+}
+
+static inline bool IsSpecial(const FPU_Reg& reg)
+{
+    return !IsNormal(reg) && !IsZero(reg);
+}
+
 // dynamic x86 core needs this
-typedef struct {
+struct FPU_P_Reg {
     // 80-bit extended float (m2:m1 = 64-bit mantissa  m3 = sign:exponent)
     uint32_t m1;
     uint32_t m2;
@@ -293,7 +426,7 @@ typedef struct {
     // Padding to make the structure 16 bytes so the inline asm in fpu_instructions_x86.h can shift by 4 to index FPU registers
     uint16_t d1;
     uint32_t d2;
-} FPU_P_Reg;
+};
 static_assert( sizeof(FPU_P_Reg) == 16, "FPU_P_Reg error" );
 
 // memory barrier macro. to ensure that reads/stores to one half of the FPU reg struct
