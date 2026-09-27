@@ -354,10 +354,12 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     dh = (int)currentWindowHeight;
 #endif
 
-    if (dw < 640) dw = 640;
-    if (dh < 350) dh = 350;
-    scalex = dw / 640; /* maximum horizontal scale */
-    scaley = dh / 350; /* maximum vertical   scale */
+    const uint16_t max_width = 640, max_height = 480;
+
+    if (dw < max_width) dw = max_width;
+    if (dh < max_height) dh = max_height;
+    scalex = dw / max_width;  /* maximum horizontal scale */
+    scaley = dh / max_height; /* maximum vertical scale   */
     if( scalex > scaley ) scale = scaley;
     else                  scale = scalex;
     if (!toscale) scale = 1;
