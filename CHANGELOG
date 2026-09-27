@@ -66,6 +66,9 @@ Next version:
   - CoreMIDI: Fixed device name matching for names starting with digits.
     (maron2000)
   - Added Sound Blaster AWE32 support for games that use EMU8K (cyberfox1)
+  - FPU: Unified the non-long-double, long-double, and x86 host FPU engines
+    around shared 80-bit conversion and stack-loading paths. Improved accuracy
+    against real x87 hardware on both x86 and non-x86 hosts. (cimarronm)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
