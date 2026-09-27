@@ -155,6 +155,7 @@ struct FPUStatusWord
 	{
 		IE = false; DE = false; ZE = false; OE = false; UE = false; PE = false;
 		ES = false;
+        B = false;
 	}
 	enum
 	{

@@ -20,18 +20,91 @@
 #include "dosbox.h"
 #if C_FPU
 
+#include <array>
+#include <cfenv>
 #include <string>
-#include <math.h>
-#include <float.h>
-#include "paging.h"
-#include "cross.h"
-#include "mem.h"
+
 #include "cpu.h"
 #include "fpu.h"
+#include "fpu_float80.h"
 #include "logging.h"
-#include "../cpu/lazyflags.h"
+#include "mem.h"
+#include "paging.h"
 
 FPU fpu;
+
+constexpr uint64_t QNaN = 0xFFF8'0000'0000'0000;
+
+void fpu_RaiseException()
+{
+    // TODO
+}
+
+bool fpu_StackValid(int pos)
+{
+    if (fpu.regvalid[pos]) return true;
+    fpu.sw.IE = 1;
+    fpu.sw.SF = 1;
+    fpu.sw.C1 = 0;
+    fpu_RaiseException();
+    fpu.regvalid[pos] = true;
+    fpu.regs_80[pos].raw = float80::QNaN;
+#ifndef HAS_LONG_DOUBLE
+    fpu.regs[pos].ll = QNaN;
+#endif
+    return false;
+}
+
+void fpu_Push(const FPU_Reg_80& input)
+{
+    auto val = input;   // 32-bit ARM MSVC does not gaurantee 16-byte stack alignment so have to pass by ref
+                        // and create a copy here
+    TOP = (TOP-1) & 7;
+    if (fpu.regvalid[TOP]) {
+        fpu.sw.IE = 1;
+        fpu.sw.SF = 1;
+        fpu.sw.C1 = 1;
+        fpu_RaiseException();
+        val.raw = float80::QNaN;
+    }
+    fpu.regs_80[TOP] = val;
+    fpu.regvalid[TOP] = true;
+#ifndef HAS_LONG_DOUBLE
+    fpu.use80[TOP] = true;
+    fpu.regs[TOP].d = float80::convertToDouble(val).value;
+#endif
+}
+
+static void fpu_RaiseLoadExceptions(bool denormal, bool signaling_nan)
+{
+    if (denormal) {
+        fpu.sw.DE = 1;
+        fpu_RaiseException();
+    } else if (signaling_nan) {
+        fpu.sw.IE = 1;
+        fpu_RaiseException();
+    }
+}
+
+static void fpu_PushReal(const FPU_Reg_32& source)
+{
+    FPU_Reg_80 value;
+    const auto denormal = IsSubnormal(source);
+    const auto signaling_nan = IsSNaN(source);
+    float80::convertFrom(value, source);
+    fpu_Push(value);
+    fpu_RaiseLoadExceptions(denormal, signaling_nan);
+}
+
+static void fpu_PushReal(const FPU_Reg_64& source)
+{
+    FPU_Reg_80 value;
+    const auto denormal = IsSubnormal(source);
+    const auto signaling_nan = IsSNaN(source);
+    float80::convertFrom(value, source);
+    fpu_Push(value);
+    fpu_RaiseLoadExceptions(denormal, signaling_nan);
+}
 
 void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub)
 {
@@ -42,11 +115,295 @@ void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub)
 	                        (long unsigned int)sub);
 }
 
+void FPU_FABS()
+{
+    if (fpu_StackValid(TOP)) {
+        fpu.regs_80[TOP].f.sign = 0;
+#ifndef HAS_LONG_DOUBLE
+        fpu.regs[TOP].f.sign = 0;
+#endif
+        fpu.sw.C1 = 0;
+    }
+}
+
+void FPU_FBLD(PhysPt addr)
+{
+    std::array<uint8_t, 10> bcd = {};
+    const auto low = mem_readq(addr);
+    const auto high = mem_readw(addr + 8);
+
+    for (uint8_t i = 0; i < 8; ++i)
+        bcd[i] = static_cast<uint8_t>(low >> (i * 8U));
+    bcd[8] = static_cast<uint8_t>(high);
+    bcd[9] = static_cast<uint8_t>(high >> 8U);
+
+    uint64_t magnitude = 0;
+    uint64_t decimal_place = 1;
+
+    // Packed BCD has 18 digits in bytes 0 through 8. Both guest-memory reads
+    // complete before modifying the FPU stack, so a page fault leaves it unchanged.
+    for (uint8_t i = 0; i < 9; ++i) {
+        const auto digits = bcd[i];
+        magnitude += (digits & 0x0FU) * decimal_place;
+        decimal_place *= 10;
+        magnitude += ((digits >> 4) & 0x0FU) * decimal_place;
+        decimal_place *= 10;
+    }
+
+    // Bit 7 of the final byte is the sign; the other bits are reserved.
+    const auto negative = (bcd[9] & 0x80U) != 0;
+    auto value = static_cast<int64_t>(magnitude);
+    if (negative && value != 0)
+        value = -value;
+
+    FPU_Reg_80 result;
+    float80::convertFrom(result, value);
+    if (negative && value == 0)
+        result.f.sign = 1;
+
+    fpu.sw.C1 = 0;
+    fpu_Push(result);
+}
+
+void FPU_FCHS()
+{
+    if (fpu_StackValid(TOP)) {
+        fpu.regs_80[TOP].f.sign ^= 1;
+#ifndef HAS_LONG_DOUBLE
+        fpu.regs[TOP].f.sign ^= 1;
+#endif
+        fpu.sw.C1 = 0;
+    }
+}
+
+void FPU_FCLEX()
+{
+	fpu.sw.clearExceptions();
+}
+
+void FPU_FFREE(int st)
+{
+	fpu.regvalid[st] = false;
+}
+
+void FPU_FINIT()
+{
+	fpu.cw.init();
+	fpu.sw.init();
+    fpu.regvalid = {};
+    fpu.regvalid[8] = true; // the 9th register is always valid, it's used for temporary storage
+
+}
+
+void FPU_FLD_F32(PhysPt addr)
+{
+    FPU_Reg_32 val;
+    val.raw = mem_readd(addr);
+    fpu.sw.C1 = 0;
+    fpu_PushReal(val);
+}
+
+void FPU_FLD_F32_EA(PhysPt addr)
+{
+    FPU_Reg_32 val;
+    val.raw = mem_readd(addr);
+#ifdef HAS_LONG_DOUBLE
+	fpu.regs_80[8].v = static_cast<long double>(val.v);
+#else
+    fpu.regs[8].d = static_cast<double>(val.v);
+    fpu.use80[8] = false;
+#endif
+}
+
+void FPU_FLD_F64(PhysPt addr)
+{
+    FPU_Reg_64 val;
+    val.raw = mem_readq(addr);
+    fpu.sw.C1 = 0;
+    fpu_PushReal(val);
+}
+
+void FPU_FLD_F64_EA(PhysPt addr)
+{
+    FPU_Reg_64 val;
+    val.raw = mem_readq(addr);
+#ifdef HAS_LONG_DOUBLE
+	fpu.regs_80[8].v = static_cast<long double>(val.v);
+#else
+    fpu.regs[8].d = val.v;
+    fpu.use80[8] = false;
+#endif
+}
+
+void FPU_FLD_F80(PhysPt addr)
+{
+    FPU_Reg_80 val;
+	val.raw.l = mem_readq(addr);
+	val.raw.h = mem_readw(addr+8);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLD_I16(PhysPt addr)
+{
+    FPU_Reg_80 val;
+    int64_t integer = static_cast<int16_t>(mem_readw(addr));
+    float80::convertFrom(val, integer);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLD_I16_EA(PhysPt addr)
+{
+    int64_t integer = static_cast<int16_t>(mem_readw(addr));
+    float80::convertFrom(fpu.regs_80[8], integer);
+#ifndef HAS_LONG_DOUBLE
+    fpu.regs[8].d = float80::convertToDouble(fpu.regs_80[8]).value;
+    fpu.use80[8] = true;
+#endif
+}
+
+void FPU_FLD_I32(PhysPt addr)
+{
+    FPU_Reg_80 val;
+    int64_t integer = static_cast<int32_t>(mem_readd(addr));
+    float80::convertFrom(val, integer);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLD_I32_EA(PhysPt addr)
+{
+    int64_t integer = static_cast<int32_t>(mem_readd(addr));
+    float80::convertFrom(fpu.regs_80[8], integer);
+#ifndef HAS_LONG_DOUBLE
+    fpu.regs[8].d = float80::convertToDouble(fpu.regs_80[8]).value;
+    fpu.use80[8] = true;
+#endif
+}
+
+void FPU_FLD_I64(PhysPt addr)
+{
+    FPU_Reg_80 val;
+    int64_t integer = mem_readq(addr);
+    float80::convertFrom(val, integer);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLD_I64_EA(PhysPt addr)
+{
+    int64_t integer = mem_readq(addr);
+    float80::convertFrom(fpu.regs_80[8], integer);
+#ifndef HAS_LONG_DOUBLE
+    fpu.regs[8].d = float80::convertToDouble(fpu.regs_80[8]).value;
+    fpu.use80[8] = true;
+#endif
+}
+
+void FPU_FLD1()
+{
+    FPU_Reg_80 val;
+    val.raw = float80::const1;
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
 void FPU_FLDCW(PhysPt addr)
 {
 	fpu.cw = mem_readw(addr);
 }
 
+void FPU_FLDENV(PhysPt addr, bool op16)
+{
+    uint16_t tag;
+    if (op16) {
+        fpu.cw = mem_readw(addr+0);
+        fpu.sw = mem_readw(addr+2);
+        tag    = mem_readw(addr+4);
+    } else {
+        fpu.cw = static_cast<uint16_t>(mem_readd(addr+0));
+        fpu.sw = static_cast<uint16_t>(mem_readd(addr+4));
+        tag    = static_cast<uint16_t>(mem_readd(addr+8));
+    }
+    FPU_SetTag(tag);
+}
+
+void FPU_FLDL2E()
+{
+    FPU_Reg_80 val;
+    val.raw = float80::L2E;
+    float80::round(val, float80::L2E_Extra2);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLDL2T()
+{
+    FPU_Reg_80 val;
+    val.raw = float80::L2T;
+    float80::round(val, float80::L2T_Extra2);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLDLG2()
+{
+    FPU_Reg_80 val;
+    val.raw = float80::LG2;
+    float80::round(val, float80::LG2_Extra2);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLDLN2()
+{
+    FPU_Reg_80 val;
+    val.raw = float80::LN2;
+    float80::round(val, float80::LN2_Extra2);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLDPI()
+{
+    FPU_Reg_80 val;
+    val.raw = float80::PI;
+    float80::round(val, float80::PI_Extra2);
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FLDZ()
+{
+    FPU_Reg_80 val = {};
+    fpu.sw.C1 = 0;
+    fpu_Push(val);
+}
+
+void FPU_FPOP()
+{
+    fpu_StackValid(TOP);
+	fpu.regvalid[TOP] = false;
+	TOP = (TOP+1) & 7;
+}
+
+void FPU_FRSTOR(PhysPt addr, bool op16)
+{
+	FPU_FLDENV(addr, op16);
+
+	auto start = op16 ? 14:28;
+	for(auto i = 0; i < 8; i++) {
+		fpu.regs_80[STV(i)].raw.l = mem_readq(addr+start);
+		fpu.regs_80[STV(i)].raw.h = mem_readw(addr+start+8);
+#ifndef HAS_LONG_DOUBLE
+        auto cr = float80::convertToDouble(fpu.regs_80[STV(i)]);
+        fpu.regs[STV(i)].d = cr.value;
+		fpu.use80[STV(i)] = true;
+#endif
+		start += 10;
+	}
+}
 
 #if C_FPU_X86
 #include "fpu_instructions_x86.h"
@@ -55,37 +412,6 @@ void FPU_FLDCW(PhysPt addr)
 #else
 #include "fpu_instructions.h"
 #endif
-
-/* A load which pushes the x87 stack must be restartable after a page fault.
- * FPU_PREP_PUSH changes both TOP and the pushed slot's metadata before the
- * memory read takes place, so restoring TOP alone leaves a phantom value in
- * the tag word. */
-class FPUStackPushState final {
-public:
-	FPUStackPushState()
-		: old_top(TOP), pushed_slot((old_top - 1) & 7), old_regvalid(fpu.regvalid[pushed_slot])
-#if !defined(HAS_LONG_DOUBLE)
-		, old_use80(fpu.use80[pushed_slot])
-#endif
-	{}
-
-	void restore() const
-	{
-		TOP = old_top;
-		fpu.regvalid[pushed_slot] = old_regvalid;
-#if !defined(HAS_LONG_DOUBLE)
-		fpu.use80[pushed_slot] = old_use80;
-#endif
-	}
-
-private:
-	const Bitu old_top;
-	const Bitu pushed_slot;
-	const bool old_regvalid;
-#if !defined(HAS_LONG_DOUBLE)
-	const bool old_use80;
-#endif
-};
 
 /* MMX instructions set the top of stack to zero---Intel explicitly documents this.
  * There is code out there, including in Windows ME and Windows Media Player, that
@@ -185,19 +511,7 @@ void FPU_ESC1_EA(Bitu rm,PhysPt addr, bool op16) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00: /* FLD float*/
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_F32(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_F32(addr);
 		break;
 	case 0x01: /* UNKNOWN */
 		LOG(LOG_FPU,LOG_WARN)("ESC EA 1:Unhandled group %d subfunction %d",(int)group,(int)sub);
@@ -415,19 +729,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 
 	switch(group){
 	case 0x00:	/* FILD */
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_I32(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_I32(addr);
 		break;
 	case 0x01:	/* FISTTP */
         if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
@@ -446,19 +748,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 		FPU_FPOP();
 		break;
 	case 0x05:	/* FLD 80 Bits Real */
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_F80(addr);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_F80(addr);
 		break;
 	case 0x07:	/* FSTP 80 Bits Real */
 		FPU_FST_F80(addr);
@@ -574,19 +864,7 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr, bool op16) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00:  /* FLD double real*/
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_F64(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_F64(addr);
 		break;
 	case 0x01:  /* FISTTP longint*/
         if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
@@ -624,7 +902,7 @@ void FPU_ESC5_Normal(Bitu rm) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00: /* FFREE STi */
-		fpu.regvalid[STV(sub)] = false;
+        FPU_FFREE(STV(sub));
 		break;
 	case 0x01: /* FXCH STi*/
 		FPU_FXCH(TOP,STV(sub));
@@ -702,19 +980,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00:  /* FILD int16_t */
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_I16(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_I16(addr);
 		break;
 	case 0x01:  /* FISTTP int16_t */
         if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
@@ -733,34 +999,10 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 		FPU_FPOP();
 		break;
 	case 0x04:   /* FBLD packed BCD */
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FBLD(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FBLD(addr);
 		break;
 	case 0x05:  /* FILD int64_t */
-		{
-			FPUStackPushState push_state;
-
-			try {
-				FPU_PREP_PUSH();
-				FPU_FLD_I64(addr,TOP);
-			}
-            catch (const GuestPageFaultException& pf) {
-				(void)pf;
-				push_state.restore();
-				throw;
-			}
-		}
+        FPU_FLD_I64(addr);
 		break;
 	case 0x06:	/* FBSTP packed BCD */
 		FPU_FBST(addr);
@@ -781,7 +1023,7 @@ void FPU_ESC7_Normal(Bitu rm) {
 	Bitu sub=(rm & 7);
 	switch (group){
 	case 0x00: /* FFREEP STi*/
-		fpu.regvalid[STV(sub)] = false;
+        FPU_FFREE(STV(sub));
 		FPU_FPOP();
 		break;
 	case 0x01: /* FXCH STi*/
@@ -1108,6 +1350,10 @@ void FPU_Init() {
 
 	FPU_Selftest();
 	FPU_FINIT();
+
+    // Don't trigger any exceptions on the host
+    fenv_t tmp;
+    std::feholdexcept(&tmp);
 }
 
 static void FPU_SetAbridgedTag(uint8_t b)
@@ -1174,24 +1420,22 @@ void CPU_FXSAVE(PhysPt eaa) {
 }
 
 void CPU_FXRSTOR(PhysPt eaa) {
-	unsigned int i;
-
 	/* Ref: [https://www.felixcloutier.com/x86/fxsave] */
 	fpu.cw = mem_readw(eaa+0x000);					/* +0x000 FPU control word */
 	fpu.sw = mem_readw(eaa+0x002);					/* +0x002 FPU status word */
 	fpu.mxcsr = mem_readd(eaa+0x018);				/* +0x018 MXCSR */
 
 	/* NTS: Remember that st(i) TOP pointer is in FPU status word */
-
-	for (i=0;i < 8;i++) {
-#if C_FPU_X86
+	for (auto i = 0; i < 8; i++) {
+#ifdef HAS_LONG_DOUBLE
 		fpu.p_regs[STV(i)].m1 = mem_readd(eaa+0x020+(i*16)+0);
 		fpu.p_regs[STV(i)].m2 = mem_readd(eaa+0x020+(i*16)+4);
 		fpu.p_regs[STV(i)].m3 = mem_readw(eaa+0x020+(i*16)+8);
-#elif defined(HAS_LONG_DOUBLE)
-		fpu.regs_80[STV(i)].v = FPU_FLD80(eaa+0x020+(i*16));
 #else
-		fpu.regs[STV(i)].d = FPU_FLD80(eaa+0x020+(i*16),/*&*/fpu.regs_80[STV(i)]);
+        fpu.regs_80[STV(i)].raw.l = mem_readq(eaa+0x020+(i*16));
+        fpu.regs_80[STV(i)].raw.h = mem_readw(eaa+0x020+(i*16)+8);
+        auto cr = float80::convertToDouble(fpu.regs_80[STV(i)]);
+        fpu.regs[STV(i)].d = cr.value;
 		fpu.use80[STV(i)] = true;
 #endif
 	}
@@ -1199,7 +1443,7 @@ void CPU_FXRSTOR(PhysPt eaa) {
     FPU_SetAbridgedTag(mem_readb(eaa+0x004));	/* +0x004 FPU tag words, abridged to a bitfield of 1=not empty 0=empty, register order NOT from TOP */
 
 	if (CPU_SSE()) {
-		for (i=0;i < 8;i++) {
+		for (auto i = 0; i < 8; i++) {
 			XMM_Reg &xmm = fpu.xmmreg[i];
 			xmm.u32[0] = mem_readd(eaa+0x0A0+(i*16)+0x0);
 			xmm.u32[1] = mem_readd(eaa+0x0A0+(i*16)+0x4);

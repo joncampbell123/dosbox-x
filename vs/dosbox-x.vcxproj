@@ -1262,6 +1262,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\dos\drive_virtual.cpp" />
     <ClCompile Include="..\src\dos\eltorito.cpp" />
     <ClCompile Include="..\src\fpu\fpu.cpp" />
+    <ClCompile Include="..\src\fpu\fpu_float80.cpp" />
     <ClCompile Include="..\src\gamelink\gamelink.cpp" />
     <ClCompile Include="..\src\gamelink\gamelink_term.cpp" />
     <ClCompile Include="..\src\gui\bitop.cpp" />
@@ -1904,6 +1905,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\dos\scsidefs.h" />
     <ClInclude Include="..\src\dos\wnaspi32.h" />
     <ClInclude Include="..\src\fpu\fpu_instructions.h" />
+    <ClInclude Include="..\src\fpu\fpu_float80.h" />
     <ClInclude Include="..\src\fpu\fpu_instructions_longdouble.h" />
     <ClInclude Include="..\src\fpu\fpu_instructions_x86.h" />
     <ClInclude Include="..\src\gamelink\gamelink.h" />

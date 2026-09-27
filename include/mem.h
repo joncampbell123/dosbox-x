@@ -187,7 +187,7 @@ static INLINE uint32_t var_read(uint32_t * var) {
     return host_readd((ConstHostPt)var);
 }
 
-/* The Following six functions are slower but they recognize the paged memory system */
+/* The following functions are slower but recognize the paged memory system. */
 
 uint8_t  mem_readb(const LinearPt address);
 uint16_t mem_readw(const LinearPt address);
@@ -196,6 +196,16 @@ uint32_t mem_readd(const LinearPt address);
 void mem_writeb(const LinearPt address,const uint8_t val);
 void mem_writew(const LinearPt address,const uint16_t val);
 void mem_writed(const LinearPt address,const uint32_t val);
+
+static INLINE uint64_t mem_readq(const LinearPt address) {
+    return static_cast<uint64_t>(mem_readd(address)) |
+           (static_cast<uint64_t>(mem_readd(address + 4u)) << 32u);
+}
+
+static INLINE void mem_writeq(const LinearPt address,const uint64_t val) {
+    mem_writed(address,      static_cast<uint32_t>(val));
+    mem_writed(address + 4u, static_cast<uint32_t>(val >> 32u));
+}
 
 void phys_writes(PhysPt addr, const char* string, Bitu length);
 

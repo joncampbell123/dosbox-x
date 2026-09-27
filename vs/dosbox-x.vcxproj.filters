@@ -360,6 +360,9 @@
     <ClCompile Include="..\src\fpu\fpu.cpp">
       <Filter>Sources\fpu</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\fpu\fpu_float80.cpp">
+      <Filter>Sources\fpu</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\gui\menu_callback.cpp">
       <Filter>Sources\gui</Filter>
     </ClCompile>
@@ -1824,6 +1827,9 @@
       <Filter>Sources\dos</Filter>
     </ClInclude>
     <ClInclude Include="..\src\fpu\fpu_instructions.h">
+      <Filter>Sources\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fpu\fpu_float80.h">
       <Filter>Sources\fpu</Filter>
     </ClInclude>
     <ClInclude Include="..\src\gui\dosbox.cga640.bmp.h">

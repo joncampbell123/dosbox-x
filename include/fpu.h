@@ -45,12 +45,6 @@ uint16_t SaturateDwordSToWordU(int32_t value);
 
 void   setFPUTagEmpty();
 
-// Replace with std::numbers when c++20 is available
-#define PI		3.141592653589793238462L
-#define L2E		1.4426950408889634073605L
-#define L2T		3.3219280948873623478693L
-#define LN2		0.69314718055994530941683L
-#define LG2		0.30102999566398119521379L
 constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
 
 // TOP = macro for use in C/C++ for top of FPU stack
@@ -72,7 +66,34 @@ constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
 #define STV(i) FPU_StackIndex(i)
 
 
+void FPU_FABS();
+void FPU_FBLD(PhysPt addr);
+void FPU_FCHS();
+void FPU_FCLEX();
+void FPU_FFREE(int st);
+void FPU_FINIT();
+void FPU_FLD_F32(PhysPt addr);
+void FPU_FLD_F32_EA(PhysPt addr);
+void FPU_FLD_F64(PhysPt addr);
+void FPU_FLD_F64_EA(PhysPt addr);
+void FPU_FLD_F80(PhysPt addr);
+void FPU_FLD_I16(PhysPt addr);
+void FPU_FLD_I16_EA(PhysPt addr);
+void FPU_FLD_I32(PhysPt addr);
+void FPU_FLD_I32_EA(PhysPt addr);
+void FPU_FLD_I64(PhysPt addr);
+void FPU_FLD_I64_EA(PhysPt addr);
+void FPU_FLD1();
 void FPU_FLDCW(PhysPt addr);
+void FPU_FLDENV(PhysPt addr, bool op16);
+void FPU_FLDL2T();
+void FPU_FLDL2E();
+void FPU_FLDLG2();
+void FPU_FLDLN2();
+void FPU_FLDPI();
+void FPU_FLDZ();
+void FPU_FPOP();
+void FPU_FRSTOR(PhysPt addr, bool op16);
 
 static INLINE void FPU_SetTag(uint16_t tags){
 	for (auto i=0; i<8; i++)
@@ -118,27 +139,6 @@ enum {
 
 static INLINE void FPU_SetException(uint16_t ex) {
     FPUSW |= ex;
-}
-
-static inline bool IsZero(const FPU_Reg& reg)
-{
-    return reg.d == 0.0;
-}
-
-static inline bool IsZero(const FPU_Reg_80& reg)
-{
-    return (reg.f.exponent == 0) && (reg.f.mantissa == 0);
-}
-
-static inline bool IsSpecial(const FPU_Reg& reg)
-{
-    return (reg.f.exponent == 0x7FF) || (reg.f.exponent == 0 && reg.f.mantissa != 0);
-}
-
-static inline bool IsSpecial(const FPU_Reg_80& reg)
-{
-    return (reg.f.exponent == 0x7FFF) || (reg.f.exponent == 0 && reg.f.mantissa != 0) ||
-           (reg.f.exponent != 0 && (reg.f.mantissa>>63 == 0));
 }
 
 #endif

@@ -58,50 +58,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 #endif
 
 #ifdef WEAK_EXCEPTIONS
-#define FPUD_LOAD(op,szI,szA)			\
-		__asm {							\
-		__asm	mov		ebx, store_to	\
-		__asm	shl		ebx, 4			\
-		__asm	op		szI PTR fpu.p_regs[128].m1		\
-		__asm	fstp	TBYTE PTR fpu.p_regs[ebx].m1	\
-		}
-#else
-#define FPUD_LOAD(op,szI,szA)			\
-		uint16_t new_sw;					\
-		__asm {							\
-		__asm	mov		eax, 8			\
-		__asm	shl		eax, 4			\
-		__asm	mov		ebx, store_to	\
-		__asm	shl		ebx, 4			\
-		__asm	fclex					\
-		__asm	op		szI PTR fpu.p_regs[eax].m1		\
-		__asm	fnstsw	new_sw			\
-		__asm	fstp	TBYTE PTR fpu.p_regs[ebx].m1	\
-		}								\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
-#endif
-
-#ifdef WEAK_EXCEPTIONS
-#define FPUD_LOAD_EA(op,szI,szA)		\
-		__asm {							\
-		__asm	op		szI PTR fpu.p_regs[128].m1		\
-		}
-#else
-#define FPUD_LOAD_EA(op,szI,szA)		\
-		uint16_t new_sw;					\
-		__asm {							\
-		__asm	mov		eax, 8			\
-		__asm	shl		eax, 4			\
-		__asm	fclex					\
-		__asm	op		szI PTR fpu.p_regs[eax].m1		\
-		__asm	fnstsw	new_sw			\
-		}								\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
-#endif
-
-#ifdef WEAK_EXCEPTIONS
 #define FPUD_STORE(op,szI,szA)                          \
         uint16_t save_cw,cw_masked=fpu.cw.allMasked();  \
         uint32_t top = TOP;                             \
@@ -287,41 +243,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
-// handles fadd,fmul,fsub,fsubr
-#ifdef WEAK_EXCEPTIONS
-#define FPUD_ARITH1_EA(op)					\
-		uint16_t save_cw,cw_masked=fpu.cw.allMasked();						\
-		__asm {								\
-		__asm	fnstcw	save_cw				\
-		__asm	mov		eax, op1			\
-		__asm	fldcw	cw_masked    		\
-		__asm	shl		eax, 4				\
-		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
-		__asm	fxch	\
-		__asm	op		st(1), st(0)		\
-		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	 \
-		__asm	fldcw	save_cw				\
-		}
-#else
-#define FPUD_ARITH1_EA(op)					\
-		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
-		__asm {								\
-		__asm	fnstcw	save_cw				\
-		__asm	fldcw	cw_masked    		\
-		__asm	mov		eax, op1			\
-		__asm	shl		eax, 4				\
-		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
-		__asm	fxch	\
-		__asm	clx							\
-		__asm	op		st(1), st(0)		\
-		__asm	fnstsw	new_sw				\
-		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	 \
-		__asm	fldcw	save_cw				\
-		}									\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
-#endif
-
 // handles fsqrt,frndint
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_ARITH2(op)                                   \
@@ -379,26 +300,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
 		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
-// handles fdiv,fdivr
-// (This is identical to FPUD_ARITH1_EA but without a WEAK_EXCEPTIONS variant)
-#define FPUD_ARITH3_EA(op)					\
-		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
-		__asm {								\
-		__asm	fnstcw	save_cw				\
-		__asm	mov		eax, op1			\
-		__asm	fldcw	cw_masked			\
-		__asm	shl		eax, 4				\
-		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
-		__asm	fxch	\
-		__asm	fclex						\
-		__asm	op		st(1), st(0)		\
-		__asm	fnstsw	new_sw				\
-		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	 \
-		__asm	fldcw	save_cw				\
-		}									\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
-
 // handles fprem,fprem1,fscale
 #define FPUD_REMAINDER(op)                                         \
     uint16_t new_sw, save_cw, cw_masked = fpu.cw.allMasked();      \
@@ -433,19 +334,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 		__asm	shl		ebx, 4		\
 		__asm	shl		eax, 4		\
 		__asm	fld		TBYTE PTR fpu.p_regs[ebx].m1	\
-		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
-		__asm	clx					\
-		__asm	op					\
-		__asm	fnstsw	new_sw		\
-		}							\
-		fpu.sw = (new_sw & sw_mask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
-
-#define FPUD_COMPARE_EA(op)			\
-		uint16_t new_sw;				\
-		__asm {						\
-		__asm	mov		eax, op1	\
-		__asm	shl		eax, 4		\
 		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
 		__asm	clx					\
 		__asm	op					\
@@ -550,24 +438,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
         FPU_FPOP();
 #endif
 
-// load math constants
-#define FPUD_LOAD_CONST(op)                              \
-        FPUControlWord save_cw;                          \
-        auto cw = fpu.cw.allMasked();                    \
-        if (FPU_ArchitectureType < FPU_ARCHTYPE_387)     \
-            cw.RC = FPUControlWord::RoundMode::Nearest;  \
-        FPU_PREP_PUSH();                                 \
-        uint32_t top = TOP;                              \
-        __asm {                                          \
-        __asm    fnstcw  save_cw                         \
-        __asm    fldcw   cw                              \
-        __asm    mov     eax, top                        \
-        __asm    shl     eax, 4                          \
-        __asm    clx                                     \
-        __asm    op                                      \
-        __asm    fstp    TBYTE PTR fpu.p_regs[eax].m1    \
-        __asm    fldcw   save_cw                         \
-        }
 #else
 
 // !defined _MSC_VER
@@ -576,51 +446,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 #define clx
 #else
 #define clx "fclex"
-#endif
-
-#ifdef WEAK_EXCEPTIONS
-#define FPUD_LOAD(op,szI,szA)				\
-		__asm__ volatile (					\
-			#op #szA "	%1				\n"	\
-			"fstpt		%0				"	\
-			:	"=m" (fpu.p_regs[store_to])	\
-			:	"m" (fpu.p_regs[8])			\
-		);
-#else
-#define FPUD_LOAD(op,szI,szA)				\
-		uint16_t new_sw;						\
-		__asm__ volatile (					\
-			"fclex						\n"	\
-			#op #szA "	%2				\n"	\
-			"fnstsw		%0				\n"	\
-			"fstpt		%1				"	\
-			:	"=&am" (new_sw), "=m" (fpu.p_regs[store_to])		\
-			:	"m" (fpu.p_regs[8])			\
-		);									\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
-#endif
-
-#ifdef WEAK_EXCEPTIONS
-#define FPUD_LOAD_EA(op,szI,szA)			\
-		__asm__ volatile (					\
-			#op #szA "	%0				\n"	\
-			:								\
-			:	"m" (fpu.p_regs[8])			\
-		);
-#else
-#define FPUD_LOAD_EA(op,szI,szA)			\
-		uint16_t new_sw;						\
-		__asm__ volatile (					\
-			"fclex						\n"	\
-			#op #szA "	%1				\n"	\
-			"fnstsw		%0				\n"	\
-			:	"=&am" (new_sw)				\
-			:	"m" (fpu.p_regs[8])			\
-			:								\
-		);									\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 #ifdef WEAK_EXCEPTIONS
@@ -777,39 +602,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
-// handles fadd,fmul,fsub,fsubr
-#ifdef WEAK_EXCEPTIONS
-#define FPUD_ARITH1_EA(op)					\
-		uint16_t save_cw,cw_masked=fpu.cw.allMasked();						\
-		__asm__ volatile (					\
-			"fnstcw		%0				\n"	\
-			"fldcw		%2				\n"	\
-			"fldt		%1				\n"	\
-			#op"						\n"	\
-			"fstpt		%1				\n"	\
-			"fldcw		%0				"	\
-			:	"=m" (save_cw), "+m" (fpu.p_regs[op1])		\
-			:	"m" (cw_masked)		\
-		);
-#else
-#define FPUD_ARITH1_EA(op)					\
-		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
-		__asm__ volatile (					\
-			"fnstcw		%1				\n"	\
-			"fldcw		%3				\n"	\
-			"fldt		%2				\n"	\
-			"fclex 						\n"	\
-			#op"						\n"	\
-			"fnstsw		%0				\n"	\
-			"fstpt		%2				\n"	\
-			"fldcw		%1				"	\
-			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[op1])	\
-			:	"m" (cw_masked)		\
-		);									\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
-#endif
-
 // handles fsqrt,frndint
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_ARITH2(op)						\
@@ -863,25 +655,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
 		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
-// handles fdiv,fdivr
-// (This is identical to FPUD_ARITH1_EA but without a WEAK_EXCEPTIONS variant)
-#define FPUD_ARITH3_EA(op)					\
-		uint16_t new_sw,save_cw,cw_masked=fpu.cw.allMasked();				\
-		__asm__ volatile (					\
-			"fnstcw		%1				\n"	\
-			"fldcw		%3				\n"	\
-			"fldt		%2				\n"	\
-			"fclex 						\n"	\
-			#op"						\n"	\
-			"fnstsw		%0				\n"	\
-			"fstpt		%2				\n"	\
-			"fldcw		%1				"	\
-			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[op1])	\
-			:	"m" (cw_masked)		\
-		);									\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
-
 // handles fprem,fprem1,fscale
 #define FPUD_REMAINDER(op)                                         \
     uint16_t new_sw, save_cw, cw_masked = fpu.cw.allMasked();      \
@@ -913,20 +686,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 			"fnstsw		%0				"	\
 			:	"=&am" (new_sw)				\
 			:	"m" (fpu.p_regs[op1]), "m" (fpu.p_regs[op2])	\
-		);									\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
-
-// handles fcom,fucom
-#define FPUD_COMPARE_EA(op)					\
-		uint16_t new_sw;						\
-		__asm__ volatile (					\
-			"fldt		%1				\n"	\
-			clx" 						\n"	\
-			#op" 						\n"	\
-			"fnstsw		%0				"	\
-			:	"=&am" (new_sw)				\
-			:	"m" (fpu.p_regs[op1])		\
 		);									\
 		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
 		         (fpu.sw & ~FPUStatusWord::conditionMask);
@@ -1006,36 +765,7 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 		FPU_FPOP();
 #endif
 
-// load math constants
-#define FPUD_LOAD_CONST(op)                             \
-        FPUControlWord save_cw;                         \
-        auto cw = fpu.cw.allMasked();                   \
-        if (FPU_ArchitectureType < FPU_ARCHTYPE_387)    \
-            cw.RC = FPUControlWord::RoundMode::Nearest; \
-        FPU_PREP_PUSH();                                \
-        __asm__ volatile (                              \
-            "fnstcw     %1                          \n" \
-            "fldcw      %2                          \n" \
-            clx"                                    \n" \
-            #op"                                    \n" \
-            "fstpt      %0                          \n" \
-            "fldcw      %1                          \n" \
-            : "=m" (fpu.p_regs[TOP]), "+m" (save_cw)    \
-            : "m" (cw)                                  \
-        );
-
 #endif
-
-static void FPU_FINIT(void) {
-	fpu.cw.init();
-	fpu.sw.init();
-    fpu.regvalid = {};
-    fpu.regvalid[8] = true;
-}
-
-static void FPU_FCLEX(void){
-	fpu.sw.clearExceptions();
-}
 
 static void FPU_FNOP(void){
 }
@@ -1043,73 +773,6 @@ static void FPU_FNOP(void){
 static void FPU_PREP_PUSH(void){
 	TOP = (TOP - 1) &7;
 	fpu.regvalid[TOP] = true;
-}
-
-static void FPU_FPOP(void){
-	fpu.regvalid[TOP] = false;
-	TOP = ((TOP+1)&7);
-}
-
-static void FPU_FLD_F32(PhysPt addr,Bitu store_to) {
-	fpu.p_regs[8].m1 = mem_readd(addr);
-	FPUD_LOAD(fld,DWORD,s)
-}
-
-static void FPU_FLD_F32_EA(PhysPt addr) {
-	fpu.p_regs[8].m1 = mem_readd(addr);
-	FPUD_LOAD_EA(fld,DWORD,s)
-}
-
-static void FPU_FLD_F64(PhysPt addr,Bitu store_to) {
-	fpu.p_regs[8].m1 = mem_readd(addr);
-	fpu.p_regs[8].m2 = mem_readd(addr+4);
-	FPUD_LOAD(fld,QWORD,l)
-}
-
-static void FPU_FLD_F64_EA(PhysPt addr) {
-	fpu.p_regs[8].m1 = mem_readd(addr);
-	fpu.p_regs[8].m2 = mem_readd(addr+4);
-	FPUD_LOAD_EA(fld,QWORD,l)
-}
-
-static void FPU_FLD_F80(PhysPt addr) {
-	fpu.p_regs[TOP].m1 = mem_readd(addr);
-	fpu.p_regs[TOP].m2 = mem_readd(addr+4);
-	fpu.p_regs[TOP].m3 = mem_readw(addr+8);
-	FPU_SET_C1(0);
-}
-
-static void FPU_FLD_I16(PhysPt addr,Bitu store_to) {
-	fpu.p_regs[8].m1 = (uint32_t)mem_readw(addr);
-	FPUD_LOAD(fild,WORD,s)
-}
-
-static void FPU_FLD_I16_EA(PhysPt addr) {
-	fpu.p_regs[8].m1 = (uint32_t)mem_readw(addr);
-	FPUD_LOAD_EA(fild,WORD,s)
-}
-
-static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
-	fpu.p_regs[8].m1 = mem_readd(addr);
-	FPUD_LOAD(fild,DWORD,l)
-}
-
-static void FPU_FLD_I32_EA(PhysPt addr) {
-	fpu.p_regs[8].m1 = mem_readd(addr);
-	FPUD_LOAD_EA(fild,DWORD,l)
-}
-
-static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
-	fpu.p_regs[8].m1 = mem_readd(addr);
-	fpu.p_regs[8].m2 = mem_readd(addr+4);
-	FPUD_LOAD(fild,QWORD,q)
-}
-
-static void FPU_FBLD(PhysPt addr,Bitu store_to) {
-	fpu.p_regs[8].m1 = mem_readd(addr);
-	fpu.p_regs[8].m2 = mem_readd(addr+4);
-	fpu.p_regs[8].m3 = mem_readw(addr+8);
-	FPUD_LOAD(fbld,TBYTE,)
 }
 
 static void FPU_FST_F32(PhysPt addr) {
@@ -1200,7 +863,7 @@ static void FPU_FADD(Bitu op1, Bitu op2){
 }
 
 static void FPU_FADD_EA(Bitu op1){
-	FPUD_ARITH1_EA(faddp)
+    FPU_FADD(op1, 8);
 }
 
 static void FPU_FDIV(Bitu op1, Bitu op2){
@@ -1208,7 +871,7 @@ static void FPU_FDIV(Bitu op1, Bitu op2){
 }
 
 static void FPU_FDIV_EA(Bitu op1){
-	FPUD_ARITH3_EA(fdivp)
+    FPU_FDIV(op1, 8);
 }
 
 static void FPU_FDIVR(Bitu op1, Bitu op2){
@@ -1216,7 +879,7 @@ static void FPU_FDIVR(Bitu op1, Bitu op2){
 }
 
 static void FPU_FDIVR_EA(Bitu op1){
-	FPUD_ARITH3_EA(fdivrp)
+    FPU_FDIVR(op1, 8);
 }
 
 static void FPU_FMUL(Bitu op1, Bitu op2){
@@ -1224,7 +887,7 @@ static void FPU_FMUL(Bitu op1, Bitu op2){
 }
 
 static void FPU_FMUL_EA(Bitu op1){
-	FPUD_ARITH1_EA(fmulp)
+    FPU_FMUL(op1, 8);
 }
 
 static void FPU_FSUB(Bitu op1, Bitu op2){
@@ -1232,7 +895,7 @@ static void FPU_FSUB(Bitu op1, Bitu op2){
 }
 
 static void FPU_FSUB_EA(Bitu op1){
-	FPUD_ARITH1_EA(fsubp)
+    FPU_FSUB(op1, 8);
 }
 
 static void FPU_FSUBR(Bitu op1, Bitu op2){
@@ -1240,7 +903,7 @@ static void FPU_FSUBR(Bitu op1, Bitu op2){
 }
 
 static void FPU_FSUBR_EA(Bitu op1){
-	FPUD_ARITH1_EA(fsubrp)
+    FPU_FSUBR(op1, 8);
 }
 
 static void FPU_FXCH(Bitu stv, Bitu other){
@@ -1372,8 +1035,7 @@ static inline void FPU_FUCOMI(Bitu st, Bitu other){
 }
 
 static void FPU_FCOM_EA(Bitu op1){
-	if (FPUD_286_FCOM_INF(op1,TOP)) return;
-	FPUD_COMPARE_EA(fcompp)
+    FPU_FCOM(op1, 8);
 }
 
 static void FPU_FUCOM(Bitu op1, Bitu op2){
@@ -1433,20 +1095,6 @@ static void FPU_FSTENV(PhysPt addr, bool op16){
 	fpu.cw = fpu.cw.allMasked();
 }
 
-static void FPU_FLDENV(PhysPt addr, bool op16){
-	uint16_t tag;
-	if (op16) {
-		fpu.cw = mem_readw(addr+0);
-		fpu.sw = mem_readw(addr+2);
-		tag    = mem_readw(addr+4);
-	} else { 
-		fpu.cw = static_cast<uint16_t>(mem_readd(addr+0));
-		fpu.sw = static_cast<uint16_t>(mem_readd(addr+4));
-		tag    = static_cast<uint16_t>(mem_readd(addr+8));
-	}
-	FPU_SetTag(tag);
-}
-
 static void FPU_FSAVE(PhysPt addr, bool op16){
 	FPU_FSTENV(addr, op16);
 	PhysPt start = op16 ? 14:28;
@@ -1459,58 +1107,11 @@ static void FPU_FSAVE(PhysPt addr, bool op16){
 	FPU_FINIT();
 }
 
-static void FPU_FRSTOR(PhysPt addr, bool op16){
-	FPU_FLDENV(addr, op16);
-	PhysPt start = op16 ? 14:28;
-	for(unsigned i=0;i<8;i++){
-		fpu.p_regs[STV(i)].m1 = mem_readd(addr+start);
-		fpu.p_regs[STV(i)].m2 = mem_readd(addr+start+4);
-		fpu.p_regs[STV(i)].m3 = mem_readw(addr+start+8);
-		start+=10;
-	}
-}
-
 
 static void FPU_FXTRACT(void) {
 	FPUD_XTRACT
 }
 
-static void FPU_FCHS(void){
-	FPUD_TRIG(fchs)
-}
-
-static void FPU_FABS(void){
-	FPUD_TRIG(fabs)
-}
-
 static void FPU_FTST(void){
 	FPUD_EXAMINE(ftst)
-}
-
-static void FPU_FLD1(void){
-	FPUD_LOAD_CONST(fld1)
-}
-
-static void FPU_FLDL2T(void){
-	FPUD_LOAD_CONST(fldl2t)
-}
-
-static void FPU_FLDL2E(void){
-	FPUD_LOAD_CONST(fldl2e)
-}
-
-static void FPU_FLDPI(void){
-	FPUD_LOAD_CONST(fldpi)
-}
-
-static void FPU_FLDLG2(void){
-	FPUD_LOAD_CONST(fldlg2)
-}
-
-static void FPU_FLDLN2(void){
-	FPUD_LOAD_CONST(fldln2)
-}
-
-static void FPU_FLDZ(void){
-	FPUD_LOAD_CONST(fldz)
 }

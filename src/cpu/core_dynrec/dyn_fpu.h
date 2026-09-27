@@ -44,10 +44,6 @@ static void FPU_FNSTCW(PhysPt addr){
 	mem_writew(addr,fpu.cw);
 }
 
-static void FPU_FFREE(Bitu st) {
-	fpu.regvalid[st] = false;
-}
-
 
 #if C_FPU_X86
 #include "../../fpu/fpu_instructions_x86.h"
@@ -304,12 +300,8 @@ static void dyn_fpu_esc1(){
 	} else {
 		switch(decode.modrm.reg){
 		case 0x00: /* FLD float*/
-			gen_call_function_raw(FPU_PREP_PUSH);
 			dyn_fill_ea(FC_OP1);
-			gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);
-			gen_shr_imm(FC_OP2,11); /* stack top is 3-bit value starting at bit 11 */
-			gen_and_imm(FC_OP2,7);
-			gen_call_function_RR(FPU_FLD_F32,FC_OP1,FC_OP2);
+			gen_call_function_R(FPU_FLD_F32,FC_OP1);
 			break;
 		case 0x01: /* UNKNOWN */
 			LOG(LOG_FPU,LOG_WARN)("ESC EA 1:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
@@ -454,12 +446,11 @@ static void dyn_fpu_esc3(){
 	} else {
 		switch(decode.modrm.reg){
 		case 0x00:	/* FILD */
-			gen_call_function_raw(FPU_PREP_PUSH);
 			dyn_fill_ea(FC_OP1); 
 			gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);
 			gen_shr_imm(FC_OP2,11); /* stack top is 3-bit value starting at bit 11 */
 			gen_and_imm(FC_OP2,7);
-			gen_call_function_RR(FPU_FLD_I32,FC_OP1,FC_OP2);
+			gen_call_function_R(FPU_FLD_I32,FC_OP1);
 			break;
 		case 0x01:	/* FISTTP */
 			LOG(LOG_FPU,LOG_WARN)("ESC 3 EA:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
@@ -474,7 +465,6 @@ static void dyn_fpu_esc3(){
 			gen_call_function_raw(FPU_FPOP);
 			break;
 		case 0x05:	/* FLD 80 Bits Real */
-			gen_call_function_raw(FPU_PREP_PUSH);
 			dyn_fill_ea(FC_ADDR); 
 			gen_call_function_R(FPU_FLD_F80,FC_ADDR);
 			break;
@@ -571,12 +561,8 @@ static void dyn_fpu_esc5(){
 	} else {
 		switch(decode.modrm.reg){
 		case 0x00:  /* FLD double real*/
-			gen_call_function_raw(FPU_PREP_PUSH);
 			dyn_fill_ea(FC_OP1); 
-			gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);
-			gen_shr_imm(FC_OP2,11); /* stack top is 3-bit value starting at bit 11 */
-			gen_and_imm(FC_OP2,7);
-			gen_call_function_RR(FPU_FLD_F64,FC_OP1,FC_OP2);
+			gen_call_function_R(FPU_FLD_F64,FC_OP1);
 			break;
 		case 0x01:  /* FISTTP longint*/
 			LOG(LOG_FPU,LOG_WARN)("ESC 5 EA:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
@@ -717,12 +703,8 @@ static void dyn_fpu_esc7(){
 	} else {
 		switch(decode.modrm.reg){
 		case 0x00:  /* FILD int16_t */
-			gen_call_function_raw(FPU_PREP_PUSH);
 			dyn_fill_ea(FC_OP1); 
-			gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);
-			gen_shr_imm(FC_OP2,11); /* stack top is 3-bit value starting at bit 11 */
-			gen_and_imm(FC_OP2,7);
-			gen_call_function_RR(FPU_FLD_I16,FC_OP1,FC_OP2);
+			gen_call_function_R(FPU_FLD_I16,FC_OP1);
 			break;
 		case 0x01:
 			LOG(LOG_FPU,LOG_WARN)("ESC 7 EA:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
@@ -737,20 +719,12 @@ static void dyn_fpu_esc7(){
 			gen_call_function_raw(FPU_FPOP);
 			break;
 		case 0x04:   /* FBLD packed BCD */
-			gen_call_function_raw(FPU_PREP_PUSH);
 			dyn_fill_ea(FC_OP1);
-			gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);
-			gen_shr_imm(FC_OP2,11); /* stack top is 3-bit value starting at bit 11 */
-			gen_and_imm(FC_OP2,7);
-			gen_call_function_RR(FPU_FBLD,FC_OP1,FC_OP2);
+			gen_call_function_R(FPU_FBLD,FC_OP1);
 			break;
 		case 0x05:  /* FILD int64_t */
-			gen_call_function_raw(FPU_PREP_PUSH);
 			dyn_fill_ea(FC_OP1);
-			gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);
-			gen_shr_imm(FC_OP2,11); /* stack top is 3-bit value starting at bit 11 */
-			gen_and_imm(FC_OP2,7);
-			gen_call_function_RR(FPU_FLD_I64,FC_OP1,FC_OP2);
+			gen_call_function_R(FPU_FLD_I64,FC_OP1);
 			break;
 		case 0x06:	/* FBSTP packed BCD */
 			dyn_fill_ea(FC_ADDR); 
