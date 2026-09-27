@@ -95,34 +95,6 @@ static void FPU_ST80(PhysPt addr,Bitu reg) {
     mem_writew(addr+8ul,fpu.regs_80[reg].raw.h);
 }
 
-static void FPU_FST_F32(PhysPt addr) {
-    FPU_Reg_32 result;
-    result.v = static_cast<float>(fpu.regs_80[TOP].v);
-	mem_writed(addr,result.raw);
-}
-
-static void FPU_FST_F64(PhysPt addr) {
-    FPU_Reg_64 result;
-    result.v = static_cast<double>(fpu.regs_80[TOP].v);
-	mem_writeq(addr,result.raw);
-}
-
-static void FPU_FST_F80(PhysPt addr) {
-	FPU_ST80(addr,TOP);
-}
-
-static void FPU_FST_I16(PhysPt addr) {
-	mem_writew(addr,(uint16_t)static_cast<int16_t>(FROUND(fpu.regs_80[TOP].v)));
-}
-
-static void FPU_FST_I32(PhysPt addr) {
-	mem_writed(addr,(uint32_t)static_cast<int32_t>(FROUND(fpu.regs_80[TOP].v)));
-}
-
-static void FPU_FST_I64(PhysPt addr) {
-	mem_writeq(addr,(uint64_t)static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v)));
-}
-
 // WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
 static void FPU_FSTT_I16(PhysPt addr) {
 	mem_writew(addr,(uint16_t)static_cast<int16_t>(fpu.regs_80[TOP].v));
@@ -139,34 +111,6 @@ static void FPU_FSTT_I32(PhysPt addr) {
 static void FPU_FSTT_I64(PhysPt addr) {
 	mem_writeq(addr,(uint64_t)static_cast<int64_t>(fpu.regs_80[TOP].v));
 	FPU_FPOP();
-}
-
-static void FPU_FBST(PhysPt addr) {
-	FPU_Reg_80 val = fpu.regs_80[TOP];
-	bool sign = false;
-	if(fpu.regs_80[TOP].raw.h & 0x8000u) { //sign
-		sign=true;
-		val.v=-val.v;
-	}
-	//numbers from back to front
-	long double temp=val.v;
-	Bitu p;
-	for(Bitu i=0;i<9;i++){
-		val.v=temp;
-		temp = static_cast<long double>(static_cast<int64_t>(floor(val.v/10.0l)));
-		p = static_cast<Bitu>(val.v - 10.0l*temp);  
-		val.v=temp;
-		temp = static_cast<long double>(static_cast<int64_t>(floor(val.v/10.0l)));
-		p |= (static_cast<Bitu>(val.v - 10.0l*temp)<<4);
-
-		mem_writeb(addr+i,p);
-	}
-	val.v=temp;
-	temp = static_cast<long double>(static_cast<int64_t>(floor(val.v/10.0)));
-	p = static_cast<Bitu>(val.v - 10.0l*temp);
-	if(sign)
-		p|=0x80;
-	mem_writeb(addr+9,p);
 }
 
 #if defined(WIN32) && defined(_MSC_VER) && (_MSC_VER < 1910)
@@ -281,11 +225,6 @@ static void FPU_FXCH(Bitu st, Bitu other){
 	FPU_Reg_80 reg80 = fpu.regs_80[other];
 	fpu.regs_80[other] = fpu.regs_80[st];
 	fpu.regs_80[st] = reg80;
-}
-
-static void FPU_FST(Bitu st, Bitu other){
-	fpu.regs_80[other] = fpu.regs_80[st];
-	fpu.regvalid[other] = fpu.regvalid[st];
 }
 
 static inline void FPU_FCMOV(Bitu st, Bitu other){
