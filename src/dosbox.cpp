@@ -2820,6 +2820,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode.\n"
                     "This parameter is also changeable from the builtin CGASNOW command in CGA mode.");
 
+    const char* compositeopts[] = { "default", "auto", "on", "off", nullptr };
+    Pstring = secprop->Add_string("composite",Property::Changeable::Always,"default");
+    Pstring->Set_values(compositeopts);
+    Pstring->Set_help("CGA/PCjr composite output, the setting that the CGA Composite hotkey (Ctrl+F8) cycles through.\n"
+                    "  default: As chosen by machine= (on for cga_composite and pcjr_composite, off for cga_rgb, else auto).\n"
+                    "  auto:    Composite when a program selects 640x200 graphics with the color burst enabled.\n"
+                    "  on, off: Always or never composite.\n"
+                    "Can be changed while running, e.g. CONFIG -set composite=on. Has no effect for machine=cga_mono or non-CGA machines.");
+
     /* Default changed to 0x04 for "Blues Brothers" at Allofich's request [https://github.com/joncampbell123/dosbox-x/issues/1273] */
     Phex = secprop->Add_hex("vga 3da undefined bits",Property::Changeable::WhenIdle,0x04);
     Phex->Set_help("VGA status port 3BA/3DAh only defines bits 0 and 3. This setting allows you to assign a bit pattern to the undefined bits.\n"

@@ -803,6 +803,8 @@ void VGA_Reset(Section*) {
 	}
 
 	enableCGASnow = section->Get_bool("cgasnow");
+	void CGA_ApplyCompositeSetting(bool apply);
+	CGA_ApplyCompositeSetting(false);
 	vesa_modelist_cap = section->Get_int("vesa modelist cap");
 	vesa_mode_width_cap = section->Get_int("vesa modelist width limit");
 	vesa_mode_height_cap = section->Get_int("vesa modelist height limit");
