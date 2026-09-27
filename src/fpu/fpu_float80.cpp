@@ -1,6 +1,8 @@
 #include "dosbox.h"
 #if C_FPU
 
+#include <limits>
+
 #include "fpu.h"
 #include "fpu_float80.h"
 
@@ -90,33 +92,52 @@ void convertFromIEEE(FPU_Reg_80& result,
 
 } // namespace
 
-DoubleConversionResult convertToDouble(const FPU_Reg_80& val)
-{
-    constexpr auto double_exponent_bias = 1023;
-    constexpr auto double_fraction_mask = 0x000F'FFFF'FFFF'FFFFULL;
-    constexpr auto double_quiet_nan_bit = 0x0008'0000'0000'0000ULL;
-    constexpr auto extended_integer_bit = 0x8000'0000'0000'0000ULL;
+namespace {
 
-    DoubleConversionResult conversion = {};
-    FPU_Reg result = {};
+struct IEEEFormat {
+    unsigned int fraction_bits;
+    unsigned int exponent_bits;
+    int exponent_bias;
+    uint16_t max_exponent;
+};
+
+struct IEEEConversionResult {
+    uint64_t raw = 0;
+    uint16_t exceptions = 0;
+    bool rounded_up = false;
+};
+
+IEEEConversionResult convertToIEEE(const FPU_Reg_80& val, const IEEEFormat& format)
+{
+    constexpr uint64_t extended_integer_bit = 0x8000'0000'0000'0000ULL;
+
+    const auto fraction_mask = (1ULL << format.fraction_bits) - 1;
+    const auto quiet_nan_bit = 1ULL << (format.fraction_bits - 1);
+    const auto sign_shift = format.fraction_bits + format.exponent_bits;
     const auto sign = static_cast<bool>(val.f.sign);
     const auto exponent80 = val.f.exponent;
     auto significand = val.f.mantissa;
-    result.f.sign = sign;
+    IEEEConversionResult conversion = {};
+
+    const auto set_result = [&conversion, fraction_mask, sign, sign_shift,
+                             fraction_bits = format.fraction_bits](uint16_t exponent,
+                                                                   uint64_t fraction) {
+        conversion.raw = (static_cast<uint64_t>(sign) << sign_shift) |
+                         (static_cast<uint64_t>(exponent) << fraction_bits) |
+                         (fraction & fraction_mask);
+    };
 
     if (exponent80 == 0x7FFFU) {
-        result.f.exponent = 0x7FFU;
-        if (significand != extended_integer_bit) {
-            // Preserve the payload where possible, and always return a quiet NaN.
-            result.f.mantissa = ((significand >> 11) & double_fraction_mask) |
-                                double_quiet_nan_bit;
-        }
-        conversion.value = result.d;
+        const auto fraction = significand == extended_integer_bit
+                                      ? 0
+                                      : ((significand >> (63U - format.fraction_bits)) |
+                                         quiet_nan_bit);
+        set_result(format.max_exponent, fraction);
         return conversion;
     }
 
     if (significand == 0) {
-        conversion.value = result.d;
+        set_result(0, 0);
         return conversion;
     }
 
@@ -153,50 +174,188 @@ DoubleConversionResult convertToDouble(const FPU_Reg_80& val)
             else if (fpu.cw.RC == FPUControlWord::RoundMode::Up)
                 round_up = !sign;
         }
+        conversion.rounded_up = round_up;
         return truncated + static_cast<uint64_t>(round_up);
     };
 
-    const auto overflow = [&conversion, &result, sign, double_fraction_mask]() {
+    const auto overflow = [&conversion, &set_result, fraction_mask, format, sign]() {
         const auto round_mode = static_cast<FPUControlWord::RoundMode>(
                 static_cast<unsigned>(fpu.cw.RC));
         const auto to_infinity = round_mode == FPUControlWord::RoundMode::Nearest ||
                                  (round_mode == FPUControlWord::RoundMode::Up && !sign) ||
                                  (round_mode == FPUControlWord::RoundMode::Down && sign);
-        result.f.exponent = to_infinity ? 0x7FFU : 0x7FEU;
-        result.f.mantissa = to_infinity ? 0 : double_fraction_mask;
+        set_result(to_infinity ? format.max_exponent
+                               : static_cast<uint16_t>(format.max_exponent - 1U),
+                   to_infinity ? 0 : fraction_mask);
         conversion.exceptions |= FPU_EX_OVERFLOW | FPU_EX_PRECISION;
-        conversion.value = result.d;
         return conversion;
     };
 
-    if (exponent > 1023)
+    const auto max_normal_exponent = static_cast<int>(format.max_exponent - 1U) -
+                                     format.exponent_bias;
+    const auto min_normal_exponent = 1 - format.exponent_bias;
+    if (exponent > max_normal_exponent)
         return overflow();
 
-    if (exponent >= -1022) {
-        auto rounded = round_right(significand, 11);
-        if (rounded == (1ULL << 53)) {
+    if (exponent >= min_normal_exponent) {
+        auto rounded = round_right(significand, 63U - format.fraction_bits);
+        if (rounded == (1ULL << (format.fraction_bits + 1U))) {
             rounded >>= 1;
-            if (++exponent > 1023)
+            if (++exponent > max_normal_exponent)
                 return overflow();
         }
-        result.f.exponent = exponent + double_exponent_bias;
-        result.f.mantissa = rounded & double_fraction_mask;
-        conversion.value = result.d;
+        set_result(static_cast<uint16_t>(exponent + format.exponent_bias), rounded);
         return conversion;
     }
 
-    // A subnormal double is an integer multiple of 2^-1074.
-    const auto fraction = round_right(significand,
-                                      static_cast<unsigned int>(-exponent - 1011));
-    if (fraction == (1ULL << 52)) {
-        result.f.exponent = 1;
+    const auto fraction = round_right(
+            significand,
+            static_cast<unsigned int>(64 - format.exponent_bias -
+                                      static_cast<int>(format.fraction_bits) - exponent));
+    if (fraction == (1ULL << format.fraction_bits)) {
+        set_result(1, 0);
     } else {
-        result.f.mantissa = fraction;
+        set_result(0, fraction);
         if (conversion.exceptions & FPU_EX_PRECISION)
             conversion.exceptions |= FPU_EX_UNDERFLOW;
     }
-    conversion.value = result.d;
     return conversion;
+}
+
+} // namespace
+
+F32ConversionResult convertToF32(const FPU_Reg_80& val)
+{
+    const auto conversion = convertToIEEE(val, {23, 8, 127, 0xFFU});
+    F32ConversionResult result = {};
+    result.value.raw = static_cast<uint32_t>(conversion.raw);
+    result.exceptions = conversion.exceptions;
+    result.rounded_up = conversion.rounded_up;
+    return result;
+}
+
+F64ConversionResult convertToF64(const FPU_Reg_80& val)
+{
+    const auto conversion = convertToIEEE(val, {52, 11, 1023, 0x7FFU});
+    F64ConversionResult result = {};
+    result.value.raw = conversion.raw;
+    result.exceptions = conversion.exceptions;
+    result.rounded_up = conversion.rounded_up;
+    return result;
+}
+
+namespace {
+
+IntegerConversionResult convertToInteger(const FPU_Reg_80& val,
+                                         unsigned int target_bits)
+{
+    constexpr uint64_t extended_integer_bit = 0x8000'0000'0000'0000ULL;
+
+    IntegerConversionResult conversion = {};
+    const auto sign = static_cast<bool>(val.f.sign);
+    const auto exponent80 = val.f.exponent;
+    auto significand = val.f.mantissa;
+    const auto target_min = target_bits == 63
+                                    ? std::numeric_limits<int64_t>::min()
+                                    : -(1LL << target_bits);
+
+    const auto invalid = [&conversion, target_min]() {
+        conversion.value = target_min;
+        conversion.exceptions = FPU_EX_INVALID;
+        conversion.rounded_up = false;
+        return conversion;
+    };
+
+    if (exponent80 == 0x7FFFU)
+        return invalid();
+
+    if (significand == 0)
+        return conversion;
+
+    // An 80-bit subnormal uses an exponent of 1 - bias rather than -bias.
+    int exponent = static_cast<int>(exponent80 ? exponent80 : 1) -
+                   static_cast<int>(ExpBias);
+    while (!(significand & extended_integer_bit)) {
+        significand <<= 1;
+        --exponent;
+    }
+
+    if (exponent > static_cast<int>(target_bits) ||
+        (exponent == static_cast<int>(target_bits) &&
+         (significand != extended_integer_bit || !sign))) {
+        return invalid();
+    }
+
+    const auto shift = exponent < static_cast<int>(target_bits)
+                               ? static_cast<unsigned int>(63 - exponent)
+                               : 0U;
+    auto magnitude = shift < 64 ? significand >> shift : 0;
+    bool inexact = false;
+    bool round_up = false;
+
+    if (shift != 0) {
+        if (shift < 64) {
+            const auto half = 1ULL << (shift - 1);
+            const auto remainder = significand & ((half << 1) - 1);
+            inexact = remainder != 0;
+            if (fpu.cw.RC == FPUControlWord::RoundMode::Nearest) {
+                round_up = remainder > half ||
+                           (remainder == half && (magnitude & 1));
+            }
+        } else {
+            inexact = true;
+            if (fpu.cw.RC == FPUControlWord::RoundMode::Nearest && shift == 64)
+                round_up = significand > extended_integer_bit;
+        }
+    }
+
+    if (inexact) {
+        if (fpu.cw.RC == FPUControlWord::RoundMode::Down)
+            round_up = sign;
+        else if (fpu.cw.RC == FPUControlWord::RoundMode::Up)
+            round_up = !sign;
+        magnitude += static_cast<uint64_t>(round_up);
+    }
+
+    const auto target_limit = 1ULL << target_bits;
+    if (magnitude > target_limit || (magnitude == target_limit && !sign)) {
+        return invalid();
+    }
+
+    conversion.rounded_up = round_up;
+    if (inexact)
+        conversion.exceptions = FPU_EX_PRECISION;
+
+    if (sign) {
+        conversion.value = magnitude == target_limit
+                                   ? target_min
+                                   : -static_cast<int64_t>(magnitude);
+    } else {
+        conversion.value = static_cast<int64_t>(magnitude);
+    }
+    return conversion;
+}
+
+} // namespace
+
+IntegerConversionResult convertToI16(const FPU_Reg_80& val)
+{
+    return convertToInteger(val, 15);
+}
+
+IntegerConversionResult convertToI32(const FPU_Reg_80& val)
+{
+    return convertToInteger(val, 31);
+}
+
+IntegerConversionResult convertToI64(const FPU_Reg_80& val)
+{
+    return convertToInteger(val, 63);
+}
+
+double convertToDouble(const FPU_Reg_80& val)
+{
+    return convertToF64(val).value.v;
 }
 
 void convertFrom(FPU_Reg_80& result, int64_t value)

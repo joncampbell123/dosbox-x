@@ -775,40 +775,6 @@ static void FPU_PREP_PUSH(void){
 	fpu.regvalid[TOP] = true;
 }
 
-static void FPU_FST_F32(PhysPt addr) {
-	FPUD_STORE(fstp,DWORD,s)
-	mem_writed(addr,fpu.p_regs[8].m1);
-}
-
-static void FPU_FST_F64(PhysPt addr) {
-	FPUD_STORE(fstp,QWORD,l)
-	mem_writed(addr,fpu.p_regs[8].m1);
-	mem_writed(addr+4,fpu.p_regs[8].m2);
-}
-
-static void FPU_FST_F80(PhysPt addr) {
-	mem_writed(addr,fpu.p_regs[TOP].m1);
-	mem_writed(addr+4,fpu.p_regs[TOP].m2);
-	mem_writew(addr+8,fpu.p_regs[TOP].m3);
-	FPU_SET_C1(0);
-}
-
-static void FPU_FST_I16(PhysPt addr) {
-	FPUD_STORE(fistp,WORD,s)
-	mem_writew(addr,(uint16_t)fpu.p_regs[8].m1);
-}
-
-static void FPU_FST_I32(PhysPt addr) {
-	FPUD_STORE(fistp,DWORD,l)
-	mem_writed(addr,fpu.p_regs[8].m1);
-}
-
-static void FPU_FST_I64(PhysPt addr) {
-	FPUD_STORE(fistp,QWORD,q)
-	mem_writed(addr,fpu.p_regs[8].m1);
-	mem_writed(addr+4,fpu.p_regs[8].m2);
-}
-
 static void FPU_FSTT_I16(PhysPt addr) {
     FPUD_STORE(fisttp, WORD, s)
     mem_writew(addr, (uint16_t)fpu.p_regs[8].m1);
@@ -823,13 +789,6 @@ static void FPU_FSTT_I64(PhysPt addr) {
     FPUD_STORE(fisttp, QWORD, q)
     mem_writed(addr, fpu.p_regs[8].m1);
     mem_writed(addr + 4, fpu.p_regs[8].m2);
-}
-
-static void FPU_FBST(PhysPt addr) {
-	FPUD_STORE(fbstp,TBYTE,)
-	mem_writed(addr,fpu.p_regs[8].m1);
-	mem_writed(addr+4,fpu.p_regs[8].m2);
-	mem_writew(addr+8,fpu.p_regs[8].m3);
 }
 
 
@@ -918,16 +877,6 @@ static void FPU_FXCH(Bitu stv, Bitu other){
 	fpu.p_regs[stv].m1 = m1s;
 	fpu.p_regs[stv].m2 = m2s;
 	fpu.p_regs[stv].m3 = m3s;
-
-	FPU_SET_C1(0);
-}
-
-static void FPU_FST(Bitu stv, Bitu other){
-	fpu.regvalid[other] = fpu.regvalid[stv];
-
-	fpu.p_regs[other].m1 = fpu.p_regs[stv].m1;
-	fpu.p_regs[other].m2 = fpu.p_regs[stv].m2;
-	fpu.p_regs[other].m3 = fpu.p_regs[stv].m3;
 
 	FPU_SET_C1(0);
 }
