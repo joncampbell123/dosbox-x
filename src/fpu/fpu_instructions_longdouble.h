@@ -227,20 +227,6 @@ static void FPU_FXCH(Bitu st, Bitu other){
 	fpu.regs_80[st] = reg80;
 }
 
-static inline void FPU_FCMOV(Bitu st, Bitu other){
-	fpu.regs_80[st] = fpu.regs_80[other];
-	fpu.regvalid[st] = fpu.regvalid[other];
-}
-
-static inline void FPU_FCMOV_B(Bitu st, Bitu other)   { if (TFLG_B)   FPU_FCMOV(st, other); }
-static inline void FPU_FCMOV_E(Bitu st, Bitu other)   { if (TFLG_Z)   FPU_FCMOV(st, other); }
-static inline void FPU_FCMOV_BE(Bitu st, Bitu other)  { if (TFLG_BE)  FPU_FCMOV(st, other); }
-static inline void FPU_FCMOV_U(Bitu st, Bitu other)   { if (TFLG_P)   FPU_FCMOV(st, other); }
-static inline void FPU_FCMOV_NB(Bitu st, Bitu other)  { if (TFLG_NB)  FPU_FCMOV(st, other); }
-static inline void FPU_FCMOV_NE(Bitu st, Bitu other)  { if (TFLG_NZ)  FPU_FCMOV(st, other); }
-static inline void FPU_FCMOV_NBE(Bitu st, Bitu other) { if (TFLG_NBE) FPU_FCMOV(st, other); }
-static inline void FPU_FCMOV_NU(Bitu st, Bitu other)  { if (TFLG_NP)  FPU_FCMOV(st, other); }
-
 static void FPU_FCOM(Bitu st, Bitu other){
 	/* HACK: If emulating a 286 processor we want the guest to think it's talking to a 287.
 	 *       For more info, read [http://www.intel-assembler.it/portale/5/cpu-identification/asm-source-to-find-intel-cpu.asp]. */

@@ -25,11 +25,11 @@
 #include <string>
 
 #include "cpu.h"
+#include "cpu/lazyflags.h"
 #include "fpu.h"
 #include "fpu_float80.h"
 #include "logging.h"
 #include "mem.h"
-#include "paging.h"
 
 FPU fpu;
 
@@ -180,6 +180,15 @@ void FPU_FCLEX()
 {
 	fpu.sw.clearExceptions();
 }
+
+void FPU_FCMOV_B  (Bitu dst, Bitu src) { if (TFLG_B)   FPU_FST(src, dst); }
+void FPU_FCMOV_BE (Bitu dst, Bitu src) { if (TFLG_BE)  FPU_FST(src, dst); }
+void FPU_FCMOV_E  (Bitu dst, Bitu src) { if (TFLG_Z)   FPU_FST(src, dst); }
+void FPU_FCMOV_NB (Bitu dst, Bitu src) { if (TFLG_NB)  FPU_FST(src, dst); }
+void FPU_FCMOV_NBE(Bitu dst, Bitu src) { if (TFLG_NBE) FPU_FST(src, dst); }
+void FPU_FCMOV_NE (Bitu dst, Bitu src) { if (TFLG_NZ)  FPU_FST(src, dst); }
+void FPU_FCMOV_NU (Bitu dst, Bitu src) { if (TFLG_NP)  FPU_FST(src, dst); }
+void FPU_FCMOV_U  (Bitu dst, Bitu src) { if (TFLG_P)   FPU_FST(src, dst); }
 
 void FPU_FFREE(int st)
 {
