@@ -160,7 +160,8 @@ struct FPUStatusWord
 	enum
 	{
 		conditionMask = 0x4700,
-		conditionAndExceptionMask = 0x47bf
+		conditionAndExceptionMask = 0x47bf,
+        exceptionMask = 0xff
 	};
 	std::string to_string() const;
 };

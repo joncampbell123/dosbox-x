@@ -82,33 +82,6 @@ static void FPU_F2XM1(void){
 	return;
 }
 
-#if defined(WIN32) && defined(_MSC_VER) && (_MSC_VER < 1910)
-/* std::isinf is C99 standard how could you NOT have this VS2008??? */
-# include <math.h>
-/* the purpose of this macro is to test for -/+inf. NaN is not inf. If finite or NaN it's not infinity */
-# define isinf(x) (!(_finite(x) || _isnan(x)))
-# define isdenormal(x) (_fpclass(x) == _FPCLASS_ND || _fpclass(x) == _FPCLASS_PD)
-#else
-# include <math.h>
-# include <cmath>
-# define isdenormal(x) (!std::isnormal(x))
-#endif
-
-static void FPU_FADD(Bitu op1, Bitu op2){
-	// HACK: Set the denormal flag according to whether the source or final result is a denormalized number.
-	//       This is vital if we don't want certain DOS programs to mis-detect our FPU emulation as an IIT clone chip when cputype == 286
-	bool was_not_normal = isdenormal(fpu.regs[op1].d);
-	fpu.regs[op1].d+=fpu.regs[op2].d;
-	FPU_SET_D(was_not_normal || isdenormal(fpu.regs[op1].d) || isdenormal(fpu.regs[op2].d));
-	fpu.use80[op1] = false; // we used the less precise version, drop the 80-bit precision
-	//flags and such :)
-	return;
-}
-
-static INLINE void FPU_FADD_EA(Bitu op1){
-	FPU_FADD(op1,8);
-}
-
 static void FPU_FCOS(void){
 	//fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
 	//fpu.regs[TOP].d = cos(fpu.regs[TOP].d);

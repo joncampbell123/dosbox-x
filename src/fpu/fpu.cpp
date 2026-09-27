@@ -30,14 +30,33 @@
 #include "fpu_float80.h"
 #include "logging.h"
 #include "mem.h"
+#if C_FPU_X86
+#include "fpu_x86_assembly.h"
+#endif
 
 FPU fpu;
 
 constexpr uint64_t QNaN = 0xFFF8'0000'0000'0000;
 
-void fpu_RaiseException()
+void fpu_CheckException()
 {
     // TODO
+}
+
+static void fesetsw()
+{
+    const auto exceptions = std::fetestexcept(FE_ALL_EXCEPT);
+
+    if (exceptions & FE_INVALID)
+        fpu.sw.IE = 1;
+    if (exceptions & FE_DIVBYZERO)
+        fpu.sw.ZE = 1;
+    if (exceptions & FE_OVERFLOW)
+        fpu.sw.OE = 1;
+    if (exceptions & FE_UNDERFLOW)
+        fpu.sw.UE = 1;
+    if (exceptions & FE_INEXACT)
+        fpu.sw.PE = 1;
 }
 
 bool fpu_StackValid(int pos)
@@ -46,13 +65,47 @@ bool fpu_StackValid(int pos)
     fpu.sw.IE = 1;
     fpu.sw.SF = 1;
     fpu.sw.C1 = 0;
-    fpu_RaiseException();
+    fpu_CheckException();
     fpu.regvalid[pos] = true;
     fpu.regs_80[pos].raw = float80::QNaN;
 #ifndef HAS_LONG_DOUBLE
     fpu.regs[pos].ll = QNaN;
 #endif
     return false;
+}
+
+void fpu_CheckInputs(int op1, int op2)
+{
+    fpu_StackValid(op2);
+    fpu_StackValid(op1);
+
+#ifdef HAS_LONG_DOUBLE
+    if (IsSNaN(fpu.regs_80[op1]) || IsSNaN(fpu.regs_80[op2])) {
+        fpu.sw.IE = 1;
+        fpu_CheckException();
+    }
+    if (IsSubnormal(fpu.regs_80[op1]) || IsSubnormal(fpu.regs_80[op2])) {
+        fpu.sw.DE = 1;
+        fpu_CheckException();
+    }
+#else
+    const auto is_signaling_nan = [](const int op) {
+        return fpu.use80[op] ? IsSNaN(fpu.regs_80[op]) : IsSNaN(fpu.regs[op]);
+    };
+    const auto is_subnormal = [](const int op) {
+        return fpu.use80[op] ? IsSubnormal(fpu.regs_80[op]) :
+                               IsSubnormal(fpu.regs[op]);
+    };
+
+    if (is_signaling_nan(op1) || is_signaling_nan(op2)) {
+        fpu.sw.IE = 1;
+        fpu_CheckException();
+    }
+    if (is_subnormal(op1) || is_subnormal(op2)) {
+        fpu.sw.DE = 1;
+        fpu_CheckException();
+    }
+#endif
 }
 
 void fpu_Push(const FPU_Reg_80& input)
@@ -64,7 +117,7 @@ void fpu_Push(const FPU_Reg_80& input)
         fpu.sw.IE = 1;
         fpu.sw.SF = 1;
         fpu.sw.C1 = 1;
-        fpu_RaiseException();
+        fpu_CheckException();
         val.raw = float80::QNaN;
     }
     fpu.regs_80[TOP] = val;
@@ -79,10 +132,10 @@ static void fpu_RaiseLoadExceptions(bool denormal, bool signaling_nan)
 {
     if (denormal) {
         fpu.sw.DE = 1;
-        fpu_RaiseException();
+        fpu_CheckException();
     } else if (signaling_nan) {
         fpu.sw.IE = 1;
-        fpu_RaiseException();
+        fpu_CheckException();
     }
 }
 
@@ -124,6 +177,30 @@ void FPU_FABS()
 #endif
         fpu.sw.C1 = 0;
     }
+}
+
+void FPU_FADD(int op1, int op2)
+{
+    fpu_CheckInputs(op1, op2);
+
+#if C_FPU_X86
+	FPUD_ARITH1(faddp);
+#else
+    std::feclearexcept(FE_ALL_EXCEPT);
+ #ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[op1].v += fpu.regs_80[op2].v;
+ #else
+    fpu.use80[op1] = false;
+    fpu.regs[op1].d += fpu.regs[op2].d;
+ #endif
+    fesetsw();
+#endif
+    fpu_CheckException();
+}
+
+void FPU_FADD_EA(int op1)
+{
+    FPU_FADD(op1, 8);
 }
 
 void FPU_FBLD(PhysPt addr)
@@ -454,7 +531,7 @@ void FPU_FST_F32(PhysPt addr)
 
     if (conversion.exceptions) {
         FPU_SetException(conversion.exceptions);
-        fpu_RaiseException();
+        fpu_CheckException();
     }
 
     mem_writed(addr, result.raw);
@@ -483,7 +560,7 @@ void FPU_FST_F64(PhysPt addr)
 
     if (conversion.exceptions) {
         FPU_SetException(conversion.exceptions);
-        fpu_RaiseException();
+        fpu_CheckException();
     }
 
     mem_writeq(addr, result.raw);
@@ -534,7 +611,7 @@ void FPU_FST_I64(PhysPt addr)
 
     if (conversion.exceptions) {
         FPU_SetException(conversion.exceptions);
-        fpu_RaiseException();
+        fpu_CheckException();
     }
 
     mem_writeq(addr, static_cast<uint64_t>(conversion.value));
@@ -550,7 +627,7 @@ void FPU_FST_I16(PhysPt addr)
 
     if (conversion.exceptions) {
         FPU_SetException(conversion.exceptions);
-        fpu_RaiseException();
+        fpu_CheckException();
     }
 
     mem_writew(addr, static_cast<uint16_t>(conversion.value));
@@ -566,7 +643,7 @@ void FPU_FST_I32(PhysPt addr)
 
     if (conversion.exceptions) {
         FPU_SetException(conversion.exceptions);
-        fpu_RaiseException();
+        fpu_CheckException();
     }
 
     mem_writed(addr, static_cast<uint32_t>(conversion.value));
@@ -598,7 +675,7 @@ void FPU_FBST(PhysPt addr)
     fpu.sw.C1 = rounded_up;
     if (exceptions) {
         FPU_SetException(exceptions);
-        fpu_RaiseException();
+        fpu_CheckException();
     }
 
     if (exceptions & FPU_EX_INVALID) {
