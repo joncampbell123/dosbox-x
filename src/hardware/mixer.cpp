@@ -1079,9 +1079,20 @@ void MAPPER_MuteAWE(bool pressed) {
     if (!pressed) return;
     MixerChannel *chan = MIXER_FindChannel("AWE");
     if (!chan) return;
+    static bool muted = false;
+    static float saved_l = 1.0f;
+    static float saved_r = 1.0f;
     chan->FillUp();
-    chan->Enable(!chan->enabled);
-    LOG(LOG_MISC,LOG_NORMAL)("EMU8000: AWE mixer %s", chan->enabled ? "unmute" : "mute");
+    if (!muted) {
+        saved_l = chan->volmain[0];
+        saved_r = chan->volmain[1];
+        chan->SetVolume(0.0f, 0.0f);
+        muted = true;
+    } else {
+        chan->SetVolume(saved_l, saved_r);
+        muted = false;
+    }
+    LOG(LOG_MISC,LOG_NORMAL)("EMU8000: AWE mixer %s", muted ? "mute" : "unmute");
 }
 #endif
 
@@ -1101,7 +1112,7 @@ void MIXER_Controls_Init() {
     item->set_text("Decrease recording volume");
 
 #if C_DEBUG
-    MAPPER_AddHandler(MAPPER_MuteAWE,MK_a,MMODHOST,"muteawe","Mute AWE",&item);
+    MAPPER_AddHandler(MAPPER_MuteAWE,MK_a,MMOD3,"muteawe","Mute AWE",&item);
     item->set_text("Mute AWE");
 #endif
 }

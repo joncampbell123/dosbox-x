@@ -22,7 +22,7 @@
 #define EMU8K_RAM_MEM_START     0x200000
 #define EMU8K_FM_MEM_ADDRESS    0xFFFFE0
 #define EMU8K_LFOCHORUS_SIZE    0x4000
-#define EMU8K_MAX_REFL_SIZE     7744
+#define EMU8K_MAX_REFL_SIZE     8228
 
 typedef struct emu8k_mem_internal_t {
     union {
@@ -86,11 +86,14 @@ typedef struct emu8k_reverb_eng_t {
     int16_t link_return_amp;
     int8_t  link_return_type;
     uint8_t refl_in_amp;
+    uint8_t refl_in_amp_r;
     emu8k_reverb_combfilter_t reflections[6];
+    emu8k_reverb_combfilter_t reflections_r[6];
     emu8k_reverb_combfilter_t allpass[8];
     emu8k_reverb_combfilter_t tailL;
     emu8k_reverb_combfilter_t tailR;
     emu8k_reverb_combfilter_t damper;
+    emu8k_reverb_combfilter_t damper_r;
 } emu8k_reverb_eng_t;
 
 typedef struct emu8k_slide_t {
@@ -121,6 +124,8 @@ typedef struct emu8k_voice_t {
         };
     };
     emu8k_slide_t volumeslide;
+    emu8k_slide_t pitchslide;
+    emu8k_slide_t filterslide;
     union {
         uint32_t vtft;
         struct {
@@ -314,13 +319,20 @@ typedef struct emu8k_t {
     int32_t            chorus_in_buffer[EMU8K_MIXBUF];
     emu8k_reverb_eng_t reverb_engine;
     int32_t            reverb_in_buffer[EMU8K_MIXBUF];
+    float              eq_bass;
+    float              eq_treble;
+    float              eq_bz[2];
+    float              eq_tz[2];
+    uint16_t           eq_i3_11, eq_i3_13, eq_i3_1b;
+    uint16_t           eq_i4_01, eq_i4_07, eq_i4_0b, eq_i4_0d;
+    uint16_t           eq_i4_11, eq_i4_17, eq_i4_19;
 
     int     pos;
     int32_t buffer[EMU8K_MIXBUF * 2];
 
     uint16_t addr;
-    uint16_t dmareadbit;
-    uint16_t dmawritebit;
+    uint32_t dmareadbit;
+    uint32_t dmawritebit;
 } emu8k_t;
 
 class EMU8K {
