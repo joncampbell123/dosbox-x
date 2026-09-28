@@ -120,7 +120,7 @@ bool StackValid(int pos)
     fpu.regvalid[pos] = true;
     fpu.regs_80[pos].raw = float80::QNaN;
 #ifndef HAS_LONG_DOUBLE
-    fpu.regs[pos].ll = QNaN;
+    fpu.regs[pos].raw = QNaN;
 #endif
     return false;
 }
@@ -190,8 +190,8 @@ void Compare(int op1, int op2, bool ordered)
     const auto a = fpu.regs_80[op1].v;
     const auto b = fpu.regs_80[op2].v;
  #else
-    const auto a = fpu.regs[op1].d;
-    const auto b = fpu.regs[op2].d;
+    const auto a = fpu.regs[op1].v;
+    const auto b = fpu.regs[op2].v;
  #endif
     if (std::isnan(a) || std::isnan(b)) {
         if (ordered)

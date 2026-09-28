@@ -53,7 +53,7 @@ void fpu_Push(const FPU_Reg_80& input)
     fpu.regvalid[TOP] = true;
 #ifndef HAS_LONG_DOUBLE
     fpu.use80[TOP] = true;
-    fpu.regs[TOP].d = float80::convertToDouble(val);
+    fpu.regs[TOP].v = float80::convertToDouble(val);
 #endif
 }
 
@@ -111,7 +111,7 @@ void FPU_FADD(int op1, int op2)
     fpu.regs_80[op1].v += fpu.regs_80[op2].v;
  #else
     fpu.use80[op1] = false;
-    fpu.regs[op1].d += fpu.regs[op2].d;
+    fpu.regs[op1].v += fpu.regs[op2].v;
  #endif
     fpu_detail::SetStatusFromHostExceptions();
 #endif
@@ -221,7 +221,7 @@ void FPU_FCOS()
     std::feclearexcept(FE_ALL_EXCEPT);
     fpu.regs_80[TOP].v = std::cos(input);
  #else
-    const auto input = fpu.regs[TOP].d;
+    const auto input = fpu.regs[TOP].v;
     if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
         fpu.sw.C2 = 1;
         fpu_detail::CheckException();
@@ -230,7 +230,7 @@ void FPU_FCOS()
 
     std::feclearexcept(FE_ALL_EXCEPT);
     fpu.use80[TOP] = false;
-    fpu.regs[TOP].d = std::cos(input);
+    fpu.regs[TOP].v = std::cos(input);
  #endif
     fpu.sw.C2 = 0;
     fpu_detail::SetStatusFromHostExceptions();
@@ -268,7 +268,7 @@ void FPU_FLD_F32_EA(PhysPt addr)
 #ifdef HAS_LONG_DOUBLE
 	fpu.regs_80[8].v = static_cast<long double>(val.v);
 #else
-    fpu.regs[8].d = static_cast<double>(val.v);
+    fpu.regs[8].v = static_cast<double>(val.v);
     fpu.use80[8] = false;
 #endif
     if (IsSNaN(val)) {
@@ -295,7 +295,7 @@ void FPU_FLD_F64_EA(PhysPt addr)
 #ifdef HAS_LONG_DOUBLE
 	fpu.regs_80[8].v = static_cast<long double>(val.v);
 #else
-    fpu.regs[8].d = val.v;
+    fpu.regs[8].v = val.v;
     fpu.use80[8] = false;
 #endif
     if (IsSNaN(val)) {
@@ -330,7 +330,7 @@ void FPU_FLD_I16_EA(PhysPt addr)
     int64_t integer = static_cast<int16_t>(mem_readw(addr));
     float80::convertFrom(fpu.regs_80[8], integer);
 #ifndef HAS_LONG_DOUBLE
-    fpu.regs[8].d = float80::convertToDouble(fpu.regs_80[8]);
+    fpu.regs[8].v = float80::convertToDouble(fpu.regs_80[8]);
     fpu.use80[8] = true;
 #endif
 }
@@ -349,7 +349,7 @@ void FPU_FLD_I32_EA(PhysPt addr)
     int64_t integer = static_cast<int32_t>(mem_readd(addr));
     float80::convertFrom(fpu.regs_80[8], integer);
 #ifndef HAS_LONG_DOUBLE
-    fpu.regs[8].d = float80::convertToDouble(fpu.regs_80[8]);
+    fpu.regs[8].v = float80::convertToDouble(fpu.regs_80[8]);
     fpu.use80[8] = true;
 #endif
 }
@@ -368,7 +368,7 @@ void FPU_FLD_I64_EA(PhysPt addr)
     int64_t integer = mem_readq(addr);
     float80::convertFrom(fpu.regs_80[8], integer);
 #ifndef HAS_LONG_DOUBLE
-    fpu.regs[8].d = float80::convertToDouble(fpu.regs_80[8]);
+    fpu.regs[8].v = float80::convertToDouble(fpu.regs_80[8]);
     fpu.use80[8] = true;
 #endif
 }
@@ -469,7 +469,7 @@ void FPU_FRSTOR(PhysPt addr, bool op16)
 		fpu.regs_80[STV(i)].raw.l = mem_readq(addr+start);
 		fpu.regs_80[STV(i)].raw.h = mem_readw(addr+start+8);
 #ifndef HAS_LONG_DOUBLE
-        fpu.regs[STV(i)].d = float80::convertToDouble(fpu.regs_80[STV(i)]);
+        fpu.regs[STV(i)].v = float80::convertToDouble(fpu.regs_80[STV(i)]);
 		fpu.use80[STV(i)] = true;
 #endif
 		start += 10;
@@ -506,7 +506,7 @@ void FPU_FST_F32(PhysPt addr)
     } else {
         FPU_Reg_64 source = {};
         FPU_Reg_80 value = {};
-        source.raw = static_cast<uint64_t>(fpu.regs[TOP].ll);
+        source.raw = fpu.regs[TOP].raw;
         float80::convertFrom(value, source);
         conversion = float80::convertToF32(value);
         result = conversion.value;
@@ -538,7 +538,7 @@ void FPU_FST_F64(PhysPt addr)
         conversion = float80::convertToF64(fpu.regs_80[TOP]);
         result = conversion.value;
     } else {
-        result.raw = static_cast<uint64_t>(fpu.regs[TOP].ll);
+        result.raw = fpu.regs[TOP].raw;
     }
 #endif
 
@@ -564,7 +564,7 @@ void FPU_FST_F80(PhysPt addr)
         val = fpu.regs_80[TOP];
     } else {
         FPU_Reg_64 source = {};
-        source.raw = static_cast<uint64_t>(fpu.regs[TOP].ll);
+        source.raw = fpu.regs[TOP].raw;
         float80::convertFrom(val, source);
     }
 #endif
@@ -581,7 +581,7 @@ static void fpu_GetST80(FPU_Reg_80& value)
         value = fpu.regs_80[TOP];
     } else {
         FPU_Reg_64 source = {};
-        source.raw = static_cast<uint64_t>(fpu.regs[TOP].ll);
+        source.raw = fpu.regs[TOP].raw;
         float80::convertFrom(value, source);
     }
 #endif
@@ -1610,22 +1610,6 @@ dump:
 }
 
 void FPU_Selftest() {
-	FPU_Reg freg;
-
-	/* byte order test */
-	freg.ll = 0x0123456789ABCDEFULL;
-#ifndef WORDS_BIGENDIAN
-	if (freg.l.lower != 0x89ABCDEFUL || freg.l.upper != 0x01234567UL) {
-		LOG(LOG_FPU,LOG_WARN)("FPU_Reg field order is wrong. ll=0x%16llx l=0x%08lx h=0x%08lx",
-			(unsigned long long)freg.ll,	(unsigned long)freg.l.lower,	(unsigned long)freg.l.upper);
-	}
-#else
-	if (freg.l.upper != 0x89ABCDEFUL || freg.l.lower != 0x01234567UL) {
-		LOG(LOG_FPU,LOG_WARN)("FPU_Reg field order is wrong. ll=0x%16llx l=0x%08lx h=0x%08lx",
-			(unsigned long long)freg.ll,	(unsigned long)freg.l.lower,	(unsigned long)freg.l.upper);
-	}
-#endif
-
 #if C_FPU_X86
     LOG(LOG_FPU,LOG_NORMAL)("FPU core: x86 FPU");
 #elif defined(HAS_LONG_DOUBLE)
@@ -1728,7 +1712,7 @@ void CPU_FXRSTOR(PhysPt eaa) {
 #else
         fpu.regs_80[STV(i)].raw.l = mem_readq(eaa+0x020+(i*16));
         fpu.regs_80[STV(i)].raw.h = mem_readw(eaa+0x020+(i*16)+8);
-        fpu.regs[STV(i)].d = float80::convertToDouble(fpu.regs_80[STV(i)]);
+        fpu.regs[STV(i)].v = float80::convertToDouble(fpu.regs_80[STV(i)]);
 		fpu.use80[STV(i)] = true;
 #endif
 	}

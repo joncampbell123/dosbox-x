@@ -233,7 +233,7 @@ union alignas(16) FPU_Reg_80
 	} raw;
 
 	MMX_reg reg_mmx;
-	static_assert( sizeof(reg_mmx) == 16, "FPU_Reg error" );
+	static_assert( sizeof(reg_mmx) == 16, "FPU_Reg_80 error" );
 
 	static_assert( offsetof(f_t,mantissa) == 0, "oops" );
 	static_assert( offsetof(raw_t,l) == 0, "oops" );
@@ -246,42 +246,6 @@ static_assert( sizeof(FPU_Reg_80) == 16, "FPU_Reg_80 error" );/*NTS: GCC can and
 #pragma pack(pop)
 
 #define FPU_Reg_80_exponent_bias	(16383)
-
-/* Floating point register, in the form the native host uses for "double".
- * This is slightly less precise than the 80-bit extended IEEE used by Intel,
- * but can be faster using the host processor "double" support. Most DOS games
- * using the FPU for 3D rendering are unaffected by the loss of precision.
- * However, there are cases where the full 80-bit precision is required such
- * as the "Fast Pentium memcpy trick" using the 80-bit versions of FLD/FST to
- * copy memory. */
-#pragma pack(push,1)
-union alignas(8) FPU_Reg {
-    double d;
-    struct
-    {
-        uint64_t mantissa:52;       // [51:0]
-        uint64_t exponent:11;       // [62:52]
-        uint64_t sign:1;            // [63:63]
-    } f;
-#ifndef WORDS_BIGENDIAN
-    struct {
-        uint32_t lower;
-        int32_t upper;
-    } l;
-#else
-    struct {
-        int32_t upper;
-        uint32_t lower;
-    } l;
-#endif
-    int64_t ll;
-
-	static_assert( sizeof(d) == 8, "FPU_Reg error" );
-	static_assert( sizeof(l) == 8, "FPU_Reg error" );
-	static_assert( sizeof(ll) == 8, "FPU_Reg error" );
-};
-static_assert( sizeof(FPU_Reg) == 8, "FPU_Reg error" );
-#pragma pack(pop)
 
 static inline bool IsZero(const FPU_Reg_32& reg)
 {
@@ -298,11 +262,6 @@ static inline bool IsZero(const FPU_Reg_80& reg)
     return reg.f.exponent == 0 && reg.f.mantissa == 0;
 }
 
-static inline bool IsZero(const FPU_Reg& reg)
-{
-    return reg.f.exponent == 0 && reg.f.mantissa == 0;
-}
-
 static inline bool IsSubnormal(const FPU_Reg_32& reg)
 {
     return reg.f.exponent == 0 && reg.f.mantissa != 0;
@@ -314,11 +273,6 @@ static inline bool IsSubnormal(const FPU_Reg_64& reg)
 }
 
 static inline bool IsSubnormal(const FPU_Reg_80& reg)
-{
-    return reg.f.exponent == 0 && reg.f.mantissa != 0;
-}
-
-static inline bool IsSubnormal(const FPU_Reg& reg)
 {
     return reg.f.exponent == 0 && reg.f.mantissa != 0;
 }
@@ -339,11 +293,6 @@ static inline bool IsInfinity(const FPU_Reg_80& reg)
     return reg.f.exponent == 0x7FFFU && reg.f.mantissa == integer_bit;
 }
 
-static inline bool IsInfinity(const FPU_Reg& reg)
-{
-    return reg.f.exponent == 0x7FFU && reg.f.mantissa == 0;
-}
-
 static inline bool IsNaN(const FPU_Reg_32& reg)
 {
     return reg.f.exponent == 0xFFU && reg.f.mantissa != 0;
@@ -360,11 +309,6 @@ static inline bool IsNaN(const FPU_Reg_80& reg)
     return reg.f.exponent == 0x7FFFU && reg.f.mantissa != integer_bit;
 }
 
-static inline bool IsNaN(const FPU_Reg& reg)
-{
-    return reg.f.exponent == 0x7FFU && reg.f.mantissa != 0;
-}
-
 // Retain the x87 exception-oriented name for existing callers.
 static inline bool IsDenormal(const FPU_Reg_32& reg)
 {
@@ -377,11 +321,6 @@ static inline bool IsDenormal(const FPU_Reg_64& reg)
 }
 
 static inline bool IsDenormal(const FPU_Reg_80& reg)
-{
-    return IsSubnormal(reg);
-}
-
-static inline bool IsDenormal(const FPU_Reg& reg)
 {
     return IsSubnormal(reg);
 }
@@ -401,11 +340,6 @@ static inline bool IsNormal(const FPU_Reg_80& reg)
     constexpr uint64_t integer_bit = 0x8000'0000'0000'0000ULL;
     return reg.f.exponent != 0 && reg.f.exponent != 0x7FFFU &&
            (reg.f.mantissa & integer_bit) != 0;
-}
-
-static inline bool IsNormal(const FPU_Reg& reg)
-{
-    return reg.f.exponent != 0 && reg.f.exponent != 0x7FFU;
 }
 
 static inline bool IsSNaN(const FPU_Reg_32& reg)
@@ -432,13 +366,6 @@ static inline bool IsSNaN(const FPU_Reg_80& reg)
            (reg.f.mantissa & payload_mask) != 0;
 }
 
-static inline bool IsSNaN(const FPU_Reg& reg)
-{
-    constexpr uint64_t quiet_nan_bit = 0x0008'0000'0000'0000ULL;
-    return reg.f.exponent == 0x7FFU && reg.f.mantissa != 0 &&
-           (reg.f.mantissa & quiet_nan_bit) == 0;
-}
-
 static inline bool IsSpecial(const FPU_Reg_32& reg)
 {
     return !IsNormal(reg) && !IsZero(reg);
@@ -450,11 +377,6 @@ static inline bool IsSpecial(const FPU_Reg_64& reg)
 }
 
 static inline bool IsSpecial(const FPU_Reg_80& reg)
-{
-    return !IsNormal(reg) && !IsZero(reg);
-}
-
-static inline bool IsSpecial(const FPU_Reg& reg)
 {
     return !IsNormal(reg) && !IsZero(reg);
 }
