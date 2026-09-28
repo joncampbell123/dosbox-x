@@ -2638,25 +2638,39 @@ restart_prefix:
 			case 0xd9:case 0xdb:case 0xdc:case 0xdd:case 0xdf:case 0xe1:
 			case 0xe2:case 0xe5:case 0xe8:case 0xe9:case 0xeb:case 0xec:
 			case 0xed:case 0xef:case 0xf1:case 0xf2:case 0xf3:case 0xf5:
-			case 0xf8:case 0xf9:case 0xfa:case 0xfc:case 0xfd:case 0xfe:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+			case 0xf8:case 0xf9:case 0xfa:case 0xfc:case 0xfd:case 0xfe:
+				if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
 				dyn_mmx_check(); dyn_mmx_op(dual_code); break;
 			/* SHIFT mm, imm8*/
-			case 0x71:case 0x72:case 0x73:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+			case 0x71:case 0x72:case 0x73:
+				if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
 				dyn_mmx_check(); dyn_mmx_shift_imm8((uint8_t)dual_code); break;
 			/* MOVD mm, r/m32 */
-			case 0x6e:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+			case 0x6e:
+				if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
 				dyn_mmx_check(); dyn_mmx_movd_pqed(); break;
 			/* MOVQ mm, mm/m64 */
-			case 0x6f:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+			case 0x6f:
+				if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
 				dyn_mmx_check(); dyn_mmx_movq_pqqq(); break;
 			/* MOVD r/m32, mm */
-			case 0x7e:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+			case 0x7e:
+				if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
 				dyn_mmx_check(); dyn_mmx_movd_edpq(); break;
 			/* MOVQ mm/m64, mm */
-			case 0x7f:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+			case 0x7f:
+				if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
 				dyn_mmx_check(); dyn_mmx_movq_qqpq(); break;
 			/* EMMS */
-			case 0x77:if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+			case 0x77:
+				if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
 				dyn_mmx_check(); dyn_mmx_emms(); break;
 #endif
 
@@ -2962,6 +2976,7 @@ restart_prefix:
 		//FPU
 #ifdef CPU_FPU
 		case 0xd8:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 #ifdef X86_DYNFPU_DH_ENABLED
 			if (dyn_dh_fpu.dh_fpu_enabled) {
 				if (fpu_used) dh_fpu_esc0();
@@ -2974,6 +2989,7 @@ restart_prefix:
 			dyn_fpu_esc0();
 			break;
 		case 0xd9:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 #ifdef X86_DYNFPU_DH_ENABLED
 			if (dyn_dh_fpu.dh_fpu_enabled) {
 				if (fpu_used) dh_fpu_esc1();
@@ -2986,6 +3002,7 @@ restart_prefix:
 			dyn_fpu_esc1();
 			break;
 		case 0xda:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 #ifdef X86_DYNFPU_DH_ENABLED
 			if (dyn_dh_fpu.dh_fpu_enabled) {
 				if (fpu_used) dh_fpu_esc2();
@@ -2998,6 +3015,7 @@ restart_prefix:
 			dyn_fpu_esc2();
 			break;
 		case 0xdb:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 #ifdef X86_DYNFPU_DH_ENABLED
 			if (dyn_dh_fpu.dh_fpu_enabled) {
 				if (fpu_used) dh_fpu_esc3();
@@ -3010,6 +3028,7 @@ restart_prefix:
 			dyn_fpu_esc3();
 			break;
 		case 0xdc:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 #ifdef X86_DYNFPU_DH_ENABLED
 			if (dyn_dh_fpu.dh_fpu_enabled) {
 				if (fpu_used) dh_fpu_esc4();
@@ -3022,6 +3041,7 @@ restart_prefix:
 			dyn_fpu_esc4();
 			break;
 		case 0xdd:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 #ifdef X86_DYNFPU_DH_ENABLED
 			if (dyn_dh_fpu.dh_fpu_enabled) {
 				if (fpu_used) dh_fpu_esc5();
@@ -3034,6 +3054,7 @@ restart_prefix:
 			dyn_fpu_esc5();
 			break;
 		case 0xde:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 #ifdef X86_DYNFPU_DH_ENABLED
 			if (dyn_dh_fpu.dh_fpu_enabled) {
 				if (fpu_used) dh_fpu_esc6();
@@ -3046,6 +3067,7 @@ restart_prefix:
 			dyn_fpu_esc6();
 			break;
 		case 0xdf:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 #ifdef X86_DYNFPU_DH_ENABLED
 			if (dyn_dh_fpu.dh_fpu_enabled) {
 				if (fpu_used) dh_fpu_esc7();
@@ -3258,6 +3280,7 @@ restart_prefix:
 				goto illegalopcode;
 			}}
 			break;
+		let_normal_core_handle_it:
 		default:
 #if DYN_LOG
 //			LOG_MSG("Dynamic unhandled opcode %X",opcode);

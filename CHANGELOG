@@ -72,6 +72,11 @@ Next version:
   - FPU: Unified real, integer, packed-BCD, and register store operations
     across FPU engines. Fixed x87 stack handling and incorrect integer-store
     results. (cimarronm)
+  - Dynamic core: By default, pass all FPU/MMX opcodes to normal core so that
+    the FPU exception handling necessary for Windows 95 to task switch the
+    CPU and FPU state can work properly. In the event that this makes your
+    DOS games slower, there is a dosbox.conf option to re-enable FPU/MMX
+    handling by dynamic core for DOS games that do not multitask. (joncampbell123)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)

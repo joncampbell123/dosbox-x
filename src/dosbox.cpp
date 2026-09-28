@@ -3255,6 +3255,16 @@ void DOSBOX_SetupConfigSections(void) {
                     "If the dynamic_rec core is set, this disables the dynamic core if the 386 paging functions are currently enabled.\n"
                     "If set to auto, this option will be enabled depending on if the 386 paging and a guest system are currently active.");
 
+    // this is an option, even if enabling it will cause problems with Windows 95 games, because
+    // perhaps someone needs dynamic core for their DOS gaming because "ever since you added this
+    // option my Quake FPS is slower than DOSBox SVN why did you break it etc. etc."
+    Pstring = secprop->Add_string("use dynamic core with fpu",Property::Changeable::Always,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Allow dynamic cores (dynamic_x86 and dynamic_rec) to handle floating point, MMX, and SSE instructions.\n"
+                    "Set this option to true if running DOS games in a pure DOS environment.\n"
+                    "Set this option to false or leave it set to auto if you will be running a multi-tasking environment and an application that uses the FPU,\n"
+                    "especially Windows 95-era or later games in Microsoft Windows where dynamic core cannot properly allow Windows 95 to task switch the FPU.");
+
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
             "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME.");

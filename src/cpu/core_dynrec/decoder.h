@@ -482,27 +482,35 @@ restart_prefix:
 #ifdef CPU_FPU
 		// floating point instructions
 		case 0xd8:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_esc0();
 			break;
 		case 0xd9:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_esc1();
 			break;
 		case 0xda:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_esc2();
 			break;
 		case 0xdb:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_esc3();
 			break;
 		case 0xdc:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_esc4();
 			break;
 		case 0xdd:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_esc5();
 			break;
 		case 0xde:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_esc6();
 			break;
 		case 0xdf:
+			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_esc7();
 			break;
 #endif
@@ -602,6 +610,7 @@ restart_prefix:
 			}
 			break;
 
+		let_normal_core_handle_it:
 		default:
 #if DYN_LOG
 //			LOG_MSG("Dynrec unhandled opcode %X",opcode);
