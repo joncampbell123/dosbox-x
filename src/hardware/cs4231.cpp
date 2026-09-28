@@ -265,6 +265,9 @@ void CS4231::Reset() {
 		PIC_RemoveSpecificEvents(CS4231_TimerTick, (Bitu)pic_slot);
 	}
 	UpdateFreq();
+	/* Clear DRQ, or else Windows 95 will give up on the WSS hardware after playing one sound */
+	DmaChannel *ch = GetDMAChannel(dma);
+	if (ch) ch->Clear_Request();
 }
 
 void CS4231::StartCalibrate() {
@@ -529,6 +532,9 @@ void CS4231::WritePort(uint8_t offset, uint8_t val) {
 					if (!enable) {
 						out_l = 0;
 						out_r = 0;
+						/* Clear DRQ, or else Windows 95 will give up on the WSS hardware after playing one sound */
+						DmaChannel *ch = GetDMAChannel(dma);
+						if (ch) ch->Clear_Request();
 					}
 					regs[CS4231_INTERFACE] = val;
 					break;
