@@ -67,7 +67,6 @@ static_assert( sizeof(FPU_Reg_32) == 4, "FPU_Reg_32 error" );
 #pragma pack(pop)
 
 #define FPU_Reg_32_exponent_bias	(127)
-static const uint32_t FPU_Reg_32_implied_bit = ((uint32_t)1UL << (uint32_t)23UL);
 
 #pragma pack(push,1)
 union alignas(16) MMX_reg {
