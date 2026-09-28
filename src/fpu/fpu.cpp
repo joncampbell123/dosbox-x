@@ -22,6 +22,7 @@
 
 #include <array>
 #include <cfenv>
+#include <cmath>
 #include <string>
 
 #include "cpu.h"
@@ -47,16 +48,11 @@ static void fesetsw()
 {
     const auto exceptions = std::fetestexcept(FE_ALL_EXCEPT);
 
-    if (exceptions & FE_INVALID)
-        fpu.sw.IE = 1;
-    if (exceptions & FE_DIVBYZERO)
-        fpu.sw.ZE = 1;
-    if (exceptions & FE_OVERFLOW)
-        fpu.sw.OE = 1;
-    if (exceptions & FE_UNDERFLOW)
-        fpu.sw.UE = 1;
-    if (exceptions & FE_INEXACT)
-        fpu.sw.PE = 1;
+    if (exceptions & FE_INVALID)   fpu.sw.IE = 1;
+    if (exceptions & FE_DIVBYZERO) fpu.sw.ZE = 1;
+    if (exceptions & FE_OVERFLOW)  fpu.sw.OE = 1;
+    if (exceptions & FE_UNDERFLOW) fpu.sw.UE = 1;
+    if (exceptions & FE_INEXACT)   fpu.sw.PE = 1;
 }
 
 bool fpu_StackValid(int pos)
@@ -106,6 +102,61 @@ void fpu_CheckInputs(int op1, int op2)
         fpu_CheckException();
     }
 #endif
+}
+
+static bool fpu_OperandIsInfinity(int op)
+{
+#if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
+    return IsInfinity(fpu.regs_80[op]);
+#else
+    return fpu.use80[op] ? IsInfinity(fpu.regs_80[op]) :
+                           IsInfinity(fpu.regs[op]);
+#endif
+}
+
+static void fpu_SetComparisonFlags(bool unordered, bool equal, bool less)
+{
+    fpu.sw.C1 = 0;
+    fpu.sw.C3 = unordered || equal;
+    fpu.sw.C2 = unordered;
+    fpu.sw.C0 = unordered || less;
+}
+
+static void fpu_Compare(int op1, int op2, bool ordered)
+{
+    fpu_CheckInputs(op1, op2);
+
+    // An 8087/287 compares infinities as equal regardless of their signs.
+    if (FPU_ArchitectureType < FPU_ARCHTYPE_387 &&
+        fpu_OperandIsInfinity(op1) && fpu_OperandIsInfinity(op2)) {
+        fpu_SetComparisonFlags(false, true, false);
+        return;
+    }
+
+#if C_FPU_X86
+    if (ordered) {
+        FPUD_COMPARE(fcompp);
+    } else {
+        FPUD_COMPARE(fucompp);
+    }
+#else
+ #ifdef HAS_LONG_DOUBLE
+    const auto a = fpu.regs_80[op1].v;
+    const auto b = fpu.regs_80[op2].v;
+ #else
+    const auto a = fpu.regs[op1].d;
+    const auto b = fpu.regs[op2].d;
+ #endif
+    if ((std::isnan)(a) || (std::isnan)(b)) {
+        if (ordered)
+            fpu.sw.IE = 1;
+        fpu_SetComparisonFlags(true, false, false);
+    } else {
+        fpu_SetComparisonFlags(false, a == b, a < b);
+    }
+#endif
+
+    fpu_CheckException();
 }
 
 void fpu_Push(const FPU_Reg_80& input)
@@ -266,6 +317,16 @@ void FPU_FCMOV_NBE(Bitu dst, Bitu src) { if (TFLG_NBE) FPU_FST(src, dst); }
 void FPU_FCMOV_NE (Bitu dst, Bitu src) { if (TFLG_NZ)  FPU_FST(src, dst); }
 void FPU_FCMOV_NU (Bitu dst, Bitu src) { if (TFLG_NP)  FPU_FST(src, dst); }
 void FPU_FCMOV_U  (Bitu dst, Bitu src) { if (TFLG_P)   FPU_FST(src, dst); }
+
+void FPU_FCOM(int op1, int op2)
+{
+    fpu_Compare(op1, op2, true);
+}
+
+void FPU_FCOM_EA(int op1)
+{
+    fpu_Compare(op1, 8, true);
+}
 
 void FPU_FFREE(int st)
 {
@@ -700,6 +761,11 @@ void FPU_FBST(PhysPt addr)
     }
     mem_writeq(addr, lower);
     mem_writew(addr + 8, upper);
+}
+
+void FPU_FUCOM(int op1, int op2)
+{
+    fpu_Compare(op1, op2, false);
 }
 
 

@@ -203,34 +203,6 @@ static void FPU_FXCH(Bitu st, Bitu other){
 	fpu.regs_80[st] = reg80;
 }
 
-static void FPU_FCOM(Bitu st, Bitu other){
-	/* HACK: If emulating a 286 processor we want the guest to think it's talking to a 287.
-	 *       For more info, read [http://www.intel-assembler.it/portale/5/cpu-identification/asm-source-to-find-intel-cpu.asp]. */
-	/* TODO: This should eventually become an option, say, a dosbox.conf option named fputype where the user can enter
-	 *       "none" for no FPU, 287 or 387 for cputype=286 and cputype=386, or "auto" to match the CPU (8086 => 8087).
-	 *       If the FPU type is 387 or auto, then skip this hack. Else for 8087 and 287, use this hack. */
-	if (FPU_ArchitectureType<FPU_ARCHTYPE_387) {
-		if ((std::isinf)(fpu.regs_80[st].v) && (std::isinf)(fpu.regs_80[other].v)) {
-			/* 8087/287 consider -inf == +inf and that's what DOS programs test for to detect 287 vs 387 */
-			FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);return;
-		}
-	}
-
-	if(fpu.regs_80[st].v == fpu.regs_80[other].v){
-		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);return;
-	}
-	if(fpu.regs_80[st].v < fpu.regs_80[other].v){
-		FPU_SET_C3(0);FPU_SET_C2(0);FPU_SET_C0(1);return;
-	}
-	// st > other
-	FPU_SET_C3(0);FPU_SET_C2(0);FPU_SET_C0(0);return;
-}
-
-static void FPU_FUCOM(Bitu st, Bitu other){
-	//does atm the same as fcom 
-	FPU_FCOM(st,other);
-}
-
 static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	FillFlags();
 	SETFLAGBIT(OF,false);
@@ -271,10 +243,6 @@ static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 		SETFLAGBIT(PF,false);
 		SETFLAGBIT(CF,false);
 	}
-}
-
-static inline void FPU_FUCOMI(Bitu st, Bitu other){
-	FPU_FCOMI(st, other, false);
 }
 
 static void FPU_FRNDINT(void){
@@ -411,7 +379,4 @@ static INLINE void FPU_FDIV_EA(Bitu op1){
 }
 static INLINE void FPU_FDIVR_EA(Bitu op1){
 	FPU_FDIVR(op1,8);
-}
-static INLINE void FPU_FCOM_EA(Bitu op1){
-	FPU_FCOM(op1,8);
 }

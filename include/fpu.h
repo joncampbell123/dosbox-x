@@ -73,6 +73,8 @@ void FPU_FBLD(PhysPt addr);
 void FPU_FBST(PhysPt addr);
 void FPU_FCHS();
 void FPU_FCLEX();
+void FPU_FCOM(int op1, int op2);
+void FPU_FCOM_EA(int op1);
 void FPU_FCMOV_B(Bitu dst, Bitu src);
 void FPU_FCMOV_BE(Bitu dst, Bitu src);
 void FPU_FCMOV_E(Bitu dst, Bitu src);
@@ -112,6 +114,7 @@ void FPU_FST_F80(PhysPt addr);
 void FPU_FST_I16(PhysPt addr);
 void FPU_FST_I32(PhysPt addr);
 void FPU_FST_I64(PhysPt addr);
+void FPU_FUCOM(int op1, int op2);
 
 static INLINE void FPU_SetTag(uint16_t tags){
 	for (auto i=0; i<8; i++)

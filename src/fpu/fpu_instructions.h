@@ -99,51 +99,6 @@ static void FPU_FCOS(void){
 	return;
 }
 
-static void FPU_FCOM(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
-    if(!fpu.regvalid[st] || !fpu.regvalid[other]) {
-        FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
-        FPU_SET_C3(1); FPU_SET_C2(1); FPU_SET_C0(1);
-        return;
-    }
-
-    const double a = fpu.regs[st].d;
-    const double b = fpu.regs[other].d;
-
-    if(std::isnan(a) || std::isnan(b)) {
-        // To-do: Distinguish between signaling NaN and quiet NaN. For now, we just raise the invalid exception for any NaN.
-        if(raise_invalid_for_nan) FPU_SetException(FPU_EX_INVALID);
-        FPU_SET_C3(1); FPU_SET_C2(1); FPU_SET_C0(1);
-        return;
-    }
-
-	/* HACK: If emulating a 286 processor we want the guest to think it's talking to a 287.
-	 *       For more info, read [http://www.intel-assembler.it/portale/5/cpu-identification/asm-source-to-find-intel-cpu.asp]. */
-	/* TODO: This should eventually become an option, say, a dosbox.conf option named fputype where the user can enter
-	 *       "none" for no FPU, 287 or 387 for cputype=286 and cputype=386, or "auto" to match the CPU (8086 => 8087).
-	 *       If the FPU type is 387 or auto, then skip this hack. Else for 8087 and 287, use this hack. */
-	if (FPU_ArchitectureType<FPU_ARCHTYPE_387) {
-		if ((std::isinf)(a) && (std::isinf)(b)) {
-			/* 8087/287 consider -inf == +inf and that's what DOS programs test for to detect 287 vs 387 */
-			FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);return;
-		}
-	}
-
-	if(a == b){
-		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);return;
-	}
-	else if(a < b) {
-		FPU_SET_C3(0);FPU_SET_C2(0);FPU_SET_C0(1);return;
-	}
-	// st > other
-    else {
-        FPU_SET_C3(0); FPU_SET_C2(0); FPU_SET_C0(0);return;
-    }
-}
-
-static INLINE void FPU_FCOM_EA(Bitu op1){
-	FPU_FCOM(op1,8);
-}
-
 static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	
 	FillFlags();
@@ -532,11 +487,6 @@ static void FPU_FTST(void){
 	fpu.use80[8] = false; // we used the less precise version, drop the 80-bit precision
 	fpu.regs[8].d = 0.0;
 	FPU_FCOM(TOP,8);
-}
-
-static void FPU_FUCOM(Bitu st, Bitu other){
-    //does atm the same as fcom, but don't raise invalid exception for NaN
-	FPU_FCOM(st,other,false);
 }
 
 static inline void FPU_FUCOMI(Bitu st, Bitu other){
