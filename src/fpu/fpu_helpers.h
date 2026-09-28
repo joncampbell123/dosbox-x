@@ -1,0 +1,17 @@
+#ifndef DOSBOX_FPU_HELPERS_H
+#define DOSBOX_FPU_HELPERS_H
+
+namespace fpu_detail {
+
+void CheckException();
+void SetStatusFromHostExceptions();
+bool StackValid(int pos);
+void CheckInputs(int op);
+void CheckInputs(int op1, int op2);
+void RaiseLoadExceptions(bool denormal, bool signaling_nan);
+void Compare(int op1, int op2, bool ordered);
+void CompareToCpuFlags(int op1, int op2, bool ordered);
+
+} // namespace fpu_detail
+
+#endif

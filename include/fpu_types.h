@@ -344,6 +344,27 @@ static inline bool IsInfinity(const FPU_Reg& reg)
     return reg.f.exponent == 0x7FFU && reg.f.mantissa == 0;
 }
 
+static inline bool IsNaN(const FPU_Reg_32& reg)
+{
+    return reg.f.exponent == 0xFFU && reg.f.mantissa != 0;
+}
+
+static inline bool IsNaN(const FPU_Reg_64& reg)
+{
+    return reg.f.exponent == 0x7FFU && reg.f.mantissa != 0;
+}
+
+static inline bool IsNaN(const FPU_Reg_80& reg)
+{
+    constexpr uint64_t integer_bit = 0x8000'0000'0000'0000ULL;
+    return reg.f.exponent == 0x7FFFU && reg.f.mantissa != integer_bit;
+}
+
+static inline bool IsNaN(const FPU_Reg& reg)
+{
+    return reg.f.exponent == 0x7FFU && reg.f.mantissa != 0;
+}
+
 // Retain the x87 exception-oriented name for existing callers.
 static inline bool IsDenormal(const FPU_Reg_32& reg)
 {

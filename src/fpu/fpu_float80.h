@@ -46,6 +46,7 @@ void convertFrom(FPU_Reg_80& result, int64_t value);
 void convertFrom(FPU_Reg_80& result, const FPU_Reg_32& value);
 void convertFrom(FPU_Reg_80& result, const FPU_Reg_64& value);
 void round(FPU_Reg_80& val, uint8_t extra_two_bits);
+void setQuietBit(FPU_Reg_80& val);
 
 } // namespace float80
 

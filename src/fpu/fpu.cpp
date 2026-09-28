@@ -22,13 +22,13 @@
 
 #include <array>
 #include <cfenv>
-#include <cmath>
 #include <string>
 
 #include "cpu.h"
 #include "cpu/lazyflags.h"
 #include "fpu.h"
 #include "fpu_float80.h"
+#include "fpu_helpers.h"
 #include "logging.h"
 #include "mem.h"
 #if C_FPU_X86
@@ -36,173 +36,6 @@
 #endif
 
 FPU fpu;
-
-constexpr uint64_t QNaN = 0xFFF8'0000'0000'0000;
-
-void fpu_CheckException()
-{
-    // TODO
-}
-
-static void fesetsw()
-{
-    const auto exceptions = std::fetestexcept(FE_ALL_EXCEPT);
-
-    if (exceptions & FE_INVALID)   fpu.sw.IE = 1;
-    if (exceptions & FE_DIVBYZERO) fpu.sw.ZE = 1;
-    if (exceptions & FE_OVERFLOW)  fpu.sw.OE = 1;
-    if (exceptions & FE_UNDERFLOW) fpu.sw.UE = 1;
-    if (exceptions & FE_INEXACT)   fpu.sw.PE = 1;
-}
-
-bool fpu_StackValid(int pos)
-{
-    if (fpu.regvalid[pos]) return true;
-    fpu.sw.IE = 1;
-    fpu.sw.SF = 1;
-    fpu.sw.C1 = 0;
-    fpu_CheckException();
-    fpu.regvalid[pos] = true;
-    fpu.regs_80[pos].raw = float80::QNaN;
-#ifndef HAS_LONG_DOUBLE
-    fpu.regs[pos].ll = QNaN;
-#endif
-    return false;
-}
-
-static bool fpu_InputIsSignalingNaN(int op)
-{
-#ifdef HAS_LONG_DOUBLE
-    return IsSNaN(fpu.regs_80[op]);
-#else
-    return fpu.use80[op] ? IsSNaN(fpu.regs_80[op]) : IsSNaN(fpu.regs[op]);
-#endif
-}
-
-static bool fpu_InputIsSubnormal(int op)
-{
-#ifdef HAS_LONG_DOUBLE
-    return IsSubnormal(fpu.regs_80[op]);
-#else
-    return fpu.use80[op] ? IsSubnormal(fpu.regs_80[op]) :
-                           IsSubnormal(fpu.regs[op]);
-#endif
-}
-
-static void fpu_CheckInputExceptions(bool signaling_nan, bool subnormal)
-{
-    if (signaling_nan) {
-        fpu.sw.IE = 1;
-        fpu_CheckException();
-    }
-    if (subnormal) {
-        fpu.sw.DE = 1;
-        fpu_CheckException();
-    }
-}
-
-void fpu_CheckInputs(int op)
-{
-    fpu_StackValid(op);
-    fpu_CheckInputExceptions(fpu_InputIsSignalingNaN(op), fpu_InputIsSubnormal(op));
-}
-
-void fpu_CheckInputs(int op1, int op2)
-{
-    fpu_StackValid(op2);
-    fpu_StackValid(op1);
-    fpu_CheckInputExceptions(fpu_InputIsSignalingNaN(op1) ||
-                                     fpu_InputIsSignalingNaN(op2),
-                             fpu_InputIsSubnormal(op1) ||
-                                     fpu_InputIsSubnormal(op2));
-}
-
-static bool fpu_OperandIsInfinity(int op)
-{
-#if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
-    return IsInfinity(fpu.regs_80[op]);
-#else
-    return fpu.use80[op] ? IsInfinity(fpu.regs_80[op]) :
-                           IsInfinity(fpu.regs[op]);
-#endif
-}
-
-static void fpu_SetComparisonFlags(bool unordered, bool equal, bool less)
-{
-    fpu.sw.C1 = 0;
-    fpu.sw.C3 = unordered || equal;
-    fpu.sw.C2 = unordered;
-    fpu.sw.C0 = unordered || less;
-}
-
-static void fpu_Compare(int op1, int op2, bool ordered)
-{
-    fpu_CheckInputs(op1, op2);
-
-    // An 8087/287 compares infinities as equal regardless of their signs.
-    if (FPU_ArchitectureType < FPU_ARCHTYPE_387 &&
-        fpu_OperandIsInfinity(op1) && fpu_OperandIsInfinity(op2)) {
-        fpu_SetComparisonFlags(false, true, false);
-        return;
-    }
-
-#if C_FPU_X86
-    if (ordered) {
-        FPUD_COMPARE(fcompp);
-    } else {
-        FPUD_COMPARE(fucompp);
-    }
-#else
- #ifdef HAS_LONG_DOUBLE
-    const auto a = fpu.regs_80[op1].v;
-    const auto b = fpu.regs_80[op2].v;
- #else
-    const auto a = fpu.regs[op1].d;
-    const auto b = fpu.regs[op2].d;
- #endif
-    if ((std::isnan)(a) || (std::isnan)(b)) {
-        if (ordered)
-            fpu.sw.IE = 1;
-        fpu_SetComparisonFlags(true, false, false);
-    } else {
-        fpu_SetComparisonFlags(false, a == b, a < b);
-    }
-#endif
-
-    fpu_CheckException();
-}
-
-static void fpu_CompareToCpuFlags(int op1, int op2, bool ordered)
-{
-    FillFlags();
-    SETFLAGBIT(OF, false);
-    SETFLAGBIT(SF, false);
-    SETFLAGBIT(AF, false);
-
-    const auto old_c0 = fpu.sw.C0;
-    const auto old_c2 = fpu.sw.C2;
-    const auto old_c3 = fpu.sw.C3;
-
-    if (ordered)
-        FPU_FCOM(op1, op2);
-    else
-        FPU_FUCOM(op1, op2);
-
-    const auto compare_c0 = fpu.sw.C0;
-    const auto compare_c2 = fpu.sw.C2;
-    const auto compare_c3 = fpu.sw.C3;
-
-    // FCOMI and FUCOMI leave C0, C2, and C3 unchanged and clear C1.
-    fpu.sw.C0 = old_c0;
-    fpu.sw.C1 = 0;
-    fpu.sw.C2 = old_c2;
-    fpu.sw.C3 = old_c3;
-
-    const auto unordered = compare_c0 && compare_c2 && compare_c3;
-    SETFLAGBIT(ZF, unordered || compare_c3);
-    SETFLAGBIT(PF, unordered);
-    SETFLAGBIT(CF, unordered || compare_c0);
-}
 
 void fpu_Push(const FPU_Reg_80& input)
 {
@@ -213,7 +46,7 @@ void fpu_Push(const FPU_Reg_80& input)
         fpu.sw.IE = 1;
         fpu.sw.SF = 1;
         fpu.sw.C1 = 1;
-        fpu_CheckException();
+        fpu_detail::CheckException();
         val.raw = float80::QNaN;
     }
     fpu.regs_80[TOP] = val;
@@ -224,25 +57,15 @@ void fpu_Push(const FPU_Reg_80& input)
 #endif
 }
 
-static void fpu_RaiseLoadExceptions(bool denormal, bool signaling_nan)
-{
-    if (denormal) {
-        fpu.sw.DE = 1;
-        fpu_CheckException();
-    } else if (signaling_nan) {
-        fpu.sw.IE = 1;
-        fpu_CheckException();
-    }
-}
-
 static void fpu_PushReal(const FPU_Reg_32& source)
 {
     FPU_Reg_80 value;
     const auto denormal = IsSubnormal(source);
     const auto signaling_nan = IsSNaN(source);
     float80::convertFrom(value, source);
+    if (signaling_nan) float80::setQuietBit(value);
     fpu_Push(value);
-    fpu_RaiseLoadExceptions(denormal, signaling_nan);
+    fpu_detail::RaiseLoadExceptions(denormal, signaling_nan);
 }
 
 static void fpu_PushReal(const FPU_Reg_64& source)
@@ -251,8 +74,9 @@ static void fpu_PushReal(const FPU_Reg_64& source)
     const auto denormal = IsSubnormal(source);
     const auto signaling_nan = IsSNaN(source);
     float80::convertFrom(value, source);
+    if (signaling_nan) float80::setQuietBit(value);
     fpu_Push(value);
-    fpu_RaiseLoadExceptions(denormal, signaling_nan);
+    fpu_detail::RaiseLoadExceptions(denormal, signaling_nan);
 }
 
 void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub)
@@ -266,7 +90,7 @@ void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub)
 
 void FPU_FABS()
 {
-    if (fpu_StackValid(TOP)) {
+    if (fpu_detail::StackValid(TOP)) {
         fpu.regs_80[TOP].f.sign = 0;
 #ifndef HAS_LONG_DOUBLE
         fpu.regs[TOP].f.sign = 0;
@@ -277,7 +101,7 @@ void FPU_FABS()
 
 void FPU_FADD(int op1, int op2)
 {
-    fpu_CheckInputs(op1, op2);
+    fpu_detail::CheckInputs(op1, op2);
 
 #if C_FPU_X86
 	FPUD_ARITH1(faddp);
@@ -289,9 +113,9 @@ void FPU_FADD(int op1, int op2)
     fpu.use80[op1] = false;
     fpu.regs[op1].d += fpu.regs[op2].d;
  #endif
-    fesetsw();
+    fpu_detail::SetStatusFromHostExceptions();
 #endif
-    fpu_CheckException();
+    fpu_detail::CheckException();
 }
 
 void FPU_FADD_EA(int op1)
@@ -340,7 +164,7 @@ void FPU_FBLD(PhysPt addr)
 
 void FPU_FCHS()
 {
-    if (fpu_StackValid(TOP)) {
+    if (fpu_detail::StackValid(TOP)) {
         fpu.regs_80[TOP].f.sign ^= 1;
 #ifndef HAS_LONG_DOUBLE
         fpu.regs[TOP].f.sign ^= 1;
@@ -365,22 +189,22 @@ void FPU_FCMOV_U  (Bitu dst, Bitu src) { if (TFLG_P)   FPU_FST(src, dst); }
 
 void FPU_FCOM(int op1, int op2)
 {
-    fpu_Compare(op1, op2, true);
+    fpu_detail::Compare(op1, op2, true);
 }
 
 void FPU_FCOM_EA(int op1)
 {
-    fpu_Compare(op1, 8, true);
+    fpu_detail::Compare(op1, 8, true);
 }
 
 void FPU_FCOMI(int op1, int op2)
 {
-    fpu_CompareToCpuFlags(op1, op2, true);
+    fpu_detail::CompareToCpuFlags(op1, op2, true);
 }
 
 void FPU_FCOS()
 {
-    fpu_CheckInputs(TOP);
+    fpu_detail::CheckInputs(TOP);
     fpu.sw.C1 = 0;
 
 #if C_FPU_X86
@@ -390,7 +214,7 @@ void FPU_FCOS()
     const auto input = fpu.regs_80[TOP].v;
     if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
         fpu.sw.C2 = 1;
-        fpu_CheckException();
+        fpu_detail::CheckException();
         return;
     }
 
@@ -400,7 +224,7 @@ void FPU_FCOS()
     const auto input = fpu.regs[TOP].d;
     if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
         fpu.sw.C2 = 1;
-        fpu_CheckException();
+        fpu_detail::CheckException();
         return;
     }
 
@@ -409,10 +233,10 @@ void FPU_FCOS()
     fpu.regs[TOP].d = std::cos(input);
  #endif
     fpu.sw.C2 = 0;
-    fesetsw();
+    fpu_detail::SetStatusFromHostExceptions();
 #endif
 
-    fpu_CheckException();
+    fpu_detail::CheckException();
 }
 
 void FPU_FFREE(int st)
@@ -447,6 +271,13 @@ void FPU_FLD_F32_EA(PhysPt addr)
     fpu.regs[8].d = static_cast<double>(val.v);
     fpu.use80[8] = false;
 #endif
+    if (IsSNaN(val)) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+    } else if (IsSubnormal(val)) {
+        fpu.sw.DE = 1;
+        fpu_detail::CheckException();
+    }
 }
 
 void FPU_FLD_F64(PhysPt addr)
@@ -467,6 +298,13 @@ void FPU_FLD_F64_EA(PhysPt addr)
     fpu.regs[8].d = val.v;
     fpu.use80[8] = false;
 #endif
+    if (IsSNaN(val)) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+    } else if (IsSubnormal(val)) {
+        fpu.sw.DE = 1;
+        fpu_detail::CheckException();
+    }
 }
 
 void FPU_FLD_F80(PhysPt addr)
@@ -617,7 +455,7 @@ void FPU_FLDZ()
 
 void FPU_FPOP()
 {
-    fpu_StackValid(TOP);
+    fpu_detail::StackValid(TOP);
 	fpu.regvalid[TOP] = false;
 	TOP = (TOP+1) & 7;
 }
@@ -641,7 +479,7 @@ void FPU_FRSTOR(PhysPt addr, bool op16)
 void FPU_FST(int src, int dst)
 {
     fpu.sw.C1 = 0;
-    fpu_StackValid(src);
+    fpu_detail::StackValid(src);
 
     fpu.regvalid[dst] = fpu.regvalid[src];
     fpu.regs_80[dst] = fpu.regs_80[src];
@@ -653,7 +491,7 @@ void FPU_FST(int src, int dst)
 
 void FPU_FST_F32(PhysPt addr)
 {
-    fpu_StackValid(TOP);
+    fpu_detail::StackValid(TOP);
 
     FPU_Reg_32 result = {};
     float80::F32ConversionResult conversion = {};
@@ -679,7 +517,7 @@ void FPU_FST_F32(PhysPt addr)
 
     if (conversion.exceptions) {
         FPU_SetException(conversion.exceptions);
-        fpu_CheckException();
+        fpu_detail::CheckException();
     }
 
     mem_writed(addr, result.raw);
@@ -687,7 +525,7 @@ void FPU_FST_F32(PhysPt addr)
 
 void FPU_FST_F64(PhysPt addr)
 {
-    fpu_StackValid(TOP);
+    fpu_detail::StackValid(TOP);
 
     FPU_Reg_64 result = {};
     float80::F64ConversionResult conversion = {};
@@ -708,7 +546,7 @@ void FPU_FST_F64(PhysPt addr)
 
     if (conversion.exceptions) {
         FPU_SetException(conversion.exceptions);
-        fpu_CheckException();
+        fpu_detail::CheckException();
     }
 
     mem_writeq(addr, result.raw);
@@ -717,7 +555,7 @@ void FPU_FST_F64(PhysPt addr)
 void FPU_FST_F80(PhysPt addr)
 {
     fpu.sw.C1 = 0;
-    fpu_StackValid(TOP);
+    fpu_detail::StackValid(TOP);
     FPU_Reg_80 val;
 #ifdef HAS_LONG_DOUBLE
     val = fpu.regs_80[TOP];
@@ -751,7 +589,7 @@ static void fpu_GetST80(FPU_Reg_80& value)
 
 void FPU_FST_I64(PhysPt addr)
 {
-    fpu_StackValid(TOP);
+    fpu_detail::StackValid(TOP);
     FPU_Reg_80 value = {};
     fpu_GetST80(value);
     const auto conversion = float80::convertToI64(value);
@@ -759,7 +597,7 @@ void FPU_FST_I64(PhysPt addr)
 
     if (conversion.exceptions) {
         FPU_SetException(conversion.exceptions);
-        fpu_CheckException();
+        fpu_detail::CheckException();
     }
 
     mem_writeq(addr, static_cast<uint64_t>(conversion.value));
@@ -767,7 +605,7 @@ void FPU_FST_I64(PhysPt addr)
 
 void FPU_FST_I16(PhysPt addr)
 {
-    fpu_StackValid(TOP);
+    fpu_detail::StackValid(TOP);
     FPU_Reg_80 value = {};
     fpu_GetST80(value);
     const auto conversion = float80::convertToI16(value);
@@ -775,7 +613,7 @@ void FPU_FST_I16(PhysPt addr)
 
     if (conversion.exceptions) {
         FPU_SetException(conversion.exceptions);
-        fpu_CheckException();
+        fpu_detail::CheckException();
     }
 
     mem_writew(addr, static_cast<uint16_t>(conversion.value));
@@ -783,7 +621,7 @@ void FPU_FST_I16(PhysPt addr)
 
 void FPU_FST_I32(PhysPt addr)
 {
-    fpu_StackValid(TOP);
+    fpu_detail::StackValid(TOP);
     FPU_Reg_80 value = {};
     fpu_GetST80(value);
     const auto conversion = float80::convertToI32(value);
@@ -791,7 +629,7 @@ void FPU_FST_I32(PhysPt addr)
 
     if (conversion.exceptions) {
         FPU_SetException(conversion.exceptions);
-        fpu_CheckException();
+        fpu_detail::CheckException();
     }
 
     mem_writed(addr, static_cast<uint32_t>(conversion.value));
@@ -801,7 +639,7 @@ void FPU_FBST(PhysPt addr)
 {
     constexpr uint64_t bcd_max = 999'999'999'999'999'999ULL;
 
-    fpu_StackValid(TOP);
+    fpu_detail::StackValid(TOP);
     FPU_Reg_80 value = {};
     fpu_GetST80(value);
     const auto conversion = float80::convertToI64(value);
@@ -823,7 +661,7 @@ void FPU_FBST(PhysPt addr)
     fpu.sw.C1 = rounded_up;
     if (exceptions) {
         FPU_SetException(exceptions);
-        fpu_CheckException();
+        fpu_detail::CheckException();
     }
 
     if (exceptions & FPU_EX_INVALID) {
@@ -852,12 +690,12 @@ void FPU_FBST(PhysPt addr)
 
 void FPU_FUCOM(int op1, int op2)
 {
-    fpu_Compare(op1, op2, false);
+    fpu_detail::Compare(op1, op2, false);
 }
 
 void FPU_FUCOMI(int op1, int op2)
 {
-    fpu_CompareToCpuFlags(op1, op2, false);
+    fpu_detail::CompareToCpuFlags(op1, op2, false);
 }
 
 

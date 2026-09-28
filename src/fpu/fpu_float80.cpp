@@ -46,6 +46,7 @@ const uint8_t LN2_Extra2 = 3;
 namespace {
 
 constexpr uint64_t IntegerBit = 0x8000'0000'0000'0000ULL;
+constexpr uint64_t QuietNaNBit = 0x4000'0000'0000'0000ULL;
 
 void convertFromIEEE(FPU_Reg_80& result,
                      uint64_t fraction,
@@ -91,6 +92,11 @@ void convertFromIEEE(FPU_Reg_80& result,
 }
 
 } // namespace
+
+void setQuietBit(FPU_Reg_80& val)
+{
+    val.f.mantissa |= QuietNaNBit;
+}
 
 namespace {
 
