@@ -82,23 +82,6 @@ static void FPU_F2XM1(void){
 	return;
 }
 
-static void FPU_FCOS(void){
-	//fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
-	//fpu.regs[TOP].d = cos(fpu.regs[TOP].d);
-    const double x = fpu.regs[TOP].d;
-
-    if(fabs(x) >= X87_TRIG_ARG_LIMIT) {
-        FPU_SET_C2(1);
-        return;
-    }
-
-    fpu.use80[TOP] = false;
-    fpu.regs[TOP].d = cos(x);
-
-    FPU_SET_C2(0);
-	return;
-}
-
 static void FPU_FDIV(Bitu st, Bitu other){
 	//fpu.use80[st] = false; // we used the less precise version, drop the 80-bit precision
     //fpu.regs[st].d = fpu.regs[st].d / fpu.regs[other].d;

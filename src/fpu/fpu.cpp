@@ -70,38 +70,51 @@ bool fpu_StackValid(int pos)
     return false;
 }
 
+static bool fpu_InputIsSignalingNaN(int op)
+{
+#ifdef HAS_LONG_DOUBLE
+    return IsSNaN(fpu.regs_80[op]);
+#else
+    return fpu.use80[op] ? IsSNaN(fpu.regs_80[op]) : IsSNaN(fpu.regs[op]);
+#endif
+}
+
+static bool fpu_InputIsSubnormal(int op)
+{
+#ifdef HAS_LONG_DOUBLE
+    return IsSubnormal(fpu.regs_80[op]);
+#else
+    return fpu.use80[op] ? IsSubnormal(fpu.regs_80[op]) :
+                           IsSubnormal(fpu.regs[op]);
+#endif
+}
+
+static void fpu_CheckInputExceptions(bool signaling_nan, bool subnormal)
+{
+    if (signaling_nan) {
+        fpu.sw.IE = 1;
+        fpu_CheckException();
+    }
+    if (subnormal) {
+        fpu.sw.DE = 1;
+        fpu_CheckException();
+    }
+}
+
+void fpu_CheckInputs(int op)
+{
+    fpu_StackValid(op);
+    fpu_CheckInputExceptions(fpu_InputIsSignalingNaN(op), fpu_InputIsSubnormal(op));
+}
+
 void fpu_CheckInputs(int op1, int op2)
 {
     fpu_StackValid(op2);
     fpu_StackValid(op1);
-
-#ifdef HAS_LONG_DOUBLE
-    if (IsSNaN(fpu.regs_80[op1]) || IsSNaN(fpu.regs_80[op2])) {
-        fpu.sw.IE = 1;
-        fpu_CheckException();
-    }
-    if (IsSubnormal(fpu.regs_80[op1]) || IsSubnormal(fpu.regs_80[op2])) {
-        fpu.sw.DE = 1;
-        fpu_CheckException();
-    }
-#else
-    const auto is_signaling_nan = [](const int op) {
-        return fpu.use80[op] ? IsSNaN(fpu.regs_80[op]) : IsSNaN(fpu.regs[op]);
-    };
-    const auto is_subnormal = [](const int op) {
-        return fpu.use80[op] ? IsSubnormal(fpu.regs_80[op]) :
-                               IsSubnormal(fpu.regs[op]);
-    };
-
-    if (is_signaling_nan(op1) || is_signaling_nan(op2)) {
-        fpu.sw.IE = 1;
-        fpu_CheckException();
-    }
-    if (is_subnormal(op1) || is_subnormal(op2)) {
-        fpu.sw.DE = 1;
-        fpu_CheckException();
-    }
-#endif
+    fpu_CheckInputExceptions(fpu_InputIsSignalingNaN(op1) ||
+                                     fpu_InputIsSignalingNaN(op2),
+                             fpu_InputIsSubnormal(op1) ||
+                                     fpu_InputIsSubnormal(op2));
 }
 
 static bool fpu_OperandIsInfinity(int op)
@@ -363,6 +376,43 @@ void FPU_FCOM_EA(int op1)
 void FPU_FCOMI(int op1, int op2)
 {
     fpu_CompareToCpuFlags(op1, op2, true);
+}
+
+void FPU_FCOS()
+{
+    fpu_CheckInputs(TOP);
+    fpu.sw.C1 = 0;
+
+#if C_FPU_X86
+    FPUD_TRIG(fcos);
+#else
+ #ifdef HAS_LONG_DOUBLE
+    const auto input = fpu.regs_80[TOP].v;
+    if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
+        fpu.sw.C2 = 1;
+        fpu_CheckException();
+        return;
+    }
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.regs_80[TOP].v = std::cos(input);
+ #else
+    const auto input = fpu.regs[TOP].d;
+    if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
+        fpu.sw.C2 = 1;
+        fpu_CheckException();
+        return;
+    }
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.use80[TOP] = false;
+    fpu.regs[TOP].d = std::cos(input);
+ #endif
+    fpu.sw.C2 = 0;
+    fesetsw();
+#endif
+
+    fpu_CheckException();
 }
 
 void FPU_FFREE(int st)

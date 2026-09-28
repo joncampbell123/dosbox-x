@@ -74,10 +74,6 @@ static void FPU_FSINCOS(void){
 	FPUD_SINCOS()
 }
 
-static void FPU_FCOS(void){
-	FPUD_TRIG(fcos)
-}
-
 static void FPU_FSQRT(void){
 	FPUD_ARITH2(fsqrt)
 }

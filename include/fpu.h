@@ -76,6 +76,7 @@ void FPU_FCLEX();
 void FPU_FCOM(int op1, int op2);
 void FPU_FCOM_EA(int op1);
 void FPU_FCOMI(int op1, int op2);
+void FPU_FCOS();
 void FPU_FCMOV_B(Bitu dst, Bitu src);
 void FPU_FCMOV_BE(Bitu dst, Bitu src);
 void FPU_FCMOV_E(Bitu dst, Bitu src);

@@ -129,13 +129,6 @@ static void FPU_FSINCOS(void){
 	return;
 }
 
-static void FPU_FCOS(void){
-	fpu.regs_80[TOP].v = cosl(fpu.regs_80[TOP].v);
-	FPU_SET_C2(0);
-	//flags and such :)
-	return;
-}
-
 static void FPU_FSQRT(void){
 	fenv_t buf;
 	std::feholdexcept(&buf);
