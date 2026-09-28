@@ -147,63 +147,6 @@ static void FPU_FXCH(Bitu stv, Bitu other){
 	FPU_SET_C1(0);
 }
 
-static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
-	FillFlags();
-	SETFLAGBIT(OF,false);
-	SETFLAGBIT(SF,false);
-	SETFLAGBIT(AF,false);
-	fpu.sw.C1 = 0;
-
-	if (!fpu.regvalid[st] || !fpu.regvalid[other]) {
-		FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
-		SETFLAGBIT(ZF,true);
-		SETFLAGBIT(PF,true);
-		SETFLAGBIT(CF,true);
-		return;
-	}
-
-	const auto old_c0 = fpu.sw.C0;
-	const auto old_c2 = fpu.sw.C2;
-	const auto old_c3 = fpu.sw.C3;
-
-	if (raise_invalid_for_nan)
-		FPU_FCOM(st, other);
-	else
-		FPU_FUCOM(st, other);
-
-	const auto compare_c0 = fpu.sw.C0;
-	const auto compare_c2 = fpu.sw.C2;
-	const auto compare_c3 = fpu.sw.C3;
-
-	// FCOMI and FUCOMI leave C0, C2, and C3 unchanged and always clear C1.
-	fpu.sw.C0 = old_c0;
-	fpu.sw.C1 = 0;
-	fpu.sw.C2 = old_c2;
-	fpu.sw.C3 = old_c3;
-
-	if (compare_c3 && compare_c2 && compare_c0) {
-		SETFLAGBIT(ZF,true);
-		SETFLAGBIT(PF,true);
-		SETFLAGBIT(CF,true);
-	} else if (compare_c3) {
-		SETFLAGBIT(ZF,true);
-		SETFLAGBIT(PF,false);
-		SETFLAGBIT(CF,false);
-	} else if (compare_c0) {
-		SETFLAGBIT(ZF,false);
-		SETFLAGBIT(PF,false);
-		SETFLAGBIT(CF,true);
-	} else {
-		SETFLAGBIT(ZF,false);
-		SETFLAGBIT(PF,false);
-		SETFLAGBIT(CF,false);
-	}
-}
-
-static inline void FPU_FUCOMI(Bitu st, Bitu other){
-	FPU_FCOMI(st, other, false);
-}
-
 static void FPU_FRNDINT(void){
 	FPUD_ARITH2(frndint)
 }

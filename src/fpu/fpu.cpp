@@ -159,6 +159,38 @@ static void fpu_Compare(int op1, int op2, bool ordered)
     fpu_CheckException();
 }
 
+static void fpu_CompareToCpuFlags(int op1, int op2, bool ordered)
+{
+    FillFlags();
+    SETFLAGBIT(OF, false);
+    SETFLAGBIT(SF, false);
+    SETFLAGBIT(AF, false);
+
+    const auto old_c0 = fpu.sw.C0;
+    const auto old_c2 = fpu.sw.C2;
+    const auto old_c3 = fpu.sw.C3;
+
+    if (ordered)
+        FPU_FCOM(op1, op2);
+    else
+        FPU_FUCOM(op1, op2);
+
+    const auto compare_c0 = fpu.sw.C0;
+    const auto compare_c2 = fpu.sw.C2;
+    const auto compare_c3 = fpu.sw.C3;
+
+    // FCOMI and FUCOMI leave C0, C2, and C3 unchanged and clear C1.
+    fpu.sw.C0 = old_c0;
+    fpu.sw.C1 = 0;
+    fpu.sw.C2 = old_c2;
+    fpu.sw.C3 = old_c3;
+
+    const auto unordered = compare_c0 && compare_c2 && compare_c3;
+    SETFLAGBIT(ZF, unordered || compare_c3);
+    SETFLAGBIT(PF, unordered);
+    SETFLAGBIT(CF, unordered || compare_c0);
+}
+
 void fpu_Push(const FPU_Reg_80& input)
 {
     auto val = input;   // 32-bit ARM MSVC does not gaurantee 16-byte stack alignment so have to pass by ref
@@ -326,6 +358,11 @@ void FPU_FCOM(int op1, int op2)
 void FPU_FCOM_EA(int op1)
 {
     fpu_Compare(op1, 8, true);
+}
+
+void FPU_FCOMI(int op1, int op2)
+{
+    fpu_CompareToCpuFlags(op1, op2, true);
 }
 
 void FPU_FFREE(int st)
@@ -766,6 +803,11 @@ void FPU_FBST(PhysPt addr)
 void FPU_FUCOM(int op1, int op2)
 {
     fpu_Compare(op1, op2, false);
+}
+
+void FPU_FUCOMI(int op1, int op2)
+{
+    fpu_CompareToCpuFlags(op1, op2, false);
 }
 
 

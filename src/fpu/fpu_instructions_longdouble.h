@@ -203,48 +203,6 @@ static void FPU_FXCH(Bitu st, Bitu other){
 	fpu.regs_80[st] = reg80;
 }
 
-static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
-	FillFlags();
-	SETFLAGBIT(OF,false);
-	SETFLAGBIT(SF,false);
-	SETFLAGBIT(AF,false);
-	fpu.sw.C1 = 0;
-
-	if (!fpu.regvalid[st] || !fpu.regvalid[other]) {
-		FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
-		SETFLAGBIT(ZF,true);
-		SETFLAGBIT(PF,true);
-		SETFLAGBIT(CF,true);
-		return;
-	}
-
-	const auto a = fpu.regs_80[st].v;
-	const auto b = fpu.regs_80[other].v;
-
-	if ((std::isnan)(a) || (std::isnan)(b)) {
-		if (raise_invalid_for_nan)
-			FPU_SetException(FPU_EX_INVALID);
-		SETFLAGBIT(ZF,true);
-		SETFLAGBIT(PF,true);
-		SETFLAGBIT(CF,true);
-		return;
-	}
-
-	if (a == b) {
-		SETFLAGBIT(ZF,true);
-		SETFLAGBIT(PF,false);
-		SETFLAGBIT(CF,false);
-	} else if (a < b) {
-		SETFLAGBIT(ZF,false);
-		SETFLAGBIT(PF,false);
-		SETFLAGBIT(CF,true);
-	} else {
-		SETFLAGBIT(ZF,false);
-		SETFLAGBIT(PF,false);
-		SETFLAGBIT(CF,false);
-	}
-}
-
 static void FPU_FRNDINT(void){
 	int64_t temp= static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v));
 	fpu.regs_80[TOP].v=static_cast<long double>(temp);

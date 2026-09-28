@@ -99,44 +99,6 @@ static void FPU_FCOS(void){
 	return;
 }
 
-static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
-	
-	FillFlags();
-	SETFLAGBIT(OF,false);
-	SETFLAGBIT(SF,false);
-	SETFLAGBIT(AF,false);
-    fpu.sw.C1 = 0;
-
-    if (!fpu.regvalid[st] || !fpu.regvalid[other]) {
-        FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
-        SETFLAGBIT(ZF, true);
-        SETFLAGBIT(PF, true);
-        SETFLAGBIT(CF, true);
-        return;
-    }
-
-    const double a = fpu.regs[st].d;
-    const double b = fpu.regs[other].d;
-
-    if((std::isnan)(a) || (std::isnan)(b)) {
-        if(raise_invalid_for_nan) FPU_SetException(FPU_EX_INVALID);
-        SETFLAGBIT(ZF, true);
-        SETFLAGBIT(PF, true);
-        SETFLAGBIT(CF, true);
-        return;
-    }
-
-	if(a == b){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
-	}
-	else if(a < b){
-		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
-	}
-	else {
-        SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
-    }
-}
-
 static void FPU_FDIV(Bitu st, Bitu other){
 	//fpu.use80[st] = false; // we used the less precise version, drop the 80-bit precision
     //fpu.regs[st].d = fpu.regs[st].d / fpu.regs[other].d;
@@ -487,11 +449,6 @@ static void FPU_FTST(void){
 	fpu.use80[8] = false; // we used the less precise version, drop the 80-bit precision
 	fpu.regs[8].d = 0.0;
 	FPU_FCOM(TOP,8);
-}
-
-static inline void FPU_FUCOMI(Bitu st, Bitu other){
-    //does atm the same as fcomi, but raise invalid exception for NaN
-    FPU_FCOMI(st,other,false);
 }
 
 static void FPU_FXAM(void){
