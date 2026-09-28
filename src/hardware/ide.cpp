@@ -498,13 +498,23 @@ bool IDEATAPICDROMDevice::common_spinup_response(bool trigger,bool wait) {
 		}
 	}
 
-	/* if the CD-ROM drive has mounted the empty drive, then ALWAYS return Medium Not Present */
+	/* If the CD-ROM drive has mounted the "empty" drive (no disc), then:
+	 *   - actual media access (trigger == true) reports Medium Not Present, and
+	 *   - TEST UNIT READY (trigger == false) reports ready, so the empty drive
+	 *     is still recognizable during guest OS enumeration. */
 	CDROM_Interface *cdrom = getMSCDEXDrive();
-	if (cdrom) {
-		if (cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
-			set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Medium Not Present */
-//			LOG_MSG("ATAPI: Medium Not Ready");
-			return false;
+	if (cdrom && cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
+		CDROM_Interface_Fake *fake = (CDROM_Interface_Fake*)cdrom;
+		if (fake->isEmpty) {
+			if (trigger) {
+				set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Medium Not Present */
+				return false;
+			}
+			else {
+				/* TEST UNIT READY: empty drive is still a valid, ready device */
+				set_sense(/*SK=*/0x00); /* nothing wrong */
+				return true;
+			}
 		}
 	}
 
@@ -1744,7 +1754,7 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
        And there are MS-DOS CD-ROM drivers that assume that. */
     raise_irq();
 }
-    
+
 void IDEATAPICDROMDevice::io_completion() {
     /* lower DRQ */
     status &= ~IDE_STATUS_DRQ;
@@ -2479,7 +2489,7 @@ void IDEATADevice::data_write(Bitu v,Bitu iolen) {
     if (sector_i >= sector_total)
         io_completion();
 }
-        
+
 void IDEATAPICDROMDevice::prepare_read(Bitu offset,Bitu size) {
     /* I/O must be WORD ALIGNED */
     assert((offset&1) == 0);
@@ -2719,7 +2729,7 @@ void IDEATADevice::generate_identify_device() {
     host_writew(sector+(88*2),0x0000);  /* FIXME: ??? */
     host_writew(sector+(93*2),0x0000);  /* FIXME: ??? */
     host_writed(sector+(100*2), int13_enable_48bitLBA ? (uint32_t)(LBA & 0xFFFFFFFF):0); // 48bit LBA lower 32 bits
-    host_writed(sector+(102*2), int13_enable_48bitLBA ? (uint32_t)(LBA >> 32):0);        // 48bit LBA upper 32 bits 
+    host_writed(sector+(102*2), int13_enable_48bitLBA ? (uint32_t)(LBA >> 32):0);        // 48bit LBA upper 32 bits
 
     /* ATA-8 integrity checksum */
     sector[510] = 0xA5;
@@ -2842,7 +2852,7 @@ void IDE_Auto(signed char &index,bool &slave) {
     }
 }
 
-bool IDE_controller_occupied(signed char index, bool slave) { // Return true if specified slot is occupied 
+bool IDE_controller_occupied(signed char index, bool slave) { // Return true if specified slot is occupied
     const uint8_t ide_device = slave ? 1 : 0;
     if(idecontroller[index]->device[ide_device] == NULL) {
         return false;
