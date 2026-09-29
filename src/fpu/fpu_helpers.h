@@ -6,6 +6,7 @@ namespace fpu_detail {
 void CheckException();
 void SetStatusFromHostExceptions();
 bool StackValid(int pos);
+bool InputIsNaN(int op);
 void CheckInputs(int op);
 void CheckInputs(int op1, int op2);
 void RaiseLoadExceptions(bool denormal, bool signaling_nan);

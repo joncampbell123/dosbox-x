@@ -274,7 +274,10 @@ void FPU_FLD_F32_EA(PhysPt addr)
     if (IsSNaN(val)) {
         fpu.sw.IE = 1;
         fpu_detail::CheckException();
-    } else if (IsSubnormal(val)) {
+    } else if (IsSubnormal(val) &&
+               fpu.regvalid[TOP] &&
+               !fpu_detail::InputIsNaN(TOP)) {
+        // Only trigger denormal exception if stack operand is not a NaN
         fpu.sw.DE = 1;
         fpu_detail::CheckException();
     }
@@ -301,7 +304,10 @@ void FPU_FLD_F64_EA(PhysPt addr)
     if (IsSNaN(val)) {
         fpu.sw.IE = 1;
         fpu_detail::CheckException();
-    } else if (IsSubnormal(val)) {
+    } else if (IsSubnormal(val) &&
+               fpu.regvalid[TOP] &&
+               !fpu_detail::InputIsNaN(TOP)) {
+        // Only trigger denormal exception if stack operand is not a NaN
         fpu.sw.DE = 1;
         fpu_detail::CheckException();
     }

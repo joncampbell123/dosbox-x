@@ -20,15 +20,6 @@ namespace {
 
 constexpr uint64_t QNaN = 0xFFF8'0000'0000'0000;
 
-bool InputIsNaN(int op)
-{
-#if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
-    return IsNaN(fpu.regs_80[op]);
-#else
-    return fpu.use80[op] ? IsNaN(fpu.regs_80[op]) : IsNaN(fpu.regs[op]);
-#endif
-}
-
 bool InputIsSignalingNaN(int op)
 {
 #if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
@@ -123,6 +114,15 @@ bool StackValid(int pos)
     fpu.regs[pos].raw = QNaN;
 #endif
     return false;
+}
+
+bool InputIsNaN(int op)
+{
+#if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
+    return IsNaN(fpu.regs_80[op]);
+#else
+    return fpu.use80[op] ? IsNaN(fpu.regs_80[op]) : IsNaN(fpu.regs[op]);
+#endif
 }
 
 void CheckInputs(int op)
