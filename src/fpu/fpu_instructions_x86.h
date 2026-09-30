@@ -179,7 +179,3 @@ static void FPU_FSAVE(PhysPt addr, bool op16){
 static void FPU_FXTRACT(void) {
 	FPUD_XTRACT
 }
-
-static void FPU_FTST(void){
-	FPUD_EXAMINE(ftst)
-}

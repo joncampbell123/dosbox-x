@@ -779,6 +779,17 @@ void FPU_FXCH(int op1, int op2)
     }
 }
 
+void FPU_FTST()
+{
+#ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[8].v = 0.0L;
+#else
+    fpu.use80[8] = false;
+    fpu.regs[8].v = 0.0;
+#endif
+    FPU_FCOM(TOP, 8);
+}
+
 
 #if C_FPU_X86
 #include "fpu_instructions_x86.h"

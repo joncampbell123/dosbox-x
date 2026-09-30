@@ -120,6 +120,7 @@ void FPU_FST_F80(PhysPt addr);
 void FPU_FST_I16(PhysPt addr);
 void FPU_FST_I32(PhysPt addr);
 void FPU_FST_I64(PhysPt addr);
+void FPU_FTST();
 void FPU_FUCOM(int op1, int op2);
 void FPU_FUCOMI(int op1, int op2);
 void FPU_FXCH(int op1, int op2);
