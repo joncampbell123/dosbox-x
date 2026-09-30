@@ -442,15 +442,19 @@ void DriveManager::CycleDisk(bool pressed) {
 }
 */
 
-void DriveManager::CycleDisks(int drive, bool notify, unsigned int position) {
+void DriveManager::CycleDisks(int drive, bool notify, bool rev, unsigned int position) {
 	unsigned int numDisks = (unsigned int)driveInfos[drive].disks.size();
 	if (numDisks > 1) {
 		// cycle disk
 		unsigned int currentDisk = driveInfos[drive].currentDisk;
 		const DOS_Drive* oldDisk = driveInfos[drive].disks[currentDisk];
-		if (position<1)
-			currentDisk = (currentDisk + 1u) % numDisks;
-		else if (position>numDisks)
+        if(position < 1) {
+            if(rev)
+                currentDisk = (currentDisk == 0) ? numDisks - 1 : currentDisk - 1;
+            else
+                currentDisk = (currentDisk + 1u) % numDisks;
+        }
+        else if(position > numDisks)
 			currentDisk = 0;
 		else
 			currentDisk = position - 1;
@@ -478,11 +482,11 @@ void DriveManager::CycleDisks(int drive, bool notify, unsigned int position) {
 	}
 }
 
-void DriveManager::CycleAllDisks(void) {
-	for (int idrive=0; idrive<2; idrive++) CycleDisks(idrive, true); /* Cycle all DISKS meaning A: and B: */
+void DriveManager::CycleAllDisks(bool rev) {
+	for (int idrive=0; idrive<2; idrive++) CycleDisks(idrive, true, rev); /* Cycle all DISKS meaning A: and B: */
 }
 
-void DriveManager::CycleAllCDs(void) {
+void DriveManager::CycleAllCDs(bool rev) {
 	for (unsigned int idrive=2; idrive<DOS_DRIVES; idrive++) { /* Cycle all CDs in C: D: ... Z: */
 		unsigned int numDisks = (unsigned int)driveInfos[idrive].disks.size();
 		if (numDisks > 1) {
@@ -490,7 +494,10 @@ void DriveManager::CycleAllCDs(void) {
 			unsigned int currentDisk = driveInfos[idrive].currentDisk;
 			const DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
 			if (dynamic_cast<const isoDrive*>(oldDisk) == NULL) continue;
-			currentDisk = (currentDisk + 1u) % numDisks;
+            if(rev)
+                currentDisk = (currentDisk == 0) ? numDisks - 1 : currentDisk - 1;
+            else
+                currentDisk = (currentDisk + 1u) % numDisks;
 			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
 
