@@ -122,6 +122,7 @@ void FPU_FST_I32(PhysPt addr);
 void FPU_FST_I64(PhysPt addr);
 void FPU_FUCOM(int op1, int op2);
 void FPU_FUCOMI(int op1, int op2);
+void FPU_FXCH(int op1, int op2);
 
 static INLINE void FPU_SetTag(uint16_t tags){
 	for (auto i=0; i<8; i++)

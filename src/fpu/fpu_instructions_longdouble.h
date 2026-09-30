@@ -173,13 +173,6 @@ static void FPU_FSUBR(Bitu st, Bitu other){
 	return;
 }
 
-static void FPU_FXCH(Bitu st, Bitu other){
-    std::swap(fpu.regvalid[st], fpu.regvalid[other]);
-	FPU_Reg_80 reg80 = fpu.regs_80[other];
-	fpu.regs_80[other] = fpu.regs_80[st];
-	fpu.regs_80[st] = reg80;
-}
-
 static void FPU_FRNDINT(void){
 	int64_t temp= static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v));
 	fpu.regs_80[TOP].v=static_cast<long double>(temp);

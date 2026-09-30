@@ -111,22 +111,6 @@ static void FPU_FSUBR_EA(Bitu op1){
     FPU_FSUBR(op1, 8);
 }
 
-static void FPU_FXCH(Bitu stv, Bitu other){
-    std::swap(fpu.regvalid[stv], fpu.regvalid[other]);
-
-	uint32_t m1s = fpu.p_regs[other].m1;
-	uint32_t m2s = fpu.p_regs[other].m2;
-	uint16_t m3s = fpu.p_regs[other].m3;
-	fpu.p_regs[other].m1 = fpu.p_regs[stv].m1;
-	fpu.p_regs[other].m2 = fpu.p_regs[stv].m2;
-	fpu.p_regs[other].m3 = fpu.p_regs[stv].m3;
-	fpu.p_regs[stv].m1 = m1s;
-	fpu.p_regs[stv].m2 = m2s;
-	fpu.p_regs[stv].m3 = m3s;
-
-	FPU_SET_C1(0);
-}
-
 static void FPU_FRNDINT(void){
 	FPUD_ARITH2(frndint)
 }

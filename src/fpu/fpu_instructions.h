@@ -406,22 +406,6 @@ static void FPU_FXAM(void){
 	}
 }
 
-static void FPU_FXCH(Bitu st, Bitu other)
-{
-    std::swap(fpu.regvalid[st], fpu.regvalid[other]);
-	FPU_Reg_80 reg80 = fpu.regs_80[other];
-	FPU_Reg_64 reg = fpu.regs[other];
-	bool use80 = fpu.use80[other];
-
-	fpu.regs_80[other] = fpu.regs_80[st];
-	fpu.use80[other] = fpu.use80[st];
-	fpu.regs[other] = fpu.regs[st];
-
-	fpu.regs_80[st] = reg80;
-	fpu.use80[st] = use80;
-	fpu.regs[st] = reg;
-}
-
 
 static void FPU_FXTRACT(void) {
 	// function stores real bias in st and 

@@ -762,6 +762,23 @@ void FPU_FUCOMI(int op1, int op2)
     fpu_detail::CompareToCpuFlags(op1, op2, false);
 }
 
+void FPU_FXCH(int op1, int op2)
+{
+    fpu.sw.C1 = 0;
+    std::swap(fpu.regvalid[op1], fpu.regvalid[op2]);
+    std::swap(fpu.regs_80[op1], fpu.regs_80[op2]);
+#ifndef HAS_LONG_DOUBLE
+    std::swap(fpu.regs[op1], fpu.regs[op2]);
+    std::swap(fpu.use80[op1], fpu.use80[op2]);
+#endif
+    if (!fpu.regvalid[op1] || !fpu.regvalid[op2]) {
+        fpu.sw.IE = 1;
+        fpu.sw.SF = 1;
+        fpu.sw.C1 = 0;
+        fpu_detail::CheckException();
+    }
+}
+
 
 #if C_FPU_X86
 #include "fpu_instructions_x86.h"
