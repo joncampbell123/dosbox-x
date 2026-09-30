@@ -149,14 +149,6 @@ static void FPU_FPTAN(void){
 	//flags and such :)
 	return;
 }
-static void FPU_FSUBR(Bitu st, Bitu other){
-	fenv_t buf;
-	std::feholdexcept(&buf);
-	fpu.regs_80[st].v = fpu.regs_80[other].v - fpu.regs_80[st].v;
-	//flags and such :)
-	return;
-}
-
 static void FPU_FRNDINT(void){
 	int64_t temp= static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v));
 	fpu.regs_80[TOP].v=static_cast<long double>(temp);
@@ -274,9 +266,4 @@ static void FPU_FXTRACT(void) {
 	long double mant = test.v / (powl(2.0,static_cast<long double>(exp80final)));
 	fpu.regs_80[TOP].v = static_cast<long double>(exp80final);
 	FPU_PUSH(mant);
-}
-
-
-static INLINE void FPU_FSUBR_EA(Bitu op1){
-	FPU_FSUBR(op1,8);
 }
