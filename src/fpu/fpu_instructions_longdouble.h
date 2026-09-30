@@ -149,14 +149,6 @@ static void FPU_FPTAN(void){
 	//flags and such :)
 	return;
 }
-static void FPU_FMUL(Bitu st, Bitu other){
-	fenv_t buf;
-	std::feholdexcept(&buf);
-	fpu.regs_80[st].v *= fpu.regs_80[other].v;
-	//flags and such :)
-	return;
-}
-
 static void FPU_FSUB(Bitu st, Bitu other){
 	fenv_t buf;
 	std::feholdexcept(&buf);
@@ -293,9 +285,6 @@ static void FPU_FXTRACT(void) {
 }
 
 
-static INLINE void FPU_FMUL_EA(Bitu op1){
-	FPU_FMUL(op1,8);
-}
 static INLINE void FPU_FSUB_EA(Bitu op1){
 	FPU_FSUB(op1,8);
 }

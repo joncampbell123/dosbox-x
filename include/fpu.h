@@ -89,6 +89,8 @@ void FPU_FDIV(int op1, int op2);
 void FPU_FDIV_EA(int op1);
 void FPU_FDIVR(int op1, int op2);
 void FPU_FDIVR_EA(int op1);
+void FPU_FMUL(int op1, int op2);
+void FPU_FMUL_EA(int op1);
 void FPU_FFREE(int st);
 void FPU_FINIT();
 void FPU_FLD_F32(PhysPt addr);

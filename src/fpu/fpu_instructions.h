@@ -82,40 +82,6 @@ static void FPU_F2XM1(void){
 	return;
 }
 
-static void FPU_FMUL(Bitu st, Bitu other){
-	//fpu.use80[st] = false; // we used the less precise version, drop the 80-bit precision
-	//fpu.regs[st].v*=fpu.regs[other].v;
-    const double a = fpu.regs[other].v;
-    const double b = fpu.regs[st].v;
-    if((a == 0.0 && std::isinf(b)) ||
-        (b == 0.0 && std::isinf(a)))
-    {
-        FPU_SetException(FPU_EX_INVALID);
-    }
-    double result = a * b;
-
-    if(std::isinf(result) &&
-        std::isfinite(a) &&
-        std::isfinite(b))
-    {
-        FPU_SetException(FPU_EX_OVERFLOW);
-    }
-    if(result != 0.0 &&
-        std::fpclassify(result) == FP_SUBNORMAL)
-    {
-        FPU_SetException(FPU_EX_UNDERFLOW);
-    }
-
-    fpu.use80[st] = false;
-    fpu.regs[st].v = result;
-
-	return;
-}
-
-static INLINE void FPU_FMUL_EA(Bitu op1){
-	FPU_FMUL(op1,8);
-}
-
 static void FPU_FNOP(void){
 	return;
 }
