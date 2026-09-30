@@ -3258,9 +3258,69 @@ public:
                 }
             }
 
+            /* If floppy images are not mounted on Drives A & B, mount an empty one */
             if(!Drives[0]) runImgmount("0 empty");
             if(!Drives[1]) runImgmount("1 empty");
 
+            int8_t ide_index = -1;
+            bool ide_slave = false;
+
+            /* Parse IDE Controllers for CDROM */
+            bool isIDEControllerPresent(int8_t idx);
+            for(i = 0; i < MAX_IDE_CONTROLLERS && ide_index < 0; i++) {
+                for(uint8_t j = 0; j < 2; j++) {
+                    const bool master = (j == 0);
+
+                    if(isIDEControllerPresent(i) &&
+                        IDE_controller_occupied(i, master) &&
+                        IDE_is_CDROM(i, master)) {
+                        /* Found a mounted CD-ROM Drive */
+                        ide_index = i;
+                        ide_slave = !master;
+                        break;
+                    }
+                }
+            }
+
+            if(ide_index < 0) {
+                /* If no mounted CD-ROM drives are found, mount an empty CD-ROM drive to a non-occupied slot */
+                int8_t drive_index = 2;
+                for(drive_index = 2; drive_index < DOS_DRIVES; drive_index++) {
+                    if(!Drives[drive_index]) {
+                        const bool secondary_present = isIDEControllerPresent(1); // Secondary IDE controller is recommended for CD-ROM drives
+
+                        if((secondary_present &&
+                            IDE_controller_occupied(1, false)) ||
+                            !secondary_present) {
+                            /* Search for empty slot if IDE secondary master is already occupied */
+                            IDE_Auto(ide_index, ide_slave);
+
+                            if(ide_index < 0) {
+                                LOG_MSG("BOOT: No available IDE index for CD-ROM drive");
+                            }
+                        }
+                        else {
+                            /* Mount empty drive to IDE secondary master (recommended) */
+                            ide_index = 1;
+                            ide_slave = false;
+                        }
+
+                        if(ide_index >= 0) {
+                            std::string mount_string =
+                                std::string(1, drive_index + 'A') +
+                                " empty -ide " +
+                                std::to_string(ide_index + 1) +
+                                (ide_slave ? "s" : "m")
+                                + " -t cdrom ";
+
+                            //LOG_MSG("BOOT: imgmount command = [%s]", mount_string.c_str());
+
+                            runImgmount(mount_string.c_str());
+                            break;
+                        }
+                    }
+                }
+            }
             /* zero out DOS memory */
             if (!dos_kernel_disabled && zeromem) {
                 unsigned int max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << 10u;
