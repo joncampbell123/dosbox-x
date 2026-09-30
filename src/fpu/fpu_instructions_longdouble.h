@@ -149,14 +149,6 @@ static void FPU_FPTAN(void){
 	//flags and such :)
 	return;
 }
-static void FPU_FDIVR(Bitu st, Bitu other){
-	fenv_t buf;
-	std::feholdexcept(&buf);
-	fpu.regs_80[st].v = fpu.regs_80[other].v/fpu.regs_80[st].v;
-	// flags and such :)
-	return;
-}
-
 static void FPU_FMUL(Bitu st, Bitu other){
 	fenv_t buf;
 	std::feholdexcept(&buf);
@@ -316,7 +308,4 @@ static INLINE void FPU_FSUB_EA(Bitu op1){
 }
 static INLINE void FPU_FSUBR_EA(Bitu op1){
 	FPU_FSUBR(op1,8);
-}
-static INLINE void FPU_FDIVR_EA(Bitu op1){
-	FPU_FDIVR(op1,8);
 }
