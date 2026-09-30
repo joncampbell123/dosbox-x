@@ -87,14 +87,6 @@ static void FPU_FPTAN(void){
 }
 
 
-static void FPU_FSUB(Bitu op1, Bitu op2){
-	FPUD_ARITH1(fsubp)
-}
-
-static void FPU_FSUB_EA(Bitu op1){
-    FPU_FSUB(op1, 8);
-}
-
 static void FPU_FSUBR(Bitu op1, Bitu op2){
 	FPUD_ARITH1(fsubrp)
 }

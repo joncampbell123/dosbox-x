@@ -321,6 +321,30 @@ void FPU_FMUL_EA(int op1)
     FPU_FMUL(op1, 8);
 }
 
+void FPU_FSUB(int op1, int op2)
+{
+    fpu_detail::CheckInputs(op1, op2);
+
+#if C_FPU_X86
+    FPUD_ARITH1(fsubp)
+#else
+    std::feclearexcept(FE_ALL_EXCEPT);
+  #ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[op1].v -= fpu.regs_80[op2].v;
+  #else
+    fpu.use80[op1] = false;
+    fpu.regs[op1].v -= fpu.regs[op2].v;
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+    fpu_detail::CheckException();
+}
+
+void FPU_FSUB_EA(int op1)
+{
+    FPU_FSUB(op1, 8);
+}
+
 void FPU_FFREE(int st)
 {
 	fpu.regvalid[st] = false;

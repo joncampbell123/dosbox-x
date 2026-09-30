@@ -320,17 +320,6 @@ static void FPU_FSTT_I64(PhysPt addr) {
 	FPU_FPOP();
 }
 
-static void FPU_FSUB(Bitu st, Bitu other){
-	fpu.use80[st] = false; // we used the less precise version, drop the 80-bit precision
-	fpu.regs[st].v = fpu.regs[st].v - fpu.regs[other].v;
-	//flags and such :)
-	return;
-}
-
-static INLINE void FPU_FSUB_EA(Bitu op1){
-	FPU_FSUB(op1,8);
-}
-
 static void FPU_FSUBR(Bitu st, Bitu other){
 	fpu.use80[st] = false; // we used the less precise version, drop the 80-bit precision
 	fpu.regs[st].v= fpu.regs[other].v - fpu.regs[st].v;
