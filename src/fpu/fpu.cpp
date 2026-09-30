@@ -239,6 +239,31 @@ void FPU_FCOS()
     fpu_detail::CheckException();
 }
 
+void FPU_FDIV(int op1, int op2)
+{
+    const auto op2IsZero = fpu.regvalid[op2] && fpu_detail::InputIsZero(op2);
+    fpu_detail::CheckInputs(op1, op2, !op2IsZero);
+
+#if C_FPU_X86
+    FPUD_ARITH3(fdivp)
+#else
+    std::feclearexcept(FE_ALL_EXCEPT);
+  #ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[op1].v /= fpu.regs_80[op2].v;
+  #else
+    fpu.use80[op1] = false;
+    fpu.regs[op1].v /= fpu.regs[op2].v;
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+    fpu_detail::CheckException();
+}
+
+void FPU_FDIV_EA(int op1)
+{
+    FPU_FDIV(op1, 8);
+}
+
 void FPU_FFREE(int st)
 {
 	fpu.regvalid[st] = false;

@@ -6,9 +6,11 @@ namespace fpu_detail {
 void CheckException();
 void SetStatusFromHostExceptions();
 bool StackValid(int pos);
+bool InputIsInfinity(int op);
 bool InputIsNaN(int op);
+bool InputIsZero(int op);
 void CheckInputs(int op);
-void CheckInputs(int op1, int op2);
+void CheckInputs(int op1, int op2, bool check_denormal = true);
 void RaiseLoadExceptions(bool denormal, bool signaling_nan);
 void Compare(int op1, int op2, bool ordered);
 void CompareToCpuFlags(int op1, int op2, bool ordered);

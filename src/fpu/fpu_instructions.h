@@ -82,31 +82,6 @@ static void FPU_F2XM1(void){
 	return;
 }
 
-static void FPU_FDIV(Bitu st, Bitu other){
-	//fpu.use80[st] = false; // we used the less precise version, drop the 80-bit precision
-    //fpu.regs[st].v = fpu.regs[st].v / fpu.regs[other].v;
-
-    const double a = fpu.regs[st].v;
-    const double b = fpu.regs[other].v;
-
-    if(b == 0.0) {
-        if(a == 0.0)
-            FPU_SetException(FPU_EX_INVALID);
-        else
-            FPU_SetException(FPU_EX_ZERODIVIDE);
-    }
-
-    fpu.use80[st] = false;
-    fpu.regs[st].v = a / b;
-
-    if (std::isinf(fpu.regs[st].v) && std::isfinite(a) && std::isfinite(b) && b != 0)
-        FPU_SetException(FPU_EX_OVERFLOW);
-}
-
-static INLINE void FPU_FDIV_EA(Bitu op1){
-	FPU_FDIV(op1,8);
-}
-
 static void FPU_FDIVR(Bitu st, Bitu other){
 	//fpu.use80[st] = false; // we used the less precise version, drop the 80-bit precision
 	//fpu.regs[st].v= fpu.regs[other].v/fpu.regs[st].v;

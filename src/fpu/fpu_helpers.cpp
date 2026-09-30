@@ -65,16 +65,6 @@ void CheckInputExceptions(bool has_nan, bool has_signaling_nan, bool has_subnorm
     }
 }
 
-bool OperandIsInfinity(int op)
-{
-#if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
-    return IsInfinity(fpu.regs_80[op]);
-#else
-    return fpu.use80[op] ? IsInfinity(fpu.regs_80[op]) :
-                           IsInfinity(fpu.regs[op]);
-#endif
-}
-
 void SetComparisonFlags(bool unordered, bool equal, bool less)
 {
     fpu.sw.C1 = 0;
@@ -116,12 +106,31 @@ bool StackValid(int pos)
     return false;
 }
 
+bool InputIsInfinity(int op)
+{
+#if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
+    return IsInfinity(fpu.regs_80[op]);
+#else
+    return fpu.use80[op] ? IsInfinity(fpu.regs_80[op]) :
+                           IsInfinity(fpu.regs[op]);
+#endif
+}
+
 bool InputIsNaN(int op)
 {
 #if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
     return IsNaN(fpu.regs_80[op]);
 #else
     return fpu.use80[op] ? IsNaN(fpu.regs_80[op]) : IsNaN(fpu.regs[op]);
+#endif
+}
+
+bool InputIsZero(int op)
+{
+#if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
+    return IsZero(fpu.regs_80[op]);
+#else
+    return fpu.use80[op] ? IsZero(fpu.regs_80[op]) : IsZero(fpu.regs[op]);
 #endif
 }
 
@@ -137,7 +146,7 @@ void CheckInputs(int op)
     CheckInputExceptions(is_nan, is_signaling_nan, is_subnormal);
 }
 
-void CheckInputs(int op1, int op2)
+void CheckInputs(int op1, int op2, bool check_denormal)
 {
     StackValid(op2);
     StackValid(op1);
@@ -147,6 +156,8 @@ void CheckInputs(int op1, int op2)
     const auto op2_is_signaling_nan = InputIsSignalingNaN(op2);
     const auto op1_is_subnormal = InputIsSubnormal(op1);
     const auto op2_is_subnormal = InputIsSubnormal(op2);
+    const auto has_subnormal = check_denormal &&
+                               (op1_is_subnormal || op2_is_subnormal);
 
     if (op1_is_signaling_nan)
         QuietInputNaN(op1);
@@ -154,7 +165,7 @@ void CheckInputs(int op1, int op2)
         QuietInputNaN(op2);
     CheckInputExceptions(op1_is_nan || op2_is_nan,
                          op1_is_signaling_nan || op2_is_signaling_nan,
-                         op1_is_subnormal || op2_is_subnormal);
+                         has_subnormal);
 }
 
 void RaiseLoadExceptions(bool denormal, bool signaling_nan)
@@ -174,7 +185,7 @@ void Compare(int op1, int op2, bool ordered)
 
     // An 8087/287 compares infinities as equal regardless of their signs.
     if (FPU_ArchitectureType < FPU_ARCHTYPE_387 &&
-        OperandIsInfinity(op1) && OperandIsInfinity(op2)) {
+        InputIsInfinity(op1) && InputIsInfinity(op2)) {
         SetComparisonFlags(false, true, false);
         return;
     }
