@@ -206,6 +206,17 @@ void FPU_FCOS()
 {
     fpu_detail::CheckInputs(TOP);
     fpu.sw.C1 = 0;
+    fpu.sw.C2 = 0;
+
+    if (fpu_detail::InputIsInfinity(TOP)) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+        fpu.regs_80[TOP].raw = float80::QNaN;
+#ifndef HAS_LONG_DOUBLE
+        fpu.use80[TOP] = true;
+#endif
+        return;
+    }
 
 #if C_FPU_X86
     FPUD_TRIG(fcos);
@@ -214,7 +225,6 @@ void FPU_FCOS()
     const auto input = fpu.regs_80[TOP].v;
     if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
         fpu.sw.C2 = 1;
-        fpu_detail::CheckException();
         return;
     }
 
@@ -224,7 +234,6 @@ void FPU_FCOS()
     const auto input = fpu.regs[TOP].v;
     if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
         fpu.sw.C2 = 1;
-        fpu_detail::CheckException();
         return;
     }
 
@@ -232,7 +241,6 @@ void FPU_FCOS()
     fpu.use80[TOP] = false;
     fpu.regs[TOP].v = std::cos(input);
  #endif
-    fpu.sw.C2 = 0;
     fpu_detail::SetStatusFromHostExceptions();
 #endif
 
