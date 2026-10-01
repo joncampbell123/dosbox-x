@@ -178,12 +178,6 @@ static void FPU_F2XM1(void){
 	return;
 }
 
-static void FPU_FYL2X(void){
-	fpu.regs_80[STV(1)].v *= logl(fpu.regs_80[TOP].v)/logl(static_cast<long double>(2.0));
-	FPU_FPOP();
-	return;
-}
-
 static void FPU_FYL2XP1(void){
 	fpu.regs_80[STV(1)].v *= logl(fpu.regs_80[TOP].v+1.0l)/logl(static_cast<long double>(2.0));
 	FPU_FPOP();

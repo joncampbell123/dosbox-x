@@ -91,10 +91,6 @@ static void FPU_F2XM1(void){
 	FPUD_TRIG(f2xm1)
 }
 
-static void FPU_FYL2X(void){
-	FPUD_FYL2X(fyl2x)
-}
-
 static void FPU_FYL2XP1(void){
 	FPUD_WITH_POP(fyl2xp1)
 }
