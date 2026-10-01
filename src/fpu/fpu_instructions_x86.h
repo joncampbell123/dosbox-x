@@ -74,11 +74,6 @@ static void FPU_FPATAN(void){
 	FPUD_WITH_POP(fpatan)
 }
 
-static void FPU_FPTAN(void){
-	FPUD_PTAN()
-}
-
-
 static void FPU_FRNDINT(void){
 	FPUD_ARITH2(frndint)
 }

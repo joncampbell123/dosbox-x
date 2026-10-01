@@ -596,6 +596,59 @@ void FPU_FPOP()
 	TOP = (TOP+1) & 7;
 }
 
+void FPU_FPTAN()
+{
+    fpu_detail::CheckInputs(TOP);
+    fpu.sw.C1 = 0;
+    fpu.sw.C2 = 0;
+
+    FPU_Reg_80 one = {};
+    float80::convertFrom(one, int64_t{1});
+
+    if (fpu_detail::InputIsInfinity(TOP)) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+        fpu.regs_80[TOP].raw = float80::QNaN;
+#ifndef HAS_LONG_DOUBLE
+        fpu.use80[TOP] = true;
+#endif
+        fpu_Push(one);
+        return;
+    }
+
+#if C_FPU_X86
+    const auto output = (TOP - 1) & 7;
+    FPUD_PTAN();
+    if (!fpu.sw.C2) fpu_Push(fpu.regs_80[output]);
+#else
+  #ifdef HAS_LONG_DOUBLE
+    const auto input = fpu.regs_80[TOP].v;
+    if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
+        fpu.sw.C2 = 1;
+        return;
+    }
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.regs_80[TOP].v = std::tan(input);
+    fpu_Push(one);
+  #else
+    const auto input = fpu.regs[TOP].v;
+    if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
+        fpu.sw.C2 = 1;
+        return;
+    }
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.use80[TOP] = false;
+    fpu.regs[TOP].v = std::tan(input);
+    fpu_Push(one);
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+
+    fpu_detail::CheckException();
+}
+
 void FPU_FRSTOR(PhysPt addr, bool op16)
 {
 	FPU_FLDENV(addr, op16);
@@ -677,8 +730,7 @@ void FPU_FSINCOS()
 #if C_FPU_X86
     const auto output = (TOP - 1) & 7;
     FPUD_SINCOS();
-    if (!fpu.sw.C2)
-        fpu_Push(fpu.regs_80[output]);
+    if (!fpu.sw.C2) fpu_Push(fpu.regs_80[output]);
 #else
   #ifdef HAS_LONG_DOUBLE
     const auto input = fpu.regs_80[TOP].v;

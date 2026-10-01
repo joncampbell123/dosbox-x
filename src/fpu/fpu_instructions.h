@@ -134,20 +134,6 @@ static void FPU_PUSH(double in){
 	return;
 }
 
-static void FPU_FPTAN(void){
-    //fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
-    const double x = fpu.regs[TOP].v;
-    fpu.regs[TOP].v = tan(x);
-    if(fabs(x) >= X87_TRIG_ARG_LIMIT) {
-        FPU_SET_C2(1);
-        return;
-    }
-    fpu.use80[TOP] = false;
-    FPU_PUSH(1.0);
-	FPU_SET_C2(0);
-	return;
-}
-
 static void FPU_FRNDINT(void){
     const double before = fpu.regs[TOP].v;
     double after;

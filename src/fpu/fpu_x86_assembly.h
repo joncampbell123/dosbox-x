@@ -119,8 +119,7 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
         __asm    end_ptan:                                  \
         }                                                   \
         fpu.sw = (new_sw & sw_mask) |                       \
-                 (fpu.sw & ~FPUStatusWord::conditionMask);  \
-        if (!fpu.sw.C2) FPU_PREP_PUSH();
+                 (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fxtract
 #ifdef WEAK_EXCEPTIONS
@@ -492,8 +491,7 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 			:	"ax", "cc"					\
 		);									\
 		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask); \
-		if (!fpu.sw.C2) FPU_PREP_PUSH();
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fxtract
 #ifdef WEAK_EXCEPTIONS

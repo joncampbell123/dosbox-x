@@ -126,13 +126,6 @@ static void FPU_FPATAN(void){
 	//flags and such :)
 	return;
 }
-static void FPU_FPTAN(void){
-	fpu.regs_80[TOP].v = tanl(fpu.regs_80[TOP].v);
-	FPU_PUSH(1.0);
-	FPU_SET_C2(0);
-	//flags and such :)
-	return;
-}
 static void FPU_FRNDINT(void){
 	int64_t temp= static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v));
 	fpu.regs_80[TOP].v=static_cast<long double>(temp);
