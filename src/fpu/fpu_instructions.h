@@ -86,14 +86,6 @@ static void FPU_FNOP(void){
 	return;
 }
 
-static void FPU_FPATAN(void){
-	fpu.use80[STV(1)] = false; // we used the less precise version, drop the 80-bit precision
-	fpu.regs[STV(1)].v = atan2(fpu.regs[STV(1)].v,fpu.regs[TOP].v);
-	FPU_FPOP();
-	//flags and such :)
-	return;
-}
-
 static void FPU_FPREM(void){
 	double valtop = fpu.regs[TOP].v;
 	double valdiv = fpu.regs[STV(1)].v;

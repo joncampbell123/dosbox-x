@@ -70,10 +70,6 @@ static void FPU_FSQRT(void){
 	FPUD_ARITH2(fsqrt)
 }
 
-static void FPU_FPATAN(void){
-	FPUD_WITH_POP(fpatan)
-}
-
 static void FPU_FRNDINT(void){
 	FPUD_ARITH2(frndint)
 }

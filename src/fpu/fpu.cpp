@@ -589,6 +589,35 @@ void FPU_FLDZ()
     fpu_Push(val);
 }
 
+void FPU_FPATAN()
+{
+    fpu_detail::CheckInputs(STV(1), TOP);
+    fpu.sw.C1 = 0;
+
+#if C_FPU_X86
+    FPUD_WITH_POP(fpatan)
+#else
+  #ifdef HAS_LONG_DOUBLE
+    const auto y = fpu.regs_80[STV(1)].v;
+    const auto x = fpu.regs_80[TOP].v;
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.regs_80[STV(1)].v = std::atan2(y, x);
+  #else
+    const auto y = fpu.regs[STV(1)].v;
+    const auto x = fpu.regs[TOP].v;
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.use80[STV(1)] = false;
+    fpu.regs[STV(1)].v = std::atan2(y, x);
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+    FPU_FPOP();
+#endif
+
+    fpu_detail::CheckException();
+}
+
 void FPU_FPOP()
 {
     fpu_detail::StackValid(TOP);

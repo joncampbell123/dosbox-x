@@ -120,12 +120,6 @@ static void FPU_FSQRT(void){
 	//flags and such :)
 	return;
 }
-static void FPU_FPATAN(void){
-	fpu.regs_80[STV(1)].v = atan2l(fpu.regs_80[STV(1)].v,fpu.regs_80[TOP].v);
-	FPU_FPOP();
-	//flags and such :)
-	return;
-}
 static void FPU_FRNDINT(void){
 	int64_t temp= static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v));
 	fpu.regs_80[TOP].v=static_cast<long double>(temp);

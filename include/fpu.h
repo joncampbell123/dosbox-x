@@ -117,6 +117,7 @@ void FPU_FLDLG2();
 void FPU_FLDLN2();
 void FPU_FLDPI();
 void FPU_FLDZ();
+void FPU_FPATAN();
 void FPU_FPOP();
 void FPU_FPTAN();
 void FPU_FRSTOR(PhysPt addr, bool op16);
