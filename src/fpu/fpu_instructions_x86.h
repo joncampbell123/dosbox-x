@@ -66,10 +66,6 @@ static void FPU_FSTT_I64(PhysPt addr) {
 }
 
 
-static void FPU_FSIN(void){
-	FPUD_TRIG(fsin)
-}
-
 static void FPU_FSINCOS(void){
 	FPUD_SINCOS()
 }

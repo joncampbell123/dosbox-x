@@ -612,6 +612,51 @@ void FPU_FRSTOR(PhysPt addr, bool op16)
 	}
 }
 
+void FPU_FSIN()
+{
+    fpu_detail::CheckInputs(TOP);
+    fpu.sw.C1 = 0;
+    fpu.sw.C2 = 0;
+
+    if (fpu_detail::InputIsInfinity(TOP)) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+        fpu.regs_80[TOP].raw = float80::QNaN;
+#ifndef HAS_LONG_DOUBLE
+        fpu.use80[TOP] = true;
+#endif
+        return;
+    }
+
+#if C_FPU_X86
+    FPUD_TRIG(fsin);
+#else
+  #ifdef HAS_LONG_DOUBLE
+    const auto input = fpu.regs_80[TOP].v;
+    if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
+        fpu.sw.C2 = 1;
+        return;
+    }
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.regs_80[TOP].v = std::sin(input);
+  #else
+    const auto input = fpu.regs[TOP].v;
+    if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
+        fpu.sw.C2 = 1;
+        return;
+    }
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.use80[TOP] = false;
+    fpu.regs[TOP].v = std::sin(input);
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+
+    fpu_detail::CheckException();
+}
+
 void FPU_FST(int src, int dst)
 {
     fpu.sw.C1 = 0;

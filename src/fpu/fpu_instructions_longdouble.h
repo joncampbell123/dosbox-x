@@ -113,13 +113,6 @@ static void FPU_FSTT_I64(PhysPt addr) {
 	FPU_FPOP();
 }
 
-static void FPU_FSIN(void){
-	fpu.regs_80[TOP].v = sinl(fpu.regs_80[TOP].v);
-	FPU_SET_C2(0);
-	//flags and such :)
-	return;
-}
-
 static void FPU_FSINCOS(void){
 	long double temp = fpu.regs_80[TOP].v;
 	fpu.regs_80[TOP].v = sinl(temp);

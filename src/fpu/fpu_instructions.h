@@ -195,23 +195,6 @@ static void FPU_FSCALE(void){
 	return; //2^x where x is chopped.
 }
 
-static void FPU_FSIN(void){
-	//fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
-	//fpu.regs[TOP].v = sin(fpu.regs[TOP].v);
-    const double x = fpu.regs[TOP].v;
-
-    if(fabs(x) >= X87_TRIG_ARG_LIMIT) {
-        FPU_SET_C2(1);
-        return;
-    }
-
-    fpu.use80[TOP] = false;
-    fpu.regs[TOP].v = sin(x);
-
-    FPU_SET_C2(0);
-	return;
-}
-
 static void FPU_FSINCOS(void){
 	double temp = fpu.regs[TOP].v;
 	//fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
