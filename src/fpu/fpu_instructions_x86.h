@@ -66,10 +66,6 @@ static void FPU_FSTT_I64(PhysPt addr) {
 }
 
 
-static void FPU_FSINCOS(void){
-	FPUD_SINCOS()
-}
-
 static void FPU_FSQRT(void){
 	FPUD_ARITH2(fsqrt)
 }

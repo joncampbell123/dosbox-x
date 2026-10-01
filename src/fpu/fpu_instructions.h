@@ -195,22 +195,6 @@ static void FPU_FSCALE(void){
 	return; //2^x where x is chopped.
 }
 
-static void FPU_FSINCOS(void){
-	double temp = fpu.regs[TOP].v;
-	//fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
-
-    if(fabs(temp) >= X87_TRIG_ARG_LIMIT) {
-        FPU_SET_C2(1);
-        return;
-    }
-
-    fpu.use80[TOP] = false;
-    fpu.regs[TOP].v = sin(temp);
-	FPU_PUSH(cos(temp));
-    FPU_SET_C2(0);
-	return;
-}
-
 static void FPU_FSQRT(void){
     if(fpu.regs[TOP].v < 0.0)
         FPU_SetException(FPU_EX_INVALID);

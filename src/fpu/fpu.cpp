@@ -657,6 +657,72 @@ void FPU_FSIN()
     fpu_detail::CheckException();
 }
 
+void FPU_FSINCOS()
+{
+    fpu_detail::CheckInputs(TOP);
+    fpu.sw.C1 = 0;
+    fpu.sw.C2 = 0;
+
+    if (fpu_detail::InputIsInfinity(TOP)) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+        fpu.regs_80[TOP].raw = float80::QNaN;
+#ifndef HAS_LONG_DOUBLE
+        fpu.use80[TOP] = true;
+#endif
+        fpu_Push(fpu.regs_80[TOP]);
+        return;
+    }
+
+#if C_FPU_X86
+    const auto output = (TOP - 1) & 7;
+    FPUD_SINCOS();
+    if (!fpu.sw.C2)
+        fpu_Push(fpu.regs_80[output]);
+#else
+  #ifdef HAS_LONG_DOUBLE
+    const auto input = fpu.regs_80[TOP].v;
+    if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
+        fpu.sw.C2 = 1;
+        return;
+    }
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    const auto sine = std::sin(input);
+    FPU_Reg_80 cosine = {};
+    cosine.v = std::cos(input);
+    fpu.regs_80[TOP].v = sine;
+    fpu_Push(cosine);
+  #else
+    const auto input = fpu.regs[TOP].v;
+    if (std::fabs(input) >= X87_TRIG_ARG_LIMIT) {
+        fpu.sw.C2 = 1;
+        return;
+    }
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    const auto sine = std::sin(input);
+    FPU_Reg_64 cosine = {};
+    cosine.v = std::cos(input);
+    fpu.use80[TOP] = false;
+    fpu.regs[TOP].v = sine;
+
+    FPU_Reg_80 cosine_80 = {};
+    float80::convertFrom(cosine_80, cosine);
+    const auto output = (TOP - 1) & 7;
+    const auto stack_overflow = fpu.regvalid[output];
+    fpu_Push(cosine_80);
+    if (!stack_overflow) {
+        fpu.use80[TOP] = false;
+        fpu.regs[TOP] = cosine;
+    }
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+
+    fpu_detail::CheckException();
+}
+
 void FPU_FST(int src, int dst)
 {
     fpu.sw.C1 = 0;

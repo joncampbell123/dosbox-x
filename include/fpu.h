@@ -120,6 +120,7 @@ void FPU_FLDZ();
 void FPU_FPOP();
 void FPU_FRSTOR(PhysPt addr, bool op16);
 void FPU_FSIN();
+void FPU_FSINCOS();
 void FPU_FST(int src, int dst);
 void FPU_FST_F32(PhysPt addr);
 void FPU_FST_F64(PhysPt addr);
