@@ -6,13 +6,21 @@
 #include "fpu.h"
 #include "fpu_float80.h"
 
+constexpr FPU_Reg_64 FPU_Reg_64::QNaN = {{
+    0x0008'0000'0000'0000ULL,  // quiet-NaN bit
+    0x7FFU,                    // all-one exponent
+    1U                         // sign bit
+}};
+
+constexpr FPU_Reg_80 FPU_Reg_80::QNaN = {{
+    0xC000'0000'0000'0000ULL,  // integer bit and quiet-NaN bit
+    0x7FFFU,                   // all-one exponent
+    1U                         // sign bit
+}};
+
 namespace float80 {
 
 constexpr auto ExpBias = 16383U;
-const FPU_Reg_80::raw_t QNaN = {
-    0xC000'0000'0000'0000ULL, // integer bit and quiet-NaN bit
-    0xFFFFU                   // sign bit and all-one exponent
-};
 const FPU_Reg_80::raw_t const1 = {
     0x8000'0000'0000'0000ULL,
     ExpBias

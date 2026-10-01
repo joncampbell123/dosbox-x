@@ -39,6 +39,7 @@ union alignas(8) FPU_Reg_64 {
 	} f;
 	double			v;
 	uint64_t		raw;
+	static const FPU_Reg_64 QNaN;
 
 	static_assert( sizeof(f) == 8, "FPU_Reg_64 error" );
 	static_assert( sizeof(v) == 8, "FPU_Reg_64 error" );
@@ -230,6 +231,7 @@ union alignas(16) FPU_Reg_80
 		uint64_t	l;
 		uint16_t	h;
 	} raw;
+	static const FPU_Reg_80 QNaN;
 
 	MMX_reg reg_mmx;
 	static_assert( sizeof(reg_mmx) == 16, "FPU_Reg_80 error" );

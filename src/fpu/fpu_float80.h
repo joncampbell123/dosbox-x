@@ -5,7 +5,6 @@
 
 namespace float80 {
 
-extern const FPU_Reg_80::raw_t QNaN;
 extern const FPU_Reg_80::raw_t const1;
 extern const FPU_Reg_80::raw_t PI;
 extern const uint8_t PI_Extra2;

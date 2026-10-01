@@ -18,8 +18,6 @@ namespace fpu_detail {
 
 namespace {
 
-constexpr uint64_t QNaN = 0xFFF8'0000'0000'0000;
-
 bool InputIsSignalingNaN(int op)
 {
 #if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
@@ -99,9 +97,9 @@ bool StackValid(int pos)
     fpu.sw.C1 = 0;
     CheckException();
     fpu.regvalid[pos] = true;
-    fpu.regs_80[pos].raw = float80::QNaN;
+    fpu.regs_80[pos] = FPU_Reg_80::QNaN;
 #ifndef HAS_LONG_DOUBLE
-    fpu.regs[pos].raw = QNaN;
+    fpu.regs[pos] = FPU_Reg_64::QNaN;
 #endif
     return false;
 }

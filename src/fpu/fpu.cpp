@@ -47,7 +47,7 @@ void fpu_Push(const FPU_Reg_80& input)
         fpu.sw.SF = 1;
         fpu.sw.C1 = 1;
         fpu_detail::CheckException();
-        val.raw = float80::QNaN;
+        val = FPU_Reg_80::QNaN;
     }
     fpu.regs_80[TOP] = val;
     fpu.regvalid[TOP] = true;
@@ -211,10 +211,10 @@ void FPU_FCOS()
     if (fpu_detail::InputIsInfinity(TOP)) {
         fpu.sw.IE = 1;
         fpu_detail::CheckException();
-        fpu.regs_80[TOP].raw = float80::QNaN;
+        fpu.regs_80[TOP] = FPU_Reg_80::QNaN;
 #ifndef HAS_LONG_DOUBLE
         fpu.use80[TOP] = true;
-        fpu.regs[TOP] = QNaN;
+        fpu.regs[TOP] = FPU_Reg_64::QNaN;
 #endif
         return;
     }
@@ -638,10 +638,10 @@ void FPU_FPTAN()
     if (fpu_detail::InputIsInfinity(TOP)) {
         fpu.sw.IE = 1;
         fpu_detail::CheckException();
-        fpu.regs_80[TOP].raw = float80::QNaN;
+        fpu.regs_80[TOP] = FPU_Reg_80::QNaN;
 #ifndef HAS_LONG_DOUBLE
         fpu.use80[TOP] = true;
-        fpu.regs[TOP] = QNaN;
+        fpu.regs[TOP] = FPU_Reg_64::QNaN;
 #endif
         fpu_Push(one);
         return;
@@ -705,10 +705,10 @@ void FPU_FSIN()
     if (fpu_detail::InputIsInfinity(TOP)) {
         fpu.sw.IE = 1;
         fpu_detail::CheckException();
-        fpu.regs_80[TOP].raw = float80::QNaN;
+        fpu.regs_80[TOP] = FPU_Reg_80::QNaN;
 #ifndef HAS_LONG_DOUBLE
         fpu.use80[TOP] = true;
-        fpu.regs[TOP] = QNaN;
+        fpu.regs[TOP] = FPU_Reg_64::QNaN;
 #endif
         return;
     }
@@ -751,10 +751,10 @@ void FPU_FSINCOS()
     if (fpu_detail::InputIsInfinity(TOP)) {
         fpu.sw.IE = 1;
         fpu_detail::CheckException();
-        fpu.regs_80[TOP].raw = float80::QNaN;
+        fpu.regs_80[TOP] = FPU_Reg_80::QNaN;
 #ifndef HAS_LONG_DOUBLE
         fpu.use80[TOP] = true;
-        fpu.regs[TOP] = QNaN;
+        fpu.regs[TOP] = FPU_Reg_64::QNaN;
 #endif
         fpu_Push(fpu.regs_80[TOP]);
         return;
