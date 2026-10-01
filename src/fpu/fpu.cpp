@@ -214,6 +214,7 @@ void FPU_FCOS()
         fpu.regs_80[TOP].raw = float80::QNaN;
 #ifndef HAS_LONG_DOUBLE
         fpu.use80[TOP] = true;
+        fpu.regs[TOP] = QNaN;
 #endif
         return;
     }
@@ -640,6 +641,7 @@ void FPU_FPTAN()
         fpu.regs_80[TOP].raw = float80::QNaN;
 #ifndef HAS_LONG_DOUBLE
         fpu.use80[TOP] = true;
+        fpu.regs[TOP] = QNaN;
 #endif
         fpu_Push(one);
         return;
@@ -706,6 +708,7 @@ void FPU_FSIN()
         fpu.regs_80[TOP].raw = float80::QNaN;
 #ifndef HAS_LONG_DOUBLE
         fpu.use80[TOP] = true;
+        fpu.regs[TOP] = QNaN;
 #endif
         return;
     }
@@ -751,6 +754,7 @@ void FPU_FSINCOS()
         fpu.regs_80[TOP].raw = float80::QNaN;
 #ifndef HAS_LONG_DOUBLE
         fpu.use80[TOP] = true;
+        fpu.regs[TOP] = QNaN;
 #endif
         fpu_Push(fpu.regs_80[TOP]);
         return;
@@ -797,6 +801,34 @@ void FPU_FSINCOS()
         fpu.use80[TOP] = false;
         fpu.regs[TOP] = cosine;
     }
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+
+    fpu_detail::CheckException();
+}
+
+void FPU_FSQRT()
+{
+    fpu_detail::CheckInputs(TOP);
+    fpu.sw.C1 = 0;
+
+    if (fpu_detail::InputIsNegative(TOP) &&
+        !fpu_detail::InputIsZero(TOP) && !fpu_detail::InputIsNaN(TOP)) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+    }
+
+#if C_FPU_X86
+    FPUD_ARITH2(fsqrt)
+#else
+  #ifdef HAS_LONG_DOUBLE
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.regs_80[TOP].v = std::sqrt(fpu.regs_80[TOP].v);
+  #else
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.use80[TOP] = false;
+    fpu.regs[TOP].v = std::sqrt(fpu.regs[TOP].v);
   #endif
     fpu_detail::SetStatusFromHostExceptions();
 #endif

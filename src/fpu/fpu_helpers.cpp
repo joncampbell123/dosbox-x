@@ -116,6 +116,15 @@ bool InputIsInfinity(int op)
 #endif
 }
 
+bool InputIsNegative(int op)
+{
+#if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
+    return fpu.regs_80[op].f.sign;
+#else
+    return fpu.use80[op] ? fpu.regs_80[op].f.sign : fpu.regs[op].f.sign;
+#endif
+}
+
 bool InputIsNaN(int op)
 {
 #if C_FPU_X86 || defined(HAS_LONG_DOUBLE)

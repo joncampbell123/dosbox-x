@@ -173,15 +173,6 @@ static void FPU_FSCALE(void){
 	return; //2^x where x is chopped.
 }
 
-static void FPU_FSQRT(void){
-    if(fpu.regs[TOP].v < 0.0)
-        FPU_SetException(FPU_EX_INVALID);
-
-    fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
-	fpu.regs[TOP].v = sqrt(fpu.regs[TOP].v);
-	return;
-}
-
 static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
 	if (use80) {
 		// we have the raw 80-bit IEEE float value. we can just store

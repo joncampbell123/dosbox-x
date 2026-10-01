@@ -7,6 +7,7 @@ void CheckException();
 void SetStatusFromHostExceptions();
 bool StackValid(int pos);
 bool InputIsInfinity(int op);
+bool InputIsNegative(int op);
 bool InputIsNaN(int op);
 bool InputIsZero(int op);
 void CheckInputs(int op);

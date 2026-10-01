@@ -66,10 +66,6 @@ static void FPU_FSTT_I64(PhysPt addr) {
 }
 
 
-static void FPU_FSQRT(void){
-	FPUD_ARITH2(fsqrt)
-}
-
 static void FPU_FRNDINT(void){
 	FPUD_ARITH2(frndint)
 }
