@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:English (United States)
 :DOSBOX-X:CODEPAGE:437
-:DOSBOX-X:VERSION:2026.08.31
+:DOSBOX-X:VERSION:2026.10.01
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -3162,6 +3162,7 @@ VER [/R]
 VER [SET] number or VER SET [major minor]
 
   /R                 Display DOSBox-X's Git commit version and build date.
+  /V                 Display DOSBox-X's reported DOS version.
   [SET] number       Set the specified number as the reported DOS version.
   SET [major minor]  Set the reported DOS version in major and minor format.
 
@@ -4008,6 +4009,9 @@ AVI + ZMBV
 .
 :MENU:capture_fmt_mpegts_h264
 MPEG-TS + H.264
+.
+:MENU:capture_fmt_mpegts_h265
+MPEG-TS + H.265
 .
 :MENU:saveoptionmenu
 Save/load options
@@ -5106,6 +5110,9 @@ Increase recording volume
 .
 :MENU:mapper_recvoldown
 Decrease recording volume
+.
+:MENU:mapper_muteawe
+Mute AWE
 .
 :MENU:mapper_sendkey_mapper
 Send special key

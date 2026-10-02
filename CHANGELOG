@@ -1,4 +1,4 @@
-Next version:
+2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
     on an unopened or non-existent file. (cimarronm)
   - Don't prompt for working directory when -conf or -userconf is used
