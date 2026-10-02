@@ -34,7 +34,7 @@
 # ----------------------------------------------------------------------------
 :DOSBOX-X:LANGUAGE: Catalan
 :DOSBOX-X:CODEPAGE: 850
-:DOSBOX-X:VERSION:2026.08.02
+:DOSBOX-X:VERSION:2026.10.01
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Les línies d'aquesta secció s'executaran a l'inici.
