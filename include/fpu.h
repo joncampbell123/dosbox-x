@@ -136,6 +136,7 @@ void FPU_FST_F32(PhysPt addr);
 void FPU_FST_F64(PhysPt addr);
 void FPU_FST_F80(PhysPt addr);
 void FPU_FST_I16(PhysPt addr);
+void FPU_FSTT_I16(PhysPt addr);
 void FPU_FST_I32(PhysPt addr);
 void FPU_FST_I64(PhysPt addr);
 void FPU_FTST();

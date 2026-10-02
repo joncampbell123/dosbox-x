@@ -103,6 +103,10 @@ struct FPUControlWord
 		masked |= IM.mask | DM.mask | ZM.mask | OM.mask | UM.mask | PM.mask;
 		return masked;
 	}
+	RoundMode roundMode() const
+	{
+		return static_cast<RoundMode>(static_cast<unsigned>(RC));
+	}
 };
 
 struct FPUStatusWord

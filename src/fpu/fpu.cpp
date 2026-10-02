@@ -897,7 +897,7 @@ void FPU_FRNDINT()
     const auto round_to_integer = [](const auto input) {
         if (!std::isfinite(input)) return input;
 
-        switch (fpu.cw.RC) {
+        switch (fpu.cw.roundMode()) {
         case FPUControlWord::RoundMode::Nearest: {
             const auto lower = std::floor(input);
             const auto fraction = input - lower;
@@ -1248,6 +1248,26 @@ void FPU_FST_I16(PhysPt addr)
     FPU_Reg_80 value = {};
     fpu_GetST80(value);
     const auto conversion = float80::convertToI16(value);
+    fpu.sw.C1 = conversion.rounded_up;
+
+    if (conversion.exceptions) {
+        FPU_SetException(conversion.exceptions);
+        fpu_detail::CheckException();
+    }
+
+    mem_writew(addr, static_cast<uint16_t>(conversion.value));
+}
+
+void FPU_FSTT_I16(PhysPt addr)
+{
+    fpu_detail::StackValid(TOP);
+    fpu_detail::CheckInputDenormals(TOP);
+    FPU_Reg_80 value = {};
+    fpu_GetST80(value);
+
+    // Do not temporarily change fpu.cw.RC and call FPU_FST_I16: a memory
+    // fault during the store could prevent restoration of the guest control word.
+    const auto conversion = float80::convertToI16Truncate(value);
     fpu.sw.C1 = conversion.rounded_up;
 
     if (conversion.exceptions) {
