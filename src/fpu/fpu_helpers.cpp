@@ -62,18 +62,6 @@ void QuietInputNaN(int op)
 #endif
 }
 
-void CheckInputExceptions(bool has_nan, bool has_signaling_nan, bool has_subnormal)
-{
-    if (has_signaling_nan) {
-        fpu.sw.IE = 1;
-        CheckException();
-    }
-    if (!has_nan && has_subnormal) {
-        fpu.sw.DE = 1;
-        CheckException();
-    }
-}
-
 void SetComparisonFlags(bool unordered, bool equal, bool less)
 {
     fpu.sw.C1 = 0;
@@ -110,6 +98,15 @@ InputClass ClassifyInput(int op)
 #endif
 }
 
+void SetQNaN(int pos)
+{
+    fpu.regs_80[pos] = FPU_Reg_80::QNaN;
+#ifndef HAS_LONG_DOUBLE
+    fpu.regs[pos] = FPU_Reg_64::QNaN;
+    fpu.use80[pos] = true;
+#endif
+}
+
 bool StackValid(int pos)
 {
     if (fpu.regvalid[pos]) return true;
@@ -118,10 +115,7 @@ bool StackValid(int pos)
     fpu.sw.C1 = 0;
     CheckException();
     fpu.regvalid[pos] = true;
-    fpu.regs_80[pos] = FPU_Reg_80::QNaN;
-#ifndef HAS_LONG_DOUBLE
-    fpu.regs[pos] = FPU_Reg_64::QNaN;
-#endif
+    SetQNaN(pos);
     return false;
 }
 
@@ -162,19 +156,37 @@ bool InputIsZero(int op)
 #endif
 }
 
-void CheckInputs(int op)
+void CheckInputDenormals(int op)
+{
+    if (!InputIsSubnormal(op)) return;
+
+    fpu.sw.DE = 1;
+    CheckException();
+}
+
+void CheckInputDenormals(int op1, int op2)
+{
+    if (!InputIsSubnormal(op1) && !InputIsSubnormal(op2)) return;
+
+    fpu.sw.DE = 1;
+    CheckException();
+}
+
+bool CheckInputs(int op)
 {
     StackValid(op);
     const auto is_nan = InputIsNaN(op);
     const auto is_signaling_nan = InputIsSignalingNaN(op);
-    const auto is_subnormal = InputIsSubnormal(op);
 
-    if (is_signaling_nan)
+    if (is_signaling_nan) {
         QuietInputNaN(op);
-    CheckInputExceptions(is_nan, is_signaling_nan, is_subnormal);
+        fpu.sw.IE = 1;
+        CheckException();
+    }
+    return is_nan;
 }
 
-void CheckInputs(int op1, int op2, bool check_denormal)
+bool CheckInputs(int op1, int op2, bool propagate_nan)
 {
     StackValid(op2);
     StackValid(op1);
@@ -182,18 +194,19 @@ void CheckInputs(int op1, int op2, bool check_denormal)
     const auto op2_is_nan = InputIsNaN(op2);
     const auto op1_is_signaling_nan = InputIsSignalingNaN(op1);
     const auto op2_is_signaling_nan = InputIsSignalingNaN(op2);
-    const auto op1_is_subnormal = InputIsSubnormal(op1);
-    const auto op2_is_subnormal = InputIsSubnormal(op2);
-    const auto has_subnormal = check_denormal &&
-                               (op1_is_subnormal || op2_is_subnormal);
 
-    if (op1_is_signaling_nan)
+    if (op1_is_signaling_nan && propagate_nan)
         QuietInputNaN(op1);
-    if (op2_is_signaling_nan)
+    if (op2_is_signaling_nan && propagate_nan)
         QuietInputNaN(op2);
-    CheckInputExceptions(op1_is_nan || op2_is_nan,
-                         op1_is_signaling_nan || op2_is_signaling_nan,
-                         has_subnormal);
+    if (op1_is_signaling_nan || op2_is_signaling_nan) {
+        fpu.sw.IE = 1;
+        CheckException();
+    }
+    if (op2_is_nan && propagate_nan) {
+        SetQNaN(op1);
+    }
+    return op1_is_nan || op2_is_nan;
 }
 
 void RaiseLoadExceptions(bool denormal, bool signaling_nan)
@@ -209,7 +222,7 @@ void RaiseLoadExceptions(bool denormal, bool signaling_nan)
 
 void Compare(int op1, int op2, bool ordered)
 {
-    CheckInputs(op1, op2);
+    CheckInputs(op1, op2, false);
 
     // An 8087/287 compares infinities as equal regardless of their signs.
     if (FPU_ArchitectureType < FPU_ARCHTYPE_387 &&

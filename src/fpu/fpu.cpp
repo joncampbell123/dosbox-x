@@ -117,7 +117,9 @@ void FPU_FABS()
 
 void FPU_FADD(int op1, int op2)
 {
-    fpu_detail::CheckInputs(op1, op2);
+    if (fpu_detail::CheckInputs(op1, op2)) return;
+
+    fpu_detail::CheckInputDenormals(op1, op2);
 
 #if C_FPU_X86
 	FPUD_ARITH1(faddp);
@@ -273,20 +275,18 @@ void FPU_FCOMI(int op1, int op2)
 
 void FPU_FCOS()
 {
-    fpu_detail::CheckInputs(TOP);
     fpu.sw.C1 = 0;
     fpu.sw.C2 = 0;
+    if (fpu_detail::CheckInputs(TOP)) return;
 
     if (fpu_detail::InputIsInfinity(TOP)) {
         fpu.sw.IE = 1;
         fpu_detail::CheckException();
-        fpu.regs_80[TOP] = FPU_Reg_80::QNaN;
-#ifndef HAS_LONG_DOUBLE
-        fpu.use80[TOP] = true;
-        fpu.regs[TOP] = FPU_Reg_64::QNaN;
-#endif
+        fpu_detail::SetQNaN(TOP);
         return;
     }
+
+    fpu_detail::CheckInputDenormals(TOP);
 
 #if C_FPU_X86
     FPUD_TRIG(fcos);
@@ -319,8 +319,7 @@ void FPU_FCOS()
 
 void FPU_FDIV(int op1, int op2)
 {
-    const auto op2IsZero = fpu.regvalid[op2] && fpu_detail::InputIsZero(op2);
-    fpu_detail::CheckInputs(op1, op2, !op2IsZero);
+    if (fpu_detail::CheckInputs(op1, op2)) return;
 
 #if C_FPU_X86
     FPUD_ARITH3(fdivp)
@@ -344,8 +343,7 @@ void FPU_FDIV_EA(int op1)
 
 void FPU_FDIVR(int op1, int op2)
 {
-    const auto op1IsZero = fpu.regvalid[op1] && fpu_detail::InputIsZero(op1);
-    fpu_detail::CheckInputs(op1, op2, !op1IsZero);
+    fpu_detail::CheckInputs(op1, op2);
 
 #if C_FPU_X86
     FPUD_ARITH3(fdivrp)
@@ -659,11 +657,7 @@ void FPU_FPTAN()
     if (fpu_detail::InputIsInfinity(TOP)) {
         fpu.sw.IE = 1;
         fpu_detail::CheckException();
-        fpu.regs_80[TOP] = FPU_Reg_80::QNaN;
-#ifndef HAS_LONG_DOUBLE
-        fpu.use80[TOP] = true;
-        fpu.regs[TOP] = FPU_Reg_64::QNaN;
-#endif
+        fpu_detail::SetQNaN(TOP);
         fpu_Push(FPU_Reg_80::QNaN);
         return;
     }
@@ -726,11 +720,7 @@ void FPU_FSIN()
     if (fpu_detail::InputIsInfinity(TOP)) {
         fpu.sw.IE = 1;
         fpu_detail::CheckException();
-        fpu.regs_80[TOP] = FPU_Reg_80::QNaN;
-#ifndef HAS_LONG_DOUBLE
-        fpu.use80[TOP] = true;
-        fpu.regs[TOP] = FPU_Reg_64::QNaN;
-#endif
+        fpu_detail::SetQNaN(TOP);
         return;
     }
 
@@ -772,11 +762,7 @@ void FPU_FSINCOS()
     if (fpu_detail::InputIsInfinity(TOP)) {
         fpu.sw.IE = 1;
         fpu_detail::CheckException();
-        fpu.regs_80[TOP] = FPU_Reg_80::QNaN;
-#ifndef HAS_LONG_DOUBLE
-        fpu.use80[TOP] = true;
-        fpu.regs[TOP] = FPU_Reg_64::QNaN;
-#endif
+        fpu_detail::SetQNaN(TOP);
         fpu_Push(fpu.regs_80[TOP]);
         return;
     }
@@ -1140,11 +1126,7 @@ void FPU_FYL2X()
     fpu.sw.C1 = 0;
 
     if (fpu_detail::InputIsNaN(x) || fpu_detail::InputIsNaN(y)) {
-        fpu.regs_80[y] = FPU_Reg_80::QNaN;
-#ifndef HAS_LONG_DOUBLE
-        fpu.use80[y] = true;
-        fpu.regs[y] = FPU_Reg_64::QNaN;
-#endif
+        fpu_detail::SetQNaN(y);
         FPU_FPOP();
         return;
     }
