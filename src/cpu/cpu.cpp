@@ -97,6 +97,8 @@ extern bool dos_kernel_disabled;
 extern bool use_dynamic_core_with_paging;
 extern bool auto_determine_dynamic_core_paging;
 
+bool use_dynamic_core_with_fpu = false;
+
 uint64_t rdtsc_count_base = 0;
 pic_tickindex_t rdtsc_pic_base = 0;
 
@@ -3764,6 +3766,14 @@ public:
 		} else {
 			use_dynamic_core_with_paging = !strcasecmp(dynamic_core_paging, "true") || !strcasecmp(dynamic_core_paging, "1");
 		}
+
+		const char *dynamic_core_fpu = section->Get_string("use dynamic core with fpu");
+		if (!strcmp(dynamic_core_fpu,"true"))
+			use_dynamic_core_with_fpu = true;
+		else if (!strcmp(dynamic_core_fpu,"false"))
+			use_dynamic_core_with_fpu = false;
+		else //auto
+			use_dynamic_core_with_fpu = false;
 
 		if (cpu_allow_big16) {
 			/* FIXME: GCC 4.8: How is this an empty body? Explain. */

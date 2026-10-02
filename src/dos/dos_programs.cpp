@@ -892,7 +892,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple, const s
 					chdir( Temp_CurrentDir );
 					return;
 				}
-#if defined(MACOSX)
+#if defined(MACOSX) || defined(LINUX)
 				auto MSGX = MSG_GetUTF8;
 #else
 				auto MSGX = MSG_Get;
@@ -912,7 +912,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple, const s
 							GetNewStr(lTheOpenFileName).c_str(), readonly.c_str());
 				}
 				std::string title = MSGX("INFORMATION");
-#if defined(MACOSX)
+#if defined(MACOSX) || defined(LINUX)
 				tinyfd_messageBox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
 #else
 				systemmessagebox(title.c_str(), drive_warn.c_str(), "ok", "info", 1);
@@ -2041,7 +2041,7 @@ extern uint16_t boot_code_image_stack_sp;
  */
 class BOOT : public Program {
 public:
-    BOOT() {
+    BOOT(const unsigned int fl=0) : Program(fl) {
         for (size_t i=0;i < MAX_SWAPPABLE_DISKS;i++) newDiskSwap[i] = NULL;
     }
     virtual ~BOOT() {
@@ -3498,7 +3498,7 @@ static void BOOT_ProgramStart(Program * * make) {
 }
 
 void runBoot(const char *str) {
-	BOOT boot;
+	BOOT boot(dos_kernel_disabled ? Program::prg_nopsp : 0);
 	boot.cmd=new CommandLine("BOOT", str);
 	boot.Run();
 }

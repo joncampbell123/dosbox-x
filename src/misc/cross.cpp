@@ -20,6 +20,7 @@
 #include "cross.h"
 #include "support.h"
 #include "dos_inc.h"
+#include "logging.h"
 #include <string>
 #include <limits.h>
 #include <stdlib.h>
@@ -143,6 +144,18 @@ std::string Cross::GetPlatformResDir() {
     in = "/<DosBox-X$Dir>/resources";
 
 #elif defined(LINUX)
+    const char* appdir = getenv("APPDIR"); // Detect if running in an AppImage environment
+    if(appdir && appdir[0] == '/') {
+        in = std::string(appdir) + "/usr/share/dosbox-x";
+        struct stat info;
+        if((stat(in.c_str(), &info) == 0) && (info.st_mode & S_IFDIR)) {
+            in += CROSS_FILESPLIT;
+            LOG_MSG("Detected AppImage respath: %s", in.c_str());
+            return in;
+        }
+        in.clear();
+    }
+    
     const char* xdg_data_home = getenv("XDG_DATA_HOME");
     const std::string data_home =
         (xdg_data_home && xdg_data_home[0] == '/') ? xdg_data_home : "~/.local/share";

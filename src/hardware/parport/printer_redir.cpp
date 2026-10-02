@@ -35,13 +35,8 @@ CPrinterRedir::~CPrinterRedir () {
 }
 
 bool CPrinterRedir::Putchar(uint8_t val)
-{	
-	Write_CON(0xD4);
-	// strobe data out
-	Write_PR(val);
-	Write_CON(0xD5); // strobe pulse
-	Write_CON(0xD4); // strobe off
-	Read_SR();		 // clear ack
+{
+	PRINTER_StrobeByte(val);
 
 #if PARALLEL_DEBUG
 	log_par(dbg_putchar,"putchar  0x%2x",val);

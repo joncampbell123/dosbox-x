@@ -6868,6 +6868,7 @@ static Bitu INT14_Handler(void) {
 
 Bits HLT_Decode(void);
 void KEYBOARD_AUX_Write(Bitu val);
+void KEYBOARD_SetAUXActive(bool on);
 unsigned char KEYBOARD_AUX_GetType();
 unsigned char KEYBOARD_AUX_DevStatus();
 unsigned char KEYBOARD_AUX_Resolution();
@@ -7180,6 +7181,7 @@ static Bitu INT15_Handler(void) {
                     if (reg_bh==0) {    // disable
                         KEYBOARD_AUX_Write(0xF5);
                         Mouse_SetPS2State(false);
+                        KEYBOARD_SetAUXActive(false);
                         reg_ah=0;
                         CALLBACK_SCF(false);
                         KEYBOARD_ClrBuffer();
@@ -7189,6 +7191,7 @@ static Bitu INT15_Handler(void) {
                             CALLBACK_SCF(true);
                             break;
                         }
+                        KEYBOARD_SetAUXActive(true);
                         KEYBOARD_AUX_Write(0xF4);
                         KEYBOARD_ClrBuffer();
                         reg_ah=0;
@@ -12233,22 +12236,27 @@ startfunction:
         LOG(LOG_MISC,LOG_DEBUG)("BIOS boot SS:SP %04x:%04x",(unsigned int)0x60,(unsigned int)reg_esp);
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
-		if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {
-			MOUSE_Startup(NULL);
-			char drive[] = "-QQ A:";
-			drive[4]='A'+bootdrive;
-			runBoot(drive);
-		}
-        if (!bootguest&&!bootvm&&!bootfast&&bootdrive>=0) {
-            void IDE_CDROM_DetachAll();
-            IDE_CDROM_DetachAll();
-        }
-		if ((use_quick_reboot||IS_DOSV)&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
 
-		bootvm=false;
-		bootfast=false;
-		bootguest=false;
-		bootdrive=-1;
+        if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {
+                MOUSE_Startup(NULL);
+                char drive[] = "-QQ A:";
+                drive[4]='A'+bootdrive;
+                runBoot(drive);
+        }
+        if (!bootguest&&!bootvm&&!bootfast&&bootdrive>=0) {
+                void IDE_CDROM_DetachAll();
+                IDE_CDROM_DetachAll();
+        }
+        if ((use_quick_reboot||IS_DOSV)&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
+
+        void MSCDEX_Reset(Section* /*sec*/);
+        MSCDEX_Reset(NULL);
+
+        bootvm=false;
+        bootfast=false;
+        bootguest=false;
+        bootdrive=-1;
+
         // Begin booting the DOSBox-X shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
         if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox-X kernel");
         return CBRET_NONE;

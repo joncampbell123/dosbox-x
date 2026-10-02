@@ -17,6 +17,7 @@
  */
 
 #include "cpu.h"
+#include "logging.h"
 #include "lazyflags.h"
 #include "callback.h"
 #include "pic.h"
@@ -53,6 +54,11 @@ extern bool ignore_opcode_63;
 #define SaveMw(off,val)	mem_writew_inline(off,val)
 #define SaveMd(off,val)	mem_writed_inline(off,val)
 #define SaveMq(off,val) {mem_writed_inline(off,((uint32_t)(val))&0xffffffff);mem_writed_inline(off+4,(((uint64_t)(val))>>((uint64_t)32))&0xffffffff);}
+
+#include "lock.h"
+static INLINE uint8_t LockPrefixRead(PhysPt address) {
+	return mem_readb_inline(address);
+}
 
 Bitu cycle_count;
 
@@ -240,4 +246,3 @@ Bits CPU_Core_Normal_Trap_Run(void) {
 void CPU_Core_Normal_Init(void) {
 
 }
-

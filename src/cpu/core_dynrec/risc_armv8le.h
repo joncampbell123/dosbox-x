@@ -454,6 +454,7 @@ static void gen_mov_qword_to_reg_imm(HostReg dest_reg,uint64_t imm) {
 
 // helper function for gen_mov_word_to_reg
 static void gen_mov_word_to_reg_helper(HostReg dest_reg,void* data,bool dword,HostReg data_reg) {
+	(void)data;
 	if (dword) {
 		cache_addd( LDR_IMM(dest_reg, data_reg, 0) );       // ldr dest_reg, [data_reg]
 	} else {
@@ -530,6 +531,7 @@ static bool gen_mov_memval_from_reg(HostReg src_reg, void *dest, Bitu size) {
 
 // helper function for gen_mov_word_from_reg
 static void gen_mov_word_from_reg_helper(HostReg src_reg,void* dest,bool dword, HostReg data_reg) {
+	(void)dest;
 	if (dword) {
 		cache_addd( STR_IMM(src_reg, data_reg, 0) );        // str src_reg, [data_reg]
 	} else {
@@ -643,7 +645,7 @@ static void gen_add_imm(HostReg reg,uint32_t imm) {
 
 // and a 32bit constant value with a full register
 static void gen_and_imm(HostReg reg,uint32_t imm) {
-	uint32_t imm2, scale;
+	uint32_t imm2;
 
 	imm2 = ~imm;
 	if(!imm2) return;
@@ -774,6 +776,9 @@ template <typename T> static void INLINE gen_call_function_raw(const T func) {
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
 template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
+	(void)paramcount;
+	(void)fastcall;
+
     DRC_PTR_SIZE_IM proc_addr = (DRC_PTR_SIZE_IM)cache.pos;
 	gen_call_function_raw(func);
 	return proc_addr;
@@ -847,7 +852,7 @@ static void INLINE gen_fill_branch(DRC_PTR_SIZE_IM data) {
 #if C_DEBUG
 	Bits len=(uint64_t)cache.pos-data;
 	if (len<0) len=-len;
-	if (len>=0x00100000) LOG_MSG("Big jump %d",len);
+	if (len>=0x00100000) LOG_MSG("Big jump %d",(int)len);
 #endif
 	*(uint32_t*)data=( (*(uint32_t*)data) & 0xff00001f ) | ( ( ((uint64_t)cache.pos - data) << 3 ) & 0x00ffffe0 );
 }

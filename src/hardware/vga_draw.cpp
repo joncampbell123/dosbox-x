@@ -117,6 +117,9 @@ struct s3drawstream {
 
 struct s3drawstream S3SSdraw = {0};
 
+static inline bool S3_SecondaryStreamIsRGB(void);
+static void S3_XGA_SecondaryStreamRenderRGB(void *dst, unsigned int dstbpp);
+
 enum {
 	DBGEV_SPLIT=0		// EGA/VGA splitscreen
 };
@@ -914,7 +917,7 @@ static uint8_t * VGA_Draw_Linear_Line_24_to_32(Bitu vidstart, Bitu /*line*/) {
     return TempLine;
 }
 
-static uint8_t * VGA_Draw_Linear_Line_24_to_32_HWMouse(Bitu vidstart, Bitu /*line*/) {
+static uint8_t * VGA_Draw_Linear_Line_24_to_32_HWMouse_Base(Bitu vidstart, Bitu /*line*/) {
     VGA_Draw_Linear_Line_24_to_32(vidstart,0/*ignored*/); /* always returns TempLine */
 
     if (!svga.hardware_cursor_active || !svga.hardware_cursor_active())
@@ -986,6 +989,19 @@ static uint8_t * VGA_Draw_Linear_Line_24_to_32_HWMouse(Bitu vidstart, Bitu /*lin
         }
         return TempLine;
     }
+}
+
+/* VGA_Draw_Linear_Line_24_to_32_HWMouse plus the S3 Streams Processor secondary stream when it holds RGB data */
+static uint8_t * VGA_Draw_Linear_Line_24_to_32_HWMouse(Bitu vidstart, Bitu line) {
+    uint8_t *ret = VGA_Draw_Linear_Line_24_to_32_HWMouse_Base(vidstart, line);
+    if (S3SSdraw.draw && S3_SecondaryStreamIsRGB()) {
+        if (ret != TempLine) {
+            memcpy(TempLine, ret, vga.draw.width*4);
+            ret = TempLine;
+        }
+        S3_XGA_SecondaryStreamRenderRGB(ret, 32u);
+    }
+    return ret;
 }
 
 static uint8_t * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
@@ -1605,7 +1621,96 @@ void S3_XGA_YUY2HProc(unsigned char *dst3yuv,uint32_t vram,int count) {
     }
 }
 
+/* Secondary stream pixel formats (Secondary Stream Control MM8190 bits 26-24):
+ * 1, 2 and 4 are YUV (handled by the YUY2 code below), 3 = KRGB16 (1.5.5.5), 5 = RGB16 (5.6.5),
+ * 6 = RGB24, 7 = XRGB32. DOS games such as Whiplash render at 320x200 in RGB and use the
+ * ViRGE secondary stream to scale that to the full screen. */
+static inline bool S3_SecondaryStreamIsRGB(void) {
+    return S3SSdraw.pixfmt == 3 || S3SSdraw.pixfmt >= 5;
+}
+
+/* Scale one scanline of an RGB secondary stream into dst, which holds the current output line in
+ * 15, 16 or 32 bits per pixel. Horizontal and vertical scaling use the same K1/K2 DDA as the YUV
+ * path (no filtering). */
+static void S3_XGA_SecondaryStreamRenderRGB(void *dst, unsigned int dstbpp) {
+    if (!S3SSdraw.draw) return;
+
+    if (S3SSdraw.currentline >= S3SSdraw.starty && S3SSdraw.currentline < S3SSdraw.endy) {
+        static const unsigned int srcbytes[8] = { 2, 2, 2, 2, 2, 2, 3, 4 };
+        const unsigned int sb = srcbytes[S3SSdraw.pixfmt];
+        const int32_t k1 = vga.s3.streams.ssctl_k1_hscale;
+        const int32_t k2 = vga.s3.streams.ssctl_k2_hscale;
+        const bool unscaled = (k1 == 0 && k2 == 0); /* drivers program 0/0 for 1:1 */
+        int32_t haccum = vga.s3.streams.ssctl_dda_haccum;
+        uint32_t lv = S3SSdraw.vmem_addr;
+        unsigned int endx = S3SSdraw.endx;
+
+        if (endx > vga.draw.width) endx = (unsigned int)vga.draw.width;
+
+        for (unsigned int x = S3SSdraw.startx; x < endx; x++) {
+            const uint32_t a = lv & vga.mem.memmask;
+            unsigned int r, g, b;
+
+            switch (S3SSdraw.pixfmt) {
+                case 3: { const uint16_t p = host_readw(&vga.mem.linear[a]);
+                    r = (p >> 10u) & 0x1Fu; r = (r << 3u) | (r >> 2u);
+                    g = (p >> 5u) & 0x1Fu;  g = (g << 3u) | (g >> 2u);
+                    b = p & 0x1Fu;          b = (b << 3u) | (b >> 2u);
+                    break; }
+                case 5: { const uint16_t p = host_readw(&vga.mem.linear[a]);
+                    r = (p >> 11u) & 0x1Fu; r = (r << 3u) | (r >> 2u);
+                    g = (p >> 5u) & 0x3Fu;  g = (g << 2u) | (g >> 4u);
+                    b = p & 0x1Fu;          b = (b << 3u) | (b >> 2u);
+                    break; }
+                default: /* 6 = RGB24, 7 = XRGB32: blue in the low byte */
+                    b = vga.mem.linear[a];
+                    g = vga.mem.linear[(a + 1u) & vga.mem.memmask];
+                    r = vga.mem.linear[(a + 2u) & vga.mem.memmask];
+                    break;
+            }
+
+            if (dstbpp == 32)
+                ((uint32_t*)dst)[x] = (r << GFX_Rshift) | (g << GFX_Gshift) | (b << GFX_Bshift) | GFX_Amask;
+            else if (dstbpp == 16)
+                ((uint16_t*)dst)[x] = (uint16_t)(((r >> 3u) << 11u) | ((g >> 2u) << 5u) | (b >> 3u));
+            else
+                ((uint16_t*)dst)[x] = (uint16_t)(((r >> 3u) << 10u) | ((g >> 3u) << 5u) | (b >> 3u));
+
+            if (unscaled) {
+                lv += sb;
+            }
+            else {
+                haccum += k1;
+                if (haccum >= 0) {
+                    haccum -= k1;
+                    haccum += k2;
+                    lv += sb;
+                }
+            }
+        }
+
+        /* vertical DDA, as in S3_XGA_SecondaryStreamRender() */
+        if (vga.s3.streams.k1_vscale_factor == 0 && vga.s3.streams.k2_vscale_factor == 0) {
+            S3SSdraw.vmem_addr += S3SSdraw.stride;
+        }
+        else {
+            S3SSdraw.vaccum += vga.s3.streams.k1_vscale_factor;
+            if (S3SSdraw.vaccum >= 0) {
+                S3SSdraw.vaccum -= vga.s3.streams.k1_vscale_factor;
+                S3SSdraw.vaccum += vga.s3.streams.k2_vscale_factor;
+                S3SSdraw.vmem_addr += S3SSdraw.stride;
+            }
+        }
+    }
+
+    S3SSdraw.currentline++;
+}
+
 void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
+    if (S3SSdraw.draw && S3_SecondaryStreamIsRGB()) {
+        S3_XGA_SecondaryStreamRenderRGB(temp2, 32);
+        return;
+    }
     if (S3SSdraw.draw) {
         if (S3SSdraw.currentline >= S3SSdraw.starty && S3SSdraw.currentline < S3SSdraw.endy) {
             // FIXME: This assumes YUY2 16-240 range (MPEG-style), check format code.
@@ -1882,7 +1987,7 @@ static uint8_t * VGA_Draw_LIN16_Line_2x(Bitu vidstart, Bitu /*line*/) {
     return TempLine;
 }
 
-static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
+static uint8_t * VGA_Draw_LIN16_Line_HWMouse_Base(Bitu vidstart, Bitu /*line*/) {
     if (!svga.hardware_cursor_active || !svga.hardware_cursor_active())
         return &vga.mem.linear[vidstart];
 
@@ -1959,7 +2064,20 @@ static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
     }
 }
 
-static uint8_t * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
+/* VGA_Draw_LIN16_Line_HWMouse plus the S3 Streams Processor secondary stream when it holds RGB data */
+static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu line) {
+    uint8_t *ret = VGA_Draw_LIN16_Line_HWMouse_Base(vidstart, line);
+    if (S3SSdraw.draw && S3_SecondaryStreamIsRGB()) {
+        if (ret != TempLine) {
+            memcpy(TempLine, ret, vga.draw.width*2);
+            ret = TempLine;
+        }
+        S3_XGA_SecondaryStreamRenderRGB(ret, (vga.mode == M_LIN15) ? 15u : 16u);
+    }
+    return ret;
+}
+
+static uint8_t * VGA_Draw_LIN32_Line_HWMouse_Base(Bitu vidstart, Bitu /*line*/) {
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
     Bitu offset = vidstart & vga.draw.linear_mask;
     Bitu i;
@@ -2040,6 +2158,19 @@ static uint8_t * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
         return TempLine;
     }
 #endif
+}
+
+/* VGA_Draw_LIN32_Line_HWMouse plus the S3 Streams Processor secondary stream when it holds RGB data */
+static uint8_t * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu line) {
+    uint8_t *ret = VGA_Draw_LIN32_Line_HWMouse_Base(vidstart, line);
+    if (S3SSdraw.draw && S3_SecondaryStreamIsRGB()) {
+        if (ret != TempLine) {
+            memcpy(TempLine, ret, vga.draw.width*4);
+            ret = TempLine;
+        }
+        S3_XGA_SecondaryStreamRenderRGB(ret, 32u);
+    }
+    return ret;
 }
 
 static const uint32_t* VGA_Planar_Memwrap(Bitu vidstart) {
@@ -5999,6 +6130,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
 	if (BIOSlogo.visible) BIOSlogo.vsync_enable = true;
 
+	/* S3 ViRGE: vertical sync interrupt status (MM8504 bit 0), polled by S3D Toolkit page flips */
+	S3_ViRGE_VSync();
+
 	dbg_event_maxscan = false;
 	dbg_event_scanstep = false;
 	dbg_event_hretrace = false;
@@ -6392,6 +6526,17 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 				vga.draw.address += vga.draw.bytes_skip;
 				vga.draw.address *= vga.draw.byte_panning_shift;
 				vga.draw.address += vga.draw.panning;
+
+				/* S3 Trio64V+/ViRGE: with the Streams Processor in full operation (CR67 bits 3-2 = 11b)
+				 * the primary stream is fetched from Primary Stream Frame Buffer Address 0 or 1
+				 * (MM81C0/MM81C4, selected by MM81CC bit 0), not from the CRTC start address. DOS games
+				 * built on the S3D Toolkit (e.g. Terminal Velocity 3D) page flip by rewriting MM81C0.
+				 * This runs once per frame, so a new address takes effect at the next frame like the
+				 * hardware's vertical sync latch. */
+				if (svgaCard == SVGA_S3Trio && (s3Card >= S3_ViRGE || s3Card == S3_Trio64V) &&
+					((vga.s3.misc_control_2 >> 2u) & 3u) == 3u) {
+					vga.draw.address = vga.s3.streams.ps_fba[vga.s3.streams.ps_bufsel & 1u] & vga.mem.memmask & ~7u;
+				}
 				break;
 			case M_PACKED4:
 				vga.draw.byte_panning_shift = 4u;
@@ -7029,7 +7174,14 @@ void VGA_ActivateHardwareCursor(void) {
 		if (svga.hardware_cursor_active()) hwcursor_active=true;
 	}
 
-	if (hwcursor_active) {
+	/* S3 Trio64V+/ViRGE: the Streams Processor secondary stream (overlay) is composited by the
+	 * "HWMouse" line functions, so use them in the linear modes even when the hardware cursor is
+	 * off. They return the unmodified scanline when there is neither a cursor nor an overlay.
+	 * (Whiplash hides the mouse cursor during races but keeps its 320x200 game view in the overlay.) */
+	const bool s3_streams = (svgaCard == SVGA_S3Trio && (s3Card == S3_Trio64V || s3Card >= S3_ViRGE));
+	const bool linear_mode = (vga.mode == M_LIN8 || vga.mode == M_LIN15 || vga.mode == M_LIN16 || vga.mode == M_LIN24 || vga.mode == M_LIN32);
+
+	if (hwcursor_active || (s3_streams && linear_mode)) {
 		switch(vga.mode) {
 			case M_LIN32:
 				VGA_DrawLine=VGA_Draw_LIN32_Line_HWMouse;

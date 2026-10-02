@@ -54,4 +54,10 @@ zip.h \
 crypt.h \
 mztools.h
 
+nobase_noinst_HEADERS = \
+agent/agent_protocol.h \
+agent/agent_bridge.h \
+agent/debugger_adapter.h \
+agent/agent_server.h
+
 

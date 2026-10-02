@@ -202,9 +202,9 @@ public:
 			}
 #endif
 		} else {
-            sf = std::string(conf);
-            ResolvePath(sf);
-        }
+			sf = std::string(conf);
+			ResolvePath(sf);
+		}
 
 		fluid_set_log_function(FLUID_PANIC, synth_log, NULL);
 		fluid_set_log_function(FLUID_ERR, synth_log, NULL);
@@ -246,7 +246,7 @@ public:
 			return false;
 		}
 		sffile=sf;
-        fsinfo="Sound font: "+sf;
+		fsinfo="Sound font: "+sf;
 
 		master_volume = 128;
 		synthchan = MIXER_AddChannel(synth_CallBack, (unsigned int)synthsamplerate, "SYNTH");

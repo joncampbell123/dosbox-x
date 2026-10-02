@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,2026.08.31,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,2026.10.01,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 COPYRIGHT_YEAR=`echo $PACKAGE_VERSION | cut -c1-4`
 AC_SUBST([COPYRIGHT_YEAR])
 AC_PREREQ(2.60)
@@ -933,13 +933,16 @@ dnl Check SDL2_net using headers + library first
 have_sdl2_net_h=no
 have_sdl2_net_lib=no
 
-if test "x$SDL_STRING" = "xSDL2"; then
-  AC_CHECK_HEADERS([SDL2/SDL_net.h], [have_sdl2_net_h=yes])
-  AC_CHECK_LIB([SDL2_net], [SDLNet_Init], [have_sdl2_net_lib=yes], [have_sdl2_net_lib=no],[$SDLNETLIB])
-fi
-
 if test x$enable_hx = xyes; then
   SDLNETLIB=""
+fi
+
+if test "x$SDL_STRING" = "xSDL2"; then
+  AC_CHECK_HEADERS([SDL2/SDL_net.h], [have_sdl2_net_h=yes])
+  AC_CHECK_LIB([SDL2_net], [SDLNet_Init],
+               [have_sdl2_net_lib=yes],
+               [have_sdl2_net_lib=no],
+               [$SDLNETLIB])
 fi
 
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
@@ -1250,18 +1253,21 @@ AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires 
 
 if test x$disable_sdl_net = xyes ; then
   AC_MSG_WARN([SDL_net is disabled in parameters])
-elif test x$have_sdl2_net_lib = xyes ; then
+elif test "x$SDL_STRING" = "xSDL2" &&
+     test x$have_sdl2_net_h = xyes &&
+     test x$have_sdl2_net_lib = xyes ; then
   AC_DEFINE(C_SDL2_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
   LIBS="$LIBS -lSDL2_net $SDLNETLIB"
   AC_MSG_NOTICE([Using SDL2_net (SDL2): internal modem and IPX enabled])
-elif test x$have_sdl_net_lib = xyes ; then
+elif test x$have_sdl_net_h = xyes &&
+     test x$have_sdl_net_lib = xyes ; then
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
   LIBS="$LIBS -lSDL_net $SDLNETLIB"
-  AC_MSG_NOTICE([Using SDL_net (SDL1): internal modem and IPX enabled])
+  AC_MSG_NOTICE([Using SDL_net: internal modem and IPX enabled])
 else
   AC_MSG_WARN([Can't find SDL_net or SDL2_net, internal modem and IPX disabled])
 fi
@@ -1431,6 +1437,16 @@ if test x$enable_ffmpeg = xyes; then
     fi
 fi
 
+dnl FEATURE: RPC debugger agent output support
+AH_TEMPLATE(C_DOSBOX_AGENT,[Define to 1 to use RPC debugger agent support])
+AC_ARG_ENABLE(dosbox_agent,AC_HELP_STRING([--enable-dosbox_agent],[Enable RPC debugger agent support]),enable_dosbox_agent=$enableval,enable_dosbox_agent=no)
+
+dnl FEATURE: RPC debugger agent output support
+if test x$enable_dosbox_agent = xyes; then
+    AC_DEFINE([C_DOSBOX_AGENT], [1])
+    AC_MSG_NOTICE([enabled RPC debugger agent output support])
+fi
+
 dnl FEATURE: Whether to use Direct3D 9 output
 AH_TEMPLATE(HAVE_D3D9_H,[Define to 1 to use Direct3D 9 display output support])
 AC_ARG_ENABLE(d3d9,AC_HELP_STRING([--enable-d3d9],[Enable Direct3D 9 support]),enable_d3d9=$enableval,enable_d3d9=no)
@@ -1578,6 +1594,7 @@ src/libs/fluidsynth/Makefile
 src/libs/decoders/internal/Makefile
 src/output/Makefile
 src/output/direct3d/Makefile
+src/agent/Makefile
 src/builtin/Makefile
 src/misc/Makefile
 src/shell/Makefile

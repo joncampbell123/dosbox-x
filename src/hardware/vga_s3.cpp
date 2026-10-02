@@ -381,6 +381,13 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
          * 7-4  DELAY HSYNC/VSYNC
          *      value = number of DCLKs the HSYNC and VSYNC active pulses are delayed
          */
+    case 0x66:  /* Extended Miscellaneous Control 1 */
+        /* S3 ViRGE (86C325) datasheet: bit 0 ENBL ENH (same as MM850C bit 0), bit 1 RST (software reset
+         * of the S3d Engine, same as MM8504 bits 15-14 = 10b), bit 3 PCI DISC, bits 7-6 PCI/pixel bus controls.
+         * The ViRGE/VX moved ENBL ENH and RST to CR63 and uses CR66 for SC/SE/ICLK control, which isn't emulated. */
+        if (s3Card == S3_ViRGE && ((val ^ vga.s3.reg_66) & 2u/*RST*/)) SD3_Reset(!!(val & 2u));
+        vga.s3.reg_66 = (uint8_t)val;
+        break;
     case 0x67:  /* Extended Miscellaneous Control 2 */
         /*
             0   VCLK PHS. VCLK Phase With Respect to DCLK. If clear VLKC is inverted
@@ -572,6 +579,8 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
 			s3Card == S3_Vision968)
 		return 0x00; /* not mentioned in datasheet, does not exist */
         return vga.s3.reg_63;
+    case 0x66:  /* Extended Miscellaneous Control 1 */
+        return vga.s3.reg_66;
     case 0x67:  /* Extended Miscellaneous Control 2 */
         return vga.s3.misc_control_2;
     case 0x69:  /* Extended System Control 3 */

@@ -17,22 +17,20 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#include <assert.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+
 #if defined(__linux__)
 #include <linux/limits.h>
 #endif
 #include "dosbox.h"
-#include "callback.h"
 #include "bios.h"
 #include "bios_disk.h"
-#include "regs.h"
-#include "mem.h"
 #include "dos_inc.h" /* for Drives[] */
 #include "../dos/drives.h"
-#include "mapper.h"
-#include "SDL.h"
 
 extern bool int13_enable_48bitLBA;
 
@@ -957,7 +955,7 @@ uint32_t imageDiskVHD::GetInfo(VHDInfo* info) {
         info->blockSize = dynamicHeader.blockSize;
         info->totalBlocks = dynamicHeader.maxTableEntries;
         fseeko64(diskimg, dynamicHeader.tableOffset, SEEK_SET);
-        for(int i = 0; i < info->totalBlocks; i++) {
+        for(unsigned int i = 0; i < info->totalBlocks; i++) {
             uint32_t n;
             if(fread(&n, 1, 4, diskimg) != 4) return ERROR_OPENING;
             if(n != 0xFFFFFFFF) info->allocatedBlocks++;
@@ -1168,7 +1166,7 @@ uint64_t imageDiskVHD::scanMBR(uint8_t* mbr, Bitu sizes[], uint64_t disksize) {
     //the last sector CHS reveals total heads and sectors per cylinder
     spc = s;
     heads = h + 1;
-    if(heads > 255 || spc > 63) {
+    if(heads > 255 || spc == 0 || spc > 63) {
         LOG_MSG("Bad CHS partition end in MBR");
         return 0;
     }
@@ -1176,25 +1174,33 @@ uint64_t imageDiskVHD::scanMBR(uint8_t* mbr, Bitu sizes[], uint64_t disksize) {
     // partition start (0,1,1... what?)
     h = (unsigned)*(part + 1);
     s = (unsigned)*(part + 2) & 0x3F;
-    c = (unsigned)*(part + 2) & 0xC0 | *(part + 3);
-    uint64_t lba = ((c * heads + h) * spc + s - 1) * 512;
-    if(lba < 1) {
-        LOG_MSG("Bad CHS partition start in MBR");
+    c = (((unsigned)*(part + 2) & 0xC0) << 2) | *(part + 3);
+    uint64_t lba = 0;
+    if (h < heads && s != 0 && s <= spc) {
+        lba = ((c * heads + h) * spc + s - 1) * 512;
+    }
+    if (lba && disksize && lba >= disksize) {
         lba = 0;
     }
     //prefer LBA, if present (PC-DOS 2.0+ FDISK)
-    if(*((uint32_t*)(part + 8))) {
-        uint64_t lba2 = SDL_SwapLE32(*((uint32_t*)(part + 8))) * 512;
-        if(lba2 < 1) {
+    uint32_t lbaSectors = (uint32_t)part[8] |
+                          ((uint32_t)part[9] << 8) |
+                          ((uint32_t)part[10] << 16) |
+                          ((uint32_t)part[11] << 24);
+    if (lbaSectors) {
+        uint64_t lba2 = (uint64_t)lbaSectors * 512;
+        if (disksize && lba2 >= disksize) {
             LOG_MSG("Bad LBA partition start in MBR");
-            lba2 = 0;
+            return 0;
         }
-        if(!lba && !lba2) return 0;
-
-        if(lba != lba2) {
+        if (lba != lba2) {
             LOG_MSG("CHS and LBA partition start differ, choosing LBA");
-            if(!lba || lba2) lba = lba2;
+            lba = lba2;
         }
+    }
+    if (!lba) {
+        LOG_MSG("Bad partition start in MBR");
+        return 0;
     }
     sizes[0] = 512;
     sizes[1] = spc;

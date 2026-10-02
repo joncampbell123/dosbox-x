@@ -37,6 +37,7 @@
 #include "keyboard.h"
 #include "cpu.h"
 #include "fpu.h"
+#include "logging.h"
 #include "cross.h"
 #include "keymap.h"
 
@@ -479,4 +480,3 @@ void zip_nv_write_hex(ZIPFileEntry &ent,const char *name,unsigned long val) {
 
     ent.write(zip_nv_tmp,l);
 }
-

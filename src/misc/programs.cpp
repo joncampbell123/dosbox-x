@@ -237,6 +237,11 @@ void Program::ChangeToLongCmd() {
 bool resetcolor = false;
 static char last_written_character = 0;//For 0xA to OxD 0xA expansion
 void Program::WriteOut(const char * format,...) {
+	if (dos_kernel_disabled) {
+		LOG(LOG_MISC,LOG_WARN)("Call to Program::WriteOut while DOS kernel is disabled string format='%s'",format);
+		return;
+	}
+
 	uint8_t attr = DOS_GetAnsiAttr();
 	char buf[2048];
 	va_list msg;
@@ -271,6 +276,11 @@ void Program::WriteOut(const char * format,...) {
 }
 
 void Program::WriteOut(const char *format, const char *arguments) {
+	if (dos_kernel_disabled) {
+		LOG(LOG_MISC,LOG_WARN)("Call to Program::WriteOut while DOS kernel is disabled string format='%s'",format);
+		return;
+	}
+
 	char buf[2048 + CMD_MAXLINE];
 	sprintf(buf,format,arguments);
 
@@ -298,6 +308,11 @@ void Program::WriteOut(const char *format, const char *arguments) {
 }
 
 int Program::WriteOut_NoParsing(const char * format, bool dbcs) {
+	if (dos_kernel_disabled) {
+		LOG(LOG_MISC,LOG_WARN)("Call to Program::WriteOut_NoParsing while DOS kernel is disabled string format='%s'",format);
+		return 0;
+	}
+
 	uint16_t size = (uint16_t)strlen(format);
 	char const* buf = format;
 	char last2 = 0, last3 = 0;
@@ -779,7 +794,7 @@ void Load_Language(std::string name) {
 }
 
 void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
-    if (!strcasecmp(pvar.c_str(), "dosbox")||!strcasecmp(pvar.c_str(), "dos")||!strcasecmp(pvar.c_str(), "dosv")||!strcasecmp(pvar.c_str(), "cpu")||!strcasecmp(pvar.c_str(), "sdl")||!strcasecmp(pvar.c_str(), "ttf")||!strcasecmp(pvar.c_str(), "render")||!strcasecmp(pvar.c_str(), "serial")||!strcasecmp(pvar.c_str(), "parallel")||!strcasecmp(pvar.c_str(), "printer")) {
+    if (!strcasecmp(pvar.c_str(), "dosbox")||!strcasecmp(pvar.c_str(), "dos")||!strcasecmp(pvar.c_str(), "dosv")||!strcasecmp(pvar.c_str(), "cpu")||!strcasecmp(pvar.c_str(), "sdl")||!strcasecmp(pvar.c_str(), "ttf")||!strcasecmp(pvar.c_str(), "render")||!strcasecmp(pvar.c_str(), "video")||!strcasecmp(pvar.c_str(), "serial")||!strcasecmp(pvar.c_str(), "parallel")||!strcasecmp(pvar.c_str(), "printer")) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvar.c_str()));
         if (section != NULL) {
             if (!strcasecmp(pvar.c_str(), "dosbox")) {
@@ -1283,6 +1298,11 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                 else if (!strcasecmp(inputline.substr(0, 13).c_str(), "aspect_ratio=")) {
                     setAspectRatio(section);
                     if (render.aspect) GFX_ForceRedrawScreen();
+                }
+            } else if (!strcasecmp(pvar.c_str(), "video")) {
+                if (!strcasecmp(inputline.substr(0, 10).c_str(), "composite=")) {
+                    void CGA_ApplyCompositeSetting(bool apply);
+                    CGA_ApplyCompositeSetting(true);
                 }
             } else if (!strcasecmp(pvar.c_str(), "serial")) {
                 if (!strcasecmp(inputline.substr(0, 6).c_str(), "serial") && inputline[7]=='=') {

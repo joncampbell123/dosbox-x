@@ -1001,6 +1001,16 @@ MixerChannel* MixerObject::Install(MIXER_Handler handler,Bitu freq,const char * 
     }
 }
 
+bool MixerObject::Uninstall(void){
+    if (installed) {
+        MIXER_DelChannel(MIXER_FindChannel(m_name));
+        installed = false;
+        return true;
+    }
+
+    return false;
+}
+
 MixerObject::~MixerObject(){
     if(!installed) return;
     MIXER_DelChannel(MIXER_FindChannel(m_name));
@@ -1074,6 +1084,28 @@ void MAPPER_RecVolumeDown(bool pressed) {
     LOG(LOG_MISC,LOG_NORMAL)("Recording volume DOWN to %.3f%%",newvol * 100);
 }
 
+#if C_DEBUG
+void MAPPER_MuteAWE(bool pressed) {
+    if (!pressed) return;
+    MixerChannel *chan = MIXER_FindChannel("AWE");
+    if (!chan) return;
+    static bool muted = false;
+    static float saved_l = 1.0f;
+    static float saved_r = 1.0f;
+    chan->FillUp();
+    if (!muted) {
+        saved_l = chan->volmain[0];
+        saved_r = chan->volmain[1];
+        chan->SetVolume(0.0f, 0.0f);
+        muted = true;
+    } else {
+        chan->SetVolume(saved_l, saved_r);
+        muted = false;
+    }
+    LOG(LOG_MISC,LOG_NORMAL)("EMU8000: AWE mixer %s", muted ? "mute" : "unmute");
+}
+#endif
+
 void MIXER_Controls_Init() {
     DOSBoxMenu::item *item;
 
@@ -1088,6 +1120,11 @@ void MIXER_Controls_Init() {
 
     MAPPER_AddHandler(MAPPER_RecVolumeDown,MK_nothing, 0,"recvoldown","Decrease recording volume",&item);
     item->set_text("Decrease recording volume");
+
+#if C_DEBUG
+    MAPPER_AddHandler(MAPPER_MuteAWE,MK_a,MMOD3,"muteawe","Mute AWE",&item);
+    item->set_text("Mute AWE");
+#endif
 }
 
 void MIXER_DOS_Boot(Section *) {

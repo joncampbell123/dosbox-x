@@ -62,12 +62,25 @@ void assert_DTAExtendName(std::string input,
 void assert_DOS_MakeName(char const *const input,
                          bool exp_result,
                          std::string exp_fullname = "",
-                         int exp_drive = 0)
+                         int exp_drive = 0,
+                         size_t input_len = SIZE_MAX)
 {
 	uint8_t drive_result;
-	char fullname_result[DOS_PATHLENGTH];
+    char fullname_result[DOS_PATHLENGTH] = {};
+    if(input_len == SIZE_MAX && input) input_len = strlen(input);
 	bool result = DOS_MakeName(input, fullname_result, &drive_result);
-	EXPECT_EQ(result, exp_result);
+
+    /**
+    printf("DOS_MakeName input:");
+    if(input) {
+        for(size_t i = 0; i < input_len; ++i)
+            printf(" %02X", static_cast<unsigned char>(input[i]));
+    }
+    printf(" exp_result: %s result: %s\n",
+        exp_result ? "true" : "false",
+        result ? "true" : "false");
+    */
+    EXPECT_EQ(result, exp_result);
 	// if we expected success, also test these
 	if (exp_result) {
 		EXPECT_EQ(std::string(fullname_result), exp_fullname);
@@ -290,13 +303,27 @@ TEST_F(DOS_FilesTest, DOS_MakeName_GoodChars)
 				};
 				std::string test_input(reinterpret_cast<char *>(input_array), 3);
 				uselfn = false;
-				assert_DOS_MakeName(test_input.c_str(), true, test_input, 25);
+                assert_DOS_MakeName(test_input.data(), true, test_input, 25, test_input.size());
 				uselfn = true;
-				assert_DOS_MakeName(test_input.c_str(), true, test_input, 25);
+                assert_DOS_MakeName(test_input.data(), true, test_input, 25, test_input.size());
 			}
 		}
 	}
 	uselfn = oldlfn;
+}
+
+TEST_F(DOS_FilesTest, DOS_MakeName_DBCS)
+{
+    // A DBCS lead byte at the end of the input must not consume the
+    // terminating NUL byte as a trailing byte.
+    const char input1[] = { 'Z', '9', static_cast<char>(0x9D), '\0' };
+
+    // A valid DBCS lead/trail byte pair must be preserved as a single DBCS character.
+    const char input2[] = { 'Z', '9', static_cast<char>(0x9D),
+                           static_cast<char>(0xBD), '\0' };
+
+    assert_DOS_MakeName(input1, true, std::string(input1, 3), 25, 3);
+    assert_DOS_MakeName(input2, true, std::string(input2, 4), 25, 4);
 }
 
 TEST_F(DOS_FilesTest, DOS_MakeName_Colon_Illegal_Paths)
@@ -363,6 +390,28 @@ TEST_F(DOS_FilesTest, DOS_FindFirst_FindFile_Nonexistant)
 	dos.errorcode = DOSERR_NONE;
 	EXPECT_FALSE(DOS_FindFirst("Z:\\AUTOEXEC.NO", 0, false));
 	EXPECT_EQ(dos.errorcode, DOSERR_NO_MORE_FILES);
+}
+
+// A file is not a directory. CHDIR onto one has to fail on the Z: drive the
+// same way it does on local and FAT drives, and leave the current directory
+// where it was.
+TEST_F(DOS_FilesTest, DOS_ChangeDir_Rejects_File_As_Directory)
+{
+	char olddir[DOS_PATHLENGTH];
+	safe_strcpy(olddir, Drives[25]->curdir);
+
+	// a directory on Z: is still accepted
+	dos.errorcode = DOSERR_NONE;
+	EXPECT_TRUE(DOS_ChangeDir("Z:\\SYSTEM"));
+	EXPECT_STREQ(Drives[25]->curdir, "SYSTEM");
+
+	// a file on the same drive is not
+	dos.errorcode = DOSERR_NONE;
+	EXPECT_FALSE(DOS_ChangeDir("Z:\\AUTOEXEC.BAT"));
+	EXPECT_EQ(dos.errorcode, DOSERR_PATH_NOT_FOUND);
+	EXPECT_STREQ(Drives[25]->curdir, "SYSTEM");
+
+	safe_strcpy(Drives[25]->curdir, olddir);
 }
 
 // this probably isn't a desirable quality, but figure that out later

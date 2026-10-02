@@ -133,6 +133,9 @@
     <Filter Include="Sources\libs\tinyfiledialogs">
       <UniqueIdentifier>{d5990f4f-fb75-4276-9b30-a54d290d8822}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\agent">
+      <UniqueIdentifier>{0ef12a36-fabe-4cbe-b8e9-02a9601a7900}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -357,6 +360,9 @@
     <ClCompile Include="..\src\fpu\fpu.cpp">
       <Filter>Sources\fpu</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\fpu\fpu_float80.cpp">
+      <Filter>Sources\fpu</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\gui\menu_callback.cpp">
       <Filter>Sources\gui</Filter>
     </ClCompile>
@@ -387,10 +393,19 @@
     <ClCompile Include="..\src\hardware\cmos.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\cs4231.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\emu8k.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\dbopl.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\disney.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\pas.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\dma.cpp">
@@ -528,6 +543,9 @@
     <ClCompile Include="..\src\hardware\vga_s3.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_s3d.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\vga_seq.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
@@ -535,6 +553,9 @@
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\vga_xga.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\wss.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\voodoo.cpp">
@@ -556,6 +577,9 @@
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\parport\directlpt.cpp">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\parport\extlpt.cpp">
       <Filter>Sources\hardware\parport</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\parport\filelpt.cpp">
@@ -847,6 +871,9 @@
       <Filter>Sources\debug</Filter>
     </ClCompile>
     <ClCompile Include="..\src\debug\debug_gui.cpp">
+      <Filter>Sources\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debug\debug_mcp.cpp">
       <Filter>Sources\debug</Filter>
     </ClCompile>
     <ClCompile Include="..\src\debug\debug_win32.cpp">
@@ -1629,6 +1656,9 @@
     <ClCompile Include="..\src\misc\mkdir_p.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\localpipe.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\snd_pc98\cbus\pcm86io.c">
       <Filter>Sources\hardware\snd_pc98\cbus</Filter>
     </ClCompile>
@@ -1716,6 +1746,27 @@
     <ClCompile Include="..\src\misc\ethernet_ethnet.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\agent\bridge\agent_bridge.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\protocol\agent_protocol.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\server\agent_server.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\debugger\debugger_adapter.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\parser\debugger_output_parser.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\transport\local_transport.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\agent\trace\trace_store.cpp">
+      <Filter>Sources\agent</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1776,6 +1827,9 @@
       <Filter>Sources\dos</Filter>
     </ClInclude>
     <ClInclude Include="..\src\fpu\fpu_instructions.h">
+      <Filter>Sources\fpu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fpu\fpu_float80.h">
       <Filter>Sources\fpu</Filter>
     </ClInclude>
     <ClInclude Include="..\src\gui\dosbox.cga640.bmp.h">
@@ -1878,6 +1932,9 @@
       <Filter>Sources\hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\parport\directlpt.h">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\parport\extlpt.h">
       <Filter>Sources\hardware\parport</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\parport\filelpt.h">
@@ -2018,6 +2075,9 @@
     <ClInclude Include="..\src\debug\debug_inc.h">
       <Filter>Sources\debug</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\debug\debug_mcp.h">
+      <Filter>Sources\debug</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\debug\disasm_tables.h">
       <Filter>Sources\debug</Filter>
     </ClInclude>
@@ -2156,6 +2216,12 @@
     <ClInclude Include="..\include\crypt.h">
       <Filter>Includes</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cs4231.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\emu8k.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\debug.h">
       <Filter>Includes</Filter>
     </ClInclude>
@@ -2175,6 +2241,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\fpu.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gusmax.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\hardware.h">
@@ -2205,6 +2274,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\keyboard.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\localpipe.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\logging.h">
@@ -2701,6 +2773,27 @@
     </ClInclude>
     <ClInclude Include="..\src\misc\ethernet_ethnet.h">
       <Filter>Sources\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\agent_bridge.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\agent_protocol.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\agent_server.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\debugger_adapter.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\debugger_output_parser.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\agent\transport\rpc_transport.h">
+      <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\agent\trace_store.h">
+      <Filter>Sources\agent</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

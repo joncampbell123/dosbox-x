@@ -59,6 +59,7 @@ private:
 	uint16_t clientport;
 
 	uint8_t hostnamebuffer[128]; // the name passed to us by the user
+	std::string pipepath;        // sock:2 server-mode endpoint path (pipe:)
 
 	Bitu rx_state;
 #define N_RX_IDLE		0

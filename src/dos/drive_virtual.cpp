@@ -679,8 +679,11 @@ bool Virtual_Drive::TestDir(const char* fulldir) {
         LOG_MSG("[DEBUG] Layer %d: Searching for '%s' under parent onpos: %u", (int)depth, dir_name.c_str(), current_onpos);
 #endif
         while(scan) {
-            // Check context parent mapping and match string contents first
-            if(scan->onpos == current_onpos &&
+            // Check context parent mapping and match string contents first.
+            // Only a directory entry can be a path component: every registered
+            // entry owns a slot in vfsnames/vfnames, so the index lookup below
+            // resolves for plain files too and would accept them as directories.
+            if(scan->onpos == current_onpos && scan->isdir &&
                 (case_insensitive_equal(scan->name, dir_name) ||
                     case_insensitive_equal(scan->lname, dir_name))) {
 #if ENABLE_LOGGING

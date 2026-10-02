@@ -52,6 +52,9 @@
 #include <ctime>
 #include <unistd.h>
 #include "dosbox.h"
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
+#include "agent/agent_bridge.h"
+#endif // defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #include "debug.h"
 #include "cpu.h"
 #include "logging.h"
@@ -466,6 +469,9 @@ static Bitu Normal_Loop(void) {
 
     try {
         while (1) {
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
+            dosbox_agent::AGENT_BridgePump();
+#endif
             if (PIC_RunQueue()) {
                 /* now is the time to check for the NMI (Non-maskable interrupt) */
                 CPU_Check_NMI();
@@ -737,7 +743,9 @@ volatile int runmachine_recursion = 0;
 
 void DOSBOX_RunMachine(void){
     Bitu ret;
-
+#if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
+    dosbox_agent::AGENT_BridgeAttachToCurrentThread();
+#endif
     extern unsigned int last_callback;
     unsigned int p_last_callback = last_callback;
     last_callback = 0;
@@ -1427,7 +1435,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* cyclest[] = { "auto","fixed","max","%u", nullptr };
     const char* mputypes[] = { "intelligent", "uart", "none", nullptr };
     const char* vsyncmode[] = { "off", "on" ,"force", "host", nullptr };
-    const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", nullptr };
+    const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", "mpegts-h265", nullptr };
     const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", nullptr };
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", nullptr };
     const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", nullptr }; // Future work: Tandy(?) and USB
@@ -1450,7 +1458,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7", nullptr};
     const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7", nullptr};
     const char* gustypes[] = { "classic", "classic37", "max", "interwave", nullptr };
-    const char* sbtypes[] = { "sb1", "sb1.0", "sb1.5", "sb2", "sb2.0", "sb2.01", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "ess1688", "reveal_sc400", "none", nullptr };
+    const char* sbtypes[] = { "sb1", "sb1.0", "sb1.5", "sb2", "sb2.0", "sb2.01", "sbpro1", "sbpro2", "sb16", "sb16vibra", "awe32", "gb", "ess688", "ess1688", "reveal_sc400", "pas", "pasplus", "pas16", "none", nullptr };
     const char* cms_settings[] = { "on", "off", "auto", nullptr };
     const char* oplmodes[] = { "auto", "opl2", "dualopl2", "opl3", "opl3gold", "none", "hardware", "hardwaregb", "esfm", nullptr };
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", nullptr };
@@ -1462,6 +1470,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", nullptr };
     const char* guspantables[] = { "old", "accurate", "default", nullptr };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", nullptr };
+    const char *wssbaseno[] = { "530", "604", "e80", "f40", nullptr };
     const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none", nullptr};
 //    const char* joydeadzone[] = { "0.26", nullptr };
 //    const char* joyresponse[] = { "1.0", nullptr };
@@ -1483,7 +1492,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* autofix_settings[] = { "true", "false", "1", "0", "both", "a20fix", "loadfix", "none", nullptr };
     const char* color_themes[] = { "default", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", nullptr };
     const char* color_themes_config[] = {
-        "Windows Default", "Arizona", "Black Leather Jacket", "Bordeaux", "Cinnamon", "Designer", "Emerald City",
+        "", "Windows Default", "Arizona", "Black Leather Jacket", "Bordeaux", "Cinnamon", "Designer", "Emerald City",
         "Fluorescent","HotDog Stand", "LCD Default Screen Settings", "LCD Reversed - Dark", "LCD Reversed - Light",
         "Mahogany", "Monochrome", "Ocean", "Pastel", "Patchwork", "Plasma Power Saver", "Rugby", "The Blues",
         "Tweed", "Valentine", "Wingtips", nullptr };
@@ -1506,6 +1515,8 @@ void DOSBOX_SetupConfigSections(void) {
     const char* fpu_settings[] = { "true", "false", "1", "0", "auto", "8087", "287", "387", nullptr };
     const char* sb_recording_sources[] = { "silence", "hiss", "1khz tone", "microphone", nullptr };
     const char* int10usevp[] = { "auto", "true", "false", "1", "0", nullptr };
+    const char* irqwss[] = {"5", "7", "9", "10", "11", "12", "14", "15", nullptr};
+    const char* dmawss[] = {"0", "1", "3", nullptr};
 
     const char* hostkeys[] = {
         "ctrlalt", "ctrlshift", "altshift", "mapper", nullptr };
@@ -1759,6 +1770,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("bochs debug port e9",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, emulate Bochs debug port E9h. ASCII text written to this I/O port is assumed to be debug output, and logged.");
 
+    Pint = secprop->Add_int("mcp_server", Property::Changeable::OnlyAtStart, 0);
+    Pint->SetMinMax(0, 65535);
+    Pint->Set_help("TCP port of the external debugger MCP server on 127.0.0.1. Set to 0 to disable debugger MCP control.");
+
     Pstring = secprop->Add_string("machine",Property::Changeable::OnlyAtStart,"svga_s3");
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox-X tries to emulate.");
@@ -1821,7 +1836,9 @@ void DOSBOX_SetupConfigSections(void) {
             "default                     Use compiled-in default (avi-zmbv)\n"
             "avi-zmbv                    Use DOSBox-style AVI + ZMBV codec with PCM audio\n"
             "mpegts-h264                 Use MPEG transport stream + H.264 + AAC audio. Resolution & refresh rate changes can be contained\n"
-            "                            within one file with this choice, however not all software can support mid-stream format changes.");
+            "                            within one file with this choice, however not all software can support mid-stream format changes.\n"
+            "mpegts-h265                 Use MPEG transport stream + H.265 + AAC audio. Resolution & refresh rate changes handled same as h264"
+            );
 
     Pint = secprop->Add_int("shell environment size",Property::Changeable::OnlyAtStart,0);
     Pint->SetMinMax(0,65280);
@@ -2337,7 +2354,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti = secprop->Add_multi("monochrome_pal",Property::Changeable::Always," ");
     Pmulti->SetValue("green",/*init*/true);
     Pmulti->Set_help("Specify the color of monochrome display.\n"
-            "Append 'bright' for a brighter look.");
+            "Append ' bright' (space-separated) for a brighter look (only applies to machine=cga_mono; has no effect on Hercules/MDA).");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("color",Property::Changeable::Always,"green");
     const char* monochrome_pal_colors[]={"green","amber","gray","white",nullptr};
@@ -2803,6 +2820,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode.\n"
                     "This parameter is also changeable from the builtin CGASNOW command in CGA mode.");
 
+    const char* compositeopts[] = { "default", "auto", "on", "off", nullptr };
+    Pstring = secprop->Add_string("composite",Property::Changeable::Always,"default");
+    Pstring->Set_values(compositeopts);
+    Pstring->Set_help("CGA/PCjr composite output, the setting that the CGA Composite hotkey (Ctrl+F8) cycles through.\n"
+                    "  default: As chosen by machine= (on for cga_composite and pcjr_composite, off for cga_rgb, else auto).\n"
+                    "  auto:    Composite when a program selects 640x200 graphics with the color burst enabled.\n"
+                    "  on, off: Always or never composite.\n"
+                    "Can be changed while running, e.g. CONFIG -set composite=on. Has no effect for machine=cga_mono or non-CGA machines.");
+
     /* Default changed to 0x04 for "Blues Brothers" at Allofich's request [https://github.com/joncampbell123/dosbox-x/issues/1273] */
     Phex = secprop->Add_hex("vga 3da undefined bits",Property::Changeable::WhenIdle,0x04);
     Phex->Set_help("VGA status port 3BA/3DAh only defines bits 0 and 3. This setting allows you to assign a bit pattern to the undefined bits.\n"
@@ -3228,6 +3254,16 @@ void DOSBOX_SetupConfigSections(void) {
                     "If the dynamic_x86 core is set, this allows Windows 9x/ME to run properly, but may somewhat decrease the performance.\n"
                     "If the dynamic_rec core is set, this disables the dynamic core if the 386 paging functions are currently enabled.\n"
                     "If set to auto, this option will be enabled depending on if the 386 paging and a guest system are currently active.");
+
+    // this is an option, even if enabling it will cause problems with Windows 95 games, because
+    // perhaps someone needs dynamic core for their DOS gaming because "ever since you added this
+    // option my Quake FPS is slower than DOSBox SVN why did you break it etc. etc."
+    Pstring = secprop->Add_string("use dynamic core with fpu",Property::Changeable::Always,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Allow dynamic cores (dynamic_x86 and dynamic_rec) to handle floating point, MMX, and SSE instructions.\n"
+                    "Set this option to true if running DOS games in a pure DOS environment.\n"
+                    "Set this option to false or leave it set to auto if you will be running a multi-tasking environment and an application that uses the FPU,\n"
+                    "especially Windows 95-era or later games in Microsoft Windows where dynamic core cannot properly allow Windows 95 to task switch the FPU.");
 
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
@@ -3781,7 +3817,12 @@ void DOSBOX_SetupConfigSections(void) {
 
 			Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,def_sbtype[ci]);//"sb16"
 			Pstring->Set_values(sbtypes);
-			Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster.");
+			Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster.\n"
+					"'awe32' is Creative Sound Blaster 16 plus EMU8000 wavetable synthesizer.\n"
+					"'pas', 'pasplus' and 'pas16' are the Media Vision Pro AudioSpectrum, Pro AudioSpectrum Plus and\n"
+					"Pro AudioSpectrum 16 (first card only). The original PAS has no Sound Blaster mode; it uses irq= and dma=\n"
+					"for its own PCM. The Plus and 16 start their Sound Blaster 2.0 emulation at sbbase=, irq= and dma=,\n"
+					"and MVSOUND.SYS can move it.");
 			Pstring->SetBasic(true);
 
 			Phex = secprop->Add_hex("sbbase",Property::Changeable::WhenIdle,def_sbbase[ci]);//0x220
@@ -4047,9 +4088,24 @@ void DOSBOX_SetupConfigSections(void) {
 		}
 	}
 
+	{
+		const char *emu8krams[] = { "0", "512", "2048", "8192", "28672", nullptr };
+		secprop=control->AddSection_prop("emu8k",&Null_Init,true);
+		Pstring = secprop->Add_string("rompath",Property::Changeable::WhenIdle,"awe32.raw");
+		Pstring->Set_help("Path to the 1MB AWE32 GM ROM dump (awe32.raw). The EMU8000 stays inactive if this file cannot be loaded.");
+		Pstring->SetBasic(true);
+		Pint = secprop->Add_int("memsize",Property::Changeable::WhenIdle,512);
+		Pint->Set_values(emu8krams);
+		Pint->Set_help("Onboard EMU8000 sample RAM in KB. Guest software uploads extra samples here.");
+		Pint->SetBasic(true);
+	}
+
     secprop=control->AddSection_prop("gus",&Null_Init,true); //done
     Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
+    Pbool->SetBasic(true);
+    Pbool = secprop->Add_bool("gusmixer",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow the GUS mixer to modify the DOSBox-X mixer.");
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("global register read alias", Property::Changeable::WhenIdle, "auto");
@@ -4186,6 +4242,26 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("quality",Property::Changeable::WhenIdle,0);
     Pint->Set_values(qualityno);
     Pint->Set_help("Set SID emulation quality level (0 to 3).");
+    Pint->SetBasic(true);
+
+    secprop = control->AddSection_prop("wss",&Null_Init,true);
+    Pbool = secprop->Add_bool("wss",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Enable Windows Sound System (CS4231) emulation.");
+    Pbool->SetBasic(true);
+    Phex = secprop->Add_hex("wssbase",Property::Changeable::WhenIdle,0x530);
+    Phex->Set_values(wssbaseno);
+    Phex->Set_help("WSS base port. Codec registers are at base+4.");
+    Phex->SetBasic(true);
+    Pbool = secprop->Add_bool("wssmixer",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow the CS4231 mixer to modify the DOSBox-X mixer.");
+    Pbool->SetBasic(true);
+    Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,7);
+    Pint->Set_values(irqwss);
+    Pint->Set_help("The initial IRQ number of the Windows Sound System interface");
+    Pint->SetBasic(true);
+    Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,3);
+    Pint->Set_values(dmawss);
+    Pint->Set_help("The initial DMA channel of the Windows Sound System interface");
     Pint->SetBasic(true);
 
     secprop = control->AddSection_prop("imfc", &Null_Init, Property::Changeable::WhenIdle);
@@ -4385,10 +4461,13 @@ void DOSBOX_SetupConfigSections(void) {
         "                 (realport:COM1 realport:ttyS0).\n"
         "for modem: listenport (optional).\n"
         "for nullmodem: server, rxdelay, txdelay, telnet, usedtr,\n"
-        "               transparent, port, inhsocket, sock, nonlocal (all optional).\n"
+        "               transparent, port, inhsocket, sock, pipe, nonlocal (all optional).\n"
         "               connections are limited to localhost unless you specify nonlocal:1\n"
-        "               \"sock\" parameter specifies the protocol to be used by both sides\n"
-        "               of the connection. 0 for TCP and 1 for ENet reliable UDP.\n"
+        "               \"sock\" parameter specifies the transport used by both sides of\n"
+        "               the connection. 0 for TCP, 1 for ENet reliable UDP, 2 for a local\n"
+        "               named pipe / UNIX socket (lowest latency, same host only). With\n"
+        "               sock:2 the endpoint is a path: server:<path> as a client, or\n"
+        "               pipe:<path> as a server.\n"
         "Example: serial1=modem listenport:5000 sock:1\n"
         "Note: COM1-4 are standard COM ports in DOS, whereas COM5-9 are extended COM ports.\n"
         "      You can optionally specify base addresses and IRQs for them with base: and irq: options.\n"
@@ -4486,6 +4565,8 @@ void DOSBOX_SetupConfigSections(void) {
             "   file (records data to a file or passes it to a device),\n"
             "   printer (virtual dot-matrix printer, see [printer] section)\n"
             "       disney (attach Disney Sound Source emulation to this port)\n"
+            "   extlpt (raw bit-bang LPT passthrough to an external process\n"
+            "           over a local named pipe / UNIX socket)\n"
             "Additional parameters must be in the same line in the form of\n"
             "parameter:value.\n"
             "  for reallpt:\n"
@@ -4513,6 +4594,19 @@ void DOSBOX_SetupConfigSections(void) {
             "  Example: parallel1=file file:output1.prn timeout:1000 openpcl:pcl6 openps:gswin32c openwith:notepad\n"
             "  for printer:\n"
             "    printer still has its own configuration section above.\n"
+            "  for extlpt:\n"
+            "    transport:<t> pipe (default) or tcp.\n"
+            "    pipe:<name> transport:pipe - path (default \\\\.\\pipe\\dosbox_lpt\n"
+            "      on Windows, /tmp/dosbox_lpt elsewhere).\n"
+            "    host:<h> / port:<n> transport:tcp - host (default 127.0.0.1)\n"
+            "      and TCP port. tcp needs a build with modem support.\n"
+            "    server: DOSBox-X creates the endpoint and waits for the\n"
+            "      external process to connect (default: connects as client).\n"
+            "    registers:<data,status,control> subset of LPT registers wired\n"
+            "      to the external device; the rest go to the printer engine.\n"
+            "    maskdata:<XX> / maskcontrol:<XX> hex bitmask, independent per\n"
+            "      register; only round-trip a write to that register when its\n"
+            "      masked bits actually changed.\n"
             "Note: LPT1-3 are standard LPT ports in DOS, whereas LPT4-9 are extended LPT ports.\n"
             "      You can optionally specify base addresses and IRQs for them with base: and irq: options.\n"
             "      Parallel port settings can also be changed via the built-in PARALLEL command."
@@ -4626,6 +4720,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable XMS support.");
     Pbool->SetBasic(true);
+
+    Pint = secprop->Add_int("ext dev read limit",Property::Changeable::WhenIdle,0);
+    Pint->Set_help("If nonzero, limit device reads to this many bytes. If the device driver cannot handle anything other than single-byte reads, set this to 1");
+    Pint->SetBasic(true);
+
+    Pint = secprop->Add_int("ext dev write limit",Property::Changeable::WhenIdle,0);
+    Pint->Set_help("If nonzero, limit device writes to this many bytes. If the device driver cannot handle anything other than single-byte writes, set this to 1");
+    Pint->SetBasic(true);
 
     /* maybe this will stop the endless "it's broken and it only works once you point out LOADFIX -a" bug reports */
     Pbool = secprop->Add_bool("turn off a20 gate on load if loadfix needed",Property::Changeable::WhenIdle,false);

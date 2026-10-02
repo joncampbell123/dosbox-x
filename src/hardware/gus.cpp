@@ -32,6 +32,8 @@
 #include "bitop.h"
 #include "math.h"
 #include "regs.h"
+#include "cs4231.h"
+#include "gusmax.h"
 using namespace std;
 
 #if defined(_MSC_VER)
@@ -274,6 +276,7 @@ class GUSChannel {
 			}
 		}
 		void WriteWaveCtrl(uint8_t val) {
+			uint8_t oldctrl = WaveCtrl;
 			uint32_t oldirq=myGUS.WaveIRQ;
 			WaveCtrl = val & 0x7f;
 
@@ -282,6 +285,16 @@ class GUSChannel {
 
 			if (oldirq != myGUS.WaveIRQ) 
 				CheckVoiceIrq();
+
+			if ((oldctrl & (WCTRL_STOP | WCTRL_STOPPED)) != 0 &&
+			    (WaveCtrl & (WCTRL_STOP | WCTRL_STOPPED)) == 0) {
+				unsigned hz = (unsigned)(((double)(WaveFreq >> 1) * (double)myGUS.basefreq) / 512.0 + 0.5);
+				LOG(LOG_MISC,LOG_DEBUG)("GUS: playing voice %u %s %s %uHz",
+					(unsigned)channum,
+					(WaveCtrl & WCTRL_16BIT) ? "16bit" : "8bit",
+					(WaveCtrl & WCTRL_LOOP) ? "loop" : "oneshot",
+					hz);
+			}
 		}
 		INLINE uint8_t ReadWaveCtrl(void) {
 			uint8_t ret=WaveCtrl;
@@ -1341,151 +1354,62 @@ static inline uint8_t read_GF1_mapping_control(const unsigned int ch) {
 	return GUS_ICS2101.mixpair[gus_ICS2101::GF1_OUT_PORT].MapControl[ch];
 }
 
-/* Gravis Ultrasound MAX Crystal Semiconductor CS4231A emulation */
-/* NOTES:
- *
- *    This 4-port I/O interface, implemented by Crystal Semiconductors, Analog Devices, etc. and used
- *    by sound cards in the early 1990s, is the said to be the "standardized" hardware interface of
- *    the "Windows Sound System" standard at the time.
- *
- *    According to an AD1848 datasheet, and a CS4231A datasheet, all I/O ports and indirect registers
- *    appear to be the same, with the exception that Crystal Semiconductor adds 16 registers with the
- *    "MODE 2" bit.
- *
- *    Perhaps at some point, we can untie this from GUS emulation and let it exist as its own C++
- *    class that covers CS4231A, AD1848, and other "WSS" chipset emulation on behalf of GUS and SB
- *    emulation, much like the OPL3 emulation already present in this source tree for Sound Blaster.
- *
- */
-struct gus_cs4231 {
-public:
-	gus_cs4231() : address(0), mode2(false), ia4(false), trd(false), mce(true), init(false) {
-	}
-public:
-	void data_write(uint8_t addr,uint8_t val) {
-//		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write data addr=%02xh val=%02xh",addr,val);
-
-		switch (addr) {
-			case 0x00: /* Left ADC Input Control (I0) */
-				ADCInputControl[0] = val; break;
-			case 0x01: /* Right ADC Input Control (I1) */
-				ADCInputControl[1] = val; break;
-			case 0x02: /* Left Auxiliary #1 Input Control (I2) */
-				Aux1InputControl[0] = val; break;
-			case 0x03: /* Right Auxiliary #1 Input Control (I3) */
-				Aux1InputControl[1] = val; break;
-			case 0x06: /* Left DAC Output Control (I6) */
-				DACOutputControl[0] = val; break;
-			case 0x07: /* Left DAC Output Control (I7) */
-				DACOutputControl[1] = val; break;
-			case 0x0C: /* MODE and ID (I12) */
-				mode2 = (val & 0x40)?1:0; break;
-			default:
-				LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 unhandled data write addr=%02xh val=%02xh",addr,val);
-				break;
-		}
-	}
-	uint8_t data_read(uint8_t addr) {
-//		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 read data addr=%02xh",addr);
-
-		switch (addr) {
-			case 0x00: /* Left ADC Input Control (I0) */
-				return ADCInputControl[0];
-			case 0x01: /* Right ADC Input Control (I1) */
-				return ADCInputControl[1];
-			case 0x02: /* Left Auxiliary #1 Input Control (I2) */
-				return Aux1InputControl[0];
-			case 0x03: /* Right Auxiliary #1 Input Control (I3) */
-				return Aux1InputControl[1];
-			case 0x06: /* Left DAC Output Control (I6) */
-				return DACOutputControl[0];
-			case 0x07: /* Left DAC Output Control (I7) */
-				return DACOutputControl[1];
-			case 0x0C: /* MODE and ID (I12) */
-				return 0x80 | (mode2 ? 0x40 : 0x00) | 0xA/*1010 codec ID*/;
-			default:
-				LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 unhandled data read addr=%02xh",addr);
-				break;
-		}
-
-		return 0;
-	}
-	void playio_data_write(uint8_t val) {
-		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 Playback I/O write %02xh",val);
-	}
-	uint8_t capio_data_read(void) {
-		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 Capture I/O read");
-		return 0;
-	}
-	uint8_t status_read(void) {
-		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 Status read");
-		return 0;
-	}
-	void iowrite(uint8_t reg,uint8_t val) {
-//		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write reg=%u val=%02xh",reg,val);
-
-		if (init) return;
-
-		switch (reg) {
-			case 0x0: /* Index Address Register (R0) */
-				address = val & (mode2 ? 0x1F : 0x0F);
-				trd = (val & 0x20)?1:0;
-				mce = (val & 0x40)?1:0;
-				break;
-			case 0x1: /* Index Data Register (R1) */
-				data_write(address,val);
-				break;
-			case 0x2: /* Status Register (R2) */
-				LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 attempted write to status register val=%02xh",val);
-				break;
-			case 0x3: /* Playback I/O Data Register (R3) */
-				playio_data_write(val);
-				break;
-		}
-	}
-	uint8_t ioread(uint8_t reg) {
-//		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write read=%u",reg);
-
-		if (init) return 0x80;
-
-		switch (reg) {
-			case 0x0: /* Index Address Register (R0) */
-				return address | (trd?0x20:0x00) | (mce?0x40:0x00) | (init?0x80:0x00);
-			case 0x1: /* Index Data Register (R1) */
-				return data_read(address);
-			case 0x2: /* Status Register (R2) */
-				return status_read();
-			case 0x3: /* Capture I/O Data Register (R3) */
-				return capio_data_read();
-		}
-
-		return 0;
-	}
-public:
-	uint8_t		address;
-	bool		mode2; // read CS4231A datasheet for more information
-	bool		ia4;
-	bool		trd;
-	bool		mce;
-	bool		init;
-
-	uint8_t		ADCInputControl[2] = {};	/* left (I0) and right (I1) ADC Input control. bits 7-6 select source. bit 5 is mic gain. bits 3-0 controls gain. */
-	uint8_t		Aux1InputControl[2] = {};	/* left (I2) and right (I3) aux. input control. bits 5-0 control gain in 1.5dB steps. bit 7 is mute */
-	uint8_t		DACOutputControl[2] = {};	/* left (I6) and right (I7) output control attenuation. bits 5-0 control in -1.5dB steps, bit 7 is mute */
-} GUS_CS4231;
+static CS4231 gus_max_codec;
+static MixerChannel *gus_max_chan = NULL;
+static Bitu gus_max_codec_base = 0;
+static Bitu gus_max_last_rate = 0;
+static bool gus_max_present = false;
+static IO_ReadHandleObject gus_max_codec_rh;
+static IO_WriteHandleObject gus_max_codec_wh;
 
 static Bitu read_gus_cs4231(Bitu port,Bitu iolen) {
-	(void)iolen;//UNUSED
-	if (myGUS.gUltraMAXControl & 0x40/*codec enable*/)
-		return GUS_CS4231.ioread((port - GUS_BASE) & 3); // FIXME: UltraMAX allows this to be relocatable
-
-	return 0xFF;
+	(void)iolen;
+	if (!gus_max_present || !(myGUS.gUltraMAXControl & GUSMAX_CTRL_ENABLE))
+		return GUSMAX_OPEN_BUS;
+	return gus_max_codec.ReadPort((uint8_t)((port - gus_max_codec_base) & GUSMAX_CODEC_PORT_MASK));
 }
 
 static void write_gus_cs4231(Bitu port,Bitu val,Bitu iolen) {
-	(void)iolen;//UNUSED
-	if (myGUS.gUltraMAXControl & 0x40/*codec enable*/)
-		GUS_CS4231.iowrite((port - GUS_BASE) & 3,val&0xFF);
+	(void)iolen;
+	if (!gus_max_present || !(myGUS.gUltraMAXControl & GUSMAX_CTRL_ENABLE))
+		return;
+	gus_max_codec.WritePort((uint8_t)((port - gus_max_codec_base) & GUSMAX_CODEC_PORT_MASK), (uint8_t)val);
+	Bitu r = gus_max_codec.SampleRate();
+	if (r != gus_max_last_rate && r != 0 && gus_max_chan) {
+		gus_max_last_rate = r;
+		gus_max_chan->FillUp();
+		gus_max_chan->SetFreq(r);
+	}
+}
+
+static void GUS_MAX_CodecCallBack(Bitu len) {
+	if (!gus_max_chan) return;
+	if (!len) return;
+	if (!(myGUS.gUltraMAXControl & GUSMAX_CTRL_ENABLE) || !gus_max_codec.PlaybackEnabled()) {
+		gus_max_chan->AddSilence();
+		return;
+	}
+	if (len * 4 > MIXER_BUFSIZE)
+		len = MIXER_BUFSIZE / 4;
+	int16_t *buf = (int16_t *)MixTemp;
+	gus_max_codec.Generate(buf, len);
+	gus_max_chan->AddSamples_s16(len, buf);
+}
+
+static void gus_max_map_codec(Bitu addr) {
+	gus_max_codec_rh.Uninstall();
+	gus_max_codec_wh.Uninstall();
+	gus_max_codec_base = addr;
+	if (!gus_max_present) return;
+	gus_max_codec_rh.Install(addr, read_gus_cs4231, IO_MB, GUSMAX_CODEC_PORTS);
+	gus_max_codec_wh.Install(addr, write_gus_cs4231, IO_MB, GUSMAX_CODEC_PORTS);
+}
+
+static bool gus_max_codec_port(Bitu port) {
+	if (!gus_max_present) return false;
+	Bitu p = port & 0x3FF;
+	Bitu b = gus_max_codec_base & 0x3FF;
+	return p >= b && p < (b + GUSMAX_CODEC_PORTS);
 }
 
 static Bitu read_gus(Bitu port,Bitu iolen) {
@@ -1587,8 +1511,11 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 				return 0;
 		case 0x306:
 		case 0x706:
-			if (gus_type >= GUS_MAX)
-				return 0x0B; /* UltraMax with CS4231 codec */
+			if (gus_type == GUS_MAX) {
+				return GUSMAX_REV_ID;
+			}
+			else if (gus_type >= GUS_MAX)
+				return 0x0B;
 			else if (gus_ics_mixer)
 				return 0x06; /* revision 3.7+ with ICS-2101 mixer */
 			else
@@ -1731,6 +1658,9 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 
 					LOG(LOG_MISC,LOG_DEBUG)("GUS IRQ reprogrammed: GF1 IRQ %d, MIDI IRQ %d",(int)myGUS.irq1,(int)myGUS.irq2);
 
+					if (gus_max_present)
+						gus_max_codec.SetIRQ(myGUS.irq1);
+
 					gus_warn_irq_conflict = (!(val & 0x40) && (val & 7) == ((val >> 3) & 7));
 				} else {
 					// GUS SDK: DMA Control Register
@@ -1775,6 +1705,9 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 					GetDMAChannel(myGUS.dma1)->Register_Callback(GUS_DMA_Callback);
 
 					LOG(LOG_MISC,LOG_DEBUG)("GUS DMA reprogrammed: DMA1 %d, DMA2 %d",(int)myGUS.dma1,(int)myGUS.dma2);
+
+					if (gus_max_present)
+						gus_max_codec.SetPlaybackDMA(myGUS.dma2);
 
 					// NTS: The Windows 3.1 Gravis Ultrasound drivers will program the same DMA channel into both without setting the "combining" bit,
 					//      even though their own SDK says not to, when Windows starts up. But it then immediately reprograms it normally, so no bus
@@ -1834,23 +1767,18 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 			break;
 		case 0x306:
 		case 0x706:
-			if (gus_type >= GUS_MAX) {
-				/* Ultramax control register:
-				 *
-				 * bit 7: reserved
-				 * bit 6: codec enable
-				 * bit 5: playback channel type (1=16-bit 0=8-bit)
-				 * bit 4: capture channel type (1=16-bit 0=8-bit)
-				 * bits 3-0: Codec I/O port address decode bits 7-4.
-				 *
-				 * For example, to put the CS4231 codec at port 0x34C, and enable the codec, write 0x44 to this register.
-				 * If you want to move the codec to base I/O port 0x32C, write 0x42 here. */
+			if (gus_type == GUS_MAX) {
+				uint8_t v = (uint8_t)val;
+				if (myGUS.dma1 >= GUSMAX_DMA16_MIN)
+					v |= GUSMAX_CTRL_DMA1_16;
+				if (myGUS.dma2 >= GUSMAX_DMA16_MIN)
+					v |= GUSMAX_CTRL_DMA2_16;
+				myGUS.gUltraMAXControl = v;
+				if (v & GUSMAX_CTRL_ENABLE)
+					gus_max_map_codec(GUSMAX_RELOC_BASE | ((Bitu)(v & GUSMAX_RELOC_NIBBLE) << GUSMAX_RELOC_SHIFT));
+			}
+			else if (gus_type >= GUS_MAX) {
 				myGUS.gUltraMAXControl = val;
-
-				if (val & 0x40) {
-					if ((val & 0xF) != ((port >> 4) & 0xF))
-						LOG(LOG_MISC,LOG_WARN)("GUS WARNING: DOS application is attempting to relocate the CS4231 codec, which is not supported");
-				}
 			}
 			else if (gus_ics_mixer) {
 				if ((port - GUS_BASE) == 0x306)
@@ -2076,6 +2004,10 @@ void GUS_StartDMA() {
 	if (!GUS_DMA_Active) {
 		GUS_DMA_Active = true;
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: Starting DMA transfer interval");
+		LOG(LOG_MISC,LOG_NORMAL)("GUS: DRAM DMA %s RAM %s addr=%05Xh",
+			(myGUS.DMAControl & 2) ? "from" : "into",
+			(myGUS.DMAControl & 0x40) ? "16bit" : "8bit",
+			(unsigned)((myGUS.dmaAddr << 4) + myGUS.dmaAddrOffset));
 		PIC_AddEvent(GUS_DMA_Event,GUS_DMA_Event_interval_init);
 
 		if (GetDMAChannel(myGUS.dma1)->masked)
@@ -2248,13 +2180,8 @@ static IO_ReadHandler* gus_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen) 
 
 	/* 10-bit ISA decode.
 	 * NOTE that the I/O handlers still need more than 10 bits to handle GUS MAX/Interwave registers at 0x7xx. */
-	port &= 0x3FF;
-
-	if (gus_type >= GUS_MAX) {
-		if (port >= (0x30C + GUS_BASE) && port <= (0x30F + GUS_BASE))
-			return read_gus_cs4231;
-	}
-
+	if (gus_max_codec_port(port))
+		return read_gus_cs4231;
 	return read_gus;
 }
 
@@ -2264,13 +2191,8 @@ static IO_WriteHandler* gus_cb_port_w(IO_CalloutObject &co,Bitu port,Bitu iolen)
 
 	/* 10-bit ISA decode.
 	 * NOTE that the I/O handlers still need more than 10 bits to handle GUS MAX/Interwave registers at 0x7xx. */
-	port &= 0x3FF;
-
-	if (gus_type >= GUS_MAX) {
-		if (port >= (0x30C + GUS_BASE) && port <= (0x30F + GUS_BASE))
-			return write_gus_cs4231;
-	}
-
+	if (gus_max_codec_port(port))
+		return write_gus_cs4231;
 	return write_gus;
 }
 
@@ -2284,12 +2206,15 @@ class GUS:public Module_base{
 		AutoexecObject autoexecline[3];
 #endif
 		MixerObject MixerChan;
+		MixerObject MixerChanMax;
 		bool gus_enable;
 	public:
 		GUS(Section* configuration):Module_base(configuration){
 			int x;
 
 			gus_enable = false;
+			gus_max_present = false;
+			gus_max_chan = NULL;
 			if(!IS_EGAVGA_ARCH) return;
 			Section_prop * section=static_cast<Section_prop *>(configuration);
 			if(!section->Get_bool("gus")||control->opt_silent) return;
@@ -2388,7 +2313,7 @@ class GUS:public Module_base{
 				LOG(LOG_MISC,LOG_WARN)("GUS emulation warning: %uKB onboard is an unusual value. Usually GUS cards have some multiple of 256KB RAM onboard",myGUS.memsize>>10);
 
 			if (gus_type <= GUS_MAX && myGUS.memsize > (1024u*1024u))
-				LOG(LOG_MISC,LOG_WARN)("GUS emulation warning: %uKB onboard is an unusually large (more than 1MB) value for the model of GUS to emuulate.",myGUS.memsize>>10);
+				LOG(LOG_MISC,LOG_WARN)("GUS emulation warning: %uKB onboard is an unusually large (more than 1MB) value for the model of GUS to emulate.",myGUS.memsize>>10);
 
 			assert(myGUS.GUSRam == NULL);
 			{
@@ -2518,18 +2443,14 @@ class GUS:public Module_base{
 				WriteHandler[11].Install(0x706 + GUS_BASE,write_gus,IO_MB); // Mixer data / GUS UltraMAX Control register
 			}
 #endif
-			if (gus_type >= GUS_MAX) {
-				LOG(LOG_MISC,LOG_WARN)("GUS caution: CS4231 UltraMax emulation is new and experimental at this time and it is not guaranteed to work.");
-				LOG(LOG_MISC,LOG_WARN)("GUS caution: CS4231 UltraMax emulation as it exists now may cause applications to hang or malfunction attempting to play through it.");
-
-#if 0
-				/* UltraMax has a CS4231 codec at 3XC-3XF */
-				/* FIXME: Does the Interwave have a CS4231? */
-				for (unsigned int i=0;i < 4;i++) {
-					ReadCS4231Handler[i].Install(0x30C + i + GUS_BASE,read_gus_cs4231,IO_MB);
-					WriteCS4231Handler[i].Install(0x30C + i + GUS_BASE,write_gus_cs4231,IO_MB);
-				}
-#endif
+			if (gus_type == GUS_MAX) {
+				gus_max_codec.Reset();
+				gus_max_codec.SetIRQ(myGUS.irq1);
+				gus_max_codec.SetPlaybackDMA(myGUS.dma2);
+				gus_max_codec.SetMixerShim(section->Get_bool("gusmixer"));
+				gus_max_last_rate = gus_max_codec.SampleRate();
+				gus_max_present = true;
+				gus_max_map_codec((Bitu)section->Get_hex("gusbase") + GUSMAX_CODEC_OFFSET);
 			}
 
 			//	DmaChannels[myGUS.dma1]->Register_TC_Callback(GUS_DMA_TC_Callback);
@@ -2541,6 +2462,14 @@ class GUS:public Module_base{
 			}
 			// Register the Mixer CallBack 
 			gus_chan=MixerChan.Install(GUS_CallBack,GUS_RATE,"GUS");
+			if (gus_type == GUS_MAX) {
+				gus_max_chan = MixerChanMax.Install(GUS_MAX_CodecCallBack, (unsigned int)gus_max_codec.SampleRate(), GUSMAX_MIXER_NAME);
+				gus_max_chan->Enable(true);
+				gus_max_codec.SetDacChannel(gus_max_chan);
+				gus_max_codec.SetAux(0, CS4231_AUX_GUS);
+				gus_max_codec.SetAux(1, CS4231_AUX_CD);
+				LOG_MSG("GUSMAX: CS4231 at %03Xh", (unsigned int)gus_max_codec_base);
+			}
 
 			// FIXME: Could we leave the card in reset state until a fake ULTRINIT runs?
 			myGUS.gRegData=0x000/*reset*/;
@@ -2554,6 +2483,10 @@ class GUS:public Module_base{
 			gus_chan->Enable(true);
 
 			GetDMAChannel(myGUS.dma1)->Register_Callback(GUS_DMA_Callback);
+
+			LOG(LOG_MISC,LOG_NORMAL)("GUS: GF1 at %03Xh IRQ=%u DMA=%u RAM=%uKB",
+				(unsigned)(0x200 + GUS_BASE), (unsigned)myGUS.irq1,
+				(unsigned)myGUS.dma1, (unsigned)(myGUS.memsize >> 10));
 
 			if (gus_ics_mixer) {
 				// pre-set ourself as if ULTRINIT and ULTRAMIX had been run
@@ -2602,11 +2535,9 @@ class GUS:public Module_base{
 			autoexecline[0].Install(temp.str());
 			autoexecline[1].Install(std::string("@SET ULTRADIR=") + ultradir);
 
-			if (gus_type >= GUS_MAX) {
-				/* FIXME: Does the Interwave have a CS4231? */
+			if (gus_type == GUS_MAX) {
 				ostringstream temp2;
-				temp2 << "@SET ULTRA16=" << hex << setw(3) << (0x30C+GUS_BASE) << ","
-					<< "0,0,1,0" << ends; // FIXME What do these numbers mean?
+				temp2 << "@SET ULTRA16=" << hex << setw(3) << (unsigned int)gus_max_codec_base << ",0,0,1,0" << ends;
 				autoexecline[2].Install(temp2.str());
 			}
 #endif
@@ -2623,6 +2554,10 @@ class GUS:public Module_base{
 		}
 
 		~GUS() {
+			gus_max_present = false;
+			gus_max_chan = NULL;
+			gus_max_codec_rh.Uninstall();
+			gus_max_codec_wh.Uninstall();
 			if (gus_iocallout != IO_Callout_t_none) {
 				IO_FreeCallout(gus_iocallout);
 				gus_iocallout = IO_Callout_t_none;

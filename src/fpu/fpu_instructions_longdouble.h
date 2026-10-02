@@ -17,31 +17,28 @@
  */
 
 #include <cfenv> /* for std::feholdexcept */
-#include <math.h> /* for isinf, etc */
+#include <cmath> /* for isinf, etc */
+
 #include "cpu/lazyflags.h"
+#include "fpu.h"
 
-static void FPU_FINIT(void) {
-	fenv_t buf;
-
-	fpu.cw.init();
-
-	// HACK: Disable all FPU exceptions until DOSBox-X can catch and reflect FPU exceptions to the guest
-	std::feholdexcept(&buf);
-
-    fpu.sw.init();
-	fpu.tags[0] = TAG_Empty;
-	fpu.tags[1] = TAG_Empty;
-	fpu.tags[2] = TAG_Empty;
-	fpu.tags[3] = TAG_Empty;
-	fpu.tags[4] = TAG_Empty;
-	fpu.tags[5] = TAG_Empty;
-	fpu.tags[6] = TAG_Empty;
-	fpu.tags[7] = TAG_Empty;
-	fpu.tags[8] = TAG_Valid; // is only used by us (FIXME: why?)
-}
-
-static void FPU_FCLEX(void){
-	fpu.sw.clearExceptions();
+static inline uint16_t FPU_GetTag()
+{
+	uint16_t tags = 0;
+	for (auto i=0; i<8; i++) {
+        FPUTag tag;
+        if (!fpu.regvalid[i]) {
+            tag = FPUTag::Empty;
+        } else if (IsZero(fpu.regs_80[i])) {
+            tag = FPUTag::Zero;
+        } else if (IsSpecial(fpu.regs_80[i])) {
+            tag = FPUTag::Special;
+        } else {
+            tag = FPUTag::Valid;
+        }
+        tags |= static_cast<uint8_t>(tag) << (2*i);
+    }
+	return tags;
 }
 
 static void FPU_FNOP(void){
@@ -51,23 +48,14 @@ static void FPU_FNOP(void){
 static void FPU_PUSH(long double in){
 	TOP = (TOP - 1) &7;
 	//actually check if empty
-	fpu.tags[TOP] = TAG_Valid;
+	fpu.regvalid[TOP] = true;
 	fpu.regs_80[TOP].v = in;
-//	LOG(LOG_FPU,LOG_ERROR)("Pushed at %d  %g to the stack",newtop,in);
 	return;
 }
 
 static void FPU_PREP_PUSH(void){
 	TOP = (TOP - 1) &7;
-	fpu.tags[TOP] = TAG_Valid;
-}
-
-static void FPU_FPOP(void){
-	fpu.tags[TOP]=TAG_Empty;
-	//maybe set zero in it as well
-	TOP = ((TOP+1)&7);
-//	LOG(LOG_FPU,LOG_ERROR)("popped from %d  %g off the stack",top,fpu.regs[top].d);
-	return;
+	fpu.regvalid[TOP] = false;
 }
 
 static long double FROUND(long double in){
@@ -92,21 +80,6 @@ static long double FROUND(long double in){
 	}
 }
 
-// TODO: Incorporate into paging.h
-static inline uint64_t mem_readq(PhysPt addr) {
-    uint64_t tmp;
-
-    tmp  = (uint64_t)mem_readd(addr);
-    tmp |= (uint64_t)mem_readd(addr+4ul) << (uint64_t)32ul;
-
-    return tmp;
-}
-
-static inline void mem_writeq(PhysPt addr,uint64_t v) {
-    mem_writed(addr,    (uint32_t)v);
-    mem_writed(addr+4ul,(uint32_t)(v >> (uint64_t)32ul));
-}
-
 #define BIAS80 16383
 #define BIAS64 1023
 
@@ -120,102 +93,6 @@ static long double FPU_FLD80(PhysPt addr) {
 static void FPU_ST80(PhysPt addr,Bitu reg) {
     mem_writeq(addr    ,fpu.regs_80[reg].raw.l);
     mem_writew(addr+8ul,fpu.regs_80[reg].raw.h);
-}
-
-
-static void FPU_FLD_F32(PhysPt addr,Bitu store_to) {
-    FPU_Reg_32 result;
-    result.raw = mem_readd(addr);
-	fpu.regs_80[store_to].v = static_cast<long double>(result.v);
-}
-
-static void FPU_FLD_F64(PhysPt addr,Bitu store_to) {
-    FPU_Reg_64 result;
-    result.raw = mem_readq(addr);
-	fpu.regs_80[store_to].v = static_cast<long double>(result.v);
-}
-
-static void FPU_FLD_F80(PhysPt addr) {
-	fpu.regs_80[TOP].v = FPU_FLD80(addr);
-}
-
-static void FPU_FLD_I16(PhysPt addr,Bitu store_to) {
-	int16_t blah = (int16_t)mem_readw(addr);
-	fpu.regs_80[store_to].v = static_cast<long double>(blah);
-}
-
-static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
-	int32_t blah = (int32_t)mem_readd(addr);
-	fpu.regs_80[store_to].v = static_cast<long double>(blah);
-}
-
-static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
-    int64_t blah = (int64_t)mem_readq(addr);
-	fpu.regs_80[store_to].v = static_cast<long double>(blah);
-}
-
-static void FPU_FBLD(PhysPt addr,Bitu store_to) {
-	uint64_t val = 0;
-	Bitu in = 0;
-	uint64_t base = 1;
-	for(Bitu i = 0;i < 9;i++){
-		in = mem_readb(addr + i);
-		val += ( (in&0xf) * base); //in&0xf shouldn't be higher than 9
-		base *= 10;
-		val += ((( in>>4)&0xf) * base);
-		base *= 10;
-	}
-
-	//last number, only now convert to float in order to get
-	//the best signification
-	long double temp = static_cast<long double>(val);
-	in = mem_readb(addr + 9);
-	temp += ( (in&0xf) * base );
-	if(in&0x80) temp *= -1.0l;
-	fpu.regs_80[store_to].v = temp;
-}
-
-
-static INLINE void FPU_FLD_F32_EA(PhysPt addr) {
-	FPU_FLD_F32(addr,8);
-}
-static INLINE void FPU_FLD_F64_EA(PhysPt addr) {
-	FPU_FLD_F64(addr,8);
-}
-static INLINE void FPU_FLD_I32_EA(PhysPt addr) {
-	FPU_FLD_I32(addr,8);
-}
-static INLINE void FPU_FLD_I16_EA(PhysPt addr) {
-	FPU_FLD_I16(addr,8);
-}
-
-
-static void FPU_FST_F32(PhysPt addr) {
-    FPU_Reg_32 result;
-    result.v = static_cast<float>(fpu.regs_80[TOP].v);
-	mem_writed(addr,result.raw);
-}
-
-static void FPU_FST_F64(PhysPt addr) {
-    FPU_Reg_64 result;
-    result.v = static_cast<double>(fpu.regs_80[TOP].v);
-	mem_writeq(addr,result.raw);
-}
-
-static void FPU_FST_F80(PhysPt addr) {
-	FPU_ST80(addr,TOP);
-}
-
-static void FPU_FST_I16(PhysPt addr) {
-	mem_writew(addr,(uint16_t)static_cast<int16_t>(FROUND(fpu.regs_80[TOP].v)));
-}
-
-static void FPU_FST_I32(PhysPt addr) {
-	mem_writed(addr,(uint32_t)static_cast<int32_t>(FROUND(fpu.regs_80[TOP].v)));
-}
-
-static void FPU_FST_I64(PhysPt addr) {
-	mem_writeq(addr,(uint64_t)static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v)));
 }
 
 // WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
@@ -234,34 +111,6 @@ static void FPU_FSTT_I32(PhysPt addr) {
 static void FPU_FSTT_I64(PhysPt addr) {
 	mem_writeq(addr,(uint64_t)static_cast<int64_t>(fpu.regs_80[TOP].v));
 	FPU_FPOP();
-}
-
-static void FPU_FBST(PhysPt addr) {
-	FPU_Reg_80 val = fpu.regs_80[TOP];
-	bool sign = false;
-	if(fpu.regs_80[TOP].raw.h & 0x8000u) { //sign
-		sign=true;
-		val.v=-val.v;
-	}
-	//numbers from back to front
-	long double temp=val.v;
-	Bitu p;
-	for(Bitu i=0;i<9;i++){
-		val.v=temp;
-		temp = static_cast<long double>(static_cast<int64_t>(floor(val.v/10.0l)));
-		p = static_cast<Bitu>(val.v - 10.0l*temp);  
-		val.v=temp;
-		temp = static_cast<long double>(static_cast<int64_t>(floor(val.v/10.0l)));
-		p |= (static_cast<Bitu>(val.v - 10.0l*temp)<<4);
-
-		mem_writeb(addr+i,p);
-	}
-	val.v=temp;
-	temp = static_cast<long double>(static_cast<int64_t>(floor(val.v/10.0)));
-	p = static_cast<Bitu>(val.v - 10.0l*temp);
-	if(sign)
-		p|=0x80;
-	mem_writeb(addr+9,p);
 }
 
 #if defined(WIN32) && defined(_MSC_VER) && (_MSC_VER < 1910)
@@ -372,32 +221,27 @@ static void FPU_FSUBR(Bitu st, Bitu other){
 }
 
 static void FPU_FXCH(Bitu st, Bitu other){
+    std::swap(fpu.regvalid[st], fpu.regvalid[other]);
 	FPU_Reg_80 reg80 = fpu.regs_80[other];
-	FPU_Tag tag = fpu.tags[other];
-
 	fpu.regs_80[other] = fpu.regs_80[st];
-	fpu.tags[other] = fpu.tags[st];
-
 	fpu.regs_80[st] = reg80;
-	fpu.tags[st] = tag;
-}
-
-static void FPU_FST(Bitu st, Bitu other){
-	fpu.regs_80[other] = fpu.regs_80[st];
-	fpu.tags[other] = fpu.tags[st];
 }
 
 static inline void FPU_FCMOV(Bitu st, Bitu other){
 	fpu.regs_80[st] = fpu.regs_80[other];
-	fpu.tags[st] = fpu.tags[other];
+	fpu.regvalid[st] = fpu.regvalid[other];
 }
 
-static void FPU_FCOM(Bitu st, Bitu other){
-	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
-		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
-		FPU_SET_C3(1);FPU_SET_C2(1);FPU_SET_C0(1);return;
-	}
+static inline void FPU_FCMOV_B(Bitu st, Bitu other)   { if (TFLG_B)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_E(Bitu st, Bitu other)   { if (TFLG_Z)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_BE(Bitu st, Bitu other)  { if (TFLG_BE)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_U(Bitu st, Bitu other)   { if (TFLG_P)   FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NB(Bitu st, Bitu other)  { if (TFLG_NB)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NE(Bitu st, Bitu other)  { if (TFLG_NZ)  FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NBE(Bitu st, Bitu other) { if (TFLG_NBE) FPU_FCMOV(st, other); }
+static inline void FPU_FCMOV_NU(Bitu st, Bitu other)  { if (TFLG_NP)  FPU_FCMOV(st, other); }
 
+static void FPU_FCOM(Bitu st, Bitu other){
 	/* HACK: If emulating a 286 processor we want the guest to think it's talking to a 287.
 	 *       For more info, read [http://www.intel-assembler.it/portale/5/cpu-identification/asm-source-to-find-intel-cpu.asp]. */
 	/* TODO: This should eventually become an option, say, a dosbox.conf option named fputype where the user can enter
@@ -425,29 +269,50 @@ static void FPU_FUCOM(Bitu st, Bitu other){
 	FPU_FCOM(st,other);
 }
 
-static void FPU_FUCOMI(Bitu st, Bitu other){
-	
+static void FPU_FCOMI(Bitu st, Bitu other, bool raise_invalid_for_nan = true){
 	FillFlags();
 	SETFLAGBIT(OF,false);
+	SETFLAGBIT(SF,false);
+	SETFLAGBIT(AF,false);
+	fpu.sw.C1 = 0;
 
-	if(fpu.regs_80[st].v == fpu.regs_80[other].v){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+	if (!fpu.regvalid[st] || !fpu.regvalid[other]) {
+		FPU_SetException(FPU_EX_INVALID | FPU_EX_STACKFAULT);
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,true);
+		SETFLAGBIT(CF,true);
+		return;
 	}
-	if(fpu.regs_80[st].v < fpu.regs_80[other].v){
-		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
+
+	const auto a = fpu.regs_80[st].v;
+	const auto b = fpu.regs_80[other].v;
+
+	if ((std::isnan)(a) || (std::isnan)(b)) {
+		if (raise_invalid_for_nan)
+			FPU_SetException(FPU_EX_INVALID);
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,true);
+		SETFLAGBIT(CF,true);
+		return;
 	}
-	// st > other
-	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+
+	if (a == b) {
+		SETFLAGBIT(ZF,true);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,false);
+	} else if (a < b) {
+		SETFLAGBIT(ZF,false);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,true);
+	} else {
+		SETFLAGBIT(ZF,false);
+		SETFLAGBIT(PF,false);
+		SETFLAGBIT(CF,false);
+	}
 }
 
-static inline void FPU_FCOMI(Bitu st, Bitu other){
-	FPU_FUCOMI(st,other);
-
-	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
-		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
-	}
-
+static inline void FPU_FUCOMI(Bitu st, Bitu other){
+	FPU_FCOMI(st, other, false);
 }
 
 static void FPU_FRNDINT(void){
@@ -494,7 +359,7 @@ static void FPU_FXAM(void){
 	{
 		FPU_SET_C1(0);
 	}
-	if(fpu.tags[TOP] == TAG_Empty)
+	if(!fpu.regvalid[TOP])
 	{
 		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(1);
 		return;
@@ -542,22 +407,8 @@ static void FPU_FSTENV(PhysPt addr, bool op16){
 		mem_writed(addr+4,static_cast<uint32_t>(fpu.sw));
 		mem_writed(addr+8,static_cast<uint32_t>(FPU_GetTag()));
 	}
-}
-
-static void FPU_FLDENV(PhysPt addr, bool op16){
-	uint16_t tag;
-	if (op16) {
-		fpu.cw = mem_readw(addr+0);
-		fpu.sw = mem_readw(addr+2);
-		tag    = mem_readw(addr+4);
-	} else { 
-		fpu.cw = static_cast<uint16_t>(mem_readd(addr+0));
-		fpu.sw = static_cast<uint16_t>(mem_readd(addr+4));
-		tag    = static_cast<uint16_t>(mem_readd(addr+8));
-	}
-	FPU_SetTag(tag);
-	fenv_t buf;
-	std::feholdexcept(&buf);
+	// FNSTENV masks all floating-point exceptions after saving the environment.
+	fpu.cw = fpu.cw.allMasked();
 }
 
 static void FPU_FSAVE(PhysPt addr, bool op16){
@@ -568,15 +419,6 @@ static void FPU_FSAVE(PhysPt addr, bool op16){
 		start += 10;
 	}
 	FPU_FINIT();
-}
-
-static void FPU_FRSTOR(PhysPt addr, bool op16){
-	FPU_FLDENV(addr, op16);
-	Bitu start = op16 ? 14:28;
-	for(Bitu i = 0;i < 8;i++){
-		fpu.regs_80[STV(i)].v = FPU_FLD80(addr+start);
-		start += 10;
-	}
 }
 
 static void FPU_FXTRACT(void) {
@@ -590,85 +432,6 @@ static void FPU_FXTRACT(void) {
 	long double mant = test.v / (powl(2.0,static_cast<long double>(exp80final)));
 	fpu.regs_80[TOP].v = static_cast<long double>(exp80final);
 	FPU_PUSH(mant);
-}
-
-static void FPU_FCHS(void){
-	fpu.regs_80[TOP].v = -1.0l*(fpu.regs_80[TOP].v);
-}
-
-static void FPU_FABS(void){
-	fpu.regs_80[TOP].v = fabsl(fpu.regs_80[TOP].v);
-}
-
-static void FPU_FTST(void){
-	fpu.regs_80[8].v = 0.0;
-	FPU_FCOM(TOP,8);
-}
-
-static inline void FPU_FLD_CONSTANT_ADJUST_DOWN()
-{
-	if (FPU_ArchitectureType >= FPU_ARCHTYPE_387)
-	{
-		if (fpu.cw.RC==FPUControlWord::RoundMode::Down ||
-		    fpu.cw.RC==FPUControlWord::RoundMode::Chop)
-		{
-			// On 32-bit x87 and later rounding mode affects the value
-			fpu.regs_80[TOP].f.mantissa--;
-		}
-	}
-}
-
-static inline void FPU_FLD_CONSTANT_ADJUST_UP()
-{
-	if (FPU_ArchitectureType >= FPU_ARCHTYPE_387)
-	{
-		if (fpu.cw.RC==FPUControlWord::RoundMode::Up)
-		{
-			// On 32-bit x87 and later rounding mode affects the value
-			fpu.regs_80[TOP].f.mantissa++;
-		}
-	}
-}
-
-static void FPU_FLD1(void){
-	FPU_PREP_PUSH();
-	fpu.regs_80[TOP].v = 1.0L;
-}
-
-static void FPU_FLDL2T(void){
-	FPU_PREP_PUSH();
-	fpu.regs_80[TOP].v = L2T;
-	FPU_FLD_CONSTANT_ADJUST_UP();
-}
-
-static void FPU_FLDL2E(void){
-	FPU_PREP_PUSH();
-	fpu.regs_80[TOP].v = L2E;
-	FPU_FLD_CONSTANT_ADJUST_DOWN();
-}
-
-static void FPU_FLDPI(void){
-	FPU_PREP_PUSH();
-	fpu.regs_80[TOP].v = PI;
-	FPU_FLD_CONSTANT_ADJUST_DOWN();
-}
-
-static void FPU_FLDLG2(void){
-	FPU_PREP_PUSH();
-	fpu.regs_80[TOP].v = LG2;
-	FPU_FLD_CONSTANT_ADJUST_DOWN();
-}
-
-static void FPU_FLDLN2(void){
-	FPU_PREP_PUSH();
-	fpu.regs_80[TOP].v = LN2;
-	FPU_FLD_CONSTANT_ADJUST_DOWN();
-}
-
-static void FPU_FLDZ(void){
-	FPU_PREP_PUSH();
-	fpu.regs_80[TOP].v = 0.0L;
-	fpu.tags[TOP] = TAG_Zero;
 }
 
 
@@ -693,4 +456,3 @@ static INLINE void FPU_FDIVR_EA(Bitu op1){
 static INLINE void FPU_FCOM_EA(Bitu op1){
 	FPU_FCOM(op1,8);
 }
-

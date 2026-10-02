@@ -255,6 +255,8 @@ src/hardware/vga_paradise.cpp Paradise SVGA emulation
 
 src/hardware/vga_s3.cpp     S3 SVGA emulation
 
+src/hardware/vga_s3d.cpp    S3 ViRGE S3d Engine 3D emulation (3D lines and triangles)
+
 src/hardware/vga_seq.cpp    VGA sequencer emulation
 
 src/hardware/vga_tseng.cpp  Tseng ET3000/ET4000 emulation

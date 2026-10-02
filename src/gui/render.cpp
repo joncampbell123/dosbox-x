@@ -561,6 +561,15 @@ std::string RENDER_GetScaler(void) {
 
 static int aspect_x=0, aspect_y=0;
 
+void RENDER_Shutdown() {
+	Scaler_AspectChangedLinesFree();
+	scalerSourceCacheBufferFree();
+	scalerChangeCacheFree();
+	scalerFrameCacheFree();
+	scalerWriteCacheFree();
+	TempLineFree();
+}
+
 void RENDER_Reset( void ) {
 	Bitu width=render.src.width;
 	Bitu height=render.src.height;

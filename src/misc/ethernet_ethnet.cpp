@@ -116,7 +116,12 @@ EthnetEthernetConnection::~EthnetEthernetConnection()
 bool EthnetEthernetConnection::Initialize(Section* config)
 {
 	(void)config;
-	return true;
+    if(SDLNet_Init() == -1) {
+        LOG_MSG("SDLNet_Init failed: %s\n", SDLNet_GetError());
+        return false;
+    }
+    SDLNetInited = true;
+    return true;
 }
 
 bool ETHNET_isConnectedToServer(Bits tableNum, IPaddress ** ptrAddr) {

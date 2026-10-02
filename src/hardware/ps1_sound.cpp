@@ -30,10 +30,9 @@
 #include "mame/sn76496.h"
 #include "control.h"
 
-// FIXME: MAME updates broke this code!
-
 extern bool PS1AudioCard;
 #define DAC_CLOCK 1000000
+#define PS1_PSG_CLOCK 4000000
 // 950272?
 #define MAX_OUTPUT 0x7fff
 #define STEP 0x10000
@@ -68,11 +67,6 @@ struct PS1AUDIO
 	Bitu last_writeSN;
 	int SampleRate;
 
-#if 0
-	// SN76496.
-	struct SN76496 sn;
-#endif
-
 	// "DAC".
 	uint8_t FIFO[FIFOSIZE];
 	uint16_t FIFO_RDIndex;
@@ -93,6 +87,7 @@ struct PS1AUDIO
 };
 
 static struct PS1AUDIO ps1;
+static sn76496_device *ps1_sn = NULL;
 
 static uint8_t PS1SOUND_CalcStatus(void)
 {
@@ -217,9 +212,10 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 				PS1DAC_Reset(true);
 			break;
 		case 0x0205:
-#if 0
-			SN76496Write(&ps1.sn,port,data);
-#endif
+			if (ps1_sn) {
+				ps1.chanSN->FillUp();
+				ps1_sn->write((uint8_t)data);
+			}
 			break;
 		default:break;
 	}
@@ -330,13 +326,18 @@ static void PS1SN76496Update(Bitu length)
 	if ((ps1.last_writeSN+5000)<PIC_Ticks) {
 		ps1.enabledSN=false;
 		ps1.chanSN->Enable(false);
+		return;
 	}
+	if (!ps1_sn) return;
+	const Bitu MAX_SAMPLES = 2048;
+	if (length > MAX_SAMPLES)
+		return;
+	int16_t buffer[MAX_SAMPLES];
+	int16_t* outputs = buffer;
 
-	//int16_t * buffer=(int16_t *)MixTemp;
-#if 0
-	SN76496Update(&ps1.sn,buffer,length);
-#endif
-	ps1.chanSN->AddSamples_m16(length,(int16_t *)MixTemp);
+	device_sound_interface::sound_stream stream;
+	static_cast<device_sound_interface&>(*ps1_sn).sound_stream_update(stream, nullptr, &outputs, (int)length);
+	ps1.chanSN->AddSamples_m16(length, buffer);
 }
 
 #include "regs.h"
@@ -346,11 +347,12 @@ static void PS1SN76496Update(Bitu length)
 
 class PS1SOUND: public Module_base {
 private:
+	sn76496_device sn;
 	IO_ReadHandleObject ReadHandler[2];
 	IO_WriteHandleObject WriteHandler[2];
 	MixerObject MixerChanDAC, MixerChanSN;
 public:
-	PS1SOUND(Section* configuration):Module_base(configuration){
+	PS1SOUND(Section* configuration):Module_base(configuration), sn(machine_config(), nullptr, nullptr, PS1_PSG_CLOCK){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
 		PS1AudioCard=false;
@@ -369,7 +371,9 @@ public:
 		WriteHandler[0].Install(0x200,PS1SOUNDWrite,IO_MB);
 		WriteHandler[1].Install(0x202,PS1SOUNDWrite,IO_MB,4);
 
-		uint32_t sample_rate = (uint32_t)section->Get_int("ps1audiorate");
+		int sample_rate_i = section->Get_int("ps1audiorate");
+		if (sample_rate_i <= 0) sample_rate_i = 22050;
+		uint32_t sample_rate = (uint32_t)sample_rate_i;
 		ps1.chanDAC=MixerChanDAC.Install(&PS1SOUNDUpdate,sample_rate,"PS1 DAC");
 		ps1.chanSN=MixerChanSN.Install(&PS1SN76496Update,sample_rate,"PS1 SN76496");
 
@@ -379,6 +383,10 @@ public:
 		ps1.last_writeDAC = 0;
 		ps1.last_writeSN = 0;
 		PS1DAC_Reset(true);
+
+		ps1_sn = &sn;
+		((device_t&)sn).device_start();
+		sn.convert_samplerate(sample_rate_i);
 
 // > Jmk wrote:
 // > Judging by what I've read in that technical document, it looks like the sound chip is fed by a 4 Mhz clock instead of a ~3.5 Mhz clock.
@@ -392,12 +400,11 @@ public:
 // > That should fix it! Mind you, that was with the old code (it was 0.72 I worked with) which may have been updated since, but the same principle applies.
 //
 // NTS: I do not have anything to test this change! --J.C.
-//		SN76496Reset( &ps1.sn, 3579545, sample_rate );
-#if 0
-        SN76496Reset( &ps1.sn, 4000000, sample_rate );
-#endif
 	}
-	~PS1SOUND(){ }
+	~PS1SOUND(){
+		if (ps1.chanSN) ps1.chanSN->Enable(false);
+		ps1_sn = NULL;
+	}
 };
 
 static PS1SOUND* test = NULL;

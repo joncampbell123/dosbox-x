@@ -43,7 +43,8 @@ public:
 			std::string strconf(conf);
 			std::istringstream configmidi(strconf);
 			configmidi >> destId;
-			if (configmidi.fail() && numDests) {
+            configmidi >> std::ws;
+			if (configmidi.fail() || !configmidi.eof() || destId >= numDests) {
 				lowcase(strconf);
 				for(Bitu i = 0; i<numDests; i++) {
 					MIDIEndpointRef dummy = MIDIGetDestination(i);

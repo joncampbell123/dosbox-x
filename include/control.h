@@ -65,6 +65,10 @@ public:
     void ClearExtraData() { Section_prop *sec_prop; Section_line *sec_line; for (const_it tel = sectionlist.begin(); tel != sectionlist.end(); ++tel) {sec_prop = dynamic_cast<Section_prop *>(*tel); sec_line = dynamic_cast<Section_line *>(*tel); if (sec_prop) sec_prop->data = ""; else if (sec_line) sec_line->data = "";} }
 public:
     std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang="",opt_machine="";
+#if defined(C_DOSBOX_AGENT)
+    std::string opt_agent_config;
+    bool opt_agent_self_test = false;
+#endif
     std::vector<std::string> config_file_list;
     std::vector<std::string> opt_o;
     std::vector<std::string> opt_c;

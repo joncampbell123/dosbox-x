@@ -112,16 +112,9 @@ void setFPUTagEmpty() {
 	fpu.use80[7] = false;
 	fpu.use80[8] = false;
 #endif
-	fpu.tags[0] = TAG_Empty;
-	fpu.tags[1] = TAG_Empty;
-	fpu.tags[2] = TAG_Empty;
-	fpu.tags[3] = TAG_Empty;
-	fpu.tags[4] = TAG_Empty;
-	fpu.tags[5] = TAG_Empty;
-	fpu.tags[6] = TAG_Empty;
-	fpu.tags[7] = TAG_Empty;
-	fpu.tags[8] = TAG_Valid; // is only used by us
+    fpu.regvalid = {};
+    // the 9th register is always valid, it's used for temporary storage
+    fpu.regvalid[8] = true;
 }
 
 #endif
-

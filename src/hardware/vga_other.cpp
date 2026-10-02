@@ -788,10 +788,11 @@ void CGAModel(bool pressed) {
 }
  
 static void PCJr_FindMode(void);
-void Composite(bool pressed) {
-	if (!pressed) return;
-	if (++cga_comp>2) cga_comp=0;
-	LOG_MSG("Composite output: %s",(cga_comp==0)?"auto":((cga_comp==1)?"on":"off"));
+static const char * const composite_names[3] = { "auto", "on", "off" };	// cga_comp 0, 1, 2
+
+static void CGA_SetComposite(uint8_t mode) {
+	cga_comp = mode;
+	LOG_MSG("Composite output: %s",composite_names[cga_comp]);
 	// switch RGB and Composite if in graphics mode
 	if (vga.tandy.mode_control & 0x2) {
 	  if (machine==MCH_PCJR)
@@ -799,6 +800,37 @@ void Composite(bool pressed) {
 	  else
 	    write_cga(0x3d8,vga.tandy.mode_control,1);
 	}
+}
+
+void Composite(bool pressed) {
+	if (!pressed) return;
+	CGA_SetComposite((cga_comp+1)%3);
+	// keep [video] composite= in step, so CONFIG -get and the config GUI show it
+	Property *p = static_cast<Section_prop *>(control->GetSection("video"))->Get_prop("composite");
+	if (p) p->SetValue(composite_names[cga_comp]);
+}
+
+/* [video] composite= as a cga_comp value; "default" is what machine= chose */
+static uint8_t CGA_CompositeSetting(void) {
+	const std::string v = static_cast<Section_prop *>(control->GetSection("video"))->Get_string("composite");
+	if (v == "auto") return 0;
+	if (v == "on") return 1;
+	if (v == "off") return 2;
+	const std::string m = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine");
+	if (m == "cga_rgb") return 2;
+	if (m == "cga_composite" || m == "cga_composite2" || m == "pcjr_composite" || m == "pcjr_composite2") return 1;
+	return 0;
+}
+
+/* Take up composite= at VGA reset (apply=false) or from CONFIG -set and the
+ * config GUI (apply=true, redraws the current mode like the CGA Composite hotkey) */
+void CGA_ApplyCompositeSetting(bool apply) {
+	if (mono_cga) return;
+	const uint8_t mode = CGA_CompositeSetting();
+	if (apply && (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_PCJR || machine==MCH_AMSTRAD))
+		CGA_SetComposite(mode);
+	else
+		cga_comp = mode;
 }
 
 static void tandy_update_palette() {

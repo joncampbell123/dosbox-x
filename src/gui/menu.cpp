@@ -746,6 +746,7 @@ static const char *def_menu_capture_format[] =
 {
     "capture_fmt_avi_zmbv",
     "capture_fmt_mpegts_h264",
+    "capture_fmt_mpegts_h265",
     NULL
 };
 # endif

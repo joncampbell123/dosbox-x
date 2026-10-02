@@ -58,12 +58,16 @@ struct ogl_vertex_data {
 };
 
 struct ogl_texmap {
-	bool valid_data;
 	bool valid_pal;
 	UINT32 format;
 	UINT32 current_id;
 
 	std::map<const UINT32, GLuint>* ids;
+	UINT32 width;
+	UINT32 height;
+	UINT32 ilod;
+	UINT32 lodmask;
+	UINT32 ncc_table;
 };
 
 #endif
@@ -82,7 +86,7 @@ void voodoo_ogl_clear(void);
 void voodoo_ogl_fastfill(void);
 
 void voodoo_ogl_clip_window(voodoo_state *v);
-void voodoo_ogl_texture_clear(UINT32 texbase, int TMU);
+void voodoo_ogl_texture_clear(UINT32 address, int TMU);
 void voodoo_ogl_invalidate_paltex(void);
 
 void voodoo_ogl_draw_pixel(int x, int y, bool has_rgb, bool has_alpha, int r, int g, int b, int a);

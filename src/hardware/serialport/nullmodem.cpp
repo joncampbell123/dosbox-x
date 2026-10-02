@@ -53,11 +53,18 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	
 	Bitu bool_temp=0;
 
-    // enet: Setting to 1 enables enet on the port, otherwise TCP.
+	// sock: transport selection - 0 TCP (default), 1 ENet, 2 local named
+	// pipe / AF_UNIX socket (endpoint is a path, not host:port; see pipe:).
 	if (getBituSubstring("sock:", &bool_temp, cmd)) {
-		if (bool_temp == 1) {
-			socketType = SOCKET_TYPE_ENET;
-		}
+		if (bool_temp < (Bitu)SOCKET_TYPE_COUNT)
+			socketType = (SocketTypesE)bool_temp;
+	}
+	// pipe: path for sock:2 in server mode (client mode takes the path from
+	// server:<path> instead, reusing the hostname field).
+	{
+		std::string tmp;
+		if (cmd->FindStringBegin("pipe:", tmp, false))
+			pipepath = tmp;
 	}
 	// usedtr: The nullmodem will
 	// 1) when it is client connect to the server not immediately but
@@ -231,10 +238,16 @@ bool CNullModem::ClientConnect(NETClientSocket *newsocket) {
 
 bool CNullModem::ServerListen() {
 	// Start the server listen port.
-	serversocket = NETServerSocket::NETServerFactory(socketType, serverport);
-	if (!serversocket->isopen) return false;
-	LOG_MSG("Serial%d: Nullmodem server waiting for connection on %s port %d...",
-		(int)COMNUMBER,socketType ? "ENet" : "TCP",serverport);
+	const char *bindTarget = (socketType == SOCKET_TYPE_NAMEDPIPE && !pipepath.empty())
+		? pipepath.c_str() : nullptr;
+	serversocket = NETServerSocket::NETServerFactory(socketType, serverport, bindTarget);
+	if (!serversocket || !serversocket->isopen) return false;
+	if (socketType == SOCKET_TYPE_NAMEDPIPE)
+		LOG_MSG("Serial%d: Nullmodem server waiting for a connection on named pipe %s...",
+			(int)COMNUMBER, pipepath.c_str());
+	else
+		LOG_MSG("Serial%d: Nullmodem server waiting for connection on %s port %d...",
+			(int)COMNUMBER, socketType == SOCKET_TYPE_ENET ? "ENet" : "TCP", serverport);
 	setEvent(SERIAL_SERVER_POLLING_EVENT, 50);
 	setCD(false);
 	return true;
@@ -287,7 +300,9 @@ void CNullModem::Disconnect() {
 	setCD(false);
 	
 	if (serverport) {
-		serversocket = NETServerSocket::NETServerFactory(socketType,serverport);
+		const char *bindTarget = (socketType == SOCKET_TYPE_NAMEDPIPE && !pipepath.empty())
+			? pipepath.c_str() : nullptr;
+		serversocket = NETServerSocket::NETServerFactory(socketType,serverport,bindTarget);
 		if (serversocket->isopen)
 			setEvent(SERIAL_SERVER_POLLING_EVENT, 50);
 		else delete serversocket;
