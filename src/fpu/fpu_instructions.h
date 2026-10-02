@@ -51,8 +51,6 @@ static void FPU_PREP_PUSH(void){
 	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
 }
 
-static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80);
-
 static void FPU_FNOP(void){
 	return;
 }
@@ -63,48 +61,6 @@ static void FPU_PUSH(double in){
 	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
 //	LOG(LOG_FPU,LOG_ERROR)("Pushed at %d  %g to the stack",newtop,in);
 	return;
-}
-
-static void FPU_FSAVE(PhysPt addr, bool op16){
-	FPU_FSTENV(addr, op16);
-	uint8_t start = op16 ? 14:28;
-	for(uint8_t i = 0;i < 8;i++){
-		FPU_ST80(addr+start,STV(i),/*&*/fpu.regs_80[STV(i)],fpu.use80[STV(i)]);
-		start += 10;
-	}
-	FPU_FINIT();
-}
-
-static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
-	if (use80) {
-		// we have the raw 80-bit IEEE float value. we can just store
-		mem_writed(addr,(uint32_t)raw.raw.l);
-		mem_writed(addr+4,(uint32_t)(raw.raw.l >> (uint64_t)32));
-		mem_writew(addr+8,(uint16_t)raw.raw.h);
-	}
-	else {
-		// convert the "double" type to 80-bit IEEE and store
-		struct {
-			int16_t begin;
-			FPU_Reg_64 eind;
-		} test;
-		int64_t sign80 = ((uint64_t)fpu.regs[reg].raw&ULONGTYPE(0x8000000000000000))?1:0;
-		int64_t exp80 =  fpu.regs[reg].raw&LONGTYPE(0x7ff0000000000000);
-		int64_t exp80final = (exp80>>52);
-		int64_t mant80 = fpu.regs[reg].raw&LONGTYPE(0x000fffffffffffff);
-		int64_t mant80final = (mant80 << 11);
-		if(fpu.regs[reg].v != 0){ //Zero is a special case
-			// Elvira wants the 8 and tcalc doesn't
-			mant80final |= (int64_t)ULONGTYPE(0x8000000000000000);
-			//Ca-cyber doesn't like this when result is zero.
-			exp80final += (BIAS80 - BIAS64);
-		}
-		test.begin = (static_cast<int16_t>(sign80)<<15)| static_cast<int16_t>(exp80final);
-		test.eind.raw = static_cast<uint64_t>(mant80final);
-		mem_writed(addr, static_cast<uint32_t>(test.eind.raw));
-		mem_writed(addr + 4, static_cast<uint32_t>(test.eind.raw >> 32));
-		mem_writew(addr+8,(uint16_t)test.begin);
-	}
 }
 
 // WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.

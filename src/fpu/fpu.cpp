@@ -38,19 +38,33 @@
 
 FPU fpu;
 
-static void fpu_GetST80(FPU_Reg_80& value)
+static void fpu_GetRegister80(int reg, FPU_Reg_80& value)
 {
 #ifdef HAS_LONG_DOUBLE
-    value = fpu.regs_80[TOP];
+    value = fpu.regs_80[reg];
 #else
-    if (fpu.use80[TOP]) {
-        value = fpu.regs_80[TOP];
+    if (fpu.use80[reg]) {
+        value = fpu.regs_80[reg];
     } else {
         FPU_Reg_64 source = {};
-        source.raw = fpu.regs[TOP].raw;
+        source.raw = fpu.regs[reg].raw;
         float80::convertFrom(value, source);
     }
 #endif
+}
+
+static void fpu_GetST80(FPU_Reg_80& value)
+{
+    fpu_GetRegister80(TOP, value);
+}
+
+static void fpu_StoreRegister80(PhysPt addr, int reg)
+{
+    FPU_Reg_80 value = {};
+    fpu_GetRegister80(reg, value);
+
+    mem_writeq(addr, value.raw.l);
+    mem_writew(addr + 8, value.raw.h);
 }
 
 void fpu_Push(const FPU_Reg_80& input)
@@ -1145,6 +1159,19 @@ void FPU_FSTENV(PhysPt addr, bool op16)
     fpu.cw = fpu.cw.allMasked();
 }
 
+void FPU_FSAVE(PhysPt addr, bool op16)
+{
+    FPU_FSTENV(addr, op16);
+
+    auto offset = op16 ? 14 : 28;
+    for (auto i = 0; i < 8; ++i) {
+        fpu_StoreRegister80(addr + offset, STV(i));
+        offset += 10;
+    }
+
+    FPU_FINIT();
+}
+
 void FPU_FST_F32(PhysPt addr)
 {
     fpu_detail::StackValid(TOP);
@@ -1212,20 +1239,7 @@ void FPU_FST_F80(PhysPt addr)
 {
     fpu.sw.C1 = 0;
     fpu_detail::StackValid(TOP);
-    FPU_Reg_80 val;
-#ifdef HAS_LONG_DOUBLE
-    val = fpu.regs_80[TOP];
-#else
-    if (fpu.use80[TOP]) {
-        val = fpu.regs_80[TOP];
-    } else {
-        FPU_Reg_64 source = {};
-        source.raw = fpu.regs[TOP].raw;
-        float80::convertFrom(val, source);
-    }
-#endif
-    mem_writeq(addr  , val.raw.l);
-    mem_writew(addr+8, val.raw.h);
+    fpu_StoreRegister80(addr, TOP);
 }
 
 void FPU_FST_I16(PhysPt addr)
@@ -2586,15 +2600,7 @@ void CPU_FXSAVE(PhysPt eaa) {
 	/* NTS: Remember that st(i) TOP pointer is in FPU status word */
 
 	for (i=0;i < 8;i++) {
-#if C_FPU_X86
-		mem_writed(eaa+0x020+(i*16)+0,fpu.p_regs[STV(i)].m1);
-		mem_writed(eaa+0x020+(i*16)+4,fpu.p_regs[STV(i)].m2);
-		mem_writew(eaa+0x020+(i*16)+8,fpu.p_regs[STV(i)].m3);
-#elif defined(HAS_LONG_DOUBLE)
-		FPU_ST80(eaa+0x020+(i*16),STV(i));
-#else
-		FPU_ST80(eaa+0x020+(i*16),STV(i),/*&*/fpu.regs_80[STV(i)],fpu.use80[STV(i)]);
-#endif
+		fpu_StoreRegister80(eaa+0x020+(i*16),STV(i));
 		mem_writed(eaa+0x020+(i*16)+0xA,0);
 		mem_writew(eaa+0x020+(i*16)+0xE,0);
 	}

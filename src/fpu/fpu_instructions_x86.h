@@ -64,16 +64,3 @@ static void FPU_FSTT_I64(PhysPt addr) {
     mem_writed(addr, fpu.p_regs[8].m1);
     mem_writed(addr + 4, fpu.p_regs[8].m2);
 }
-
-
-static void FPU_FSAVE(PhysPt addr, bool op16){
-	FPU_FSTENV(addr, op16);
-	PhysPt start = op16 ? 14:28;
-	for(unsigned i=0;i<8;i++){
-		mem_writed(addr+start,fpu.p_regs[STV(i)].m1);
-		mem_writed(addr+start+4,fpu.p_regs[STV(i)].m2);
-		mem_writew(addr+start+8,fpu.p_regs[STV(i)].m3);
-		start+=10;
-	}
-	FPU_FINIT();
-}

@@ -61,11 +61,6 @@ static void FPU_PREP_PUSH(void){
 #define BIAS80 16383
 #define BIAS64 1023
 
-static void FPU_ST80(PhysPt addr,Bitu reg) {
-    mem_writeq(addr    ,fpu.regs_80[reg].raw.l);
-    mem_writew(addr+8ul,fpu.regs_80[reg].raw.h);
-}
-
 // WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
 static void FPU_FSTT_I16(PhysPt addr) {
 	mem_writew(addr,(uint16_t)static_cast<int16_t>(fpu.regs_80[TOP].v));
@@ -82,14 +77,4 @@ static void FPU_FSTT_I32(PhysPt addr) {
 static void FPU_FSTT_I64(PhysPt addr) {
 	mem_writeq(addr,(uint64_t)static_cast<int64_t>(fpu.regs_80[TOP].v));
 	FPU_FPOP();
-}
-
-static void FPU_FSAVE(PhysPt addr, bool op16){
-	FPU_FSTENV(addr, op16);
-	Bitu start = op16 ? 14:28;
-	for(Bitu i = 0;i < 8;i++){
-		FPU_ST80(addr+start,STV(i));
-		start += 10;
-	}
-	FPU_FINIT();
 }

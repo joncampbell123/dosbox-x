@@ -131,6 +131,7 @@ void FPU_FSINCOS();
 void FPU_FSQRT();
 void FPU_FST(int src, int dst);
 void FPU_FSTENV(PhysPt addr, bool op16);
+void FPU_FSAVE(PhysPt addr, bool op16);
 void FPU_FST_F32(PhysPt addr);
 void FPU_FST_F64(PhysPt addr);
 void FPU_FST_F80(PhysPt addr);
