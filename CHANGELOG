@@ -1,4 +1,8 @@
 Next version:
+  - BOOT: Added option to mount 'Empty' floppy/CD-ROM drives in advance if no 
+    floppy/CD-ROM drives are mounted. (maron2000)
+
+2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
     on an unopened or non-existent file. (cimarronm)
   - Don't prompt for working directory when -conf or -userconf is used
@@ -66,6 +70,8 @@ Next version:
   - CoreMIDI: Fixed device name matching for names starting with digits.
     (maron2000)
   - Added Sound Blaster AWE32 support for games that use EMU8K (cyberfox1)
+  - Various fixes and improvements to the original 86box derived emu8k
+    implementation. (cyberfox1)
   - FPU: Unified the non-long-double, long-double, and x86 host FPU engines
     around shared 80-bit conversion and stack-loading paths. Improved accuracy
     against real x87 hardware on both x86 and non-x86 hosts. (cimarronm)
@@ -77,6 +83,8 @@ Next version:
     CPU and FPU state can work properly. In the event that this makes your
     DOS games slower, there is a dosbox.conf option to re-enable FPU/MMX
     handling by dynamic core for DOS games that do not multitask. (joncampbell123)
+  - Fixed items in Configuration Tools window were cropped (maron2000)
+  - Added configuration and switch for composite mode (gschmidl)
 
 2026.08.31:
   - Added support for mounting TeleDisk (.td0) floppy image files. (cimarronm)
