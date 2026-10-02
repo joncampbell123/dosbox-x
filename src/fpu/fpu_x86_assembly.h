@@ -136,8 +136,7 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
         __asm    fxtract                                 \
         __asm    fstp     TBYTE PTR fpu.p_regs[ebx].m1   \
         __asm    fstp     TBYTE PTR fpu.p_regs[eax].m1   \
-        }                                                \
-        FPU_PREP_PUSH();
+        }
 #else
 #define FPUD_XTRACT                                                    \
         uint16_t new_sw;                                               \
@@ -157,8 +156,7 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
         __asm    fstp     TBYTE PTR fpu.p_regs[eax].m1                 \
         }                                                              \
         fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-                 (fpu.sw & ~FPUStatusWord::conditionMask);             \
-        FPU_PREP_PUSH();
+                 (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 // handles fadd,fmul,fsub,fsubr
@@ -486,8 +484,7 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 			"fstpt		%1				\n"	\
 			"fstpt		%0				"	\
 			:	"+m" (fpu.p_regs[TOP]), "=m" (fpu.p_regs[(TOP-1)&7])	\
-		);									\
-		FPU_PREP_PUSH();
+		);
 #else
 #define FPUD_XTRACT						\
 		uint16_t new_sw;						\
@@ -501,9 +498,8 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 			:	"=&am" (new_sw), "+m" (fpu.p_regs[TOP]),	\
 				"=m" (fpu.p_regs[(TOP-1)&7])			\
 		);									\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);             \
-		FPU_PREP_PUSH();
+        fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+                 (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 // handles fadd,fmul,fsub,fsubr

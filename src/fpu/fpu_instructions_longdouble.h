@@ -93,16 +93,3 @@ static void FPU_FSAVE(PhysPt addr, bool op16){
 	}
 	FPU_FINIT();
 }
-
-static void FPU_FXTRACT(void) {
-	// function stores real bias in st and 
-	// pushes the significant number onto the stack
-	// if double ever uses a different base please correct this function
-
-	FPU_Reg_80 test = fpu.regs_80[TOP];
-	int64_t exp80 = test.raw.h & 0x7FFFu;
-	int64_t exp80final = exp80 - FPU_Reg_80_exponent_bias;
-	long double mant = test.v / (powl(2.0,static_cast<long double>(exp80final)));
-	fpu.regs_80[TOP].v = static_cast<long double>(exp80final);
-	FPU_PUSH(mant);
-}

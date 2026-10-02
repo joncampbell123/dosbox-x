@@ -143,17 +143,3 @@ static void FPU_FSTT_I64(PhysPt addr) {
 	}
 	FPU_FPOP();
 }
-
-static void FPU_FXTRACT(void) {
-	// function stores real bias in st and 
-	// pushes the significant number onto the stack
-	// if double ever uses a different base please correct this function
-
-	FPU_Reg_64 test = fpu.regs[TOP];
-	int64_t exp80 = test.raw & LONGTYPE(0x7ff0000000000000);
-	int64_t exp80final = (exp80>>52) - BIAS64;
-	double mant = test.v / (pow(2.0,static_cast<double>(exp80final)));
-	fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
-	fpu.regs[TOP].v = static_cast<double>(exp80final);
-	FPU_PUSH(mant);
-}

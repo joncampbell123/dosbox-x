@@ -1429,6 +1429,75 @@ void FPU_FXCH(int op1, int op2)
     }
 }
 
+void FPU_FXTRACT()
+{
+    fpu.sw.C1 = 0;
+    if (fpu_detail::CheckInputs(TOP)) {
+        FPU_Reg_80 source = {};
+        fpu_GetST80(source);
+        fpu_Push(source);
+        return;
+    }
+
+#if C_FPU_X86
+    fpu_detail::CheckInputDenormals(TOP);
+    const auto output = (TOP - 1) & 7;
+    FPUD_XTRACT
+    fpu_Push(fpu.regs_80[output]);
+#else
+    FPU_Reg_80 source = {};
+    fpu_GetST80(source);
+
+    if (fpu_detail::InputIsZero(TOP)) {
+        fpu.sw.ZE = 1;
+        fpu_detail::CheckException();
+        fpu_detail::SetInfinity(TOP, true);
+        fpu_Push(source);
+        return;
+    }
+
+    if (fpu_detail::InputIsInfinity(TOP)) {
+        fpu_detail::SetInfinity(TOP, false);
+        fpu_Push(source);
+        return;
+    }
+
+    fpu_detail::CheckInputDenormals(TOP);
+
+    const auto set_exponent = [](int exponent) {
+        FPU_Reg_80 value = {};
+        float80::convertFrom(value, static_cast<int64_t>(exponent));
+        fpu.regs_80[TOP] = value;
+#ifndef HAS_LONG_DOUBLE
+        fpu.regs[TOP].v = float80::convertToDouble(value);
+        fpu.use80[TOP] = true;
+#endif
+    };
+
+  #ifdef HAS_LONG_DOUBLE
+    int exponent = 0;
+    const auto significand = std::frexp(fpu.regs_80[TOP].v, &exponent) * 2;
+    --exponent;
+
+    FPU_Reg_80 significand_value = {};
+    significand_value.v = significand;
+  #else
+    int exponent = 0;
+    const auto significand = std::frexp(fpu.regs[TOP].v, &exponent) * 2;
+    --exponent;
+
+    FPU_Reg_64 significand_64 = {};
+    significand_64.v = significand;
+    FPU_Reg_80 significand_value = {};
+    float80::convertFrom(significand_value, significand_64);
+  #endif
+
+    set_exponent(exponent);
+    fpu_Push(significand_value);
+    fpu_detail::CheckException();
+#endif
+}
+
 void FPU_FYL2X()
 {
     fpu.sw.C1 = 0;

@@ -77,8 +77,3 @@ static void FPU_FSAVE(PhysPt addr, bool op16){
 	}
 	FPU_FINIT();
 }
-
-
-static void FPU_FXTRACT(void) {
-	FPUD_XTRACT
-}
