@@ -48,9 +48,3 @@ static void FPU_PREP_PUSH(void){
 	TOP = (TOP - 1) &7;
 	fpu.regvalid[TOP] = true;
 }
-
-static void FPU_FSTT_I64(PhysPt addr) {
-    FPUD_STORE(fisttp, QWORD, q)
-    mem_writed(addr, fpu.p_regs[8].m1);
-    mem_writed(addr + 4, fpu.p_regs[8].m2);
-}

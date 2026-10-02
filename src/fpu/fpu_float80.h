@@ -42,6 +42,7 @@ IntegerConversionResult convertToI16Truncate(const FPU_Reg_80& val);
 IntegerConversionResult convertToI32(const FPU_Reg_80& val);
 IntegerConversionResult convertToI32Truncate(const FPU_Reg_80& val);
 IntegerConversionResult convertToI64(const FPU_Reg_80& val);
+IntegerConversionResult convertToI64Truncate(const FPU_Reg_80& val);
 double convertToDouble(const FPU_Reg_80& val);
 void convertFrom(FPU_Reg_80& result, int64_t value);
 void convertFrom(FPU_Reg_80& result, const FPU_Reg_32& value);

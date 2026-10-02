@@ -377,6 +377,11 @@ IntegerConversionResult convertToI64(const FPU_Reg_80& val)
     return convertToInteger(val, 63, fpu.cw.roundMode());
 }
 
+IntegerConversionResult convertToI64Truncate(const FPU_Reg_80& val)
+{
+    return convertToInteger(val, 63, FPUControlWord::RoundMode::Chop);
+}
+
 double convertToDouble(const FPU_Reg_80& val)
 {
     return convertToF64(val).value.v;

@@ -60,9 +60,3 @@ static void FPU_PREP_PUSH(void){
 
 #define BIAS80 16383
 #define BIAS64 1023
-
-// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
-static void FPU_FSTT_I64(PhysPt addr) {
-	mem_writeq(addr,(uint64_t)static_cast<int64_t>(fpu.regs_80[TOP].v));
-	FPU_FPOP();
-}

@@ -62,26 +62,3 @@ static void FPU_PUSH(double in){
 //	LOG(LOG_FPU,LOG_ERROR)("Pushed at %d  %g to the stack",newtop,in);
 	return;
 }
-
-// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
-static void FPU_FSTT_I64(PhysPt addr) {
-	FPU_Reg_64 blah;
-	if (fpu.use80[TOP] && (fpu.regs_80[TOP].raw.h & 0x7FFFu) == (0x0000u + FPU_Reg_80_exponent_bias + 63u)) {
-		// FIXME: This works so far for DOS demos that use the "Pentium memcpy trick" to copy 64 bits at a time.
-		//        What this code needs to do is take the exponent into account and then clamp the 64-bit int within range.
-		//        This cheap hack is good enough for now.
-		mem_writed(addr,(uint32_t)(fpu.regs_80[TOP].raw.l));
-		mem_writed(addr+4,(uint32_t)(fpu.regs_80[TOP].raw.l >> (uint64_t)32));
-	}
-	else {
-		double val = fpu.regs[TOP].v; /* chop rounding mode */
-		blah.raw = static_cast<uint64_t>((val < 9223372036854775808.0 &&
-		                                      val >= -9223372036854775808.0)
-		                                             ? static_cast<int64_t>(val)
-		                                             : LONGTYPE(0x8000000000000000));
-
-		mem_writed(addr, static_cast<uint32_t>(blah.raw));
-		mem_writed(addr + 4, static_cast<uint32_t>(blah.raw >> 32));
-	}
-	FPU_FPOP();
-}

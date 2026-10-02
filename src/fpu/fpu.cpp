@@ -1330,6 +1330,25 @@ void FPU_FST_I64(PhysPt addr)
     mem_writeq(addr, static_cast<uint64_t>(conversion.value));
 }
 
+void FPU_FISTTP_I64(PhysPt addr)
+{
+    fpu_detail::StackValid(TOP);
+    fpu_detail::CheckInputDenormals(TOP);
+    FPU_Reg_80 value = {};
+    fpu_GetST80(value);
+
+    const auto conversion = float80::convertToI64Truncate(value);
+    fpu.sw.C1 = conversion.rounded_up;
+
+    if (conversion.exceptions) {
+        FPU_SetException(conversion.exceptions);
+        fpu_detail::CheckException();
+    }
+
+    mem_writeq(addr, static_cast<uint64_t>(conversion.value));
+    FPU_FPOP();
+}
+
 void FPU_FSUB(int op1, int op2)
 {
     if (fpu_detail::CheckInputs(op1, op2)) return;
@@ -2129,8 +2148,7 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr, bool op16) {
 	case 0x01:  /* FISTTP longint*/
         if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
         {
-            FPU_FSTT_I64(addr);
-            FPU_FPOP();
+            FPU_FISTTP_I64(addr);
         }
         else
             LOG(LOG_FPU, LOG_WARN)("ESC 5 EA:Unhandled group %d subfunction %d", (int)group, (int)sub);
