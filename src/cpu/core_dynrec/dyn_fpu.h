@@ -28,9 +28,9 @@
 #include "dosbox.h"
 #if C_FPU
 
-#include "mem.h"
+#include "cpu/lazyflags.h"
 #include "fpu.h"
-
+#include "mem.h"
 
 static void FPU_FDECSTP(){
 	TOP = (TOP - 1) & 7;
@@ -43,15 +43,6 @@ static void FPU_FINCSTP(){
 static void FPU_FNSTCW(PhysPt addr){
 	mem_writew(addr,fpu.cw);
 }
-
-
-#if C_FPU_X86
-#include "../../fpu/fpu_instructions_x86.h"
-#elif defined(HAS_LONG_DOUBLE)
-#include "../../fpu/fpu_instructions_longdouble.h"
-#else
-#include "../../fpu/fpu_instructions.h"
-#endif
 
 static INLINE void dyn_fpu_top() {
 	gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);
@@ -159,13 +150,7 @@ static void dyn_fpu_esc1(){
 			gen_shr_imm(FC_OP1,11); /* stack top is 3-bit value starting at bit 11 */
 			gen_add_imm(FC_OP1,decode.modrm.rm);
 			gen_and_imm(FC_OP1,7);
-			gen_protect_reg(FC_OP1);
-			gen_call_function_raw(FPU_PREP_PUSH); 
-			gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);
-			gen_shr_imm(FC_OP2,11); /* stack top is 3-bit value starting at bit 11 */
-			gen_and_imm(FC_OP2,7);
-			gen_restore_reg(FC_OP1);
-			gen_call_function_RR(FPU_FST,FC_OP1,FC_OP2);
+			gen_call_function_R(FPU_FLD,FC_OP1);
 			break;
 		case 0x01: /* FXCH STi */
 			dyn_fpu_top();

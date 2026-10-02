@@ -419,7 +419,7 @@ static char* F80ToString(int regIndex, char* dest) {
 #elif defined(HAS_LONG_DOUBLE)
 	snprintf(dest, 11, "%08.2Lf", fpu.regs_80[regIndex].v);
 #else
-	snprintf(dest, 11, "%08.2f", fpu.regs[regIndex].d);
+	snprintf(dest, 11, "%08.2f", fpu.regs[regIndex].v);
 #endif
 	
 	return dest;
@@ -435,7 +435,7 @@ static bool F80TestUpdate(int regIndex) {
 #elif defined(HAS_LONG_DOUBLE)
 	return fpu.regs_80[regIndex].v != oldfpu.regs_80[regIndex].v; /* I'm certain that strict float equality can be used here. */
 #else
-	return fpu.regs[regIndex].d != oldfpu.regs[regIndex].d;
+	return fpu.regs[regIndex].v != oldfpu.regs[regIndex].v;
 #endif
 }
 
@@ -5834,7 +5834,7 @@ static void LogFPUInfo(void) {
                       fpu.regs_80[adj].v, fpu.regs_80[adj].raw.h, (unsigned long long)fpu.regs_80[adj].raw.l);
 #else
         DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.16g (0x%016llx)", i, FPU_tag(fpu.regvalid[adj]),
-                      fpu.use80[adj], fpu.regs[adj].d, (unsigned long long)fpu.regs[adj].ll);
+                       fpu.use80[adj], fpu.regs[adj].v, (unsigned long long)fpu.regs[adj].raw);
 #endif
     }
 

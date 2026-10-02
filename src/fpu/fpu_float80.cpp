@@ -6,13 +6,21 @@
 #include "fpu.h"
 #include "fpu_float80.h"
 
+constexpr FPU_Reg_64 FPU_Reg_64::QNaN = {{
+    0x0008'0000'0000'0000ULL,  // quiet-NaN bit
+    0x7FFU,                    // all-one exponent
+    1U                         // sign bit
+}};
+
+constexpr FPU_Reg_80 FPU_Reg_80::QNaN = {{
+    0xC000'0000'0000'0000ULL,  // integer bit and quiet-NaN bit
+    0x7FFFU,                   // all-one exponent
+    1U                         // sign bit
+}};
+
 namespace float80 {
 
 constexpr auto ExpBias = 16383U;
-const FPU_Reg_80::raw_t QNaN = {
-    0xC000'0000'0000'0000ULL, // integer bit and quiet-NaN bit
-    0xFFFFU                   // sign bit and all-one exponent
-};
 const FPU_Reg_80::raw_t const1 = {
     0x8000'0000'0000'0000ULL,
     ExpBias
@@ -46,6 +54,7 @@ const uint8_t LN2_Extra2 = 3;
 namespace {
 
 constexpr uint64_t IntegerBit = 0x8000'0000'0000'0000ULL;
+constexpr uint64_t QuietNaNBit = 0x4000'0000'0000'0000ULL;
 
 void convertFromIEEE(FPU_Reg_80& result,
                      uint64_t fraction,
@@ -91,6 +100,11 @@ void convertFromIEEE(FPU_Reg_80& result,
 }
 
 } // namespace
+
+void setQuietBit(FPU_Reg_80& val)
+{
+    val.f.mantissa |= QuietNaNBit;
+}
 
 namespace {
 
@@ -159,19 +173,19 @@ IEEEConversionResult convertToIEEE(const FPU_Reg_80& val, const IEEEFormat& form
             const auto half = 1ULL << (shift - 1);
             const auto remainder = value & ((half << 1) - 1);
             inexact = remainder != 0;
-            if (fpu.cw.RC == FPUControlWord::RoundMode::Nearest)
+            if (fpu.cw.roundMode() == FPUControlWord::RoundMode::Nearest)
                 round_up = remainder > half || (remainder == half && (truncated & 1));
         } else {
             inexact = value != 0;
-            if (fpu.cw.RC == FPUControlWord::RoundMode::Nearest && shift == 64)
+            if (fpu.cw.roundMode() == FPUControlWord::RoundMode::Nearest && shift == 64)
                 round_up = value > extended_integer_bit;
         }
 
         if (inexact) {
             conversion.exceptions |= FPU_EX_PRECISION;
-            if (fpu.cw.RC == FPUControlWord::RoundMode::Down)
+            if (fpu.cw.roundMode() == FPUControlWord::RoundMode::Down)
                 round_up = sign;
-            else if (fpu.cw.RC == FPUControlWord::RoundMode::Up)
+            else if (fpu.cw.roundMode() == FPUControlWord::RoundMode::Up)
                 round_up = !sign;
         }
         conversion.rounded_up = round_up;
@@ -179,8 +193,7 @@ IEEEConversionResult convertToIEEE(const FPU_Reg_80& val, const IEEEFormat& form
     };
 
     const auto overflow = [&conversion, &set_result, fraction_mask, format, sign]() {
-        const auto round_mode = static_cast<FPUControlWord::RoundMode>(
-                static_cast<unsigned>(fpu.cw.RC));
+        const auto round_mode = fpu.cw.roundMode();
         const auto to_infinity = round_mode == FPUControlWord::RoundMode::Nearest ||
                                  (round_mode == FPUControlWord::RoundMode::Up && !sign) ||
                                  (round_mode == FPUControlWord::RoundMode::Down && sign);
@@ -247,7 +260,8 @@ F64ConversionResult convertToF64(const FPU_Reg_80& val)
 namespace {
 
 IntegerConversionResult convertToInteger(const FPU_Reg_80& val,
-                                         unsigned int target_bits)
+                                          unsigned int target_bits,
+                                          FPUControlWord::RoundMode round_mode)
 {
     constexpr uint64_t extended_integer_bit = 0x8000'0000'0000'0000ULL;
 
@@ -298,21 +312,21 @@ IntegerConversionResult convertToInteger(const FPU_Reg_80& val,
             const auto half = 1ULL << (shift - 1);
             const auto remainder = significand & ((half << 1) - 1);
             inexact = remainder != 0;
-            if (fpu.cw.RC == FPUControlWord::RoundMode::Nearest) {
+            if (round_mode == FPUControlWord::RoundMode::Nearest) {
                 round_up = remainder > half ||
                            (remainder == half && (magnitude & 1));
             }
         } else {
             inexact = true;
-            if (fpu.cw.RC == FPUControlWord::RoundMode::Nearest && shift == 64)
+            if (round_mode == FPUControlWord::RoundMode::Nearest && shift == 64)
                 round_up = significand > extended_integer_bit;
         }
     }
 
     if (inexact) {
-        if (fpu.cw.RC == FPUControlWord::RoundMode::Down)
+        if (round_mode == FPUControlWord::RoundMode::Down)
             round_up = sign;
-        else if (fpu.cw.RC == FPUControlWord::RoundMode::Up)
+        else if (round_mode == FPUControlWord::RoundMode::Up)
             round_up = !sign;
         magnitude += static_cast<uint64_t>(round_up);
     }
@@ -340,17 +354,32 @@ IntegerConversionResult convertToInteger(const FPU_Reg_80& val,
 
 IntegerConversionResult convertToI16(const FPU_Reg_80& val)
 {
-    return convertToInteger(val, 15);
+    return convertToInteger(val, 15, fpu.cw.roundMode());
+}
+
+IntegerConversionResult convertToI16Truncate(const FPU_Reg_80& val)
+{
+    return convertToInteger(val, 15, FPUControlWord::RoundMode::Chop);
 }
 
 IntegerConversionResult convertToI32(const FPU_Reg_80& val)
 {
-    return convertToInteger(val, 31);
+    return convertToInteger(val, 31, fpu.cw.roundMode());
+}
+
+IntegerConversionResult convertToI32Truncate(const FPU_Reg_80& val)
+{
+    return convertToInteger(val, 31, FPUControlWord::RoundMode::Chop);
 }
 
 IntegerConversionResult convertToI64(const FPU_Reg_80& val)
 {
-    return convertToInteger(val, 63);
+    return convertToInteger(val, 63, fpu.cw.roundMode());
+}
+
+IntegerConversionResult convertToI64Truncate(const FPU_Reg_80& val)
+{
+    return convertToInteger(val, 63, FPUControlWord::RoundMode::Chop);
 }
 
 double convertToDouble(const FPU_Reg_80& val)
@@ -408,8 +437,7 @@ void convertFrom(FPU_Reg_80& result, const FPU_Reg_64& value)
 void round(FPU_Reg_80& val, uint8_t extra_two_bits)
 {
     const auto round_mode = FPU_ArchitectureType >= FPU_ARCHTYPE_387
-                                    ? static_cast<FPUControlWord::RoundMode>(
-                                            static_cast<unsigned>(fpu.cw.RC))
+                                    ? fpu.cw.roundMode()
                                     : FPUControlWord::RoundMode::Nearest;
     const auto remainder = extra_two_bits & 0x3u;
     bool round_up = false;
