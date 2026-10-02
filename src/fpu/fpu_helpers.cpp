@@ -41,6 +41,7 @@ bool InputIsSignalingNaN(int op)
 
 bool InputIsSubnormal(int op)
 {
+    if (op == 8 && fpu.ea_denormal) return true;
 #if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
     return IsSubnormal(fpu.regs_80[op]);
 #else
@@ -310,7 +311,8 @@ void RaiseLoadExceptions(bool denormal, bool signaling_nan)
 
 void Compare(int op1, int op2, bool ordered)
 {
-    CheckInputs(op1, op2, false);
+    const auto has_nan = CheckInputs(op1, op2, false);
+    if (!has_nan) CheckInputDenormals(op1, op2);
 
     // An 8087/287 compares infinities as equal regardless of their signs.
     if (FPU_ArchitectureType < FPU_ARCHTYPE_387 &&

@@ -470,6 +470,7 @@ void FPU_FINIT()
 	fpu.sw.init();
     fpu.regvalid = {};
     fpu.regvalid[8] = true; // the 9th register is always valid, it's used for temporary storage
+    fpu.ea_denormal = false;
 
 }
 
@@ -495,6 +496,7 @@ void FPU_FLD_F32_EA(PhysPt addr)
 {
     FPU_Reg_32 val;
     val.raw = mem_readd(addr);
+    fpu.ea_denormal = IsSubnormal(val);
 #ifdef HAS_LONG_DOUBLE
 	fpu.regs_80[8].v = static_cast<long double>(val.v);
 #else
@@ -503,12 +505,6 @@ void FPU_FLD_F32_EA(PhysPt addr)
 #endif
     if (IsSNaN(val)) {
         fpu.sw.IE = 1;
-        fpu_detail::CheckException();
-    } else if (IsSubnormal(val) &&
-               fpu.regvalid[TOP] &&
-               !fpu_detail::InputIsNaN(TOP)) {
-        // Only trigger denormal exception if stack operand is not a NaN
-        fpu.sw.DE = 1;
         fpu_detail::CheckException();
     }
 }
@@ -525,6 +521,7 @@ void FPU_FLD_F64_EA(PhysPt addr)
 {
     FPU_Reg_64 val;
     val.raw = mem_readq(addr);
+    fpu.ea_denormal = IsSubnormal(val);
 #ifdef HAS_LONG_DOUBLE
 	fpu.regs_80[8].v = static_cast<long double>(val.v);
 #else
@@ -533,12 +530,6 @@ void FPU_FLD_F64_EA(PhysPt addr)
 #endif
     if (IsSNaN(val)) {
         fpu.sw.IE = 1;
-        fpu_detail::CheckException();
-    } else if (IsSubnormal(val) &&
-               fpu.regvalid[TOP] &&
-               !fpu_detail::InputIsNaN(TOP)) {
-        // Only trigger denormal exception if stack operand is not a NaN
-        fpu.sw.DE = 1;
         fpu_detail::CheckException();
     }
 }
@@ -564,6 +555,7 @@ void FPU_FLD_I16(PhysPt addr)
 void FPU_FLD_I16_EA(PhysPt addr)
 {
     int64_t integer = static_cast<int16_t>(mem_readw(addr));
+    fpu.ea_denormal = false;
     float80::convertFrom(fpu.regs_80[8], integer);
 #ifndef HAS_LONG_DOUBLE
     fpu.regs[8].v = float80::convertToDouble(fpu.regs_80[8]);
@@ -583,6 +575,7 @@ void FPU_FLD_I32(PhysPt addr)
 void FPU_FLD_I32_EA(PhysPt addr)
 {
     int64_t integer = static_cast<int32_t>(mem_readd(addr));
+    fpu.ea_denormal = false;
     float80::convertFrom(fpu.regs_80[8], integer);
 #ifndef HAS_LONG_DOUBLE
     fpu.regs[8].v = float80::convertToDouble(fpu.regs_80[8]);
@@ -602,6 +595,7 @@ void FPU_FLD_I64(PhysPt addr)
 void FPU_FLD_I64_EA(PhysPt addr)
 {
     int64_t integer = mem_readq(addr);
+    fpu.ea_denormal = false;
     float80::convertFrom(fpu.regs_80[8], integer);
 #ifndef HAS_LONG_DOUBLE
     fpu.regs[8].v = float80::convertToDouble(fpu.regs_80[8]);
@@ -1439,8 +1433,10 @@ void FPU_FSUBR_EA(int op1)
 void FPU_FTST()
 {
 #ifdef HAS_LONG_DOUBLE
+    fpu.ea_denormal = false;
     fpu.regs_80[8].v = 0.0L;
 #else
+    fpu.ea_denormal = false;
     fpu.use80[8] = false;
     fpu.regs[8].v = 0.0;
 #endif

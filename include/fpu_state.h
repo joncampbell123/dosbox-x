@@ -188,6 +188,7 @@ struct FPU
 	bool                use80[9];		// if set, use the 80-bit precision version
 #endif
     std::array<bool, 9> regvalid;
+	bool                ea_denormal = false;
 	XMM_Reg             xmmreg[8]; // SSE emulation
 
 	uint32_t            mxcsr; // SSE control register
