@@ -38,6 +38,12 @@
 
 FPU fpu;
 
+namespace {
+
+constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
+
+} // namespace
+
 static void fpu_GetRegister80(int reg, FPU_Reg_80& value)
 {
 #ifdef HAS_LONG_DOUBLE

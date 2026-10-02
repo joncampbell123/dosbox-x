@@ -45,8 +45,6 @@ uint16_t SaturateDwordSToWordU(int32_t value);
 
 void   setFPUTagEmpty();
 
-constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
-
 // TOP = macro for use in C/C++ for top of FPU stack
 // FPUSW = macro for the entire FPU status word for use in dynamic core
 // NTS: DOSBox-X until 2023/03/11 and all other forks have dynamic core code that generates memory loads
@@ -159,26 +157,6 @@ static INLINE void FPU_SetTag(uint16_t tags){
         fpu.regvalid[i] = (tag != FPUTag::Empty);
         tags >>= 2;
     }
-}
-
-static INLINE void FPU_SET_C0(Bitu C){
-	fpu.sw.C0 = !!C;
-}
-
-static INLINE void FPU_SET_C1(Bitu C){
-	fpu.sw.C1 = !!C;
-}
-
-static INLINE void FPU_SET_C2(Bitu C){
-	fpu.sw.C2 = !!C;
-}
-
-static INLINE void FPU_SET_C3(Bitu C){
-	fpu.sw.C3 = !!C;
-}
-
-static INLINE void FPU_SET_D(Bitu C){
-	fpu.sw.DE = !!C;
 }
 
 void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub);
