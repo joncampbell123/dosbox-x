@@ -870,6 +870,56 @@ void FPU_FPREM1()
     fpu_detail::CheckException();
 }
 
+void FPU_FRNDINT()
+{
+    fpu.sw.C1 = 0;
+    if (fpu_detail::CheckInputs(TOP)) return;
+
+    fpu_detail::CheckInputDenormals(TOP);
+
+#if C_FPU_X86
+    FPUD_ARITH2(frndint)
+#else
+    const auto round_to_integer = [](const auto input) {
+        if (!std::isfinite(input)) return input;
+
+        switch (fpu.cw.RC) {
+        case FPUControlWord::RoundMode::Nearest: {
+            const auto lower = std::floor(input);
+            const auto fraction = input - lower;
+            if (fraction > 0.5) return lower + 1;
+            if (fraction < 0.5) return lower;
+            return std::fmod(std::fabs(lower), 2) == 0 ? lower : lower + 1;
+        }
+        case FPUControlWord::RoundMode::Down:
+            return std::floor(input);
+        case FPUControlWord::RoundMode::Up:
+            return std::ceil(input);
+        case FPUControlWord::RoundMode::Chop:
+            return std::trunc(input);
+        default:
+            return input;
+        }
+    };
+
+  #ifdef HAS_LONG_DOUBLE
+    const auto input = fpu.regs_80[TOP].v;
+    const auto result = round_to_integer(input);
+    fpu.regs_80[TOP].v = result;
+  #else
+    const auto input = fpu.regs[TOP].v;
+    const auto result = round_to_integer(input);
+    fpu.use80[TOP] = false;
+    fpu.regs[TOP].v = result;
+  #endif
+    fpu.sw.C1 = result > input;
+    if (result != input)
+        fpu.sw.PE = 1;
+#endif
+
+    fpu_detail::CheckException();
+}
+
 void FPU_FRSTOR(PhysPt addr, bool op16)
 {
 	FPU_FLDENV(addr, op16);

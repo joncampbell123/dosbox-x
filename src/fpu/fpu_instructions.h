@@ -51,28 +51,6 @@ static void FPU_PREP_PUSH(void){
 	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
 }
 
-static double FROUND(double in){
-	switch (fpu.cw.RC){
-	case FPUControlWord::RoundMode::Nearest:
-		if (in-floor(in)>0.5) return (floor(in)+1);
-		else if (in-floor(in)<0.5) return (floor(in));
-		else return (((static_cast<int64_t>(floor(in)))&1)!=0)?(floor(in)+1):(floor(in));
-		break;
-	case FPUControlWord::RoundMode::Down:
-		return (floor(in));
-		break;
-	case FPUControlWord::RoundMode::Up:
-		return (ceil(in));
-		break;
-	case FPUControlWord::RoundMode::Chop:
-		return in; //the cast afterwards will do it right maybe cast here
-		break;
-	default:
-		return in;
-		break;
-	}
-}
-
 static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80);
 
 static void FPU_FNOP(void){
@@ -85,37 +63,6 @@ static void FPU_PUSH(double in){
 	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
 //	LOG(LOG_FPU,LOG_ERROR)("Pushed at %d  %g to the stack",newtop,in);
 	return;
-}
-
-static void FPU_FRNDINT(void){
-    const double before = fpu.regs[TOP].v;
-    double after;
-    switch(fpu.cw.RC) {
-    case 0: // Round to nearest
-        after = nearbyint(before);
-        break;
-
-    case 1: // Round down (-infinity)
-        after = floor(before);
-        break;
-
-    case 2: // Round up (+infinity)
-        after = ceil(before);
-        break;
-
-    case 3: // Chop (toward zero)
-        after = trunc(before);
-        break;
-
-    default:
-        after = before;
-        break;
-    }
-    fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
-    fpu.regs[TOP].v = after;
-    if(std::isfinite(before) && after != before)
-        FPU_SetException(FPU_EX_PRECISION);
-    return;
 }
 
 static void FPU_FSAVE(PhysPt addr, bool op16){

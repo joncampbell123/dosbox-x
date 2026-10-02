@@ -58,28 +58,6 @@ static void FPU_PREP_PUSH(void){
 	fpu.regvalid[TOP] = false;
 }
 
-static long double FROUND(long double in){
-	switch(fpu.cw.RC){
-	case FPUControlWord::RoundMode::Nearest:
-		if (in-floorl(in)>0.5) return (floorl(in)+1);
-		else if (in-floorl(in)<0.5) return (floorl(in));
-		else return (((static_cast<int64_t>(floorl(in)))&1)!=0)?(floorl(in)+1):(floorl(in));
-		break;
-	case FPUControlWord::RoundMode::Down:
-		return (floorl(in));
-		break;
-	case FPUControlWord::RoundMode::Up:
-		return (ceill(in));
-		break;
-	case FPUControlWord::RoundMode::Chop:
-		return in; //the cast afterwards will do it right maybe cast here
-		break;
-	default:
-		return in;
-		break;
-	}
-}
-
 #define BIAS80 16383
 #define BIAS64 1023
 
@@ -104,11 +82,6 @@ static void FPU_FSTT_I32(PhysPt addr) {
 static void FPU_FSTT_I64(PhysPt addr) {
 	mem_writeq(addr,(uint64_t)static_cast<int64_t>(fpu.regs_80[TOP].v));
 	FPU_FPOP();
-}
-
-static void FPU_FRNDINT(void){
-	int64_t temp= static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v));
-	fpu.regs_80[TOP].v=static_cast<long double>(temp);
 }
 
 static void FPU_FSAVE(PhysPt addr, bool op16){

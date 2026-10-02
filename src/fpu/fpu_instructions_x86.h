@@ -66,10 +66,6 @@ static void FPU_FSTT_I64(PhysPt addr) {
 }
 
 
-static void FPU_FRNDINT(void){
-	FPUD_ARITH2(frndint)
-}
-
 static void FPU_FSAVE(PhysPt addr, bool op16){
 	FPU_FSTENV(addr, op16);
 	PhysPt start = op16 ? 14:28;
