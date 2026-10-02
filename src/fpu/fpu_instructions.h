@@ -76,12 +76,6 @@ static double FROUND(double in){
 static void FPU_FSTENV(PhysPt addr, bool op16);
 static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80);
 
-static void FPU_F2XM1(void){
-	fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
-	fpu.regs[TOP].v = pow(2.0,fpu.regs[TOP].v) - 1;
-	return;
-}
-
 static void FPU_FNOP(void){
 	return;
 }

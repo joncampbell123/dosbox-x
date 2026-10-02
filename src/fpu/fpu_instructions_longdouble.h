@@ -141,11 +141,6 @@ static void FPU_FPREM1(void){
 	FPU_SET_C2(0);
 }
 
-static void FPU_F2XM1(void){
-	fpu.regs_80[TOP].v = powl(2.0l,fpu.regs_80[TOP].v) - 1;
-	return;
-}
-
 static void FPU_FSTENV(PhysPt addr, bool op16){
 	if (op16) {
 		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));

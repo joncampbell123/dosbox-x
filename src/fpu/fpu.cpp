@@ -115,6 +115,29 @@ void FPU_FABS()
     }
 }
 
+void FPU_F2XM1()
+{
+    fpu.sw.C1 = 0;
+    if (fpu_detail::CheckInputs(TOP)) return;
+
+    fpu_detail::CheckInputDenormals(TOP);
+
+#if C_FPU_X86
+    FPUD_TRIG(f2xm1)
+#else
+    std::feclearexcept(FE_ALL_EXCEPT);
+  #ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[TOP].v = std::expm1(fpu.regs_80[TOP].v * std::log(2.0L));
+  #else
+    fpu.use80[TOP] = false;
+    fpu.regs[TOP].v = std::expm1(fpu.regs[TOP].v * std::log(2.0));
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+
+    fpu_detail::CheckException();
+}
+
 void FPU_FADD(int op1, int op2)
 {
     if (fpu_detail::CheckInputs(op1, op2)) return;

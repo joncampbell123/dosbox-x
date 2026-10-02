@@ -67,6 +67,7 @@ constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
 
 
 void FPU_FABS();
+void FPU_F2XM1();
 void FPU_FADD(int op1, int op2);
 void FPU_FADD_EA(int op1);
 void FPU_FBLD(PhysPt addr);
