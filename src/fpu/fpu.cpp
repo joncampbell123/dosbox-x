@@ -1281,7 +1281,6 @@ void FPU_FST_I16(PhysPt addr)
 void FPU_FISTTP_I16(PhysPt addr)
 {
     fpu_detail::StackValid(TOP);
-    fpu_detail::CheckInputDenormals(TOP);
     FPU_Reg_80 value = {};
     fpu_GetST80(value);
 
@@ -1318,7 +1317,6 @@ void FPU_FST_I32(PhysPt addr)
 void FPU_FISTTP_I32(PhysPt addr)
 {
     fpu_detail::StackValid(TOP);
-    fpu_detail::CheckInputDenormals(TOP);
     FPU_Reg_80 value = {};
     fpu_GetST80(value);
 
@@ -1353,7 +1351,6 @@ void FPU_FST_I64(PhysPt addr)
 void FPU_FISTTP_I64(PhysPt addr)
 {
     fpu_detail::StackValid(TOP);
-    fpu_detail::CheckInputDenormals(TOP);
     FPU_Reg_80 value = {};
     fpu_GetST80(value);
 
