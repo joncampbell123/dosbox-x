@@ -82,11 +82,6 @@ static void FPU_F2XM1(void){
 	FPUD_TRIG(f2xm1)
 }
 
-static void FPU_FSCALE(void){
-	FPUD_REMAINDER(fscale)
-}
-
-
 static void FPU_FSTENV(PhysPt addr, bool op16){
 	if (op16) {
 		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));

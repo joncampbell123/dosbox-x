@@ -896,6 +896,44 @@ void FPU_FSINCOS()
     fpu_detail::CheckException();
 }
 
+void FPU_FSCALE()
+{
+    fpu.sw.C1 = 0;
+
+    if (fpu_detail::CheckInputs(TOP, STV(1))) return;
+
+    fpu_detail::CheckInputDenormals(TOP, STV(1));
+
+#if C_FPU_X86
+    FPUD_REMAINDER(fscale)
+#else
+    const auto clamp_exponent = [](const auto input) {
+        const auto exponent = std::trunc(input);
+        const auto max_exponent = static_cast<decltype(exponent)>(
+                std::numeric_limits<int>::max());
+        const auto min_exponent = static_cast<decltype(exponent)>(
+                std::numeric_limits<int>::min());
+
+        if (exponent > max_exponent) return std::numeric_limits<int>::max();
+        if (exponent < min_exponent) return std::numeric_limits<int>::min();
+        return static_cast<int>(exponent);
+    };
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+  #ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[TOP].v = std::scalbn(fpu.regs_80[TOP].v,
+                                     clamp_exponent(fpu.regs_80[STV(1)].v));
+  #else
+    fpu.use80[TOP] = false;
+    fpu.regs[TOP].v = std::scalbn(fpu.regs[TOP].v,
+                                  clamp_exponent(fpu.regs[STV(1)].v));
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+
+    fpu_detail::CheckException();
+}
+
 void FPU_FSQRT()
 {
     fpu.sw.C1 = 0;

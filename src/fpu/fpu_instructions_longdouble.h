@@ -146,11 +146,6 @@ static void FPU_F2XM1(void){
 	return;
 }
 
-static void FPU_FSCALE(void){
-	fpu.regs_80[TOP].v *= powl(2.0,static_cast<long double>(static_cast<int64_t>(fpu.regs_80[STV(1)].v)));
-	return; //2^x where x is chopped.
-}
-
 static void FPU_FSTENV(PhysPt addr, bool op16){
 	if (op16) {
 		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));

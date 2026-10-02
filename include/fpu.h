@@ -121,6 +121,7 @@ void FPU_FPATAN();
 void FPU_FPOP();
 void FPU_FPTAN();
 void FPU_FRSTOR(PhysPt addr, bool op16);
+void FPU_FSCALE();
 void FPU_FSIN();
 void FPU_FSINCOS();
 void FPU_FSQRT();

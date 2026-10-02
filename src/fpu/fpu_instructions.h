@@ -167,12 +167,6 @@ static void FPU_FSAVE(PhysPt addr, bool op16){
 	FPU_FINIT();
 }
 
-static void FPU_FSCALE(void){
-	fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
-	fpu.regs[TOP].v *= pow(2.0,static_cast<double>(static_cast<int64_t>(fpu.regs[STV(1)].v)));
-	return; //2^x where x is chopped.
-}
-
 static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
 	if (use80) {
 		// we have the raw 80-bit IEEE float value. we can just store
