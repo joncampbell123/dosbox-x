@@ -1,5 +1,6 @@
 Next version:
-  - 
+  - BOOT: Added option to mount 'Empty' floppy/CD-ROM drives in advance if no 
+    floppy/CD-ROM drives are mounted. (maron2000)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
