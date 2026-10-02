@@ -664,7 +664,7 @@ void FPU_FPTAN()
         fpu.use80[TOP] = true;
         fpu.regs[TOP] = FPU_Reg_64::QNaN;
 #endif
-        fpu_Push(one);
+        fpu_Push(FPU_Reg_80::QNaN);
         return;
     }
 
