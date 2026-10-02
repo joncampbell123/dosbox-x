@@ -141,20 +141,6 @@ static void FPU_FPREM1(void){
 	FPU_SET_C2(0);
 }
 
-static void FPU_FSTENV(PhysPt addr, bool op16){
-	if (op16) {
-		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));
-		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
-		mem_writew(addr+4,static_cast<uint16_t>(FPU_GetTag()));
-	} else { 
-		mem_writed(addr+0,static_cast<uint32_t>(fpu.cw));
-		mem_writed(addr+4,static_cast<uint32_t>(fpu.sw));
-		mem_writed(addr+8,static_cast<uint32_t>(FPU_GetTag()));
-	}
-	// FNSTENV masks all floating-point exceptions after saving the environment.
-	fpu.cw = fpu.cw.allMasked();
-}
-
 static void FPU_FSAVE(PhysPt addr, bool op16){
 	FPU_FSTENV(addr, op16);
 	Bitu start = op16 ? 14:28;

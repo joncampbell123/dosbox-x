@@ -1002,6 +1002,21 @@ void FPU_FST(int src, int dst)
 #endif
 }
 
+void FPU_FSTENV(PhysPt addr, bool op16)
+{
+    if (op16) {
+        mem_writew(addr, static_cast<uint16_t>(fpu.cw));
+        mem_writew(addr + 2, static_cast<uint16_t>(fpu.sw));
+        mem_writew(addr + 4, fpu_detail::GetTag());
+    } else {
+        mem_writed(addr, static_cast<uint32_t>(fpu.cw));
+        mem_writed(addr + 4, static_cast<uint32_t>(fpu.sw));
+        mem_writed(addr + 8, fpu_detail::GetTag());
+    }
+    // FNSTENV masks all floating-point exceptions after saving the environment.
+    fpu.cw = fpu.cw.allMasked();
+}
+
 void FPU_FST_F32(PhysPt addr)
 {
     fpu_detail::StackValid(TOP);

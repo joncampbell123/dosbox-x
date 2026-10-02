@@ -88,6 +88,32 @@ void SetStatusFromHostExceptions()
     if (exceptions & FE_INEXACT)   fpu.sw.PE = 1;
 }
 
+uint16_t GetTag()
+{
+    uint16_t tags = 0;
+    for (auto i = 0; i < 8; ++i) {
+        FPUTag tag;
+        if (!fpu.regvalid[i]) {
+            tag = FPUTag::Empty;
+#if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
+        } else if (IsZero(fpu.regs_80[i])) {
+            tag = FPUTag::Zero;
+        } else if (IsSpecial(fpu.regs_80[i])) {
+            tag = FPUTag::Special;
+#else
+        } else if (fpu.use80[i] ? IsZero(fpu.regs_80[i]) : IsZero(fpu.regs[i])) {
+            tag = FPUTag::Zero;
+        } else if (fpu.use80[i] ? IsSpecial(fpu.regs_80[i]) : IsSpecial(fpu.regs[i])) {
+            tag = FPUTag::Special;
+#endif
+        } else {
+            tag = FPUTag::Valid;
+        }
+        tags |= static_cast<uint8_t>(tag) << (2 * i);
+    }
+    return tags;
+}
+
 InputClass ClassifyInput(int op)
 {
 #if C_FPU_X86 || defined(HAS_LONG_DOUBLE)

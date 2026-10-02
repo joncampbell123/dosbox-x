@@ -73,7 +73,6 @@ static double FROUND(double in){
 	}
 }
 
-static void FPU_FSTENV(PhysPt addr, bool op16);
 static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80);
 
 static void FPU_FNOP(void){
@@ -191,20 +190,6 @@ static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
 		mem_writed(addr + 4, static_cast<uint32_t>(test.eind.raw >> 32));
 		mem_writew(addr+8,(uint16_t)test.begin);
 	}
-}
-
-static void FPU_FSTENV(PhysPt addr, bool op16){
-	if (op16) {
-		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));
-		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
-		mem_writew(addr+4,static_cast<uint16_t>(FPU_GetTag()));
-	} else { 
-		mem_writed(addr+0,static_cast<uint32_t>(fpu.cw));
-		mem_writed(addr+4,static_cast<uint32_t>(fpu.sw));
-		mem_writed(addr+8,static_cast<uint32_t>(FPU_GetTag()));
-	}
-	// FNSTENV masks all floating-point exceptions after saving the environment.
-	fpu.cw = fpu.cw.allMasked();
 }
 
 // WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.

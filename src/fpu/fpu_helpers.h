@@ -14,6 +14,7 @@ enum class InputClass {
 
 void CheckException();
 void SetStatusFromHostExceptions();
+uint16_t GetTag();
 InputClass ClassifyInput(int op);
 bool StackValid(int pos);
 void SetQNaN(int pos);
