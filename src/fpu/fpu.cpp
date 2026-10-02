@@ -817,10 +817,53 @@ void FPU_FPREM()
     FPUD_REMAINDER(fprem)
 #else
   #ifdef HAS_LONG_DOUBLE
-    fpu_detail::PartialRemainder(fpu.regs_80[TOP].v, fpu.regs_80[STV(1)].v);
+    fpu_detail::PartialRemainder(fpu.regs_80[TOP].v,
+                                 fpu.regs_80[STV(1)].v,
+                                 fpu_detail::RemainderMode::Truncate);
   #else
     fpu.use80[TOP] = false;
-    fpu_detail::PartialRemainder(fpu.regs[TOP].v, fpu.regs[STV(1)].v);
+    fpu_detail::PartialRemainder(fpu.regs[TOP].v,
+                                 fpu.regs[STV(1)].v,
+                                 fpu_detail::RemainderMode::Truncate);
+  #endif
+#endif
+
+    fpu_detail::CheckException();
+}
+
+void FPU_FPREM1()
+{
+    if (fpu_detail::CheckInputs(TOP, STV(1))) return;
+
+    if (fpu_detail::InputIsInfinity(TOP) || fpu_detail::InputIsZero(STV(1))) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+        fpu_detail::SetQNaN(TOP);
+        return;
+    }
+
+    fpu_detail::CheckInputDenormals(TOP, STV(1));
+
+    if (fpu_detail::InputIsZero(TOP) || fpu_detail::InputIsInfinity(STV(1))) {
+        fpu.sw.C0 = 0;
+        fpu.sw.C1 = 0;
+        fpu.sw.C2 = 0;
+        fpu.sw.C3 = 0;
+        return;
+    }
+
+#if C_FPU_X86
+    FPUD_REMAINDER(fprem1)
+#else
+  #ifdef HAS_LONG_DOUBLE
+    fpu_detail::PartialRemainder(fpu.regs_80[TOP].v,
+                                 fpu.regs_80[STV(1)].v,
+                                 fpu_detail::RemainderMode::Nearest);
+  #else
+    fpu.use80[TOP] = false;
+    fpu_detail::PartialRemainder(fpu.regs[TOP].v,
+                                 fpu.regs[STV(1)].v,
+                                 fpu_detail::RemainderMode::Nearest);
   #endif
 #endif
 

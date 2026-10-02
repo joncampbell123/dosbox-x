@@ -111,22 +111,6 @@ static void FPU_FRNDINT(void){
 	fpu.regs_80[TOP].v=static_cast<long double>(temp);
 }
 
-static void FPU_FPREM1(void){
-	long double valtop = fpu.regs_80[TOP].v;
-	long double valdiv = fpu.regs_80[STV(1)].v;
-	long double quot = valtop/valdiv;
-	long double quotf = floorl(quot);
-	int64_t ressaved;
-	if (quot-quotf>0.5) ressaved = static_cast<int64_t>(quotf+1);
-	else if (quot-quotf<0.5) ressaved = static_cast<int64_t>(quotf);
-	else ressaved = static_cast<int64_t>((((static_cast<int64_t>(quotf))&1)!=0)?(quotf+1):(quotf));
-	fpu.regs_80[TOP].v = valtop - ressaved*valdiv;
-	FPU_SET_C0(static_cast<Bitu>(ressaved&4));
-	FPU_SET_C3(static_cast<Bitu>(ressaved&2));
-	FPU_SET_C1(static_cast<Bitu>(ressaved&1));
-	FPU_SET_C2(0);
-}
-
 static void FPU_FSAVE(PhysPt addr, bool op16){
 	FPU_FSTENV(addr, op16);
 	Bitu start = op16 ? 14:28;

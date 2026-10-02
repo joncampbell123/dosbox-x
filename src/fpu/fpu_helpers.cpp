@@ -72,7 +72,7 @@ void SetComparisonFlags(bool unordered, bool equal, bool less)
 }
 
 template <typename T>
-void CalculatePartialRemainder(T& dividend, T divisor)
+void CalculatePartialRemainder(T& dividend, T divisor, RemainderMode mode)
 {
     constexpr auto partial_reduction_width = 63;
     const auto exponent_difference = std::ilogb(dividend) - std::ilogb(divisor);
@@ -85,7 +85,15 @@ void CalculatePartialRemainder(T& dividend, T divisor)
         return;
     }
 
-    const auto quotient = std::trunc(dividend / divisor);
+    const auto division = dividend / divisor;
+    auto quotient = std::trunc(division);
+    if (mode == RemainderMode::Nearest) {
+        const auto fraction = std::fabs(division - quotient);
+        if (fraction > 0.5 ||
+            (fraction == 0.5 && std::fmod(std::fabs(quotient), 2) != 0)) {
+            quotient += std::copysign(static_cast<T>(1), division);
+        }
+    }
     dividend -= quotient * divisor;
 
     auto quotient_bits = static_cast<uint8_t>(std::fmod(std::fabs(quotient), 8));
@@ -240,15 +248,15 @@ void CheckInputDenormals(int op1, int op2)
     CheckException();
 }
 
-void PartialRemainder(double& dividend, double divisor)
+void PartialRemainder(double& dividend, double divisor, RemainderMode mode)
 {
-    CalculatePartialRemainder(dividend, divisor);
+    CalculatePartialRemainder(dividend, divisor, mode);
 }
 
 #ifdef HAS_LONG_DOUBLE
-void PartialRemainder(long double& dividend, long double divisor)
+void PartialRemainder(long double& dividend, long double divisor, RemainderMode mode)
 {
-    CalculatePartialRemainder(dividend, divisor);
+    CalculatePartialRemainder(dividend, divisor, mode);
 }
 #endif
 
