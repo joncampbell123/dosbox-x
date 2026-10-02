@@ -89,19 +89,6 @@ void SetStatusFromHostExceptions()
     if (exceptions & FE_INEXACT)   fpu.sw.PE = 1;
 }
 
-void SetInfinity(int op, bool negative)
-{
-    FPU_Reg_80 value = {};
-    value.f.mantissa = 0x8000'0000'0000'0000ULL;
-    value.f.exponent = 0x7FFFU;
-    value.f.sign = negative;
-    fpu.regs_80[op] = value;
-#ifndef HAS_LONG_DOUBLE
-    fpu.use80[op] = true;
-    fpu.regs[op].v = float80::convertToDouble(value);
-#endif
-}
-
 bool StackValid(int pos)
 {
     if (fpu.regvalid[pos]) return true;

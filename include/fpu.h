@@ -136,6 +136,7 @@ void FPU_FUCOM(int op1, int op2);
 void FPU_FUCOMI(int op1, int op2);
 void FPU_FXCH(int op1, int op2);
 void FPU_FYL2X();
+void FPU_FYL2XP1();
 
 static INLINE void FPU_SetTag(uint16_t tags){
 	for (auto i=0; i<8; i++)

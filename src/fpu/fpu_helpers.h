@@ -5,7 +5,6 @@ namespace fpu_detail {
 
 void CheckException();
 void SetStatusFromHostExceptions();
-void SetInfinity(int op, bool negative);
 bool StackValid(int pos);
 bool InputIsInfinity(int op);
 bool InputIsNegative(int op);

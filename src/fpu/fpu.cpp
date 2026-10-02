@@ -22,6 +22,7 @@
 
 #include <array>
 #include <cfenv>
+#include <limits>
 #include <string>
 
 #include "cpu.h"
@@ -1082,32 +1083,30 @@ void FPU_FYL2X()
     fpu_detail::CheckInputs(y, x);
     fpu.sw.C1 = 0;
 
-    if (fpu_detail::InputIsNegative(x) &&
-        !fpu_detail::InputIsZero(x) && !fpu_detail::InputIsNaN(x)) {
-        fpu.sw.IE = 1;
-        fpu_detail::CheckException();
+    if (fpu_detail::InputIsNaN(x) || fpu_detail::InputIsNaN(y)) {
+        fpu.regs_80[y] = FPU_Reg_80::QNaN;
+#ifndef HAS_LONG_DOUBLE
+        fpu.use80[y] = true;
+        fpu.regs[y] = FPU_Reg_64::QNaN;
+#endif
+        FPU_FPOP();
         return;
     }
 
-    if (fpu_detail::InputIsZero(x)) {
-        if (fpu_detail::InputIsNaN(y)) {
-            FPU_FPOP();
-            return;
-        }
-        if (fpu_detail::InputIsZero(y)) {
-            fpu.sw.IE = 1;
-            fpu_detail::CheckException();
-            return;
-        }
-        if (fpu_detail::InputIsInfinity(y)) {
-            fpu_detail::SetInfinity(y, !fpu_detail::InputIsNegative(y));
-            FPU_FPOP();
-            return;
-        }
-
+    const auto x_is_zero = fpu_detail::InputIsZero(x);
+    const auto y_is_zero = fpu_detail::InputIsZero(y);
+    const auto y_is_infinity = fpu_detail::InputIsInfinity(y);
+    if (fpu_detail::InputIsNegative(x) &&
+        !x_is_zero) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+    }
+    if (x_is_zero && y_is_zero) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+    } else if (x_is_zero && !y_is_infinity) {
         fpu.sw.ZE = 1;
         fpu_detail::CheckException();
-        return;
     }
 
 #if C_FPU_X86
@@ -1118,14 +1117,54 @@ void FPU_FYL2X()
     const auto multiplier = fpu.regs_80[y].v;
 
     std::feclearexcept(FE_ALL_EXCEPT);
-    fpu.regs_80[y].v = multiplier * std::log2(input);
+    const auto logarithm = x_is_zero ? -std::numeric_limits<long double>::infinity()
+                                     : std::log2(input);
+    fpu.regs_80[y].v = multiplier * logarithm;
   #else
     const auto input = fpu.regs[x].v;
     const auto multiplier = fpu.regs[y].v;
 
     std::feclearexcept(FE_ALL_EXCEPT);
     fpu.use80[y] = false;
-    fpu.regs[y].v = multiplier * std::log2(input);
+    const auto logarithm = x_is_zero ? -std::numeric_limits<double>::infinity()
+                                     : std::log2(input);
+    fpu.regs[y].v = multiplier * logarithm;
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+    FPU_FPOP();
+#endif
+
+    fpu_detail::CheckException();
+}
+
+void FPU_FYL2XP1()
+{
+    const auto x = TOP;
+    const auto y = STV(1);
+    fpu_detail::CheckInputs(y, x);
+    fpu.sw.C1 = 0;
+
+    if (fpu_detail::InputIsZero(x) && fpu_detail::InputIsInfinity(y)) {
+        fpu.sw.IE = 1;
+        fpu_detail::CheckException();
+    }
+
+#if C_FPU_X86
+    FPUD_WITH_POP(fyl2xp1)
+#else
+  #ifdef HAS_LONG_DOUBLE
+    const auto input = fpu.regs_80[x].v;
+    const auto multiplier = fpu.regs_80[y].v;
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.regs_80[y].v = multiplier * std::log1p(input) / std::log(2.0L);
+  #else
+    const auto input = fpu.regs[x].v;
+    const auto multiplier = fpu.regs[y].v;
+
+    std::feclearexcept(FE_ALL_EXCEPT);
+    fpu.use80[y] = false;
+    fpu.regs[y].v = multiplier * std::log1p(input) / std::log(2.0);
   #endif
     fpu_detail::SetStatusFromHostExceptions();
     FPU_FPOP();

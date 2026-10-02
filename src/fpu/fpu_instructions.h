@@ -294,10 +294,3 @@ static void FPU_FXTRACT(void) {
 	fpu.regs[TOP].v = static_cast<double>(exp80final);
 	FPU_PUSH(mant);
 }
-
-static void FPU_FYL2XP1(void){
-	fpu.use80[STV(1)] = false; // we used the less precise version, drop the 80-bit precision
-	fpu.regs[STV(1)].v*=log(fpu.regs[TOP].v+1.0)/log(static_cast<double>(2.0));
-	FPU_FPOP();
-	return;
-}
