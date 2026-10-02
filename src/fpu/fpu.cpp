@@ -1070,6 +1070,51 @@ void FPU_FUCOMI(int op1, int op2)
     fpu_detail::CompareToCpuFlags(op1, op2, false);
 }
 
+void FPU_FXAM()
+{
+    fpu.sw.C1 = fpu_detail::InputIsNegative(TOP);
+
+    if (!fpu.regvalid[TOP]) {
+        fpu.sw.C3 = 1;
+        fpu.sw.C2 = 0;
+        fpu.sw.C0 = 1;
+        return;
+    }
+
+    switch (fpu_detail::ClassifyInput(TOP)) {
+    case fpu_detail::InputClass::Unsupported:
+        fpu.sw.C3 = 0;
+        fpu.sw.C2 = 0;
+        fpu.sw.C0 = 0;
+        break;
+    case fpu_detail::InputClass::NaN:
+        fpu.sw.C3 = 0;
+        fpu.sw.C2 = 0;
+        fpu.sw.C0 = 1;
+        break;
+    case fpu_detail::InputClass::Normal:
+        fpu.sw.C3 = 0;
+        fpu.sw.C2 = 1;
+        fpu.sw.C0 = 0;
+        break;
+    case fpu_detail::InputClass::Infinity:
+        fpu.sw.C3 = 0;
+        fpu.sw.C2 = 1;
+        fpu.sw.C0 = 1;
+        break;
+    case fpu_detail::InputClass::Zero:
+        fpu.sw.C3 = 1;
+        fpu.sw.C2 = 0;
+        fpu.sw.C0 = 0;
+        break;
+    case fpu_detail::InputClass::Denormal:
+        fpu.sw.C3 = 1;
+        fpu.sw.C2 = 1;
+        fpu.sw.C0 = 0;
+        break;
+    }
+}
+
 void FPU_FXCH(int op1, int op2)
 {
     fpu.sw.C1 = 0;

@@ -134,6 +134,7 @@ void FPU_FST_I64(PhysPt addr);
 void FPU_FTST();
 void FPU_FUCOM(int op1, int op2);
 void FPU_FUCOMI(int op1, int op2);
+void FPU_FXAM();
 void FPU_FXCH(int op1, int op2);
 void FPU_FYL2X();
 void FPU_FYL2XP1();

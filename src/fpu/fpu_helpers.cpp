@@ -18,6 +18,17 @@ namespace fpu_detail {
 
 namespace {
 
+template <typename T>
+InputClass Classify(const T& input)
+{
+    if (IsZero(input))      return InputClass::Zero;
+    if (IsSubnormal(input)) return InputClass::Denormal;
+    if (IsInfinity(input))  return InputClass::Infinity;
+    if (IsNaN(input))       return InputClass::NaN;
+    if (IsNormal(input))    return InputClass::Normal;
+    return InputClass::Unsupported;
+}
+
 bool InputIsSignalingNaN(int op)
 {
 #if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
@@ -87,6 +98,16 @@ void SetStatusFromHostExceptions()
     if (exceptions & FE_OVERFLOW)  fpu.sw.OE = 1;
     if (exceptions & FE_UNDERFLOW) fpu.sw.UE = 1;
     if (exceptions & FE_INEXACT)   fpu.sw.PE = 1;
+}
+
+InputClass ClassifyInput(int op)
+{
+#if C_FPU_X86 || defined(HAS_LONG_DOUBLE)
+    return Classify(fpu.regs_80[op]);
+#else
+    return fpu.use80[op] ? Classify(fpu.regs_80[op]) :
+                           Classify(fpu.regs[op]);
+#endif
 }
 
 bool StackValid(int pos)

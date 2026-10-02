@@ -3,8 +3,18 @@
 
 namespace fpu_detail {
 
+enum class InputClass {
+    Unsupported,
+    NaN,
+    Normal,
+    Infinity,
+    Zero,
+    Denormal,
+};
+
 void CheckException();
 void SetStatusFromHostExceptions();
+InputClass ClassifyInput(int op);
 bool StackValid(int pos);
 bool InputIsInfinity(int op);
 bool InputIsNegative(int op);

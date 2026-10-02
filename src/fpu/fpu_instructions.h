@@ -256,31 +256,6 @@ static void FPU_FSTT_I64(PhysPt addr) {
 	FPU_FPOP();
 }
 
-static void FPU_FXAM(void){
-	if((uint64_t)fpu.regs[TOP].raw & ULONGTYPE(0x8000000000000000))	//sign
-	{ 
-		FPU_SET_C1(1);
-	} 
-	else 
-	{
-		FPU_SET_C1(0);
-	}
-	if (!fpu.regvalid[TOP])
-	{
-		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(1);
-		return;
-	}
-	if(fpu.regs[TOP].v == 0.0)		//zero or normalized number.
-	{ 
-		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);
-	}
-	else
-	{
-		FPU_SET_C3(0);FPU_SET_C2(1);FPU_SET_C0(0);
-	}
-}
-
-
 static void FPU_FXTRACT(void) {
 	// function stores real bias in st and 
 	// pushes the significant number onto the stack

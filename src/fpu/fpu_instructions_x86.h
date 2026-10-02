@@ -78,15 +78,6 @@ static void FPU_FPREM1(void){
 	FPUD_REMAINDER(fprem1)
 }
 
-static void FPU_FXAM(void){
-	FPUD_EXAMINE(fxam)
-	// handle empty registers (C1 set to sign in any way!)
-	if(!fpu.regvalid[TOP]) {
-		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(1);
-		return;
-	}
-}
-
 static void FPU_F2XM1(void){
 	FPUD_TRIG(f2xm1)
 }

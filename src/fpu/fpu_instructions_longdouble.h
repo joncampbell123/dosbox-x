@@ -83,13 +83,6 @@ static long double FROUND(long double in){
 #define BIAS80 16383
 #define BIAS64 1023
 
-static long double FPU_FLD80(PhysPt addr) {
-    FPU_Reg_80 result;
-    result.raw.l = mem_readq(addr);
-    result.raw.h = mem_readw(addr+8ul);
-	return result.v;
-}
-
 static void FPU_ST80(PhysPt addr,Bitu reg) {
     mem_writeq(addr    ,fpu.regs_80[reg].raw.l);
     mem_writew(addr+8ul,fpu.regs_80[reg].raw.h);
@@ -147,31 +140,6 @@ static void FPU_FPREM1(void){
 	FPU_SET_C1(static_cast<Bitu>(ressaved&1));
 	FPU_SET_C2(0);
 }
-
-static void FPU_FXAM(void){
-	if(fpu.regs_80[TOP].raw.h & 0x8000u)	//sign
-	{ 
-		FPU_SET_C1(1);
-	} 
-	else 
-	{
-		FPU_SET_C1(0);
-	}
-	if(!fpu.regvalid[TOP])
-	{
-		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(1);
-		return;
-	}
-	if(fpu.regs_80[TOP].v == 0.0l)		//zero or normalized number.
-	{ 
-		FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);
-	}
-	else
-	{
-		FPU_SET_C3(0);FPU_SET_C2(1);FPU_SET_C0(0);
-	}
-}
-
 
 static void FPU_F2XM1(void){
 	fpu.regs_80[TOP].v = powl(2.0l,fpu.regs_80[TOP].v) - 1;

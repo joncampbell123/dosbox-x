@@ -299,22 +299,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 		fpu.sw = (new_sw & sw_mask) | \
 		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
-// handles fxam,ftst
-#define FPUD_EXAMINE(op)                                   \
-        uint16_t new_sw;                                   \
-        uint32_t top = TOP;                                \
-        __asm {                                            \
-        __asm    mov      eax, top                         \
-        __asm    shl      eax, 4                           \
-        __asm    fld      TBYTE PTR fpu.p_regs[eax].m1     \
-        __asm    clx                                       \
-        __asm    op                                        \
-        __asm    fnstsw   new_sw                           \
-        __asm    fstp     st(0)                            \
-        }                                                  \
-        fpu.sw = (new_sw & sw_mask) |                      \
-                 (fpu.sw & ~FPUStatusWord::conditionMask);
-
 // handles fpatan,fyl2xp1
 #ifdef WEAK_EXCEPTIONS
 #define FPUD_WITH_POP(op)                               \
@@ -641,21 +625,6 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 			"fnstsw		%0				"	\
 			:	"=&am" (new_sw)				\
 			:	"m" (fpu.p_regs[op1]), "m" (fpu.p_regs[op2])	\
-		);									\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
-
-// handles fxam,ftst
-#define FPUD_EXAMINE(op)					\
-		uint16_t new_sw;						\
-		__asm__ volatile (					\
-			"fldt		%1				\n"	\
-			clx" 						\n"	\
-			#op" 						\n"	\
-			"fnstsw		%0				\n"	\
-			"fstp		%%st(0)			"	\
-			:	"=&am" (new_sw)				\
-			:	"m" (fpu.p_regs[TOP])		\
 		);									\
 		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
 		         (fpu.sw & ~FPUStatusWord::conditionMask);
