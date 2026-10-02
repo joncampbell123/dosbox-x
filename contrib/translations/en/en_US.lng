@@ -993,6 +993,7 @@ Boots DOSBox-X from a floppy / PCjr cartridge or hard disk image.
 
   [-E <command>]   Specify a command string for PCjr cartridge images.
   [-L driveletter] Ignored option, accepted only for compatibility.
+  [-auto-floppy][-auto-cdrom] Mount an empty floppy/CD image if not mounted.
 
 Examples:
 ←[32;1mBOOT A:←[0m       Boot from drive A: if it is mounted and bootable.
