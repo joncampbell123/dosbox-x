@@ -719,6 +719,10 @@ void FPU_FMUL_EA(int op1)
     FPU_FMUL(op1, 8);
 }
 
+void FPU_FNOP()
+{
+}
+
 void FPU_FPATAN()
 {
     fpu.sw.C1 = 0;

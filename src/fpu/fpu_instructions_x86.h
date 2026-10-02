@@ -40,6 +40,3 @@ static inline uint16_t FPU_GetTag()
     }
 	return tags;
 }
-
-static void FPU_FNOP(void){
-}

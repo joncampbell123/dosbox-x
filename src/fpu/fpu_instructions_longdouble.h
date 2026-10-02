@@ -41,9 +41,5 @@ static inline uint16_t FPU_GetTag()
 	return tags;
 }
 
-static void FPU_FNOP(void){
-	return;
-}
-
 #define BIAS80 16383
 #define BIAS64 1023
