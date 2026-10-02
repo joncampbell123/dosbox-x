@@ -367,6 +367,11 @@ IntegerConversionResult convertToI32(const FPU_Reg_80& val)
     return convertToInteger(val, 31, fpu.cw.roundMode());
 }
 
+IntegerConversionResult convertToI32Truncate(const FPU_Reg_80& val)
+{
+    return convertToInteger(val, 31, FPUControlWord::RoundMode::Chop);
+}
+
 IntegerConversionResult convertToI64(const FPU_Reg_80& val)
 {
     return convertToInteger(val, 63, fpu.cw.roundMode());

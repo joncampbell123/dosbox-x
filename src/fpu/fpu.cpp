@@ -1258,7 +1258,7 @@ void FPU_FST_I16(PhysPt addr)
     mem_writew(addr, static_cast<uint16_t>(conversion.value));
 }
 
-void FPU_FSTT_I16(PhysPt addr)
+void FPU_FISTTP_I16(PhysPt addr)
 {
     fpu_detail::StackValid(TOP);
     fpu_detail::CheckInputDenormals(TOP);
@@ -1276,6 +1276,7 @@ void FPU_FSTT_I16(PhysPt addr)
     }
 
     mem_writew(addr, static_cast<uint16_t>(conversion.value));
+    FPU_FPOP();
 }
 
 void FPU_FST_I32(PhysPt addr)
@@ -1292,6 +1293,25 @@ void FPU_FST_I32(PhysPt addr)
     }
 
     mem_writed(addr, static_cast<uint32_t>(conversion.value));
+}
+
+void FPU_FISTTP_I32(PhysPt addr)
+{
+    fpu_detail::StackValid(TOP);
+    fpu_detail::CheckInputDenormals(TOP);
+    FPU_Reg_80 value = {};
+    fpu_GetST80(value);
+
+    const auto conversion = float80::convertToI32Truncate(value);
+    fpu.sw.C1 = conversion.rounded_up;
+
+    if (conversion.exceptions) {
+        FPU_SetException(conversion.exceptions);
+        fpu_detail::CheckException();
+    }
+
+    mem_writed(addr, static_cast<uint32_t>(conversion.value));
+    FPU_FPOP();
 }
 
 void FPU_FST_I64(PhysPt addr)
@@ -1975,8 +1995,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 	case 0x01:	/* FISTTP */
         if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
         {
-            FPU_FSTT_I32(addr);
-            FPU_FPOP();
+            FPU_FISTTP_I32(addr);
         }
         else
             LOG(LOG_FPU, LOG_WARN)("ESC 3 EA:Unhandled group %d subfunction %d", (int)group, (int)sub);
@@ -2226,8 +2245,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 	case 0x01:  /* FISTTP int16_t */
         if(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL)
         {
-            FPU_FSTT_I16(addr);
-            FPU_FPOP();
+            FPU_FISTTP_I16(addr);
         }
         else
             LOG(LOG_FPU, LOG_WARN)("ESC 7 EA:Unhandled group %d subfunction %d", (int)group, (int)sub);

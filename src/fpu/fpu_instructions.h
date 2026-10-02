@@ -64,13 +64,6 @@ static void FPU_PUSH(double in){
 }
 
 // WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
-static void FPU_FSTT_I32(PhysPt addr) {
-	double val = fpu.regs[TOP].v; /* chop rounding mode */
-	mem_writed(addr,(val < 2147483648.0 && val >= -2147483648.0)?static_cast<int32_t>(val):0x80000000);
-	FPU_FPOP();
-}
-
-// WARNING: UNTESTED. Original contributed code only focused on the x86 FPU case.
 static void FPU_FSTT_I64(PhysPt addr) {
 	FPU_Reg_64 blah;
 	if (fpu.use80[TOP] && (fpu.regs_80[TOP].raw.h & 0x7FFFu) == (0x0000u + FPU_Reg_80_exponent_bias + 63u)) {
