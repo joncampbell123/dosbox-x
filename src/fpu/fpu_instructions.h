@@ -79,21 +79,6 @@ static void FPU_FNOP(void){
 	return;
 }
 
-static void FPU_FPREM(void){
-	double valtop = fpu.regs[TOP].v;
-	double valdiv = fpu.regs[STV(1)].v;
-	int64_t ressaved = static_cast<int64_t>( (valtop/valdiv) );
-// Some backups
-//	double res=valtop - ressaved*valdiv; 
-//      res= fmod(valtop,valdiv);
-	fpu.use80[TOP] = false; // we used the less precise version, drop the 80-bit precision
-	fpu.regs[TOP].v = valtop - ressaved*valdiv;
-	FPU_SET_C0(static_cast<Bitu>(ressaved&4));
-	FPU_SET_C3(static_cast<Bitu>(ressaved&2));
-	FPU_SET_C1(static_cast<Bitu>(ressaved&1));
-	FPU_SET_C2(0);
-}
-
 static void FPU_FPREM1(void){
 	double valtop = fpu.regs[TOP].v;
 	double valdiv = fpu.regs[STV(1)].v;

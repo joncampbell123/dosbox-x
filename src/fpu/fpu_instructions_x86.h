@@ -70,10 +70,6 @@ static void FPU_FRNDINT(void){
 	FPUD_ARITH2(frndint)
 }
 
-static void FPU_FPREM(void){
-	FPUD_REMAINDER(fprem)
-}
-
 static void FPU_FPREM1(void){
 	FPUD_REMAINDER(fprem1)
 }

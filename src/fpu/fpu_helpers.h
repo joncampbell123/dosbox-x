@@ -27,6 +27,10 @@ void CheckInputDenormals(int op);
 void CheckInputDenormals(int op1, int op2);
 bool CheckInputs(int op);
 bool CheckInputs(int op1, int op2, bool propagate_nan = true);
+void PartialRemainder(double& dividend, double divisor);
+#ifdef HAS_LONG_DOUBLE
+void PartialRemainder(long double& dividend, long double divisor);
+#endif
 void RaiseLoadExceptions(bool denormal, bool signaling_nan);
 void Compare(int op1, int op2, bool ordered);
 void CompareToCpuFlags(int op1, int op2, bool ordered);

@@ -3,6 +3,7 @@
 
 #include <cfenv>
 #include <cstdint>
+#include <cmath>
 
 #include "cpu.h"
 #include "cpu/lazyflags.h"
@@ -68,6 +69,33 @@ void SetComparisonFlags(bool unordered, bool equal, bool less)
     fpu.sw.C3 = unordered || equal;
     fpu.sw.C2 = unordered;
     fpu.sw.C0 = unordered || less;
+}
+
+template <typename T>
+void CalculatePartialRemainder(T& dividend, T divisor)
+{
+    constexpr auto partial_reduction_width = 63;
+    const auto exponent_difference = std::ilogb(dividend) - std::ilogb(divisor);
+
+    if (exponent_difference >= 64) {
+        const auto shift = exponent_difference - partial_reduction_width;
+        const auto quotient = std::trunc(std::scalbn(dividend, -shift) / divisor);
+        dividend -= std::scalbn(quotient * divisor, shift);
+        fpu.sw.C2 = 1;
+        return;
+    }
+
+    const auto quotient = std::trunc(dividend / divisor);
+    dividend -= quotient * divisor;
+
+    auto quotient_bits = static_cast<uint8_t>(std::fmod(std::fabs(quotient), 8));
+    if (std::signbit(quotient) && quotient_bits)
+        quotient_bits = 8 - quotient_bits;
+
+    fpu.sw.C0 = (quotient_bits & 4) != 0;
+    fpu.sw.C3 = (quotient_bits & 2) != 0;
+    fpu.sw.C1 = (quotient_bits & 1) != 0;
+    fpu.sw.C2 = 0;
 }
 
 } // namespace
@@ -211,6 +239,18 @@ void CheckInputDenormals(int op1, int op2)
     fpu.sw.DE = 1;
     CheckException();
 }
+
+void PartialRemainder(double& dividend, double divisor)
+{
+    CalculatePartialRemainder(dividend, divisor);
+}
+
+#ifdef HAS_LONG_DOUBLE
+void PartialRemainder(long double& dividend, long double divisor)
+{
+    CalculatePartialRemainder(dividend, divisor);
+}
+#endif
 
 bool CheckInputs(int op)
 {

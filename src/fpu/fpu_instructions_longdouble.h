@@ -111,20 +111,6 @@ static void FPU_FRNDINT(void){
 	fpu.regs_80[TOP].v=static_cast<long double>(temp);
 }
 
-static void FPU_FPREM(void){
-	long double valtop = fpu.regs_80[TOP].v;
-	long double valdiv = fpu.regs_80[STV(1)].v;
-	int64_t ressaved = static_cast<int64_t>( (valtop/valdiv) );
-// Some backups
-//	long double res=valtop - ressaved*valdiv; 
-//      res= fmod(valtop,valdiv);
-	fpu.regs_80[TOP].v = valtop - ressaved*valdiv;
-	FPU_SET_C0(static_cast<Bitu>(ressaved&4));
-	FPU_SET_C3(static_cast<Bitu>(ressaved&2));
-	FPU_SET_C1(static_cast<Bitu>(ressaved&1));
-	FPU_SET_C2(0);
-}
-
 static void FPU_FPREM1(void){
 	long double valtop = fpu.regs_80[TOP].v;
 	long double valdiv = fpu.regs_80[STV(1)].v;
