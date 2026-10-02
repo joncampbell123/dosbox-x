@@ -38,6 +38,21 @@
 
 FPU fpu;
 
+static void fpu_GetST80(FPU_Reg_80& value)
+{
+#ifdef HAS_LONG_DOUBLE
+    value = fpu.regs_80[TOP];
+#else
+    if (fpu.use80[TOP]) {
+        value = fpu.regs_80[TOP];
+    } else {
+        FPU_Reg_64 source = {};
+        source.raw = fpu.regs[TOP].raw;
+        float80::convertFrom(value, source);
+    }
+#endif
+}
+
 void fpu_Push(const FPU_Reg_80& input)
 {
     auto val = input;   // 32-bit ARM MSVC does not gaurantee 16-byte stack alignment so have to pass by ref
@@ -161,6 +176,59 @@ void FPU_FBLD(PhysPt addr)
 
     fpu.sw.C1 = 0;
     fpu_Push(result);
+}
+
+void FPU_FBST(PhysPt addr)
+{
+    constexpr uint64_t bcd_max = 999'999'999'999'999'999ULL;
+
+    fpu_detail::StackValid(TOP);
+    FPU_Reg_80 value = {};
+    fpu_GetST80(value);
+    const auto conversion = float80::convertToI64(value);
+    auto exceptions = conversion.exceptions;
+    auto rounded_up = conversion.rounded_up;
+
+    uint64_t magnitude = 0;
+    if (!(exceptions & FPU_EX_INVALID)) {
+        magnitude = static_cast<uint64_t>(conversion.value);
+        if (conversion.value < 0)
+            magnitude = 0ULL - magnitude;
+
+        if (magnitude > bcd_max) {
+            exceptions = FPU_EX_INVALID;
+            rounded_up = false;
+        }
+    }
+
+    fpu.sw.C1 = rounded_up;
+    if (exceptions) {
+        FPU_SetException(exceptions);
+        fpu_detail::CheckException();
+    }
+
+    if (exceptions & FPU_EX_INVALID) {
+        // Packed-BCD integer indefinite: 00 00 00 00 00 00 C0 00 FF FF.
+        mem_writeq(addr, 0xC000'0000'0000'0000ULL);
+        mem_writew(addr + 8, 0xFFFFU);
+        return;
+    }
+
+    uint64_t lower = 0;
+    uint16_t upper = value.f.sign ? 0x8000U : 0;
+    for (uint8_t i = 0; i < 9; ++i) {
+        auto digit_pair = static_cast<uint8_t>(magnitude % 10U);
+        magnitude /= 10U;
+        digit_pair |= static_cast<uint8_t>(magnitude % 10U) << 4U;
+        magnitude /= 10U;
+
+        if (i < 8)
+            lower |= static_cast<uint64_t>(digit_pair) << (i * 8U);
+        else
+            upper |= digit_pair;
+    }
+    mem_writeq(addr, lower);
+    mem_writew(addr + 8, upper);
 }
 
 void FPU_FCHS()
@@ -297,78 +365,6 @@ void FPU_FDIVR(int op1, int op2)
 void FPU_FDIVR_EA(int op1)
 {
     FPU_FDIVR(op1, 8);
-}
-
-void FPU_FMUL(int op1, int op2)
-{
-    fpu_detail::CheckInputs(op1, op2);
-
-#if C_FPU_X86
-    FPUD_ARITH1(fmulp)
-#else
-    std::feclearexcept(FE_ALL_EXCEPT);
-  #ifdef HAS_LONG_DOUBLE
-    fpu.regs_80[op1].v *= fpu.regs_80[op2].v;
-  #else
-    fpu.use80[op1] = false;
-    fpu.regs[op1].v *= fpu.regs[op2].v;
-  #endif
-    fpu_detail::SetStatusFromHostExceptions();
-#endif
-    fpu_detail::CheckException();
-}
-
-void FPU_FMUL_EA(int op1)
-{
-    FPU_FMUL(op1, 8);
-}
-
-void FPU_FSUB(int op1, int op2)
-{
-    fpu_detail::CheckInputs(op1, op2);
-
-#if C_FPU_X86
-    FPUD_ARITH1(fsubp)
-#else
-    std::feclearexcept(FE_ALL_EXCEPT);
-  #ifdef HAS_LONG_DOUBLE
-    fpu.regs_80[op1].v -= fpu.regs_80[op2].v;
-  #else
-    fpu.use80[op1] = false;
-    fpu.regs[op1].v -= fpu.regs[op2].v;
-  #endif
-    fpu_detail::SetStatusFromHostExceptions();
-#endif
-    fpu_detail::CheckException();
-}
-
-void FPU_FSUB_EA(int op1)
-{
-    FPU_FSUB(op1, 8);
-}
-
-void FPU_FSUBR(int op1, int op2)
-{
-    fpu_detail::CheckInputs(op1, op2);
-
-#if C_FPU_X86
-    FPUD_ARITH1(fsubrp)
-#else
-    std::feclearexcept(FE_ALL_EXCEPT);
-  #ifdef HAS_LONG_DOUBLE
-    fpu.regs_80[op1].v = fpu.regs_80[op2].v - fpu.regs_80[op1].v;
-  #else
-    fpu.use80[op1] = false;
-    fpu.regs[op1].v = fpu.regs[op2].v - fpu.regs[op1].v;
-  #endif
-    fpu_detail::SetStatusFromHostExceptions();
-#endif
-    fpu_detail::CheckException();
-}
-
-void FPU_FSUBR_EA(int op1)
-{
-    FPU_FSUBR(op1, 8);
 }
 
 void FPU_FFREE(int st)
@@ -589,6 +585,30 @@ void FPU_FLDZ()
     FPU_Reg_80 val = {};
     fpu.sw.C1 = 0;
     fpu_Push(val);
+}
+
+void FPU_FMUL(int op1, int op2)
+{
+    fpu_detail::CheckInputs(op1, op2);
+
+#if C_FPU_X86
+    FPUD_ARITH1(fmulp)
+#else
+    std::feclearexcept(FE_ALL_EXCEPT);
+  #ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[op1].v *= fpu.regs_80[op2].v;
+  #else
+    fpu.use80[op1] = false;
+    fpu.regs[op1].v *= fpu.regs[op2].v;
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+    fpu_detail::CheckException();
+}
+
+void FPU_FMUL_EA(int op1)
+{
+    FPU_FMUL(op1, 8);
 }
 
 void FPU_FPATAN()
@@ -933,37 +953,6 @@ void FPU_FST_F80(PhysPt addr)
     mem_writew(addr+8, val.raw.h);
 }
 
-static void fpu_GetST80(FPU_Reg_80& value)
-{
-#ifdef HAS_LONG_DOUBLE
-    value = fpu.regs_80[TOP];
-#else
-    if (fpu.use80[TOP]) {
-        value = fpu.regs_80[TOP];
-    } else {
-        FPU_Reg_64 source = {};
-        source.raw = fpu.regs[TOP].raw;
-        float80::convertFrom(value, source);
-    }
-#endif
-}
-
-void FPU_FST_I64(PhysPt addr)
-{
-    fpu_detail::StackValid(TOP);
-    FPU_Reg_80 value = {};
-    fpu_GetST80(value);
-    const auto conversion = float80::convertToI64(value);
-    fpu.sw.C1 = conversion.rounded_up;
-
-    if (conversion.exceptions) {
-        FPU_SetException(conversion.exceptions);
-        fpu_detail::CheckException();
-    }
-
-    mem_writeq(addr, static_cast<uint64_t>(conversion.value));
-}
-
 void FPU_FST_I16(PhysPt addr)
 {
     fpu_detail::StackValid(TOP);
@@ -996,57 +985,79 @@ void FPU_FST_I32(PhysPt addr)
     mem_writed(addr, static_cast<uint32_t>(conversion.value));
 }
 
-void FPU_FBST(PhysPt addr)
+void FPU_FST_I64(PhysPt addr)
 {
-    constexpr uint64_t bcd_max = 999'999'999'999'999'999ULL;
-
     fpu_detail::StackValid(TOP);
     FPU_Reg_80 value = {};
     fpu_GetST80(value);
     const auto conversion = float80::convertToI64(value);
-    auto exceptions = conversion.exceptions;
-    auto rounded_up = conversion.rounded_up;
+    fpu.sw.C1 = conversion.rounded_up;
 
-    uint64_t magnitude = 0;
-    if (!(exceptions & FPU_EX_INVALID)) {
-        magnitude = static_cast<uint64_t>(conversion.value);
-        if (conversion.value < 0)
-            magnitude = 0ULL - magnitude;
-
-        if (magnitude > bcd_max) {
-            exceptions = FPU_EX_INVALID;
-            rounded_up = false;
-        }
-    }
-
-    fpu.sw.C1 = rounded_up;
-    if (exceptions) {
-        FPU_SetException(exceptions);
+    if (conversion.exceptions) {
+        FPU_SetException(conversion.exceptions);
         fpu_detail::CheckException();
     }
 
-    if (exceptions & FPU_EX_INVALID) {
-        // Packed-BCD integer indefinite: 00 00 00 00 00 00 C0 00 FF FF.
-        mem_writeq(addr, 0xC000'0000'0000'0000ULL);
-        mem_writew(addr + 8, 0xFFFFU);
-        return;
-    }
+    mem_writeq(addr, static_cast<uint64_t>(conversion.value));
+}
 
-    uint64_t lower = 0;
-    uint16_t upper = value.f.sign ? 0x8000U : 0;
-    for (uint8_t i = 0; i < 9; ++i) {
-        auto digit_pair = static_cast<uint8_t>(magnitude % 10U);
-        magnitude /= 10U;
-        digit_pair |= static_cast<uint8_t>(magnitude % 10U) << 4U;
-        magnitude /= 10U;
+void FPU_FSUB(int op1, int op2)
+{
+    fpu_detail::CheckInputs(op1, op2);
 
-        if (i < 8)
-            lower |= static_cast<uint64_t>(digit_pair) << (i * 8U);
-        else
-            upper |= digit_pair;
-    }
-    mem_writeq(addr, lower);
-    mem_writew(addr + 8, upper);
+#if C_FPU_X86
+    FPUD_ARITH1(fsubp)
+#else
+    std::feclearexcept(FE_ALL_EXCEPT);
+  #ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[op1].v -= fpu.regs_80[op2].v;
+  #else
+    fpu.use80[op1] = false;
+    fpu.regs[op1].v -= fpu.regs[op2].v;
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+    fpu_detail::CheckException();
+}
+
+void FPU_FSUB_EA(int op1)
+{
+    FPU_FSUB(op1, 8);
+}
+
+void FPU_FSUBR(int op1, int op2)
+{
+    fpu_detail::CheckInputs(op1, op2);
+
+#if C_FPU_X86
+    FPUD_ARITH1(fsubrp)
+#else
+    std::feclearexcept(FE_ALL_EXCEPT);
+  #ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[op1].v = fpu.regs_80[op2].v - fpu.regs_80[op1].v;
+  #else
+    fpu.use80[op1] = false;
+    fpu.regs[op1].v = fpu.regs[op2].v - fpu.regs[op1].v;
+  #endif
+    fpu_detail::SetStatusFromHostExceptions();
+#endif
+    fpu_detail::CheckException();
+}
+
+void FPU_FSUBR_EA(int op1)
+{
+    FPU_FSUBR(op1, 8);
+}
+
+void FPU_FTST()
+{
+#ifdef HAS_LONG_DOUBLE
+    fpu.regs_80[8].v = 0.0L;
+#else
+    fpu.use80[8] = false;
+    fpu.regs[8].v = 0.0;
+#endif
+    FPU_FCOM(TOP, 8);
 }
 
 void FPU_FUCOM(int op1, int op2)
@@ -1171,17 +1182,6 @@ void FPU_FYL2XP1()
 #endif
 
     fpu_detail::CheckException();
-}
-
-void FPU_FTST()
-{
-#ifdef HAS_LONG_DOUBLE
-    fpu.regs_80[8].v = 0.0L;
-#else
-    fpu.use80[8] = false;
-    fpu.regs[8].v = 0.0;
-#endif
-    FPU_FCOM(TOP, 8);
 }
 
 
