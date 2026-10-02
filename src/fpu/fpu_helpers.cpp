@@ -107,6 +107,20 @@ void SetQNaN(int pos)
 #endif
 }
 
+void SetInfinity(int pos, bool negative)
+{
+    fpu.regs_80[pos] = {};
+    fpu.regs_80[pos].f.mantissa = 0x8000'0000'0000'0000ULL;
+    fpu.regs_80[pos].f.exponent = 0x7FFFU;
+    fpu.regs_80[pos].f.sign = negative;
+#ifndef HAS_LONG_DOUBLE
+    fpu.regs[pos] = {};
+    fpu.regs[pos].f.exponent = 0x7FFU;
+    fpu.regs[pos].f.sign = negative;
+    fpu.use80[pos] = true;
+#endif
+}
+
 bool StackValid(int pos)
 {
     if (fpu.regvalid[pos]) return true;

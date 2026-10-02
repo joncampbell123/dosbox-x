@@ -17,6 +17,7 @@ void SetStatusFromHostExceptions();
 InputClass ClassifyInput(int op);
 bool StackValid(int pos);
 void SetQNaN(int pos);
+void SetInfinity(int pos, bool negative);
 bool InputIsInfinity(int op);
 bool InputIsNegative(int op);
 bool InputIsNaN(int op);
