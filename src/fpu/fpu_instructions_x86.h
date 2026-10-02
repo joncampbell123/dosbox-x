@@ -43,8 +43,3 @@ static inline uint16_t FPU_GetTag()
 
 static void FPU_FNOP(void){
 }
-
-static void FPU_PREP_PUSH(void){
-	TOP = (TOP - 1) &7;
-	fpu.regvalid[TOP] = true;
-}

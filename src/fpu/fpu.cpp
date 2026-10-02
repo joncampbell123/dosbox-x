@@ -467,6 +467,16 @@ void FPU_FINIT()
 
 }
 
+void FPU_FLD(int src)
+{
+    fpu.sw.C1 = 0;
+    fpu_detail::StackValid(src);
+
+    FPU_Reg_80 value = {};
+    fpu_GetRegister80(src, value);
+    fpu_Push(value);
+}
+
 void FPU_FLD_F32(PhysPt addr)
 {
     FPU_Reg_32 val;
@@ -1826,12 +1836,8 @@ void FPU_ESC1_Normal(Bitu rm) {
 	Bitu sub=(rm & 7);
 	switch (group){
 	case 0x00: /* FLD STi */
-		{
-			Bitu reg_from=STV(sub);
-			FPU_PREP_PUSH();
-			FPU_FST(reg_from, TOP);
-			break;
-		}
+		FPU_FLD(STV(sub));
+		break;
 	case 0x01: /* FXCH STi */
 		FPU_FXCH(TOP,STV(sub));
 		break;

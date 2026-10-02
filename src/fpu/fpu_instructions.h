@@ -45,20 +45,6 @@ static inline uint16_t FPU_GetTag()
 	return tags;
 }
 
-static void FPU_PREP_PUSH(void){
-	TOP = (TOP - 1) &7;
-	fpu.regvalid[TOP] = true;
-	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
-}
-
 static void FPU_FNOP(void){
-	return;
-}
-
-static void FPU_PUSH(double in){
-	FPU_PREP_PUSH();
-	fpu.regs[TOP].v = in;
-	fpu.use80[TOP] = false; // the value given is already 64-bit precision, it's useless to emulate 80-bit precision
-//	LOG(LOG_FPU,LOG_ERROR)("Pushed at %d  %g to the stack",newtop,in);
 	return;
 }

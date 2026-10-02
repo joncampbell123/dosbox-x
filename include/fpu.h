@@ -98,6 +98,7 @@ void FPU_FSUBR(int op1, int op2);
 void FPU_FSUBR_EA(int op1);
 void FPU_FFREE(int st);
 void FPU_FINIT();
+void FPU_FLD(int src);
 void FPU_FLD_F32(PhysPt addr);
 void FPU_FLD_F32_EA(PhysPt addr);
 void FPU_FLD_F64(PhysPt addr);

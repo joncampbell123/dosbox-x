@@ -45,18 +45,5 @@ static void FPU_FNOP(void){
 	return;
 }
 
-static void FPU_PUSH(long double in){
-	TOP = (TOP - 1) &7;
-	//actually check if empty
-	fpu.regvalid[TOP] = true;
-	fpu.regs_80[TOP].v = in;
-	return;
-}
-
-static void FPU_PREP_PUSH(void){
-	TOP = (TOP - 1) &7;
-	fpu.regvalid[TOP] = false;
-}
-
 #define BIAS80 16383
 #define BIAS64 1023
