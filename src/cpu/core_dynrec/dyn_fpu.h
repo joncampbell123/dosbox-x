@@ -28,9 +28,9 @@
 #include "dosbox.h"
 #if C_FPU
 
-#include "mem.h"
+#include "cpu/lazyflags.h"
 #include "fpu.h"
-
+#include "mem.h"
 
 static void FPU_FDECSTP(){
 	TOP = (TOP - 1) & 7;
@@ -43,16 +43,6 @@ static void FPU_FINCSTP(){
 static void FPU_FNSTCW(PhysPt addr){
 	mem_writew(addr,fpu.cw);
 }
-
-
-#if C_FPU_X86
-#include "fpu/fpu_x86_assembly.h"
-#include "fpu/fpu_instructions_x86.h"
-#elif defined(HAS_LONG_DOUBLE)
-#include "fpu/fpu_instructions_longdouble.h"
-#else
-#include "fpu/fpu_instructions.h"
-#endif
 
 static INLINE void dyn_fpu_top() {
 	gen_mov_word_to_reg(FC_OP2,(void*)(&FPUSW),true);

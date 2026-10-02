@@ -41,6 +41,7 @@
 #include "logging.h"
 #include "paging.h"
 #include "fpu.h"
+#include "fpu/fpu_helpers.h"
 
 #define CACHE_MAXSIZE	(4096*8)
 #define CACHE_TOTAL		(1024*1024*8)
@@ -324,7 +325,7 @@ static void dh_fpu_enter_dyn_core (void)
 {
 	if (using_normal_core) {
 		using_normal_core = false;
-		dyn_dh_fpu.state.tag = FPU_GetTag();
+		dyn_dh_fpu.state.tag = fpu_detail::GetTag();
 		dyn_dh_fpu.state.cw = fpu.cw;
 		dyn_dh_fpu.state.sw = fpu.sw;
 		uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];

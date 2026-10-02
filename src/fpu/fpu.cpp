@@ -1698,15 +1698,6 @@ void FPU_FYL2XP1()
     fpu_detail::CheckException();
 }
 
-
-#if C_FPU_X86
-#include "fpu_instructions_x86.h"
-#elif defined(HAS_LONG_DOUBLE)
-#include "fpu_instructions_longdouble.h"
-#else
-#include "fpu_instructions.h"
-#endif
-
 /* MMX instructions set the top of stack to zero---Intel explicitly documents this.
  * There is code out there, including in Windows ME and Windows Media Player, that
  * will show minor artifacts without this. */

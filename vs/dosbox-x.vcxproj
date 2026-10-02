@@ -1905,11 +1905,8 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\dos\drives.h" />
     <ClInclude Include="..\src\dos\scsidefs.h" />
     <ClInclude Include="..\src\dos\wnaspi32.h" />
-    <ClInclude Include="..\src\fpu\fpu_instructions.h" />
     <ClInclude Include="..\src\fpu\fpu_float80.h" />
     <ClInclude Include="..\src\fpu\fpu_helpers.h" />
-    <ClInclude Include="..\src\fpu\fpu_instructions_longdouble.h" />
-    <ClInclude Include="..\src\fpu\fpu_instructions_x86.h" />
     <ClInclude Include="..\src\gamelink\gamelink.h" />
     <ClInclude Include="..\src\gamelink\scancodes_windows.h" />
     <ClInclude Include="..\src\gui\dosbox.cga640.bmp.h" />
