@@ -1,4 +1,8 @@
 Next version:
+  - DOS: DOS_CheckExtDevice() no longer loops forever when the chain of device
+    headers in guest memory is damaged or never closed (the CON header was found
+    zeroed while DOS Navigator was running, and every FindFirst then hung the
+    emulator). (unxed)
   - BOOT: Added option to mount 'Empty' floppy/CD-ROM drives in advance if no 
     floppy/CD-ROM drives are mounted. (maron2000)
   - FPU: Consolidated remaining x87 instruction handling across the normal,
