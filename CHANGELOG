@@ -1,4 +1,12 @@
 Next version:
+  - DOS: Added the INT 2Dh (AMIS, Alternate Multiplex Interrupt Specification
+    3.6) interface and the first provider, "DOS-UTF8" "CLIPBRD": a DOS program
+    can ask (AL=10h BX=65001) that the text of the DOS clipboard API (INT 2Fh
+    AX=17xxh, formats CF_TEXT and CF_OEMTEXT; needs "dos clipboard api=true")
+    be UTF-8 instead of the OEM code page, so that characters outside the code
+    page are not lost on the way. The mode belongs to the calling process and
+    ends with it. Specification: docs/UTF8CLIPBOARD.md in github.com/unxed/go2dos,
+    which implements the same interface. (unxed)
   - BOOT: Added option to mount 'Empty' floppy/CD-ROM drives in advance if no 
     floppy/CD-ROM drives are mounted. (maron2000)
   - FPU: Consolidated remaining x87 instruction handling across the normal,
