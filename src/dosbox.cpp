@@ -5241,6 +5241,13 @@ void DOSBOX_SetupConfigSections(void) {
 		    "Caution: Enabling this API may cause some programs to think they are running under Windows");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("utf8 file names",Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("If set, host files whose names have characters that the DOS code page lacks are shown to DOS programs with such a character as \"{U+XXXX}\" (its Unicode code point in hexadecimal) instead of being hidden,\n"
+		    "and names written that way are turned back into the characters on the host, so these files can be opened, created, renamed and deleted.\n"
+		    "A DOS program that knows UTF-8 can also ask for UTF-8 long file names (INT 21h AH=71h) for itself with the AMIS interface (\"DOS-UTF8\" \"NAMES\", see src/dos/dos_utf8names.cpp).\n"
+		    "It is deactivated if the secure mode is enabled.");
+    Pbool->SetBasic(true);
+
     Pbool = secprop->Add_bool("dos idle api",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, DOSBox-X can lower the host system's CPU load when a supported guest program is idle.");
     Pbool->SetBasic(true);
