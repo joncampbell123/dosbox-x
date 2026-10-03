@@ -115,6 +115,7 @@ static Bitu INT2F_Handler(void) {
  *
  *   "DOS-UTF8" "CLIPBRD "  AL=10h BX=65001|0: the text of the clipboard API (INT 2Fh AX=17xxh, formats 01h and 07h)
  *                          is UTF-8 (65001) or OEM (0, the default) for the calling process; AL=11h: get the mode.
+ *   "DOS-UTF8" "NAMES   "  the same for the long file names of INT 21h AH=71h (dos_utf8names.cpp)
  *
  * The calling process is the one whose PSP is current; the mode ends with the process and is not inherited. */
 struct AmisProvider {
@@ -192,6 +193,7 @@ static bool DOS_Clipboard_UTF8Text(std::string &out) {
 
 static AmisProvider amis_providers[] = {
 	{ "DOS-UTF8", "CLIPBRD", "UTF-8 text of the clipboard for DOS programs", 0x0100, amis_clipbrd_available, amis_clipbrd_call, 0, 0, 0 },
+	{ "DOS-UTF8", "NAMES", "UTF-8 long file names for DOS programs", 0x0100, DOS_UTF8Names_Available, DOS_UTF8Names_Call, 0, 0, 0 },
 };
 static const size_t amis_provider_count = sizeof(amis_providers)/sizeof(amis_providers[0]);
 static const uint8_t amis_first_mux = 0xC0;   /* a choice of the emulator: the specification reserves no number */

@@ -7,6 +7,15 @@ Next version:
     page are not lost on the way. The mode belongs to the calling process and
     ends with it. Specification: docs/UTF8CLIPBOARD.md in github.com/unxed/go2dos,
     which implements the same interface. (unxed)
+  - DOS: Added the option "utf8 file names" to [dos]. A host file whose name has a
+    character that the DOS code page lacks is no longer hidden: the character
+    is shown as "{U+XXXX}" (its code point in hexadecimal), and such a name can
+    be opened, created, renamed and deleted (the escape is turned back into the
+    character on the host). A DOS program that knows UTF-8 can also ask for
+    UTF-8 long file names (INT 21h AH=71h) for itself with the AMIS provider
+    "DOS-UTF8" "NAMES" (AL=10h BX=65001); short names stay ASCII/OEM, the case
+    tables 6502h/6504h are the identity on 80h-FFh, invalid UTF-8 in a name is
+    error 2. Specification: docs/UTF8NAMES.md in github.com/unxed/go2dos. (unxed)
   - BOOT: Added option to mount 'Empty' floppy/CD-ROM drives in advance if no 
     floppy/CD-ROM drives are mounted. (maron2000)
   - FPU: Consolidated remaining x87 instruction handling across the normal,

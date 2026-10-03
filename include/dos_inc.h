@@ -368,6 +368,10 @@ void DOS_SetupMisc(void);
 /* AMIS (INT 2Dh) provider "DOS-UTF8" "CLIPBRD": UTF-8 text of the clipboard API for the processes that ask for it */
 bool DOS_UTF8Clipboard(void);
 void DOS_UTF8_ProcessEnded(uint16_t psp);
+bool DOS_UTF8Names_Available(void);
+bool DOS_UTF8Names_Call(uint8_t fn);
+bool DOS_UTF8NamesMode(void);
+void DOS_UTF8Names_ProcessEnded(uint16_t psp);
 
 /* The DOS Tables */
 void DOS_SetupTables(void);
