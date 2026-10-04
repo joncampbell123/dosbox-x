@@ -5,6 +5,8 @@ Next version:
     long-double, and native-x86 FPU backends. Improved denormal, exceptional
     value, rounding, remainder, integer-store, and stack behavior, and removed
     the legacy backend-specific FPU instruction headers. (cimarronm)
+  - DOS: Fixed FAT volume label searches (INT 21h AH=4Eh) returning a stray
+    '.' and padding for labels of 8 characters or fewer. (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
