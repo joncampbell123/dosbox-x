@@ -1249,6 +1249,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\dos\dos_keyboard_layout.cpp" />
     <ClCompile Include="..\src\dos\dos_memory.cpp" />
     <ClCompile Include="..\src\dos\dos_misc.cpp" />
+    <ClCompile Include="..\src\dos\dos_utf8names.cpp" />
     <ClCompile Include="..\src\dos\dos_mscdex.cpp" />
     <ClCompile Include="..\src\dos\dos_programs.cpp" />
     <ClCompile Include="..\src\dos\dos_tables.cpp" />
