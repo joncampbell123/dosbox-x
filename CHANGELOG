@@ -20,8 +20,14 @@ Next version:
     "DOS-UTF8" "NAMES" (AL=10h BX=65001); short names stay ASCII/OEM, the case
     tables 6502h/6504h are the identity on 80h-FFh, invalid UTF-8 in a name is
     error 2. Specification: docs/UTF8NAMES.md in github.com/unxed/go2dos. (unxed)
-  - BOOT: Added option to mount 'Empty' floppy/CD-ROM drives in advance if no 
+  - BOOT: Added option to mount 'Empty' floppy/CD-ROM drives in advance if no
     floppy/CD-ROM drives are mounted. (maron2000)
+  - FPU: Consolidated remaining x87 instruction handling across the normal,
+    long-double, and native-x86 FPU backends. Improved denormal, exceptional
+    value, rounding, remainder, integer-store, and stack behavior, and removed
+    the legacy backend-specific FPU instruction headers. (cimarronm)
+  - Debugger: Fixed MEMDUMP and MEMDUMPBIN wrapping around at segment
+    boundaries. (cimarronm)
   - FPU: Consolidated remaining x87 instruction handling across the normal,
     long-double, and native-x86 FPU backends. Improved denormal, exceptional
     value, rounding, remainder, integer-store, and stack behavior, and removed
