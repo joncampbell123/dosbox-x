@@ -675,7 +675,14 @@ bool isemptyhit(uint16_t code) {
     }
 }
 
-bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
+/* The names that the rest of the file (and DOSBox-X) uses are in dos_utf8names.cpp: they call these _Core functions, and with
+ * the option "utf8 file names" keep the characters that the code page lacks in the escape form "{U+XXXX}" instead of failing. */
+bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
+bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+
+bool CodePageHostToGuestUTF16_Core(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
     if (altcp && dos.loaded_codepage == altcp) return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
     if (customcp && dos.loaded_codepage == customcp) return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
@@ -773,7 +780,7 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
     }
 }
 
-bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+bool CodePageHostToGuestUTF8_Core(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     if (altcp && dos.loaded_codepage == altcp) return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
     if (customcp && dos.loaded_codepage == customcp) return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
@@ -871,7 +878,7 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     }
 }
 
-bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+bool CodePageGuestToHostUTF16_Core(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     if (altcp && dos.loaded_codepage == altcp) return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
     if (customcp && dos.loaded_codepage == customcp) return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
@@ -969,7 +976,7 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
     }
 }
 
-bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+bool CodePageGuestToHostUTF8_Core(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     if (altcp && dos.loaded_codepage == altcp) return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
     if (customcp && dos.loaded_codepage == customcp) return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));
     switch (dos.loaded_codepage) {
