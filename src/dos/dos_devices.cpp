@@ -263,7 +263,11 @@ uint32_t DOS_CheckExtDevice(const char *name, bool already_flag) {
 
 	seg = addr >> 16;
 	off = addr & 0xffff;
+	/* The chain lives in guest memory and ends only at FFFF:FFFF. A DOS program that overwrites a device header (or a chain that was
+	 * never closed) must not hang the emulator: give up after more links than any real chain has. */
+	unsigned int links = 0;
 	while(1) {
+		if(++links > 1024) return 0;
 		no = real_readw(seg, off + 4);
 		next_seg = real_readw(seg, off + 2);
 		next_off = real_readw(seg, off);

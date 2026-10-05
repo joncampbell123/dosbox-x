@@ -1,4 +1,8 @@
 Next version:
+  - DOS: DOS_CheckExtDevice() no longer loops forever when the chain of device
+    headers in guest memory is damaged or never closed (the CON header was found
+    zeroed while DOS Navigator was running, and every FindFirst then hung the
+    emulator). (unxed)
   - DOS: Added the INT 2Dh (AMIS, Alternate Multiplex Interrupt Specification
     3.6) interface and the first provider, "DOS-UTF8" "CLIPBRD": a DOS program
     can ask (AL=10h BX=65001) that the text of the DOS clipboard API (INT 2Fh
