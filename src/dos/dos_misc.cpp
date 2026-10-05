@@ -26,10 +26,13 @@
 #include "control.h"
 #include "support.h"
 #include "cpu.h"
+#include "bios.h"
 
 #include <array>
 #include <cstring>
 #include <list>
+#include <set>
+#include <string>
 #include <SDL.h>
 
 uint32_t DOS_HMA_LIMIT();
@@ -100,6 +103,189 @@ static Bitu INT2F_Handler(void) {
 	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS:INT 2F Unhandled call AX=%4X",reg_ax);
 
 	return CBRET_NONE;
+}
+
+
+/* ---- AMIS (INT 2Dh) and the DOS-UTF8 providers --------------------------------------------------------------------
+ *
+ * Alternate Multiplex Interrupt Specification 3.6 (Ralf Brown's Interrupt List, INT 2D): a program finds an optional
+ * service by calling INT 2Dh with AL=00h for each AH=00h..FFh and comparing the 16 byte signature (8 bytes of
+ * manufacturer, 8 bytes of product, space padded) that the answer points to with DX:DI. The services here are opt-in
+ * per process and follow the go2dos specification (docs/UTF8CLIPBOARD.md of github.com/unxed/go2dos):
+ *
+ *   "DOS-UTF8" "CLIPBRD "  AL=10h BX=65001|0: the text of the clipboard API (INT 2Fh AX=17xxh, formats 01h and 07h)
+ *                          is UTF-8 (65001) or OEM (0, the default) for the calling process; AL=11h: get the mode.
+ *   "DOS-UTF8" "NAMES   "  the same for the long file names of INT 21h AH=71h (dos_utf8names.cpp)
+ *
+ * The calling process is the one whose PSP is current; the mode ends with the process and is not inherited. */
+struct AmisProvider {
+	const char *manufacturer, *product, *description;
+	uint16_t version;                  /* CH major, CL minor */
+	bool (*available)(void);
+	bool (*call)(uint8_t fn);          /* AL=10h..FFh; false: not implemented */
+	uint8_t mux;
+	uint16_t sigseg, sigoff;           /* the signature in the ROM BIOS area */
+};
+
+extern bool clipboard_dosapi;
+bool DOS_ClipboardGetUTF8(std::string &out);
+bool DOS_ClipboardSetUTF8(const std::string &text);
+
+static Bitu call_int2d = 0;
+static uint16_t amis_hooks_seg = 0, amis_hooks_off = 0;
+static std::set<uint16_t> utf8_clip_psp;
+
+bool DOS_UTF8Clipboard(void) {
+	return utf8_clip_psp.count(dos.psp()) != 0;
+}
+
+void DOS_UTF8_ProcessEnded(uint16_t psp) {
+	utf8_clip_psp.erase(psp);
+}
+
+static bool amis_clipbrd_available(void) {
+	return !control->SecureMode() && clipboard_dosapi;
+}
+
+static bool amis_clipbrd_call(uint8_t fn) {
+	const uint16_t cur = DOS_UTF8Clipboard() ? 65001 : 0;
+	switch (fn) {
+		case 0x10:
+			if (reg_bx == 65001) utf8_clip_psp.insert(dos.psp());
+			else if (reg_bx == 0) utf8_clip_psp.erase(dos.psp());
+			else { reg_al = 0x00; return true; }   /* not supported, nothing changed */
+			reg_al = 0xFF;
+			reg_bx = cur;                          /* the previous setting */
+			return true;
+		case 0x11:
+			reg_al = 0xFF;
+			reg_bx = cur;
+			return true;
+	}
+	return false;
+}
+
+static std::string DOS_Utf8Valid(const std::string &s);
+
+/* The text of the host clipboard for a process in the UTF-8 mode: UTF-8 with CR LF line ends (the same filtering as the OEM
+ * path: control characters other than tab, CR and LF are dropped), at most 1 MB. */
+static bool DOS_Clipboard_UTF8Text(std::string &out) {
+	std::string raw;
+	out.clear();
+	if (!DOS_ClipboardGetUTF8(raw)) return false;
+	raw = DOS_Utf8Valid(raw);
+	unsigned char last = 13;
+	for (size_t i=0; i<raw.size(); i++) {
+		const unsigned char head = (unsigned char)raw[i];
+		if (head == 10 && last != 13) out += (char)13;
+		if (head > 31 || head == 9 || head == 10 || head == 13) out += (char)head;
+		if (head == 13 && (i+1 >= raw.size() || raw[i+1] != 10)) out += (char)10;
+		last = head;
+	}
+	if (out.size() > (1u<<20) - 2) {
+		out.resize((1u<<20) - 2);
+		/* not in the middle of a character */
+		while (!out.empty() && ((unsigned char)out[out.size()-1] & 0xC0) == 0x80) out.resize(out.size()-1);
+		if (!out.empty() && (unsigned char)out[out.size()-1] >= 0xC0) out.resize(out.size()-1);
+	}
+	return !out.empty();
+}
+
+static AmisProvider amis_providers[] = {
+	{ "DOS-UTF8", "CLIPBRD", "UTF-8 text of the clipboard for DOS programs", 0x0100, amis_clipbrd_available, amis_clipbrd_call, 0, 0, 0 },
+	{ "DOS-UTF8", "NAMES", "UTF-8 long file names for DOS programs", 0x0100, DOS_UTF8Names_Available, DOS_UTF8Names_Call, 0, 0, 0 },
+};
+static const size_t amis_provider_count = sizeof(amis_providers)/sizeof(amis_providers[0]);
+static const uint8_t amis_first_mux = 0xC0;   /* a choice of the emulator: the specification reserves no number */
+
+static Bitu INT2D_Handler(void) {
+	const uint8_t mux = reg_ah, fn = reg_al;
+	AmisProvider *p = NULL;
+	for (size_t i = 0; i < amis_provider_count; i++)
+		if (amis_providers[i].mux == mux && amis_providers[i].available()) p = &amis_providers[i];
+	if (p == NULL) {
+		reg_al = 0x00;                          /* the number is free */
+		return CBRET_NONE;
+	}
+	switch (fn) {
+		case 0x00:                              /* installation check */
+			reg_al = 0xFF;
+			reg_cx = p->version;
+			reg_dx = p->sigseg;
+			reg_di = p->sigoff;
+			break;
+		case 0x01: reg_al = 0x00; break;        /* no private entry point: everything goes through INT 2Dh */
+		case 0x02: reg_al = 0x01; break;        /* uninstall: not possible */
+		case 0x03: case 0x05: case 0x06:        /* not a popup, no hotkeys, no device drivers */
+			reg_al = 0x00;
+			break;
+		case 0x04:                              /* the interrupts that are hooked */
+			reg_al = 0x04;
+			reg_dx = amis_hooks_seg;
+			reg_bx = amis_hooks_off;
+			break;
+		default:
+			if (fn >= 0x10 && p->call(fn)) break;
+			reg_al = 0x00;                      /* not implemented (07h-0Fh are reserved) */
+			break;
+	}
+	return CBRET_NONE;
+}
+
+static void DOS_SetupAMIS(void) {
+	for (size_t i = 0; i < amis_provider_count; i++) {
+		AmisProvider &p = amis_providers[i];
+		p.mux = (uint8_t)(amis_first_mux + i);
+		std::string sig;
+		sig.append(p.manufacturer).resize(8, ' ');
+		std::string prod(p.product);
+		prod.resize(8, ' ');
+		sig += prod;
+		std::string desc(p.description);
+		if (desc.size() > 63) desc.resize(63);
+		sig += desc;
+		const PhysPt where = ROMBIOS_GetMemory((Bitu)sig.size() + 1, "AMIS signature");
+		for (size_t k = 0; k < sig.size(); k++) phys_writeb(where + (PhysPt)k, (uint8_t)sig[k]);
+		phys_writeb(where + (PhysPt)sig.size(), 0);
+		p.sigseg = (uint16_t)(where >> 4);
+		p.sigoff = (uint16_t)(where & 15);
+	}
+	call_int2d = CALLBACK_Allocate();
+	CALLBACK_Setup(call_int2d, &INT2D_Handler, CB_IRET, "DOS Int 2d (AMIS)");
+	RealSetVec(0x2D, CALLBACK_RealPointer(call_int2d));
+	/* the list of hooked interrupts of AL=04h: the number and the offset of the handler, the last one is 2Dh itself */
+	const RealPt h = CALLBACK_RealPointer(call_int2d);
+	const PhysPt where = ROMBIOS_GetMemory(3, "AMIS hooks");
+	phys_writeb(where + 0, 0x2D);
+	phys_writew(where + 1, RealOff(h));
+	amis_hooks_seg = (uint16_t)(where >> 4);
+	amis_hooks_off = (uint16_t)(where & 15);
+}
+
+static std::string DOS_Utf8Valid(const std::string &s) {
+	/* the text as valid UTF-8: every byte that is not part of a valid sequence becomes U+FFFD */
+	std::string out;
+	size_t i = 0;
+	while (i < s.size()) {
+		const unsigned char c = (unsigned char)s[i];
+		size_t n = 0;
+		uint32_t cp = 0;
+		if (c < 0x80) { out += (char)c; i++; continue; }
+		else if (c >= 0xC2 && c <= 0xDF) { n = 1; cp = c & 0x1F; }
+		else if (c >= 0xE0 && c <= 0xEF) { n = 2; cp = c & 0x0F; }
+		else if (c >= 0xF0 && c <= 0xF4) { n = 3; cp = c & 0x07; }
+		bool ok = n != 0;
+		if (ok) {
+			for (size_t k = 1; k <= n; k++) {
+				if (i + k >= s.size() || ((unsigned char)s[i + k] & 0xC0) != 0x80) { ok = false; break; }
+				cp = (cp << 6) | ((unsigned char)s[i + k] & 0x3F);
+			}
+		}
+		if (ok && ((n == 2 && cp < 0x800) || (n == 3 && (cp < 0x10000 || cp > 0x10FFFF)) || (cp >= 0xD800 && cp <= 0xDFFF))) ok = false;
+		if (ok) { out.append(s, i, n + 1); i += n + 1; }
+		else { out += "\xEF\xBF\xBD"; i++; }
+	}
+	return out;
 }
 
 
@@ -509,6 +695,21 @@ static bool DOS_MultiplexFunctions(void) {
 	case 0x1703:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
+		if ((reg_dx==1||reg_dx==7) && DOS_UTF8Clipboard()) {
+			/* the process asked for UTF-8 (AMIS "DOS-UTF8" "CLIPBRD"): the text is UTF-8, CR LF becomes LF, no code page */
+			std::string text(reg_cx, '\0');
+			MEM_BlockRead(SegPhys(es)+reg_bx,&text[0],reg_cx);
+			const size_t z = text.find('\0');
+			if (z != std::string::npos) text.resize(z);
+			text = DOS_Utf8Valid(text);
+			std::string result;
+			for (size_t i=0; i<text.size(); i++) {
+				if (text[i]==13 && i+1<text.size() && text[i+1]==10) continue;
+				result += text[i];
+			}
+			if (DOS_ClipboardSetUTF8(result)) reg_ax=1;
+			return true;
+		}
 		if ((reg_dx==1||reg_dx==7)
 #if defined(WIN32)
         &&OpenClipboard(NULL)) {
@@ -551,6 +752,16 @@ static bool DOS_MultiplexFunctions(void) {
 	case 0x1704:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
+		if ((reg_dx==1||reg_dx==7) && DOS_UTF8Clipboard()) {
+			std::string text;
+			if (DOS_Clipboard_UTF8Text(text)) {
+				const uint32_t size = (uint32_t)text.size() + 1;
+				reg_ax=(uint16_t)size;
+				reg_dx=(uint16_t)(size/65536);
+			} else
+				reg_dx=0;
+			return true;
+		}
 		if ((reg_dx==1||reg_dx==7)
 #if defined(WIN32)
         &&OpenClipboard(NULL)) {
@@ -590,6 +801,14 @@ static bool DOS_MultiplexFunctions(void) {
 	case 0x1705:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
+		if ((reg_dx==1||reg_dx==7) && DOS_UTF8Clipboard()) {
+			std::string text;
+			if (DOS_Clipboard_UTF8Text(text)) {
+				MEM_BlockWrite(SegPhys(es)+reg_bx,text.c_str(),(Bitu)text.size()+1);
+				reg_ax=1;
+			}
+			return true;
+		}
 		if ((reg_dx==1||reg_dx==7)
 #if defined(WIN32)
         &&OpenClipboard(NULL)) {
@@ -749,6 +968,8 @@ void DOS_SetupMisc(void) {
 	call_int2a=CALLBACK_Allocate();
 	CALLBACK_Setup(call_int2a,&INT2A_Handler,CB_IRET,"DOS Int 2a");
 	RealSetVec(0x2A,CALLBACK_RealPointer(call_int2a));
+	/* the alternate multiplex interrupt: the DOS-UTF8 providers */
+	DOS_SetupAMIS();
 }
 
 void CALLBACK_DeAllocate(Bitu in);
@@ -756,6 +977,11 @@ void CALLBACK_DeAllocate(Bitu in);
 void DOS_UninstallMisc(void) {
     if (RunningProgram == "LOADLIN") return;
 	/* these vectors shouldn't exist when booting a guest OS */
+	if (call_int2d) {
+		RealSetVec(0x2d,0);
+		CALLBACK_DeAllocate(call_int2d);
+		call_int2d=0;
+	}
 	if (call_int2a) {
 		RealSetVec(0x2a,0);
 		CALLBACK_DeAllocate(call_int2a);

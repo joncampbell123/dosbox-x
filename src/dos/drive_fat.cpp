@@ -3236,6 +3236,12 @@ nextfile:
 		trimString(&extension[0]);
 	}
 
+	// A label with a blank extension field must not get a stray "." appended
+	if ((sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) && extension[0] == ' ')
+		removeTrailingSpaces(extension);
+	if ((sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) && extension[0] == 0)
+		removeTrailingSpaces(find_name);
+
 	if (extension[0]!=0) {
 		// NTS: There are actually two ways to search for/read a volume label on a drive.
 		//

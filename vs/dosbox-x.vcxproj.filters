@@ -324,6 +324,9 @@
     <ClCompile Include="..\src\dos\dos_misc.cpp">
       <Filter>Sources\dos</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\dos\dos_utf8names.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\dos\dos_mscdex.cpp">
       <Filter>Sources\dos</Filter>
     </ClCompile>
