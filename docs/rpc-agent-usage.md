@@ -24,12 +24,13 @@ DOS program
 一次分析通常包含两个进程角色：
 
 1. Agent 启动一个 DOSBox-X 进程，并传入 `--agent-config <path>`。
-2. Agent 通过配置中的 Windows named pipe 发送 JSON-RPC 请求。
+2. Agent 通过配置中的本地 endpoint 发送 JSON-RPC 请求：Windows 上是 named pipe，Linux/macOS 上是 Unix domain socket。
 
 v1 的约束：
 
-- 仅支持 Windows。
-- 默认 transport 是当前用户可访问的 named pipe，不开放未认证 TCP。
+- 支持 Windows（`named_pipe`）和 Linux/macOS（`unix_socket`）。
+- 在 Linux/macOS 上，DOSBox-X 调试器是终端界面，只有 stdin/stdout/stderr 都是终端时才会进入；因此 DOSBox-X 必须在终端或伪终端（例如 `script`）中启动，否则 `session.start` 会因等不到入口断点而超时。
+- endpoint 只允许当前用户访问：named pipe 使用仅限当前用户的 ACL；Unix socket 文件权限为 `0600`，并检查连接方的 uid。不开放未认证 TCP。
 - 一个 DOSBox-X 进程只有一个活动 session 和一个受控的 `C:` mount。
 - `session.start` 固定在 `entry` 停止。
 - target 必须是 DOS 安全文件名，例如 `GAME.COM`；不能传宿主机路径或 shell 命令。
@@ -79,12 +80,28 @@ max_memory_read_bytes=65536
 max_trace_events=10000
 ```
 
+Linux/macOS 的生产配置：
+
+```env
+transport=unix_socket
+endpoint=/tmp/dosbox-agent-game-01.sock
+dosbox_executable=/home/user/dosbox-x/src/dosbox-x
+dosbox_workdir=/home/user/reverse/game-01
+profile=production
+request_timeout_ms=5000
+max_message_bytes=1048576
+max_memory_read_bytes=65536
+max_trace_events=10000
+```
+
+如果上一个 DOSBox-X 异常退出而留下了 socket 文件，下一个进程启动时会替换它；但如果该 endpoint 仍有进程在监听，或该路径是普通文件，启动会失败而不会删除它。
+
 配置键说明：
 
 | 键 | 说明 |
 | --- | --- |
-| `transport` | v1 使用 `named_pipe`。 |
-| `endpoint` | Windows named pipe 名称；每个并行 DOSBox-X 进程应使用不同名称。 |
+| `transport` | Windows 使用 `named_pipe`；Linux/macOS 使用 `unix_socket`。 |
+| `endpoint` | Windows named pipe 名称，或 Unix socket 文件的绝对路径（macOS 上最长 103 字节，Linux 上 107 字节）。每个并行 DOSBox-X 进程应使用不同 endpoint。 |
 | `dosbox_executable` | 要启动的 DOSBox-X 可执行文件绝对路径。 |
 | `dosbox_workdir` | 唯一受控的 `C:` mount 目录绝对路径。 |
 | `profile` | `production` 或 `test`；正式 Agent 使用 `production`。 |
@@ -109,6 +126,15 @@ $process = Start-Process `
 
 # 等待进程完成 DOS shell 和 debugger 初始化。
 Start-Sleep -Seconds 2
+```
+
+Linux/macOS 示例。先用 `./configure --enable-debug --enable-dosbox_agent` 构建，然后在伪终端中启动，让调试器可以进入：
+
+```sh
+# Linux (util-linux script)
+script -qec "./src/dosbox-x --agent-config $HOME/reverse/configs/game.env" /dev/null
+# macOS (BSD script)
+script -q /dev/null ./src/dosbox-x --agent-config "$HOME/reverse/configs/game.env"
 ```
 
 Agent 应通过进程句柄、named pipe readiness 或有限的启动等待确认 DOSBox-X 已经启动。不要无限重试 RPC，也不要把带副作用的请求自动重发。

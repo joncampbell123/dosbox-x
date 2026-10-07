@@ -2,9 +2,14 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 from pathlib import Path
+import shutil
+import socket
 import sys
 import tempfile
+import threading
+import time
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -13,6 +18,7 @@ from dosbox_agent import (
     AddressNotMappedError,
     AgentClient,
     AgentConfig,
+    AgentConnectionError,
     BreakpointNotFoundError,
     InvalidBinaryLengthError,
     MemoryAddress,
@@ -23,6 +29,7 @@ from dosbox_agent import (
     TargetNotStoppedError,
     TargetRunningError,
 )
+from dosbox_agent.client import UnixSocketTransport
 from dosbox_agent.errors import map_rpc_error
 
 
@@ -94,7 +101,7 @@ class AgentClientTests(unittest.TestCase):
                 "\n".join((
                     "transport=named_pipe",
                     r"endpoint=\\.\pipe\client-test",
-                    "dosbox_executable=runtime\\dosbox-x.exe",
+                    "dosbox_executable=runtime/dosbox-x.exe",
                     "dosbox_workdir=runtime",
                     "profile=test",
                     "request_timeout_ms=50",
@@ -128,6 +135,33 @@ class AgentClientTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "absolute"):
                 AgentClient.from_config(config)
+
+    def test_unix_socket_config_requires_absolute_endpoint(self) -> None:
+        def write_config(directory: str, endpoint: str) -> Path:
+            config = Path(directory) / "agent.env"
+            config.write_text(
+                "\n".join((
+                    "transport=unix_socket",
+                    f"endpoint={endpoint}",
+                    "dosbox_executable=runtime/dosbox-x",
+                    "dosbox_workdir=runtime",
+                    "profile=test",
+                    "request_timeout_ms=50",
+                    "max_message_bytes=64",
+                    "max_memory_read_bytes=32",
+                    "max_trace_events=16",
+                )),
+                encoding="utf-8",
+            )
+            return config
+
+        with tempfile.TemporaryDirectory() as temporary:
+            client = AgentClient.from_config(write_config(temporary, "/tmp/dosbox-agent.sock"))
+            self.assertEqual("unix_socket", client.config.transport)
+            self.assertEqual("/tmp/dosbox-agent.sock", client.config.endpoint)
+            client.close()
+            with self.assertRaisesRegex(ValueError, "absolute"):
+                AgentClient.from_config(write_config(temporary, "dosbox-agent.sock"))
 
     def test_typed_methods_cover_v1_contract(self) -> None:
         address = {"space": "segmented", "segment": "0x0812", "offset": "0x00000106"}
@@ -218,6 +252,77 @@ class AgentClientTests(unittest.TestCase):
         write_requests = [request for request in transport.requests if request["method"] == "memory.write"]
         self.assertEqual(["write-once", "write-once"], [request["id"] for request in write_requests])
         self.assertEqual(base64.b64encode(b"\xDE\xAD").decode("ascii"), write_requests[0]["params"]["data_base64"])
+
+
+@unittest.skipUnless(hasattr(socket, "AF_UNIX"), "requires Unix domain sockets")
+class UnixSocketTransportTests(unittest.TestCase):
+    def setUp(self) -> None:
+        # Keep the path short: sun_path is only 104 bytes on macOS.
+        self.directory = tempfile.mkdtemp(prefix="dxa", dir="/tmp")
+        self.endpoint = os.path.join(self.directory, "agent.sock")
+        self.server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.server.bind(self.endpoint)
+        self.server.listen()
+        self.threads: list[threading.Thread] = []
+
+    def tearDown(self) -> None:
+        for thread in self.threads:
+            thread.join(5)
+        self.server.close()
+        shutil.rmtree(self.directory)
+
+    def serve(self, replies) -> None:
+        """Accept one connection per entry in replies. Each entry maps a request
+        line to the chunks to send back, so a response can arrive in pieces."""
+        def run() -> None:
+            for reply in replies:
+                connection, _ = self.server.accept()
+                with connection:
+                    pending = b""
+                    while True:
+                        chunk = connection.recv(4096)
+                        if not chunk:
+                            break
+                        pending += chunk
+                        while b"\n" in pending:
+                            line, pending = pending.split(b"\n", 1)
+                            for part in reply(line):
+                                time.sleep(0.02)
+                                try:
+                                    connection.sendall(part)
+                                except OSError:
+                                    pass
+
+        thread = threading.Thread(target=run)
+        thread.start()
+        self.threads.append(thread)
+
+    def test_round_trip_reassembles_split_responses(self) -> None:
+        self.serve([lambda line: (b'{"echo":', line + b"}\n")])
+        transport = UnixSocketTransport(self.endpoint)
+        try:
+            self.assertEqual('{"echo":"first"}', transport.request('"first"', 1000, 1024))
+            self.assertEqual('{"echo":"second"}', transport.request('"second"', 1000, 1024))
+        finally:
+            transport.close()
+
+    def test_timeout_reconnects_instead_of_reading_a_late_response(self) -> None:
+        self.serve([
+            lambda line: [time.sleep(0.2) or b'"late"\n'],
+            lambda line: [b'"fresh"\n'],
+        ])
+        transport = UnixSocketTransport(self.endpoint)
+        try:
+            with self.assertRaises(AgentConnectionError):
+                transport.request('"slow"', 50, 1024)
+            self.assertEqual('"fresh"', transport.request('"again"', 1000, 1024))
+        finally:
+            transport.close()
+
+    def test_missing_endpoint_times_out(self) -> None:
+        transport = UnixSocketTransport(os.path.join(self.directory, "missing.sock"))
+        with self.assertRaises(AgentConnectionError):
+            transport.request('"hello"', 50, 1024)
 
 
 if __name__ == "__main__":

@@ -8791,6 +8791,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || control->opt_userconf || !control->opt_set.empty() || control->opt_defaultconf || control->opt_used_defaultdir || control->opt_fastlaunch || control->opt_test || workdiropt == "noprompt")) {
         control->opt_promptfolder = 0;
     }
+#if defined(C_DOSBOX_AGENT)
+    /* the RPC agent is started by automation, so there is nobody to answer the prompt */
+    if (control->opt_promptfolder < 0 && !control->opt_agent_config.empty())
+        control->opt_promptfolder = 0;
+#endif
 
     int workdirsave = 0;
     std::string workdirsaveas = "";

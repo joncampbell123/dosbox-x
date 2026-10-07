@@ -27,6 +27,7 @@
 #include "shell_redirection_tests.cpp"
 #include "agent/agent_architecture_tests.cpp"
 #include "agent/agent_parser_tests.cpp"
+#include "agent/agent_transport_tests.cpp"
 
 #else
 //google test code causes problem on win9x, remove them and add empty implementations for linkage.

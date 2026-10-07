@@ -7,6 +7,7 @@ from ctypes import wintypes
 import json
 import os
 from pathlib import Path
+import socket
 import time
 from collections.abc import Mapping
 from typing import Any, Protocol
@@ -170,12 +171,95 @@ class NamedPipeTransport:
         self._handle = None
 
 
+class UnixSocketTransport:
+    """UTF-8 JSON-lines transport over a Unix domain socket (Linux, macOS)."""
+
+    def __init__(self, endpoint: str) -> None:
+        self._endpoint = endpoint
+        self._socket: socket.socket | None = None
+        self._pending = bytearray()
+
+    def _connect(self, timeout_ms: int) -> None:
+        if self._socket is not None:
+            return
+        if not hasattr(socket, "AF_UNIX"):
+            raise AgentConnectionError("unix_socket transport requires Unix domain socket support")
+
+        # Like the named-pipe client, wait for a server that is still starting.
+        deadline = time.monotonic() + timeout_ms / 1000
+        while True:
+            connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            try:
+                connection.connect(self._endpoint)
+            except (FileNotFoundError, ConnectionRefusedError) as error:
+                connection.close()
+                if time.monotonic() >= deadline:
+                    raise AgentConnectionError(f"unable to connect to Unix socket {self._endpoint}: {error}") from error
+                time.sleep(0.01)
+                continue
+            except OSError as error:
+                connection.close()
+                raise AgentConnectionError(f"unable to connect to Unix socket {self._endpoint}: {error}") from error
+            self._socket = connection
+            self._pending.clear()
+            return
+
+    def request(self, payload: str, timeout_ms: int, max_message_bytes: int) -> str:
+        encoded = (payload + "\n").encode("utf-8")
+        if len(encoded) > max_message_bytes:
+            raise AgentProtocolError("request exceeds configured max_message_bytes")
+        self._connect(timeout_ms)
+        if self._socket is None:
+            raise AgentConnectionError("Unix socket is not connected")
+
+        deadline = time.monotonic() + timeout_ms / 1000
+        try:
+            self._socket.settimeout(timeout_ms / 1000)
+            self._socket.sendall(encoded)
+            while True:
+                newline = self._pending.find(b"\n")
+                if newline >= 0:
+                    response = bytes(self._pending[:newline])
+                    del self._pending[:newline + 1]
+                    return response.decode("utf-8")
+                if len(self._pending) > max_message_bytes:
+                    self.close()
+                    raise AgentProtocolError("response exceeds configured max_message_bytes")
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise socket.timeout()
+                self._socket.settimeout(remaining)
+                chunk = self._socket.recv(65536)
+                if not chunk:
+                    self.close()
+                    raise AgentConnectionError("Unix socket closed before a response was received")
+                self._pending.extend(chunk)
+        except socket.timeout as error:
+            # A late response would otherwise be read as the answer to the
+            # next request. Sessions live in the server, so reconnecting is safe.
+            self.close()
+            raise AgentConnectionError("timed out waiting for Unix socket response") from error
+        except OSError as error:
+            self.close()
+            raise AgentConnectionError(f"Unix socket request failed: {error}") from error
+
+    def close(self) -> None:
+        if self._socket is not None:
+            self._socket.close()
+        self._socket = None
+        self._pending.clear()
+
+
+_TRANSPORTS = {"named_pipe": NamedPipeTransport, "unix_socket": UnixSocketTransport}
+
+
 class AgentClient:
     def __init__(self, config: AgentConfig, transport: RpcTransport | None = None) -> None:
-        if config.transport != "named_pipe":
+        transport_class = _TRANSPORTS.get(config.transport)
+        if transport_class is None:
             raise ValueError(f"unsupported configured transport: {config.transport}")
         self.config = config
-        self._transport: RpcTransport = transport or NamedPipeTransport(config.endpoint)
+        self._transport: RpcTransport = transport or transport_class(config.endpoint)
         self._next_request_id = 1
 
     @classmethod
@@ -450,8 +534,10 @@ def load_config(path: str | Path) -> AgentConfig:
             details.append("unexpected=" + ",".join(sorted(unexpected)))
         raise ValueError("invalid agent config: " + " ".join(details))
     transport = values["transport"]
-    if transport != "named_pipe":
-        raise ValueError("only transport=named_pipe is supported by the Python v1 client")
+    if transport not in _TRANSPORTS:
+        raise ValueError("transport must be named_pipe or unix_socket")
+    if transport == "unix_socket" and not values["endpoint"].startswith("/"):
+        raise ValueError("unix_socket endpoint must be an absolute path")
     profile = values.get("profile", "production")
     if profile not in {"production", "test"}:
         raise ValueError("profile must be production or test")
