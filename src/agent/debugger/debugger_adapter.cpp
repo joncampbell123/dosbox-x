@@ -19,8 +19,10 @@ extern char appargs[];
 extern bool dos_program_running;
 #endif
 
+#include <algorithm>
 #include <cctype>
 #include <limits>
+#include <vector>
 
 namespace dosbox_agent {
 
@@ -715,6 +717,33 @@ bool DebuggerAdapter::TerminateTarget(std::string* error) const
         return false;
 
 #if C_DEBUG
+    // The target may have started child programs (launchers, installers,
+    // menus). Ending only the innermost one would let its parents run on, and
+    // DEBUGBOX would never return. So walk the programs from the current one
+    // back to the target, the program DEBUGBOX started from the shell. If the
+    // chain does not lead back to the shell, refuse rather than guess.
+    static const std::size_t kMaxProgramDepth = 64;
+    const std::uint16_t shell_psp = DOS_ShellGetPSP();
+    std::vector<std::uint16_t> chain;   // innermost first
+    for (std::uint16_t psp = dos.psp(); psp != shell_psp; psp = DOS_PSP(psp).GetParent()) {
+        if (chain.size() >= kMaxProgramDepth || real_readw(psp, 0) != 0x20CD /* INT 20h */ ||
+            std::find(chain.begin(), chain.end(), psp) != chain.end()) {
+            if (error != NULL)
+                *error = "The running program's PSP chain does not lead back to the DOS shell";
+            return false;
+        }
+        chain.push_back(psp);
+    }
+
+    // Each EXEC saved its caller's stack in the caller's PSP, so guest programs
+    // can be ended innermost first, one level at a time. A built-in program
+    // such as COMMAND.COM runs as native code with its own emulation loop, so
+    // only the programs above it are ended now. It then finishes by itself
+    // (COMMAND /C returns once its child has ended), and the server calls this
+    // again for the rest until DEBUGBOX returns.
+    const std::vector<std::uint16_t>::const_iterator end_now =
+            std::find_if(chain.begin(), chain.end(), PROGRAMS_IsBuiltinProgram);
+
 #if C_HEAVY_DEBUG
     // A CPU trace ends with its target. Left active, it would keep counting
     // instructions in the DOS shell and, when its count ran out, break into
@@ -724,27 +753,30 @@ bool DebuggerAdapter::TerminateTarget(std::string* error) const
         DEBUG_AgentStopTrace(&trace_event_count);
     }
 #endif
-    DOS_Terminate(dos.psp(), false, 0);
+    if (chain.begin() != end_now) {
+        for (std::vector<std::uint16_t>::const_iterator psp = chain.begin(); psp != end_now; ++psp)
+            DOS_Terminate(*psp, false, 0);
 
-    // Keep the externally initiated exit equivalent to DOS INT 21h/AH=4Ch.
-    // DOS_Terminate owns PSP/vector restoration; the interrupt handler owns
-    // these process-lifecycle fields after it returns.
-    dos_program_running = false;
-    appname[0] = 0;
-    appargs[0] = 0;
-    reg_ax = 0x3e01;
+        // Keep the externally initiated exit equivalent to DOS INT 21h/AH=4Ch.
+        // DOS_Terminate owns PSP/vector restoration; the interrupt handler owns
+        // these process-lifecycle fields after it returns.
+        dos_program_running = false;
+        appname[0] = 0;
+        appargs[0] = 0;
+        reg_ax = 0x3e01;
 
-    // DOS_Terminate prepares an IRET frame for the INT 20h/21h termination
-    // handler. Agent termination bypasses that handler, so complete the same
-    // frame transition before resuming the shell.
-    const std::uint16_t return_stack_segment = SegValue(ss);
-    const std::uint16_t return_instruction_pointer = real_readw(return_stack_segment, reg_sp);
-    const std::uint16_t return_code_segment = real_readw(return_stack_segment, reg_sp + 2u);
-    const std::uint16_t return_flags = real_readw(return_stack_segment, reg_sp + 4u);
-    reg_sp += 6u;
-    SegSet16(cs, return_code_segment);
-    reg_ip = return_instruction_pointer;
-    reg_flags = (reg_flags & 0xffff0000u) | return_flags;
+        // DOS_Terminate prepares an IRET frame for the INT 20h/21h termination
+        // handler. Agent termination bypasses that handler, so complete the same
+        // frame transition before resuming the shell.
+        const std::uint16_t return_stack_segment = SegValue(ss);
+        const std::uint16_t return_instruction_pointer = real_readw(return_stack_segment, reg_sp);
+        const std::uint16_t return_code_segment = real_readw(return_stack_segment, reg_sp + 2u);
+        const std::uint16_t return_flags = real_readw(return_stack_segment, reg_sp + 4u);
+        reg_sp += 6u;
+        SegSet16(cs, return_code_segment);
+        reg_ip = return_instruction_pointer;
+        reg_flags = (reg_flags & 0xffff0000u) | return_flags;
+    }
 
     if (DEBUG_AgentResumeAfterTerminate())
         return true;

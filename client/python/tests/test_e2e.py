@@ -14,6 +14,16 @@ sys.path.insert(0, str(CLIENT_ROOT))
 from dosbox_agent import AgentClient, MemoryAddress, RestartRequiredError
 
 
+def run_and_pause(client: AgentClient, command: str):
+    """Start a target, let it run for a moment, and pause it wherever it is."""
+    session = client.start(command)
+    client.continue_(session.id)
+    time.sleep(0.5)
+    pause = client.pause(session.id)
+    client.wait(session.id, pause.id, 10000)
+    return session
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True)
@@ -116,20 +126,27 @@ def main() -> int:
         if finished.running or finished.session.state != "exited" or finished.session.stop_reason is None or finished.session.stop_reason.kind != "program_exit":
             raise AssertionError("a target that exited by itself was not reported as exited")
 
-        # This phase leaves DOSBox-X stuck, so it must come last. session.stop
-        # ends only the innermost program: stopped while its child runs, this
-        # target's parent keeps running and DEBUGBOX never returns. The next
+        # Stopped while its child program runs, a target must end along with
+        # the child, both for a plain child and for one started through the
+        # built-in COMMAND.COM, which runs as native code.
+        for command in ("AGNEST.COM", "AGNESTC.COM"):
+            session = run_and_pause(client, command)
+            session_id = session.id
+            stop = client.stop(session.id)
+            ended = client.wait(session.id, stop.id, 10000)
+            if ended.session.state != "exited" or ended.session.stop_reason is None or ended.session.stop_reason.kind != "program_exit":
+                raise AssertionError(f"session.stop did not end {command} while its child program was running")
+
+        # This phase leaves DOSBox-X stuck, so it must come last. The target
+        # switches to a PSP that is its own parent, which cannot be traced back
+        # to the DOS shell, so session.stop refuses to end it. The next
         # session.start must then say so at once instead of timing out waiting
         # for the DOS shell.
-        session = client.start("AGNEST.COM")
+        session = run_and_pause(client, "AGBADPSP.COM")
         session_id = session.id
-        client.continue_(session.id)
-        time.sleep(0.5)
-        pause = client.pause(session.id)
-        client.wait(session.id, pause.id, 10000)
         stop = client.stop(session.id)
         if client.wait(session.id, stop.id, 10000).session.state != "failed":
-            raise AssertionError("session.stop unexpectedly ended a target whose child program was running")
+            raise AssertionError("session.stop unexpectedly ended a target whose PSP chain is broken")
         started = time.monotonic()
         try:
             client.start("AGENTFIX.COM")
@@ -138,7 +155,7 @@ def main() -> int:
                 raise AssertionError("session.start was slow to report RESTART_REQUIRED")
         else:
             raise AssertionError("session.start did not report RESTART_REQUIRED after a target could not be ended")
-        print("RPC-E02 passed: Python client completed fixture start, breakpoint, execution, memory, step, stop, program exit, and restart-required.")
+        print("RPC-E02 passed: Python client completed fixture start, breakpoint, execution, memory, step, stop, program exit, nested stop, and restart-required.")
         return 0
     finally:
         if session_id is not None:

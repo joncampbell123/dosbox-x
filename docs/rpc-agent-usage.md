@@ -428,6 +428,8 @@ if result.running:
 
 目标程序自己结束时（例如 INT 21h/4Ch 或 INT 20h），session 进入 `exited`，`last_stop.kind` 为 `program_exit`，正在等待的 operation 也以 `program_exit` 完成；这与 `session.stop` 结束目标时的结果相同。目标结束时，该 session 的断点和 CPU trace 也随之结束，不会影响 DOS shell 或下一个 session；已收集的 trace 事件仍可读取。
 
+如果目标启动了子程序（例如启动器、安装程序或菜单，包括通过内置 COMMAND.COM 的 `COMMAND /C`），`session.stop` 会从最内层程序开始逐层结束，直到目标本身。内置 COMMAND.COM 以 native 代码运行，因此会先结束它启动的程序，等它自行返回后再结束外层程序。
+
 ## 9. 错误处理和重试
 
 Python client 会把 RPC business error 映射为 typed exception：
@@ -474,7 +476,7 @@ except AgentConnectionError:
 | `OPERATION_TIMEOUT` | 对 start 或 adapter 操作记录失败/不确定状态；不要自动重复有副作用调用。 |
 | `CURSOR_EXPIRED` | 丢弃旧 cursor，重新开始一个明确的新读取窗口。 |
 | `REQUEST_ID_CONFLICT` | 同一 request id 被用于不同 payload；生成新的逻辑请求 id。 |
-| `RESTART_REQUIRED` | 上一个 session 的 `session.stop` 无法结束目标程序（例如停在目标启动的子程序中时，只有子程序结束，父程序继续运行），DOSBox-X 已无法启动新目标。结束并重新启动 DOSBox-X 进程。 |
+| `RESTART_REQUIRED` | 上一个 session 的 `session.stop` 无法结束目标程序（例如当前 PSP 无法沿父 PSP 追溯到 DOS shell，或程序在超时前没有结束），DOSBox-X 已无法启动新目标。结束并重新启动 DOSBox-X 进程。 |
 
 server 会缓存 session 生命周期内最近完成的请求结果。只有 Agent 明确确认“同一个逻辑请求、同一个 payload”时，才可以用相同 `request_id` 重试。Python client 不会自动重试写内存、断点、单步、原始命令或其他有副作用调用。
 

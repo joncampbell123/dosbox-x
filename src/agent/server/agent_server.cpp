@@ -1132,6 +1132,23 @@ static void RequireRestart(AgentServer::Impl* impl, const AgentServer::Impl::Ses
             " could not end its target, which may still be running (" + session.failure_message + ")";
 }
 
+// Called with impl->mutex held when session.stop cannot end the target.
+static void FailTermination(AgentServer::Impl* impl,
+                            AgentServer::Impl::Session& session,
+                            AgentServer::Impl::Operation& operation,
+                            const std::string& message)
+{
+    session.state = AgentServer::Impl::SessionState::Failed;
+    session.failure_message = message;
+    RequireRestart(impl, session);
+    session.last_stop_kind = "fault";
+    operation.terminal_state = AgentServer::Impl::SessionState::Failed;
+    operation.stop_kind = "fault";
+    operation.complete = true;
+    ++session.state_revision;
+    impl->state_changed.notify_all();
+}
+
 static AgentServer::Impl::Session* FindSession(AgentServer::Impl* impl,
                                                 const JsonRpcRequest& request,
                                                 std::string* response)
@@ -2967,18 +2984,26 @@ void AgentServer::CompleteTargetTerminationOnEmulationThread(const std::shared_p
             if (pending == active.operations.end() || pending->second.complete)
                 return;
             if (std::chrono::steady_clock::now() >= active.termination_deadline) {
-                active.state = Impl::SessionState::Failed;
-                active.failure_message = "Timed out waiting for the debugger shell after target termination";
-                RequireRestart(impl.get(), active);
-                active.last_stop_kind = "fault";
-                pending->second.terminal_state = Impl::SessionState::Failed;
-                pending->second.stop_kind = "fault";
-                pending->second.complete = true;
-                ++active.state_revision;
-                impl->state_changed.notify_all();
+                FailTermination(impl.get(), active, pending->second,
+                                "Timed out waiting for the debugger shell after target termination");
                 return;
             }
             ++active.termination_retry_count;
+        }
+
+        // A built-in program such as COMMAND.COM between the target and the
+        // program that was stopped finishes by itself once its child has ended.
+        // Keep ending the guest programs that remain until DEBUGBOX returns.
+        std::string termination_error;
+        if (!adapter.TerminateTarget(&termination_error)) {
+            std::lock_guard<std::mutex> command_lock(impl->mutex);
+            if (impl->session && impl->session->id == session_id) {
+                Impl::Session& active = *impl->session;
+                std::map<std::string, Impl::Operation>::iterator pending = active.operations.find(operation_id);
+                if (pending != active.operations.end() && !pending->second.complete)
+                    FailTermination(impl.get(), active, pending->second, termination_error);
+            }
+            return;
         }
         if (SubmitEmulationCommandAfter(impl, 10, [impl, session_id, operation_id](const std::uint64_t) {
                 CompleteTargetTerminationOnEmulationThread(impl, session_id, operation_id);

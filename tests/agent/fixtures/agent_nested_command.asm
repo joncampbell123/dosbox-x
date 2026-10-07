@@ -1,8 +1,9 @@
 bits 16
 org 100h
 
-; Runs AGENTRUN.COM (an endless loop) as a child program, then loops itself.
-; session.stop while the child runs must end both programs.
+; Runs "COMMAND /C AGENTRUN.COM" (an endless loop), then loops itself.
+; COMMAND.COM is a built-in program that runs as native code, so
+; session.stop must let it finish before ending this parent.
 start:
     mov sp, stack_top
     mov bx, (end_of_program - $$ + 0x100 + 15) / 16
@@ -19,14 +20,15 @@ parent_loop:
     jmp parent_loop
 
 child:
-    db "AGENTRUN.COM", 0
+    db "Z:\COMMAND.COM", 0
 params:
     dw 0                    ; inherit the environment
     dw tail, 0
     dw fcb, 0
     dw fcb, 0
 tail:
-    db 0, 0x0d
+    db tail_end - tail - 2, " /C AGENTRUN.COM", 0x0d
+tail_end:
 fcb:
     times 16 db 0
     times 256 db 0

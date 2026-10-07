@@ -118,5 +118,6 @@ class Program {
 
 typedef void (PROGRAMS_Main)(Program * * make);
 void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * SDL_main,const char *dir="");
+bool PROGRAMS_IsBuiltinProgram(uint16_t psp);
 
 #endif

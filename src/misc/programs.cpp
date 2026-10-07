@@ -122,6 +122,19 @@ void PROGRAMS_Shutdown(void) {
 	internal_progs.clear();
 }
 
+/* True if the program loaded in this PSP is one of the built-in programs made by
+   PROGRAMS_MakeFile (COMMAND.COM, MOUNT.COM, ...). Those run as native code
+   through call_program, not as guest code. */
+bool PROGRAMS_IsBuiltinProgram(uint16_t psp) {
+	for (Bitu i = 0; i < sizeof(exe_block); i++) {
+		uint8_t expected = exe_block[i];
+		if (i == CB_POS) expected = (uint8_t)(call_program & 0xff);
+		else if (i == CB_POS + 1) expected = (uint8_t)((call_program >> 8) & 0xff);
+		if (real_readb(psp, (uint16_t)(0x100 + i)) != expected) return false;
+	}
+	return true;
+}
+
 void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main,const char *dir) {
 	uint32_t size=sizeof(exe_block)+sizeof(uint8_t);
 	InternalProgramEntry *ipe;
