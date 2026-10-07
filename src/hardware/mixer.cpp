@@ -1122,7 +1122,7 @@ void MIXER_Controls_Init() {
     item->set_text("Decrease recording volume");
 
 #if C_DEBUG
-    MAPPER_AddHandler(MAPPER_MuteAWE,MK_a,MMOD3,"muteawe","Mute AWE",&item);
+    MAPPER_AddHandler(MAPPER_MuteAWE,MK_nothing, 0,"muteawe","Mute AWE",&item);
     item->set_text("Mute AWE");
 #endif
 }
