@@ -18,3 +18,5 @@ You may not contribute code to this project that was entirely or partially gener
 
 You __may__ contribute code if you wrote it with the __assistance__ of Artifical Intelligence. You yourself still have to write the code that you contribute.
 
+The only exception to this rule is the *main-ai* branch of the project, where you are free to use AI and "vibe coding" as much as you want.
+
