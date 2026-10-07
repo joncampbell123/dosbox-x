@@ -44,6 +44,10 @@ jobs:
           echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
           echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
           cat include/build_timestamp.h
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+(-osfree)?)$/\1/' || echo "unknown")
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          fi
       - name: Detect OSFREE build
         id: osfree
         shell: bash
@@ -218,6 +222,10 @@ jobs:
           echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
           echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
           cat include/build_timestamp.h
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+(-osfree)?)$/\1/' || echo "unknown")
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          fi
       - name: Detect OSFREE build
         id: osfree
         shell: bash
@@ -397,6 +405,10 @@ jobs:
           echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
           echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
           cat include/build_timestamp.h
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+(-osfree)?)$/\1/' || echo "unknown")
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          fi
       - name: Detect OSFREE build
         id: osfree
         shell: bash
