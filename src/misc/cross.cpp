@@ -132,11 +132,15 @@ std::string Cross::GetPlatformResDir() {
 #if defined(MACOSX)
     in = MacOSXResPath;
     if(in.empty()) {
-        in = "/usr/local/share/dosbox-x";
+        in = "/usr/share/dosbox-x";
         struct stat info;
         if((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
-            in = "/usr/share/dosbox-x";
+            in = "/usr/local/share/dosbox-x";
         if((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+            in = "/opt/homebrew/share/dosbox-x";  // Try resource path of Homebrew (Apple Silicon)
+        if((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+            in = "/opt/local/share/dosbox-x";     // Try resource path of MacPorts
+        if((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))   
             in = RESDIR;
     }
 
