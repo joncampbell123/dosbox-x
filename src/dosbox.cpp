@@ -1774,6 +1774,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(0, 65535);
     Pint->Set_help("TCP port of the external debugger MCP server on 127.0.0.1. Set to 0 to disable debugger MCP control.");
 
+    Pstring = secprop->Add_string("debugger headless", Property::Changeable::OnlyAtStart, "auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Run the debugger without its terminal (curses) screen, so it can only be controlled by the RPC agent or the MCP server.\n"
+        "  true: Always run headless. The debugger hotkey is ignored.\n"
+        "  false: Never run headless. On Linux and macOS the debugger then needs DOSBox-X to be started from a terminal.\n"
+        "  auto: Run headless when started with -agent-config and there is no terminal.");
+
     Pstring = secprop->Add_string("machine",Property::Changeable::OnlyAtStart,"svga_s3");
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox-X tries to emulate.");

@@ -384,7 +384,7 @@ std::string configfile = "";
 std::string strPasteBuffer = "";
 ScreenSizeInfo screen_size_info;
 void FormFeed(bool pressed), PrintText(bool pressed);
-void DOSBOX_UnlockSpeed2(bool pressed), DEBUG_Enable_Handler(bool pressed);
+void DOSBOX_UnlockSpeed2(bool pressed), DEBUG_Enable_Handler(bool pressed), DEBUG_Hotkey_Handler(bool pressed);
 int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 
@@ -9865,7 +9865,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         {
             DOSBoxMenu::item *item;
             /* Add some keyhandlers */
-            MAPPER_AddHandler(DEBUG_Enable_Handler,
+            MAPPER_AddHandler(DEBUG_Hotkey_Handler,
 #if defined(MACOSX)
             // MacOS     NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
             // which is not easy to input on a modern mac laptop

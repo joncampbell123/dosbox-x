@@ -29,7 +29,7 @@ DOS program
 v1 的约束：
 
 - 支持 Windows（`named_pipe`）和 Linux/macOS（`unix_socket`）。
-- 在 Linux/macOS 上，DOSBox-X 调试器是终端界面，只有 stdin/stdout/stderr 都是终端时才会进入；因此 DOSBox-X 必须在终端或伪终端（例如 `script`）中启动，否则 `session.start` 会因等不到入口断点而超时。
+- DOSBox-X 调试器平时是终端（curses）界面。Agent 控制时不需要这个界面：`[dosbox]` 中的 `debugger headless` 默认为 `auto`，当以 `--agent-config` 启动且没有终端时，调试器以 headless 方式运行，只由 Agent（或 MCP server）控制，调试器输出写入日志。设为 `true` 时总是 headless 并忽略调试器热键；设为 `false` 时，Linux/macOS 上必须在终端中启动 DOSBox-X，否则 `session.start` 会因等不到入口断点而超时。
 - endpoint 只允许当前用户访问：named pipe 使用仅限当前用户的 ACL；Unix socket 文件权限为 `0600`，并检查连接方的 uid。不开放未认证 TCP。
 - 一个 DOSBox-X 进程只有一个活动 session 和一个受控的 `C:` mount。
 - `session.start` 固定在 `entry` 停止。
@@ -128,7 +128,13 @@ $process = Start-Process `
 Start-Sleep -Seconds 2
 ```
 
-Linux/macOS 示例。先用 `./configure --enable-debug --enable-dosbox_agent` 构建，然后在伪终端中启动，让调试器可以进入：
+Linux/macOS 示例。先用 `./configure --enable-debug --enable-dosbox_agent` 构建。由自动化程序启动时没有终端，调试器会自动以 headless 方式运行：
+
+```sh
+./src/dosbox-x --agent-config "$HOME/reverse/configs/game.env" < /dev/null
+```
+
+如果想同时看到调试器的终端界面，就从终端中启动，或用伪终端包装：
 
 ```sh
 # Linux (util-linux script)

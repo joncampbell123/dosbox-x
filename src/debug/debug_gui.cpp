@@ -684,6 +684,9 @@ void DEBUG_BeginPagedContent(void) {
 #endif
 		DEBUG_MCP_IsCapturingOutput())
 		return;
+	/* without a screen (headless) there is nobody to press a key for the next page */
+	if (dbg.win_out == NULL)
+		return;
 	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
 
     debugPageCounter = 0;

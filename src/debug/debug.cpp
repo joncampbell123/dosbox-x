@@ -5161,6 +5161,31 @@ int GetDynamicType();
 void dyn_core_dh_debug_flush (void);
 #endif
 
+/* Headless: the debugger runs without its curses screen and keyboard, and is
+   driven only by the RPC agent or the MCP server. Breakpoints, stepping and
+   commands work as usual; messages go to the log instead of the screen. */
+static bool debugger_headless = false;
+
+/* Mac OS X and Linux do not have a console for us to just allocate on a whim like
+   Windows does, so the curses screen needs DOSBox-X to be started from a terminal. */
+static inline bool DEBUG_HasTerminal(void) {
+#if defined(MACOSX) || defined(LINUX)
+    return isatty(0) && isatty(1) && isatty(2);
+#else
+    return true;
+#endif
+}
+
+void DEBUG_Enable_Handler(bool pressed);
+
+/* The debugger hotkey. Without a screen, it would stop emulation with nothing
+   to show, so it is ignored in headless mode. Programmatic entry points such as
+   DEBUGBOX and the agent call DEBUG_Enable_Handler() directly. */
+void DEBUG_Hotkey_Handler(bool pressed) {
+    if (debugger_headless) return;
+    DEBUG_Enable_Handler(pressed);
+}
+
 Bitu DEBUG_Loop(void) {
 #if defined(C_DOSBOX_AGENT)
     dosbox_agent::AGENT_BridgePump();
@@ -5243,6 +5268,8 @@ Bitu DEBUG_Loop(void) {
             DEBUG_RefreshPage(0);
         }
 
+        /* headless: no keyboard, commands only arrive through the agent or MCP */
+        if (debugger_headless) return 0;
     	return DEBUG_CheckKeys();
     }
 }
@@ -5309,15 +5336,9 @@ void DEBUG_Enable_Handler(bool pressed) {
 	static bool showhelp=false;
 
 #if defined(MACOSX) || defined(LINUX)
-	/* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
-	   So the debugger interface is useless UNLESS the user has started us from a terminal
-	   (whether over SSH or from the Terminal app). */
-    bool allow = true;
-
-    if (!isatty(0) || !isatty(1) || !isatty(2))
-	    allow = false;
-
-    if (!allow) {
+	/* The debugger interface is useless UNLESS the user has started us from a terminal
+	   (whether over SSH or from the Terminal app), or it runs headless for the agent. */
+    if (!debugger_headless && !DEBUG_HasTerminal()) {
 # if defined(MACOSX)
 	    LOG_MSG("Debugger in Mac OS X is not available unless you start DOSBox-X from a terminal or from the Terminal application");
 # else
@@ -5365,6 +5386,7 @@ void DEBUG_Enable_Handler(bool pressed) {
 }
 
 void DEBUG_DrawScreen(void) {
+	if (dbg.win_main == NULL) return; /* no curses screen (not set up yet, or headless) */
 	DrawData();
 	DrawCode();
     DrawInput();
@@ -6086,6 +6108,9 @@ void DBGBlock::set_data_view(unsigned int view) {
 }
 
 void DEBUG_SetupConsole(void) {
+	/* headless: no console and no curses screen, so dbg.win_main stays NULL */
+	if (debugger_headless) return;
+
 	if (dbg.win_main == NULL) {
         LOG(LOG_MISC, LOG_DEBUG)("DEBUG_SetupConsole initializing GUI");
 
@@ -6143,6 +6168,18 @@ void DEBUG_Init() {
 		ControlServer_Start(static_cast<uint16_t>(mcp_server_port));
 		TIMER_AddTickHandler(ControlServer_Poll);
 	}
+
+	/* "auto" runs headless only when the RPC agent is in control and there is no
+	   terminal for the curses screen, so interactive debugging is unchanged. */
+	const std::string headless = section != NULL ? section->Get_string("debugger headless") : "auto";
+	if (headless == "true" || headless == "1")
+		debugger_headless = true;
+#if defined(C_DOSBOX_AGENT)
+	else if (headless == "auto")
+		debugger_headless = !control->opt_agent_config.empty() && !DEBUG_HasTerminal();
+#endif
+	if (debugger_headless)
+		LOG_MSG("Debugger is running headless: no curses screen, controlled by the RPC agent or MCP server");
 
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
