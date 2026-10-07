@@ -590,9 +590,23 @@ jobs:
           mkdir -p "$package"
           cp "$top/dosbox-x_${{ env.timestamp }}nightly_amd64.AppImage" "$package/"
           cp "$top/contrib/linux/instructions_appimage.md" "$package/"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            mv "$package/dosbox-x_${{ env.timestamp }}nightly_amd64.AppImage" "$package/dosbox-x_${{ env.timestamp }}_amd64.AppImage" 
+            cd "$package"
+            zip="$top/dosbox-x_${{ env.timestamp }}_amd64.AppImage.zip"
+            echo "ZIPNAME=$zip" >> $GITHUB_ENV
+            zip -r "$zip" .
+            cd "$top"
+          fi
 
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v7.0.1
         with:
           name: dosbox-x-${{ env.timestamp }}_nightly_AppImage
           path: ${{ github.workspace }}/appimage-package/
+
+      - name: Upload AppImage ZIP to GitHub Release
+        uses: softprops/action-gh-release@v3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ env.ZIPNAME }}
