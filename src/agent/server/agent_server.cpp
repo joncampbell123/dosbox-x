@@ -49,6 +49,7 @@ static const int kErrorAddressNotMapped = -32014;
 static const int kErrorBreakpointNotFound = -32015;
 static const int kErrorCommandRejected = -32016;
 static const int kErrorCursorExpired = -32017;
+static const int kErrorRestartRequired = -32018;
 static const std::size_t kOutputRingCapacity = 1024;
 static const std::size_t kCompletedResponseCacheByteLimit = 8u * 1024u * 1024u;
 
@@ -591,6 +592,9 @@ public:
     std::shared_ptr<class AgentRuntime> runtime;
     std::atomic<std::uint64_t> lifecycle_generation{0};
     std::string request_path_base;
+    // Set when a session could not end its target, which may still be running.
+    // No new target can start until DOSBox-X is restarted.
+    std::string restart_required;
 };
 
 class AgentRuntime {
@@ -1121,6 +1125,13 @@ static bool ValidateStartParams(const JsonValue& params,
     return true;
 }
 
+// Called with impl->mutex held when session.stop fails to end the target.
+static void RequireRestart(AgentServer::Impl* impl, const AgentServer::Impl::Session& session)
+{
+    impl->restart_required = "Restart DOSBox-X: " + session.id +
+            " could not end its target, which may still be running (" + session.failure_message + ")";
+}
+
 static AgentServer::Impl::Session* FindSession(AgentServer::Impl* impl,
                                                 const JsonRpcRequest& request,
                                                 std::string* response)
@@ -1489,6 +1500,10 @@ std::string AgentServer::HandleJsonRpcImpl(const std::shared_ptr<Impl>& impl, co
             if (existing->state != Impl::SessionState::Exited && existing->state != Impl::SessionState::Failed)
                 return SessionError(parsed.id, kErrorSessionBusy, "Only one session may be active", "SESSION_BUSY", existing);
         }
+        // Fail at once instead of timing out waiting for a DOS shell that the
+        // previous target is still holding.
+        if (!impl->restart_required.empty())
+            return Error(parsed.id, kErrorRestartRequired, impl->restart_required, "RESTART_REQUIRED");
         if (!ValidateStartParams(parsed.params, impl->config, impl->request_path_base,
                                  &target_command, &target_arguments, &validation_error))
             return InvalidParams(parsed.id, validation_error);
@@ -1920,6 +1935,8 @@ std::string AgentServer::HandleJsonRpcImpl(const std::shared_ptr<Impl>& impl, co
                     if (!success || pending == active.operations.end()) {
                         active.failure_message = adapter_error;
                         active.state = Impl::SessionState::Failed;
+                        if (!success)
+                            RequireRestart(impl.get(), active);
                         active.last_stop_kind = "fault";
                         if (pending != active.operations.end()) {
                             pending->second.terminal_state = Impl::SessionState::Failed;
@@ -2952,6 +2969,7 @@ void AgentServer::CompleteTargetTerminationOnEmulationThread(const std::shared_p
             if (std::chrono::steady_clock::now() >= active.termination_deadline) {
                 active.state = Impl::SessionState::Failed;
                 active.failure_message = "Timed out waiting for the debugger shell after target termination";
+                RequireRestart(impl.get(), active);
                 active.last_stop_kind = "fault";
                 pending->second.terminal_state = Impl::SessionState::Failed;
                 pending->second.stop_kind = "fault";
@@ -3097,6 +3115,9 @@ void AgentServer::OnTargetExited(const std::shared_ptr<Impl>& impl, const std::u
     std::vector<NativeBreakpoint> breakpoints;
     {
         std::lock_guard<std::mutex> state_lock(impl->mutex);
+        // DEBUGBOX has returned, so even a target that session.stop could not
+        // end is gone now, and the DOS shell can start another one.
+        impl->restart_required.clear();
         if (!impl->session || (impl->session->state != Impl::SessionState::Running &&
                                impl->session->state != Impl::SessionState::Stopped))
             return;

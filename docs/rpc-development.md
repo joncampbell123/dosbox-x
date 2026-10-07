@@ -267,6 +267,7 @@ JSON number 不能无损表达所有未来 guest address，v1 所有 guest 寄�
 | `REQUEST_ID_CONFLICT` | 相同 request id 的 payload 不一致。 |
 | `COMMAND_REJECTED` / `COMMAND_PARSE_FAILED` | 原始 debugger 命令失败。 |
 | `OPERATION_TIMEOUT` / `CURSOR_EXPIRED` | 等待或分页语义错误。 |
+| `RESTART_REQUIRED` | 上一个目标无法被结束、可能仍在运行；`session.start` 立即返回此错误（code `-32018`），直到 DOSBox-X 重新启动或该目标自行结束。 |
 
 ## 8. RPC v1 方法
 

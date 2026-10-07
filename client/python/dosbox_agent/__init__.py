@@ -14,6 +14,7 @@ from .errors import (
     OperationTimeoutError,
     RequestTooLargeError,
     RequestIdConflictError,
+    RestartRequiredError,
     SessionBusyError,
     SessionNotFoundError,
     TargetExitedError,
@@ -44,7 +45,7 @@ __all__ = [
     "CapabilityUnavailableError", "CommandRejectedError", "CursorExpiredError", "DiagnosticCommandResult",
     "InvalidBinaryLengthError", "MemoryAddress", "MemoryPreconditionFailedError", "MemoryRead", "MemoryWrite",
     "Operation", "OperationTimeoutError", "OutputPage", "OutputRecord", "RegisterSnapshot",
-    "RequestIdConflictError", "RequestTooLargeError", "Session", "SessionBusyError", "SessionNotFoundError",
+    "RequestIdConflictError", "RequestTooLargeError", "RestartRequiredError", "Session", "SessionBusyError", "SessionNotFoundError",
     "StopReason", "TargetExitedError", "TargetNotStoppedError", "TargetRunningError", "TraceEvent",
     "TracePage", "WaitResult",
 ]

@@ -474,6 +474,7 @@ except AgentConnectionError:
 | `OPERATION_TIMEOUT` | 对 start 或 adapter 操作记录失败/不确定状态；不要自动重复有副作用调用。 |
 | `CURSOR_EXPIRED` | 丢弃旧 cursor，重新开始一个明确的新读取窗口。 |
 | `REQUEST_ID_CONFLICT` | 同一 request id 被用于不同 payload；生成新的逻辑请求 id。 |
+| `RESTART_REQUIRED` | 上一个 session 的 `session.stop` 无法结束目标程序（例如停在目标启动的子程序中时，只有子程序结束，父程序继续运行），DOSBox-X 已无法启动新目标。结束并重新启动 DOSBox-X 进程。 |
 
 server 会缓存 session 生命周期内最近完成的请求结果。只有 Agent 明确确认“同一个逻辑请求、同一个 payload”时，才可以用相同 `request_id` 重试。Python client 不会自动重试写内存、断点、单步、原始命令或其他有副作用调用。
 

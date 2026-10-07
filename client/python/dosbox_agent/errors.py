@@ -85,6 +85,10 @@ class CursorExpiredError(AgentRpcError):
     pass
 
 
+class RestartRequiredError(AgentRpcError):
+    """A previous target could not be ended; DOSBox-X must be restarted."""
+
+
 _ERROR_TYPES: dict[str, type[AgentRpcError]] = {
     "SESSION_BUSY": SessionBusyError,
     "SESSION_NOT_FOUND": SessionNotFoundError,
@@ -102,6 +106,7 @@ _ERROR_TYPES: dict[str, type[AgentRpcError]] = {
     "BREAKPOINT_NOT_FOUND": BreakpointNotFoundError,
     "OPERATION_TIMEOUT": OperationTimeoutError,
     "CURSOR_EXPIRED": CursorExpiredError,
+    "RESTART_REQUIRED": RestartRequiredError,
 }
 
 

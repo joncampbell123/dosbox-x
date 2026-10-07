@@ -11,7 +11,7 @@ CLIENT_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(CLIENT_ROOT))
 
-from dosbox_agent import AgentClient, MemoryAddress
+from dosbox_agent import AgentClient, MemoryAddress, RestartRequiredError
 
 
 def main() -> int:
@@ -115,7 +115,30 @@ def main() -> int:
         finished = client.wait(session.id, operation.id, 10000)
         if finished.running or finished.session.state != "exited" or finished.session.stop_reason is None or finished.session.stop_reason.kind != "program_exit":
             raise AssertionError("a target that exited by itself was not reported as exited")
-        print("RPC-E02 passed: Python client completed fixture start, breakpoint, execution, memory, step, stop, and program exit.")
+
+        # This phase leaves DOSBox-X stuck, so it must come last. session.stop
+        # ends only the innermost program: stopped while its child runs, this
+        # target's parent keeps running and DEBUGBOX never returns. The next
+        # session.start must then say so at once instead of timing out waiting
+        # for the DOS shell.
+        session = client.start("AGNEST.COM")
+        session_id = session.id
+        client.continue_(session.id)
+        time.sleep(0.5)
+        pause = client.pause(session.id)
+        client.wait(session.id, pause.id, 10000)
+        stop = client.stop(session.id)
+        if client.wait(session.id, stop.id, 10000).session.state != "failed":
+            raise AssertionError("session.stop unexpectedly ended a target whose child program was running")
+        started = time.monotonic()
+        try:
+            client.start("AGENTFIX.COM")
+        except RestartRequiredError:
+            if time.monotonic() - started > 1:
+                raise AssertionError("session.start was slow to report RESTART_REQUIRED")
+        else:
+            raise AssertionError("session.start did not report RESTART_REQUIRED after a target could not be ended")
+        print("RPC-E02 passed: Python client completed fixture start, breakpoint, execution, memory, step, stop, program exit, and restart-required.")
         return 0
     finally:
         if session_id is not None:

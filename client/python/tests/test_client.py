@@ -24,6 +24,7 @@ from dosbox_agent import (
     MemoryAddress,
     MemoryPreconditionFailedError,
     RequestTooLargeError,
+    RestartRequiredError,
     SessionNotFoundError,
     TargetExitedError,
     TargetNotStoppedError,
@@ -88,6 +89,7 @@ class AgentClientTests(unittest.TestCase):
             "MEMORY_PRECONDITION_FAILED": MemoryPreconditionFailedError,
             "ADDRESS_NOT_MAPPED": AddressNotMappedError,
             "BREAKPOINT_NOT_FOUND": BreakpointNotFoundError,
+            "RESTART_REQUIRED": RestartRequiredError,
         }
         for reason, error_type in cases.items():
             with self.subTest(reason=reason):
