@@ -89,6 +89,12 @@ def main() -> int:
         if after.data != b"\xDE\xAD\xBE\xEF" or written.after_sha256 != hashlib.sha256(after.data).hexdigest():
             raise AssertionError("memory.write verification failed")
 
+        # This trace is still active when the session stops. It must end with
+        # the target: left running, it would count on into the DOS shell and,
+        # when it ran out, break into the debugger and strand the shell.
+        if not client.start_trace(session.id, "normal", 4):
+            raise AssertionError("trace.start did not activate before session.stop")
+
         stepped, step_registers = client.step(session.id, "into")
         if stepped.stop_reason is None or stepped.stop_reason.kind != "step" or not step_registers.instruction_pointer:
             raise AssertionError("execution.step did not return a stopped register snapshot")
@@ -97,6 +103,15 @@ def main() -> int:
         exited = client.wait(session.id, stop.id, 10000)
         if exited.running or exited.session.state != "exited" or exited.session.stop_reason is None or exited.session.stop_reason.kind != "program_exit":
             raise AssertionError("session.stop did not terminate the fixture")
+
+        # The DOS shell must still be usable for the next session.
+        session = client.start("AGENTFIX.COM")
+        session_id = session.id
+        if session.state != "stopped" or session.stop_reason is None or session.stop_reason.kind != "startup":
+            raise AssertionError("a second session.start did not stop at the fixture entry point")
+        stop = client.stop(session.id)
+        if client.wait(session.id, stop.id, 10000).session.state != "exited":
+            raise AssertionError("session.stop did not terminate the second session")
         print("RPC-E02 passed: Python client completed fixture start, breakpoint, execution, memory, step, and stop.")
         return 0
     finally:

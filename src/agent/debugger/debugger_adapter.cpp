@@ -711,6 +711,15 @@ bool DebuggerAdapter::TerminateTarget(std::string* error) const
         return false;
 
 #if C_DEBUG
+#if C_HEAVY_DEBUG
+    // A CPU trace ends with its target. Left active, it would keep counting
+    // instructions in the DOS shell and, when its count ran out, break into
+    // the debugger and strand the shell. The collected events stay readable.
+    if (DEBUG_AgentTraceIsActive()) {
+        std::uint32_t trace_event_count = 0;
+        DEBUG_AgentStopTrace(&trace_event_count);
+    }
+#endif
     DOS_Terminate(dos.psp(), false, 0);
 
     // Keep the externally initiated exit equivalent to DOS INT 21h/AH=4Ch.
