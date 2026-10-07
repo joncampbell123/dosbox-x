@@ -77,27 +77,6 @@ jobs:
           chmod +x $top/src/bin/dosbox-x-sdl1 $top/src/bin/dosbox-x-sdl2
           $top/src/bin/dosbox-x-sdl1 -tests
           $top/src/bin/dosbox-x-sdl2 -tests
-      - name: Package build
-        run: |
-          top=`pwd`
-          mkdir -p $top/src/bin/drivez
-          mkdir -p $top/src/bin/glshaders
-          mkdir -p $top/src/bin/languages
-          cp $top/CHANGELOG $top/src/bin/CHANGELOG.txt
-          cp $top/dosbox-x.reference.conf $top/src/bin/dosbox-x.reference.conf
-          cp $top/dosbox-x.reference.full.conf $top/src/bin/dosbox-x.reference.full.conf
-          cp $top/contrib/fonts/FREECG98.BMP $top/src/bin/FREECG98.BMP
-          cp $top/contrib/fonts/wqy_1?pt.bdf $top/src/bin/
-          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/src/bin/Nouveau_IBM.ttf
-          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/src/bin/SarasaGothicFixed.ttf
-          cp $top/contrib/windows/installer/drivez_readme.txt $top/src/bin/drivez/readme.txt
-          cp $top/contrib/glshaders/* $top/src/bin/glshaders/
-          cp $top/contrib/translations/*/*.lng $top/src/bin/languages/
-      - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: dosbox-x-linux-x86_64-${{ env.timestamp }}
-          path: ${{ github.workspace }}/src/bin/
       - name: Create deb package
         run: |
           top=`pwd`
@@ -255,27 +234,6 @@ jobs:
           chmod +x $top/src/bin/dosbox-x-sdl1 $top/src/bin/dosbox-x-sdl2
           $top/src/bin/dosbox-x-sdl1 -tests
           $top/src/bin/dosbox-x-sdl2 -tests
-      - name: Package build
-        run: |
-          top=`pwd`
-          mkdir -p $top/src/bin/drivez
-          mkdir -p $top/src/bin/glshaders
-          mkdir -p $top/src/bin/languages
-          cp $top/CHANGELOG $top/src/bin/CHANGELOG.txt
-          cp $top/dosbox-x.reference.conf $top/src/bin/dosbox-x.reference.conf
-          cp $top/dosbox-x.reference.full.conf $top/src/bin/dosbox-x.reference.full.conf
-          cp $top/contrib/fonts/FREECG98.BMP $top/src/bin/FREECG98.BMP
-          cp $top/contrib/fonts/wqy_1?pt.bdf $top/src/bin/
-          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/src/bin/Nouveau_IBM.ttf
-          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/src/bin/SarasaGothicFixed.ttf
-          cp $top/contrib/windows/installer/drivez_readme.txt $top/src/bin/drivez/readme.txt
-          cp $top/contrib/glshaders/* $top/src/bin/glshaders/
-          cp $top/contrib/translations/*/*.lng $top/src/bin/languages/
-      - name: Upload preview package
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: dosbox-x-linux-x86_64-26.04LTS_${{ env.timestamp }}
-          path: ${{ github.workspace }}/src/bin/
       - name: Create deb package
         run: |
           top=`pwd`
@@ -383,11 +341,6 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '14'
-      - name: Build minimal
-        if: false
-        run: |
-          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
-          ./build --disable-freetype --disable-libfluidsynth --disable-mt32 --disable-screenshots
       - name: Install libraries
         run: |
           sudo apt-get update -y
@@ -396,7 +349,6 @@ jobs:
       - name: Update build info
         shell: bash
         run: |
-          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
           export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
           export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
           export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
@@ -407,7 +359,9 @@ jobs:
           cat include/build_timestamp.h
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+(-osfree)?)$/\1/' || echo "unknown")
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
+            echo "timestamp=$VERSION" >> $GITHUB_ENV
+          else
+            echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
           fi
       - name: Detect OSFREE build
         id: osfree
@@ -636,9 +590,23 @@ jobs:
           mkdir -p "$package"
           cp "$top/dosbox-x_${{ env.timestamp }}nightly_amd64.AppImage" "$package/"
           cp "$top/contrib/linux/instructions_appimage.md" "$package/"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            mv "$package/dosbox-x_${{ env.timestamp }}nightly_amd64.AppImage" "$package/dosbox-x_${{ env.timestamp }}_amd64.AppImage" 
+            cd "$package"
+            zip="$top/dosbox-x_${{ env.timestamp }}_amd64.AppImage.zip"
+            echo "ZIPNAME=$zip" >> $GITHUB_ENV
+            zip -r "$zip" .
+            cd "$top"
+          fi
 
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v7.0.1
         with:
           name: dosbox-x-${{ env.timestamp }}_nightly_AppImage
           path: ${{ github.workspace }}/appimage-package/
+
+      - name: Upload AppImage ZIP to GitHub Release
+        uses: softprops/action-gh-release@v3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ env.ZIPNAME }}

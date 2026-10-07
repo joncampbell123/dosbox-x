@@ -22,6 +22,7 @@ Next version:
     error 2. Specification: docs/UTF8NAMES.md in github.com/unxed/go2dos. (unxed)
   - BOOT: Added option to mount 'Empty' floppy/CD-ROM drives in advance if no
     floppy/CD-ROM drives are mounted. (maron2000)
+  - Added support for cycling disk images in reverse order.(maron2000)
   - FPU: Consolidated remaining x87 instruction handling across the normal,
     long-double, and native-x86 FPU backends. Improved denormal, exceptional
     value, rounding, remainder, integer-store, and stack behavior, and removed
@@ -34,6 +35,8 @@ Next version:
     the legacy backend-specific FPU instruction headers. (cimarronm)
   - DOS: Fixed FAT volume label searches (INT 21h AH=4Eh) returning a stray
     '.' and padding for labels of 8 characters or fewer. (cimarronm)
+  - Fixed typing Shift + A by removing mapping Shift+A to MuteAWE function
+    (maron2000) 
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
