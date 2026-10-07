@@ -30,6 +30,8 @@
 #include "mixer.h"
 #endif
 
+std::string GetDOSBoxXPath(bool withexe = false);
+
 static MixerChannel *synthchan = NULL;
 static fluid_synth_t *synth_soft = NULL;
 static int synthsamplerate = 0;
@@ -76,6 +78,61 @@ static void synth_CallBack(Bitu len) {
 #else
 #	define PATH_SEP "/"
 #endif
+
+std::string Find_SoundFont(const std::string& sf /* Should not include path separators */) {
+
+    std::string result = "";
+    std::string exepath = GetDOSBoxXPath();
+    std::string curdir = Cross::GetCurDir();
+    std::string respath = Cross::GetPlatformResDir();
+
+#if defined(MACOSX)
+    std::string mac_sfdir = "~/Library/Audio/Sounds/Banks/";
+    Cross::ResolveHomedir(mac_sfdir);
+#endif
+    const char* soundfonts[] = {
+        // If a soundfont is specified, check it first.
+        // If not found, check the default soundfonts below.
+        sf.empty() ? NULL : sf.c_str(),
+        "default.sf2",
+        "FluidR3_GM.sf2",
+        "GeneralUser_GS.sf2",
+        "GeneralUser-GS.sf2"
+    };
+
+    const char* directories[] = {
+        curdir.c_str(),
+        respath.c_str(),
+        exepath.c_str(),
+#if defined (WIN32)
+        "C:\\soundfonts\\", // default for windows according to fluidsynth docs
+        "C:\\DOSBox-X\\"
+#else
+        // Default on "other" platforms according to fluidsynth docs
+        // This works on RH and Fedora, if a soundfont is installed
+        "/usr/share/soundfonts/",
+        "/usr/share/sounds/sf2/"
+#if defined (MACOSX)
+        // Default on macOS
+        , "/Library/Audio/Sounds/Banks/",
+        mac_sfdir.c_str()
+#endif
+#endif
+    };
+
+    for(size_t d = 0; d < sizeof(directories) / sizeof(directories[0]); d++) {
+        for(size_t i = 0; i < sizeof(soundfonts) / sizeof(soundfonts[0]); i++) {
+            const std::string path = std::string(directories[d]) + soundfonts[i];
+            if(FILE* file = fopen(path.c_str(), "r")) {
+                fclose(file);
+                result = path;
+                break;
+            }
+        }
+    }
+    return result;
+}
+
 
 void ResolvePath(std::string& in);
 class MidiHandler_synth: public MidiHandler {
@@ -166,44 +223,23 @@ public:
 		if (isOpen) return false;
 
 		std::string sf = "";
+
 		/* Sound font file required */
 		if (!conf || (conf[0] == '\0')) {
-#if defined (WIN32)
-			// default for windows according to fluidsynth docs
-			if (FILE *file = fopen("C:\\soundfonts\\default.sf2", "r")) {
-				fclose(file);
-				sf = "C:\\soundfonts\\default.sf2";
-			} else if (FILE *file = fopen("C:\\DOSBox-X\\FluidR3_GM.sf2", "r")) {
-				fclose(file);
-				sf = "C:\\DOSBox-X\\FluidR3_GM.sf2";
-			} else if (FILE *file = fopen("C:\\DOSBox-X\\GeneralUser_GS.sf2", "r")) {
-				fclose(file);
-				sf = "C:\\DOSBox-X\\GeneralUser_GS.sf2";
-			} else {
-				LOG_MSG("MIDI:synth: Specify .SF2 sound font file with midiconfig=");
-				return false;
-			}
-#else
-			// Default on "other" platforms according to fluidsynth docs
-			// This works on RH and Fedora, if a soundfont is installed
-			if (FILE *file = fopen("/usr/share/soundfonts/default.sf2", "r")) {
-				fclose(file);
-				sf = "/usr/share/soundfonts/default.sf2";
-			// Ubuntu and Debian don't have a default.sf2...
-			} else if (FILE *file = fopen("/usr/share/sounds/sf2/FluidR3_GM.sf2", "r")) {
-				fclose(file);
-				sf = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
-			} else if (FILE *file = fopen("/usr/share/sounds/sf2/GeneralUser_GS.sf2", "r")) {
-				fclose(file);
-				sf = "/usr/share/sounds/sf2/GeneralUser_GS.sf2";
-			} else {
-				LOG_MSG("MIDI:synth: Specify .SF2 sound font file with midiconfig=");
-				return false;
-			}
-#endif
+            sf = Find_SoundFont("");
+            if(sf.empty()) {
+                LOG_MSG("MIDI:synth: Specify .SF2 sound font file with midiconfig=");
+                return false;
+            }
 		} else {
 			sf = std::string(conf);
 			ResolvePath(sf);
+            if(sf.find('/') == std::string::npos &&
+                sf.find('\\') == std::string::npos) {
+                // If no directories specified, search for the soundfont in standard directories.
+                const std::string temp = Find_SoundFont(sf);
+                if(!temp.empty()) sf = temp;
+            }
 		}
 
 		fluid_set_log_function(FLUID_PANIC, synth_log, NULL);
@@ -344,43 +380,23 @@ public:
 
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
 		std::string sf = section->Get_string("fluid.soundfont");
-		if (!sf.size()) { // Let's try to find a soundfont before bailing
-#if defined (WIN32)
-			// default for windows according to fluidsynth docs
-			if (FILE *file = fopen("C:\\soundfonts\\default.sf2", "r")) {
-				fclose(file);
-				sf = "C:\\soundfonts\\default.sf2";
-			} else if (FILE *file = fopen("C:\\DOSBox-X\\FluidR3_GM.sf2", "r")) {
-				fclose(file);
-				sf = "C:\\DOSBox-X\\FluidR3_GM.sf2";
-			} else if (FILE *file = fopen("C:\\DOSBox-X\\GeneralUser_GS.sf2", "r")) {
-				fclose(file);
-				sf = "C:\\DOSBox-X\\GeneralUser_GS.sf2";
-			} else {
-				LOG_MSG("MIDI:fluidsynth: SoundFont not specified");
-				return false;
-			}
-#else
-			// Default on "other" platforms according to fluidsynth docs
-			// This works on RH and Fedora, if a soundfont is installed
-			if (FILE *file = fopen("/usr/share/soundfonts/default.sf2", "r")) {
-				fclose(file);
-				sf = "/usr/share/soundfonts/default.sf2";
-			// Ubuntu and Debian don't have a default.sf2...
-			} else if (FILE *file = fopen("/usr/share/sounds/sf2/FluidR3_GM.sf2", "r")) {
-				fclose(file);
-				sf = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
-			} else if (FILE *file = fopen("/usr/share/sounds/sf2/GeneralUser_GS.sf2", "r")) {
-				fclose(file);
-				sf = "/usr/share/sounds/sf2/GeneralUser_GS.sf2";
-			} else {
-				LOG_MSG("MIDI:fluidsynth: SoundFont not specified, and no system SoundFont found");
-				return false;
-			}
-#endif
-		} else
-			ResolvePath(sf);
+        if(sf.empty()) { // Let's try to find a soundfont before bailing
+            sf = Find_SoundFont("");
+            if(sf.empty()) {
+                LOG_MSG("MIDI:fluidsynth: SoundFont not specified");
+                return false;
+            }
+        }
+        else {
+            ResolvePath(sf);
 
+            if(sf.find('/') == std::string::npos &&
+                sf.find('\\') == std::string::npos) {
+                // If no directories specified, search for the soundfont in standard directories.
+                const std::string temp = Find_SoundFont(sf);
+                if(!temp.empty()) sf = temp;
+            }
+        }
 		soundfont.assign(sf);
 		settings = new_fluid_settings();
 
