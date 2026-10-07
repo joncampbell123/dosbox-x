@@ -104,15 +104,18 @@ def main() -> int:
         if exited.running or exited.session.state != "exited" or exited.session.stop_reason is None or exited.session.stop_reason.kind != "program_exit":
             raise AssertionError("session.stop did not terminate the fixture")
 
-        # The DOS shell must still be usable for the next session.
+        # The DOS shell must still be usable for the next session, and a target
+        # that ends by itself (the fixture finishes with INT 20h) must be
+        # reported as exited.
         session = client.start("AGENTFIX.COM")
         session_id = session.id
         if session.state != "stopped" or session.stop_reason is None or session.stop_reason.kind != "startup":
             raise AssertionError("a second session.start did not stop at the fixture entry point")
-        stop = client.stop(session.id)
-        if client.wait(session.id, stop.id, 10000).session.state != "exited":
-            raise AssertionError("session.stop did not terminate the second session")
-        print("RPC-E02 passed: Python client completed fixture start, breakpoint, execution, memory, step, and stop.")
+        operation = client.continue_(session.id)
+        finished = client.wait(session.id, operation.id, 10000)
+        if finished.running or finished.session.state != "exited" or finished.session.stop_reason is None or finished.session.stop_reason.kind != "program_exit":
+            raise AssertionError("a target that exited by itself was not reported as exited")
+        print("RPC-E02 passed: Python client completed fixture start, breakpoint, execution, memory, step, stop, and program exit.")
         return 0
     finally:
         if session_id is not None:

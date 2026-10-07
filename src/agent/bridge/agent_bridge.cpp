@@ -130,8 +130,9 @@ EmulationThreadQueue& AGENT_EmulationQueue()
 
 namespace {
 
-std::mutex debugger_stop_listener_mutex;
+std::mutex listener_mutex;
 DebuggerStopListener debugger_stop_listener;
+TargetExitListener target_exit_listener;
 
 } // namespace
 
@@ -149,11 +150,12 @@ void AGENT_BridgeShutdown()
 {
     AGENT_EmulationQueue().Shutdown();
     AGENT_SetDebuggerStopListener(DebuggerStopListener());
+    AGENT_SetTargetExitListener(TargetExitListener());
 }
 
 void AGENT_SetDebuggerStopListener(DebuggerStopListener listener)
 {
-    std::lock_guard<std::mutex> lock(debugger_stop_listener_mutex);
+    std::lock_guard<std::mutex> lock(listener_mutex);
     debugger_stop_listener = std::move(listener);
 }
 
@@ -162,11 +164,28 @@ void AGENT_NotifyDebuggerStopped(const std::uint16_t segment,
 {
     DebuggerStopListener listener;
     {
-        std::lock_guard<std::mutex> lock(debugger_stop_listener_mutex);
+        std::lock_guard<std::mutex> lock(listener_mutex);
         listener = debugger_stop_listener;
     }
     if (listener)
         listener(segment, instruction_pointer);
+}
+
+void AGENT_SetTargetExitListener(TargetExitListener listener)
+{
+    std::lock_guard<std::mutex> lock(listener_mutex);
+    target_exit_listener = std::move(listener);
+}
+
+void AGENT_NotifyTargetExited()
+{
+    TargetExitListener listener;
+    {
+        std::lock_guard<std::mutex> lock(listener_mutex);
+        listener = target_exit_listener;
+    }
+    if (listener)
+        listener();
 }
 
 bool AGENT_RunQueueSelfTest(std::string* error)

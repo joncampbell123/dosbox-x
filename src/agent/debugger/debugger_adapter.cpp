@@ -335,6 +335,10 @@ bool DebuggerAdapter::StartTargetAtEntry(const std::string& command,
         debugbox_command += " " + *it;
     dos.errorcode = 0;
     first_shell->DoCommand(&debugbox_command[0]);
+    // DEBUGBOX only returns once the target has ended, whether it exited by
+    // itself or session.stop terminated it. If it never started, the session
+    // is still starting and the server ignores this.
+    AGENT_NotifyTargetExited();
     if (dos.errorcode != 0) {
         if (error != NULL)
             *error = "DOS target launch failed with error " + std::to_string(dos.errorcode);

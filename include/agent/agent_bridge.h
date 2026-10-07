@@ -31,6 +31,7 @@ private:
 };
 
 typedef std::function<void(std::uint16_t segment, std::uint32_t instruction_pointer)> DebuggerStopListener;
+typedef std::function<void()> TargetExitListener;
 
 EmulationThreadQueue& AGENT_EmulationQueue();
 void AGENT_BridgeAttachToCurrentThread();
@@ -38,6 +39,8 @@ std::size_t AGENT_BridgePump();
 void AGENT_BridgeShutdown();
 void AGENT_SetDebuggerStopListener(DebuggerStopListener listener);
 void AGENT_NotifyDebuggerStopped(std::uint16_t segment, std::uint32_t instruction_pointer);
+void AGENT_SetTargetExitListener(TargetExitListener listener);
+void AGENT_NotifyTargetExited();
 bool AGENT_RunQueueSelfTest(std::string* error);
 
 } // namespace dosbox_agent

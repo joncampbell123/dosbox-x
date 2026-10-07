@@ -45,6 +45,7 @@ private:
                                   std::uint64_t generation,
                                   std::uint16_t segment,
                                   std::uint32_t instruction_pointer);
+    static void OnTargetExited(const std::shared_ptr<Impl>& impl, std::uint64_t generation);
 
     std::shared_ptr<Impl> impl;
 };

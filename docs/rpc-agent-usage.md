@@ -426,6 +426,8 @@ if result.running:
 
 不要把 `running=true` 当成程序退出，也不要为“确认停止”创建新的 continue 请求。
 
+目标程序自己结束时（例如 INT 21h/4Ch 或 INT 20h），session 进入 `exited`，`last_stop.kind` 为 `program_exit`，正在等待的 operation 也以 `program_exit` 完成；这与 `session.stop` 结束目标时的结果相同。目标结束时，该 session 的断点和 CPU trace 也随之结束，不会影响 DOS shell 或下一个 session；已收集的 trace 事件仍可读取。
+
 ## 9. 错误处理和重试
 
 Python client 会把 RPC business error 映射为 typed exception：

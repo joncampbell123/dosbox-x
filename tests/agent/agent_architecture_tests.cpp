@@ -279,6 +279,29 @@ TEST(AgentSession, BlocksStateOperationsWhileRunningAndWaitsForPause)
             "{\"jsonrpc\":\"2.0\",\"id\":\"wait-pause\",\"method\":\"execution.wait\",\"params\":{\"session_id\":\"ses-1\",\"operation_id\":\"op-2\",\"timeout_ms\":1}}").find("\"kind\":\"pause\""));
 }
 
+TEST(AgentSession, ReportsProgramThatExitsByItself)
+{
+    dosbox_agent::AgentServer server;
+    std::string error;
+    ASSERT_TRUE(server.StartForTest(MakeTestConfig(), &error)) << error;
+    StartFixtureSession(&server);
+
+    const std::string continued = server.HandleJsonRpc(
+            "{\"jsonrpc\":\"2.0\",\"id\":\"continue\",\"method\":\"execution.continue\",\"params\":{\"session_id\":\"ses-1\"}}");
+    EXPECT_NE(std::string::npos, continued.find("\"operation_id\":\"op-1\""));
+
+    // The real adapter reports this when DEBUGBOX returns.
+    dosbox_agent::AGENT_NotifyTargetExited();
+
+    const std::string finished = server.HandleJsonRpc(
+            "{\"jsonrpc\":\"2.0\",\"id\":\"wait\",\"method\":\"execution.wait\",\"params\":{\"session_id\":\"ses-1\",\"operation_id\":\"op-1\",\"timeout_ms\":1}}");
+    EXPECT_EQ(std::string::npos, finished.find("\"running\":true"));
+    EXPECT_NE(std::string::npos, finished.find("\"state\":\"exited\""));
+    EXPECT_NE(std::string::npos, finished.find("\"kind\":\"program_exit\""));
+    EXPECT_NE(std::string::npos, server.HandleJsonRpc(
+            "{\"jsonrpc\":\"2.0\",\"id\":\"status\",\"method\":\"session.status\",\"params\":{\"session_id\":\"ses-1\"}}").find("\"state\":\"exited\""));
+}
+
 TEST(AgentSession, ReusesCompletedRequestResultsAndRejectsConflicts)
 {
     dosbox_agent::AgentServer server;

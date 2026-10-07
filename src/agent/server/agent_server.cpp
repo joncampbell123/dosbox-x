@@ -1284,6 +1284,9 @@ bool AgentServer::Start(const AgentConfig& config, std::string* error)
     AGENT_SetDebuggerStopListener([state, generation](const std::uint16_t segment, const std::uint32_t instruction_pointer) {
         OnDebuggerStopped(state, generation, segment, instruction_pointer);
     });
+    AGENT_SetTargetExitListener([state, generation]() {
+        OnTargetExited(state, generation);
+    });
 
     if (!impl->transport->Start(config, [state](const std::string& request) {
             return HandleJsonRpcImpl(state, request);
@@ -1293,6 +1296,7 @@ bool AgentServer::Start(const AgentConfig& config, std::string* error)
         impl->started = false;
         impl->stopping = false;
         AGENT_SetDebuggerStopListener(DebuggerStopListener());
+        AGENT_SetTargetExitListener(TargetExitListener());
         return false;
     }
     return true;
@@ -1332,6 +1336,9 @@ bool AgentServer::StartForTest(const AgentConfig& config, std::string* error)
     AGENT_SetDebuggerStopListener([state, generation](const std::uint16_t segment, const std::uint32_t instruction_pointer) {
         OnDebuggerStopped(state, generation, segment, instruction_pointer);
     });
+    AGENT_SetTargetExitListener([state, generation]() {
+        OnTargetExited(state, generation);
+    });
     return true;
 }
 
@@ -1357,6 +1364,7 @@ void AgentServer::Stop()
     // The callback may already have been copied by the emulation thread. It
     // holds shared state and observes stopping, rather than touching this.
     AGENT_SetDebuggerStopListener(DebuggerStopListener());
+    AGENT_SetTargetExitListener(TargetExitListener());
     if (transport)
         transport->Stop();
 
@@ -2983,6 +2991,10 @@ void AgentServer::CompleteTargetTerminationOnEmulationThread(const std::shared_p
     Impl::Session& active = *impl->session;
     if (active.operations.find(operation_id) == active.operations.end())
         return;
+    // OnTargetExited normally gets here first, when DEBUGBOX returns, and has
+    // already finished the session and its operations.
+    if (active.state == Impl::SessionState::Exited)
+        return;
 
     active.state = Impl::SessionState::Exited;
     active.trace.Stop();
@@ -3073,6 +3085,69 @@ void AgentServer::OnDebuggerStopped(const std::shared_ptr<Impl>& impl,
         }
     }
     impl->session->pending_stop_kind.clear();
+    impl->state_changed.notify_all();
+}
+
+void AgentServer::OnTargetExited(const std::shared_ptr<Impl>& impl, const std::uint64_t generation)
+{
+    EmulationLease lease(impl, generation);
+    if (!lease.IsActive())
+        return;
+    bool should_end_trace = false;
+    std::vector<NativeBreakpoint> breakpoints;
+    {
+        std::lock_guard<std::mutex> state_lock(impl->mutex);
+        if (!impl->session || (impl->session->state != Impl::SessionState::Running &&
+                               impl->session->state != Impl::SessionState::Stopped))
+            return;
+        should_end_trace = impl->session->trace.IsActive();
+        for (std::map<std::string, Impl::Breakpoint>::const_iterator item = impl->session->breakpoints.begin();
+             item != impl->session->breakpoints.end(); ++item)
+            breakpoints.push_back(item->second.native);
+    }
+
+    // The session's breakpoints and CPU trace end with its target. Left in the
+    // debugger, a breakpoint would stop the DOS shell or the next session's
+    // target, and a trace would count on into the shell.
+    AgentRuntime& adapter = *impl->runtime;
+    for (std::vector<NativeBreakpoint>::const_iterator item = breakpoints.begin(); item != breakpoints.end(); ++item) {
+        std::string breakpoint_error;
+        adapter.DeleteBreakpoint(*item, &breakpoint_error);
+    }
+    std::vector<TraceSample> trace_samples;
+    bool native_trace_active = false;
+    std::string trace_error;
+    const bool trace_read = should_end_trace &&
+            adapter.ReadTrace(&trace_samples, &native_trace_active, &trace_error);
+    if (trace_read && native_trace_active) {
+        std::size_t event_count = 0;
+        adapter.StopTrace(&event_count, &trace_error);
+    }
+
+    std::lock_guard<std::mutex> lock(impl->mutex);
+    if (impl->stopping || !impl->session)
+        return;
+    Impl::Session& session = *impl->session;
+    if (session.state != Impl::SessionState::Running && session.state != Impl::SessionState::Stopped)
+        return;
+    if (trace_read)
+        session.trace.Merge(trace_samples);
+    session.trace.Stop();
+    session.breakpoints.clear();
+    session.state = Impl::SessionState::Exited;
+    session.last_stop_kind = "program_exit";
+    session.last_stop_breakpoint_id.clear();
+    session.has_last_stop_breakpoint_address = false;
+    session.pending_stop_kind.clear();
+    ++session.state_revision;
+    for (std::map<std::string, Impl::Operation>::iterator operation = session.operations.begin();
+         operation != session.operations.end(); ++operation) {
+        if (!operation->second.complete) {
+            operation->second.terminal_state = Impl::SessionState::Exited;
+            operation->second.stop_kind = "program_exit";
+            operation->second.complete = true;
+        }
+    }
     impl->state_changed.notify_all();
 }
 
