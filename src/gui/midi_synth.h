@@ -79,8 +79,9 @@ static void synth_CallBack(Bitu len) {
 #	define PATH_SEP "/"
 #endif
 
-std::string Find_SoundFont() {
-    std::string sf = "";
+std::string Find_SoundFont(const std::string& sf /* Should not include path separators */) {
+
+    std::string result = "";
     std::string exepath = GetDOSBoxXPath();
     std::string curdir = Cross::GetCurDir();
     std::string respath = Cross::GetPlatformResDir();
@@ -90,6 +91,9 @@ std::string Find_SoundFont() {
     Cross::ResolveHomedir(mac_sfdir);
 #endif
     const char* soundfonts[] = {
+        // If a soundfont is specified, check it first.
+        // If not found, check the default soundfonts below.
+        sf.empty() ? NULL : sf.c_str(),
         "default.sf2",
         "FluidR3_GM.sf2",
         "GeneralUser_GS.sf2",
@@ -115,17 +119,18 @@ std::string Find_SoundFont() {
 #endif
 #endif
     };
-    for(size_t d = 0; d < sizeof(directories) / sizeof(directories[0]) && sf.empty(); d++) {
+
+    for(size_t d = 0; d < sizeof(directories) / sizeof(directories[0]); d++) {
         for(size_t i = 0; i < sizeof(soundfonts) / sizeof(soundfonts[0]); i++) {
             const std::string path = std::string(directories[d]) + soundfonts[i];
             if(FILE* file = fopen(path.c_str(), "r")) {
                 fclose(file);
-                sf = path;
+                result = path;
                 break;
             }
         }
     }
-    return sf;
+    return result;
 }
 
 
@@ -221,7 +226,7 @@ public:
 
 		/* Sound font file required */
 		if (!conf || (conf[0] == '\0')) {
-            sf = Find_SoundFont();
+            sf = Find_SoundFont("");
             if(sf.empty()) {
                 LOG_MSG("MIDI:synth: Specify .SF2 sound font file with midiconfig=");
                 return false;
@@ -229,6 +234,12 @@ public:
 		} else {
 			sf = std::string(conf);
 			ResolvePath(sf);
+            if(sf.find('/') == std::string::npos &&
+                sf.find('\\') == std::string::npos) {
+                // If no directories specified, search for the soundfont in standard directories.
+                const std::string temp = Find_SoundFont(sf);
+                if(!temp.empty()) sf = temp;
+            }
 		}
 
 		fluid_set_log_function(FLUID_PANIC, synth_log, NULL);
@@ -369,11 +380,21 @@ public:
 
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
 		std::string sf = section->Get_string("fluid.soundfont");
-        if(!sf.size()) { // Let's try to find a soundfont before bailing
-            sf = Find_SoundFont();
+        if(sf.empty()) { // Let's try to find a soundfont before bailing
+            sf = Find_SoundFont("");
             if(sf.empty()) {
                 LOG_MSG("MIDI:fluidsynth: SoundFont not specified");
                 return false;
+            }
+        }
+        else {
+            ResolvePath(sf);
+
+            if(sf.find('/') == std::string::npos &&
+                sf.find('\\') == std::string::npos) {
+                // If no directories specified, search for the soundfont in standard directories.
+                const std::string temp = Find_SoundFont(sf);
+                if(!temp.empty()) sf = temp;
             }
         }
 		soundfont.assign(sf);
