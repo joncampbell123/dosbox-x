@@ -32,11 +32,6 @@
 # endif
 #endif
 
-#if defined(C_DOSBOX_AGENT)
-#include "agent/agent_bridge.h"
-#include "agent/agent_server.h"
-#endif
-
 #ifdef OS2
 # define INCL_DOS
 # define INCL_WIN
@@ -143,6 +138,10 @@ char* revert_escape_newlines(const char* aMessage);
 #include "callback.h"
 #include "support.h"
 #include "debug.h"
+#if defined(C_DOSBOX_AGENT)
+#include "agent/agent_bridge.h"
+#include "agent/agent_server.h"
+#endif
 #include "ide.h"
 #include "bitop.h"
 #include "ptrop.h"

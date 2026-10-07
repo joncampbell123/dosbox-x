@@ -10,10 +10,24 @@
 #include <thread>
 #include <vector>
 
+#ifdef WIN32
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#endif
+
 namespace {
 
 dosbox_agent::AgentConfig MakeTestConfig()
 {
+    // session.start resolves the mount path with realpath() on POSIX, which fails
+    // unless the directory exists. Windows only normalizes the path text.
+#ifdef WIN32
+    _mkdir("tests/agent/runtime");
+#else
+    mkdir("tests/agent/runtime", 0755);
+#endif
+
     dosbox_agent::AgentConfig config;
     config.transport = dosbox_agent::AgentTransport::NamedPipe;
     config.endpoint = R"(\\.\pipe\dosbox-agent-unit-test)";

@@ -1,3 +1,5 @@
+#include "config.h"
+
 #if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
 #include "agent/agent_server.h"
 
@@ -1805,18 +1807,18 @@ std::string AgentServer::HandleJsonRpcImpl(const std::shared_ptr<Impl>& impl, co
         std::uint32_t length = 0;
         MemoryAddress address;
         std::string validation_error;
-        if (!ParseMemoryAddress(parsed.params, "memory.read", &address, &validation_error) ||
+        if (session->state == Impl::SessionState::Running) {
+            response = SessionError(parsed.id, kErrorTargetRunning,
+                                    "Target must be stopped before reading memory", "TARGET_RUNNING", session);
+        } else if (session->state == Impl::SessionState::Exited) {
+            response = SessionError(parsed.id, kErrorCapabilityUnavailable, "Target has exited", "TARGET_EXITED", session);
+        } else if (!ParseMemoryAddress(parsed.params, "memory.read", &address, &validation_error) ||
             length_value == NULL || !GetUnsignedInteger(*length_value, &length) || length == 0) {
             response = InvalidParams(parsed.id, validation_error.empty() ?
                                      "memory.read requires a positive integer length" : validation_error);
         } else if (length > impl->config.max_memory_read_bytes) {
             response = Error(parsed.id, kErrorRequestTooLarge,
                              "memory.read length exceeds max_memory_read_bytes", "REQUEST_TOO_LARGE");
-        } else if (session->state == Impl::SessionState::Running) {
-            response = SessionError(parsed.id, kErrorTargetRunning,
-                                    "Target must be stopped before reading memory", "TARGET_RUNNING", session);
-        } else if (session->state == Impl::SessionState::Exited) {
-            response = SessionError(parsed.id, kErrorCapabilityUnavailable, "Target has exited", "TARGET_EXITED", session);
         } else {
             const std::shared_ptr<Impl::AdapterOperation> operation(new Impl::AdapterOperation());
             const std::string session_id = session->id;
