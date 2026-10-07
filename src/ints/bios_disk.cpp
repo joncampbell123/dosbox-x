@@ -56,6 +56,7 @@ extern bool int13_extensions_enable, bootguest, bootvm, use_quick_reboot;
 extern bool int13_enable_48bitLBA;
 bool isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c), CheckDBCSCP(int32_t codepage);
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+void swapInCD(bool pressed, bool rev = false);
 
 #define STATIC_ASSERTM(A,B) static_assertion_##A##_##B
 #define STATIC_ASSERTN(A,B) STATIC_ASSERTM(A,B)
@@ -1355,7 +1356,7 @@ void swapInNextDisk(bool pressed) {
     if (!pressed)
         return;
 
-    DriveManager::CycleAllDisks();
+    DriveManager::CycleAllDisks(false);
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for floppy drives.");
     for(Bitu i=0;i<2;i++) { /* Swap A: and B: where DOSBox mainline would run through ALL drive letters */
@@ -1371,13 +1372,40 @@ void swapInNextDisk(bool pressed) {
     swapping_requested = true;
 }
 
+void swapInPrevDisk(bool pressed) {
+    if(!pressed)
+        return;
+
+    DriveManager::CycleAllDisks(true);
+    /* Hack/feature: rescan all disks as well */
+    LOG_MSG("Diskcaching reset for floppy drives.");
+    for(Bitu i = 0; i < 2; i++) { /* Swap A: and B: where DOSBox mainline would run through ALL drive letters */
+        if(Drives[i] != NULL) {
+            Drives[i]->EmptyCache();
+            Drives[i]->MediaChange();
+        }
+    }
+    if(swapInDisksSpecificDrive > 1)
+        return;
+
+    swapPosition--;
+    if(swapPosition < 0) {
+        swapPosition = MAX_SWAPPABLE_DISKS - 1;
+        while(diskSwap[swapPosition] == NULL)
+            swapPosition--;
+    }
+
+    swapInDisks(-1);
+    swapping_requested = true;
+}
+
 void IDE_ATAPI_MediaChangeNotify(signed char index, bool slave, bool immediate);
 void IDE_ATAPI_MediaChangeNotifyAll(bool immediate);
 
-void swapInNextCD(bool pressed) {
+void swapInCD(bool pressed, bool rev) {
     if (!pressed)
         return;
-    DriveManager::CycleAllCDs();
+    DriveManager::CycleAllCDs(rev);
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for normal mounted drives.");
     for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: if it is a CD/DVD drive */
@@ -1397,6 +1425,14 @@ void swapInNextCD(bool pressed) {
         IDE_ATAPI_MediaChangeNotifyAll(/*immediate*/true);
     else
         IDE_ATAPI_MediaChangeNotifyAll(/*immediate*/false);
+}
+
+void swapInNextCD(bool pressed) {
+    swapInCD(pressed, false);
+}
+
+void swapInPrevCD(bool pressed) {
+    swapInCD(pressed, true);
 }
 
 Int13Status imageDisk::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {

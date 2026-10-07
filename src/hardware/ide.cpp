@@ -2843,6 +2843,7 @@ void IDE_Auto(signed char &index,bool &slave) {
 }
 
 bool IDE_controller_occupied(signed char index, bool slave) { // Return true if specified slot is occupied 
+    if(idecontroller[index] == NULL) return false;
     const uint8_t ide_device = slave ? 1 : 0;
     if(idecontroller[index]->device[ide_device] == NULL) {
         return false;
@@ -3315,6 +3316,10 @@ void Get_IDECD_drives(std::vector<int> &v) {
 static IDEController* GetIDEController(Bitu idx) {
     if (idx >= MAX_IDE_CONTROLLERS) return NULL;
     return idecontroller[idx];
+}
+
+bool isIDEControllerPresent(int8_t idx) {
+    return (idecontroller[idx] != NULL);
 }
 
 static bool IDE_CPU_Is_Vm86() {

@@ -45,8 +45,6 @@ uint16_t SaturateDwordSToWordU(int32_t value);
 
 void   setFPUTagEmpty();
 
-constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
-
 // TOP = macro for use in C/C++ for top of FPU stack
 // FPUSW = macro for the entire FPU status word for use in dynamic core
 // NTS: DOSBox-X until 2023/03/11 and all other forks have dynamic core code that generates memory loads
@@ -67,12 +65,32 @@ constexpr double X87_TRIG_ARG_LIMIT = 0x1p63; // 2^63
 
 
 void FPU_FABS();
+void FPU_F2XM1();
+void FPU_FADD(int op1, int op2);
+void FPU_FADD_EA(int op1);
 void FPU_FBLD(PhysPt addr);
 void FPU_FBST(PhysPt addr);
 void FPU_FCHS();
 void FPU_FCLEX();
+void FPU_FCMOV_B(Bitu dst, Bitu src);
+void FPU_FCMOV_BE(Bitu dst, Bitu src);
+void FPU_FCMOV_E(Bitu dst, Bitu src);
+void FPU_FCMOV_NB(Bitu dst, Bitu src);
+void FPU_FCMOV_NBE(Bitu dst, Bitu src);
+void FPU_FCMOV_NE(Bitu dst, Bitu src);
+void FPU_FCMOV_NU(Bitu dst, Bitu src);
+void FPU_FCMOV_U(Bitu dst, Bitu src);
+void FPU_FCOM(int op1, int op2);
+void FPU_FCOM_EA(int op1);
+void FPU_FCOMI(int op1, int op2);
+void FPU_FCOS();
+void FPU_FDIV(int op1, int op2);
+void FPU_FDIV_EA(int op1);
+void FPU_FDIVR(int op1, int op2);
+void FPU_FDIVR_EA(int op1);
 void FPU_FFREE(int st);
 void FPU_FINIT();
+void FPU_FLD(int src);
 void FPU_FLD_F32(PhysPt addr);
 void FPU_FLD_F32_EA(PhysPt addr);
 void FPU_FLD_F64(PhysPt addr);
@@ -87,21 +105,50 @@ void FPU_FLD_I64_EA(PhysPt addr);
 void FPU_FLD1();
 void FPU_FLDCW(PhysPt addr);
 void FPU_FLDENV(PhysPt addr, bool op16);
-void FPU_FLDL2T();
 void FPU_FLDL2E();
+void FPU_FLDL2T();
 void FPU_FLDLG2();
 void FPU_FLDLN2();
 void FPU_FLDPI();
 void FPU_FLDZ();
+void FPU_FMUL(int op1, int op2);
+void FPU_FMUL_EA(int op1);
+void FPU_FNOP();
+void FPU_FPATAN();
 void FPU_FPOP();
+void FPU_FPTAN();
+void FPU_FPREM();
+void FPU_FPREM1();
+void FPU_FRNDINT();
 void FPU_FRSTOR(PhysPt addr, bool op16);
+void FPU_FSAVE(PhysPt addr, bool op16);
+void FPU_FSCALE();
+void FPU_FSIN();
+void FPU_FSINCOS();
+void FPU_FSQRT();
 void FPU_FST(int src, int dst);
+void FPU_FSTENV(PhysPt addr, bool op16);
 void FPU_FST_F32(PhysPt addr);
 void FPU_FST_F64(PhysPt addr);
 void FPU_FST_F80(PhysPt addr);
 void FPU_FST_I16(PhysPt addr);
+void FPU_FISTTP_I16(PhysPt addr);
 void FPU_FST_I32(PhysPt addr);
+void FPU_FISTTP_I32(PhysPt addr);
 void FPU_FST_I64(PhysPt addr);
+void FPU_FISTTP_I64(PhysPt addr);
+void FPU_FSUB(int op1, int op2);
+void FPU_FSUB_EA(int op1);
+void FPU_FSUBR(int op1, int op2);
+void FPU_FSUBR_EA(int op1);
+void FPU_FTST();
+void FPU_FUCOM(int op1, int op2);
+void FPU_FUCOMI(int op1, int op2);
+void FPU_FXAM();
+void FPU_FXCH(int op1, int op2);
+void FPU_FXTRACT();
+void FPU_FYL2X();
+void FPU_FYL2XP1();
 
 static INLINE void FPU_SetTag(uint16_t tags){
 	for (auto i=0; i<8; i++)
@@ -110,26 +157,6 @@ static INLINE void FPU_SetTag(uint16_t tags){
         fpu.regvalid[i] = (tag != FPUTag::Empty);
         tags >>= 2;
     }
-}
-
-static INLINE void FPU_SET_C0(Bitu C){
-	fpu.sw.C0 = !!C;
-}
-
-static INLINE void FPU_SET_C1(Bitu C){
-	fpu.sw.C1 = !!C;
-}
-
-static INLINE void FPU_SET_C2(Bitu C){
-	fpu.sw.C2 = !!C;
-}
-
-static INLINE void FPU_SET_C3(Bitu C){
-	fpu.sw.C3 = !!C;
-}
-
-static INLINE void FPU_SET_D(Bitu C){
-	fpu.sw.DE = !!C;
 }
 
 void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub);

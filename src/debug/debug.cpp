@@ -20,7 +20,9 @@
 #include "dosbox.h"
 #if C_DEBUG
 #include <cctype>
+#include <cstdint>
 #include <cstring>
+#include <ios>
 #include <list>
 #include <vector>
 #include <fstream>
@@ -164,8 +166,8 @@ void DEBUG_PrintRTC();
 static void DrawCode(void);
 static void DrawInput(void);
 static void DEBUG_RaiseTimerIrq(void);
-static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num, const char *filename);
-static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num, const char *filename);
+static void SaveMemory(const char *filename, uint16_t seg, uint32_t ofs1, uint32_t num);
+static void SaveMemoryBin(const char *filename, uint16_t seg, uint32_t ofs1, uint32_t num);
 static void LogDEVS(void);
 static void LogMCBS(void);
 static void LogGDT(void);
@@ -419,7 +421,7 @@ static char* F80ToString(int regIndex, char* dest) {
 #elif defined(HAS_LONG_DOUBLE)
 	snprintf(dest, 11, "%08.2Lf", fpu.regs_80[regIndex].v);
 #else
-	snprintf(dest, 11, "%08.2f", fpu.regs[regIndex].d);
+	snprintf(dest, 11, "%08.2f", fpu.regs[regIndex].v);
 #endif
 	
 	return dest;
@@ -435,7 +437,7 @@ static bool F80TestUpdate(int regIndex) {
 #elif defined(HAS_LONG_DOUBLE)
 	return fpu.regs_80[regIndex].v != oldfpu.regs_80[regIndex].v; /* I'm certain that strict float equality can be used here. */
 #else
-	return fpu.regs[regIndex].d != oldfpu.regs[regIndex].d;
+	return fpu.regs[regIndex].v != oldfpu.regs[regIndex].v;
 #endif
 }
 
@@ -2246,7 +2248,7 @@ bool ParseCommand(char* str) {
 		uint32_t ofs = GetHexValue(found,found); found++;
 		uint32_t num = GetHexValue(found,found); found++;
 		SkipSpace(found);
-		SaveMemory(seg,ofs,num,*found ? found : "MEMDUMP.TXT");
+		SaveMemory(*found ? found : "MEMDUMP.TXT",seg,ofs,num);
 		return true;
 	}
 
@@ -2255,7 +2257,7 @@ bool ParseCommand(char* str) {
 		uint32_t ofs = GetHexValue(found,found); found++;
 		uint32_t num = GetHexValue(found,found); found++;
 		SkipSpace(found);
-		SaveMemoryBin(seg,ofs,num,*found ? found : "MEMDUMP.BIN");
+		SaveMemoryBin(*found ? found : "MEMDUMP.BIN",seg,ofs,num);
 		return true;
 	}
 
@@ -5834,7 +5836,7 @@ static void LogFPUInfo(void) {
                       fpu.regs_80[adj].v, fpu.regs_80[adj].raw.h, (unsigned long long)fpu.regs_80[adj].raw.l);
 #else
         DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.16g (0x%016llx)", i, FPU_tag(fpu.regvalid[adj]),
-                      fpu.use80[adj], fpu.regs[adj].d, (unsigned long long)fpu.regs[adj].ll);
+                       fpu.use80[adj], fpu.regs[adj].v, (unsigned long long)fpu.regs[adj].raw);
 #endif
     }
 
@@ -6239,57 +6241,66 @@ bool CDebugVar::LoadVars(char* name)
 	return true;
 }
 
-static void SaveMemory(uint16_t seg, uint32_t ofs1, uint32_t num, const char *filename) {
-	FILE* f = fopen(filename,"wt");
-	if (!f) {
+static void SaveMemory(const char *filename, uint16_t seg, uint32_t ofs1, uint32_t num) {
+	auto address = GetAddress(seg, ofs1);
+	std::ofstream file(filename);
+	if (!file.is_open()) {
 		DEBUG_ShowMsg("DEBUG: Memory dump failed.\n");
 		return;
 	}
 
-	char buffer[128];
-	char temp[16];
-
-	while (num>16) {
-		sprintf(buffer,"%04X:%04X   ",seg,ofs1);
-		for (uint16_t x=0; x<16; x++) {
-			uint8_t value;
-			if (mem_readb_checked((PhysPt)GetAddress(seg,ofs1+x),&value)) sprintf(temp,"%s","?? ");
-			else sprintf(temp,"%02X ",value);
-			strcat(buffer,temp);
+	while (num > 0) {
+		auto row_size = num < 16 ? num : 16;
+		std::ostringstream row;
+		row << std::uppercase << std::hex << std::setfill('0')
+		    << std::setw(4) << seg << ':' << std::setw(4) << ofs1 << "   ";
+		for (uint32_t x = 0; x < row_size; ++x) {
+			uint8_t value = 0;
+			if (mem_readb_checked(address++,&value)) {
+				row << "?? ";
+			} else {
+				row << std::setw(2) << static_cast<unsigned int>(value) << ' ';
+			}
 		}
-		ofs1+=16;
-		num-=16;
-
-		fprintf(f,"%s\n",buffer);
-	}
-	if (num>0) {
-		sprintf(buffer,"%04X:%04X   ",seg,ofs1);
-		for (uint16_t x=0; x<num; x++) {
-			uint8_t value;
-			if (mem_readb_checked((PhysPt)GetAddress(seg,ofs1+x),&value)) sprintf(temp,"%s","?? ");
-			else sprintf(temp,"%02X ",value);
-			strcat(buffer,temp);
+		file << row.str() << '\n';
+		if (!file) {
+			DEBUG_ShowMsg("DEBUG: Memory dump failed.\n");
+			return;
 		}
-		fprintf(f,"%s\n",buffer);
+		ofs1 += row_size;
+		num -= row_size;
 	}
-	fclose(f);
+	file.close();
+	if (!file) {
+		DEBUG_ShowMsg("DEBUG: Memory dump failed.\n");
+		return;
+	}
 	DEBUG_ShowMsg("DEBUG: Memory dump success.\n");
 }
 
-static void SaveMemoryBin(uint16_t seg, uint32_t ofs1, uint32_t num, const char *filename) {
-	FILE* f = fopen(filename,"wb");
-	if (!f) {
+static void SaveMemoryBin(const char *filename, uint16_t seg, uint32_t ofs1, uint32_t num) {
+	auto  address = GetAddress(seg, ofs1);
+	std::ofstream file(filename, std::ios::binary);
+	if (!file.is_open()) {
 		DEBUG_ShowMsg("DEBUG: Memory binary dump failed.\n");
 		return;
 	}
 
-	for (uint32_t x = 0; x < num;x++) {
-		uint8_t val;
-		if (mem_readb_checked((PhysPt)GetAddress(seg,ofs1+x),&val)) val=0;
-		fwrite(&val,1,1,f);
+	for (uint32_t x = 0; x < num; ++x) {
+		uint8_t value = 0;
+		mem_readb_checked(address++, &value);
+		file.write((const char*)&value, sizeof(value));
+		if (!file) {
+			DEBUG_ShowMsg("DEBUG: Memory binary dump failed.\n");
+			return;
+		}
 	}
 
-	fclose(f);
+	file.close();
+	if (!file) {
+		DEBUG_ShowMsg("DEBUG: Memory binary dump failed.\n");
+		return;
+	}
 	DEBUG_ShowMsg("DEBUG: Memory dump binary success.\n");
 }
 

@@ -1,3 +1,40 @@
+Next version:
+  - DOS: DOS_CheckExtDevice() no longer loops forever when the chain of device
+    headers in guest memory is damaged or never closed (the CON header was found
+    zeroed while DOS Navigator was running, and every FindFirst then hung the
+    emulator). (unxed)
+  - DOS: Added the INT 2Dh (AMIS, Alternate Multiplex Interrupt Specification
+    3.6) interface and the first provider, "DOS-UTF8" "CLIPBRD": a DOS program
+    can ask (AL=10h BX=65001) that the text of the DOS clipboard API (INT 2Fh
+    AX=17xxh, formats CF_TEXT and CF_OEMTEXT; needs "dos clipboard api=true")
+    be UTF-8 instead of the OEM code page, so that characters outside the code
+    page are not lost on the way. The mode belongs to the calling process and
+    ends with it. Specification: docs/UTF8CLIPBOARD.md in github.com/unxed/go2dos,
+    which implements the same interface. (unxed)
+  - DOS: Added the option "utf8 file names" to [dos]. A host file whose name has a
+    character that the DOS code page lacks is no longer hidden: the character
+    is shown as "{U+XXXX}" (its code point in hexadecimal), and such a name can
+    be opened, created, renamed and deleted (the escape is turned back into the
+    character on the host). A DOS program that knows UTF-8 can also ask for
+    UTF-8 long file names (INT 21h AH=71h) for itself with the AMIS provider
+    "DOS-UTF8" "NAMES" (AL=10h BX=65001); short names stay ASCII/OEM, the case
+    tables 6502h/6504h are the identity on 80h-FFh, invalid UTF-8 in a name is
+    error 2. Specification: docs/UTF8NAMES.md in github.com/unxed/go2dos. (unxed)
+  - BOOT: Added option to mount 'Empty' floppy/CD-ROM drives in advance if no
+    floppy/CD-ROM drives are mounted. (maron2000)
+  - FPU: Consolidated remaining x87 instruction handling across the normal,
+    long-double, and native-x86 FPU backends. Improved denormal, exceptional
+    value, rounding, remainder, integer-store, and stack behavior, and removed
+    the legacy backend-specific FPU instruction headers. (cimarronm)
+  - Debugger: Fixed MEMDUMP and MEMDUMPBIN wrapping around at segment
+    boundaries. (cimarronm)
+  - FPU: Consolidated remaining x87 instruction handling across the normal,
+    long-double, and native-x86 FPU backends. Improved denormal, exceptional
+    value, rounding, remainder, integer-store, and stack behavior, and removed
+    the legacy backend-specific FPU instruction headers. (cimarronm)
+  - DOS: Fixed FAT volume label searches (INT 21h AH=4Eh) returning a stray
+    '.' and padding for labels of 8 characters or fewer. (cimarronm)
+
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
     on an unopened or non-existent file. (cimarronm)

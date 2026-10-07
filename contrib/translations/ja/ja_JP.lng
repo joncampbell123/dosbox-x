@@ -892,27 +892,26 @@ MSCDEX をインストールし、ファイルの属性をを読み込み専用�
 .
 :PROGRAM_BOOT_PRINT_ERROR
 このコマンドは DOSBox-X をフロッピーまたはハードディスクイメージから起動します
+[34;1mBOOT [driveletter:|drivenumber] [-convertfat|-convertfatro|-noconvertfat][0m
+[34;1mBOOT floppyimg1.img [floppyimg2.img ...] [-E <コマンド>][0m
+[34;1mBOOT harddrive.img[0m
 
-このコマンドは、メニューコマンドで入替可能なフロッピーディスク群を指定できます
-drive: はマウントされているもののうち、起動するドライブを指定します。
-ドライブ文字を指定しない場合は、デフォルトでAドライブから起動します。
-パラメータを指定しない場合、カレントドライブから起動を試みます。
-起動可能なドライブ文字は A, C, Dです。  ハードディスク(C: D:ドライブ)から起動
-する場合は、イメージが[34;1mIMGMOUNT[0mコマンドでマウントされている必要があります。
+  driveletter      フロッピーはA:, ハードディスクはC: または D: を指定。
+  drivenumber      フロッピーは0,  ハードディスクは2  または 3  を指定。
+  (先にイメージを [34;1mIMGMOUNT[0m コマンドでマウントしてください。)
+  floppyimg.img    1つまたは複数のフロッピー / PCjr イメージを指定。
+                   複数のイメージを指定するとスワップリストを作成します。
+  harddrive.img    C:ドライブとして起動する1つのハードディスクイメージを指定。
+  イメージの先頭にコロン(:)をつけるとそのイメージは書き込み不可で扱われます。
 
-このコマンドの用法は以下のいずれかです:
-
-[34;1mBOOT [driveletter:] [-convertfat|-convertfatro|-noconvertfat][0m
-
-[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter][0m
-
-注: イメージファイルの前にコロン (:) をつけると読み取り専用で起動します。
-    (ただし、"leading colon write protect image" オプションが有効の時)
+  [-E <コマンド>]  PCjrカートリッジイメージに渡すコマンドを指定。
+  [-L driveletter] 過去の互換性のために残されたオプションで、無視されます。
+  [-auto-floppy][-auto-cdrom] 空のフロッピー・CDイメージをマウントします。
 
 例:
-
-[32;1mBOOT A:[0m       - A:ドライブから起動。(マウント済みで起動可能な場合)
-[32;1mBOOT :DOS.IMG[0m - フロッピーイメージ DOS.IMG を読み取り専用で起動。
+[32;1mBOOT A:[0m       A:ドライブのブート可能なイメージをブート。
+[32;1mBOOT disk1.img disk2.img[0m A:にフロッピーのスワップリストを作成しブート。
+[32;1mBOOT :DOS.IMG[0m フロッピーイメージ DOS.IMG を書込不可で起動。
 
 .
 :PROGRAM_BOOT_UNABLE

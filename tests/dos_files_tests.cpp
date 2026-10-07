@@ -20,6 +20,7 @@
 
 #include "dos_inc.h"
 
+#include <cstddef>
 #include <iterator>
 #include <string>
 
@@ -418,7 +419,7 @@ TEST_F(DOS_FilesTest, DOS_ChangeDir_Rejects_File_As_Directory)
 TEST_F(DOS_FilesTest, DOS_DTAExtendName_Mutates_Input)
 {
 	char input_str[] = "123456789AAAA.EXT\0";
-	int initial_input_name = strlen(input_str);
+	const std::size_t initial_input_name = strlen(input_str);
 	char *const input_name = &input_str[0];
 	// needs to be minimum length of the input up to the dot + 1 (null)
 	char output_filename[14];
@@ -428,7 +429,7 @@ TEST_F(DOS_FilesTest, DOS_DTAExtendName_Mutates_Input)
 
 	DTAExtendName(input_name, filename, ext);
 
-	EXPECT_EQ(strlen(input_name), 13);
+	EXPECT_EQ(strlen(input_name), std::size_t{13});
 	EXPECT_NE(initial_input_name, strlen(input_str));
 }
 

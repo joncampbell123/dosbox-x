@@ -119,7 +119,7 @@ void Scaler_AspectChangedLinesAlloc(unsigned int h) {
 		/* pre-initialize to make sure outputs STOP at the end of the array, else there will be a
 		 * potential segfault (however unlikely) when the output changed line array scan reads up
 		 * to 2 array elements past the end of the buffer */
-		for (unsigned int i=0;i < (h+16);i += 2) {
+		for (unsigned int i=0;i+1 < (h+16);i += 2) {
 			Scaler_ChangedLines[i+0] = 8192; /* skip a large amount to force it to quit */
 			Scaler_ChangedLines[i+1] = 0; /* draw 0 lines */
 		}

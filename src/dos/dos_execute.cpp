@@ -115,6 +115,9 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 	
 	DOS_PSP curpsp(pspseg);
 	if (pspseg==curpsp.GetParent()) return;
+	/* the UTF-8 modes of the AMIS providers end with the process */
+	DOS_UTF8_ProcessEnded(pspseg);
+	DOS_UTF8Names_ProcessEnded(pspseg);
 	/* Free Files owned by process */
 	if (!tsr) curpsp.CloseFiles();
 	

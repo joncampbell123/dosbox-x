@@ -879,3 +879,67 @@ void ClipKeySelect(int sym) {
     }
 }
 #endif
+
+/* The text of the host clipboard as UTF-8, for the DOS clipboard API in the UTF-8 mode of a process (see the AMIS provider
+ * "DOS-UTF8" "CLIPBRD" in dos_misc.cpp): no conversion to the guest code page, which is what PasteClipboard() does. Not
+ * implemented for every host: false means "use the OEM code page path". */
+#if defined(WIN32)
+bool DOS_ClipboardGetUTF8(std::string &out) {
+    out.clear();
+    bool ok = false;
+    if (OpenClipboard(NULL)) {
+        if (HANDLE cbText = GetClipboardData(CF_UNICODETEXT)) {
+            const wchar_t *w = (const wchar_t *)GlobalLock(cbText);
+            if (w) {
+                const int n = WideCharToMultiByte(CP_UTF8, 0, w, -1, NULL, 0, NULL, NULL);
+                if (n > 1) {
+                    std::string t((size_t)n, '\0');
+                    WideCharToMultiByte(CP_UTF8, 0, w, -1, &t[0], n, NULL, NULL);
+                    t.resize((size_t)n - 1);
+                    out = t;
+                    ok = true;
+                }
+                GlobalUnlock(cbText);
+            }
+        }
+        CloseClipboard();
+    }
+    return ok;
+}
+
+bool DOS_ClipboardSetUTF8(const std::string &text) {
+    bool ok = false;
+    if (OpenClipboard(NULL)) {
+        const int n = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, NULL, 0);
+        if (n > 0) {
+            HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, (size_t)n * sizeof(wchar_t));
+            if (mem) {
+                wchar_t *w = (wchar_t *)GlobalLock(mem);
+                MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, w, n);
+                GlobalUnlock(mem);
+                EmptyClipboard();
+                if (SetClipboardData(CF_UNICODETEXT, mem)) ok = true;
+                else GlobalFree(mem);
+            }
+        }
+        CloseClipboard();
+    }
+    return ok;
+}
+#elif defined(C_SDL2)
+bool DOS_ClipboardGetUTF8(std::string &out) {
+    out.clear();
+    char *t = SDL_GetClipboardText();
+    if (t == NULL) return false;
+    out = t;
+    SDL_free(t);
+    return !out.empty();
+}
+
+bool DOS_ClipboardSetUTF8(const std::string &text) {
+    return SDL_SetClipboardText(text.c_str()) == 0;
+}
+#else
+bool DOS_ClipboardGetUTF8(std::string &) { return false; }
+bool DOS_ClipboardSetUTF8(const std::string &) { return false; }
+#endif

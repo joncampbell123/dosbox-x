@@ -103,6 +103,10 @@ struct FPUControlWord
 		masked |= IM.mask | DM.mask | ZM.mask | OM.mask | UM.mask | PM.mask;
 		return masked;
 	}
+	RoundMode roundMode() const
+	{
+		return static_cast<RoundMode>(static_cast<unsigned>(RC));
+	}
 };
 
 struct FPUStatusWord
@@ -160,7 +164,8 @@ struct FPUStatusWord
 	enum
 	{
 		conditionMask = 0x4700,
-		conditionAndExceptionMask = 0x47bf
+		conditionAndExceptionMask = 0x47bf,
+        exceptionMask = 0xff
 	};
 	std::string to_string() const;
 };
@@ -169,9 +174,9 @@ struct FPUStatusWord
 struct FPU
 {
 #if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
-	FPU_Reg             _do_not_use__regs[9];
+	FPU_Reg_64          _do_not_use__regs[9];
 #else
-	FPU_Reg             regs[9];
+	FPU_Reg_64          regs[9];
 #endif
 	union {/*these two have the same format, so alias them as an anon union to make switching between dynamic and normal core easier!*/
 		FPU_P_Reg       p_regs[9];
@@ -183,6 +188,7 @@ struct FPU
 	bool                use80[9];		// if set, use the 80-bit precision version
 #endif
     std::array<bool, 9> regvalid;
+	bool                ea_denormal = false;
 	XMM_Reg             xmmreg[8]; // SSE emulation
 
 	uint32_t            mxcsr; // SSE control register
