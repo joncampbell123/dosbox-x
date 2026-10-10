@@ -1,4 +1,9 @@
 Next version:
+  - PC-98: INT 18h AH=1Bh (set KCG access mode, AL=0 code, AL=1 dot) is now
+    handled instead of being logged as an unknown call. It sets the same
+    dot access mode as port 68h commands 0Ah/0Bh and bit 3 of AH=0Ah, and
+    updates bit 3 of 0000:053Ch so AH=0Bh reads it back. Policenauts calls it
+    at startup.
   - DOS: DOS_CheckExtDevice() no longer loops forever when the chain of device
     headers in guest memory is damaged or never closed (the CON header was found
     zeroed while DOS Navigator was running, and every FindFirst then hung the
