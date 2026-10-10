@@ -629,7 +629,7 @@ bool CDirect3D11::Resize(
                 window_w = real_w;
                 window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
             }
-            if(window_w != last_window_w || window_h != last_window_h) SDL_SetWindowSize(sdl.window, window_w, window_h);
+            if(real_w != window_w || real_h != window_h) SDL_SetWindowSize(sdl.window, window_w, window_h);
             //LOG_MSG("window_w=%d, window_h=%d, sdl.draw.width=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, sdl.draw.width, real_w, real_h, (double)real_w/real_h, target_ratio);
         }
     }
@@ -651,28 +651,37 @@ bool CDirect3D11::Resize(
     frame_height = tex_h;
 
     if(sdl.window && !sdl.desktop.fullscreen) {
-        int real_tex_w = tex_w; int real_tex_h = tex_h;
-        if(render.scale.hardware && (reset_window_size || was_fullscreen > 0)) {
-            real_tex_w = tex_w * render.scale.size;
-            real_tex_h = tex_h * render.scale.size;
-            if(CurMode->type == M_TEXT && vga.mode != M_HERC_GFX) {
-                real_tex_w = (uint32_t)((double)real_tex_w / 2.0 + 0.5); // Suppress window size in text mode
-                real_tex_h = (uint32_t)((double)real_tex_h / 2.0 + 0.5);
-                if(real_tex_w < tex_w || real_tex_h < tex_h) {
-                    real_tex_w = tex_w; // Keep at least original size
-                    real_tex_h = tex_h;
-                }
-            }
+        int real_tex_w = window_w;
+        int real_tex_h = window_h;
+        double current_ratio = (double)real_tex_w / real_tex_h;
+
+        if(was_fullscreen > 0) {
+            real_tex_w = last_window_w;
+            real_tex_h = last_window_h;
         }
-        else {
+        else if(reset_window_size) {
+            // Calculate only when resetting window size
             real_tex_w = tex_w;
             real_tex_h = tex_h;
+            if(render.scale.hardware) {
+                real_tex_w = tex_w * render.scale.size;
+                real_tex_h = tex_h * render.scale.size;
+                if(CurMode->type == M_TEXT && vga.mode != M_HERC_GFX) {
+                    real_tex_w = (uint32_t)((double)real_tex_w / 2.0 + 0.5); // Suppress window size in text mode
+                    real_tex_h = (uint32_t)((double)real_tex_h / 2.0 + 0.5);
+                    if(real_tex_w < tex_w || real_tex_h < tex_h) {
+                        real_tex_w = tex_w; // Keep at least original size
+                        real_tex_h = tex_h;
+                    }
+                }
+            }
+            if(render.aspect) {
+                // Apply base aspect ratio
+                real_tex_h = (uint32_t)((double)real_tex_w / target_ratio + 0.5);
+                //LOG_MSG("window_w=%d, window_h=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, real_tex_w, real_tex_h, (double)real_tex_w/real_tex_h, target_ratio);
+            }
         }
-        if(render.aspect) {
-            real_tex_h = (uint32_t)((double)real_tex_w / target_ratio + 0.5);
-            //LOG_MSG("window_w=%d, window_h=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, real_tex_w, real_tex_h, (double)real_tex_w/real_tex_h, target_ratio);
 
-        }
         SDL_SetWindowSize(sdl.window, real_tex_w, real_tex_h);
         if(!reset_window_size) was_fullscreen = false; // Fix me: This flag is set to recover unintended size changes when returning from fullscreen mode.
     }
@@ -769,8 +778,10 @@ bool CDirect3D11::Resize(
         "D3D11 Resize: window=%ux%u frame=%ux%u",
         width, height,
         frame_width, frame_height);
-    last_window_w = width;
-    last_window_h = height;
+    if(!sdl.desktop.fullscreen) {
+        last_window_w = width;
+        last_window_h = height;
+    }
     last_tex_w = frame_width;
     last_tex_h = frame_height;
     return true;

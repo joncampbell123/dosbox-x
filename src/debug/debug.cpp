@@ -2165,6 +2165,26 @@ void VGA_DumpFontRamBIN(const char *filename);
 void VGA_DumpFontRamBMP(const char *filename);
 int32_t DEBUG_Run(int32_t amount,bool quickexit);
 
+static bool ParseMemoryDumpArguments(char *&found, uint16_t &seg, uint32_t &ofs, uint32_t &num) {
+	bool parsed = false;
+	uint32_t segment = GetHexValue(found,found,&parsed);
+	if (!parsed || segment > 0xffffu) return false;
+	seg = (uint16_t)segment;
+
+	SkipSpace(found);
+	if (*found != ':') return false;
+	found++;
+
+	ofs = GetHexValue(found,found,&parsed);
+	if (!parsed || *found != ' ') return false;
+	SkipSpace(found);
+
+	num = GetHexValue(found,found,&parsed);
+	if (!parsed || (*found != '\0' && *found != ' ')) return false;
+	SkipSpace(found);
+	return true;
+}
+
 bool ParseCommand(char* str) {
     std::string copy_str = str;
     for (auto &c : copy_str) c = toupper(c);
@@ -2244,19 +2264,23 @@ bool ParseCommand(char* str) {
     }
 
 	if (command == "MEMDUMP") { // Dump memory to file
-		uint16_t seg = (uint16_t)GetHexValue(found,found); found++;
-		uint32_t ofs = GetHexValue(found,found); found++;
-		uint32_t num = GetHexValue(found,found); found++;
-		SkipSpace(found);
+		uint16_t seg;
+		uint32_t ofs, num;
+		if (!ParseMemoryDumpArguments(found,seg,ofs,num)) {
+			DEBUG_ShowMsg("DEBUG: Invalid memory dump arguments. Usage: MEMDUMP seg:off len [filename].\n");
+			return true;
+		}
 		SaveMemory(*found ? found : "MEMDUMP.TXT",seg,ofs,num);
 		return true;
 	}
 
 	if (command == "MEMDUMPBIN") { // Dump memory to file binary
-		uint16_t seg = (uint16_t)GetHexValue(found,found); found++;
-		uint32_t ofs = GetHexValue(found,found); found++;
-		uint32_t num = GetHexValue(found,found); found++;
-		SkipSpace(found);
+		uint16_t seg;
+		uint32_t ofs, num;
+		if (!ParseMemoryDumpArguments(found,seg,ofs,num)) {
+			DEBUG_ShowMsg("DEBUG: Invalid memory dump arguments. Usage: MEMDUMPBIN seg:off len [filename].\n");
+			return true;
+		}
 		SaveMemoryBin(*found ? found : "MEMDUMP.BIN",seg,ofs,num);
 		return true;
 	}
@@ -4282,8 +4306,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("VGA cmd                   - VGA related debugging commands.\n");
 		DEBUG_ShowMsg("PC98 cmd                  - PC98 related debugging commands.\n");
 		DEBUG_ShowMsg("EMU MEM/MACHINE           - Show emulator memory or machine info.\n");
-		DEBUG_ShowMsg("MEMDUMP [seg]:[off] [len] [filename] - Write memory to a text file (default: MEMDUMP.TXT).\n");
-		DEBUG_ShowMsg("MEMDUMPBIN [s]:[o] [len] [filename]  - Write memory to a binary file (default: MEMDUMP.BIN).\n");
+		DEBUG_ShowMsg("MEMDUMP seg:off len [filename] - Write memory to a text file (default: MEMDUMP.TXT).\n");
+		DEBUG_ShowMsg("MEMDUMPBIN seg:off len [filename] - Write memory to a binary file (default: MEMDUMP.BIN).\n");
         DEBUG_ShowMsg("MEMFIND [seg]:[off] [.].. - Start memory find search instance.\n");
 		DEBUG_ShowMsg("MEMS [operator] [value]   - Search value within instance.\n");
 		DEBUG_ShowMsg("SELINFO [segName]         - Show selector info.\n");
