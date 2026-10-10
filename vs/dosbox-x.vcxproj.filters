@@ -2543,9 +2543,6 @@
     <ClInclude Include="..\include\byteorder.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\fpu_control_x86.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\iconvpp.hpp">
       <Filter>Includes</Filter>
     </ClInclude>

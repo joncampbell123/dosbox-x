@@ -1717,7 +1717,6 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\include\bitop.h" />
     <ClInclude Include="..\include\build_timestamp.h" />
     <ClInclude Include="..\include\byteorder.h" />
-    <ClInclude Include="..\include\fpu_control_x86.h" />
     <ClInclude Include="..\include\iconvpp.hpp" />
     <ClInclude Include="..\include\keymap.h" />
     <ClInclude Include="..\include\midi.h" />
