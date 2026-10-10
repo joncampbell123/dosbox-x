@@ -37,6 +37,7 @@ Next version:
     '.' and padding for labels of 8 characters or fewer. (cimarronm)
   - Fixed typing Shift + A by removing mapping Shift+A to MuteAWE function.
     (maron2000) 
+  - FPU: Wired FISTTP into the dynamic x86 and dynrec CPU cores. (cimarronm)
   - Fixed MEMDUMP and MEMDUMPBIN parsing to reject invalid or missing required
     arguments and correctly use the default filename when omitted. (cimarronm)
   - macOS: Added resource path candidates considering Homebrew and Macports.
