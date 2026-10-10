@@ -202,8 +202,8 @@ MOVEWINDN                                   Move current window down
 MOVEWINDU                                   Move current window up
 SHOWWIN <winname>                           Show window (by name)
 HIDEWIN <winname>                           Hide window (by name)
-MEMDUMP <seg> <off> <bytecount>             Dump memory to file (MEMDUMP.TXT)
-MEMDUMPBIN <seg> <off> <bytecount>          Dump memory to file (MEMDUMP.BIN)
+MEMDUMP <seg>:<off> <bytecount> [filename]  Dump memory to file (default: MEMDUMP.TXT)
+MEMDUMPBIN <seg>:<off> <bytecount> [filename] Dump memory to file (default: MEMDUMP.BIN)
 MEMFIND <seg> <off> [bytes in hex]          Start a memory find search instance
 MEMS <operator> <value>                     Search a value within the find instance
 IV <seg> <off> <name>                       Insert variable
