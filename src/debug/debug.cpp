@@ -31,7 +31,16 @@
 #include <sstream>
 using namespace std;
 
+#if defined(__GNUC__) && !defined(__clang__)
+// GCC incorrectly reports an uninitialized matcher in the bundled GoogleMock
+// test sources when they are compiled into this translation unit.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #include "../../tests/tests.h"
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 #include "debug.h"
 #if defined(C_DOSBOX_AGENT)
