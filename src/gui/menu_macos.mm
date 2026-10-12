@@ -604,9 +604,20 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
                 NSString *title;
                 NSMutableAttributedString *as;
                 title = [[NSString alloc] initWithUTF8String:ft.c_str()];
+                
+                NSColor *linkColor = [NSColor colorWithCalibratedRed:0.0
+                                                            green:0.35
+                                                            blue:0.85
+                                                            alpha:1.0];
+                SEL linkColorSel = @selector(linkColor);
+                if ([NSColor respondsToSelector:linkColorSel]) {
+                    linkColor = [NSColor performSelector:linkColorSel];
+                }
+
                 as = [[NSMutableAttributedString alloc] initWithString:title attributes:@{
-                    NSForegroundColorAttributeName: [NSColor linkColor]//FIXME: Got any better ideas?
+                    NSForegroundColorAttributeName: linkColor
                 }];
+                
                 [titleas appendAttributedString:as];
                 [title release];
                 [as release];
