@@ -2940,6 +2940,47 @@ bool ParseCommand(char* str) {
 		return true;
 	}
 
+	if (command == "MEMREAD") {
+		/* External bounded memory observation: returns the actual conventional
+		 * RAM bytes through the debugger response. Read-only - it never executes
+		 * a guest instruction, never writes guest memory or files, and refuses a
+		 * request it cannot fully satisfy instead of substituting zero bytes. */
+		if (!debugging || debug_running) {
+			DEBUG_ShowMsg("DEBUG: MEMREAD requires the debugger to be stopped\n");
+			return false;
+		}
+		if (cpu.pmode) {
+			DEBUG_ShowMsg("DEBUG: MEMREAD supports real mode only\n");
+			return false;
+		}
+		unsigned long seg = 0, ofs = 0, len = 0;
+		int consumed = 0;
+		char trailing = 0;
+		if (sscanf(found, "%lx:%lx %lx%n", &seg, &ofs, &len, &consumed) != 3
+				|| sscanf(found + consumed, " %c", &trailing) == 1
+				|| seg > 0xFFFF || ofs > 0xFFFF || len < 1 || len > 256
+				|| ofs + len > 0x10000) {
+			DEBUG_ShowMsg("DEBUG: MEMREAD usage: MEMREAD <seg>:<off> <length 1-256> (hex)\n");
+			return false;
+		}
+		unsigned long phys = seg * 16 + ofs;
+		if (phys + len > 0xA0000) {
+			DEBUG_ShowMsg("DEBUG: MEMREAD reads conventional RAM below A0000h only\n");
+			return false;
+		}
+		char hex[2 * 256 + 1];
+		for (unsigned long i = 0; i < len; i++) {
+			uint8_t value = 0;
+			if (mem_readb_checked((PhysPt)(phys + i), &value)) {
+				DEBUG_ShowMsg("DEBUG: MEMREAD cannot read %04lX:%04lX\n", seg, ofs + i);
+				return false;
+			}
+			snprintf(&hex[i * 2], 3, "%02X", (unsigned)value);
+		}
+		DEBUG_ShowMsg("DEBUG: MEMREAD %04lX:%04lX LEN=%04lX HEX=%s\n", seg, ofs, len, hex);
+		return true;
+	}
+
     if (command == "A20") {
         void MEM_A20_Enable(bool enabled);
         bool MEM_A20_Enabled(void);
@@ -4286,6 +4327,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
 		DEBUG_ShowMsg("CALLBACKS                 - Show callbacks of interrupts.\n");
 		DEBUG_ShowMsg("INT [nr] / INTT [nr]      - Execute / Trace into interrupt.\n");
+		DEBUG_ShowMsg("MEMREAD <seg>:<off> <len> - Read 1-256 conventional RAM bytes (external).\n");
 #if C_HEAVY_DEBUG
 		DEBUG_ShowMsg("LOG [num]                 - Write CPU log file.\n");
 		DEBUG_ShowMsg("LOGS/LOGL/LOGC [num]      - Write short/long/cs:ip-only CPU log file.\n");
