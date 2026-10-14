@@ -152,6 +152,34 @@ Resume commands (`RUN`, `RUNWATCH`, and `VRT`) are acknowledged before
 DOSBox-X leaves the debugger loop. Their response is only a successful
 acceptance of the command, not a post-resume state snapshot.
 
+Single-step command
+-------------------
+
+Debugger-enabled builds accept a `STEPIN` command anywhere debugger text
+commands are accepted, including through the external control channel:
+
+  REQ 8 EXEC STEPIN
+
+`STEPIN` executes exactly one guest instruction (step into, equivalent to the
+F11 key) and returns after that instruction has completed, leaving execution
+stopped in the debugger. Unlike `RUN`/`RUNWATCH`/`VRT`, its response is sent
+after the step has finished rather than on acceptance, and it reports the
+resulting position and registers:
+
+  DEBUG: STEPIN CS:IP=0813:0103 AX=1234 BX=0000 CX=00FF DX=0813
+
+`STEPIN` is rejected unless the debugger is already stopped in its loop (the
+whole `DEBUG:` line "requires the debugger to be stopped" is reported
+otherwise). Start the program with `DEBUGBOX`, or break in first, so it is
+stopped at the instruction to step. A single instruction may be a jump, a CALL
+or an interrupt, so CS:IP can move non-sequentially and stepping an `INT` may
+enter an interrupt handler instead of returning immediately.
+
+`STEPIN` is step-into: it is not F10 step-over (which may execute more than one
+instruction to get past a CALL) and it is not a source-line or function-level
+step. The interactive display is refreshed after an external step using the
+same update routines the F10/F11 keys use.
+
 Bounded memory read command
 ---------------------------
 

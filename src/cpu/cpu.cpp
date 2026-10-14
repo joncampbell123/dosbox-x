@@ -97,8 +97,6 @@ extern bool dos_kernel_disabled;
 extern bool use_dynamic_core_with_paging;
 extern bool auto_determine_dynamic_core_paging;
 
-bool use_dynamic_core_with_fpu = false;
-
 uint64_t rdtsc_count_base = 0;
 pic_tickindex_t rdtsc_pic_base = 0;
 
@@ -1179,8 +1177,10 @@ void CPU_Exception(Bitu which,Bitu error ) {
 		}
 	}
 
+	const auto has_error_code = which == EXCEPTION_DF ||
+	                            (which >= EXCEPTION_TS && which <= EXCEPTION_PF);
 	cpu.exception.error=error;
-	CPU_Interrupt(which,CPU_INT_EXCEPTION | ((which>=8) ? CPU_INT_HAS_ERROR : 0),reg_eip);
+	CPU_Interrupt(which, CPU_INT_EXCEPTION | (has_error_code ? CPU_INT_HAS_ERROR : 0), reg_eip);
 
 	/* allow recursive page faults. required for multitasking OSes like Windows 95.
 	 * we set this AFTER CPU_Interrupt so that if CPU_Interrupt faults while starting
@@ -3767,14 +3767,6 @@ public:
 			use_dynamic_core_with_paging = !strcasecmp(dynamic_core_paging, "true") || !strcasecmp(dynamic_core_paging, "1");
 		}
 
-		const char *dynamic_core_fpu = section->Get_string("use dynamic core with fpu");
-		if (!strcmp(dynamic_core_fpu,"true"))
-			use_dynamic_core_with_fpu = true;
-		else if (!strcmp(dynamic_core_fpu,"false"))
-			use_dynamic_core_with_fpu = false;
-		else //auto
-			use_dynamic_core_with_fpu = false;
-
 		if (cpu_allow_big16) {
 			/* FIXME: GCC 4.8: How is this an empty body? Explain. */
 			LOG(LOG_CPU,LOG_DEBUG)("Emulation of the B (big) bit in real mode enabled\n");
@@ -4919,6 +4911,15 @@ bool FPU_CoprocessorException(void) {
 	}
 
 	return false;
+}
+
+bool FPU_NumericException(void)
+{
+	if (!FPU_NumericExceptionPending()) return false;
+
+	cpu.exception.which = EXCEPTION_MF;
+	cpu.exception.error = 0;
+	return true;
 }
 
 bool MMX_CoprocessorException(void) {

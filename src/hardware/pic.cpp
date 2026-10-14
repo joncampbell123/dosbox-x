@@ -28,6 +28,8 @@
 #include "setup.h"
 #include "control.h"
 
+extern bool enable_fpu;
+
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
@@ -1011,6 +1013,10 @@ void PIC_Reset(Section *sec) {
         if (ignore_cascade_in_service)
             pics[0].isr_ignore |= 1u << (unsigned char)master_cascade_irq;
     }
+
+    // IBM AT POST enables the 80287 error interrupt after detecting the FPU.
+    if (enable_slave_pic && !IS_PC98_ARCH && enable_fpu)
+        PIC_SetIRQMask(13, false);
 
     /* I/O port map
      *
