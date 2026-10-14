@@ -24,6 +24,10 @@
 
 #include <math.h> /* for fabs */
 
+uint32_t VGA_Win31PublishSubmit(uint32_t descriptor);
+void VGA_Win31PublishCancel(void);
+void VGA_Win31PublishCommit(void);
+
 #define VGA_LFB_MAPPED
 
 #define S3_LFB_BASE_DEFAULT	  0xE0000000u

@@ -40,6 +40,7 @@ shell.h \
 support.h \
 timer.h \
 vga.h \
+win31_publish.h \
 video.h \
 ne2000.h \
 mmx.h \

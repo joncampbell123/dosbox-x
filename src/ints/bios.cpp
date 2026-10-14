@@ -815,6 +815,12 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register = dos_kernel_disabled || !uselfn ? 0: 1;
 			break;
 
+        case DOSBOX_ID_REG_WIN31_PUBLISH_CAPS:
+            dosbox_int_register = DOSBOX_ID_WIN31_PUBLISH_CAPABILITY;
+            break;
+        case DOSBOX_ID_REG_WIN31_PUBLISH_SUBMIT:
+        case DOSBOX_ID_REG_WIN31_PUBLISH_CANCEL:
+            break; // DATA reads retain the preceding write response.
 		case DOSBOX_ID_REG_GET_VGA_MEMBASE:
 			dosbox_int_register = S3_LFB_BASE;
 			break;
@@ -995,6 +1001,13 @@ void dosbox_integration_trigger_write() {
 			(unsigned long)dosbox_int_register);
 
 	switch (dosbox_int_regsel) {
+        case DOSBOX_ID_REG_WIN31_PUBLISH_SUBMIT:
+            dosbox_int_register = VGA_Win31PublishSubmit(dosbox_int_register);
+            break;
+        case DOSBOX_ID_REG_WIN31_PUBLISH_CANCEL:
+            VGA_Win31PublishCancel();
+            dosbox_int_register = 0;
+            break;
 		case DOSBOX_ID_REG_TEST:
 			break;
 

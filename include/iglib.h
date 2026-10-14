@@ -77,6 +77,16 @@ extern uint16_t DOSBOXID_VAR dosbox_id_baseio;
 #define DOSBOX_ID_REG_RELEASE_MOUSE_CAPTURE             (0x0052434DUL)  /* release mouse capture (W) / mouse capture status (R) */
 
 #define DOSBOX_ID_REG_GET_VGA_MEMBASE                   (0x00684580UL)  /* get VGA video memory base in extended memory */
+/* W31 v1: SUBMIT descriptor is ten little-endian DWORDs: size=40, version=1,
+ * back linear, reserved front=0, cursor linear, frame bytes, stride, width,
+ * height, bpp=8. SUBMIT/CANCEL DATA reads preserve the synchronous status:
+ * 0 accepted, 1 unsupported mode/context, 2 bad descriptor, 3 bad RAM, 4 cursor.
+ * Accepted frames are owned by the host and committed at the next VGA frame.
+ * Guest front memory is untouched; clients must invalidate it before fallback. */
+#define DOSBOX_ID_REG_WIN31_PUBLISH_CAPS                (0x00684582UL)
+#define DOSBOX_ID_REG_WIN31_PUBLISH_SUBMIT              (0x00684583UL)
+#define DOSBOX_ID_REG_WIN31_PUBLISH_CANCEL              (0x00684584UL)
+#define DOSBOX_ID_WIN31_PUBLISH_CAPABILITY              (0x57333101UL)
 #define DOSBOX_ID_REG_GET_VGA_MEMSIZE                   (0x00684581UL)  /* get VGA video memory size */
 #define DOSBOX_ID_REG_VGAIG_CTL                         (0x00684590UL)  /* integrated device control */
 # define DOSBOX_ID_REG_VGAIG_CTL_OVERRIDE               (1UL << 0UL)    /* override the standard VGA with IG video mode */
