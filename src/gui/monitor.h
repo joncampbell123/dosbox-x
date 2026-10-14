@@ -54,13 +54,12 @@ class Monitor{
 	Monitor& operator=( const Monitor& )= delete;
 
 	dinfo_t			_userInput;
-
 	TCPsocket		_server,_client;
 	IPaddress		_hostIP;
 	SDL_Thread		*_pThread;
-	
-	const std::string	_prompt;
 	std::string		_message;
+
+	const std::string	_prompt;
 	std::atomic< bool >	_isRunning;
 	std::vector< int >	_availableDrives;
 
@@ -309,7 +308,7 @@ class Monitor{
 	Monitor():
 	_server( nullptr ),_client( nullptr ),
 	_hostIP( IPaddress{ 0,0 } ),_pThread( nullptr ),
-	_prompt( "(dosbox-x) " ),_message( std::string( 128,'\0' ) ),
+	_message( std::string( 128,'\0' ) ),_prompt( "(dosbox-x) " ),
 	_isRunning( false ) {
 	}
 
