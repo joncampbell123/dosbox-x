@@ -30,15 +30,22 @@
 #include "SDL_net.h"
 #endif
 
+#include "cpu.h"
+#include "dosbox.h"
 #include "ide.h"
 #include "logging.h"
 #include "../dos/drives.h"
 
 #define INPUT_LENGTH 1024
 
+extern bool CPU_CycleAutoAdjust;
+
 extern void Get_IDECD_drives( std::vector< int >& );
 extern std::string GetIDEInfo();
 extern void runImgmountISO(const char drive,const std::vector<std::string> &paths,const bool replace);
+extern void RDTSC_rebase(void);
+extern void menu_update_autocycle(void);
+extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 typedef std::vector< std::string > dinfo_t;
 typedef std::vector< dinfo_t > ddesc_t;
@@ -73,6 +80,7 @@ class Monitor{
 		{ "exit",	cbExitClient },
 		{ "list",	cbListIDE },
 		{ "change",	cbChangeIDE },
+		{ "cycles",	cbCycles },
 	};
 
 	/* Callbacks are paired with simple string */
@@ -101,6 +109,12 @@ class Monitor{
 		m.ListIDE();
 	}
 
+	static void cbCycles( void *data ) {
+		LOG_MSG( "MONITOR setting cycles to %d.",20000 );
+		Monitor& m= *reinterpret_cast< Monitor* >( data );
+		m.setCycles();
+	}
+
 	/* Callback for threading. */
 	static int listen( void *tData ) {
 		auto& m= *reinterpret_cast< Monitor* >( tData );
@@ -124,6 +138,28 @@ class Monitor{
 			vCommands.push_back( sstr_token );
 		}
 		return vCommands;
+	}
+
+	/* TODO:
+	 *		Rewrite this function to behave more like the mainmenu counter part.
+	 *		Where it should accep and processt Auto, Fixed and Max.
+	 */
+	void setCycles() {
+		if( _userInput.size() <2 ) {
+			_message= "Format: cycles <value>\n";
+			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+			return;
+		}
+
+		int newCycleCount= std::stoi( _userInput.at( 1 ) );
+
+		RDTSC_rebase();
+		CPU_CycleAutoAdjust= false;
+		CPU_CycleLeft= 0;
+		CPU_Cycles= 0;
+		CPU_CycleMax= CPU_OldCycleMax= newCycleCount;
+		GFX_SetTitle( (int32_t)CPU_OldCycleMax,-1,-1,false );
+		menu_update_autocycle();
 	}
 
 	bool	startServer( int tPort ) {
@@ -213,7 +249,7 @@ class Monitor{
 	
 	/* Format and print available drives to log and send to client. */
 	void ListIDE() {
-		ddesc_t drives=	LookupIDE();
+		ddesc_t drives= LookupIDE();
 
 		_message= "No drive(s) mounted.\n";
 
@@ -231,13 +267,13 @@ class Monitor{
 	}
 
 	void ChangeIDE() {		
-		if( _userInput.size() < 3 ) {
+		if( _userInput.size() <3 ) {
 			_message= "Format: change <drive_letter> <image_path>\n";
 			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
 			return;
 		}
 
-		ddesc_t drives=	LookupIDE();
+		ddesc_t drives= LookupIDE();
 					
 		_message=  "No drive(s) mounted.\n";
 		if( drives.empty() ) {
