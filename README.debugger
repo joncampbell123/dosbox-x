@@ -180,6 +180,33 @@ instruction to get past a CALL) and it is not a source-line or function-level
 step. The interactive display is refreshed after an external step using the
 same update routines the F10/F11 keys use.
 
+Bounded memory read command
+---------------------------
+
+Debugger-enabled builds accept a `MEMREAD` command wherever debugger text
+commands are accepted, including through the external control channel:
+
+  REQ 9 EXEC MEMREAD 0813:0100 0008
+
+`MEMREAD <segment>:<offset> <length>` reads 1-256 bytes of conventional RAM
+(real mode only) and returns them in the command response:
+
+  DEBUG: MEMREAD 0813:0100 LEN=0008 HEX=B83412BB7856EBF8
+
+The command is read-only: it never executes a guest instruction, never writes
+guest memory or files, and does not move the observed CS:IP. It requires the
+debugger to be stopped, and it refuses any request it cannot fully satisfy -
+a byte that cannot be read fails the whole command instead of being replaced
+by a zero, so a returned `00` always means the byte really is zero.
+
+Limitations: this is an observation of ordinary conventional RAM below
+`A0000h` in real mode only. Protected-mode execution, selector-based or
+otherwise translated addresses, upper memory, EMS/XMS and ranges that would
+wrap the 20-bit address space or depend on A20 behaviour are rejected. The
+request must not cross a 64 KiB segment boundary. Reading conventional RAM is
+not assumed to be universally side-effect-free for every machine or device, so
+the command is intentionally restricted to this bounded range.
+
 Output is captured from DEBUG_ShowMsg while an MCP command is running. Paged
 debugger output is not paused for terminal input during this capture, so
 commands such as HELP, GDT, LDT, IDT, and DOS memory listings can be returned
