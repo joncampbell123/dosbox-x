@@ -24,7 +24,11 @@
 #include <array>
 #include <atomic>
 #include <cctype>
+#if defined(C_SDL2_NET) && C_SDL2_NET
 #include <SDL2/SDL_net.h>
+#elif defined(C_SDL_NET) && C_SDL_NET
+#include "SDL_net.h"
+#endif
 
 #include "ide.h"
 #include "logging.h"
@@ -98,7 +102,7 @@ class Monitor{
 	}
 
 	/* Callback for threading. */
-	static int	listen( void *tData ) {
+	static int listen( void *tData ) {
 		auto& m= *reinterpret_cast< Monitor* >( tData );
 		
 		m.updateServer();
@@ -131,20 +135,26 @@ class Monitor{
 	
 		std::string hostname{"localhost"};
 
-		if ( SDLNet_ResolveHost( &_hostIP,hostname.c_str(),tPort ) ) {
+		if ( SDLNet_ResolveHost( &_hostIP,nullptr,tPort ) ) {
 	       		fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
 			return false;
 		}
 
+		#if defined(C_SDL2_NET) && C_SDL2_NET
 		_server= SDLNet_TCP_OpenServer( &_hostIP );
+		#else
+		_server= SDLNet_TCP_Open( &_hostIP );
+		#endif
+
 		return true;
 	}
 
 	TCPsocket	connectClient() {
 		TCPsocket client= nullptr;
+		
+		while( nullptr ==client ){
+				client= SDLNet_TCP_Accept( _server );
 
-		while( _isRunning || nullptr ==client ){
-			client= SDLNet_TCP_Accept( _server );
 			if ( client ) {
 				LOG_MSG( "MONITOR client connected on %d.%d.%d.%d:%d.\n",
 						( _hostIP.host )&0xff,( _hostIP.host >>8 )&0xff,
@@ -152,8 +162,9 @@ class Monitor{
 						SDLNet_Read16( &_hostIP.port ) );
 				break;
 			}
-			SDL_Delay( 100 );
+			SDL_Delay( 50 );
 		}
+
 		return client;
 	}
 
@@ -299,6 +310,12 @@ class Monitor{
 		if( _server ) closeSocket( _server ); 
 
 		if( _pThread ){
+			
+			#if defined(C_SDL_NET) && C_SDL_NET
+			int status;
+			SDL_WaitThread( _pThread,&status );
+			#endif
+
 			_pThread= nullptr;
 		}
 	
@@ -330,8 +347,13 @@ class Monitor{
 			m._isRunning= m.startServer( tPort );
 
 			if ( true ==m._isRunning ){
+
+				#if defined(C_SDL2_NET) && C_SDL2_NET
 				m._pThread= SDL_CreateThread( listen,"dosbox-x monitor",&m );
 				SDL_DetachThread( m._pThread );
+				#else
+				m._pThread= SDL_CreateThread( listen,&m );
+				#endif
 			}
 		}
 		return m;
