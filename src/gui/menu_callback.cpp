@@ -18,7 +18,6 @@
 
 #include <assert.h>
 
-#include "sdl_netmon.h"
 #include "monitor.h"
 
 #include "dosbox.h"
