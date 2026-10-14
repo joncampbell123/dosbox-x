@@ -2949,6 +2949,30 @@ bool ParseCommand(char* str) {
 		return true;
 	}
 
+	if (command == "STEPIN") {
+		/* External single-instruction step-into. Mirrors the KEY_F(11) trace-into
+		 * path so the CPU decoder executes exactly one guest instruction inside
+		 * DEBUG_Run(1,true) and returns before the command response is sent;
+		 * execution therefore stays stopped in the debugger loop. */
+		if (!debugging || debug_running) {
+			DEBUG_ShowMsg("DEBUG: STEPIN requires the debugger to be stopped\n");
+			return false;
+		}
+		exitLoop = false;
+		mustCompleteInstruction = true;
+		DEBUG_Run(1,true);
+		mustCompleteInstruction = false;
+		DEBUG_ShowMsg("DEBUG: STEPIN CS:IP=%04X:%04X AX=%04X BX=%04X CX=%04X DX=%04X\n",
+			SegValue(cs),reg_eip,reg_ax,reg_bx,reg_cx,reg_dx);
+		/* Keep the interactive display truthful after an external step. The
+		 * F10/F11 key handlers refresh it, but an EXEC STEPIN bypasses them and
+		 * check_rescroll has already been consumed, so do it explicitly with the
+		 * existing update routines. */
+		DrawRegistersUpdateOld();
+		DEBUG_DrawScreen();
+		return true;
+	}
+
     if (command == "A20") {
         void MEM_A20_Enable(bool enabled);
         bool MEM_A20_Enabled(void);
@@ -4295,6 +4319,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
 		DEBUG_ShowMsg("CALLBACKS                 - Show callbacks of interrupts.\n");
 		DEBUG_ShowMsg("INT [nr] / INTT [nr]      - Execute / Trace into interrupt.\n");
+		DEBUG_ShowMsg("STEPIN                    - Execute exactly one instruction, then stop.\n");
 #if C_HEAVY_DEBUG
 		DEBUG_ShowMsg("LOG [num]                 - Write CPU log file.\n");
 		DEBUG_ShowMsg("LOGS/LOGL/LOGC [num]      - Write short/long/cs:ip-only CPU log file.\n");
