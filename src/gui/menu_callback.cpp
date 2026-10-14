@@ -18,6 +18,9 @@
 
 #include <assert.h>
 
+#include "sdl_netmon.h"
+#include "monitor.h"
+
 #include "dosbox.h"
 #include "menu.h"
 #include "menudef.h"
@@ -56,6 +59,9 @@
 
 #include <output/output_opengl.h>
 #include <output/output_ttf.h>
+
+
+//extern int sdl_netmon( void* thread_data );
 
 int oldblinkc = -1;
 std::string savefilename = "";
@@ -3226,6 +3232,13 @@ bool help_about_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /
     return true;
 }
 
+/* Temporary menu item for console monitor. */
+bool help_mon_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
+    LOG(LOG_GUI, LOG_ERROR)("Monitor socket was reset.");
+    Monitor::OpenMonitor( 4444 );
+    return true;
+}
+
 bool toscale=true;
 std::string helpcmd="";
 bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const menuitem) {
@@ -3884,6 +3897,8 @@ void AllocCallback1() {
 #endif
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
                     set_callback_function(help_about_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_mon").set_text("Reset monitor").
+                    set_callback_function(help_mon_callback);
 #if !defined(C_EMSCRIPTEN)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clear_console").set_text("Clear logging console").set_callback_function(clear_console_menu_callback);
