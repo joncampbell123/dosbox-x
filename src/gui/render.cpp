@@ -1104,6 +1104,25 @@ void RENDER_CallBack( GFX_CallBackFunctions_t function ) {
     }
 }
 
+// figure out doublewidth/height values
+void RENDER_CalcDoubleWidthHeight(Bitu width, Bitu height, double scrn_ratio, bool& dblw, bool& dblh, double& ratio);
+void RENDER_CalcDoubleWidthHeight(Bitu width, Bitu height, double scrn_ratio, bool &dblw, bool &dblh, double &ratio) {
+    bool do_not_dblh = (IS_VGA_ARCH && vga.draw.doublescan_set) || machine == MCH_MDA || machine == MCH_HERC || (machine == MCH_OLIVETTI && vga.mode == M_DCGA) || (machine == MCH_3270PC && (vga.mode == M_CGA2 || vga.mode == M_CGA4)); // M24 640x400 / 3270 APA 720x350 are already full physical lines
+    ratio = (((double)width) / ((double)height)) / scrn_ratio;
+    if(ratio > 1.6 && !do_not_dblh) {
+        dblh = true;
+        ratio /= 2.0;
+    }
+    else if(ratio < 0.75) {
+        dblw = true;
+        ratio *= 2.0;
+    }
+    else if(width < 370 && height < 280) {
+        dblw = true; dblh = true;
+    }
+    LOG_MSG("pixratio %1.3f, dw %s, dh %s", ratio, dblw ? "true" : "false", dblh ? "true" : "false");
+}
+
 void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio) {
     RENDER_Halt( );
     if (!width || !height) {
@@ -1121,18 +1140,8 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
     // figure out doublewidth/height values
     bool dblw = false;
     bool dblh = false;
-    bool do_not_dblh = (IS_VGA_ARCH && vga.draw.doublescan_set) || machine == MCH_MDA || machine == MCH_HERC || (machine == MCH_OLIVETTI && vga.mode == M_DCGA) || (machine == MCH_3270PC && (vga.mode == M_CGA2 || vga.mode == M_CGA4)); // M24 640x400 / 3270 APA 720x350 are already full physical lines
-    double ratio = (((double)width)/((double)height))/scrn_ratio;
-    if(ratio > 1.6 && !do_not_dblh) {
-        dblh=true;
-        ratio /= 2.0;
-    } else if(ratio < 0.75) {
-        dblw=true;
-        ratio *= 2.0;
-    } else if(width < 370 && height < 280) {
-        dblw=true; dblh=true;
-    }
-    LOG_MSG("pixratio %1.3f, dw %s, dh %s",ratio,dblw?"true":"false",dblh?"true":"false");
+    double ratio = 4.0/3.0;
+    RENDER_CalcDoubleWidthHeight(width, height, scrn_ratio, dblw, dblh, ratio);
 
     /* this must be done after dblw/dblh so extra room can be added without screwing up the screen.
      * debug information is drawn into the buffer pre-scaler to make sure that if the user wants it
