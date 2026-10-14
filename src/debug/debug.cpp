@@ -31,7 +31,16 @@
 #include <sstream>
 using namespace std;
 
+#if defined(__GNUC__) && !defined(__clang__)
+// GCC incorrectly reports an uninitialized matcher in the bundled GoogleMock
+// test sources when they are compiled into this translation unit.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #include "../../tests/tests.h"
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 #include "debug.h"
 #if defined(C_DOSBOX_AGENT)
@@ -6269,7 +6278,7 @@ static void SaveMemory(const char *filename, uint16_t seg, uint32_t ofs1, uint32
 	auto address = GetAddress(seg, ofs1);
 	std::ofstream file(filename);
 	if (!file.is_open()) {
-		DEBUG_ShowMsg("DEBUG: Memory dump failed.\n");
+		DEBUG_ShowMsg("DEBUG: Unable to open %s for writing.\n", filename);
 		return;
 	}
 
@@ -6295,18 +6304,14 @@ static void SaveMemory(const char *filename, uint16_t seg, uint32_t ofs1, uint32
 		num -= row_size;
 	}
 	file.close();
-	if (!file) {
-		DEBUG_ShowMsg("DEBUG: Memory dump failed.\n");
-		return;
-	}
 	DEBUG_ShowMsg("DEBUG: Memory dump success.\n");
 }
 
 static void SaveMemoryBin(const char *filename, uint16_t seg, uint32_t ofs1, uint32_t num) {
-	auto  address = GetAddress(seg, ofs1);
+	auto address = GetAddress(seg, ofs1);
 	std::ofstream file(filename, std::ios::binary);
 	if (!file.is_open()) {
-		DEBUG_ShowMsg("DEBUG: Memory binary dump failed.\n");
+		DEBUG_ShowMsg("DEBUG: Unable to open %s for writing.\n", filename);
 		return;
 	}
 
@@ -6321,10 +6326,6 @@ static void SaveMemoryBin(const char *filename, uint16_t seg, uint32_t ofs1, uin
 	}
 
 	file.close();
-	if (!file) {
-		DEBUG_ShowMsg("DEBUG: Memory binary dump failed.\n");
-		return;
-	}
 	DEBUG_ShowMsg("DEBUG: Memory dump binary success.\n");
 }
 
