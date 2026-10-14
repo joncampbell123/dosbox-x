@@ -919,6 +919,15 @@ void DOSBOX_InitTickLoop() {
     DOSBOX_SetLoop(&Normal_Loop);
 }
 
+void Init_ConsoleMonitor() {
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+	LOG(LOG_MISC,LOG_DEBUG)("Init_ConsoleMonitor: This is a test to see where this starts.");
+	assert( NULL != section );
+	
+	bool isEnabled= section->Get_bool("enable monitor");
+	int port= section->Get_int("monitor port");
+}
+
 void Init_VGABIOS() {
     long rom_sz = 0;
     FILE *rom_fp = NULL;
@@ -2190,6 +2199,12 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable PCI bus emulation");
+
+    Pbool = secprop->Add_bool("enable monitor",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Enable DOSBox-X monitor console.");
+
+    Pint = secprop->Add_int("monitor port", Property::Changeable::WhenIdle,4444);
+    Pint->Set_help("Use port on localhost to access the monitor console. Default is :4444.");
 
     secprop=control->AddSection_prop("render",&Null_Init,true);
     Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
