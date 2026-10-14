@@ -97,10 +97,6 @@ class Monitor{
 		m.ListIDE();
 	}
 
-	void	prompt( TCPsocket tClient ){
-		SDLNet_TCP_Send( tClient,_prompt.c_str(),_prompt.length() );
-	}
-
 	/* Callback for threading. */
 	static int	listen( void *tData ) {
 		auto& m= *reinterpret_cast< Monitor* >( tData );
@@ -111,12 +107,16 @@ class Monitor{
 	}
 
 	/* Main program functions */
+	void	prompt( TCPsocket tClient ){
+		SDLNet_TCP_Send( tClient,_prompt.c_str(),_prompt.length() );
+	}
+
 	std::vector< std::string >	processCLI( std::string &tBuffer ){
-		std::vector< std::string > vCommands={};
+		std::vector< std::string > vCommands ={};
 		std::istringstream info_stream( tBuffer );
 		std::string sstr_token;
 
-		while( info_stream >> sstr_token ) {
+		while( info_stream >>sstr_token ) {
 			vCommands.push_back( sstr_token );
 		}
 		return vCommands;
@@ -141,9 +141,9 @@ class Monitor{
 	}
 
 	TCPsocket	connectClient() {
-		TCPsocket client=nullptr;
+		TCPsocket client= nullptr;
 
-		while( _isRunning || nullptr == client ){
+		while( _isRunning || nullptr ==client ){
 			client= SDLNet_TCP_Accept( _server );
 			if ( client ) {
 				LOG_MSG( "MONITOR client connected on %d.%d.%d.%d:%d.\n",
@@ -182,7 +182,7 @@ class Monitor{
 		for( auto n:dds ){
 			std::string drive_info=Drives[ n ]->GetInfo();
 				
-			dinfo_t vInfo={};
+			dinfo_t vInfo= {};
 			std::istringstream info_stream( drive_info );
 			std::string info_token;
 
@@ -245,14 +245,14 @@ class Monitor{
 
 		auto iDrive= std::find_if( drives.begin(),drives.end(),
 			[ & ]( const std::vector< std::string >& drive ){		
-				return drive[0]== drivePath; } );
+				return drive[0] ==drivePath; } );
 				
 		formatMessageAndSend( *iDrive );	
 	}
 
 	void	updateServer( ) {
 		while( _isRunning ) {
-			if( nullptr == _client ) {
+			if( nullptr ==_client ) {
 				_client= connectClient();
 			}
 
@@ -264,10 +264,10 @@ class Monitor{
 			memset(buffer,'\0',sizeof( char )*INPUT_LENGTH);
 			int bytes_received=SDLNet_TCP_Recv( _client,buffer,INPUT_LENGTH );
 
-			if( '\0' != buffer[ bytes_received-1 ] )
+			if( '\0' !=buffer[ bytes_received-1 ] )
 				buffer[ bytes_received-1 ] = '\0';
 
-			if( bytes_received <= 0  ){
+			if( bytes_received <=0  ){
 				LOG_MSG( "MONITOR client disconnected unexpectedly or connection lost.\n" );
 				SDLNet_TCP_Close( _client );
 				_client= nullptr;
@@ -322,12 +322,12 @@ class Monitor{
 	static Monitor& OpenMonitor( int tPort) {
 		static Monitor m;
 
-		if( false == m._isRunning ) {
+		if( false ==m._isRunning ) {
 			if( m._pThread ) m.onServerClose();
 
 			m._isRunning= m.startServer( tPort );
 
-			if ( true == m._isRunning ){
+			if ( true ==m._isRunning ){
 				m._pThread= SDL_CreateThread( listen,"dosbox-x monitor",&m );
 				SDL_DetachThread( m._pThread );
 			}
