@@ -60,11 +60,11 @@ class Monitor{
 	SDL_Thread		*_pThread;
 	std::string		_message;
 
-	const std::string	_prompt;
 	std::atomic< bool >	_isRunning;
-	std::vector< int >	_availableDrives;
+	std::array< int,24 >	_availableDrives;
 
-	CommandList		_commands= {
+	const std::string	_prompt;
+	const CommandList	_commands= {
 		{ "close",	cbCloseServer },
 		{ "exit",	cbExitClient },
 		{ "list",	cbListIDE },
@@ -310,8 +310,9 @@ class Monitor{
 	_userInput( 8,"\0" ),
     _server( nullptr ),_client( nullptr ),
 	_hostIP( IPaddress{ 0,0 } ),_pThread( nullptr ),
-	_message( std::string( 128,'\0' ) ),_prompt( "(dosbox-x) " ),
-	_isRunning( false ),_availableDrives( 24 ) {
+	_message( std::string( 128,'\0' ) ),
+	_isRunning( false ),_availableDrives( )
+	,_prompt( "(dosbox-x) " ) {
 	}
 
 	public:
