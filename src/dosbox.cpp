@@ -919,15 +919,6 @@ void DOSBOX_InitTickLoop() {
     DOSBOX_SetLoop(&Normal_Loop);
 }
 
-void Init_ConsoleMonitor() {
-	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-	LOG(LOG_MISC,LOG_DEBUG)("Init_ConsoleMonitor: This is a test to see where this starts.");
-	assert( NULL != section );
-	
-	bool isEnabled= section->Get_bool("enable monitor");
-	int port= section->Get_int("monitor port");
-}
-
 void Init_VGABIOS() {
     long rom_sz = 0;
     FILE *rom_fp = NULL;
