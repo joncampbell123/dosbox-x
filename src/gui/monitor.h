@@ -286,14 +286,20 @@ class Monitor{
 		std::string drivePath= _userInput.at( 1 );
 		std::string imagePath= _userInput.at( 2 );
 
+		auto iDrive= std::find_if( drives.begin(),drives.end(),
+			[ & ]( const std::vector< std::string >& drive ){		
+				return drive[0] ==drivePath; } );
+
+		if( iDrive ==drives.end() ) {
+			_message= "Drive is unavailable.\n";
+			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+			return;
+		}
+
 		runImgmountISO( *drivePath.c_str(),std::vector< std::string >{ imagePath },true );
 
 		drives=	LookupIDE();
 
-		auto iDrive= std::find_if( drives.begin(),drives.end(),
-			[ & ]( const std::vector< std::string >& drive ){		
-				return drive[0] ==drivePath; } );
-				
 		formatMessageAndSend( *iDrive );	
 	}
 
