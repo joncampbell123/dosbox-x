@@ -916,8 +916,6 @@ static const char *def_menu_help[] =
     "HelpCommandMenu",
 #endif
 #if !defined(MACOSX) 
-    "--",
-    "help_mon",
 #endif
     NULL
 };
