@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <array>
 #include <atomic>
 #include <cctype>
 #include <SDL2/SDL_net.h>
@@ -306,10 +307,11 @@ class Monitor{
 
 	/* CTOR */
 	Monitor():
-	_server( nullptr ),_client( nullptr ),
+	_userInput( 8,"\0" ),
+    _server( nullptr ),_client( nullptr ),
 	_hostIP( IPaddress{ 0,0 } ),_pThread( nullptr ),
 	_message( std::string( 128,'\0' ) ),_prompt( "(dosbox-x) " ),
-	_isRunning( false ) {
+	_isRunning( false ),_availableDrives( 24 ) {
 	}
 
 	public:
