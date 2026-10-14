@@ -35,6 +35,13 @@
 #include "render.h"
 #include "../gui/render_scalers.h"
 #include "vga.h"
+#include "win31_publish.h"
+#include "paging.h"
+#include "cpu.h"
+#include "regs.h"
+#include <algorithm>
+#include <new>
+#include <utility>
 #include "pic.h"
 #include "jfont.h"
 #include "menu.h"
@@ -69,6 +76,122 @@ void OUTPUT_Metal_CheckSourceResolution();
 
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
+
+// Optional W31 publisher. All guest access happens synchronously in its I/O call.
+static Win31Publish::Pending win31_pending;
+static uint64_t win31_generation = 0;
+static bool win31_logged = false;
+
+void VGA_Win31PublishCancel(void)
+{
+    win31_pending.cancel();
+    ++win31_generation;
+}
+
+static bool win31_mode(Win31Publish::Shape &shape)
+{
+    if (vga.mode != M_LIN8 || !vga.mem.linear || vga.draw.resizing ||
+        vga.config.display_start || vga.draw.panning || vga.draw.bytes_skip)
+        return false;
+    shape.width = uint32_t(vga.draw.width);
+    shape.height = uint32_t(vga.draw.height);
+    shape.stride = uint32_t(vga.draw.address_add);
+    const uint64_t bytes = uint64_t(shape.stride) * shape.height;
+    if (bytes > vga.mem.memsize || bytes > Win31Publish::MaxFrameBytes)
+        return false;
+    shape.bytes = uint32_t(bytes);
+    return Win31Publish::valid_shape(shape);
+}
+
+static bool win31_read_ram(uint32_t address, uint8_t *out, size_t length)
+{
+    if (!Win31Publish::range(address, length))
+        return false;
+    while (length) {
+        PageNum page = address >> 12;
+        if (!PAGING_MakePhysPage(page))
+            return false;
+        if (page >= MEM_TotalPages())
+            return false;
+        PageHandler *handler = MEM_GetPageHandler(page);
+        const Bitu flags = handler->getFlags();
+        // Dynamic code-cache wrappers clear WRITEABLE to intercept code writes;
+        // their readable backing is still RAM. This service only reads it.
+        if (!(flags & PFLAG_READABLE) || (flags & PFLAG_HASROM) ||
+            !(flags & (PFLAG_WRITEABLE | PFLAG_HASCODE)))
+            return false;
+        HostPt host = handler->GetHostReadPt(page);
+        // Direct RAM only: a device can advertise readable/writable host storage too.
+        // Reject its backing pointer rather than invoking any MMIO read method.
+        if (!MemBase || host != MemBase + size_t(page) * 4096)
+            return false;
+        const size_t count = std::min(length, size_t(4096 - (address & 4095)));
+        memcpy(out, host + (address & 4095), count);
+        out += count;
+        address += uint32_t(count);
+        length -= count;
+    }
+    return true;
+}
+
+static uint32_t win31_submit(uint32_t address)
+{
+    Win31Publish::Shape current;
+    if (!cpu.pmode || cpu.cpl != 0 || (reg_flags & FLAG_VM) || !win31_mode(current))
+        return 1;
+    uint8_t raw[40];
+    if (!win31_read_ram(address, raw, sizeof(raw)))
+        return 3;
+    uint32_t d[10];
+    for (unsigned i = 0; i < 10; ++i) d[i] = Win31Publish::dword(raw + i * 4);
+    Win31Publish::Shape requested;
+    if (!Win31Publish::descriptor_valid(d, requested) || !(requested == current))
+        return 2;
+    Win31Publish::Pending next;
+    next.shape = requested;
+    next.generation = win31_generation;
+    next.pixels.resize(requested.bytes);
+    uint8_t cursor[Win31Publish::CursorBytes];
+    if (!win31_read_ram(d[2], next.pixels.data(), next.pixels.size()) ||
+        !win31_read_ram(d[4], cursor, sizeof(cursor)))
+        return 3;
+    if (!Win31Publish::compose(next.pixels, requested, cursor))
+        return 4;
+    win31_pending = std::move(next);
+    if (!win31_logged) {
+        LOG_MSG("W31 publisher: accepted %ux%u stride %u, native snapshot and vertical-blank commit",
+                requested.width, requested.height, requested.stride);
+        win31_logged = true;
+    }
+    return 0;
+}
+
+uint32_t VGA_Win31PublishSubmit(uint32_t descriptor)
+{
+    uint32_t result;
+    try {
+        result = win31_submit(descriptor);
+    } catch (const std::bad_alloc &) {
+        result = 3;
+    }
+    if (result) {
+        // Failure cannot later publish an earlier pending frame over the fallback.
+        VGA_Win31PublishCancel();
+    }
+    return result;
+}
+
+void VGA_Win31PublishCommit(void)
+{
+    if (win31_pending.pixels.empty())
+        return;
+    Win31Publish::Shape current;
+    if (win31_mode(current) && win31_pending.matches(current, win31_generation)) {
+        memcpy(vga.mem.linear, win31_pending.pixels.data(), win31_pending.pixels.size());
+        vga.draw.must_complete_frame = true;
+    }
+    win31_pending.cancel();
+}
 
 static constexpr unsigned int MCH_RAW_SNAPSHOT = 0xFFFF;
 
@@ -6399,6 +6522,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 			break;
 	}
 	RENDER_EndUpdate(renderAbort);
+    VGA_Win31PublishCommit(); // The previous scanout ended; the next sees a whole frame.
 	vga.draw.lines_done = 0;
 
 #if C_DIRECT3D && defined(C_SDL2)
@@ -8714,6 +8838,7 @@ void POD_Save_VGA_Draw( std::ostream& stream )
 
 void POD_Load_VGA_Draw( std::istream& stream )
 {
+    VGA_Win31PublishCancel(); // Pending host pixels belong to the pre-load guest.
 	uint8_t linear_base_idx;
 	uint8_t font_tables_idx[2];
 	uint8_t drawline_idx;

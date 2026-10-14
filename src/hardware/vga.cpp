@@ -292,6 +292,7 @@ void vsync_poll_debug_notify() {
 
 void VGA_SetModeNow(VGAModes mode) {
 	if (vga.mode == mode) return;
+    VGA_Win31PublishCancel();
 	vga.mode=mode;
 	VGA_SetupHandlers();
 	VGA_StartResize(0);
@@ -299,6 +300,7 @@ void VGA_SetModeNow(VGAModes mode) {
 
 void VGA_SetMode(VGAModes mode) {
 	if (vga.mode == mode) return;
+    VGA_Win31PublishCancel();
 	vga.mode=mode;
 	VGA_SetupHandlers();
 	VGA_StartResize();
@@ -374,6 +376,7 @@ void VGA_DetermineMode(void) {
 }
 
 void VGA_StartResize(Bitu delay /*=50*/) {
+    VGA_Win31PublishCancel();
 	if (!vga.draw.resizing) {
 		/* even if the user disables the delay, we can avoid a lot of window resizing by at least having 1ms of delay */
 		if (!enable_vga_resize_delay && delay > 1) delay = 1;
@@ -589,6 +592,7 @@ VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
 }
 
 void VGA_Reset(Section*) {
+    VGA_Win31PublishCancel();
 	//  All non-PC98 video-related config settings are now in the [video] section
 
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("video"));

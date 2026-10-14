@@ -26,6 +26,7 @@
 #include "shell_cmds_tests.cpp"
 #include "shell_redirection_tests.cpp"
 #include "win31_publish_tests.cpp"
+#include "win31_publish_service_tests.cpp"
 #include "agent/agent_architecture_tests.cpp"
 #include "agent/agent_parser_tests.cpp"
 #include "agent/agent_transport_tests.cpp"
