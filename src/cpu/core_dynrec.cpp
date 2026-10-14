@@ -46,7 +46,7 @@
 #include "pic.h"
 
 extern bool do_lds_wraparound;
-extern bool use_dynamic_core_with_fpu;
+extern bool enable_fpu;
 
 #define CACHE_MAXSIZE	(4096*2)
 #define CACHE_TOTAL		(1024*1024*8)

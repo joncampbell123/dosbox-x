@@ -49,6 +49,14 @@ Next version:
     (maron2000)
   - Improved SoundFont discovery and path handling. (maron2000)
   - D3D11: Fixed window resizing (maron2000)
+  - FPU: Added unmasked x87 numeric exception delivery (#MF when CR0.NE is
+    set, IRQ 13 otherwise), enabled IRQ 13 on FPU-configured PC resets,
+    and suppressed writes/pops after unmasked pre-commit exceptions. Dynamic
+    FPU cores deliver them too with the dynamic_x86 core switching between
+    its host-FPU fast path and generic handler depending on guest exception
+    masks. (cimarronm)
+  - FPU: Dynamic CPU cores now always handle x87 and MMX instructions;
+    removed the "use dynamic core with fpu" configuration setting. (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed

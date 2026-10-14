@@ -163,6 +163,7 @@
 	} else {																\
 		GetEAa;FPU_ESC ## code ## _EA(rm,eaa);								\
 	}																		\
+	if (FPU_NumericExceptionPending()) EXCEPTION(EXCEPTION_MF);				\
 }
 
 #define FPU_ESC_SIZE(code, op16) {														\
@@ -172,6 +173,7 @@
 	} else {																\
 		GetEAa;FPU_ESC ## code ## _EA(rm,eaa,op16);								\
 	}																		\
+	if (FPU_NumericExceptionPending()) EXCEPTION(EXCEPTION_MF);				\
 }
 
 #define CASE_W(_WHICH)							\
