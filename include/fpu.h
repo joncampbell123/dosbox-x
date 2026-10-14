@@ -161,6 +161,10 @@ static INLINE void FPU_SetTag(uint16_t tags){
 
 void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub);
 
+// True if the x87 state has an unmasked exception that must be delivered as
+// #MF on processors configured with CR0.NE.
+bool FPU_NumericExceptionPending();
+
 /* FPU exception flags */
 enum {
     FPU_EX_INVALID = 0x0001,    // IE

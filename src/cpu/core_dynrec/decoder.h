@@ -25,6 +25,39 @@
 #include "dyn_fpu.h"
 #include <stddef.h>
 
+static bool DynFpuInterruptPending()
+{
+	return PIC_IRQCheck != 0;
+}
+
+static void dyn_fpu_check_irqrequest()
+{
+	gen_call_function_raw(DynFpuInterruptPending);
+	save_info_dynrec[used_save_info_dynrec].branch_pos =
+	        gen_create_branch_long_nonzero(FC_RETOP, false);
+	if (!decode.cycles) decode.cycles++;
+	save_info_dynrec[used_save_info_dynrec].cycles = decode.cycles;
+	save_info_dynrec[used_save_info_dynrec].eip_change =
+	        decode.code - decode.code_start;
+	if (!cpu.code.big)
+		save_info_dynrec[used_save_info_dynrec].eip_change &= 0xffff;
+	save_info_dynrec[used_save_info_dynrec].type = normal;
+	used_save_info_dynrec++;
+}
+
+static void dyn_fpu_post_instruction()
+{
+	gen_call_function_raw(FPU_NumericException);
+	dyn_check_exception(FC_RETOP);
+	dyn_fpu_check_irqrequest();
+}
+
+static void dyn_fpu_pre_instruction()
+{
+	gen_call_function_raw(FPU_CoprocessorException);
+	dyn_check_exception(FC_RETOP);
+}
+
 #include "lock.h"
 static INLINE uint8_t LockPrefixRead(PhysPt address) {
 	return mem_readb(address);
@@ -357,7 +390,6 @@ restart_prefix:
 		case 0x8f:dyn_pop_ev();break;
 
 		case 0x90:	// nop
-		case 0x9b:	// wait
 			break;
 
 		case 0x91:case 0x92:case 0x93:case 0x94:case 0x95:case 0x96:case 0x97:
@@ -370,6 +402,13 @@ restart_prefix:
 		case 0x99:dyn_cwd();break;
 
 		case 0x9a:dyn_call_far_imm();goto finish_block;
+
+		case 0x9b:	// wait
+#ifdef CPU_FPU
+			dyn_fpu_pre_instruction();
+			dyn_fpu_post_instruction();
+#endif
+			break;
 
 		case 0x9c:	// pushf
 			AcquireFlags(FMASK_TEST);
@@ -482,36 +521,52 @@ restart_prefix:
 #ifdef CPU_FPU
 		// floating point instructions
 		case 0xd8:
-			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+			if (!enable_fpu) goto let_normal_core_handle_it;
+			dyn_fpu_pre_instruction();
 			dyn_fpu_esc0();
+			dyn_fpu_post_instruction();
 			break;
 		case 0xd9:
-			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+			if (!enable_fpu) goto let_normal_core_handle_it;
+			dyn_fpu_pre_instruction();
 			dyn_fpu_esc1();
+			dyn_fpu_post_instruction();
 			break;
 		case 0xda:
-			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+			if (!enable_fpu) goto let_normal_core_handle_it;
+			dyn_fpu_pre_instruction();
 			dyn_fpu_esc2();
+			dyn_fpu_post_instruction();
 			break;
 		case 0xdb:
-			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+			if (!enable_fpu) goto let_normal_core_handle_it;
+			dyn_fpu_pre_instruction();
 			dyn_fpu_esc3();
+			dyn_fpu_post_instruction();
 			break;
 		case 0xdc:
-			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+			if (!enable_fpu) goto let_normal_core_handle_it;
+			dyn_fpu_pre_instruction();
 			dyn_fpu_esc4();
+			dyn_fpu_post_instruction();
 			break;
 		case 0xdd:
-			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+			if (!enable_fpu) goto let_normal_core_handle_it;
+			dyn_fpu_pre_instruction();
 			dyn_fpu_esc5();
+			dyn_fpu_post_instruction();
 			break;
 		case 0xde:
-			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+			if (!enable_fpu) goto let_normal_core_handle_it;
+			dyn_fpu_pre_instruction();
 			dyn_fpu_esc6();
+			dyn_fpu_post_instruction();
 			break;
 		case 0xdf:
-			if (!use_dynamic_core_with_fpu) goto let_normal_core_handle_it;
+			if (!enable_fpu) goto let_normal_core_handle_it;
+			dyn_fpu_pre_instruction();
 			dyn_fpu_esc7();
+			dyn_fpu_post_instruction();
 			break;
 #endif
 

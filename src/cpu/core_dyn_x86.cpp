@@ -53,7 +53,7 @@
 #define DYN_LINKS		(16)
 
 extern bool do_lds_wraparound;
-extern bool use_dynamic_core_with_fpu;
+extern bool enable_fpu;
 
 //#define DYN_LOG 1 //Turn logging on
 
@@ -176,11 +176,11 @@ static struct {
 
 #if defined(X86_DYNFPU_DH_ENABLED)
 static struct dyn_dh_fpu_struct {
-	uint16_t	cw,host_cw;
+	uint16_t	cw, host_cw; // Guest CW and the host's pre-DH CW
 	bool		state_used;
 	// some fields expanded here for alignment purposes
 	struct {
-		uint32_t cw;
+		uint32_t cw; // Host CW, with all exceptions masked
 		uint32_t sw;
 		uint32_t tag;
 		uint32_t ip;
@@ -191,6 +191,7 @@ static struct dyn_dh_fpu_struct {
 	} state;
 	FPU_P_Reg	temp,temp2;
 	uint32_t	dh_fpu_enabled;
+	uint32_t	dh_fpu_allowed;
 	uint8_t		temp_state[128];
 } dyn_dh_fpu;
 #endif
@@ -296,11 +297,85 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 	dst_reg->genreg->dynreg=dst_reg;	// necessary when register has been released
 }
 
+#if defined(X86_DYNFPU_DH_ENABLED)
+static bool using_normal_core = false;
+static bool dh_fpu_mode_changed = false;
+static bool dh_fpu_exception_pending = false;
+static bool dh_fpu_update_mode(void);
+static bool dh_fpu_take_numeric_exception(void);
+static bool dh_fpu_mode_change_pending(void);
+#endif
+
 #include "core_dyn_x86/decoder.h"
 
 #if defined(X86_DYNFPU_DH_ENABLED)
 
-static bool using_normal_core = false;
+static bool dh_fpu_exceptions_masked(const uint16_t control_word)
+{
+	return (control_word & FPUStatusWord::exceptionMask) == FPUStatusWord::exceptionMask;
+}
+
+static void dh_fpu_copy_to_common()
+{
+	FPU_SetTag(dyn_dh_fpu.state.tag);
+	fpu.cw = dyn_dh_fpu.cw;
+	fpu.sw = dyn_dh_fpu.state.sw;
+	const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+	for (Bitu i = 0; i < 8; ++i)
+		memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
+}
+
+static void dh_fpu_copy_from_common()
+{
+	dyn_dh_fpu.cw = fpu.cw.reg;
+	dyn_dh_fpu.state.cw = fpu.cw.reg | FPUStatusWord::exceptionMask;
+	dyn_dh_fpu.state.sw = fpu.sw.reg;
+	dyn_dh_fpu.state.tag = fpu_detail::GetTag();
+	uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+	for (Bitu i = 0; i < 8; ++i)
+		memcpy(buffer + i * 10, &fpu.p_regs[STV(i)], 10);
+	dyn_dh_fpu.state_used = false;
+}
+
+static bool dh_fpu_update_mode()
+{
+	dh_fpu_exception_pending = false;
+
+	if (dyn_dh_fpu.dh_fpu_enabled) {
+		if (dh_fpu_exceptions_masked(dyn_dh_fpu.cw)) return false;
+
+		if (dyn_dh_fpu.state_used) gen_dh_fpu_save();
+		dh_fpu_copy_to_common();
+		dh_fpu_exception_pending = FPU_NumericException();
+		dyn_dh_fpu.dh_fpu_enabled = false;
+		using_normal_core = true;
+		dh_fpu_mode_changed = true;
+		return true;
+	}
+
+	if (!dyn_dh_fpu.dh_fpu_allowed ||
+	    !dh_fpu_exceptions_masked(fpu.cw.reg)) {
+		return false;
+	}
+
+	dh_fpu_copy_from_common();
+	dyn_dh_fpu.dh_fpu_enabled = true;
+	using_normal_core = false;
+	dh_fpu_mode_changed = true;
+	return true;
+}
+
+static bool dh_fpu_take_numeric_exception()
+{
+	const auto pending = dh_fpu_exception_pending;
+	dh_fpu_exception_pending = false;
+	return pending;
+}
+
+static bool dh_fpu_mode_change_pending()
+{
+	return dh_fpu_mode_changed;
+}
 
 static void dh_fpu_enter_normal_core (void)
 {
@@ -310,13 +385,7 @@ static void dh_fpu_enter_normal_core (void)
 	if (!using_normal_core) {
 		using_normal_core = true;
 		if (dyn_dh_fpu.dh_fpu_enabled) { /* If NOT enabled, the code below will obliterate FPU state and problems result */
-			FPU_SetTag(dyn_dh_fpu.state.tag);
-			fpu.cw = dyn_dh_fpu.state.cw;
-			fpu.sw = dyn_dh_fpu.state.sw;
-			const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
-			for(Bitu i = 0;i < 8;i++){
-				memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
-			}
+			dh_fpu_copy_to_common();
 		}
 	}
 }
@@ -325,13 +394,16 @@ static void dh_fpu_enter_dyn_core (void)
 {
 	if (using_normal_core) {
 		using_normal_core = false;
-		dyn_dh_fpu.state.tag = fpu_detail::GetTag();
-		dyn_dh_fpu.state.cw = fpu.cw;
-		dyn_dh_fpu.state.sw = fpu.sw;
-		uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
-		for(Bitu i = 0;i < 8;i++){
-			memcpy(buffer + i * 10, &fpu.p_regs[STV(i)], 10);
+		const auto was_enabled = dyn_dh_fpu.dh_fpu_enabled != 0;
+		const auto should_enable = dyn_dh_fpu.dh_fpu_allowed &&
+		                           dh_fpu_exceptions_masked(fpu.cw.reg);
+		if (should_enable) {
+			dh_fpu_copy_from_common();
+			dyn_dh_fpu.dh_fpu_enabled = true;
+		} else {
+			dyn_dh_fpu.dh_fpu_enabled = false;
 		}
+		if (was_enabled != should_enable) dh_fpu_mode_changed = true;
 	}
 }
 
@@ -343,6 +415,7 @@ static Bits Safe_CPU_Core_Normal_Run (void)
 static BlockReturnDynX86 safe_gen_runcode(uint8_t* code)
 {
 	dh_fpu_enter_dyn_core();
+	if (dh_fpu_mode_changed) return BR_Cycles;
 	return gen_runcode(code);
 }
 
@@ -433,6 +506,14 @@ run_block:
 	cache.block.running=nullptr;
 	core_dyn.pagefault = false;
 	BlockReturnDynX86 ret=safe_gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
+
+#if defined(X86_DYNFPU_DH_ENABLED)
+	if (dh_fpu_mode_changed) {
+		dh_fpu_mode_changed = false;
+		cache_reset();
+		if (ret == BR_Cycles) return CBRET_NONE;
+	}
+#endif
 
 	if (sizeof(CPU_Cycles) > 4) {
 		// HACK: All dynrec cores for each processor assume CPU_Cycles is 32-bit wide.
@@ -605,7 +686,8 @@ void CPU_Core_Dyn_X86_Init(void) {
 
 #if defined(X86_DYNFPU_DH_ENABLED)
 	/* Init the fpu state */
-	dyn_dh_fpu.dh_fpu_enabled=true;
+	dyn_dh_fpu.dh_fpu_enabled = true;
+	dyn_dh_fpu.dh_fpu_allowed = true;
 	dyn_dh_fpu.state_used=false;
 	dyn_dh_fpu.cw=0x37f;
 	// FINIT
@@ -632,7 +714,8 @@ void CPU_Core_Dyn_X86_Cache_Reset(void) {
 
 void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu) {
 #if defined(X86_DYNFPU_DH_ENABLED)
-	dyn_dh_fpu.dh_fpu_enabled=dh_fpu;
+	dyn_dh_fpu.dh_fpu_allowed = dh_fpu;
+	dyn_dh_fpu.dh_fpu_enabled = dh_fpu && dh_fpu_exceptions_masked(fpu.cw.reg);
 #endif
 }
 

@@ -208,10 +208,12 @@ static void dh_fpu_esc1(){
 		case 0x04: /* FLDENV */
 			dyn_call_function_pagefault_check((void*)&FPU_FLDENV_DH,"%Drd%Ib", DREG(EA), !decode.big_op);
 			dh_fpu_mem(0xd9);
+			dyn_dh_fpu_post_instruction();
 			break;
 		case 0x05: /* FLDCW */
 			dyn_call_function_pagefault_check((void *)&FPU_FLDCW_DH,"%Drd",DREG(EA));
 			dh_fpu_mem(0xd9);
+			dyn_dh_fpu_post_instruction();
 			break;
 		case 0x06: /* FSTENV */
 			dh_fpu_mem(0xd9);
@@ -366,11 +368,13 @@ static void dh_fpu_esc5(){
 		case 0x04:	/* FRSTOR */
 			dyn_call_function_pagefault_check((void*)&FPU_FRSTOR_DH,"%Drd%Ib",DREG(EA), !decode.big_op);
 			dh_fpu_mem(0xdd, decode.modrm.reg, &(dyn_dh_fpu.temp_state[0]));
+			dyn_dh_fpu_post_instruction();
 			break;
 		case 0x06:	/* FSAVE */
 			dh_fpu_mem(0xdd, decode.modrm.reg, &(dyn_dh_fpu.temp_state[0]));
 			dyn_call_function_pagefault_check((void*)&FPU_FSAVE_DH,"%Drd%Ib",DREG(EA), !decode.big_op);
 			cache_addw(0xE3DB);
+			gen_call_function((void*)&FPU_FNINIT_DH,"");
 			break;
 		case 0x07:   /* FNSTSW */
 			dh_fpu_mem(0xdd);

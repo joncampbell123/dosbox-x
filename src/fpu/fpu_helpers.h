@@ -17,7 +17,7 @@ enum class RemainderMode {
     Nearest,
 };
 
-void CheckException();
+bool CheckException();
 void SetStatusFromHostExceptions();
 uint16_t GetTag();
 InputClass ClassifyInput(int op);
@@ -28,8 +28,8 @@ bool InputIsInfinity(int op);
 bool InputIsNegative(int op);
 bool InputIsNaN(int op);
 bool InputIsZero(int op);
-void CheckInputDenormals(int op);
-void CheckInputDenormals(int op1, int op2);
+bool CheckInputDenormals(int op);
+bool CheckInputDenormals(int op1, int op2);
 bool CheckInputs(int op);
 bool CheckInputs(int op1, int op2, bool propagate_nan = true);
 void PartialRemainder(double& dividend, double divisor, RemainderMode mode);
@@ -39,7 +39,7 @@ void PartialRemainder(long double& dividend,
                       RemainderMode mode);
 #endif
 void RaiseLoadExceptions(bool denormal, bool signaling_nan);
-void Compare(int op1, int op2, bool ordered);
+bool Compare(int op1, int op2, bool ordered);
 void CompareToCpuFlags(int op1, int op2, bool ordered);
 
 } // namespace fpu_detail
