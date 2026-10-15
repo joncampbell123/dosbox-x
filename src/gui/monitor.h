@@ -172,11 +172,7 @@ class Monitor{
 			return false;
 		}
 
-		#if defined(C_SDL2_NET) && C_SDL2_NET
-		_server= SDLNet_TCP_OpenServer( &_hostIP );
-		#else
 		_server= SDLNet_TCP_Open( &_hostIP );
-		#endif
 
 		return true;
 	}
