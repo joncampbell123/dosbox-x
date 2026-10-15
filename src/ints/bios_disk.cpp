@@ -2168,16 +2168,18 @@ static Bitu INT13_DiskHandler(void) {
             /* IDE emulation: simulate change of IDE state that would occur on a real machine after INT 13h */
             IDE_EmuINT13DiskReadByBIOS(reg_dl, rd_cyl, (uint32_t)reg_dh, rd_sect+i);
 
+            /* Real controllers still transfer the data of a sector flagged with a CRC error
+             * or deleted mark (copy protection compares it); other failures leave memory untouched. */
+            if (!killRead && (last_status==Int13Status::NoError || last_status==Int13Status::DataError)) {
+                for (t=0; t < secsz; t++) real_writeb(segat, bufptr++, sectbuf[t]);
+            }
+
             if((last_status != Int13Status::NoError) || killRead) {
                 LOG_MSG("Error in disk read");
                 killRead = false;
                 reg_ah = (last_status != Int13Status::NoError) ? (uint8_t)last_status : (uint8_t)Int13Status::SectorNotFound;
                 CALLBACK_SCF(true);
                 return CBRET_NONE;
-            }
-            for(t=0;t<secsz;t++) {
-                real_writeb(segat,bufptr,sectbuf[t]);
-                bufptr++;
             }
         }
         reg_ah = 0x00;
