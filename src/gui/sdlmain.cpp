@@ -154,7 +154,6 @@ char* revert_escape_newlines(const char* aMessage);
 #include "inout.h"
 #include "jfont.h"
 #include "render.h"
-#include "monitor.h"
 #include "../dos/cdrom.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
@@ -166,6 +165,10 @@ char* revert_escape_newlines(const char* aMessage);
 #endif
 #if C_DEBUG
 #include "display2.cpp"
+#endif
+
+#if defined (C_SDL_NET) && C_SDL_NET || defined (C_SDL2_NET) && C_SDL2_NET
+#include "monitor.h"
 #endif
 
 #if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
