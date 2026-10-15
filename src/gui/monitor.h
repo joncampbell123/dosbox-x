@@ -108,7 +108,7 @@ class Monitor{
 	}
 
 	static void CB_Cycles( void *data ) {
-		LOG_MSG( "MONITOR setting cycles to %d.",20000 );
+        
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
 		m.setCycles();
 	}
@@ -158,6 +158,8 @@ class Monitor{
 		CPU_CycleMax= CPU_OldCycleMax= newCycleCount;
 		GFX_SetTitle( (int32_t)CPU_OldCycleMax,-1,-1,false );
 		menu_update_autocycle();
+        
+        LOG_MSG( "MONITOR setting cycles to %d.",newCycleCount );
 	}
 
 	bool	startServer( int tPort ) {
