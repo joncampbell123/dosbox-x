@@ -21,7 +21,6 @@
 
 #include <string>
 #include <vector>
-#include <array>
 #include <atomic>
 #include <cctype>
 #if defined(C_SDL2_NET) && C_SDL2_NET
@@ -72,7 +71,6 @@ class Monitor{
 	std::string		_message;
 
 	std::atomic< bool >	_isRunning;
-	std::array< int,24 >	_availableDrives;
 
 	const std::string	_prompt;
 	const CommandList	_commands= {
@@ -368,8 +366,7 @@ class Monitor{
    _server( nullptr ),_client( nullptr ),
 	_hostIP( IPaddress{ 0,0 } ),_pThread( nullptr ),
 	_message( std::string( 128,'\0' ) ),
-	_isRunning( false ),_availableDrives( )
-	,_prompt( "(dosbox-x) " ) {
+	_isRunning( false ),_prompt( "(dosbox-x) " ) {
 	}
 
 	public:
