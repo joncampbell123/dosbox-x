@@ -381,7 +381,7 @@ class Monitor{
 
 			if ( true ==m._isRunning ){
 
-				#if defined(C_SDL2_NET) && C_SDL2_NET
+				#if defined(C_SDL2) && C_SDL
 				m._pThread= SDL_CreateThread( CB_Listen,"dosbox-x monitor",&m );
 				SDL_DetachThread( m._pThread );
 				#else
