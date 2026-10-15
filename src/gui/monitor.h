@@ -385,7 +385,7 @@ class Monitor{
 				m._pThread= SDL_CreateThread( CB_Listen,"dosbox-x monitor",&m );
 				SDL_DetachThread( m._pThread );
 				#else
-				m._pThread= SDL_CreateThread( CB_Listen,&m );
+				m._pThread= SDL_CreateThread( CB_Listen,(void*)&m );
 				#endif
 			}
 		}
