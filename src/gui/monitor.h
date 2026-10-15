@@ -76,47 +76,47 @@ class Monitor{
 
 	const std::string	_prompt;
 	const CommandList	_commands= {
-		{ "close",	cbCloseServer },
-		{ "exit",	cbExitClient },
-		{ "list",	cbListIDE },
-		{ "change",	cbChangeIDE },
-		{ "cycles",	cbCycles },
+		{ "close",	CB_CloseServer },
+		{ "exit",	CB_ExitClient },
+		{ "list",	CB_ListIDE },
+		{ "change",	CB_ChangeIDE },
+		{ "cycles",	CB_Cycles },
 	};
 
 	/* Callbacks are paired with simple string */
 
-	static void cbCloseServer( void *data ){
+	static void CB_CloseServer( void *data ){
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
 		m.onServerClose();
 		LOG_MSG( "MONITOR server successfully closed." );
 	}
 
-	static void cbExitClient( void *data ) {
+	static void CB_ExitClient( void *data ) {
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
 		m.closeClientSocket();
 		LOG_MSG( "MONITOR client successfully disconnected." );
 	}
 
-	static void cbChangeIDE( void *data ) {	
+	static void CB_ChangeIDE( void *data ) {	
 		LOG_MSG( "MONITOR attempting to change CD." );
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.ChangeIDE();
+		m.changeIDE();
 	}
 
-	static void cbListIDE( void *data ) {
+	static void CB_ListIDE( void *data ) {
 		LOG_MSG( "MONITOR searching for attached IDE-CD." );
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.ListIDE();
+		m.listIDE();
 	}
 
-	static void cbCycles( void *data ) {
+	static void CB_Cycles( void *data ) {
 		LOG_MSG( "MONITOR setting cycles to %d.",20000 );
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
 		m.setCycles();
 	}
 
 	/* Callback for threading. */
-	static int listen( void *tData ) {
+	static int CB_Listen( void *tData ) {
 		auto& m= *reinterpret_cast< Monitor* >( tData );
 		
 		m.updateServer();
@@ -144,7 +144,7 @@ class Monitor{
 	 *		Rewrite this function to behave more like the mainmenu counter part.
 	 *		Where it should accep and processt Auto, Fixed and Max.
 	 */
-	void setCycles() {
+	void	setCycles() {
 		if( _userInput.size() <2 ) {
 			_message= "Format: cycles <value>\n";
 			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
@@ -168,8 +168,6 @@ class Monitor{
 
 		if( _server )
 			onServerClose();
-	
-		std::string hostname{"localhost"};
 
 		if ( SDLNet_ResolveHost( &_hostIP,nullptr,tPort ) ) {
 	       		fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
@@ -213,14 +211,14 @@ class Monitor{
 		if( _client ) closeSocket( _client );
 	}
 
-	void	formatMessageAndSend( dinfo_t& tDriveString ) {
+	void	formatIDEMessageAndSend( dinfo_t& tDriveString ) {
 			std::string info= std::string( "\t" ) + tDriveString.at( 0 ) + ":\\\t(" + tDriveString.at( 1 ) + ")\n";
 			LOG_MSG( "%s",info.c_str() );
 			SDLNet_TCP_Send( _client,info.c_str(),info.size() );	
 	}
 
 	/* Look for all available CD-IDE drives. */
-	ddesc_t	LookupIDE() {
+	ddesc_t	lookupIDE() {
 		std::vector< int > dds={};
 
 		Get_IDECD_drives( dds );
@@ -248,8 +246,8 @@ class Monitor{
 	}
 	
 	/* Format and print available drives to log and send to client. */
-	void ListIDE() {
-		ddesc_t drives= LookupIDE();
+	void	listIDE() {
+		ddesc_t drives= lookupIDE();
 
 		_message= "No drive(s) mounted.\n";
 
@@ -262,18 +260,18 @@ class Monitor{
 		SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
 
 		for( auto drive:drives ) {
-			formatMessageAndSend( drive );
+			formatIDEMessageAndSend( drive );
 		}
 	}
 
-	void ChangeIDE() {		
+	void	changeIDE() {		
 		if( _userInput.size() <3 ) {
 			_message= "Format: change <drive_letter> <image_path>\n";
 			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
 			return;
 		}
 
-		ddesc_t drives= LookupIDE();
+		ddesc_t drives= lookupIDE();
 					
 		_message=  "No drive(s) mounted.\n";
 		if( drives.empty() ) {
@@ -298,9 +296,9 @@ class Monitor{
 
 		runImgmountISO( *drivePath.c_str(),std::vector< std::string >{ imagePath },true );
 
-		drives=	LookupIDE();
+		drives=	lookupIDE();
 
-		formatMessageAndSend( *iDrive );	
+		formatIDEMessageAndSend( *iDrive );	
 	}
 
 	void	updateServer( ) {
@@ -367,7 +365,7 @@ class Monitor{
 	/* CTOR */
 	Monitor():
 	_userInput( 8,"\0" ),
-    _server( nullptr ),_client( nullptr ),
+   _server( nullptr ),_client( nullptr ),
 	_hostIP( IPaddress{ 0,0 } ),_pThread( nullptr ),
 	_message( std::string( 128,'\0' ) ),
 	_isRunning( false ),_availableDrives( )
@@ -380,7 +378,7 @@ class Monitor{
 		onServerClose();
 	}
 
-	static Monitor& OpenMonitor( int tPort) {
+	static	Monitor& OpenMonitor( int tPort) {
 		static Monitor m;
 
 		if( false ==m._isRunning ) {
@@ -391,7 +389,7 @@ class Monitor{
 			if ( true ==m._isRunning ){
 
 				#if defined(C_SDL2_NET) && C_SDL2_NET
-				m._pThread= SDL_CreateThread( listen,"dosbox-x monitor",&m );
+				m._pThread= SDL_CreateThread( CB_Listen,"dosbox-x monitor",&m );
 				SDL_DetachThread( m._pThread );
 				#else
 				m._pThread= SDL_CreateThread( listen,&m );
