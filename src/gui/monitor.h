@@ -47,6 +47,23 @@ extern void menu_update_autocycle(void);
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 extern void CPU_Core_Dyn_X86_Init(void);
+
+
+#if (C_DYNAMIC_X86)
+extern void CPU_Core_Dyn_X86_Init(void);
+extern void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
+extern void CPU_Core_Dyn_X86_Cache_Close(void);
+extern void CPU_Core_Dyn_X86_Cache_Reset(void);
+extern void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
+extern void CPU_Core_Dyn_X86_Cache_Reset(void);
+#endif
+#if (C_DYNREC)
+extern void CPU_Core_Dynrec_Init(void);
+extern void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
+extern void CPU_Core_Dynrec_Cache_Close(void);
+extern void CPU_Core_Dynrec_Cache_Reset(void);
+#endif
+
 typedef std::vector< std::string > dinfo_t;
 typedef std::vector< dinfo_t > ddesc_t;
 
@@ -151,11 +168,21 @@ class Monitor{
 				userReqFull.append( _userInput.at( i )+" " );
 			}
 
+			userReqFull.erase( userReqFull.size()-1 );
+
 			#if (C_DYNAMIC_X86) || (C_DYNREC)
 			if( EXIT_SUCCESS ==userReqFull.compare(0,12,"core=dynamic" ) ) {
+				#if (C_DYNAMIC_X86)
+				CPU_Core_Dyn_X86_Cache_Init( true );
+				#endif
+				#if (C_DYNREC)
+				CPU_Core_Dynrec_Cache_Init( true );
+				#endif
 				#if (C_DYNAMIC_X86) && (C_DYNREC)
 				if( save_dynamic_rec )
 					sec->HandleInputline( std::string( "core=dynamic_rec" ) );
+				else
+					sec->HandleInputline( userReqFull );
 				#endif
 				return;
 			}
