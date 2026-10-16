@@ -78,9 +78,11 @@ class Monitor{
 		{ "exit",	CB_ExitClient },
 		{ "list",	CB_ListIDE },
 		{ "change",	CB_ChangeIDE },
-		{ "cycles",	CB_Cycles },
-//		{ "turbo",	CB_Turbo },
-//		{ "core",	CB_Core },
+		{ "core",	CB_CPUVar },
+		{ "cputype",CB_CPUVar },
+		{ "cycles",	CB_CPUVar },
+		{ "fpu",		CB_CPUVar },
+//		{ "turbo",	CB_CPUVar },
 	};
 
 	/* Callbacks are paired with simple string */
@@ -109,10 +111,9 @@ class Monitor{
 		m.listIDE();
 	}
 
-	static void CB_Cycles( void *data ) {
-        
+	static void CB_CPUVar( void *data ) {     
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.setCycles();
+		m.setCPUVar();
 	}
 
 	/* Callback for threading. */
@@ -140,15 +141,15 @@ class Monitor{
 		return vCommands;
 	}
 
-	void	setCycles() {
+	void	setCPUVar() {
 		Section* sec=control->GetSection("cpu");
-
 		if( sec ) {
-			std::string userReqFull="cycles=";
+			std::string userReqFull= _userInput.at( 0 )+"=";
+
 			for( int i{ 1 }; i <_userInput.size(); ++i ){
 			userReqFull.append( _userInput.at( i )+" " );
 		}
-	
+		userReqFull.at( userReqFull.size()-1 )= '\0';	
 		sec->HandleInputline( userReqFull );
 		}
 	}
