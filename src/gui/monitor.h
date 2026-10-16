@@ -217,7 +217,7 @@ class Monitor{
 		if( _client ) closeSocket( _client );
 	}
 
-	void	formatIDEMessageAndSend( dinfo_t& tDriveString ) {
+	void	formatIDEMessageAndSend( dinfo_t &tDriveString ) {
 			std::string info= std::string( "\t" ) + tDriveString.at( 0 ) + ":\\\t(" + tDriveString.at( 1 ) + ")\n";
 			LOG_MSG( "%s",info.c_str() );
 			SDLNet_TCP_Send( _client,info.c_str(),info.size() );	
@@ -271,6 +271,7 @@ class Monitor{
 	}
 
 	void	changeIDE() {		
+
 		if( _userInput.size() <3 ) {
 			_message= "Format: change <drive_letter> <image_path>\n";
 			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
@@ -278,7 +279,7 @@ class Monitor{
 		}
 
 		ddesc_t drives= lookupIDE();
-					
+ 					
 		_message=  "No drive(s) mounted.\n";
 		if( drives.empty() ) {
 			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
@@ -299,12 +300,11 @@ class Monitor{
 			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
 			return;
 		}
+		dinfo_t drive_info= *iDrive;
 
 		runImgmountISO( *drivePath.c_str(),std::vector< std::string >{ imagePath },true );
 
-		drives=	lookupIDE();
-
-		formatIDEMessageAndSend( *iDrive );	
+		formatIDEMessageAndSend( drive_info );
 	}
 
 	void	updateServer( ) {
