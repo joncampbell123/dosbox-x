@@ -102,7 +102,9 @@ static bool ReadDiskAddressPacket(uint16_t segment, uint16_t offset, DiskAddress
     packet.buffer_segment = real_readw(segment, offset); offset += 2;
     packet.sector = real_readd(segment, offset); offset += 4;
 
-    if ((packet.size != 0x10 && packet.size != 0x18) || packet.reserved != 0) {
+    // The 0x18-byte form uses a flat buffer pointer, which INT 13h does not
+    // currently support. Do not silently use its legacy segment:offset fields.
+    if (packet.size != 0x10 || packet.reserved != 0) {
         LOG(LOG_BIOS,LOG_WARN)("INT13: Invalid disk address packet size %u or reserved byte %u",
                                packet.size,
                                packet.reserved);
@@ -162,6 +164,7 @@ static Bitu INT13_ReadElToritoSectors(const DiskAddressPacket &packet,
                                       uint16_t dap_offset)
 {
     if (!INT13_ElTorito_cdrom) {
+        last_status = Int13Status::BadCommand;
         reg_ah = 0x01;
         CALLBACK_SCF(true);
         return CBRET_NONE;
@@ -182,7 +185,8 @@ static Bitu INT13_ReadElToritoSectors(const DiskAddressPacket &packet,
                                             static_cast<uint16_t>(sector_index));
             LOG_MSG("Error in CDROM read");
             killRead = false;
-            reg_ah = 0x04;
+            last_status = Int13Status::SectorNotFound;
+            reg_ah = static_cast<uint8_t>(last_status);
             CALLBACK_SCF(true);
             cdrom->Release();
             return CBRET_NONE;
@@ -192,6 +196,7 @@ static Bitu INT13_ReadElToritoSectors(const DiskAddressPacket &packet,
             real_writeb(packet.buffer_segment, buffer_offset++, byte);
     }
 
+    last_status = Int13Status::NoError;
     reg_ah = 0x00;
     CALLBACK_SCF(false);
     return CBRET_NONE;
@@ -204,6 +209,7 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
     DiskAddressPacket packet = {};
     if (!ReadDiskAddressPacket(dap_segment, dap_offset, packet) ||
         packet.sector_count == 0) {
+        last_status = Int13Status::BadCommand;
         reg_ah = 0x01;
         CALLBACK_SCF(true);
         return CBRET_NONE;
@@ -216,6 +222,7 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
     if (!any_images) {
         // Inherit the Earth cdrom uses this as a disk test.
         if ((reg_dl & 0x80) && reg_dh == 0 && (reg_cl & 0x3f) == 1) {
+            last_status = Int13Status::NoError;
             reg_ah = 0;
             CALLBACK_SCF(false);
             return CBRET_NONE;
@@ -228,36 +235,52 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
         return CBRET_NONE;
     }
 
-    std::array<uint8_t, int13_cdrom_sector_size> sector_buffer = {};
+    auto *const disk = imageDiskList[drivenum];
+    std::array<uint8_t, int13_max_sector_size> sector_buffer = {};
+    if (disk->getSectSize() > sector_buffer.size()) {
+        LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Extended read failed because disk bytes/sector on drive %c is too large", (char)drivenum + 'A');
+        last_status = Int13Status::Timeout;
+        reg_ah = static_cast<uint8_t>(last_status);
+        CALLBACK_SCF(true);
+        return CBRET_NONE;
+    }
+
     auto buffer_offset = packet.buffer_offset;
     for (uint32_t sector_index = 0; sector_index < packet.sector_count; ++sector_index) {
-        last_status = imageDiskList[drivenum]->Read_AbsoluteSector(packet.sector + sector_index,
-                                                                     sector_buffer.data());
+        sector_buffer.fill(0);
+        last_status = disk->Read_AbsoluteSector(packet.sector + sector_index,
+                                                sector_buffer.data());
 
         if (drivenum < 2) diskio_delay(int13_edd_sector_size, 0); // Floppy
         else              diskio_delay(int13_edd_sector_size);
 
         IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl, packet.sector + sector_index);
 
+        const auto data_transferred = last_status == Int13Status::NoError ||
+                                      last_status == Int13Status::DataError;
+        if (!killRead && data_transferred) {
+            for (auto byte = sector_buffer.cbegin();
+                 byte != sector_buffer.cbegin() + int13_edd_sector_size;
+                 ++byte)
+                real_writeb(packet.buffer_segment, buffer_offset++, *byte);
+        }
+
         if (last_status != Int13Status::NoError || killRead) {
-            INT13_SetTransferredSectorCount(dap_segment,
-                                            dap_offset,
-                                            static_cast<uint16_t>(sector_index));
+            INT13_SetTransferredSectorCount(
+                dap_segment,
+                dap_offset,
+                static_cast<uint16_t>(sector_index + (data_transferred && !killRead))
+            );
             LOG_MSG("Error in disk read");
             killRead = false;
-            reg_ah = (last_status != Int13Status::NoError)
-                             ? static_cast<uint8_t>(last_status)
-                             : static_cast<uint8_t>(Int13Status::SectorNotFound);
+            if (last_status == Int13Status::NoError) last_status = Int13Status::SectorNotFound;
+            reg_ah = static_cast<uint8_t>(last_status);
             CALLBACK_SCF(true);
             return CBRET_NONE;
         }
-
-        for (  auto byte = sector_buffer.cbegin();
-                byte != sector_buffer.cbegin() + int13_edd_sector_size;
-                ++byte)
-            real_writeb(packet.buffer_segment, buffer_offset++, *byte);
     }
 
+    last_status = Int13Status::NoError;
     reg_ah = 0x00;
     CALLBACK_SCF(false);
     return CBRET_NONE;
@@ -266,6 +289,7 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
 static Bitu INT13_ReadSectors(uint8_t drivenum)
 {
     if (reg_al == 0) {
+        last_status = Int13Status::BadCommand;
         reg_ah = 0x01;
         CALLBACK_SCF(true);
         return CBRET_NONE;
@@ -273,6 +297,7 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
 
     if (drivenum >= MAX_DISK_IMAGES || imageDiskList[drivenum] == NULL) {
         if (drivenum >= DOS_DRIVES || !Drives[drivenum] || Drives[drivenum]->isRemovable()) {
+            last_status = Int13Status::BadCommand;
             reg_ah = 0x01;
             CALLBACK_SCF(true);
             return CBRET_NONE;
@@ -285,6 +310,7 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
                 real_writeb(SegValue(es), reg_bx + 0x1be, 0x80);
                 real_writeb(SegValue(es), reg_bx + 0x1c2, 0x06);
             }
+            last_status = Int13Status::NoError;
             reg_ah = 0;
             CALLBACK_SCF(false);
             return CBRET_NONE;
@@ -302,6 +328,7 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
     if (disk->getSectSize() > sector_buffer.size()) {
         LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Read failed because disk bytes/sector on drive %c is too large", (char)drivenum + 'A');
         imageDiskChange[drivenum] = false;
+        last_status = Int13Status::Timeout;
         reg_ah = 0x80; /* timeout */
         CALLBACK_SCF(true);
         return CBRET_NONE;
@@ -311,6 +338,7 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
     if (drivenum < 2 && imageDiskChange[drivenum]) {
         LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Failing first read of drive %c to indicate disk change", (char)drivenum + 'A');
         imageDiskChange[drivenum] = false;
+        last_status = Int13Status::DiskChanged;
         reg_ah = 0x06;
         CALLBACK_SCF(true);
         return CBRET_NONE;
@@ -358,14 +386,14 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
         if (last_status != Int13Status::NoError || killRead) {
             LOG_MSG("Error in disk read");
             killRead = false;
-            reg_ah = (last_status != Int13Status::NoError)
-                             ? static_cast<uint8_t>(last_status)
-                             : static_cast<uint8_t>(Int13Status::SectorNotFound);
+            if (last_status == Int13Status::NoError) last_status = Int13Status::SectorNotFound;
+            reg_ah = static_cast<uint8_t>(last_status);
             CALLBACK_SCF(true);
             return CBRET_NONE;
         }
     }
 
+    last_status = Int13Status::NoError;
     reg_ah = 0x00;
     CALLBACK_SCF(false);
     return CBRET_NONE;
