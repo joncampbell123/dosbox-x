@@ -147,10 +147,16 @@ class Monitor{
 			std::string userReqFull= _userInput.at( 0 )+"=";
 
 			for( int i{ 1 }; i <_userInput.size(); ++i ){
-			userReqFull.append( _userInput.at( i )+" " );
-		}
-		userReqFull.at( userReqFull.size()-1 )= '\0';	
-		sec->HandleInputline( userReqFull );
+				userReqFull.append( _userInput.at( i )+" " );
+			}
+
+			if( EXIT_FAILURE ==userReqFull.compare(0,12,"core=dynamic" ) ) 
+				sec->HandleInputline( userReqFull );
+			else {
+				/*
+				 * TODO: fix segfault when core is set to dynamic. 
+				 */
+			}
 		}
 	}
 
