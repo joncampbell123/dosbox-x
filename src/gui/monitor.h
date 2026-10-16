@@ -271,17 +271,16 @@ class Monitor{
 	}
 
 	void	changeIDE() {		
-
 		if( _userInput.size() <3 ) {
 			_message= "Format: change <drive_letter> <image_path>\n";
 			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
 			return;
 		}
 
-		ddesc_t drives= lookupIDE();
- 					
-		_message=  "No drive(s) mounted.\n";
+		ddesc_t drives= lookupIDE();			
+
 		if( drives.empty() ) {
+			_message=  "No drive(s) mounted.\n";
 			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
 			return;
 		}
@@ -303,7 +302,6 @@ class Monitor{
 		dinfo_t drive_info= *iDrive;
 
 		runImgmountISO( *drivePath.c_str(),std::vector< std::string >{ imagePath },true );
-
 		formatIDEMessageAndSend( drive_info );
 	}
 
