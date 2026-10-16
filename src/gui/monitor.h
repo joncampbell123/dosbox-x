@@ -29,11 +29,7 @@
 #include "SDL_net.h"
 #endif
 
-#include "cpu.h"
 #include "dosbox.h"
-#include "ide.h"
-#include "logging.h"
-#include "../dos/drives.h"
 
 #define INPUT_LENGTH 1024
 
@@ -45,36 +41,21 @@ extern void runImgmountISO(const char drive,const std::vector<std::string> &path
 extern void RDTSC_rebase(void);
 extern void menu_update_autocycle(void);
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-
-extern void CPU_Core_Dyn_X86_Init(void);
-
-
 #if (C_DYNAMIC_X86)
-extern void CPU_Core_Dyn_X86_Init(void);
 extern void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
-extern void CPU_Core_Dyn_X86_Cache_Close(void);
-extern void CPU_Core_Dyn_X86_Cache_Reset(void);
-extern void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
-extern void CPU_Core_Dyn_X86_Cache_Reset(void);
 #endif
 #if (C_DYNREC)
-extern void CPU_Core_Dynrec_Init(void);
 extern void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
-extern void CPU_Core_Dynrec_Cache_Close(void);
-extern void CPU_Core_Dynrec_Cache_Reset(void);
 #endif
 
 typedef std::vector< std::string > dinfo_t;
 typedef std::vector< dinfo_t > ddesc_t;
-
 typedef void (*p_monFunc)(void*);
-
 typedef struct {
 	std::string	command;
 	p_monFunc	exec;
-	void		*data;
+	void			*data;
 } CommandExec;
-
 typedef std::vector< CommandExec > CommandList;
 
 class Monitor{
