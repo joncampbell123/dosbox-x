@@ -37,7 +37,7 @@
 
 #define INPUT_LENGTH 1024
 
-extern bool CPU_CycleAutoAdjust;
+extern bool save_dynamic_rec;
 
 extern void Get_IDECD_drives( std::vector< int >& );
 extern std::string GetIDEInfo();
@@ -46,6 +46,7 @@ extern void RDTSC_rebase(void);
 extern void menu_update_autocycle(void);
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
+extern void CPU_Core_Dyn_X86_Init(void);
 typedef std::vector< std::string > dinfo_t;
 typedef std::vector< dinfo_t > ddesc_t;
 
@@ -142,7 +143,7 @@ class Monitor{
 	}
 
 	void	setCPUVar() {
-		Section* sec=control->GetSection("cpu");
+		Section* sec=control->GetSection( "cpu" );
 		if( sec ) {
 			std::string userReqFull= _userInput.at( 0 )+"=";
 
@@ -150,13 +151,16 @@ class Monitor{
 				userReqFull.append( _userInput.at( i )+" " );
 			}
 
-			if( EXIT_FAILURE ==userReqFull.compare(0,12,"core=dynamic" ) ) 
-				sec->HandleInputline( userReqFull );
-			else {
-				/*
-				 * TODO: fix segfault when core is set to dynamic. 
-				 */
+			#if (C_DYNAMIC_X86) || (C_DYNREC)
+			if( EXIT_SUCCESS ==userReqFull.compare(0,12,"core=dynamic" ) ) {
+				#if (C_DYNAMIC_X86) && (C_DYNREC)
+				if( save_dynamic_rec )
+					sec->HandleInputline( std::string( "core=dynamic_rec" ) );
+				#endif
+				return;
 			}
+			#endif
+			sec->HandleInputline( userReqFull );
 		}
 	}
 
