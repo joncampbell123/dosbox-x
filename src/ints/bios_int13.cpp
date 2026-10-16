@@ -20,16 +20,16 @@
 #include <cstdint>
 
 #include "dosbox.h"
-#include "callback.h"
+
 #include "bios.h"
 #include "bios_disk.h"
-#include "regs.h"
-#include "mem.h"
-#include "dos_inc.h" /* for Drives[] */
-#include "../dos/drives.h"
-#include "ide.h"
+#include "callback.h"
 #include "cpu.h"
+#include "dos/drives.h"
+#include "ide.h"
 #include "int13.h"
+#include "mem.h"
+#include "regs.h"
 
 extern bool int13_disk_change_detect_enable;
 extern bool int13_extensions_enable;
@@ -83,29 +83,39 @@ static bool driveInactive(uint8_t driveNum) {
     return false;
 }
 
-static struct {
-    uint8_t sz;
-    uint8_t res;
-    uint16_t num;
-    uint16_t off;
-    uint16_t seg;
-    uint32_t sector;
-} dap;
+struct DiskAddressPacket
+{
+    uint8_t  size = 0;
+    uint8_t  reserved = 0;
+    uint16_t sector_count = 0;
+    uint16_t buffer_offset = 0;
+    uint16_t buffer_segment = 0;
+    uint32_t sector = 0;
+};
 
-static void readDAP(uint16_t seg, uint16_t off) {
-    dap.sz = real_readb(seg,off++);
-    dap.res = real_readb(seg,off++);
-    dap.num = real_readw(seg,off); off += 2;
-    dap.off = real_readw(seg,off); off += 2;
-    dap.seg = real_readw(seg,off); off += 2;
+static bool ReadDiskAddressPacket(uint16_t segment, uint16_t offset, DiskAddressPacket &packet)
+{
+    packet.size = real_readb(segment, offset++);
+    packet.reserved = real_readb(segment, offset++);
+    packet.sector_count = real_readw(segment, offset); offset += 2;
+    packet.buffer_offset = real_readw(segment, offset); offset += 2;
+    packet.buffer_segment = real_readw(segment, offset); offset += 2;
+    packet.sector = real_readd(segment, offset); offset += 4;
 
-    /* Although sector size is 64-bit, 32-bit 2TB limit should be more than enough */
-    dap.sector = real_readd(seg,off); off +=4;
-
-    if (real_readd(seg,off)) {
-        LOG(LOG_BIOS,LOG_WARN)("INT13: 64-bit sector addressing not supported");
-        dap.num = 0; /* this will cause calling INT 13h code to return an error */
+    if ((packet.size != 0x10 && packet.size != 0x18) || packet.reserved != 0) {
+        LOG(LOG_BIOS,LOG_WARN)("INT13: Invalid disk address packet size %u or reserved byte %u",
+                               packet.size,
+                               packet.reserved);
+        return false;
     }
+
+    /* Although sector addressing is 64-bit, the 32-bit 2 TB limit is sufficient. */
+    if (real_readd(segment, offset)) {
+        LOG(LOG_BIOS,LOG_WARN)("INT13: 64-bit sector addressing not supported");
+        return false;
+    }
+
+    return true;
 }
 
 void IDE_ResetDiskByBIOS(unsigned char disk);
@@ -136,6 +146,122 @@ static uint32_t floppyDPT_sector_size(void) {
 }
 
 constexpr auto int13_max_sector_size = 128u << 6u;
+constexpr auto int13_edd_sector_size = 512u;
+constexpr auto int13_cdrom_sector_size = 2048u;
+
+static void INT13_SetTransferredSectorCount(uint16_t dap_segment,
+                                             uint16_t dap_offset,
+                                             uint16_t sector_count)
+{
+    // RBIL specifies that failed EDD reads report the completed block count here.
+    real_writew(dap_segment, dap_offset + 2, sector_count);
+}
+
+static Bitu INT13_ReadElToritoSectors(const DiskAddressPacket &packet,
+                                      uint16_t dap_segment,
+                                      uint16_t dap_offset)
+{
+    if (!INT13_ElTorito_cdrom) {
+        reg_ah = 0x01;
+        CALLBACK_SCF(true);
+        return CBRET_NONE;
+    }
+
+    auto *const cdrom = INT13_ElTorito_cdrom;
+    std::array<uint8_t, int13_cdrom_sector_size> sector_buffer = {};
+    auto buffer_offset = packet.buffer_offset;
+
+    for (uint32_t sector_index = 0; sector_index < packet.sector_count; ++sector_index) {
+        diskio_delay(int13_edd_sector_size);
+        if (killRead || !cdrom->ReadSectorsHost(sector_buffer.data(),
+                                                false,
+                                                packet.sector + sector_index,
+                                                1)) {
+            INT13_SetTransferredSectorCount(dap_segment,
+                                            dap_offset,
+                                            static_cast<uint16_t>(sector_index));
+            LOG_MSG("Error in CDROM read");
+            killRead = false;
+            reg_ah = 0x04;
+            CALLBACK_SCF(true);
+            cdrom->Release();
+            return CBRET_NONE;
+        }
+
+        for (const auto byte : sector_buffer)
+            real_writeb(packet.buffer_segment, buffer_offset++, byte);
+    }
+
+    reg_ah = 0x00;
+    CALLBACK_SCF(false);
+    return CBRET_NONE;
+}
+
+static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
+{
+    const auto dap_segment = SegValue(ds);
+    const auto dap_offset = reg_si;
+    DiskAddressPacket packet = {};
+    if (!ReadDiskAddressPacket(dap_segment, dap_offset, packet) ||
+        packet.sector_count == 0) {
+        reg_ah = 0x01;
+        CALLBACK_SCF(true);
+        return CBRET_NONE;
+    }
+
+    if (INT13_ElTorito_NoEmuDriveNumber != 0 &&
+        INT13_ElTorito_NoEmuDriveNumber == reg_dl)
+        return INT13_ReadElToritoSectors(packet, dap_segment, dap_offset);
+
+    if (!any_images) {
+        // Inherit the Earth cdrom uses this as a disk test.
+        if ((reg_dl & 0x80) && reg_dh == 0 && (reg_cl & 0x3f) == 1) {
+            reg_ah = 0;
+            CALLBACK_SCF(false);
+            return CBRET_NONE;
+        }
+    }
+
+    if (driveInactive(drivenum)) {
+        reg_ah = 0xff;
+        CALLBACK_SCF(true);
+        return CBRET_NONE;
+    }
+
+    std::array<uint8_t, int13_cdrom_sector_size> sector_buffer = {};
+    auto buffer_offset = packet.buffer_offset;
+    for (uint32_t sector_index = 0; sector_index < packet.sector_count; ++sector_index) {
+        last_status = imageDiskList[drivenum]->Read_AbsoluteSector(packet.sector + sector_index,
+                                                                     sector_buffer.data());
+
+        if (drivenum < 2) diskio_delay(int13_edd_sector_size, 0); // Floppy
+        else              diskio_delay(int13_edd_sector_size);
+
+        IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl, packet.sector + sector_index);
+
+        if (last_status != Int13Status::NoError || killRead) {
+            INT13_SetTransferredSectorCount(dap_segment,
+                                            dap_offset,
+                                            static_cast<uint16_t>(sector_index));
+            LOG_MSG("Error in disk read");
+            killRead = false;
+            reg_ah = (last_status != Int13Status::NoError)
+                             ? static_cast<uint8_t>(last_status)
+                             : static_cast<uint8_t>(Int13Status::SectorNotFound);
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
+
+        for (  auto byte = sector_buffer.cbegin();
+                byte != sector_buffer.cbegin() + int13_edd_sector_size;
+                ++byte)
+            real_writeb(packet.buffer_segment, buffer_offset++, *byte);
+    }
+
+    reg_ah = 0x00;
+    CALLBACK_SCF(false);
+    return CBRET_NONE;
+}
 
 static Bitu INT13_ReadSectors(uint8_t drivenum)
 {
@@ -608,110 +734,26 @@ static Bitu INT13_DiskHandler(void) {
         CALLBACK_SCF(true);
         break;
     case 0x42: /* Extended Read Sectors From Drive */
-        /* Read Disk Address Packet */
-        readDAP(SegValue(ds),reg_si);
-
-        if (dap.num==0) {
-            reg_ah = 0x01;
-            CALLBACK_SCF(true);
-            return CBRET_NONE;
-        }
-        if (INT13_ElTorito_NoEmuDriveNumber != 0 && INT13_ElTorito_NoEmuDriveNumber == reg_dl) {
-		if (!INT13_ElTorito_cdrom) {
-                        reg_ah = 0x01;
-                        CALLBACK_SCF(true);
-                        return CBRET_NONE;
-                }
-
-                CDROM_Interface *src_drive = INT13_ElTorito_cdrom;
-
-                segat = dap.seg;
-                bufptr = dap.off;
-                for(i=0;i<dap.num;i++) {
-                        static_assert( sizeof(sectbuf) >= 2048, "not big enough" );
-                        diskio_delay(512);
-                        if (killRead || !src_drive->ReadSectorsHost(sectbuf, false, dap.sector+i, 1)) {
-                                real_writew(SegValue(ds),reg_si+2,i); // According to RBIL this should update the number of blocks field to what was successfully transferred
-                                LOG_MSG("Error in CDROM read");
-                                killRead = false;
-                                reg_ah = 0x04;
-                                CALLBACK_SCF(true);
-                                src_drive->Release();
-                                return CBRET_NONE;
-                        }
-
-                        for(t=0;t<2048;t++) {
-                                real_writeb(segat,bufptr,sectbuf[t]);
-                                bufptr++;
-                        }
-                }
-                reg_ah = 0x00;
-                CALLBACK_SCF(false);
-                return CBRET_NONE;
-        }
-
-        if (!any_images) {
-            // Inherit the Earth cdrom (uses it as disk test)
-            if (((reg_dl&0x80)==0x80) && (reg_dh==0) && ((reg_cl&0x3f)==1)) {
-                reg_ah = 0;
-                CALLBACK_SCF(false);
-                return CBRET_NONE;
-            }
-        }
-        if (driveInactive(drivenum)) {
-            reg_ah = 0xff;
-            CALLBACK_SCF(true);
-            return CBRET_NONE;
-        }
-
-        segat = dap.seg;
-        bufptr = dap.off;
-        for(i=0;i<dap.num;i++) {
-            last_status = imageDiskList[drivenum]->Read_AbsoluteSector(dap.sector+i, sectbuf);
-
-            if(drivenum < 2)
-                diskio_delay(512, 0); // Floppy
-            else
-                diskio_delay(512);
-
-            IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl,dap.sector+i);
-
-            if((last_status != Int13Status::NoError) || killRead) {
-                real_writew(SegValue(ds),reg_si+2,i); // According to RBIL this should update the number of blocks field to what was successfully transferred
-                LOG_MSG("Error in disk read");
-                killRead = false;
-                reg_ah = (last_status != Int13Status::NoError) ? (uint8_t)last_status : (uint8_t)Int13Status::SectorNotFound;
-                CALLBACK_SCF(true);
-                return CBRET_NONE;
-            }
-            for(t=0;t<512;t++) {
-                real_writeb(segat,bufptr,sectbuf[t]);
-                bufptr++;
-            }
-        }
-        reg_ah = 0x00;
-        CALLBACK_SCF(false);
-        break;
-    case 0x43: /* Extended Write Sectors to Drive */
+        return INT13_ExtendedReadSectors(drivenum, any_images);
+    case 0x43: { /* Extended Write Sectors to Drive */
         if(driveInactive(drivenum)) {
             reg_ah = 0xff;
             CALLBACK_SCF(true);
             return CBRET_NONE;
         }
 
-        /* Read Disk Address Packet */
-        readDAP(SegValue(ds),reg_si);
-
-        if (dap.num==0) {
+        DiskAddressPacket packet = {};
+        if (!ReadDiskAddressPacket(SegValue(ds), reg_si, packet) ||
+            packet.sector_count == 0) {
             reg_ah = 0x01;
             CALLBACK_SCF(true);
             return CBRET_NONE;
         }
 
-        bufptr = dap.off;
-        for(i=0;i<dap.num;i++) {
+        bufptr = packet.buffer_offset;
+        for(i=0;i<packet.sector_count;i++) {
             for(t=0;t<imageDiskList[drivenum]->getSectSize();t++) {
-                sectbuf[t] = real_readb(dap.seg,bufptr);
+                sectbuf[t] = real_readb(packet.buffer_segment,bufptr);
                 bufptr++;
             }
 
@@ -720,7 +762,7 @@ static Bitu INT13_DiskHandler(void) {
             else
                 diskio_delay(512);
 
-            last_status = imageDiskList[drivenum]->Write_AbsoluteSector(dap.sector+i, &sectbuf[0]);
+            last_status = imageDiskList[drivenum]->Write_AbsoluteSector(packet.sector+i, &sectbuf[0]);
             if(last_status != Int13Status::NoError) {
                 reg_ah = (uint8_t)last_status;
                 CALLBACK_SCF(true);
@@ -730,6 +772,7 @@ static Bitu INT13_DiskHandler(void) {
         reg_ah = 0x00;
         CALLBACK_SCF(false);
         break;
+    }
     case 0x44: /* Extended Verify Sectors [http://www.ctyme.com/intr/rb-0711.htm] */
         if(driveInactive(drivenum)) {
             reg_ah = 0xff;
