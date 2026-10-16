@@ -79,6 +79,7 @@ class Monitor{
 		{ "list",	CB_ListIDE },
 		{ "change",	CB_ChangeIDE },
 		{ "cycles",	CB_Cycles },
+//		{ "turbo",	CB_Turbo },
 	};
 
 	/* Callbacks are paired with simple string */
@@ -140,7 +141,7 @@ class Monitor{
 
 	/* TODO:
 	 *		Rewrite this function to behave more like the mainmenu counter part.
-	 *		Where it should accep and processt Auto, Fixed and Max.
+	 *		Where it should accept and process Auto, Fixed and Max.
 	 */
 	void	setCycles() {
 		if( _userInput.size() <2 ) {
@@ -149,7 +150,20 @@ class Monitor{
 			return;
 		}
 
-		int newCycleCount= std::stoi( _userInput.at( 1 ) );
+		std::string userReq= _userInput.at( 1 );
+		
+		auto clinput= std::find_if( userReq.begin(),userReq.end(),
+			[ & ]( const char& character ){		
+				return std::isdigit( character ) ==false; } );
+
+		if( clinput != userReq.end() ) {
+			_message= "Cycles: value not recognized.\n";
+			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+			LOG_MSG( "MONITOR %s",_message.c_str() );
+			return;
+		}
+
+		int newCycleCount= std::stoi( userReq );
 
 		RDTSC_rebase();
 		CPU_CycleAutoAdjust= false;
@@ -159,7 +173,7 @@ class Monitor{
 		GFX_SetTitle( (int32_t)CPU_OldCycleMax,-1,-1,false );
 		menu_update_autocycle();
         
-        LOG_MSG( "MONITOR setting cycles to %d.",newCycleCount );
+		LOG_MSG( "MONITOR setting cycles to %d.",newCycleCount );
 	}
 
 	bool	startServer( int tPort ) {
