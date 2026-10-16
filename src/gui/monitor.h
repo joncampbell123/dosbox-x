@@ -80,6 +80,7 @@ class Monitor{
 		{ "change",	CB_ChangeIDE },
 		{ "cycles",	CB_Cycles },
 //		{ "turbo",	CB_Turbo },
+//		{ "core",	CB_Core },
 	};
 
 	/* Callbacks are paired with simple string */
@@ -139,41 +140,17 @@ class Monitor{
 		return vCommands;
 	}
 
-	/* TODO:
-	 *		Rewrite this function to behave more like the mainmenu counter part.
-	 *		Where it should accept and process Auto, Fixed and Max.
-	 */
 	void	setCycles() {
-		if( _userInput.size() <2 ) {
-			_message= "Format: cycles <value>\n";
-			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
-			return;
+		Section* sec=control->GetSection("cpu");
+
+		if( sec ) {
+			std::string userReqFull="cycles=";
+			for( int i{ 1 }; i <_userInput.size(); ++i ){
+			userReqFull.append( _userInput.at( i )+" " );
 		}
-
-		std::string userReq= _userInput.at( 1 );
-		
-		auto clinput= std::find_if( userReq.begin(),userReq.end(),
-			[ & ]( const char& character ){		
-				return std::isdigit( character ) ==false; } );
-
-		if( clinput != userReq.end() ) {
-			_message= "Cycles: value not recognized.\n";
-			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
-			LOG_MSG( "MONITOR %s",_message.c_str() );
-			return;
+	
+		sec->HandleInputline( userReqFull );
 		}
-
-		int newCycleCount= std::stoi( userReq );
-
-		RDTSC_rebase();
-		CPU_CycleAutoAdjust= false;
-		CPU_CycleLeft= 0;
-		CPU_Cycles= 0;
-		CPU_CycleMax= CPU_OldCycleMax= newCycleCount;
-		GFX_SetTitle( (int32_t)CPU_OldCycleMax,-1,-1,false );
-		menu_update_autocycle();
-        
-		LOG_MSG( "MONITOR setting cycles to %d.",newCycleCount );
 	}
 
 	bool	startServer( int tPort ) {
