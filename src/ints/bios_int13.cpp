@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <array>
 #include <cstdint>
 
 #include "dosbox.h"
@@ -134,6 +135,116 @@ static uint32_t floppyDPT_sector_size(void) {
     return 512;
 }
 
+constexpr auto int13_max_sector_size = 128u << 6u;
+
+static Bitu INT13_ReadSectors(uint8_t drivenum)
+{
+    if (reg_al == 0) {
+        reg_ah = 0x01;
+        CALLBACK_SCF(true);
+        return CBRET_NONE;
+    }
+
+    if (drivenum >= MAX_DISK_IMAGES || imageDiskList[drivenum] == NULL) {
+        if (drivenum >= DOS_DRIVES || !Drives[drivenum] || Drives[drivenum]->isRemovable()) {
+            reg_ah = 0x01;
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
+
+        // Inherit the Earth cdrom and Amberstar use this as a disk test.
+        if ((reg_dl & 0x80) && reg_dh == 0 && (reg_cl & 0x3f) == 1) {
+            if (reg_ch == 0) {
+                // Write MBR data for the Amberstar installer.
+                real_writeb(SegValue(es), reg_bx + 0x1be, 0x80);
+                real_writeb(SegValue(es), reg_bx + 0x1c2, 0x06);
+            }
+            reg_ah = 0;
+            CALLBACK_SCF(false);
+            return CBRET_NONE;
+        }
+    }
+
+    if (driveInactive(drivenum)) {
+        reg_ah = 0xff;
+        CALLBACK_SCF(true);
+        return CBRET_NONE;
+    }
+
+    auto *const disk = imageDiskList[drivenum];
+    std::array<uint8_t, int13_max_sector_size> sector_buffer = {};
+    if (disk->getSectSize() > sector_buffer.size()) {
+        LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Read failed because disk bytes/sector on drive %c is too large", (char)drivenum + 'A');
+        imageDiskChange[drivenum] = false;
+        reg_ah = 0x80; /* timeout */
+        CALLBACK_SCF(true);
+        return CBRET_NONE;
+    }
+
+    /* If the disk changed, the first INT 13h read signals an error and sets AH = 06h. */
+    if (drivenum < 2 && imageDiskChange[drivenum]) {
+        LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Failing first read of drive %c to indicate disk change", (char)drivenum + 'A');
+        imageDiskChange[drivenum] = false;
+        reg_ah = 0x06;
+        CALLBACK_SCF(true);
+        return CBRET_NONE;
+    }
+
+    const auto is_hard_drive = (reg_dl & 0x80) != 0;
+    const auto cylinder = is_hard_drive ? static_cast<uint32_t>(reg_ch | ((reg_cl & 0xc0) << 2))
+                                        : static_cast<uint32_t>(reg_ch);
+    const auto first_sector = is_hard_drive ? static_cast<uint32_t>(reg_cl & 0x3f)
+                                            : static_cast<uint32_t>(reg_cl);
+    const auto transfer_size = is_hard_drive ? 512u : floppyDPT_sector_size();
+    const auto buffer_segment = SegValue(es);
+    auto buffer_offset = reg_bx;
+
+    for (Bitu sector_index = 0; sector_index < reg_al; ++sector_index) {
+        // A DPT sector may be smaller or larger than the mounted image sector.
+        // Zeroing first ensures that larger guest transfers are padded.
+        sector_buffer.fill(0);
+        last_status = disk->Read_Sector(
+            static_cast<uint32_t>(reg_dh),
+            cylinder,
+            first_sector + sector_index,
+            sector_buffer.data()
+        );
+
+        if (disk->class_id == imageDisk::ID_EL_TORITO_FLOPPY) diskio_delay(512);
+        else if (drivenum < 2) diskio_delay(512, 0); // Floppy
+        else diskio_delay(512);
+
+        /* IDE emulation: simulate the state change after a real BIOS INT 13h read. */
+        IDE_EmuINT13DiskReadByBIOS(
+            reg_dl,
+            cylinder,
+            static_cast<uint32_t>(reg_dh),
+            first_sector + sector_index
+        );
+
+        /* Real controllers transfer data for CRC-error sectors. */
+        if (!killRead && (last_status == Int13Status::NoError ||
+                          last_status == Int13Status::DataError)) {
+            for (uint32_t byte_index = 0; byte_index < transfer_size; ++byte_index)
+                real_writeb(buffer_segment, buffer_offset++, sector_buffer[byte_index]);
+        }
+
+        if (last_status != Int13Status::NoError || killRead) {
+            LOG_MSG("Error in disk read");
+            killRead = false;
+            reg_ah = (last_status != Int13Status::NoError)
+                             ? static_cast<uint8_t>(last_status)
+                             : static_cast<uint8_t>(Int13Status::SectorNotFound);
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
+    }
+
+    reg_ah = 0x00;
+    CALLBACK_SCF(false);
+    return CBRET_NONE;
+}
+
 static Bitu INT13_DiskHandler(void) {
     uint16_t segat, bufptr;
     uint8_t sectbuf[2048/*CD-ROM support*/];
@@ -144,8 +255,11 @@ static Bitu INT13_DiskHandler(void) {
     last_drive = reg_dl;
     drivenum = GetDosDriveNumber(reg_dl);
     bool any_images = false;
-    for(i = 0;i < MAX_DISK_IMAGES;i++) {
-        if(imageDiskList[i]) any_images=true;
+    for (const auto *const image : imageDiskList) {
+        if (image) {
+            any_images = true;
+            break;
+        }
     }
 
     // unconditionally enable the interrupt flag
@@ -158,9 +272,6 @@ static Bitu INT13_DiskHandler(void) {
         CALLBACK_SCF(true);
         return CBRET_NONE;
     }
-
-    //drivenum = 0;
-    //LOG_MSG("INT13: Function %x called on drive %x (dos drive %d)", reg_ah,  reg_dl, drivenum);
 
     // NOTE: the 0xff error code returned in some cases is questionable; 0x01 seems more correct
     switch(reg_ah) {
@@ -199,103 +310,7 @@ static Bitu INT13_DiskHandler(void) {
         }
         break;
     case 0x2: /* Read sectors */
-        if (reg_al==0) {
-            reg_ah = 0x01;
-            CALLBACK_SCF(true);
-            return CBRET_NONE;
-        }
-        if (drivenum >= MAX_DISK_IMAGES || imageDiskList[drivenum] == NULL) {
-            if (drivenum >= DOS_DRIVES || !Drives[drivenum] || Drives[drivenum]->isRemovable()) {
-                reg_ah = 0x01;
-                CALLBACK_SCF(true);
-                return CBRET_NONE;
-            }
-            // Inherit the Earth cdrom and Amberstar use it as a disk test
-            if (((reg_dl&0x80)==0x80) && (reg_dh==0) && ((reg_cl&0x3f)==1)) {
-                if (reg_ch==0) {
-                    // write some MBR data into buffer for Amberstar installer
-                    real_writeb(SegValue(es),reg_bx+0x1be,0x80); // first partition is active
-                    real_writeb(SegValue(es),reg_bx+0x1c2,0x06); // first partition is FAT16B
-                }
-                reg_ah = 0;
-                CALLBACK_SCF(false);
-                return CBRET_NONE;
-            }
-        }
-        if (driveInactive(drivenum)) {
-            reg_ah = 0xff;
-            CALLBACK_SCF(true);
-            return CBRET_NONE;
-        }
-
-        /* INT 13h is limited to 512 bytes/sector (as far as I know).
-         * The sector buffer in this function is limited to 512 bytes/sector,
-         * so this is also a protection against overrunning the stack if you
-         * mount a PC-98 disk image (1024 bytes/sector) and try to read it with INT 13h. */
-        if (imageDiskList[drivenum]->sector_size > sizeof(sectbuf)) {
-            LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Read failed because disk bytes/sector on drive %c is too large",(char)drivenum+'A');
-
-            imageDiskChange[drivenum] = false;
-
-            reg_ah = 0x80; /* timeout */
-            CALLBACK_SCF(true);
-            return CBRET_NONE;
-        }
-
-        /* If the disk changed, the first INT 13h read will signal an error and set AH = 0x06 to indicate disk change */
-        if (drivenum < 2 && imageDiskChange[drivenum]) {
-            LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Failing first read of drive %c to indicate disk change",(char)drivenum+'A');
-
-            imageDiskChange[drivenum] = false;
-
-            reg_ah = 0x06; /* diskette changed or removed */
-            CALLBACK_SCF(true);
-            return CBRET_NONE;
-        }
-
-        /* Floppies (DL bit 7 clear) use an 8-bit cylinder in CH and an 8-bit sector in CL.
-         * Hard disks (DL bit 7 set) use a 10-bit cylinder (upper 2 bits in CL bits 6-7)
-         * and a 6-bit sector (CL bits 0-5). */
-        rd_cyl  = (reg_dl & 0x80) ? (uint32_t)(reg_ch | ((reg_cl & 0xc0) << 2)) : (uint32_t)reg_ch;
-        rd_sect = (reg_dl & 0x80) ? (uint32_t)(reg_cl & 63) : (uint32_t)reg_cl;
-        segat = SegValue(es);
-        bufptr = reg_bx;
-        /* Floppies transfer the bytes/sector given by the INT 1Eh disk base table; hard disks use 512. */
-        secsz = (reg_dl & 0x80) ? 512 : floppyDPT_sector_size();
-        if (secsz > sizeof(sectbuf)) {
-            LOG(LOG_BIOS,LOG_ERROR)("INT 13h: DPT bytes/sector %u exceeds buffer, clamping to %u",(unsigned int)secsz,(unsigned int)sizeof(sectbuf));
-            secsz = sizeof(sectbuf);
-        }
-        for(i=0;i<reg_al;i++) {
-            last_status = imageDiskList[drivenum]->Read_Sector((uint32_t)reg_dh, rd_cyl, rd_sect+i, sectbuf);
-
-            if (imageDiskList[drivenum]->class_id == imageDisk::ID_EL_TORITO_FLOPPY)
-                diskio_delay(512);
-            else if (drivenum < 2)
-                diskio_delay(512, 0); // Floppy
-            else
-                diskio_delay(512);
-
-            /* IDE emulation: simulate change of IDE state that would occur on a real machine after INT 13h */
-            IDE_EmuINT13DiskReadByBIOS(reg_dl, rd_cyl, (uint32_t)reg_dh, rd_sect+i);
-
-            /* Real controllers still transfer the data of a sector flagged with a CRC error
-             * or deleted mark (copy protection compares it); other failures leave memory untouched. */
-            if (!killRead && (last_status==Int13Status::NoError || last_status==Int13Status::DataError)) {
-                for (t=0; t < secsz; t++) real_writeb(segat, bufptr++, sectbuf[t]);
-            }
-
-            if((last_status != Int13Status::NoError) || killRead) {
-                LOG_MSG("Error in disk read");
-                killRead = false;
-                reg_ah = (last_status != Int13Status::NoError) ? (uint8_t)last_status : (uint8_t)Int13Status::SectorNotFound;
-                CALLBACK_SCF(true);
-                return CBRET_NONE;
-            }
-        }
-        reg_ah = 0x00;
-        CALLBACK_SCF(false);
-        break;
+        return INT13_ReadSectors(drivenum);
     case 0x3: /* Write sectors */
         
         if(driveInactive(drivenum) || !imageDiskList[drivenum]) {
