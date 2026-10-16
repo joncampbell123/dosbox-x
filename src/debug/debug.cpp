@@ -2194,6 +2194,17 @@ static bool ParseMemoryDumpArguments(char *&found, uint16_t &seg, uint32_t &ofs,
 	return true;
 }
 
+/* The argument of a debugger command as it was typed. ParseCommand upper-cases its own copy,
+ * which a file name does not survive on a case-sensitive file system. */
+static std::string RawCommandArgument(const char *str) {
+	while (*str == ' ' || *str == '\t') str++;
+	while (*str != 0 && *str != ' ' && *str != '\t') str++;
+	while (*str == ' ' || *str == '\t') str++;
+	std::string arg(str);
+	while (!arg.empty() && isspace((unsigned char)arg.back())) arg.pop_back();
+	return arg;
+}
+
 bool ParseCommand(char* str) {
     std::string copy_str = str;
     for (auto &c : copy_str) c = toupper(c);
@@ -2970,6 +2981,73 @@ bool ParseCommand(char* str) {
 		 * existing update routines. */
 		DrawRegistersUpdateOld();
 		DEBUG_DrawScreen();
+		return true;
+	}
+
+	if (command == "SAVESTATE" || command == "LOADSTATE") {
+		/* Save or load a state from the debugger, for a front end with nobody at the window
+		 * (an external client driving the mcp_server channel): the save state code shows no
+		 * dialog, and the outcome is reported here. The argument is a slot, 1 to the last
+		 * one, or a .sav file; with none, the current slot. Only with the debugger stopped,
+		 * and never from a timer tick: the mcp_server channel is served from a tick handler
+		 * while the guest runs, and loading a state there replaces the tick handler list the
+		 * timer is walking (a BREAK followed by a load in one batch would otherwise get
+		 * there). */
+		bool SaveState_Unattended(bool load, size_t slot, const std::string &file);
+		size_t GetGameState_Run(void);
+		if (!debugging || debug_running) {
+			DEBUG_ShowMsg("DEBUG: %s requires the debugger to be stopped\n", command.c_str());
+			return false;
+		}
+		if (TIMER_InTickHandlers) {
+			DEBUG_ShowMsg("DEBUG: %s cannot run from a timer tick: send it after the stop\n",
+				command.c_str());
+			return false;
+		}
+		const bool load = command == "LOADSTATE";
+		const std::string arg = RawCommandArgument(str);
+		const size_t slots = SaveState::SLOT_COUNT * SaveState::MAX_PAGE;
+		size_t slot = GetGameState_Run();
+		std::string file;
+		if (!arg.empty()) {
+			const bool digits = arg.find_first_not_of("0123456789") == std::string::npos;
+			const unsigned long n = digits ? strtoul(arg.c_str(), NULL, 10) : 0;
+			if (digits) {
+				if (n < 1 || n > slots) {
+					DEBUG_ShowMsg("DEBUG: %s slot must be 1 to %u\n", command.c_str(), (unsigned int)slots);
+					return false;
+				}
+				slot = (size_t)(n - 1);
+			}
+			else {
+				file = arg;
+			}
+		}
+		/* A file must end in .sav, and hold it nowhere else: the flagged files are kept
+		 * beside it under the same name with .sav made .dat, the first .sav found, and a
+		 * name with none would put them over the state itself. The name is copied into a
+		 * CROSS_LEN buffer on the way, so it is held to that. */
+		if (!file.empty() && (file.size() < 4 || file.find(".sav") != file.size() - 4)) {
+			DEBUG_ShowMsg("DEBUG: %s file must end in .sav and contain it nowhere else\n", command.c_str());
+			return false;
+		}
+		if (file.size() >= CROSS_LEN) {
+			DEBUG_ShowMsg("DEBUG: %s file name must be shorter than %u characters\n",
+				command.c_str(), (unsigned int)CROSS_LEN);
+			return false;
+		}
+		const std::string target = file.empty() ? "slot " + std::to_string(slot + 1) : file;
+		if (!SaveState_Unattended(load, slot, file)) {
+			DEBUG_ShowMsg("DEBUG: %s failed: %s (the log says why)\n", command.c_str(), target.c_str());
+			return false;
+		}
+		DEBUG_ShowMsg("DEBUG: %s %s\n", load ? "Loaded" : "Saved", target.c_str());
+		if (load) {
+			/* the machine was replaced: show the loaded one, as the F10/F11 keys would */
+			DrawRegistersUpdateOld();
+			SetCodeWinStart();
+			DEBUG_DrawScreen();
+		}
 		return true;
 	}
 
@@ -4320,6 +4398,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("CALLBACKS                 - Show callbacks of interrupts.\n");
 		DEBUG_ShowMsg("INT [nr] / INTT [nr]      - Execute / Trace into interrupt.\n");
 		DEBUG_ShowMsg("STEPIN                    - Execute exactly one instruction, then stop.\n");
+		DEBUG_ShowMsg("SAVESTATE [slot|file]     - Save a state to a slot (1-100) or a .sav file.\n");
+		DEBUG_ShowMsg("LOADSTATE [slot|file]     - Load a state from a slot (1-100) or a .sav file.\n");
 #if C_HEAVY_DEBUG
 		DEBUG_ShowMsg("LOG [num]                 - Write CPU log file.\n");
 		DEBUG_ShowMsg("LOGS/LOGL/LOGC [num]      - Write short/long/cs:ip-only CPU log file.\n");

@@ -361,8 +361,8 @@ public:
    typedef std::string Error;
     static const size_t MAX_PAGE = 10, SLOT_COUNT = 10; //slot: [0,...,SLOT_COUNT - 1]
 
-    void save   (size_t slot);       //throw (Error)
-    void load   (size_t slot) const; //throw (Error)
+    bool save   (size_t slot);       //throw (Error); false if nothing was saved
+    bool load   (size_t slot) const; //throw (Error); false if nothing was loaded
     bool isEmpty(size_t slot) const;
     void removeState(size_t slot) const;
     std::string getName(size_t slot, bool nl=false) const;

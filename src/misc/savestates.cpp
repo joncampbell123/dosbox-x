@@ -56,6 +56,11 @@ void GFX_LosingFocus(void), GFX_ReleaseMouse(void), MAPPER_ReleaseAllKeys(void),
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 extern std::string working_dir;
 
+/* Set while a state is saved or loaded for the debugger (SAVESTATE, LOADSTATE): nobody is
+ * at the window to answer a dialog, so an error is logged instead of shown, a confirmation
+ * is answered no, and no remark is asked for. */
+static bool unattended_save_state = false;
+
 namespace
 {
 	std::string getTime(bool date=false)
@@ -148,8 +153,8 @@ namespace
 
 	void notifyError(const std::string& message, bool log=true)
 	{
-		if (log) LOG_MSG("%s",message.c_str());
-		systemmessagebox("Error",message.c_str(),"ok","error", 1);
+		if (log || unattended_save_state) LOG_MSG("%s",message.c_str());
+		if (!unattended_save_state) systemmessagebox("Error",message.c_str(),"ok","error", 1);
 	}
 
 	size_t GetGameState(void) {
@@ -419,8 +424,8 @@ int zipOutOpenFile(zipFile zf,const char *zfname,zip_fileinfo &zi,const bool com
 		NULL/*password*/,0/*crcFile*/,1/*zip64*/);
 }
 
-void SaveState::save(size_t slot) { //throw (Error)
-	if (slot >= SLOT_COUNT*MAX_PAGE)  return;
+bool SaveState::save(size_t slot) { //throw (Error)
+	if (slot >= SLOT_COUNT*MAX_PAGE)  return false;
 #ifdef C_SDL2
         SDL_PauseAudioDevice(SDL2_AudioDevice, 0);
 #else
@@ -430,14 +435,14 @@ void SaveState::save(size_t slot) { //throw (Error)
 	if((MEM_TotalPages()*4096/1024/1024)>1024) {
 		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
 		notifyError("Unsupported memory size for saving states.", false);
-		return;
+		return false;
 	}
 	bool compresssaveparts = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("compresssaveparts");
 	const char *save_remark = "";
 #if !defined(HX_DOS)
 	if (auto_save_state)
 		save_remark = "Auto-save";
-	else if (!noremark_save_state) {
+	else if (!noremark_save_state && !unattended_save_state) {
 		/* NTS: tinyfd_inputBox() returns a string from an internal statically declared char array.
 		 *      It is not necessary to free the return string, but it is important to understand that
 		 *      the next call to tinyfd_inputBox() will obliterate the previously returned string.
@@ -457,7 +462,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 		MAPPER_ReleaseAllKeys();
 		GFX_LosingFocus();
 		if (fs&&!GFX_IsFullscreen()) GFX_SwitchFullScreen();
-		if (new_remark==NULL) return;
+		if (new_remark==NULL) return false;
 		new_remark=trim(new_remark);
 		if (strlen(new_remark)>30) new_remark[30]=0;
 		save_remark = new_remark;
@@ -573,6 +578,7 @@ done:
 		notifyError(MSG_Get("SAVE_FAILED"));
 	else
 		LOG_MSG("[%s]: Saved. (Slot %d)", getTime().c_str(), (int)slot+1);
+	return !save_err;
 }
 
 void savestatecorrupt(const char* part) {
@@ -585,6 +591,7 @@ std::string loadstate_detail_saved;
 std::string loadstate_detail_current;
 bool loadstateconfirm(int ind) {
 	if (ind<0||ind>4) return false;
+	if (unattended_save_state) return false;
 	confres=true;
 	GUI_Shortcut(23+ind);
 	bool ret=confres;
@@ -592,13 +599,13 @@ bool loadstateconfirm(int ind) {
 	return ret;
 }
 
-void SaveState::load(size_t slot) const { //throw (Error)
+bool SaveState::load(size_t slot) const { //throw (Error)
 	//	if (isEmpty(slot)) return;
 	bool load_err=false;
 	if((MEM_TotalPages()*4096/1024/1024)>1024) {
 		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
 		notifyError("Unsupported memory size for loading states.", false);
-		return;
+		return false;
 	}
 #ifdef C_SDL2
         SDL_PauseAudioDevice(SDL2_AudioDevice, 0);
@@ -624,7 +631,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		LOG_MSG("No saved slot - %d (%s)",(int)slot+1,save.c_str());
 		notifyError(use_save_file&&savefilename.size()?"The selected save file is currently empty.":"The selected save slot is an empty slot.", false);
 		load_err=true;
-		return;
+		return false;
 	}
 	check_slot.close();
     LOG_MSG("Loading state from slot: %d (%s)", (int)slot + 1, save.c_str());
@@ -784,6 +791,31 @@ done:
 
 	if (!dos_kernel_disabled) flagged_restore((char *)save.c_str());
 	if (!load_err) LOG_MSG("[%s]: Loaded. (Slot %d)", getTime().c_str(), (int)slot+1);
+	return !load_err;
+}
+
+bool SaveState_Unattended(bool load, size_t slot, const std::string &file) {
+	/* the menu's own settings are put back however this ends, an exception included */
+	struct Restore {
+		const bool unattended = unattended_save_state, use_file = use_save_file;
+		const std::string name = savefilename;
+		~Restore() { unattended_save_state = unattended; use_save_file = use_file; savefilename = name; }
+	} restore;
+	use_save_file = !file.empty();
+	if (!file.empty()) savefilename = file;
+	unattended_save_state = true;
+	bool ok = false;
+	try {
+		ok = load ? SaveState::instance().load(slot) : SaveState::instance().save(slot);
+	}
+	catch (const SaveState::Error& err) {
+		LOG_MSG("%s", err.c_str());
+	}
+	if (ok && !load && file.empty()) refresh_slots();
+#if defined(USE_TTF)
+	if (ok && load && ttf.inUse) resetFontSize();
+#endif
+	return ok;
 }
 
 bool SaveState::isEmpty(size_t slot) const {
