@@ -62,20 +62,19 @@ static uint8_t GetDosDriveNumber(uint8_t biosNum) {
 
 static bool driveInactive(uint8_t driveNum) {
     if(driveNum>=MAX_DISK_IMAGES) {
-        int driveCalledFor = reg_dl & 0x7f;
-        LOG(LOG_BIOS,LOG_ERROR)("Disk %d non-existent", driveCalledFor);
+        LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: BIOS drive 0x%02x does not exist", reg_dl);
         last_status = Int13Status::BadCommand;
         CALLBACK_SCF(true);
         return true;
     }
     if(imageDiskList[driveNum] == NULL) {
-        LOG(LOG_BIOS,LOG_ERROR)("Disk %d not active", (int)driveNum);
+        LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: BIOS drive 0x%02x is not active", reg_dl);
         last_status = Int13Status::BadCommand;
         CALLBACK_SCF(true);
         return true;
     }
     if(!imageDiskList[driveNum]->active) {
-        LOG(LOG_BIOS,LOG_ERROR)("Disk %d not active", (int)driveNum);
+        LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: BIOS drive 0x%02x is not active", reg_dl);
         last_status = Int13Status::BadCommand;
         CALLBACK_SCF(true);
         return true;
@@ -105,7 +104,7 @@ static bool ReadDiskAddressPacket(uint16_t segment, uint16_t offset, DiskAddress
     // The 0x18-byte form uses a flat buffer pointer, which INT 13h does not
     // currently support. Do not silently use its legacy segment:offset fields.
     if (packet.size != 0x10 || packet.reserved != 0) {
-        LOG(LOG_BIOS,LOG_WARN)("INT13: Invalid disk address packet size %u or reserved byte %u",
+        LOG(LOG_BIOS,LOG_WARN)("INT 13h: Invalid disk address packet size %u or reserved byte %u",
                                packet.size,
                                packet.reserved);
         return false;
@@ -113,7 +112,7 @@ static bool ReadDiskAddressPacket(uint16_t segment, uint16_t offset, DiskAddress
 
     /* Although sector addressing is 64-bit, the 32-bit 2 TB limit is sufficient. */
     if (real_readd(segment, offset)) {
-        LOG(LOG_BIOS,LOG_WARN)("INT13: 64-bit sector addressing not supported");
+        LOG(LOG_BIOS,LOG_WARN)("INT 13h: 64-bit sector addressing is not supported");
         return false;
     }
 
@@ -183,9 +182,9 @@ static Bitu INT13_ReadElToritoSectors(const DiskAddressPacket &packet,
             INT13_SetTransferredSectorCount(dap_segment,
                                             dap_offset,
                                             static_cast<uint16_t>(sector_index));
-            LOG_MSG("Error in CDROM read");
             killRead = false;
             last_status = Int13Status::SectorNotFound;
+            LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: El Torito read failed at LBA %u", packet.sector + sector_index);
             reg_ah = static_cast<uint8_t>(last_status);
             CALLBACK_SCF(true);
             cdrom->Release();
@@ -238,7 +237,9 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
     auto *const disk = imageDiskList[drivenum];
     std::array<uint8_t, int13_max_sector_size> sector_buffer = {};
     if (disk->getSectSize() > sector_buffer.size()) {
-        LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Extended read failed because disk bytes/sector on drive %c is too large", (char)drivenum + 'A');
+        LOG(LOG_BIOS,LOG_WARN)("INT 13h: Extended read failed because drive 0x%02x has %u-byte sectors",
+                               reg_dl,
+                               disk->getSectSize());
         last_status = Int13Status::Timeout;
         reg_ah = static_cast<uint8_t>(last_status);
         CALLBACK_SCF(true);
@@ -271,9 +272,12 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
                 dap_offset,
                 static_cast<uint16_t>(sector_index + (data_transferred && !killRead))
             );
-            LOG_MSG("Error in disk read");
             killRead = false;
             if (last_status == Int13Status::NoError) last_status = Int13Status::SectorNotFound;
+            LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Extended read failed on drive 0x%02x at LBA %u (status 0x%02x)",
+                                    reg_dl,
+                                    packet.sector + sector_index,
+                                    static_cast<uint8_t>(last_status));
             reg_ah = static_cast<uint8_t>(last_status);
             CALLBACK_SCF(true);
             return CBRET_NONE;
@@ -326,7 +330,9 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
     auto *const disk = imageDiskList[drivenum];
     std::array<uint8_t, int13_max_sector_size> sector_buffer = {};
     if (disk->getSectSize() > sector_buffer.size()) {
-        LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Read failed because disk bytes/sector on drive %c is too large", (char)drivenum + 'A');
+        LOG(LOG_BIOS,LOG_WARN)("INT 13h: Read failed because drive 0x%02x has %u-byte sectors",
+                               reg_dl,
+                               disk->getSectSize());
         imageDiskChange[drivenum] = false;
         last_status = Int13Status::Timeout;
         reg_ah = 0x80; /* timeout */
@@ -336,7 +342,7 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
 
     /* If the disk changed, the first INT 13h read signals an error and sets AH = 06h. */
     if (drivenum < 2 && imageDiskChange[drivenum]) {
-        LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Failing first read of drive %c to indicate disk change", (char)drivenum + 'A');
+        LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Failing first read of drive 0x%02x to indicate a disk change", reg_dl);
         imageDiskChange[drivenum] = false;
         last_status = Int13Status::DiskChanged;
         reg_ah = 0x06;
@@ -384,9 +390,14 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
         }
 
         if (last_status != Int13Status::NoError || killRead) {
-            LOG_MSG("Error in disk read");
             killRead = false;
             if (last_status == Int13Status::NoError) last_status = Int13Status::SectorNotFound;
+            LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Read failed on drive 0x%02x at C/H/S %u/%u/%u (status 0x%02x)",
+                                    reg_dl,
+                                    cylinder,
+                                    static_cast<uint32_t>(reg_dh),
+                                    static_cast<uint32_t>(first_sector + sector_index),
+                                    static_cast<uint8_t>(last_status));
             reg_ah = static_cast<uint8_t>(last_status);
             CALLBACK_SCF(true);
             return CBRET_NONE;
@@ -421,7 +432,8 @@ static Bitu INT13_DiskHandler(void) {
 
     /* map out functions 0x40-0x48 if not emulating INT 13h extensions */
     if (!int13_extensions_enable && reg_ah >= 0x40 && reg_ah <= 0x48) {
-        LOG_MSG("Warning: Guest is attempting to use INT 13h extensions (AH=0x%02X). Set 'int 13 extensions=1' if you want to enable them.\n",reg_ah);
+        LOG(LOG_BIOS,LOG_WARN)("INT 13h: Guest requested disabled extensions (AH=0x%02x); set 'int 13 extensions=1' to enable them",
+                               reg_ah);
         reg_ah=0xff;
         CALLBACK_SCF(true);
         return CBRET_NONE;
@@ -478,7 +490,9 @@ static Bitu INT13_DiskHandler(void) {
          * so this is also a protection against overrunning the stack if you
          * mount a PC-98 disk image (1024 bytes/sector) and try to read it with INT 13h. */
         if (imageDiskList[drivenum]->sector_size > sizeof(sectbuf)) {
-            LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Write failed because disk bytes/sector on drive %c is too large",(char)drivenum+'A');
+            LOG(LOG_BIOS,LOG_WARN)("INT 13h: Write failed because drive 0x%02x has %u-byte sectors",
+                                   reg_dl,
+                                   imageDiskList[drivenum]->sector_size);
 
             imageDiskChange[drivenum] = false;
 
@@ -494,7 +508,9 @@ static Bitu INT13_DiskHandler(void) {
         /* Floppies transfer the bytes/sector given by the INT 1Eh disk base table; hard disks use the image sector size. */
         secsz = (reg_dl & 0x80) ? imageDiskList[drivenum]->getSectSize() : floppyDPT_sector_size();
         if (secsz > sizeof(sectbuf)) {
-            LOG(LOG_BIOS,LOG_ERROR)("INT 13h: DPT bytes/sector %u exceeds buffer, clamping to %u",(unsigned int)secsz,(unsigned int)sizeof(sectbuf));
+            LOG(LOG_BIOS,LOG_WARN)("INT 13h: DPT bytes/sector %u exceeds buffer, clamping to %u",
+                                   static_cast<unsigned int>(secsz),
+                                   static_cast<unsigned int>(sizeof(sectbuf)));
             secsz = sizeof(sectbuf);
         }
         for(i=0;i<reg_al;i++) {
@@ -536,7 +552,7 @@ static Bitu INT13_DiskHandler(void) {
         for(i=0;i<reg_al;i++) {
             last_status = imageDiskList[drivenum]->Read_Sector((uint32_t)reg_dh, rd_cyl, rd_sect+i, sectbuf);
             if(last_status != 0x00) {
-                LOG_MSG("Error in disk read");
+                LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Verify failed on drive 0x%02x", reg_dl);
                 CALLBACK_SCF(true);
                 return CBRET_NONE;
             }
@@ -554,7 +570,7 @@ static Bitu INT13_DiskHandler(void) {
         break;
     case 0x05: /* Format track */
         /* ignore it. I just fucking want FORMAT.COM to write the FAT structure for God's sake */
-        LOG_MSG("WARNING: Format track ignored\n");
+        LOG(LOG_BIOS,LOG_WARN)("INT 13h: Format track is ignored");
         if (driveInactive(drivenum)) {
             reg_ah = 0xff;
             CALLBACK_SCF(true);
@@ -565,7 +581,7 @@ static Bitu INT13_DiskHandler(void) {
         break;
     case 0x06: /* Format track set bad sector flags */
         /* ignore it. I just fucking want FORMAT.COM to write the FAT structure for God's sake */
-        LOG_MSG("WARNING: Format track set bad sector flags ignored (6)\n");
+        LOG(LOG_BIOS,LOG_WARN)("INT 13h: Format track bad-sector flags are ignored (AH=06h)");
         if (driveInactive(drivenum)) {
             reg_ah = 0xff;
             CALLBACK_SCF(true);
@@ -576,7 +592,7 @@ static Bitu INT13_DiskHandler(void) {
         break;
     case 0x07: /* Format track set bad sector flags */
         /* ignore it. I just fucking want FORMAT.COM to write the FAT structure for God's sake */
-        LOG_MSG("WARNING: Format track set bad sector flags ignored (7)\n");
+        LOG(LOG_BIOS,LOG_WARN)("INT 13h: Format track bad-sector flags are ignored (AH=07h)");
         if (driveInactive(drivenum)) {
             reg_ah = 0xff;
             CALLBACK_SCF(true);
@@ -618,9 +634,9 @@ static Bitu INT13_DiskHandler(void) {
         reg_bl = imageDiskList[drivenum]->GetBiosType();
         uint32_t tmpheads, tmpcyl, tmpsect, tmpsize;
         imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
-        if (tmpcyl==0) LOG(LOG_BIOS,LOG_ERROR)("INT13 DrivParm: cylinder count zero!");
+        if (tmpcyl==0) LOG(LOG_BIOS,LOG_ERROR)("INT 13h: Drive 0x%02x has zero cylinders", reg_dl);
         else tmpcyl--;      // cylinder count -> max cylinder
-        if (tmpheads==0) LOG(LOG_BIOS,LOG_ERROR)("INT13 DrivParm: head count zero!");
+        if (tmpheads==0) LOG(LOG_BIOS,LOG_ERROR)("INT 13h: Drive 0x%02x has zero heads", reg_dl);
         else tmpheads--;    // head count -> max head
 
         /* older BIOSes were known to subtract 1 or 2 additional "reserved" cylinders.
@@ -672,7 +688,7 @@ static Bitu INT13_DiskHandler(void) {
         break;
     case 0x15: /* Get disk type */
         /* Korean Powerdolls uses this to detect harddrives */
-        LOG(LOG_BIOS,LOG_WARN)("INT13: Get disktype used!");
+        LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Get disk type requested for drive 0x%02x", reg_dl);
         if (any_images) {
             if(driveInactive(drivenum)) {
                 last_status = Int13Status::DriveParamFailed;
@@ -705,7 +721,7 @@ static Bitu INT13_DiskHandler(void) {
                 }
                 CALLBACK_SCF(false);
             } else { 
-                LOG(LOG_BIOS,LOG_WARN)("INT13: no images, but invalid drive for call 15");
+                LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Get disk type requested for unavailable drive 0x%02x", reg_dl);
                 reg_ah=0xff;
                 CALLBACK_SCF(true);
             }
@@ -713,7 +729,7 @@ static Bitu INT13_DiskHandler(void) {
         break;
     case 0x16: /* Detect disk change (apparently added to XT BIOSes in 1986 according to RBIL) */
 	if (int13_disk_change_detect_enable) {
-		LOG(LOG_BIOS,LOG_WARN)("INT 13: Detect disk change");
+		LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Detect disk change requested for drive 0x%02x", reg_dl);
 		if(driveInactive(drivenum)) {
 			last_status = Int13Status::Timeout;
 			reg_ah = (uint8_t)last_status;
@@ -751,14 +767,14 @@ static Bitu INT13_DiskHandler(void) {
         break;
     case 0x41: /* Check Extensions Present */
         if ((reg_bx == 0x55aa) && !(driveInactive(drivenum))) {
-            LOG_MSG("INT13: Check Extensions Present for drive: 0x%x", reg_dl);
+            LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Extensions requested for drive 0x%02x", reg_dl);
             reg_ah=0x1; /* 1.x extension supported */
             reg_bx=0xaa55;  /* Extensions installed */
             reg_cx=0x1; /* Extended disk access functions (AH=42h-44h,47h,48h) supported */
             CALLBACK_SCF(false);
             break;
         }
-        LOG_MSG("INT13: AH=41h, Function not supported 0x%x for drive: 0x%x", reg_bx, reg_dl);
+        LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Extensions are unavailable for drive 0x%02x (BX=0x%04x)", reg_dl, reg_bx);
         CALLBACK_SCF(true);
         break;
     case 0x42: /* Extended Read Sectors From Drive */
@@ -890,7 +906,7 @@ static Bitu INT13_DiskHandler(void) {
         }
         break;
     default:
-        LOG(LOG_BIOS,LOG_ERROR)("INT13: Function %x called on drive %x (dos drive %d)", (int)reg_ah, (int)reg_dl, (int)drivenum);
+        LOG(LOG_BIOS,LOG_WARN)("INT 13h: Unsupported function AH=0x%02x requested for drive 0x%02x", reg_ah, reg_dl);
         reg_ah=0xff;
         CALLBACK_SCF(true);
     }
