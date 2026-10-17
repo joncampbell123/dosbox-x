@@ -1954,9 +1954,16 @@ again:
 	strcpy(lfind_name,ldir_entcopy);
 	lfind_name[LFN_NAMELENGTH]=0;
 
-	find_hsize=(uint32_t) (stat_block.st_size / 0x100000000);
-	find_size=(uint32_t) (stat_block.st_size % 0x100000000);
-	const struct tm* time;
+    if(find_attr & DOS_ATTR_DIRECTORY) {
+        find_hsize = 0;
+        find_size = 0;
+    }
+    else {
+        find_hsize = (uint32_t)(stat_block.st_size / 0x100000000);
+        find_size = (uint32_t)(stat_block.st_size % 0x100000000);
+    }
+
+    const struct tm* time;
 	if((time=
 #if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 				_localtime64
