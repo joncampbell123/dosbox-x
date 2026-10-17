@@ -371,8 +371,8 @@ static bool serial_open_platform(const char* portname, COMPORT* port) {
 	termInfo.c_cc[VMIN] = 0;
 	termInfo.c_cc[VTIME] = 0;
 
-	tcflush (cp->porthandle, TCIFLUSH);
-	tcsetattr (cp->porthandle, TCSANOW, &termInfo);
+	if (tcflush(cp->porthandle, TCIFLUSH) == -1) goto cleanup_error;
+	if (tcsetattr(cp->porthandle, TCSANOW, &termInfo) == -1) goto cleanup_error;
 
 	*port = cp;
 	return true;
