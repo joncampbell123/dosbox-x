@@ -57,6 +57,9 @@
 #include <output/output_opengl.h>
 #include <output/output_ttf.h>
 
+
+//extern int sdl_netmon( void* thread_data );
+
 int oldblinkc = -1;
 std::string savefilename = "";
 

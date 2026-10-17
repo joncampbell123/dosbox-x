@@ -57,6 +57,11 @@ Next version:
     masks. (cimarronm)
   - FPU: Dynamic CPU cores now always handle x87 and MMX instructions;
     removed the "use dynamic core with fpu" configuration setting. (cimarronm)
+  - INT 13h: Moved the INT 13h handler into its own source file and refactored
+    CHS (AH=02h) and EDD (AH=42h) reads. Floppy CHS transfers now honor disk
+    base-table sector sizes through 8 KiB, padding or truncating image data as
+    needed and reads transfer data on sectors designated with a CRC error. This
+    improves compatibility with a range of copy-protected disk images. (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed

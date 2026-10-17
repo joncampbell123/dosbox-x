@@ -2198,6 +2198,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable PCI bus emulation");
 
+    Pbool = secprop->Add_bool("enable monitor",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Enable DOSBox-X monitor console.");
+
+    Pint = secprop->Add_int("monitor port", Property::Changeable::WhenIdle,4444);
+    Pint->Set_help("Use port on localhost to access the monitor console. Default is :4444.");
+
     secprop=control->AddSection_prop("render",&Null_Init,true);
     Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
     Pint->SetMinMax(0,10);

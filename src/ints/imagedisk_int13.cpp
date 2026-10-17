@@ -26,16 +26,15 @@
 #include "dos_inc.h"
 #include "cpu.h"
 #include "bios_disk.h"
+#include "int13.h"
 #include "imagedisk_int13.h"
 
 #if !defined(OSFREE)
-extern Bitu call_int13;
-
 unsigned int INT13Xfer = 0;
 size_t INT13XferSize = 4096;
 
 static void imageDiskCallINT13(void) {
-	unsigned int rv = CALLBACK_RealPointer(call_int13);
+	unsigned int rv = CALLBACK_RealPointer(BIOS_GetINT13Callback());
 	Bitu oldIF=GETFLAG(IF);
 	SETFLAGBIT(IF,true);
 	uint16_t oldcs=SegValue(cs);

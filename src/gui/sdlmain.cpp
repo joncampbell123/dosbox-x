@@ -166,6 +166,10 @@ char* revert_escape_newlines(const char* aMessage);
 #include "display2.cpp"
 #endif
 
+#if defined (C_SDL_NET) && C_SDL_NET || defined (C_SDL2_NET) && C_SDL2_NET
+#include "monitor.h"
+#endif
+
 #if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
 #include "libs/passthroughio/passthroughio.h" // for dropPrivileges()
 #endif
@@ -10203,6 +10207,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
             else
                 DOSBox_NoMenu();
+
+            section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+            assert(section != NULL);
+
+#if defined(C_SDL2_NET) && C_SDL2_NET || defined(C_SDL_NET) && C_SDL_NET
+				bool mon_enable = section->Get_bool("enable monitor");
+				if (mon_enable) {
+					int mon_port= section->Get_int("monitor port");
+    				Monitor::OpenMonitor( mon_port );
+               LOG(LOG_MISC,LOG_DEBUG)("Monitor available on port: %d\n",mon_port);
+				}
+#endif
 
 #if defined(WIN32) && !defined(C_SDL2)
             if (maximize && !TTF_using() && !GFX_IsFullscreen()) ShowWindow(GetHWND(), SW_MAXIMIZE);
