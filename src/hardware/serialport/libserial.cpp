@@ -339,7 +339,7 @@ static bool serial_open_platform(const char* portname, COMPORT* port) {
 		return false;
 	}
 	char extended_portname[256] = "/dev/";
-	memcpy(extended_portname+5,portname,(size_t)len);
+	memcpy(extended_portname+5,portname,(size_t)len+1);
 
 	cp->porthandle = open (extended_portname, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	if (cp->porthandle < 0) goto cleanup_error;
