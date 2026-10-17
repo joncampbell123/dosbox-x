@@ -37,6 +37,8 @@ typedef void (*TIMER_TickHandler)(void);
 /* Register a function that gets called every time if 1 or more ticks pass */
 void TIMER_AddTickHandler(TIMER_TickHandler handler);
 void TIMER_DelTickHandler(TIMER_TickHandler handler);
+/* true while TIMER_AddTick is calling the tick handlers: a handler must not replace the list */
+extern bool TIMER_InTickHandlers;
 
 /* This will add 1 millisecond to all timers */
 void TIMER_AddTick(void);

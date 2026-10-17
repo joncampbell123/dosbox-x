@@ -197,6 +197,45 @@ should call HELP for the live command list from the running DOSBox-X build,
 or use their own static command catalog as a hint before falling back to raw
 EXEC.
 
+Save state commands
+-------------------
+
+Debugger-enabled builds accept `SAVESTATE` and `LOADSTATE` wherever debugger
+text commands are accepted, including through the external control channel:
+
+  REQ 10 EXEC SAVESTATE 3
+  REQ 11 EXEC LOADSTATE /path/to/game.sav
+
+The argument is a save slot, 1-100, or a file. An argument made only of digits
+is always a slot; anything else is a file name, taken exactly as typed (spaces
+included, with no quotes around it) and relative to the working directory
+unless absolute. The name must end in lowercase `.sav` and contain `.sav`
+nowhere else: the flagged files of FLAGSAVE are written beside the state under
+the same name with its first `.sav` made `.dat`: a name without `.sav` would
+put them over the state itself, and one with an earlier `.sav` would send them
+elsewhere. With no argument the current slot is used, even when the menu saves
+to a file. The outcome is in the command response:
+
+  DEBUG: Saved slot 3
+  DEBUG: Loaded /path/to/game.sav
+
+These commands are for a front end with nobody at the window: the save state
+code opens no dialog for them. An error that the menu would show in a message
+box is logged instead, a version, program, memory or machine mismatch that the
+menu would ask about is refused (unless `forceloadstate` is set), and no save
+remark is asked for. A failure is reported as one (`DEBUG: SAVESTATE failed:
+...`), and the log says why. A refusal or a failure answers ERR on the control
+channel, and, as for any command that returns an error, the response ends with
+the `*** Debugger command not recognized` line. A load that fails part-way, on
+a state missing a part, can leave the machine partly restored, as the menu's
+would.
+
+Both require the debugger to be stopped, so break in first, and neither runs
+from a timer tick: while the guest runs, the control channel is served from a
+tick handler, and loading a state there would replace the tick handler list
+the timer is walking. A command refused for that can be sent again once the
+stop is reached.
+
 Debugger keyboard shortcuts
 ---------------------------
 
@@ -252,6 +291,8 @@ BPLIST                                      List breakpoints
 BPDEL <breakpoint number>                   Delete breakpoint
 RUN                                         Resume emulation
 RUNWATCH                                    Resume emulation, but show state while running
+SAVESTATE [slot|file]                       Save a state to a slot (1-100) or a .sav file
+LOADSTATE [slot|file]                       Load a state from a slot (1-100) or a .sav file
 A20                                         Show A20 gate state
 A20 ON                                      Turn on A20 gate
 A20 OFF                                     Turn off A20 gate

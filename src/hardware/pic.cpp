@@ -853,6 +853,9 @@ static unsigned long PIC_benchstart = 0;
 static unsigned long PIC_tickstart = 0;
 
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+
+bool TIMER_InTickHandlers = false;
+
 void TIMER_AddTick(void) {
     /* Setup new amount of cycles for PIC */
     PIC_Ticks++;
@@ -877,7 +880,13 @@ void TIMER_AddTick(void) {
         entry=entry->next;
     }
 
-    /* Call our list of ticker handlers */
+    /* Call our list of ticker handlers. The walk holds the next block before calling a
+     * handler, so a handler must not replace the list (a state load does): it can ask
+     * TIMER_InTickHandlers whether it is being called from here. */
+    struct InTick {
+        InTick() { TIMER_InTickHandlers = true; }
+        ~InTick() { TIMER_InTickHandlers = false; }
+    } in_tick;
     TickerBlock * ticker=firstticker;
     while (ticker) {
         TickerBlock * nextticker=ticker->next;
