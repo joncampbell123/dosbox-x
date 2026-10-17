@@ -21,6 +21,53 @@
 
 #include "config.h"
 
+#if defined(WIN32) || defined(LINUX) || defined(MACOSX) || defined(BSD) || defined(HAIKU) || defined(OS2)
+
+enum class SerialParity {
+	None,
+	Odd,
+	Even,
+	Mark,
+	Space,
+};
+
+struct SerialParameters {
+	int baudrate;
+	SerialParity parity;
+	int stopbits;
+	int length;
+};
+
+static bool serial_make_parameters(const int baudrate,
+		const char parity,
+		const int stopbits,
+		const int length,
+		SerialParameters& parameters)
+{
+	switch (parity) {
+	case 'n': parameters.parity = SerialParity::None; break;
+	case 'o': parameters.parity = SerialParity::Odd; break;
+	case 'e': parameters.parity = SerialParity::Even; break;
+	case 'm': parameters.parity = SerialParity::Mark; break;
+	case 's': parameters.parity = SerialParity::Space; break;
+	default: return false;
+	}
+
+	if (stopbits != SERIAL_1STOP && stopbits != SERIAL_2STOP &&
+		stopbits != SERIAL_15STOP)
+		return false;
+	if (length < 5 || length > 8)
+		return false;
+
+	parameters.baudrate = baudrate;
+	parameters.stopbits = stopbits;
+	parameters.length = length;
+	return true;
+}
+
+#endif
+
+// Windows serial backend
 #ifdef WIN32
 
 #include <windows.h>
@@ -32,7 +79,7 @@ struct _COMPORT {
 	DCB orig_dcb;
 };
 
-bool SERIAL_open(const char* portname, COMPORT* port) {
+static bool serial_open_platform(const char* portname, COMPORT* port) {
 	// allocate COMPORT structure
 	COMPORT cp = (_COMPORT*)malloc(sizeof(_COMPORT));
 	if(cp == NULL) return false;
@@ -116,7 +163,7 @@ cleanup_error:
 	return false;
 }
 
-void SERIAL_close(COMPORT port) {
+static void serial_close_platform(COMPORT port) {
 	// restore original DCB, close handle, free the COMPORT struct
 	if (port->porthandle != INVALID_HANDLE_VALUE) {
 		SetCommState(port->porthandle, &port->orig_dcb);
@@ -125,7 +172,7 @@ void SERIAL_close(COMPORT port) {
 	free(port);
 }
 
-void SERIAL_getErrorString(char* buffer, size_t length) {
+static void serial_get_error_string_platform(char* buffer, size_t length) {
 	int error = GetLastError();
 	if(length < 50) return;
 	memset(buffer,0,length);
@@ -162,26 +209,26 @@ void SERIAL_getErrorString(char* buffer, size_t length) {
 }
 
 
-void SERIAL_setDTR(COMPORT port, bool value) {
+static void serial_set_dtr_platform(COMPORT port, bool value) {
 	EscapeCommFunction(port->porthandle, value ? SETDTR:CLRDTR);
 }
 
-void SERIAL_setRTS(COMPORT port, bool value) {
+static void serial_set_rts_platform(COMPORT port, bool value) {
 	EscapeCommFunction(port->porthandle, value ? SETRTS:CLRRTS);
 }
 
-void SERIAL_setBREAK(COMPORT port, bool value) {
+static void serial_set_break_platform(COMPORT port, bool value) {
 	EscapeCommFunction(port->porthandle, value ? SETBREAK:CLRBREAK);
 	port->breakstatus = value;
 }
 
-int SERIAL_getmodemstatus(COMPORT port) {
+static int serial_get_modem_status_platform(COMPORT port) {
 	DWORD retval = 0;
 	GetCommModemStatus (port->porthandle, &retval);
 	return (int)retval;
 }
 
-bool SERIAL_sendchar(COMPORT port, char data) {
+static bool serial_send_char_platform(COMPORT port, char data) {
 	DWORD bytesWritten;
 
 	// mean bug: with break = 1, WriteFile will never return.
@@ -193,7 +240,7 @@ bool SERIAL_sendchar(COMPORT port, char data) {
 }
 
 // 0-7 char data, higher=flags
-int SERIAL_getextchar(COMPORT port) {
+static int serial_get_ext_char_platform(COMPORT port) {
 	DWORD errors = 0;	// errors from API
 	DWORD dwRead = 0;	// Number of chars read
 	char chRead;
@@ -214,48 +261,41 @@ int SERIAL_getextchar(COMPORT port) {
 	return retval;
 }
 
-bool SERIAL_setCommParameters(COMPORT port,
-			int baudrate, char parity, int stopbits, int length) {
-	
+static void serial_set_invalid_parameters_error(void) {
+	SetLastError(ERROR_INVALID_PARAMETER);
+}
+
+static bool serial_set_comm_parameters_platform(COMPORT port,
+		const SerialParameters& parameters) {
 	DCB dcb;
 	dcb.DCBlength=sizeof(dcb);
 	GetCommState(port->porthandle,&dcb);
 
 	// parity
-	switch (parity) {
-	case 'n': dcb.Parity = NOPARITY; break;
-	case 'o': dcb.Parity = ODDPARITY; break;
-	case 'e': dcb.Parity = EVENPARITY; break;
-	case 'm': dcb.Parity = MARKPARITY; break;
-	case 's': dcb.Parity = SPACEPARITY;	break;
-	default:
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return false;
+	switch (parameters.parity) {
+	case SerialParity::None:  dcb.Parity = NOPARITY; break;
+	case SerialParity::Odd:   dcb.Parity = ODDPARITY; break;
+	case SerialParity::Even:  dcb.Parity = EVENPARITY; break;
+	case SerialParity::Mark:  dcb.Parity = MARKPARITY; break;
+	case SerialParity::Space: dcb.Parity = SPACEPARITY; break;
 	}
 
 	// stopbits
-	switch(stopbits) {
+	switch(parameters.stopbits) {
 	case SERIAL_1STOP: dcb.StopBits = ONESTOPBIT; break;
 	case SERIAL_2STOP: dcb.StopBits = TWOSTOPBITS; break;
 	case SERIAL_15STOP: dcb.StopBits = ONE5STOPBITS; break;
-	default:
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return false;
 	}
 
-	// byte length
-	if(length > 8 || length < 5) {
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return false;
-	}
-	dcb.ByteSize = length;
-	dcb.BaudRate = baudrate;
+	dcb.ByteSize = parameters.length;
+	dcb.BaudRate = parameters.baudrate;
 
 	if (!SetCommState (port->porthandle, &dcb)) return false;
 	return true;
 }
 #endif
 
+// POSIX serial backend
 #if defined (LINUX) || defined (MACOSX) || defined (BSD) || defined (HAIKU)
 
 #include <string.h> // strlen
@@ -284,7 +324,7 @@ struct _COMPORT {
 	termios backup;
 };
 
-bool SERIAL_open(const char* portname, COMPORT* port) {
+static bool serial_open_platform(const char* portname, COMPORT* port) {
 	int result;
 	// allocate COMPORT structure
 	COMPORT cp = (_COMPORT*)malloc(sizeof(_COMPORT));
@@ -334,7 +374,7 @@ cleanup_error:
 	return false;
 }
 
-void SERIAL_close(COMPORT port) {
+static void serial_close_platform(COMPORT port) {
 	// restore original termios, close handle, free the COMPORT struct
 	if (port->porthandle >= 0) {
 		tcsetattr(port->porthandle, TCSANOW, &port->backup);
@@ -343,7 +383,7 @@ void SERIAL_close(COMPORT port) {
 	free(port);
 }
 
-void SERIAL_getErrorString(char* buffer, size_t length) {
+static void serial_get_error_string_platform(char* buffer, size_t length) {
 	int error = errno;
 	if(length < 50) return;
 	memset(buffer,0,(size_t)length);
@@ -368,7 +408,7 @@ void SERIAL_getErrorString(char* buffer, size_t length) {
 	
 }
 
-int SERIAL_getmodemstatus(COMPORT port) {
+static int serial_get_modem_status_platform(COMPORT port) {
 	long flags = 0;
 	ioctl (port->porthandle, TIOCMGET, &flags);
 	int retval = 0;
@@ -379,14 +419,14 @@ int SERIAL_getmodemstatus(COMPORT port) {
 	return retval;
 }
 
-bool SERIAL_sendchar(COMPORT port, char data) {
+static bool serial_send_char_platform(COMPORT port, char data) {
 	if(port->breakstatus) return true; // true or false?!; Does POSIX need this check?
 	int bytesWritten = write(port->porthandle, &data, 1);
 	if(bytesWritten==1) return true;
 	else return false;
 }
 
-int SERIAL_getextchar(COMPORT port) {
+static int serial_get_ext_char_platform(COMPORT port) {
 	unsigned char chRead = 0;
 	int dwRead = 0;
 	unsigned char error = 0;
@@ -411,9 +451,10 @@ int SERIAL_getextchar(COMPORT port) {
 	return retval;
 }
 
-bool SERIAL_setCommParameters(COMPORT port,
-			int baudrate, char parity, int stopbits, int length) {
-	
+static void serial_set_invalid_parameters_error(void) {}
+
+static bool serial_set_comm_parameters_platform(COMPORT port,
+		const SerialParameters& parameters) {
 	termios termInfo;
 	int result = tcgetattr(port->porthandle, &termInfo);
 	if (result==-1) return false;
@@ -423,38 +464,33 @@ bool SERIAL_setCommParameters(COMPORT port,
 
 	// parity
 	// set options according to parity
-	switch (parity) {
-	case 'n': break; // no parity
-	case 'o': // Odd parity
+	switch (parameters.parity) {
+	case SerialParity::None: break; // no parity
+	case SerialParity::Odd: // Odd parity
 		termInfo.c_iflag |= INPCK | ISTRIP;
 		termInfo.c_cflag |= (PARODD | PARENB);
 		break;
-	case 'e': // Even parity
+	case SerialParity::Even: // Even parity
 		termInfo.c_iflag |= INPCK | ISTRIP;
 		termInfo.c_cflag |= PARENB;
 		break;
-	case 'm': // Mark parity
+	case SerialParity::Mark: // Mark parity
 		termInfo.c_iflag |= INPCK | ISTRIP;
 		termInfo.c_cflag |= (PARENB | CMSPAR | PARODD);
 		break;
-	case 's': // Space parity
+	case SerialParity::Space: // Space parity
 		termInfo.c_iflag |= INPCK | ISTRIP;
 		termInfo.c_cflag |= (PARENB | CMSPAR);
 		break;
-	default:
-		return false;
 	}
 	// stopbits
-	switch(stopbits) {
+	switch(parameters.stopbits) {
 	case SERIAL_1STOP: break;
 	case SERIAL_2STOP: 
 	case SERIAL_15STOP: termInfo.c_cflag |= CSTOPB; break;
-	default:
-		return false;
 	}
 	// byte length
-	if(length > 8 || length < 5) return false;
-	switch (length) {
+	switch (parameters.length) {
 	case 5: termInfo.c_cflag |= CS5; break;
 	case 6: termInfo.c_cflag |= CS6; break;
 	case 7: termInfo.c_cflag |= CS7; break;
@@ -462,7 +498,7 @@ bool SERIAL_setCommParameters(COMPORT port,
 	}
 	// baudrate
 	int posix_baudrate=0;
-	switch(baudrate) {
+	switch(parameters.baudrate) {
 		case 115200: posix_baudrate = B115200; break;
 		case  57600: posix_baudrate = B57600; break;
 		case  38400: posix_baudrate = B38400; break;
@@ -484,21 +520,22 @@ bool SERIAL_setCommParameters(COMPORT port,
 	return true;
 }
 
-void SERIAL_setBREAK(COMPORT port, bool value) {
+static void serial_set_break_platform(COMPORT port, bool value) {
 	ioctl(port->porthandle, value?TIOCSBRK:TIOCCBRK);
 }
 
-void SERIAL_setDTR(COMPORT port, bool value) {
+static void serial_set_dtr_platform(COMPORT port, bool value) {
 	long flag = TIOCM_DTR;
 	ioctl(port->porthandle, value?TIOCMBIS:TIOCMBIC, &flag);
 }
 
-void SERIAL_setRTS(COMPORT port, bool value) {
+static void serial_set_rts_platform(COMPORT port, bool value) {
 	long flag = TIOCM_RTS;
 	ioctl(port->porthandle, value?TIOCMBIS:TIOCMBIC, &flag);
 }
 #endif
 
+// OS/2 serial backend
 #ifdef OS2
 // OS/2 related headers
 #define INCL_DOSFILEMGR
@@ -517,7 +554,7 @@ struct _COMPORT {
 };
 // TODO: THIS IS INCOMPLETE and UNTESTED.
 
-bool SERIAL_open(const char* portname, COMPORT* port) {
+static bool serial_open_platform(const char* portname, COMPORT* port) {
 	// allocate COMPORT structure
 	COMPORT cp = (_COMPORT*)malloc(sizeof(_COMPORT));
 	if(cp == NULL) return false;
@@ -570,10 +607,10 @@ cleanup_error:
 	return false;
 }
 
-void SERIAL_getErrorString(char* buffer, size_t length) {
+static void serial_get_error_string_platform(char* buffer, size_t length) {
 	sprintf(buffer, "TODO: error handling is not fun");
 }
-void SERIAL_close(COMPORT port) {
+static void serial_close_platform(COMPORT port) {
 	ULONG ulParmLen = sizeof(DCBINFO);
 	// restore original DCB, close handle, free the COMPORT struct
 	if (port->porthandle != 0) {
@@ -583,7 +620,7 @@ void SERIAL_close(COMPORT port) {
 	}
 	free(port);
 }
-bool SERIAL_sendchar(COMPORT port, char data) {
+static bool serial_send_char_platform(COMPORT port, char data) {
 	ULONG bytesWritten = 0;
 
 	APIRET rc = DosWrite(port->porthandle, &data, 1, &bytesWritten);
@@ -591,7 +628,7 @@ bool SERIAL_sendchar(COMPORT port, char data) {
 	else return false;
 }
 
-void SERIAL_setBREAK(COMPORT port, bool value) {
+static void serial_set_break_platform(COMPORT port, bool value) {
 	USHORT error;
 	ULONG ulParmLen = sizeof(error);
 	DosDevIOCtl(port->porthandle, IOCTL_ASYNC,
@@ -599,7 +636,7 @@ void SERIAL_setBREAK(COMPORT port, bool value) {
 		0,0,0, &error, ulParmLen, &ulParmLen);
 }
 
-int SERIAL_getextchar(COMPORT port) {
+static int serial_get_ext_char_platform(COMPORT port) {
 	ULONG dwRead = 0;	// Number of chars read
 	char chRead;
 
@@ -631,7 +668,7 @@ int SERIAL_getextchar(COMPORT port) {
 }
 
 
-int SERIAL_getmodemstatus(COMPORT port) {
+static int serial_get_modem_status_platform(COMPORT port) {
 	UCHAR dptr = 0;
 	ULONG ulParmLen = sizeof(dptr);
 	DosDevIOCtl(port->porthandle, IOCTL_ASYNC, ASYNC_GETMODEMINPUT,
@@ -639,7 +676,7 @@ int SERIAL_getmodemstatus(COMPORT port) {
 	// bits are the same as return value
 	return (int)dptr;
 }
-void SERIAL_setDTR(COMPORT port, bool value) {
+static void serial_set_dtr_platform(COMPORT port, bool value) {
 	UCHAR masks[2];
 	ULONG ulParmLen = sizeof(masks);
 	if(value) {
@@ -653,7 +690,7 @@ void SERIAL_setDTR(COMPORT port, bool value) {
 		0,0,0, &masks, ulParmLen, &ulParmLen);
 }
 
-void SERIAL_setRTS(COMPORT port, bool value) {
+static void serial_set_rts_platform(COMPORT port, bool value) {
 	UCHAR masks[2];
 	ULONG ulParmLen = sizeof(masks);
 	if(value) {
@@ -669,15 +706,17 @@ void SERIAL_setRTS(COMPORT port, bool value) {
 
 
 
-bool SERIAL_setCommParameters(COMPORT port,
-			int baudrate, char parity, int stopbits, int length) {
+static void serial_set_invalid_parameters_error(void) {}
+
+static bool serial_set_comm_parameters_platform(COMPORT port,
+		const SerialParameters& parameters) {
 	// baud
 	struct {
 		ULONG baud;
 		BYTE fraction;
 	} setbaud;
 
-	setbaud.baud = baudrate;
+	setbaud.baud = parameters.baudrate;
 	setbaud.fraction = 0;
 	ULONG ulParmLen = sizeof(setbaud);
 	APIRET rc = DosDevIOCtl(port->porthandle, IOCTL_ASYNC, ASYNC_EXTSETBAUDRATE,
@@ -692,32 +731,21 @@ bool SERIAL_setCommParameters(COMPORT port,
 		UCHAR stop;
 	} paramline;
 
-	// byte length
-	if(length > 8 || length < 5) {
-		// TODO SetLastError(ERROR_INVALID_PARAMETER);
-		return false;
-	}
-	paramline.data = length;
+	paramline.data = parameters.length;
 
 	// parity
-	switch (parity) {
-	case 'n': paramline.parity = 0; break;
-	case 'o': paramline.parity = 1; break;
-	case 'e': paramline.parity = 2; break;
-	case 'm': paramline.parity = 3; break;
-	case 's': paramline.parity = 4; break;
-	default:
-		// TODO SetLastError(ERROR_INVALID_PARAMETER);
-		return false;
+	switch (parameters.parity) {
+	case SerialParity::None:  paramline.parity = 0; break;
+	case SerialParity::Odd:   paramline.parity = 1; break;
+	case SerialParity::Even:  paramline.parity = 2; break;
+	case SerialParity::Mark:  paramline.parity = 3; break;
+	case SerialParity::Space: paramline.parity = 4; break;
 	}
 	// stopbits
-	switch(stopbits) {
+	switch(parameters.stopbits) {
 	case SERIAL_1STOP: paramline.stop = 0; break;
 	case SERIAL_2STOP: paramline.stop = 2; break;
 	case SERIAL_15STOP: paramline.stop = 1; break;
-	default:
-		// TODO SetLastError(ERROR_INVALID_PARAMETER);
-		return false;
 	}
 	// set it
 	ulParmLen = sizeof(paramline);
@@ -727,4 +755,55 @@ bool SERIAL_setCommParameters(COMPORT port,
 		return false;
 	return true;
 }
+#endif
+
+#if defined(WIN32) || defined(LINUX) || defined(MACOSX) || defined(BSD) || defined(HAIKU) || defined(OS2)
+
+// Platform-neutral serial API
+bool SERIAL_open(const char* portname, COMPORT* port) {
+	return serial_open_platform(portname, port);
+}
+
+void SERIAL_close(COMPORT port) {
+	serial_close_platform(port);
+}
+
+void SERIAL_getErrorString(char* buffer, size_t length) {
+	serial_get_error_string_platform(buffer, length);
+}
+
+bool SERIAL_setCommParameters(COMPORT port,
+		int baudrate, char parity, int stopbits, int length) {
+	SerialParameters parameters = {};
+	if (!serial_make_parameters(baudrate, parity, stopbits, length, parameters)) {
+		serial_set_invalid_parameters_error();
+		return false;
+	}
+	return serial_set_comm_parameters_platform(port, parameters);
+}
+
+void SERIAL_setDTR(COMPORT port, bool value) {
+	serial_set_dtr_platform(port, value);
+}
+
+void SERIAL_setRTS(COMPORT port, bool value) {
+	serial_set_rts_platform(port, value);
+}
+
+void SERIAL_setBREAK(COMPORT port, bool value) {
+	serial_set_break_platform(port, value);
+}
+
+int SERIAL_getmodemstatus(COMPORT port) {
+	return serial_get_modem_status_platform(port);
+}
+
+bool SERIAL_sendchar(COMPORT port, char data) {
+	return serial_send_char_platform(port, data);
+}
+
+int SERIAL_getextchar(COMPORT port) {
+	return serial_get_ext_char_platform(port);
+}
+
 #endif
