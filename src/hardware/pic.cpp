@@ -1233,8 +1233,8 @@ uint16_t PIC_State_FindTimer( Bitu addr ) {
 	}
 
 
-	// ERROR!! (place debug breakpoint here)
-	//MessageBox(0,"PIC - State FindTimer",0,0);
+	// not in the table: a tick handler of the host (the network pollers, the debugger's
+	// mcp_server poll), which the save state leaves out and keeps across a load
 	return 0xffff;
 }
 
@@ -1247,7 +1247,10 @@ Bitu PIC_State_IndexEvent( uint16_t index ) {
 
 
 Bitu PIC_State_IndexTimer( uint16_t index ) {
-	if( index == 0xffff ) return 0;
+	int size;
+
+	size = sizeof(pic_state_timer_table) / sizeof(void *);
+	if( index >= size ) return 0;
 
 	return (Bitu) (pic_state_timer_table[index]);
 }
@@ -1289,11 +1292,14 @@ private:
 				}
 
 
+				/* A tick handler outside pic_state_timer_table belongs to the host, not to the
+				 * machine (the debugger's mcp_server poll is one): it has no index to be saved
+				 * under, so it is left out here and kept as it is by setBytes. */
 				ticker_size = 0;
 				ticker_ptr = firstticker;
 				while( ticker_ptr != NULL ) {
+					if( PIC_State_FindTimer( (Bitu) (ticker_ptr->handler) ) != 0xffff ) ticker_size++;
 					ticker_ptr = ticker_ptr->next;
-					ticker_size++;
 				}
 
 				// ***************************************************
@@ -1355,16 +1361,11 @@ private:
 				// - reloc ptr
         stream.write(reinterpret_cast<const char*>(&ticker_size), sizeof(ticker_size) );
 
-				ticker_ptr = firstticker;
-				for( int lcv=0; lcv<ticker_size; lcv++ ) {
+				for( ticker_ptr = firstticker; ticker_ptr != NULL; ticker_ptr = ticker_ptr->next ) {
 					// - function ptr
 					ticker_handler_idx = PIC_State_FindTimer( (Bitu) (ticker_ptr->handler) );
+					if( ticker_handler_idx == 0xffff ) continue;
 					stream.write(reinterpret_cast<const char*>(&ticker_handler_idx), sizeof(ticker_handler_idx) );
-
-					// - reloc new ptr (leave alone)
-					//stream.write(reinterpret_cast<const char*>(&ticker_ptr->next), sizeof(ticker_ptr->next) );
-
-					ticker_ptr = ticker_ptr->next;
 				}
 
 
@@ -1379,7 +1380,7 @@ private:
     void setBytes(std::istream& stream) override
     {
 				uint16_t free_idx, next_idx;
-				uint16_t ticker_size;
+				uint16_t ticker_size = 0;
 
 
         SerializeGlobalPOD::setBytes(stream);
@@ -1440,46 +1441,55 @@ private:
         }
 
 
-				// 1- wipe old data
+				// 1- wipe old data, keeping the host's own handlers (see getBytes)
 				// 2- insert new data
+				TickerBlock *host_tickers = NULL;
+				TickerBlock **host_tail = &host_tickers;
 				while( firstticker != NULL ) {
 					TickerBlock *ticker_ptr;
 
 					ticker_ptr = firstticker;
 					firstticker = firstticker->next;
 
-					delete ticker_ptr;
+					if( PIC_State_FindTimer( (Bitu) (ticker_ptr->handler) ) == 0xffff ) {
+						ticker_ptr->next = NULL;
+						*host_tail = ticker_ptr;
+						host_tail = &ticker_ptr->next;
+					}
+					else {
+						delete ticker_ptr;
+					}
 				}
 
 
 				// - reloc ptr
         stream.read(reinterpret_cast<char*>(&ticker_size), sizeof(ticker_size) );
 
-				firstticker = NULL;
-				if( ticker_size ) {
-					TickerBlock *ticker_ptr;
+				/* the machine's handlers in their saved order, then the host's, kept as they
+				 * were: a state describes the emulated machine, and the host's pollers are not
+				 * part of it, so after a load they run after the machine's in each tick */
+				TickerBlock *machine_tickers = NULL;
+				TickerBlock **ticker_tail = &machine_tickers;
+				for( int lcv = 0; lcv<ticker_size; lcv++ ) {
+					uint16_t ticker_idx = 0xffff;
 
-					for( int lcv = 0; lcv<ticker_size; lcv++ ) {
-						uint16_t ticker_idx;
+					// - function ptr
+					stream.read(reinterpret_cast<char*>(&ticker_idx), sizeof(ticker_idx) );
+					if( !stream ) break;
+					/* a state saved before host handlers were left out may hold one, as 0xffff,
+					 * and an index past the table is no handler either: restored, either would
+					 * be a NULL handler, called on the next tick */
+					const TIMER_TickHandler handler = (TIMER_TickHandler) PIC_State_IndexTimer( ticker_idx );
+					if( handler == NULL ) continue;
 
-						if( lcv == 0 ) {
-							ticker_ptr = new TickerBlock;
-							firstticker = ticker_ptr;
-						}
-						else {
-							ticker_ptr->next = new TickerBlock;
-							ticker_ptr = ticker_ptr->next;
-						}
-
-
-						// - function ptr
-						stream.read(reinterpret_cast<char*>(&ticker_idx), sizeof(ticker_idx) );
-						ticker_ptr->handler = (TIMER_TickHandler) PIC_State_IndexTimer( ticker_idx );
-
-						// - reloc new ptr (linked list)
-						ticker_ptr->next = NULL;
-					}
+					TickerBlock *ticker_ptr = new TickerBlock;
+					ticker_ptr->handler = handler;
+					ticker_ptr->next = NULL;
+					*ticker_tail = ticker_ptr;
+					ticker_tail = &ticker_ptr->next;
 				}
+				*ticker_tail = host_tickers;
+				firstticker = machine_tickers;
 
 
 				// - system (leave alone)
