@@ -319,8 +319,15 @@ static bool serial_set_comm_parameters_platform(COMPORT port,
 #endif
 
 struct _COMPORT {
+	enum class ReadState {
+		Data,
+		Marker,
+		Error,
+	};
+
 	int porthandle;
 	bool breakstatus;
+	ReadState readstate;
 	termios backup;
 };
 
@@ -331,6 +338,7 @@ static bool serial_open_platform(const char* portname, COMPORT* port) {
 	if(cp == NULL) return false;
 
 	cp->breakstatus=false;
+	cp->readstate=_COMPORT::ReadState::Data;
 
     size_t len = strlen(portname);
 	if(len > 240) {
@@ -354,7 +362,8 @@ static bool serial_open_platform(const char* portname, COMPORT* port) {
 	// initialize the device, we first reset any bits we don't need.
 	// this step is needed because edits to serial devices are persistent.
 	termInfo.c_cflag &= ~(PARENB | CSTOPB | CSIZE | CRTSCTS | CMSPAR);
-	termInfo.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | PARMRK | INPCK | ISTRIP | IXON); // reset input controls
+	termInfo.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | INPCK | ISTRIP | IXON); // reset input controls
+	termInfo.c_iflag |= PARMRK;
 	termInfo.c_oflag &= ~OPOST ; // raw output
 	termInfo.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG); // no line processing, raw input
 	// Use preferred default options
@@ -427,28 +436,34 @@ static bool serial_send_char_platform(COMPORT port, char data) {
 }
 
 static int serial_get_ext_char_platform(COMPORT port) {
-	unsigned char chRead = 0;
-	int dwRead = 0;
-	unsigned char error = 0;
-	int retval = 0;
-
-	dwRead=read(port->porthandle,&chRead,1);
-	if (dwRead==1) {
-		if(chRead==0xff) // error escape
-		{
-			dwRead=read(port->porthandle,&chRead,1);
-			if(chRead==0x00) // an error 
-			{
-				dwRead=read(port->porthandle,&chRead,1);
-				if(chRead==0x0) error=SERIAL_BREAK_ERR;
-				else error=SERIAL_FRAMING_ERR;
+	unsigned char ch = 0;
+	while (read(port->porthandle,&ch,1) == 1) {
+		switch (port->readstate) {
+		case _COMPORT::ReadState::Data:
+			if (ch == 0xff) {
+				port->readstate = _COMPORT::ReadState::Marker;
+				break;
 			}
+			return ch | 0x10000;
+
+		case _COMPORT::ReadState::Marker:
+			if (ch == 0xff) {
+				port->readstate = _COMPORT::ReadState::Data;
+				return ch | 0x10000;
+			}
+			if (ch == 0x00) {
+				port->readstate = _COMPORT::ReadState::Error;
+				break;
+			}
+			port->readstate = _COMPORT::ReadState::Data;
+			return ch | 0x10000;
+
+		case _COMPORT::ReadState::Error:
+			port->readstate = _COMPORT::ReadState::Data;
+			return ch | ((ch == 0x00 ? SERIAL_BREAK_ERR : SERIAL_FRAMING_ERR) << 8) | 0x10000;
 		}
-		retval |= (error<<8);
-		retval |= chRead;
-		retval |= 0x10000; 
 	}
-	return retval;
+	return 0;
 }
 
 static void serial_set_invalid_parameters_error(void) {}
@@ -460,6 +475,7 @@ static bool serial_set_comm_parameters_platform(COMPORT port,
 	if (result==-1) return false;
 	// reset flags that will be affected by this function
 	termInfo.c_iflag &= ~(INPCK | ISTRIP);
+	termInfo.c_iflag |= PARMRK;
 	termInfo.c_cflag &= ~(CSIZE | PARENB | PARODD | CSTOPB | CMSPAR);
 
 	// parity
@@ -467,19 +483,19 @@ static bool serial_set_comm_parameters_platform(COMPORT port,
 	switch (parameters.parity) {
 	case SerialParity::None: break; // no parity
 	case SerialParity::Odd: // Odd parity
-		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_iflag |= INPCK;
 		termInfo.c_cflag |= (PARODD | PARENB);
 		break;
 	case SerialParity::Even: // Even parity
-		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_iflag |= INPCK;
 		termInfo.c_cflag |= PARENB;
 		break;
 	case SerialParity::Mark: // Mark parity
-		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_iflag |= INPCK;
 		termInfo.c_cflag |= (PARENB | CMSPAR | PARODD);
 		break;
 	case SerialParity::Space: // Space parity
-		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_iflag |= INPCK;
 		termInfo.c_cflag |= (PARENB | CMSPAR);
 		break;
 	}
