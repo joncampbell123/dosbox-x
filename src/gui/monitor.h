@@ -30,6 +30,7 @@
 #endif
 
 #include "dosbox.h"
+#include "programs.h"
 
 #define INPUT_LENGTH 1024
 
@@ -71,6 +72,13 @@ class Monitor{
 
 	std::atomic< bool >	_isRunning;
 
+	/* 
+	 * Considerations:
+	 *
+	 * Outside some of the socket only functions it might be an idea to sent any
+	 * undefined user requests to the CONFIG program (src/programs.cpp) to give
+	 * the user more control over their VM.
+	 */
 	const std::string	_prompt;
 	const CommandList	_commands= {
 		{ "close",		CB_CloseServer },
@@ -83,6 +91,7 @@ class Monitor{
 		{ "cycles",		CB_CPUVar },
 		{ "fpu",			CB_CPUVar },
 		{ "turbo",		CB_CPUVar },
+		{ "memsize",	CB_Mem },
 	};
 
 	/* Callbacks are paired with simple string */
@@ -119,6 +128,11 @@ class Monitor{
 	static void CB_CPUVar( void *data ) {     
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
 		m.setCPUVar();
+	}
+
+	static void CB_Mem( void *data ) {     
+		Monitor& m= *reinterpret_cast< Monitor* >( data );
+		m.setMemsize();
 	}
 
 	/* Callback for threading. */
@@ -177,6 +191,26 @@ class Monitor{
 			sec->HandleInputline( userReqFull );
 		}
 	}
+	
+	void	setMemsize() {
+		Section* sec=control->GetSection( "dosbox" );
+		if( sec ) {
+			if( !_userInput.at( 1 ).empty() ) {
+				const std::string &userReq= _userInput.at( 1 );
+				auto digitCheck= std::find_if( userReq.begin(),userReq.end(),
+					[ & ]( const char& c ){
+						return std::isdigit( c ) ==false; } );
+
+				if( userReq.end()!=digitCheck ) return;
+				sec->HandleInputline( std::string( "memsize="+userReq ) );
+				messageClient( "RAM:\t" +sec->GetPropValue( "memsize" )+"Mb\n" );
+			}
+		}
+	}
+
+	void	messageClient( std::string tMessage ) {
+		SDLNet_TCP_Send( _client,tMessage.c_str(),tMessage.size() );
+	}
 
 	void	getInfo() {
 		Section* sec=control->GetSection( "cpu" );
@@ -186,14 +220,14 @@ class Monitor{
 		info.emplace_back( dinfo_t{ std::string( "Core:" ),sec->GetPropValue( "core" ) } );
 		info.emplace_back( dinfo_t{ std::string( "Cycles:" ),sec->GetPropValue( "cycles" ) } );
 
-		_message= "\nSystem:\n";
-		SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+		messageClient( "\nSystem Info:\n" );
 		for( auto i:info ) {
-			_message= i.at( 0 )+"\t\t"+i.at( 1 )+"\n";
-			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+			messageClient( i.at( 0 )+"\t\t"+i.at( 1 )+"\n" );
 		}
-		_message= "\nDrive(s):\n";
-		SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+		sec= control->GetSection( "dosbox" );
+		messageClient( "\nMemory:\nRAM:\t\t" +sec->GetPropValue( "memsize" )+"Mb\n" );
+		
+		messageClient( "\nDrive(s):\n" );
 		ddesc_t drive_list= {};
 		std::string sstr_token;
 
@@ -215,14 +249,14 @@ class Monitor{
 				drive_list.push_back( drive );
 			}
 
+		std::string message= {};
 		for( auto drv:drive_list ) {
-			_message= drv.at( 0 )+":\\\t";
-			if( drv.size() >2 ) _message+= drv.at( 2 )+"\t\t";
-			_message+= "("+drv.at( 1 )+")\n";
-			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+			messageClient(  drv.at( 0 )+":\\\t" );
+			if( drv.size() >2 ) message+= drv.at( 2 )+"\t\t";
+			message+= "("+drv.at( 1 )+")\n";
+			messageClient( message );
 		}
-		_message="\n";
-		SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+		messageClient( "\n" );
 	}
 
 	bool	startServer( int tPort ) {
