@@ -538,6 +538,7 @@ static bool serial_set_comm_parameters_platform(COMPORT port,
 
 static void serial_set_break_platform(COMPORT port, bool value) {
 	ioctl(port->porthandle, value?TIOCSBRK:TIOCCBRK);
+	port->breakstatus = value;
 }
 
 static void serial_set_dtr_platform(COMPORT port, bool value) {
