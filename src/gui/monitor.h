@@ -73,15 +73,16 @@ class Monitor{
 
 	const std::string	_prompt;
 	const CommandList	_commands= {
-		{ "close",	CB_CloseServer },
-		{ "exit",	CB_ExitClient },
-		{ "list",	CB_ListIDE },
-		{ "change",	CB_ChangeIDE },
-		{ "core",	CB_CPUVar },
-		{ "cputype",CB_CPUVar },
-		{ "cycles",	CB_CPUVar },
-		{ "fpu",		CB_CPUVar },
-//		{ "turbo",	CB_CPUVar },
+		{ "close",		CB_CloseServer },
+		{ "exit",		CB_ExitClient },
+		{ "list_cd",	CB_ListIDE },
+		{ "info",		CB_GetInfo },
+		{ "change",		CB_ChangeIDE },
+		{ "core",		CB_CPUVar },
+		{ "cputype",	CB_CPUVar },
+		{ "cycles",		CB_CPUVar },
+		{ "fpu",			CB_CPUVar },
+		{ "turbo",		CB_CPUVar },
 	};
 
 	/* Callbacks are paired with simple string */
@@ -110,6 +111,11 @@ class Monitor{
 		m.listIDE();
 	}
 
+	static void CB_GetInfo( void *data ) {
+		Monitor& m= *reinterpret_cast< Monitor* >( data );
+		m.getInfo();
+	}
+
 	static void CB_CPUVar( void *data ) {     
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
 		m.setCPUVar();
@@ -134,7 +140,7 @@ class Monitor{
 		std::istringstream info_stream( tBuffer );
 		std::string sstr_token;
 
-		while( info_stream >>sstr_token ) {
+		while( info_stream >>std::quoted( sstr_token ) ) {
 			vCommands.push_back( sstr_token );
 		}
 		return vCommands;
@@ -170,6 +176,23 @@ class Monitor{
 			#endif
 			sec->HandleInputline( userReqFull );
 		}
+	}
+
+	void	getInfo() {
+		Section* sec=control->GetSection( "cpu" );
+		
+		ddesc_t info= {};
+		info.emplace_back( dinfo_t{ std::string( "CPU:" ),sec->GetPropValue( "cputype" ) } );
+		info.emplace_back( dinfo_t{ std::string( "Core:" ),sec->GetPropValue( "core" ) } );
+		info.emplace_back( dinfo_t{ std::string( "Cycles:" ),sec->GetPropValue( "cycles" ) } );
+
+		std::string div= "\n--------------------\n";
+		SDLNet_TCP_Send( _client,div.c_str(),div.size() );
+		for( auto i:info ) {
+			_message= i.at( 0 )+"\t\t"+i.at( 1 )+"\n";
+			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+		}
+		SDLNet_TCP_Send( _client,div.c_str(),div.size() );
 	}
 
 	bool	startServer( int tPort ) {
