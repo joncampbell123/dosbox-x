@@ -62,6 +62,9 @@ Next version:
     base-table sector sizes through 8 KiB, padding or truncating image data as
     needed and reads transfer data on sectors designated with a CRC error. This
     improves compatibility with a range of copy-protected disk images. (cimarronm)
+  - Direct serial: Refactored platform backends and fixed POSIX device-path,
+    error-marker, break-state, and setup failure handling, and Windows write
+    failure handling. (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
