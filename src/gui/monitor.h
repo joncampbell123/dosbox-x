@@ -186,13 +186,43 @@ class Monitor{
 		info.emplace_back( dinfo_t{ std::string( "Core:" ),sec->GetPropValue( "core" ) } );
 		info.emplace_back( dinfo_t{ std::string( "Cycles:" ),sec->GetPropValue( "cycles" ) } );
 
-		std::string div= "\n--------------------\n";
-		SDLNet_TCP_Send( _client,div.c_str(),div.size() );
+		_message= "\nSystem:\n";
+		SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
 		for( auto i:info ) {
 			_message= i.at( 0 )+"\t\t"+i.at( 1 )+"\n";
 			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
 		}
-		SDLNet_TCP_Send( _client,div.c_str(),div.size() );
+		_message= "\nDrive(s):\n";
+		SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+		ddesc_t drive_list= {};
+		std::string sstr_token;
+
+		for( int i= 0; i <26; ++i )
+			if( Drives[ i ] ) {
+				dinfo_t drive= {};
+				drive.push_back( std::string( 1,char( 'A'+i ) ) );
+
+				std::string drive_info( Drives[ i ]->GetInfo() );
+				std::size_t dir_pos= drive_info.find_first_of( "/\\" );
+				
+				if( dir_pos !=std::string::npos ) {
+					drive.push_back( drive_info.substr( 0,dir_pos ) );
+					drive.push_back( drive_info.substr( dir_pos ) );
+				}
+				else
+					drive.push_back( drive_info );
+					
+				drive_list.push_back( drive );
+			}
+
+		for( auto drv:drive_list ) {
+			_message= drv.at( 0 )+":\\\t";
+			if( drv.size() >2 ) _message+= drv.at( 2 )+"\t\t";
+			_message+= "("+drv.at( 1 )+")\n";
+			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
+		}
+		_message="\n";
+		SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
 	}
 
 	bool	startServer( int tPort ) {
