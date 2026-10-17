@@ -30,6 +30,7 @@
 #endif
 
 #include "dosbox.h"
+#include "programs.h"
 
 #define INPUT_LENGTH 1024
 
@@ -71,17 +72,26 @@ class Monitor{
 
 	std::atomic< bool >	_isRunning;
 
+	/* 
+	 * Considerations:
+	 *
+	 * Outside some of the socket only functions it might be an idea to sent any
+	 * undefined user requests to the CONFIG program (src/programs.cpp) to give
+	 * the user more control over their VM.
+	 */
 	const std::string	_prompt;
 	const CommandList	_commands= {
-		{ "close",	CB_CloseServer },
-		{ "exit",	CB_ExitClient },
-		{ "list",	CB_ListIDE },
-		{ "change",	CB_ChangeIDE },
-		{ "core",	CB_CPUVar },
-		{ "cputype",CB_CPUVar },
-		{ "cycles",	CB_CPUVar },
-		{ "fpu",		CB_CPUVar },
-//		{ "turbo",	CB_CPUVar },
+		{ "close",		CB_CloseServer },
+		{ "exit",		CB_ExitClient },
+		{ "list_cd",	CB_ListIDE },
+		{ "info",		CB_GetInfo },
+		{ "change",		CB_ChangeIDE },
+		{ "core",		CB_CPUVar },
+		{ "cputype",	CB_CPUVar },
+		{ "cycles",		CB_CPUVar },
+		{ "fpu",			CB_CPUVar },
+		{ "turbo",		CB_CPUVar },
+		{ "memsize",	CB_Mem },
 	};
 
 	/* Callbacks are paired with simple string */
@@ -110,9 +120,19 @@ class Monitor{
 		m.listIDE();
 	}
 
+	static void CB_GetInfo( void *data ) {
+		Monitor& m= *reinterpret_cast< Monitor* >( data );
+		m.getInfo();
+	}
+
 	static void CB_CPUVar( void *data ) {     
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
 		m.setCPUVar();
+	}
+
+	static void CB_Mem( void *data ) {     
+		Monitor& m= *reinterpret_cast< Monitor* >( data );
+		m.setMemsize();
 	}
 
 	/* Callback for threading. */
@@ -134,7 +154,7 @@ class Monitor{
 		std::istringstream info_stream( tBuffer );
 		std::string sstr_token;
 
-		while( info_stream >>sstr_token ) {
+		while( info_stream >>std::quoted( sstr_token ) ) {
 			vCommands.push_back( sstr_token );
 		}
 		return vCommands;
@@ -170,6 +190,73 @@ class Monitor{
 			#endif
 			sec->HandleInputline( userReqFull );
 		}
+	}
+	
+	void	setMemsize() {
+		Section* sec=control->GetSection( "dosbox" );
+		if( sec ) {
+			if( !_userInput.at( 1 ).empty() ) {
+				const std::string &userReq= _userInput.at( 1 );
+				auto digitCheck= std::find_if( userReq.begin(),userReq.end(),
+					[ & ]( const char& c ){
+						return std::isdigit( c ) ==false; } );
+
+				if( userReq.end()!=digitCheck ) return;
+				sec->HandleInputline( std::string( "memsize="+userReq ) );
+				messageClient( "RAM:\t" +sec->GetPropValue( "memsize" )+"Mb\n" );
+			}
+		}
+	}
+
+	void	messageClient( std::string tMessage ) {
+		SDLNet_TCP_Send( _client,tMessage.c_str(),tMessage.size() );
+	}
+
+	void	getInfo() {
+		Section* sec=control->GetSection( "cpu" );
+		
+		ddesc_t info= {};
+		info.emplace_back( dinfo_t{ std::string( "CPU:" ),sec->GetPropValue( "cputype" ) } );
+		info.emplace_back( dinfo_t{ std::string( "Core:" ),sec->GetPropValue( "core" ) } );
+		info.emplace_back( dinfo_t{ std::string( "Cycles:" ),sec->GetPropValue( "cycles" ) } );
+
+		messageClient( "\nSystem Info:\n" );
+		for( auto i:info ) {
+			messageClient( i.at( 0 )+"\t\t"+i.at( 1 )+"\n" );
+		}
+		sec= control->GetSection( "dosbox" );
+		messageClient( "\nMemory:\nRAM:\t\t" +sec->GetPropValue( "memsize" )+"Mb\n" );
+		
+		messageClient( "\nDrive(s):\n" );
+		ddesc_t drive_list= {};
+		std::string sstr_token;
+
+		for( int i= 0; i <26; ++i )
+			if( Drives[ i ] ) {
+				dinfo_t drive= {};
+				drive.push_back( std::string( 1,char( 'A'+i ) ) );
+
+				std::string drive_info( Drives[ i ]->GetInfo() );
+				std::size_t dir_pos= drive_info.find_first_of( "/\\" );
+				
+				if( dir_pos !=std::string::npos ) {
+					drive.push_back( drive_info.substr( 0,dir_pos ) );
+					drive.push_back( drive_info.substr( dir_pos ) );
+				}
+				else
+					drive.push_back( drive_info );
+					
+				drive_list.push_back( drive );
+			}
+
+		std::string message= {};
+		for( auto drv:drive_list ) {
+			messageClient(  drv.at( 0 )+":\\\t" );
+			if( drv.size() >2 ) message+= drv.at( 2 )+"\t\t";
+			message+= "("+drv.at( 1 )+")\n";
+			messageClient( message );
+		}
+		messageClient( "\n" );
 	}
 
 	bool	startServer( int tPort ) {
