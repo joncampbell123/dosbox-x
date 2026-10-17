@@ -915,6 +915,8 @@ static const char *def_menu_help[] =
 # endif
     "HelpCommandMenu",
 #endif
+#if !defined(MACOSX) 
+#endif
     NULL
 };
 
