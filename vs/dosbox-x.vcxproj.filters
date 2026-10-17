@@ -633,6 +633,9 @@
     <ClCompile Include="..\src\ints\bios_disk.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ints\bios_int13.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\ints\imagedisk_d88.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
@@ -1988,6 +1991,9 @@
     <ClInclude Include="..\src\ints\int10.h">
       <Filter>Sources\ints</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\ints\int13.h">
+      <Filter>Sources\ints</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\libs\mt32\BReverbModel.h">
       <Filter>Sources\libs\mt32</Filter>
     </ClInclude>
@@ -2541,9 +2547,6 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\byteorder.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\fpu_control_x86.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\iconvpp.hpp">

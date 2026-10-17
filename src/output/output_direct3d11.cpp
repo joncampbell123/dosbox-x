@@ -602,34 +602,10 @@ bool CDirect3D11::Resize(
             render.scale.hardware = true;
             hardware_scaler_selected = false;
         }
-        if(reset_window_size || render.scale.size != last_scalesize) {
-            if(tex_h >= CurMode->sheight * 2) { // doublescan mode
-                uint32_t width = tex_w;
-                uint32_t height = tex_h;
-                if(render.aspect) {
-                    width = (uint32_t)((double)height * CurMode->swidth / CurMode->sheight + 0.5); // First adjust width to match the original aspect ratio.
-                    height = (uint32_t)((double)width / target_ratio + 0.5); // Then adjust height to match the target aspect ratio. This ensures the final window size maintains the target aspect ratio, even in doublescan mode.
-                }
-                window_w = (uint32_t)(height * target_ratio * (render.scale.hardware ? (double)render.scale.size / 2.0 : 1u) + 0.5);
-                window_h = (uint32_t)(height * (render.scale.hardware ? (double)render.scale.size / 2.0 : 1u) + 0.5);
-            }
-            else {
-                window_w = tex_w * (render.scale.hardware ? render.scale.size : 1);
-                if(CurMode->type == M_TEXT && vga.mode != M_HERC_GFX) window_w = (uint32_t)((double)window_w / 2.0 + 0.5); // Suppress window size in text mode
-                if(window_w < tex_w) window_w = tex_w; // Keep at least original size
-                window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
-            }
-            if(window_w != last_window_w || window_h != last_window_h) SDL_SetWindowSize(sdl.window, window_w, window_h);
-            last_scalesize = render.scale.size;
-        }
+
         if(render.aspect) {
-            int real_w = 0, real_h = 0;
-            SDL_GetWindowSize(sdl.window, &real_w, &real_h);
-            if(real_w > 0) {
-                window_w = real_w;
-                window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
-            }
-            if(window_w != last_window_w || window_h != last_window_h) SDL_SetWindowSize(sdl.window, window_w, window_h);
+            window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
+            //SDL_SetWindowSize(sdl.window, window_w, window_h);
             //LOG_MSG("window_w=%d, window_h=%d, sdl.draw.width=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, sdl.draw.width, real_w, real_h, (double)real_w/real_h, target_ratio);
         }
     }
@@ -642,7 +618,9 @@ bool CDirect3D11::Resize(
     if(window_w == last_window_w &&
         window_h == last_window_h &&
         tex_w == last_tex_w &&
-        tex_h == last_tex_h) {
+        tex_h == last_tex_h &&
+        !reset_window_size &&
+        (!render.scale.hardware || (render.scale.hardware && render.scale.size == last_scalesize))) {
         return true; // No change
     }
 
@@ -651,37 +629,48 @@ bool CDirect3D11::Resize(
     frame_height = tex_h;
 
     if(sdl.window && !sdl.desktop.fullscreen) {
-        int real_tex_w = tex_w; int real_tex_h = tex_h;
-        if(render.scale.hardware && (reset_window_size || was_fullscreen > 0)) {
-            real_tex_w = tex_w * render.scale.size;
-            real_tex_h = tex_h * render.scale.size;
-            if(CurMode->type == M_TEXT && vga.mode != M_HERC_GFX) {
-                real_tex_w = (uint32_t)((double)real_tex_w / 2.0 + 0.5); // Suppress window size in text mode
-                real_tex_h = (uint32_t)((double)real_tex_h / 2.0 + 0.5);
-                if(real_tex_w < tex_w || real_tex_h < tex_h) {
-                    real_tex_w = tex_w; // Keep at least original size
-                    real_tex_h = tex_h;
-                }
-            }
-        }
-        else {
-            real_tex_w = tex_w;
-            real_tex_h = tex_h;
-        }
-        if(render.aspect) {
-            real_tex_h = (uint32_t)((double)real_tex_w / target_ratio + 0.5);
-            //LOG_MSG("window_w=%d, window_h=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, real_tex_w, real_tex_h, (double)real_tex_w/real_tex_h, target_ratio);
 
+        if(was_fullscreen) {
+            window_w = last_window_w ? last_window_w : tex_w;
+            window_h = last_window_h ? last_window_h : tex_h;
+            was_fullscreen = false; // Fix me: This flag is set to recover unintended size changes when returning from fullscreen mode.
         }
-        SDL_SetWindowSize(sdl.window, real_tex_w, real_tex_h);
-        if(!reset_window_size) was_fullscreen = false; // Fix me: This flag is set to recover unintended size changes when returning from fullscreen mode.
+
+        if(reset_window_size || (render.scale.hardware && render.scale.size != last_scalesize)) {
+            bool dblw = false;
+            bool dblh = false;
+            double ratio = 4.0 / 3.0;
+
+            uint64_t scale_size = render.scale.hardware ? render.scale.size : 1;
+            if(CurMode->type == M_TEXT && vga.mode != M_HERC_GFX && tex_w >= 640) {
+                scale_size = scale_size > 2 ? scale_size - 2 : 1; // Adjust scale size for text mode to avoid excessive scaling
+            }
+
+            window_w = tex_w * scale_size;
+            window_h = tex_h * scale_size;
+
+            void RENDER_CalcDoubleWidthHeight(Bitu width, Bitu height, double scrn_ratio, bool& dblw, bool& dblh, double& ratio);
+            if(render.scale.hardware) {
+                RENDER_CalcDoubleWidthHeight(window_w, window_h, 1.0, dblw, dblh, ratio);
+                window_w = window_w * (dblw ? 2 : 1);
+                window_h = window_h * (dblh ? 2 : 1);
+            }
+            if(render.scale.hardware) last_scalesize = render.scale.size;
+        }
+
+        if(render.aspect) {
+            // Apply base aspect ratio
+            window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
+            //LOG_MSG("window_w=%d, window_h=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, real_tex_w, real_tex_h, (double)real_tex_w/real_tex_h, target_ratio);
+        }
     }
 
-    int real_w = 0, real_h = 0;
-    SDL_GetWindowSize(sdl.window, &real_w, &real_h);
+    SDL_SetWindowSize(sdl.window, window_w, window_h);
+    //int real_w = 0, real_h = 0;
+    //SDL_GetWindowSize(sdl.window, &real_w, &real_h);
 
-    width = (uint32_t)real_w;
-    height = (uint32_t)real_h;
+    width = (uint32_t)window_w;
+    height = (uint32_t)window_h;
 
     /* ----------------------------
      * 1. Unbind pipeline resources
@@ -769,8 +758,10 @@ bool CDirect3D11::Resize(
         "D3D11 Resize: window=%ux%u frame=%ux%u",
         width, height,
         frame_width, frame_height);
-    last_window_w = width;
-    last_window_h = height;
+    if(!sdl.desktop.fullscreen) {
+        last_window_w = width;
+        last_window_h = height;
+    }
     last_tex_w = frame_width;
     last_tex_h = frame_height;
     return true;

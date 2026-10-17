@@ -614,7 +614,7 @@ template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_mm(const T
 
 
 
-enum save_info_type_dynrec {db_exception, cycle_check, string_break, trap};
+enum save_info_type_dynrec {db_exception, cycle_check, string_break, trap, normal};
 
 
 // function that is called on exceptions
@@ -680,6 +680,12 @@ static void dyn_fill_blocks(void) {
 				dyn_reduce_cycles();
 				gen_add_direct_word(&reg_eip,save_info_dynrec[sct].eip_change,decode.big_op);
 				dyn_return(BR_Trap);
+				break;
+			case normal:
+				decode.cycles=save_info_dynrec[sct].cycles;
+				dyn_reduce_cycles();
+				gen_add_direct_word(&reg_eip,save_info_dynrec[sct].eip_change,decode.big_op);
+				dyn_return(BR_Cycles);
 				break;
 		}
 	}

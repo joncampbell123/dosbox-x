@@ -58,7 +58,7 @@ int debuggerrun = 0;
 int log_dev_con = 0;
 
 _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{nullptr,LOG_NORMAL}};
-FILE* debuglog = NULL;
+static FILE* debuglog = NULL;
 
 #if C_DEBUG
 static bool logBuffHasDiscarded = false;

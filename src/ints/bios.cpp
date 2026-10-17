@@ -4410,6 +4410,14 @@ static Bitu INT18_PC98_Handler(void) {
                 }
             }
             break;
+        case 0x1B: /* set KCG access mode (AL=0 code access, AL=1 dot access) */
+            /* Same mode as bit 3 of AH=0Ah, and kept in the same place in the data area,
+             * so that AH=0Bh reads it back. Neko Project II handles this call the same way. */
+            if (reg_al <= 1) {
+                mem_writeb(0x53C,(mem_readb(0x53C) & ~0x08u) | (reg_al ? 0x08u : 0x00u));
+                pc98_cg_kanji_dot_access_mode = (reg_al != 0);
+            }
+            break;
         case 0x30: /* Set display mode */
             /* FIXME: There is still a lot that is inaccurate about this call */
             if (enable_pc98_egc) {

@@ -165,7 +165,7 @@ struct FPUStatusWord
 	{
 		conditionMask = 0x4700,
 		conditionAndExceptionMask = 0x47bf,
-        exceptionMask = 0xff
+		exceptionMask = 0x3f
 	};
 	std::string to_string() const;
 };

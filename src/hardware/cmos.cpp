@@ -134,10 +134,10 @@ static void cmos_tick(void) {
     if (cmos.clock.month < 1 || cmos.clock.month > 12) cmos.clock.month = 1;
     uint8_t mdays = BIOS_DATE_months[cmos.clock.month];
     if (cmos.clock.month == 2 && cmos.clock.year%4==0 && (cmos.clock.year%100!=0 || cmos.clock.year%400==0)) mdays++; /* Feb 29th leap year */
-    if (++cmos.clock.day < mdays) return;
+    if (++cmos.clock.day <= mdays) return;
     cmos.clock.day = 1;
 
-    if (++cmos.clock.month < 12) return;
+    if (++cmos.clock.month <= 12) return;
     cmos.clock.month = 1;
 
     ++cmos.clock.year;

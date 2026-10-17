@@ -20,20 +20,34 @@
 #define DOSBOX_LOGGING_H
 
 #include "config.h"
-#include "setup.h"
 
 enum LOG_TYPES {
-	LOG_ALL,
-	LOG_VGA, LOG_VGAGFX,LOG_VGAMISC,LOG_INT10,
-	LOG_SB,LOG_DMACONTROL,
-	LOG_FPU,LOG_CPU,LOG_PAGING,
-	LOG_FCB,LOG_FILES,LOG_IOCTL,LOG_EXEC,LOG_DOSMISC,
-	LOG_PIT,LOG_KEYBOARD,LOG_PIC,
-	LOG_MOUSE,LOG_BIOS,LOG_GUI,LOG_MISC,
-	LOG_IO,
-	LOG_PCI,
-	LOG_VOODOO,
-	LOG_MAX
+    LOG_ALL,
+    LOG_BIOS,
+    LOG_CPU,
+    LOG_DMACONTROL,
+    LOG_DOSMISC,
+    LOG_EXEC,
+    LOG_FCB,
+    LOG_FILES,
+    LOG_FPU,
+    LOG_GUI,
+    LOG_INT10,
+    LOG_IO,
+    LOG_IOCTL,
+    LOG_KEYBOARD,
+    LOG_MISC,
+    LOG_MOUSE,
+    LOG_PAGING,
+    LOG_PCI,
+    LOG_PIC,
+    LOG_PIT,
+    LOG_SB,
+    LOG_VGA,
+    LOG_VGAGFX,
+    LOG_VGAMISC,
+    LOG_VOODOO,
+    LOG_MAX
 };
 
 enum LOG_SEVERITIES {
@@ -51,21 +65,19 @@ struct _LogGroup {
 };
 
 extern _LogGroup loggrp[LOG_MAX];
-extern FILE* debuglog;
 
-class LOG 
-{ 
+class LOG
+{
 	LOG_TYPES       d_type;
 	LOG_SEVERITIES  d_severity;
 public:
-
-	LOG (LOG_TYPES type , LOG_SEVERITIES severity):
+	LOG(LOG_TYPES type , LOG_SEVERITIES severity):
 		d_type(type),
 		d_severity(severity)
-		{}
+    {}
 
 	static void ParseEnableSetting(_LogGroup &group,const char *setting);
-	static void SetupConfigSection(void);
+	static void SetupConfigSection();
 	static void EarlyInit();
 	static void Init();
 	static void Exit();

@@ -659,8 +659,14 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 #ifdef WIN32
     void res_init(void);
     void change_output(int output);
-    res_init();
-    change_output(8);
+    //res_init();
+#if defined(C_SDL2)
+    if(sdl.desktop.want_type == SCREEN_DIRECT3D11) {
+        change_output(13);
+    }
+#endif
+    //else 
+        //change_output(8);
 #else
 #if 1
     GFX_RestoreMode();

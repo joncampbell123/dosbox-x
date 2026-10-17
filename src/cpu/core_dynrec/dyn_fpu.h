@@ -438,7 +438,12 @@ static void dyn_fpu_esc3(){
 			gen_call_function_R(FPU_FLD_I32,FC_OP1);
 			break;
 		case 0x01:	/* FISTTP */
-			LOG(LOG_FPU,LOG_WARN)("ESC 3 EA:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+				dyn_fill_ea(FC_ADDR);
+				gen_call_function_R(FPU_FISTTP_I32,FC_ADDR);
+			} else {
+				FPU_LOG_WARN(3,true,decode.modrm.reg,decode.modrm.rm);
+			}
 			break;
 		case 0x02:	/* FIST */
 			dyn_fill_ea(FC_ADDR); 
@@ -550,7 +555,12 @@ static void dyn_fpu_esc5(){
 			gen_call_function_R(FPU_FLD_F64,FC_OP1);
 			break;
 		case 0x01:  /* FISTTP longint*/
-			LOG(LOG_FPU,LOG_WARN)("ESC 5 EA:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+				dyn_fill_ea(FC_ADDR);
+				gen_call_function_R(FPU_FISTTP_I64,FC_ADDR);
+			} else {
+				FPU_LOG_WARN(5,true,decode.modrm.reg,decode.modrm.rm);
+			}
 			break;
 		case 0x02:   /* FST double real*/
 			dyn_fill_ea(FC_ADDR); 
@@ -692,7 +702,12 @@ static void dyn_fpu_esc7(){
 			gen_call_function_R(FPU_FLD_I16,FC_OP1);
 			break;
 		case 0x01:
-			LOG(LOG_FPU,LOG_WARN)("ESC 7 EA:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+				dyn_fill_ea(FC_ADDR);
+				gen_call_function_R(FPU_FISTTP_I16,FC_ADDR);
+			} else {
+				FPU_LOG_WARN(7,true,decode.modrm.reg,decode.modrm.rm);
+			}
 			break;
 		case 0x02:   /* FIST int16_t */
 			dyn_fill_ea(FC_ADDR); 

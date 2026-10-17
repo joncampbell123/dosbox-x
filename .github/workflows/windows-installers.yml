@@ -142,7 +142,7 @@ jobs:
           #cd $top
           #ls -lg
       - name: Upload preview package(VS x86/x64)
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dosbox-x-vsbuild-win-x86_x64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -163,7 +163,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 "$top/dosbox-x-vsbuild-ARM32_64-${{ env.timestamp }}.zip" "*"
           cd $top
       - name: Upload preview package(ARM 32/64-bit)
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dosbox-x-vsbuild-ARM32_64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -245,7 +245,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 "$top/dosbox-x-vsbuild-win-x86_x64-osfree-${{ env.timestamp }}.zip" "*"
           cd $top
       - name: Upload Visual Studio 32/64-bit osfree builds
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dosbox-x-vsbuild-win-x86_x64-osfree-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -266,7 +266,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 "$top/dosbox-x-vsbuild-ARM32_64-osfree-${{ env.timestamp }}.zip" "*"
           cd $top
       - name: Upload preview package(ARM 32/64-bit)
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dosbox-x-vsbuild-ARM32_64-osfree-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -504,7 +504,7 @@ jobs:
           cd $top/package/
           cd $top
       - name: Upload preview package (MinGW)
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dosbox-x-mingw-x86_x64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -534,7 +534,7 @@ jobs:
           cd contrib/windows/installer/
           ISCC.exe ./DOSBox-X-installer.iss
       - name: Upload preview installer
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dosbox-x-windows-${{ env.timestamp }}-setup.exe
           path: contrib/windows/installer/dosbox-x-windows*.exe

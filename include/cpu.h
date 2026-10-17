@@ -209,6 +209,7 @@ void CPU_Push32(uint32_t value);
 void CPU_SetFlags(Bitu word,Bitu mask);
 
 bool FPU_CoprocessorException(void);
+bool FPU_NumericException(void);
 bool MMX_CoprocessorException(void);
 
 #define EXCEPTION_DB            1
@@ -220,12 +221,14 @@ bool MMX_CoprocessorException(void);
 #define EXCEPTION_SS			12u
 #define EXCEPTION_GP			13u
 #define EXCEPTION_PF			14u
+#define EXCEPTION_MF			16u
 
 #define CR0_PROTECTION			0x00000001u
 #define CR0_MONITORPROCESSOR	0x00000002u
 #define CR0_FPUEMULATION		0x00000004u
 #define CR0_TASKSWITCH			0x00000008u
 #define CR0_FPUPRESENT			0x00000010u
+#define CR0_NUMERICERROR		0x00000020u
 #define CR0_WRITEPROTECT		0x00010000u
 #define CR0_PAGING				0x80000000u
 

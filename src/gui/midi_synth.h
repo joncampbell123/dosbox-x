@@ -93,7 +93,7 @@ std::string Find_SoundFont(const std::string& sf /* Should not include path sepa
     const char* soundfonts[] = {
         // If a soundfont is specified, check it first.
         // If not found, check the default soundfonts below.
-        sf.empty() ? NULL : sf.c_str(),
+        sf.empty() ? "" : sf.c_str(),
         "default.sf2",
         "FluidR3_GM.sf2",
         "GeneralUser_GS.sf2",

@@ -448,7 +448,11 @@ static void dyn_fpu_esc3(){
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_I32,"%Drd",DREG(EA));
 			break;
 		case 0x01:	/* FISTTP */
-			FPU_LOG_WARN(3,false,1,sub);
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+				dyn_call_function_pagefault_check((void*)&FPU_FISTTP_I32,"%Drd",DREG(EA));
+			} else {
+				FPU_LOG_WARN(3,true,group,sub);
+			}
 			break;
 		case 0x02:	/* FIST */
 			dyn_call_function_pagefault_check((void*)&FPU_FST_I32,"%Drd",DREG(EA));
@@ -555,7 +559,11 @@ static void dyn_fpu_esc5(){
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_F64,"%Drd",DREG(EA));
 			break;
 		case 0x01:  /* FISTTP longint*/
-			FPU_LOG_WARN(5,true,1,sub);
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+				dyn_call_function_pagefault_check((void*)&FPU_FISTTP_I64,"%Drd",DREG(EA));
+			} else {
+				FPU_LOG_WARN(5,true,group,sub);
+			}
 			break;
 		case 0x02:   /* FST double real*/
 			dyn_call_function_pagefault_check((void*)&FPU_FST_F64,"%Drd",DREG(EA));
@@ -688,7 +696,11 @@ static void dyn_fpu_esc7(){
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_I16,"%Drd",DREG(EA));
 			break;
 		case 0x01:
-			FPU_LOG_WARN(7,true,group,sub);
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+				dyn_call_function_pagefault_check((void*)&FPU_FISTTP_I16,"%Drd",DREG(EA));
+			} else {
+				FPU_LOG_WARN(7,true,group,sub);
+			}
 			break;
 		case 0x02:   /* FIST Bit16s */
 			dyn_call_function_pagefault_check((void*)&FPU_FST_I16,"%Drd",DREG(EA));
