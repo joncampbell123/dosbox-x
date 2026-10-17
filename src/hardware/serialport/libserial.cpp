@@ -229,14 +229,13 @@ static int serial_get_modem_status_platform(COMPORT port) {
 }
 
 static bool serial_send_char_platform(COMPORT port, char data) {
-	DWORD bytesWritten;
+	DWORD bytesWritten = 0;
 
 	// mean bug: with break = 1, WriteFile will never return.
 	if(port->breakstatus) return true; // true or false?!
 
-	WriteFile (port->porthandle, &data, 1, &bytesWritten, NULL);
-	if(bytesWritten==1) return true;
-	else return false;
+	if (!WriteFile(port->porthandle, &data, 1, &bytesWritten, NULL)) return false;
+	return bytesWritten == 1;
 }
 
 // 0-7 char data, higher=flags
