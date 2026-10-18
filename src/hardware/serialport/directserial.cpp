@@ -17,6 +17,8 @@
  */
 
 
+#include <limits>
+
 #include "dosbox.h"
 
 #if C_DIRECTSERIAL
@@ -277,7 +279,7 @@ bool CDirectSerial::doReceive() {
 
 // updatePortConfig is called when emulated app changes the serial port
 // parameters baudrate, stopbits, number of databits, parity.
-void CDirectSerial::updatePortConfig (uint16_t divider, uint8_t lcr) {
+void CDirectSerial::updatePortConfig(double baudrate, uint8_t lcr) {
 	uint8_t parity = 0;
 
 	switch ((lcr & 0x38)>>3) {
@@ -290,10 +292,12 @@ void CDirectSerial::updatePortConfig (uint16_t divider, uint8_t lcr) {
 
 	uint8_t bytelength = (lcr & 0x3)+5;
 
-	// baudrate
-	Bitu baudrate;
-	if(divider==0) baudrate=115200u;
-	else baudrate = 115200u / divider;
+	if (baudrate > std::numeric_limits<int>::max()) {
+		LOG_MSG("Serial%d: Desired serial baud rate is not supported (%g)",
+			(int)COMNUMBER, baudrate);
+		return;
+	}
+	const auto host_baudrate = static_cast<int>(baudrate);
 
 	// stopbits
 	uint8_t stopbits;
@@ -302,12 +306,12 @@ void CDirectSerial::updatePortConfig (uint16_t divider, uint8_t lcr) {
 		else stopbits = SERIAL_2STOP;
 	} else stopbits = SERIAL_1STOP;
 
-	if(!SERIAL_setCommParameters(comport, (int)baudrate, (char)parity, (char)stopbits, (char)bytelength)) {
+	if(!SERIAL_setCommParameters(comport, host_baudrate, (char)parity, (char)stopbits, (char)bytelength)) {
 #if SERIAL_DEBUG
 		log_ser(dbg_aux,"Serial port settings not supported by host." );
 #endif
 		LOG_MSG ("Serial%d: Desired serial mode not supported (%d,%d,%c,%d)",
-			(int)(COMNUMBER),(int)baudrate,(int)bytelength,parity,(int)stopbits);
+			(int)(COMNUMBER),host_baudrate,(int)bytelength,parity,(int)stopbits);
 	} 
 	CDirectSerial::setRTSDTR(getRTS(), getDTR());
 }

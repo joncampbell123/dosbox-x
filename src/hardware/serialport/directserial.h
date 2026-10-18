@@ -35,7 +35,7 @@ public:
 	CDirectSerial(Bitu id, CommandLine* cmd);
 	~CDirectSerial();
 
-	void updatePortConfig(uint16_t divider, uint8_t lcr) override;
+	void updatePortConfig(double baudrate, uint8_t lcr) override;
 	void updateMSR() override;
 	void transmitByte(uint8_t val, bool first) override;
 	void setBreak(bool value) override;
