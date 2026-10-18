@@ -292,7 +292,7 @@ void CDirectSerial::updatePortConfig(double baudrate, uint8_t lcr) {
 
 	uint8_t bytelength = (lcr & 0x3)+5;
 
-	if (baudrate > std::numeric_limits<int>::max()) {
+	if (baudrate > (std::numeric_limits<int>::max)()) {
 		LOG_MSG("Serial%d: Desired serial baud rate is not supported (%g)",
 			(int)COMNUMBER, baudrate);
 		return;
