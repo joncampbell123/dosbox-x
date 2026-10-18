@@ -29,9 +29,6 @@
 #include "SDL_net.h"
 #endif
 
-#include "dosbox.h"
-#include "programs.h"
-
 #define INPUT_LENGTH 1024
 
 extern bool save_dynamic_rec;
@@ -49,13 +46,17 @@ extern void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
 extern void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
 #endif
 
+extern "C" class CONFIG : Program{};
+
 typedef std::vector< std::string > dinfo_t;
 typedef std::vector< dinfo_t > ddesc_t;
 typedef void (*p_monFunc)(void*);
 typedef struct {
 	std::string	command;
 	p_monFunc	exec;
-	void			*data;
+	std::string description;
+//	void			*data;
+	
 } CommandExec;
 typedef std::vector< CommandExec > CommandList;
 
@@ -68,7 +69,7 @@ class Monitor{
 	TCPsocket		_server,_client;
 	IPaddress		_hostIP;
 	SDL_Thread		*_pThread;
-	std::string		_message;
+	std::string		_message,_input;
 
 	std::atomic< bool >	_isRunning;
 
@@ -81,17 +82,19 @@ class Monitor{
 	 */
 	const std::string	_prompt;
 	const CommandList	_commands= {
-		{ "close",		CB_CloseServer },
-		{ "exit",		CB_ExitClient },
-		{ "list_cd",	CB_ListIDE },
-		{ "info",		CB_GetInfo },
-		{ "change",		CB_ChangeIDE },
-		{ "core",		CB_CPUVar },
-		{ "cputype",	CB_CPUVar },
-		{ "cycles",		CB_CPUVar },
-		{ "fpu",			CB_CPUVar },
-		{ "turbo",		CB_CPUVar },
-		{ "memsize",	CB_Mem },
+		{ "close",		CB_CloseServer,	"close socket." },
+		{ "kill",		CB_Quit,				"kill DOSBox-X instance."},
+		{ "exit",		CB_ExitClient,		"exit to terminal." },
+		{ "list_cd",	CB_ListIDE,			"display available CD drives." },
+		{ "info",		CB_GetInfo,			"show current system information." },
+		{ "change",		CB_ChangeIDE,		"change CD, format: change <drive_letter> <image_filepath>." },
+		{ "core",		CB_CPUVar,			"set core: auto, normal, dynamic, full. format: core <coretype>." },
+		{ "cputype",	CB_CPUVar,			"set cputype. see: .conf for list of types. Format: cputype <cpu>." },
+		{ "cycles",		CB_CPUVar,			"set cycles value."  },
+		{ "fpu",			CB_CPUVar,			"set fpu. Format: fpu <fputype>." },
+		{ "turbo",		CB_CPUVar,			"turbo?" },
+		{ "memsize",	CB_Mem,				"sets memsize. Format: memsize <value>." },
+		{ "help",		CB_Help,				"list available commands." },
 	};
 
 	/* Callbacks are paired with simple string */
@@ -100,6 +103,12 @@ class Monitor{
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
 		m.onServerClose();
 		LOG_MSG( "MONITOR server successfully closed." );
+	}
+
+	static void CB_Quit( void *data ){
+		Monitor& m= *reinterpret_cast< Monitor* >( data );
+		m.onServerClose();
+		DoKillSwitch();
 	}
 
 	static void CB_ExitClient( void *data ) {
@@ -133,6 +142,29 @@ class Monitor{
 	static void CB_Mem( void *data ) {     
 		Monitor& m= *reinterpret_cast< Monitor* >( data );
 		m.setMemsize();
+	}
+
+	static void CB_Help( void *data ) {     
+		Monitor& m= *reinterpret_cast< Monitor* >( data );
+
+		if( m._userInput.size() >0 ) {
+			auto command= std::find_if( m._commands.begin(),m._commands.end(),
+				[ & ]( const CommandExec &line ) {
+					return line.command ==m._userInput.at( 1 ); } );
+
+			if( m._commands.end()==command ) m.messageClient( "Unrecognized command.\n" );
+			else m.messageClient( command->description+"\n" );
+
+		} else {
+				std::string help= "Commands: ";
+				for( auto cmd:m._commands )
+					help+= cmd.command+", ";
+
+				help.erase( help.size()-1 );
+				help.at( help.size()-1 )= '\n';
+
+				m.messageClient( help );
+		}
 	}
 
 	/* Callback for threading. */
@@ -416,7 +448,7 @@ class Monitor{
 				continue;
 			} else {
 				std::string inputRecv{ buffer };
-
+				_input= inputRecv;
 				_userInput= processCLI( inputRecv );
 
 				if( _userInput.empty() ){ continue; }
