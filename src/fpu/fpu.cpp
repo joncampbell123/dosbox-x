@@ -22,6 +22,7 @@
 
 #include <array>
 #include <cfenv>
+#include <cmath>
 #include <limits>
 #include <string>
 
