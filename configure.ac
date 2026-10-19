@@ -1602,7 +1602,6 @@ src/builtin/Makefile
 src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
-src/monitor/Makefile
 include/Makefile
 contrib/macos/dosbox-x.plist
 contrib/linux/dosbox-x.spec
