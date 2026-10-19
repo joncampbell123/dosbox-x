@@ -1,4 +1,6 @@
 Next version:
+  - [AI] 3Dfx Metal hardware rendering support on macOS, with output=metal
+    and voodoo_card=metal. (joncampbell123)
   - [AI] 3Dfx direct3d11 hardware rendering support. (joncampbell123)
   - [AI] 3Dfx direct3d hardware rendering support. Log will now say "cannot
     find DLL" if Direct3D9 is not available. (joncampbell123)
