@@ -4000,7 +4000,7 @@ bool OUTPUT_VULKAN_Active(void);
 bool OUTPUT_DIRECT3D_Active(void);
 bool OUTPUT_DIRECT3D11_Active(void);
 
-/* The hardware emulation (OpenGL, Vulkan, Direct3D or Direct3D 11) is chosen every time the 3dfx output turns on,
+/* The hardware emulation (OpenGL, Vulkan, Direct3D, Direct3D 11 or Metal) is chosen every time the 3dfx output turns on,
  * for the output in use then. Until it does, and if it can't, the card is emulated in software. */
 void voodoo_activate(void) {
 	voodoo_sw_wait();	/* the hardware emulation starts from what is in the frame buffer */
@@ -4020,6 +4020,9 @@ void voodoo_activate(void) {
 			break;
 		case VOODOO_EMU_TYPE_DIRECT3D11:
 			api = VOODOO_HW_API_DIRECT3D11;
+			break;
+		case VOODOO_EMU_TYPE_METAL:
+			api = VOODOO_HW_API_METAL;
 			break;
 		case VOODOO_EMU_TYPE_AUTO:
 #if C_VULKAN_OUTPUT

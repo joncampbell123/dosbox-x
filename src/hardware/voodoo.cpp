@@ -114,6 +114,10 @@ class VOODOO:public Module_base{
 			} else if (voodoo_type_str=="direct3d11") {
 				emulation_type=VOODOO_EMU_TYPE_DIRECT3D11;
 #endif
+#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+			} else if (voodoo_type_str=="metal") {
+				emulation_type=VOODOO_EMU_TYPE_METAL;
+#endif
 			} else if (voodoo_type_str=="auto") {
 #if C_OPENGL || C_VULKAN_OUTPUT || C_DIRECT3D
 				/* OpenGL, Vulkan, Direct3D or Direct3D 11, for the output in use when the 3dfx output turns on */
@@ -141,6 +145,7 @@ class VOODOO:public Module_base{
 				case VOODOO_EMU_TYPE_AUTO:
 				case VOODOO_EMU_TYPE_DIRECT3D:
 				case VOODOO_EMU_TYPE_DIRECT3D11:
+				case VOODOO_EMU_TYPE_METAL:
 					Voodoo_Initialize(emulation_type, card_type, max_voodoomem);
 					needs_pci_device = true;
 					break;
@@ -166,6 +171,7 @@ class VOODOO:public Module_base{
 				case VOODOO_EMU_TYPE_AUTO:
 				case VOODOO_EMU_TYPE_DIRECT3D:
 				case VOODOO_EMU_TYPE_DIRECT3D11:
+				case VOODOO_EMU_TYPE_METAL:
 					Voodoo_Shut_Down();
 					break;
 				default:
@@ -183,6 +189,7 @@ class VOODOO:public Module_base{
 				case VOODOO_EMU_TYPE_AUTO:
 				case VOODOO_EMU_TYPE_DIRECT3D:
 				case VOODOO_EMU_TYPE_DIRECT3D11:
+				case VOODOO_EMU_TYPE_METAL:
 					Voodoo_PCI_InitEnable(val);
 					break;
 				default:
@@ -198,6 +205,7 @@ class VOODOO:public Module_base{
 				case VOODOO_EMU_TYPE_AUTO:
 				case VOODOO_EMU_TYPE_DIRECT3D:
 				case VOODOO_EMU_TYPE_DIRECT3D11:
+				case VOODOO_EMU_TYPE_METAL:
 					Voodoo_PCI_Enable(enable);
 					break;
 				default:
@@ -213,6 +221,7 @@ class VOODOO:public Module_base{
 				case VOODOO_EMU_TYPE_AUTO:
 				case VOODOO_EMU_TYPE_DIRECT3D:
 				case VOODOO_EMU_TYPE_DIRECT3D11:
+				case VOODOO_EMU_TYPE_METAL:
 					return Voodoo_GetPageHandler();
 				default:
 					break;

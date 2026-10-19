@@ -36,6 +36,9 @@ void OUTPUT_Metal_EndUpdate(const uint16_t* changedLines);
 Bitu OUTPUT_Metal_SetSize(void);
 void OUTPUT_Metal_Shutdown();
 void OUTPUT_Metal_CheckSourceResolution();
+bool OUTPUT_Metal_Active(void);
+class CMetal;
+CMetal* OUTPUT_Metal_Get(void);
 
 class CMetal {
 public:
@@ -59,6 +62,13 @@ public:
     void SetSamplerMode(id<MTLRenderCommandEncoder> encoder);
     void CheckSourceResolution();
 
+    // for the Metal 3dfx emulation (voodoo_metal.mm), which renders with this device and queue
+    id<MTLDevice> GetDevice(void) { return device; }
+    id<MTLCommandQueue> GetQueue(void) { return queue; }
+    // its frame, drawn instead of the frame texture while set
+    void SetExternalTexture(id<MTLTexture> tex) { externalTexture = tex; }
+    void PresentExternal(void);
+
     uint32_t frame_width = 0;
     uint32_t frame_height = 0;
 
@@ -81,6 +91,7 @@ private:
     CAMetalLayer* layer = nil;
 
     id<MTLTexture> frameTexture = nil;
+    id<MTLTexture> externalTexture = nil;
     id<MTLSamplerState> samplerNearest = nil;
     id<MTLSamplerState> samplerLinear = nil;
     id<MTLRenderPipelineState> pipeline = nil;
@@ -88,6 +99,8 @@ private:
     bool textureMapped = false;
     int current_render_mode = ASPECT_NEAREST;
     MTLViewport currentViewport;
+
+    void DrawFrame(id<MTLTexture> tex);
 };
 
 #endif // defined(C_SDL2)

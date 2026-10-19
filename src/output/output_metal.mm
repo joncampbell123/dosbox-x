@@ -23,7 +23,10 @@
 
 extern VGA_Type vga;
 extern VideoModeBlock* CurMode;
- 
+
+void Voodoo_OGL_SetDisplaySize(unsigned int w, unsigned int h);
+void voodoo_metal_device_lost(void);
+
 CMetal::CMetal() {}
 CMetal::~CMetal() { Shutdown(); }
 
@@ -159,6 +162,10 @@ void CMetal::ResizeCPUBuffer(uint32_t src_w, uint32_t src_h)
 
 void CMetal::Shutdown()
 {
+    /* the 3dfx emulation renders with this device */
+    if(device) voodoo_metal_device_lost();
+    externalTexture = nil;
+
     frameTexture = nil;
     pipeline = nil;
     queue = nil;
@@ -197,6 +204,20 @@ void CMetal::EndUpdate()
         withBytes : cpu_buffer.data()
         bytesPerRow : cpu_pitch] ;
 
+    // the 3dfx emulation's frame instead, while it is active
+    DrawFrame(externalTexture ? externalTexture : frameTexture);
+    textureMapped = false;
+}
+
+void CMetal::PresentExternal()
+{
+    if(!externalTexture || !layer) return;
+    DrawFrame(externalTexture);
+}
+
+void CMetal::DrawFrame(id<MTLTexture> tex)
+{
+    @autoreleasepool {
     id<CAMetalDrawable> drawable = [layer nextDrawable];
     if (!drawable) {
         LOG_MSG("Metal: drawable is NULL");
@@ -220,7 +241,7 @@ void CMetal::EndUpdate()
         [cmd renderCommandEncoderWithDescriptor : pass];
     [enc setViewport:currentViewport];
     [enc setRenderPipelineState : pipeline] ;
-    [enc setFragmentTexture : frameTexture atIndex : 0] ;
+    [enc setFragmentTexture : tex atIndex : 0] ;
     GetRenderMode();
     SetSamplerMode(enc);
 
@@ -231,8 +252,7 @@ void CMetal::EndUpdate()
 
     [cmd presentDrawable : drawable] ;
     [cmd commit] ;
-
-    textureMapped = false;
+    }
 }
 
 
@@ -255,17 +275,13 @@ bool CMetal::CreateSampler()
 
 void CMetal::SetSamplerMode(id<MTLRenderCommandEncoder> encoder)
 {
-    static int last_mode = -1;
-    if(last_mode == current_render_mode) return;
-
+    // (every encoder starts without one)
     id<MTLSamplerState> s = samplerLinear;
 
     if(current_render_mode == ASPECT_NEAREST)
         s = samplerNearest;
 
     [encoder setFragmentSamplerState : s atIndex : 0] ;
-
-    last_mode = current_render_mode;
 }
 
 void CMetal::GetRenderMode() {
@@ -652,6 +668,9 @@ bool CMetal::Resize(uint32_t window_w,
         currentViewport = { 0.0, 0.0, (double)dw, (double)dh, 0.0, 1.0 };
     }
 
+    /* the 3dfx emulation can render at the size it is shown at */
+    Voodoo_OGL_SetDisplaySize((unsigned int)(currentViewport.width + 0.5), (unsigned int)(currentViewport.height + 0.5));
+
     last_window_w = width;
     last_window_h = height;
     last_tex_w = frame_width;
@@ -706,6 +725,17 @@ void OUTPUT_Metal_Shutdown()
 void OUTPUT_Metal_CheckSourceResolution()
 {
     if(metal) metal->CheckSourceResolution();
+}
+
+/* the 3dfx emulation renders with Metal only with this output */
+bool OUTPUT_Metal_Active(void)
+{
+    return metal != nullptr && sdl.desktop.type == SCREEN_METAL && metal->GetDevice() != nil;
+}
+
+CMetal* OUTPUT_Metal_Get(void)
+{
+    return metal;
 }
 
 #endif //#if defined(C_SDL2)

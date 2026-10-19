@@ -38,12 +38,14 @@ static_assert( VOODOO_LFB_ALIGNMASK == 0xFF000000ul, "Voodoo LFB error" );
 #define VOODOO_EMU_TYPE_AUTO		4	/* OpenGL, Vulkan, Direct3D or Direct3D 11, for the output in use */
 #define VOODOO_EMU_TYPE_DIRECT3D	5
 #define VOODOO_EMU_TYPE_DIRECT3D11	6
+#define VOODOO_EMU_TYPE_METAL		7	/* (not picked by auto) */
 
 /* what the hardware emulation renders with */
 #define VOODOO_HW_API_OPENGL		0
 #define VOODOO_HW_API_VULKAN		1
 #define VOODOO_HW_API_DIRECT3D		2
 #define VOODOO_HW_API_DIRECT3D11	3
+#define VOODOO_HW_API_METAL		4
 
 
 void VOODOO_PCI_InitEnable(Bitu val);
