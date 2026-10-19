@@ -57,8 +57,8 @@ void CSerialDummy::handleUpperEvent(uint16_t type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CSerialDummy::updatePortConfig(uint16_t divider, uint8_t lcr) {
-    (void)divider;//UNUSED
+void CSerialDummy::updatePortConfig(double baudrate, uint8_t lcr) {
+	(void)baudrate;//UNUSED
     (void)lcr;//UNUSED
 	//LOG_MSG("Serial port at 0x%x: Port params changed: %d Baud", base,dcb.BaudRate);
 }
