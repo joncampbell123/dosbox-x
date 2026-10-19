@@ -467,6 +467,10 @@ Bitu OUTPUT_Metal_SetSize(void)
     /* ------------------------
      * Framebuffer (texture) size
      * ------------------------ */
+    /* follow the size being set (sdl.draw) here: the VGA code only does it while it draws, and
+     * the 3dfx output (drawn in software) sets its own size while the VGA does not draw. Otherwise
+     * the CPU buffer stays at the size before, and a larger frame is drawn past its end. */
+    metal->CheckSourceResolution();
     uint32_t tex_w = metal->frame_width  ? metal->frame_width  : sdl.draw.width;
     uint32_t tex_h = metal->frame_height ? metal->frame_height : sdl.draw.height;
 
