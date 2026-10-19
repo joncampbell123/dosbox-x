@@ -961,6 +961,59 @@ CheckNANOX()
     fi
 }
 
+dnl DOSBox-X: Find the Wayland libraries
+CheckWayland()
+{
+    AC_ARG_ENABLE(video-wayland,
+AC_HELP_STRING([--enable-video-wayland], [use Wayland video driver [[default=yes]]]),
+                  , enable_video_wayland=yes)
+    AC_ARG_ENABLE(video-wayland-libdecor,
+AC_HELP_STRING([--enable-video-wayland-libdecor], [use libdecor (loaded at runtime) for Wayland window decorations [[default=yes]]]),
+                  , enable_video_wayland_libdecor=yes)
+    if test x$enable_video = xyes -a x$enable_video_wayland = xyes; then
+        AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+        AC_MSG_CHECKING(for Wayland support)
+        video_wayland=no
+        if test x$PKG_CONFIG != xno && \
+           $PKG_CONFIG --atleast-version 1.20 wayland-client && \
+           $PKG_CONFIG --exists wayland-cursor xkbcommon; then
+            WAYLAND_CFLAGS=`$PKG_CONFIG --cflags wayland-client wayland-cursor xkbcommon`
+            WAYLAND_LIBS=`$PKG_CONFIG --libs wayland-client wayland-cursor xkbcommon`
+            video_wayland=yes
+        fi
+        AC_MSG_RESULT($video_wayland)
+
+        if test x$video_wayland = xyes; then
+            AC_DEFINE(SDL_VIDEO_DRIVER_WAYLAND)
+            SOURCES="$SOURCES $srcdir/src/video/wayland/*.c $srcdir/src/video/wayland/protocols/*.c"
+
+            AC_MSG_CHECKING(for Wayland EGL (OpenGL) support)
+            video_wayland_egl=no
+            if test x$enable_video_opengl = xyes && $PKG_CONFIG --exists wayland-egl egl; then
+                WAYLAND_CFLAGS="$WAYLAND_CFLAGS `$PKG_CONFIG --cflags wayland-egl egl`"
+                WAYLAND_LIBS="$WAYLAND_LIBS `$PKG_CONFIG --libs wayland-egl egl`"
+                video_wayland_egl=yes
+                AC_DEFINE(SDL_VIDEO_DRIVER_WAYLAND_EGL)
+                AC_DEFINE(SDL_VIDEO_OPENGL)
+            fi
+            AC_MSG_RESULT($video_wayland_egl)
+
+            AC_MSG_CHECKING(for libdecor headers)
+            video_wayland_libdecor=no
+            if test x$enable_video_wayland_libdecor = xyes && $PKG_CONFIG --exists libdecor-0; then
+                WAYLAND_CFLAGS="$WAYLAND_CFLAGS `$PKG_CONFIG --cflags libdecor-0`"
+                video_wayland_libdecor=yes
+                AC_DEFINE(SDL_VIDEO_DRIVER_WAYLAND_LIBDECOR)
+            fi
+            AC_MSG_RESULT($video_wayland_libdecor)
+
+            EXTRA_CFLAGS="$EXTRA_CFLAGS $WAYLAND_CFLAGS"
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS $WAYLAND_LIBS"
+            have_video=yes
+        fi
+    fi
+}
+
 dnl Find the X11 include and library directories
 CheckX11()
 {
@@ -2361,6 +2414,7 @@ case "$host" in
         CheckPulseAudio
         CheckNAS
         CheckX11
+        CheckWayland
         CheckNANOX
         CheckFBCON
         CheckDirectFB

@@ -73,8 +73,12 @@ typedef struct SDL_SysIMinfo SDL_SysIMinfo;
 
 /** These are the various supported subsystems under UNIX */
 typedef enum {
-	SDL_SYSWM_X11
+	SDL_SYSWM_X11,
+	SDL_SYSWM_WAYLAND	/**< DOSBox-X: the Wayland video driver */
 } SDL_SYSWM_TYPE;
+
+struct wl_display;
+struct wl_surface;
 
 /** The UNIX custom event structure */
 struct SDL_SysWMmsg {
@@ -118,6 +122,12 @@ typedef struct SDL_SysWMinfo {
 		Display *gfxdisplay;	/**< The X11 display to which rendering is done */
                 /*@}*/
 	    } x11;
+	    /** DOSBox-X: the Wayland video driver (subsystem SDL_SYSWM_WAYLAND) */
+	    struct {
+		struct wl_display *display;	/**< The Wayland display */
+		struct wl_surface *surface;	/**< The window's surface */
+		void *shell_surface;		/**< The window's xdg_toplevel */
+	    } wl;
 	} info;
 } SDL_SysWMinfo;
 

@@ -9586,6 +9586,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             const char* env_driver = getenv("SDL_VIDEODRIVER");
             if(!env_driver || !*env_driver) {
 #if defined(LINUX)
+#if !defined(C_SDL2)
+                /* the in-tree SDL 1.x has a Wayland driver, it picks it itself on a Wayland desktop */
+                const char *session = getenv("XDG_SESSION_TYPE");
+                if (!session || strcmp(session, "wayland") != 0)
+#endif
                 putenv("SDL_VIDEODRIVER=x11"); // default to x11 (xwayland) on Linux
 #elif defined(WIN32)
                 /* hack: Encourage SDL to use windib if not otherwise specified */

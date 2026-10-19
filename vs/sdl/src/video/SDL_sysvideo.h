@@ -353,6 +353,9 @@ extern VideoBootStrap QZ_bootstrap;
 #if SDL_VIDEO_DRIVER_X11
 extern VideoBootStrap X11_bootstrap;
 #endif
+#if SDL_VIDEO_DRIVER_WAYLAND
+extern VideoBootStrap WAYLAND_bootstrap;
+#endif
 #if SDL_VIDEO_DRIVER_DGA
 extern VideoBootStrap DGA_bootstrap;
 #endif

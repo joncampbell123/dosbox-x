@@ -40,6 +40,11 @@ static VideoBootStrap *bootstrap[] = {
 #if SDL_VIDEO_DRIVER_X11
 	&X11_bootstrap,
 #endif
+#if SDL_VIDEO_DRIVER_WAYLAND
+	/* DOSBox-X: after X11, so that X11 stays the default. SDL_VideoInit()
+	   tries Wayland first when XDG_SESSION_TYPE is "wayland". */
+	&WAYLAND_bootstrap,
+#endif
 #if SDL_VIDEO_DRIVER_DGA
 	&DGA_bootstrap,
 #endif
@@ -159,6 +164,7 @@ int SDL_VideoInit (const char *driver_name, Uint32 flags)
 	int i;
 	SDL_PixelFormat vformat;
 	Uint32 video_flags;
+	int prefer_wayland = 0;
 
 #if defined(__LINUX__)
 	/* If we're running under X11 or Wayland, do NOT use anything other than the X11 output.
@@ -176,6 +182,15 @@ int SDL_VideoInit (const char *driver_name, Uint32 flags)
 			if (!strcmp(e,"x11") || !strcmp(e,"wayland")) {
 				sdl1_force_x11 = 1;
 			}
+		}
+	}
+#endif
+#if SDL_VIDEO_DRIVER_WAYLAND
+	/* DOSBox-X: X11 is the default, unless the desktop session is Wayland */
+	{
+		const char *e = SDL_getenv("XDG_SESSION_TYPE");
+		if ( e && SDL_strcmp(e, "wayland") == 0 ) {
+			prefer_wayland = 1;
 		}
 	}
 #endif
@@ -213,11 +228,21 @@ int SDL_VideoInit (const char *driver_name, Uint32 flags)
 			}
 		}
 	} else {
-		for ( i=0; bootstrap[i]; ++i ) {
-			if ( bootstrap[i]->available() ) {
-				video = bootstrap[i]->create(index);
-				if ( video != NULL ) {
+		if ( prefer_wayland ) {
+			for ( i=0; bootstrap[i]; ++i ) {
+				if ( SDL_strcmp(bootstrap[i]->name, "wayland") == 0 && bootstrap[i]->available() ) {
+					video = bootstrap[i]->create(index);
 					break;
+				}
+			}
+		}
+		if ( video == NULL ) {
+			for ( i=0; bootstrap[i]; ++i ) {
+				if ( bootstrap[i]->available() ) {
+					video = bootstrap[i]->create(index);
+					if ( video != NULL ) {
+						break;
+					}
 				}
 			}
 		}
