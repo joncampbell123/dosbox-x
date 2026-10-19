@@ -130,8 +130,10 @@ HRESULT CDirect3D::InitializeDX(HWND wnd, bool triplebuf)
 
 	if (mhmodDX9 == NULL)
 		mhmodDX9 = LoadLibrary("d3d9.dll");
-    if (mhmodDX9 == NULL)
-		return E_FAIL;
+    if (mhmodDX9 == NULL) {
+	LOG_MSG("D3D9: Failed to load d3d9.dll");
+	return E_FAIL;
+    }
 
     // Set the presentation parameters
     ZeroMemory(&d3dpp, sizeof(d3dpp));
@@ -367,8 +369,10 @@ bool CDirect3D::UnlockTexture(void)
 HRESULT CDirect3D::InitD3D(void)
 {
     IDirect3D9 *(APIENTRY *pDirect3DCreate9)(UINT) = (IDirect3D9 *(APIENTRY *)(UINT))GetProcAddress(mhmodDX9, "Direct3DCreate9");
-    if(!pDirect3DCreate9)
+    if(!pDirect3DCreate9) {
+	LOG_MSG("D3D9: Direct3DCreate9 not found in d3d9.dll");
 	return E_FAIL;
+    }
 
     // create the IDirect3D9 object
     pD3D9 = pDirect3DCreate9(D3D_SDK_VERSION);
