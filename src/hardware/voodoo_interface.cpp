@@ -28,8 +28,32 @@
 #include "paging.h"
 #include "render.h"
 
+#include "control.h"
 #include "voodoo.h"
 #include "voodoo_interface.h"
+
+#if defined(WIN32)
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+void voodoo_sw_wait(void);
+void voodoo_sw_set_threads(int threads);
+
+/* the number of CPUs (logical ones) the host has */
+static int Voodoo_CPU_Count(void) {
+#if defined(WIN32)
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	return si.dwNumberOfProcessors > 0 ? (int)si.dwNumberOfProcessors : 1;
+#elif defined(_SC_NPROCESSORS_ONLN)
+	const long n = sysconf(_SC_NPROCESSORS_ONLN);
+	return n > 0 ? (int)n : 1;
+#else
+	return 1;
+#endif
+}
 #include "voodoo_emu.h"
 
 
@@ -133,6 +157,9 @@ static void Voodoo_VerticalTimer(Bitu /*val*/) {
 
 	if (!v->ogl) {
 		if (!RENDER_StartUpdate()) return; // frameskip
+
+		/* the frame is drawn by now (with rendering threads) */
+		voodoo_sw_wait();
 
 		rectangle r;
 		r.min_x = r.min_y = 0;
@@ -298,6 +325,20 @@ void Voodoo_Initialize(Bits emulation_type, Bits card_type, bool max_voodoomem) 
 	vdraw.vfreq = 1000.0f/60.0f;
 
 	voodoo_init(board);
+
+	/* software rendering threads: voodoo_threads (auto: half of the CPUs, at most 8) unless
+	 * voodoo_multithreading is off */
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
+	int threads = 1;
+	if (section == NULL || section->Get_bool("voodoo_multithreading")) {
+		const char *s = section != NULL ? section->Get_string("voodoo_threads") : "auto";
+		threads = atoi(s);
+		if (threads <= 0) {
+			threads = Voodoo_CPU_Count() / 2;
+			if (threads > 8) threads = 8;
+		}
+	}
+	voodoo_sw_set_threads(threads);
 }
 
 void Voodoo_Shut_Down() {

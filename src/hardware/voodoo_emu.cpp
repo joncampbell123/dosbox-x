@@ -86,6 +86,11 @@ iterated W    = 18.32 [48 bits]
 
 #include "voodoo_def.h"
 
+#include <vector>
+#include "SDL.h"
+
+void voodoo_sw_wait(void);
+
 
 voodoo_state *v;
 
@@ -131,6 +136,201 @@ static raster_info *find_rasterizer(voodoo_state *v, int texcount);
 static void raster_fastfill(void *dest, INT32 scanline, const poly_extent *extent, const void *extradata);
 
 
+/*************************************
+ *
+ *  Multithreaded software rendering
+ *
+ *************************************/
+
+/* With 2 or more threads (voodoo_multithreading, voodoo_threads), triangles and fastfills
+ * drawn in software are queued for worker threads. Each worker draws the scanlines it owns
+ * (y modulo the number of workers) of every queued item, in order, so each pixel is still
+ * drawn in the same order as with one thread, and the result is the same. The emulation
+ * thread waits for the queue to empty (voodoo_sw_wait) before anything the rasterizers read
+ * changes (the registers other than the triangle setup ones, texture memory), and before the
+ * frame buffer is read or written outside of them (LFB, the display, the OpenGL/Vulkan
+ * emulation taking over). With one thread, everything is drawn right away as before. */
+
+#define VOODOO_MAX_THREADS	64
+#define VOODOO_QUEUE_SIZE	256
+
+struct voodoo_sw_job {
+	poly_draw_scanline_func callback;
+	void *dest;
+	poly_extra_data *extra;	/* owned by the job */
+	INT32 starty;
+	std::vector<poly_extent> extents;
+};
+
+static struct {
+	int threads;					/* workers, 0: draw on the emulation thread */
+	SDL_Thread *thread[VOODOO_MAX_THREADS];
+	SDL_mutex *lock;
+	SDL_cond *work;					/* items were queued, or quit */
+	SDL_cond *done;					/* a worker finished items */
+	voodoo_sw_job queue[VOODOO_QUEUE_SIZE];
+	UINT32 queued;					/* items queued so far */
+	UINT32 drawn[VOODOO_MAX_THREADS];	/* items each worker is done with */
+	UINT32 waited;					/* the items queued when last waited for (emulation thread) */
+	bool waiting;					/* the emulation thread waits for workers */
+	bool quit;
+} vsw;
+
+/* which thread_stats entry the rasterizers on this thread count in (0: emulation thread) */
+static thread_local int voodoo_sw_stats_index = 0;
+
+/* the oldest item not drawn by every worker yet (with the lock held) */
+static UINT32 voodoo_sw_min_drawn(void) {
+	UINT32 m = vsw.drawn[0];
+	for (int k = 1; k < vsw.threads; k++)
+		if ((INT32)(vsw.drawn[k] - m) < 0) m = vsw.drawn[k];
+	return m;
+}
+
+static int SDLCALL voodoo_sw_worker(void *arg) {
+	const int k = (int)(intptr_t)arg;
+	const INT32 n = vsw.threads;
+	voodoo_sw_stats_index = k + 1;
+
+	SDL_LockMutex(vsw.lock);
+	for (;;) {
+		while (!vsw.quit && vsw.drawn[k] == vsw.queued)
+			SDL_CondWait(vsw.work, vsw.lock);
+		if (vsw.quit) break;
+		const UINT32 first = vsw.drawn[k], last = vsw.queued;
+		SDL_UnlockMutex(vsw.lock);
+
+		/* the items queued so far stay as they are until every worker is done with them */
+		for (UINT32 i = first; i != last; i++) {
+			const voodoo_sw_job &j = vsw.queue[i % VOODOO_QUEUE_SIZE];
+			const INT32 count = (INT32)j.extents.size();
+			for (INT32 idx = (((k - j.starty) % n) + n) % n; idx < count; idx += n)
+				(j.callback)(j.dest, j.starty + idx, &j.extents[(size_t)idx], j.extra);
+		}
+
+		SDL_LockMutex(vsw.lock);
+		vsw.drawn[k] = last;
+		if (vsw.waiting) SDL_CondBroadcast(vsw.done);
+	}
+	SDL_UnlockMutex(vsw.lock);
+	return 0;
+}
+
+/* queue scanlines starty.. with these extents to be drawn (the job owns extra from now on) */
+static void voodoo_sw_queue(poly_draw_scanline_func callback, void *dest, poly_extra_data *extra,
+	INT32 starty, const poly_extent *extents, INT32 count) {
+	SDL_LockMutex(vsw.lock);
+	while (vsw.queued - voodoo_sw_min_drawn() >= VOODOO_QUEUE_SIZE) {
+		vsw.waiting = true;
+		SDL_CondWait(vsw.done, vsw.lock);
+	}
+	vsw.waiting = false;
+	voodoo_sw_job &j = vsw.queue[vsw.queued % VOODOO_QUEUE_SIZE];
+	delete j.extra;
+	j.callback = callback;
+	j.dest = dest;
+	j.extra = extra;
+	j.starty = starty;
+	j.extents.assign(extents, extents + count);
+	vsw.queued++;
+	SDL_CondBroadcast(vsw.work);
+	SDL_UnlockMutex(vsw.lock);
+}
+
+/* wait until everything queued is drawn */
+void voodoo_sw_wait(void) {
+	if (vsw.threads == 0 || vsw.waited == vsw.queued) return;
+	SDL_LockMutex(vsw.lock);
+	while (voodoo_sw_min_drawn() != vsw.queued) {
+		vsw.waiting = true;
+		SDL_CondWait(vsw.done, vsw.lock);
+	}
+	vsw.waiting = false;
+	SDL_UnlockMutex(vsw.lock);
+	vsw.waited = vsw.queued;
+}
+
+static void voodoo_sw_stop(void) {
+	if (vsw.threads == 0) return;
+	voodoo_sw_wait();
+	SDL_LockMutex(vsw.lock);
+	vsw.quit = true;
+	SDL_CondBroadcast(vsw.work);
+	SDL_UnlockMutex(vsw.lock);
+	for (int k = 0; k < vsw.threads; k++) SDL_WaitThread(vsw.thread[k], NULL);
+	for (int k = 0; k < VOODOO_QUEUE_SIZE; k++) {
+		delete vsw.queue[k].extra;
+		vsw.queue[k].extra = NULL;
+		vsw.queue[k].extents.clear();
+	}
+	SDL_DestroyCond(vsw.work);
+	SDL_DestroyCond(vsw.done);
+	SDL_DestroyMutex(vsw.lock);
+	vsw.threads = 0;
+}
+
+/* render with this many threads, from now on (with fewer than 2, on the emulation thread) */
+void voodoo_sw_set_threads(int threads) {
+	voodoo_sw_stop();
+	if (threads > VOODOO_MAX_THREADS) threads = VOODOO_MAX_THREADS;
+
+	/* statistics: one block for each thread that draws */
+	delete[] v->thread_stats;
+	v->thread_stats = new stats_block[threads > 1 ? threads + 1 : 1];
+	memset(v->thread_stats, 0, sizeof(stats_block) * (size_t)(threads > 1 ? threads + 1 : 1));
+	if (threads < 2) {
+		LOG_MSG("VOODOO: software rendering with one thread");
+		return;
+	}
+
+	vsw.lock = SDL_CreateMutex();
+	vsw.work = SDL_CreateCond();
+	vsw.done = SDL_CreateCond();
+	vsw.queued = vsw.waited = 0;
+	vsw.waiting = vsw.quit = false;
+	for (int k = 0; k < VOODOO_MAX_THREADS; k++) vsw.drawn[k] = 0;
+	vsw.threads = threads;
+	for (int k = 0; k < threads; k++) {
+#if defined(C_SDL2)
+		vsw.thread[k] = SDL_CreateThread(voodoo_sw_worker, "Voodoo", (void*)(intptr_t)k);
+#else
+		vsw.thread[k] = SDL_CreateThread(voodoo_sw_worker, (void*)(intptr_t)k);
+#endif
+		if (vsw.thread[k] == NULL) {
+			/* the ones made so far would wait for a worker that does not exist */
+			LOG_MSG("VOODOO: can't create rendering threads, rendering with one thread");
+			vsw.threads = k;
+			voodoo_sw_stop();
+			return;
+		}
+	}
+	LOG_MSG("VOODOO: software rendering with %d threads", threads);
+}
+
+/* the rasterizers draw (and change the stipple register) in order on one thread */
+static bool voodoo_sw_inline(void) {
+	return vsw.threads == 0 ||
+		(FBZMODE_ENABLE_STIPPLE(v->reg[fbzMode].u) && FBZMODE_STIPPLE_PATTERN(v->reg[fbzMode].u) == 0);
+}
+
+/* the registers that triangle setup copies into poly_extra_data, and commands that queue
+ * drawing or do not change what it reads */
+static bool voodoo_sw_register_needs_wait(UINT32 regnum) {
+	if (regnum >= vertexAx && regnum <= dWdY) return false;
+	if (regnum >= fvertexAx && regnum <= fdWdY) return false;
+	switch (regnum) {
+		case triangleCMD:
+		case ftriangleCMD:
+		case nopCMD:
+		case fastfillCMD:
+		case swapbufferCMD:
+			return false;
+		default:
+			return true;
+	}
+}
+
+
 /***************************************************************************
     RASTERIZER MANAGEMENT
 ***************************************************************************/
@@ -140,7 +340,7 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 {
 	const poly_extra_data *extra = (const poly_extra_data *)extradata;
 	voodoo_state *v = extra->state;
-	stats_block *stats = &v->thread_stats[0];
+	stats_block *stats = &v->thread_stats[voodoo_sw_stats_index];
 	DECLARE_DITHER_POINTERS;
 	INT32 startx = extent->startx;
 	INT32 stopx = extent->stopx;
@@ -1128,7 +1328,8 @@ INLINE INT32 round_coordinate(float value)
 	return result + (value - (float)result > 0.5f);
 }
 
-void poly_render_triangle(void *dest, poly_draw_scanline_func callback, const poly_vertex *v1, const poly_vertex *v2, const poly_vertex *v3, poly_extra_data *extra)
+/* draws the triangle, or queues it for the rendering threads (which then own extra): returns true then */
+bool poly_render_triangle(void *dest, poly_draw_scanline_func callback, const poly_vertex *v1, const poly_vertex *v2, const poly_vertex *v3, poly_extra_data *extra)
 {
 	float dxdy_v1v2, dxdy_v1v3, dxdy_v2v3;
 	const poly_vertex *tv;
@@ -1167,12 +1368,16 @@ void poly_render_triangle(void *dest, poly_draw_scanline_func callback, const po
 	v1yclip = v1y;
 	v3yclip = v3y;// + ((poly->flags & POLYFLAG_INCLUDE_BOTTOM_EDGE) ? 1 : 0);
 	if (v3yclip - v1yclip <= 0)
-		return;
+		return false;
 
 	/* compute the slopes for each portion of the triangle */
 	dxdy_v1v2 = (v2->y == v1->y) ? 0.0f : (v2->x - v1->x) / (v2->y - v1->y);
 	dxdy_v1v3 = (v3->y == v1->y) ? 0.0f : (v3->x - v1->x) / (v3->y - v1->y);
 	dxdy_v2v3 = (v3->y == v2->y) ? 0.0f : (v3->x - v2->x) / (v3->y - v2->y);
+
+	const bool draw_now = voodoo_sw_inline();
+	static std::vector<poly_extent> extents;
+	if (!draw_now) extents.resize((size_t)(v3yclip - v1yclip));
 
 	poly_extent *extent = new poly_extent;
 	int extnum=0;
@@ -1208,11 +1413,20 @@ void poly_render_triangle(void *dest, poly_draw_scanline_func callback, const po
 
 			extent->startx = istartx;
 			extent->stopx = istopx;
-			(callback)(dest,curscan,extent,extra);
+			if (draw_now)
+				(callback)(dest,curscan,extent,extra);
+			else
+				extents[(size_t)(curscan - v1yclip)] = *extent;
 		}
 	}
 
 	delete extent;
+
+	if (!draw_now) {
+		voodoo_sw_queue(callback, dest, extra, v1yclip, extents.data(), v3yclip - v1yclip);
+		return true;
+	}
+	return false;
 }
 
 
@@ -1278,9 +1492,13 @@ static void accumulate_statistics(voodoo_state *v, const stats_block *stats)
 static void update_statistics(voodoo_state *v, bool accumulate)
 {
 	/* accumulate/reset statistics from all units */
-	if (accumulate)
-		accumulate_statistics(v, &v->thread_stats[0]);
-	memset(&v->thread_stats[0], 0, sizeof(v->thread_stats[0]));
+	voodoo_sw_wait();
+	const int count = vsw.threads > 1 ? vsw.threads + 1 : 1;
+	for (int i = 0; i < count; i++) {
+		if (accumulate)
+			accumulate_statistics(v, &v->thread_stats[i]);
+		memset(&v->thread_stats[i], 0, sizeof(v->thread_stats[i]));
+	}
 
 	/* accumulate/reset statistics from the LFB */
 	if (accumulate)
@@ -1315,6 +1533,10 @@ void register_w(UINT32 offset, UINT32 data) {
 		regnum = register_alias_map[offset & 0x3f];
 	else
 		regnum = offset & 0xff;
+
+	/* the rendering threads may still be drawing with what this changes */
+	if (vsw.threads != 0 && voodoo_sw_register_needs_wait(regnum))
+		voodoo_sw_wait();
 
 	/* first make sure this register is readable */
 	if (!(v->regaccess[regnum] & REGISTER_WRITE))
@@ -1952,6 +2174,9 @@ default_case:
  *************************************/
 
 void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
+	/* (the frame buffer, texture memory: after the rendering threads are done with them) */
+	voodoo_sw_wait();
+
 	LOG(LOG_VOODOO,LOG_WARN)("V3D:WR LFB offset %X value %08X", offset, data);
 	UINT16 *dest, *depth;
 	UINT32 destmax, depthmax;
@@ -2562,6 +2787,9 @@ nextpixel:
  *************************************/
 
 INT32 texture_w(UINT32 offset, UINT32 data) {
+	/* (the frame buffer, texture memory: after the rendering threads are done with them) */
+	voodoo_sw_wait();
+
 	int tmunum = (offset >> 19) & 0x03;
 	LOG(LOG_VOODOO,LOG_WARN)("V3D:write TMU%x offset %X value %X", tmunum, offset, data);
 
@@ -2812,6 +3040,9 @@ UINT32 register_r(UINT32 offset)
  *************************************/
 UINT32 lfb_r(UINT32 offset)
 {
+	/* (the frame buffer, texture memory: after the rendering threads are done with them) */
+	voodoo_sw_wait();
+
 	LOG(LOG_VOODOO,LOG_WARN)("Voodoo:read LFB offset %X", offset);
 	UINT16 *buffer;
 	UINT32 bufmax;
@@ -3077,6 +3308,7 @@ void voodoo_init(int type) {
 }
 
 void voodoo_shutdown() {
+	voodoo_sw_stop();
 	if (v->ogl)
 		voodoo_hw_shutdown(v);
 
@@ -3169,6 +3401,13 @@ void fastfill(voodoo_state *v)
 
 	if (v->ogl && v->active) {
 		voodoo_hw_fastfill();
+	} else if (!voodoo_sw_inline() && ey > (unsigned int)sy) {
+		/* the rendering threads fill their scanlines */
+		std::vector<poly_extent> rows((size_t)(ey - sy), extents[0]);
+		extra->state = v;
+		memcpy(extra->dither, dithermatrix, sizeof(extra->dither));
+		voodoo_sw_queue(raster_fastfill, drawbuf, extra, (INT32)sy, rows.data(), (INT32)(ey - sy));
+		return;
 	} else {
 
 		/* iterate over blocks of extents */
@@ -3567,7 +3806,8 @@ void triangle_create_work_item(voodoo_state *v, UINT16 *drawbuf, int texcount)
 		}
 		voodoo_hw_draw_triangle(extra);
 	} else {
-		poly_render_triangle(drawbuf, info->callback, &vert[0], &vert[1], &vert[2], extra);
+		if (poly_render_triangle(drawbuf, info->callback, &vert[0], &vert[1], &vert[2], extra))
+			return; /* queued, extra is the rendering threads' now */
 	}
 
 	delete extra;
@@ -3681,7 +3921,7 @@ static void raster_fastfill(void *destbase, INT32 y, const poly_extent *extent, 
 {
 	const poly_extra_data *extra = (const poly_extra_data *)extradata;
 	voodoo_state *v = extra->state;
-	stats_block *stats = &v->thread_stats[0];
+	stats_block *stats = &v->thread_stats[voodoo_sw_stats_index];
 	INT32 startx = extent->startx;
 	INT32 stopx = extent->stopx;
 	int scry, x;
@@ -3761,6 +4001,7 @@ bool OUTPUT_VULKAN_Active(void);
 /* The hardware emulation (OpenGL or Vulkan) is chosen every time the 3dfx output turns on,
  * for the output in use then. Until it does, and if it can't, the card is emulated in software. */
 void voodoo_activate(void) {
+	voodoo_sw_wait();	/* the hardware emulation starts from what is in the frame buffer */
 	v->active = true;
 	v->ogl = false;
 	v->vulkan = false;

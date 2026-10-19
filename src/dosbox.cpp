@@ -3521,6 +3521,17 @@ void DOSBOX_SetupConfigSections(void) {
                       "           3dfx video mode, horizontally or vertically.");
     Pstring->SetBasic(true);
 
+    Pbool = secprop->Add_bool("voodoo_multithreading",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Render the 3dfx Voodoo card in software (voodoo_card=software, or when it can't be rendered\n"
+                    "with OpenGL or Vulkan) with several threads, as set by voodoo_threads.");
+    Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_string("voodoo_threads",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_help("The number of threads the 3dfx Voodoo card is rendered in software with (voodoo_multithreading),\n"
+                      "at most 64. auto: half of the CPUs, at most 8. With 1 (or less than 2 CPUs), it is rendered\n"
+                      "on the emulation thread as without multithreading.");
+    Pstring->SetBasic(true);
+
 	Pbool = secprop->Add_bool("voodoo_maxmem",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Specify whether to enable maximum memory size for the Voodoo card.\n"
                     "If set (on by default), the memory size will be 12MB (4MB front buffer + 2x4MB texture units)\n"
