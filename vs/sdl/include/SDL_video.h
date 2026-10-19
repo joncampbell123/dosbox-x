@@ -869,6 +869,25 @@ extern DECLSPEC int SDLCALL SDL_GL_GetAttribute(SDL_GLattr attr, int* value);
  */
 extern DECLSPEC void SDLCALL SDL_GL_SwapBuffers(void);
 
+/** @name DOSBox-X: more OpenGL contexts
+ *  Contexts that share objects (textures etc.) with the one that SDL_SetVideoMode()
+ *  made for SDL_OPENGL, and render to the same window. Contexts made later by
+ *  SDL_SetVideoMode() share with them as well, as long as one exists.
+ *  SDL_GL_SHARED_CONTEXTS is defined when these functions are available.
+ */
+/*@{*/
+#define SDL_GL_SHARED_CONTEXTS 1
+typedef void *SDL_GLContext;
+/** A new context sharing with the video mode's, or NULL. It is not made current. */
+extern DECLSPEC SDL_GLContext SDLCALL SDL_GL_CreateSharedContext(void);
+extern DECLSPEC void SDLCALL SDL_GL_DeleteContext(SDL_GLContext context);
+/** Make a context current, NULL for the video mode's own. Returns 0 on success */
+extern DECLSPEC int SDLCALL SDL_GL_MakeCurrentContext(SDL_GLContext context);
+extern DECLSPEC SDL_GLContext SDLCALL SDL_GL_GetCurrentContext(void);
+/** The context SDL_SetVideoMode() made, NULL if none */
+extern DECLSPEC SDL_GLContext SDLCALL SDL_GL_GetVideoModeContext(void);
+/*@}*/
+
 /** @name OpenGL Internal Functions
  * Internal functions that should not be called unless you have read
  * and understood the source code for these functions.

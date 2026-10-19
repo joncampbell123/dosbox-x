@@ -271,8 +271,9 @@ int X11_GL_CreateContext(_THIS)
     XSync(GFX_Display, False);
     XSync(SDL_Display, False);
 
+	/* DOSBox-X: share with the shared contexts that exist, so they keep seeing this one's objects */
 	glx_context = this->gl_data->glXCreateContext(GFX_Display, 
-				     glx_visualinfo, NULL, True);
+				     glx_visualinfo, this->gl_data->glx_share_context, True);
 
     XSync(GFX_Display, False);
     XSync(SDL_Display, False);
@@ -356,6 +357,51 @@ void X11_GL_Shutdown(_THIS)
 }
 
 #if SDL_VIDEO_OPENGL_GLX
+
+/* DOSBox-X: more contexts, sharing with the video mode's */
+SDL_GLContext X11_GL_CreateSharedContext(_THIS)
+{
+	GLXContext context;
+
+	if ( glx_context == NULL ) {
+		SDL_SetError("OpenGL video mode has not been set");
+		return NULL;
+	}
+	context = this->gl_data->glXCreateContext(GFX_Display, glx_visualinfo, glx_context, True);
+	if ( context == NULL ) {
+		SDL_SetError("Could not create shared GL context");
+		return NULL;
+	}
+	if ( this->gl_data->glx_share_context == NULL ) {
+		this->gl_data->glx_share_context = context;
+	}
+	return (SDL_GLContext)context;
+}
+
+void X11_GL_DeleteContext(_THIS, SDL_GLContext context)
+{
+	if ( (GLXContext)context == glx_context ) {
+		return; /* the video mode's own */
+	}
+	if ( this->gl_data->glx_share_context == (GLXContext)context ) {
+		this->gl_data->glx_share_context = NULL;
+	}
+	this->gl_data->glXDestroyContext(GFX_Display, (GLXContext)context);
+}
+
+int X11_GL_MakeContextCurrent(_THIS, SDL_GLContext context)
+{
+	if ( ! this->gl_data->glXMakeCurrent(GFX_Display, SDL_Window, (GLXContext)context) ) {
+		SDL_SetError("Unable to make GL context current");
+		return -1;
+	}
+	return 0;
+}
+
+SDL_GLContext X11_GL_GetVideoModeContext(_THIS)
+{
+	return (SDL_GLContext)glx_context;
+}
 
 /* Make the current context active */
 int X11_GL_MakeCurrent(_THIS)

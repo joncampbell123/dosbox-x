@@ -183,6 +183,12 @@ struct SDL_VideoDevice {
 	/* Swap the current buffers in double buffer mode. */
 	void (*GL_SwapBuffers)(_THIS);
 
+	/* DOSBox-X: more contexts, sharing with the video mode's (see SDL_GL_CreateSharedContext) */
+	SDL_GLContext (*GL_CreateSharedContext)(_THIS);
+	void (*GL_DeleteContext)(_THIS, SDL_GLContext context);
+	int (*GL_MakeContextCurrent)(_THIS, SDL_GLContext context);
+	SDL_GLContext (*GL_GetVideoModeContext)(_THIS);
+
 	/* * * */
 	/* Vulkan support (DOSBox-X), for video modes set with SDL_VULKAN */
 

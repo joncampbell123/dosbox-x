@@ -105,9 +105,6 @@ extern bool font_16_init;
 
 SDL_OpenGL sdl_opengl = {0};
 
-int Voodoo_OGL_GetWidth();
-int Voodoo_OGL_GetHeight();
-bool Voodoo_OGL_Active();
 bool InitCodePage();
 uint8_t *GetDbcsFont(Bitu code);
 
@@ -157,6 +154,20 @@ static void PPScale (
         orig_w,     orig_h, par,
         sx,         sy,
         sdl.clip.w, sdl.clip.h, (double)sy/sx );
+}
+
+/* The window's size. With SDL2 sdl.surface is not updated when the window is resized
+ * (GFX_SetSDLWindowMode() leaves it alone then), so it is asked for. */
+static void OpenGL_GetWindowSize(int &w, int &h)
+{
+#if defined(C_SDL2)
+    if (sdl.window != NULL) {
+        SDL_GetWindowSize(sdl.window, &w, &h);
+        if (w > 0 && h > 0) return;
+    }
+#endif
+    w = sdl.surface ? sdl.surface->w : 0;
+    h = sdl.surface ? sdl.surface->h : 0;
 }
 
 static SDL_Surface* SetupSurfaceScaledOpenGL(uint32_t sdl_flags, uint32_t bpp) 
@@ -211,12 +222,7 @@ retry:
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* scale the menu bar if the window is large enough */
-    /* SDL drawn menus cannot coexist with 3Dfx emulation. In fact, there is a serious
-     * bug in SDL1 builds that rapidly expands the vertical size of the menu every frame. */
-    
-    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen)  {
-    }
-    else {
+    {
         int cw = fixedWidth, ch = fixedHeight;
         int scale = 1;
 
@@ -237,12 +243,7 @@ retry:
 #endif
 
     sdl.clip.x = 0; sdl.clip.y = 0;
-    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen)
-    { 
-        /* 3Dfx openGL do not allow resize */
-        sdl.clip.w = windowWidth = (uint16_t)Voodoo_OGL_GetWidth();
-        sdl.clip.h = windowHeight = (uint16_t)Voodoo_OGL_GetHeight();
-    } else if (sdl_opengl.kind == GLPerfect ) {
+    if (sdl_opengl.kind == GLPerfect ) {
         PPScale( fixedWidth, fixedHeight, &windowWidth, &windowHeight );
     } else
         if (fixedWidth && fixedHeight)
@@ -272,12 +273,8 @@ retry:
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     if (mainMenu.isVisible() && !sdl.desktop.fullscreen) 
     {
-        if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) {
-        }
-        else {
-            windowHeight += mainMenu.menuBox.h;
-            sdl.clip.y += mainMenu.menuBox.h;
-        }
+        windowHeight += mainMenu.menuBox.h;
+        sdl.clip.y += mainMenu.menuBox.h;
     }
 #endif
 
@@ -319,8 +316,12 @@ retry:
     ApplyPreventCap();
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    mainMenu.screenWidth = (size_t)(sdl.surface->w);
-    mainMenu.screenHeight = (size_t)(sdl.surface->h);
+    {
+        int win_w = 0, win_h = 0;
+        OpenGL_GetWindowSize(win_w, win_h);
+        mainMenu.screenWidth = (size_t)win_w;
+        mainMenu.screenHeight = (size_t)win_h;
+    }
     mainMenu.updateRect();
     mainMenu.setRedraw();
 #endif
@@ -361,8 +362,9 @@ void OUTPUT_OPENGL_Select( GLKind kind )
             SDL_GL_DeleteContext(sdl_opengl.context);
             sdl_opengl.context = nullptr;
         }
-        sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
+        sdl_opengl.context = GFX_GL_CreateMainContext();
         sdl.surface = SDL_GetWindowSurface(sdl.window);
+        GFX_OpenGL_MakeCurrent(); /* SDL_GetWindowSurface() may have made its renderer's context current */
 
         LOG_MSG( "OpenGL Version : %s", glGetString( GL_VERSION ));
     }
@@ -511,6 +513,7 @@ static bool LoadGLShaders(const char *src, GLuint *vertex, GLuint *fragment) {
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 void UpdateSDLDrawTexture() {
+    GFX_OpenGL_MakeCurrent();
     glBindTexture(GL_TEXTURE_2D, SDLDrawGenFontTexture);
 
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -553,6 +556,7 @@ void UpdateSDLDrawTexture() {
 }
 
 void UpdateSDLDrawDBCSTexture(Bitu code) {
+    GFX_OpenGL_MakeCurrent();
     glBindTexture(GL_TEXTURE_2D, SDLDrawGenDBCSFontTexture);
 
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -591,9 +595,46 @@ void UpdateSDLDrawDBCSTexture(Bitu code) {
 }
 #endif
 
+/* make the shader program current, with its vertex data and uniforms. This is per context:
+ * the program itself may outlive a context when contexts share objects (3dfx emulation) */
+static void OpenGL_SetupShaderProgram(void)
+{
+    glUseProgram(sdl_opengl.program_object);
+
+    GLint u = glGetAttribLocation(sdl_opengl.program_object, "a_position");
+    // NTS: This is now a triangle strip (GL_TRIANGLE_STRIP)
+    // upper left
+    sdl_opengl.vertex_data[0] = -1.0f;
+    sdl_opengl.vertex_data[1] =  1.0f;
+    // lower left
+    sdl_opengl.vertex_data[2] = -1.0f;
+    sdl_opengl.vertex_data[3] = -1.0f;
+    // upper right
+    sdl_opengl.vertex_data[4] =  1.0f;
+    sdl_opengl.vertex_data[5] =  1.0f;
+    // lower right
+    sdl_opengl.vertex_data[6] =  1.0f;
+    sdl_opengl.vertex_data[7] = -1.0f;
+    // Load the vertex positions
+    glVertexAttribPointer(u, 2, GL_FLOAT, GL_FALSE, 0, sdl_opengl.vertex_data);
+    glEnableVertexAttribArray(u);
+
+    u = glGetUniformLocation(sdl_opengl.program_object, "rubyTexture");
+    glUniform1i(u, 0);
+
+    sdl_opengl.ruby.texture_size = glGetUniformLocation(sdl_opengl.program_object, "rubyTextureSize");
+    sdl_opengl.ruby.input_size = glGetUniformLocation(sdl_opengl.program_object, "rubyInputSize");
+    sdl_opengl.ruby.output_size = glGetUniformLocation(sdl_opengl.program_object, "rubyOutputSize");
+    sdl_opengl.ruby.frame_count = glGetUniformLocation(sdl_opengl.program_object, "rubyFrameCount");
+    // Don't force updating unless a shader depends on frame_count
+    RENDER_SetForceUpdate(sdl_opengl.ruby.frame_count != (GLint)-1);
+}
+
 Bitu OUTPUT_OPENGL_SetSize()
 {
     Bitu retFlags = 0;
+
+    GFX_OpenGL_MakeCurrent();
 
     /* NTS: Apparently calling glFinish/glFlush before setup causes a segfault within
     *      the OpenGL library on Mac OS X. */
@@ -627,6 +668,9 @@ Bitu OUTPUT_OPENGL_SetSize()
     // try 32 bits first then 16
 #if defined(C_SDL2)
     if (SetupSurfaceScaledOpenGL(SDL_WINDOW_RESIZABLE,32)==NULL) SetupSurfaceScaledOpenGL(SDL_WINDOW_RESIZABLE,16);
+    /* SDL_GetWindowSurface() may have made SDL's own renderer context current (with
+     * SDL_HINT_FRAMEBUFFER_ACCELERATION, after the window was resized) */
+    GFX_OpenGL_MakeCurrent();
 #else
     if (SetupSurfaceScaledOpenGL(SDL_RESIZABLE,32)==NULL) SetupSurfaceScaledOpenGL(SDL_RESIZABLE,16);
 #endif
@@ -674,6 +718,9 @@ Bitu OUTPUT_OPENGL_SetSize()
                     // program is not usable (probably new context), purge it
                     glDeleteProgram(sdl_opengl.program_object);
                     sdl_opengl.program_object = 0;
+                } else {
+                    // usable in this new context (shared objects), which needs its own setup
+                    OpenGL_SetupShaderProgram();
                 }
             }
 
@@ -699,11 +746,9 @@ Bitu OUTPUT_OPENGL_SetSize()
                 }
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                 // Todo: Make SDL-drawn menu work with custom GLSL shaders
-                if (!sdl.desktop.prevent_fullscreen) {
-                    menu.toggle=false;
-                    mainMenu.showMenu(false);
-                    mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
-                }
+                menu.toggle=false;
+                mainMenu.showMenu(false);
+                mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 #endif
                 glAttachShader(sdl_opengl.program_object, vertexShader);
                 glAttachShader(sdl_opengl.program_object, fragmentShader);
@@ -733,35 +778,7 @@ Bitu OUTPUT_OPENGL_SetSize()
                     return 0;
                 }
 
-                glUseProgram(sdl_opengl.program_object);
-
-                GLint u = glGetAttribLocation(sdl_opengl.program_object, "a_position");
-                // NTS: This is now a triangle strip (GL_TRIANGLE_STRIP)
-                // upper left
-                sdl_opengl.vertex_data[0] = -1.0f;
-                sdl_opengl.vertex_data[1] =  1.0f;
-                // lower left
-                sdl_opengl.vertex_data[2] = -1.0f;
-                sdl_opengl.vertex_data[3] = -1.0f;
-                // upper right
-                sdl_opengl.vertex_data[4] =  1.0f;
-                sdl_opengl.vertex_data[5] =  1.0f;
-                // lower right
-                sdl_opengl.vertex_data[6] =  1.0f;
-                sdl_opengl.vertex_data[7] = -1.0f;
-                // Load the vertex positions
-                glVertexAttribPointer(u, 2, GL_FLOAT, GL_FALSE, 0, sdl_opengl.vertex_data);
-                glEnableVertexAttribArray(u);
-
-                u = glGetUniformLocation(sdl_opengl.program_object, "rubyTexture");
-                glUniform1i(u, 0);
-
-                sdl_opengl.ruby.texture_size = glGetUniformLocation(sdl_opengl.program_object, "rubyTextureSize");
-                sdl_opengl.ruby.input_size = glGetUniformLocation(sdl_opengl.program_object, "rubyInputSize");
-                sdl_opengl.ruby.output_size = glGetUniformLocation(sdl_opengl.program_object, "rubyOutputSize");
-                sdl_opengl.ruby.frame_count = glGetUniformLocation(sdl_opengl.program_object, "rubyFrameCount");
-                // Don't force updating unless a shader depends on frame_count
-                RENDER_SetForceUpdate(sdl_opengl.ruby.frame_count != (GLint)-1);
+                OpenGL_SetupShaderProgram();
             }
         }
     }
@@ -793,10 +810,12 @@ Bitu OUTPUT_OPENGL_SetSize()
     }
 #endif
 
+    int win_w = 0, win_h = 0;
+    OpenGL_GetWindowSize(win_w, win_h);
     if (sdl_opengl.use_shader)
-        glViewport((sdl.surface->w-sdl.clip.w)/2,(sdl.surface->h-sdl.clip.h)/2,sdl.clip.w,sdl.clip.h);
+        glViewport((win_w-sdl.clip.w)/2,(win_h-sdl.clip.h)/2,sdl.clip.w,sdl.clip.h);
     else
-        glViewport(0, 0, sdl.surface->w, sdl.surface->h);
+        glViewport(0, 0, win_w, win_h);
     if (sdl_opengl.texture > 0) glDeleteTextures(1, &sdl_opengl.texture);
     glGenTextures(1, &sdl_opengl.texture);
     glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
@@ -851,7 +870,7 @@ Bitu OUTPUT_OPENGL_SetSize()
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(0, sdl.surface->w, sdl.surface->h, 0, -1, 1);
+        glOrtho(0, win_w, win_h, 0, -1, 1);
 
         glMatrixMode(GL_TEXTURE);
         glLoadIdentity();
@@ -929,6 +948,8 @@ Bitu OUTPUT_OPENGL_SetSize()
 
 bool OUTPUT_OPENGL_StartUpdate(uint8_t* &pixels, Bitu &pitch)
 {
+    GFX_OpenGL_MakeCurrent();
+
 #if C_XBRZ    
     if (sdl_xbrz.enable && sdl_xbrz.scale_on) 
     {
@@ -983,6 +1004,8 @@ static void CheckManagement(void) {
 
 void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
 {
+    GFX_OpenGL_MakeCurrent();
+
     if (!(sdl.must_redraw_all && changedLines == NULL)) 
     {
 #if C_XBRZ
@@ -1159,6 +1182,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
 
 void OUTPUT_OPENGL_Shutdown()
 {
+	GFX_OpenGL_MakeCurrent();
 	if (sdl_opengl.pixel_buffer_object)
 	{
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
@@ -1169,6 +1193,209 @@ void OUTPUT_OPENGL_Shutdown()
 		free(sdl_opengl.framebuf);
 		sdl_opengl.framebuf = NULL;
 	}
+}
+
+/* OpenGL contexts */
+
+/* the 3dfx Voodoo OpenGL emulation's context (voodoo_opengl.cpp) */
+GFX_GLContext Voodoo_OGL_GetContext(void);
+void Voodoo_OGL_ReleaseContext(void);
+void Voodoo_OGL_WaitRelease(void);
+
+#if defined(C_SDL2)
+GFX_GLContext GFX_GL_GetCurrentContext(void)
+{
+    return SDL_GL_GetCurrentContext();
+}
+
+bool GFX_GL_MakeContextCurrent(GFX_GLContext ctx)
+{
+    return sdl.window != NULL && ctx != NULL && SDL_GL_MakeCurrent(sdl.window, (SDL_GLContext)ctx) == 0;
+}
+
+void GFX_GL_DeleteContext(GFX_GLContext ctx)
+{
+    if (ctx != NULL) SDL_GL_DeleteContext((SDL_GLContext)ctx);
+}
+
+GFX_GLContext GFX_GL_CreateMainContext(void)
+{
+    /* the 3dfx emulation's textures must stay visible to the new context */
+    GFX_GLContext share = Voodoo_OGL_GetContext();
+    bool sharing = false;
+    if (share != NULL && GFX_GL_MakeContextCurrent(share)) {
+        Voodoo_OGL_ReleaseContext();
+        SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+        sharing = true;
+    }
+    SDL_GLContext ctx = SDL_GL_CreateContext(sdl.window);
+    if (sharing) {
+        SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 0);
+        if (ctx != NULL) Voodoo_OGL_WaitRelease();
+    }
+    return ctx;
+}
+
+GFX_GLContext GFX_GL_CreateSharedContext(void)
+{
+    if (sdl_opengl.context == NULL || sdl.window == NULL) return NULL;
+    GFX_OpenGL_MakeCurrent();
+    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+    SDL_GLContext ctx = SDL_GL_CreateContext(sdl.window); /* and makes it current */
+    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 0);
+    if (ctx == NULL) {
+        LOG_MSG("OpenGL: Unable to create a shared context: %s", SDL_GetError());
+        GFX_GL_MakeContextCurrent(sdl_opengl.context);
+    }
+    return ctx;
+}
+
+bool OUTPUT_OPENGL_Active(void)
+{
+    return sdl.desktop.type == SCREEN_OPENGL && sdl.window != NULL && sdl_opengl.context != NULL;
+}
+
+void GFX_OpenGL_MakeCurrent(void)
+{
+    GFX_GLContext current = GFX_GL_GetCurrentContext();
+    if (sdl_opengl.context == NULL || current == (GFX_GLContext)sdl_opengl.context) return;
+
+    /* the 3dfx emulation finishes what it was drawing, and the main context waits for it */
+    if (current != NULL && current == Voodoo_OGL_GetContext()) Voodoo_OGL_ReleaseContext();
+    if (GFX_GL_MakeContextCurrent(sdl_opengl.context)) Voodoo_OGL_WaitRelease();
+}
+#elif defined(SDL_GL_SHARED_CONTEXTS)
+/* SDL1: the in-tree SDL 1.x has shared contexts. The main one is the one SDL_SetVideoMode()
+ * makes, and it shares with the shared contexts that exist when it is made. */
+GFX_GLContext GFX_GL_GetCurrentContext(void)
+{
+    return SDL_GL_GetCurrentContext();
+}
+
+bool GFX_GL_MakeContextCurrent(GFX_GLContext ctx)
+{
+    return ctx != NULL && SDL_GL_MakeCurrentContext((SDL_GLContext)ctx) == 0;
+}
+
+void GFX_GL_DeleteContext(GFX_GLContext ctx)
+{
+    if (ctx != NULL) SDL_GL_DeleteContext((SDL_GLContext)ctx);
+}
+
+GFX_GLContext GFX_GL_CreateMainContext(void)
+{
+    return SDL_GL_GetVideoModeContext();
+}
+
+GFX_GLContext GFX_GL_CreateSharedContext(void)
+{
+    if (SDL_GL_GetVideoModeContext() == NULL) return NULL;
+    GFX_OpenGL_MakeCurrent();
+    GFX_GLContext ctx = SDL_GL_CreateSharedContext();
+    if (ctx == NULL) LOG_MSG("OpenGL: Unable to create a shared context: %s", SDL_GetError());
+    return ctx;
+}
+
+bool OUTPUT_OPENGL_Active(void)
+{
+    return sdl.desktop.type == SCREEN_OPENGL && SDL_GL_GetVideoModeContext() != NULL;
+}
+
+void GFX_OpenGL_MakeCurrent(void)
+{
+    GFX_GLContext main_ctx = SDL_GL_GetVideoModeContext();
+    GFX_GLContext current = GFX_GL_GetCurrentContext();
+    if (main_ctx == NULL || current == main_ctx) return;
+
+    /* the 3dfx emulation finishes what it was drawing, and the main context waits for it */
+    if (current != NULL && current == Voodoo_OGL_GetContext()) Voodoo_OGL_ReleaseContext();
+    if (GFX_GL_MakeContextCurrent(main_ctx)) Voodoo_OGL_WaitRelease();
+}
+#else
+/* stock SDL1: only the one context that SDL_SetVideoMode() makes */
+GFX_GLContext GFX_GL_GetCurrentContext(void) { return NULL; }
+bool GFX_GL_MakeContextCurrent(GFX_GLContext ctx) { (void)ctx; return false; }
+void GFX_GL_DeleteContext(GFX_GLContext ctx) { (void)ctx; }
+GFX_GLContext GFX_GL_CreateMainContext(void) { return NULL; }
+GFX_GLContext GFX_GL_CreateSharedContext(void) { return NULL; }
+bool OUTPUT_OPENGL_Active(void) { return sdl.desktop.type == SCREEN_OPENGL && sdl.surface != NULL; }
+void GFX_OpenGL_MakeCurrent(void) { }
+#endif
+
+/* The 3dfx emulation's frame, shown instead of the emulated video card's */
+
+static struct {
+    GLuint texture;
+    unsigned int width, height;
+} gl_external = { 0, 0, 0 };
+
+void OUTPUT_OPENGL_SetExternalTexture(GLuint texture, unsigned int width, unsigned int height)
+{
+    gl_external.texture = texture;
+    gl_external.width = width;
+    gl_external.height = height;
+    sdl_opengl.menudraw_countdown = 3;
+    sdl_opengl.clear_countdown = 3;
+}
+
+bool OUTPUT_OPENGL_HasExternalTexture(void)
+{
+    return gl_external.texture != 0 && gl_external.width > 0 && gl_external.height > 0;
+}
+
+/* draw it where the video card's frame would go, the main context must be current */
+void OUTPUT_OPENGL_DrawExternal(void)
+{
+    if (!OUTPUT_OPENGL_HasExternalTexture()) return;
+
+    const GLint filter = (sdl_opengl.kind == GLNearest || sdl_opengl.kind == GLPerfect) ? GL_NEAREST : GL_LINEAR;
+    glBindTexture(GL_TEXTURE_2D, gl_external.texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    if (sdl_opengl.program_object) {
+        /* the shader sees the texture as fully used, like rubyInputSize == rubyTextureSize */
+        glUniform2f(sdl_opengl.ruby.texture_size, (float)gl_external.width, (float)gl_external.height);
+        glUniform2f(sdl_opengl.ruby.input_size, (float)gl_external.width, (float)gl_external.height);
+        glUniform1i(sdl_opengl.ruby.frame_count, sdl_opengl.actual_frame_count++);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    } else {
+        /* the same quad as the display list, with texture coordinates in texels of this texture */
+        glMatrixMode(GL_TEXTURE);
+        glPushMatrix();
+        glLoadIdentity();
+        glScaled(1.0 / gl_external.width, 1.0 / gl_external.height, 1.0);
+
+        const GLint x = (GLint)sdl.clip.x, y = (GLint)sdl.clip.y, w = (GLint)sdl.clip.w, h = (GLint)sdl.clip.h;
+        const GLint tw = (GLint)gl_external.width, th = (GLint)gl_external.height;
+        glBegin(GL_QUADS);
+        glTexCoord2i(0, 0);   glVertex2i(x, y);
+        glTexCoord2i(tw, 0);  glVertex2i(x + w, y);
+        glTexCoord2i(tw, th); glVertex2i(x + w, y + h);
+        glTexCoord2i(0, th);  glVertex2i(x, y + h);
+        glEnd();
+
+        glPopMatrix();
+    }
+
+    glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
+}
+
+/* show the 3dfx frame now (called by the 3dfx emulation at vertical retrace) */
+void OUTPUT_OPENGL_PresentExternal(void)
+{
+    if (!sdl_opengl.inited || !OUTPUT_OPENGL_HasExternalTexture() || !OUTPUT_OPENGL_Active()) return;
+
+    GFX_OpenGL_MakeCurrent();
+    CheckClearing();
+    if (sdl_opengl.clear_countdown > 0) sdl_opengl.clear_countdown--;
+    OUTPUT_OPENGL_DrawExternal();
+    CheckMenuDrawing();
+    SDL_GL_SwapBuffers();
+
+    if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
 }
 
 #endif

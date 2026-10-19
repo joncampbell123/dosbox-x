@@ -1922,7 +1922,7 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 
 #if C_OPENGL
         if (screenType == SCREEN_OPENGL) {
-            sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
+            sdl_opengl.context = GFX_GL_CreateMainContext();
             if (sdl_opengl.context == NULL) LOG_MSG("WARNING: SDL2 unable to create GL context");
             if (SDL_GL_MakeCurrent(sdl.window, sdl_opengl.context) != 0) LOG_MSG("WARNING: SDL2 unable to make current GL context");
         }
@@ -1982,7 +1982,7 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 
 #if C_OPENGL
     if (screenType == SCREEN_OPENGL) {
-        sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
+        sdl_opengl.context = GFX_GL_CreateMainContext();
         if (sdl_opengl.context == NULL) LOG_MSG("WARNING: SDL2 unable to create GL context");
         if (SDL_GL_MakeCurrent(sdl.window, sdl_opengl.context) != 0) LOG_MSG("WARNING: SDL2 unable to make current GL context");
     }
@@ -2713,6 +2713,7 @@ void GFX_SetShader(const char* src) {
 
 	sdl_opengl.shader_src = src;
 	if (sdl_opengl.program_object) {
+		GFX_OpenGL_MakeCurrent();
 		glDeleteProgram(sdl_opengl.program_object);
 		sdl_opengl.program_object = 0;
 	}
@@ -3076,9 +3077,6 @@ void GFX_SwitchFullScreen(void)
     }
 #endif
 #if !defined(HX_DOS)
-    if (sdl.desktop.prevent_fullscreen)
-        return;
-
     if (!sdl.desktop.fullscreen) {/*is GOING fullscreen*/
         UpdateWindowDimensions();
 
@@ -3236,29 +3234,6 @@ bool GFX_LazyFullscreenRequested(void) {
     return false;
 }
 
-bool GFX_GetPreventFullscreen(void) {
-    return sdl.desktop.prevent_fullscreen;
-}
-
-#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-extern "C" unsigned char SDL1_hax_RemoveMinimize;
-#endif
-
-void GFX_PreventFullscreen(bool lockout) {
-    if (sdl.desktop.prevent_fullscreen != lockout) {
-        sdl.desktop.prevent_fullscreen = lockout;
-#if defined(WIN32)
-        DOSBox_SetSysMenu();
-#if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-        SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
-#endif
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-        Reflect_Menu();
-#endif
-#endif
-    }
-}
-
 void GFX_RestoreMode(void) {
     if (sdl.draw.width == 0 || sdl.draw.height == 0)
         return;
@@ -3348,13 +3323,17 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
 void GFX_OpenGLRedrawScreen(void) {
 #if C_OPENGL
     if (OpenGL_using()) {
+        GFX_OpenGL_MakeCurrent();
         if (sdl_opengl.clear_countdown > 0) {
             sdl_opengl.clear_countdown--;
             glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
         }
 
-        if (sdl_opengl.pixel_buffer_object) {
+        if (OUTPUT_OPENGL_HasExternalTexture()) {
+            /* the 3dfx emulation's frame */
+            OUTPUT_OPENGL_DrawExternal();
+        } else if (sdl_opengl.pixel_buffer_object) {
             glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
             glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
             glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
@@ -3374,10 +3353,6 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
 #if C_OPENGL
     bool actually_updating = false;
 #endif
-    /* don't present our output if 3Dfx is in OpenGL mode */
-    if (sdl.desktop.prevent_fullscreen)
-        return;
-
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
     if(sdl.desktop.type == SCREEN_METAL) {
         sdl.updating = false;
@@ -3833,7 +3808,6 @@ static void GUI_StartUp() {
 
     sdl.desktop.lazy_fullscreen=false;
     sdl.desktop.lazy_fullscreen_req=false;
-    sdl.desktop.prevent_fullscreen=false;
 
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
     assert(section != NULL);
@@ -4632,18 +4606,6 @@ bool GFX_MustActOnResize() {
 
 #if defined(C_SDL2)
 void GFX_HandleVideoResize(int width, int height) {
-
-    /* don't act if 3Dfx OpenGL emulation is active */
-    if (GFX_GetPreventFullscreen()) {
-#if C_OPENGL
-        if (new_width == width && new_height == height) return;
-        new_width = width;
-        new_height = height;
-        voodoo_ogl_update_dimensions();
-#endif
-        return;
-    }
-
     /* Maybe a screen rotation has just occurred, so we simply resize.
        There may be a different cause for a forced resized, though.    */
     if (sdl.desktop.full.display_res && IsFullscreen()) {
@@ -4722,17 +4684,6 @@ static void HandleVideoResize(void * event) {
     if (!(sdl.surface->flags & SDL_RESIZABLE)) return;
 
     SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
-
-    /* don't act if 3Dfx OpenGL emulation is active */
-    if (GFX_GetPreventFullscreen()) {
-#if C_OPENGL
-        if (new_width == ResizeEvent->w && new_height == ResizeEvent->h) return;
-        new_width = ResizeEvent->w;
-        new_height = ResizeEvent->h;
-        voodoo_ogl_update_dimensions();
-#endif
-        return;
-    }
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
@@ -4884,10 +4835,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 	}
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    if (GFX_GetPreventFullscreen()) {
-        /* do NOT draw SDL menu in OpenGL mode when 3Dfx emulation is using OpenGL */
-    }
-    else if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h && Mouse_GetButtonState() == 0) {
+    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h && Mouse_GetButtonState() == 0) {
         skipdraw=true;
         GFX_SDLMenuTrackHover(mainMenu,mainMenu.display_list.itemFromPoint(mainMenu,motion->x,motion->y));
         skipdraw=false;
@@ -5062,11 +5010,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
     std::string munlock;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    if (GFX_GetPreventFullscreen()) {
-        /* do NOT draw SDL menu in OpenGL mode when 3Dfx emulation is using OpenGL */
-        mainMenu.menuUserHoverAt = DOSBoxMenu::unassigned_item_handle;
-    }
-    else if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && button->y < mainMenu.menuBox.h) {
+    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && button->y < mainMenu.menuBox.h) {
         GFX_SDLMenuTrackHover(mainMenu,mainMenu.display_list.itemFromPoint(mainMenu,button->x,button->y));
         inMenu = true;
     }
@@ -5124,6 +5068,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,true);
 
+                    GFX_OpenGL_MakeCurrent();
                     glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
                     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -5438,6 +5383,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                         if (OpenGL_using()) {
 #if C_OPENGL
+                            GFX_OpenGL_MakeCurrent();
                             glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
                             glClear(GL_COLOR_BUFFER_BIT);
 
@@ -5511,6 +5457,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                 if (OpenGL_using()) {
 #if C_OPENGL
+                    GFX_OpenGL_MakeCurrent();
                     glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
                     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -6057,15 +6004,10 @@ void GFX_Events() {
                 case WM_SYSCOMMAND:
                     switch (event.syswm.msg->msg.win.wParam) {
                         case ID_WIN_SYSMENU_RESTOREMENU:
-                            /* prevent removing the menu in 3Dfx mode */
-                            if (!GFX_GetPreventFullscreen()) {
-                                DOSBox_SetMenu();
-                                mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
-                            }
+                            DOSBox_SetMenu();
+                            mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
                             break;
                         case ID_WIN_SYSMENU_TOGGLEMENU:
-                            /* prevent removing the menu in 3Dfx mode */
-                            if (!GFX_GetPreventFullscreen())
                             {
                                 ToggleMenu(true);
                                 mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
@@ -6511,15 +6453,10 @@ void GFX_Events() {
                             }
                             break;
                         case ID_WIN_SYSMENU_RESTOREMENU:
-                            /* prevent removing the menu in 3Dfx mode */
-                            if (!GFX_GetPreventFullscreen()) {
-                                DOSBox_SetMenu();
-                                mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
-                            }
+                            DOSBox_SetMenu();
+                            mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
                             break;
                         case ID_WIN_SYSMENU_TOGGLEMENU:
-                            /* prevent removing the menu in 3Dfx mode */
-                            if (!GFX_GetPreventFullscreen())
                             {
                                 if (menu.toggle) DOSBox_NoMenu(); else DOSBox_SetMenu();
                                 mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
@@ -10954,9 +10891,6 @@ void GUI_ResetResize(bool pressed) {
     if (!pressed) return;
     userResizeWindowWidth = 0;
     userResizeWindowHeight = 0;
-
-    if (GFX_GetPreventFullscreen())
-        return;
 
     if (sdl.updating && !GFX_MustActOnResize()) {
         /* act on resize when updating is complete */

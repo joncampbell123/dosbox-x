@@ -329,7 +329,6 @@ void                                            resetFontSize(void);
 
 Bitu                                            GUI_JoystickCount(void);                // external
 bool                                            OpenGL_using(void);
-bool                                            GFX_GetPreventFullscreen(void);         // external
 void                                            GFX_ForceRedrawScreen(void);            // external
 #if defined(WIN32) && !defined(HX_DOS)
 void                                            DOSBox_SetSysMenu(void);
@@ -5424,14 +5423,6 @@ void MAPPER_RunInternal() {
 # endif
     mapperMenu.rebuild();
 #endif
-
-    /* Sorry, the MAPPER screws up 3Dfx OpenGL emulation.
-     * Remove this block when fixed. */
-    if (GFX_GetPreventFullscreen()) {
-        systemmessagebox("Mapper Editor", MSG_Get("MAPPEREDITOR_NOT_AVAILABLE"),"ok", "info", 1);
-        LOG_MSG("Mapper Editor is not available while 3Dfx OpenGL emulation is running");
-        return;
-    }
 
     mapper_esc_count = 0;
     mapper.running = true;

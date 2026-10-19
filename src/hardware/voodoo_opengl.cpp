@@ -33,6 +33,8 @@
 #include "voodoo_emu.h"
 #include "voodoo_opengl.h"
 #include "sdlmain.h"
+#include "render.h"
+#include <output/output_opengl.h>
 
 bool Voodoo_OGL_Active() {
 	return (v != NULL && v->clock_enabled && v->output_on);
@@ -46,8 +48,6 @@ bool Voodoo_OGL_Active() {
 
 #include "voodoo_def.h"
 
-SDL_Surface* ogl_surface = NULL;
-
 INT32 cached_line_front_y=-1;
 INT32 cached_line_front_width = -1;
 INT32 cached_line_front_length=-1;
@@ -59,9 +59,6 @@ INT32 cached_line_back_width = -1;
 INT32 cached_line_back_length=-1;
 INT32 cached_line_back_pixels=-1;
 UINT32* cached_line_back_data=NULL;
-
-static INT32 adjust_x=0;
-static INT32 adjust_y=0;
 
 static UINT32 last_clear_color=0;
 
@@ -80,24 +77,286 @@ UINT32 texrgb[256*256];
 /* texture address map */
 std::map <const UINT32, ogl_texmap> textures[2];
 
-bool Direct3D_using(void);
-void GFX_PreventFullscreen(bool lockout), GFX_SetResizeable(bool enable), change_output(int output), SetWindowTransparency(int trans);
-#if defined(C_SDL2)
-SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
+void SetWindowTransparency(int trans);
+
+/* DOSBox-X: The 3dfx emulation renders with an OpenGL context of its own, into framebuffer
+ * objects the size of the 3dfx video mode: front and back buffer textures and a depth/stencil
+ * buffer. The coordinates are the same as when it rendered to a window (bottom row first).
+ * At every vertical retrace the front buffer is copied on the GPU, flipped to top row first,
+ * to a texture that the OpenGL output (which shares textures with this context) draws as the
+ * screen. The output keeps its menus, window resizing and fullscreen while the 3dfx card is in
+ * use, and nothing is read back to the CPU. */
+
+#ifndef GL_FRAMEBUFFER
+#define GL_FRAMEBUFFER			0x8D40
+#define GL_RENDERBUFFER			0x8D41
+#define GL_FRAMEBUFFER_COMPLETE		0x8CD5
+#define GL_COLOR_ATTACHMENT0		0x8CE0
+#define GL_DEPTH_ATTACHMENT		0x8D00
+#define GL_STENCIL_ATTACHMENT		0x8D20
+#endif
+#ifndef GL_READ_FRAMEBUFFER
+#define GL_READ_FRAMEBUFFER		0x8CA8
+#define GL_DRAW_FRAMEBUFFER		0x8CA9
+#endif
+#ifndef GL_DEPTH24_STENCIL8
+#define GL_DEPTH24_STENCIL8		0x88F0
+#endif
+#ifndef GL_DEPTH_COMPONENT24
+#define GL_DEPTH_COMPONENT24		0x81A6
+#endif
+#ifndef GL_SYNC_GPU_COMMANDS_COMPLETE
+#define GL_SYNC_GPU_COMMANDS_COMPLETE	0x9117
+#endif
+#ifndef APIENTRY
+#define APIENTRY
 #endif
 
-int Voodoo_OGL_GetWidth() {
-	if (v != NULL)
-		return new_width;
-	else
-		return 0;
+/* GLsync is a pointer, handled as void* here (older headers don't have it) */
+typedef void (APIENTRY *VOGL_PFNGENFRAMEBUFFERS)(GLsizei n, GLuint *ids);
+typedef void (APIENTRY *VOGL_PFNDELETEFRAMEBUFFERS)(GLsizei n, const GLuint *ids);
+typedef void (APIENTRY *VOGL_PFNBINDFRAMEBUFFER)(GLenum target, GLuint id);
+typedef void (APIENTRY *VOGL_PFNFRAMEBUFFERTEXTURE2D)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+typedef void (APIENTRY *VOGL_PFNGENRENDERBUFFERS)(GLsizei n, GLuint *ids);
+typedef void (APIENTRY *VOGL_PFNDELETERENDERBUFFERS)(GLsizei n, const GLuint *ids);
+typedef void (APIENTRY *VOGL_PFNBINDRENDERBUFFER)(GLenum target, GLuint id);
+typedef void (APIENTRY *VOGL_PFNRENDERBUFFERSTORAGE)(GLenum target, GLenum format, GLsizei w, GLsizei h);
+typedef void (APIENTRY *VOGL_PFNFRAMEBUFFERRENDERBUFFER)(GLenum target, GLenum attachment, GLenum rbtarget, GLuint rb);
+typedef GLenum (APIENTRY *VOGL_PFNCHECKFRAMEBUFFERSTATUS)(GLenum target);
+typedef void (APIENTRY *VOGL_PFNBLITFRAMEBUFFER)(GLint sx0, GLint sy0, GLint sx1, GLint sy1, GLint dx0, GLint dy0, GLint dx1, GLint dy1, GLbitfield mask, GLenum filter);
+typedef void* (APIENTRY *VOGL_PFNFENCESYNC)(GLenum condition, GLbitfield flags);
+typedef void (APIENTRY *VOGL_PFNWAITSYNC)(void *sync, GLbitfield flags, GLuint64 timeout);
+typedef void (APIENTRY *VOGL_PFNDELETESYNC)(void *sync);
+
+static struct {
+	GFX_GLContext context;
+
+	VOGL_PFNGENFRAMEBUFFERS GenFramebuffers;
+	VOGL_PFNDELETEFRAMEBUFFERS DeleteFramebuffers;
+	VOGL_PFNBINDFRAMEBUFFER BindFramebuffer;
+	VOGL_PFNFRAMEBUFFERTEXTURE2D FramebufferTexture2D;
+	VOGL_PFNGENRENDERBUFFERS GenRenderbuffers;
+	VOGL_PFNDELETERENDERBUFFERS DeleteRenderbuffers;
+	VOGL_PFNBINDRENDERBUFFER BindRenderbuffer;
+	VOGL_PFNRENDERBUFFERSTORAGE RenderbufferStorage;
+	VOGL_PFNFRAMEBUFFERRENDERBUFFER FramebufferRenderbuffer;
+	VOGL_PFNCHECKFRAMEBUFFERSTATUS CheckFramebufferStatus;
+	VOGL_PFNBLITFRAMEBUFFER BlitFramebuffer;
+	VOGL_PFNFENCESYNC FenceSync;
+	VOGL_PFNWAITSYNC WaitSync;
+	VOGL_PFNDELETESYNC DeleteSync;
+
+	GLuint fbo;			/* the 3dfx card's buffers */
+	GLuint color[2];		/* front/back buffer, which one is front is "front" */
+	GLuint depth_stencil;
+	bool has_stencil;
+	int front;
+	GLuint present_fbo;		/* the front buffer, top row first, for the output */
+	GLuint present_texture;
+	UINT32 width, height;
+
+	void *fence;			/* the main context waits for the 3dfx emulation's commands */
+	bool warned;
+} vctx = {};
+
+static void *voodoo_ogl_getproc(const char *name, const char *ext_name) {
+	void *p = (void *)SDL_GL_GetProcAddress(name);
+	if (p == NULL && ext_name != NULL) p = (void *)SDL_GL_GetProcAddress(ext_name);
+	return p;
 }
 
-int Voodoo_OGL_GetHeight() {
-	if (v != NULL)
-		return new_height;
-	else
-		return 0;
+/* framebuffer objects (OpenGL 3.0, or the EXT extensions on older OpenGL) */
+static bool voodoo_ogl_load_functions(void) {
+	vctx.GenFramebuffers = (VOGL_PFNGENFRAMEBUFFERS)voodoo_ogl_getproc("glGenFramebuffers", "glGenFramebuffersEXT");
+	vctx.DeleteFramebuffers = (VOGL_PFNDELETEFRAMEBUFFERS)voodoo_ogl_getproc("glDeleteFramebuffers", "glDeleteFramebuffersEXT");
+	vctx.BindFramebuffer = (VOGL_PFNBINDFRAMEBUFFER)voodoo_ogl_getproc("glBindFramebuffer", "glBindFramebufferEXT");
+	vctx.FramebufferTexture2D = (VOGL_PFNFRAMEBUFFERTEXTURE2D)voodoo_ogl_getproc("glFramebufferTexture2D", "glFramebufferTexture2DEXT");
+	vctx.GenRenderbuffers = (VOGL_PFNGENRENDERBUFFERS)voodoo_ogl_getproc("glGenRenderbuffers", "glGenRenderbuffersEXT");
+	vctx.DeleteRenderbuffers = (VOGL_PFNDELETERENDERBUFFERS)voodoo_ogl_getproc("glDeleteRenderbuffers", "glDeleteRenderbuffersEXT");
+	vctx.BindRenderbuffer = (VOGL_PFNBINDRENDERBUFFER)voodoo_ogl_getproc("glBindRenderbuffer", "glBindRenderbufferEXT");
+	vctx.RenderbufferStorage = (VOGL_PFNRENDERBUFFERSTORAGE)voodoo_ogl_getproc("glRenderbufferStorage", "glRenderbufferStorageEXT");
+	vctx.FramebufferRenderbuffer = (VOGL_PFNFRAMEBUFFERRENDERBUFFER)voodoo_ogl_getproc("glFramebufferRenderbuffer", "glFramebufferRenderbufferEXT");
+	vctx.CheckFramebufferStatus = (VOGL_PFNCHECKFRAMEBUFFERSTATUS)voodoo_ogl_getproc("glCheckFramebufferStatus", "glCheckFramebufferStatusEXT");
+	vctx.BlitFramebuffer = (VOGL_PFNBLITFRAMEBUFFER)voodoo_ogl_getproc("glBlitFramebuffer", "glBlitFramebufferEXT");
+	/* optional (OpenGL 3.2 or GL_ARB_sync), glFinish() is used instead */
+	vctx.FenceSync = (VOGL_PFNFENCESYNC)voodoo_ogl_getproc("glFenceSync", NULL);
+	vctx.WaitSync = (VOGL_PFNWAITSYNC)voodoo_ogl_getproc("glWaitSync", NULL);
+	vctx.DeleteSync = (VOGL_PFNDELETESYNC)voodoo_ogl_getproc("glDeleteSync", NULL);
+	if (!vctx.FenceSync || !vctx.WaitSync || !vctx.DeleteSync) {
+		vctx.FenceSync = NULL;
+		vctx.WaitSync = NULL;
+		vctx.DeleteSync = NULL;
+	}
+
+	if (!vctx.GenFramebuffers || !vctx.DeleteFramebuffers || !vctx.BindFramebuffer ||
+	    !vctx.FramebufferTexture2D || !vctx.GenRenderbuffers || !vctx.DeleteRenderbuffers ||
+	    !vctx.BindRenderbuffer || !vctx.RenderbufferStorage || !vctx.FramebufferRenderbuffer ||
+	    !vctx.CheckFramebufferStatus || !vctx.BlitFramebuffer) {
+		LOG_MSG("VOODOO: OpenGL: framebuffer objects (OpenGL 3.0 or GL_EXT_framebuffer_object/blit) are not supported");
+		return false;
+	}
+	return true;
+}
+
+static GLuint voodoo_ogl_create_color_texture(UINT32 w, UINT32 h) {
+	GLuint tex = 0;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	return tex;
+}
+
+static void voodoo_ogl_destroy_framebuffers(void) {
+	if (vctx.BindFramebuffer) vctx.BindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (vctx.fbo) vctx.DeleteFramebuffers(1, &vctx.fbo);
+	if (vctx.present_fbo) vctx.DeleteFramebuffers(1, &vctx.present_fbo);
+	if (vctx.depth_stencil) vctx.DeleteRenderbuffers(1, &vctx.depth_stencil);
+	if (vctx.color[0]) glDeleteTextures(2, vctx.color);
+	if (vctx.present_texture) glDeleteTextures(1, &vctx.present_texture);
+	vctx.fbo = vctx.present_fbo = vctx.depth_stencil = vctx.present_texture = 0;
+	vctx.color[0] = vctx.color[1] = 0;
+	vctx.width = vctx.height = 0;
+}
+
+/* the 3dfx emulation's own context is current from here on */
+static void voodoo_ogl_apply_buffers(void) {
+	VOGL_SetBuffers(GL_COLOR_ATTACHMENT0 + vctx.front, GL_COLOR_ATTACHMENT0 + (vctx.front ^ 1));
+}
+
+static bool voodoo_ogl_create_framebuffers(UINT32 w, UINT32 h) {
+	VOGL_ClearBeginMode();
+	voodoo_ogl_destroy_framebuffers();
+
+	vctx.color[0] = voodoo_ogl_create_color_texture(w, h);
+	vctx.color[1] = voodoo_ogl_create_color_texture(w, h);
+	vctx.present_texture = voodoo_ogl_create_color_texture(w, h);
+
+	vctx.GenFramebuffers(1, &vctx.present_fbo);
+	vctx.BindFramebuffer(GL_FRAMEBUFFER, vctx.present_fbo);
+	vctx.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, vctx.present_texture, 0);
+	if (vctx.CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		LOG_MSG("VOODOO: OpenGL: incomplete framebuffer for the output");
+		voodoo_ogl_destroy_framebuffers();
+		return false;
+	}
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	vctx.GenFramebuffers(1, &vctx.fbo);
+	vctx.BindFramebuffer(GL_FRAMEBUFFER, vctx.fbo);
+	vctx.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, vctx.color[0], 0);
+	vctx.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 1, GL_TEXTURE_2D, vctx.color[1], 0);
+
+	/* depth and stencil together, or depth only if the driver can't */
+	vctx.GenRenderbuffers(1, &vctx.depth_stencil);
+	vctx.BindRenderbuffer(GL_RENDERBUFFER, vctx.depth_stencil);
+	vctx.has_stencil = true;
+	vctx.RenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, (GLsizei)w, (GLsizei)h);
+	vctx.FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, vctx.depth_stencil);
+	vctx.FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, vctx.depth_stencil);
+	if (vctx.CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		vctx.has_stencil = false;
+		vctx.FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
+		vctx.RenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, (GLsizei)w, (GLsizei)h);
+		vctx.FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, vctx.depth_stencil);
+		if (vctx.CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			LOG_MSG("VOODOO: OpenGL: incomplete framebuffer");
+			voodoo_ogl_destroy_framebuffers();
+			return false;
+		}
+		LOG_MSG("VOODOO: OpenGL: no stencil buffer");
+	}
+	vctx.BindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	vctx.width = w;
+	vctx.height = h;
+	vctx.front = 0;
+	voodoo_ogl_apply_buffers();
+
+	/* both buffers start black */
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearDepth(1.0f);
+	glClearStencil(0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0 + 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+	voodoo_ogl_apply_buffers();
+	last_clear_color = 0;
+	return true;
+}
+
+/* make the 3dfx emulation's context current, false if it can't draw now
+ * (no OpenGL output, the OpenGL functions below do nothing then) */
+static bool voodoo_ogl_enter(void) {
+	if (vctx.context == NULL) return false;
+	if (GFX_GL_GetCurrentContext() == vctx.context) return true;
+
+	if (!OUTPUT_OPENGL_Active() || !GFX_GL_MakeContextCurrent(vctx.context)) {
+		if (!vctx.warned) {
+			LOG_MSG("VOODOO: OpenGL: not drawing, the 3dfx emulation needs the OpenGL output");
+			vctx.warned = true;
+		}
+		return false;
+	}
+	vctx.warned = false;
+	if (vctx.fence) {
+		vctx.DeleteSync(vctx.fence); /* nothing to wait for in this context */
+		vctx.fence = NULL;
+	}
+	return true;
+}
+
+GFX_GLContext Voodoo_OGL_GetContext(void) {
+	return vctx.context;
+}
+
+/* the 3dfx emulation's context is current, another one is about to be */
+void Voodoo_OGL_ReleaseContext(void) {
+	VOGL_ClearBeginMode();
+	if (vctx.FenceSync) {
+		if (vctx.fence) vctx.DeleteSync(vctx.fence);
+		vctx.fence = vctx.FenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		glFlush();
+	} else {
+		glFinish();
+	}
+}
+
+/* in the context that is current now: wait (on the GPU) for the 3dfx emulation's commands */
+void Voodoo_OGL_WaitRelease(void) {
+	if (vctx.fence) {
+		vctx.WaitSync(vctx.fence, 0, (GLuint64)-1 /* GL_TIMEOUT_IGNORED */);
+		vctx.DeleteSync(vctx.fence);
+		vctx.fence = NULL;
+	}
+}
+
+/* show the front buffer: copy it top row first to the output's texture, and have the output draw it */
+void voodoo_ogl_present(void) {
+	if (!v->active || !voodoo_ogl_enter() || vctx.present_fbo == 0) return;
+
+	VOGL_ClearBeginMode();
+	/* blits are clipped by the scissor test */
+	const bool scissor = glIsEnabled(GL_SCISSOR_TEST) == GL_TRUE;
+	if (scissor) glDisable(GL_SCISSOR_TEST);
+
+	vctx.BindFramebuffer(GL_READ_FRAMEBUFFER, vctx.fbo);
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + vctx.front);
+	vctx.BindFramebuffer(GL_DRAW_FRAMEBUFFER, vctx.present_fbo);
+	vctx.BlitFramebuffer(0, 0, (GLint)vctx.width, (GLint)vctx.height,
+		0, (GLint)vctx.height, (GLint)vctx.width, 0, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	vctx.BindFramebuffer(GL_FRAMEBUFFER, vctx.fbo);
+	voodoo_ogl_apply_buffers();
+
+	if (scissor) glEnable(GL_SCISSOR_TEST);
+
+	OUTPUT_OPENGL_PresentExternal();
 }
 
 static void ogl_get_depth(voodoo_state* VV, INT32 ITERZ, INT64 ITERW, INT32 *depthval, INT32 *out_wfloat)
@@ -1186,6 +1445,7 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 	ogl_texture_data td[2] = {};
 	ogl_vertex_data vd[3];
 
+	if (!voodoo_ogl_enter()) return;
 	VOGL_ClearBeginMode();
 
 	td[0].enable = false;
@@ -1356,13 +1616,12 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 
 
 void voodoo_ogl_swap_buffer() {
-	if (GFX_LazyFullscreenRequested()) {
-		v->ogl_dimchange = true;
-	}
-
+	if (!voodoo_ogl_enter()) return;
 	VOGL_ClearBeginMode();
 
-	SDL_GL_SwapBuffers();
+	/* the back buffer becomes the front buffer (it is shown at the next vertical retrace) */
+	vctx.front ^= 1;
+	voodoo_ogl_apply_buffers();
 
 	cached_line_front_y=-1;
 	cached_line_back_y=-1;
@@ -1392,6 +1651,7 @@ void voodoo_ogl_texture_clear(UINT32 address, int TMU) {
 
 
 void voodoo_ogl_draw_pixel(int x, int y, bool has_rgb, bool has_alpha, int r, int g, int b, int a) {
+	if (!voodoo_ogl_enter()) return;
 	if (m_hProgramObject != 0) {
 		glUseProgramObjectARB(0);
 		m_hProgramObject = 0;
@@ -1430,6 +1690,7 @@ void voodoo_ogl_draw_pixel(int x, int y, bool has_rgb, bool has_alpha, int r, in
 }
 
 void voodoo_ogl_draw_z(int x, int y, int z) {
+	if (!voodoo_ogl_enter()) return;
 //	VOGL_ClearBeginMode();
 
 	if (m_hProgramObject != 0) {
@@ -1471,6 +1732,7 @@ void voodoo_ogl_draw_z(int x, int y, int z) {
 }
 
 void voodoo_ogl_draw_pixel_pipeline(int x, int y, int r, int g, int b) {
+	if (!voodoo_ogl_enter()) return;
 //	VOGL_ClearBeginMode();
 
 	// TODO redo everything //
@@ -1551,6 +1813,7 @@ void voodoo_ogl_clip_window(voodoo_state *v) {
 
 
 void voodoo_ogl_fastfill(void) {
+	if (!voodoo_ogl_enter()) return;
 	VOGL_ClearBeginMode();
 
 	VOGL_SetDepthMaskMode(true);
@@ -1621,6 +1884,7 @@ void voodoo_ogl_fastfill(void) {
 }
 
 void voodoo_ogl_clear(void) {
+	if (!voodoo_ogl_enter()) return;
 	VOGL_ClearBeginMode();
 
 	VOGL_SetDrawMode(false);
@@ -1639,6 +1903,7 @@ void voodoo_ogl_clear(void) {
 UINT32 voodoo_ogl_read_pixel(int x, int y) {
 	UINT32 data[2];
 	if ((x < 0) || (y < 0) || (x >= (INT32)v->fbi.width) || (y >= (INT32)v->fbi.height)) return 0xffffffff;
+	if (!voodoo_ogl_enter()) return 0;
 	x = (x * new_width)  / v->fbi.width;
 	y = (y * new_height) / v->fbi.height;
 
@@ -1692,12 +1957,14 @@ UINT32 voodoo_ogl_read_pixel(int x, int y) {
 
 
 void voodoo_ogl_vblank_flush(void) {
+	if (!voodoo_ogl_enter()) return;
 	VOGL_ClearBeginMode();
 	glFlush();
 }
 
 
 void voodoo_ogl_set_window(voodoo_state *v) {
+	if (!voodoo_ogl_enter()) return;
 	VOGL_ClearBeginMode();
 
 	// 	matrix mode GL_PROJECTION assumed
@@ -1713,214 +1980,53 @@ void voodoo_ogl_set_window(voodoo_state *v) {
 			last_orientation = FBZMODE_Y_ORIGIN(v->reg[fbzMode].u);
 	}
 	if (size_changed) {
-		//correction for viewport if 640x400
-		if( new_height < 480 && GFX_IsFullscreen()) adjust_y=(480-new_height)/2;
-		if( new_width < 640 && GFX_IsFullscreen()) adjust_x=(640-new_width)/2;
-		glViewport( adjust_x, adjust_y, (int)new_width, (int)new_height );
+		glViewport( 0, 0, (int)new_width, (int)new_height );
 		last_width = new_width;
 		last_height = new_height;
 	}
 }
 
-void voodoo_ogl_reset_videomode(void) {
-#if defined(WIN32) && !defined(C_SDL2)
-    /* always show the menu */
-    void DOSBox_SetMenu(void);
-    DOSBox_SetMenu();
-#endif
-
-    bool isfs = false;
-    if (GFX_IsFullscreen()) {
-        isfs = true;
-        GFX_SwitchFullScreen();
-    }
-    GFX_PreventFullscreen(true);
-
-	last_clear_color=0;
-
+/* (re)make the buffers for the 3dfx video mode, and show it in the output at that size */
+static bool voodoo_ogl_reset_videomode(void) {
 	last_width=0;
 	last_height=0;
 	last_orientation=-1;
 
-	VOGL_Reset();
+	new_width = v->fbi.width;
+	new_height = v->fbi.height;
+	if (!voodoo_ogl_create_framebuffers(new_width, new_height)) return false;
 
-	GFX_TearDown();
+	if (vctx.has_stencil) VOGL_FlagFeature(VOGL_HAS_STENCIL_BUFFER);
+	VOGL_FlagFeature(VOGL_HAS_ALPHA_PLANE);
 
-#if !defined(C_SDL2)
-	bool full_sdl_restart = true;	// make dependent on surface=opengl
-#endif
-
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-
-	bool has_alpha = true;
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-	bool has_stencil = true;
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-	/*glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();
-	glOrtho( 0, v->fbi.width, v->fbi.height, 0, -1, 1 );
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();*/
-	// END OF FIX
-
-#if defined (WIN32) && SDL_VERSION_ATLEAST(1, 2, 11) && !defined(C_SDL2)
-	SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 0 );
-#endif
-
-#if !defined (WIN32) && SDL_VERSION_ATLEAST(1, 2, 10)
-	// broken on windows (longstanding SDL bug), may help other platforms to force hardware acceleration
-	SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
-#endif
-
-    if (ogl_surface != NULL) {
-		SDL_FreeSurface(ogl_surface);
-		ogl_surface = NULL;
-	}
-
-    void GFX_LosingFocus(void), GFX_ReleaseMouse(void), GFX_ForceFullscreenExit(void);
-
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    GFX_ForceFullscreenExit();
-
-#if DOSBOXMENU_TYPE != DOSBOXMENU_SDLDRAW
-	if (new_height<v->fbi.height)
-#endif
-		new_height = v->fbi.height;
-#if DOSBOXMENU_TYPE != DOSBOXMENU_SDLDRAW
-	if (new_width < v->fbi.width)
-#endif
-		new_width = v->fbi.width;
-
-	if (GFX_LazyFullscreenRequested()) GFX_SwitchFullscreenNoReset();
-
-#if defined(C_SDL2)
-    GFX_SetResizeable(true);
-    sdl.window = GFX_SetSDLWindowMode(new_width, new_height, SCREEN_OPENGL);
-    if (sdl.window != NULL) ogl_surface = SDL_GetWindowSurface(sdl.window);
-	if (ogl_surface == NULL)
-		E_Exit("VOODOO: opengl init error");
-#else
-	Uint32 sdl_flags = SDL_OPENGL;
-    sdl_flags |= SDL_RESIZABLE;
-
-	ogl_surface = SDL_SetVideoMode(new_width, new_height, 32, sdl_flags);
-
-	if (ogl_surface == NULL) {
-		if (full_sdl_restart) {
-			SDL_QuitSubSystem(SDL_INIT_VIDEO);
-			SDL_InitSubSystem(SDL_INIT_VIDEO);
-			ogl_surface = SDL_SetVideoMode(new_width, new_height, 32, sdl_flags);
-		}
-		if (ogl_surface == NULL) {
-			has_alpha = false;
-			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
-			if ((ogl_surface = SDL_SetVideoMode(new_width, new_height, 32, sdl_flags)) == NULL) {
-				has_stencil = false;
-				SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
-				if ((ogl_surface = SDL_SetVideoMode(new_width, new_height, 32, sdl_flags)) == NULL) {
-					if (sdl_flags & SDL_FULLSCREEN) {
-						sdl_flags &= ~(SDL_FULLSCREEN);
-						if ((ogl_surface = SDL_SetVideoMode(new_width, new_height, 32, sdl_flags)) == NULL) {
-							E_Exit("VOODOO: opengl init error");
-						}
-					} else {
-						E_Exit("VOODOO: opengl init error");
-					}
-				}
-				LOG_MSG("VOODOO: Graphics mode does not support Stencil/Alpha channels");
-			} else {
-				LOG_MSG("VOODOO: Graphics mode does not support Alpha channel");
-			}
-		}
-	}
-#endif
-
-    if (isfs) {
-#if defined(C_SDL2)
-        SDL_MaximizeWindow(sdl.window);
-#elif defined(WIN32)
-        ShowWindow(GetHWND(), SW_MAXIMIZE);
-#endif
-    }
-    ApplyPreventCap();
-
-    v->ogl_dimchange = true;
-
-	glViewport( 0, 0, new_width, new_height );
+	glViewport( 0, 0, (GLsizei)new_width, (GLsizei)new_height );
 	last_width = new_width;
 	last_height = new_height;
 
-    /* NTS: Some demoscene 3Dfx stuff looks terrible without this.
-     *      This is said to be the initial state of an OpenGL context.
-     *      This is in direct contradiction to the OpenGL output setup
-     *      in src/gui/sdlmain.cpp that sets up GL_FLAT shading */
-    glShadeModel (GL_SMOOTH);
+	/* NTS: Some demoscene 3Dfx stuff looks terrible without this.
+	 *      This is said to be the initial state of an OpenGL context.
+	 *      This is in direct contradiction to the OpenGL output setup
+	 *      in src/gui/sdlmain.cpp that sets up GL_FLAT shading */
+	glShadeModel (GL_SMOOTH);
 
-	GFX_PreventFullscreen(true);
-	GFX_UpdateSDLCaptureState();
+	cached_line_front_y=-1;
+	cached_line_back_y=-1;
 
-	int value;
-
-	bool few_colors = false;
-	if (SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &value) == 0) {
-		if (value < 8) few_colors = true;
-	}
-	if (SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &value) == 0) {
-		if (value < 8) few_colors = true;
-	}
-	if (SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &value) == 0) {
-		if (value < 8) few_colors = true;
-	}
-	if (few_colors) LOG_MSG("opengl: warning: graphics mode with insufficient color depth");
-
-	if (SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &value) == 0) {
-		if (value < 24) LOG_MSG("opengl: warning: depth buffer with insufficient resolution");
-	}
-
-	if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &value) == 0) {
-		if (value < 1) has_stencil = false;
-	}
-	if (SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &value) == 0) {
-		if (value < 8) has_alpha = false;
-	}
-
-	if (has_stencil) VOGL_FlagFeature(VOGL_HAS_STENCIL_BUFFER);
-	if (has_alpha) VOGL_FlagFeature(VOGL_HAS_ALPHA_PLANE);
-
-	GLint depth_csize;
-	glGetIntegerv(GL_DEPTH_BITS, &depth_csize);
-	if (depth_csize < 16) {
-		LOG_MSG("VOODOO: OpenGL: invalid depth size %d",depth_csize);
-	}
-
-#if defined(WIN32) && !defined(C_SDL2)
-	// Windows SDL 1.x builds may destroy and re-create the window, and lose our menu bar.
-	// make sure to put it back.
-	bool OpenGL_using(void);
-	void DOSBox_SetMenu(void);
-	if (OpenGL_using()) DOSBox_SetMenu();
-#endif
-
-	/* Something in Windows keeps changing the shade model on us from the last glShadeModel() call. Change it back. */
-	glShadeModel(GL_SMOOTH);
+	/* the output shows the 3dfx frame like any video mode, so it can be resized, made
+	 * fullscreen, have the menu etc. like any other */
+	OUTPUT_OPENGL_SetExternalTexture(vctx.present_texture, new_width, new_height);
+	RENDER_SetSize(new_width, new_height, 32, 60.0f, 4.0/3.0);
 
 	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d", new_width, new_height);
+	return true;
 }
 
 void voodoo_ogl_update_dimensions(void) {
-	voodoo_ogl_leave(false);
+	if (!voodoo_ogl_enter()) return;
 
 	voodoo_ogl_reset_videomode();
 
+	if (!voodoo_ogl_enter()) return; /* the output's context was current for its resize */
 	glMatrixMode( GL_PROJECTION );
 	voodoo_ogl_set_window(v);
 
@@ -1931,6 +2037,24 @@ void voodoo_ogl_update_dimensions(void) {
 	glMatrixMode( GL_PROJECTION );
 }
 
+static void voodoo_ogl_destroy_context(void) {
+	if (vctx.context == NULL) return;
+
+	if (voodoo_ogl_enter()) {
+		VOGL_ClearBeginMode();
+		voodoo_ogl_destroy_framebuffers();
+	}
+	if (vctx.fence) {
+		vctx.DeleteSync(vctx.fence);
+		vctx.fence = NULL;
+	}
+	OUTPUT_OPENGL_SetExternalTexture(0, 0, 0);
+	GFX_OpenGL_MakeCurrent();
+	GFX_GL_DeleteContext(vctx.context);
+	vctx.context = NULL;
+	VOGL_Reset();
+}
+
 bool voodoo_ogl_init(voodoo_state *v) {
 	extern void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 //	CPU_Core_Dyn_X86_SetFPUMode(false);
@@ -1938,17 +2062,31 @@ bool voodoo_ogl_init(voodoo_state *v) {
 	extern void CPU_Core_Dyn_X86_Cache_Reset(void);
 //	CPU_Core_Dyn_X86_Cache_Reset();
 
+	/* it renders with a context that shares textures with the OpenGL output's */
+	if (!OUTPUT_OPENGL_Active()) {
+		LOG_MSG("VOODOO: OpenGL: the OpenGL 3dfx emulation needs output=opengl");
+		return false;
+	}
+	if (vctx.context == NULL) {
+		vctx.context = GFX_GL_CreateSharedContext();
+		if (vctx.context == NULL) return false;
+	}
+	vctx.warned = false;
 
-	voodoo_ogl_reset_videomode();
-
-	if (!VOGL_Initialize()) {
-		VOGL_Reset();
-		// reset video mode etc.
+	if (!voodoo_ogl_enter()) {
+		voodoo_ogl_destroy_context();
 		return false;
 	}
 
-    transparency = 0;
-    SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
+	VOGL_Reset();
+	last_clear_color=0;
+	if (!VOGL_Initialize() || !voodoo_ogl_load_functions() || !voodoo_ogl_reset_videomode()) {
+		voodoo_ogl_destroy_context();
+		return false;
+	}
+
+	transparency = 0;
+	SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
 
 /*	std::string features = "";
 	if (VOGL_CheckFeature(VOGL_HAS_SHADERS)) features += " shader";
@@ -1959,7 +2097,7 @@ bool voodoo_ogl_init(voodoo_state *v) {
 
 	LOG_MSG("VOODOO: OpenGL: features enabled:%s",features.c_str()); */
 
-
+	if (!voodoo_ogl_enter()) return false;
 	glMatrixMode( GL_PROJECTION );
 	voodoo_ogl_set_window(v);
 
@@ -1973,39 +2111,41 @@ bool voodoo_ogl_init(voodoo_state *v) {
 }
 
 void voodoo_ogl_leave(bool leavemode) {
-	VOGL_ClearBeginMode();
+	if (voodoo_ogl_enter()) {
+		VOGL_ClearBeginMode();
 
-	std::map<const UINT32, ogl_texmap>::iterator t;
-	for (int j=0; j<2; j++) {
-		for (t=textures[j].begin(); t!=textures[j].end(); ++t) {
-			ogl_destroy_cached_texture(t->second);
+		std::map<const UINT32, ogl_texmap>::iterator t;
+		for (int j=0; j<2; j++) {
+			for (t=textures[j].begin(); t!=textures[j].end(); ++t) {
+				ogl_destroy_cached_texture(t->second);
+			}
+			textures[j].clear();
+			texture_dirty[j].pending = false;
 		}
-		textures[j].clear();
-		texture_dirty[j].pending = false;
-	}
 
 
-	if (m_hProgramObject != 0) {
-		glUseProgramObjectARB(0);
-		m_hProgramObject = 0;
-	}
+		if (m_hProgramObject != 0) {
+			glUseProgramObjectARB(0);
+			m_hProgramObject = 0;
+		}
 
-	for (int hct=0; hct<RASTER_HASH_SIZE; hct++) {
-		raster_info *info = v->raster_hash[hct];
-		for (; info; info = info->next) {
-			if (info->shader_ready) {
-				delete[] info->shader_ulocations;
-				info->shader_ulocations=NULL;
+		for (int hct=0; hct<RASTER_HASH_SIZE; hct++) {
+			raster_info *info = v->raster_hash[hct];
+			for (; info; info = info->next) {
+				if (info->shader_ready) {
+					delete[] info->shader_ulocations;
+					info->shader_ulocations=NULL;
 
-				if (info->so_shader_program > 0) {
-					if (info->so_vertex_shader > 0) glDetachObjectARB((GLhandleARB)info->so_shader_program, (GLhandleARB)info->so_vertex_shader);
-					if (info->so_fragment_shader > 0) glDetachObjectARB((GLhandleARB)info->so_shader_program, (GLhandleARB)info->so_fragment_shader);
-					if (info->so_vertex_shader > 0) glDeleteObjectARB((GLhandleARB)info->so_vertex_shader);
-					if (info->so_fragment_shader > 0) glDeleteObjectARB((GLhandleARB)info->so_fragment_shader);
-					glDeleteObjectARB((GLhandleARB)info->so_shader_program);
+					if (info->so_shader_program > 0) {
+						if (info->so_vertex_shader > 0) glDetachObjectARB((GLhandleARB)info->so_shader_program, (GLhandleARB)info->so_vertex_shader);
+						if (info->so_fragment_shader > 0) glDetachObjectARB((GLhandleARB)info->so_shader_program, (GLhandleARB)info->so_fragment_shader);
+						if (info->so_vertex_shader > 0) glDeleteObjectARB((GLhandleARB)info->so_vertex_shader);
+						if (info->so_fragment_shader > 0) glDeleteObjectARB((GLhandleARB)info->so_fragment_shader);
+						glDeleteObjectARB((GLhandleARB)info->so_shader_program);
+					}
+
+					info->shader_ready=false;
 				}
-
-				info->shader_ready=false;
 			}
 		}
 	}
@@ -2017,24 +2157,18 @@ void voodoo_ogl_leave(bool leavemode) {
 	if (leavemode) {
 		LOG_MSG("VOODOO: OpenGL: quit");
 
-        ogl_surface = NULL;
-        GFX_PreventFullscreen(false);
-        GFX_RestoreMode();
-#if defined(C_SDL2)
-        if (Direct3D_using()) {
-            GFX_SetSDLWindowMode(currentWindowWidth, currentWindowHeight, SCREEN_SURFACE);
-            change_output(6);
-        }
-#endif
-        transparency = 0;
-        SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
-    }
+		/* the output goes back to the emulated video card's frames */
+		voodoo_ogl_destroy_context();
+
+		transparency = 0;
+		SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
+	}
 }
 
 void voodoo_ogl_shutdown(voodoo_state *v) {
-	// TODO revert to previous video mode //
 	new_width = new_height = 0;
 	voodoo_ogl_leave(false);
+	voodoo_ogl_destroy_context();
 
 	v->active = false;
 }
@@ -2052,6 +2186,9 @@ void voodoo_ogl_leave(void) {
 
 void voodoo_ogl_shutdown(voodoo_state *v) {
     (void)v;
+}
+
+void voodoo_ogl_present(void) {
 }
 
 void voodoo_ogl_set_window(voodoo_state *v) {

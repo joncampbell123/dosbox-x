@@ -130,7 +130,6 @@ struct SDL_Block {
 #endif
         bool fullscreen = false;
         bool lazy_fullscreen = false;
-        bool prevent_fullscreen = false;
         bool lazy_fullscreen_req = false;
         bool doublebuf = false;
         bool isperfect = false;

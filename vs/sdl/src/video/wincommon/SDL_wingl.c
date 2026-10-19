@@ -347,6 +347,10 @@ int WIN_GL_SetupWindow(_THIS)
 		SDL_SetError("Unable to create GL context");
 		return(-1);
 	}
+	/* DOSBox-X: share with the shared contexts that exist, so they keep seeing this one's objects */
+	if ( this->gl_data->GL_share_hrc && this->gl_data->wglShareLists ) {
+		this->gl_data->wglShareLists(this->gl_data->GL_share_hrc, GL_hrc);
+	}
 	if ( WIN_GL_MakeCurrent(this) < 0 ) {
 		return(-1);
 	}
@@ -578,6 +582,60 @@ int WIN_GL_GetAttribute(_THIS, SDL_GLattr attrib, int* value)
 	return retval;
 }
 
+/* DOSBox-X: more contexts, sharing with the video mode's */
+SDL_GLContext WIN_GL_CreateSharedContext(_THIS)
+{
+	HGLRC hrc;
+
+	if ( GL_hrc == NULL || GL_hdc == NULL ) {
+		SDL_SetError("OpenGL video mode has not been set");
+		return NULL;
+	}
+	if ( this->gl_data->wglShareLists == NULL ) {
+		SDL_SetError("wglShareLists not available");
+		return NULL;
+	}
+	hrc = this->gl_data->wglCreateContext(GL_hdc);
+	if ( hrc == NULL ) {
+		SDL_SetError("Unable to create GL context");
+		return NULL;
+	}
+	if ( !this->gl_data->wglShareLists(GL_hrc, hrc) ) {
+		this->gl_data->wglDeleteContext(hrc);
+		SDL_SetError("Unable to share GL contexts");
+		return NULL;
+	}
+	if ( this->gl_data->GL_share_hrc == NULL ) {
+		this->gl_data->GL_share_hrc = hrc;
+	}
+	return (SDL_GLContext)hrc;
+}
+
+void WIN_GL_DeleteContext(_THIS, SDL_GLContext context)
+{
+	if ( (HGLRC)context == GL_hrc ) {
+		return; /* the video mode's own */
+	}
+	if ( this->gl_data->GL_share_hrc == (HGLRC)context ) {
+		this->gl_data->GL_share_hrc = NULL;
+	}
+	this->gl_data->wglDeleteContext((HGLRC)context);
+}
+
+int WIN_GL_MakeContextCurrent(_THIS, SDL_GLContext context)
+{
+	if ( ! this->gl_data->wglMakeCurrent(GL_hdc, (HGLRC)context) ) {
+		SDL_SetError("Unable to make GL context current");
+		return -1;
+	}
+	return 0;
+}
+
+SDL_GLContext WIN_GL_GetVideoModeContext(_THIS)
+{
+	return (SDL_GLContext)GL_hrc;
+}
+
 void WIN_GL_SwapBuffers(_THIS)
 {
 	SwapBuffers(GL_hdc);
@@ -592,6 +650,7 @@ void WIN_GL_UnloadLibrary(_THIS)
 		this->gl_data->wglCreateContext = NULL;
 		this->gl_data->wglDeleteContext = NULL;
 		this->gl_data->wglMakeCurrent = NULL;
+		this->gl_data->wglShareLists = NULL;
 		this->gl_data->wglGetPixelFormatAttribivARB = NULL;
 		this->gl_data->wglSwapIntervalEXT = NULL;
 		this->gl_data->wglGetSwapIntervalEXT = NULL;
@@ -633,6 +692,8 @@ int WIN_GL_LoadLibrary(_THIS, const char* path)
 		GetProcAddress(handle, "wglDeleteContext");
 	this->gl_data->wglMakeCurrent = (BOOL (WINAPI *)(HDC, HGLRC))
 		GetProcAddress(handle, "wglMakeCurrent");
+	this->gl_data->wglShareLists = (BOOL (WINAPI *)(HGLRC, HGLRC))
+		GetProcAddress(handle, "wglShareLists");
 	this->gl_data->wglSwapIntervalEXT = (void (WINAPI *)(int))
 		GetProcAddress(handle, "wglSwapIntervalEXT");
 	this->gl_data->wglGetSwapIntervalEXT = (int (WINAPI *)(void))

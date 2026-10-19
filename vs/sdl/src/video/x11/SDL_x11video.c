@@ -196,6 +196,10 @@ static SDL_VideoDevice *X11_CreateDevice(int devindex)
 		device->GL_GetAttribute = X11_GL_GetAttribute;
 		device->GL_MakeCurrent = X11_GL_MakeCurrent;
 		device->GL_SwapBuffers = X11_GL_SwapBuffers;
+		device->GL_CreateSharedContext = X11_GL_CreateSharedContext;
+		device->GL_DeleteContext = X11_GL_DeleteContext;
+		device->GL_MakeContextCurrent = X11_GL_MakeContextCurrent;
+		device->GL_GetVideoModeContext = X11_GL_GetVideoModeContext;
 #endif
 		device->Vulkan_GetInstanceExtensions = X11_Vulkan_GetInstanceExtensions;
 		device->Vulkan_CreateSurface = X11_Vulkan_CreateSurface;

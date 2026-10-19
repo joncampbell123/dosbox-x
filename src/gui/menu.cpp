@@ -94,7 +94,6 @@ extern bool                                         dos_kernel_disabled;
 extern bool                                         dos_shell_running_program;
 extern SHELL_Cmd                                    cmd_list[];
 
-bool                                                GFX_GetPreventFullscreen(void);
 void                                                DOSBox_ShowConsole();
 
 void                                                GUI_ResetResize(bool pressed);
@@ -2208,10 +2207,6 @@ void DOSBox_NoMenu(void) {
 }
 
 void ToggleMenu(bool pressed) {
-    /* prevent removing the menu in 3Dfx mode */
-    if (GFX_GetPreventFullscreen())
-        return;
-
     menu.resizeusing=true;
     int width, height; bool fullscreen;
     void GFX_GetSize(int &width, int &height, bool &fullscreen);
@@ -2316,7 +2311,7 @@ void DOSBox_SetSysMenu(void) {
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
-        mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
+        mii.fState = (menu.toggle ? MFS_CHECKED : 0) | MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
         wchar_t showMenuBarStr[] = L"Show menu bar";
         mii.dwTypeData = getWString(msg, showMenuBarStr, buffer);
@@ -2582,12 +2577,6 @@ void DOSBox_RefreshMenu(void) {
     void SDL_Prepare(void);
     SDL_Prepare();
     if(!menu.gui) return;
-
-    bool GFX_GetPreventFullscreen(void);
-
-    /* prevent removing the menu in 3Dfx mode */
-    if (GFX_GetPreventFullscreen())
-        return;
 
     if(fullscreen) {
         NonUserResizeCounter=1;
@@ -3049,6 +3038,7 @@ void DOSBoxMenu::item::placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel) {
 void MenuShadeRect(int x,int y,int w,int h) {
     if (OpenGL_using()) {
 #if C_OPENGL
+        GFX_OpenGL_MakeCurrent();
         glShadeModel (GL_FLAT);
         glBlendFunc(GL_ONE, GL_SRC_ALPHA);
         glDisable (GL_DEPTH_TEST);
@@ -3151,6 +3141,7 @@ void MenuShadeRect(int x,int y,int w,int h) {
 void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
     if (OpenGL_using()) {
 #if C_OPENGL
+        GFX_OpenGL_MakeCurrent();
         glShadeModel (GL_FLAT);
         glBlendFunc(GL_ONE, GL_ZERO);
         glDisable (GL_DEPTH_TEST);
@@ -3257,6 +3248,7 @@ void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
 
     if (OpenGL_using()) {
 #if C_OPENGL
+        GFX_OpenGL_MakeCurrent();
         if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
             glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
             glPushMatrix();
@@ -3375,6 +3367,7 @@ void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
 
     if (OpenGL_using()) {
 #if C_OPENGL
+        GFX_OpenGL_MakeCurrent();
         if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
             glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
             glPushMatrix();
@@ -3477,6 +3470,7 @@ void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
     bool use0 = false;
 #if C_OPENGL
     if (OpenGL_using()) {
+        GFX_OpenGL_MakeCurrent();
         if (check&&(text[0]&0xFF)==0xFB) {
             use0 = true;
             UpdateSDLDrawDBCSTexture(0);
@@ -3518,6 +3512,7 @@ void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
     prevc = 0;
 #if C_OPENGL
     if (OpenGL_using()) {
+        GFX_OpenGL_MakeCurrent();
         glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
         glBlendFunc(GL_ONE, GL_ZERO);
         glDisable(GL_ALPHA_TEST);

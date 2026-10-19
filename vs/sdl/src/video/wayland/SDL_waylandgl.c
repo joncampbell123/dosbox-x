@@ -251,6 +251,60 @@ int Wayland_GL_MakeCurrent(_THIS)
 	return 0;
 }
 
+/* DOSBox-X: more contexts, sharing with the video mode's. The EGL context outlives the
+   window surfaces, so the shared contexts always share with the current one. */
+SDL_GLContext Wayland_GL_CreateSharedContext(_THIS)
+{
+	struct SDL_PrivateGLData *gl = this->gl_data;
+	EGLContext context;
+
+	if ( !gl->initialized ) {
+		SDL_SetError("OpenGL video mode has not been set");
+		return NULL;
+	}
+	context = eglCreateContext(gl->display, gl->config, gl->context, NULL);
+	if ( context == EGL_NO_CONTEXT ) {
+		SDL_SetError("Couldn't create a shared EGL context");
+		return NULL;
+	}
+	return (SDL_GLContext)context;
+}
+
+void Wayland_GL_DeleteContext(_THIS, SDL_GLContext context)
+{
+	struct SDL_PrivateGLData *gl = this->gl_data;
+
+	if ( !gl->initialized || (EGLContext)context == gl->context ) {
+		return;
+	}
+	if ( eglGetCurrentContext() == (EGLContext)context ) {
+		eglMakeCurrent(gl->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+	}
+	eglDestroyContext(gl->display, (EGLContext)context);
+}
+
+int Wayland_GL_MakeContextCurrent(_THIS, SDL_GLContext context)
+{
+	struct SDL_PrivateGLData *gl = this->gl_data;
+
+	if ( !gl->initialized || gl->surface == EGL_NO_SURFACE ) {
+		SDL_SetError("No OpenGL window");
+		return -1;
+	}
+	if ( !eglMakeCurrent(gl->display, gl->surface, gl->surface, (EGLContext)context) ) {
+		SDL_SetError("eglMakeCurrent failed");
+		return -1;
+	}
+	return 0;
+}
+
+SDL_GLContext Wayland_GL_GetVideoModeContext(_THIS)
+{
+	struct SDL_PrivateGLData *gl = this->gl_data;
+
+	return gl->initialized ? (SDL_GLContext)gl->context : NULL;
+}
+
 void Wayland_GL_SwapBuffers(_THIS)
 {
 	struct SDL_PrivateGLData *gl = this->gl_data;

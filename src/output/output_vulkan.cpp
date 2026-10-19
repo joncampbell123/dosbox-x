@@ -40,9 +40,6 @@ extern Bitu currentWindowWidth;
 extern Bitu currentWindowHeight;
 
 bool setSizeButNotResize();
-int Voodoo_OGL_GetWidth();
-int Voodoo_OGL_GetHeight();
-bool Voodoo_OGL_Active();
 
 /* The two shaders, hand assembled to SPIR-V 1.0 (no shader compiler is needed
  * to build DOSBox-X). Equivalent GLSL:

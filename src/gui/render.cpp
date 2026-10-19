@@ -460,14 +460,11 @@ extern Bitu PIC_Ticks;
 extern bool pause_on_vsync;
 extern bool checkmenuwidth;
 void PauseDOSBox(bool pressed);
-bool GFX_GetPreventFullscreen(void);
 
 void AspectRatio_mapper_shortcut(bool pressed) {
     if (!pressed) return;
 
-    if (!GFX_GetPreventFullscreen()) {
-        SetVal("render", "aspect", render.aspect ? "false" : "true");
-    }
+    SetVal("render", "aspect", render.aspect ? "false" : "true");
 }
 
 void VGA_DebugOverlay();

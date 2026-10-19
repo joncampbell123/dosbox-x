@@ -162,6 +162,10 @@ static SDL_VideoDevice *Wayland_CreateDevice(int devindex)
 	device->GL_GetAttribute = Wayland_GL_GetAttribute;
 	device->GL_MakeCurrent = Wayland_GL_MakeCurrent;
 	device->GL_SwapBuffers = Wayland_GL_SwapBuffers;
+	device->GL_CreateSharedContext = Wayland_GL_CreateSharedContext;
+	device->GL_DeleteContext = Wayland_GL_DeleteContext;
+	device->GL_MakeContextCurrent = Wayland_GL_MakeContextCurrent;
+	device->GL_GetVideoModeContext = Wayland_GL_GetVideoModeContext;
 #endif
 	device->Vulkan_GetInstanceExtensions = Wayland_Vulkan_GetInstanceExtensions;
 	device->Vulkan_CreateSurface = Wayland_Vulkan_CreateSurface;

@@ -3736,6 +3736,13 @@ void voodoo_set_window(void) {
 	}
 }
 
+/* OpenGL: show the front buffer in the output */
+void voodoo_present(void) {
+	if (v->ogl && v->active) {
+		voodoo_ogl_present();
+	}
+}
+
 void voodoo_leave(void) {
 	if (v->ogl) {
 #if C_OPENGL

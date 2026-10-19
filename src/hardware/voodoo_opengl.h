@@ -78,6 +78,7 @@ void voodoo_ogl_leave(bool leavemode);
 void voodoo_ogl_shutdown(voodoo_state *v);
 
 void voodoo_ogl_set_window(voodoo_state *v);
+void voodoo_ogl_present(void);
 void voodoo_ogl_swap_buffer(void);
 void voodoo_ogl_vblank_flush(void);
 

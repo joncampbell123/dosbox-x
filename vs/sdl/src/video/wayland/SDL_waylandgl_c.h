@@ -45,6 +45,10 @@ extern int Wayland_GL_LoadLibrary(_THIS, const char *path);
 extern void *Wayland_GL_GetProcAddress(_THIS, const char *proc);
 extern int Wayland_GL_GetAttribute(_THIS, SDL_GLattr attrib, int* value);
 extern int Wayland_GL_MakeCurrent(_THIS);
+extern SDL_GLContext Wayland_GL_CreateSharedContext(_THIS);
+extern void Wayland_GL_DeleteContext(_THIS, SDL_GLContext context);
+extern int Wayland_GL_MakeContextCurrent(_THIS, SDL_GLContext context);
+extern SDL_GLContext Wayland_GL_GetVideoModeContext(_THIS);
 extern void Wayland_GL_SwapBuffers(_THIS);
 
 /* make (or resize) the EGL surface for the window */

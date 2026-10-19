@@ -99,7 +99,6 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void GFX_LosingFocus(void);
 void GFX_ReleaseMouse(void);
 void GFX_ForceRedrawScreen(void);
-bool GFX_GetPreventFullscreen(void);
 bool isDBCSCP(void), toOutput(const char *what), saveDiskImage(imageDisk *image, const char *name);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 int setTTFMap(bool changecp), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);

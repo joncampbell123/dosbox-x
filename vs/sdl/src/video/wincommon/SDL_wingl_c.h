@@ -33,6 +33,7 @@ struct SDL_PrivateGLData {
     PIXELFORMATDESCRIPTOR GL_pfd;
     HDC GL_hdc;
     HGLRC GL_hrc;
+    HGLRC GL_share_hrc;	/* DOSBox-X: a shared context (SDL_GL_CreateSharedContext), new GL_hrcs share with it */
     int pixel_format;
     int WGL_ARB_pixel_format;
 
@@ -43,6 +44,8 @@ struct SDL_PrivateGLData {
     BOOL (WINAPI *wglDeleteContext)(HGLRC hglrc);
 
     BOOL (WINAPI *wglMakeCurrent)(HDC hdc, HGLRC hglrc);
+
+    BOOL (WINAPI *wglShareLists)(HGLRC hglrc1, HGLRC hglrc2);
    
     BOOL (WINAPI *wglGetPixelFormatAttribivARB)(HDC hdc, int iPixelFormat,
                                                 int iLayerPlane,
@@ -65,6 +68,10 @@ struct SDL_PrivateGLData {
 extern int WIN_GL_SetupWindow(_THIS);
 extern void WIN_GL_ShutDown(_THIS);
 #if SDL_VIDEO_OPENGL
+extern SDL_GLContext WIN_GL_CreateSharedContext(_THIS);
+extern void WIN_GL_DeleteContext(_THIS, SDL_GLContext context);
+extern int WIN_GL_MakeContextCurrent(_THIS, SDL_GLContext context);
+extern SDL_GLContext WIN_GL_GetVideoModeContext(_THIS);
 extern int WIN_GL_MakeCurrent(_THIS);
 extern int WIN_GL_GetAttribute(_THIS, SDL_GLattr attrib, int* value);
 extern void WIN_GL_SwapBuffers(_THIS);

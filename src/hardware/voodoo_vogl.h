@@ -122,5 +122,6 @@ void VOGL_SetColorMaskMode(bool cmasked, bool amasked);
 
 void VOGL_SetDrawMode(bool front_draw);
 void VOGL_SetReadMode(bool front_read);
+void VOGL_SetBuffers(GLenum front, GLenum back);
 
 #endif

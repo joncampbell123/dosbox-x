@@ -213,6 +213,10 @@ static SDL_VideoDevice *DIB_CreateDevice(int devindex)
 	device->GL_GetAttribute = WIN_GL_GetAttribute;
 	device->GL_MakeCurrent = WIN_GL_MakeCurrent;
 	device->GL_SwapBuffers = WIN_GL_SwapBuffers;
+	device->GL_CreateSharedContext = WIN_GL_CreateSharedContext;
+	device->GL_DeleteContext = WIN_GL_DeleteContext;
+	device->GL_MakeContextCurrent = WIN_GL_MakeContextCurrent;
+	device->GL_GetVideoModeContext = WIN_GL_GetVideoModeContext;
 #endif
 #if SDL_WIN32_VULKAN
 	device->Vulkan_GetInstanceExtensions = WIN_Vulkan_GetInstanceExtensions;

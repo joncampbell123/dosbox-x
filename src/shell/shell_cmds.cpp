@@ -149,7 +149,7 @@ extern unsigned long freec;
 extern uint8_t DOS_GetAnsiAttr(void);
 extern uint16_t countryNo, altcp_to_unicode[256];
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), TTF_using(void), Network_IsNetworkResource(const char * filename);
-extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), GFX_GetPreventFullscreen(void), DOS_SetAnsiAttr(uint8_t attr);
+extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), DOS_SetAnsiAttr(uint8_t attr);
 extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 extern void Load_Language(std::string name), GetExpandedPath(std::string &path);
 extern void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pace_ms, bool choice);
@@ -4706,9 +4706,7 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
             mainMenu.unbuild();
             mainMenu.rebuild();
-            if (!GFX_GetPreventFullscreen()) {
-                if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
-            }
+            if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
 #endif
             DOSBox_SetSysMenu();
         }

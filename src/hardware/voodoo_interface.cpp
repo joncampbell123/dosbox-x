@@ -146,8 +146,8 @@ static void Voodoo_VerticalTimer(Bitu /*val*/) {
 		}
 		RENDER_EndUpdate(false);
 	} else {
-		// ???
 		voodoo_set_window();
+		voodoo_present();
 	}
 }
 

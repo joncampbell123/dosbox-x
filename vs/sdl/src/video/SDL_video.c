@@ -150,6 +150,9 @@ static SDL_GrabMode SDL_WM_GrabInputOff(void);
 static int lock_count = 0;
 #endif
 
+/* DOSBox-X: the current OpenGL context, if not the video mode's */
+static SDL_GLContext SDL_GL_current_context = NULL;
+
 #if defined(__LINUX__)
 unsigned char sdl1_force_x11 = 0; /* If we are running under a desktop like X11 or Wayland, do NOT use any other driver, especially fbcon! */
 #endif
@@ -858,6 +861,7 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 #endif /* SDL_VIDEO_OPENGL */
 
 	/* If we're running OpenGL, make the context current */
+	SDL_GL_current_context = NULL;
 	if ( (video->screen->flags & SDL_OPENGL) &&
 	      video->GL_MakeCurrent ) {
 		if ( video->GL_MakeCurrent(this) < 0 ) {
@@ -1601,6 +1605,77 @@ int SDL_GL_GetAttribute(SDL_GLattr attr, int* value)
 }
 
 /* Perform a GL buffer swap on the current GL context */
+/* DOSBox-X: more OpenGL contexts */
+
+SDL_GLContext SDL_GL_CreateSharedContext(void)
+{
+	SDL_VideoDevice *this = current_video;
+
+	if ( this == NULL || this->screen == NULL || !(this->screen->flags & SDL_OPENGL) ) {
+		SDL_SetError("OpenGL video mode has not been set");
+		return NULL;
+	}
+	if ( this->GL_CreateSharedContext == NULL ) {
+		SDL_SetError("Shared OpenGL contexts are not supported by the %s video driver", this->name);
+		return NULL;
+	}
+	return this->GL_CreateSharedContext(this);
+}
+
+void SDL_GL_DeleteContext(SDL_GLContext context)
+{
+	SDL_VideoDevice *this = current_video;
+
+	if ( context == NULL || this == NULL || this->GL_DeleteContext == NULL ) {
+		return;
+	}
+	if ( SDL_GL_current_context == context ) {
+		SDL_GL_current_context = NULL;
+	}
+	this->GL_DeleteContext(this, context);
+}
+
+int SDL_GL_MakeCurrentContext(SDL_GLContext context)
+{
+	SDL_VideoDevice *this = current_video;
+
+	if ( this == NULL || this->GL_MakeContextCurrent == NULL || this->GL_GetVideoModeContext == NULL ) {
+		SDL_SetError("Shared OpenGL contexts are not supported");
+		return -1;
+	}
+	if ( context == NULL ) {
+		context = this->GL_GetVideoModeContext(this);
+		if ( context == NULL ) {
+			SDL_SetError("OpenGL video mode has not been set");
+			return -1;
+		}
+	}
+	if ( this->GL_MakeContextCurrent(this, context) < 0 ) {
+		return -1;
+	}
+	SDL_GL_current_context = (context == this->GL_GetVideoModeContext(this)) ? NULL : context;
+	return 0;
+}
+
+SDL_GLContext SDL_GL_GetCurrentContext(void)
+{
+	if ( SDL_GL_current_context != NULL ) {
+		return SDL_GL_current_context;
+	}
+	return SDL_GL_GetVideoModeContext();
+}
+
+SDL_GLContext SDL_GL_GetVideoModeContext(void)
+{
+	SDL_VideoDevice *this = current_video;
+
+	if ( this == NULL || this->screen == NULL || !(this->screen->flags & SDL_OPENGL) ||
+	     this->GL_GetVideoModeContext == NULL ) {
+		return NULL;
+	}
+	return this->GL_GetVideoModeContext(this);
+}
+
 void SDL_GL_SwapBuffers(void)
 {
 	SDL_VideoDevice *video = current_video;

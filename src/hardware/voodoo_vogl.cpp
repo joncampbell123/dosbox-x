@@ -89,6 +89,10 @@ static bool alpha_masked = false;
 static bool draw_to_front_buffer = false;
 static bool read_from_front_buffer = false;
 
+// the GL buffers that are the front and back buffer (color attachments of a framebuffer object)
+static GLenum front_buffer = GL_FRONT;
+static GLenum back_buffer = GL_BACK;
+
 
 void VOGL_Reset(void) {
 	opengl_version = -1;
@@ -444,8 +448,8 @@ void VOGL_SetColorMaskMode(bool cmasked, bool amasked) {
 void VOGL_SetDrawMode(bool front_draw) {
 	if (draw_to_front_buffer!=front_draw) {
 		VOGL_ClearBeginMode();
-		if (front_draw) glDrawBuffer(GL_FRONT);
-		else glDrawBuffer(GL_BACK);
+		if (front_draw) glDrawBuffer(front_buffer);
+		else glDrawBuffer(back_buffer);
 		draw_to_front_buffer=front_draw;
 	}
 }
@@ -455,10 +459,22 @@ void VOGL_SetReadMode(bool front_read) {
 	VOGL_ClearBeginMode();
 
 	if (read_from_front_buffer!=front_read) {
-		if (front_read) glReadBuffer(GL_FRONT);
-		else glReadBuffer(GL_BACK);
+		if (front_read) glReadBuffer(front_buffer);
+		else glReadBuffer(back_buffer);
 		read_from_front_buffer=front_read;
 	}
+}
+
+
+/* which GL buffers are the front and back buffer, applied right away
+ * (a buffer swap exchanges them) */
+void VOGL_SetBuffers(GLenum front, GLenum back) {
+	VOGL_ClearBeginMode();
+
+	front_buffer = front;
+	back_buffer = back;
+	glDrawBuffer(draw_to_front_buffer ? front_buffer : back_buffer);
+	glReadBuffer(read_from_front_buffer ? front_buffer : back_buffer);
 }
 
 #endif

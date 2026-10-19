@@ -194,7 +194,6 @@ void InitFontHandle(void);
 void ShutFontHandle(void);
 void DOSBox_SetSysMenu(void);
 void runRescan(const char *str);
-bool GFX_GetPreventFullscreen(void);
 
 bool DOS_IS_IN_HMA() {
 	if (dos_in_hma && XMS_IS_ACTIVE() && XMS_HMA_EXISTS())
@@ -2924,9 +2923,7 @@ static Bitu DOS_21Handler(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                         mainMenu.unbuild();
                         mainMenu.rebuild();
-                        if (!GFX_GetPreventFullscreen()) {
-                            if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
-                        }
+                        if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
 #endif
                         DOSBox_SetSysMenu();
                     }

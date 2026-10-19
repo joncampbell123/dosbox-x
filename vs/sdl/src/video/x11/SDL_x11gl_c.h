@@ -33,6 +33,7 @@ struct SDL_PrivateGLData {
 
 #if SDL_VIDEO_OPENGL_GLX
     GLXContext glx_context;	/* Current GL context */
+    GLXContext glx_share_context;	/* DOSBox-X: a shared context (SDL_GL_CreateSharedContext), new glx_contexts share with it */
     XVisualInfo* glx_visualinfo; /* XVisualInfo* returned by glXChooseVisual */
 
     void * (*glXGetProcAddress)(const GLubyte *procName);
@@ -90,6 +91,10 @@ extern int X11_GL_CreateContext(_THIS);
 extern void X11_GL_Shutdown(_THIS);
 #if SDL_VIDEO_OPENGL_GLX
 extern int X11_GL_MakeCurrent(_THIS);
+extern SDL_GLContext X11_GL_CreateSharedContext(_THIS);
+extern void X11_GL_DeleteContext(_THIS, SDL_GLContext context);
+extern int X11_GL_MakeContextCurrent(_THIS, SDL_GLContext context);
+extern SDL_GLContext X11_GL_GetVideoModeContext(_THIS);
 extern int X11_GL_GetAttribute(_THIS, SDL_GLattr attrib, int* value);
 extern void X11_GL_SwapBuffers(_THIS);
 extern int X11_GL_LoadLibrary(_THIS, const char* path);

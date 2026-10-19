@@ -43,13 +43,6 @@
 #include "../dos/drives.h"
 #include "../ints/int10.h"
 
-#if C_OPENGL
-#include "voodoo.h"
-#include "../hardware/voodoo_types.h"
-#include "../hardware/voodoo_data.h"
-#include "../hardware/voodoo_opengl.h"
-#endif
-
 #if defined(WIN32)
 #include "shellapi.h"
 #endif
@@ -139,7 +132,6 @@ static SDL_Surface*         background = NULL;
 static bool                 gui_menu_init = true, null_menu_init = true;
 #endif
 int                         shortcutid = -1;
-bool                        GFX_GetPreventFullscreen(void);
 void                        GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
 
 #if defined(WIN32) && !defined(HX_DOS)
@@ -4069,11 +4061,6 @@ void RunCfgTool(Bitu val) {
         GFX_LosingFocus();
         sel = -1;
     }
-    if (GFX_GetPreventFullscreen()) {
-#if C_OPENGL
-        voodoo_ogl_update_dimensions();
-#endif
-    }    
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
     if(sdl.desktop.want_type == SCREEN_METAL){
         OUTPUT_Metal_Shutdown();

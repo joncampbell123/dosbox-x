@@ -133,6 +133,25 @@ bool OUTPUT_OPENGL_StartUpdate(uint8_t* &pixels, Bitu &pitch);
 void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines);
 void OUTPUT_OPENGL_Shutdown();
 
+/* OpenGL contexts. The 3dfx Voodoo OpenGL emulation renders with a context of its own,
+ * which shares objects (textures) with the output's ("main") context. Code that makes GL
+ * calls for the output (or the SDL drawn menus) must call GFX_OpenGL_MakeCurrent() first. */
+typedef void *GFX_GLContext;
+GFX_GLContext GFX_GL_CreateMainContext(void);   /* for the window, shares with the 3dfx context if there is one */
+GFX_GLContext GFX_GL_CreateSharedContext(void); /* another context that shares with the main one */
+void GFX_GL_DeleteContext(GFX_GLContext ctx);
+bool GFX_GL_MakeContextCurrent(GFX_GLContext ctx);
+GFX_GLContext GFX_GL_GetCurrentContext(void);
+void GFX_OpenGL_MakeCurrent(void);
+bool OUTPUT_OPENGL_Active(void);
+
+/* A texture (the 3dfx Voodoo emulation's frame, top row first) to show instead of the
+ * emulated video card's frame, 0 to stop. OUTPUT_OPENGL_PresentExternal() draws it. */
+void OUTPUT_OPENGL_SetExternalTexture(GLuint texture, unsigned int width, unsigned int height);
+bool OUTPUT_OPENGL_HasExternalTexture(void);
+void OUTPUT_OPENGL_DrawExternal(void);
+void OUTPUT_OPENGL_PresentExternal(void);
+
 #endif //C_OPENGL
 
 #endif /*DOSBOX_OUTPUT_OPENGL_H*/
