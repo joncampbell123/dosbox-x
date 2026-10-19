@@ -20,16 +20,19 @@
 #define DOSBOX_VOODOO_HW_H
 
 /* The hardware 3dfx emulation (v->ogl): rendered with OpenGL (with output=opengl), Vulkan (with
- * output=vulkan) or Direct3D (with output=direct3d), as v->hw_api says. These go to that one. */
+ * output=vulkan), Direct3D (with output=direct3d) or Direct3D 11 (with output=direct3d11), as
+ * v->hw_api says. These go to that one. */
 
 #include "voodoo.h"
 #include "voodoo_opengl.h"
 #include "voodoo_vulkan.h"
 #include "voodoo_d3d.h"
+#include "voodoo_d3d11.h"
 
 #define VOODOO_HW_CALL(name, args) do { \
 	if (v->hw_api == VOODOO_HW_API_VULKAN) voodoo_vk_##name args; \
 	else if (v->hw_api == VOODOO_HW_API_DIRECT3D) voodoo_d3d_##name args; \
+	else if (v->hw_api == VOODOO_HW_API_DIRECT3D11) voodoo_d3d11_##name args; \
 	else voodoo_ogl_##name args; } while (0)
 
 static inline void voodoo_hw_set_window(voodoo_state *vs) { VOODOO_HW_CALL(set_window, (vs)); }
@@ -53,11 +56,13 @@ static inline void voodoo_hw_draw_pixel_pipeline(int x, int y, int r, int g, int
 static inline UINT32 voodoo_hw_read_pixel(int x, int y) {
 	if (v->hw_api == VOODOO_HW_API_VULKAN) return voodoo_vk_read_pixel(x, y);
 	if (v->hw_api == VOODOO_HW_API_DIRECT3D) return voodoo_d3d_read_pixel(x, y);
+	if (v->hw_api == VOODOO_HW_API_DIRECT3D11) return voodoo_d3d11_read_pixel(x, y);
 	return voodoo_ogl_read_pixel(x, y);
 }
 static inline bool voodoo_hw_init(voodoo_state *vs) {
 	if (v->hw_api == VOODOO_HW_API_VULKAN) return voodoo_vk_init(vs);
 	if (v->hw_api == VOODOO_HW_API_DIRECT3D) return voodoo_d3d_init(vs);
+	if (v->hw_api == VOODOO_HW_API_DIRECT3D11) return voodoo_d3d11_init(vs);
 	return voodoo_ogl_init(vs);
 }
 static inline void voodoo_hw_leave(bool leavemode) { VOODOO_HW_CALL(leave, (leavemode)); }

@@ -36,6 +36,10 @@ bool OUTPUT_DIRECT3D11_StartUpdate(uint8_t*& pixels, Bitu& pitch);
 void OUTPUT_DIRECT3D11_EndUpdate(const uint16_t*);
 void OUTPUT_DIRECT3D11_Shutdown();
 void OUTPUT_DIRECT3D11_CheckSourceResolution();
+bool OUTPUT_DIRECT3D11_Active(void);
+class CDirect3D11;
+CDirect3D11* OUTPUT_DIRECT3D11_Get(void);
+HRESULT OUTPUT_DIRECT3D11_Compile(const char* source, const char* entry, const char* target, ID3DBlob** blob);
 
 class CDirect3D11 {
 public:
@@ -54,6 +58,13 @@ public:
     bool CreateSamplers(void);
     void SetSamplerMode(void);
     void GetRenderMode(void);
+
+    // for the Direct3D 11 3dfx emulation (voodoo_d3d11.cpp), which renders with this device
+    ID3D11Device* GetDevice(void) { return device; }
+    ID3D11DeviceContext* GetContext(void) { return context; }
+    // its frame, drawn instead of the frame texture while set
+    void SetExternalTexture(ID3D11ShaderResourceView* srv) { externalSRV = srv; }
+    void PresentExternal(void);
 
     uint32_t frame_width = 0, frame_height = 0;   // Framebuffer size (Internal resolution)
     uint32_t window_width = 0; // Window width (Used when returning from fullscreen)
@@ -81,6 +92,10 @@ private:
     ID3D11InputLayout* inputLayout = nullptr;
 
     ID3D11ShaderResourceView* frameSRV = nullptr;
+    ID3D11ShaderResourceView* externalSRV = nullptr;
+    D3D11_VIEWPORT viewport = {};
+
+    void DrawFrame(ID3D11ShaderResourceView* srv);
 
     ID3D11Buffer* fullscreenVB = nullptr;
     UINT stride = 0;

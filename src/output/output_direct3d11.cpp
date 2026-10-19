@@ -12,7 +12,7 @@
 #include "menudef.h"
 #include "render.h"
 #include "vga.h"
-#include "..\ints\int10.h"
+#include "../ints/int10.h"
 #include "output_surface.h"
 
 #include "output_direct3d11.h"
@@ -45,19 +45,14 @@ struct VSOut {
 
 VSOut main(uint id : SV_VertexID)
 {
-    float2 pos[6] = {
-        {-1,-1},{-1,1},{1,-1},
-        {1,-1},{-1,1},{1,1}
-    };
-
-    float2 uv[6] = {
-        {0,1},{0,0},{1,1},
-        {1,1},{0,0},{1,0}
-    };
+    // two triangles: (-1,-1) (-1,1) (1,-1), (1,-1) (-1,1) (1,1)
+    // (worked out rather than from arrays: Wine's HLSL compiler fails on those)
+    float x = (id == 2 || id == 3 || id == 5) ? 1.0 : -1.0;
+    float y = (id == 1 || id == 4 || id == 5) ? 1.0 : -1.0;
 
     VSOut o;
-    o.pos = float4(pos[id], 0, 1);
-    o.uv  = uv[id];
+    o.pos = float4(x, y, 0.0, 1.0);
+    o.uv  = float2(x * 0.5 + 0.5, 0.5 - y * 0.5);
     return o;
 }
 )";
@@ -75,6 +70,9 @@ float4 main(float4 pos : SV_POSITION, float2 uv : TEXCOORD0)
 
 extern VGA_Type vga;
 extern VideoModeBlock* CurMode;
+
+void Voodoo_OGL_SetDisplaySize(unsigned int w, unsigned int h);
+void voodoo_d3d11_device_lost(void);
 
 CDirect3D11::CDirect3D11() {}
 CDirect3D11::~CDirect3D11() { Shutdown(); }
@@ -134,6 +132,7 @@ bool CDirect3D11::Initialize(HWND hwnd, int w, int h)
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     context->RSSetViewports(1, &vp);
+    viewport = vp;
 
     if(!CreateFrameTextures(width, height))
         return false;
@@ -250,6 +249,10 @@ void CDirect3D11::ResizeCPUBuffer(uint32_t src_w, uint32_t src_h)
 
 void CDirect3D11::Shutdown()
 {
+    /* the 3dfx emulation renders with this device */
+    if(device) voodoo_d3d11_device_lost();
+    externalSRV = nullptr;
+
     if(context) {
         context->ClearState();
         context->Flush();
@@ -321,8 +324,30 @@ void CDirect3D11::EndUpdate()
     context->Unmap(frameTexGPU, 0);
     //context->CopyResource(frameTexGPU, frameTexCPU);
 
+    // the 3dfx emulation's frame instead, while it is active
+    DrawFrame(externalSRV ? externalSRV : frameSRV);
+    textureMapped = false;
+}
+
+void CDirect3D11::PresentExternal()
+{
+    if(!externalSRV || !rtv) return;
+    DrawFrame(externalSRV);
+}
+
+void CDirect3D11::DrawFrame(ID3D11ShaderResourceView* srv)
+{
     // Bind the back buffer render target (no depth buffer needed for 2D rendering)
     context->OMSetRenderTargets(1, &rtv, nullptr);
+
+    // the 3dfx emulation changes these too
+    context->RSSetViewports(1, &viewport);
+    context->RSSetState(nullptr);
+    context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+    context->OMSetDepthStencilState(nullptr, 0);
+    ID3D11Buffer* nullVB = nullptr;
+    UINT zero = 0;
+    context->IASetVertexBuffers(0, 1, &nullVB, &zero, &zero);
 
     // Set viewport to cover the entire output surface
     // This maps normalized device coordinates directly to the window area
@@ -344,7 +369,7 @@ void CDirect3D11::EndUpdate()
 
     context->VSSetShader(vs, nullptr, 0);
     context->PSSetShader(ps, nullptr, 0);
-    context->PSSetShaderResources(0, 1, &frameSRV);
+    context->PSSetShaderResources(0, 1, &srv);
 
     SetSamplerMode();
     // Draw two triangles (6 vertices) to cover the entire screen
@@ -355,8 +380,6 @@ void CDirect3D11::EndUpdate()
 
     // Present the rendered frame to the screen (vsync is currently disabled)
     swapchain->Present(0, 0);
-
-    textureMapped = false;
 }
 
 bool CDirect3D11::CreateSamplers(void) {
@@ -742,6 +765,10 @@ bool CDirect3D11::Resize(
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     context->RSSetViewports(1, &vp);
+    viewport = vp;
+
+    /* the 3dfx emulation can render at the size it is shown at */
+    Voodoo_OGL_SetDisplaySize((unsigned int)(vp_w + 0.5f), (unsigned int)(vp_h + 0.5f));
 
     /* ----------------------------
      * 5. Recreate frame textures at internal resolution
@@ -855,6 +882,30 @@ void OUTPUT_DIRECT3D11_Shutdown()
 void OUTPUT_DIRECT3D11_CheckSourceResolution()
 {
     if(d3d11) d3d11->CheckSourceResolution();
+}
+
+/* the 3dfx emulation renders with Direct3D 11 only with this output */
+bool OUTPUT_DIRECT3D11_Active(void)
+{
+    return d3d11 != nullptr && sdl.desktop.type == SCREEN_DIRECT3D11 && d3d11->GetDevice() != nullptr;
+}
+
+CDirect3D11* OUTPUT_DIRECT3D11_Get(void)
+{
+    return d3d11;
+}
+
+/* HLSL to shader code, for the 3dfx emulation */
+HRESULT OUTPUT_DIRECT3D11_Compile(const char* source, const char* entry, const char* target, ID3DBlob** blob)
+{
+    *blob = nullptr;
+    if(!my_pD3DCompile) return E_FAIL;
+    ID3DBlob* err = nullptr;
+    HRESULT hr = my_pD3DCompile(source, strlen(source), nullptr, nullptr, nullptr, entry, target, 0, 0, blob, &err);
+    if(FAILED(hr))
+        LOG_MSG("D3D11: %s compile error: %s", target, err ? (char*)err->GetBufferPointer() : "");
+    if(err) err->Release();
+    return hr;
 }
 
 #if 0

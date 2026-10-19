@@ -295,7 +295,7 @@ void Voodoo_Output_Enable(bool enabled) {
 }
 
 void Voodoo_Initialize(Bits emulation_type, Bits card_type, bool max_voodoomem) {
-	if ((emulation_type <= VOODOO_EMU_TYPE_OFF) || (emulation_type > VOODOO_EMU_TYPE_DIRECT3D)) return;
+	if ((emulation_type <= VOODOO_EMU_TYPE_OFF) || (emulation_type > VOODOO_EMU_TYPE_DIRECT3D11)) return;
 
 	int board = VOODOO_1;
 	
