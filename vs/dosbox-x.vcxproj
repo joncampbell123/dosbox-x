@@ -1617,7 +1617,6 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\hardware\glide.cpp" />
     <ClCompile Include="..\src\ints\bios.cpp" />
     <ClCompile Include="..\src\ints\bios_disk.cpp" />
-    <ClCompile Include="..\src\ints\bios_int13.cpp" />
     <ClCompile Include="..\src\ints\imagedisk_d88.cpp" />
     <ClCompile Include="..\src\ints\imagedisk_emptydrive.cpp" />
     <ClCompile Include="..\src\ints\imagedisk_int13.cpp" />
@@ -1654,6 +1653,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\misc\savestates.cpp" />
     <ClCompile Include="..\src\misc\setup.cpp" />
     <ClCompile Include="..\src\misc\support.cpp" />
+    <ClCompile Include="..\src\monitor\monitor.cpp" />
     <ClCompile Include="..\src\output\direct3d\direct3d.cpp" />
     <ClCompile Include="..\src\output\direct3d\hq2x_d3d.cpp" />
     <ClCompile Include="..\src\output\direct3d\ScalingEffect.cpp" />
@@ -1714,7 +1714,6 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\include\8255.h" />
     <ClInclude Include="..\include\bios.h" />
     <ClInclude Include="..\include\bios_disk.h" />
-    <ClInclude Include="..\src\ints\int13.h" />
     <ClInclude Include="..\include\bitmapinfoheader.h" />
     <ClInclude Include="..\include\bitop.h" />
     <ClInclude Include="..\include\build_timestamp.h" />
@@ -2035,6 +2034,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\misc\ethernet_ethnet.h" />
     <ClInclude Include="..\src\misc\ethernet_pcap.h" />
     <ClInclude Include="..\src\misc\ethernet_slirp.h" />
+    <ClInclude Include="..\src\monitor\monitor.h" />
     <ClInclude Include="..\src\output\direct3d\d3d_components.h" />
     <ClInclude Include="..\src\output\direct3d\direct3d.h" />
     <ClInclude Include="..\src\output\direct3d\hq2x_d3d.h" />
