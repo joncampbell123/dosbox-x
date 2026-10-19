@@ -3993,29 +3993,36 @@ void voodoo_leave(void) {
 		voodoo_hw_leave(true);
 	v->active = false;
 	v->ogl = false;
-	v->vulkan = false;
+	v->hw_api = VOODOO_HW_API_OPENGL;
 }
 
 bool OUTPUT_VULKAN_Active(void);
+bool OUTPUT_DIRECT3D_Active(void);
 
-/* The hardware emulation (OpenGL or Vulkan) is chosen every time the 3dfx output turns on,
+/* The hardware emulation (OpenGL, Vulkan or Direct3D) is chosen every time the 3dfx output turns on,
  * for the output in use then. Until it does, and if it can't, the card is emulated in software. */
 void voodoo_activate(void) {
 	voodoo_sw_wait();	/* the hardware emulation starts from what is in the frame buffer */
 	v->active = true;
 	v->ogl = false;
-	v->vulkan = false;
+	v->hw_api = VOODOO_HW_API_OPENGL;
 
-	bool use_vulkan = false;
+	int api = VOODOO_HW_API_OPENGL;
 	switch (v->hw_request) {
 		case VOODOO_EMU_TYPE_ACCELERATED:
 			break;
 		case VOODOO_EMU_TYPE_VULKAN:
-			use_vulkan = true;
+			api = VOODOO_HW_API_VULKAN;
+			break;
+		case VOODOO_EMU_TYPE_DIRECT3D:
+			api = VOODOO_HW_API_DIRECT3D;
 			break;
 		case VOODOO_EMU_TYPE_AUTO:
 #if C_VULKAN_OUTPUT
-			use_vulkan = OUTPUT_VULKAN_Active();
+			if (OUTPUT_VULKAN_Active()) api = VOODOO_HW_API_VULKAN;
+#endif
+#if C_DIRECT3D
+			if (OUTPUT_DIRECT3D_Active()) api = VOODOO_HW_API_DIRECT3D;
 #endif
 			break;
 		default:
@@ -4023,14 +4030,14 @@ void voodoo_activate(void) {
 	}
 
 	v->ogl = true;
-	v->vulkan = use_vulkan;
+	v->hw_api = api;
 	if (voodoo_hw_init(v)) {
 		voodoo_hw_clear();
 		/* anything drawn before this was drawn in software, into the card's memory */
 		voodoo_hw_load_framebuffers_from_ram();
 	} else {
 		v->ogl = false;
-		v->vulkan = false;
+		v->hw_api = VOODOO_HW_API_OPENGL;
 		LOG_MSG("VOODOO: acceleration disabled");
 	}
 }

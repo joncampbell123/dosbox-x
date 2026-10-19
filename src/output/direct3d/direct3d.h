@@ -132,6 +132,12 @@ private:
     bool 			psEnabled;
     bool			preProcess;
 
+    // the 3dfx emulation's frame (voodoo_d3d.cpp), drawn instead of lpTexture when set
+    LPDIRECT3DTEXTURE9		lpExternal = NULL;
+    DWORD			dwExternalWidth = 0, dwExternalHeight = 0;
+    bool			externalDirty = false;	// the 3dfx emulation changed the device's state
+    void RestoreOutputState(void);
+
     // function declarations
     HRESULT InitD3D(void);
 
@@ -230,6 +236,16 @@ public:
 #endif
 
     }
+
+    // for the Direct3D 3dfx emulation (voodoo_d3d.cpp), which renders with this device: between
+    // BeginExternal() and EndExternal(), the worker thread does not use it
+    IDirect3DDevice9 *GetDevice(void) { return pD3DDevice9; }
+    IDirect3D9 *GetD3D(void) { return pD3D9; }
+    bool IsDeviceLost(void) { return deviceLost; }
+    void BeginExternal(void);
+    void EndExternal(void);
+    void SetExternalTexture(LPDIRECT3DTEXTURE9 tex, DWORD width, DWORD height);
+    bool PresentExternal(void);
 
     void UpdateRectFromSDLSurface(int x,int y,int w,int h);
     void UpdateRectToSDLSurface(int x,int y,int w,int h);

@@ -23,6 +23,12 @@
 #include "SDL.h"
 #include "SDL_opengl.h"
 
+/* OpenGL 1.1 headers (Windows) have no GLuint64, glext.h defines it along with these */
+#if !defined(GL_VERSION_3_2) && !defined(GL_ARB_sync)
+#include <stdint.h>
+typedef uint64_t GLuint64;
+#endif
+
 
 /* opengl extensions */
 #ifdef WIN32

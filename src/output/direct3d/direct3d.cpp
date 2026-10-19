@@ -53,6 +53,10 @@ void CDirect3D::EnterLOGCriticalSection(LPCRITICAL_SECTION lpCriticalSection, in
 
 #include "d3d_components.h"
 
+/* the Direct3D 3dfx emulation (voodoo_d3d.cpp) */
+void voodoo_d3d_device_reset(bool before);
+void voodoo_d3d_device_lost(void);
+
 /* Most DOSBox forks incorporating the "D3D patch" expect the pixelshader filename
    to exist in a shaders\ subdirectory. */
 std::string shader_translate_directory(const std::string& path) {
@@ -585,6 +589,10 @@ void CDirect3D::DestroyD3D(void)
     }
 #endif
 
+    /* the 3dfx emulation renders with this device */
+    voodoo_d3d_device_lost();
+    lpExternal = NULL;
+
     InvalidateDeviceObjects();
 
     // Delete D3D device
@@ -711,6 +719,12 @@ bool CDirect3D::D3DSwapBuffers(void)
     HRESULT hr;
     UINT uPasses;
 
+    /* the 3dfx emulation renders with this device too */
+    if (externalDirty) {
+        externalDirty = false;
+        RestoreOutputState();
+    }
+
 	if (backbuffer_clear_countdown > 0) {
 		backbuffer_clear_countdown--;
 		pD3DDevice9->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
@@ -725,6 +739,22 @@ bool CDirect3D::D3DSwapBuffers(void)
     // begin rendering
     pD3DDevice9->BeginScene();
 
+    if (lpExternal) {
+        /* the 3dfx emulation's frame, scaled to the same place as the emulator image */
+        struct { float x, y, z, rhw, u, v; } quad[4] = {
+            { (float)dwX - 0.5f,                   (float)dwY - 0.5f,                    0.0f, 1.0f, 0.0f, 0.0f },
+            { (float)(dwX + dwScaledWidth) - 0.5f, (float)dwY - 0.5f,                    0.0f, 1.0f, 1.0f, 0.0f },
+            { (float)dwX - 0.5f,                   (float)(dwY + dwScaledHeight) - 0.5f, 0.0f, 1.0f, 0.0f, 1.0f },
+            { (float)(dwX + dwScaledWidth) - 0.5f, (float)(dwY + dwScaledHeight) - 0.5f, 0.0f, 1.0f, 1.0f, 1.0f } };
+        pD3DDevice9->SetPixelShader(NULL);
+        pD3DDevice9->SetTexture(0, lpExternal);
+        pD3DDevice9->SetFVF(D3DFVF_XYZRHW | D3DFVF_TEX1);
+        pD3DDevice9->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, quad, sizeof(quad[0]));
+        /* (DrawPrimitiveUP unsets the stream source) */
+        pD3DDevice9->SetFVF(D3DFVF_TLVERTEX);
+        pD3DDevice9->SetStreamSource(0, vertexBuffer, 0, sizeof(TLVERTEX));
+        pD3DDevice9->SetTexture(0, lpTexture);
+    } else
 #if C_D3DSHADERS
     /* PS 2.0 path */
     if(psActive) {
@@ -885,6 +915,81 @@ pass2:
     }
 
     return true;
+}
+
+/* The Direct3D 3dfx emulation (voodoo_d3d.cpp) renders with this device on the emulation thread. While
+ * it does, the worker thread is idle: Wait() returns with the lock held, and only the emulation thread
+ * gives the worker thread something to do. */
+void CDirect3D::BeginExternal(void)
+{
+#if D3D_THREAD
+    Wait(false);
+#endif
+}
+
+void CDirect3D::EndExternal(void)
+{
+    externalDirty = true;
+#if D3D_THREAD
+    LeaveCriticalSection(&cs);
+#endif
+}
+
+/* show this texture (the 3dfx emulation's frame) instead of the emulator image, NULL to stop */
+void CDirect3D::SetExternalTexture(LPDIRECT3DTEXTURE9 tex, DWORD width, DWORD height)
+{
+    lpExternal = tex;
+    dwExternalWidth = width;
+    dwExternalHeight = height;
+}
+
+/* draw the window with the 3dfx emulation's frame, now */
+bool CDirect3D::PresentExternal(void)
+{
+#if D3D_THREAD
+    Wait(false);
+#endif
+    if (deviceLost) Resize3DEnvironment();
+    const bool ok = (!deviceLost && lpExternal != NULL) ? D3DSwapBuffers() : false;
+#if D3D_THREAD
+    LeaveCriticalSection(&cs);
+#endif
+    return ok;
+}
+
+/* what RestoreDeviceObjects() set up, after the 3dfx emulation changed it */
+void CDirect3D::RestoreOutputState(void)
+{
+    LPDIRECT3DSURFACE9 backbuffer = NULL;
+    if (SUCCEEDED(pD3DDevice9->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer))) {
+        pD3DDevice9->SetRenderTarget(0, backbuffer);	/* (the viewport is all of it again) */
+        backbuffer->Release();
+    }
+    pD3DDevice9->SetDepthStencilSurface(NULL);
+    pD3DDevice9->SetVertexShader(NULL);
+    pD3DDevice9->SetPixelShader(NULL);
+    pD3DDevice9->SetFVF(D3DFVF_TLVERTEX);
+    pD3DDevice9->SetStreamSource(0, vertexBuffer, 0, sizeof(TLVERTEX));
+    pD3DDevice9->SetTexture(0, lpTexture);
+    pD3DDevice9->SetTexture(1, NULL);
+    pD3DDevice9->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
+    pD3DDevice9->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+    pD3DDevice9->SetRenderState(D3DRS_LIGHTING, false);
+    pD3DDevice9->SetRenderState(D3DRS_ZENABLE, false);
+    pD3DDevice9->SetRenderState(D3DRS_ZWRITEENABLE, true);
+    pD3DDevice9->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
+    pD3DDevice9->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, false);
+    pD3DDevice9->SetRenderState(D3DRS_ALPHATESTENABLE, false);
+    pD3DDevice9->SetRenderState(D3DRS_STENCILENABLE, false);
+    pD3DDevice9->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
+    pD3DDevice9->SetRenderState(D3DRS_FOGENABLE, false);
+    pD3DDevice9->SetRenderState(D3DRS_COLORWRITEENABLE, 0xF);
+    SetupSceneScaled();
+    if (!psActive) {
+        pD3DDevice9->SetTransform(D3DTS_PROJECTION, &m_matProj);
+        pD3DDevice9->SetTransform(D3DTS_VIEW, &m_matView);
+        pD3DDevice9->SetTransform(D3DTS_WORLD, &m_matWorld);
+    }
 }
 
 HRESULT CDirect3D::InvalidateDeviceObjects(void)
@@ -1152,6 +1257,9 @@ HRESULT CDirect3D::Resize3DEnvironment(void)
     LOG_MSG("D3D:Resize3DEnvironment() called");
 #endif
 
+    /* the 3dfx emulation lets go of its video memory objects too (Reset needs that) */
+    voodoo_d3d_device_reset(true);
+
     if(FAILED(hr=InvalidateDeviceObjects())) {
 	LOG_MSG("D3D:Failed to invalidate objects");
 	return hr;
@@ -1215,7 +1323,9 @@ reset_device:
 		    (float)dwScaledWidth/dwWidth, (float)dwScaledHeight/dwHeight, dwScaledWidth, dwScaledHeight);
 #endif
 
-    return RestoreDeviceObjects();
+    hr = RestoreDeviceObjects();
+    voodoo_d3d_device_reset(false);
+    return hr;
 }
 
 HRESULT CDirect3D::CreateDisplayTexture(void)

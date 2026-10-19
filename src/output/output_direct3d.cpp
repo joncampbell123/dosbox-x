@@ -25,7 +25,15 @@ extern Bitu currentWindowHeight;
 
 #if C_DIRECT3D
 
+void Voodoo_OGL_SetDisplaySize(unsigned int w, unsigned int h);
+
 CDirect3D* d3d = NULL;
+
+/* the 3dfx emulation renders with Direct3D only with this output */
+bool OUTPUT_DIRECT3D_Active(void)
+{
+    return d3d != NULL && sdl.desktop.type == SCREEN_DIRECT3D && d3d->GetDevice() != NULL;
+}
 void ResolvePath(std::string& in);
 void d3d_init(void)
 {
@@ -224,6 +232,9 @@ Bitu OUTPUT_DIRECT3D_SetSize()
         (unsigned int)sdl.clip.y,
         (unsigned int)sdl.clip.w,
         (unsigned int)sdl.clip.h);
+
+    /* the 3dfx emulation can render at the size it is shown at */
+    Voodoo_OGL_SetDisplaySize((unsigned int)sdl.clip.w, (unsigned int)sdl.clip.h);
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     if (mainMenu.isVisible()) {

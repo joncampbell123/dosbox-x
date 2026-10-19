@@ -16,6 +16,7 @@ Bitu OUTPUT_DIRECT3D_SetSize();
 bool OUTPUT_DIRECT3D_StartUpdate(uint8_t* &pixels, Bitu &pitch);
 void OUTPUT_DIRECT3D_EndUpdate(const uint16_t *changedLines);
 void OUTPUT_DIRECT3D_Shutdown();
+bool OUTPUT_DIRECT3D_Active(void);
 
 #endif /*C_DIRECT3D*/
 

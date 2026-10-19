@@ -792,8 +792,8 @@ struct _voodoo_state
 	UINT32				tmu_config;
 
 	int					hw_request;				/* VOODOO_EMU_TYPE_..., what voodoo_card asks for */
-	bool				ogl;					/* hardware emulation in use (OpenGL, or Vulkan) */
-	bool				vulkan;					/* with Vulkan */
+	bool				ogl;					/* hardware emulation in use (OpenGL, Vulkan or Direct3D) */
+	int					hw_api;					/* VOODOO_HW_API_..., the one in use */
 	bool				ogl_dimchange;
 	bool				clock_enabled;
 	bool				output_on;

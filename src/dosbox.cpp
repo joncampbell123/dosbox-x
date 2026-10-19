@@ -1635,6 +1635,9 @@ void DOSBOX_SetupConfigSections(void) {
 #if C_VULKAN_OUTPUT
         "vulkan",
 #endif
+#if C_DIRECT3D
+        "direct3d",
+#endif
         "auto",
         nullptr
     };
@@ -3507,7 +3510,8 @@ void DOSBOX_SetupConfigSections(void) {
                       "  software: Emulated in software.\n"
                       "  opengl: Rendered with OpenGL, with output=opengl (otherwise in software).\n"
                       "  vulkan: Rendered with Vulkan, with output=vulkan (otherwise in software).\n"
-                      "  auto: OpenGL or Vulkan for the output in use, otherwise software.\n"
+                      "  direct3d: Rendered with Direct3D, with output=direct3d (Windows; otherwise in software).\n"
+                      "  auto: OpenGL, Vulkan or Direct3D for the output in use, otherwise software.\n"
                       "  false: No 3dfx Voodoo card.");
     Pstring->SetBasic(true);
     const char *voodoo_resolutions[] = { "native", "double", "display", nullptr };

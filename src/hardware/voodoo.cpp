@@ -106,9 +106,13 @@ class VOODOO:public Module_base{
 			} else if (voodoo_type_str=="vulkan") {
 				emulation_type=VOODOO_EMU_TYPE_VULKAN;
 #endif
+#if C_DIRECT3D
+			} else if (voodoo_type_str=="direct3d") {
+				emulation_type=VOODOO_EMU_TYPE_DIRECT3D;
+#endif
 			} else if (voodoo_type_str=="auto") {
-#if C_OPENGL || C_VULKAN_OUTPUT
-				/* OpenGL or Vulkan, for the output in use when the 3dfx output turns on */
+#if C_OPENGL || C_VULKAN_OUTPUT || C_DIRECT3D
+				/* OpenGL, Vulkan or Direct3D, for the output in use when the 3dfx output turns on */
 				emulation_type=VOODOO_EMU_TYPE_AUTO;
 #else
 				emulation_type=VOODOO_EMU_TYPE_SOFTWARE;
@@ -131,6 +135,7 @@ class VOODOO:public Module_base{
 				case VOODOO_EMU_TYPE_ACCELERATED:
 				case VOODOO_EMU_TYPE_VULKAN:
 				case VOODOO_EMU_TYPE_AUTO:
+				case VOODOO_EMU_TYPE_DIRECT3D:
 					Voodoo_Initialize(emulation_type, card_type, max_voodoomem);
 					needs_pci_device = true;
 					break;
@@ -154,6 +159,7 @@ class VOODOO:public Module_base{
 				case VOODOO_EMU_TYPE_ACCELERATED:
 				case VOODOO_EMU_TYPE_VULKAN:
 				case VOODOO_EMU_TYPE_AUTO:
+				case VOODOO_EMU_TYPE_DIRECT3D:
 					Voodoo_Shut_Down();
 					break;
 				default:
@@ -169,6 +175,7 @@ class VOODOO:public Module_base{
 				case VOODOO_EMU_TYPE_ACCELERATED:
 				case VOODOO_EMU_TYPE_VULKAN:
 				case VOODOO_EMU_TYPE_AUTO:
+				case VOODOO_EMU_TYPE_DIRECT3D:
 					Voodoo_PCI_InitEnable(val);
 					break;
 				default:
@@ -182,6 +189,7 @@ class VOODOO:public Module_base{
 				case VOODOO_EMU_TYPE_ACCELERATED:
 				case VOODOO_EMU_TYPE_VULKAN:
 				case VOODOO_EMU_TYPE_AUTO:
+				case VOODOO_EMU_TYPE_DIRECT3D:
 					Voodoo_PCI_Enable(enable);
 					break;
 				default:
@@ -195,6 +203,7 @@ class VOODOO:public Module_base{
 				case VOODOO_EMU_TYPE_ACCELERATED:
 				case VOODOO_EMU_TYPE_VULKAN:
 				case VOODOO_EMU_TYPE_AUTO:
+				case VOODOO_EMU_TYPE_DIRECT3D:
 					return Voodoo_GetPageHandler();
 				default:
 					break;

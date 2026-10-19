@@ -19,13 +19,18 @@
 #ifndef DOSBOX_VOODOO_HW_H
 #define DOSBOX_VOODOO_HW_H
 
-/* The hardware 3dfx emulation (v->ogl): rendered with OpenGL (with output=opengl) or
- * Vulkan (v->vulkan, with output=vulkan). These go to whichever one is in use. */
+/* The hardware 3dfx emulation (v->ogl): rendered with OpenGL (with output=opengl), Vulkan (with
+ * output=vulkan) or Direct3D (with output=direct3d), as v->hw_api says. These go to that one. */
 
+#include "voodoo.h"
 #include "voodoo_opengl.h"
 #include "voodoo_vulkan.h"
+#include "voodoo_d3d.h"
 
-#define VOODOO_HW_CALL(name, args) do { if (v->vulkan) voodoo_vk_##name args; else voodoo_ogl_##name args; } while (0)
+#define VOODOO_HW_CALL(name, args) do { \
+	if (v->hw_api == VOODOO_HW_API_VULKAN) voodoo_vk_##name args; \
+	else if (v->hw_api == VOODOO_HW_API_DIRECT3D) voodoo_d3d_##name args; \
+	else voodoo_ogl_##name args; } while (0)
 
 static inline void voodoo_hw_set_window(voodoo_state *vs) { VOODOO_HW_CALL(set_window, (vs)); }
 static inline void voodoo_hw_present(void) { VOODOO_HW_CALL(present, ()); }
@@ -45,8 +50,16 @@ static inline void voodoo_hw_draw_pixel(int x, int y, bool has_rgb, bool has_alp
 }
 static inline void voodoo_hw_draw_z(int x, int y, int z) { VOODOO_HW_CALL(draw_z, (x, y, z)); }
 static inline void voodoo_hw_draw_pixel_pipeline(int x, int y, int r, int g, int b) { VOODOO_HW_CALL(draw_pixel_pipeline, (x, y, r, g, b)); }
-static inline UINT32 voodoo_hw_read_pixel(int x, int y) { return v->vulkan ? voodoo_vk_read_pixel(x, y) : voodoo_ogl_read_pixel(x, y); }
-static inline bool voodoo_hw_init(voodoo_state *vs) { return v->vulkan ? voodoo_vk_init(vs) : voodoo_ogl_init(vs); }
+static inline UINT32 voodoo_hw_read_pixel(int x, int y) {
+	if (v->hw_api == VOODOO_HW_API_VULKAN) return voodoo_vk_read_pixel(x, y);
+	if (v->hw_api == VOODOO_HW_API_DIRECT3D) return voodoo_d3d_read_pixel(x, y);
+	return voodoo_ogl_read_pixel(x, y);
+}
+static inline bool voodoo_hw_init(voodoo_state *vs) {
+	if (v->hw_api == VOODOO_HW_API_VULKAN) return voodoo_vk_init(vs);
+	if (v->hw_api == VOODOO_HW_API_DIRECT3D) return voodoo_d3d_init(vs);
+	return voodoo_ogl_init(vs);
+}
 static inline void voodoo_hw_leave(bool leavemode) { VOODOO_HW_CALL(leave, (leavemode)); }
 static inline void voodoo_hw_shutdown(voodoo_state *vs) { VOODOO_HW_CALL(shutdown, (vs)); }
 
