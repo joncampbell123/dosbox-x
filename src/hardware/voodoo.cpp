@@ -119,8 +119,8 @@ class VOODOO:public Module_base{
 				emulation_type=VOODOO_EMU_TYPE_METAL;
 #endif
 			} else if (voodoo_type_str=="auto") {
-#if C_OPENGL || C_VULKAN_OUTPUT || C_DIRECT3D
-				/* OpenGL, Vulkan, Direct3D or Direct3D 11, for the output in use when the 3dfx output turns on */
+#if C_OPENGL || C_VULKAN_OUTPUT || C_DIRECT3D || (defined(MACOSX) && defined(C_SDL2) && C_METAL)
+				/* OpenGL, Vulkan, Direct3D, Direct3D 11 or Metal, for the output in use when the 3dfx output turns on */
 				emulation_type=VOODOO_EMU_TYPE_AUTO;
 #else
 				emulation_type=VOODOO_EMU_TYPE_SOFTWARE;
