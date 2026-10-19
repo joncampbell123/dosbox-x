@@ -624,6 +624,11 @@ void SetOutputSwitch(const char *outputstr) {
             switchoutput = 3;
         else
 #endif
+#if C_VULKAN_OUTPUT
+        if (!strcasecmp(outputstr, "vulkan"))
+            switchoutput = 15;
+        else
+#endif
         if (!strcasecmp(outputstr, "surface"))
             switchoutput = 0;
         else
@@ -1510,6 +1515,10 @@ void ttf_switch_off(bool ss=true) {
 #if C_DIRECT3D
         else if (switchoutput==6)
             output = "direct3d";
+#endif
+#if C_VULKAN_OUTPUT
+        else if (switchoutput==15)
+            output = "vulkan";
 #endif
         else {
 #if C_DIRECT3D

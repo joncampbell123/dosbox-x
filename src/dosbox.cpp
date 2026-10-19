@@ -1597,6 +1597,7 @@ void DOSBOX_SetupConfigSections(void) {
         "direct3d",
         "direct3d11",
         "metal",
+        "vulkan",
         nullptr };
 
     const char* scalers[] = {

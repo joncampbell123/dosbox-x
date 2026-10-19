@@ -16,3 +16,8 @@ endif
 if C_METAL
 liboutput_a_SOURCES += output_metal.mm
 endif
+
+if C_VULKAN
+AM_CPPFLAGS += $(VULKAN_CFLAGS)
+liboutput_a_SOURCES += output_vulkan.cpp
+endif

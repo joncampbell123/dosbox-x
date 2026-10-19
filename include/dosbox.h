@@ -38,6 +38,11 @@
 # define C_SDL2 1
 #endif
 
+/* Vulkan output is only for SDL2 builds (SDL1 has no Vulkan support) */
+#if C_VULKAN && defined(C_SDL2) && !defined(C_SDL3)
+# define C_VULKAN_OUTPUT 1
+#endif
+
 /* allow for OS-free builds where the MS-DOS emulation is disabled and
  * you have to provide your own boot disks to run MS-DOS or whatever you like. */
 #ifdef C_OSFREE

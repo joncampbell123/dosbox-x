@@ -36,6 +36,7 @@
 #include <output/output_surface.h>
 #include <output/output_ttf.h>
 #include <output/output_direct3d11.h>
+#include <output/output_vulkan.h>
 
 #if C_METAL
 void OUTPUT_Metal_Select();
@@ -197,6 +198,11 @@ void change_output(int output) {
         metal_init();
         break;
 #endif
+#if C_VULKAN_OUTPUT
+    case 15: /* Vulkan */
+        OUTPUT_VULKAN_Select();
+        break;
+#endif
     default:
         LOG_MSG("SDL: Unsupported output device %d, switching back to surface",output);
         OUTPUT_SURFACE_Select();
@@ -332,6 +338,9 @@ void OutputSettingMenuUpdate(void) {
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
     mainMenu.get_item("output_metal").check(sdl.desktop.want_type == SCREEN_METAL).refresh_item(mainMenu);
 #endif
+#if C_VULKAN_OUTPUT
+    mainMenu.get_item("output_vulkan").check(sdl.desktop.want_type == SCREEN_VULKAN).refresh_item(mainMenu);
+#endif
 
     /* don't show Video -> TTF menu if not TTF output */
 #if defined(USE_TTF)
@@ -460,6 +469,18 @@ bool toOutput(const char *what) {
         if (sdl.desktop.want_type == SCREEN_GAMELINK) return false;
         change_output(12);
         reset = true;
+#endif
+    }
+    else if (!strcmp(what,"vulkan")) {
+#if C_VULKAN_OUTPUT
+        if (sdl.desktop.want_type == SCREEN_VULKAN) return false;
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(15);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(15);
 #endif
     }
 #if C_DIRECT3D && defined(C_SDL2)

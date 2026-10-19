@@ -30,6 +30,9 @@ enum SCREEN_TYPES {
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
     , SCREEN_METAL
 #endif
+#if C_VULKAN_OUTPUT
+    , SCREEN_VULKAN
+#endif
 };
 
 enum AUTOLOCK_FEEDBACK
@@ -242,6 +245,9 @@ int GetNumScreen();
 
 #if defined(C_SDL2)
 SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
+/* show what was drawn to sdl.surface (SDL drawn menus etc.) in the window */
+void GFX_UpdateWindowSurface(void);
+void GFX_UpdateWindowSurfaceRects(const SDL_Rect *rects, int numrects);
 #endif
 
 #if defined(C_SDL2) && defined(C_OPENGL)/*HACK*/

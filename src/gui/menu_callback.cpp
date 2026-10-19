@@ -3446,6 +3446,10 @@ void AllocCallback1() {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id, "output_metal").set_text("Metal(Experimental)").
                     set_callback_function(output_menu_callback);
 #endif
+#if C_VULKAN_OUTPUT
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "output_vulkan").set_text("Vulkan").
+                    set_callback_function(output_menu_callback);
+#endif
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublescan").set_text("Doublescan").
                     set_callback_function(doublescan_menu_callback);
 #if C_SDL2

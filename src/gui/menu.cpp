@@ -409,6 +409,9 @@ static const char *def_menu_video_output[] =
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
     "output_metal",
 #endif    
+#if C_VULKAN_OUTPUT
+    "output_vulkan",
+#endif
     "--",
     "doublescan",
 #if !defined(C_SDL2)
@@ -3096,13 +3099,28 @@ void MenuShadeRect(int x,int y,int w,int h) {
 
             assert(sdl.surface->pixels != NULL);
 
+            /* the Vulkan output's menu overlay has alpha: where nothing is drawn,
+             * shade what is underneath with translucent black instead */
+            uint32_t amask = 0, shade = 0;
+#if C_VULKAN_OUTPUT
+            if (sdl.desktop.want_type == SCREEN_VULKAN) {
+                amask = sdl.surface->format->Amask;
+                shade = (uint32_t)0xC0 << sdl.surface->format->Ashift;
+            }
+#endif
+
             scan  = (unsigned char*)sdl.surface->pixels;
             scan += y * sdl.surface->pitch;
             scan += x * 4;
             while (h-- > 0) {
                 uint32_t *row = (uint32_t*)scan;
                 scan += sdl.surface->pitch;
-                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+                for (unsigned int c=0;c < (unsigned int)w;c++) {
+                    if (amask && (row[c] & amask) == 0)
+                        row[c] = shade;
+                    else
+                        row[c] = ((row[c] >> 2) & mask) | (row[c] & amask);
+                }
             }
         }
         else if (sdl.surface->format->BitsPerPixel == 16) {
@@ -3614,7 +3632,7 @@ void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
 
 #if defined(C_SDL2)
         if (!Direct3D_using() || !skipdraw)
-        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+        GFX_UpdateWindowSurfaceRects(&uprect, 1);
 #else
         SDL_UpdateRects( sdl.surface, 1, &uprect );
 #endif
@@ -3631,7 +3649,7 @@ void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
         SDL_rect_cliptoscreen(uprect);
 
 #if defined(C_SDL2)
-        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+        GFX_UpdateWindowSurfaceRects(&uprect, 1);
 #else
         SDL_UpdateRects( sdl.surface, 1, &uprect );
 #endif

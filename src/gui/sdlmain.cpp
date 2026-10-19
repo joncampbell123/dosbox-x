@@ -198,6 +198,7 @@ char* revert_escape_newlines(const char* aMessage);
 #include <output/output_tools.h>
 #include <output/output_ttf.h>
 #include <output/output_tools_xbrz.h>
+#include <output/output_vulkan.h>
 static bool init_output = false;
 bool switch_to_d3d11_on_startup = false;
 bool switch_to_metal_on_startup = false;
@@ -1453,7 +1454,7 @@ void BlankDisplay(void) {
     else {
         SDL_FillRect(sdl.surface, nullptr, 0);
 #if defined(C_SDL2)
-        SDL_UpdateWindowSurface(sdl.window);
+        GFX_UpdateWindowSurface();
 #else
         SDL_Flip(sdl.surface);
 #endif
@@ -1802,6 +1803,20 @@ SDL_Window* GFX_GetSDLWindow(void) {
     return sdl.window;
 }
 
+void GFX_UpdateWindowSurface(void) {
+#if C_VULKAN_OUTPUT
+    if (OUTPUT_VULKAN_UpdateOverlay()) return;
+#endif
+    SDL_UpdateWindowSurface(sdl.window);
+}
+
+void GFX_UpdateWindowSurfaceRects(const SDL_Rect *rects, int numrects) {
+#if C_VULKAN_OUTPUT
+    if (OUTPUT_VULKAN_UpdateOverlay()) return;
+#endif
+    SDL_UpdateWindowSurfaceRects(sdl.window, rects, numrects);
+}
+
 SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType)
 {
     static SCREEN_TYPES lastType = SCREEN_SURFACE;
@@ -1865,6 +1880,10 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
             if(!(saved_flags & SDL_WINDOW_FULLSCREEN)) {
                 SDL_GetWindowPosition(sdl.window, &saved_x, &saved_y);
             }
+#if C_VULKAN_OUTPUT
+            /* the Vulkan surface must go before the window does */
+            OUTPUT_VULKAN_ReleaseWindow();
+#endif
             SDL_DestroyWindow(sdl.window);
         }
 
@@ -1874,6 +1893,9 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
                                       width, height,
                                       (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
                                       | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | (maximize && !TTF_using()? SDL_WINDOW_MAXIMIZED : 0)
+#if C_VULKAN_OUTPUT
+                                      | ((screenType == SCREEN_VULKAN) ? SDL_WINDOW_VULKAN : 0)
+#endif
                                       | SDL_WINDOW_SHOWN | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
                                       | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
         if (sdl.window) {
@@ -1888,6 +1910,13 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
                 SDL_SetWindowPosition(sdl.window, saved_x, saved_y); // restore position.
             }
         }
+#if C_VULKAN_OUTPUT
+        /* Vulkan output presents to the window itself. Do not ask SDL for a window
+         * surface, sdl.surface is set to an overlay by the Vulkan output instead */
+        if (screenType == SCREEN_VULKAN)
+            sdl.surface = NULL;
+        else
+#endif
         sdl.surface = SDL_GetWindowSurface(sdl.window);
         SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
         sdl.update_display_contents = ((width == currWidth) && (height == currHeight));
@@ -1947,6 +1976,9 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
     /* Maybe some requested fullscreen resolution is unsupported? */
     SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
     sdl.update_display_contents = ((width == currWidth) && (height == currHeight));
+#if C_VULKAN_OUTPUT
+    if (screenType != SCREEN_VULKAN)
+#endif
     sdl.surface = SDL_GetWindowSurface(sdl.window);
 
     currentWindowWidth = currWidth;
@@ -2017,6 +2049,12 @@ Bitu GFX_GetBestMode(Bitu flags)
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
             retFlags = OUTPUT_DIRECT3D_GetBestMode(flags);
+            break;
+#endif
+
+#if C_VULKAN_OUTPUT
+        case SCREEN_VULKAN:
+            retFlags = OUTPUT_VULKAN_GetBestMode(flags);
             break;
 #endif
 
@@ -2208,7 +2246,7 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
 
     if (!OpenGL_using()) {
 #if defined(C_SDL2)
-        SDL_UpdateWindowSurfaceRects( sdl.window, &menu.menuBox, 1 );
+        GFX_UpdateWindowSurfaceRects( &menu.menuBox, 1 );
 #else
         SDL_UpdateRects(sdl.surface, 1, &menu.menuBox);
 #endif
@@ -2302,6 +2340,11 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         case SCREEN_METAL:
             retFlags = OUTPUT_Metal_SetSize();
+            break;
+#endif
+#if C_VULKAN_OUTPUT
+        case SCREEN_VULKAN:
+            retFlags = OUTPUT_VULKAN_SetSize();
             break;
 #endif
 #if defined(USE_TTF)
@@ -3285,6 +3328,10 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
             return OUTPUT_Metal_StartUpdate(pixels, pitch);
             break;
 #endif
+#if C_VULKAN_OUTPUT
+        case SCREEN_VULKAN:
+            return OUTPUT_VULKAN_StartUpdate(pixels, pitch);
+#endif
         default:
             break;
     }
@@ -3401,6 +3448,11 @@ switch_type:
             OUTPUT_Metal_EndUpdate(changedLines);
             break;
 #endif
+#if C_VULKAN_OUTPUT
+        case SCREEN_VULKAN:
+            OUTPUT_VULKAN_EndUpdate(changedLines);
+            break;
+#endif
         default:
             break;
     }
@@ -3473,6 +3525,11 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
             return (((unsigned long)blue <<  0ul) | ((unsigned long)green <<  8ul) | ((unsigned long)red << 16ul)) | (255ul << 24ul);
 #endif
 
+#if C_VULKAN_OUTPUT
+        case SCREEN_VULKAN: // BGRA, and opaque where drawn to the menu overlay
+            return (((unsigned long)blue <<  0ul) | ((unsigned long)green <<  8ul) | ((unsigned long)red << 16ul)) | (255ul << 24ul);
+#endif
+
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
 #if defined(C_SDL2)
@@ -3539,6 +3596,11 @@ static void GUI_ShutDown(Section * /*sec*/) {
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         case SCREEN_METAL:
             OUTPUT_Metal_Shutdown();
+            break;
+#endif
+#if C_VULKAN_OUTPUT
+        case SCREEN_VULKAN:
+            OUTPUT_VULKAN_Shutdown();
             break;
 #endif
         default:
@@ -4122,7 +4184,11 @@ static void GUI_StartUp() {
 
     if (sdl_xbrz.enable) {
         // xBRZ requirements
-        if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq")  && (output != "openglnb") && (output != "openglpp") && (output != "ttf") && (output != "gamelink"))
+        if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq")  && (output != "openglnb") && (output != "openglpp") && (output != "ttf") && (output != "gamelink")
+#if C_VULKAN_OUTPUT
+            && (output != "vulkan")
+#endif
+            )
             output = "surface";
     }
 #endif
@@ -4230,6 +4296,12 @@ static void GUI_StartUp() {
             switch_to_metal_on_startup = false;
         }
 #endif
+#if C_VULKAN_OUTPUT
+    }
+    else if (output == "vulkan")
+    {
+        OUTPUT_VULKAN_Select();
+#endif
     }
 #if defined(USE_TTF)
     else if (output == "ttf")
@@ -4319,7 +4391,11 @@ static void GUI_StartUp() {
 
 /* Initialize screen for first time */
 #if defined(C_SDL2)
-    if (!initgl) {
+    if (!initgl
+#if C_VULKAN_OUTPUT
+        && sdl.desktop.want_type != SCREEN_VULKAN /* OUTPUT_VULKAN_Select() made the window already */
+#endif
+        ) {
         GFX_SetResizeable(true);
         if (!GFX_SetSDLSurfaceWindow(640,400))
             E_Exit("Could not initialize video: %s",SDL_GetError());
@@ -4909,7 +4985,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
 void MenuFullScreenRedraw(void) {
 #if defined(C_SDL2)
-    SDL_UpdateWindowSurface(sdl.window);
+    GFX_UpdateWindowSurface();
 #else
     SDL_Flip(sdl.surface);
 #endif
@@ -5088,7 +5164,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     uprect.w = mainMenu.menuBox.w;
                     uprect.h = DOSBoxMenu::dropshadowY;
 #if defined(C_SDL2)
-                    SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+                    GFX_UpdateWindowSurfaceRects(&uprect, 1);
 #else
                     SDL_UpdateRects( sdl.surface, 1, &uprect );
 #endif
@@ -6871,6 +6947,9 @@ void SDL_SetupConfigSection() {
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         "metal",
 #endif
+#if C_VULKAN_OUTPUT
+        "vulkan",
+#endif
         nullptr };
 
     Pint = sdl_sec->Add_int("display", Property::Changeable::Always, 0);
@@ -6878,7 +6957,7 @@ void SDL_SetupConfigSection() {
     Pint->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
-    Pstring->Set_help("What video system to use for output (surface = software (SDL_Surface); openglnb = OpenGL nearest; openglpp = OpenGL perfect; ttf = TrueType font output).");
+    Pstring->Set_help("What video system to use for output (surface = software (SDL_Surface); openglnb = OpenGL nearest; openglpp = OpenGL perfect; vulkan = Vulkan (SDL2 builds); ttf = TrueType font output).");
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
 
