@@ -471,6 +471,9 @@ static bool VK_CreateDevice(void) {
             VkBool32 present = VK_FALSE;
             if (!(qprops[q].queueFlags & VK_QUEUE_GRAPHICS_BIT)) continue;
             if (vkGetPhysicalDeviceSurfaceSupportKHR(dev, q, vk.surface, &present) != VK_SUCCESS || !present) continue;
+            /* some drivers say yes, and then can't (e.g. RADV on a Wayland compositor without dmabuf) */
+            VkSurfaceCapabilitiesKHR caps;
+            if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(dev, vk.surface, &caps) != VK_SUCCESS) continue;
 
             VkPhysicalDeviceProperties props;
             vkGetPhysicalDeviceProperties(dev, &props);

@@ -74,6 +74,8 @@ struct SDL_PrivateVideoData {
 	struct zwp_pointer_constraints_v1 *pointer_constraints;
 	struct wl_output *output;
 	int output_w, output_h;	/* current mode of the (first) output */
+	SDL_Rect fullscreen_mode;	/* SDL_ListModes() for fullscreen: the output's size */
+	SDL_Rect *fullscreen_modes[2];
 
 	/* input */
 	struct wl_seat *seat;
@@ -109,6 +111,7 @@ struct SDL_PrivateVideoData {
 	int content_mode;	/* WAYLAND_MODE_* */
 	int window_w, window_h;	/* size of the content */
 	int configure_w, configure_h;	/* size suggested by the compositor, 0 if none */
+	int configure_fullscreen;	/* the state that size is for */
 	int fullscreen;
 	int resizable;
 	char *app_id;

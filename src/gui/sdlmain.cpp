@@ -3082,7 +3082,7 @@ void GFX_SwitchFullScreen(void)
     if (!sdl.desktop.fullscreen) {/*is GOING fullscreen*/
         UpdateWindowDimensions();
 
-        if (screen_size_info.screen_dimensions_pixels.width != 0 && screen_size_info.screen_dimensions_pixels.height != 0) {
+        if (screen_size_info.screen_dimensions_pixels.width > 0 && screen_size_info.screen_dimensions_pixels.height > 0) {
             if (sdl.desktop.full.width_auto)
                 sdl.desktop.full.width = (unsigned int)screen_size_info.screen_dimensions_pixels.width;
             if (sdl.desktop.full.height_auto)
@@ -4678,7 +4678,7 @@ void GFX_HandleVideoResize(int width, int height) {
     }
 
     /* TODO: Only if FULLSCREEN_DESKTOP */
-    if (screen_size_info.screen_dimensions_pixels.width != 0 && screen_size_info.screen_dimensions_pixels.height != 0) {
+    if (screen_size_info.screen_dimensions_pixels.width > 0 && screen_size_info.screen_dimensions_pixels.height > 0) {
         sdl.desktop.full.width = (uint16_t)screen_size_info.screen_dimensions_pixels.width;
         sdl.desktop.full.height = (uint16_t)screen_size_info.screen_dimensions_pixels.height;
     }

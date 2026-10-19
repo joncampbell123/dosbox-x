@@ -690,6 +690,7 @@ void Wayland_UpdateMouse(_THIS)
 
 	/* SDL_SetVideoMode() drops resize events, repeat the compositor's suggestion */
 	if ( wl->configure_w > 0 && wl->configure_h > 0 &&
+	     wl->configure_fullscreen == wl->fullscreen &&
 	     (wl->configure_w != wl->window_w || wl->configure_h != wl->window_h) ) {
 		SDL_PrivateResize(wl->configure_w, wl->configure_h);
 	}

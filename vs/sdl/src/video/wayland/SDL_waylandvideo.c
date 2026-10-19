@@ -346,11 +346,23 @@ static int Wayland_VideoInit(_THIS, SDL_PixelFormat *vformat)
 	return(0);
 }
 
-/* any size, windows can be made fullscreen at any size too */
+/* Windows can be any size. Fullscreen is the output's size, like the X11
+   driver without XRandR (SDL centers smaller modes in it). The same for any
+   depth: the screen is 32 bpp, SDL emulates the others with a shadow surface.
+   (A depth with no modes would make SDL_GetVideoMode() look through the
+   "list" of a depth that returns -1.) */
 static SDL_Rect **Wayland_ListModes(_THIS, SDL_PixelFormat *format, Uint32 flags)
 {
-	if ( format->BitsPerPixel != 32 ) {
-		return((SDL_Rect **)0);
+	struct SDL_PrivateVideoData *wl = this->hidden;
+
+	if ( (flags & SDL_FULLSCREEN) && wl->output_w > 0 && wl->output_h > 0 ) {
+		wl->fullscreen_mode.x = 0;
+		wl->fullscreen_mode.y = 0;
+		wl->fullscreen_mode.w = (Uint16)wl->output_w;
+		wl->fullscreen_mode.h = (Uint16)wl->output_h;
+		wl->fullscreen_modes[0] = &wl->fullscreen_mode;
+		wl->fullscreen_modes[1] = NULL;
+		return(wl->fullscreen_modes);
 	}
 	return((SDL_Rect **)-1);
 }
@@ -361,9 +373,16 @@ static void toplevel_configure(void *data, struct xdg_toplevel *toplevel,
 	int32_t width, int32_t height, struct wl_array *states)
 {
 	SDL_VideoDevice *this = (SDL_VideoDevice *)data;
+	uint32_t *state;
 
 	this->hidden->configure_w = width;
 	this->hidden->configure_h = height;
+	this->hidden->configure_fullscreen = 0;
+	wl_array_for_each(state, states) {
+		if ( *state == XDG_TOPLEVEL_STATE_FULLSCREEN ) {
+			this->hidden->configure_fullscreen = 1;
+		}
+	}
 }
 
 static void toplevel_close(void *data, struct xdg_toplevel *toplevel)
@@ -376,12 +395,15 @@ static const struct xdg_toplevel_listener toplevel_listener = {
 	toplevel_close
 };
 
-/* the compositor suggests a size: the application gets a resize event */
+/* the compositor suggests a size: the application gets a resize event.
+   Not for a configure that is still for the other fullscreen state (it
+   comes after the application switched, before the compositor did). */
 static void Wayland_HandleConfigureSize(_THIS)
 {
 	struct SDL_PrivateVideoData *wl = this->hidden;
 
 	if ( wl->configure_w > 0 && wl->configure_h > 0 &&
+	     wl->configure_fullscreen == wl->fullscreen &&
 	     (wl->configure_w != wl->window_w || wl->configure_h != wl->window_h) ) {
 		SDL_PrivateResize(wl->configure_w, wl->configure_h);
 	}
@@ -419,6 +441,12 @@ static void decor_configure(struct libdecor_frame *frame, struct libdecor_config
 	} else {
 		wl->configure_w = 0;
 		wl->configure_h = 0;
+	}
+	{
+		enum libdecor_window_state window_state;
+		if ( SDL_libdecor_configuration_get_window_state(configuration, &window_state) ) {
+			wl->configure_fullscreen = (window_state & LIBDECOR_WINDOW_STATE_FULLSCREEN) ? 1 : 0;
+		}
 	}
 
 	/* the content stays the size the application set, until it resizes it */

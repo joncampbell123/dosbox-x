@@ -5852,7 +5852,11 @@ void loadScanCode() {
 #ifdef C_X11_XKB
         SDL_SysWMinfo info;
         SDL_VERSION(&info.version);
-        if (SDL_GetWMInfo(&info)) {
+        if (SDL_GetWMInfo(&info) > 0 && info.subsystem != SDL_SYSWM_X11) {
+            /* the in-tree SDL 1.x's Wayland driver: key codes are evdev + 8, like X11 with evdev */
+            evdev_input = true;
+        }
+        else if (SDL_GetWMInfo(&info) > 0) {
             XkbDescPtr desc = NULL;
             if((desc = XkbGetMap(info.info.x11.display,XkbAllComponentsMask,XkbUseCoreKbd))) {
                 if(XkbGetNames(info.info.x11.display,XkbAllNamesMask,desc) == 0) {

@@ -754,8 +754,16 @@ void Linux_GetDesktopResolution(int *width,int *height) {
 		else
 # endif
         {
-			*width = 1024; // guess
-			*height = 768;
+			/* not X11 (the in-tree SDL 1.x's Wayland driver): its fullscreen mode is the desktop */
+			SDL_Rect **modes = SDL_ListModes(NULL, SDL_FULLSCREEN);
+			if (modes != NULL && modes != (SDL_Rect **)-1 && modes[0] != NULL) {
+				*width = modes[0]->w;
+				*height = modes[0]->h;
+			}
+			else {
+				*width = 1024; // guess
+				*height = 768;
+			}
 		}
 	}
 	else {

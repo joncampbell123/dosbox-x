@@ -179,7 +179,8 @@ static void statWMInfo(void)
 # if defined (WIN32)
         hwnd = (HostPt)wmi.window;
 # elif defined (C_X11) && defined(LINUX)
-        hwnd = (HostPt)wmi.info.x11.window;
+        if (wmi.subsystem == SDL_SYSWM_X11) /* not with the in-tree SDL 1.x's Wayland driver */
+            hwnd = (HostPt)wmi.info.x11.window;
 # endif
 #endif
     } else
