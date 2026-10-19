@@ -1,5 +1,7 @@
 Next version:
-  - [AI] 3Dfx direct3d hardware rendering support. (joncampbell123)
+  - [AI] 3Dfx direct3d11 hardware rendering support. (joncampbell123)
+  - [AI] 3Dfx direct3d hardware rendering support. Log will now say "cannot
+    find DLL" if Direct3D9 is not available. (joncampbell123)
   - [AI] 3Dfx software emulation now supports multithreading so that if that
     is all you have, performance isn't so terrible anymore. (joncampbell123)
   - [AI] 3Dfx hardware rendering now supports OpenGL and Vulkan APIs. (joncampbell123)
