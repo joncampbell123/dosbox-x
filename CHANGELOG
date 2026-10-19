@@ -3,7 +3,7 @@ Next version:
     handled instead of being logged as an unknown call. It sets the same
     dot access mode as port 68h commands 0Ah/0Bh and bit 3 of AH=0Ah, and
     updates bit 3 of 0000:053Ch so AH=0Bh reads it back. Policenauts calls it
-    at startup.
+    at startup. (mattkanwisher)
   - DOS: DOS_CheckExtDevice() no longer loops forever when the chain of device
     headers in guest memory is damaged or never closed (the CON header was found
     zeroed while DOS Navigator was running, and every FindFirst then hung the
@@ -57,6 +57,11 @@ Next version:
     masks. (cimarronm)
   - FPU: Dynamic CPU cores now always handle x87 and MMX instructions;
     removed the "use dynamic core with fpu" configuration setting. (cimarronm)
+  - Added support for commands to be sent over a TCP network connection and 
+    system information to be read. Utility is called Monitor and can be enabled
+    in the [dosbox] section of the .conf. (DieSkaarj)
+  - Debugger: Fixed the command-prompt cursor not being visible when moving
+    within a command line. (cimarronm)
   - INT 13h: Moved the INT 13h handler into its own source file and refactored
     CHS (AH=02h) and EDD (AH=42h) reads. Floppy CHS transfers now honor disk
     base-table sector sizes through 8 KiB, padding or truncating image data as
@@ -67,6 +72,15 @@ Next version:
     failure handling. (cimarronm)
   - Direct serial: Fixed the multiplier setting to configure the host serial
     port at the multiplied baud rate. (cimarronm)
+  - D3D11: Fixed hardware scaling in CGA (maron2000)
+  - Fixed startup crash on macOS 10.9 when building menu (maron2000)
+  - Microphone input: Prefer the default capture device (maron2000)
+  - debugger: Added synchronous STEPIN single-step command (MnHebi)
+  - debugger: Added bounded read-only MEMREAD command (MnHebi)
+  - Feature: Send Commands Through Host Socket, Console Monitor (DieSkaarj)
+  - cmos: Fixed RTC date skipping the last day of every month and all of
+    December (maron2000)
+  - Fixed directory size reported by FindFirst/FindNext (maron2000)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
