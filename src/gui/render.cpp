@@ -890,7 +890,7 @@ forcenormal:
 		// Print a warning when hardware scalers are selected, hopefully the first
 		// video mode will not have dblh or dblw or AR will be wrong
 		if (render.scale.hardware
-#if C_DIRECT3D && C_SDL2
+#if C_DIRECT3D
             && (sdl.desktop.type != SCREEN_DIRECT3D11)
 #endif
 #if defined(MACOSX) && C_SDL2 && C_METAL
@@ -1420,7 +1420,7 @@ bool RENDER_IsScalerCompatibleWithDoublescan(void) {
 #if C_XBRZ
             if (sdl_xbrz.enable) return false;
 #endif
-#if C_DIRECT3D && C_SDL2
+#if C_DIRECT3D
             if(sdl.desktop.type == SCREEN_DIRECT3D11) return false;
 #endif
 #if defined(MACOSX) && C_SDL2 && C_METAL

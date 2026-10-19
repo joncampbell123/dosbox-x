@@ -19,7 +19,6 @@
 
 using namespace std;
 #if C_DIRECT3D
-#if defined(C_SDL2)
 
 #include <windows.h>
 #include <d3d11.h>
@@ -40,6 +39,9 @@ bool OUTPUT_DIRECT3D11_Active(void);
 class CDirect3D11;
 CDirect3D11* OUTPUT_DIRECT3D11_Get(void);
 HRESULT OUTPUT_DIRECT3D11_Compile(const char* source, const char* entry, const char* target, ID3DBlob** blob);
+
+// how the frame is scaled to the window (render.aspect: "nearest" or "bilinear")
+enum { D3D11_SAMPLE_NEAREST, D3D11_SAMPLE_BILINEAR };
 
 class CDirect3D11 {
 public:
@@ -112,5 +114,4 @@ private:
     int current_render_mode;
 };
 
-#endif // defined(C_SDL2)
 #endif // C_DIRECT3D

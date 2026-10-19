@@ -1,7 +1,6 @@
 #include "config.h"
 
 #if C_DIRECT3D
-#if defined(C_SDL2)
 
 #include <SDL_syswm.h>
 
@@ -411,7 +410,7 @@ void CDirect3D11::SetSamplerMode() {
     //static int last_mode = -1;
     //if(last_mode == current_render_mode) return;
     ID3D11SamplerState* s = samplerLinear;
-    if (current_render_mode == ASPECT_NEAREST) s = samplerNearest;
+    if (current_render_mode == D3D11_SAMPLE_NEAREST) s = samplerNearest;
 
     context->PSSetSamplers(0, 1, &s);
     //last_mode = current_render_mode;
@@ -422,13 +421,13 @@ void CDirect3D11::GetRenderMode() {
     std::string s_aspect = section->Get_string("aspect");
 
     if(s_aspect == "nearest") {
-        current_render_mode = ASPECT_NEAREST;
+        current_render_mode = D3D11_SAMPLE_NEAREST;
     }
     else if(s_aspect == "bilinear") {
-        current_render_mode = ASPECT_BILINEAR;
+        current_render_mode = D3D11_SAMPLE_BILINEAR;
     }
     else {
-        current_render_mode = ASPECT_NEAREST; // default
+        current_render_mode = D3D11_SAMPLE_NEAREST; // default
     }
 }
 
@@ -471,6 +470,63 @@ void d3d11_UnloadDLL() {
 
 static CDirect3D11* d3d11 = nullptr;
 
+HWND GetHWND(void);
+void GFX_SetIcon(void);
+void DOSBox_RefreshMenu(void);
+
+/* the size of the window's client area (what is drawn in) */
+static void d3d11_GetWindowSize(int* w, int* h)
+{
+#if defined(C_SDL2)
+    SDL_GetWindowSize(sdl.window, w, h);
+#else
+    RECT r;
+    *w = *h = 0;
+    if(GetClientRect(GetHWND(), &r)) {
+        *w = (int)(r.right - r.left);
+        *h = (int)(r.bottom - r.top);
+    }
+#endif
+}
+
+#if !defined(C_SDL2)
+/* SDL1: the window is the video mode (SDL_SetVideoMode), w x h in a window, or the screen in
+ * fullscreen (as SDL_WINDOW_FULLSCREEN_DESKTOP). It is drawn to only with Direct3D 11: the GDI
+ * window of the windib driver (d3d11_init), without SDL's WM_PAINT drawing (OUTPUT_DIRECT3D11_Select). */
+static void d3d11_SetVideoMode(int w, int h)
+{
+    Uint32 flags = SDL_RESIZABLE;
+    if(sdl.desktop.fullscreen) {
+        MONITORINFO mi;
+        mi.cbSize = sizeof(mi);
+        if(GetMonitorInfo(MonitorFromWindow(GetHWND(), MONITOR_DEFAULTTONEAREST), &mi)) {
+            w = (int)(mi.rcMonitor.right - mi.rcMonitor.left);
+            h = (int)(mi.rcMonitor.bottom - mi.rcMonitor.top);
+        }
+        flags = SDL_FULLSCREEN;
+    }
+    if(w <= 0 || h <= 0) return;
+    if(sdl.surface != NULL && sdl.surface->w == w && sdl.surface->h == h &&
+        ((sdl.surface->flags & SDL_FULLSCREEN) != 0) == sdl.desktop.fullscreen)
+        return;
+    sdl.surface = SDL_SetVideoMode(w, h, 0, flags);
+    if(sdl.surface == NULL)
+        E_Exit("D3D11: Could not set video mode %ix%i: %s", w, h, SDL_GetError());
+    sdl.deferred_resize = false;
+    sdl.must_redraw_all = true;
+}
+#endif
+
+/* sets the window to w x h (as it is when fullscreen) */
+static void d3d11_SetWindowSize(int w, int h)
+{
+#if defined(C_SDL2)
+    SDL_SetWindowSize(sdl.window, w, h);
+#else
+    d3d11_SetVideoMode(w, h);
+#endif
+}
+
 void d3d11_init(void)
 {
     if(d3d11) {
@@ -480,6 +536,7 @@ void d3d11_init(void)
 
     LOG_MSG("D3D11: Init called");
 
+#if defined(C_SDL2)
     if(!sdl.window) { // Create window if not yet created
         sdl.window = GFX_SetSDLWindowMode(640, 400, SCREEN_SURFACE);
 
@@ -492,6 +549,23 @@ void d3d11_init(void)
         sdl.surface = SDL_GetWindowSurface(sdl.window);
         sdl.desktop.pixelFormat = SDL_GetWindowPixelFormat(sdl.window);
     }
+#else
+    /* Direct3D draws in a GDI window: the windib driver (as the Direct3D 9 output) */
+    char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
+    if(!sdl.using_windib && (sdl_videodrv == NULL || (strcasecmp(sdl_videodrv, "dummy") && strcasecmp(sdl_videodrv, "directx")))) {
+        LOG_MSG("Resetting to WINDIB mode");
+        SDL_QuitSubSystem(SDL_INIT_VIDEO);
+        putenv((char*)"SDL_VIDEODRIVER=windib");
+        sdl.using_windib = true;
+        if(SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) E_Exit("Can't init SDL Video %s", SDL_GetError());
+        sdl.surface = NULL;
+        GFX_SetIcon(); GFX_SetTitle(-1, -1, -1, false);
+        if(!sdl.desktop.fullscreen) DOSBox_RefreshMenu();
+    }
+    if(sdl.surface == NULL) { // Create window if not yet created
+        d3d11_SetVideoMode(640, 400);
+    }
+#endif
 
     SDL_SysWMinfo wmi;
     SDL_VERSION(&wmi.version);
@@ -507,7 +581,11 @@ void d3d11_init(void)
         return;
     }
 
+#if defined(C_SDL2)
     HWND hwnd = wmi.info.win.window;
+#else
+    HWND hwnd = wmi.child_window;
+#endif
 
     if(sdl.desktop.fullscreen)
         GFX_CaptureMouse();
@@ -542,6 +620,10 @@ void OUTPUT_DIRECT3D11_Select()
 {
     sdl.desktop.want_type = SCREEN_DIRECT3D11;
     render.aspectOffload = true;
+
+#if !defined(C_SDL2)
+    SDL1_hax_inhibit_WM_PAINT = 1;
+#endif
 }
 
 Bitu OUTPUT_DIRECT3D11_GetBestMode(Bitu flags)
@@ -565,7 +647,7 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
 
     // Window Size
     int cur_w = 0, cur_h = 0;
-    SDL_GetWindowSize(sdl.window, &cur_w, &cur_h);
+    d3d11_GetWindowSize(&cur_w, &cur_h);
     if(!sdl.desktop.fullscreen && !d3d11->was_fullscreen){
         d3d11->window_width = cur_w;
     }
@@ -574,14 +656,22 @@ Bitu OUTPUT_DIRECT3D11_SetSize(void)
         d3d11->was_fullscreen = true;
         d3d11->window_width = cur_w;
         d3d11->window_height = cur_w * sdl.draw.height / sdl.draw.width;
+#if defined(C_SDL2)
         SDL_SetWindowFullscreen(
             sdl.window,
             SDL_WINDOW_FULLSCREEN_DESKTOP);
+#else
+        d3d11_SetVideoMode(cur_w, cur_h);
+#endif
     }
     else if(!sdl.desktop.fullscreen && d3d11->was_fullscreen){
-        SDL_SetWindowFullscreen(sdl.window, 0);
         cur_w = d3d11->window_width;
         cur_h = d3d11->window_height;
+#if defined(C_SDL2)
+        SDL_SetWindowFullscreen(sdl.window, 0);
+#else
+        d3d11_SetVideoMode(cur_w, cur_h);
+#endif
         d3d11->was_fullscreen = false;
     }
 
@@ -651,7 +741,11 @@ bool CDirect3D11::Resize(
     frame_width = tex_w;
     frame_height = tex_h;
 
+#if defined(C_SDL2)
     if(sdl.window && !sdl.desktop.fullscreen) {
+#else
+    if(sdl.surface && !sdl.desktop.fullscreen) {
+#endif
 
         if(was_fullscreen) {
             window_w = last_window_w ? last_window_w : tex_w;
@@ -688,7 +782,7 @@ bool CDirect3D11::Resize(
         }
     }
 
-    SDL_SetWindowSize(sdl.window, window_w, window_h);
+    d3d11_SetWindowSize(window_w, window_h);
     //int real_w = 0, real_h = 0;
     //SDL_GetWindowSize(sdl.window, &real_w, &real_h);
 
@@ -929,5 +1023,4 @@ void D3D11_DrawLine_8bpp(const void* src)
 }
 #endif
 
-#endif //#if defined(C_SDL2)
 #endif //#if C_DIRECT3D

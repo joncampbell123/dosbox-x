@@ -2060,6 +2060,9 @@ Bitu GFX_GetBestMode(Bitu flags)
         case SCREEN_DIRECT3D:
             retFlags = OUTPUT_DIRECT3D_GetBestMode(flags);
             break;
+        case SCREEN_DIRECT3D11:
+            retFlags = OUTPUT_DIRECT3D11_GetBestMode(flags);
+            break;
 #endif
 
 #if C_VULKAN_OUTPUT
@@ -2270,7 +2273,7 @@ void UpdateUserCursorScreenDimensions(void);
 Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback)
 {
 
-#if C_DIRECT3D && defined(C_SDL2)
+#if C_DIRECT3D
     //if(sdl.desktop.type == SCREEN_DIRECT3D11) sdl.desktop.want_type = SCREEN_DIRECT3D11;
 #endif
 
@@ -2337,11 +2340,9 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
         case SCREEN_DIRECT3D:
             retFlags = OUTPUT_DIRECT3D_SetSize();
             break;
-#if defined(C_SDL2)
         case SCREEN_DIRECT3D11:
             retFlags = OUTPUT_DIRECT3D11_SetSize();
             break;
-#endif
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         case SCREEN_METAL:
@@ -3298,11 +3299,9 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
             return OUTPUT_DIRECT3D_StartUpdate(pixels, pitch);
-#if defined(C_SDL2)
         case SCREEN_DIRECT3D11:
             return OUTPUT_DIRECT3D11_StartUpdate(pixels, pitch);
             break;
-#endif
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         case SCREEN_METAL:
@@ -3361,12 +3360,10 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     else
 #endif
 #if C_DIRECT3D
-#if defined(C_SDL2)
     if(sdl.desktop.type == SCREEN_DIRECT3D11) {
         sdl.updating = false;
         goto switch_type;
     }
-#endif
     // we may have to do forced update in D3D case
     if (d3d && d3d->getForceUpdate());
     else
@@ -3418,11 +3415,9 @@ switch_type:
         case SCREEN_DIRECT3D:
             OUTPUT_DIRECT3D_EndUpdate(changedLines);
             break;
-#if defined(C_SDL2)
         case SCREEN_DIRECT3D11:
             OUTPUT_DIRECT3D11_EndUpdate(changedLines);
             break;
-#endif
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         case SCREEN_METAL:
@@ -3513,9 +3508,7 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
 
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
-#if defined(C_SDL2)
         case SCREEN_DIRECT3D11:
-#endif
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         case SCREEN_METAL: // pixelFormat = MTLPixelFormatBGRA8Unorm
@@ -3568,11 +3561,9 @@ static void GUI_ShutDown(Section * /*sec*/) {
         case SCREEN_DIRECT3D:
             OUTPUT_DIRECT3D_Shutdown();
             break;
-#if defined(C_SDL2)
         case SCREEN_DIRECT3D11:
             OUTPUT_DIRECT3D11_Shutdown();
             break;
-#endif
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         case SCREEN_METAL:
@@ -4239,7 +4230,6 @@ static void GUI_StartUp() {
 #if LOG_D3D
         LOG_MSG("SDL: Direct3D activated");
 #endif
-#if defined(C_SDL2)
     }
     else if(output == "direct3d11")
     {
@@ -4254,7 +4244,6 @@ static void GUI_StartUp() {
             sdl.desktop.want_type = SCREEN_DIRECT3D11;
             switch_to_d3d11_on_startup = false;
         }
-#endif
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
     }
@@ -6880,9 +6869,7 @@ void SDL_SetupConfigSection() {
 #endif
 #if C_DIRECT3D
         "direct3d",
-#if defined(C_SDL2)
         "direct3d11",
-#endif
 #endif
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
         "metal",

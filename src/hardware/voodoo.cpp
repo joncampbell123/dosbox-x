@@ -110,7 +110,7 @@ class VOODOO:public Module_base{
 			} else if (voodoo_type_str=="direct3d") {
 				emulation_type=VOODOO_EMU_TYPE_DIRECT3D;
 #endif
-#if C_DIRECT3D && defined(C_SDL2)
+#if C_DIRECT3D
 			} else if (voodoo_type_str=="direct3d11") {
 				emulation_type=VOODOO_EMU_TYPE_DIRECT3D11;
 #endif

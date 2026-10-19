@@ -6525,7 +6525,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     VGA_Win31PublishCommit(); // The previous scanout ended; the next sees a whole frame.
 	vga.draw.lines_done = 0;
 
-#if C_DIRECT3D && defined(C_SDL2)
+#if C_DIRECT3D
     if(sdl.desktop.type == SCREEN_DIRECT3D11) {
         OUTPUT_DIRECT3D11_CheckSourceResolution();
     }

@@ -45,9 +45,7 @@ void metal_init();
 
 #if C_DIRECT3D
 void d3d_init(void);
-#if defined(C_SDL2)
 void d3d11_init(void);
-#endif
 #endif
 
 #if defined(USE_TTF)
@@ -184,7 +182,7 @@ void change_output(int output) {
         OUTPUT_GAMELINK_Select();
         break;
 #endif
-#if C_DIRECT3D && defined(C_SDL2)
+#if C_DIRECT3D
     case 13: /* direct3d11 */
         LOG_MSG("change_output: DIRECT3D11");
         OUTPUT_DIRECT3D11_Select();
@@ -320,9 +318,7 @@ void OutputSettingMenuUpdate(void) {
     mainMenu.get_item("output_surface").check(sdl.desktop.want_type == SCREEN_SURFACE).refresh_item(mainMenu);
 #if C_DIRECT3D
     mainMenu.get_item("output_direct3d").check(sdl.desktop.want_type == SCREEN_DIRECT3D).refresh_item(mainMenu);
-#if defined(C_SDL2)
     mainMenu.get_item("output_direct3d11").check(sdl.desktop.want_type == SCREEN_DIRECT3D11).refresh_item(mainMenu);
-#endif
 #endif
 #if C_OPENGL
     mainMenu.get_item("output_opengl").check(sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear).refresh_item(mainMenu);
@@ -483,7 +479,7 @@ bool toOutput(const char *what) {
             change_output(15);
 #endif
     }
-#if C_DIRECT3D && defined(C_SDL2)
+#if C_DIRECT3D
     else if(!strcmp(what, "direct3d11")) {
         if(sdl.desktop.want_type == SCREEN_DIRECT3D11)
             return false;

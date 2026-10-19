@@ -50,7 +50,7 @@
 #include "voodoo_opengl.h"
 #include "voodoo_d3d11.h"
 
-#if C_DIRECT3D && defined(C_SDL2)
+#if C_DIRECT3D
 
 #include <output/output_direct3d11.h>
 #include "voodoo_def.h"

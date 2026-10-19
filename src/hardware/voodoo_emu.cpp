@@ -4028,7 +4028,7 @@ void voodoo_activate(void) {
 #if C_DIRECT3D
 			if (OUTPUT_DIRECT3D_Active()) api = VOODOO_HW_API_DIRECT3D;
 #endif
-#if C_DIRECT3D && defined(C_SDL2)
+#if C_DIRECT3D
 			if (OUTPUT_DIRECT3D11_Active()) api = VOODOO_HW_API_DIRECT3D11;
 #endif
 			break;

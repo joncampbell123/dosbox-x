@@ -1638,7 +1638,7 @@ void DOSBOX_SetupConfigSections(void) {
 #if C_DIRECT3D
         "direct3d",
 #endif
-#if C_DIRECT3D && defined(C_SDL2)
+#if C_DIRECT3D
         "direct3d11",
 #endif
         "auto",
@@ -3514,7 +3514,7 @@ void DOSBOX_SetupConfigSections(void) {
                       "  opengl: Rendered with OpenGL, with output=opengl (otherwise in software).\n"
                       "  vulkan: Rendered with Vulkan, with output=vulkan (otherwise in software).\n"
                       "  direct3d: Rendered with Direct3D, with output=direct3d (Windows; otherwise in software).\n"
-                      "  direct3d11: Rendered with Direct3D 11, with output=direct3d11 (Windows, SDL2; otherwise in software).\n"
+                      "  direct3d11: Rendered with Direct3D 11, with output=direct3d11 (Windows; otherwise in software).\n"
                       "  auto: OpenGL, Vulkan, Direct3D or Direct3D 11 for the output in use, otherwise software.\n"
                       "  false: No 3dfx Voodoo card.");
     Pstring->SetBasic(true);

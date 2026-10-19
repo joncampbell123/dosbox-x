@@ -652,7 +652,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
     void res_init(void);
     void change_output(int output);
     //res_init();
-#if defined(C_SDL2)
+#if C_DIRECT3D
     if(sdl.desktop.want_type == SCREEN_DIRECT3D11) {
         change_output(13);
     }

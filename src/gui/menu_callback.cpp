@@ -3446,10 +3446,8 @@ void AllocCallback1() {
 #if C_DIRECT3D
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_direct3d").set_text("Direct3D").
                     set_callback_function(output_menu_callback);
-#if defined(C_SDL2)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id, "output_direct3d11").set_text("Direct3D11(Experimental)").
                     set_callback_function(output_menu_callback);
-#endif
 #endif
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_opengl").set_text("OpenGL").
                     set_callback_function(output_menu_callback);
