@@ -67,6 +67,11 @@ Next version:
     base-table sector sizes through 8 KiB, padding or truncating image data as
     needed and reads transfer data on sectors designated with a CRC error. This
     improves compatibility with a range of copy-protected disk images. (cimarronm)
+  - Direct serial: Refactored platform backends and fixed POSIX device-path,
+    error-marker, break-state, and setup failure handling, and Windows write
+    failure handling. (cimarronm)
+  - Direct serial: Fixed the multiplier setting to configure the host serial
+    port at the multiplied baud rate. (cimarronm)
   - D3D11: Fixed hardware scaling in CGA (maron2000)
   - Fixed startup crash on macOS 10.9 when building menu (maron2000)
   - Microphone input: Prefer the default capture device (maron2000)

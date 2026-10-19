@@ -198,7 +198,7 @@ public:
 	void RXBufferEmpty();
 
 	void transmitByte(uint8_t val, bool first) override;
-	void updatePortConfig(uint16_t divider, uint8_t lcr) override;
+	void updatePortConfig(double baudrate, uint8_t lcr) override;
 	void updateMSR() override;
 
 	void setBreak(bool) override;

@@ -1011,7 +1011,7 @@ void CSerialModem::transmitByte(uint8_t val, bool first) {
 	//LOG_MSG("MODEM: Byte %x to be transmitted",val);
 }
 
-void CSerialModem::updatePortConfig(uint16_t, uint8_t lcr) {
+void CSerialModem::updatePortConfig(double, uint8_t lcr) {
     (void) lcr; // deliberately unused by needed to meet the API
 }
 

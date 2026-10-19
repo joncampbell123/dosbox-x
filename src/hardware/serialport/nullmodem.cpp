@@ -468,7 +468,7 @@ void CNullModem::handleUpperEvent(uint16_t type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CNullModem::updatePortConfig (uint16_t /*divider*/, uint8_t /*lcr*/) {
+void CNullModem::updatePortConfig(double /*baudrate*/, uint8_t /*lcr*/) {
 	
 }
 
