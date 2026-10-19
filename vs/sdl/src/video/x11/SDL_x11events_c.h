@@ -31,6 +31,8 @@ extern void X11_SetKeyboardState(Display *display, const char *key_vec);
 /* Variables to be exported */
 extern int X11_PendingConfigureNotifyWidth;
 extern int X11_PendingConfigureNotifyHeight;
+/* DOSBox-X: ConfigureNotify events from before the last mode set (older serial) are outdated */
+extern unsigned long X11_ConfigureNotifyMinSerial;
 
 extern int X11_SetIMPosition(_THIS, int x, int y);
 extern char *X11_SetIMValues(_THIS, SDL_imvalue value, int alt);

@@ -36,6 +36,8 @@
 #include "ide.h"
 #include "../dos/drives.h"
 #include "../ints/int10.h"
+#include "paging.h"
+#include "voodoo.h"
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #ifdef WIN32
 # include "Commdlg.h"
@@ -2045,6 +2047,28 @@ bool voodoo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     return true;
 }
 
+#if C_OPENGL
+void Voodoo_UpdateResolutionMenu(void) {
+    const int mode = Voodoo_OGL_GetResolutionMode();
+    mainMenu.get_item("3dfx_res_native").check(mode == VOODOO_OGL_RES_NATIVE).refresh_item(mainMenu);
+    mainMenu.get_item("3dfx_res_double").check(mode == VOODOO_OGL_RES_DOUBLE).refresh_item(mainMenu);
+    mainMenu.get_item("3dfx_res_display").check(mode == VOODOO_OGL_RES_DISPLAY).refresh_item(mainMenu);
+}
+
+/* render resolution of the OpenGL 3dfx emulation, takes effect at the next frame */
+bool voodoo_resolution_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    const char *val = "native";
+    if (!strcmp(mname, "3dfx_res_double")) val = "double";
+    else if (!strcmp(mname, "3dfx_res_display")) val = "display";
+    SetVal("voodoo", "voodoo_resolution", val);
+    Voodoo_OGL_SetResolutionMode(Voodoo_OGL_ParseResolutionMode(val));
+    Voodoo_UpdateResolutionMenu();
+    return true;
+}
+#endif
+
 bool glide_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
 #if defined(OSFREE)
     (void)menu;
@@ -3586,6 +3610,14 @@ void AllocCallback1() {
                     set_callback_function(voodoo_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_glide").set_text("Glide passthrough").
                     set_callback_function(glide_menu_callback);
+#if C_OPENGL
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_res_native").set_text("Render at 3dfx video mode resolution").
+                    set_callback_function(voodoo_resolution_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_res_double").set_text("Render at double 3dfx video mode resolution").
+                    set_callback_function(voodoo_resolution_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_res_display").set_text("Render at display resolution").
+                    set_callback_function(voodoo_resolution_menu_callback);
+#endif
             }
 #ifdef C_D3DSHADERS
             {

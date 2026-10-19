@@ -41,6 +41,15 @@ void VOODOO_PCI_Enable(bool enable);
 void VOODOO_PCI_SetLFB(uint32_t lfbaddr);
 bool VOODOO_PCI_CheckLFBPage(Bitu page);
 bool Voodoo_OGL_Active();
+
+/* render resolution of the OpenGL 3dfx emulation ([voodoo] voodoo_resolution) */
+#define VOODOO_OGL_RES_NATIVE		0	/* the 3dfx video mode's */
+#define VOODOO_OGL_RES_DOUBLE		1	/* twice the 3dfx video mode's, both ways */
+#define VOODOO_OGL_RES_DISPLAY		2	/* the size it is shown at on the screen */
+void Voodoo_OGL_SetResolutionMode(int mode);
+int Voodoo_OGL_GetResolutionMode(void);
+int Voodoo_OGL_ParseResolutionMode(const char *s);
+void Voodoo_OGL_SetDisplaySize(unsigned int w, unsigned int h);
 void Voodoo_Output_Enable(bool enabled);
 PageHandler* VOODOO_GetPageHandler();
 

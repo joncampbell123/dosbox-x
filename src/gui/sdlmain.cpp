@@ -10013,6 +10013,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("mapper_fscaler").check(render.scale.forced).refresh_item(mainMenu);
         mainMenu.get_item("3dfx_voodoo").check(strcasecmp(static_cast<Section_prop *>(control->GetSection("voodoo"))->Get_string("voodoo_card"), "false")).refresh_item(mainMenu);
         mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
+#if C_OPENGL
+        {
+            void Voodoo_UpdateResolutionMenu(void);
+            Voodoo_OGL_SetResolutionMode(Voodoo_OGL_ParseResolutionMode(
+                static_cast<Section_prop *>(control->GetSection("voodoo"))->Get_string("voodoo_resolution")));
+            Voodoo_UpdateResolutionMenu();
+        }
+#endif
 
         mainMenu.get_item("debug_logint21").check(log_int21).refresh_item(mainMenu);
         mainMenu.get_item("debug_logfileio").check(log_fileio).refresh_item(mainMenu);

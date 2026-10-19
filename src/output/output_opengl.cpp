@@ -105,6 +105,7 @@ extern bool font_16_init;
 
 SDL_OpenGL sdl_opengl = {0};
 
+void Voodoo_OGL_SetDisplaySize(unsigned int w, unsigned int h);
 bool InitCodePage();
 uint8_t *GetDbcsFont(Bitu code);
 
@@ -269,6 +270,9 @@ retry:
         (unsigned int)sdl.clip.y,
         (unsigned int)sdl.clip.w,
         (unsigned int)sdl.clip.h);
+
+    /* the 3dfx emulation can render at the size it is shown at */
+    Voodoo_OGL_SetDisplaySize((unsigned int)sdl.clip.w, (unsigned int)sdl.clip.h);
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     if (mainMenu.isVisible() && !sdl.desktop.fullscreen) 

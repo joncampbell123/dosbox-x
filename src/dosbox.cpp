@@ -3502,6 +3502,17 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(voodoo_settings);
     Pstring->Set_help("Enable support for the 3dfx Voodoo card.");
     Pstring->SetBasic(true);
+    const char *voodoo_resolutions[] = { "native", "double", "display", nullptr };
+    Pstring = secprop->Add_string("voodoo_resolution",Property::Changeable::Always,"native");
+    Pstring->Set_values(voodoo_resolutions);
+    Pstring->Set_help("Resolution the OpenGL 3dfx emulation (voodoo_card=opengl or auto, with output=opengl) renders at:\n"
+                      "  native: The resolution of the 3dfx video mode.\n"
+                      "  double: Twice the resolution of the 3dfx video mode, horizontally and vertically.\n"
+                      "  display: The size of the area DOSBox-X shows the 3dfx video mode in. It changes with it\n"
+                      "           when the window is resized or made fullscreen. It is never less than the\n"
+                      "           3dfx video mode, horizontally or vertically.");
+    Pstring->SetBasic(true);
+
 	Pbool = secprop->Add_bool("voodoo_maxmem",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Specify whether to enable maximum memory size for the Voodoo card.\n"
                     "If set (on by default), the memory size will be 12MB (4MB front buffer + 2x4MB texture units)\n"

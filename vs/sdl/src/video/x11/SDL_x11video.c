@@ -1285,6 +1285,7 @@ SDL_Surface *X11_SetVideoMode(_THIS, SDL_Surface *current,
 
 	/* Set up the X11 window */
 	saved_flags = current->flags;
+	X11_ConfigureNotifyMinSerial = NextRequest(SDL_Display);
 	if ( (SDL_Window) && ((saved_flags&SDL_OPENGL) == (flags&SDL_OPENGL))
 	      && (bpp == current->format->BitsPerPixel)
           && ((saved_flags&SDL_NOFRAME) == (flags&SDL_NOFRAME)) ) {

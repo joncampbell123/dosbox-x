@@ -24,12 +24,15 @@
 #include <stdlib.h>
 #include <math.h>
 #include <map>
+#include <vector>
 
 #include "dosbox.h"
 #include "control.h"
 #include "logging.h"
 #include "video.h"
 
+#include "paging.h"
+#include "voodoo.h"
 #include "voodoo_emu.h"
 #include "voodoo_opengl.h"
 #include "sdlmain.h"
@@ -105,6 +108,9 @@ void SetWindowTransparency(int trans);
 #ifndef GL_DEPTH_COMPONENT24
 #define GL_DEPTH_COMPONENT24		0x81A6
 #endif
+#ifndef GL_MAX_RENDERBUFFER_SIZE
+#define GL_MAX_RENDERBUFFER_SIZE	0x84E8
+#endif
 #ifndef GL_SYNC_GPU_COMMANDS_COMPLETE
 #define GL_SYNC_GPU_COMMANDS_COMPLETE	0x9117
 #endif
@@ -153,11 +159,17 @@ static struct {
 	int front;
 	GLuint present_fbo;		/* the front buffer, top row first, for the output */
 	GLuint present_texture;
-	UINT32 width, height;
+	UINT32 width, height;		/* render resolution, the 3dfx video mode's or larger */
+	UINT32 max_size;		/* largest buffer the driver can make */
 
 	void *fence;			/* the main context waits for the 3dfx emulation's commands */
 	bool warned;
 } vctx = {};
+
+/* render resolution (voodoo_resolution setting): the 3dfx video mode's, twice that,
+ * or the size of the area the output shows the 3dfx frame in (follows window resizes) */
+static int ogl_resolution_mode = VOODOO_OGL_RES_NATIVE;
+static UINT32 ogl_display_width = 0, ogl_display_height = 0;
 
 static void *voodoo_ogl_getproc(const char *name, const char *ext_name) {
 	void *p = (void *)SDL_GL_GetProcAddress(name);
@@ -195,6 +207,13 @@ static bool voodoo_ogl_load_functions(void) {
 		LOG_MSG("VOODOO: OpenGL: framebuffer objects (OpenGL 3.0 or GL_EXT_framebuffer_object/blit) are not supported");
 		return false;
 	}
+
+	GLint max_texture = 0, max_renderbuffer = 0;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture);
+	glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &max_renderbuffer);
+	if (max_texture < 1024) max_texture = 1024;
+	if (max_renderbuffer < 1024) max_renderbuffer = 1024;
+	vctx.max_size = (UINT32)(max_texture < max_renderbuffer ? max_texture : max_renderbuffer);
 	return true;
 }
 
@@ -228,9 +247,9 @@ static void voodoo_ogl_apply_buffers(void) {
 	VOGL_SetBuffers(GL_COLOR_ATTACHMENT0 + vctx.front, GL_COLOR_ATTACHMENT0 + (vctx.front ^ 1));
 }
 
+/* make the buffers (none may exist) */
 static bool voodoo_ogl_create_framebuffers(UINT32 w, UINT32 h) {
 	VOGL_ClearBeginMode();
-	voodoo_ogl_destroy_framebuffers();
 
 	vctx.color[0] = voodoo_ogl_create_color_texture(w, h);
 	vctx.color[1] = voodoo_ogl_create_color_texture(w, h);
@@ -244,8 +263,12 @@ static bool voodoo_ogl_create_framebuffers(UINT32 w, UINT32 h) {
 		voodoo_ogl_destroy_framebuffers();
 		return false;
 	}
+	/* clears are clipped by the scissor test */
+	const bool scissor = glIsEnabled(GL_SCISSOR_TEST) == GL_TRUE;
+	if (scissor) glDisable(GL_SCISSOR_TEST);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	if (scissor) glEnable(GL_SCISSOR_TEST);
 
 	vctx.GenFramebuffers(1, &vctx.fbo);
 	vctx.BindFramebuffer(GL_FRAMEBUFFER, vctx.fbo);
@@ -279,6 +302,7 @@ static bool voodoo_ogl_create_framebuffers(UINT32 w, UINT32 h) {
 	voodoo_ogl_apply_buffers();
 
 	/* both buffers start black */
+	if (scissor) glDisable(GL_SCISSOR_TEST);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClearDepth(1.0f);
 	glClearStencil(0);
@@ -286,6 +310,9 @@ static bool voodoo_ogl_create_framebuffers(UINT32 w, UINT32 h) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0 + 1);
 	glClear(GL_COLOR_BUFFER_BIT);
+	/* the scissor box starts out at the size of the window the context was first used with */
+	glScissor(0, 0, (GLsizei)w, (GLsizei)h);
+	if (scissor) glEnable(GL_SCISSOR_TEST);
 	voodoo_ogl_apply_buffers();
 	last_clear_color = 0;
 	return true;
@@ -337,11 +364,220 @@ void Voodoo_OGL_WaitRelease(void) {
 	}
 }
 
+/* the render resolution for the current setting and 3dfx video mode */
+static void voodoo_ogl_render_size(UINT32 &w, UINT32 &h) {
+	w = v->fbi.width;
+	h = v->fbi.height;
+	if (ogl_resolution_mode == VOODOO_OGL_RES_DOUBLE) {
+		w *= 2;
+		h *= 2;
+	} else if (ogl_resolution_mode == VOODOO_OGL_RES_DISPLAY) {
+		/* never below the 3dfx video mode in either direction, which would lose pixels
+		 * (that LFB reads would miss) */
+		if (w < ogl_display_width) w = ogl_display_width;
+		if (h < ogl_display_height) h = ogl_display_height;
+	}
+	if (vctx.max_size > 0) {
+		if (w > vctx.max_size) w = vctx.max_size;
+		if (h > vctx.max_size) h = vctx.max_size;
+	}
+	if (w < 1) w = 1;
+	if (h < 1) h = 1;
+}
+
+/* the projection, viewport etc. for a new render resolution */
+static void voodoo_ogl_setup_window(void) {
+	glMatrixMode( GL_PROJECTION );
+	voodoo_ogl_set_window(v);
+
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity( );
+	glMatrixMode( GL_PROJECTION );
+}
+
+/* change the render resolution, keeping what the buffers show (scaled) */
+static bool voodoo_ogl_resize_framebuffers(UINT32 w, UINT32 h) {
+	VOGL_ClearBeginMode();
+
+	const GLuint old_fbo = vctx.fbo, old_present_fbo = vctx.present_fbo;
+	const GLuint old_color[2] = { vctx.color[0], vctx.color[1] };
+	const GLuint old_depth_stencil = vctx.depth_stencil, old_present_texture = vctx.present_texture;
+	const UINT32 old_width = vctx.width, old_height = vctx.height;
+	const bool old_has_stencil = vctx.has_stencil;
+	const int old_front = vctx.front;
+
+	vctx.fbo = vctx.present_fbo = vctx.depth_stencil = vctx.present_texture = 0;
+	vctx.color[0] = vctx.color[1] = 0;
+	if (!voodoo_ogl_create_framebuffers(w, h)) {
+		vctx.fbo = old_fbo;
+		vctx.present_fbo = old_present_fbo;
+		vctx.color[0] = old_color[0];
+		vctx.color[1] = old_color[1];
+		vctx.depth_stencil = old_depth_stencil;
+		vctx.present_texture = old_present_texture;
+		vctx.width = old_width;
+		vctx.height = old_height;
+		vctx.has_stencil = old_has_stencil;
+		vctx.front = old_front;
+		vctx.BindFramebuffer(GL_FRAMEBUFFER, vctx.fbo);
+		voodoo_ogl_apply_buffers();
+		return false;
+	}
+	vctx.front = old_front;
+
+	/* blits are clipped by the scissor test */
+	const bool scissor = glIsEnabled(GL_SCISSOR_TEST) == GL_TRUE;
+	if (scissor) glDisable(GL_SCISSOR_TEST);
+
+	vctx.BindFramebuffer(GL_READ_FRAMEBUFFER, old_fbo);
+	vctx.BindFramebuffer(GL_DRAW_FRAMEBUFFER, vctx.fbo);
+	for (int i = 0; i < 2; i++) {
+		glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
+		/* without filtering, the pixels keep their colors (for LFB reads) */
+		vctx.BlitFramebuffer(0, 0, (GLint)old_width, (GLint)old_height, 0, 0, (GLint)w, (GLint)h,
+			GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	}
+	/* depth (and stencil) can only be copied without filtering */
+	vctx.BlitFramebuffer(0, 0, (GLint)old_width, (GLint)old_height, 0, 0, (GLint)w, (GLint)h,
+		GL_DEPTH_BUFFER_BIT | ((old_has_stencil && vctx.has_stencil) ? GL_STENCIL_BUFFER_BIT : 0), GL_NEAREST);
+
+	vctx.BindFramebuffer(GL_READ_FRAMEBUFFER, old_present_fbo);
+	vctx.BindFramebuffer(GL_DRAW_FRAMEBUFFER, vctx.present_fbo);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	vctx.BlitFramebuffer(0, 0, (GLint)old_width, (GLint)old_height, 0, 0, (GLint)w, (GLint)h,
+		GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	if (scissor) glEnable(GL_SCISSOR_TEST);
+
+	vctx.BindFramebuffer(GL_FRAMEBUFFER, 0);
+	vctx.DeleteFramebuffers(1, &old_fbo);
+	vctx.DeleteFramebuffers(1, &old_present_fbo);
+	vctx.DeleteRenderbuffers(1, &old_depth_stencil);
+	glDeleteTextures(2, old_color);
+	glDeleteTextures(1, &old_present_texture);
+
+	vctx.BindFramebuffer(GL_FRAMEBUFFER, vctx.fbo);
+	voodoo_ogl_apply_buffers();
+
+	new_width = w;
+	new_height = h;
+	cached_line_front_y = -1;
+	cached_line_back_y = -1;
+	voodoo_ogl_setup_window();
+
+	OUTPUT_OPENGL_SetExternalTexture(vctx.present_texture, w, h);
+	LOG_MSG("VOODOO: OpenGL: render resolution %u:%u", (unsigned int)w, (unsigned int)h);
+	return true;
+}
+
+void Voodoo_UpdateResolutionMenu(void);
+
+/* follow the resolution setting (changed from the menu, configuration tool, CONFIG -set...)
+ * and the display area, between frames */
+static void voodoo_ogl_check_render_size(void) {
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("voodoo"));
+	const int mode = Voodoo_OGL_ParseResolutionMode(section != NULL ? section->Get_string("voodoo_resolution") : NULL);
+	if (mode != ogl_resolution_mode) {
+		ogl_resolution_mode = mode;
+		Voodoo_UpdateResolutionMenu();
+	}
+
+	UINT32 w, h;
+	voodoo_ogl_render_size(w, h);
+	if (vctx.fbo != 0 && (w != vctx.width || h != vctx.height))
+		voodoo_ogl_resize_framebuffers(w, h);
+}
+
+/* the 3dfx card was drawn to in software until the emulation became active (with the
+ * buffers in its memory), so start from what it has there instead of black */
+void voodoo_ogl_load_framebuffers_from_ram(void) {
+	if (!voodoo_ogl_enter() || vctx.fbo == 0) return;
+	VOGL_ClearBeginMode();
+
+	const UINT32 fw = v->fbi.width, fh = v->fbi.height;
+	if (fw == 0 || fh == 0) return;
+
+	std::vector<UINT8> pixels((size_t)fw * fh * 4u);
+	GLuint tex = voodoo_ogl_create_color_texture(fw, fh);
+	GLuint fbo = 0;
+	vctx.GenFramebuffers(1, &fbo);
+	vctx.BindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+	vctx.FramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+	vctx.BindFramebuffer(GL_DRAW_FRAMEBUFFER, vctx.fbo);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+	const bool scissor = glIsEnabled(GL_SCISSOR_TEST) == GL_TRUE;
+	if (scissor) glDisable(GL_SCISSOR_TEST);
+
+	for (int b = 0; b < 2; b++) {
+		const UINT32 offs = v->fbi.rgboffs[b == 0 ? v->fbi.frontbuf : v->fbi.backbuf];
+		if (offs == (UINT32)(~0) || offs > v->fbi.mask) continue;
+		const UINT16 *src = (const UINT16 *)(v->fbi.ram + offs);
+		const UINT32 srcmax = (v->fbi.mask + 1 - offs) / 2;
+
+		/* RGB 565, top row first, to RGBA bottom row first */
+		for (UINT32 y = 0; y < fh; y++) {
+			UINT8 *d = &pixels[(size_t)(fh - 1 - y) * fw * 4u];
+			for (UINT32 x = 0; x < fw; x++, d += 4) {
+				const UINT32 i = y * v->fbi.rowpixels + x;
+				const UINT32 p = (i < srcmax) ? src[i] : 0;
+				const UINT32 r = (p >> 11) & 0x1f, g = (p >> 5) & 0x3f, bl = p & 0x1f;
+				d[0] = (UINT8)((r << 3) | (r >> 2));
+				d[1] = (UINT8)((g << 2) | (g >> 4));
+				d[2] = (UINT8)((bl << 3) | (bl >> 2));
+				d[3] = 0;
+			}
+		}
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, (GLsizei)fw, (GLsizei)fh, GL_RGBA, GL_UNSIGNED_BYTE, &pixels[0]);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glDrawBuffer(GL_COLOR_ATTACHMENT0 + (b == 0 ? vctx.front : (vctx.front ^ 1)));
+		/* without filtering, so LFB reads get the pixels written in software */
+		vctx.BlitFramebuffer(0, 0, (GLint)fw, (GLint)fh, 0, 0, (GLint)vctx.width, (GLint)vctx.height,
+			GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	}
+
+	if (scissor) glEnable(GL_SCISSOR_TEST);
+
+	vctx.BindFramebuffer(GL_FRAMEBUFFER, vctx.fbo);
+	vctx.DeleteFramebuffers(1, &fbo);
+	glDeleteTextures(1, &tex);
+	voodoo_ogl_apply_buffers();
+	cached_line_front_y = -1;
+	cached_line_back_y = -1;
+}
+
+void Voodoo_OGL_SetResolutionMode(int mode) {
+	ogl_resolution_mode = mode;
+}
+
+int Voodoo_OGL_GetResolutionMode(void) {
+	return ogl_resolution_mode;
+}
+
+int Voodoo_OGL_ParseResolutionMode(const char *s) {
+	if (s != NULL && !strcasecmp(s, "double")) return VOODOO_OGL_RES_DOUBLE;
+	if (s != NULL && !strcasecmp(s, "display")) return VOODOO_OGL_RES_DISPLAY;
+	return VOODOO_OGL_RES_NATIVE;
+}
+
+/* the output shows the 3dfx frame in an area this size (in pixels) */
+void Voodoo_OGL_SetDisplaySize(unsigned int w, unsigned int h) {
+	ogl_display_width = w;
+	ogl_display_height = h;
+}
+
 /* show the front buffer: copy it top row first to the output's texture, and have the output draw it */
 void voodoo_ogl_present(void) {
 	if (!v->active || !voodoo_ogl_enter() || vctx.present_fbo == 0) return;
 
 	VOGL_ClearBeginMode();
+	voodoo_ogl_check_render_size();
 	/* blits are clipped by the scissor test */
 	const bool scissor = glIsEnabled(GL_SCISSOR_TEST) == GL_TRUE;
 	if (scissor) glDisable(GL_SCISSOR_TEST);
@@ -1650,6 +1886,36 @@ void voodoo_ogl_texture_clear(UINT32 address, int TMU) {
 }
 
 
+/* the render resolution pixels [p0, p1) that 3dfx video mode pixel i covers: the ones with
+ * their center in it (at least one), the same ones a GL_NEAREST blit from the 3dfx video
+ * mode's size fills from it. LFB writes and reads both use this. */
+static void voodoo_ogl_lfb_span(int i, UINT32 render_size, UINT32 mode_size, int &p0, int &p1) {
+	const double d = (double)render_size / (double)mode_size;
+	p0 = (int)ceil(i * d - 0.5);
+	p1 = (int)ceil((i + 1) * d - 0.5);
+	if (p1 <= p0) p1 = p0 + 1;
+	if (p0 >= (int)render_size) p0 = (int)render_size - 1;
+	if (p1 > (int)render_size) p1 = (int)render_size;
+}
+
+/* an LFB pixel (x, y) in the 3dfx video mode, row 0 at the top: a quad over the render
+ * resolution pixels it covers (between glBegin(GL_QUADS) and glEnd()). The projection is
+ * upside down when the Y origin is at the bottom (fbzMode). */
+static void voodoo_ogl_lfb_quad(int x, int y, float z) {
+	int x0, x1, y0, y1;
+	voodoo_ogl_lfb_span(x, new_width, v->fbi.width, x0, x1);
+	voodoo_ogl_lfb_span(y, new_height, v->fbi.height, y0, y1);
+	if (last_orientation == 1) {
+		const int t = (int)new_height - y0;
+		y0 = (int)new_height - y1;
+		y1 = t;
+	}
+	glVertex3f((float)x0, (float)y0, z);
+	glVertex3f((float)x1, (float)y0, z);
+	glVertex3f((float)x1, (float)y1, z);
+	glVertex3f((float)x0, (float)y1, z);
+}
+
 void voodoo_ogl_draw_pixel(int x, int y, bool has_rgb, bool has_alpha, int r, int g, int b, int a) {
 	if (!voodoo_ogl_enter()) return;
 	if (m_hProgramObject != 0) {
@@ -1671,22 +1937,9 @@ void voodoo_ogl_draw_pixel(int x, int y, bool has_rgb, bool has_alpha, int r, in
 
 	VOGL_SetAlphaMode(0, 0,0,0,0);
 
-	VOGL_BeginMode(GL_POINTS);
+	VOGL_BeginMode(GL_QUADS);
 	glColor4ub((GLubyte)(r&0xff), (GLubyte)(g&0xff), (GLubyte)(b&0xff), (GLubyte)(a&0xff));
-	float dx = (float)new_width / (float)v->fbi.width;
-	float dy = (float)new_height / (float)v->fbi.height;
-	int startx = (int)(x*dx);
-	int endx = (int)((x + 1)*dx);
-	int starty = (int)(y*dy);
-	int endy = (int)((y + 1)*dy);
-
-	for (int nx = startx; nx < endx; nx++)
-	{
-		for (int ny = starty; ny < endy; ny++)
-		{
-			glVertex2i(nx, ny);
-		}
-	}
+	voodoo_ogl_lfb_quad(x, y, 0.0f);
 }
 
 void voodoo_ogl_draw_z(int x, int y, int z) {
@@ -1712,22 +1965,9 @@ void voodoo_ogl_draw_z(int x, int y, int z) {
 
 	VOGL_SetAlphaMode(0, 0,0,0,0);
 
-	VOGL_BeginMode(GL_POINTS);
+	VOGL_BeginMode(GL_QUADS);
 //	glBegin(GL_POINTS);
-	float dx = (float)new_width / (float)v->fbi.width;
-	float dy = (float)new_height / (float)v->fbi.height;
-	int startx = (int)(x*dx);
-	int endx = (int)((x + 1)*dx);
-	int starty = (int)(y*dy);
-	int endy = (int)((y + 1)*dy);
-
-	for (int nx = startx; nx < endx; nx++)
-	{
-		for (int ny = starty; ny < endy; ny++)
-		{
-			glVertex3i(nx, ny, z);	// z adjustment??
-		}
-	}
+	voodoo_ogl_lfb_quad(x, y, (float)z);	// z adjustment??
 //	glEnd();
 }
 
@@ -1765,24 +2005,11 @@ void voodoo_ogl_draw_pixel_pipeline(int x, int y, int r, int g, int b) {
 		VOGL_SetAlphaMode(0, 0,0,0,0);
 	}
 
-	VOGL_BeginMode(GL_POINTS);
+	VOGL_BeginMode(GL_QUADS);
 //	glBegin(GL_POINTS);
 //	glColor3f((float)r/255.0f, (float)g/255.0f, (float)b/255.0f);
 	glColor3ub((GLubyte)(r&0xff), (GLubyte)(g&0xff), (GLubyte)(b&0xff));
-	float dx = (float)new_width / (float)v->fbi.width;
-	float dy = (float)new_height / (float)v->fbi.height;
-	int startx = (int)(x*dx);
-	int endx = (int)((x + 1)*dx);
-	int starty = (int)(y*dy);
-	int endy = (int)((y + 1)*dy);
-
-	for (int nx = startx; nx < endx; nx++)
-	{
-		for (int ny = starty; ny < endy; ny++)
-		{
-			glVertex2i(nx, ny);
-		}
-	}
+	voodoo_ogl_lfb_quad(x, y, 0.0f);
 //	glEnd();
 }
 
@@ -1823,17 +2050,25 @@ void voodoo_ogl_fastfill(void) {
 	int sy = (v->reg[clipLowYHighY].u >> 16) & 0x3ff;
 	int ey = (v->reg[clipLowYHighY].u >> 0) & 0x3ff;
 
-//	if (FBZMODE_Y_ORIGIN(v->reg[fbzMode].u))
-	{
-		int tmp = ((int)v->fbi.yorigin+1 - ey) & 0x3ff;
-		ey = ((int)v->fbi.yorigin+1 - sy) & 0x3ff;
+	/* the clip rows are screen rows (0 at the top), counted from the bottom when the Y origin
+	 * is (yorigin - y), like the software fastfill. In OpenGL, row 0 is at the bottom. */
+	const int fw = (int)v->fbi.width, fh = (int)v->fbi.height;
+	if (FBZMODE_Y_ORIGIN(v->reg[fbzMode].u)) {
+		const int adj = fh - 1 - (int)v->fbi.yorigin;
+		sy += adj;
+		ey += adj;
+	} else {
+		const int tmp = fh - ey;
+		ey = fh - sy;
 		sy = tmp;
 	}
+	if (sx < 0) sx = 0;
+	if (ex > fw) ex = fw;
+	if (sy < 0) sy = 0;
+	if (ey > fh) ey = fh;
+	if (ex <= sx || ey <= sy) return;
 
-	bool scissors_needed = true;
-	if ((sx == 0) && (sy == 0)) {
-		if (((Bitu)ex == (Bitu)v->fbi.width) && ((Bitu)ey == (Bitu)v->fbi.height)) scissors_needed = false;
-	}
+	const bool scissors_needed = !(sx == 0 && sy == 0 && ex == fw && ey == fh);
 
 	sx = (sx* new_width) / v->fbi.width;
 	ex = (ex* new_width) / v->fbi.width;
@@ -1900,51 +2135,55 @@ void voodoo_ogl_clear(void) {
 }
 
 
+/* read row y (0 at the top) from the render resolution's buffer: cached, it is read a line at a time */
+static const UINT32 *voodoo_ogl_read_line(bool front, int row) {
+	INT32 &cached_y = front ? cached_line_front_y : cached_line_back_y;
+	INT32 &cached_width = front ? cached_line_front_width : cached_line_back_width;
+	INT32 &cached_length = front ? cached_line_front_length : cached_line_back_length;
+	UINT32 *&cached_data = front ? cached_line_front_data : cached_line_back_data;
+
+	if (cached_y != row || cached_width != (INT32)new_width) {
+		if (cached_length < (INT32)new_width) {
+			if (cached_data != NULL) free(cached_data);
+			size_t span_length = ((new_width+64u)&(~15u));
+			cached_data = (UINT32*)malloc(sizeof(UINT32)*span_length);
+			cached_length = (INT32)span_length;
+		}
+		VOGL_SetReadMode(front);
+		glReadPixels(0, (int)new_height - 1 - row, (int)new_width, 1, GL_RGBA, GL_UNSIGNED_BYTE, cached_data);
+		cached_y = row;
+		cached_width = (INT32)new_width;
+	}
+	return cached_data;
+}
+
+/* two pixels from (x, y) in the 3dfx video mode, row 0 at the top. With a larger render
+ * resolution, the render pixel in the middle of each one is read. */
 UINT32 voodoo_ogl_read_pixel(int x, int y) {
 	UINT32 data[2];
 	if ((x < 0) || (y < 0) || (x >= (INT32)v->fbi.width) || (y >= (INT32)v->fbi.height)) return 0xffffffff;
 	if (!voodoo_ogl_enter()) return 0;
-	x = (x * new_width)  / v->fbi.width;
-	y = (y * new_height) / v->fbi.height;
 
-	UINT32 mode=GL_RGBA;
+	int rx[2], ry, p0, p1;
+	for (int i = 0; i < 2; i++) {
+		voodoo_ogl_lfb_span(x + i, new_width, v->fbi.width, p0, p1);
+		rx[i] = (p0 + p1 - 1) / 2;
+	}
+	voodoo_ogl_lfb_span(y, new_height, v->fbi.height, p0, p1);
+	ry = (p0 + p1 - 1) / 2;
+
 	switch (LFBMODE_READ_BUFFER_SELECT(v->reg[lfbMode].u)) {
 		case 0:			/* front buffer */
-			VOGL_SetReadMode(true);
-			if ((cached_line_front_y != y) || (x+1 >= cached_line_front_width)) {
-				if (cached_line_front_length<(INT32)new_width) {
-					if (cached_line_front_data!=NULL) free(cached_line_front_data);
-					size_t span_length=((new_width+64u)&(~15u));
-					cached_line_front_data=(UINT32*)malloc(sizeof(UINT32)*span_length);
-					cached_line_front_length=(INT32)span_length;
-				}
-				glReadPixels(0,(int)new_height-y,(int)new_width,1,mode,GL_UNSIGNED_BYTE,cached_line_front_data);
-				cached_line_front_y=y;
-				cached_line_front_width = (INT32)new_width;
-			}
-			data[0]=cached_line_front_data[x];
-			data[1]=cached_line_front_data[x+1];
+		case 1: {		/* back buffer */
+			const UINT32 *line = voodoo_ogl_read_line(LFBMODE_READ_BUFFER_SELECT(v->reg[lfbMode].u) == 0, ry);
+			data[0] = line[rx[0]];
+			data[1] = line[rx[1]];
 			break;
-		case 1:			/* back buffer */
-			VOGL_SetReadMode(false);
-			if ((cached_line_back_y != y) || (x+1 >= cached_line_back_width)) {
-				if (cached_line_back_length<(INT32)new_width) {
-					if (cached_line_back_data!=NULL) free(cached_line_back_data);
-					size_t span_length=((new_width+64u)&(~15u));
-					cached_line_back_data=(UINT32*)malloc(sizeof(UINT32)*span_length);
-					cached_line_back_length=(INT32)span_length;
-				}
-				glReadPixels(0,(int)new_height-y,(int)new_width,1,mode,GL_UNSIGNED_BYTE,cached_line_back_data);
-				cached_line_back_y=y;
-				cached_line_back_width = (INT32)new_width;
-			}
-			data[0]=cached_line_back_data[x];
-			data[1]=cached_line_back_data[x+1];
-			break;
+		}
 		case 2:			/* aux buffer */
-			mode=GL_DEPTH_COMPONENT;
 			VOGL_SetReadMode(false);
-			glReadPixels(x,new_height-y,2,1,mode,GL_UNSIGNED_INT,&data);
+			for (int i = 0; i < 2; i++)
+				glReadPixels(rx[i], (int)new_height - 1 - ry, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &data[i]);
 			return ((data[0]>>16)&0xffff) | (data[1] & 0xffff0000);
 		default:
 			E_Exit("read from invalid buf %x",LFBMODE_READ_BUFFER_SELECT(v->reg[lfbMode].u));
@@ -1992,8 +2231,17 @@ static bool voodoo_ogl_reset_videomode(void) {
 	last_height=0;
 	last_orientation=-1;
 
-	new_width = v->fbi.width;
-	new_height = v->fbi.height;
+	OUTPUT_OPENGL_SetExternalTexture(0, 0, 0);
+	voodoo_ogl_destroy_framebuffers();
+
+	/* the output shows the 3dfx frame like any video mode, so it can be resized, made
+	 * fullscreen, have the menu etc. like any other. The window is sized for the 3dfx
+	 * video mode, whatever the render resolution is. This comes first, for the size
+	 * of the display area (voodoo_resolution=display). */
+	RENDER_SetSize(v->fbi.width, v->fbi.height, 32, 60.0f, 4.0/3.0);
+	if (!voodoo_ogl_enter()) return false; /* the output's context was current for its resize */
+
+	voodoo_ogl_render_size(new_width, new_height);
 	if (!voodoo_ogl_create_framebuffers(new_width, new_height)) return false;
 
 	if (vctx.has_stencil) VOGL_FlagFeature(VOGL_HAS_STENCIL_BUFFER);
@@ -2012,29 +2260,38 @@ static bool voodoo_ogl_reset_videomode(void) {
 	cached_line_front_y=-1;
 	cached_line_back_y=-1;
 
-	/* the output shows the 3dfx frame like any video mode, so it can be resized, made
-	 * fullscreen, have the menu etc. like any other */
 	OUTPUT_OPENGL_SetExternalTexture(vctx.present_texture, new_width, new_height);
-	RENDER_SetSize(new_width, new_height, 32, 60.0f, 4.0/3.0);
 
-	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d", new_width, new_height);
+	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d, rendering at %d:%d",
+		v->fbi.width, v->fbi.height, new_width, new_height);
 	return true;
 }
 
+/* the 3dfx video mode changed: the buffers are resized right away (voodoo_ogl_follow_dimensions),
+ * this tells the output, which changes the window etc. */
 void voodoo_ogl_update_dimensions(void) {
 	if (!voodoo_ogl_enter()) return;
 
-	voodoo_ogl_reset_videomode();
+	if (vctx.fbo == 0) {
+		voodoo_ogl_reset_videomode();
+	} else {
+		RENDER_SetSize(v->fbi.width, v->fbi.height, 32, 60.0f, 4.0/3.0);
+		if (!voodoo_ogl_enter()) return; /* the output's context was current for its resize */
+		voodoo_ogl_check_render_size();
+		OUTPUT_OPENGL_SetExternalTexture(vctx.present_texture, vctx.width, vctx.height);
+		LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d, rendering at %d:%d",
+			v->fbi.width, v->fbi.height, vctx.width, vctx.height);
+	}
 
 	if (!voodoo_ogl_enter()) return; /* the output's context was current for its resize */
-	glMatrixMode( GL_PROJECTION );
-	voodoo_ogl_set_window(v);
+	voodoo_ogl_setup_window();
+}
 
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity( );
-	glMatrixMode( GL_PROJECTION );
+/* the 3dfx video mode changed while active: anything drawn from now on is drawn at the new size */
+void voodoo_ogl_follow_dimensions(void) {
+	if (!voodoo_ogl_enter()) return;
+	VOGL_ClearBeginMode();
+	voodoo_ogl_check_render_size();
 }
 
 static void voodoo_ogl_destroy_context(void) {
@@ -2056,6 +2313,7 @@ static void voodoo_ogl_destroy_context(void) {
 }
 
 bool voodoo_ogl_init(voodoo_state *v) {
+	(void)v; /* the same as the global one, which the functions below use */
 	extern void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 //	CPU_Core_Dyn_X86_SetFPUMode(false);
 
@@ -2078,6 +2336,9 @@ bool voodoo_ogl_init(voodoo_state *v) {
 		return false;
 	}
 
+	ogl_resolution_mode = Voodoo_OGL_ParseResolutionMode(
+		static_cast<Section_prop *>(control->GetSection("voodoo"))->Get_string("voodoo_resolution"));
+
 	VOGL_Reset();
 	last_clear_color=0;
 	if (!VOGL_Initialize() || !voodoo_ogl_load_functions() || !voodoo_ogl_reset_videomode()) {
@@ -2098,14 +2359,7 @@ bool voodoo_ogl_init(voodoo_state *v) {
 	LOG_MSG("VOODOO: OpenGL: features enabled:%s",features.c_str()); */
 
 	if (!voodoo_ogl_enter()) return false;
-	glMatrixMode( GL_PROJECTION );
-	voodoo_ogl_set_window(v);
-
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity( );
-	glMatrixMode( GL_PROJECTION );
+	voodoo_ogl_setup_window();
 
 	return true;
 }
@@ -2189,6 +2443,30 @@ void voodoo_ogl_shutdown(voodoo_state *v) {
 }
 
 void voodoo_ogl_present(void) {
+}
+
+void voodoo_ogl_load_framebuffers_from_ram(void) {
+}
+
+void voodoo_ogl_follow_dimensions(void) {
+}
+
+void Voodoo_OGL_SetResolutionMode(int mode) {
+	(void)mode;
+}
+
+int Voodoo_OGL_GetResolutionMode(void) {
+	return VOODOO_OGL_RES_NATIVE;
+}
+
+int Voodoo_OGL_ParseResolutionMode(const char *s) {
+	(void)s;
+	return VOODOO_OGL_RES_NATIVE;
+}
+
+void Voodoo_OGL_SetDisplaySize(unsigned int w, unsigned int h) {
+	(void)w;
+	(void)h;
 }
 
 void voodoo_ogl_set_window(voodoo_state *v) {

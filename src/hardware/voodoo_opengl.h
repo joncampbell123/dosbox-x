@@ -79,6 +79,8 @@ void voodoo_ogl_shutdown(voodoo_state *v);
 
 void voodoo_ogl_set_window(voodoo_state *v);
 void voodoo_ogl_present(void);
+void voodoo_ogl_load_framebuffers_from_ram(void);
+void voodoo_ogl_follow_dimensions(void);
 void voodoo_ogl_swap_buffer(void);
 void voodoo_ogl_vblank_flush(void);
 

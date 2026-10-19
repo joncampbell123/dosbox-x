@@ -72,6 +72,7 @@ void xim_lookup_key(_THIS, XKeyPressedEvent *event);
 */
 int X11_PendingConfigureNotifyWidth = -1;
 int X11_PendingConfigureNotifyHeight = -1;
+unsigned long X11_ConfigureNotifyMinSerial = 0;
 
 #ifdef X_HAVE_UTF8_STRING
 Uint32 Utf8ToUcs4(const Uint8 *utf8)
@@ -891,6 +892,12 @@ printf("ConfigureNotify! (resize: %dx%d)\n", xevent.xconfigure.width, xevent.xco
 		    X11_PendingConfigureNotifyHeight = -1;
 		}
 #endif
+		/* DOSBox-X: a size from before the last mode set (the server generated the event
+		 * before it processed the mode set's requests) is outdated, and would come back to
+		 * the application as a resize to the old size, which it takes as the user's. */
+		if ( (long)(xevent.xconfigure.serial - X11_ConfigureNotifyMinSerial) < 0 ) {
+		    break;
+		}
 		if ( SDL_VideoSurface ) {
 		    if ((xevent.xconfigure.width != SDL_VideoSurface->w) ||
 		        (xevent.xconfigure.height != SDL_VideoSurface->h)) {

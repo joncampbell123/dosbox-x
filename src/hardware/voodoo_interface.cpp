@@ -222,17 +222,21 @@ static void Voodoo_UpdateScreen(void) {
 
 		voodoo_activate();
 		
-		if (v->ogl) {
-			v->ogl_dimchange = false;
-		} else {
-			RENDER_SetSize(v->fbi.width, v->fbi.height, 16, 1000.0f / vdraw.vfreq, 4.0/3.0);
-		}
+		v->ogl_dimchange = false;
+		if (!v->ogl) RENDER_SetSize(v->fbi.width, v->fbi.height, 16, 1000.0f / vdraw.vfreq, 4.0/3.0);
 
 		Voodoo_VerticalTimer(0);
 	}
 
+	/* the 3dfx video mode changed while it is shown */
 	if ((v->clock_enabled && v->output_on) && v->ogl_dimchange) {
-		voodoo_update_dimensions();
+		if (v->ogl) {
+			voodoo_update_dimensions();
+		} else {
+			v->ogl_dimchange = false;
+			vdraw.height = v->fbi.height;
+			RENDER_SetSize(v->fbi.width, v->fbi.height, 16, 1000.0f / vdraw.vfreq, 4.0/3.0);
+		}
 	}
 
 	vdraw.screen_update_requested = false;

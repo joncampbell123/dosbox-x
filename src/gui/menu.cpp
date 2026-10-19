@@ -399,6 +399,9 @@ static const char *def_menu_video_output[] =
     "output_openglnb",
     "output_openglpp",
 #endif
+#if C_VULKAN_OUTPUT
+    "output_vulkan",
+#endif
 #if defined(USE_TTF)
     "output_ttf",
 #endif
@@ -408,9 +411,6 @@ static const char *def_menu_video_output[] =
 #if defined(MACOSX) && defined(C_SDL2) && C_METAL
     "output_metal",
 #endif    
-#if C_VULKAN_OUTPUT
-    "output_vulkan",
-#endif
     "--",
     "doublescan",
 #if !defined(C_SDL2)
@@ -426,6 +426,12 @@ static const char *def_menu_video_3dfx[] =
 {
     "3dfx_voodoo",
     "3dfx_glide",
+#if C_OPENGL
+    "--",
+    "3dfx_res_native",
+    "3dfx_res_double",
+    "3dfx_res_display",
+#endif
     NULL
 };
 

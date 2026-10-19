@@ -686,17 +686,17 @@ void voodoo_swap_buffers(voodoo_state *v)
 {
 //	if (LOG_VBLANK_SWAP) LOG(LOG_VOODOO,LOG_WARN)("--- swap_buffers @ %d\n", video_screen_get_vpos(v->screen));
 
-	if (v->ogl && v->active) {
-		voodoo_ogl_swap_buffer();
-		return;
-	}
-
 	/* keep a history of swap intervals */
 	v->reg[fbiSwapHistory].u = (v->reg[fbiSwapHistory].u << 4);
 
 	/* rotate the buffers */
 	if (v->type < VOODOO_2 || !v->fbi.vblank_dont_swap)
 	{
+		/* the OpenGL emulation swaps its own buffers; the buffer numbers below are
+		 * still kept, for the front buffer bits in the status register */
+		if (v->ogl && v->active)
+			voodoo_ogl_swap_buffer();
+
 		if (v->fbi.rgboffs[2] == (UINT32)(~0))
 		{
 			v->fbi.frontbuf = (UINT8)(1 - v->fbi.frontbuf);
@@ -1742,6 +1742,9 @@ void register_w(UINT32 offset, UINT32 data) {
 						v->fbi.width = new_width;
 						v->fbi.height = new_height;
 						v->ogl_dimchange = true;
+#if C_OPENGL
+						if (v->ogl && v->active) voodoo_ogl_follow_dimensions();
+#endif
 					}
 //					v->fbi.xoffs = hbp;
 //					v->fbi.yoffs = vbp;
@@ -2208,11 +2211,11 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 					if (has_rgb || has_alpha) {
 						// if enabling dithering: output is 565 not 888 anymore
 //						APPLY_DITHER(v->reg[fbzMode].u, x, dither_lookup, sr[pix], sg[pix], sb[pix]);
-						voodoo_ogl_draw_pixel(x, scry+1, has_rgb, has_alpha, sr[pix], sg[pix], sb[pix], sa[pix]);
+						voodoo_ogl_draw_pixel(x, scry, has_rgb, has_alpha, sr[pix], sg[pix], sb[pix], sa[pix]);
 					}
 					if (has_depth) {
 #if C_OPENGL
-						voodoo_ogl_draw_z(x, scry+1, sw[pix]);
+						voodoo_ogl_draw_z(x, scry, sw[pix]);
 #endif
 					}
 				} else {
@@ -2523,7 +2526,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 				if (v->ogl && v->active) {
 					if (FBZMODE_RGB_BUFFER_MASK(v->reg[fbzMode].u)) {
 //						APPLY_DITHER(FBZMODE, XX, DITHER_LOOKUP, r, g, b);
-						voodoo_ogl_draw_pixel_pipeline(x, scry+1, r, g, b);
+						voodoo_ogl_draw_pixel_pipeline(x, scry, r, g, b);
 					}
 /*					if (depth && FBZMODE_AUX_BUFFER_MASK(v->reg[fbzMode].u)) {
 						if (FBZMODE_ENABLE_ALPHA_PLANES(v->reg[fbzMode].u) == 0)
@@ -2850,7 +2853,7 @@ UINT32 lfb_r(UINT32 offset)
 		scry = (v->fbi.yorigin - y) & 0x3ff;
 
 	if (v->ogl && v->active) {
-		data = voodoo_ogl_read_pixel(x, scry+1);
+		data = voodoo_ogl_read_pixel(x, scry);
 	} else {
 		/* advance pointers to the proper row */
 		bufoffs = scry * v->fbi.rowpixels + x;
@@ -3758,6 +3761,8 @@ void voodoo_activate(void) {
 	if (v->ogl) {
 		if (voodoo_ogl_init(v)) {
 			voodoo_ogl_clear();
+			/* anything drawn before this was drawn in software, into the card's memory */
+			voodoo_ogl_load_framebuffers_from_ram();
 		} else {
 			v->ogl = false;
 			LOG_MSG("VOODOO: acceleration disabled");
