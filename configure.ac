@@ -689,6 +689,48 @@ else
 fi
 AM_CONDITIONAL([C_METAL], [test "x$have_metal" = "xyes"])
 
+dnl FEATURE: Whether to use Vulkan
+AH_TEMPLATE(C_VULKAN,[Define to 1 if the Vulkan graphics API is available])
+AC_ARG_ENABLE(vulkan,AC_HELP_STRING([--disable-vulkan],[Disable Vulkan support]),enable_vulkan=$enableval,enable_vulkan=yes)
+AC_MSG_CHECKING(whether Vulkan support will be enabled)
+
+have_vulkan=no
+if test x$enable_vulkan = xyes; then
+  if pkg-config --exists vulkan; then
+    have_vulkan=yes
+    VULKAN_CFLAGS=`pkg-config vulkan --cflags`
+    VULKAN_LIBS=`pkg-config vulkan --libs`
+  else
+    save_LIBS="$LIBS"
+    for vulkan_lib in vulkan vulkan-1 MoltenVK; do
+      LIBS="$save_LIBS -l$vulkan_lib"
+      AC_LINK_IFELSE(
+        [AC_LANG_PROGRAM([[
+          #include <vulkan/vulkan.h>
+        ]], [[
+          uint32_t count = 0;
+          return (int)vkEnumerateInstanceExtensionProperties(NULL, &count, NULL);
+        ]])],
+        [have_vulkan=yes; VULKAN_LIBS="-l$vulkan_lib"],
+        [])
+      if test x$have_vulkan = xyes; then break; fi
+    done
+    LIBS="$save_LIBS"
+  fi
+fi
+
+if test x$have_vulkan = xyes; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(C_VULKAN,1)
+else
+  AC_MSG_RESULT(no)
+  VULKAN_CFLAGS=""
+  VULKAN_LIBS=""
+fi
+AC_SUBST(VULKAN_CFLAGS)
+AC_SUBST(VULKAN_LIBS)
+AM_CONDITIONAL([C_VULKAN], [test "x$have_vulkan" = "xyes"])
+
 # FIXME: Arrggh we need the WHOLE PATH
 pwd=`realpath $srcdir`
 if [[ -z "$pwd" ]]; then pwd=`pwd`; fi
