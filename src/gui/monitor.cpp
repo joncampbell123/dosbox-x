@@ -41,7 +41,6 @@ bool	Monitor::Handler::configure( const cmd_tokens_t &tUser ) {/* {{{ */
 	Monitor::Configurator execute;
 	bool (Monitor::Configurator::*get)( const cmd_tokens_t& )= &Monitor::Configurator::getProperty;
 	bool (Monitor::Configurator::*set)( const cmd_tokens_t& )= &Monitor::Configurator::setProperty;
-	bool (Monitor::Configurator::*fset)( const cmd_tokens_t& )= &Monitor::Configurator::forceSetProperty;
 	const std::array< command,3 > params= { {
 		{ "-get",	get },
 		{ "-set",	set },
