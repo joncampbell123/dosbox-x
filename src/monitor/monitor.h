@@ -19,6 +19,10 @@
 #ifndef _MONITOR_CONSOLE_H
 #define _MONITOR_CONSOLE_H
 
+#include "dosbox.h"
+
+#if C_MONITOR
+
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -31,10 +35,8 @@
 #include "SDL_net.h"
 #endif
 
-#include "dosbox.h"
 #include "logging.h"
 
-#if C_MONITOR
 
 #define INPUT_LENGTH 1024
 
@@ -230,7 +232,7 @@ class Monitor {
 		if( _client ) closeSocket( _client );
 		if( _server ) closeSocket( _server ); 
 
-		if( _commands ){ _commands=nullptr; delete _commands;  };
+		if( _commands ){  delete _commands; _commands=nullptr; };
 		if( _pThread ){
 			
 			#if defined(C_SDL_NET) && C_SDL_NET
