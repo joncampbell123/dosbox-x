@@ -1321,7 +1321,10 @@ GFX_GLContext GFX_GL_GetCurrentContext(void) { return NULL; }
 bool GFX_GL_MakeContextCurrent(GFX_GLContext ctx) { (void)ctx; return false; }
 void GFX_GL_DeleteContext(GFX_GLContext ctx) { (void)ctx; }
 GFX_GLContext GFX_GL_CreateMainContext(void) { return NULL; }
-GFX_GLContext GFX_GL_CreateSharedContext(void) { return NULL; }
+GFX_GLContext GFX_GL_CreateSharedContext(void) {
+    LOG_MSG("OpenGL: This SDL 1.x has no shared OpenGL contexts (SDL_GL_CreateSharedContext), which the 3dfx emulation needs. Build with the in-tree SDL 1.x (vs/sdl) as of this version.");
+    return NULL;
+}
 bool OUTPUT_OPENGL_Active(void) { return sdl.desktop.type == SCREEN_OPENGL && sdl.surface != NULL; }
 void GFX_OpenGL_MakeCurrent(void) { }
 #endif
