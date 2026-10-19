@@ -86,7 +86,7 @@ bool	Monitor::Handler::changeRemovableMedia( const cmd_tokens_t &tUser ) {/* {{{
 		std::vector< std::string > image_list= { tUser.at( 2 ) };
 
 		if( multiple_discs )
-			for( int i{ 3 }; i <tUser.size(); ++i ) { 
+			for( size_t i{ 3 }; i <tUser.size(); ++i ) { 
 				image_list.push_back( tUser.at( i ) );
 			}
 
@@ -189,19 +189,17 @@ void	Monitor::CommandLine::getInfo() {/* {{{ */
 				drive.push_back( drive_info.substr( 0,dir_pos ) );
 				drive.push_back( drive_info.substr( dir_pos ) );
 			}
-			else
-				drive.push_back( drive_info );
-					
-				drive_list.push_back( drive );
-			}
+			drive.push_back( drive_info );					
+			drive_list.push_back( drive );
+		}
 
-	std::string message= {};
-	for( auto drv:drive_list ) {
-		messageClient(  drv.at( 0 )+":\\\t" );
-		if( drv.size() >2 ) message+= drv.at( 2 )+"\t\t";
-		message+= "("+drv.at( 1 )+")\n";
-		messageClient( message );
-	}
+		std::string message= {};
+		for( auto drv:drive_list ) {
+			messageClient(  drv.at( 0 )+":\\\t" );
+			if( drv.size() >2 ) message+= drv.at( 2 )+"\t\t";
+			message+= "("+drv.at( 1 )+")\n";
+			messageClient( message );
+		}
 	messageClient( "\n" );
 }	/* }}} */
 

@@ -26,13 +26,9 @@
 #include <cctype>
 #include <iomanip>
 //#if defined(C_SDL2_NET) && C_SDL2_NET
-#include <SDL2/SDL.h>
 #include <SDL2/SDL_net.h>
-#include <SDL2/SDL_thread.h>
 //#elif defined(C_SDL_NET) && C_SDL_NET
-#include "SDL.h"
 #include "SDL_net.h"
-#include "SDL_thread.h"
 //#endif
 
 #include "dosbox.h"
@@ -285,7 +281,7 @@ class Monitor {
 
 	/* CTOR */
 	Monitor():
-   _server( nullptr ),_client( nullptr ),
+	_server( nullptr ),_client( nullptr ),
 	_hostIP( IPaddress{ 0,0 } ),_pThread( nullptr ),
 	_isRunning( false ),_prompt( "(dosbox-x) " ) {
 		/* Empty */
