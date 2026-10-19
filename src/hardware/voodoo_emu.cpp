@@ -79,8 +79,10 @@ iterated W    = 18.32 [48 bits]
 #include "cross.h"
 #include "logging.h"
 
+#include "paging.h"
+#include "voodoo.h"
 #include "voodoo_emu.h"
-#include "voodoo_opengl.h"
+#include "voodoo_hw.h"
 
 #include "voodoo_def.h"
 
@@ -695,7 +697,7 @@ void voodoo_swap_buffers(voodoo_state *v)
 		/* the OpenGL emulation swaps its own buffers; the buffer numbers below are
 		 * still kept, for the front buffer bits in the status register */
 		if (v->ogl && v->active)
-			voodoo_ogl_swap_buffer();
+			voodoo_hw_swap_buffer();
 
 		if (v->fbi.rgboffs[2] == (UINT32)(~0))
 		{
@@ -1579,7 +1581,7 @@ void register_w(UINT32 offset, UINT32 data) {
 				if (v->ogl && v->active && (FBZMODE_Y_ORIGIN(v->reg[fbzMode].u)!=FBZMODE_Y_ORIGIN(data))) {
 					v->reg[fbzMode].u = data;
 					CPU_Core_Dyn_X86_SaveDHFPUState();
-					voodoo_ogl_set_window(v);
+					voodoo_hw_set_window(v);
 					CPU_Core_Dyn_X86_RestoreDHFPUState();
 				} else {
 					v->reg[fbzMode].u = data;
@@ -1743,7 +1745,7 @@ void register_w(UINT32 offset, UINT32 data) {
 						v->fbi.height = new_height;
 						v->ogl_dimchange = true;
 #if C_OPENGL
-						if (v->ogl && v->active) voodoo_ogl_follow_dimensions();
+						if (v->ogl && v->active) voodoo_hw_follow_dimensions();
 #endif
 					}
 //					v->fbi.xoffs = hbp;
@@ -1913,7 +1915,7 @@ void register_w(UINT32 offset, UINT32 data) {
 			if (chips & 1) v->reg[0x000 + regnum].u = data;
 			if (v->ogl) {
 				CPU_Core_Dyn_X86_SaveDHFPUState();
-				voodoo_ogl_clip_window(v);
+				voodoo_hw_clip_window(v);
 				CPU_Core_Dyn_X86_RestoreDHFPUState();
 			}
 			break;
@@ -2211,11 +2213,11 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 					if (has_rgb || has_alpha) {
 						// if enabling dithering: output is 565 not 888 anymore
 //						APPLY_DITHER(v->reg[fbzMode].u, x, dither_lookup, sr[pix], sg[pix], sb[pix]);
-						voodoo_ogl_draw_pixel(x, scry, has_rgb, has_alpha, sr[pix], sg[pix], sb[pix], sa[pix]);
+						voodoo_hw_draw_pixel(x, scry, has_rgb, has_alpha, sr[pix], sg[pix], sb[pix], sa[pix]);
 					}
 					if (has_depth) {
 #if C_OPENGL
-						voodoo_ogl_draw_z(x, scry, sw[pix]);
+						voodoo_hw_draw_z(x, scry, sw[pix]);
 #endif
 					}
 				} else {
@@ -2526,11 +2528,11 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 				if (v->ogl && v->active) {
 					if (FBZMODE_RGB_BUFFER_MASK(v->reg[fbzMode].u)) {
 //						APPLY_DITHER(FBZMODE, XX, DITHER_LOOKUP, r, g, b);
-						voodoo_ogl_draw_pixel_pipeline(x, scry, r, g, b);
+						voodoo_hw_draw_pixel_pipeline(x, scry, r, g, b);
 					}
 /*					if (depth && FBZMODE_AUX_BUFFER_MASK(v->reg[fbzMode].u)) {
 						if (FBZMODE_ENABLE_ALPHA_PLANES(v->reg[fbzMode].u) == 0)
-							voodoo_ogl_draw_z(x, y, depthval&0xffff, depthval>>16);
+							voodoo_hw_draw_z(x, y, depthval&0xffff, depthval>>16);
 //						else
 //							depth[XX] = a;
 					} */
@@ -2633,7 +2635,7 @@ INT32 texture_w(UINT32 offset, UINT32 data) {
 		}
 
 		if (changed && v->ogl && v->active) {
-			voodoo_ogl_texture_clear(tbaseaddr,tmunum);
+			voodoo_hw_texture_clear(tbaseaddr,tmunum);
 		}
 	}
 
@@ -2676,7 +2678,7 @@ INT32 texture_w(UINT32 offset, UINT32 data) {
 		}
 
 		if (changed && v->ogl && v->active) {
-			voodoo_ogl_texture_clear(tbaseaddr << 1,tmunum);
+			voodoo_hw_texture_clear(tbaseaddr << 1,tmunum);
 		}
 	}
 
@@ -2853,7 +2855,7 @@ UINT32 lfb_r(UINT32 offset)
 		scry = (v->fbi.yorigin - y) & 0x3ff;
 
 	if (v->ogl && v->active) {
-		data = voodoo_ogl_read_pixel(x, scry);
+		data = voodoo_hw_read_pixel(x, scry);
 	} else {
 		/* advance pointers to the proper row */
 		bufoffs = scry * v->fbi.rowpixels + x;
@@ -3076,7 +3078,7 @@ void voodoo_init(int type) {
 
 void voodoo_shutdown() {
 	if (v->ogl)
-		voodoo_ogl_shutdown(v);
+		voodoo_hw_shutdown(v);
 
 	if (v!=NULL) {
 		free(v->fbi.ram);
@@ -3166,7 +3168,7 @@ void fastfill(voodoo_state *v)
 	poly_extra_data *extra = new poly_extra_data;
 
 	if (v->ogl && v->active) {
-		voodoo_ogl_fastfill();
+		voodoo_hw_fastfill();
 	} else {
 
 		/* iterate over blocks of extents */
@@ -3554,7 +3556,7 @@ void triangle_create_work_item(voodoo_state *v, UINT16 *drawbuf, int texcount)
 	info->polys++;
 
 	if (palette_changed && v->ogl && v->active) {
-		voodoo_ogl_invalidate_paltex();
+		voodoo_hw_invalidate_paltex();
 		palette_changed = false;
 	}
 
@@ -3563,7 +3565,7 @@ void triangle_create_work_item(voodoo_state *v, UINT16 *drawbuf, int texcount)
 			delete extra;
 			return;
 		}
-		voodoo_ogl_draw_triangle(extra);
+		voodoo_hw_draw_triangle(extra);
 	} else {
 		poly_render_triangle(drawbuf, info->callback, &vert[0], &vert[1], &vert[2], extra);
 	}
@@ -3729,53 +3731,72 @@ static void raster_fastfill(void *destbase, INT32 y, const poly_extent *extent, 
 
 void voodoo_vblank_flush(void) {
 	if (v->ogl)
-		voodoo_ogl_vblank_flush();
+		voodoo_hw_vblank_flush();
 	v->fbi.vblank_flush_pending=false;
 }
 
 void voodoo_set_window(void) {
 	if (v->ogl && v->active) {
-		voodoo_ogl_set_window(v);
+		voodoo_hw_set_window(v);
 	}
 }
 
 /* OpenGL: show the front buffer in the output */
 void voodoo_present(void) {
 	if (v->ogl && v->active) {
-		voodoo_ogl_present();
+		voodoo_hw_present();
 	}
 }
 
 void voodoo_leave(void) {
-	if (v->ogl) {
-#if C_OPENGL
-		voodoo_ogl_leave(true);
-#endif
-	}
+	if (v->ogl)
+		voodoo_hw_leave(true);
 	v->active = false;
+	v->ogl = false;
+	v->vulkan = false;
 }
 
+bool OUTPUT_VULKAN_Active(void);
+
+/* The hardware emulation (OpenGL or Vulkan) is chosen every time the 3dfx output turns on,
+ * for the output in use then. Until it does, and if it can't, the card is emulated in software. */
 void voodoo_activate(void) {
 	v->active = true;
+	v->ogl = false;
+	v->vulkan = false;
 
-	if (v->ogl) {
-		if (voodoo_ogl_init(v)) {
-			voodoo_ogl_clear();
-			/* anything drawn before this was drawn in software, into the card's memory */
-			voodoo_ogl_load_framebuffers_from_ram();
-		} else {
-			v->ogl = false;
-			LOG_MSG("VOODOO: acceleration disabled");
-		}
+	bool use_vulkan = false;
+	switch (v->hw_request) {
+		case VOODOO_EMU_TYPE_ACCELERATED:
+			break;
+		case VOODOO_EMU_TYPE_VULKAN:
+			use_vulkan = true;
+			break;
+		case VOODOO_EMU_TYPE_AUTO:
+#if C_VULKAN_OUTPUT
+			use_vulkan = OUTPUT_VULKAN_Active();
+#endif
+			break;
+		default:
+			return; /* software */
+	}
+
+	v->ogl = true;
+	v->vulkan = use_vulkan;
+	if (voodoo_hw_init(v)) {
+		voodoo_hw_clear();
+		/* anything drawn before this was drawn in software, into the card's memory */
+		voodoo_hw_load_framebuffers_from_ram();
+	} else {
+		v->ogl = false;
+		v->vulkan = false;
+		LOG_MSG("VOODOO: acceleration disabled");
 	}
 }
 
 void voodoo_update_dimensions(void) {
 	v->ogl_dimchange = false;
 
-	if (v->ogl) {
-#if C_OPENGL
-		voodoo_ogl_update_dimensions();
-#endif
-	}
+	if (v->ogl)
+		voodoo_hw_update_dimensions();
 }

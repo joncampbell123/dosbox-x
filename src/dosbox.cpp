@@ -1632,6 +1632,9 @@ void DOSBOX_SetupConfigSections(void) {
 #if C_OPENGL
         "opengl",
 #endif
+#if C_VULKAN_OUTPUT
+        "vulkan",
+#endif
         "auto",
         nullptr
     };
@@ -3500,7 +3503,12 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("voodoo_card",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(voodoo_settings);
-    Pstring->Set_help("Enable support for the 3dfx Voodoo card.");
+    Pstring->Set_help("Enable support for the 3dfx Voodoo card.\n"
+                      "  software: Emulated in software.\n"
+                      "  opengl: Rendered with OpenGL, with output=opengl (otherwise in software).\n"
+                      "  vulkan: Rendered with Vulkan, with output=vulkan (otherwise in software).\n"
+                      "  auto: OpenGL or Vulkan for the output in use, otherwise software.\n"
+                      "  false: No 3dfx Voodoo card.");
     Pstring->SetBasic(true);
     const char *voodoo_resolutions[] = { "native", "double", "display", nullptr };
     Pstring = secprop->Add_string("voodoo_resolution",Property::Changeable::Always,"native");

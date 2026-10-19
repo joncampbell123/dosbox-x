@@ -1613,6 +1613,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\hardware\voodoo_emu.cpp" />
     <ClCompile Include="..\src\hardware\voodoo_interface.cpp" />
     <ClCompile Include="..\src\hardware\voodoo_opengl.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo_vulkan.cpp" />
     <ClCompile Include="..\src\hardware\voodoo_vogl.cpp" />
     <ClCompile Include="..\src\hardware\glide.cpp" />
     <ClCompile Include="..\src\ints\bios.cpp" />
@@ -1997,6 +1998,8 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\hardware\voodoo_emu.h" />
     <ClInclude Include="..\src\hardware\voodoo_interface.h" />
     <ClInclude Include="..\src\hardware\voodoo_opengl.h" />
+    <ClInclude Include="..\src\hardware\voodoo_vulkan.h" />
+    <ClInclude Include="..\src\hardware\voodoo_hw.h" />
     <ClInclude Include="..\src\hardware\voodoo_types.h" />
     <ClInclude Include="..\src\hardware\voodoo_vogl.h" />
     <ClInclude Include="..\src\ints\int10.h" />

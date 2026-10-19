@@ -97,13 +97,21 @@ class VOODOO:public Module_base{
 			if (voodoo_type_str=="false") {
 				emulation_type=0;
 			} else if (voodoo_type_str=="software") {
-				emulation_type=1;
+				emulation_type=VOODOO_EMU_TYPE_SOFTWARE;
 #if C_OPENGL
-			} else if ((voodoo_type_str=="opengl") || (voodoo_type_str=="auto")) {
-				emulation_type=2;
-#else
+			} else if (voodoo_type_str=="opengl") {
+				emulation_type=VOODOO_EMU_TYPE_ACCELERATED;
+#endif
+#if C_VULKAN_OUTPUT
+			} else if (voodoo_type_str=="vulkan") {
+				emulation_type=VOODOO_EMU_TYPE_VULKAN;
+#endif
 			} else if (voodoo_type_str=="auto") {
-				emulation_type=1;
+#if C_OPENGL || C_VULKAN_OUTPUT
+				/* OpenGL or Vulkan, for the output in use when the 3dfx output turns on */
+				emulation_type=VOODOO_EMU_TYPE_AUTO;
+#else
+				emulation_type=VOODOO_EMU_TYPE_SOFTWARE;
 #endif
 			} else {
 				emulation_type=0;
@@ -119,8 +127,10 @@ class VOODOO:public Module_base{
 			bool needs_pci_device = false;
 
 			switch (emulation_type) {
-				case 1:
-				case 2:
+				case VOODOO_EMU_TYPE_SOFTWARE:
+				case VOODOO_EMU_TYPE_ACCELERATED:
+				case VOODOO_EMU_TYPE_VULKAN:
+				case VOODOO_EMU_TYPE_AUTO:
 					Voodoo_Initialize(emulation_type, card_type, max_voodoomem);
 					needs_pci_device = true;
 					break;
@@ -140,8 +150,10 @@ class VOODOO:public Module_base{
 			if (emulation_type<=0) return;
 
 			switch (emulation_type) {
-				case 1:
-				case 2:
+				case VOODOO_EMU_TYPE_SOFTWARE:
+				case VOODOO_EMU_TYPE_ACCELERATED:
+				case VOODOO_EMU_TYPE_VULKAN:
+				case VOODOO_EMU_TYPE_AUTO:
 					Voodoo_Shut_Down();
 					break;
 				default:
@@ -153,8 +165,10 @@ class VOODOO:public Module_base{
 
 		void PCI_InitEnable(Bitu val) {
 			switch (emulation_type) {
-				case 1:
-				case 2:
+				case VOODOO_EMU_TYPE_SOFTWARE:
+				case VOODOO_EMU_TYPE_ACCELERATED:
+				case VOODOO_EMU_TYPE_VULKAN:
+				case VOODOO_EMU_TYPE_AUTO:
 					Voodoo_PCI_InitEnable(val);
 					break;
 				default:
@@ -164,8 +178,10 @@ class VOODOO:public Module_base{
 
 		void PCI_Enable(bool enable) {
 			switch (emulation_type) {
-				case 1:
-				case 2:
+				case VOODOO_EMU_TYPE_SOFTWARE:
+				case VOODOO_EMU_TYPE_ACCELERATED:
+				case VOODOO_EMU_TYPE_VULKAN:
+				case VOODOO_EMU_TYPE_AUTO:
 					Voodoo_PCI_Enable(enable);
 					break;
 				default:
@@ -175,8 +191,10 @@ class VOODOO:public Module_base{
 
 		PageHandler* GetPageHandler() {
 			switch (emulation_type) {
-				case 1:
-				case 2:
+				case VOODOO_EMU_TYPE_SOFTWARE:
+				case VOODOO_EMU_TYPE_ACCELERATED:
+				case VOODOO_EMU_TYPE_VULKAN:
+				case VOODOO_EMU_TYPE_AUTO:
 					return Voodoo_GetPageHandler();
 				default:
 					break;

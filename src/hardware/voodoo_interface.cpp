@@ -28,6 +28,7 @@
 #include "paging.h"
 #include "render.h"
 
+#include "voodoo.h"
 #include "voodoo_interface.h"
 #include "voodoo_emu.h"
 
@@ -267,7 +268,7 @@ void Voodoo_Output_Enable(bool enabled) {
 }
 
 void Voodoo_Initialize(Bits emulation_type, Bits card_type, bool max_voodoomem) {
-	if ((emulation_type <= 0) || (emulation_type > 2)) return;
+	if ((emulation_type <= VOODOO_EMU_TYPE_OFF) || (emulation_type > VOODOO_EMU_TYPE_AUTO)) return;
 
 	int board = VOODOO_1;
 	
@@ -289,8 +290,10 @@ void Voodoo_Initialize(Bits emulation_type, Bits card_type, bool max_voodoomem) 
 	voodoo_pagehandler = new Voodoo_PageHandler(nullptr);
 
 	v = new voodoo_state;
+	/* the hardware emulation (if asked for) is set up when the 3dfx output turns on */
+	v->hw_request = (int)emulation_type;
 	v->ogl = false;
-    if (emulation_type == 2) v->ogl = true;
+	v->vulkan = false;
 
 	vdraw.vfreq = 1000.0f/60.0f;
 

@@ -426,7 +426,7 @@ static const char *def_menu_video_3dfx[] =
 {
     "3dfx_voodoo",
     "3dfx_glide",
-#if C_OPENGL
+#if C_OPENGL || C_VULKAN_OUTPUT
     "--",
     "3dfx_res_native",
     "3dfx_res_double",

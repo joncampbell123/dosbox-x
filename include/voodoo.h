@@ -33,7 +33,9 @@ static_assert( VOODOO_LFB_ALIGNMASK == 0xFF000000ul, "Voodoo LFB error" );
 
 #define VOODOO_EMU_TYPE_OFF		0
 #define VOODOO_EMU_TYPE_SOFTWARE	1
-#define VOODOO_EMU_TYPE_ACCELERATED	2
+#define VOODOO_EMU_TYPE_ACCELERATED	2	/* OpenGL */
+#define VOODOO_EMU_TYPE_VULKAN		3
+#define VOODOO_EMU_TYPE_AUTO		4	/* OpenGL or Vulkan, for the output in use */
 
 
 void VOODOO_PCI_InitEnable(Bitu val);

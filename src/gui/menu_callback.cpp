@@ -2047,7 +2047,7 @@ bool voodoo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     return true;
 }
 
-#if C_OPENGL
+#if C_OPENGL || C_VULKAN_OUTPUT
 void Voodoo_UpdateResolutionMenu(void) {
     const int mode = Voodoo_OGL_GetResolutionMode();
     mainMenu.get_item("3dfx_res_native").check(mode == VOODOO_OGL_RES_NATIVE).refresh_item(mainMenu);
@@ -3610,7 +3610,7 @@ void AllocCallback1() {
                     set_callback_function(voodoo_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_glide").set_text("Glide passthrough").
                     set_callback_function(glide_menu_callback);
-#if C_OPENGL
+#if C_OPENGL || C_VULKAN_OUTPUT
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_res_native").set_text("Render at 3dfx video mode resolution").
                     set_callback_function(voodoo_resolution_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"3dfx_res_double").set_text("Render at double 3dfx video mode resolution").

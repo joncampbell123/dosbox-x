@@ -30,6 +30,7 @@
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
 #include "SDL_vulkan.h"
+#include <output/output_vulkan_device.h>
 
 using namespace std;
 
@@ -40,6 +41,7 @@ extern Bitu currentWindowWidth;
 extern Bitu currentWindowHeight;
 
 bool setSizeButNotResize();
+void Voodoo_OGL_SetDisplaySize(unsigned int w, unsigned int h);
 
 /* The two shaders, hand assembled to SPIR-V 1.0 (no shader compiler is needed
  * to build DOSBox-X). Equivalent GLSL:
@@ -272,6 +274,9 @@ static struct {
     /* the emulator image, and the window sized overlay that SDL drawn menus go to */
     VulkanTexture       frame;
     VulkanTexture       overlay;
+    /* the 3dfx emulation's frame, shown instead of the emulator image when set (only the
+     * view, set and size are used, the image belongs to the 3dfx emulation) */
+    VulkanTexture       external;
     vector<uint32_t>    framebuf;   // what the renderer draws into
     uint32_t            framebuf_pitch = 0;
     bool                frame_linear = true;
@@ -563,24 +568,25 @@ static bool VK_CreateDeviceObjects(void) {
 
     VkDescriptorPoolSize pool_size = {};
     pool_size.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    pool_size.descriptorCount = 2;
+    pool_size.descriptorCount = 3;
     VkDescriptorPoolCreateInfo dpci = {};
     dpci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    dpci.maxSets = 2;
+    dpci.maxSets = 3;
     dpci.poolSizeCount = 1;
     dpci.pPoolSizes = &pool_size;
     if (!VK_Check(vkCreateDescriptorPool(vk.device, &dpci, NULL, &vk.descriptor_pool), "vkCreateDescriptorPool")) return false;
 
-    VkDescriptorSetLayout layouts[2] = { vk.set_layout, vk.set_layout };
-    VkDescriptorSet sets[2];
+    VkDescriptorSetLayout layouts[3] = { vk.set_layout, vk.set_layout, vk.set_layout };
+    VkDescriptorSet sets[3];
     VkDescriptorSetAllocateInfo dsai = {};
     dsai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     dsai.descriptorPool = vk.descriptor_pool;
-    dsai.descriptorSetCount = 2;
+    dsai.descriptorSetCount = 3;
     dsai.pSetLayouts = layouts;
     if (!VK_Check(vkAllocateDescriptorSets(vk.device, &dsai, sets), "vkAllocateDescriptorSets")) return false;
     vk.frame.set = sets[0];
     vk.overlay.set = sets[1];
+    vk.external.set = sets[2];
 
     VkPushConstantRange pcr = {};
     pcr.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
@@ -1197,7 +1203,14 @@ static void VK_Present(bool upload, const uint16_t *changedLines) {
         win_h = vk.overlay_surface->h;
     }
     if (win_w > 0 && win_h > 0) {
-        if (frame.initialized) {
+        VulkanTexture &external = vk.external;
+        if (external.initialized) {
+            /* nearest neighbor when it would not make a difference anyway */
+            const bool linear = !(sdl.clip.w % external.width == 0 && sdl.clip.h % external.height == 0);
+            VK_BindTexture(external, linear ? vk.sampler_linear : vk.sampler_nearest);
+            VK_DrawRect(external, vk.pipeline_opaque, sdl.clip, win_w, win_h);
+        }
+        else if (frame.initialized) {
             VK_BindTexture(frame, vk.frame_linear ? vk.sampler_linear : vk.sampler_nearest);
             VK_DrawRect(frame, vk.pipeline_opaque, sdl.clip, win_w, win_h);
         }
@@ -1407,6 +1420,9 @@ static bool SetupWindowScaledVulkan(void)
         (unsigned int)sdl.clip.w,
         (unsigned int)sdl.clip.h);
 
+    /* the 3dfx emulation can render at the size it is shown at */
+    Voodoo_OGL_SetDisplaySize((unsigned int)sdl.clip.w, (unsigned int)sdl.clip.h);
+
 #if defined(C_SDL2)
     sdl.window = GFX_SetSDLWindowMode(windowWidth, windowHeight, SCREEN_VULKAN);
     if (sdl.window == NULL && sdl.desktop.fullscreen) {
@@ -1550,9 +1566,47 @@ bool OUTPUT_VULKAN_UpdateOverlay()
     return true;
 }
 
+bool OUTPUT_VULKAN_Active(void)
+{
+    return sdl.desktop.type == SCREEN_VULKAN && vk.device != VK_NULL_HANDLE;
+}
+
+bool OUTPUT_VULKAN_GetDevice(OUTPUT_VULKAN_Device &dev)
+{
+    if (!OUTPUT_VULKAN_Active()) return false;
+    dev.instance = vk.instance;
+    dev.physical = vk.physical;
+    dev.device = vk.device;
+    dev.queue = vk.queue;
+    dev.queue_family = vk.queue_family;
+    dev.GetInstanceProcAddr = vkGetInstanceProcAddr;
+    return true;
+}
+
+void OUTPUT_VULKAN_SetExternalImage(VkImageView view, uint32_t width, uint32_t height)
+{
+    VulkanTexture &t = vk.external;
+    if (t.view != view) t.bound_sampler = VK_NULL_HANDLE; /* update the descriptor */
+    t.view = view;
+    t.width = width;
+    t.height = height;
+    t.initialized = (view != VK_NULL_HANDLE && width > 0 && height > 0);
+}
+
+void OUTPUT_VULKAN_PresentExternal(void)
+{
+    if (!vk.external.initialized) return;
+    VK_Present(false, NULL);
+    if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
+}
+
 void OUTPUT_VULKAN_Shutdown()
 {
     if (vk.device == VK_NULL_HANDLE) return;
+
+    /* the 3dfx emulation renders with this device */
+    voodoo_vk_device_lost();
+    OUTPUT_VULKAN_SetExternalImage(VK_NULL_HANDLE, 0, 0);
 
     OUTPUT_VULKAN_ReleaseWindow();
 #if !defined(C_SDL2)
@@ -1582,7 +1636,7 @@ void OUTPUT_VULKAN_Shutdown()
     vk.pipeline_layout = VK_NULL_HANDLE;
     vk.descriptor_pool = VK_NULL_HANDLE;
     vk.set_layout = VK_NULL_HANDLE;
-    vk.frame.set = vk.overlay.set = VK_NULL_HANDLE;
+    vk.frame.set = vk.overlay.set = vk.external.set = VK_NULL_HANDLE;
     vk.frame_fence = VK_NULL_HANDLE;
     vk.image_acquired = VK_NULL_HANDLE;
     vk.command_pool = VK_NULL_HANDLE;

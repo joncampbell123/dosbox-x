@@ -28,19 +28,7 @@
 #include "cross.h"
 
 
-#if C_OPENGL
-
-#include "voodoo_vogl.h"
 #include "voodoo_types.h"
-
-extern UINT32 new_width;
-extern UINT32 new_height;
-
-/* texture data */
-struct ogl_texture_data {
-	GLuint texID;
-	bool enable;
-};
 
 /* triangle vertex map data */
 struct ogl_vertex_map_data {
@@ -55,6 +43,25 @@ struct ogl_vertex_data {
 	float r,g,b,a;
 	float fogblend;
 	ogl_vertex_map_data m[2];
+};
+
+/* shared by the OpenGL and Vulkan 3dfx emulation */
+void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_data *vd);
+void Voodoo_HW_PollResolutionSetting(void);
+void Voodoo_HW_RenderSize(UINT32 max_size, UINT32 &w, UINT32 &h);
+
+#if C_OPENGL
+
+#include "voodoo_vogl.h"
+#include "voodoo_types.h"
+
+extern UINT32 new_width;
+extern UINT32 new_height;
+
+/* texture data */
+struct ogl_texture_data {
+	GLuint texID;
+	bool enable;
 };
 
 struct ogl_texmap {

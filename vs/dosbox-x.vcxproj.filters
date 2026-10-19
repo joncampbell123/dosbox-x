@@ -576,6 +576,9 @@
     <ClCompile Include="..\src\hardware\voodoo_opengl.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\voodoo_vulkan.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\voodoo_vogl.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
@@ -1932,6 +1935,12 @@
       <Filter>Sources\hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\voodoo_opengl.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\voodoo_vulkan.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\voodoo_hw.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\voodoo_types.h">
