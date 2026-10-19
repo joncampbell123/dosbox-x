@@ -1,6 +1,10 @@
 Next version:
   - [AI] 3Dfx Metal hardware rendering support on macOS, with output=metal
     and voodoo_card=metal or auto. (joncampbell123)
+  - [AI] Metal output (and its 3Dfx hardware rendering) now works in SDL1
+    builds, with Metal support added to the in-tree SDL 1.x. SDL1 macOS
+    builds now use the usual RGBA order instead of the backwards PowerPC
+    order where macOS supports it. (joncampbell123)
   - [AI] Fix crash with output=metal when the 3Dfx is emulated in software:
     the Metal output did not resize its frame buffer for the 3Dfx video mode.
     (joncampbell123)
