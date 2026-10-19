@@ -1548,9 +1548,8 @@ static void DrawInput(void) {
         mvwprintw(dbg.win_inp,0,0,"%c-> %s%c",
                 (codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
         wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
-        mvwchgat(dbg.win_inp,10,0,3,0,(PAIR_BLACK_GREY),NULL);
         if (*curPtr) {
-            mvwchgat(dbg.win_inp,0,(int)(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
+            mvwchgat(dbg.win_inp,0,(int)(curPtr-dispPtr+4),1,A_REVERSE,(PAIR_BLACK_GREY),NULL);
         } 
     }
 

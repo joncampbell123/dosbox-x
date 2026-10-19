@@ -34,7 +34,7 @@ public:
 	void setRTS(bool val) override;
 	void setDTR(bool val) override;
 
-	void updatePortConfig(uint16_t, uint8_t lcr) override;
+	void updatePortConfig(double, uint8_t lcr) override;
 	void updateMSR() override;
 	void transmitByte(uint8_t val, bool first) override;
 	void setBreak(bool value) override;
