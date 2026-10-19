@@ -65,7 +65,7 @@
 #define PTYPE uint32_t
 #define WC scalerWriteCache.b32
 #define FC scalerFrameCache.b32
-# if !defined(C_SDL2) && defined(MACOSX) /* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */
+# if MACOSX_SDL1_WEIRD_RGBA /* SDL1 builds can be subject to Mac OS X strange BGRA (alpha in low byte) order */
 #  define redMask       0x0000ff00
 #  define greenMask     0x00ff0000
 #  define blueMask      0xff000000
@@ -119,7 +119,7 @@
 #elif DBPP == 16 // xRRRRRGggggBBBBB -> RRRRRGggggGBBBBB
 #define PMAKE(_VAL) ((_VAL & 31)|((_VAL & ~31)<<1)|((_VAL&0x0200)>>4))
 #elif DBPP == 32 // xRRRrrGGGggBBBbb -> RRRrrRRRGGGggGGGBBBbbBBB
-# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+# if MACOSX_SDL1_WEIRD_RGBA /* Mac OS X Intel builds can use a weird RGBA order (alpha in the low 8 bits) */
 #  define PMAKE(_VAL)  (((_VAL&(31u<<10u))<<1u)|((_VAL&(31u<<5u))<<14u)|((_VAL&31u)<<27u))
 # else
 #  define PMAKE(_VAL)  (((_VAL&(31u<<10u))<<9u)|((_VAL&(31u<<5u))<<6u)|((_VAL&31u)<<3u)|((_VAL&(7<<12))<<4)|((_VAL&(7<<7))<<1)|((_VAL&(7<<2))>>2))
@@ -144,7 +144,7 @@
 #elif DBPP == 16
 #define PMAKE(_VAL) (_VAL)
 #elif DBPP == 32 // RRRrrGGggggBBBbb -> RRRrrRRRGGggggGGBBBbbBBB
-# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+# if MACOSX_SDL1_WEIRD_RGBA /* Mac OS X Intel builds can use a weird RGBA order (alpha in the low 8 bits) */
 #  define PMAKE(_VAL)  (((_VAL&(31u<<11u))<<0u)|((_VAL&(63u<<5u))<<13u)|((_VAL&31u)<<27u))
 # else
 #  define PMAKE(_VAL)  (((_VAL&(31<<11))<<8)|((_VAL&(63<<5))<<5)|((_VAL&0xE01F)<<3)|((_VAL&(3<<9))>>1)|((_VAL&(7<<2))>>2))
@@ -550,7 +550,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERNAME		TV3x
 #define SCALERWIDTH		3
 #define SCALERHEIGHT	3
-#if !defined(C_SDL2) && defined(MACOSX) /* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */
+#if MACOSX_SDL1_WEIRD_RGBA /* SDL1 builds can be subject to Mac OS X strange BGRA (alpha in low byte) order */
 #define SCALERFUNC							\
 {											\
 	PTYPE halfpixel=(((uint64_t)(P & redblueMask) * (uint64_t)5) >> (uint64_t)3) & redblueMask;	\
@@ -594,7 +594,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERNAME		TV3xDw
 #define SCALERWIDTH		6
 #define SCALERHEIGHT	3
-#if !defined(C_SDL2) && defined(MACOSX) /* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */
+#if MACOSX_SDL1_WEIRD_RGBA /* SDL1 builds can be subject to Mac OS X strange BGRA (alpha in low byte) order */
 #define SCALERFUNC							\
 {											\
 	PTYPE halfpixel=(((uint64_t)(P & redblueMask) * (uint64_t)5) >> (uint64_t)3) & redblueMask;	\

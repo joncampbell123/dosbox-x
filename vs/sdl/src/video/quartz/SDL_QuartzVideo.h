@@ -132,6 +132,7 @@ typedef struct SDL_PrivateVideoData {
 
     BOOL               ime_enable;
     void *opengl_library;    /* dynamically loaded OpenGL library. */
+    id                 metal_layer;        /* DOSBox-X: the CAMetalLayer of window_view, for SDL_METAL video modes */
 } SDL_PrivateVideoData;
 
 #define _THIS    SDL_VideoDevice *this
@@ -176,6 +177,7 @@ typedef struct SDL_PrivateVideoData {
 #define system_version (this->hidden->system_version)
 #define opengl_library (this->hidden->opengl_library)
 #define ime_enable (this->hidden->ime_enable)
+#define metal_layer (this->hidden->metal_layer)
 
 /* grab states - the input is in one of these states */
 enum {

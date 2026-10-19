@@ -893,7 +893,7 @@ forcenormal:
 #if C_DIRECT3D
             && (sdl.desktop.type != SCREEN_DIRECT3D11)
 #endif
-#if defined(MACOSX) && C_SDL2 && C_METAL
+#if C_METAL_OUTPUT
             && (sdl.desktop.type != SCREEN_METAL)
 #endif
             ) {
@@ -1423,7 +1423,7 @@ bool RENDER_IsScalerCompatibleWithDoublescan(void) {
 #if C_DIRECT3D
             if(sdl.desktop.type == SCREEN_DIRECT3D11) return false;
 #endif
-#if defined(MACOSX) && C_SDL2 && C_METAL
+#if C_METAL_OUTPUT
             if(sdl.desktop.type == SCREEN_METAL) return false;
 #endif
             break;

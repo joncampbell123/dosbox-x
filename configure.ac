@@ -689,6 +689,12 @@ else
 fi
 AM_CONDITIONAL([C_METAL], [test "x$have_metal" = "xyes"])
 
+dnl SDL 1.x has no Metal support, except for our in-tree copy (vs/sdl) which adds SDL_metal.h
+AH_TEMPLATE(C_SDL1_METAL,[Define to 1 if SDL 1.x has Metal support (SDL_metal.h, from the in-tree SDL 1.x)])
+if test x$have_metal = xyes -a "x$SDL_STRING" = "xSDL1"; then
+  AC_CHECK_HEADER(SDL_metal.h, [AC_DEFINE(C_SDL1_METAL,1)], [AC_MSG_WARN([SDL 1.x without Metal support, use the in-tree SDL 1.x in vs/sdl for Metal output])], [#include "SDL.h"])
+fi
+
 dnl FEATURE: Whether to use Vulkan
 AH_TEMPLATE(C_VULKAN,[Define to 1 if the Vulkan graphics API is available])
 AC_ARG_ENABLE(vulkan,AC_HELP_STRING([--disable-vulkan],[Disable Vulkan support]),enable_vulkan=$enableval,enable_vulkan=yes)

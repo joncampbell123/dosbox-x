@@ -150,6 +150,18 @@ typedef struct SDL_Surface {
 #define SDL_HAX_NOREFRESH 0x08000000/**< DOSBox-X specific: Disable auto-redraw of the window when repainting is needed */
 #define SDL_HAX_NORESIZEWINDOW 0x04000000/**< DOSBox-X specific: Call is in response to SDL_SetVideoMode and therefore do not resize the window again */
 #define SDL_VULKAN      0x02000000      /**< DOSBox-X specific: Create a window for Vulkan rendering, see SDL_vulkan.h */
+#define SDL_METAL       0x00800000      /**< DOSBox-X specific: Create a window for Metal rendering (Mac OS X), see SDL_metal.h */
+
+#if defined(__APPLE__) && defined(__MACH__)
+#include <AvailabilityMacros.h>
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+/** DOSBox-X specific: the 32bpp video modes of the quartz video driver are ARGB in the host's byte
+ *  order (the usual layout, BGRA in memory on Intel and ARM Macs), where Mac OS X has that (10.4).
+ *  Otherwise, and in stock SDL 1.2, they are XRGB in memory (ARGB in the byte order of PowerPC),
+ *  which is BGRA as a 32-bit value (alpha in the low 8 bits) on Intel and ARM Macs. */
+#define SDL_DOSBOX_X_QUARTZ_HOST_ORDER 1
+#endif
+#endif
 /*@}*/
 
 /** Used internally (read-only) */

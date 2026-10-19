@@ -29,6 +29,7 @@
 #include "SDL_pixels_c.h"
 #include "SDL_cursor_c.h"
 #include "SDL_vulkan_c.h"
+#include "SDL_metal.h"
 #include "../events/SDL_sysevents.h"
 #include "../events/SDL_events_c.h"
 
@@ -641,6 +642,7 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 	int video_bpp;
 	int is_opengl;
 	int is_vulkan;
+	int is_metal;
 	SDL_GrabMode saved_grab;
 
 	#ifdef WIN32
@@ -666,6 +668,18 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 		}
 		/* SDL does not draw to the window at all */
 		flags &= ~(SDL_OPENGL|SDL_OPENGLBLIT|SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_HWPALETTE);
+	}
+
+	/* DOSBox-X: so do Metal windows (and they are not Vulkan windows too) */
+	is_metal = ( ( flags & SDL_METAL ) == SDL_METAL );
+	if ( is_metal ) {
+		if ( video->Metal_GetLayer == NULL ) {
+			SDL_SetError("Metal not available with the %s video driver", video->name);
+			return(NULL);
+		}
+		/* SDL does not draw to the window at all */
+		flags &= ~(SDL_OPENGL|SDL_OPENGLBLIT|SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_HWPALETTE|SDL_VULKAN);
+		is_vulkan = 0;
 	}
 
 	/* Default to the current width and height */
@@ -760,6 +774,10 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 		mode = NULL;
 		SDL_SetError("Vulkan not available");
 	    }
+	    else if ( is_metal && !(mode->flags & SDL_METAL) ) {
+		mode = NULL;
+		SDL_SetError("Metal not available");
+	    }
 	}
 	/*
 	 * rcg11292000
@@ -774,7 +792,7 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 	 */
 	SDL_VideoSurface = (mode != NULL) ? mode : prev_mode;
 
-	if ( (mode != NULL) && (!is_opengl) && (!is_vulkan) ) {
+	if ( (mode != NULL) && (!is_opengl) && (!is_vulkan) && (!is_metal) ) {
 		/* Sanity check */
 		if ( (mode->w < width) || (mode->h < height) ) {
 			SDL_SetError("Video mode smaller than requested");
@@ -958,7 +976,7 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 		2.  We need a hardware palette and didn't get one.
 		3.  We need a software surface and got a hardware surface.
 	*/
-	if ( !(SDL_VideoSurface->flags & (SDL_OPENGL|SDL_VULKAN)) &&
+	if ( !(SDL_VideoSurface->flags & (SDL_OPENGL|SDL_VULKAN|SDL_METAL)) &&
 	     (
 	     (  !(flags&SDL_ANYFORMAT) &&
 			(SDL_VideoSurface->format->BitsPerPixel != bpp)) ||
@@ -1117,6 +1135,10 @@ void SDL_UpdateRects (SDL_Surface *screen, int numrects, SDL_Rect *rects)
 		SDL_SetError("Vulkan active, SDL does not draw to the window");
 		return;
 	}
+	if ( screen->flags & SDL_METAL ) {
+		SDL_SetError("Metal active, SDL does not draw to the window");
+		return;
+	}
 	if ( screen == SDL_ShadowSurface ) {
 		/* Blit the shadow surface using saved mapping */
 		SDL_Palette *pal = screen->format->palette;
@@ -1180,6 +1202,10 @@ int SDL_Flip(SDL_Surface *screen)
 	SDL_VideoDevice *video = current_video;
 	if ( screen->flags & SDL_VULKAN ) {
 		SDL_SetError("Vulkan active, SDL does not draw to the window");
+		return(-1);
+	}
+	if ( screen->flags & SDL_METAL ) {
+		SDL_SetError("Metal active, SDL does not draw to the window");
 		return(-1);
 	}
 	/* Copy the shadow surface to the video surface */
@@ -2151,3 +2177,32 @@ void SDL_hax_SetFSWindowPosition(int x,int y,int w,int h) {
     SDL_FSHeight = h;
 }
 
+
+/* DOSBox-X: Metal (SDL_metal.h) */
+void *SDL_Metal_GetLayer(void)
+{
+	SDL_VideoDevice *this = current_video;
+
+	if ( this == NULL || this->Metal_GetLayer == NULL ) {
+		SDL_SetError("Metal is not supported by the video driver");
+		return NULL;
+	}
+	if ( SDL_VideoSurface == NULL || !(SDL_VideoSurface->flags & SDL_METAL) ) {
+		SDL_SetError("The video mode was not set with SDL_METAL");
+		return NULL;
+	}
+	return this->Metal_GetLayer(this);
+}
+
+void SDL_Metal_GetDrawableSize(int *w, int *h)
+{
+	SDL_VideoDevice *this = current_video;
+	int dw = 0, dh = 0;
+
+	if ( this != NULL && this->Metal_GetDrawableSize != NULL &&
+	     SDL_VideoSurface != NULL && (SDL_VideoSurface->flags & SDL_METAL) ) {
+		this->Metal_GetDrawableSize(this, &dw, &dh);
+	}
+	if ( w ) *w = dw;
+	if ( h ) *h = dh;
+}

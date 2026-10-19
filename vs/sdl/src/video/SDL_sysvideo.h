@@ -198,6 +198,13 @@ struct SDL_VideoDevice {
 	/* Create a Vulkan surface for the window */
 	int (*Vulkan_CreateSurface)(_THIS, VkInstance instance, VkSurfaceKHR *surface);
 
+	/* * * */
+	/* Metal support (DOSBox-X), for video modes set with SDL_METAL */
+
+	/* The video mode's CAMetalLayer (NULL if none), and its drawable size in pixels */
+	void *(*Metal_GetLayer)(_THIS);
+	void (*Metal_GetDrawableSize)(_THIS, int *w, int *h);
+
   	/* OpenGL functions for SDL_OPENGLBLIT */
 #if SDL_VIDEO_OPENGL
 #if !defined(__WIN32__)

@@ -12,8 +12,7 @@
 #include "../ints/int10.h"
 #include "output_surface.h"
 
-#if defined(MACOSX) && C_METAL
-#if defined(C_SDL2)
+#if C_METAL_OUTPUT
 
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
@@ -27,10 +26,39 @@ extern VideoModeBlock* CurMode;
 void Voodoo_OGL_SetDisplaySize(unsigned int w, unsigned int h);
 void voodoo_metal_device_lost(void);
 
+#if !defined(C_SDL2)
+#include "SDL_metal.h"
+extern "C" NSWindow *sdl1_hax_get_window(void);
+extern "C" bool sdl1_hax_highdpi_enable;
+#endif
+
 CMetal::CMetal() {}
 CMetal::~CMetal() { Shutdown(); }
 
-bool CMetal::Initialize(void* nsview, int w, int h)
+void CMetal::ConfigureLayer(void)
+{
+    layer.device = device;
+    layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+    layer.framebufferOnly = NO;
+}
+
+void CMetal::AttachLayer(void* nsview, void* sdl_layer)
+{
+    CAMetalLayer* l = (__bridge CAMetalLayer*)sdl_layer;
+    view = (__bridge NSView*)nsview;
+    if(l != layer) {
+        // (the window, and its layer, can be destroyed by SDL_SetVideoMode while it is still used)
+        [l retain];
+        if(layer_retained) [layer release];
+        layer = l;
+        layer_retained = true;
+    }
+    if(layer) ConfigureLayer();
+    // the next Resize sets the size of the layer
+    last_window_w = last_window_h = 0;
+}
+
+bool CMetal::Initialize(void* nsview, void* sdl_layer, int w, int h)
 {
     /* ---------------------------------
      * 1. Metal Device
@@ -51,26 +79,30 @@ bool CMetal::Initialize(void* nsview, int w, int h)
     /* ---------------------------------
     * 2. Create Metal Layer + SubView
     * --------------------------------- */
-    layer = [CAMetalLayer layer];
-    layer.device = device;
-    layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-    layer.framebufferOnly = NO;
+    if (sdl_layer) {
+        /* SDL1: SDL's Metal view and layer (SDL_SetVideoMode with SDL_METAL) */
+        AttachLayer(nsview, sdl_layer);
+    }
+    else {
+        layer = [CAMetalLayer layer];
+        ConfigureLayer();
 
-    /* Metal専用NSViewを作る */
-    NSView* parentView = (__bridge NSView*)view;
-    NSView* metalView = [[NSView alloc] initWithFrame:parentView.bounds];
+        /* Metal専用NSViewを作る */
+        NSView* parentView = (__bridge NSView*)view;
+        NSView* metalView = [[NSView alloc] initWithFrame:parentView.bounds];
 
-    metalView.autoresizingMask =
-        NSViewWidthSizable | NSViewHeightSizable;
+        metalView.autoresizingMask =
+            NSViewWidthSizable | NSViewHeightSizable;
 
-    metalView.wantsLayer = YES;
-    metalView.layer = layer;
+        metalView.wantsLayer = YES;
+        metalView.layer = layer;
 
-    /* SDLのcontentViewに追加 */
-    [view addSubview:metalView];
+        /* SDLのcontentViewに追加 */
+        [view addSubview:metalView];
 
-    /* layerサイズ同期 */
-    layer.frame = metalView.bounds;
+        /* layerサイズ同期 */
+        layer.frame = metalView.bounds;
+    }
 
     /* ---------------------------------
      * 3. Retina / drawableSize
@@ -165,6 +197,12 @@ void CMetal::Shutdown()
     /* the 3dfx emulation renders with this device */
     if(device) voodoo_metal_device_lost();
     externalTexture = nil;
+    if(layer_retained) {
+        /* SDL1: SDL's layer */
+        [layer release];
+        layer_retained = false;
+        layer = nil;
+    }
 
     frameTexture = nil;
     pipeline = nil;
@@ -278,7 +316,7 @@ void CMetal::SetSamplerMode(id<MTLRenderCommandEncoder> encoder)
     // (every encoder starts without one)
     id<MTLSamplerState> s = samplerLinear;
 
-    if(current_render_mode == ASPECT_NEAREST)
+    if(current_render_mode == METAL_SAMPLE_NEAREST)
         s = samplerNearest;
 
     [encoder setFragmentSamplerState : s atIndex : 0] ;
@@ -289,13 +327,13 @@ void CMetal::GetRenderMode() {
     std::string s_aspect = section->Get_string("aspect");
 
     if(s_aspect == "nearest") {
-        current_render_mode = ASPECT_NEAREST;
+        current_render_mode = METAL_SAMPLE_NEAREST;
     }
     else if(s_aspect == "bilinear") {
-        current_render_mode = ASPECT_BILINEAR;
+        current_render_mode = METAL_SAMPLE_BILINEAR;
     }
     else {
-        current_render_mode = ASPECT_NEAREST; // default
+        current_render_mode = METAL_SAMPLE_NEAREST; // default
     }
 }
 
@@ -375,16 +413,88 @@ bool CMetal::CreatePipeline()
 
 static CMetal* metal = nullptr;
 
+/* the size of the window's content area (what is drawn in), in the units the window size is set in */
+static void metal_GetWindowSize(int* w, int* h)
+{
+#if defined(C_SDL2)
+    SDL_GetWindowSize(sdl.window, w, h);
+#else
+    /* (from the window itself: it follows the user resizing it before the video mode is set again) */
+    NSWindow* win = sdl1_hax_get_window();
+    *w = *h = 0;
+    if(win != nil) {
+        NSRect r = [[win contentView] bounds];
+        if(sdl1_hax_highdpi_enable) r = [[win contentView] convertRectToBacking:r];
+        *w = (int)r.size.width;
+        *h = (int)r.size.height;
+    }
+#endif
+}
+
+#if !defined(C_SDL2)
+/* SDL1: the window is the video mode (SDL_SetVideoMode with SDL_METAL), w x h in a window, or the
+ * screen at the desktop resolution in fullscreen (as SDL_WINDOW_FULLSCREEN_DESKTOP). SDL does not
+ * draw in it, the layer of its view is drawn in. Setting the video mode can make another window,
+ * and layer, so the output draws in the one there is after it. */
+static bool metal_SetVideoMode(int w, int h)
+{
+    Uint32 flags = SDL_METAL | SDL_RESIZABLE;
+    if(sdl.desktop.fullscreen) {
+        w = (int)sdl.desktop.full.width;
+        h = (int)sdl.desktop.full.height;
+        flags = SDL_METAL | SDL_FULLSCREEN;
+    }
+    if(w <= 0 || h <= 0) return false;
+    if(sdl.surface != NULL && (sdl.surface->flags & SDL_METAL) && sdl.surface->w == w && sdl.surface->h == h &&
+        ((sdl.surface->flags & SDL_FULLSCREEN) != 0) == sdl.desktop.fullscreen)
+        return true;
+    SDL_Surface* s = SDL_SetVideoMode(w, h, 0, flags);
+    if(s == NULL && sdl.desktop.fullscreen) {
+        LOG_MSG("Metal: Fullscreen %dx%d not supported: %s", w, h, SDL_GetError());
+        sdl.desktop.fullscreen = false;
+        w = metal && metal->window_width ? (int)metal->window_width : 640;
+        h = metal && metal->window_height ? (int)metal->window_height : 400;
+        s = SDL_SetVideoMode(w, h, 0, SDL_METAL | SDL_RESIZABLE);
+    }
+    if(s == NULL) {
+        LOG_MSG("Metal: Could not set video mode %dx%d: %s", w, h, SDL_GetError());
+        return false;
+    }
+    sdl.surface = s;
+    sdl.deferred_resize = false;
+    sdl.must_redraw_all = true;
+    NSWindow* win = sdl1_hax_get_window();
+    if(metal && win != nil) metal->AttachLayer((__bridge void*)[win contentView], SDL_Metal_GetLayer());
+    return true;
+}
+#endif
+
+/* sets the window to w x h */
+static void metal_SetWindowSize(int w, int h)
+{
+#if defined(C_SDL2)
+    SDL_SetWindowSize(sdl.window, w, h);
+#else
+    metal_SetVideoMode(w, h);
+#endif
+}
+
 void metal_init(void)
 {
     if(metal) {
         metal->Shutdown();
+#if !defined(C_SDL2)
+        /* (not drawn in while the video mode is set for the new one) */
+        delete metal;
+        metal = nullptr;
+#endif
     }
 
     sdl.desktop.want_type = SCREEN_METAL;
 
     //LOG_MSG("OUTPUT METAL: Init called");
 
+#if defined(C_SDL2)
     if(!sdl.window) {
         sdl.window = GFX_SetSDLWindowMode(640, 400, SCREEN_SURFACE);
 
@@ -409,6 +519,30 @@ void metal_init(void)
 
     NSWindow* nswin = (__bridge NSWindow*)wmi.info.cocoa.window;
     NSView* view = [nswin contentView];
+    void* sdl_layer = NULL;
+#else
+    /* a window SDL does not draw in, the size it is (or 640x400 at first) */
+    if(sdl.surface == NULL || !(sdl.surface->flags & SDL_METAL)) {
+        int cur_w = 640, cur_h = 400;
+        if(sdl.surface != NULL && !sdl.desktop.fullscreen) {
+            cur_w = sdl.surface->w;
+            cur_h = sdl.surface->h;
+        }
+        if(!metal_SetVideoMode(cur_w, cur_h)) {
+            OUTPUT_SURFACE_Select();
+            return;
+        }
+    }
+
+    NSWindow* nswin = sdl1_hax_get_window();
+    NSView* view = nswin != nil ? [nswin contentView] : nil;
+    void* sdl_layer = SDL_Metal_GetLayer();
+    if(!sdl_layer) {
+        LOG_MSG("METAL: No Metal layer: %s", SDL_GetError());
+        OUTPUT_SURFACE_Select();
+        return;
+    }
+#endif
 
     if(!view) {
         LOG_MSG("METAL: Failed to get NSView");
@@ -431,7 +565,7 @@ void metal_init(void)
     int w = sdl.draw.width ? sdl.draw.width : 640;
     int h = sdl.draw.height ? sdl.draw.height : 400;
 
-    if(!metal->Initialize((__bridge void*)view, w, h)) {
+    if(!metal->Initialize((__bridge void*)view, sdl_layer, w, h)) {
         LOG_MSG("METAL: Initialize failed");
         delete metal;
         metal = nullptr;
@@ -478,7 +612,7 @@ Bitu OUTPUT_Metal_SetSize(void)
      * Window logical size
      * ------------------------ */
     int cur_w = 0, cur_h = 0;
-    SDL_GetWindowSize(sdl.window, &cur_w, &cur_h);
+    metal_GetWindowSize(&cur_w, &cur_h);
 
     if (cur_w <= 0 || cur_h <= 0)
         return 0;
@@ -495,14 +629,24 @@ Bitu OUTPUT_Metal_SetSize(void)
         metal->was_fullscreen = true;
         metal->window_width = cur_w;
         metal->window_height = cur_w * sdl.draw.height / sdl.draw.width;
+#if defined(C_SDL2)
         SDL_SetWindowFullscreen(
             sdl.window,
             SDL_WINDOW_FULLSCREEN_DESKTOP);
+#else
+        metal_SetVideoMode(cur_w, cur_h);
+        /* (fullscreen can fail, and leave a window) */
+        metal->was_fullscreen = sdl.desktop.fullscreen;
+#endif
     }
     else if(!sdl.desktop.fullscreen && metal->was_fullscreen){
-        SDL_SetWindowFullscreen(sdl.window, 0);
         cur_w = metal->window_width;
         cur_h = metal->window_height;
+#if defined(C_SDL2)
+        SDL_SetWindowFullscreen(sdl.window, 0);
+#else
+        metal_SetVideoMode(cur_w, cur_h);
+#endif
         metal->was_fullscreen = false;
     }
 
@@ -567,17 +711,17 @@ bool CMetal::Resize(uint32_t window_w,
                 if(window_w < tex_w) window_w = tex_w; // Keep at least original size
                 window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
             }
-            if(window_w != last_window_w || window_h != last_window_h) SDL_SetWindowSize(sdl.window, window_w, window_h);
+            if(window_w != last_window_w || window_h != last_window_h) metal_SetWindowSize(window_w, window_h);
             last_scalesize = render.scale.size;
         }
         if(render.aspect) {
             int real_w = 0, real_h = 0;
-            SDL_GetWindowSize(sdl.window, &real_w, &real_h);
+            metal_GetWindowSize(&real_w, &real_h);
             if(real_w > 0) {
                 window_w = real_w;
                 window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
             }
-            if(window_w != last_window_w || window_h != last_window_h) SDL_SetWindowSize(sdl.window, window_w, window_h);
+            if(window_w != last_window_w || window_h != last_window_h) metal_SetWindowSize(window_w, window_h);
             //LOG_MSG("window_w=%d, window_h=%d, sdl.draw.width=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, sdl.draw.width, real_w, real_h, (double)real_w/real_h, target_ratio);
         }
     }
@@ -613,12 +757,16 @@ bool CMetal::Resize(uint32_t window_w,
     frame_width = tex_w;
     frame_height = tex_h;
 
+#if defined(C_SDL2)
     if(sdl.window && !sdl.desktop.fullscreen) {
-        SDL_SetWindowSize(sdl.window, window_w, window_h);
+#else
+    if(sdl.surface && !sdl.desktop.fullscreen) {
+#endif
+        metal_SetWindowSize(window_w, window_h);
     }
 
     int real_w = 0, real_h = 0;
-    SDL_GetWindowSize(sdl.window, &real_w, &real_h);
+    metal_GetWindowSize(&real_w, &real_h);
 
     width = (uint32_t)real_w;
     height = (uint32_t)real_h;
@@ -639,10 +787,20 @@ bool CMetal::Resize(uint32_t window_w,
      * --------------------------------- */
     layer.contentsScale = scale;
 
+#if defined(C_SDL2)
     CGRect newFrame = CGRectMake(0, 0, (CGFloat)width, (CGFloat)height);
     layer.frame = newFrame;
 
     layer.drawableSize = CGSizeMake(width * scale, height * scale);
+#else
+    /* SDL1: the layer of SDL's view, which fills the window (its size is in points; the window
+     * size is in pixels with SDL1's high DPI support) */
+    {
+        CGRect b = NSRectToCGRect([nsv bounds]);
+        layer.frame = b;
+        layer.drawableSize = CGSizeMake(b.size.width * scale, b.size.height * scale);
+    }
+#endif
 
     uint32_t dw = (uint32_t)layer.drawableSize.width;
     uint32_t dh = (uint32_t)layer.drawableSize.height;
@@ -742,5 +900,4 @@ CMetal* OUTPUT_Metal_Get(void)
     return metal;
 }
 
-#endif //#if defined(C_SDL2)
-#endif //#if defined(MACOSX)
+#endif //#if C_METAL_OUTPUT

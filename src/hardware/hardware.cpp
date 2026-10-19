@@ -945,7 +945,7 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 				rowPointer = doubleRow;
 				break;
 			case 32:
-#if defined(MACOSX) && !C_SDL2
+#if MACOSX_SDL1_WEIRD_RGBA /* the weird RGBA order of SDL 1.x on Intel and ARM Macs (see render.h) */
                 if (flags & CAPTURE_FLAG_DBLW) {
 					for (Bitu x=0;x<countWidth;x++) {
 						doubleRow[x*6+2] = doubleRow[x*6+5] = ((uint8_t *)srcLine)[x*4+1];

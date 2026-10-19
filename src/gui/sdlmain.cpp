@@ -2071,6 +2071,12 @@ Bitu GFX_GetBestMode(Bitu flags)
             break;
 #endif
 
+#if C_METAL_OUTPUT
+        case SCREEN_METAL:
+            retFlags = OUTPUT_Metal_GetBestMode(flags);
+            break;
+#endif
+
 #if defined(USE_TTF)
         case SCREEN_TTF:
             retFlags = GFX_CAN_32 | GFX_SCALING;
@@ -2344,7 +2350,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
             retFlags = OUTPUT_DIRECT3D11_SetSize();
             break;
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
         case SCREEN_METAL:
             retFlags = OUTPUT_Metal_SetSize();
             break;
@@ -3303,7 +3309,7 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
             return OUTPUT_DIRECT3D11_StartUpdate(pixels, pitch);
             break;
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
         case SCREEN_METAL:
             return OUTPUT_Metal_StartUpdate(pixels, pitch);
             break;
@@ -3352,7 +3358,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
 #if C_OPENGL
     bool actually_updating = false;
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
     if(sdl.desktop.type == SCREEN_METAL) {
         sdl.updating = false;
         goto switch_type;
@@ -3419,7 +3425,7 @@ switch_type:
             OUTPUT_DIRECT3D11_EndUpdate(changedLines);
             break;
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
         case SCREEN_METAL:
             OUTPUT_Metal_EndUpdate(changedLines);
             break;
@@ -3487,7 +3493,7 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
 
 #if C_OPENGL
         case SCREEN_OPENGL:
-# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* macOS Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+# if MACOSX_SDL1_WEIRD_RGBA /* macOS Intel builds can use a weird RGBA order (alpha in the low 8 bits), see render.h */
             //USE BGRA
             return (((unsigned long)blue << 24ul) | ((unsigned long)green << 16ul) | ((unsigned long)red <<  8ul)) | (255ul <<  0ul);
 # else
@@ -3510,7 +3516,7 @@ Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
         case SCREEN_DIRECT3D:
         case SCREEN_DIRECT3D11:
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
         case SCREEN_METAL: // pixelFormat = MTLPixelFormatBGRA8Unorm
 #endif
             return SDL_MapRGB(sdl.surface->format, red, green, blue);
@@ -3565,7 +3571,7 @@ static void GUI_ShutDown(Section * /*sec*/) {
             OUTPUT_DIRECT3D11_Shutdown();
             break;
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
         case SCREEN_METAL:
             OUTPUT_Metal_Shutdown();
             break;
@@ -4245,7 +4251,7 @@ static void GUI_StartUp() {
             switch_to_d3d11_on_startup = false;
         }
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
     }
     else if(output == "metal")
     {
@@ -6871,7 +6877,7 @@ void SDL_SetupConfigSection() {
         "direct3d",
         "direct3d11",
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
         "metal",
 #endif
 #if C_VULKAN_OUTPUT

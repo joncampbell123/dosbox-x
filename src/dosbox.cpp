@@ -1641,7 +1641,7 @@ void DOSBOX_SetupConfigSections(void) {
 #if C_DIRECT3D
         "direct3d11",
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
         "metal",
 #endif
         "auto",

@@ -27,6 +27,16 @@
 
 #include "../src/gui/render_scalers.h"
 
+/* SDL 1.x on Macs with Intel or ARM CPUs has a weird RGBA order for 32bpp (alpha in the low 8 bits,
+ * blue in the top 8 bits: XRGB in memory, the ARGB of PowerPC). The in-tree SDL 1.x (vs/sdl) uses
+ * the usual ARGB in the host's byte order where macOS has it, and says so in SDL_video.h. */
+#if defined(MACOSX) && !defined(C_SDL2)
+# include "SDL.h"
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && !defined(SDL_DOSBOX_X_QUARTZ_HOST_ORDER)
+#  define MACOSX_SDL1_WEIRD_RGBA 1
+# endif
+#endif
+
 #define RENDER_SKIP_CACHE	16
 //Enable this for scalers to support 0 input for empty lines
 //#define RENDER_NULL_INPUT

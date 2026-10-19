@@ -19,8 +19,7 @@
 
 
 using namespace std;
-#if defined(MACOSX) && C_METAL
-#if defined(C_SDL2)
+#if C_METAL_OUTPUT
 
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
@@ -40,12 +39,19 @@ bool OUTPUT_Metal_Active(void);
 class CMetal;
 CMetal* OUTPUT_Metal_Get(void);
 
+// how the frame is scaled to the window (render.aspect: "nearest" or "bilinear")
+enum { METAL_SAMPLE_NEAREST, METAL_SAMPLE_BILINEAR };
+
 class CMetal {
 public:
     CMetal();
     ~CMetal();
 
-    bool Initialize(void* nsview, int w, int h);
+    // nsview: the window's content view. sdl_layer: SDL1, the layer of SDL's Metal view (SDL_metal.h);
+    // SDL2, NULL (a view and layer of our own are added to the content view)
+    bool Initialize(void* nsview, void* sdl_layer, int w, int h);
+    // SDL1: draw in the layer of a video mode set with SDL_METAL, after every SDL_SetVideoMode()
+    void AttachLayer(void* nsview, void* sdl_layer);
     void Shutdown();
 
     bool StartUpdate(uint8_t*& pixels, Bitu& pitch);
@@ -89,6 +95,9 @@ private:
     id<MTLDevice> device = nil;
     id<MTLCommandQueue> queue = nil;
     CAMetalLayer* layer = nil;
+    bool layer_retained = false;  // SDL1: SDL's layer, kept while drawn in
+
+    void ConfigureLayer(void);
 
     id<MTLTexture> frameTexture = nil;
     id<MTLTexture> externalTexture = nil;
@@ -97,11 +106,10 @@ private:
     id<MTLRenderPipelineState> pipeline = nil;
 
     bool textureMapped = false;
-    int current_render_mode = ASPECT_NEAREST;
+    int current_render_mode = METAL_SAMPLE_NEAREST;
     MTLViewport currentViewport;
 
     void DrawFrame(id<MTLTexture> tex);
 };
 
-#endif // defined(C_SDL2)
-#endif // defined(MACOSX)
+#endif // C_METAL_OUTPUT

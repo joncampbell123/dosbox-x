@@ -36,9 +36,9 @@
  *
  * This file manages its Objective-C objects itself (it is built without ARC, like the output). */
 
-#include "config.h"
+#include "dosbox.h"
 
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
 
 #if __has_feature(objc_arc)
 #error "voodoo_metal.mm retains and releases its Objective-C objects itself: build it without ARC"

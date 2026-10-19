@@ -954,6 +954,17 @@ Bitu OUTPUT_OPENGL_SetSize()
     return retFlags;
 }
 
+/* how the frame's 32-bit pixels are uploaded (as GL_BGRA): ARGB as 32-bit values (BGRA in memory on
+ * little endian CPUs), or the weird RGBA order of SDL 1.x on Intel and ARM Macs (see render.h) */
+static GLenum OPENGL_PixelType(void)
+{
+#if MACOSX_SDL1_WEIRD_RGBA
+    return GL_UNSIGNED_INT_8_8_8_8;
+#else
+    return GL_UNSIGNED_INT_8_8_8_8_REV;
+#endif
+}
+
 bool OUTPUT_OPENGL_StartUpdate(uint8_t* &pixels, Bitu &pitch)
 {
     GFX_OpenGL_MakeCurrent();
@@ -1049,12 +1060,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
                 glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                     (int)(sdl.draw.width * (unsigned int)sdl_xbrz.scale_factor), (int)(sdl.draw.height * (unsigned int)sdl_xbrz.scale_factor), GL_BGRA_EXT,
-#if defined (MACOSX) && !defined(C_SDL2)
-                    // needed for proper looking graphics on macOS 10.12, 10.13
-                    GL_UNSIGNED_INT_8_8_8_8,
-#else
-                    GL_UNSIGNED_INT_8_8_8_8_REV,
-#endif
+                    OPENGL_PixelType(),
                     nullptr);
                 glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
             }
@@ -1063,13 +1069,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
                 glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                     (int)(sdl.draw.width * (unsigned int)sdl_xbrz.scale_factor), (int)(sdl.draw.height * (unsigned int)sdl_xbrz.scale_factor), GL_BGRA_EXT,
-#if defined (MACOSX) && !defined(C_SDL2)
-                    // needed for proper looking graphics on macOS 10.12, 10.13
-                    GL_UNSIGNED_INT_8_8_8_8,
-#else
-                    // works on Linux
-                    GL_UNSIGNED_INT_8_8_8_8_REV,
-#endif
+                    OPENGL_PixelType(),
                     (uint8_t *)sdl_opengl.framebuf);
             }
             CheckManagement();
@@ -1087,13 +1087,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
             glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                 (int)sdl.draw.width, (int)sdl.draw.height, GL_BGRA_EXT,
-#if defined (MACOSX)
-                // needed for proper looking graphics on macOS 10.12, 10.13
-                GL_UNSIGNED_INT_8_8_8_8,
-#else
-                // works on Linux
-                GL_UNSIGNED_INT_8_8_8_8_REV,
-#endif
+                OPENGL_PixelType(),
                 (void*)0);
             glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
             //glCallList(sdl_opengl.displaylist);
@@ -1129,13 +1123,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
 
                     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, (int)y,
                         (int)sdl.draw.width, (int)height, GL_BGRA_EXT,
-#if defined (MACOSX) && !defined(C_SDL2)
-                        // needed for proper looking graphics on macOS 10.12, 10.13
-                        GL_UNSIGNED_INT_8_8_8_8,
-#else
-                        // works on Linux
-                        GL_UNSIGNED_INT_8_8_8_8_REV,
-#endif
+                        OPENGL_PixelType(),
                         (void*)pixels);
                     y += height;
                 }

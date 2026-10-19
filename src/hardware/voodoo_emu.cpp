@@ -4035,7 +4035,7 @@ void voodoo_activate(void) {
 #if C_DIRECT3D
 			if (OUTPUT_DIRECT3D11_Active()) api = VOODOO_HW_API_DIRECT3D11;
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
 			if (OUTPUT_Metal_Active()) api = VOODOO_HW_API_METAL;
 #endif
 			break;

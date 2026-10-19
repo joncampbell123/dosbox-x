@@ -50,6 +50,18 @@ static inline BOOL IS_SNOW_LEOPARD_OR_LATER(_THIS)
 
 extern bool sdl1_hax_highdpi_enable;
 
+/* DOSBox-X: the CoreGraphics bitmaps of 2D video modes are ARGB in the host's byte order where
+   CoreGraphics has that (Mac OS X 10.4 and later), instead of always big endian ARGB (as on
+   PowerPC), which is backwards (BGRA as a 32-bit value) on Intel and ARM Macs. SDL_video.h tells
+   applications which it is (SDL_DOSBOX_X_QUARTZ_HOST_ORDER). */
+#if SDL_DOSBOX_X_QUARTZ_HOST_ORDER
+#define QZ_BITMAP_HOST_ORDER 1
+#define QZ_BITMAP_INFO (kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Host)
+#else
+#define QZ_BITMAP_HOST_ORDER 0
+#define QZ_BITMAP_INFO kCGImageAlphaNoneSkipFirst
+#endif
+
 static NSWindow *my_qz_window = nil;
 unsigned char wants_topmost = 0;
 
@@ -350,6 +362,10 @@ static void         QZ_DirectUpdate     (_THIS, int num_rects, SDL_Rect *rects);
 static void         QZ_UpdateRects      (_THIS, int num_rects, SDL_Rect *rects);
 static void         QZ_VideoQuit        (_THIS);
 
+static NSView*      QZ_CreateMetalView  (_THIS, NSRect frame);
+static void*        QZ_Metal_GetLayer   (_THIS);
+static void         QZ_Metal_GetDrawableSize (_THIS, int *w, int *h);
+
 static int  QZ_LockHWSurface(_THIS, SDL_Surface *surface);
 static void QZ_UnlockHWSurface(_THIS, SDL_Surface *surface);
 static int QZ_AllocHWSurface(_THIS, SDL_Surface *surface);
@@ -441,6 +457,9 @@ static SDL_VideoDevice* QZ_CreateDevice (int device_index)
     device->GL_MakeCurrent    = QZ_GL_MakeCurrent;
     device->GL_SwapBuffers    = QZ_GL_SwapBuffers;
     device->GL_LoadLibrary    = QZ_GL_LoadLibrary;
+
+    device->Metal_GetLayer        = QZ_Metal_GetLayer;
+    device->Metal_GetDrawableSize = QZ_Metal_GetDrawableSize;
 
     device->FreeWMCursor   = QZ_FreeWMCursor;
     device->CreateWMCursor = QZ_CreateWMCursor;
@@ -849,6 +868,7 @@ static void QZ_UnsetVideoMode (_THIS, BOOL to_desktop, BOOL save_gl)
             qz_window = nil;
             my_qz_window = nil;
             window_view = nil;
+            metal_layer = nil;
         }
         /* 
             Release the OpenGL context
@@ -902,6 +922,7 @@ static void QZ_UnsetVideoMode (_THIS, BOOL to_desktop, BOOL save_gl)
         my_qz_window = nil;
         qz_window = nil;
         window_view = nil;
+        metal_layer = nil;
 
         /* Release the OpenGL context */
         if ( mode_flags & SDL_OPENGL ) {
@@ -1148,6 +1169,22 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
         [ gl_context flushBuffer ];
 
         current->flags |= SDL_OPENGL;
+    } else if (flags & SDL_METAL) {  /* DOSBox-X: Metal, as in a window */
+        if ( !isLion ) {
+            SDL_SetError ("Metal is not available before Mac OS X 10.7");
+            goto ERR_DOUBLEBUF;
+        }
+        window_view = QZ_CreateMetalView (this, contentRect);
+        if (window_view == nil) {
+            goto ERR_DOUBLEBUF;
+        }
+        [ [ qz_window contentView ] addSubview:window_view ];
+        [ window_view release ];
+
+        /* Force this window to draw above _everything_. */
+        [ qz_window setLevel:CGShieldingWindowLevel() ];
+
+        current->flags |= SDL_METAL;
     } else if (isLion) {  /* For 2D, we build a CGBitmapContext */
         CGColorSpaceRef cgColorspace;
 
@@ -1165,7 +1202,7 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
         
         cg_context = CGBitmapContextCreate (current->pixels, current->w, current->h,
                         8, current->pitch, cgColorspace,
-                        kCGImageAlphaNoneSkipFirst);
+                        QZ_BITMAP_INFO);
         CGColorSpaceRelease (cgColorspace);
         
         current->flags |= SDL_SWSURFACE;
@@ -1275,7 +1312,7 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
         if (mode_flags & SDL_FULLSCREEN) {
             QZ_UnsetVideoMode (this, TRUE, save_gl);
         }
-        else if ((mode_flags ^ flags) & (SDL_NOFRAME|SDL_RESIZABLE|SDL_OPENGL)) {
+        else if ((mode_flags ^ flags) & (SDL_NOFRAME|SDL_RESIZABLE|SDL_OPENGL|SDL_METAL)) {
             QZ_UnsetVideoMode (this, TRUE, save_gl);
         }
     }
@@ -1366,8 +1403,23 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
             [ qz_window setFrameTopLeftPoint: current_pos ];
     }
 
+    /* DOSBox-X: for Metal, a subview backed by a CAMetalLayer, which SDL does not draw to */
+    if ( flags & SDL_METAL ) {
+
+        /* Only recreate the view if it doesn't already exist */
+        if (window_view == nil || metal_layer == nil) {
+            window_view = QZ_CreateMetalView (this, contentRect);
+            if (window_view == nil) {
+                return NULL;
+            }
+            [ [ qz_window contentView ] addSubview:window_view ];
+            [ window_view release ];
+            [ qz_window makeKeyAndOrderFront:nil ];
+        }
+        current->flags |= SDL_METAL;
+    }
     /* For OpenGL, we bind the context to a subview */
-    if ( flags & SDL_OPENGL ) {
+    else if ( flags & SDL_OPENGL ) {
 
         if ( ! save_gl ) {
             if ( ! QZ_SetupOpenGL (this, *bpp, flags) ) {
@@ -1416,7 +1468,7 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
         
         cg_context = CGBitmapContextCreate (current->pixels, current->w, current->h,
                         8, current->pitch, cgColorspace,
-                        kCGImageAlphaNoneSkipFirst);
+                        QZ_BITMAP_INFO);
         CGColorSpaceRelease (cgColorspace);
         
         current->flags |= SDL_SWSURFACE;
@@ -1508,11 +1560,28 @@ static SDL_Surface* QZ_SetVideoModeInternal (_THIS, SDL_Surface *current,
                 return NULL;
             case 32:   /* (8)-8-8-8 ARGB */
                 amask = 0x00000000;
-                if ( (!isLion) && (flags & SDL_FULLSCREEN) ) {
+#if QZ_BITMAP_HOST_ORDER
+                /* DOSBox-X: ARGB in the host's byte order (the usual 32bpp layout, BGRA in
+                   memory on Intel and ARM Macs): the CoreGraphics bitmap of 2D modes
+                   (QZ_BITMAP_INFO), the display's frame buffer for fullscreen before 10.7,
+                   and what the application draws into the layer of SDL_METAL modes
+                   (MTLPixelFormatBGRA8Unorm) */
+                rmask = 0x00FF0000;
+                gmask = 0x0000FF00;
+                bmask = 0x000000FF;
+#else
+                if ( flags & SDL_METAL ) {
+                    /* DOSBox-X: what the application draws into its Metal layer,
+                       MTLPixelFormatBGRA8Unorm (SDL does not draw it) */
+                    rmask = 0x00FF0000;
+                    gmask = 0x0000FF00;
+                    bmask = 0x000000FF;
+                } else if ( (!isLion) && (flags & SDL_FULLSCREEN) ) {
                     rmask = 0x00FF0000;
                     gmask = 0x0000FF00;
                     bmask = 0x000000FF;
                 } else {
+                    /* the CoreGraphics bitmap is XRGB in memory (big endian ARGB) */
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
                     rmask = 0x0000FF00;
                     gmask = 0x00FF0000;
@@ -1522,8 +1591,9 @@ static SDL_Surface* QZ_SetVideoModeInternal (_THIS, SDL_Surface *current,
                     gmask = 0x0000FF00;
                     bmask = 0x000000FF;
 #endif
-                    break;
                 }
+#endif
+                break;
         }
 
         if ( ! SDL_ReallocFormat (current, bpp,
@@ -1841,6 +1911,8 @@ void QZ_UpdateRectsOnDrawRect(/*TODO: NSRect from drawRect*/) {
 
 	if (this == NULL) return;
 	if (SDL_VideoSurface == NULL) return;
+	if (SDL_VideoSurface->flags & SDL_METAL) return;	/* DOSBox-X: not drawn by SDL */
+	if (cg_context == NULL) return;
 
     if (SDL_VideoSurface->flags & SDL_OPENGLBLIT) {
 	// TODO?
@@ -1886,6 +1958,52 @@ static void QZ_UpdateRects (_THIS, int numRects, SDL_Rect *rects)
 	[ [ qz_window contentView ] setNeedsDisplay:YES ];
 	[ qz_window displayIfNeeded ];
     }
+}
+
+/* DOSBox-X: a view for Metal rendering, backed by a CAMetalLayer. The class is looked up at run
+   time, so SDL builds without the Metal SDK and links without QuartzCore's Metal parts. */
+static NSView *QZ_CreateMetalView (_THIS, NSRect frame)
+{
+    Class layer_class = NSClassFromString (@"CAMetalLayer");
+    NSView *view;
+    id layer;
+
+    if (layer_class == nil) {
+        SDL_SetError ("Metal is not available (no CAMetalLayer)");
+        return nil;
+    }
+    layer = [ layer_class layer ];
+    if (layer == nil) {
+        SDL_SetError ("Could not create a CAMetalLayer");
+        return nil;
+    }
+
+    view = [ [ NSView alloc ] initWithFrame:frame ];
+    [ view setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable ];
+    /* a layer-hosting view: the layer is set before wantsLayer */
+    [ view setLayer:layer ];
+    [ view setWantsLayer:YES ];
+    metal_layer = layer;
+    return view;
+}
+
+static void* QZ_Metal_GetLayer (_THIS)
+{
+    return (void*) metal_layer;
+}
+
+static void QZ_Metal_GetDrawableSize (_THIS, int *w, int *h)
+{
+    NSRect r;
+
+    *w = *h = 0;
+    if (window_view == nil || metal_layer == nil)
+        return;
+    r = [ window_view bounds ];
+    if ( [ window_view respondsToSelector:@selector(convertRectToBacking:) ] )
+        r = [ window_view convertRectToBacking:r ];
+    *w = (int) r.size.width;
+    *h = (int) r.size.height;
 }
 
 static void QZ_VideoQuit (_THIS)

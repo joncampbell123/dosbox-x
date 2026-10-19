@@ -46,6 +46,14 @@
 # define C_VULKAN_OUTPUT 1
 #endif
 
+/* Metal output (macOS), for SDL2 builds and SDL1 builds with the in-tree SDL 1.x (vs/sdl)
+ * which adds Metal support. Stock SDL 1.x has none. */
+#if defined(MACOSX) && C_METAL && defined(C_SDL2) && !defined(C_SDL3)
+# define C_METAL_OUTPUT 1
+#elif defined(MACOSX) && C_METAL && !defined(C_SDL2) && C_SDL1_METAL
+# define C_METAL_OUTPUT 1
+#endif
+
 /* allow for OS-free builds where the MS-DOS emulation is disabled and
  * you have to provide your own boot disks to run MS-DOS or whatever you like. */
 #ifdef C_OSFREE

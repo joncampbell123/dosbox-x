@@ -1006,7 +1006,7 @@ static uint8_t * VGA_Draw_4BPP_Line_Double(Bitu vidstart, Bitu line) {
 	return VGA_Draw_4BPP_Line_Double_Common<MCH_TANDY,uint8_t>(TempLine,vidstart,line);
 }
 
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+#if MACOSX_SDL1_WEIRD_RGBA /* Mac OS X Intel builds can use a weird RGBA order (alpha in the low 8 bits), see render.h */
 static inline uint32_t guest_bgr_to_macosx_rgba(const uint32_t x) {
     /* guest: XRGB      X   R   G   B
      * host:  RGBX      B   G   R   X */
@@ -1029,7 +1029,7 @@ static uint8_t * VGA_Draw_Linear_Line_24_to_32(Bitu vidstart, Bitu /*line*/) {
      *          extra byte), then overwrites the extra byte with 0xFF to
      *          produce a valid RGBA 8:8:8:8 value with the original pixel's
      *          RGB plus alpha channel value of 0xFF. */
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+#if MACOSX_SDL1_WEIRD_RGBA /* Mac OS X Intel builds can use a weird RGBA order (alpha in the low 8 bits), see render.h */
     for (i=0;i < vga.draw.width;i++)
         ((uint32_t*)TempLine)[i] = guest_bgr_to_macosx_rgba(*((uint32_t*)(vga.draw.linear_base+offset+(i*3)))) | 0x000000FF;
 #else
@@ -2201,7 +2201,7 @@ static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * VGA_Draw_LIN32_Line_HWMouse_Base(Bitu vidstart, Bitu /*line*/) {
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+#if MACOSX_SDL1_WEIRD_RGBA /* Mac OS X Intel builds can use a weird RGBA order (alpha in the low 8 bits), see render.h */
     Bitu offset = vidstart & vga.draw.linear_mask;
     Bitu i;
 
@@ -6530,7 +6530,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         OUTPUT_DIRECT3D11_CheckSourceResolution();
     }
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
     if(sdl.desktop.type == SCREEN_METAL) {
         OUTPUT_Metal_CheckSourceResolution();
     }
@@ -7335,7 +7335,7 @@ void VGA_ActivateHardwareCursor(void) {
 			case M_LIN24:
 				VGA_DrawLine=VGA_Draw_Linear_Line_24_to_32;
 				break;
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+#if MACOSX_SDL1_WEIRD_RGBA /* Mac OS X Intel builds can use a weird RGBA order (alpha in the low 8 bits), see render.h */
 			case M_LIN32:
 				VGA_DrawLine=VGA_Draw_LIN32_Line_HWMouse;
 				break;

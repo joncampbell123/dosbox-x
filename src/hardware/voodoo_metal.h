@@ -22,10 +22,10 @@
 #include "dosbox.h"
 #include "voodoo_types.h"
 
-/* The 3dfx emulation rendered with Metal (voodoo_card=metal, with output=metal; macOS, SDL2 builds),
+/* The 3dfx emulation rendered with Metal (voodoo_card=metal or auto, with output=metal; macOS),
  * the same functions as the OpenGL one (voodoo_opengl.h). Without Metal, these do nothing. */
 
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
 
 bool voodoo_metal_init(voodoo_state *v);
 void voodoo_metal_leave(bool leavemode);

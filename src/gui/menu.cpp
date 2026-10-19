@@ -406,7 +406,7 @@ static const char *def_menu_video_output[] =
 #if C_GAMELINK
     "output_gamelink",
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
     "output_metal",
 #endif    
     "--",
@@ -3157,7 +3157,7 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
         glDisable(GL_SCISSOR_TEST);
         glDisable(GL_STENCIL_TEST);
         glDisable(GL_TEXTURE_2D);
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX)
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && (defined(C_SDL2) || MACOSX_SDL1_WEIRD_RGBA)
         if (color >= 0x1000000) color = ((color / 0x1000000) % 0x100) + ((color / 0x10000) % 0x100) * 0x100 + ((color / 0x100) % 0x100) * 0x10000;
 #endif
         glColor3ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF);
@@ -3486,7 +3486,7 @@ void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
         glMatrixMode (GL_TEXTURE);
         glLoadIdentity ();
         glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX)
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && (defined(C_SDL2) || MACOSX_SDL1_WEIRD_RGBA)
         if (color >= 0x1000000) color = ((color / 0x1000000) % 0x100) + ((color / 0x10000) % 0x100) * 0x100 + ((color / 0x100) % 0x100) * 0x10000;
 #endif
         glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);

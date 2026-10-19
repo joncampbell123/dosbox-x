@@ -110,7 +110,7 @@ extern bool                 MSG_Write(const char *, const char *);
 extern void                 LoadMessageFile(const char * fname);
 extern void                 GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
 void OUTPUT_Metal_Shutdown();
 void change_output(int);
 #endif
@@ -4061,7 +4061,7 @@ void RunCfgTool(Bitu val) {
         GFX_LosingFocus();
         sel = -1;
     }
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
     if(sdl.desktop.want_type == SCREEN_METAL){
         OUTPUT_Metal_Shutdown();
 #if defined(C_OPENGL)

@@ -165,8 +165,8 @@ static INLINE void ScalerAddLines( Bitu changed, Bitu count ) {
 	while (bsize--) *bdst++=*bsrc++;		\
 }
 
-#if !defined(C_SDL2) && defined(MACOSX)
-/* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order.
+#if MACOSX_SDL1_WEIRD_RGBA
+/* SDL1 builds can be subject to Mac OS X strange BGRA (alpha in low byte) order (see render.h).
    The code in the #else case happens to work because most OSes put the alpha byte in the upper 32 bits,
    while on Mac OS X the blue channel is up there. Integer overflow will trash the blue channel in that
    case, without this alternate code. */

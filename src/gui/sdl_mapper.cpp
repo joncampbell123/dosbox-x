@@ -338,7 +338,7 @@ void                                            WindowsTaskbarResetPreviewRegion
 
 #if defined(MACOSX)
 void                        macosx_reload_touchbar(void);
-#if defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
 void OUTPUT_Metal_Shutdown();
 void change_output(int);
 #endif
@@ -5565,7 +5565,7 @@ void MAPPER_RunInternal() {
     WindowsTaskbarUpdatePreviewRegion();
 #endif
 
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
     if(sdl.desktop.want_type == SCREEN_METAL){
         OUTPUT_Metal_Shutdown();
 #if defined(C_OPENGL)

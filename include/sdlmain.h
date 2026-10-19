@@ -1,4 +1,5 @@
 
+#include "dosbox.h"	/* (C_METAL_OUTPUT, C_VULKAN_OUTPUT: which screen types there are) */
 #include "menu.h"
 #include "mouse.h"
 #include "video.h"
@@ -27,7 +28,7 @@ enum SCREEN_TYPES {
 #if C_DIRECT3D
     ,SCREEN_DIRECT3D11
 #endif
-#if defined(MACOSX) && defined(C_SDL2) && C_METAL
+#if C_METAL_OUTPUT
     , SCREEN_METAL
 #endif
 #if C_VULKAN_OUTPUT
