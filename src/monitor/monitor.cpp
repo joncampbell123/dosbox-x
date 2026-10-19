@@ -22,7 +22,6 @@
 #if C_MONITOR
 
 #include "control.h"
-#include "../dos/drives.h"
 
 static std::string CONFIG_USAGE_MONITOR= {
 "The DOSBox-X socket pipeline configurator\n"\
