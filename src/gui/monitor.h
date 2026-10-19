@@ -19,15 +19,28 @@
 #ifndef _MONITOR_CONSOLE_
 #define _MONITOR_CONSOLE_
 
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <atomic>
 #include <cctype>
-#if defined(C_SDL2_NET) && C_SDL2_NET
+#include <iomanip>
+//#if defined(C_SDL2_NET) && C_SDL2_NET
+#include <SDL2/SDL.h>
 #include <SDL2/SDL_net.h>
-#elif defined(C_SDL_NET) && C_SDL_NET
+#include <SDL2/SDL_thread.h>
+//#elif defined(C_SDL_NET) && C_SDL_NET
+#include "SDL.h"
 #include "SDL_net.h"
-#endif
+#include "SDL_thread.h"
+//#endif
+
+#include "dosbox.h"
+#include "config.h"
+#include "control.h"
+#include "logging.h"
+#include "../dos/drives.h"
+#include "../debug/debug.h"
 
 #define INPUT_LENGTH 1024
 
@@ -45,112 +58,86 @@ extern void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
 #if (C_DYNREC)
 extern void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
 #endif
-
-extern "C" class CONFIG : Program{};
+extern void DoKillSwitch( void );
 
 typedef std::vector< std::string > dinfo_t;
+typedef std::vector< std::string > cmd_tokens_t;
 typedef std::vector< dinfo_t > ddesc_t;
 typedef void (*p_monFunc)(void*);
 typedef struct {
 	std::string	command;
 	p_monFunc	exec;
 	std::string description;
-//	void			*data;
-	
 } CommandExec;
 typedef std::vector< CommandExec > CommandList;
 
-class Monitor{
-
+class Monitor {
 	Monitor( const Monitor& )= delete;
 	Monitor& operator=( const Monitor& )= delete;
 
-	dinfo_t			_userInput;
+	struct	Configurator {/* {{{ */
+		bool	getProperty( const cmd_tokens_t& );
+		bool	setProperty( const cmd_tokens_t& );
+		bool	forceSetProperty( const cmd_tokens_t& );
+	};/* }}} */
+
+	struct	Handler {/* {{{ */
+		bool	changeRemovableMedia( const cmd_tokens_t& );
+		bool	configure( const cmd_tokens_t& );
+	};/* }}} */
+
+	struct	CommandLine {/* {{{ */
+		cmd_tokens_t	processCommandLine( const std::string );
+		void				getInfo();
+	};/* }}} */
+
 	TCPsocket		_server,_client;
 	IPaddress		_hostIP;
 	SDL_Thread		*_pThread;
-	std::string		_message,_input;
 
 	std::atomic< bool >	_isRunning;
 
-	/* 
-	 * Considerations:
-	 *
-	 * Outside some of the socket only functions it might be an idea to sent any
-	 * undefined user requests to the CONFIG program (src/programs.cpp) to give
-	 * the user more control over their VM.
-	 */
 	const std::string	_prompt;
-	const CommandList	_commands= {
-		{ "close",		CB_CloseServer,	"close socket." },
-		{ "kill",		CB_Quit,				"kill DOSBox-X instance."},
-		{ "exit",		CB_ExitClient,		"exit to terminal." },
-		{ "list_cd",	CB_ListIDE,			"display available CD drives." },
+	const CommandList	_commands= {/* {{{ */
+		{ "kill",		CB_Quit,				"kill DOSBox-X instance ungracefully."},
 		{ "info",		CB_GetInfo,			"show current system information." },
-		{ "change",		CB_ChangeIDE,		"change CD, format: change <drive_letter> <image_filepath>." },
-		{ "core",		CB_CPUVar,			"set core: auto, normal, dynamic, full. format: core <coretype>." },
-		{ "cputype",	CB_CPUVar,			"set cputype. see: .conf for list of types. Format: cputype <cpu>." },
-		{ "cycles",		CB_CPUVar,			"set cycles value."  },
-		{ "fpu",			CB_CPUVar,			"set fpu. Format: fpu <fputype>." },
-		{ "turbo",		CB_CPUVar,			"turbo?" },
-		{ "memsize",	CB_Mem,				"sets memsize. Format: memsize <value>." },
+		{ "config",		CB_Config,			"get and set machine values." },
+		{ "change",		CB_ChangeMedia,	"change CD, format: change <drive_letter> <image_filepath>." },
 		{ "help",		CB_Help,				"list available commands." },
-	};
+	};/* }}} */
 
 	/* Callbacks are paired with simple string */
-
-	static void CB_CloseServer( void *data ){
-		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.onServerClose();
-		LOG_MSG( "MONITOR server successfully closed." );
-	}
-
-	static void CB_Quit( void *data ){
-		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.onServerClose();
+	static void CB_Quit( void *data ){/* {{{ */
+		cmd_tokens_t& cmdline= *reinterpret_cast< cmd_tokens_t* >( data );
 		DoKillSwitch();
-	}
+	}/* }}} */
 
-	static void CB_ExitClient( void *data ) {
-		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.closeClientSocket();
-		LOG_MSG( "MONITOR client successfully disconnected." );
-	}
+	static void CB_GetInfo( void *data ) {/* {{{ */
+		cmd_tokens_t& cmdline= *reinterpret_cast< cmd_tokens_t* >( data );
+		CommandLine cli;
+		cli.getInfo();
+	}/* }}} */
 
-	static void CB_ChangeIDE( void *data ) {	
-		LOG_MSG( "MONITOR attempting to change CD." );
-		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.changeIDE();
-	}
+	static void CB_Config( void *data ) {/* {{{ */
+		cmd_tokens_t& cmdline= *reinterpret_cast< cmd_tokens_t* >( data );
 
-	static void CB_ListIDE( void *data ) {
-		LOG_MSG( "MONITOR searching for attached IDE-CD." );
-		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.listIDE();
-	}
+		Handler the_hand;
+		the_hand.configure( cmdline );
+	}/* }}} */
 
-	static void CB_GetInfo( void *data ) {
-		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.getInfo();
-	}
+	static void CB_ChangeMedia( void *data ) {	/* {{{ */
+		cmd_tokens_t& cmdline= *reinterpret_cast< cmd_tokens_t* >( data );
+		Handler the_hand;
+		the_hand.changeRemovableMedia( cmdline );
+	}/* }}} */
 
-	static void CB_CPUVar( void *data ) {     
-		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.setCPUVar();
-	}
-
-	static void CB_Mem( void *data ) {     
-		Monitor& m= *reinterpret_cast< Monitor* >( data );
-		m.setMemsize();
-	}
-
-	static void CB_Help( void *data ) {     
-		Monitor& m= *reinterpret_cast< Monitor* >( data );
-
-		if( m._userInput.size() >0 ) {
+	static void CB_Help( void *data ) {     /* {{{ */
+		cmd_tokens_t& cmdline= *reinterpret_cast< cmd_tokens_t* >( data );
+		Monitor& m= Monitor::OpenMonitor();
+		if( cmdline.size() >1 ) {
 			auto command= std::find_if( m._commands.begin(),m._commands.end(),
 				[ & ]( const CommandExec &line ) {
-					return line.command ==m._userInput.at( 1 ); } );
+					return line.command ==cmdline.at( 1 ); } );
 
 			if( m._commands.end()==command ) m.messageClient( "Unrecognized command.\n" );
 			else m.messageClient( command->description+"\n" );
@@ -163,135 +150,25 @@ class Monitor{
 				help.erase( help.size()-1 );
 				help.at( help.size()-1 )= '\n';
 
-				m.messageClient( help );
+				m.messageClient( help+"\nType \'help\' <command> for more information.\n" );
 		}
-	}
+	}/* }}} */
 
 	/* Callback for threading. */
-	static int CB_Listen( void *tData ) {
+	static int CB_Listen( void *tData ) {/* {{{ */
 		auto& m= *reinterpret_cast< Monitor* >( tData );
 		
 		m.updateServer();
 
 		return EXIT_SUCCESS;
-	}
+	}/* }}} */
 
 	/* Main program functions */
-	void	prompt( TCPsocket tClient ){
+	void	prompt( TCPsocket tClient ){/* {{{ */
 		SDLNet_TCP_Send( tClient,_prompt.c_str(),_prompt.length() );
-	}
-
-	std::vector< std::string >	processCLI( std::string &tBuffer ){
-		std::vector< std::string > vCommands ={};
-		std::istringstream info_stream( tBuffer );
-		std::string sstr_token;
-
-		while( info_stream >>std::quoted( sstr_token ) ) {
-			vCommands.push_back( sstr_token );
-		}
-		return vCommands;
-	}
-
-	void	setCPUVar() {
-		Section* sec=control->GetSection( "cpu" );
-		if( sec ) {
-			std::string userReqFull= _userInput.at( 0 )+"=";
-
-			for( int i{ 1 }; i <_userInput.size(); ++i ){
-				userReqFull.append( _userInput.at( i )+" " );
-			}
-
-			userReqFull.erase( userReqFull.size()-1 );
-
-			#if (C_DYNAMIC_X86) || (C_DYNREC)
-			if( EXIT_SUCCESS ==userReqFull.compare(0,12,"core=dynamic" ) ) {
-				#if (C_DYNAMIC_X86)
-				CPU_Core_Dyn_X86_Cache_Init( true );
-				#endif
-				#if (C_DYNREC)
-				CPU_Core_Dynrec_Cache_Init( true );
-				#endif
-				#if (C_DYNAMIC_X86) && (C_DYNREC)
-				if( save_dynamic_rec )
-					sec->HandleInputline( std::string( "core=dynamic_rec" ) );
-				else
-					sec->HandleInputline( userReqFull );
-				#endif
-				return;
-			}
-			#endif
-			sec->HandleInputline( userReqFull );
-		}
-	}
+	}/* }}} */
 	
-	void	setMemsize() {
-		Section* sec=control->GetSection( "dosbox" );
-		if( sec ) {
-			if( !_userInput.at( 1 ).empty() ) {
-				const std::string &userReq= _userInput.at( 1 );
-				auto digitCheck= std::find_if( userReq.begin(),userReq.end(),
-					[ & ]( const char& c ){
-						return std::isdigit( c ) ==false; } );
-
-				if( userReq.end()!=digitCheck ) return;
-				sec->HandleInputline( std::string( "memsize="+userReq ) );
-				messageClient( "RAM:\t" +sec->GetPropValue( "memsize" )+"Mb\n" );
-			}
-		}
-	}
-
-	void	messageClient( std::string tMessage ) {
-		SDLNet_TCP_Send( _client,tMessage.c_str(),tMessage.size() );
-	}
-
-	void	getInfo() {
-		Section* sec=control->GetSection( "cpu" );
-		
-		ddesc_t info= {};
-		info.emplace_back( dinfo_t{ std::string( "CPU:" ),sec->GetPropValue( "cputype" ) } );
-		info.emplace_back( dinfo_t{ std::string( "Core:" ),sec->GetPropValue( "core" ) } );
-		info.emplace_back( dinfo_t{ std::string( "Cycles:" ),sec->GetPropValue( "cycles" ) } );
-
-		messageClient( "\nSystem Info:\n" );
-		for( auto i:info ) {
-			messageClient( i.at( 0 )+"\t\t"+i.at( 1 )+"\n" );
-		}
-		sec= control->GetSection( "dosbox" );
-		messageClient( "\nMemory:\nRAM:\t\t" +sec->GetPropValue( "memsize" )+"Mb\n" );
-		
-		messageClient( "\nDrive(s):\n" );
-		ddesc_t drive_list= {};
-		std::string sstr_token;
-
-		for( int i= 0; i <26; ++i )
-			if( Drives[ i ] ) {
-				dinfo_t drive= {};
-				drive.push_back( std::string( 1,char( 'A'+i ) ) );
-
-				std::string drive_info( Drives[ i ]->GetInfo() );
-				std::size_t dir_pos= drive_info.find_first_of( "/\\" );
-				
-				if( dir_pos !=std::string::npos ) {
-					drive.push_back( drive_info.substr( 0,dir_pos ) );
-					drive.push_back( drive_info.substr( dir_pos ) );
-				}
-				else
-					drive.push_back( drive_info );
-					
-				drive_list.push_back( drive );
-			}
-
-		std::string message= {};
-		for( auto drv:drive_list ) {
-			messageClient(  drv.at( 0 )+":\\\t" );
-			if( drv.size() >2 ) message+= drv.at( 2 )+"\t\t";
-			message+= "("+drv.at( 1 )+")\n";
-			messageClient( message );
-		}
-		messageClient( "\n" );
-	}
-
-	bool	startServer( int tPort ) {
+	bool	startServer( int tPort ) {/* {{{ */
 		if( int retval= SDLNet_Init() )
 			LOG_MSG( "SDLNet returned: %d\n",retval );
 
@@ -305,10 +182,21 @@ class Monitor{
 
 		_server= SDLNet_TCP_Open( &_hostIP );
 
-		return true;
-	}
+		/* This is likely not the best place to put this "fix"
+         but it sorts an issue where DOSBox-X would crash
+			if selecting the dynamic core if DOSBox-X was 
+			started with any other. */
+		#if (C_DYNAMIC_X86)
+		CPU_Core_Dyn_X86_Cache_Init( true );
+		#endif
+		#if (C_DYNREC)
+		CPU_Core_Dynrec_Cache_Init( true );
+		#endif
 
-	TCPsocket	connectClient() {
+		return true;
+	}/* }}} */
+
+	TCPsocket	connectClient() {/* {{{ */
 		TCPsocket client= nullptr;
 		
 		while( nullptr ==client ){
@@ -323,111 +211,23 @@ class Monitor{
 			}
 			SDL_Delay( 50 );
 		}
-
 		return client;
-	}
+	}/* }}} */
 
-	void	closeSocket( TCPsocket& tSocket ) {
+	void	closeSocket( TCPsocket& tSocket ) {/* {{{ */
 		SDLNet_TCP_Close( tSocket );
 		tSocket= nullptr;
-	}
+	}/* }}} */
 
-	void	closeClientSocket() {
+	void	closeClientSocket() {/* {{{ */
 		if( _client ) closeSocket( _client );
-	}
+	}/* }}} */
 
-	void	formatIDEMessageAndSend( dinfo_t &tDriveString ) {
-			std::string info= std::string( "\t" ) + tDriveString.at( 0 ) + ":\\\t(" + tDriveString.at( 1 ) + ")\n";
-			LOG_MSG( "%s",info.c_str() );
-			SDLNet_TCP_Send( _client,info.c_str(),info.size() );	
-	}
-
-	/* Look for all available CD-IDE drives. */
-	ddesc_t	lookupIDE() {
-		std::vector< int > dds={};
-
-		Get_IDECD_drives( dds );
-		ddesc_t drives_available= {};
-		
-		for( auto n:dds ){
-			std::string drive_info=Drives[ n ]->GetInfo();
-				
-			dinfo_t vInfo= {};
-			std::istringstream info_stream( drive_info );
-			std::string info_token;
-
-			while( info_stream >> info_token ) {
-				vInfo.push_back( info_token );
-			}
-
-			drives_available.emplace_back( dinfo_t{ std::string( 1,char( 'A'+n ) ),vInfo.at( 1 ) } );
-		}
-		
-		std::sort( drives_available.begin(),drives_available.end(),
-				[]( const dinfo_t& a,const dinfo_t& b ){
-			return a[0] < b[0];} );
-
-		return drives_available;
-	}
-	
-	/* Format and print available drives to log and send to client. */
-	void	listIDE() {
-		ddesc_t drives= lookupIDE();
-
-		_message= "No drive(s) mounted.\n";
-
-		if( drives.empty() ) {
-			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
-			return;
-		}
-
-		_message= "Available CD IDE drives:\n";
-		SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
-
-		for( auto drive:drives ) {
-			formatIDEMessageAndSend( drive );
-		}
-	}
-
-	void	changeIDE() {		
-		if( _userInput.size() <3 ) {
-			_message= "Format: change <drive_letter> <image_path>\n";
-			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
-			return;
-		}
-
-		ddesc_t drives= lookupIDE();			
-
-		if( drives.empty() ) {
-			_message=  "No drive(s) mounted.\n";
-			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
-			return;
-		}
-
-		_userInput.at( 1 )= std::toupper( _userInput.at( 1 ).at( 0 ) );
-					
-		std::string drivePath= _userInput.at( 1 );
-		std::string imagePath= _userInput.at( 2 );
-
-		auto iDrive= std::find_if( drives.begin(),drives.end(),
-			[ & ]( const std::vector< std::string >& drive ){		
-				return drive[0] ==drivePath; } );
-
-		if( iDrive ==drives.end() ) {
-			_message= "Drive is unavailable.\n";
-			SDLNet_TCP_Send( _client,_message.c_str(),_message.size() );
-			return;
-		}
-		dinfo_t drive_info= *iDrive;
-
-		runImgmountISO( *drivePath.c_str(),std::vector< std::string >{ imagePath },true );
-		formatIDEMessageAndSend( drive_info );
-	}
-
-	void	updateServer( ) {
+	void	updateServer( ) {/* {{{ */
 		while( _isRunning ) {
 			if( nullptr ==_client ) {
 				_client= connectClient();
+				messageClient( std::string( "DOSBox-X " )+VERSION+" monitor - type \'help\' for a list of commands\n" );
 			}
 
 			if( _client )
@@ -447,25 +247,23 @@ class Monitor{
 				_client= nullptr;
 				continue;
 			} else {
-				std::string inputRecv{ buffer };
-				_input= inputRecv;
-				_userInput= processCLI( inputRecv );
+				CommandLine  cli;
+				cmd_tokens_t user_input= cli.processCommandLine( buffer );
 
-				if( _userInput.empty() ){ continue; }
+				if( user_input.empty() ){ continue; }
 
-				std::string command= _userInput.at( 0 );
 				auto processCommand= std::find_if( _commands.begin(),_commands.end(),
 					[ & ]( const CommandExec& item ){	
-							return item.command == command;});
+							return item.command == user_input.at( 0 );});
 				
 				if( processCommand !=_commands.end() )
-					processCommand->exec( this );	
+					processCommand->exec( &user_input );
 			}	
 		}
 		onServerClose();
-	}
+	}/* }}} */
 
-	void	onServerClose() {
+	void	onServerClose() {/* {{{ */
 		if( _isRunning )
 			_isRunning= false;
 
@@ -483,24 +281,28 @@ class Monitor{
 		}
 	
 		SDLNet_Quit();
-	}
+	}/* }}} */
 
 	/* CTOR */
 	Monitor():
-	_userInput( 8,"\0" ),
    _server( nullptr ),_client( nullptr ),
 	_hostIP( IPaddress{ 0,0 } ),_pThread( nullptr ),
-	_message( std::string( 128,'\0' ) ),
 	_isRunning( false ),_prompt( "(dosbox-x) " ) {
+		/* Empty */
 	}
 
 	public:
 
-	~Monitor() {
+	~Monitor() {/* {{{ */
 		onServerClose();
-	}
+	}/* }}} */
 
-	static	Monitor& OpenMonitor( int tPort) {
+	static void	messageClient( std::string tMessage ) {/* {{{ */
+		Monitor &m= OpenMonitor( );
+		SDLNet_TCP_Send( m._client,tMessage.c_str(),tMessage.size() );
+	}/* }}} */
+
+	static	Monitor& OpenMonitor( int tPort=4444 ) {/* {{{ */
 		static Monitor m;
 
 		if( false ==m._isRunning ) {
@@ -519,7 +321,7 @@ class Monitor{
 			}
 		}
 		return m;
-	}
+	}/* }}} */
 };
 
 #endif  // _MONITOR_CONSOLE_
