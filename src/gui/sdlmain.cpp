@@ -167,7 +167,7 @@ char* revert_escape_newlines(const char* aMessage);
 #include "display2.cpp"
 #endif
 
-#if defined (C_SDL_NET) && C_SDL_NET || defined (C_SDL2_NET) && C_SDL2_NET
+#if C_MONITOR
 #include "../monitor/monitor.h"
 #endif
 
@@ -10207,7 +10207,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             section = static_cast<Section_prop *>(control->GetSection("dosbox"));
             assert(section != NULL);
 
-#if defined(C_SDL2_NET) || defined(C_SDL_NET) 
+#if C_MONITOR 
 				bool mon_enable = section->Get_bool("enable monitor");
 				if (mon_enable) {
 					int mon_port= section->Get_int("monitor port");
