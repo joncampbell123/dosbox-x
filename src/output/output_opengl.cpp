@@ -311,10 +311,14 @@ retry:
     * the first swap buffer we do is misplaced according to the
     * previous window size.
     *
-    * NTS: This seems to have been fixed, which is why this is
-    *      commented out. I guess not calling GFX_SetSize()
-    *      with a 0x0 widthxheight helps! */
-    //    sdl.gfx_force_redraw_count = 2;
+    * NTS: This is still the case with SDL 1.x: right after SDL_SetVideoMode()
+    *      resizes the window, Mesa can still draw into a buffer of the old
+    *      size, so the first frame (the BIOS screen at startup, which does not
+    *      change after that) is shown shifted up by the difference. Draw the
+    *      next frames again, by then the buffer has the new size. SDL2 is fine. */
+#if !defined(C_SDL2)
+    sdl.gfx_force_redraw_count = 2;
+#endif
     UpdateWindowDimensions();
     GFX_LogSDLState();
     ApplyPreventCap();
