@@ -26,7 +26,7 @@
 #include <atomic>
 #include <cctype>
 #include <iomanip>
-#if defined(C_SDL2_NET) || C_SDL2_NET
+#if defined(C_SDL2_NET) && C_SDL2_NET
 #include <SDL2/SDL_net.h>
 #else
 #include "SDL_net.h"
