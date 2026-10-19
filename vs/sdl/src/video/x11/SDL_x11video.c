@@ -51,6 +51,8 @@
 #include "SDL_x11image_c.h"
 #include "SDL_x11yuv_c.h"
 #include "SDL_x11gl_c.h"
+#include "SDL_x11vulkan_c.h"
+#include "../SDL_vulkan_c.h"
 #include "SDL_x11gamma_c.h"
 #include "../blank_cursor.h"
 
@@ -195,6 +197,8 @@ static SDL_VideoDevice *X11_CreateDevice(int devindex)
 		device->GL_MakeCurrent = X11_GL_MakeCurrent;
 		device->GL_SwapBuffers = X11_GL_SwapBuffers;
 #endif
+		device->Vulkan_GetInstanceExtensions = X11_Vulkan_GetInstanceExtensions;
+		device->Vulkan_CreateSurface = X11_Vulkan_CreateSurface;
 		device->SetCaption = X11_SetCaption;
 		device->SetIcon = X11_SetIcon;
 		device->IconifyWindow = X11_IconifyWindow;
@@ -779,9 +783,14 @@ static int X11_VideoInit(_THIS, SDL_PixelFormat *vformat)
 
 static void X11_DestroyWindow(_THIS, SDL_Surface *screen)
 {
+	/* Vulkan surfaces for the window must go first */
+	if ( ! SDL_windowid && SDL_Window ) {
+		SDL_Vulkan_NotifyWindowDestroy();
+	}
+
 	/* Clean up OpenGL */
 	if ( screen ) {
-		screen->flags &= ~(SDL_OPENGL|SDL_OPENGLBLIT);
+		screen->flags &= ~(SDL_OPENGL|SDL_OPENGLBLIT|SDL_VULKAN);
 	}
 	X11_GL_Shutdown(this);
 
@@ -1318,7 +1327,8 @@ SDL_Surface *X11_SetVideoMode(_THIS, SDL_Surface *current,
 
 	/* Set up the new mode framebuffer */
 	if ( ((current->w != width) || (current->h != height)) ||
-             ((saved_flags&SDL_OPENGL) != (flags&SDL_OPENGL)) ) {
+             ((saved_flags&SDL_OPENGL) != (flags&SDL_OPENGL)) ||
+             ((saved_flags&SDL_VULKAN) != (flags&SDL_VULKAN)) ) {
 		current->w = width;
 		current->h = height;
 		current->pitch = SDL_CalculatePitch(current);
@@ -1329,8 +1339,8 @@ SDL_Surface *X11_SetVideoMode(_THIS, SDL_Surface *current,
 	}
 
 	/* Clear these flags and set them only if they are in the new set. */
-	current->flags &= ~(SDL_RESIZABLE|SDL_NOFRAME|SDL_HAX_NOREFRESH);
-	current->flags |= (flags&(SDL_RESIZABLE|SDL_NOFRAME|SDL_HAX_NOREFRESH));
+	current->flags &= ~(SDL_RESIZABLE|SDL_NOFRAME|SDL_HAX_NOREFRESH|SDL_VULKAN);
+	current->flags |= (flags&(SDL_RESIZABLE|SDL_NOFRAME|SDL_HAX_NOREFRESH|SDL_VULKAN));
 
   done:
 	/* Release the event thread */

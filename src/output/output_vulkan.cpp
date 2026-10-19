@@ -23,7 +23,10 @@
 
 /* Vulkan is loaded at runtime through SDL (SDL_Vulkan_LoadLibrary), so the
  * executable does not link against, or require, the Vulkan loader. If it is
- * missing, the output falls back to surface. */
+ * missing, the output falls back to surface.
+ *
+ * SDL1 builds need the in-tree SDL 1.2 (vs/sdl), which has the SDL_VULKAN
+ * video mode flag and an SDL_vulkan.h modeled after SDL2's. */
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
 #include "SDL_vulkan.h"
@@ -36,6 +39,7 @@ extern Bitu userResizeWindowHeight;
 extern Bitu currentWindowWidth;
 extern Bitu currentWindowHeight;
 
+bool setSizeButNotResize();
 int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
@@ -251,7 +255,7 @@ static struct {
     VkSampler           sampler_linear = VK_NULL_HANDLE;
 
     /* per window */
-    SDL_Window*         surface_window = NULL;
+    void*               surface_window = NULL; // the window the surface was made for
     VkSurfaceKHR        surface = VK_NULL_HANDLE;
     VkSwapchainKHR      swapchain = VK_NULL_HANDLE;
     VkFormat            swapchain_format = VK_FORMAT_UNDEFINED;
@@ -286,6 +290,74 @@ static bool VK_Check(VkResult res, const char *what) {
     return true;
 }
 
+/* the window helpers below hide the differences between SDL1 and SDL2 */
+static void* VK_CurrentWindow(void) {
+#if defined(C_SDL2)
+    return sdl.window;
+#else
+    /* SDL1 has a single window. It tells us before destroying it (see
+     * VK_WindowDestroyed) so a surface is good for as long as it exists */
+    static int sdl1_window;
+    return SDL_GetVideoSurface() != NULL ? &sdl1_window : NULL;
+#endif
+}
+
+static bool VK_WindowIsVulkan(void) {
+#if defined(C_SDL2)
+    return sdl.window != NULL && (SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_VULKAN);
+#else
+    SDL_Surface *video = SDL_GetVideoSurface();
+    return video != NULL && (video->flags & SDL_VULKAN);
+#endif
+}
+
+/* in window coordinates, which is what sdl.clip and the menus use */
+static void VK_GetWindowSize(int &w, int &h) {
+#if defined(C_SDL2)
+    SDL_GetWindowSize(sdl.window, &w, &h);
+#else
+    SDL_Surface *video = SDL_GetVideoSurface();
+    w = video ? video->w : 0;
+    h = video ? video->h : 0;
+#endif
+}
+
+/* in pixels, may differ from the window size on high DPI displays */
+static void VK_GetDrawableSize(int &w, int &h) {
+#if defined(C_SDL2)
+    SDL_Vulkan_GetDrawableSize(sdl.window, &w, &h);
+#else
+    SDL_Vulkan_GetDrawableSize(&w, &h);
+#endif
+}
+
+#if !defined(C_SDL2)
+/* SDL1: SDL_SetVideoMode() may recreate the window */
+static void SDLCALL VK_WindowDestroyed(void *userdata) {
+    (void)userdata;
+    OUTPUT_VULKAN_ReleaseWindow();
+}
+
+/* SDL1: (re)size the window, or make it a Vulkan window */
+static bool VK_SetVideoMode(int w, int h) {
+    Uint32 flags = SDL_VULKAN;
+    if (sdl.desktop.fullscreen)
+        flags |= SDL_FULLSCREEN;
+    else
+        flags |= SDL_RESIZABLE;
+#if defined(SDL_DOSBOX_X_SPECIAL)
+    if (setSizeButNotResize()) flags |= SDL_HAX_NORESIZEWINDOW;
+#endif
+    SDL_Surface *video = SDL_SetVideoMode(w, h, 0, flags);
+    if (video == NULL) {
+        LOG_MSG("VULKAN: SDL_SetVideoMode failed: %s", SDL_GetError());
+        return false;
+    }
+    sdl.deferred_resize = false;
+    return true;
+}
+#endif
+
 static bool VK_LoadLibrary(void) {
     if (vk.library_loaded) return true;
 
@@ -305,22 +377,32 @@ static bool VK_LoadLibrary(void) {
     VK_GLOBAL_FUNCS
 #undef VKF
 
+#if !defined(C_SDL2)
+    SDL_Vulkan_SetWindowDestroyCallback(VK_WindowDestroyed, NULL);
+#endif
+
     vk.library_loaded = true;
     return true;
 }
 
-static bool VK_CreateInstance(SDL_Window *window) {
+static bool VK_CreateInstance(void) {
     unsigned int count = 0;
-    if (!SDL_Vulkan_GetInstanceExtensions(window, &count, NULL)) {
+#if defined(C_SDL2)
+#define VK_GETEXTENSIONS(c,n) SDL_Vulkan_GetInstanceExtensions(sdl.window, c, n)
+#else
+#define VK_GETEXTENSIONS(c,n) SDL_Vulkan_GetInstanceExtensions(c, n)
+#endif
+    if (!VK_GETEXTENSIONS(&count, NULL)) {
         LOG_MSG("VULKAN: SDL_Vulkan_GetInstanceExtensions failed: %s", SDL_GetError());
         return false;
     }
     vector<const char*> extensions(count);
-    if (!SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data())) {
+    if (!VK_GETEXTENSIONS(&count, extensions.data())) {
         LOG_MSG("VULKAN: SDL_Vulkan_GetInstanceExtensions failed: %s", SDL_GetError());
         return false;
     }
     extensions.resize(count);
+#undef VK_GETEXTENSIONS
 
     VkInstanceCreateFlags flags = 0;
 #ifdef VK_KHR_portability_enumeration
@@ -806,7 +888,7 @@ static bool VK_CreateSwapchain(void) {
 
     VkExtent2D extent = caps.currentExtent;
     int draw_w = 0, draw_h = 0;
-    SDL_Vulkan_GetDrawableSize(sdl.window, &draw_w, &draw_h);
+    VK_GetDrawableSize(draw_w, draw_h);
     if (extent.width == 0xFFFFFFFFu) {
         extent.width = (uint32_t)max(draw_w, 1);
         extent.height = (uint32_t)max(draw_h, 1);
@@ -923,34 +1005,31 @@ void OUTPUT_VULKAN_ReleaseWindow() {
     vk.swapchain = VK_NULL_HANDLE;
     vk.surface = VK_NULL_HANDLE;
     vk.surface_window = NULL;
-
-    /* the overlay is only meaningful for the window it was made for */
-    if (vk.overlay_surface != NULL) {
-        if (sdl.surface == vk.overlay_surface) sdl.surface = NULL;
-        SDL_FreeSurface(vk.overlay_surface);
-        vk.overlay_surface = NULL;
-    }
 }
 
-/* make sure there is a Vulkan surface for sdl.window, creating the instance
+/* make sure there is a Vulkan surface for the window, creating the instance
  * and device the first time around */
 static bool VK_AttachWindow(void) {
-    if (sdl.window == NULL) return false;
-    if (!(SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_VULKAN)) {
+    if (VK_CurrentWindow() == NULL) return false;
+    if (!VK_WindowIsVulkan()) {
         LOG_MSG("VULKAN: window was not created for Vulkan");
         return false;
     }
-    if (vk.surface != VK_NULL_HANDLE && vk.surface_window == sdl.window) return true;
+    if (vk.surface != VK_NULL_HANDLE && vk.surface_window == VK_CurrentWindow()) return true;
     if (vk.surface != VK_NULL_HANDLE) OUTPUT_VULKAN_ReleaseWindow();
 
-    if (vk.instance == VK_NULL_HANDLE && !VK_CreateInstance(sdl.window)) return false;
+    if (vk.instance == VK_NULL_HANDLE && !VK_CreateInstance()) return false;
 
+#if defined(C_SDL2)
     if (!SDL_Vulkan_CreateSurface(sdl.window, vk.instance, &vk.surface)) {
+#else
+    if (!SDL_Vulkan_CreateSurface(vk.instance, &vk.surface)) {
+#endif
         LOG_MSG("VULKAN: SDL_Vulkan_CreateSurface failed: %s", SDL_GetError());
         vk.surface = VK_NULL_HANDLE;
         return false;
     }
-    vk.surface_window = sdl.window;
+    vk.surface_window = VK_CurrentWindow();
 
     if (vk.device == VK_NULL_HANDLE) {
         if (!VK_CreateDevice() || !VK_CreateDeviceObjects()) return false;
@@ -1027,10 +1106,10 @@ static void VK_DrawRect(VulkanTexture &t, VkPipeline pipeline, const SDL_Rect &r
  * set, the rows of the CPU frame buffer listed in changedLines (or all of
  * them, if NULL) are sent to the GPU first. */
 static void VK_Present(bool upload, const uint16_t *changedLines) {
-    if (vk.device == VK_NULL_HANDLE || vk.surface == VK_NULL_HANDLE || vk.surface_window != sdl.window) return;
+    if (vk.device == VK_NULL_HANDLE || vk.surface == VK_NULL_HANDLE || vk.surface_window != VK_CurrentWindow()) return;
 
     int dw = 0, dh = 0;
-    SDL_Vulkan_GetDrawableSize(sdl.window, &dw, &dh);
+    VK_GetDrawableSize(dw, dh);
     if (vk.swapchain == VK_NULL_HANDLE || vk.swapchain_dirty ||
         dw != vk.swapchain_drawable_w || dh != vk.swapchain_drawable_h) {
         if (!VK_CreateSwapchain()) return;
@@ -1111,7 +1190,7 @@ static void VK_Present(bool upload, const uint16_t *changedLines) {
     vkCmdSetScissor(vk.cmd, 0, 1, &scissor);
 
     int win_w = 0, win_h = 0;
-    SDL_GetWindowSize(sdl.window, &win_w, &win_h);
+    VK_GetWindowSize(win_w, win_h);
     if (vk.overlay_surface != NULL) {
         /* everything is laid out in the coordinates of the surface sdl.clip was computed for */
         win_w = vk.overlay_surface->w;
@@ -1123,7 +1202,10 @@ static void VK_Present(bool upload, const uint16_t *changedLines) {
             VK_DrawRect(frame, vk.pipeline_opaque, sdl.clip, win_w, win_h);
         }
         if (overlay.initialized) {
-            SDL_Rect all = { 0, 0, win_w, win_h };
+            SDL_Rect all;
+            all.x = all.y = 0;
+            all.w = win_w;
+            all.h = win_h;
             VK_BindTexture(overlay, vk.sampler_nearest);
             VK_DrawRect(overlay, vk.pipeline_blend, all, win_w, win_h);
         }
@@ -1176,13 +1258,23 @@ static bool VK_SetupOverlay(int w, int h) {
             if (sdl.surface == vk.overlay_surface) sdl.surface = NULL;
             SDL_FreeSurface(vk.overlay_surface);
         }
+#if defined(C_SDL2)
         vk.overlay_surface = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ARGB8888);
+#else
+        vk.overlay_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+#endif
         if (vk.overlay_surface == NULL) {
             LOG_MSG("VULKAN: Unable to create overlay surface: %s", SDL_GetError());
             return false;
         }
     }
     SDL_FillRect(vk.overlay_surface, NULL, 0);
+#if !defined(C_SDL2)
+    /* SDL1 code looks at sdl.surface for the window's flags */
+    SDL_Surface *video = SDL_GetVideoSurface();
+    vk.overlay_surface->flags &= ~(SDL_RESIZABLE|SDL_FULLSCREEN);
+    if (video) vk.overlay_surface->flags |= video->flags & (SDL_RESIZABLE|SDL_FULLSCREEN);
+#endif
     sdl.surface = vk.overlay_surface;
     vk.overlay_dirty = true;
     return true;
@@ -1195,15 +1287,21 @@ void OUTPUT_VULKAN_Select()
     sdl.desktop.want_type = SCREEN_VULKAN;
     render.aspectOffload = true;
 
+#if defined(C_SDL2)
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(true);
+#endif
 
     /* load the library first, SDL can not create a Vulkan window without it */
     if (VK_LoadLibrary()) {
+#if defined(C_SDL2)
         sdl.window = GFX_SetSDLWindowMode(640,400, SCREEN_VULKAN);
+#else
+        VK_SetVideoMode(640, 400);
+#endif
         if (VK_AttachWindow()) {
             int w = 0, h = 0;
-            SDL_GetWindowSize(sdl.window, &w, &h);
+            VK_GetWindowSize(w, h);
             if (VK_SetupOverlay(w, h)) {
                 ApplyPreventCap();
                 return;
@@ -1309,6 +1407,7 @@ static bool SetupWindowScaledVulkan(void)
         (unsigned int)sdl.clip.w,
         (unsigned int)sdl.clip.h);
 
+#if defined(C_SDL2)
     sdl.window = GFX_SetSDLWindowMode(windowWidth, windowHeight, SCREEN_VULKAN);
     if (sdl.window == NULL && sdl.desktop.fullscreen) {
         LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
@@ -1317,6 +1416,15 @@ static bool SetupWindowScaledVulkan(void)
         sdl.window = GFX_SetSDLWindowMode(windowWidth, windowHeight, SCREEN_VULKAN);
     }
     return sdl.window != NULL;
+#else
+    if (!VK_SetVideoMode(windowWidth, windowHeight) && sdl.desktop.fullscreen) {
+        LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
+        sdl.desktop.fullscreen = false;
+        GFX_CaptureMouse();
+        return VK_SetVideoMode(windowWidth, windowHeight);
+    }
+    return VK_WindowIsVulkan();
+#endif
 }
 
 Bitu OUTPUT_VULKAN_SetSize()
@@ -1329,7 +1437,7 @@ Bitu OUTPUT_VULKAN_SetSize()
     vkDeviceWaitIdle(vk.device);
 
     int win_w = 0, win_h = 0;
-    SDL_GetWindowSize(sdl.window, &win_w, &win_h);
+    VK_GetWindowSize(win_w, win_h);
     if (win_w <= 0 || win_h <= 0 || !VK_SetupOverlay(win_w, win_h)) return 0;
 
     uint32_t texWidth = sdl.draw.width;
@@ -1447,6 +1555,14 @@ void OUTPUT_VULKAN_Shutdown()
     if (vk.device == VK_NULL_HANDLE) return;
 
     OUTPUT_VULKAN_ReleaseWindow();
+#if !defined(C_SDL2)
+    SDL_Vulkan_SetWindowDestroyCallback(NULL, NULL);
+#endif
+    if (vk.overlay_surface != NULL) {
+        if (sdl.surface == vk.overlay_surface) sdl.surface = NULL;
+        SDL_FreeSurface(vk.overlay_surface);
+        vk.overlay_surface = NULL;
+    }
     VK_DestroyTexture(vk.frame);
     VK_DestroyTexture(vk.overlay);
     VK_DestroyRenderPass();

@@ -28,6 +28,7 @@
 #include "SDL_blit.h"
 #include "SDL_pixels_c.h"
 #include "SDL_cursor_c.h"
+#include "SDL_vulkan_c.h"
 #include "../events/SDL_sysevents.h"
 #include "../events/SDL_events_c.h"
 
@@ -611,6 +612,7 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 	int video_h;
 	int video_bpp;
 	int is_opengl;
+	int is_vulkan;
 	SDL_GrabMode saved_grab;
 
 	#ifdef WIN32
@@ -626,6 +628,17 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 		}
 	}
 	this = video = current_video;
+
+	/* DOSBox-X: Vulkan windows need support from the video driver */
+	is_vulkan = ( ( flags & SDL_VULKAN ) == SDL_VULKAN );
+	if ( is_vulkan ) {
+		if ( video->Vulkan_CreateSurface == NULL ) {
+			SDL_SetError("Vulkan not available with the %s video driver", video->name);
+			return(NULL);
+		}
+		/* SDL does not draw to the window at all */
+		flags &= ~(SDL_OPENGL|SDL_OPENGLBLIT|SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_HWPALETTE);
+	}
 
 	/* Default to the current width and height */
 	if ( width == 0 ) {
@@ -715,6 +728,10 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 		mode = NULL;
 		SDL_SetError("OpenGL not available");
 	    }
+	    else if ( is_vulkan && !(mode->flags & SDL_VULKAN) ) {
+		mode = NULL;
+		SDL_SetError("Vulkan not available");
+	    }
 	}
 	/*
 	 * rcg11292000
@@ -729,7 +746,7 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 	 */
 	SDL_VideoSurface = (mode != NULL) ? mode : prev_mode;
 
-	if ( (mode != NULL) && (!is_opengl) ) {
+	if ( (mode != NULL) && (!is_opengl) && (!is_vulkan) ) {
 		/* Sanity check */
 		if ( (mode->w < width) || (mode->h < height) ) {
 			SDL_SetError("Video mode smaller than requested");
@@ -912,7 +929,7 @@ SDL_Surface * SDL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 		2.  We need a hardware palette and didn't get one.
 		3.  We need a software surface and got a hardware surface.
 	*/
-	if ( !(SDL_VideoSurface->flags & SDL_OPENGL) &&
+	if ( !(SDL_VideoSurface->flags & (SDL_OPENGL|SDL_VULKAN)) &&
 	     (
 	     (  !(flags&SDL_ANYFORMAT) &&
 			(SDL_VideoSurface->format->BitsPerPixel != bpp)) ||
@@ -1067,6 +1084,10 @@ void SDL_UpdateRects (SDL_Surface *screen, int numrects, SDL_Rect *rects)
 		SDL_SetError("OpenGL active, use SDL_GL_SwapBuffers()");
 		return;
 	}
+	if ( screen->flags & SDL_VULKAN ) {
+		SDL_SetError("Vulkan active, SDL does not draw to the window");
+		return;
+	}
 	if ( screen == SDL_ShadowSurface ) {
 		/* Blit the shadow surface using saved mapping */
 		SDL_Palette *pal = screen->format->palette;
@@ -1128,6 +1149,10 @@ void SDL_UpdateRects (SDL_Surface *screen, int numrects, SDL_Rect *rects)
 int SDL_Flip(SDL_Surface *screen)
 {
 	SDL_VideoDevice *video = current_video;
+	if ( screen->flags & SDL_VULKAN ) {
+		SDL_SetError("Vulkan active, SDL does not draw to the window");
+		return(-1);
+	}
 	/* Copy the shadow surface to the video surface */
 	if ( screen == SDL_ShadowSurface ) {
 		SDL_Rect rect;
@@ -1384,6 +1409,7 @@ void SDL_VideoQuit (void)
 		SDL_WM_GrabInputOff();
 
 		/* Clean up the system video */
+		SDL_Vulkan_NotifyWindowDestroy();
 		video->VideoQuit(this);
 
 		/* Free any lingering surfaces */

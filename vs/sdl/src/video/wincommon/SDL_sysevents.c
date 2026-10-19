@@ -694,8 +694,13 @@ this->hidden->hiresFix, &x, &y);
 			hdc = BeginPaint(SDL_Window, &ps);
 			if (  !SDL1_hax_inhibit_WM_PAINT &&
 				   current_video->screen &&
-			     !(current_video->screen->flags & SDL_OPENGL) ) {
+			     !(current_video->screen->flags & (SDL_OPENGL|SDL_VULKAN)) ) {
 				WIN_WinPAINT(current_video, hdc);
+			}
+			/* DOSBox-X: the application draws Vulkan windows */
+			if ( current_video->screen &&
+			    (current_video->screen->flags & SDL_VULKAN) ) {
+				SDL_PrivateExpose();
 			}
 			EndPaint(SDL_Window, &ps);
 		}

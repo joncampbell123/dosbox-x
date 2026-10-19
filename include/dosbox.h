@@ -38,8 +38,11 @@
 # define C_SDL2 1
 #endif
 
-/* Vulkan output is only for SDL2 builds (SDL1 has no Vulkan support) */
+/* Vulkan output, for SDL2 builds and SDL1 builds with the in-tree SDL 1.x (vs/sdl)
+ * which adds Vulkan support. Stock SDL 1.x has none. */
 #if C_VULKAN && defined(C_SDL2) && !defined(C_SDL3)
+# define C_VULKAN_OUTPUT 1
+#elif C_VULKAN && !defined(C_SDL2) && C_SDL1_VULKAN
 # define C_VULKAN_OUTPUT 1
 #endif
 

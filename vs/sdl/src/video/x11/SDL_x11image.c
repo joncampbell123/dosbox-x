@@ -185,7 +185,7 @@ int X11_ResizeImage(_THIS, SDL_Surface *screen, Uint32 flags)
 	int retval;
 
 	X11_DestroyImage(this, screen);
-        if ( flags & SDL_OPENGL ) {  /* No image when using GL */
+        if ( flags & (SDL_OPENGL|SDL_VULKAN) ) {  /* No image when using GL or Vulkan */
             this->UpdateRects = NULL;
             retval = 0;
         } else {

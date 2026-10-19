@@ -731,6 +731,12 @@ AC_SUBST(VULKAN_CFLAGS)
 AC_SUBST(VULKAN_LIBS)
 AM_CONDITIONAL([C_VULKAN], [test "x$have_vulkan" = "xyes"])
 
+dnl SDL 1.x has no Vulkan support, except for our in-tree copy (vs/sdl) which adds SDL_vulkan.h
+AH_TEMPLATE(C_SDL1_VULKAN,[Define to 1 if SDL 1.x has Vulkan support (SDL_vulkan.h, from the in-tree SDL 1.x)])
+if test x$have_vulkan = xyes -a "x$SDL_STRING" = "xSDL1"; then
+  AC_CHECK_HEADER(SDL_vulkan.h, [AC_DEFINE(C_SDL1_VULKAN,1)], [AC_MSG_WARN([SDL 1.x without Vulkan support, use the in-tree SDL 1.x in vs/sdl for Vulkan output])], [#include "SDL.h"])
+fi
+
 # FIXME: Arrggh we need the WHOLE PATH
 pwd=`realpath $srcdir`
 if [[ -z "$pwd" ]]; then pwd=`pwd`; fi

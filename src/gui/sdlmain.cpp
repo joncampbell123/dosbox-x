@@ -1453,11 +1453,7 @@ void BlankDisplay(void) {
     }
     else {
         SDL_FillRect(sdl.surface, nullptr, 0);
-#if defined(C_SDL2)
         GFX_UpdateWindowSurface();
-#else
-        SDL_Flip(sdl.surface);
-#endif
     }
 }
 
@@ -2026,6 +2022,20 @@ static SDL_Window * GFX_SetSDLOpenGLWindow(uint16_t width, uint16_t height) {
     return GFX_SetSDLWindowMode(width, height, SCREEN_OPENGL);
 }
 # endif
+#else
+void GFX_UpdateWindowSurface(void) {
+#if C_VULKAN_OUTPUT
+    if (OUTPUT_VULKAN_UpdateOverlay()) return;
+#endif
+    SDL_Flip(sdl.surface);
+}
+
+void GFX_UpdateWindowSurfaceRects(const SDL_Rect *rects, int numrects) {
+#if C_VULKAN_OUTPUT
+    if (OUTPUT_VULKAN_UpdateOverlay()) return;
+#endif
+    SDL_UpdateRects(sdl.surface, numrects, (SDL_Rect*)rects);
+}
 #endif
 
 #if !defined(C_SDL2)
@@ -2245,11 +2255,7 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
     menu.display_list.DrawDisplayList(menu,/*updateScreen*/false);
 
     if (!OpenGL_using()) {
-#if defined(C_SDL2)
         GFX_UpdateWindowSurfaceRects( &menu.menuBox, 1 );
-#else
-        SDL_UpdateRects(sdl.surface, 1, &menu.menuBox);
-#endif
     }
 }
 
@@ -4408,13 +4414,18 @@ static void GUI_StartUp() {
     if (SDL_BITSPERPIXEL(sdl.desktop.pixelFormat) == 24)
         LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
 #else
-    if (!initgl) {
+    if (!initgl
+#if C_VULKAN_OUTPUT
+        && sdl.desktop.want_type != SCREEN_VULKAN /* OUTPUT_VULKAN_Select() made the window already */
+#endif
+        ) {
         sdl.surface=SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
         if (sdl.surface == NULL) E_Exit("Could not initialize video: %s",SDL_GetError());
     }
     sdl.deferred_resize = false;
     sdl.must_redraw_all = true;
-    sdl.desktop.bpp=sdl.surface->format->BitsPerPixel;
+    /* the video surface's format, sdl.surface is not the video surface with Vulkan output */
+    sdl.desktop.bpp=SDL_GetVideoSurface()->format->BitsPerPixel;
     if (sdl.desktop.bpp==24)
         LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
 #endif
@@ -4984,11 +4995,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
 void MenuFullScreenRedraw(void) {
-#if defined(C_SDL2)
     GFX_UpdateWindowSurface();
-#else
-    SDL_Flip(sdl.surface);
-#endif
 }
 
 static struct {
@@ -5163,11 +5170,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     uprect.y = mainMenu.menuBox.y + mainMenu.menuBox.h;
                     uprect.w = mainMenu.menuBox.w;
                     uprect.h = DOSBoxMenu::dropshadowY;
-#if defined(C_SDL2)
                     GFX_UpdateWindowSurfaceRects(&uprect, 1);
-#else
-                    SDL_UpdateRects( sdl.surface, 1, &uprect );
-#endif
 
                     /* show the menu */
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
@@ -6957,7 +6960,7 @@ void SDL_SetupConfigSection() {
     Pint->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
-    Pstring->Set_help("What video system to use for output (surface = software (SDL_Surface); openglnb = OpenGL nearest; openglpp = OpenGL perfect; vulkan = Vulkan (SDL2 builds); ttf = TrueType font output).");
+    Pstring->Set_help("What video system to use for output (surface = software (SDL_Surface); openglnb = OpenGL nearest; openglpp = OpenGL perfect; vulkan = Vulkan; ttf = TrueType font output).");
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
 

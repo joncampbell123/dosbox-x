@@ -48,6 +48,7 @@ void (*SDL1_hax_INITMENU_cb)() = NULL;
 
 #ifdef SDL_VIDEO_DRIVER_WINDIB
 #include "SDL_dibvideo.h"
+#include "../SDL_vulkan_c.h"
 #endif
 
 #ifndef WM_APP
@@ -1249,6 +1250,7 @@ void DIB_DestroyWindow(_THIS)
 	if ( SDL_windowid ) {
 		SetWindowLongPtr(SDL_Window, GWLP_WNDPROC, (LONG_PTR)userWindowProc);
 	} else {
+		SDL_Vulkan_NotifyWindowDestroy();
 		DestroyWindow(SDL_Window);
 	}
 

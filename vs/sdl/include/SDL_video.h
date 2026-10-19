@@ -149,6 +149,7 @@ typedef struct SDL_Surface {
 #define SDL_NOFRAME     0x00000020	/**< No window caption or edge frame */
 #define SDL_HAX_NOREFRESH 0x08000000/**< DOSBox-X specific: Disable auto-redraw of the window when repainting is needed */
 #define SDL_HAX_NORESIZEWINDOW 0x04000000/**< DOSBox-X specific: Call is in response to SDL_SetVideoMode and therefore do not resize the window again */
+#define SDL_VULKAN      0x02000000      /**< DOSBox-X specific: Create a window for Vulkan rendering, see SDL_vulkan.h */
 /*@}*/
 
 /** Used internally (read-only) */

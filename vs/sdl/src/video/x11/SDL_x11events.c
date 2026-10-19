@@ -901,8 +901,8 @@ printf("ConfigureNotify! (resize: %dx%d)\n", xevent.xconfigure.width, xevent.xco
 				                  xevent.xconfigure.height);
 			}
 		    } else {
-			/* OpenGL windows need to know about the change */
-			if ( SDL_VideoSurface->flags & SDL_OPENGL ) {
+			/* OpenGL and Vulkan windows need to know about the change */
+			if ( SDL_VideoSurface->flags & (SDL_OPENGL|SDL_VULKAN) ) {
 				SDL_PrivateExpose();
 			}
 		    }

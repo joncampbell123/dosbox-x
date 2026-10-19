@@ -28,6 +28,7 @@
 #endif
 #include "SDL_lowvideo.h"
 #include "SDL_wingl_c.h"
+#include "../SDL_vulkan_c.h"
 
 #if SDL_VIDEO_OPENGL
 #define DEFAULT_GL_DRIVER_PATH "OPENGL32.DLL"
@@ -53,6 +54,7 @@ static int WIN_GL_ResetWindow(_THIS)
 		RECT rect = { 0, 0, 0, 0 };
 		style = GetWindowLong(SDL_Window, GWL_STYLE);
 		GetWindowRect(SDL_Window, &rect);
+		SDL_Vulkan_NotifyWindowDestroy();
 		DestroyWindow(SDL_Window);
 		WIN_FlushMessageQueue();
 

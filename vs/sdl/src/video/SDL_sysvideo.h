@@ -27,6 +27,7 @@
 #include "SDL_mouse.h"
 #define SDL_PROTOTYPES_ONLY
 #include "SDL_syswm.h"
+#include "SDL_vulkan.h"
 #undef SDL_PROTOTYPES_ONLY
 
 /* This file prototypes the video driver implementation.
@@ -181,6 +182,15 @@ struct SDL_VideoDevice {
 
 	/* Swap the current buffers in double buffer mode. */
 	void (*GL_SwapBuffers)(_THIS);
+
+	/* * * */
+	/* Vulkan support (DOSBox-X), for video modes set with SDL_VULKAN */
+
+	/* Get the instance extensions needed for Vulkan_CreateSurface() */
+	int (*Vulkan_GetInstanceExtensions)(_THIS, unsigned int *count, const char **names);
+
+	/* Create a Vulkan surface for the window */
+	int (*Vulkan_CreateSurface)(_THIS, VkInstance instance, VkSurfaceKHR *surface);
 
   	/* OpenGL functions for SDL_OPENGLBLIT */
 #if SDL_VIDEO_OPENGL

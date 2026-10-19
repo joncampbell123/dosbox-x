@@ -46,6 +46,7 @@ extern HWND	ParentWindowHWND;
 #include "../wincommon/SDL_sysmouse_c.h"
 #include "SDL_dibevents_c.h"
 #include "../wincommon/SDL_wingl_c.h"
+#include "../wincommon/SDL_winvulkan_c.h"
 
 #ifdef _WIN32_WCE
 
@@ -212,6 +213,10 @@ static SDL_VideoDevice *DIB_CreateDevice(int devindex)
 	device->GL_GetAttribute = WIN_GL_GetAttribute;
 	device->GL_MakeCurrent = WIN_GL_MakeCurrent;
 	device->GL_SwapBuffers = WIN_GL_SwapBuffers;
+#endif
+#if SDL_WIN32_VULKAN
+	device->Vulkan_GetInstanceExtensions = WIN_Vulkan_GetInstanceExtensions;
+	device->Vulkan_CreateSurface = WIN_Vulkan_CreateSurface;
 #endif
 	device->SetCaption = WIN_SetWMCaption;
 	device->SetIcon = WIN_SetWMIcon;
@@ -741,7 +746,7 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 	if ( SDL_Window &&
 	     ((current->flags & ~SDL_ANYFORMAT) == (flags & ~SDL_ANYFORMAT)) &&
 	     (current->format->BitsPerPixel == bpp) &&
-	     (flags & SDL_OPENGL) && 
+	     (flags & (SDL_OPENGL|SDL_VULKAN)) &&
 	     !(flags & SDL_FULLSCREEN) ) {  /* probably not safe for fs */
 		current->w = width;
 		current->h = height;
@@ -979,8 +984,9 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 	/* Delete the old bitmap if necessary */
 	if ( screen_bmp != NULL ) {
 		DeleteObject(screen_bmp);
+		screen_bmp = NULL;
 	}
-	if ( ! (flags & SDL_OPENGL) ) {
+	if ( ! (flags & (SDL_OPENGL|SDL_VULKAN)) ) {
 		BOOL is16bitmode = (video->format->BytesPerPixel == 2);
 
 		/* Suss out the bitmap info header */
@@ -1069,6 +1075,12 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 			return(NULL);
 		}
 		video->flags |= SDL_OPENGL;
+	}
+
+	/* Vulkan: SDL does not draw to the window, the application presents to it */
+	if ( flags & SDL_VULKAN ) {
+		video->flags |= SDL_VULKAN;
+		video->pixels = NULL;
 	}
 
 #ifdef ENABLE_IM_EVENT
@@ -1462,6 +1474,10 @@ static void DIB_PaletteChanged(_THIS, HWND window)
 static void DIB_WinPAINT(_THIS, HDC hdc)
 {
 	HDC mdc;
+
+	if ( screen_bmp == NULL ) {
+		return;
+	}
 
 	if ( screen_pal ) {
 		SelectPalette(hdc, screen_pal, FALSE);

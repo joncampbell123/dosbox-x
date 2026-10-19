@@ -3632,10 +3632,8 @@ void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
 
 #if defined(C_SDL2)
         if (!Direct3D_using() || !skipdraw)
-        GFX_UpdateWindowSurfaceRects(&uprect, 1);
-#else
-        SDL_UpdateRects( sdl.surface, 1, &uprect );
 #endif
+        GFX_UpdateWindowSurfaceRects(&uprect, 1);
     }
 }
 
@@ -3648,11 +3646,7 @@ void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
         uprect.h += DOSBoxMenu::dropshadowY;
         SDL_rect_cliptoscreen(uprect);
 
-#if defined(C_SDL2)
         GFX_UpdateWindowSurfaceRects(&uprect, 1);
-#else
-        SDL_UpdateRects( sdl.surface, 1, &uprect );
-#endif
     }
 }
 
