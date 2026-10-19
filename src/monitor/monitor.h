@@ -19,7 +19,6 @@
 #ifndef _MONITOR_CONSOLE_H
 #define _MONITOR_CONSOLE_H
 
-
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -34,6 +33,8 @@
 
 #include "dosbox.h"
 #include "logging.h"
+
+#if C_MONITOR
 
 #define INPUT_LENGTH 1024
 
@@ -56,13 +57,6 @@ extern void DoKillSwitch( void );
 typedef std::vector< std::string > dinfo_t;
 typedef std::vector< std::string > cmd_tokens_t;
 typedef std::vector< dinfo_t > ddesc_t;
-typedef void (*p_monFunc)(void*);
-typedef struct {
-	std::string	command;
-	p_monFunc	exec;
-	std::string description;
-} CommandExec;
-typedef std::vector< CommandExec > CommandList;
 
 class Monitor {
 	Monitor( const Monitor& )= delete;
@@ -71,12 +65,14 @@ class Monitor {
 	struct	Configurator {/* {{{ */
 		bool	getProperty( const cmd_tokens_t& );
 		bool	setProperty( const cmd_tokens_t& );
-		bool	forceSetProperty( const cmd_tokens_t& );
 	};/* }}} */
 
-	struct	Handler {/* {{{ */
+	struct	Programs {/* {{{ */
+		bool	quitMainInstance( const cmd_tokens_t& );
 		bool	changeRemovableMedia( const cmd_tokens_t& );
 		bool	configure( const cmd_tokens_t& );
+		bool	displayInfo( const cmd_tokens_t& );
+		bool	helpMe( const cmd_tokens_t& );
 	};/* }}} */
 
 	struct	CommandLine {/* {{{ */
@@ -84,68 +80,23 @@ class Monitor {
 		void				getInfo();
 	};/* }}} */
 
+	const std::string	_prompt;
+
 	TCPsocket		_server,_client;
 	IPaddress		_hostIP;
 	SDL_Thread		*_pThread;
+	Programs			_run;
 
 	std::atomic< bool >	_isRunning;
 
-	const std::string	_prompt;
-	const CommandList	_commands= {/* {{{ */
-		{ "kill",		CB_Quit,				"kill DOSBox-X instance ungracefully."},
-		{ "info",		CB_GetInfo,			"show current system information." },
-		{ "config",		CB_Config,			"get and set machine values." },
-		{ "change",		CB_ChangeMedia,	"change CD, format: change <drive_letter> <image_filepath>." },
-		{ "help",		CB_Help,				"list available commands." },
-	};/* }}} */
-
-	/* Callbacks are paired with simple string */
-	static void CB_Quit( void *data ){/* {{{ */
-		cmd_tokens_t& cmdline= *reinterpret_cast< cmd_tokens_t* >( data );
-		DoKillSwitch();
-	}/* }}} */
-
-	static void CB_GetInfo( void *data ) {/* {{{ */
-		cmd_tokens_t& cmdline= *reinterpret_cast< cmd_tokens_t* >( data );
-		CommandLine cli;
-		cli.getInfo();
-	}/* }}} */
-
-	static void CB_Config( void *data ) {/* {{{ */
-		cmd_tokens_t& cmdline= *reinterpret_cast< cmd_tokens_t* >( data );
-
-		Handler the_hand;
-		the_hand.configure( cmdline );
-	}/* }}} */
-
-	static void CB_ChangeMedia( void *data ) {	/* {{{ */
-		cmd_tokens_t& cmdline= *reinterpret_cast< cmd_tokens_t* >( data );
-		Handler the_hand;
-		the_hand.changeRemovableMedia( cmdline );
-	}/* }}} */
-
-	static void CB_Help( void *data ) {     /* {{{ */
-		cmd_tokens_t& cmdline= *reinterpret_cast< cmd_tokens_t* >( data );
-		Monitor& m= Monitor::OpenMonitor();
-		if( cmdline.size() >1 ) {
-			auto command= std::find_if( m._commands.begin(),m._commands.end(),
-				[ & ]( const CommandExec &line ) {
-					return line.command ==cmdline.at( 1 ); } );
-
-			if( m._commands.end()==command ) m.messageClient( "Unrecognized command.\n" );
-			else m.messageClient( command->description+"\n" );
-
-		} else {
-				std::string help= "Commands: ";
-				for( auto cmd:m._commands )
-					help+= cmd.command+", ";
-
-				help.erase( help.size()-1 );
-				help.at( help.size()-1 )= '\n';
-
-				m.messageClient( help+"\nType \'help\' <command> for more information.\n" );
-		}
-	}/* }}} */
+	typedef bool ( Monitor::Programs::*fn_prog )( const cmd_tokens_t& );
+	typedef struct {
+		std::string	command;
+		std::string description;
+		fn_prog		exec;
+	} CommandExec;
+	typedef std::vector< CommandExec > CommandList;
+	const CommandList	*_commands;
 
 	/* Callback for threading. */
 	static int CB_Listen( void *tData ) {/* {{{ */
@@ -245,15 +196,31 @@ class Monitor {
 
 				if( user_input.empty() ){ continue; }
 
-				auto processCommand= std::find_if( _commands.begin(),_commands.end(),
+				auto processCommand= std::find_if( _commands->begin(),_commands->end(),
 					[ & ]( const CommandExec& item ){	
 							return item.command == user_input.at( 0 );});
-				
-				if( processCommand !=_commands.end() )
-					processCommand->exec( &user_input );
+
+				if( processCommand !=_commands->end() )
+					( _run.*( processCommand->exec ) )( user_input );
 			}	
 		}
 		onServerClose();
+	}/* }}} */
+
+	void	initCommands() {/* {{{ */
+		bool ( Monitor::Programs::*fn_quit )( const cmd_tokens_t& )= &Monitor::Programs::quitMainInstance;
+		bool ( Monitor::Programs::*fn_showInfo )( const cmd_tokens_t& )= &Monitor::Programs::displayInfo;
+		bool ( Monitor::Programs::*fn_changeCd )( const cmd_tokens_t& )= &Monitor::Programs::changeRemovableMedia;
+		bool ( Monitor::Programs::*fn_conf )( const cmd_tokens_t& )= &Monitor::Programs::configure;
+		bool ( Monitor::Programs::*fn_help )( const cmd_tokens_t& )= &Monitor::Programs::helpMe;
+		
+		_commands= new CommandList{
+			{ "kill",		"kill DOSBox-X instance ungracefully.\n",fn_quit },
+			{ "info",		"show current system information.",fn_showInfo },
+			{ "config",		"get and set machine values." ,fn_conf },
+			{ "change",		"change CD, format: change <drive_letter> <image_filepath>.",fn_changeCd },
+			{ "help",		"list available commands.",fn_help },
+		};
 	}/* }}} */
 
 	void	onServerClose() {/* {{{ */
@@ -263,6 +230,7 @@ class Monitor {
 		if( _client ) closeSocket( _client );
 		if( _server ) closeSocket( _server ); 
 
+		if( _commands ){ _commands=nullptr; delete _commands;  };
 		if( _pThread ){
 			
 			#if defined(C_SDL_NET) && C_SDL_NET
@@ -277,12 +245,13 @@ class Monitor {
 	}/* }}} */
 
 	/* CTOR */
-	Monitor():
+	Monitor():/* {{{ */
+	_prompt( "(dosbox-x) " ),
 	_server( nullptr ),_client( nullptr ),
 	_hostIP( IPaddress{ 0,0 } ),_pThread( nullptr ),
-	_isRunning( false ),_prompt( "(dosbox-x) " ) {
-		/* Empty */
-	}
+	_run(),_isRunning( false ) {
+		initCommands();
+	}/* }}} */
 
 	public:
 
@@ -317,4 +286,5 @@ class Monitor {
 	}/* }}} */
 };
 
-#endif  // _MONITOR_CONSOLE_H
+#endif // C_MONITOR
+#endif // _MONITOR_CONSOLE_H
