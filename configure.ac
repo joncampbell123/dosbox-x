@@ -1250,6 +1250,7 @@ AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
 AH_TEMPLATE(C_SDL2_NET,[Indicate whether SDL2_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
+AH_TEMPLATE(C_MONITOR,[Define to 1 to enable TCP Monitor support, requires SDL_net])
 
 if test x$disable_sdl_net = xyes ; then
   AC_MSG_WARN([SDL_net is disabled in parameters])
@@ -1259,17 +1260,19 @@ elif test "x$SDL_STRING" = "xSDL2" &&
   AC_DEFINE(C_SDL2_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
+  AC_DEFINE(C_MONITOR,1)
   LIBS="$LIBS -lSDL2_net $SDLNETLIB"
-  AC_MSG_NOTICE([Using SDL2_net (SDL2): internal modem and IPX enabled])
+  AC_MSG_NOTICE([Using SDL2_net (SDL2): internal modem, IPX, and TCP socket enabled])
 elif test x$have_sdl_net_h = xyes &&
      test x$have_sdl_net_lib = xyes ; then
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
+  AC_DEFINE(C_MONITOR,1)
   LIBS="$LIBS -lSDL_net $SDLNETLIB"
-  AC_MSG_NOTICE([Using SDL_net: internal modem and IPX enabled])
+  AC_MSG_NOTICE([Using SDL_net: internal modem, IPX, and TCP socket enabled])
 else
-  AC_MSG_WARN([Can't find SDL_net or SDL2_net, internal modem and IPX disabled])
+  AC_MSG_WARN([Can't find SDL_net or SDL2_net, internal modem, IPX, and TCP socket disabled])
 fi
 
 dnl FEATURE: Whether to support libz, and enable snapshots
