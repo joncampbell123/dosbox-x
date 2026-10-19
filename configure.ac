@@ -145,7 +145,9 @@ AC_MSG_RESULT([$COMMIT_HASH])
 
 GITBRANCH="${GITHUB_REF_NAME:-`git rev-parse --abbrev-ref HEAD 2>/dev/null`}"
 OSFREE=0
+AI_VIBES=0
 AH_TEMPLATE(C_OSFREE,[Define to 1 to make an OSFREE version])
+AH_TEMPLATE(C_AI_VIBES,[Define to 1 to mark as AI version])
 
 # automated builds on GitHub are failing to detect main-osfree branch for osfree?
 # try looking at vs/config_package.h
@@ -153,6 +155,12 @@ if test "x$GITBRANCH" = "xmain-osfree"; then
     AC_DEFINE([C_OSFREE],[1],[Make an OSFREE build])
 elif grep -q "#define OSFREE" vs/config_package.h 2>/dev/null; then
     AC_DEFINE([C_OSFREE],[1],[Make an OSFREE build])
+fi
+
+if test "x$GITBRANCH" = "xmain-ai"; then
+    AC_DEFINE([C_AI_VIBES],[1],[Make an AI vibe-coded build])
+elif grep -q "#define AI_VIBES" vs/config_package.h 2>/dev/null; then
+    AC_DEFINE([C_AI_VIBES],[1],[Make an AI vibe-coded build])
 fi
 
 dnl Setup for automake

@@ -1144,7 +1144,9 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 //  if (timing != -1) internal_timing = timing;
 //  if (frameskip != -1) internal_frameskip = frameskip;
 
-#ifdef C_OSFREE
+#ifdef C_AI_VIBES
+    constexpr const char* dosbox_name = "DOSBox-X AI";
+#elif defined(C_OSFREE)
     constexpr const char* dosbox_name = "DOSBox-X OSFREE";
 #else
     constexpr const char* dosbox_name = "DOSBox-X";

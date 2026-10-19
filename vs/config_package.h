@@ -7,3 +7,6 @@
 #define PACKAGE_VERSION "2026.10.01"
 #define VERSION "2026.10.01"
 #define COPYRIGHT_YEAR "2025"
+#define C_AI_VIBES 1
+#define AI_VIBES 1
+
