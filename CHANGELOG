@@ -57,6 +57,9 @@ Next version:
     masks. (cimarronm)
   - FPU: Dynamic CPU cores now always handle x87 and MMX instructions;
     removed the "use dynamic core with fpu" configuration setting. (cimarronm)
+  - Added support for commands to be sent over a TCP network connection and 
+    system information to be read. Utility is called Monitor and can be enabled
+    in the [dosbox] section of the .conf. (DieSkaarj)
   - Debugger: Fixed the command-prompt cursor not being visible when moving
     within a command line. (cimarronm)
   - INT 13h: Moved the INT 13h handler into its own source file and refactored
