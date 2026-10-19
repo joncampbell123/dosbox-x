@@ -1,4 +1,24 @@
 Next version:
+  - [AI] 3Dfx software emulation now supports multithreading so that if that
+    is all you have, performance isn't so terrible anymore. (joncampbell123)
+  - [AI] 3Dfx hardware rendering now supports OpenGL and Vulkan APIs. (joncampbell123)
+  - [AI] 3Dfx emulation will now render to texture, and then render the texture
+    to the DOSBox-X window, so that it can minimize conflicts with the DOSBox-X
+    UI, fit within the display region properly, and by default, can render at
+    the video resolution the 3Dfx card is set at, though those used to how
+    DOSBox renders at the window resolution can ask for that too. (joncampbell123)
+  - [AI] Fix OpenGL rendering issues. Fix 3Dfx emulation to either share
+    OpenGL context (SDL1) or use a different OpenGL context (SDL2). (joncampbell123)
+  - [AI] Add Vulkan support. Add Vulkan output driver. Add Vulkan support
+    to SDL1. Add Wayland support to SDL1. (joncampbell123)
+  - [AI] RPC agent end CPU trace on stop, terminate the DOS process, and
+    sub processes. Handle RPC agents that exit themselves. (joncampbell123)
+  - [AI] Add headless mode for DOSBox-X so AI agents can use DOSBox-X as a tool
+    to verify DOS/Windows code or to run tools without interfering with the
+    screen. (joncampbell123)
+  - [AI] Fixed RPC debugger agent to compile on Linux, added Linux support code.
+    Add option to prompt or not prompt for a folder.
+    (joncampbell123)
   - PC-98: INT 18h AH=1Bh (set KCG access mode, AL=0 code, AL=1 dot) is now
     handled instead of being logged as an unknown call. It sets the same
     dot access mode as port 68h commands 0Ah/0Bh and bit 3 of AH=0Ah, and
