@@ -350,6 +350,8 @@ private:
 	typedef std::list<Property*>::iterator it;
 	typedef std::list<Property*>::const_iterator const_it;
 
+	friend class Monitor;
+
 public:
 	Section_prop(std::string const&  _sectionname):Section(_sectionname){}
 	Prop_int* Add_int(std::string const& _propname, Property::Changeable::Value when, int _value=0);
