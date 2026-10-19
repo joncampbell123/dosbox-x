@@ -233,10 +233,9 @@ void CSerial::log_ser(bool active, char const* format,...) {
 
 void CSerial::changeLineProperties() {
 	// update the event wait time
-	float bitlen;
-
-	if(baud_divider==0) bitlen=(1000.0f/(115200.0f*baud_multiplier));
-	else bitlen = (1000.0f/(115200.0f*baud_multiplier))*(float)baud_divider;
+	const auto divider = baud_divider ? baud_divider : 1;
+	const auto baudrate = 115200.0 * baud_multiplier / divider;
+	const auto bitlen = 1000.0 / baudrate;
 	bytetime=bitlen*(float)(1+5+1);		// startbit + minimum length + stopbit
 	bytetime+= bitlen*(float)(LCR&0x3); // databits
 	if(LCR&0x4) bytetime+=bitlen;		// 2nd stopbit
@@ -247,7 +246,7 @@ void CSerial::changeLineProperties() {
 	log_ser(dbg_serialtraffic,"New COM parameters: baudrate %5.0f, parity %s, wordlen %d, stopbits %d",
 		1.0/bitlen*1000.0f,dbgtext[(LCR&0x38)>>3],(LCR&0x3)+5,((LCR&0x4)>>2)+1);
 #endif	
-	updatePortConfig (baud_divider*baud_multiplier, LCR);
+	updatePortConfig(baudrate, LCR);
 }
 
 static void Serial_EventHandler(Bitu val) {

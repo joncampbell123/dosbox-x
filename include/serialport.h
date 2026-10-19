@@ -245,8 +245,8 @@ public:
 	// switch break state to the passed value
 	virtual void setBreak(bool value)=0;
 	
-	// change baudrate, number of bits, parity, word length al at once
-	virtual void updatePortConfig(uint16_t divider, uint8_t lcr)=0;
+	// change baud rate, number of bits, parity, word length all at once
+	virtual void updatePortConfig(double baudrate, uint8_t lcr)=0;
 	
 	void Init_Registers();
 	

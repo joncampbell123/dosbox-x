@@ -2,10 +2,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/include "-DRESDIR=\"$(resdir)\""
 
 if EMSCRIPTEN
 # fix https://github.com/emscripten-core/emscripten/issues/10061
-dosbox_x_LDFLAGS = -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['$$ERRNO_CODES']
+dosbox_x_LDFLAGS = -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['$$ERRNO_CODES'] 
 endif
 
-SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform aviwriter output agent
+SUBDIRS = cpu debug dos fpu monitor gui hardware libs ints misc shell builtin platform aviwriter output agent
 
 bin_PROGRAMS = dosbox-x
 
@@ -34,7 +34,6 @@ dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuilt
                libs/passthroughio/libpassthroughio.a gui/libgui.a libs/gui_tk/libgui_tk.a hardware/libhardware.a \
 	       cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
 		   misc/libmisc.a output/liboutput.a hardware/mame/libmame.a libs/zmbv/libzmbv.a libs/decoders/internal/libopusint.a dos/libdos.a ints/libints.a agent/libagent.a
-
 if OS2
 dosbox_x_LDADD += os2res.res
 
@@ -82,9 +81,15 @@ if DUKTAPE
 dosbox_x_LDADD += -lduktape
 endif
 
+if C_MONITOR
+SUBDIRS += monitor
+dosbox_x_LDADD += monitor/libmonitor.a
+endif
+
 if EMSCRIPTEN
 dosbox_x_js:
 	cp dosbox-x dosbox-x.js
+
 
 dosbox_x_js_install:
 	sudo cp -v dosbox-x.js dosbox-x.wasm /var/www/html/em/
