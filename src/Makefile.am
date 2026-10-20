@@ -31,9 +31,10 @@ endif
 dosbox_x_SOURCES = dosbox.cpp $(ico_stuff)
 dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuiltin.a \
                ints/libints.a hardware/serialport/libserial.a hardware/parport/libparallel.a \
-               libs/passthroughio/libpassthroughio.a gui/libgui.a libs/gui_tk/libgui_tk.a hardware/libhardware.a \
+               libs/passthroughio/libpassthroughio.a gui/libgui.a monitor/libmonitor.a libs/gui_tk/libgui_tk.a hardware/libhardware.a \
 	       cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
-		   misc/libmisc.a output/liboutput.a hardware/mame/libmame.a libs/zmbv/libzmbv.a libs/decoders/internal/libopusint.a dos/libdos.a ints/libints.a agent/libagent.a
+		   misc/libmisc.a output/liboutput.a hardware/mame/libmame.a libs/zmbv/libzmbv.a libs/decoders/internal/libopusint.a dos/libdos.a ints/libints.a agent/libagent.a 
+
 if OS2
 dosbox_x_LDADD += os2res.res
 
@@ -83,7 +84,7 @@ endif
 
 if C_MONITOR
 SUBDIRS += monitor
-dosbox_x_LDADD += monitor/libmonitor.a
+#dosbox_x_LDADD += monitor/libmonitor.a
 endif
 
 if EMSCRIPTEN

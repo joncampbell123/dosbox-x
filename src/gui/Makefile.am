@@ -12,10 +12,6 @@ libgui_a_SOURCES = \
 	midi_alsa.h midi_coremidi.h sdl_gui.cpp dosbox_splash.h \
 	menu.cpp menu_callback.cpp bitop.cpp ptrop.cpp zipcrc.c zipfile.cpp 
 
-#if C_MONITOR
-#libgui_a_LIBADD = ../monitor/libmonitor.a
-#endif
-
 if C_MT32
 AM_CPPFLAGS += -I$(top_srcdir)/src/libs/mt32
 
