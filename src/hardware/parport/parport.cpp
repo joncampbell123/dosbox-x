@@ -386,8 +386,7 @@ class PARPORTS:public Module_base {
 				cmd.FindCommand(1,str);
 
 				/* DOSBox SVN disney=true compatibility: Reserve LPT1 for Disney Sound Source */
-				if (i == 0 && DISNEY_ShouldInit())
-					continue;
+				if (i == 0 && DISNEY_ShouldInit()) continue;
 
 #if HAS_CDIRECTLPT
 				if(str=="reallpt") {
