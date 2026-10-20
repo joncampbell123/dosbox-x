@@ -1,8 +1,8 @@
 dnl Init.
-AC_INIT(dosbox-x,2026.10.01,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT([dosbox-x],[2026.10.01],[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 COPYRIGHT_YEAR=`echo $PACKAGE_VERSION | cut -c1-4`
 AC_SUBST([COPYRIGHT_YEAR])
-AC_PREREQ(2.60)
+AC_PREREQ([2.73])
 AC_CONFIG_SRCDIR(README.md)
 
 dnl Utility function ============================
@@ -157,7 +157,7 @@ fi
 
 dnl Setup for automake
 AM_INIT_AUTOMAKE([foreign subdir-objects])
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 AH_BOTTOM([/*
   Define HAS_CDIRECTLPT as 1 if C_DIRECTLPT is defined (as 1) *and* parallel
   pass-through is available on the current platform. It is only available on
@@ -238,28 +238,28 @@ CXXFLAGS="$CXXFLAGS -std=gnu++14";
 
 dnl Allow the SDL drawn menu to be enabled on Windows or macOS instead of their native menu system.
 AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
-AC_ARG_ENABLE(force-menu-sdldraw,AC_HELP_STRING([--enable-force-menu-sdldraw],[Force SDL drawn menus]),enable_force_menu_sdldraw=yes)
+AC_ARG_ENABLE(force-menu-sdldraw,AS_HELP_STRING([--enable-force-menu-sdldraw],[Force SDL drawn menus]),enable_force_menu_sdldraw=yes)
 
 dnl This is how the build script can specify a HX DOS extender target
 AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
-AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
+AC_ARG_ENABLE(hx-dos,AS_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
 
 dnl This is how the build script can use libopencow for win9x unicode 
 # AH_TEMPLATE(C_OPENCOW,[Define to 1 to enable opencow])
-AC_ARG_ENABLE(opencow,AC_HELP_STRING([--enable-opencow],[Enable OpenCOW]),enable_opencow=yes)
+AC_ARG_ENABLE(opencow,AS_HELP_STRING([--enable-opencow],[Enable OpenCOW]),enable_opencow=yes)
 
 dnl Disable SDLnet for win9x builds
-AC_ARG_ENABLE(sdlnet,AC_HELP_STRING([--disable-sdlnet],[Disable SDLNet]),disable_sdl_net=yes)
+AC_ARG_ENABLE(sdlnet,AS_HELP_STRING([--disable-sdlnet],[Disable SDLNet]),disable_sdl_net=yes)
 
 dnl Let me know if you're targeting Emscripten
 AH_TEMPLATE(C_EMSCRIPTEN,[Define to 1 to target Emscripten])
-AC_ARG_ENABLE(emscripten,AC_HELP_STRING([--enable-emscripten],[Enable Emscripten target]),enable_emscripten=$enableval,enable_emscripten=no)
+AC_ARG_ENABLE(emscripten,AS_HELP_STRING([--enable-emscripten],[Enable Emscripten target]),enable_emscripten=$enableval,enable_emscripten=no)
 
 dnl Allow disabling X11 integration if your platform doesn't support it
-AC_ARG_ENABLE(x11,AC_HELP_STRING([--disable-x11],[Don't enable X11 integration]))
+AC_ARG_ENABLE(x11,AS_HELP_STRING([--disable-x11],[Don't enable X11 integration]))
 
 dnl Optimize for speed by default
-AC_ARG_ENABLE(optimize,AC_HELP_STRING([--disable-optimize],[Don't enable compiler optimizations]))
+AC_ARG_ENABLE(optimize,AS_HELP_STRING([--disable-optimize],[Don't enable compiler optimizations]))
 
 dnl FIXME: Remove default "-O2" set by some autotools versions. TODO: check availability of sed.
 CFLAGS=["`echo $CFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
@@ -588,7 +588,7 @@ AC_SUBST([SDL_STRING])
 
 AH_TEMPLATE(C_GAMELINK,[Define to 1 to enable game link headless mode])
 AC_CHECK_LIB(rt, main, have_rt_lib=yes, have_rt_lib=no , )
-AC_ARG_ENABLE(gamelink,AC_HELP_STRING([--disable-gamelink],[Disable headless game link output mode (only for SDL2)]),,enable_gamelink=yes)
+AC_ARG_ENABLE(gamelink,AS_HELP_STRING([--disable-gamelink],[Disable headless game link output mode (only for SDL2)]),,enable_gamelink=yes)
 AC_MSG_CHECKING(whether gamelink is enabled) 
 if test x$enable_gamelink = xyes; then
   if test "x$SDL_STRING" = "xSDL2"; then
@@ -606,7 +606,7 @@ AM_CONDITIONAL([C_GAMELINK], [test "x$C_GAMELINK" = x1])
 
 dnl FEATURE: Whether to use OpenGL
 AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
-AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),enable_opengl=$enableval,enable_opengl=yes)
+AC_ARG_ENABLE(opengl,AS_HELP_STRING([--disable-opengl],[Disable opengl support]),enable_opengl=$enableval,enable_opengl=yes)
 AC_MSG_CHECKING(whether opengl display output will be enabled)
 
 # We need to do this before any other AC_CHECK_LIB runs just to make sure
@@ -977,7 +977,7 @@ AC_CHECK_LIB(fluidsynth, fluid_synth_sysex, have_fluidsynth_lib=yes,,)
 
 dnl LIBRARY TEST: FreeType2
 AH_TEMPLATE(C_FREETYPE,[Define to 1 to enable freetype support])
-AC_ARG_ENABLE(freetype,AC_HELP_STRING([--disable-freetype],[Disable freetype support]),enable_freetype=$enableval,enable_freetype=yes)
+AC_ARG_ENABLE(freetype,AS_HELP_STRING([--disable-freetype],[Disable freetype support]),enable_freetype=$enableval,enable_freetype=yes)
 AM_CONDITIONAL(C_FREETYPE, test "x$enable_freetype" = "xyes")
 if test x$enable_freetype = xyes; then
   AC_MSG_CHECKING(for freetype)
@@ -1021,7 +1021,7 @@ fi
 
 dnl FEATURE: PRINTER (requires FreeType2)
 AH_TEMPLATE(C_PRINTER,[Define to 1 to enable printer emulation])
-AC_ARG_ENABLE(printer,AC_HELP_STRING([--disable-printer],[disable printer emulation]),enable_printer=$enableval,enable_printer=yes)
+AC_ARG_ENABLE(printer,AS_HELP_STRING([--disable-printer],[disable printer emulation]),enable_printer=$enableval,enable_printer=yes)
 AM_CONDITIONAL(C_PRINTER, test "x$enable_printer" = "xyes")
 if test x$enable_freetype = xyes; then
   if test x$enable_printer = xyes; then
@@ -1031,7 +1031,7 @@ fi
 
 dnl FEATURE: xBRZ
 AH_TEMPLATE(C_XBRZ,[Define to 1 to enable XBRZ scaler])
-AC_ARG_ENABLE(xbrz,AC_HELP_STRING([--enable-xbrz],[compile with xBRZ scaler (default yes)]),enable_xbrz=$enableval,enable_xbrz=yes)
+AC_ARG_ENABLE(xbrz,AS_HELP_STRING([--enable-xbrz],[compile with xBRZ scaler (default yes)]),enable_xbrz=$enableval,enable_xbrz=yes)
 AM_CONDITIONAL(C_XBRZ, test "x$enable_xbrz" = "xyes")
 if test x$enable_emscripten != xyes; then
   if test x$enable_xbrz = xyes; then
@@ -1041,7 +1041,7 @@ fi
 
 dnl FEATURE: xBRZ
 AH_TEMPLATE(C_SCALER_FULL_LINE,[Define to 1 to alter the simpler render scalers to operate only on the full scanline instead of detecting differences. This is a performance adjustment for slow or embedded systems])
-AC_ARG_ENABLE(scaler-full-line,AC_HELP_STRING([--enable-scaler-full-line],[scaler render full line instead of detecting changes, for slower systems]),enable_scaler_full_line=$enableval,enable_scaler_full_line=no)
+AC_ARG_ENABLE(scaler-full-line,AS_HELP_STRING([--enable-scaler-full-line],[scaler render full line instead of detecting changes, for slower systems]),enable_scaler_full_line=$enableval,enable_scaler_full_line=no)
 AM_CONDITIONAL(C_SCALER_FULL_LINE, test "x$enable_scaler_full_line" = "xyes")
 if test x$enable_scaler_full_line = xyes; then
   AC_DEFINE(C_SCALER_FULL_LINE,1)
@@ -1049,7 +1049,7 @@ fi
 
 dnl FEATURE: MIDI through ALSA
 AC_ARG_ENABLE(alsa-midi,
-AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
+AS_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
 [ case "${enableval}" in
  yes) alsa_midi=true;;
  no)  alsa_midi=false;;
@@ -1061,7 +1061,7 @@ fi
 
 dnl FEATURE: MT32 (MUNT) emulation
 AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation])
-AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
+AC_ARG_ENABLE(mt32,AS_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
 AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
 
 # test
@@ -1134,7 +1134,7 @@ fi
 dnl FEATURE: DEBUG and HEAVY DEBUG options (debugger)
 AH_TEMPLATE(C_DEBUG,[Define to 1 to enable internal debugger, requires libcurses])
 AH_TEMPLATE(C_HEAVY_DEBUG,[Define to 1 to enable heavy debugging, also have to enable C_DEBUG])
-AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[Enable debug mode]),[
+AC_ARG_ENABLE(debug,AS_HELP_STRING([--enable-debug],[Enable debug mode]),[
    if test x$enable_debug = xno; then
      AC_MSG_RESULT([Debugger not enabled])
    elif test x$curses_lib != x -a x$have_curses_h = xyes; then
@@ -1168,11 +1168,11 @@ case "$host" in
 esac
 
 dnl FEATURE: Whether to enable dynamic core
-AC_ARG_ENABLE(dynamic-core,AC_HELP_STRING([--disable-dynamic-core],[Disable all dynamic cores]),,enable_dynamic_core=yes)
+AC_ARG_ENABLE(dynamic-core,AS_HELP_STRING([--disable-dynamic-core],[Disable all dynamic cores]),,enable_dynamic_core=yes)
 
 dnl FEATURE: Whether to enable x86 dynamic core
 AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86/x64 dynamic cpu core])
-AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--disable-dynamic-x86],[Disable x86/x64 dynamic cpu core]),,enable_dynamic_x86=yes)
+AC_ARG_ENABLE(dynamic-x86,AS_HELP_STRING([--disable-dynamic-x86],[Disable x86/x64 dynamic cpu core]),,enable_dynamic_x86=yes)
 AC_MSG_CHECKING(whether x86 dynamic cpu core will be enabled)
 if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno; then
    AC_MSG_RESULT(no)
@@ -1185,7 +1185,7 @@ fi
 
 dnl FEATURE: Whether to enable recompiling dynamic core
 AH_TEMPLATE(C_DYNREC,[Define to 1 to use recompiling cpu core])
-AC_ARG_ENABLE(dynrec,AC_HELP_STRING([--disable-dynrec],[Disable recompiling cpu core]),,enable_dynrec=yes)
+AC_ARG_ENABLE(dynrec,AS_HELP_STRING([--disable-dynrec],[Disable recompiling cpu core]),,enable_dynrec=yes)
 AC_MSG_CHECKING(whether recompiling cpu core will be enabled) 
 if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then 
    AC_MSG_RESULT(no)
@@ -1206,7 +1206,7 @@ fi
 
 dnl FEATURE: Whether to emulate the floating point unit
 AH_TEMPLATE(C_FPU,[Define to 1 to enable floating point emulation])
-AC_ARG_ENABLE(fpu,AC_HELP_STRING([--disable-fpu],[Disable fpu support]),,enable_fpu=yes)
+AC_ARG_ENABLE(fpu,AS_HELP_STRING([--disable-fpu],[Disable fpu support]),,enable_fpu=yes)
 AC_MSG_CHECKING(whether fpu emulation will be enabled) 
 if test x$enable_fpu = xyes ; then 
   AC_MSG_RESULT(yes)
@@ -1216,8 +1216,8 @@ else
 fi 
 
 AH_TEMPLATE(C_FPU_X86,[Define to 1 to use a x86/x64 assembly fpu core])
-AC_ARG_ENABLE(fpu-x86,AC_HELP_STRING([--disable-fpu-x86],[Disable x86 assembly fpu core]),,enable_fpu_x86=yes)
-AC_ARG_ENABLE(fpu-x64,AC_HELP_STRING([--disable-fpu-x64],[Disable x64 assembly fpu core]),,enable_fpu_x64=yes)
+AC_ARG_ENABLE(fpu-x86,AS_HELP_STRING([--disable-fpu-x86],[Disable x86 assembly fpu core]),,enable_fpu_x86=yes)
+AC_ARG_ENABLE(fpu-x64,AS_HELP_STRING([--disable-fpu-x64],[Disable x64 assembly fpu core]),,enable_fpu_x64=yes)
 AC_MSG_CHECKING(whether the x86/x64 assembly fpu core will be enabled) 
 if test x$enable_fpu_x86 = xno -o x$enable_fpu_x64 = xno; then 
    AC_MSG_RESULT(no)
@@ -1236,7 +1236,7 @@ fi
 
 dnl FEATURE: Whether to enable unaligned memory access
 AH_TEMPLATE(C_UNALIGNED_MEMORY,[Define to 1 to use a unaligned memory access])
-AC_ARG_ENABLE(unaligned_memory,AC_HELP_STRING([--disable-unaligned-memory],[Disable unaligned memory access]),,enable_unaligned_memory=yes)
+AC_ARG_ENABLE(unaligned_memory,AS_HELP_STRING([--disable-unaligned-memory],[Disable unaligned memory access]),,enable_unaligned_memory=yes)
 AC_MSG_CHECKING(whether to enable unaligned memory access) 
 if test x$enable_unaligned_memory = xyes -a x$c_unalignedmemory = xyes; then 
   AC_DEFINE(C_UNALIGNED_MEMORY,1)
@@ -1316,7 +1316,7 @@ fi
 dnl FEATURE: Whether to support libpng, and enable snapshots
 AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
-AC_ARG_ENABLE(screenshots,AC_HELP_STRING([--disable-screenshots],[Disable screenshots and movie recording]),,enable_screenshots=yes)
+AC_ARG_ENABLE(screenshots,AS_HELP_STRING([--disable-screenshots],[Disable screenshots and movie recording]),,enable_screenshots=yes)
 AC_MSG_CHECKING([whether screenshots will be enabled])
 if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
     LIBS="$LIBS -lpng -lz"
@@ -1351,7 +1351,7 @@ esac
 
 dnl FEATURE: Whether to use libslirp, and enable userspace TCP/IP emulation
 AH_TEMPLATE(C_SLIRP, [Define to 1 to enable userspace TCP/IP emulation, requires libslirp])
-AC_ARG_ENABLE(libslirp,AC_HELP_STRING([--disable-libslirp],[Disable libslirp support]),enable_libslirp=$enableval,enable_libslirp=yes)
+AC_ARG_ENABLE(libslirp,AS_HELP_STRING([--disable-libslirp],[Disable libslirp support]),enable_libslirp=$enableval,enable_libslirp=yes)
 if test x$enable_libslirp = xyes ; then
   case "$host" in
     *-*-cygwin* | *-*-mingw32*)
@@ -1419,7 +1419,7 @@ fi
 
 dnl FEATURE: Whether to use Fluidsynth
 AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable libfluidsynth MIDI synthesis])
-AC_ARG_ENABLE(libfluidsynth,AC_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),enable_libfluidsynth=$enableval,enable_libfluidsynth=yes)
+AC_ARG_ENABLE(libfluidsynth,AS_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),enable_libfluidsynth=$enableval,enable_libfluidsynth=yes)
 if test x$enable_libfluidsynth = xyes; then
     case "$host" in
         *-*-linux*)
@@ -1438,7 +1438,7 @@ fi
 
 dnl FEATURE: FFMPEG output support
 AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
-AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),enable_ffmpeg=$enableval,enable_ffmpeg=yes)
+AC_ARG_ENABLE(avcodec,AS_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),enable_ffmpeg=$enableval,enable_ffmpeg=yes)
 
 dnl LIBRARY TEST: FFMPEG support
 AC_MSG_CHECKING([for FFmpeg libavcodec])
@@ -1473,7 +1473,7 @@ fi
 
 dnl FEATURE: RPC debugger agent output support
 AH_TEMPLATE(C_DOSBOX_AGENT,[Define to 1 to use RPC debugger agent support])
-AC_ARG_ENABLE(dosbox_agent,AC_HELP_STRING([--enable-dosbox_agent],[Enable RPC debugger agent support]),enable_dosbox_agent=$enableval,enable_dosbox_agent=no)
+AC_ARG_ENABLE(dosbox_agent,AS_HELP_STRING([--enable-dosbox_agent],[Enable RPC debugger agent support]),enable_dosbox_agent=$enableval,enable_dosbox_agent=no)
 
 dnl FEATURE: RPC debugger agent output support
 if test x$enable_dosbox_agent = xyes; then
@@ -1483,12 +1483,12 @@ fi
 
 dnl FEATURE: Whether to use Direct3D 9 output
 AH_TEMPLATE(HAVE_D3D9_H,[Define to 1 to use Direct3D 9 display output support])
-AC_ARG_ENABLE(d3d9,AC_HELP_STRING([--enable-d3d9],[Enable Direct3D 9 support]),enable_d3d9=$enableval,enable_d3d9=no)
+AC_ARG_ENABLE(d3d9,AS_HELP_STRING([--enable-d3d9],[Enable Direct3D 9 support]),enable_d3d9=$enableval,enable_d3d9=no)
 AC_MSG_CHECKING(whether Direct3D 9 display output will be enabled)
 
 dnl FEATURE: Direct3D9 shaders
 AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders])
-AC_ARG_ENABLE(d3d-shaders,AC_HELP_STRING([--enable-d3d-shaders],[Enable Direct3D shaders]),enable_d3d_shaders=$enableval,enable_d3d_shaders=no)
+AC_ARG_ENABLE(d3d-shaders,AS_HELP_STRING([--enable-d3d-shaders],[Enable Direct3D shaders]),enable_d3d_shaders=$enableval,enable_d3d_shaders=no)
 
 if test x$enable_d3d9 = xyes; then
     case "$host" in
@@ -1591,7 +1591,7 @@ esac
 
 dnl BUILD: whether to enable universal binary support
 if test x"$macosx" = x"1" && test x"$host_cpu" = x"arm"; then
-  AC_ARG_ENABLE(universal,AC_HELP_STRING([--enable-universal],[Enable macOS universal binary support]),
+  AC_ARG_ENABLE(universal,AS_HELP_STRING([--enable-universal],[Enable macOS universal binary support]),
     [enable_universal=$enableval],
     [enable_universal=no])
 else
@@ -1626,6 +1626,7 @@ src/libs/mt32/Makefile
 src/libs/xBRZ/Makefile
 src/libs/fluidsynth/Makefile
 src/libs/decoders/internal/Makefile
+src/monitor/Makefile
 src/output/Makefile
 src/output/direct3d/Makefile
 src/agent/Makefile
