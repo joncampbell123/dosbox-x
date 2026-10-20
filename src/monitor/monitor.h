@@ -37,9 +37,9 @@
 
 #include "logging.h"
 
-
 #define INPUT_LENGTH 1024
 
+// extern {{{
 extern bool save_dynamic_rec;
 
 extern void Get_IDECD_drives( std::vector< int >& );
@@ -55,15 +55,16 @@ extern void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
 extern void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
 #endif
 extern void DoKillSwitch( void );
+// }}}
 
+// global typedef {{{
 typedef std::vector< std::string > dinfo_t;
 typedef std::vector< std::string > cmd_tokens_t;
 typedef std::vector< dinfo_t > ddesc_t;
+// }}}
 
-class Monitor {
-	Monitor( const Monitor& )= delete;
-	Monitor& operator=( const Monitor& )= delete;
-
+class Monitor { /* {{{ */
+	// Parser and programs constructs {{{
 	struct	Configurator {/* {{{ */
 		bool	getProperty( const cmd_tokens_t& );
 		bool	setProperty( const cmd_tokens_t& );
@@ -80,8 +81,9 @@ class Monitor {
 	struct	CommandLine {/* {{{ */
 		cmd_tokens_t	processCommandLine( const std::string );
 		void				getInfo();
-	};/* }}} */
+	};// }}} }}} 
 
+	// Vars {{{
 	const std::string	_prompt;
 
 	TCPsocket		_server,_client;
@@ -91,17 +93,18 @@ class Monitor {
 
 	std::atomic< bool >	_isRunning;
 
-	typedef bool ( Monitor::Programs::*fn_prog )( const cmd_tokens_t& );
+	typedef bool ( Monitor::Programs::*fn_prog_t )( const cmd_tokens_t& );
 	typedef struct {
 		std::string	command;
 		std::string description;
-		fn_prog		exec;
+		fn_prog_t	exec;
 	} CommandExec;
 	typedef std::vector< CommandExec > CommandList;
 	const CommandList	*_commands;
+	// }}}
 
-	/* Callback for threading. */
-	static int CB_Listen( void *tData ) {/* {{{ */
+	/* Callback for threading. {{{ */
+	static int CB_Listen( void *tData ) {
 		auto& m= *reinterpret_cast< Monitor* >( tData );
 		
 		m.updateServer();
@@ -109,7 +112,6 @@ class Monitor {
 		return EXIT_SUCCESS;
 	}/* }}} */
 
-	/* Main program functions */
 	void	prompt( TCPsocket tClient ){/* {{{ */
 		SDLNet_TCP_Send( tClient,_prompt.c_str(),_prompt.length() );
 	}/* }}} */
@@ -210,18 +212,14 @@ class Monitor {
 	}/* }}} */
 
 	void	initCommands() {/* {{{ */
-		bool ( Monitor::Programs::*fn_quit )( const cmd_tokens_t& )= &Monitor::Programs::quitMainInstance;
-		bool ( Monitor::Programs::*fn_showInfo )( const cmd_tokens_t& )= &Monitor::Programs::displayInfo;
-		bool ( Monitor::Programs::*fn_changeCd )( const cmd_tokens_t& )= &Monitor::Programs::changeRemovableMedia;
-		bool ( Monitor::Programs::*fn_conf )( const cmd_tokens_t& )= &Monitor::Programs::configure;
-		bool ( Monitor::Programs::*fn_help )( const cmd_tokens_t& )= &Monitor::Programs::helpMe;
-		
+		using Prog= Monitor::Programs;
+
 		_commands= new CommandList{
-			{ "kill",		"kill DOSBox-X instance ungracefully.\n",fn_quit },
-			{ "info",		"show current system information.",fn_showInfo },
-			{ "config",		"get and set machine values." ,fn_conf },
-			{ "change",		"change CD, format: change <drive_letter> <image_filepath>.",fn_changeCd },
-			{ "help",		"list available commands.",fn_help },
+			{ "kill","kill DOSBox-X instance ungracefully.\n",fn_prog_t( &Prog::quitMainInstance ) },
+			{ "info","show current system information.",fn_prog_t( &Prog::displayInfo ) },
+			{ "config",	"get and set machine values." ,fn_prog_t( &Prog::configure ) },
+			{ "change",	"change CD, format: change <drive_letter> <image_filepath>.",fn_prog_t( &Prog::changeRemovableMedia ) },
+			{ "help","list available commands.",fn_prog_t( &Prog::helpMe ) },
 		};
 	}/* }}} */
 
@@ -246,7 +244,7 @@ class Monitor {
 		SDLNet_Quit();
 	}/* }}} */
 
-	/* CTOR */
+	// Constructors {{{
 	Monitor():/* {{{ */
 	_prompt( "(dosbox-x) " ),
 	_server( nullptr ),_client( nullptr ),
@@ -254,6 +252,10 @@ class Monitor {
 	_run(),_isRunning( false ) {
 		initCommands();
 	}/* }}} */
+
+	Monitor( const Monitor& )= delete;
+	Monitor& operator=( const Monitor& )= delete;
+	// }}}
 
 	public:
 
@@ -286,7 +288,7 @@ class Monitor {
 		}
 		return m;
 	}/* }}} */
-};
+}; /* }}} */
 
 #endif // C_MONITOR
 #endif // _MONITOR_CONSOLE_H

@@ -23,6 +23,7 @@
 
 #include "control.h"
 
+// Monitor::Configurator {{{ 
 static std::string CONFIG_USAGE_MONITOR= {
 "The DOSBox-X socket pipeline configurator\n"\
 "**Warning this feature is mostly untested and may cause the program to crash.**\n"\
@@ -31,7 +32,6 @@ static std::string CONFIG_USAGE_MONITOR= {
 "-set (-setf for force) \"section property=value\" sets the value of the property.\n"\
 };
 
-// Monitor::Configurator {{{ 
 bool Monitor::Configurator::getProperty( const cmd_tokens_t& tUser ) {/* {{{ */
 	Monitor& m= Monitor::OpenMonitor();
 	if( tUser.size() <3 ) {
