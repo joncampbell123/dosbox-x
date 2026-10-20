@@ -31,6 +31,7 @@ static std::string CONFIG_USAGE_MONITOR= {
 "-set (-setf for force) \"section property=value\" sets the value of the property.\n"\
 };
 
+// Monitor::Configurator {{{ 
 bool Monitor::Configurator::getProperty( const cmd_tokens_t& tUser ) {/* {{{ */
 	Monitor& m= Monitor::OpenMonitor();
 	if( tUser.size() <3 ) {
@@ -83,8 +84,9 @@ bool Monitor::Configurator::setProperty( const cmd_tokens_t& tUser ) {/* {{{ */
 	config_section->HandleInputline( inputline );
 
 	return EXIT_SUCCESS;
-};/* }}} */
+};/* }}} */ /* }}} */
 
+// Monitor::Programs {{{
 bool Monitor::Programs::quitMainInstance( const cmd_tokens_t& ){/* {{{ */
 	DoKillSwitch();
 	return EXIT_SUCCESS;
@@ -226,15 +228,16 @@ bool Monitor::Programs::helpMe( const cmd_tokens_t& cmdline ){/* {{{ */
 				m.messageClient( help+"\nType \'help\' <command> for more information.\n" );
 		}
 	return EXIT_SUCCESS;
-}/* }}} */
+}/* }}} */ // }}}
 
-cmd_tokens_t Monitor::CommandLine::processCommandLine( std::string tBuffer ) {/* {{{ */
+// Montor::CommandLine {{{
+cmd_tokens_t Monitor::CommandLine::processCommandLine( std::string tBuffer ) { /* {{{ */
 	cmd_tokens_t	command_line= {};
 	std::istringstream	buffer( tBuffer );
 	std::string	token;
 
 	while( buffer >>std::quoted( token )) command_line.push_back( token );
 	return command_line;
-};/* }}} */
+};// }}} }}}
 
 #endif // C_MONITOR 
