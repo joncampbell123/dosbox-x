@@ -1938,7 +1938,7 @@ again:
 		if (len & 4) find_attr|=DOS_ATTR_SYSTEM;
 	}
 #endif
-	if (~srch_attr & find_attr & DOS_ATTR_DIRECTORY) goto again;
+	if (~srch_attr & (find_attr & (DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM | DOS_ATTR_DIRECTORY))) goto again;
 
 	/*file is okay, setup everything to be copied in DTA Block */
 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
