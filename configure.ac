@@ -1266,11 +1266,11 @@ elif test "x$SDL_STRING" = "xSDL2" &&
   AC_DEFINE(C_SDL2_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
-  if test x$enable_monitor = xyes &&
-     test !x$enable_hx = xyes; then
+  if test x$enable_monitor = xyes; then
     AC_DEFINE(C_MONITOR,1)
     c_monitor_enabled=yes
-  else 
+  elif 
+     test x$enable_hx = xno; then
     c_monitor_enabled=no
     enable_monitor=no
   fi
@@ -1281,11 +1281,11 @@ elif test x$have_sdl_net_h = xyes &&
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
-  if test x$enable_monitor = xyes &&
-     test !x$enable_hx = xyes; then
+  if test x$enable_monitor = xyes; then
     AC_DEFINE(C_MONITOR,1)
     c_monitor_enabled=yes
-  else 
+  elif 
+     test x$enable_hx = xno; then
     c_monitor_enabled=no
     enable_monitor=no
   fi
