@@ -72,11 +72,10 @@ bool device_LPT::Close() {
 }
 
 uint16_t device_LPT::GetInformation(void) {
-#if C_PRINTER
-	if (parallelPortObjects[num] && parallelPortObjects[num]->parallelType == PARALLEL_TYPE_PRINTER)
-		return DeviceInfoFlags::Device | DeviceInfoFlags::EofOnInput | DeviceInfoFlags::Binary;
-#endif
-	return DeviceInfoFlags::Device | DeviceInfoFlags::Binary;
+	// The LPT DOS device is output-only and Read() always returns 0 bytes, so
+	// report EOF on input for every backend. Otherwise programs polling input
+	// status (INT 21h AX=4406h), such as dBase IV, see "ready" and loop forever.
+	return DeviceInfoFlags::Device | DeviceInfoFlags::EofOnInput | DeviceInfoFlags::Binary;
 }
 
 const char* lptname[]={"LPT1","LPT2","LPT3","LPT4","LPT5","LPT6","LPT7","LPT8","LPT9"};
@@ -773,4 +772,3 @@ void PARALLEL_Init () {
 		AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelInit));
 	}
 }
-
