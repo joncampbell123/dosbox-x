@@ -1159,7 +1159,8 @@ bool DOS_OpenFileExtended(char const * name, uint16_t flags, uint16_t createAttr
 		// File already exists
 		switch (action & 0x0f) {
 			case 0x00:		// failed
-				DOS_SetError(DOSERR_FILE_ALREADY_EXISTS);
+                DOS_CloseFile(*entry);
+                DOS_SetError(DOSERR_FILE_ALREADY_EXISTS);
 				return false;
 			case 0x01:		// file open (already done)
 				result = 1;
