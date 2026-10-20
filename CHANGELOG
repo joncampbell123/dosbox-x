@@ -81,6 +81,10 @@ Next version:
   - cmos: Fixed RTC date skipping the last day of every month and all of
     December (maron2000)
   - Fixed directory size reported by FindFirst/FindNext (maron2000)
+  - Parallel port: The LPT DOS device now reports end of input for all
+    backends, fixing programs such as dBase IV that hang when printing to
+    LPT1 because they poll input status and read zero bytes forever.
+    (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
