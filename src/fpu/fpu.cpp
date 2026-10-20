@@ -2624,18 +2624,20 @@ void FPU_Init() {
 
 static void FPU_SetAbridgedTag(uint8_t b)
 {
-    for (auto& regvalid: fpu.regvalid) {
-        regvalid = !!(b & 1);
-        b >>= 1;
+    // FXSAVE's abridged tag word has one bit for each physical x87 register.
+    for (auto i = 0; i < 8; ++i) {
+        fpu.regvalid[i] = !!(b & (1u << i));
     }
+
+    // Register 8 is DOSBox-X internal temporary storage, not an x87 register.
+    fpu.regvalid[8] = true;
 }
 
 static uint8_t FPU_GetAbridgedTag()
 {
     uint8_t b = 0;
-    auto i = 0;
-    for (auto regvalid: fpu.regvalid) {
-        if (regvalid) b |= 1u << i++;
+    for (auto i = 0; i < 8; ++i) {
+        if (fpu.regvalid[i]) b |= 1u << i;
     }
     return b;
 }
