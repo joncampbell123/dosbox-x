@@ -5,7 +5,7 @@ if EMSCRIPTEN
 dosbox_x_LDFLAGS = -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['$$ERRNO_CODES'] 
 endif
 
-SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform aviwriter output agent
+SUBDIRS = cpu debug dos fpu monitor gui hardware libs ints misc shell builtin platform aviwriter output agent
 
 bin_PROGRAMS = dosbox-x
 
@@ -82,9 +82,15 @@ if DUKTAPE
 dosbox_x_LDADD += -lduktape
 endif
 
+if C_MONITOR
+SUBDIRS += monitor
+dosbox_x_LDADD += monitor/libmonitor.a
+endif
+
 if EMSCRIPTEN
 dosbox_x_js:
 	cp dosbox-x dosbox-x.js
+
 
 dosbox_x_js_install:
 	sudo cp -v dosbox-x.js dosbox-x.wasm /var/www/html/em/
