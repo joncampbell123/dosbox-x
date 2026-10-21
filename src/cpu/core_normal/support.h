@@ -17,6 +17,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 #include "lock.h"
 
 #define LoadMbs(off) (int8_t)(LoadMb(off))
@@ -677,6 +678,177 @@ static INLINE void SSE2_CVTPD2PS(XMM_Reg &d,const XMM_Reg &s) {
 	d.f32[0].v = a;
 	d.f32[1].v = b;
 	d.u64[1] = 0;
+}
+
+////
+
+//// SSE2: integer XMM
+
+template <typename T,typename F> static INLINE void SSE2_LANES(XMM_Reg &d,const XMM_Reg &s,F f) {
+	T a[16/sizeof(T)],b[16/sizeof(T)];
+	memcpy((void*)a,(const void*)&d,16);
+	memcpy((void*)b,(const void*)&s,16);
+	for (unsigned int i=0;i < 16/sizeof(T);i++) a[i] = (T)f(a[i],b[i]);
+	memcpy((void*)&d,(const void*)a,16);
+}
+
+#define SSE2_L(T,EXPR) [](T a,T b) -> T { (void)a; (void)b; return (T)(EXPR); }
+
+/* interleave the low (or high) halves of d and s */
+template <typename T> static INLINE void SSE2_UNPACK(XMM_Reg &d,const XMM_Reg &s,const bool high) {
+	const unsigned int n = 16/sizeof(T), off = high ? n/2 : 0;
+	T a[16/sizeof(T)],b[16/sizeof(T)],r[16/sizeof(T)];
+	memcpy((void*)a,(const void*)&d,16);
+	memcpy((void*)b,(const void*)&s,16);
+	for (unsigned int i=0;i < n/2;i++) { r[2*i] = a[off+i]; r[2*i+1] = b[off+i]; }
+	memcpy((void*)&d,(const void*)r,16);
+}
+
+/* narrow with saturation: the elements of d, then those of s */
+template <typename S,typename D> static INLINE void SSE2_PACK(XMM_Reg &d,const XMM_Reg &s,const int64_t lo,const int64_t hi) {
+	const unsigned int n = 16/sizeof(S);
+	S a[16/sizeof(S)],b[16/sizeof(S)];
+	D r[16/sizeof(D)];
+	memcpy((void*)a,(const void*)&d,16);
+	memcpy((void*)b,(const void*)&s,16);
+	for (unsigned int i=0;i < n;i++) {
+		int64_t x = (int64_t)a[i], y = (int64_t)b[i];
+		r[i]   = (D)(x < lo ? lo : (x > hi ? hi : x));
+		r[n+i] = (D)(y < lo ? lo : (y > hi ? hi : y));
+	}
+	memcpy((void*)&d,(const void*)r,16);
+}
+
+/* kind: 0 left, 1 logical right, 2 arithmetic right; a count above the width gives 0 (or the sign) */
+template <typename U,typename S> static INLINE void SSE2_SHIFT(XMM_Reg &d,const uint64_t count,const int kind) {
+	const unsigned int bits = sizeof(U)*8u;
+	U a[16/sizeof(U)];
+	memcpy((void*)a,(const void*)&d,16);
+	for (unsigned int i=0;i < 16/sizeof(U);i++) {
+		if (kind == 2) a[i] = (U)(((S)a[i]) >> (count >= bits ? bits-1u : (unsigned int)count));
+		else if (count >= bits) a[i] = 0;
+		else if (kind == 0) a[i] = (U)(a[i] << (unsigned int)count);
+		else a[i] = (U)(a[i] >> (unsigned int)count);
+	}
+	memcpy((void*)&d,(const void*)a,16);
+}
+
+static INLINE void SSE2_BYTESHIFT(XMM_Reg &d,const unsigned int n,const bool left) {
+	uint8_t r[16];
+	for (unsigned int i=0;i < 16;i++) {
+		const int j = left ? (int)i - (int)n : (int)i + (int)n;
+		r[i] = (n < 16 && j >= 0 && j < 16) ? d.u8[j] : 0;
+	}
+	memcpy((void*)&d,(const void*)r,16);
+}
+
+/* 66 0F 71/72/73 /op imm8: shifts by an immediate; false for an invalid /op */
+static INLINE bool SSE2_PSHIFTI(const uint8_t opc,const uint8_t op,XMM_Reg &x,const uint8_t n) {
+	switch (opc) {
+		case 0x71:
+			if (op == 2) SSE2_SHIFT<uint16_t,int16_t>(x,n,1);
+			else if (op == 4) SSE2_SHIFT<uint16_t,int16_t>(x,n,2);
+			else if (op == 6) SSE2_SHIFT<uint16_t,int16_t>(x,n,0);
+			else return false;
+			return true;
+		case 0x72:
+			if (op == 2) SSE2_SHIFT<uint32_t,int32_t>(x,n,1);
+			else if (op == 4) SSE2_SHIFT<uint32_t,int32_t>(x,n,2);
+			else if (op == 6) SSE2_SHIFT<uint32_t,int32_t>(x,n,0);
+			else return false;
+			return true;
+		case 0x73:
+			if (op == 2) SSE2_SHIFT<uint64_t,int64_t>(x,n,1);
+			else if (op == 6) SSE2_SHIFT<uint64_t,int64_t>(x,n,0);
+			else if (op == 3) SSE2_BYTESHIFT(x,n,false);
+			else if (op == 7) SSE2_BYTESHIFT(x,n,true);
+			else return false;
+			return true;
+	}
+	return false;
+}
+
+/* 66 0F xx reg, xmm/m128 of the opcodes that exist as MMX: false for anything else */
+static INLINE bool SSE2_PINT(const uint8_t op,XMM_Reg &d,const XMM_Reg &s) {
+	switch (op) {
+		case 0x60: SSE2_UNPACK<uint8_t>(d,s,false); break;
+		case 0x61: SSE2_UNPACK<uint16_t>(d,s,false); break;
+		case 0x62: SSE2_UNPACK<uint32_t>(d,s,false); break;
+		case 0x6C: SSE2_UNPACK<uint64_t>(d,s,false); break;
+		case 0x68: SSE2_UNPACK<uint8_t>(d,s,true); break;
+		case 0x69: SSE2_UNPACK<uint16_t>(d,s,true); break;
+		case 0x6A: SSE2_UNPACK<uint32_t>(d,s,true); break;
+		case 0x6D: SSE2_UNPACK<uint64_t>(d,s,true); break;
+		case 0x63: SSE2_PACK<int16_t,int8_t>(d,s,-128,127); break;
+		case 0x67: SSE2_PACK<int16_t,uint8_t>(d,s,0,255); break;
+		case 0x6B: SSE2_PACK<int32_t,int16_t>(d,s,-32768,32767); break;
+		case 0x64: SSE2_LANES<uint8_t>(d,s,SSE2_L(uint8_t,((int8_t)a > (int8_t)b) ? 0xFF : 0)); break;
+		case 0x65: SSE2_LANES<uint16_t>(d,s,SSE2_L(uint16_t,((int16_t)a > (int16_t)b) ? 0xFFFF : 0)); break;
+		case 0x66: SSE2_LANES<uint32_t>(d,s,SSE2_L(uint32_t,((int32_t)a > (int32_t)b) ? 0xFFFFFFFFu : 0)); break;
+		case 0x74: SSE2_LANES<uint8_t>(d,s,SSE2_L(uint8_t,(a == b) ? 0xFF : 0)); break;
+		case 0x75: SSE2_LANES<uint16_t>(d,s,SSE2_L(uint16_t,(a == b) ? 0xFFFF : 0)); break;
+		case 0x76: SSE2_LANES<uint32_t>(d,s,SSE2_L(uint32_t,(a == b) ? 0xFFFFFFFFu : 0)); break;
+		case 0xD1: SSE2_SHIFT<uint16_t,int16_t>(d,s.u64[0],1); break;
+		case 0xD2: SSE2_SHIFT<uint32_t,int32_t>(d,s.u64[0],1); break;
+		case 0xD3: SSE2_SHIFT<uint64_t,int64_t>(d,s.u64[0],1); break;
+		case 0xE1: SSE2_SHIFT<uint16_t,int16_t>(d,s.u64[0],2); break;
+		case 0xE2: SSE2_SHIFT<uint32_t,int32_t>(d,s.u64[0],2); break;
+		case 0xF1: SSE2_SHIFT<uint16_t,int16_t>(d,s.u64[0],0); break;
+		case 0xF2: SSE2_SHIFT<uint32_t,int32_t>(d,s.u64[0],0); break;
+		case 0xF3: SSE2_SHIFT<uint64_t,int64_t>(d,s.u64[0],0); break;
+		case 0xD4: SSE2_LANES<uint64_t>(d,s,SSE2_L(uint64_t,a + b)); break;
+		case 0xFB: SSE2_LANES<uint64_t>(d,s,SSE2_L(uint64_t,a - b)); break;
+		case 0xFC: SSE2_LANES<uint8_t>(d,s,SSE2_L(uint8_t,a + b)); break;
+		case 0xFD: SSE2_LANES<uint16_t>(d,s,SSE2_L(uint16_t,a + b)); break;
+		case 0xFE: SSE2_LANES<uint32_t>(d,s,SSE2_L(uint32_t,a + b)); break;
+		case 0xF8: SSE2_LANES<uint8_t>(d,s,SSE2_L(uint8_t,a - b)); break;
+		case 0xF9: SSE2_LANES<uint16_t>(d,s,SSE2_L(uint16_t,a - b)); break;
+		case 0xFA: SSE2_LANES<uint32_t>(d,s,SSE2_L(uint32_t,a - b)); break;
+		case 0xDC: SSE2_LANES<uint8_t>(d,s,SSE2_L(uint8_t,(a + b > 0xFF) ? 0xFF : a + b)); break;
+		case 0xDD: SSE2_LANES<uint16_t>(d,s,SSE2_L(uint16_t,(a + b > 0xFFFF) ? 0xFFFF : a + b)); break;
+		case 0xD8: SSE2_LANES<uint8_t>(d,s,SSE2_L(uint8_t,(a > b) ? a - b : 0)); break;
+		case 0xD9: SSE2_LANES<uint16_t>(d,s,SSE2_L(uint16_t,(a > b) ? a - b : 0)); break;
+		case 0xEC: SSE2_LANES<uint8_t>(d,s,SSE2_L(uint8_t,[](int x){ return x < -128 ? -128 : (x > 127 ? 127 : x); }((int)(int8_t)a + (int)(int8_t)b))); break;
+		case 0xED: SSE2_LANES<uint16_t>(d,s,SSE2_L(uint16_t,[](int x){ return x < -32768 ? -32768 : (x > 32767 ? 32767 : x); }((int)(int16_t)a + (int)(int16_t)b))); break;
+		case 0xE8: SSE2_LANES<uint8_t>(d,s,SSE2_L(uint8_t,[](int x){ return x < -128 ? -128 : (x > 127 ? 127 : x); }((int)(int8_t)a - (int)(int8_t)b))); break;
+		case 0xE9: SSE2_LANES<uint16_t>(d,s,SSE2_L(uint16_t,[](int x){ return x < -32768 ? -32768 : (x > 32767 ? 32767 : x); }((int)(int16_t)a - (int)(int16_t)b))); break;
+		case 0xD5: SSE2_LANES<uint16_t>(d,s,SSE2_L(uint16_t,(int32_t)(int16_t)a * (int32_t)(int16_t)b)); break;
+		case 0xE5: SSE2_LANES<uint16_t>(d,s,SSE2_L(uint16_t,((int32_t)(int16_t)a * (int32_t)(int16_t)b) >> 16)); break;
+		case 0xDB: SSE2_LANES<uint64_t>(d,s,SSE2_L(uint64_t,a & b)); break;
+		case 0xDF: SSE2_LANES<uint64_t>(d,s,SSE2_L(uint64_t,~a & b)); break;
+		case 0xEB: SSE2_LANES<uint64_t>(d,s,SSE2_L(uint64_t,a | b)); break;
+		case 0xEF: SSE2_LANES<uint64_t>(d,s,SSE2_L(uint64_t,a ^ b)); break;
+		case 0xF4: {	/* PMULUDQ: dwords 0 and 2 */
+			const uint64_t r0 = (uint64_t)d.u32[0] * s.u32[0], r1 = (uint64_t)d.u32[2] * s.u32[2];
+			d.u64[0] = r0; d.u64[1] = r1;
+			} break;
+		case 0xF5: {	/* PMADDWD */
+			uint32_t r[4];
+			for (unsigned int i=0;i < 4;i++)
+				r[i] = (uint32_t)((int64_t)d.i16[2*i] * s.i16[2*i] + (int64_t)d.i16[2*i+1] * s.i16[2*i+1]);
+			for (unsigned int i=0;i < 4;i++) d.u32[i] = r[i];
+			} break;
+		default: return false;
+	}
+	return true;
+}
+
+static INLINE void SSE2_PSHUFD(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
+	XMM_Reg t;
+	for (unsigned int k=0;k < 4;k++) t.u32[k] = s.u32[(i >> (2u*k)) & 3u];
+	d = t;
+}
+
+static INLINE void SSE2_PSHUFLW(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
+	XMM_Reg t = s;
+	for (unsigned int k=0;k < 4;k++) t.u16[k] = s.u16[(i >> (2u*k)) & 3u];
+	d = t;
+}
+
+static INLINE void SSE2_PSHUFHW(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
+	XMM_Reg t = s;
+	for (unsigned int k=0;k < 4;k++) t.u16[4+k] = s.u16[4 + ((i >> (2u*k)) & 3u)];
+	d = t;
 }
 
 ////
