@@ -534,6 +534,153 @@ static INLINE void SSE_CMPSS(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
 
 ////
 
+//// SSE2: double precision
+
+#define SSE2_ARITH(NAME,EXPR) \
+static INLINE void SSE2_##NAME##PD(XMM_Reg &d,const XMM_Reg &s) { \
+	for (unsigned int i=0;i < 2;i++) { const double a = d.f64[i].v, b = s.f64[i].v; (void)a; (void)b; d.f64[i].v = (EXPR); } \
+} \
+static INLINE void SSE2_##NAME##SD(XMM_Reg &d,const XMM_Reg &s) { \
+	const double a = d.f64[0].v, b = s.f64[0].v; (void)a; (void)b; d.f64[0].v = (EXPR); \
+}
+
+SSE2_ARITH(ADD,a + b)
+SSE2_ARITH(SUB,a - b)
+SSE2_ARITH(MUL,a * b)
+SSE2_ARITH(DIV,a / b)
+SSE2_ARITH(SQRT,sqrt(b))
+SSE2_ARITH(MIN,(a < b) ? a : b)	/* NaN or both zero: the second (source) operand, as the SDM says */
+SSE2_ARITH(MAX,(a > b) ? a : b)
+#undef SSE2_ARITH
+
+static INLINE void SSE2_ANDPD(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[0] &= s.u64[0];
+	d.u64[1] &= s.u64[1];
+}
+
+static INLINE void SSE2_ANDNPD(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[0] = ~d.u64[0] & s.u64[0];
+	d.u64[1] = ~d.u64[1] & s.u64[1];
+}
+
+static INLINE void SSE2_ORPD(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[0] |= s.u64[0];
+	d.u64[1] |= s.u64[1];
+}
+
+static INLINE void SSE2_XORPD(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[0] ^= s.u64[0];
+	d.u64[1] ^= s.u64[1];
+}
+
+static INLINE void SSE2_UNPCKLPD(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[1] = s.u64[0];
+}
+
+static INLINE void SSE2_UNPCKHPD(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[0] = d.u64[1];
+	d.u64[1] = s.u64[1];
+}
+
+static INLINE void SSE2_SHUFPD(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
+	XMM_Reg tmp;
+	tmp.u64[0] = d.u64[i & 1u];
+	tmp.u64[1] = s.u64[(i >> 1u) & 1u];
+	d = tmp;
+}
+
+static INLINE void SSE2_MOVMSKPD(uint32_t &d,const XMM_Reg &s) {
+	d = (uint32_t)(s.u64[0] >> 63u) | ((uint32_t)(s.u64[1] >> 63u) << 1u);
+}
+
+static INLINE void SSE2_COMISD(const XMM_Reg &d,const XMM_Reg &s) {
+	FillFlags();
+	reg_flags &= ~(FLAG_CF|FLAG_PF|FLAG_AF|FLAG_ZF|FLAG_SF|FLAG_OF);
+
+	if (isnan(d.f64[0].v) || isnan(s.f64[0].v))
+		reg_flags |= FLAG_ZF|FLAG_PF|FLAG_CF; /* unordered compare */
+	else if (d.f64[0].v == s.f64[0].v)
+		reg_flags |= FLAG_ZF;
+	else if (d.f64[0].v > s.f64[0].v)
+		{ /* no change */ }
+	else /* d < s */
+		reg_flags |= FLAG_CF;
+}
+
+static INLINE uint64_t SSE2_CMP_i(const double a,const double b,const uint8_t cf) {
+	bool r = false;
+	switch (cf) {
+		case 0:/*EQ*/	r = (a == b); break;
+		case 1:/*LT*/	r = (a <  b); break;
+		case 2:/*LE*/	r = (a <= b); break;
+		case 3:/*UNORD*/r = isnan(a) || isnan(b); break;
+		case 4:/*NEQ*/	r = !(a == b); break;
+		case 5:/*NLT*/	r = !(a <  b); break;
+		case 6:/*NLE*/	r = !(a <= b); break;
+		case 7:/*ORD*/	r = !isnan(a) && !isnan(b); break;
+	}
+	return r ? ~(uint64_t)0 : (uint64_t)0;
+}
+
+static INLINE void SSE2_CMPPD(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
+	d.u64[0] = SSE2_CMP_i(d.f64[0].v,s.f64[0].v,cf);
+	d.u64[1] = SSE2_CMP_i(d.f64[1].v,s.f64[1].v,cf);
+}
+
+static INLINE void SSE2_CMPSD(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
+	d.u64[0] = SSE2_CMP_i(d.f64[0].v,s.f64[0].v,cf);
+}
+
+static INLINE void SSE2_CVTSI2SD(XMM_Reg &d,const uint32_t s) {
+	d.f64[0].v = (double)(int32_t)s;
+}
+
+/* double -> int32; NaN and out of range give the "integer indefinite" 0x80000000;
+ * CVTSD2SI rounds as MXCSR.RC says (0 nearest even, 1 down, 2 up, 3 toward zero), CVTTSD2SI truncates */
+static INLINE void SSE2_CVT_i32(uint32_t &d,const double v,const bool truncate) {
+	double r;
+	if (truncate) r = trunc(v);
+	else switch ((fpu.mxcsr >> 13u) & 3u) {
+		case 1:		r = floor(v); break;
+		case 2:		r = ceil(v); break;
+		case 3:		r = trunc(v); break;
+		default:	r = nearbyint(v); break;
+	}
+	if (isnan(r) || r >= 2147483648.0 || r < -2147483648.0) d = 0x80000000u;
+	else d = (uint32_t)(int32_t)r;
+}
+
+static INLINE void SSE2_CVTTSD2SI(uint32_t &d,const XMM_Reg &s) {
+	SSE2_CVT_i32(d,s.f64[0].v,true);
+}
+
+static INLINE void SSE2_CVTSD2SI(uint32_t &d,const XMM_Reg &s) {
+	SSE2_CVT_i32(d,s.f64[0].v,false);
+}
+
+static INLINE void SSE2_CVTSS2SD(XMM_Reg &d,const XMM_Reg &s) {
+	d.f64[0].v = (double)s.f32[0].v;
+}
+
+static INLINE void SSE2_CVTSD2SS(XMM_Reg &d,const XMM_Reg &s) {
+	d.f32[0].v = (float)s.f64[0].v;
+}
+
+static INLINE void SSE2_CVTPS2PD(XMM_Reg &d,const XMM_Reg &s) {
+	const double a = (double)s.f32[0].v, b = (double)s.f32[1].v;
+	d.f64[0].v = a;
+	d.f64[1].v = b;
+}
+
+static INLINE void SSE2_CVTPD2PS(XMM_Reg &d,const XMM_Reg &s) {
+	const float a = (float)s.f64[0].v, b = (float)s.f64[1].v;
+	d.f32[0].v = a;
+	d.f32[1].v = b;
+	d.u64[1] = 0;
+}
+
+////
+
 static INLINE void MMX_PINSRW(MMX_reg &d,const uint32_t &s,const uint8_t i) {
 	d.uwa[i&3u] = (uint16_t)s;
 	d.fpu.e = 0xFFFF;
