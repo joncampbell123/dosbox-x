@@ -2253,12 +2253,23 @@ bool DOS_FCBRenameFile(uint16_t seg, uint16_t offset) {
         memcpy(match + 8, ext, 3);
         match[11] = 0;
 
-        char rename[12];
+
+        char rename[11];
         memcpy(rename, newname + 2, 8); // Skip the drive prefix and copy the filename
         memcpy(rename + 8, newname + 11, 3); // Copy the extension without the separator
-        rename[11] = 0;
-        for(unsigned int i = 0; i < 11; i++)
-            if(rename[i] == '?') rename[i] = match[i]; // Replace ? with the matched FCB character
+
+        /* Expand wildcards separately in the filename and extension. */
+        for(unsigned int i = 0; i < 11; i++) {
+            if(rename[i] == '*') {
+                unsigned int end = (i < 8) ? 8 : 11;
+                for(unsigned int j = i; j < end; j++)
+                    rename[j] = match[j];
+                i = end - 1;
+            }
+            else if(rename[i] == '?') {
+                rename[i] = match[i];
+            }
+        }
 
         char rename_name[DOS_NAMELENGTH_ASCII];
         unsigned int pos = 0;
