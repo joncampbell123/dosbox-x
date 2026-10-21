@@ -472,6 +472,18 @@ static NSCursor *Cocoa_GetDesiredCursor(void)
 }
 
 
+/* DOSBox-X: a window in the color space of its display (see Cocoa_CreateWindow) */
+static void Cocoa_MatchWindowColorSpace(NSWindow *nswindow)
+{
+    NSColorSpace *cs = [[nswindow screen] colorSpace];
+    if (cs == nil) {
+        cs = [[NSScreen mainScreen] colorSpace];
+    }
+    if (cs != nil && ![[nswindow colorSpace] isEqual:cs]) {
+        [nswindow setColorSpace:cs];
+    }
+}
+
 @implementation Cocoa_WindowListener
 
 - (void)listen:(SDL_WindowData *)data
@@ -967,12 +979,14 @@ static NSCursor *Cocoa_GetDesiredCursor(void)
 
 - (void)windowDidChangeScreenProfile:(NSNotification *)aNotification
 {
+    Cocoa_MatchWindowColorSpace(_data.nswindow);	/* DOSBox-X */
     SDL_SendWindowEvent(_data.window, SDL_WINDOWEVENT_ICCPROF_CHANGED, 0, 0);
 }
 
 - (void)windowDidChangeScreen:(NSNotification *)aNotification
 {
     /*printf("WINDOWDIDCHANGESCREEN\n");*/
+    Cocoa_MatchWindowColorSpace(_data.nswindow);	/* DOSBox-X */
 #ifdef SDL_VIDEO_OPENGL
     if (_data && _data.nscontexts) {
         for (SDLOpenGLContext *context in _data.nscontexts) {
@@ -1805,7 +1819,10 @@ int Cocoa_CreateWindow(_THIS, SDL_Window * window)
         return SDL_SetError("%s", [[e reason] UTF8String]);
     }
 
-    [nswindow setColorSpace:[NSColorSpace sRGBColorSpace]];
+    /* DOSBox-X: in the color space of the display it is on, so what is drawn in it is shown as it is
+       (as SDL 1.x and the Metal output do), instead of taken as sRGB and converted to the display's
+       color space, which makes colors less saturated on wide gamut (Display P3) displays */
+    Cocoa_MatchWindowColorSpace(nswindow);
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101200 /* Added in the 10.12.0 SDK. */
     /* By default, don't allow users to make our window tabbed in 10.12 or later */
