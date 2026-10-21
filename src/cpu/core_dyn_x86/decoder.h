@@ -2687,26 +2687,32 @@ restart_prefix:
 			case 0xed:case 0xef:case 0xf1:case 0xf2:case 0xf3:case 0xf5:
 			case 0xf8:case 0xf9:case 0xfa:case 0xfc:case 0xfd:case 0xfe:
 				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				if (decode.rep != REP_NONE || decode.big_op != cpu.code.big) goto illegalopcode;	/* 66/F2/F3 0F xx is SSE2, let the normal core raise #UD */
 				dyn_mmx_check(); dyn_mmx_op(dual_code); break;
 			/* SHIFT mm, imm8*/
 			case 0x71:case 0x72:case 0x73:
 				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				if (decode.rep != REP_NONE || decode.big_op != cpu.code.big) goto illegalopcode;	/* 66/F2/F3 0F xx is SSE2, let the normal core raise #UD */
 				dyn_mmx_check(); dyn_mmx_shift_imm8((uint8_t)dual_code); break;
 			/* MOVD mm, r/m32 */
 			case 0x6e:
 				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				if (decode.rep != REP_NONE || decode.big_op != cpu.code.big) goto illegalopcode;	/* 66/F2/F3 0F xx is SSE2, let the normal core raise #UD */
 				dyn_mmx_check(); dyn_mmx_movd_pqed(); break;
 			/* MOVQ mm, mm/m64 */
 			case 0x6f:
 				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				if (decode.rep != REP_NONE || decode.big_op != cpu.code.big) goto illegalopcode;	/* 66/F2/F3 0F xx is SSE2, let the normal core raise #UD */
 				dyn_mmx_check(); dyn_mmx_movq_pqqq(); break;
 			/* MOVD r/m32, mm */
 			case 0x7e:
 				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				if (decode.rep != REP_NONE || decode.big_op != cpu.code.big) goto illegalopcode;	/* 66/F2/F3 0F xx is SSE2, let the normal core raise #UD */
 				dyn_mmx_check(); dyn_mmx_movd_edpq(); break;
 			/* MOVQ mm/m64, mm */
 			case 0x7f:
 				if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegalopcode;
+				if (decode.rep != REP_NONE || decode.big_op != cpu.code.big) goto illegalopcode;	/* 66/F2/F3 0F xx is SSE2, let the normal core raise #UD */
 				dyn_mmx_check(); dyn_mmx_movq_qqpq(); break;
 			/* EMMS */
 			case 0x77:
