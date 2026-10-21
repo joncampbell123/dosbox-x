@@ -685,7 +685,12 @@ bool CMetal::Resize(uint32_t window_w,
         return false;
     //LOG_MSG("Resize called: win=%u,%u tex=%u,%u", window_w, window_h, tex_w, tex_h);
 
+    /* the window is the size the user made it (or maximized), as with the surface and OpenGL outputs:
+     * otherwise its size follows the video mode */
+    const bool user_sized =
+        (userResizeWindowWidth != 0 && userResizeWindowHeight != 0) || menu.maxwindow;
     const bool reset_window_size =
+        !user_sized &&
         (((userResizeWindowWidth == 0) && (userResizeWindowHeight == 0)) ||
         (tex_w != last_tex_w || tex_h != last_tex_h))
         && !sdl.desktop.fullscreen;
@@ -708,7 +713,7 @@ bool CMetal::Resize(uint32_t window_w,
             render.scale.hardware = true;
             hardware_scaler_selected = false;
         }
-        if(reset_window_size || render.scale.size != last_scalesize){
+        if(reset_window_size || (!user_sized && render.scale.size != last_scalesize)){
             if(tex_h >= CurMode->sheight * 2) { // doublescan mode
                 width = tex_w;
                 height = tex_h;
@@ -727,16 +732,6 @@ bool CMetal::Resize(uint32_t window_w,
             }
             if(window_w != last_window_w || window_h != last_window_h) metal_SetWindowSize(window_w, window_h);
             last_scalesize = render.scale.size;
-        }
-        if(render.aspect) {
-            int real_w = 0, real_h = 0;
-            metal_GetWindowSize(&real_w, &real_h);
-            if(real_w > 0) {
-                window_w = real_w;
-                window_h = (uint32_t)((double)window_w / target_ratio + 0.5);
-            }
-            if(window_w != last_window_w || window_h != last_window_h) metal_SetWindowSize(window_w, window_h);
-            //LOG_MSG("window_w=%d, window_h=%d, sdl.draw.width=%d, real_w=%d, real_h=%d, w/h=%lf, target=%lf", window_w, window_h, sdl.draw.width, real_w, real_h, (double)real_w/real_h, target_ratio);
         }
     }
 
@@ -820,7 +815,10 @@ bool CMetal::Resize(uint32_t window_w,
     uint32_t dw = (uint32_t)layer.drawableSize.width;
     uint32_t dh = (uint32_t)layer.drawableSize.height;
 
-    if (sdl.desktop.fullscreen && render.aspect) {
+    /* with "fit to aspect ratio", the frame is shown in the largest region of the window (or screen)
+     * with the aspect ratio, in the middle (black around it), as with the surface and OpenGL outputs.
+     * Otherwise it fills the window. */
+    if (render.aspect) {
 
         double win_ratio = (double)dw / (double)dh;
 
