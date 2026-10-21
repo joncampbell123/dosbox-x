@@ -2154,26 +2154,64 @@ bool DOS_FCBDeleteFile(uint16_t seg,uint16_t offset){
         }
     }
 
-/* FCB DELETE honours wildcards. it will return true if one or more
+/** FCB DELETE honours wildcards. it will return true if one or more
  * files get deleted. 
  * To get this: the dta is set to temporary dta in which found files are
  * stored. This can not be the tempdta as that one is used by fcbfindfirst
  */
-	RealPt old_dta=dos.dta();dos.dta(dos.tables.tempdta_fcbdelete);
-	RealPt new_dta=dos.dta();
-	bool nextfile = false;
-	bool return_value = false;
-	nextfile = DOS_FCBFindFirst(seg,offset);
-	DOS_FCB fcb(RealSeg(new_dta),RealOff(new_dta));
-	while(nextfile) {
-		char shortname[DOS_FCBNAME] = { 0 };
-		fcb.GetName(shortname);
-		bool res=DOS_UnlinkFile(shortname);
-		if(!return_value && res) return_value = true; //at least one file deleted
-		nextfile = DOS_FCBFindNext(seg,offset);
-	}
-	dos.dta(old_dta);  /*Restore dta */
-	return return_value;
+    RealPt old_dta = dos.dta(); dos.dta(dos.tables.tempdta_fcbdelete);
+    RealPt new_dta = dos.dta();
+    bool nextfile = false;
+    bool return_value = false;
+    DOS_FCB find_fcb(seg, offset);
+    char name[DOS_FCBNAME];
+    find_fcb.GetName(name);
+    uint8_t attr = DOS_ATTR_ARCHIVE;
+    find_fcb.GetAttr(attr); /* Gets search attributes if extended */
+    nextfile = DOS_FindFirst(name, attr, true);
+    DOS_FCB fcb(RealSeg(new_dta), RealOff(new_dta) + 1);
+    while(nextfile) {
+        char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
+        uint32_t size, hsize;
+        uint16_t date, time;
+        uint8_t file_attr;
+        DOS_DTA find_dta(dos.tables.tempdta_fcbdelete);
+        find_dta.GetResult(name, lname, size, hsize, date, time, file_attr);
+
+        char source_basename[DOS_NAMELENGTH_ASCII];
+        strcpy(source_basename, name);
+
+        char file_name[9];
+        char ext[4];
+        DTAExtendName(name, file_name, ext);
+
+        char shortname[DOS_NAMELENGTH_ASCII];
+        unsigned int pos = 0;
+        for(unsigned int i = 0; i < 8; i++) {
+            if(file_name[i] == ' ') break;
+            shortname[pos++] = file_name[i];
+        }
+        if(ext[0] != ' ') {
+            shortname[pos++] = '.';
+            for(unsigned int i = 0; i < 3; i++) {
+                if(ext[i] == ' ') break;
+                shortname[pos++] = ext[i];
+            }
+        }
+        shortname[pos] = 0;
+
+        //LOG_MSG("FCB delete found='%s'", shortname);
+
+        bool res = DOS_UnlinkFile(shortname);
+
+        //LOG_MSG("FCB delete unlink='%s' result=%d", shortname, res);
+
+        if(!return_value && res) return_value = true; //at least one file deleted
+        nextfile = DOS_FindNext();
+    }
+
+    dos.dta(old_dta);  /*Restore dta */
+    return return_value;
 }
 
 char* trimString(char* str);
