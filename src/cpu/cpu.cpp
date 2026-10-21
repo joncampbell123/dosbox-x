@@ -87,6 +87,7 @@ bool enable_fpu = true;
 bool enable_msr = true;
 bool enable_syscall = true;
 bool enable_cmpxchg8b = true;
+bool enable_sse2 = false;
 bool ignore_undefined_msr = true;
 bool report_fdiv_bug = false;
 
@@ -381,6 +382,8 @@ const char *GetCPUType() {
         return "Pentium II";
     else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
         return "Pentium III";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM4)
+        return "Pentium 4";
     else
         return "Mixed/other x86";
 }
@@ -3098,7 +3101,7 @@ bool CPU_CPUID(void) {
 
 	switch (reg_eax) {
 		case 0:	/* Vendor ID String and maximum level? */
-			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM4)
 				reg_eax=3;  /* Maximum level */
 			else
 				reg_eax=1;  /* Maximum level */
@@ -3173,6 +3176,16 @@ bool CPU_CPUID(void) {
 				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM4) {
+				reg_eax=0xF24; /* intel pentium 4 (Northwood): family 15, model 2, stepping 4 */
+				reg_ebx=0x0809;			/* brand id 9, CLFLUSH line size 64 */
+				reg_ecx=0;			/* No SSE3 */
+				reg_edx=0x07888011;	/* FPU+TimeStamp/RDTSC+SSE+SSE2+FXSAVE/FXRESTOR+CLFLUSH */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
 				reg_eax=0x643; /* intel pentium III */
 				reg_ebx=0x0002;			/* brand */
@@ -3184,10 +3197,15 @@ bool CPU_CPUID(void) {
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 				if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) reg_edx |= 0x40000;
 				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
+				if (enable_sse2) {
+					reg_edx |= 0x04000000;	/* SSE2 */
+					reg_edx |= 0x00080000;	/* CLFLUSH */
+					reg_ebx |= 0x0800;		/* CLFLUSH line size: 8 * 8 = 64 bytes */
+				}
 			}
 			break;
 		case 2: /* Processor Configuration Descriptor(s) */
-			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII) {
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM4) {
 				/* NTS: Windows XP considers these values SOOOOO IMPORTANT that if we don't return any here
 				 *      the NT kernel will just spin endlessly in an infinite loop with interrupts disabled
 				 *      instead of, you know, booting up. But only if it sees a Pentium III. */
@@ -3869,6 +3887,7 @@ public:
 		enable_msr=section->Get_bool("enable msr");
 		enable_syscall=section->Get_bool("enable syscall");
 		enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
+		enable_sse2=section->Get_bool("enable sse2");
 		CPU_CycleUp=section->Get_int("cycleup");
 		CPU_CycleDown=section->Get_int("cycledown");
 		std::string core(section->Get_string("core"));
@@ -4034,6 +4053,8 @@ public:
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMII;
 		} else if (cputype == "pentium_iii") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMIII;
+		} else if (cputype == "pentium_4") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM4;
 		}
 
 		cpu_custom_cpuid[0] = 0;
@@ -4222,6 +4243,7 @@ public:
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
 
 		if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
+		if (enable_sse2 && CPU_ArchitectureType < CPU_ARCHTYPE_PENTIUMIII) LOG_MSG("enable sse2 has no effect below cputype=pentium_iii");
 
 		if (CPU_ArchitectureType < CPU_ARCHTYPE_486NEW) {
 			do_pse = false;
