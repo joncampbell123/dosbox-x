@@ -2154,7 +2154,7 @@ bool DOS_FCBDeleteFile(uint16_t seg,uint16_t offset){
         }
     }
 
-/* FCB DELETE honours wildcards. it will return true if one or more
+/** FCB DELETE honours wildcards. it will return true if one or more
  * files get deleted. 
  * To get this: the dta is set to temporary dta in which found files are
  * stored. This can not be the tempdta as that one is used by fcbfindfirst
@@ -2166,7 +2166,7 @@ bool DOS_FCBDeleteFile(uint16_t seg,uint16_t offset){
     DOS_FCB find_fcb(seg, offset);
     char name[DOS_FCBNAME];
     find_fcb.GetName(name);
-    Bit8u attr = DOS_ATTR_ARCHIVE;
+    uint8_t attr = DOS_ATTR_ARCHIVE;
     find_fcb.GetAttr(attr); /* Gets search attributes if extended */
     nextfile = DOS_FindFirst(name, attr, true);
     DOS_FCB fcb(RealSeg(new_dta), RealOff(new_dta) + 1);
