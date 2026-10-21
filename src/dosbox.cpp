@@ -1440,7 +1440,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", nullptr };
     const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", nullptr }; // Future work: Tandy(?) and USB
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",nullptr};
-    const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", "pentium_ii", "pentium_iii", "experimental", nullptr };
+    const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", "pentium_ii", "pentium_iii", "pentium_4", "experimental", nullptr };
     const char* rates[] = {  "49716", "48000", "44100", "32000","22050", "16000", "11025", "8000", nullptr };
     const char* pcrates[] = {  "65536", "49716", "48000", "44100", "32000","22050", "16000", "11025", "8000", nullptr };
 #if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)

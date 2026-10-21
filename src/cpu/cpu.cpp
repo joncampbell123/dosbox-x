@@ -382,6 +382,8 @@ const char *GetCPUType() {
         return "Pentium II";
     else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
         return "Pentium III";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM4)
+        return "Pentium 4";
     else
         return "Mixed/other x86";
 }
@@ -3099,7 +3101,7 @@ bool CPU_CPUID(void) {
 
 	switch (reg_eax) {
 		case 0:	/* Vendor ID String and maximum level? */
-			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM4)
 				reg_eax=3;  /* Maximum level */
 			else
 				reg_eax=1;  /* Maximum level */
@@ -3174,6 +3176,16 @@ bool CPU_CPUID(void) {
 				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM4) {
+				reg_eax=0xF24; /* intel pentium 4 (Northwood): family 15, model 2, stepping 4 */
+				reg_ebx=0x0809;			/* brand id 9, CLFLUSH line size 64 */
+				reg_ecx=0;			/* No SSE3 */
+				reg_edx=0x07888011;	/* FPU+TimeStamp/RDTSC+SSE+SSE2+FXSAVE/FXRESTOR+CLFLUSH */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_pse) reg_edx |= 0x08; /* Page Size Extension */
+				if (enable_pse_extbits) reg_edx |= 0x20000; /* PSE 36-bit */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
 			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
 				reg_eax=0x643; /* intel pentium III */
 				reg_ebx=0x0002;			/* brand */
@@ -3193,7 +3205,7 @@ bool CPU_CPUID(void) {
 			}
 			break;
 		case 2: /* Processor Configuration Descriptor(s) */
-			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII) {
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM4) {
 				/* NTS: Windows XP considers these values SOOOOO IMPORTANT that if we don't return any here
 				 *      the NT kernel will just spin endlessly in an infinite loop with interrupts disabled
 				 *      instead of, you know, booting up. But only if it sees a Pentium III. */
@@ -4041,6 +4053,8 @@ public:
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMII;
 		} else if (cputype == "pentium_iii") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMIII;
+		} else if (cputype == "pentium_4") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM4;
 		}
 
 		cpu_custom_cpuid[0] = 0;

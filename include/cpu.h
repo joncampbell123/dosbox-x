@@ -48,6 +48,7 @@
 #define CPU_ARCHTYPE_PPROSLOW			0x60
 #define CPU_ARCHTYPE_PENTIUMII			0x65
 #define CPU_ARCHTYPE_PENTIUMIII			0x6A
+#define CPU_ARCHTYPE_PENTIUM4			0x6F
 
 #define FPU_ARCHTYPE_8087			0x00
 #define FPU_ARCHTYPE_287			0x20
@@ -607,7 +608,7 @@ static INLINE bool CPU_SSE(void) {
 
 // SSE2 instructions: SSE plus the "enable sse2" option (SSE2 is being added step by step, so it is opt-in)
 static INLINE bool CPU_SSE2(void) {
-	return enable_sse2 && CPU_SSE();
+	return (enable_sse2 || CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM4) && CPU_SSE();
 }
 
 // SSE exceptions enabled by bit 10
