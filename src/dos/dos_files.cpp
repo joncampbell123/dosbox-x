@@ -1219,8 +1219,21 @@ bool DOS_UnlinkFile(char const * const name) {
     if (Network_IsNetworkResource(name)) return Network_UnlinkFile(name);
 # endif
 #endif
+
+    /* A read-only file cannot be deleted. */
+    if(!strchr(fullname, '*') && !strchr(fullname, '?')) { // Skip read-only checks for names including wildcards
+        uint16_t attr = 0;
+        if(DOS_GetFileAttr(name, &attr)) { // DOS_GetFileAttr() creates fullname itself so pass name to avoid double canonicalization
+            if(attr & DOS_ATTR_READ_ONLY) {
+                DOS_SetError(DOSERR_ACCESS_DENIED);
+                return false;
+            }
+        }
+    }
+
 	if(Drives[drive]->FileUnlink(fullname)){
-		return true;
+        reg_al = drive; // According to RBIL, AL seems to be drive of deleted file (Confirmed with PC-DOS 3.3, PC-DOS 7.0, MS-DOS 7.1)
+        return true;
 	} else if(uselfn&&!force_sfn&&(strchr(fullname, '*')||strchr(fullname, '?'))) { // Wildcard delete as used by MS-DOS 7+ "DEL *.*" in LFN mode
 		char dir[DOS_PATHLENGTH], temp[DOS_PATHLENGTH], fname[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH];
 		if (!DOS_Canonicalize(name,fullname)||!strlen(fullname)) {
@@ -1274,9 +1287,11 @@ bool DOS_UnlinkFile(char const * const name) {
 			cdirs.erase(cdirs.begin());
 		}
 		dos.dta(save_dta);
-		if (removed)
-			return true;
-		else {
+        if(removed) {
+            reg_al = drive; // According to RBIL, AL seems to be drive of deleted file (Confirmed with PC-DOS 3.3, PC-DOS 7.0, MS-DOS 7.1)
+            return true;
+        }
+        else {
 			if (dos.errorcode!=DOSERR_ACCESS_DENIED&&dos.errorcode!=DOSERR_WRITE_PROTECTED) DOS_SetError(DOSERR_FILE_NOT_FOUND);
 			return false;
 		}
