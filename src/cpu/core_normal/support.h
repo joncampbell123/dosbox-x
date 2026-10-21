@@ -542,6 +542,8 @@ static INLINE void SSE_CMPSS(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
  * for the 32-bit compilers of the lowend MinGW and HX-DOS builds (cc1plus: out of memory). */
 #define SSE2_HELPER static inline GCC_ATTRIBUTE(noinline)
 
+/* only the cores that define LoadMq/SaveMq (386 and up) run the SSE2 cases */
+#if defined(LoadMq) && defined(SaveMq)
 SSE2_HELPER uint64_t SSE_LoadMq(const PhysPt off) {
 	return LoadMq(off);
 }
@@ -549,6 +551,7 @@ SSE2_HELPER uint64_t SSE_LoadMq(const PhysPt off) {
 SSE2_HELPER void SSE_SaveMq(const PhysPt off,const uint64_t val) {
 	SaveMq(off,val);
 }
+#endif
 
 //// SSE2: double precision
 
