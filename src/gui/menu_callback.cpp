@@ -3455,16 +3455,16 @@ void AllocCallback1() {
                     set_callback_function(output_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglpp").set_text("OpenGL perfect").
                     set_callback_function(output_menu_callback);
+#if C_METAL_OUTPUT
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "output_metal").set_text("Metal").
+                    set_callback_function(output_menu_callback);
+#endif
 #if defined(USE_TTF)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_ttf").set_text("TrueType font").
                     set_callback_function(output_menu_callback);
 #endif
 #if C_GAMELINK
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_gamelink").set_text("Game Link").
-                    set_callback_function(output_menu_callback);
-#endif
-#if C_METAL_OUTPUT
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "output_metal").set_text("Metal(Experimental)").
                     set_callback_function(output_menu_callback);
 #endif
 #if C_VULKAN_OUTPUT

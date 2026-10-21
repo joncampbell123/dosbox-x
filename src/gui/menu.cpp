@@ -397,6 +397,9 @@ static const char *def_menu_video_output[] =
     "output_openglnb",
     "output_openglpp",
 #endif
+#if C_METAL_OUTPUT
+    "output_metal",
+#endif
 #if C_VULKAN_OUTPUT
     "output_vulkan",
 #endif
@@ -406,9 +409,6 @@ static const char *def_menu_video_output[] =
 #if C_GAMELINK
     "output_gamelink",
 #endif
-#if C_METAL_OUTPUT
-    "output_metal",
-#endif    
     "--",
     "doublescan",
 #if !defined(C_SDL2)
