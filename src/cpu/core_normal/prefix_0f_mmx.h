@@ -59,8 +59,8 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE_MOVUPS(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -70,7 +70,7 @@
 					fpu.xmmreg[reg].u64[0] = fpu.xmmreg[rm & 7].u64[0];
 				} else {
 					GetEAa;
-					fpu.xmmreg[reg].u64[0] = LoadMq(eaa);
+					fpu.xmmreg[reg].u64[0] = SSE_LoadMq(eaa);
 					fpu.xmmreg[reg].u64[1] = 0;
 				}
 				break;
@@ -114,8 +114,8 @@
 					fpu.xmmreg[rm & 7] = fpu.xmmreg[reg];
 				} else {
 					GetEAa;
-					SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
-					SaveMq(eaa+8u,fpu.xmmreg[reg].u64[1]);
+					SSE_SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
+					SSE_SaveMq(eaa+8u,fpu.xmmreg[reg].u64[1]);
 				}
 				break;
 			case MP_F2:									/* F2 0F 11 MOVSD r/m, reg */
@@ -124,7 +124,7 @@
 					fpu.xmmreg[rm & 7].u64[0] = fpu.xmmreg[reg].u64[0];
 				} else {
 					GetEAa;
-					SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
+					SSE_SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
 				}
 				break;
 			default:
@@ -154,7 +154,7 @@
 				if (rm >= 0xc0) goto illegal_opcode;
 				{
 					GetEAa;
-					fpu.xmmreg[reg].u64[0] = LoadMq(eaa);
+					fpu.xmmreg[reg].u64[0] = SSE_LoadMq(eaa);
 				}
 				break;
 			default:
@@ -184,7 +184,7 @@
 				if (rm >= 0xc0) goto illegal_opcode;
 				{
 					GetEAa;
-					SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
+					SSE_SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
 				}
 				break;
 			default:
@@ -217,8 +217,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_UNPCKLPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -252,8 +252,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_UNPCKHPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -284,7 +284,7 @@
 				if (rm >= 0xc0) goto illegal_opcode;
 				{
 					GetEAa;
-					fpu.xmmreg[reg].u64[1] = LoadMq(eaa);
+					fpu.xmmreg[reg].u64[1] = SSE_LoadMq(eaa);
 				}
 				break;
 			default:
@@ -314,7 +314,7 @@
 				if (rm >= 0xc0) goto illegal_opcode;
 				{
 					GetEAa;
-					SaveMq(eaa,fpu.xmmreg[reg].u64[1]);
+					SSE_SaveMq(eaa,fpu.xmmreg[reg].u64[1]);
 				}
 				break;
 			default:
@@ -388,8 +388,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE_MOVAPS(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -424,8 +424,8 @@
 				} else {
 					GetEAa;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
-					SaveMq(eaa+8u,fpu.xmmreg[reg].u64[1]);
+					SSE_SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
+					SSE_SaveMq(eaa+8u,fpu.xmmreg[reg].u64[1]);
 				}
 				break;
 			default:
@@ -475,7 +475,7 @@
 				} else {
 					GetEAa;
 					MMX_reg mmxsrc;
-					mmxsrc.q = LoadMq(eaa);
+					mmxsrc.q = SSE_LoadMq(eaa);
 					SSE2_CVTPI2PD(fpu.xmmreg[reg],mmxsrc);
 				}
 				break;
@@ -507,8 +507,8 @@
 				{
 					GetEAa;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
-					SaveMq(eaa+8u,fpu.xmmreg[reg].u64[1]);
+					SSE_SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
+					SSE_SaveMq(eaa+8u,fpu.xmmreg[reg].u64[1]);
 				}
 				break;
 			default:
@@ -551,7 +551,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_CVTTSD2SI(cpu_regs.regs[reg].dword[0],xmmsrc);
 				}
 				break;
@@ -563,8 +563,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_CVTTPD2PI(*reg_mmx[reg],xmmsrc);
 				}
 				break;
@@ -608,7 +608,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_CVTSD2SI(cpu_regs.regs[reg].dword[0],xmmsrc);
 				}
 				break;
@@ -620,8 +620,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_CVTPD2PI(*reg_mmx[reg],xmmsrc);
 				}
 				break;
@@ -654,7 +654,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_COMISD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -687,7 +687,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_COMISD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -760,8 +760,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_SQRTPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -772,7 +772,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_SQRTSD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -880,8 +880,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_ANDPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -917,8 +917,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_ANDNPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -954,8 +954,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_ORPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -991,8 +991,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_XORPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1041,8 +1041,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_ADDPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1053,7 +1053,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_ADDSD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1101,8 +1101,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_MULPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1113,7 +1113,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_MULSD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1135,7 +1135,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_CVTPS2PD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1147,8 +1147,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_CVTPD2PS(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1159,7 +1159,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_CVTSD2SS(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1193,8 +1193,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_CVTDQ2PS(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1206,8 +1206,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_CVTPS2DQ(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1219,8 +1219,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_CVTTPS2DQ(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1268,8 +1268,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_SUBPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1280,7 +1280,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_SUBSD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1328,8 +1328,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_MINPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1340,7 +1340,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_MINSD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1388,8 +1388,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_DIVPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1400,7 +1400,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_DIVSD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1448,8 +1448,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_MAXPD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1460,7 +1460,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_MAXSD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -1482,8 +1482,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x60,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1523,8 +1523,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x61,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1560,8 +1560,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x62,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1594,8 +1594,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x63,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1635,8 +1635,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x64,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1676,8 +1676,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x65,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1713,8 +1713,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x66,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1748,8 +1748,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x67,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1789,8 +1789,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x68,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1830,8 +1830,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x69,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1867,8 +1867,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x6A,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1902,8 +1902,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x6B,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -1937,8 +1937,8 @@
 			GetEAa;
 			XMM_Reg xmmsrc;
 			if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-			xmmsrc.u64[0] = LoadMq(eaa);
-			xmmsrc.u64[1] = LoadMq(eaa+8u);
+			xmmsrc.u64[0] = SSE_LoadMq(eaa);
+			xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 			SSE2_PINT(0x6C,fpu.xmmreg[reg],xmmsrc);
 		}
 		break;
@@ -1954,8 +1954,8 @@
 			GetEAa;
 			XMM_Reg xmmsrc;
 			if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-			xmmsrc.u64[0] = LoadMq(eaa);
-			xmmsrc.u64[1] = LoadMq(eaa+8u);
+			xmmsrc.u64[0] = SSE_LoadMq(eaa);
+			xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 			SSE2_PINT(0x6D,fpu.xmmreg[reg],xmmsrc);
 		}
 		break;
@@ -2005,8 +2005,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (last_prefix == MP_66 && !SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				fpu.xmmreg[reg] = xmmsrc;
 			}
 			break;
@@ -2038,8 +2038,8 @@
 			} else {
 				GetEAa;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 			}
 			const uint8_t imm8 = Fetchb();
 			if (last_prefix == MP_66) SSE2_PSHUFD(fpu.xmmreg[reg],xmmsrc,imm8);
@@ -2219,8 +2219,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x74,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -2260,8 +2260,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x75,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -2297,8 +2297,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0x76,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -2346,7 +2346,7 @@
 					fpu.xmmreg[reg].u64[0] = fpu.xmmreg[rm & 7].u64[0];
 				} else {
 					GetEAa;
-					fpu.xmmreg[reg].u64[0] = LoadMq(eaa);
+					fpu.xmmreg[reg].u64[0] = SSE_LoadMq(eaa);
 				}
 				fpu.xmmreg[reg].u64[1] = 0;
 			}
@@ -2377,8 +2377,8 @@
 			} else {
 				GetEAa;
 				if (last_prefix == MP_66 && !SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
-				SaveMq(eaa+8u,fpu.xmmreg[reg].u64[1]);
+				SSE_SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
+				SSE_SaveMq(eaa+8u,fpu.xmmreg[reg].u64[1]);
 			}
 			break;
 		}
@@ -2524,8 +2524,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					if ((cf=Fetchb()) > 7) goto illegal_opcode;
 					SSE2_CMPPD(fpu.xmmreg[reg],xmmsrc,cf);
 				}
@@ -2538,7 +2538,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					if ((cf=Fetchb()) > 7) goto illegal_opcode;
 					SSE2_CMPSD(fpu.xmmreg[reg],xmmsrc,cf);
 				}
@@ -2656,8 +2656,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					imm = Fetchb();
 					SSE2_SHUFPD(fpu.xmmreg[reg],xmmsrc,imm);
 				}
@@ -2680,8 +2680,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xD1,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -2720,8 +2720,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xD2,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -2758,8 +2758,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xD3,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -2793,7 +2793,7 @@
 				src.q = reg_mmx[rm & 7]->q;
 			} else {
 				GetEAa;
-				src.q = LoadMq(eaa);
+				src.q = SSE_LoadMq(eaa);
 			}
 			dest->q = dest->q + src.q;
 			dest->fpu.e = 0xFFFF;
@@ -2808,8 +2808,8 @@
 			GetEAa;
 			XMM_Reg xmmsrc;
 			if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-			xmmsrc.u64[0] = LoadMq(eaa);
-			xmmsrc.u64[1] = LoadMq(eaa+8u);
+			xmmsrc.u64[0] = SSE_LoadMq(eaa);
+			xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 			SSE2_PINT(0xD4,fpu.xmmreg[reg],xmmsrc);
 		}
 		break;
@@ -2827,8 +2827,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xD5,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -2877,7 +2877,7 @@
 			fpu.xmmreg[rm & 7].u64[1] = 0;
 		} else {
 			GetEAa;
-			SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
+			SSE_SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
 		}
 		break;
 	}
@@ -2919,8 +2919,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xD8,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -2963,8 +2963,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xD9,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3037,8 +3037,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xDB,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3070,8 +3070,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xDC,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3111,8 +3111,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xDD,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3182,8 +3182,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xDF,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3250,8 +3250,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xE1,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3294,8 +3294,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xE2,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3402,8 +3402,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xE5,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3443,7 +3443,7 @@
 				} else {
 					GetEAa;
 					XMM_Reg xmmsrc;
-					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
 					SSE2_CVTDQ2PD(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -3455,8 +3455,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_CVTPD2DQ(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -3468,8 +3468,8 @@
 					GetEAa;
 					XMM_Reg xmmsrc;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					xmmsrc.u64[0] = LoadMq(eaa);
-					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					xmmsrc.u64[0] = SSE_LoadMq(eaa);
+					xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 					SSE2_CVTTPD2DQ(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
@@ -3498,8 +3498,8 @@
 				{
 					GetEAa;
 					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-					SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
-					SaveMq(eaa+8u,fpu.xmmreg[reg].u64[1]);
+					SSE_SaveMq(eaa,fpu.xmmreg[reg].u64[0]);
+					SSE_SaveMq(eaa+8u,fpu.xmmreg[reg].u64[1]);
 				}
 				break;
 			default:
@@ -3520,8 +3520,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xE8,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3561,8 +3561,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xE9,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3632,8 +3632,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xEB,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3665,8 +3665,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xEC,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3706,8 +3706,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xED,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3777,8 +3777,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xEF,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3810,8 +3810,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xF1,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3850,8 +3850,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xF2,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3888,8 +3888,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xF3,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -3923,7 +3923,7 @@
 				src.q = reg_mmx[rm & 7]->q;
 			} else {
 				GetEAa;
-				src.q = LoadMq(eaa);
+				src.q = SSE_LoadMq(eaa);
 			}
 			dest->q = (uint64_t)dest->ud.d0 * src.ud.d0;
 			dest->fpu.e = 0xFFFF;
@@ -3938,8 +3938,8 @@
 			GetEAa;
 			XMM_Reg xmmsrc;
 			if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-			xmmsrc.u64[0] = LoadMq(eaa);
-			xmmsrc.u64[1] = LoadMq(eaa+8u);
+			xmmsrc.u64[0] = SSE_LoadMq(eaa);
+			xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 			SSE2_PINT(0xF4,fpu.xmmreg[reg],xmmsrc);
 		}
 		break;
@@ -3957,8 +3957,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xF5,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -4083,8 +4083,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xF8,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -4124,8 +4124,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xF9,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -4161,8 +4161,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xFA,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -4196,7 +4196,7 @@
 				src.q = reg_mmx[rm & 7]->q;
 			} else {
 				GetEAa;
-				src.q = LoadMq(eaa);
+				src.q = SSE_LoadMq(eaa);
 			}
 			dest->q = dest->q - src.q;
 			dest->fpu.e = 0xFFFF;
@@ -4211,8 +4211,8 @@
 			GetEAa;
 			XMM_Reg xmmsrc;
 			if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-			xmmsrc.u64[0] = LoadMq(eaa);
-			xmmsrc.u64[1] = LoadMq(eaa+8u);
+			xmmsrc.u64[0] = SSE_LoadMq(eaa);
+			xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 			SSE2_PINT(0xFB,fpu.xmmreg[reg],xmmsrc);
 		}
 		break;
@@ -4230,8 +4230,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xFC,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -4271,8 +4271,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xFD,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;
@@ -4308,8 +4308,8 @@
 				GetEAa;
 				XMM_Reg xmmsrc;
 				if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-				xmmsrc.u64[0] = LoadMq(eaa);
-				xmmsrc.u64[1] = LoadMq(eaa+8u);
+				xmmsrc.u64[0] = SSE_LoadMq(eaa);
+				xmmsrc.u64[1] = SSE_LoadMq(eaa+8u);
 				SSE2_PINT(0xFE,fpu.xmmreg[reg],xmmsrc);
 			}
 			break;

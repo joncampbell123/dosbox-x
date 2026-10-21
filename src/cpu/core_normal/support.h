@@ -535,13 +535,28 @@ static INLINE void SSE_CMPSS(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
 
 ////
 
+//// SSE2
+
+/* The SSE2 helpers and memory accesses are kept out of line. INLINE is always_inline
+ * with GCC, and inlined into every case of the opcode switch they made the core too big
+ * for the 32-bit compilers of the lowend MinGW and HX-DOS builds (cc1plus: out of memory). */
+#define SSE2_HELPER static inline GCC_ATTRIBUTE(noinline)
+
+SSE2_HELPER uint64_t SSE_LoadMq(const PhysPt off) {
+	return LoadMq(off);
+}
+
+SSE2_HELPER void SSE_SaveMq(const PhysPt off,const uint64_t val) {
+	SaveMq(off,val);
+}
+
 //// SSE2: double precision
 
 #define SSE2_ARITH(NAME,EXPR) \
-static INLINE void SSE2_##NAME##PD(XMM_Reg &d,const XMM_Reg &s) { \
+SSE2_HELPER void SSE2_##NAME##PD(XMM_Reg &d,const XMM_Reg &s) { \
 	for (unsigned int i=0;i < 2;i++) { const double a = d.f64[i].v, b = s.f64[i].v; (void)a; (void)b; d.f64[i].v = (EXPR); } \
 } \
-static INLINE void SSE2_##NAME##SD(XMM_Reg &d,const XMM_Reg &s) { \
+SSE2_HELPER void SSE2_##NAME##SD(XMM_Reg &d,const XMM_Reg &s) { \
 	const double a = d.f64[0].v, b = s.f64[0].v; (void)a; (void)b; d.f64[0].v = (EXPR); \
 }
 
@@ -554,47 +569,47 @@ SSE2_ARITH(MIN,(a < b) ? a : b)	/* NaN or both zero: the second (source) operand
 SSE2_ARITH(MAX,(a > b) ? a : b)
 #undef SSE2_ARITH
 
-static INLINE void SSE2_ANDPD(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_ANDPD(XMM_Reg &d,const XMM_Reg &s) {
 	d.u64[0] &= s.u64[0];
 	d.u64[1] &= s.u64[1];
 }
 
-static INLINE void SSE2_ANDNPD(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_ANDNPD(XMM_Reg &d,const XMM_Reg &s) {
 	d.u64[0] = ~d.u64[0] & s.u64[0];
 	d.u64[1] = ~d.u64[1] & s.u64[1];
 }
 
-static INLINE void SSE2_ORPD(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_ORPD(XMM_Reg &d,const XMM_Reg &s) {
 	d.u64[0] |= s.u64[0];
 	d.u64[1] |= s.u64[1];
 }
 
-static INLINE void SSE2_XORPD(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_XORPD(XMM_Reg &d,const XMM_Reg &s) {
 	d.u64[0] ^= s.u64[0];
 	d.u64[1] ^= s.u64[1];
 }
 
-static INLINE void SSE2_UNPCKLPD(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_UNPCKLPD(XMM_Reg &d,const XMM_Reg &s) {
 	d.u64[1] = s.u64[0];
 }
 
-static INLINE void SSE2_UNPCKHPD(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_UNPCKHPD(XMM_Reg &d,const XMM_Reg &s) {
 	d.u64[0] = d.u64[1];
 	d.u64[1] = s.u64[1];
 }
 
-static INLINE void SSE2_SHUFPD(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
+SSE2_HELPER void SSE2_SHUFPD(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
 	XMM_Reg tmp;
 	tmp.u64[0] = d.u64[i & 1u];
 	tmp.u64[1] = s.u64[(i >> 1u) & 1u];
 	d = tmp;
 }
 
-static INLINE void SSE2_MOVMSKPD(uint32_t &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_MOVMSKPD(uint32_t &d,const XMM_Reg &s) {
 	d = (uint32_t)(s.u64[0] >> 63u) | ((uint32_t)(s.u64[1] >> 63u) << 1u);
 }
 
-static INLINE void SSE2_COMISD(const XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_COMISD(const XMM_Reg &d,const XMM_Reg &s) {
 	FillFlags();
 	reg_flags &= ~(FLAG_CF|FLAG_PF|FLAG_AF|FLAG_ZF|FLAG_SF|FLAG_OF);
 
@@ -608,7 +623,7 @@ static INLINE void SSE2_COMISD(const XMM_Reg &d,const XMM_Reg &s) {
 		reg_flags |= FLAG_CF;
 }
 
-static INLINE uint64_t SSE2_CMP_i(const double a,const double b,const uint8_t cf) {
+SSE2_HELPER uint64_t SSE2_CMP_i(const double a,const double b,const uint8_t cf) {
 	bool r = false;
 	switch (cf) {
 		case 0:/*EQ*/	r = (a == b); break;
@@ -623,22 +638,22 @@ static INLINE uint64_t SSE2_CMP_i(const double a,const double b,const uint8_t cf
 	return r ? ~(uint64_t)0 : (uint64_t)0;
 }
 
-static INLINE void SSE2_CMPPD(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
+SSE2_HELPER void SSE2_CMPPD(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
 	d.u64[0] = SSE2_CMP_i(d.f64[0].v,s.f64[0].v,cf);
 	d.u64[1] = SSE2_CMP_i(d.f64[1].v,s.f64[1].v,cf);
 }
 
-static INLINE void SSE2_CMPSD(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
+SSE2_HELPER void SSE2_CMPSD(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
 	d.u64[0] = SSE2_CMP_i(d.f64[0].v,s.f64[0].v,cf);
 }
 
-static INLINE void SSE2_CVTSI2SD(XMM_Reg &d,const uint32_t s) {
+SSE2_HELPER void SSE2_CVTSI2SD(XMM_Reg &d,const uint32_t s) {
 	d.f64[0].v = (double)(int32_t)s;
 }
 
 /* double -> int32; NaN and out of range give the "integer indefinite" 0x80000000;
  * CVTSD2SI rounds as MXCSR.RC says (0 nearest even, 1 down, 2 up, 3 toward zero), CVTTSD2SI truncates */
-static INLINE void SSE2_CVT_i32(uint32_t &d,const double v,const bool truncate) {
+SSE2_HELPER void SSE2_CVT_i32(uint32_t &d,const double v,const bool truncate) {
 	double r;
 	if (truncate) r = trunc(v);
 	else switch ((fpu.mxcsr >> 13u) & 3u) {
@@ -651,29 +666,29 @@ static INLINE void SSE2_CVT_i32(uint32_t &d,const double v,const bool truncate) 
 	else d = (uint32_t)(int32_t)r;
 }
 
-static INLINE void SSE2_CVTTSD2SI(uint32_t &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_CVTTSD2SI(uint32_t &d,const XMM_Reg &s) {
 	SSE2_CVT_i32(d,s.f64[0].v,true);
 }
 
-static INLINE void SSE2_CVTSD2SI(uint32_t &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_CVTSD2SI(uint32_t &d,const XMM_Reg &s) {
 	SSE2_CVT_i32(d,s.f64[0].v,false);
 }
 
-static INLINE void SSE2_CVTSS2SD(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_CVTSS2SD(XMM_Reg &d,const XMM_Reg &s) {
 	d.f64[0].v = (double)s.f32[0].v;
 }
 
-static INLINE void SSE2_CVTSD2SS(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_CVTSD2SS(XMM_Reg &d,const XMM_Reg &s) {
 	d.f32[0].v = (float)s.f64[0].v;
 }
 
-static INLINE void SSE2_CVTPS2PD(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_CVTPS2PD(XMM_Reg &d,const XMM_Reg &s) {
 	const double a = (double)s.f32[0].v, b = (double)s.f32[1].v;
 	d.f64[0].v = a;
 	d.f64[1].v = b;
 }
 
-static INLINE void SSE2_CVTPD2PS(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_CVTPD2PS(XMM_Reg &d,const XMM_Reg &s) {
 	const float a = (float)s.f64[0].v, b = (float)s.f64[1].v;
 	d.f32[0].v = a;
 	d.f32[1].v = b;
@@ -684,7 +699,7 @@ static INLINE void SSE2_CVTPD2PS(XMM_Reg &d,const XMM_Reg &s) {
 
 //// SSE2: integer XMM
 
-template <typename T,typename F> static INLINE void SSE2_LANES(XMM_Reg &d,const XMM_Reg &s,F f) {
+template <typename T,typename F> SSE2_HELPER void SSE2_LANES(XMM_Reg &d,const XMM_Reg &s,F f) {
 	T a[16/sizeof(T)],b[16/sizeof(T)];
 	memcpy((void*)a,(const void*)&d,16);
 	memcpy((void*)b,(const void*)&s,16);
@@ -695,7 +710,7 @@ template <typename T,typename F> static INLINE void SSE2_LANES(XMM_Reg &d,const 
 #define SSE2_L(T,EXPR) [](T a,T b) -> T { (void)a; (void)b; return (T)(EXPR); }
 
 /* interleave the low (or high) halves of d and s */
-template <typename T> static INLINE void SSE2_UNPACK(XMM_Reg &d,const XMM_Reg &s,const bool high) {
+template <typename T> SSE2_HELPER void SSE2_UNPACK(XMM_Reg &d,const XMM_Reg &s,const bool high) {
 	const unsigned int n = 16/sizeof(T), off = high ? n/2 : 0;
 	T a[16/sizeof(T)],b[16/sizeof(T)],r[16/sizeof(T)];
 	memcpy((void*)a,(const void*)&d,16);
@@ -705,7 +720,7 @@ template <typename T> static INLINE void SSE2_UNPACK(XMM_Reg &d,const XMM_Reg &s
 }
 
 /* narrow with saturation: the elements of d, then those of s */
-template <typename S,typename D> static INLINE void SSE2_PACK(XMM_Reg &d,const XMM_Reg &s,const int64_t lo,const int64_t hi) {
+template <typename S,typename D> SSE2_HELPER void SSE2_PACK(XMM_Reg &d,const XMM_Reg &s,const int64_t lo,const int64_t hi) {
 	const unsigned int n = 16/sizeof(S);
 	S a[16/sizeof(S)],b[16/sizeof(S)];
 	D r[16/sizeof(D)];
@@ -720,7 +735,7 @@ template <typename S,typename D> static INLINE void SSE2_PACK(XMM_Reg &d,const X
 }
 
 /* kind: 0 left, 1 logical right, 2 arithmetic right; a count above the width gives 0 (or the sign) */
-template <typename U,typename S> static INLINE void SSE2_SHIFT(XMM_Reg &d,const uint64_t count,const int kind) {
+template <typename U,typename S> SSE2_HELPER void SSE2_SHIFT(XMM_Reg &d,const uint64_t count,const int kind) {
 	const unsigned int bits = sizeof(U)*8u;
 	U a[16/sizeof(U)];
 	memcpy((void*)a,(const void*)&d,16);
@@ -733,7 +748,7 @@ template <typename U,typename S> static INLINE void SSE2_SHIFT(XMM_Reg &d,const 
 	memcpy((void*)&d,(const void*)a,16);
 }
 
-static INLINE void SSE2_BYTESHIFT(XMM_Reg &d,const unsigned int n,const bool left) {
+SSE2_HELPER void SSE2_BYTESHIFT(XMM_Reg &d,const unsigned int n,const bool left) {
 	uint8_t r[16];
 	for (unsigned int i=0;i < 16;i++) {
 		const int j = left ? (int)i - (int)n : (int)i + (int)n;
@@ -743,7 +758,7 @@ static INLINE void SSE2_BYTESHIFT(XMM_Reg &d,const unsigned int n,const bool lef
 }
 
 /* 66 0F 71/72/73 /op imm8: shifts by an immediate; false for an invalid /op */
-static INLINE bool SSE2_PSHIFTI(const uint8_t opc,const uint8_t op,XMM_Reg &x,const uint8_t n) {
+SSE2_HELPER bool SSE2_PSHIFTI(const uint8_t opc,const uint8_t op,XMM_Reg &x,const uint8_t n) {
 	switch (opc) {
 		case 0x71:
 			if (op == 2) SSE2_SHIFT<uint16_t,int16_t>(x,n,1);
@@ -769,7 +784,7 @@ static INLINE bool SSE2_PSHIFTI(const uint8_t opc,const uint8_t op,XMM_Reg &x,co
 }
 
 /* 66 0F xx reg, xmm/m128 of the opcodes that exist as MMX: false for anything else */
-static INLINE bool SSE2_PINT(const uint8_t op,XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER bool SSE2_PINT(const uint8_t op,XMM_Reg &d,const XMM_Reg &s) {
 	switch (op) {
 		case 0x60: SSE2_UNPACK<uint8_t>(d,s,false); break;
 		case 0x61: SSE2_UNPACK<uint16_t>(d,s,false); break;
@@ -833,19 +848,19 @@ static INLINE bool SSE2_PINT(const uint8_t op,XMM_Reg &d,const XMM_Reg &s) {
 	return true;
 }
 
-static INLINE void SSE2_PSHUFD(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
+SSE2_HELPER void SSE2_PSHUFD(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
 	XMM_Reg t;
 	for (unsigned int k=0;k < 4;k++) t.u32[k] = s.u32[(i >> (2u*k)) & 3u];
 	d = t;
 }
 
-static INLINE void SSE2_PSHUFLW(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
+SSE2_HELPER void SSE2_PSHUFLW(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
 	XMM_Reg t = s;
 	for (unsigned int k=0;k < 4;k++) t.u16[k] = s.u16[(i >> (2u*k)) & 3u];
 	d = t;
 }
 
-static INLINE void SSE2_PSHUFHW(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
+SSE2_HELPER void SSE2_PSHUFHW(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
 	XMM_Reg t = s;
 	for (unsigned int k=0;k < 4;k++) t.u16[4+k] = s.u16[4 + ((i >> (2u*k)) & 3u)];
 	d = t;
@@ -855,26 +870,26 @@ static INLINE void SSE2_PSHUFHW(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
 
 //// SSE2: integer <-> floating point conversions of XMM and MMX registers
 
-static INLINE void SSE2_CVTDQ2PS(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_CVTDQ2PS(XMM_Reg &d,const XMM_Reg &s) {
 	for (unsigned int i=0;i < 4;i++) d.f32[i].v = (float)s.i32[i];
 }
 
-static INLINE void SSE2_CVTPS2DQ_i(XMM_Reg &d,const XMM_Reg &s,const bool truncate) {
+SSE2_HELPER void SSE2_CVTPS2DQ_i(XMM_Reg &d,const XMM_Reg &s,const bool truncate) {
 	uint32_t r[4];
 	for (unsigned int i=0;i < 4;i++) SSE2_CVT_i32(r[i],(double)s.f32[i].v,truncate);
 	for (unsigned int i=0;i < 4;i++) d.u32[i] = r[i];
 }
 
-static INLINE void SSE2_CVTPS2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPS2DQ_i(d,s,false); }
-static INLINE void SSE2_CVTTPS2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPS2DQ_i(d,s,true); }
+SSE2_HELPER void SSE2_CVTPS2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPS2DQ_i(d,s,false); }
+SSE2_HELPER void SSE2_CVTTPS2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPS2DQ_i(d,s,true); }
 
-static INLINE void SSE2_CVTDQ2PD(XMM_Reg &d,const XMM_Reg &s) {
+SSE2_HELPER void SSE2_CVTDQ2PD(XMM_Reg &d,const XMM_Reg &s) {
 	const double a = (double)s.i32[0], b = (double)s.i32[1];
 	d.f64[0].v = a;
 	d.f64[1].v = b;
 }
 
-static INLINE void SSE2_CVTPD2DQ_i(XMM_Reg &d,const XMM_Reg &s,const bool truncate) {
+SSE2_HELPER void SSE2_CVTPD2DQ_i(XMM_Reg &d,const XMM_Reg &s,const bool truncate) {
 	uint32_t a,b;
 	SSE2_CVT_i32(a,s.f64[0].v,truncate);
 	SSE2_CVT_i32(b,s.f64[1].v,truncate);
@@ -883,15 +898,15 @@ static INLINE void SSE2_CVTPD2DQ_i(XMM_Reg &d,const XMM_Reg &s,const bool trunca
 	d.u64[1] = 0;
 }
 
-static INLINE void SSE2_CVTPD2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPD2DQ_i(d,s,false); }
-static INLINE void SSE2_CVTTPD2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPD2DQ_i(d,s,true); }
+SSE2_HELPER void SSE2_CVTPD2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPD2DQ_i(d,s,false); }
+SSE2_HELPER void SSE2_CVTTPD2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPD2DQ_i(d,s,true); }
 
-static INLINE void SSE2_CVTPI2PD(XMM_Reg &d,const MMX_reg &s) {
+SSE2_HELPER void SSE2_CVTPI2PD(XMM_Reg &d,const MMX_reg &s) {
 	d.f64[0].v = (double)s.sd.d0;
 	d.f64[1].v = (double)s.sd.d1;
 }
 
-static INLINE void SSE2_CVTPD2PI_i(MMX_reg &d,const XMM_Reg &s,const bool truncate) {
+SSE2_HELPER void SSE2_CVTPD2PI_i(MMX_reg &d,const XMM_Reg &s,const bool truncate) {
 	uint32_t a,b;
 	SSE2_CVT_i32(a,s.f64[0].v,truncate);
 	SSE2_CVT_i32(b,s.f64[1].v,truncate);
@@ -900,8 +915,9 @@ static INLINE void SSE2_CVTPD2PI_i(MMX_reg &d,const XMM_Reg &s,const bool trunca
 	d.fpu.e = 0xFFFF;
 }
 
-static INLINE void SSE2_CVTPD2PI(MMX_reg &d,const XMM_Reg &s) { SSE2_CVTPD2PI_i(d,s,false); }
-static INLINE void SSE2_CVTTPD2PI(MMX_reg &d,const XMM_Reg &s) { SSE2_CVTPD2PI_i(d,s,true); }
+SSE2_HELPER void SSE2_CVTPD2PI(MMX_reg &d,const XMM_Reg &s) { SSE2_CVTPD2PI_i(d,s,false); }
+SSE2_HELPER void SSE2_CVTTPD2PI(MMX_reg &d,const XMM_Reg &s) { SSE2_CVTPD2PI_i(d,s,true); }
+#undef SSE2_HELPER
 
 ////
 
