@@ -110,6 +110,7 @@ public:
     bool opt_silent = false;
     bool opt_showrt = false;
     bool opt_nomenu = false;
+    bool opt_nopromptquit = false;  // -nopromptquit: quit without the quit warning (for automated testing)
     bool opt_prerun = false;
     bool opt_langcp = false;  // True if command line option -langcp is specified, always use codepage specified by the language file
     bool opt_debug = false;

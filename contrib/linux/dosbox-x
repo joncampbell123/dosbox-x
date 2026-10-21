@@ -24,6 +24,7 @@ _dosbox-x()
                     -fs -fullscreen -startmapper -noautoexec -securemode
                     -scaler -forcescaler -lang -langcp -socket -exit -userconf
                     -startui -startgui -starttool -promptfolder -nopromptfolder
+                    -nopromptquit
                     -nogui -nomenu -showcycles -showrt -savedir -defaultdir
                     -defaultconf -defaultmapper -date-host-forced -display2
                     -nodpiaware -securemode -prerun -hostrun -noconfig -silent

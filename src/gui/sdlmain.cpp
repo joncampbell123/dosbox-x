@@ -1359,6 +1359,9 @@ bool systemmessagebox(char const * aTitle, char const * aMessage, char const * a
 }
 
 bool CheckQuit(void) {
+    /* -nopromptquit: always quit right away (e.g. when automated tests close DOSBox-X), whatever
+     * "quit warning" and "allow quit after warning" say */
+    if (control->opt_nopromptquit) return true;
 #if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     std::string warn = section->Get_string("quit warning");
@@ -7445,6 +7448,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -nopromptfolder                         Do not prompt for the working directory when DOSBox-X starts\n");
             fprintf(stderr,"  -nogui                                  Do not show GUI\n");
             fprintf(stderr,"  -nomenu                                 Do not show menu\n");
+            fprintf(stderr,"  -nopromptquit                           Quit without asking or warning, whatever is running\n");
             fprintf(stderr,"  -showcycles                             Show cycles count (FPS) in the title\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime in the title\n");
             fprintf(stderr,"  -socket <socketnum>                     Specify the socket number for null-modem emulation\n");
@@ -7737,6 +7741,9 @@ bool DOSBOX_parse_argv() {
 #endif
         else if (optname == "nomenu") {
             control->opt_nomenu = true;
+        }
+        else if (optname == "nopromptquit") {
+            control->opt_nopromptquit = true;
         }
         else if (optname == "nogui") {
             control->opt_nogui = true;

@@ -216,6 +216,9 @@ Start the internal keymapper on startup of dosbox-x. You can use it to change th
 Prompt for the working directory when DOSBox-X starts.
 *-nopromptfolder*::
 Do not prompt for the working directory when DOSBox-X starts.
+*-nopromptquit*::
+Quit without asking or warning when the window is closed or DOSBox-X is told to quit, whatever
+is running (the *quit warning* setting is ignored). Useful for automated testing.
 *-nogui* or *-nomenu*::
 Do not show the GUI menu bar when in windowed mode.
 *-showcycles*::
