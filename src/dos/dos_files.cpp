@@ -2177,14 +2177,14 @@ bool DOS_FCBDeleteFile(uint16_t seg,uint16_t offset){
 
 char* trimString(char* str);
 
-bool DOS_FCBRenameFile(uint16_t seg, uint16_t offset){
-	DOS_FCB fcbold(seg,offset);
-    DOS_FCB fcbnew(seg,offset);
-    fcbnew.SetPtPhys(fcbnew.GetPtPhys()+0x10u);//HACK: FCB NEW memory offset is affected by whether FCB OLD is extended
+bool DOS_FCBRenameFile(uint16_t seg, uint16_t offset) {
+    DOS_FCB fcbold(seg, offset);
+    DOS_FCB fcbnew(seg, offset);
+    fcbnew.SetPtPhys(fcbnew.GetPtPhys() + 0x10u);//HACK: FCB NEW memory offset is affected by whether FCB OLD is extended
     if(!fcbold.Valid()) return false;
-	char oldname[DOS_FCBNAME];
-	char newname[DOS_FCBNAME];
-	fcbold.GetName(oldname);fcbnew.GetName(newname);
+    char oldname[DOS_FCBNAME];
+    char newname[DOS_FCBNAME];
+    fcbold.GetName(oldname); fcbnew.GetName(newname);
 
     {
         uint8_t drive = fcbold.GetDrive();
@@ -2193,55 +2193,134 @@ bool DOS_FCBRenameFile(uint16_t seg, uint16_t offset){
 
         fcbold.GetAttr(attr);
         /* According to RBIL and confirmed with SETLABEL.ASM in DOSLIB2, you can rename a volume label dirent as well with this function */
-        if (attr & DOS_ATTR_VOLUME) {
+        if(attr & DOS_ATTR_VOLUME) {
             fcbold.GetVolumeName(oldname);
             fcbnew.GetVolumeName(newname);
 
-            for (unsigned int i=0;i < 11;i++)
+            for(unsigned int i = 0; i < 11; i++)
                 oldname[i] = toupper(oldname[i]);
 
             trimString(oldname);
             trimString(newname);
 
-            if (!label.empty()) {
-                if (!strcmp(oldname,"???????????") || label == oldname) {
-                    Drives[drive]->SetLabel(newname,false,true);
-                    LOG(LOG_DOSMISC,LOG_NORMAL)("FCB rename volume label to '%s' from '%s'",newname,oldname);
+            if(!label.empty()) {
+                if(!strcmp(oldname, "???????????") || label == oldname) {
+                    Drives[drive]->SetLabel(newname, false, true);
+                    LOG(LOG_DOSMISC, LOG_NORMAL)("FCB rename volume label to '%s' from '%s'", newname, oldname);
                     return true;
                 }
                 else {
-                    LOG(LOG_DOSMISC,LOG_NORMAL)("FCB rename volume label rejected, does not match current label '%s' from '%s'",newname,oldname);
+                    LOG(LOG_DOSMISC, LOG_NORMAL)("FCB rename volume label rejected, does not match current label '%s' from '%s'", newname, oldname);
                     DOS_SetError(DOSERR_FILE_NOT_FOUND); // right?
                     return false;
                 }
             }
             else {
-                LOG(LOG_DOSMISC,LOG_NORMAL)("FCB rename volume label rejected, no label set");
+                LOG(LOG_DOSMISC, LOG_NORMAL)("FCB rename volume label rejected, no label set");
                 DOS_SetError(DOSERR_FILE_NOT_FOUND); // right?
                 return false;
             }
         }
     }
 
-	/* Check, if sourcefile is still open. This was possible in DOS, but modern oses don't like this */
-	uint8_t drive; char fullname[DOS_PATHLENGTH];
-	if (!DOS_MakeName(oldname,fullname,&drive)) return false;
-	
-	DOS_PSP psp(dos.psp());
-	for (uint8_t i=0;i<DOS_FILES;i++) {
-		if (Files[i] && Files[i]->IsOpen() && Files[i]->IsName(fullname)) {
-			uint16_t handle = psp.FindEntryByHandle(i);
-			//(more than once maybe)
-			if (handle == 0xFFu) {
-				DOS_CloseFile(i,true);
-			} else {
-				DOS_CloseFile(handle);
-			}
-		}
-	}
+    /* Check, if sourcefile is still open. This was possible in DOS, but modern oses don't like this */
+    uint8_t drive; char fullname[DOS_PATHLENGTH];
+    if(!DOS_MakeName(oldname, fullname, &drive)) return false;
 
-	/* Rename the file */
-	return DOS_Rename(oldname,newname);
+    RealPt old_dta = dos.dta();
+    dos.dta(dos.tables.tempdta); // Use a private DTA for the rename search
+    uint8_t find_attr = DOS_ATTR_ARCHIVE;
+    fcbold.GetAttr(find_attr);
+    bool ret = DOS_FindFirst(oldname, find_attr, true);
+    if(!ret) {
+        dos.dta(old_dta);
+        return false;
+    }
+
+    while(ret) {
+        char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
+        uint32_t size, hsize; uint16_t date; uint16_t time; uint8_t attr;
+        DOS_DTA find_dta(dos.tables.tempdta);
+        find_dta.GetResult(name, lname, size, hsize, date, time, attr);
+
+        char source_basename[DOS_NAMELENGTH_ASCII];
+        strcpy(source_basename, name); // Preserve the complete filename before DTAExtendName modifies it
+
+        char match[DOS_FCBNAME];
+        char file_name[9]; char ext[4];
+        DTAExtendName(name, file_name, ext);
+        memcpy(match, file_name, 8);
+        memcpy(match + 8, ext, 3);
+        match[11] = 0;
+
+        char rename[12];
+        memcpy(rename, newname + 2, 8); // Skip the drive prefix and copy the filename
+        memcpy(rename + 8, newname + 11, 3); // Copy the extension without the separator
+        rename[11] = 0;
+        for(unsigned int i = 0; i < 11; i++)
+            if(rename[i] == '?') rename[i] = match[i]; // Replace ? with the matched FCB character
+
+        char rename_name[DOS_NAMELENGTH_ASCII];
+        unsigned int pos = 0;
+        for(unsigned int i = 0; i < 8; i++) {
+            if(rename[i] == ' ') break;
+            rename_name[pos++] = rename[i];
+        }
+        if(rename[8] != ' ') {
+            rename_name[pos++] = '.';
+            for(unsigned int i = 8; i < 11; i++) {
+                if(rename[i] == ' ') break;
+                rename_name[pos++] = rename[i];
+            }
+        }
+        rename_name[pos] = 0;
+
+        char source_name[DOS_PATHLENGTH];
+        char dest_name[DOS_PATHLENGTH];
+        strcpy(source_name, oldname);
+        strcpy(dest_name, newname);
+
+        /* Replace the ? characters in the source and destination names */
+        char* source_base = strrchr_dbcs(source_name, '\\');
+        char* dest_base = strrchr_dbcs(dest_name, '\\');
+        if(source_base) source_base++;
+        else source_base = source_name + 2; // Keep the FCB drive prefix
+        if(dest_base) dest_base++;
+        else dest_base = dest_name + 2; // Keep the FCB drive prefix
+
+        strcpy(source_base, source_basename);
+        strcpy(dest_base, rename_name);
+
+        if(!DOS_MakeName(source_name, fullname, &drive)) {
+            dos.dta(old_dta); // Restore the caller's DTA
+            return false;
+        }
+
+        DOS_PSP psp(dos.psp());
+        for(uint8_t i = 0; i < DOS_FILES; i++) {
+            if(Files[i] && Files[i]->IsOpen() && Files[i]->IsName(fullname)) {
+                uint16_t handle = psp.FindEntryByHandle(i);
+                //(more than once maybe)
+                if(handle == 0xFFu) {
+                    DOS_CloseFile(i, true);
+                }
+                else {
+                    DOS_CloseFile(handle);
+                }
+            }
+        }
+
+        if(!DOS_Rename(source_name, dest_name)) {
+            //LOG_MSG("FCB rename '%s' -> '%s' failed", source_name, dest_name);
+            dos.dta(old_dta); // Restore the caller's DTA
+            return false;
+        }
+
+        ret = DOS_FindNext();
+    }
+
+    dos.dta(old_dta); // Restore the caller's DTA
+    return true;
 }
 
 void DOS_FCBSetRandomRecord(uint16_t seg, uint16_t offset) {
