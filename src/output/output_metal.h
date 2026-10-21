@@ -98,6 +98,7 @@ private:
     bool layer_retained = false;  // SDL1: SDL's layer, kept while drawn in
 
     void ConfigureLayer(void);
+    void SetLayerColorspace(void);
 
     id<MTLTexture> frameTexture = nil;
     id<MTLTexture> externalTexture = nil;

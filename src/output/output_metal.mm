@@ -40,6 +40,20 @@ void CMetal::ConfigureLayer(void)
     layer.device = device;
     layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
     layer.framebufferOnly = NO;
+
+    /* the frame's colors go to the display as they are, as with the surface and OpenGL outputs:
+     * without a color space, macOS takes them as sRGB and converts them to the display's color
+     * space, which makes them less saturated on wide gamut (Display P3) displays */
+    SetLayerColorspace();
+}
+
+/* the layer is in the color space of the display the window is on, so its colors are not converted
+ * (again on every resize: the window can be moved to another display) */
+void CMetal::SetLayerColorspace(void)
+{
+    NSScreen* screen = (view && view.window && view.window.screen) ? view.window.screen : [NSScreen mainScreen];
+    CGColorSpaceRef cs = screen ? [[screen colorSpace] CGColorSpace] : NULL;
+    if(cs && !(layer.colorspace && CFEqual(layer.colorspace, cs))) layer.colorspace = cs;
 }
 
 void CMetal::AttachLayer(void* nsview, void* sdl_layer)
@@ -786,6 +800,7 @@ bool CMetal::Resize(uint32_t window_w,
      * 3. Update Layer size
      * --------------------------------- */
     layer.contentsScale = scale;
+    SetLayerColorspace();
 
 #if defined(C_SDL2)
     CGRect newFrame = CGRectMake(0, 0, (CGFloat)width, (CGFloat)height);
