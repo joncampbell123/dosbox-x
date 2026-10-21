@@ -468,6 +468,17 @@
 					SSE2_CVTSI2SD(fpu.xmmreg[reg],LoadMd(eaa));
 				}
 				break;
+			case MP_66:									/* 66 0F 2A CVTPI2PD reg, mm/m64 */
+				if (!CPU_SSE2()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE2_CVTPI2PD(fpu.xmmreg[reg],*reg_mmx[rm & 7]);
+				} else {
+					GetEAa;
+					MMX_reg mmxsrc;
+					mmxsrc.q = LoadMq(eaa);
+					SSE2_CVTPI2PD(fpu.xmmreg[reg],mmxsrc);
+				}
+				break;
 			default:
 				goto illegal_opcode;
 		};
@@ -544,6 +555,19 @@
 					SSE2_CVTTSD2SI(cpu_regs.regs[reg].dword[0],xmmsrc);
 				}
 				break;
+			case MP_66:									/* 66 0F 2C CVTTPD2PI mm, xmm/m128 */
+				if (!CPU_SSE2()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE2_CVTTPD2PI(*reg_mmx[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg xmmsrc;
+					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					SSE2_CVTTPD2PI(*reg_mmx[reg],xmmsrc);
+				}
+				break;
 			default:
 				goto illegal_opcode;
 		};
@@ -586,6 +610,19 @@
 					XMM_Reg xmmsrc;
 					xmmsrc.u64[0] = LoadMq(eaa);
 					SSE2_CVTSD2SI(cpu_regs.regs[reg].dword[0],xmmsrc);
+				}
+				break;
+			case MP_66:									/* 66 0F 2D CVTPD2PI mm, xmm/m128 */
+				if (!CPU_SSE2()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE2_CVTPD2PI(*reg_mmx[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg xmmsrc;
+					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					SSE2_CVTPD2PI(*reg_mmx[reg],xmmsrc);
 				}
 				break;
 			default:
@@ -1135,6 +1172,56 @@
 					XMM_Reg xmmsrc;
 					xmmsrc.u32[0] = LoadMd(eaa);
 					SSE2_CVTSS2SD(fpu.xmmreg[reg],xmmsrc);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
+	CASE_0F_MMX(0x5B)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_NONE:									/* 0F 5B CVTDQ2PS reg, r/m */
+				if (!CPU_SSE2()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE2_CVTDQ2PS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg xmmsrc;
+					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					SSE2_CVTDQ2PS(fpu.xmmreg[reg],xmmsrc);
+				}
+				break;
+			case MP_66:									/* 66 0F 5B CVTPS2DQ reg, r/m */
+				if (!CPU_SSE2()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE2_CVTPS2DQ(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg xmmsrc;
+					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					SSE2_CVTPS2DQ(fpu.xmmreg[reg],xmmsrc);
+				}
+				break;
+			case MP_F3:									/* F3 0F 5B CVTTPS2DQ reg, r/m */
+				if (!CPU_SSE2()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE2_CVTTPS2DQ(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg xmmsrc;
+					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					SSE2_CVTTPS2DQ(fpu.xmmreg[reg],xmmsrc);
 				}
 				break;
 			default:
@@ -2461,6 +2548,16 @@
 		};
 		break;
 	}
+	CASE_0F_MMX(0xc3)												/* 0F C3 MOVNTI m32, reg32 */
+	{
+		if (last_prefix != MP_NONE || !CPU_SSE2()) goto illegal_opcode;
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+		if (rm >= 0xc0) goto illegal_opcode;
+		GetEAa;
+		SaveMd(eaa,cpu_regs.regs[reg].dword[0]);
+		break;
+	}
 	CASE_0F_MMX(0xc4)
 	{
 		GetRM;
@@ -2685,6 +2782,23 @@
 	}
 	CASE_0F_MMX(0xD4)												/* 66 0F D4 PADDQ reg, r/m */
 	{
+		if (last_prefix == MP_NONE) {						/* MMX form (SSE2) */
+			if (!CPU_SSE2()) goto illegal_opcode;
+			if (MMX_CoprocessorException()) RUNEXCEPTION();
+			EnterMMX();
+			GetRM;
+			MMX_reg *dest = lookupRMregMM[rm];
+			MMX_reg src;
+			if (rm >= 0xc0) {
+				src.q = reg_mmx[rm & 7]->q;
+			} else {
+				GetEAa;
+				src.q = LoadMq(eaa);
+			}
+			dest->q = dest->q + src.q;
+			dest->fpu.e = 0xFFFF;
+			break;
+		}
 		if (last_prefix != MP_66 || !CPU_SSE2()) goto illegal_opcode;
 		GetRM;
 		const unsigned char reg = (rm >> 3) & 7;
@@ -2739,6 +2853,22 @@
 	}
 	CASE_0F_MMX(0xd6)												/* 66 0F D6 MOVQ xmm/m64, reg */
 	{
+		if (last_prefix == MP_F3 || last_prefix == MP_F2) {		/* F3 0F D6 MOVQ2DQ reg, mm; F2 0F D6 MOVDQ2Q mm, r/m */
+			if (!CPU_SSE2()) goto illegal_opcode;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+			if (rm < 0xc0) goto illegal_opcode;
+			if (MMX_CoprocessorException()) RUNEXCEPTION();
+			EnterMMX();
+			if (last_prefix == MP_F3) {
+				fpu.xmmreg[reg].u64[0] = reg_mmx[rm & 7]->q;
+				fpu.xmmreg[reg].u64[1] = 0;
+			} else {
+				reg_mmx[reg]->q = fpu.xmmreg[rm & 7].u64[0];
+				reg_mmx[reg]->fpu.e = 0xFFFF;
+			}
+			break;
+		}
 		if (last_prefix != MP_66 || !CPU_SSE2()) goto illegal_opcode;
 		GetRM;
 		const unsigned char reg = (rm >> 3) & 7;
@@ -3300,6 +3430,54 @@
 		dest->fpu.e = 0xFFFF;
 		break;
 	}
+	CASE_0F_MMX(0xE6)
+	{
+		GetRM;
+		const unsigned char reg = (rm >> 3) & 7;
+
+		switch (last_prefix) {
+			case MP_F3:									/* F3 0F E6 CVTDQ2PD reg, xmm/m64 */
+				if (!CPU_SSE2()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE2_CVTDQ2PD(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg xmmsrc;
+					xmmsrc.u64[0] = LoadMq(eaa);
+					SSE2_CVTDQ2PD(fpu.xmmreg[reg],xmmsrc);
+				}
+				break;
+			case MP_F2:									/* F2 0F E6 CVTPD2DQ reg, r/m */
+				if (!CPU_SSE2()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE2_CVTPD2DQ(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg xmmsrc;
+					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					SSE2_CVTPD2DQ(fpu.xmmreg[reg],xmmsrc);
+				}
+				break;
+			case MP_66:									/* 66 0F E6 CVTTPD2DQ reg, r/m */
+				if (!CPU_SSE2()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					SSE2_CVTTPD2DQ(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+				} else {
+					GetEAa;
+					XMM_Reg xmmsrc;
+					if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+					xmmsrc.u64[0] = LoadMq(eaa);
+					xmmsrc.u64[1] = LoadMq(eaa+8u);
+					SSE2_CVTTPD2DQ(fpu.xmmreg[reg],xmmsrc);
+				}
+				break;
+			default:
+				goto illegal_opcode;
+		};
+		break;
+	}
 	CASE_0F_MMX(0xe7)
 	{
 		GetRM;
@@ -3734,6 +3912,23 @@
 	}
 	CASE_0F_MMX(0xF4)												/* 66 0F F4 PMULUDQ reg, r/m */
 	{
+		if (last_prefix == MP_NONE) {						/* MMX form (SSE2) */
+			if (!CPU_SSE2()) goto illegal_opcode;
+			if (MMX_CoprocessorException()) RUNEXCEPTION();
+			EnterMMX();
+			GetRM;
+			MMX_reg *dest = lookupRMregMM[rm];
+			MMX_reg src;
+			if (rm >= 0xc0) {
+				src.q = reg_mmx[rm & 7]->q;
+			} else {
+				GetEAa;
+				src.q = LoadMq(eaa);
+			}
+			dest->q = (uint64_t)dest->ud.d0 * src.ud.d0;
+			dest->fpu.e = 0xFFFF;
+			break;
+		}
 		if (last_prefix != MP_66 || !CPU_SSE2()) goto illegal_opcode;
 		GetRM;
 		const unsigned char reg = (rm >> 3) & 7;
@@ -3859,6 +4054,17 @@
 					goto illegal_opcode;
 				}
 				break;
+			case MP_66:									/* 66 0F F7 MASKMOVDQU reg, r/m */
+				if (!CPU_SSE2()) goto illegal_opcode;
+				if (rm >= 0xc0) {
+					PhysPt aa = BaseDS + (reg_edi & AddrMaskTable[core.prefixes & PREFIX_ADDR]);
+					const XMM_Reg &data = fpu.xmmreg[reg];
+					const XMM_Reg &msk = fpu.xmmreg[rm & 7];
+					for (unsigned int i=0;i < 16;i++) if (msk.u8[i] & 0x80) SaveMb(aa+i,data.u8[i]);
+				} else {
+					goto illegal_opcode;
+				}
+				break;
 			default:
 				goto illegal_opcode;
 		};
@@ -3979,6 +4185,23 @@
 	}
 	CASE_0F_MMX(0xFB)												/* 66 0F FB PSUBQ reg, r/m */
 	{
+		if (last_prefix == MP_NONE) {						/* MMX form (SSE2) */
+			if (!CPU_SSE2()) goto illegal_opcode;
+			if (MMX_CoprocessorException()) RUNEXCEPTION();
+			EnterMMX();
+			GetRM;
+			MMX_reg *dest = lookupRMregMM[rm];
+			MMX_reg src;
+			if (rm >= 0xc0) {
+				src.q = reg_mmx[rm & 7]->q;
+			} else {
+				GetEAa;
+				src.q = LoadMq(eaa);
+			}
+			dest->q = dest->q - src.q;
+			dest->fpu.e = 0xFFFF;
+			break;
+		}
 		if (last_prefix != MP_66 || !CPU_SSE2()) goto illegal_opcode;
 		GetRM;
 		const unsigned char reg = (rm >> 3) & 7;

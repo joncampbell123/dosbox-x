@@ -853,6 +853,58 @@ static INLINE void SSE2_PSHUFHW(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
 
 ////
 
+//// SSE2: integer <-> floating point conversions of XMM and MMX registers
+
+static INLINE void SSE2_CVTDQ2PS(XMM_Reg &d,const XMM_Reg &s) {
+	for (unsigned int i=0;i < 4;i++) d.f32[i].v = (float)s.i32[i];
+}
+
+static INLINE void SSE2_CVTPS2DQ_i(XMM_Reg &d,const XMM_Reg &s,const bool truncate) {
+	uint32_t r[4];
+	for (unsigned int i=0;i < 4;i++) SSE2_CVT_i32(r[i],(double)s.f32[i].v,truncate);
+	for (unsigned int i=0;i < 4;i++) d.u32[i] = r[i];
+}
+
+static INLINE void SSE2_CVTPS2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPS2DQ_i(d,s,false); }
+static INLINE void SSE2_CVTTPS2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPS2DQ_i(d,s,true); }
+
+static INLINE void SSE2_CVTDQ2PD(XMM_Reg &d,const XMM_Reg &s) {
+	const double a = (double)s.i32[0], b = (double)s.i32[1];
+	d.f64[0].v = a;
+	d.f64[1].v = b;
+}
+
+static INLINE void SSE2_CVTPD2DQ_i(XMM_Reg &d,const XMM_Reg &s,const bool truncate) {
+	uint32_t a,b;
+	SSE2_CVT_i32(a,s.f64[0].v,truncate);
+	SSE2_CVT_i32(b,s.f64[1].v,truncate);
+	d.u32[0] = a;
+	d.u32[1] = b;
+	d.u64[1] = 0;
+}
+
+static INLINE void SSE2_CVTPD2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPD2DQ_i(d,s,false); }
+static INLINE void SSE2_CVTTPD2DQ(XMM_Reg &d,const XMM_Reg &s) { SSE2_CVTPD2DQ_i(d,s,true); }
+
+static INLINE void SSE2_CVTPI2PD(XMM_Reg &d,const MMX_reg &s) {
+	d.f64[0].v = (double)s.sd.d0;
+	d.f64[1].v = (double)s.sd.d1;
+}
+
+static INLINE void SSE2_CVTPD2PI_i(MMX_reg &d,const XMM_Reg &s,const bool truncate) {
+	uint32_t a,b;
+	SSE2_CVT_i32(a,s.f64[0].v,truncate);
+	SSE2_CVT_i32(b,s.f64[1].v,truncate);
+	d.ud.d0 = a;
+	d.ud.d1 = b;
+	d.fpu.e = 0xFFFF;
+}
+
+static INLINE void SSE2_CVTPD2PI(MMX_reg &d,const XMM_Reg &s) { SSE2_CVTPD2PI_i(d,s,false); }
+static INLINE void SSE2_CVTTPD2PI(MMX_reg &d,const XMM_Reg &s) { SSE2_CVTPD2PI_i(d,s,true); }
+
+////
+
 static INLINE void MMX_PINSRW(MMX_reg &d,const uint32_t &s,const uint8_t i) {
 	d.uwa[i&3u] = (uint16_t)s;
 	d.fpu.e = 0xFFFF;
