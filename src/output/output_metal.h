@@ -87,6 +87,8 @@ public:
     uint32_t last_tex_w = 0;
     uint32_t last_tex_h = 0;
     uint32_t last_scalesize = 0;
+    bool last_aspect = false;        // what the shown region was worked out for (render.aspect)
+    double last_target_ratio = 0.0;
     bool was_fullscreen = false;
 
 private:

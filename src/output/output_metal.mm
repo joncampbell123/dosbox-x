@@ -735,10 +735,13 @@ bool CMetal::Resize(uint32_t window_w,
         }
     }
 
+    /* (also when only "fit to aspect ratio" or the aspect ratio changed: the shown region is) */
     if(window_w == last_window_w &&
         window_h == last_window_h &&
         tex_w == last_tex_w &&
-        tex_h == last_tex_h) {
+        tex_h == last_tex_h &&
+        (render.aspect != 0) == last_aspect &&
+        (!render.aspect || target_ratio == last_target_ratio)) {
         return true; // No change
     }
 
@@ -850,6 +853,8 @@ bool CMetal::Resize(uint32_t window_w,
     last_window_h = height;
     last_tex_w = frame_width;
     last_tex_h = frame_height;
+    last_aspect = (render.aspect != 0);
+    last_target_ratio = target_ratio;
     return true;
 }
 
