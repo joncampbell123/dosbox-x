@@ -87,6 +87,7 @@ bool enable_fpu = true;
 bool enable_msr = true;
 bool enable_syscall = true;
 bool enable_cmpxchg8b = true;
+bool enable_sse2 = false;
 bool ignore_undefined_msr = true;
 bool report_fdiv_bug = false;
 
@@ -3184,6 +3185,11 @@ bool CPU_CPUID(void) {
 				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 				if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) reg_edx |= 0x40000;
 				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
+				if (enable_sse2) {
+					reg_edx |= 0x04000000;	/* SSE2 */
+					reg_edx |= 0x00080000;	/* CLFLUSH */
+					reg_ebx |= 0x0800;		/* CLFLUSH line size: 8 * 8 = 64 bytes */
+				}
 			}
 			break;
 		case 2: /* Processor Configuration Descriptor(s) */
@@ -3869,6 +3875,7 @@ public:
 		enable_msr=section->Get_bool("enable msr");
 		enable_syscall=section->Get_bool("enable syscall");
 		enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
+		enable_sse2=section->Get_bool("enable sse2");
 		CPU_CycleUp=section->Get_int("cycleup");
 		CPU_CycleDown=section->Get_int("cycledown");
 		std::string core(section->Get_string("core"));
@@ -4222,6 +4229,7 @@ public:
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
 
 		if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
+		if (enable_sse2 && CPU_ArchitectureType < CPU_ARCHTYPE_PENTIUMIII) LOG_MSG("enable sse2 has no effect below cputype=pentium_iii");
 
 		if (CPU_ArchitectureType < CPU_ARCHTYPE_486NEW) {
 			do_pse = false;

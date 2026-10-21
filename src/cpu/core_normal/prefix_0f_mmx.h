@@ -1522,9 +1522,29 @@
 						goto illegal_opcode;
 					}
 					break;
+				case 5:
+					if (rm >= 0xC0 && CPU_SSE2()) {				/* 0F AE /5 LFENCE <not m> (SSE2) */
+						// DO NOTHING
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 6:
+					if (rm >= 0xC0 && CPU_SSE2()) {				/* 0F AE /6 MFENCE <not m> (SSE2) */
+						// DO NOTHING
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
 				case 7:
 					if (rm >= 0xC0) {							/* 0F AE /7 SFENCE <not m> */
 						// DO NOTHING
+					}
+					else if (CPU_SSE2()) {						/* 0F AE /7 CLFLUSH <m> (SSE2) */
+						GetEAa;
+						(void)eaa;								// no caches are emulated
 					}
 					else {
 						goto illegal_opcode;

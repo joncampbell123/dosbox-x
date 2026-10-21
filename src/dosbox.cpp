@@ -3176,6 +3176,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable Pentium CMPXCHG8B instruction. Enable this explicitly if using software that uses this instruction.\n"
             "You must enable this option to run Windows ME because portions of the kernel rely on this instruction.");
 
+    Pbool = secprop->Add_bool("enable sse2",Property::Changeable::Always,false);
+    Pbool->Set_help("Report and allow SSE2 (CPUID.1:EDX bit 26, LFENCE, MFENCE, CLFLUSH, and the SSE2 instructions that are implemented). Experimental: SSE2 is added step by step.\n"
+            "Only meaningful when cputype=pentium_iii or experimental. CR4.OSFXSR must be set by the guest, as for SSE.");
+
     Pbool = secprop->Add_bool("enable syscall",Property::Changeable::Always,true);
     Pbool->Set_help("Allow SYSENTER/SYSEXIT instructions. This option is only meaningful when is cputype=pentium_ii or higher.\n");
 

@@ -71,6 +71,7 @@ extern bool CPU_CycleAutoAdjust;
 extern bool CPU_SkipCycleAutoAdjust;
 
 extern bool enable_weitek;
+extern bool enable_sse2;
 
 extern unsigned char CPU_ArchitectureType;
 extern unsigned char FPU_ArchitectureType;
@@ -602,6 +603,11 @@ extern CPUBlock cpu;
 static INLINE bool CPU_SSE(void) {
 	// TODO: The architecture test may be replaced with a general global variable that says "sse" allowed
 	return (cpu.cr4 & 0x200u) && (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMIII);
+}
+
+// SSE2 instructions: SSE plus the "enable sse2" option (SSE2 is being added step by step, so it is opt-in)
+static INLINE bool CPU_SSE2(void) {
+	return enable_sse2 && CPU_SSE();
 }
 
 // SSE exceptions enabled by bit 10
