@@ -1124,7 +1124,7 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	}
 	if (exists || device) { 
 		Files[handle]->AddRef();
-		psp.SetFileHandle(*entry,handle);
+		if(!fcb) psp.SetFileHandle(*entry,handle);
 		Files[handle]->drive = drive;
 		return true;
 	} else {
