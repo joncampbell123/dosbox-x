@@ -32,6 +32,7 @@
 #include "bitop.h"
 #include "math.h"
 #include "regs.h"
+#include "cpu.h"
 #include "cs4231.h"
 #include "gusmax.h"
 using namespace std;
@@ -137,6 +138,19 @@ struct GFGus {
 
 	uint8_t irq1;		// GF1 IRQ
 	uint8_t irq2;		// MIDI IRQ
+
+	uint8_t midiControl;	// 3X0 write, 6850 style: 03h = master reset, bits 6-5 = 01 transmit IRQ, bit 7 receive IRQ
+	uint8_t midiStatus;	// 3X0 read: bit 0 receive full, bit 1 transmit empty, bit 7 IRQ pending
+	uint8_t midiData;	// 3X1 read: last byte received (loopback only)
+
+	/* Sound Blaster/AdLib capture used by SBOS and MEGA-EM: the guest's writes to 2X6, 2XC and 2X9 (389h)
+	 * raise an NMI, or the GF1 IRQ, and the emulator leaves its answers in latches the guest reads back */
+	uint8_t emuStatus;	// bit 0 AdLib data (2X9) written, bit 3 2X6 written, bit 4 2XC written
+	uint8_t emuData;	// last AdLib data byte, read back at 2X9
+	uint8_t sb2xa;		// written at 2XA, read at 2X8/388h while GF1 register 45h bit 0 is set
+	uint8_t sb2xc;		// written at 2XC/2XD, read at 2XC
+	uint8_t sb2xe;		// written and read at 2XE
+	bool nmiEnable;		// IRQ latch bit 7: captures raise an NMI instead of the GF1 IRQ
 
 	bool irqenabled;
 	bool ChangeIRQDMA;
@@ -674,6 +688,7 @@ static void GUSReset(void) {
 		// Reset
 		adlib_commandreg = 85;
 		myGUS.IRQStatus = 0;
+		myGUS.emuStatus = 0;
 		myGUS.RampIRQ = 0;
 		myGUS.WaveIRQ = 0;
 		myGUS.IRQChan = 0;
@@ -794,6 +809,55 @@ static INLINE void GUS_CheckIRQ(void) {
 
 		gus_prev_effective_irqstat = irqstat;
 	}
+}
+
+void MIDI_RawOutByte(uint8_t data);
+bool MIDI_Available(void);
+
+/* MIDI port IRQ reasons as reported in 2X6: bit 0 transmit, bit 1 receive */
+static uint8_t GUS_MidiIRQStatus(void) {
+	uint8_t ret = 0;
+	if ((myGUS.midiControl & 0x60) == 0x20 && (myGUS.midiStatus & 0x02)) ret |= 0x01;
+	if ((myGUS.midiControl & 0x80) && (myGUS.midiStatus & 0x01)) ret |= 0x02;
+	return ret;
+}
+
+static void GUS_MidiCheckIRQ(void) {
+	const bool was_pending = (myGUS.midiStatus & 0x80) != 0;
+
+	if (GUS_MidiIRQStatus()) myGUS.midiStatus |= 0x80;
+	else myGUS.midiStatus &= ~0x80;
+
+	/* like the GF1, fire once when an IRQ reason appears. 2X0 bit 4 combines the MIDI IRQ into the GF1 IRQ */
+	if (!was_pending && (myGUS.midiStatus & 0x80) && (myGUS.mixControl & 0x08/*Enable latches*/))
+		PIC_ActivateIRQ((myGUS.mixControl & 0x10) ? myGUS.irq1 : myGUS.irq2);
+}
+
+/* a captured Sound Blaster/AdLib write for SBOS or MEGA-EM */
+static void GUS_EmulationEvent(void) {
+	if (myGUS.nmiEnable) CPU_Raise_NMI();
+	else PIC_ActivateIRQ(myGUS.irq1);
+}
+
+/* undocumented 2X6 bit 4: a capture enabled in GF1 register 45h is pending. SBOS checks it */
+static uint8_t GUS_EmulationIRQStatus(void) {
+	if ((myGUS.emuStatus & 0x18) && (myGUS.TimerControl & 0x20)) return 0x10;
+	if ((myGUS.emuStatus & 0x01) && (myGUS.TimerControl & 0x02)) return 0x10;
+	return 0;
+}
+
+/* a byte written to 3X1 has left the UART: 10 bits at 31250 baud */
+static void GUS_MidiTxDone(Bitu val) {
+	if (myGUS.mixControl & 0x20/*MIDI loopback, TxD to RxD*/) {
+		myGUS.midiData = (uint8_t)val;
+		myGUS.midiStatus |= 0x01;
+	}
+	else if (MIDI_Available()) {
+		MIDI_RawOutByte((uint8_t)val);
+	}
+
+	myGUS.midiStatus |= 0x02;
+	GUS_MidiCheckIRQ();
 }
 
 static void CheckVoiceIrq(void) {
@@ -1109,6 +1173,8 @@ static void ExecuteGlobRegister(void) {
 			if (!myGUS.timers[0].raiseirq) myGUS.IRQStatus&=~0x04;
 			myGUS.timers[1].raiseirq=(myGUS.TimerControl & 0x08)>0;
 			if (!myGUS.timers[1].raiseirq) myGUS.IRQStatus&=~0x08;
+			if (!(myGUS.TimerControl & 0x20)) myGUS.emuStatus &= ~0x18; // bit 5: capture 2X6/2XC
+			if (!(myGUS.TimerControl & 0x02)) myGUS.emuStatus &= ~0x01; // bit 1: capture AdLib data
 			GUS_CheckIRQ();
 			break;
 		case 0x46:  // Timer 1 control
@@ -1466,22 +1532,36 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 
 			/* NTS: Contrary to some false impressions, GUS hardware does not report "one at a time", it really is a bitmask.
 			 *      I had the funny idea you read this register "one at a time" just like reading the IRQ reason bits of the RS-232 port --J.C. */
-			return GUS_EffectiveIRQStatus();
+			return GUS_EffectiveIRQStatus() | GUS_MidiIRQStatus() | GUS_EmulationIRQStatus();
 		case 0x208:
+			if (myGUS.TimerControl & 0x01) return myGUS.sb2xa; // AdLib status as left by SBOS
 			uint8_t tmptime;
-			tmptime = 0;
+			tmptime = myGUS.emuStatus & 0x19; // which capture fired, for the SBOS NMI handler
 			if (myGUS.timers[0].reached) tmptime |= (1 << 6);
 			if (myGUS.timers[1].reached) tmptime |= (1 << 5);
 			if (tmptime & 0x60) tmptime |= (1 << 7);
 			if (myGUS.IRQStatus & 0x04) tmptime|=(1 << 2);
 			if (myGUS.IRQStatus & 0x08) tmptime|=(1 << 1);
 			return tmptime;
+		case 0x209:
+			myGUS.emuStatus &= ~0x01;
+			return myGUS.emuData;
 		case 0x20a:
 			return adlib_commandreg;
+		case 0x20c:
+			return myGUS.sb2xc;
+		case 0x20e:
+			return myGUS.sb2xe;
 		case 0x20f:
 			if (gus_type >= GUS_MAX || gus_ics_mixer)
 				return 0x02; /* <- FIXME: What my GUS MAX returns. What does this mean? */
 			return ~0ul; // should not happen
+		case 0x300:
+			return myGUS.midiStatus;
+		case 0x301:
+			myGUS.midiStatus &= ~0x01;
+			GUS_MidiCheckIRQ();
+			return myGUS.midiData;
 		case 0x302:
 			return myGUS.gRegSelectData;
 		case 0x303:
@@ -1574,11 +1654,21 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 			myGUS.mixControl = (uint8_t)val;
 			myGUS.ChangeIRQDMA = true;
 			return;
+		case 0x206: // Sound Blaster DSP reset at the GUS base
+			myGUS.emuStatus |= 0x08;
+			if (myGUS.TimerControl & 0x20) GUS_EmulationEvent();
+			break;
 		case 0x208:
 			adlib_commandreg = (uint8_t)val;
 			break;
 		case 0x209:
-			//TODO adlib_commandreg should be 4 for this to work else it should just latch the value
+			/* timer control only with AdLib register 4 selected; anything else is AdLib data for SBOS */
+			if ((myGUS.TimerControl & 0x01) || adlib_commandreg != 4) {
+				myGUS.emuData = (uint8_t)val;
+				myGUS.emuStatus |= 0x01;
+				if (myGUS.TimerControl & 0x02) GUS_EmulationEvent();
+				break;
+			}
 			if (val & 0x80) {
 				myGUS.timers[0].reached=false;
 				myGUS.timers[1].reached=false;
@@ -1599,7 +1689,20 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 				}
 			} else myGUS.timers[1].running=false;
 			break;
-			//TODO Check if 0x20a register is also available on the gus like on the interwave
+		case 0x20a:
+			myGUS.sb2xa = (uint8_t)val;
+			break;
+		case 0x20c: // Sound Blaster DSP write at the GUS base
+			myGUS.emuStatus |= 0x10;
+			myGUS.sb2xc = (uint8_t)val;
+			if (myGUS.TimerControl & 0x20) GUS_EmulationEvent();
+			break;
+		case 0x20d:
+			myGUS.sb2xc = (uint8_t)val;
+			break;
+		case 0x20e:
+			myGUS.sb2xe = (uint8_t)val;
+			break;
 		case 0x20b:
 			if (!myGUS.ChangeIRQDMA) break;
 			myGUS.ChangeIRQDMA=false;
@@ -1644,12 +1747,14 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 					//       6=IRQ12
 					//       7=IRQ15
 					//     Combine both IRQs using channel 1 (bit 6)
-					//     Reserved (bit 7)
+					//     Reserved (bit 7) <- undocumented: Sound Blaster/AdLib captures raise an NMI (SBOS, MEGA-EM)
 					//
 					//     "If both channels are sharing an IRQ, channel 2's IRQ must be set to 0 and turn on bit 6. A
 					//      bus conflict will occur if both latches are programmed with the same IRQ #."
 					if (irqtable[val & 0x7] != 0)
 						myGUS.irq1 = irqtable[val & 0x7];
+
+					myGUS.nmiEnable = (val & 0x80) != 0;
 
 					if (val & 0x40) // "Combine both IRQs"
 						myGUS.irq2 = myGUS.irq1;
@@ -1725,6 +1830,23 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 				myGUS.ChangeIRQDMA = true;
 			}
 			break;
+		case 0x300:
+			if ((val & 3) == 3) { // master reset
+				PIC_RemoveEvents(GUS_MidiTxDone);
+				myGUS.midiStatus = 0;
+			}
+			else if ((myGUS.midiControl & 3) == 3) {
+				myGUS.midiStatus |= 0x02; // out of reset, transmit register empty
+			}
+			myGUS.midiControl = (uint8_t)val;
+			GUS_MidiCheckIRQ();
+			break;
+		case 0x301:
+			if ((myGUS.midiControl & 3) == 3) break;
+			myGUS.midiStatus &= ~0x02;
+			GUS_MidiCheckIRQ();
+			PIC_AddEvent(GUS_MidiTxDone,0.32,val);
+			break;
 		case 0x302:
 			myGUS.gCurChannel = val & 31;
 			if (gus_type < GUS_INTERWAVE) // Versions prior to the Interwave will reflect last I/O to 3X2-3X5 when read back from 3X3
@@ -1793,6 +1915,19 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 #endif
 			break;
 	}
+}
+
+/* The GF1 also decodes AdLib ports 388h/389h as aliases of 2X8h/2X9h (the 4.11 install disk's CARDCHK.EXE
+ * and SBOS rely on it). Called by whoever owns those ports: the OPL emulation, or the Sound Blaster code when there is none. */
+void GUS_AdLibWrite(Bitu port,uint8_t val) {
+	if (myGUS.GUSRam == NULL) return; // no GUS
+	write_gus(GUS_BASE + 0x208 + (port & 1),val,1);
+}
+
+/* 388h read with no OPL: answered only while SBOS emulates an AdLib (45h bits 0-1), so a bare GUS does not pass AdLib detection */
+uint8_t GUS_AdLibRead(void) {
+	if (myGUS.GUSRam == NULL || !(myGUS.TimerControl & 0x03)) return 0xff;
+	return (uint8_t)read_gus(GUS_BASE + 0x208,1);
 }
 
 static Bitu GUS_Master_Clock = 617400; /* NOTE: This is 1000000Hz / 1.619695497. Seems to be a common base rate within the hardware. */
@@ -2221,6 +2356,7 @@ class GUS:public Module_base{
 
 			gus_enable = true;
 			memset(&myGUS,0,sizeof(myGUS));
+			myGUS.midiControl = 0x03; // the MIDI UART stays in reset until the guest releases it
 
 			ignore_active_channel_write_while_active = section->Get_bool("ignore channel count while active");
 			warn_out_of_bounds_dram_access = section->Get_bool("warn on out of bounds dram access");
@@ -2554,6 +2690,7 @@ class GUS:public Module_base{
 		}
 
 		~GUS() {
+			PIC_RemoveEvents(GUS_MidiTxDone);
 			gus_max_present = false;
 			gus_max_chan = NULL;
 			gus_max_codec_rh.Uninstall();

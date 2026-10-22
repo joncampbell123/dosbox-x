@@ -3331,8 +3331,12 @@ void SB_INFO::write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
 
 static SB_INFO sb[MAX_CARDS];
 
-static void adlib_gusforward(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
-	adlib_commandreg=(uint8_t)(val&0xff);
+static void adlib_gusforward(Bitu port,Bitu val,Bitu /*iolen*/) {
+	GUS_AdLibWrite(port,(uint8_t)val);
+}
+
+static Bitu adlib_gusread(Bitu /*port*/,Bitu /*iolen*/) {
+	return GUS_AdLibRead();
 }
 
 bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma) {
@@ -4301,8 +4305,10 @@ class SBLASTER: public Module_base {
 			if (ci == 0) {
 				switch (oplmode) {
 					case OPL_none:
-						if (!IS_PC98_ARCH)
-							WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
+						if (!IS_PC98_ARCH) {
+							WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB,2);
+							ReadHandler[0].Install(0x388,adlib_gusread,IO_MB);
+						}
 						break;
 					case OPL_opl2:
 					case OPL_dualopl2:
