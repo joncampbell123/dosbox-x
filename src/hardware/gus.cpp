@@ -1917,8 +1917,8 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 	}
 }
 
-/* The GF1 also decodes AdLib ports 388h/389h as aliases of 2X8h/2X9h (the 4.11 install disk's CARDCHK.EXE
- * and SBOS rely on it). Called by whoever owns those ports: the OPL emulation, or the Sound Blaster code when there is none. */
+/* The GF1 also decodes AdLib ports 388h/389h as aliases of 2X8h/2X9h (the 4.11 install disk's CARDCHK.EXE and SBOS rely on it).
+ * Called by whoever owns those ports: the OPL emulation, or the Sound Blaster code when there is none. */
 void GUS_AdLibWrite(Bitu port,uint8_t val) {
 	if (myGUS.GUSRam == NULL) return; // no GUS
 	write_gus(GUS_BASE + 0x208 + (port & 1),val,1);
