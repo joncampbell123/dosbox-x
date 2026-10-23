@@ -28,6 +28,10 @@
 #include "keyboard.h"
 #include "bios_disk.h"
 #include "render.h"
+#include "cross.h"
+#include "mouse.h"
+#include "hardware.h"
+#include "screen_export.h"
 #include "shell.h"
 #include "jfont.h"
 #include "inout.h"
@@ -53,6 +57,7 @@
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <set>
 
 #include <output/output_opengl.h>
 #include <output/output_ttf.h>
@@ -99,6 +104,7 @@ void GFX_ForceRedrawScreen(void);
 bool GFX_GetPreventFullscreen(void);
 bool isDBCSCP(void), toOutput(const char *what), saveDiskImage(imageDisk *image, const char *name);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+bool CodePageGuestToHostUTF8(char *d, const char *s);
 int setTTFMap(bool changecp), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 size_t GetGameState_Run(void);
 void DBCSSBCS_mapper_shortcut(bool pressed);
@@ -809,6 +815,411 @@ bool list_ideinfo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     (void)menuitem;//UNUSED
     GUI_Shortcut(33);
     return true;
+}
+
+void swapInNextDisk(bool pressed), swapInNextCD(bool pressed);
+void DOS_RescanAll(bool pressed), ExportTextScreen(bool pressed);
+void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], const std::string &drive_type);
+std::string GetIDEInfo();
+std::string GetIDEPosition(unsigned char bios_disk_index);
+extern int swapInDisksSpecificDrive;
+extern std::string strPasteBuffer;
+bool CodePageHostToGuestUTF8(char *d, const char *s);
+static bool CaptureVisibleTextScreen(std::string &utf8_text);
+void runImgmountISO(const char drive, const std::vector<std::string> &paths, const bool replace);
+void runImgmake(const char *str);
+
+static bool Agent86ParseLines(const std::string &payload,
+                              const size_t expected,
+                              std::vector<std::string> &lines)
+{
+	lines.clear();
+	size_t start = 0;
+	while (lines.size() + 1 < expected) {
+		const size_t separator = payload.find('\n', start);
+		if (separator == std::string::npos) return false;
+		lines.emplace_back(payload.substr(start, separator - start));
+		start = separator + 1;
+	}
+	lines.emplace_back(payload.substr(start));
+	return lines.size() == expected;
+}
+
+static bool Agent86ExistingHostFile(const std::string &path,
+                                    std::string &local_path,
+                                    std::string &response)
+{
+	if (path.empty() || path.size() >= DOS_PATHLENGTH ||
+	    path.find_first_of("\r\n\"") != std::string::npos || path.find('\0') != std::string::npos ||
+	    !Cross::IsPathAbsolute(path)) {
+		response = "image path must be one absolute host path";
+		return false;
+	}
+	local_path = path;
+#if defined(WIN32)
+	if (FileDirExistUTF8(local_path, path.c_str()) != 1) {
+#else
+	struct stat status = {};
+	if (stat(path.c_str(), &status) != 0 || !(status.st_mode & S_IFREG)) {
+#endif
+		response = "image path must identify an existing host file";
+		return false;
+	}
+	return true;
+}
+
+static int Agent86HostPathType(const std::string &path, std::string &local_path)
+{
+	local_path = path;
+#if defined(WIN32)
+	return FileDirExistUTF8(local_path, path.c_str());
+#else
+	struct stat status = {};
+	if (stat(path.c_str(), &status) != 0) return 0;
+	if ((status.st_mode & S_IFREG) == S_IFREG) return 1;
+	if (status.st_mode & S_IFDIR) return 2;
+	return 0;
+#endif
+}
+
+static bool Agent86HasImageExtension(const std::string &path,
+	                                 const std::set<std::string> &allowed)
+{
+	const size_t dot = path.find_last_of('.');
+	if (dot == std::string::npos) return false;
+	std::string extension = path.substr(dot);
+	std::transform(extension.begin(), extension.end(), extension.begin(),
+	               [](const unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+	return allowed.find(extension) != allowed.end();
+}
+
+static bool Agent86SetCdImage(const std::string &payload, std::string &response)
+{
+	if (control->SecureMode()) {
+		response = "changing CD images is unavailable while DOSBox-X secure mode is active";
+		return false;
+	}
+	std::vector<std::string> fields;
+	if (!Agent86ParseLines(payload, 2, fields) || fields[0].size() != 1) {
+		response = "CD image payload is invalid";
+		return false;
+	}
+	const char drive = fields[0][0];
+	if (drive < 'C' || drive > 'Y' || !dynamic_cast<isoDrive *>(Drives[drive - 'A'])) {
+		response = "drive must identify a mounted CD drive from C through Y";
+		return false;
+	}
+	std::string local_path;
+	if (!Agent86ExistingHostFile(fields[1], local_path, response)) return false;
+	if (!Agent86HasImageExtension(fields[1],
+	                            {".iso", ".cue", ".bin", ".chd", ".mdf", ".gog", ".ins", ".inst"})) {
+		response = "CD image path has an unsupported extension";
+		return false;
+	}
+	runImgmountISO(drive, {local_path}, true);
+	if (!dynamic_cast<isoDrive *>(Drives[drive - 'A'])) {
+		response = "DOSBox-X could not load the CD image";
+		return false;
+	}
+	response = std::string("Loaded CD image on ") + drive + ": from " + fields[1] + ".";
+	return true;
+}
+
+static bool Agent86SetFloppyImage(const std::string &payload, std::string &response)
+{
+	if (control->SecureMode()) {
+		response = "changing floppy images is unavailable while DOSBox-X secure mode is active";
+		return false;
+	}
+	std::vector<std::string> fields;
+	if (!Agent86ParseLines(payload, 2, fields) || fields[0].size() != 1 ||
+	    fields[0][0] < 'A' || fields[0][0] > 'B') {
+		response = "drive must identify floppy drive A or B";
+		return false;
+	}
+	std::string local_path;
+	if (!Agent86ExistingHostFile(fields[1], local_path, response)) return false;
+	if (!Agent86HasImageExtension(fields[1],
+	                            {".ima", ".img", ".xdf", ".fdi", ".hdm", ".nfd", ".d88", ".td0"})) {
+		response = "floppy image path has an unsupported extension";
+		return false;
+	}
+	const int index = fields[0][0] - 'A';
+	std::vector<std::string> options;
+	if (mountiro[index]) options.emplace_back("readonly");
+	fatDrive *new_drive = new fatDrive(local_path.c_str(), 0, 0, 0, 0, options);
+	if (!new_drive->created_successfully) {
+		delete new_drive;
+		response = "DOSBox-X could not load the floppy image";
+		return false;
+	}
+	if (Drives[index]) {
+		DriveManager::ChangeDisk(index, new_drive);
+	} else if (new_drive->loadedDisk) {
+		if (imageDiskList[index]) imageDiskList[index]->Release();
+		imageDiskList[index] = new_drive->loadedDisk;
+		imageDiskChange[index] = true;
+	}
+	response = std::string("Loaded floppy image on ") + fields[0] + ": from " + fields[1] + ".";
+	return true;
+}
+
+static bool Agent86CreateDiskImage(const std::string &payload, std::string &response)
+{
+	if (control->SecureMode()) {
+		response = "creating disk images is unavailable while DOSBox-X secure mode is active";
+		return false;
+	}
+	std::vector<std::string> fields;
+	if (!Agent86ParseLines(payload, 2, fields)) {
+		response = "disk image payload is invalid";
+		return false;
+	}
+	static const std::set<std::string> formats = {
+	        "fd_360", "fd_400", "fd_720", "fd_1200", "fd_1440", "fd_2880",
+	        "hd_250", "hd_520", "hd_1gig", "hd_2gig", "hd_4gig", "hd_8gig"};
+	if (formats.find(fields[0]) == formats.end()) {
+		response = "disk image format is unsupported";
+		return false;
+	}
+	const std::string &path = fields[1];
+	if (path.empty() || path.size() >= DOS_PATHLENGTH ||
+	    path.find_first_of("\r\n\"") != std::string::npos || path.find('\0') != std::string::npos ||
+	    !Cross::IsPathAbsolute(path)) {
+		response = "image path must be one absolute host path";
+		return false;
+	}
+	if (!Agent86HasImageExtension(path, {".img"})) {
+		response = "disk image destination must use the .img extension";
+		return false;
+	}
+	std::string local_path;
+	if (Agent86HostPathType(path, local_path) != 0) {
+		response = "the disk image destination already exists";
+		return false;
+	}
+	runImgmake(("-t " + fields[0] + " \"" + local_path + "\"").c_str());
+	std::string created;
+	if (Agent86HostPathType(path, created) != 1) {
+		response = "DOSBox-X could not create the disk image";
+		return false;
+	}
+	response = "Created blank disk image " + path + ".";
+	return true;
+}
+
+static bool Agent86MoveMouse(const std::string &payload, std::string &response)
+{
+	std::vector<std::string> fields;
+	if (!Agent86ParseLines(payload, 2, fields)) {
+		response = "mouse position payload is invalid";
+		return false;
+	}
+	char *end_x = nullptr;
+	char *end_y = nullptr;
+	const long x = strtol(fields[0].c_str(), &end_x, 10);
+	const long y = strtol(fields[1].c_str(), &end_y, 10);
+	if (!end_x || *end_x || !end_y || *end_y || x < 0 || x > 65535 || y < 0 || y > 65535) {
+		response = "mouse coordinates must be integers from 0 through 65535";
+		return false;
+	}
+	Mouse_CursorMoved(0.0f, 0.0f, x / 65535.0f, y / 65535.0f, false);
+	response = "Mouse moved within the DOS display.";
+	return true;
+}
+
+static bool Agent86ClickMouse(const std::string &payload, std::string &response)
+{
+	int button = -1;
+	if (payload == "left") button = 0;
+	else if (payload == "right") button = 1;
+	else if (payload == "middle") button = 2;
+	if (button < 0) {
+		response = "mouse button must be left, right, or middle";
+		return false;
+	}
+	Mouse_ButtonPressed(static_cast<uint8_t>(button));
+	Mouse_ButtonReleased(static_cast<uint8_t>(button));
+	response = "Mouse button clicked in the DOS application.";
+	return true;
+}
+
+static bool Agent86RequireNoPayload(const std::string &payload, std::string &response)
+{
+	if (payload.empty()) return true;
+	response = "this control operation does not accept a payload";
+	return false;
+}
+
+static bool Agent86MountHostFolder(const std::string &payload, std::string &response)
+{
+	if (control->SecureMode()) {
+		response = "mounting is unavailable while DOSBox-X secure mode is active";
+		return false;
+	}
+	const size_t first = payload.find('\n');
+	const size_t second = first == std::string::npos ? first : payload.find('\n', first + 1);
+	if (first != 1 || second == std::string::npos) {
+		response = "mount payload is invalid";
+		return false;
+	}
+	const char drive = payload[0];
+	const std::string kind = payload.substr(first + 1, second - first - 1);
+	const std::string path = payload.substr(second + 1);
+	if (drive < 'A' || drive > 'Y' || path.empty() || path.size() >= DOS_PATHLENGTH ||
+	    path.find_first_of("\r\n") != std::string::npos || path.find('\0') != std::string::npos ||
+	    !Cross::IsPathAbsolute(path) ||
+	    (kind != "local" && kind != "cdrom" && kind != "floppy")) {
+		response = "mount arguments are invalid";
+		return false;
+	}
+	std::string local_path = path;
+#if defined(WIN32)
+	if (FileDirExistUTF8(local_path, path.c_str()) != 2) {
+#else
+	struct stat path_status = {};
+	if (stat(path.c_str(), &path_status) != 0 || !(path_status.st_mode & S_IFDIR)) {
+#endif
+		response = "mount path must identify an existing host directory";
+		return false;
+	}
+	if (Drives[drive - 'A']) {
+		response = std::string("drive ") + drive + ": is already mounted";
+		return false;
+	}
+	const std::string drive_type = kind == "local" ? "LOCAL" :
+	                               kind == "cdrom" ? "CDROM" : "FLOPPY";
+	MountHelper(drive, local_path.c_str(), drive_type);
+	if (!Drives[drive - 'A']) {
+		response = std::string("DOSBox-X could not mount drive ") + drive + ":";
+		return false;
+	}
+	response = std::string("Mounted ") + path + " as " + drive + ": (" + kind + ").";
+	return true;
+}
+
+static std::string Agent86MountedDriveStatus()
+{
+	std::ostringstream output;
+	for (int index = 0; index < MAX_DISK_IMAGES; index++) {
+		output << index << " - ";
+		if (!imageDiskList[index]) {
+			output << "Not yet mounted\n";
+			continue;
+		}
+		if (index < 2) {
+			int swaps = 0;
+			if (swapInDisksSpecificDrive == index)
+				for (size_t position = 0; position < MAX_SWAPPABLE_DISKS; position++)
+					if (diskSwap[position]) swaps++;
+			if (!swaps) swaps = 1;
+			output << "Swap position: " << (swaps == 1 ? 1 : swapPosition + 1)
+			       << "/" << swaps << " - " << imageDiskList[index]->diskname << '\n';
+		} else {
+			const std::string position = GetIDEPosition(index);
+			output << "IDE controller: " << (position.empty() ? "NA" : position)
+			       << " - " << imageDiskList[index]->diskname << '\n';
+		}
+	}
+	return output.str();
+}
+
+bool Agent86_ExecuteControl(const std::string &operation,
+	                        const std::string &payload,
+	                        std::string &response)
+{
+	if (operation == "swap_floppy_drive") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		swapInNextDisk(true);
+		response = "Floppy drive swapped.";
+	} else if (operation == "swap_cd_drive") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		swapInNextCD(true);
+		response = "CD drive swapped.";
+	} else if (operation == "change_floppy_image") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		change_currentfd_menu_callback(nullptr, nullptr);
+		response = "Floppy image selection completed.";
+	} else if (operation == "change_cd_image") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		change_currentcd_menu_callback(nullptr, nullptr);
+		response = "CD image selection completed.";
+	} else if (operation == "create_blank_disk_image") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		make_diskimage_menu_callback(nullptr, nullptr);
+		response = "Blank disk image dialog completed.";
+	} else if (operation == "list_mounted_drives") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		response = Agent86MountedDriveStatus();
+	} else if (operation == "get_ide_status") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		response = GetIDEInfo();
+	} else if (operation == "rescan_all_drives") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		DOS_RescanAll(true);
+		response = "All mounted drives rescanned.";
+	} else if (operation == "export_text_screen") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		ExportTextScreen(true);
+		response = "DOS text screen export dialog completed.";
+	} else if (operation == "get_text_screen") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		return CaptureVisibleTextScreen(response);
+	} else if (operation == "capture_graphics_screen") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		return CAPTURE_RequestAgent86Screenshot(response);
+	} else if (operation == "get_graphics_screen_result") {
+		if (!Agent86RequireNoPayload(payload, response)) return false;
+		response = CAPTURE_GetAgent86ScreenshotStatus();
+	} else if (operation == "move_mouse") {
+		return Agent86MoveMouse(payload, response);
+	} else if (operation == "click_mouse") {
+		return Agent86ClickMouse(payload, response);
+	} else if (operation == "set_floppy_image") {
+		return Agent86SetFloppyImage(payload, response);
+	} else if (operation == "set_cd_image") {
+		return Agent86SetCdImage(payload, response);
+	} else if (operation == "create_disk_image") {
+		return Agent86CreateDiskImage(payload, response);
+	} else if (operation == "mount_host_folder") {
+		return Agent86MountHostFolder(payload, response);
+	} else if (operation == "unmount_drive") {
+		if (control->SecureMode()) {
+			response = "unmounting is unavailable while DOSBox-X secure mode is active";
+			return false;
+		}
+		if (payload.size() != 1 || payload[0] < 'A' || payload[0] > 'Y') {
+			response = "drive must be one letter from A through Y";
+			return false;
+		}
+		const char drive = payload[0];
+		if (!Drives[drive - 'A']) {
+			response = std::string("drive ") + drive + ": is not mounted";
+			return false;
+		}
+		MenuUnmountDrive(drive);
+		if (Drives[drive - 'A']) {
+			response = std::string("drive ") + drive + ": could not be unmounted";
+			return false;
+		}
+		response = std::string("Unmounted drive ") + drive + ":.";
+	} else if (operation == "type_text") {
+		if (payload.empty() || payload.size() > 4096 || payload.find('\0') != std::string::npos) {
+			response = "text must contain 1 to 4096 characters without NUL bytes";
+			return false;
+		}
+		char converted[CROSS_LEN * 6] = {};
+		if (!CodePageHostToGuestUTF8(converted, payload.c_str())) {
+			response = "text cannot be represented in the active DOS code page";
+			return false;
+		}
+		strPasteBuffer.append(converted);
+		response = "Text queued for DOS keyboard input.";
+	} else {
+		response = "unknown DOSBox-X control operation";
+		return false;
+	}
+	return true;
 }
 
 const char *drive_opts[][2] = {
@@ -2676,6 +3087,120 @@ void CopyAllClipboard(bool bPressed) {
     // STUB
 }
 #endif
+
+static bool ConvertScreenTextToUtf8(const char *guest_text,
+	                                std::string &utf8_text)
+{
+	extern bool morelen;
+	extern uint16_t baselen;
+	extern std::list<uint16_t> bdlist;
+
+	const bool previous_morelen = morelen;
+	morelen = true;
+	baselen = 0;
+	std::istringstream lines(guest_text);
+	char converted[CROSS_LEN * 6] = {};
+	for (std::string line; std::getline(lines, line);) {
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
+		if (!CodePageGuestToHostUTF8(converted, line.c_str())) {
+			morelen = previous_morelen;
+			baselen = 0;
+			bdlist.clear();
+			return false;
+		}
+		utf8_text += converted;
+		utf8_text.push_back('\n');
+		baselen += static_cast<uint16_t>(line.size() + 1);
+	}
+	morelen = previous_morelen;
+	baselen = 0;
+	bdlist.clear();
+	if (!utf8_text.empty())
+		utf8_text.pop_back();
+	return true;
+}
+
+static bool CaptureVisibleTextScreen(std::string &utf8_text)
+{
+	if (!CurMode || CurMode->type != M_TEXT) {
+		systemmessagebox("Error",
+		                 "The current DOS screen is not in text mode.",
+		                 "ok",
+		                 "error",
+		                 1);
+		return false;
+	}
+	uint16_t length = 0;
+	const char *guest_text = Mouse_GetSelected(
+	        0,
+	        0,
+	        static_cast<int>(currentWindowWidth - 1 - sdl.clip.x),
+	        static_cast<int>(currentWindowHeight - 1 - sdl.clip.y),
+	        static_cast<int>(currentWindowWidth - sdl.clip.x),
+	        static_cast<int>(currentWindowHeight - sdl.clip.y),
+	        &length);
+	if (!guest_text || !length || !ConvertScreenTextToUtf8(guest_text, utf8_text)) {
+		systemmessagebox("Error",
+		                 "The DOS text screen could not be converted to UTF-8.",
+		                 "ok",
+		                 "error",
+		                 1);
+		return false;
+	}
+	return true;
+}
+
+static bool WriteScreenExport(const std::string &path,
+	                          const std::string &document)
+{
+	FILE *output = fopen_wrap(path.c_str(), "wb");
+	if (!output)
+		return false;
+	const size_t written = fwrite(document.data(), 1, document.size(), output);
+	const bool closed = fclose(output) == 0;
+	return written == document.size() && closed;
+}
+
+void ExportTextScreen(bool pressed)
+{
+	if (!pressed)
+		return;
+	const char *patterns[] = {"*.txt", "*.md"};
+	const char *path = tinyfd_saveFileDialog("Export DOS text screen...",
+	                                         "dos-screen.txt",
+	                                         2,
+	                                         patterns,
+	                                         "Text or Markdown files");
+	if (!path)
+		return;
+	ScreenExport::Format format = ScreenExport::Format::Text;
+	if (!ScreenExport::FormatFromPath(path, format)) {
+		systemmessagebox("Error",
+		                 "Choose a filename ending in .txt or .md.",
+		                 "ok",
+		                 "error",
+		                 1);
+		return;
+	}
+	std::string utf8_text;
+	if (!CaptureVisibleTextScreen(utf8_text))
+		return;
+	const std::string document = ScreenExport::BuildDocument(utf8_text, format);
+	if (!WriteScreenExport(path, document)) {
+		systemmessagebox("Error",
+		                 "The DOS text screen could not be written to the selected file.",
+		                 "ok",
+		                 "error",
+		                 1);
+		return;
+	}
+	systemmessagebox("Export complete",
+	                 "The DOS text screen was exported successfully.",
+	                 "ok",
+	                 "info",
+	                 1);
+}
 
 bool dos_clipboard_api_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED

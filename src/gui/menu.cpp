@@ -623,6 +623,9 @@ static const char *def_menu_dos[] =
     "--",
 #if C_PRINTER
     "mapper_printtext",
+#endif
+    "mapper_exporttext",
+#if C_PRINTER
     "mapper_ejectpage",
 #endif
     NULL

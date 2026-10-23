@@ -1,10 +1,8 @@
 {
   "mcpServers": {
     "dos-bridge": {
-      "command": "python",
-      "args": [
-        "${extensionPath}${/}scripts${/}mcp_server.py"
-      ]
+      "command": "${extensionPath}${/}bin${/}agent86-mcp",
+      "args": []
     }
   }
 }

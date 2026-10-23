@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stdio.h> // for FILE*, for OpenCaptureFile()
+#include <string>
 
 class Section;
 enum OPL_Mode {
@@ -52,6 +53,8 @@ void CAPTURE_AddWave(uint32_t freq, uint32_t len, int16_t * data);
 #define CAPTURE_FLAG_DBLH	0x2
 #define CAPTURE_FLAG_NOCHANGE   0x4
 void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, uint8_t * data, uint8_t * pal);
+bool CAPTURE_RequestAgent86Screenshot(std::string &error);
+std::string CAPTURE_GetAgent86ScreenshotStatus();
 void CAPTURE_AddMidi(bool sysex, Bitu len, uint8_t * data);
 void CAPTURE_VideoStart();
 void CAPTURE_VideoStop();

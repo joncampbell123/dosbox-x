@@ -72,6 +72,8 @@ extern "C" {
 bool video_debug_overlay = false;
 bool skip_encoding_unchanged_frames = false, show_recorded_filename = true;
 std::string pathvid = "", pathwav = "", pathmtw = "", pathmid = "", pathopl = "", pathscr = "", pathprt = "", pathpcap = "";
+static bool agent86_screenshot_pending = false;
+static std::string agent86_screenshot_result = "";
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 extern std::string working_dir;
 
@@ -826,7 +828,13 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 		CaptureState &= ~((unsigned int)CAPTURE_IMAGE);
 		/* Open the actual file */
 		FILE * fp=OpenCaptureFile("Screenshot",".png");
-		if (!fp) goto skip_shot;
+		if (!fp) {
+			if (agent86_screenshot_pending) {
+				agent86_screenshot_pending = false;
+				agent86_screenshot_result = "ERROR\nDOSBox-X could not create the screenshot file";
+			}
+			goto skip_shot;
+		}
 		/* First try to allocate the png structures */
 		png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,NULL, NULL);
 		if (!png_ptr) goto skip_shot;
@@ -984,11 +992,29 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 		png_destroy_write_struct(&png_ptr, &info_ptr);
 		/*close file*/
 		fclose(fp);
+		if (agent86_screenshot_pending) {
+			std::string screenshot_path = pathscr;
+#if defined(WIN32)
+			char full_path[MAX_PATH] = {};
+			if (GetFullPathName(screenshot_path.c_str(), MAX_PATH, full_path, NULL))
+				screenshot_path = full_path;
+#elif defined(HAVE_REALPATH)
+			char full_path[PATH_MAX] = {};
+			if (realpath(screenshot_path.c_str(), full_path) != NULL)
+				screenshot_path = full_path;
+#endif
+			agent86_screenshot_pending = false;
+			agent86_screenshot_result = "READY\n" + screenshot_path;
+		}
 		if (show_recorded_filename && pathscr.size()) systemmessagebox("Recording completed",("Saved screenshot to the file:\n\n"+pathscr).c_str(),"ok", "info", 1);
 
 	}
 	pathscr = "";
 skip_shot:
+	if (agent86_screenshot_pending && !(CaptureState & CAPTURE_IMAGE)) {
+		agent86_screenshot_pending = false;
+		agent86_screenshot_result = "ERROR\nDOSBox-X could not encode the screenshot";
+	}
 	if (CaptureState & CAPTURE_VIDEO) {
 #if defined(USE_TTF)
 		ttf_switch_off();
@@ -1634,6 +1660,30 @@ void CAPTURE_ScreenShotEvent(bool pressed) {
     showdbcs = IS_EGAVGA_ARCH;
     ttf_switch_off();
 #endif
+}
+
+bool CAPTURE_RequestAgent86Screenshot(std::string &error)
+{
+#if !defined(C_EMSCRIPTEN)
+	if (agent86_screenshot_pending) {
+		error = "a graphical screen capture is already pending";
+		return false;
+	}
+	agent86_screenshot_result.clear();
+	agent86_screenshot_pending = true;
+	CAPTURE_ScreenShotEvent(true);
+	return true;
+#else
+	error = "graphical screen capture is unavailable in this build";
+	return false;
+#endif
+}
+
+std::string CAPTURE_GetAgent86ScreenshotStatus()
+{
+	if (agent86_screenshot_pending) return "PENDING";
+	return agent86_screenshot_result.empty() ? "ERROR\nno graphical screen capture was requested"
+	                                         : agent86_screenshot_result;
 }
 
 void CAPTURE_RawScreenShotEvent(bool pressed) {
@@ -2304,10 +2354,6 @@ void HARDWARE_Destroy(Section * sec) {
 
 void HARDWARE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("HARDWARE_Init: initializing");
-
-	/* Initialize A-TRES Agent Bridge */
-	extern void AGENT_BRIDGE_Init();
-	AGENT_BRIDGE_Init();
 
 	/* TODO: Hardware init. We moved capture init to its own function. */
 	AddExitFunction(AddExitFunctionFuncPair(HARDWARE_Destroy),true);

@@ -102,6 +102,12 @@ dnl Detect the canonical host and target build environment
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
+AGENT86_LIBS=""
+case "$host_os" in
+  mingw*|msys*) AGENT86_LIBS="-lws2_32 -lbcrypt" ;;
+esac
+AC_SUBST([AGENT86_LIBS])
+
 MACOSX_DEPLOYMENT_TARGET="10.15"
 MACOSX_ARCH="ARM"
 
@@ -1553,6 +1559,7 @@ AM_CONDITIONAL(MACOS_UNIVERSAL, [ test x$enable_universal = xyes ])
 AC_CONFIG_FILES([ 
 Makefile
 src/Makefile
+src/agent86/Makefile
 src/cpu/Makefile
 src/cpu/core_full/Makefile
 src/cpu/core_normal/Makefile

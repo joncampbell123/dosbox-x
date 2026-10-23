@@ -1,7 +1,7 @@
 {
   "name": "dos-bridge",
   "displayName": "DOSBox-X Bridge",
-  "version": "1.3.1",
+  "version": "2.0.0",
   "description": "Execute serialized commands and bounded text-file writes inside DOSBox-X through the loopback CTTY BRIDGE.",
   "author": {
     "name": "Michael P. Burgus",

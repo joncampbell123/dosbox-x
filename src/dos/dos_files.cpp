@@ -837,7 +837,30 @@ bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
 }
 
 bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fcb) {
-	if (dos_kernel_disabled) E_Exit("Attempt to write to DOS file handle while guest OS is running");
+	if (dos_kernel_disabled) {
+		/* TEMPORARY DIAGNOSTIC: report the handle and payload so the caller can be
+		 * identified from the error dialog. Revert once the culprit is known. */
+		static const char hexdigits[] = "0123456789abcdef";
+		char dump[200];
+		size_t o = 0;
+		const uint16_t n = (amount != NULL && *amount < 48) ? *amount : 48;
+		for (uint16_t i = 0; data != NULL && i < n && (o + 5) < sizeof(dump); i++) {
+			const unsigned char c = data[i];
+			if (c >= 32 && c < 127) {
+				dump[o++] = (char)c;
+			} else {
+				dump[o++] = '\\';
+				dump[o++] = 'x';
+				dump[o++] = hexdigits[(c >> 4) & 0xF];
+				dump[o++] = hexdigits[c & 0xF];
+			}
+		}
+		dump[o] = '\0';
+		E_Exit("Attempt to write to DOS file handle while guest OS is running "
+		       "[entry=%u fcb=%u amount=%u data=%s]",
+		       (unsigned)entry, (unsigned)(fcb ? 1 : 0),
+		       (unsigned)(amount != NULL ? *amount : 0), dump);
+	}
 
 	uint32_t handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
@@ -867,12 +890,6 @@ bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fc
 	uint16_t towrite=*amount;
 	bool ret=Files[handle]->Write(data,&towrite);
 	*amount=towrite;
-
-	/* Stream stdout/stderr writes to Agent Telemetry Subsystem */
-	if (ret && towrite > 0 && data) {
-		extern void AGENT_BRIDGE_StreamOutput(const char* data, size_t len);
-		AGENT_BRIDGE_StreamOutput((const char*)data, (size_t)towrite);
-	}
 
 	return ret;
 }

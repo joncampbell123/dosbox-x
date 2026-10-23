@@ -11,6 +11,24 @@ You are equipped with an MCP integration to a DOSBox-X emulator running DOS. It 
 - `run_dos_command(command: str)`
 - `write_dos_file(filename: str, content: str)`
 - `release_dos_console()`
+- `swap_floppy_drive()` and `swap_cd_drive()`
+- `change_floppy_image()` and `change_cd_image()` (interactive DOSBox-X picker)
+- `create_blank_disk_image()` (interactive DOSBox-X dialog)
+- `list_mounted_drives()` and `get_ide_status()`
+- `rescan_all_drives()`
+- `export_text_screen()` (interactive TXT/Markdown save dialog)
+- `get_text_screen()`
+- `capture_graphics_screen()` returns the current DOS framebuffer as PNG.
+- `move_mouse(x, y)` and `click_mouse(button)` interact with graphical DOS applications.
+- `set_floppy_image(drive, path)` and `set_cd_image(drive, path)` select existing host images without dialogs.
+- `create_disk_image(path, format)` creates a new blank host `.img` without a dialog.
+- `mount_host_folder(drive, path, kind)` and `unmount_drive(drive)`
+- `type_text(text)` queues keyboard input for the running DOS application.
+
+A command that fails in DOS (nonzero exit code, or COMMAND.COM reporting an
+unrecognized command) raises a tool error carrying the full console output
+and the exit code. Read that output before retrying, and never retry a
+destructive command automatically after a timeout.
 
 The host may qualify these names. For example, Claude Code exposes `run_dos_command` as `mcp__dos-bridge__run_dos_command`.
 
@@ -51,6 +69,9 @@ actually requested.
 4. **Testing and Execution:**
    - Execute the compiled `.EXE` or `.COM` file using `run_dos_command("PROGRAM.EXE")`.
    - The tool returns bounded CP437 output over the loopback TCP bridge.
+   - For graphical applications, use `capture_graphics_screen`, then normalized
+     `move_mouse` coordinates (0 is left/top; 65535 is right/bottom) and
+     `click_mouse`. Capture again after an interaction to verify its effect.
 
 5. **Connection Discipline:**
    - Use only the MCP tools; do not open parallel or ad-hoc TCP connections to the configured bridge port.
@@ -66,4 +87,4 @@ DOSBox-X allows users to explicitly mount folders from the host operating system
 Any files you modify, delete, or overwrite while working in these mounted DOS drives will permanently alter the files on the user's actual host PC!
 **ALWAYS** double-check what drive you are in (e.g., using `dir` and paying attention to folder contents) and proceed with extreme caution before executing destructive commands.
 
-Both `write_dos_file` and `run_dos_command` can modify any drive already mounted in DOSBox-X. Mounting new host paths remains a separate, operator-controlled DOSBox-X policy. Keep `automount_c = false`, never probe unconfirmed drives, and never automatically retry a destructive command after a timeout.
+Both `write_dos_file` and `run_dos_command` can modify any drive already mounted in DOSBox-X. Authenticated tools can explicitly mount host paths and manage disk images. Keep `automount_c = false` to block automatic host-C mounting, never probe unconfirmed drives, and never automatically retry a destructive command after a timeout.

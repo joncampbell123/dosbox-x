@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "dos-bridge": {
-      "command": "dos-bridge-mcp",
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/agent86-mcp",
       "args": []
     }
   }

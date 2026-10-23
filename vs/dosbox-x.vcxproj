@@ -1445,7 +1445,6 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\hardware\gameblaster.cpp" />
     <ClCompile Include="..\src\hardware\gus.cpp" />
     <ClCompile Include="..\src\hardware\hardopl.cpp" />
-    <ClCompile Include="..\src\hardware\agent_bridge.cpp" />
     <ClCompile Include="..\src\hardware\hardware.cpp" />
     <ClCompile Include="..\src\hardware\ide.cpp" />
     <ClCompile Include="..\src\hardware\innova.cpp" />
@@ -1739,6 +1738,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\include\zip.h" />
     <ClInclude Include="..\include\zipcrc.h" />
     <ClInclude Include="..\include\zipfile.h" />
+    <ClInclude Include="..\src\gui\screen_export.h" />
     <ClInclude Include="..\src\aviwriter\avi.h" />
     <ClInclude Include="..\src\aviwriter\avi_rw_iobuf.h" />
     <ClInclude Include="..\src\aviwriter\avi_writer.h" />

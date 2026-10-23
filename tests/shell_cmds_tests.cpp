@@ -175,17 +175,13 @@ TEST_F(DOS_Shell_CMDSTest, CMD_ECHO_space_handling)
 
 #if !defined(OSFREE)
 // Copyright (c) 2026 Michael P. Burgus - https://github.com/NeuralDrifter
-TEST_F(DOS_Shell_CMDSTest, BridgeResetClearsMountRestrictions)
+TEST_F(DOS_Shell_CMDSTest, BridgeResetClearsCttyState)
 {
 	g_bridge_ctty_active = true;
-	g_bridge_allow_mount = true;
-	EXPECT_FALSE(DOS_BridgeBlocksHostAccess());
 
 	DOS_BridgeResetCttyState();
 
 	EXPECT_FALSE(g_bridge_ctty_active);
-	EXPECT_FALSE(g_bridge_allow_mount);
-	EXPECT_FALSE(DOS_BridgeBlocksHostAccess());
 }
 #endif
 

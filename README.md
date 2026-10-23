@@ -21,9 +21,11 @@ the DOS command prompt. The primary supported integration is the loopback-only
 | DOS and Windows emulation | Yes | Retained from upstream |
 | Agent-controlled DOS prompt | No built-in Agent86 workflow | `CTTY BRIDGE` exposes the DOS console over loopback TCP |
 | MCP tools | Not included | Run DOS commands, write bounded CP437 text files, and release the console |
+| Failure reporting | Console text only | Nonzero exit codes and unrecognized commands become MCP tool errors with the full DOS output attached |
+| Operator audit trail | Not included | Bridge input lines and connection events are logged to the DOSBox-X log, and tool calls to a session log |
 | Agent packages | Not included | Self-contained OpenAI/Codex, Anthropic/Claude Code, and Google distributions |
 | Bridge lifecycle | Not applicable | Client disconnect, console release, and emulator reset clear bridge-only restrictions |
-| Host-mount safeguards | Standard DOSBox-X controls | Additional bridge-active checks protect `MOUNT`, `IMGMOUNT`, `IMGMAKE`, and `BOOT` unless the operator explicitly allows mounting |
+| Host-mount safeguards | Standard DOSBox-X controls | Additional bridge-active checks protect `MOUNT`, `IMGMOUNT`, `IMGMAKE`, and `BOOT` unless the operator explicitly allows mounting, on Windows, macOS, Linux, and Raspberry Pi OS alike |
 
 This is not a replacement for DOSBox-X's normal user interface. Run
 `CTTY BRIDGE` only when an agent session is needed. Releasing the bridge
@@ -37,11 +39,14 @@ returns input and output to the local DOSBox-X window.
 
    ```ini
    bridge_port = 8090
+   bridge_token = replace-with-a-long-random-secret
    automount_c = false
    ```
 
    `bridge_port = 0` disables the `BRIDGE` device. The listener accepts only
-   loopback connections.
+   loopback connections. Set the identical secret in `DOS_BRIDGE_TOKEN` before
+   starting Codex, Claude Code, or Gemini CLI. Each TCP connection must
+   authenticate before DOS receives any bytes.
 3. Start DOSBox-X and deliberately mount only the host directories the DOS
    session needs. For example:
 
@@ -66,19 +71,21 @@ returns input and output to the local DOSBox-X window.
    A client disconnect also restores `CON` automatically. Run `CTTY BRIDGE`
    again to start a new session.
 
-### Install the Codex plugin
+### Build output and plugin installation
 
-Python 3.10 or newer is required. From
-[`llm_plugins/OpenAI/dos-bridge`](llm_plugins/OpenAI/dos-bridge/), install the
-portable MCP command:
+The native `agent86-mcp` C++ server builds with DOSBox-X. Visual Studio places
+the emulator, server, and staged vendor packages together under
+`bin/<Platform>/<Configuration>/`. Automake places the equivalent artifacts
+beside the built emulator under `src/`. Each staged plugin retains its vendor
+manifest, commands/prompts, skills, and references, and contains its matching
+native executable at `dos-bridge/bin/agent86-mcp`. Python and `pip` are not
+required.
 
-```powershell
-python -m pip install .
-```
+Register the staged OpenAI marketplace, not the source template. For an x64
+Release Visual Studio build:
 
-Then register the repository marketplace from [`llm_plugins/OpenAI`](llm_plugins/OpenAI/):
-
-```powershell
+```shell
+cd bin/x64/Release/llm_plugins/OpenAI
 codex plugin marketplace add .
 codex plugin add dos-bridge@dosbox-x-openai
 ```
@@ -87,14 +94,21 @@ Restart the Codex or ChatGPT desktop client after installation. The MCP server
 provides these tools:
 
 - `run_dos_command(command)` executes one DOS command and returns bounded
-  CP437 output.
+  CP437 output. A nonzero exit code or an unrecognized command raises a
+  tool error carrying the full console output.
 - `write_dos_file(filename, content)` writes a bounded text file using an
   absolute DOS 8.3 path on any drive already mounted by the operator.
 - `release_dos_console()` ends the bridge session and returns control to the
   local DOSBox-X window.
+- `capture_graphics_screen()`, `move_mouse(x, y)`, and `click_mouse(button)`
+  let an LLM inspect and operate graphical DOS applications.
+- `set_floppy_image`, `set_cd_image`, and `create_disk_image` manage host disk
+  images directly without opening DOSBox-X dialogs.
+- Drive swap, mount/unmount, rescan, IDE status, text-screen capture/export,
+  and bounded keyboard-input tools expose the corresponding DOSBox-X actions.
 
-Anthropic and Google installation instructions are in their corresponding
-directories under [`llm_plugins/`](llm_plugins/).
+Anthropic and Google installation instructions are in their staged package
+directories under `llm_plugins/`.
 
 ### Safety model
 
@@ -104,18 +118,17 @@ automatic C-drive mounting disabled unless it is deliberately needed, inspect
 the existing mappings with `MOUNT`, and never retry a destructive command
 automatically after a timeout because its completion state is unknown.
 
-Mounting new host paths remains a separate, operator-controlled DOSBox-X
-policy. Removing the old file-writer drive allowlist does not bypass those
-native mount protections; it only lets the MCP writer use drives the operator
-has already exposed.
+An authenticated bridge client may use the dedicated media tools or DOSBox-X
+commands such as `MOUNT`, `IMGMOUNT`, `IMGMAKE`, and `BOOT`. An explicit mount
+may use any host path accepted by DOSBox-X, including a folder on host `C:`.
+`automount_c = false` continues to block automatic mounting of the host C:
+drive; it does not restrict explicit `MOUNT` commands.
 
-### Experimental A-TRES subsystem
-
-The fork also contains an experimental Agent Telemetry & Remote Execution
-Subsystem (A-TRES) and a prototype server in
-[`scripts/dosbox_mcp_server.py`](scripts/dosbox_mcp_server.py). It is separate
-from the packaged `CTTY BRIDGE` MCP workflow described above and is not required
-to use the Agent86 development bridge.
+Every agent command line and bridge connection event is recorded in the
+DOSBox-X log, and each MCP tool call and its outcome is appended to
+`~/.dos-bridge/session.log` (override with the `DOS_BRIDGE_SESSION_LOG`
+environment variable). Use these records to reconstruct what an agent
+attempted, including calls that failed before reaching DOS.
 
 ## Useful links
 - [DOSBox-X's website](https://dosbox-x.com) ([https://dosbox-x.com](https://dosbox-x.com) or [http://dosbox-x.software](http://dosbox-x.software))  
@@ -131,9 +144,8 @@ to use the Agent86 development bridge.
 - [About the Agent86 fork](#about-the-agent86-fork)
   - [How this differs from regular DOSBox-X](#how-this-differs-from-regular-dosbox-x)
   - [Quick start](#quick-start)
-  - [Install the Codex plugin](#install-the-codex-plugin)
+  - [Build output and plugin installation](#build-output-and-plugin-installation)
   - [Safety model](#safety-model)
-  - [Experimental A-TRES subsystem](#experimental-a-tres-subsystem)
 - [Introduction to DOSBox-X](#introduction-to-dosbox-x)
 - [Notable features in DOSBox-X](#notable-features-in-dosbox-x)
 - [DOSBox-X supported platforms and releases](#dosbox-x-supported-platforms-and-releases)

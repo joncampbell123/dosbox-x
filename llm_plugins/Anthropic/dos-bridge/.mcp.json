@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "dos-bridge": {
-      "command": "python",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/mcp_server.py"]
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/agent86-mcp",
+      "args": []
     }
   }
 }

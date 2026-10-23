@@ -11,7 +11,7 @@
       "source": "./dos-bridge",
       "displayName": "DOSBox-X Bridge",
       "description": "Execute serialized commands and bounded text-file writes inside DOSBox-X through the loopback CTTY BRIDGE.",
-      "version": "1.3.1",
+      "version": "2.0.0",
       "author": {
         "name": "Michael P. Burgus",
         "url": "https://github.com/NeuralDrifter"

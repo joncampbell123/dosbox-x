@@ -378,7 +378,7 @@ unsigned int sendkeymap=0;
 std::string configfile = "";
 std::string strPasteBuffer = "";
 ScreenSizeInfo screen_size_info;
-void FormFeed(bool pressed), PrintText(bool pressed);
+void FormFeed(bool pressed), PrintText(bool pressed), ExportTextScreen(bool pressed);
 void DOSBOX_UnlockSpeed2(bool pressed), DEBUG_Enable_Handler(bool pressed);
 int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
@@ -4016,6 +4016,9 @@ static void GUI_StartUp() {
     item->set_text("Print DOS text screen");
 #endif
 
+    MAPPER_AddHandler(&ExportTextScreen, MK_nothing, 0, "exporttext", "Export text screen", &item);
+    item->set_text("Export DOS text screen...");
+
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause emulation");
 
     MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "Pause with interrupt", &item);
@@ -5893,6 +5896,8 @@ bool gfx_in_mapper = false;
 #endif
 
 void GFX_Events() {
+	extern void DOS_BridgePollControl();
+	DOS_BridgePollControl();
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
     //Don't poll too often. This can be heavy on the OS, especially Macs.

@@ -1000,10 +1000,11 @@ void DOS_SetupDevices(void) {
 	DOS_Device * newdev;
 	DOS_CON=new device_CON(); newdev=DOS_CON;
 	DOS_AddDevice(newdev);
-	const int bridge_port =
-	        static_cast<Section_prop *>(control->GetSection("dos"))
-	                ->Get_int("bridge_port");
-	bridge_device = new device_BRIDGE(static_cast<uint16_t>(bridge_port));
+	auto *dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
+	const int bridge_port = dos_section->Get_int("bridge_port");
+	const char *bridge_token = dos_section->Get_string("bridge_token");
+	bridge_device = new device_BRIDGE(static_cast<uint16_t>(bridge_port),
+	                                  bridge_token ? bridge_token : "");
 	DOS_AddDevice(bridge_device);
 	DOS_Device * newdev2;
 	newdev2=new device_NUL();
@@ -1032,6 +1033,12 @@ void DOS_BridgeDisconnect()
 {
 	if (bridge_device)
 		bridge_device->Deactivate();
+}
+
+void DOS_BridgePollControl()
+{
+	if (bridge_device)
+		bridge_device->PollControl();
 }
 
 /* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */

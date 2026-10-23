@@ -1,118 +1,39 @@
-# DOSBox-X MCP Bridge
+# DOSBox-X Agent86 bridge for Gemini CLI
 
-This package connects an MCP-capable agent to the DOSBox-X `CTTY BRIDGE`
-device over loopback TCP. It supports Antigravity natively and retains the
-Claude Code plugin files for compatibility.
+This Gemini CLI extension includes the native C++ `agent86-mcp` executable and
+the DOS and TSR development guidance. It requires no Python runtime.
 
-It includes two optional agent skills:
+## Build and install
 
-- `dos-development` for ordinary DOS discovery, editing, compilation, and
-  execution through the bridge.
-- `dos-tsr-development` for Borland/Turbo C real-mode resident utilities,
-  SideKick-style popups, interrupt safety, and deterministic unloading.
+Build DOSBox-X and install the staged extension from
+`<output>/llm_plugins/Google/dos-bridge/`:
 
-## Requirements
-
-- The DOSBox-X build containing the `BRIDGE` device.
-- Python 3.10 or newer with the `mcp` package installed.
-- Matching port settings on DOSBox-X and the MCP process.
-
-Confirm the Python dependency before installing the plugin:
-
-```powershell
-python -c "import mcp; print('MCP is available')"
+```shell
+gemini extensions install <output>/llm_plugins/Google/dos-bridge
 ```
 
-## DOSBox-X configuration
+The `gemini-extension.json` manifest uses Gemini's `${extensionPath}` and path
+separator substitutions to find the bundled native executable after the
+extension is copied.
 
-The relevant `[dos]` settings are:
+## Configure and activate
+
+Set one long random secret in both DOSBox-X and the environment inherited by
+Gemini CLI:
 
 ```ini
 bridge_port = 8090
+bridge_token = replace-with-a-long-random-secret
 automount_c = false
 ```
 
-`bridge_port = 0` disables the listener. Keep `automount_c = false` unless you
-deliberately intend to expose the host C: drive.
+`DOS_BRIDGE_TOKEN` is required. `DOS_BRIDGE_PORT` optionally overrides port
+8090. Run `CTTY BRIDGE` at the DOS prompt. The MCP tools include DOS command
+and file access, graphical PNG capture and mouse input, direct disk-image and
+drive management, text-screen access, and local-console release.
 
-At the DOS prompt, activate the device manually:
-
-```dos
-CTTY BRIDGE
-```
-
-The listener starts only after that command succeeds. Restore the normal DOS
-console and close the bridge listener with:
-
-```dos
-CTTY CON
-```
-
-The MCP `release_dos_console` tool performs the same handoff. If the client
-disconnects, DOSBox-X automatically restores `CON`; a DOSBox-X reset also
-clears bridge-only restrictions.
-
-## Antigravity installation
-
-Validate and install this directory with the Antigravity CLI. Run these
-from this plugin's root directory (the one containing this README):
-
-```powershell
-agy plugin validate .
-agy plugin install .
-```
-
-Restart Antigravity after installation, then confirm that the `dos-bridge` MCP
-server and `dos-development` skill are available.
-
-## Claude Code compatibility
-
-The `.claude-plugin/plugin.json`, `.mcp.json`, and `commands/` files retain the
-Claude Code package layout. Claude qualifies the MCP tools as:
-
-- `mcp__dos-bridge__run_dos_command`
-- `mcp__dos-bridge__write_dos_file`
-- `mcp__dos-bridge__release_dos_console`
-
-## Runtime configuration
-
-The MCP process accepts these environment variables:
-
-- `DOS_BRIDGE_PORT`: loopback port, default `8090`. It must match
-  DOSBox-X `bridge_port`.
-
-The command tool has a fixed 60-second MCP timeout. A timeout or transport
-failure leaves command completion unknown; inspect DOS state before retrying a
-state-changing command.
-
-## DOS execution model
-
-Treat the DOS guest as single-tasking. Only one foreground DOS command or
-program executes at a time, and the MCP server serializes requests. Do not
-attempt concurrent or background DOS commands. TSR utilities can temporarily
-interrupt a foreground program, but they do not provide general-purpose
-parallel execution. If a program does not return to the DOS prompt, the bridge
-command may time out with an unknown completion state.
-
-## Safety model
-
-- The TCP listener binds only to `127.0.0.1`.
-- The MCP server serializes requests through one persistent connection.
-- Commands and output are bounded, and text uses DOS code page 437.
-- The file-writing tool accepts only absolute DOS 8.3 paths on drives already
-  mounted by the user.
-- The command and file-writing tools can modify any drive already mounted in
-  DOSBox-X. Mounting new host paths remains governed separately by DOSBox-X's
-  operator-controlled bridge policy. A mounted host directory is not an
-  isolated sandbox.
-- Do not probe or switch to unconfirmed host-backed drives. Run `MOUNT` once to
-  inspect the mappings already exposed by the user.
-
-## Tests
-
-Run the transport tests without connecting to DOSBox-X. Run this from
-this plugin's root directory:
-
-```powershell
-python -m unittest discover -s tests -v
-```
+Mounted DOS drives are real host directories, not a sandbox. Keep automatic
+host-system mounting disabled and inspect DOS state before retrying a timed-out
+mutation. Tool outcomes are logged to `~/.dos-bridge/session.log`; command text
+is redacted by default. `automount_c = false` does not block an explicit
+authenticated `MOUNT` or media-tool request.

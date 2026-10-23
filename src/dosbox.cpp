@@ -4956,11 +4956,17 @@ void DOSBOX_SetupConfigSections(void) {
 
     // Copyright (c) 2026 Michael P. Burgus - https://github.com/NeuralDrifter
     Pbool = secprop->Add_bool("automount_c",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Master safety switch for the host C: drive. If false, neither automount nor automountall will ever mount the host's C: drive.");
+    Pbool->Set_help("Master safety switch for automatic host C: drive mounting. If false, neither automount\n"
+                    "nor automountall will mount the host's C: drive. Explicit MOUNT commands are unaffected.");
 
     Pint = secprop->Add_int("bridge_port",Property::Changeable::OnlyAtStart,8090);
-    Pint->SetMinMax(0,65535);
-    Pint->Set_help("Loopback TCP port for CTTY BRIDGE. Set to 0 to disable the bridge device.");
+	Pint->SetMinMax(0,65534);
+	Pint->Set_help("Loopback TCP port for CTTY BRIDGE. The authenticated DOSBox control channel uses the next port.\n"
+	               "Set to 0 to disable the bridge device and control channel.");
+
+    Pstring = secprop->Add_string("bridge_token",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("Authentication token required by CTTY BRIDGE clients. Set the same value in the\n"
+                      "DOS_BRIDGE_TOKEN environment variable. An empty value disables bridge activation.");
 
     Pstring = secprop->Add_string("automountall",Property::Changeable::WhenIdle,"false");
     Pstring->Set_values(truefalsequietopts);

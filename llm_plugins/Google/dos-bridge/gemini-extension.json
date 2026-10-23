@@ -1,0 +1,11 @@
+{
+  "name": "dos-bridge",
+  "version": "2.0.0",
+  "mcpServers": {
+    "dos-bridge": {
+      "command": "${extensionPath}${/}bin${/}agent86-mcp",
+      "args": [],
+      "cwd": "${extensionPath}"
+    }
+  }
+}

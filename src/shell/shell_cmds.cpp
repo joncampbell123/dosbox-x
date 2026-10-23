@@ -4606,14 +4606,6 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 #if !defined(OSFREE)
 // Copyright (c) 2026 Michael P. Burgus - https://github.com/NeuralDrifter
 bool g_bridge_ctty_active = false;
-bool g_bridge_allow_mount = false;
-
-// Host-exposing commands (MOUNT/IMGMOUNT/IMGMAKE/BOOT) are refused while the
-// bridge is live unless the operator opted in at activation time.
-bool DOS_BridgeBlocksHostAccess()
-{
-	return g_bridge_ctty_active && !g_bridge_allow_mount;
-}
 
 static bool IsAutomountAllEnabled()
 {
@@ -4636,27 +4628,6 @@ static void WriteBridgeExposureWarning(DOS_Shell &shell,
 	shell.WriteOut("Please ensure no sensitive host directories are mounted.\n\n");
 }
 
-static bool PromptBridgeMountPolicy(DOS_Shell &shell)
-{
-	shell.WriteOut("Allow the connected agent to run MOUNT, IMGMOUNT, IMGMAKE and BOOT\n");
-	shell.WriteOut("while the bridge is active? These can expose host paths that are\n");
-	shell.WriteOut("not mounted right now. Answer at this keyboard. [y/N] ");
-	for (;;) {
-		uint8_t c = 0;
-		uint16_t n = 1;
-		if (!DOS_ReadFile(STDIN, &c, &n) || n == 0)
-			break;
-		if (c == 'y' || c == 'Y') {
-			shell.WriteOut("Y\n\n");
-			return true;
-		}
-		if (c == 'n' || c == 'N' || c == 0xD || c == 0x03)
-			break;
-	}
-	shell.WriteOut("N\n\n");
-	return false;
-}
-
 static void SetBridgeCttyState(const bool bridge_is_active)
 {
 	const bool bridge_was_active = g_bridge_ctty_active;
@@ -4670,7 +4641,6 @@ static void SetBridgeCttyState(const bool bridge_is_active)
 void DOS_BridgeResetCttyState()
 {
 	g_bridge_ctty_active = false;
-	g_bridge_allow_mount = false;
 }
 
 void DOS_Shell::CMD_CTTY(char * args) {
@@ -4690,7 +4660,7 @@ void DOS_Shell::CMD_CTTY(char * args) {
 		return;
 	}
 	if (want_bridge && !DOS_BridgeEnsureListening()) {
-		WriteOut("Unable to start CTTY BRIDGE listener. Check bridge_port and whether the port is already in use.\n");
+		WriteOut("Unable to start CTTY BRIDGE listener. Set a non-empty bridge_token, then check bridge_port and whether the port is already in use.\n");
 		return;
 	}
 
@@ -4704,9 +4674,6 @@ void DOS_Shell::CMD_CTTY(char * args) {
 
 	if (want_bridge)
 		WriteBridgeExposureWarning(*this, automountall_is_active);
-
-	if (want_bridge)
-		g_bridge_allow_mount = PromptBridgeMountPolicy(*this);
 
 	for (i=0;i < 3;i++) {
 		DOS_CloseFile(i);

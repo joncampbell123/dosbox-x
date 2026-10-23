@@ -55,6 +55,10 @@
 #include "imagedisk_vfd.h"
 #include "dos_system.h"
 #include "dos_inc.h"
+#if !defined(WIN32)
+#include <climits>
+#include <unistd.h>
+#endif
 #include "bios.h"
 #include "bitop.h"
 #include "inout.h"
@@ -1159,133 +1163,6 @@ void MenuBrowseProgramFile() {
 
 #if !defined(OSFREE)
 
-// Copyright (c) 2026 Michael P. Burgus - https://github.com/NeuralDrifter
-static bool IsBridgeMountProtectionEnabled()
-{
-	const auto *dos_section =
-	        static_cast<Section_prop *>(control->GetSection("dos"));
-	return g_bridge_ctty_active && !dos_section->Get_bool("automount_c");
-}
-
-#if defined(WIN32)
-typedef DWORD(WINAPI *GetFinalPathNameByHandleWFunction)(HANDLE,
-                                                        LPWSTR,
-                                                        DWORD,
-                                                        DWORD);
-
-static GetFinalPathNameByHandleWFunction GetFinalPathFunction()
-{
-	static const HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
-	static const auto function =
-	        kernel32
-	                ? reinterpret_cast<GetFinalPathNameByHandleWFunction>(
-	                          GetProcAddress(kernel32,
-	                                         "GetFinalPathNameByHandleW"))
-	                : nullptr;
-	return function;
-}
-
-static std::wstring GetAbsoluteHostPath(const std::string &host_path)
-{
-	std::string path = host_path;
-	if (path.size() > 1 && path[0] == ':')
-		path.erase(0, 1);
-
-	const host_cnv_char_t *converted_path = CodePageGuestToHost(path.c_str());
-	if (!converted_path)
-		return {};
-
-	const DWORD full_size = GetFullPathNameW(converted_path, 0, nullptr, nullptr);
-	if (!full_size)
-		return {};
-
-	std::vector<wchar_t> full_path(full_size + 1, L'\0');
-	const DWORD path_length =
-	        GetFullPathNameW(converted_path,
-	                         static_cast<DWORD>(full_path.size()),
-	                         full_path.data(),
-	                         nullptr);
-	return path_length && path_length < full_path.size()
-	               ? std::wstring(full_path.data(), path_length)
-	               : std::wstring();
-}
-
-static std::wstring GetCanonicalPathFromHandle(const HANDLE path_handle)
-{
-	const auto get_final_path = GetFinalPathFunction();
-	if (!get_final_path)
-		return {};
-
-	const DWORD flags = FILE_NAME_NORMALIZED | VOLUME_NAME_DOS;
-	const DWORD required_size =
-	        get_final_path(path_handle, nullptr, 0, flags);
-	if (!required_size)
-		return {};
-
-	std::vector<wchar_t> final_path(required_size + 1, L'\0');
-	const DWORD path_length =
-	        get_final_path(path_handle,
-	                       final_path.data(),
-	                       static_cast<DWORD>(final_path.size()),
-	                       flags);
-	return path_length && path_length < final_path.size()
-	               ? std::wstring(final_path.data(), path_length)
-	               : std::wstring();
-}
-
-static std::wstring ResolveCanonicalHostPath(const std::string &host_path)
-{
-	const std::wstring absolute_path = GetAbsoluteHostPath(host_path);
-	if (absolute_path.empty())
-		return {};
-
-	const HANDLE path_handle = CreateFileW(absolute_path.c_str(),
-	                                      FILE_READ_ATTRIBUTES,
-	                                      FILE_SHARE_READ | FILE_SHARE_WRITE |
-	                                              FILE_SHARE_DELETE,
-	                                      nullptr,
-	                                      OPEN_EXISTING,
-	                                      FILE_FLAG_BACKUP_SEMANTICS,
-	                                      nullptr);
-	if (path_handle == INVALID_HANDLE_VALUE)
-		return {};
-
-	std::wstring canonical_path = GetCanonicalPathFromHandle(path_handle);
-	CloseHandle(path_handle);
-	if (canonical_path.compare(0, 4, L"\\\\?\\") == 0)
-		canonical_path.erase(0, 4);
-	return canonical_path;
-}
-
-static bool IsHostCDrivePath(const std::wstring &canonical_path)
-{
-	return canonical_path.size() >= 2 && canonical_path[1] == L':' &&
-	       towupper(canonical_path[0]) == L'C';
-}
-#endif
-
-static bool CheckHostMountSecurity(const std::string &host_path,
-                                   std::string &error_message)
-{
-	if (!IsBridgeMountProtectionEnabled())
-		return true;
-
-#if defined(WIN32)
-	const std::wstring canonical_path = ResolveCanonicalHostPath(host_path);
-	if (canonical_path.empty()) {
-		error_message = "Security violation: Unable to resolve the requested host path while CTTY BRIDGE is active.\n";
-		return false;
-	}
-	if (IsHostCDrivePath(canonical_path)) {
-		error_message = "Security violation: Mounting any host C: path requires 'automount_c = true' while CTTY BRIDGE is active.\n";
-		return false;
-	}
-#else
-	(void)host_path;
-#endif
-	return true;
-}
-
 class MOUNT : public Program {
 public:
     std::vector<std::string> options;
@@ -1403,10 +1280,6 @@ public:
         if(control->SecureMode()) {
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
-        }
-        if (DOS_BridgeBlocksHostAccess()) {
-			WriteOut("This command is disabled while CTTY BRIDGE is active.\n");
-			return;
         }
 		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
             resetcolor = true;
@@ -1670,11 +1543,6 @@ public:
             if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
             if(temp_line.size() == 2 && toupper(temp_line[0])>='A' && toupper(temp_line[0])<='Z' && temp_line[1]==':') temp_line.append("\\");
             if(temp_line.size() > 4 && temp_line[0] == '\\' && temp_line[1] == '\\' && temp_line[2] != '\\' && std::count(temp_line.begin() + 3, temp_line.end(), '\\') == 1) temp_line.append("\\");
-			std::string mount_security_error;
-			if (!CheckHostMountSecurity(temp_line, mount_security_error)) {
-				WriteOut("%s", mount_security_error.c_str());
-				return;
-			}
             notrycp = true;
             const host_cnv_char_t* host_name = CodePageGuestToHost(temp_line.c_str());
             notrycp = false;
@@ -2384,10 +2252,6 @@ public:
         if(control->SecureMode()) {
             if (!quiet) WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
-        }
-        if (DOS_BridgeBlocksHostAccess()) {
-			WriteOut("This command is disabled while CTTY BRIDGE is active.\n");
-			return;
         }
 
         if (bios_boot) {
@@ -4054,10 +3918,6 @@ restart_int:
         if(control->SecureMode()) {
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
-        }
-        if (DOS_BridgeBlocksHostAccess()) {
-			WriteOut("This command is disabled while CTTY BRIDGE is active.\n");
-			return;
         }
         if(cmd->FindExist("-?")) {
             printHelp();
@@ -5943,10 +5803,6 @@ class IMGMOUNT : public Program {
 			 * Neither mount nor unmount */
 			if(control->SecureMode()) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
-				return;
-			}
-			if (DOS_BridgeBlocksHostAccess()) {
-				WriteOut("This command is disabled while CTTY BRIDGE is active.\n");
 				return;
 			}
 			imageDisk * newImage = NULL;
