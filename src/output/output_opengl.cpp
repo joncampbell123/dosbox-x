@@ -591,6 +591,24 @@ void UpdateSDLDrawDBCSTexture(Bitu code) {
 }
 #endif
 
+/* DOSBox-X also uses the window surface on OpenGL windows (SDL_GetWindowSurface, SDL_UpdateWindowSurfaceRects),
+ * which SDL backs with a GL renderer of its own on the same window. Fetching or updating that surface makes
+ * the renderer's context current and leaves its unpack state set (GL_UNPACK_ROW_LENGTH = surface width,
+ * GL_UNPACK_ALIGNMENT = 1). After a window size change (fullscreen, zoom) our setup then went to the wrong
+ * context and our rows were read at the window's width: a sheared, garbled screen. Restore our context
+ * and the tightly packed layout our uploads assume. */
+static void OPENGL_RestoreContext(void)
+{
+#if defined(C_SDL2)
+    if (sdl.window != NULL && sdl_opengl.context != NULL && SDL_GL_GetCurrentContext() != sdl_opengl.context)
+        SDL_GL_MakeCurrent(sdl.window, sdl_opengl.context);
+#endif
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+}
+
 Bitu OUTPUT_OPENGL_SetSize()
 {
     Bitu retFlags = 0;
@@ -636,6 +654,7 @@ Bitu OUTPUT_OPENGL_SetSize()
         return 0;
     }
 
+    OPENGL_RestoreContext();
     glFinish();
     glFlush();
 
@@ -985,6 +1004,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
 {
     if (!(sdl.must_redraw_all && changedLines == NULL)) 
     {
+        OPENGL_RestoreContext();
 #if C_XBRZ
         if (sdl_xbrz.enable && sdl_xbrz.scale_on)
         {

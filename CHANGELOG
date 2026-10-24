@@ -1,4 +1,11 @@
 Next version:
+  - macOS: Switching to full screen or zooming the window with output=opengl
+    no longer garbles the picture (the image sheared into several copies with
+    video memory junk below). The window surface DOSBox-X also uses on the
+    OpenGL window is drawn by a GL renderer of SDL's own, which left its
+    context current and GL_UNPACK_ROW_LENGTH at the window width. The OpenGL
+    output now restores its context and the unpack state before setting up
+    and uploading. (risenowrise)
   - PC-98: INT 18h AH=1Bh (set KCG access mode, AL=0 code, AL=1 dot) is now
     handled instead of being logged as an unknown call. It sets the same
     dot access mode as port 68h commands 0Ah/0Bh and bit 3 of AH=0Ah, and
@@ -492,7 +499,7 @@ Next version:
     of the image between IDE, MSCDEX, and general CD-ROM emulation.
     IDE emulation can hold on to a reference instead of constantly asking
     MSCDEX for it. (joncampbell123)
-(Commits have been   - Fix bug where mounting an invalid CUE file with no tracks caused DOSBox-X
+  - Fix bug where mounting an invalid CUE file with no tracks caused DOSBox-X
     to crash. (joncampbell123)
   - MSCDEX and CD-ROM emulation: Cleanup and centralize creation of CD-ROM
     interface objects, including the creation of the fake "empty" special
