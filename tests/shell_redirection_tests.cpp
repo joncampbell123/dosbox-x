@@ -18,11 +18,15 @@
 
 #include "shell.h"
 
+#include <cstdio>
 #include <string>
+#include <vector>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "cross.h"
+#include "../src/dos/drives.h"
 #include "dosbox_test_fixture.h"
 
 namespace {
@@ -149,6 +153,43 @@ TEST_F(DOS_Shell_REDIRTest, CMD_Redirection)
 	EXPECT_STREQ(out, "out1.txt>>out2.txt");
 	EXPECT_EQ(toc, nullptr);
 	EXPECT_EQ(append, false);
+}
+
+// Output redirection without a pipe writes the file. The pipe temporary file
+// name is only set when there is a pipe, so it must not be looked at here
+TEST_F(DOS_Shell_REDIRTest, ParseLine_Output_Redirection_Without_Pipe)
+{
+#if defined(WIN32)
+	const char *tmp = getenv("TEMP");
+	const std::string dir = std::string(tmp ? tmp : ".") + "\\dosbox-x-test";
+	Cross::CreateDir(dir);
+#else
+	char tmpl[] = "/tmp/dosbox-x-test-XXXXXX";
+	ASSERT_NE(mkdtemp(tmpl), nullptr);
+	const std::string dir = tmpl;
+#endif
+	uint8_t drive = 2;
+	while(drive < DOS_DRIVES - 1 && Drives[drive]) drive++;
+	ASSERT_LT(drive, DOS_DRIVES - 1);
+	std::vector<std::string> options;
+	Drives[drive] = new localDrive((dir + CROSS_FILESPLIT).c_str(), 512, 32, 0, 0, 0xF8, options);
+
+	DOS_Shell shell;
+	char line[CROSS_LEN];
+	snprintf(line, sizeof(line), "echo hello>%c:\\OUT.TXT", 'A' + drive);
+	shell.ParseLine(line);
+
+	DriveManager::UnmountDrive(drive);
+	Drives[drive] = nullptr;
+	const std::string file = dir + CROSS_FILESPLIT + "OUT.TXT";
+	FILE *f = fopen(file.c_str(), "rb");
+	ASSERT_NE(f, nullptr);
+	char buf[16] = {};
+	EXPECT_EQ(fread(buf, 1, sizeof(buf) - 1, f), 7u);
+	fclose(f);
+	EXPECT_STREQ(buf, "hello\r\n");
+	remove(file.c_str());
+	rmdir(dir.c_str());
 }
 
 } // namespace
