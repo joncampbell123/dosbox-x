@@ -759,7 +759,11 @@
 
 #if C_FPU
 # if CPU_CORE >= CPU_ARCHTYPE_386
-#  define CASE_0F_MMX(x) CASE_0F_W(x)
+/* MMX, SSE and SSE2 do not depend on the operand size, so one copy serves both the 16-bit and
+ * the 32-bit opcode tables (CASE_0F_B). Included once more from prefix_66_0f.h, the copy doubled
+ * the core's opcode switch, and with SSE2 the 32-bit compilers of the lowend MinGW and HX-DOS
+ * builds ran out of memory on it (cc1plus). */
+#  define CASE_0F_MMX(x) CASE_0F_B(x)
 #  include "prefix_0f_mmx.h"
 #  undef CASE_0F_MMX
 # endif
