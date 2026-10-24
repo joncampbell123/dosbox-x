@@ -77,22 +77,24 @@ typedef std::vector< dinfo_t > ddesc_t;
 
 /* type socket_t declaration {{{ */
 union SocketUnion { 
-	TCPsocket tcp; int uds;
-
+	TCPsocket tcp;
 	operator TCPsocket&() { return tcp; }
 	operator int&() { return uds; }
+	#ifdef LINUX
+	int uds;
 	SocketUnion &operator=( TCPsocket lhs ){ tcp= lhs; return *this; }
 	SocketUnion &operator=( int lhs ){ uds= lhs; return *this; }
+	#endif
 };
-struct sockaddr_un;
-
 union SocketAddrUnion {
-	IPaddress ip; sockaddr_un domain;
-
+	IPaddress ip;
 	operator IPaddress &() { return ip; }
-	operator sockaddr_un &() {return domain; }
 	SocketAddrUnion &operator=( IPaddress lhs ){ ip= lhs; return *this; }
+	#ifdef LINUX
+	sockaddr_un domain;
+	operator sockaddr_un &() {return domain; }
 	SocketAddrUnion &operator=( sockaddr_un lhs ){ domain= lhs; return *this; }
+	#endif
 };
 
 /* Type struct is flattened as each branch (TCP/UDS) requires completely different 
@@ -102,14 +104,12 @@ struct socket_t{
 
 	operator bool () { return static_cast< int >( sock ) >0; }
 	operator TCPsocket &() { return sock.tcp; }
-	operator int &() { return sock.uds; }
 	operator IPaddress &() { return address.ip; }
 
 	void reset() {
 		memset( &sock,0,sizeof( sock ) );
 		memset( &address,0,sizeof( address ) );
 	}
-
 	TCPsocket &as_tcp() { return sock.tcp; }
 	int &as_int() { return sock.uds; }
 	socket_t &operator=( TCPsocket lhs ) {
@@ -118,18 +118,20 @@ struct socket_t{
 		sock.tcp= lhs;
 		return *this;
 	}
+	IPaddress &ip= address.ip;
+	TCPsocket &tcp= sock.tcp;
+
+	#ifdef LINUX
 	socket_t &operator=( int lhs ) {
 		reset();
 		type= 1;
 		sock.uds= lhs;
 		return *this;
 	}
-
 	sa_family_t &sun_family= address.domain.sun_family;
 	char ( &sun_path )[ sizeof( address.domain.sun_path ) ]= address.domain.sun_path;
 	sockaddr_un &fd= address.domain;
-	IPaddress &ip= address.ip;
-	TCPsocket &tcp= sock.tcp;
+	#endif
 };
 // }}} 
 
