@@ -396,6 +396,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			if( _client ) SDLNet_TCP_Close( _client );
 			if( _server ) SDLNet_TCP_Close( _server ); 
 		}
+		#ifdef LINUX
 		else if( DBX_SOCKET_UDS ==_client.type ) {
 			if( _server.sock !=-1 ) {
 				shutdown( _server.sock,SHUT_RDWR );
@@ -403,7 +404,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 				_server.sock= -1;
 			}
 		}
-
+		#endif
 		if( _commands ){  delete _commands; _commands=nullptr; };
 		if( _pThread ){
 			
