@@ -21,12 +21,15 @@
 #include "dos_inc.h"
 
 #include <cstddef>
+#include <cstdlib>
 #include <iterator>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 
 #include "control.h"
+#include "cross.h"
 #include "dos_system.h"
 #include "shell.h"
 #include "../src/dos/drives.h"
@@ -392,6 +395,78 @@ TEST_F(DOS_FilesTest, DOS_FindFirst_FindFile_Nonexistant)
 	EXPECT_FALSE(DOS_FindFirst("Z:\\AUTOEXEC.NO", 0, false));
 	EXPECT_EQ(dos.errorcode, DOSERR_NO_MORE_FILES);
 }
+
+#if !defined(OSFREE)
+// Clears the archive attribute of a 1000-byte file (in subdir, if not empty)
+// that is only in the base directory of an overlay drive, which copies it into
+// the empty overlay directory, then checks what FindFirst reports for it
+void check_overlay_SetFileAttr_FindFirst(const std::string &subdir)
+{
+#if defined(WIN32)
+	const char *tmp = getenv("TEMP");
+	const std::string dir = std::string(tmp ? tmp : ".") + "\\dosbox-x-test";
+	Cross::CreateDir(dir);
+#else
+	char tmpl[] = "/tmp/dosbox-x-test-XXXXXX";
+	ASSERT_NE(mkdtemp(tmpl), nullptr);
+	const std::string dir = tmpl;
+#endif
+	const std::string base = dir + CROSS_FILESPLIT + "BASE" + CROSS_FILESPLIT;
+	const std::string overlay = dir + CROSS_FILESPLIT + "OVL" + CROSS_FILESPLIT;
+	const std::string sub = subdir.empty() ? "" : subdir + CROSS_FILESPLIT;
+	Cross::CreateDir(base);
+	Cross::CreateDir(overlay);
+	if (!sub.empty()) Cross::CreateDir(base + sub);
+	FILE *f = fopen((base + sub + "F.TXT").c_str(), "wb");
+	ASSERT_NE(f, nullptr);
+	EXPECT_EQ(fwrite(std::string(1000, 'x').c_str(), 1, 1000, f), 1000u);
+	fclose(f);
+
+	uint8_t drive = 2;
+	while(drive < DOS_DRIVES - 1 && Drives[drive]) drive++;
+	ASSERT_LT(drive, DOS_DRIVES - 1);
+	std::vector<std::string> options;
+	uint8_t error = 0;
+	Drives[drive] = new Overlay_Drive(base.c_str(), overlay.c_str(), 512, 32, 0, 0, 0xF8, error, options);
+	EXPECT_EQ(error, 0);
+
+	std::string name = "C:\\" + (subdir.empty() ? "" : subdir + "\\") + "F.TXT";
+	name[0] = (char)('A' + drive);
+	EXPECT_TRUE(DOS_SetFileAttr(name.c_str(), 0));
+	EXPECT_TRUE(DOS_FindFirst(name.c_str(), 0, false));
+	DOS_DTA dta(dos.dta());
+	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH + 1];
+	uint32_t find_size = 0, find_hsize = 0;
+	uint16_t find_date, find_time;
+	uint8_t find_attr = 0xff;
+	dta.GetResult(find_name, lfind_name, find_size, find_hsize, find_date, find_time, find_attr);
+	EXPECT_EQ(find_attr, 0);
+	EXPECT_EQ(find_size, 1000u);
+
+	DriveManager::UnmountDrive(drive);
+	Drives[drive] = nullptr;
+	for (const std::string &top : {base, overlay}) {
+		remove((top + sub + "F.TXT").c_str());
+		remove((top + sub + ".DBOVERLAY_ATR_F.TXT").c_str());
+		if (!sub.empty()) rmdir((top + sub).c_str());
+		rmdir(top.c_str());
+	}
+	rmdir(dir.c_str());
+}
+
+// The overlay keeps the attributes in a file of its own, whose size and date
+// are not the file's
+TEST_F(DOS_FilesTest, DOS_FindFirst_Overlay_Size_After_SetFileAttr)
+{
+	check_overlay_SetFileAttr_FindFirst("");
+}
+
+// The overlay directory does not have the file's directory yet
+TEST_F(DOS_FilesTest, DOS_SetFileAttr_Overlay_Base_File_In_Subdirectory)
+{
+	check_overlay_SetFileAttr_FindFirst("SUB");
+}
+#endif
 
 // A file is not a directory. CHDIR onto one has to fail on the Z: drive the
 // same way it does on local and FAT drives, and leave the current directory
