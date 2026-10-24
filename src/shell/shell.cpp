@@ -589,8 +589,7 @@ void DOS_Shell::ParseLine(char * line) {
 
 	DOS_Device *tmpdev = NULL;
 	if (out||toc) {
-		if (out&&toc)
-			WriteOut(!*out?"Duplicate redirection\n":"Duplicate redirection - %s\n", out);
+		//if (out&&toc) WriteOut(!*out?"Duplicate redirection\n":"Duplicate redirection - %s\n", out);
 		LOG_MSG("SHELL:Redirect output to %s",toc?pipetmp:out);
 		if(normalstdout) DOS_CloseFile(1);
 		if(!normalstdin && !in) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
@@ -653,6 +652,41 @@ void DOS_Shell::ParseLine(char * line) {
 				else
 					status = DOS_OpenFileExtended(pipetmp, OPEN_READWRITE, DOS_ATTR_ARCHIVE, 0x12, &dummy, &dummy2);
 			}
+            bool toc_has_output_redirect = false;
+            if(toc) {
+                bool quote = false;
+                for(const char* p = toc; *p; p++) {
+                    if(*p == '"')
+                        quote = !quote;
+                    else if(!quote && *p == '>') {
+                        toc_has_output_redirect = true;
+                        break;
+                    }
+                }
+            }
+
+            // Do not redirect the left command's output if the pipe command
+            // has its own output redirection, e.g. "echo x > a.txt | more > b.txt".
+            if(toc && out && !toc_has_output_redirect && !fail && status) {
+                DOS_CloseFile(1);
+                status = DOS_OpenFile(out, OPEN_READWRITE, &dummy);
+
+                if(!status) {
+                    status = DOS_CreateFile(out, DOS_ATTR_ARCHIVE, &dummy);
+                    LOG_MSG("SHELL: DOS_CreateFile('%s') status=%d dummy=%u",
+                        out, status ? 1 : 0, (unsigned)dummy);
+                }
+
+                if(status && dummy != 1) {
+                    uint16_t new_handle = 1;
+                    bool dup_status = DOS_DuplicateEntry(dummy, &new_handle);
+                    LOG_MSG("SHELL: DOS_DuplicateEntry(%u) status=%d new_handle=%u",
+                        (unsigned)dummy, dup_status ? 1 : 0, (unsigned)new_handle);
+
+                    if(dup_status)
+                        DOS_CloseFile(dummy);
+                }
+            }
 		}
 		if(!status && normalstdout) {
 			DOS_OpenFile("con", OPEN_READWRITE, &dummy);							// Read only file, open con again
