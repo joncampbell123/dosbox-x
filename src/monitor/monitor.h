@@ -84,6 +84,8 @@ union SocketUnion {
 	SocketUnion &operator=( TCPsocket lhs ){ tcp= lhs; return *this; }
 	SocketUnion &operator=( int lhs ){ uds= lhs; return *this; }
 };
+struct sockaddr_un;
+
 union SocketAddrUnion {
 	IPaddress ip; sockaddr_un domain;
 
