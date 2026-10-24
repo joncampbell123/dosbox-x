@@ -111,7 +111,6 @@ struct socket_t{
 		memset( &address,0,sizeof( address ) );
 	}
 	TCPsocket &as_tcp() { return sock.tcp; }
-	int &as_int() { return sock.uds; }
 	socket_t &operator=( TCPsocket lhs ) {
 		reset();
 		type= 0;
@@ -122,6 +121,7 @@ struct socket_t{
 	TCPsocket &tcp= sock.tcp;
 
 	#ifdef LINUX
+	int &as_int() { return sock.uds; }
 	socket_t &operator=( int lhs ) {
 		reset();
 		type= 1;
