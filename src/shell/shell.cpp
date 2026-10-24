@@ -609,11 +609,11 @@ void DOS_Shell::ParseLine(char * line) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			status = false;
 		} else {
-			bool device=DOS_FindDevice(pipetmp)!=DOS_DEVICES;
+			bool device=toc&&DOS_FindDevice(pipetmp)!=DOS_DEVICES;
 			if (toc&&!device&&DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)&&!DOS_UnlinkFile(pipetmp))
 				fail=true;
 			status = device?false:DOS_OpenFileExtended(toc&&!fail?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
-			bool pipetmp_is_zdrive = strncasecmp(pipetmp, "Z:\\", 3) == 0;
+			bool pipetmp_is_zdrive = toc && strncasecmp(pipetmp, "Z:\\", 3) == 0;
 			if (toc&&(fail||!status)&&(!strchr(pipetmp,'\\')|| pipetmp_is_zdrive)) {
 				Overlay_Drive *da = Drives[0] ? (Overlay_Drive *)Drives[0] : NULL, *dc = Drives[2] ? (Overlay_Drive *)Drives[2] : NULL;
 				if (!pipetmp_is_zdrive && ((Drives[0]&&!Drives[0]->readonly&&!(da&&da->ovlreadonly))||(Drives[2]&&!Drives[2]->readonly&&!(dc&&dc->ovlreadonly)))) {
