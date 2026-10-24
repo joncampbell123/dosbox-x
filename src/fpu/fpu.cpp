@@ -506,6 +506,7 @@ void FPU_FLD_F32_EA(PhysPt addr)
 #else
     fpu.regs[8].v = static_cast<double>(val.v);
     fpu.use80[8] = false;
+    float80::convertFrom(fpu.regs_80[8], val); // the C_FPU_X86 core computes from the 80-bit copy
 #endif
     if (IsSNaN(val)) {
         fpu.sw.IE = 1;
@@ -531,6 +532,7 @@ void FPU_FLD_F64_EA(PhysPt addr)
 #else
     fpu.regs[8].v = val.v;
     fpu.use80[8] = false;
+    float80::convertFrom(fpu.regs_80[8], val); // see FPU_FLD_F32_EA
 #endif
     if (IsSNaN(val)) {
         fpu.sw.IE = 1;
@@ -1448,6 +1450,7 @@ void FPU_FTST()
     fpu.ea_denormal = false;
     fpu.use80[8] = false;
     fpu.regs[8].v = 0.0;
+    fpu.regs_80[8] = {}; // see FPU_FLD_F32_EA
 #endif
     FPU_FCOM(TOP, 8);
 }

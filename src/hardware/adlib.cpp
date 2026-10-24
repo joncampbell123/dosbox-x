@@ -1450,6 +1450,9 @@ static Bitu OPL_Read(Bitu port,Bitu iolen) {
 pic_tickindex_t last_opl_write = 0;
 
 void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
+	// a GUS on the bus sees 388h/389h writes too (see GUS_AdLibWrite)
+	if (port == 0x388 || port == 0x389) GUS_AdLibWrite(port,(uint8_t)val);
+
 	if (IS_PC98_ARCH) port >>= 8u; // C8D2h -> C8h, C9D2h -> C9h, OPL emulation looks only at bit 0.
 
 	// if writing the data port, assume a change in OPL state that should be reflected immediately.
@@ -1513,6 +1516,7 @@ static Bitu OPL_PAS_Read(Bitu port,Bitu iolen) {
 }
 
 static void OPL_PAS_Write(Bitu port,Bitu val,Bitu iolen) {
+	if (port == 0x388 || port == 0x389) GUS_AdLibWrite(port,(uint8_t)val); // see OPL_Write
 	OPL_Write(PAS_OPL_Port(port), val, iolen);
 }
 

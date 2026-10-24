@@ -541,14 +541,14 @@ static void inline master_startIRQ(Bitu i){
 }
 
 void PIC_runIRQs(void) {
-    if (!GETFLAG(IF)) return;
     if (GCC_UNLIKELY(!PIC_IRQCheck)) return;
     if (GCC_UNLIKELY(cpudecoder==CPU_Core_Normal_Trap_Run)) return; // FIXME: Why?
     if (GCC_UNLIKELY(CPU_NMI_active)) return;
     if (GCC_UNLIKELY(CPU_NMI_pending)) {
         CPU_NMI_Interrupt(); // converts pending to active
-        return; /* NMI has higher priority than PIC */
+        return; /* NMI has higher priority than PIC, and CLI does not mask it */
     }
+    if (!GETFLAG(IF)) return;
 
     const uint8_t p = (master.irr & master.imrr)&master.isrr;
     uint8_t max = master.special?8:master.active_irq;
