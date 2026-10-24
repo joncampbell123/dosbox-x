@@ -313,7 +313,6 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 					prompt( _client.as_int() );		
 				}
 			}
-
 			if( bytes_received ==-1 ) {
 				return EXIT_FAILURE;
 			}
@@ -346,10 +345,9 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			prompt( _client.as_tcp() );
 
 			char buffer[ INPUT_LENGTH ];
-			memset(buffer,'\0',sizeof( char )*INPUT_LENGTH);
+			memset( buffer,'\0',sizeof( char )*INPUT_LENGTH );
 
 			int bytes_received= SDLNet_TCP_Recv( _client,buffer,INPUT_LENGTH );	
-
 			if( bytes_received && '\0' !=buffer[ bytes_received-1 ] )
 				buffer[ bytes_received-1 ] = '\0';
 			
@@ -358,7 +356,6 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 				LOG_MSG( "MONITOR client disconnected unexpectedly or connection lost.\n" );
 			}
 			else {
-
 				CommandLine  cli;
 				cmd_tokens_t user_input= cli.processCommandLine( buffer );
 

@@ -1250,10 +1250,10 @@ AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
 AH_TEMPLATE(C_SDL2_NET,[Indicate whether SDL2_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
-AH_TEMPLATE(C_MONITOR,[Define to 1 to enable TCP Monitor support, requires SDL_net])
+AH_TEMPLATE(C_MONITOR,[Define to 1 to enable Monitor Console support, TCP requires SDL_net, Unix Domain Socket is Linux only])
 
 AC_ARG_ENABLE(monitor,
-  AS_HELP_STRING([--disable-monitor], [Disable TCP Monitor support]),
+  AS_HELP_STRING([--disable-monitor], [Disable Monitor Console support]),
   [enable_monitor=$enableval],
   [enable_monitor=yes]
 )
@@ -1287,12 +1287,19 @@ elif test x$have_sdl_net_h = xyes &&
   fi
 else
   AC_MSG_WARN([Can't find SDL_net or SDL2_net, internal modem and IPX disabled])
+  if test LINUX; then
+    enable_monitor=yes
+  fi
 fi
 
 AC_MSG_CHECKING([whether TCP Monitor is enabled])
-if test x$enable_monitor = xyes &&
- ( test x$have_sdl_net_lib = xyes || test x$have_sdl2_net_lib = xyes ); then
-  AC_MSG_RESULT([yes])
+if test x$enable_monitor = xyes ; then
+  if test x$have_sdl_net_lib = xyes 
+     test x$have_sdl2_net_lib = xyes ; then
+       AC_MSG_RESULT([yes (TCP or Unix Domain Socket)])
+  elif test LINUX ; then
+    AC_MSG_RESULT([yes (Unix Domain Socket)])
+  fi
 else
   if test "x$enable_monitor" = xno; then
     AC_MSG_RESULT([no (disabled by user)])
