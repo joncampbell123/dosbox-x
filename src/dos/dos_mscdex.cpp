@@ -41,8 +41,9 @@
 #define MSCDEX_MAX_DRIVES	16
 
 // Request Status
-#define	REQUEST_STATUS_DONE		0x0100
-#define	REQUEST_STATUS_ERROR	0x8000
+#define REQUEST_STATUS_DONE     (1u << 8)
+#define REQUEST_STATUS_BUSY     (1u << 9)
+#define REQUEST_STATUS_ERROR    (1u << 15)
 
 // Use cdrom Interface
 int useCdromInterface	= CDROM_USE_SDL;
@@ -958,15 +959,18 @@ bool CMscdex::GetMediaStatus(uint8_t subUnit, bool& media, bool& changed, bool& 
 uint32_t CMscdex::GetDeviceStatus(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	bool media,changed,trayOpen;
+    bool audioPlaying = false;
 
 	dinfo[subUnit].lastResult = GetMediaStatus(subUnit,media,changed,trayOpen);
 	if (dinfo[subUnit].audioPlay) {
 		// Check if audio is still playing....
 		TMSF start,end;
 		bool playing,pause;
-		if (GetAudioStatus(subUnit,playing,pause,start,end))
-			dinfo[subUnit].audioPlay = playing;
-		else
+        if(GetAudioStatus(subUnit, playing, pause, start, end)) {
+            dinfo[subUnit].audioPlay = playing;
+            audioPlaying = playing && !pause;
+        }
+        else
 			dinfo[subUnit].audioPlay = false;
 	}
 
@@ -984,7 +988,7 @@ uint32_t CMscdex::GetDeviceStatus(uint8_t subUnit) {
                                                         // Bit 7:       0 = No prefetching                      1 = Supports prefetching requests
         (1u << 8u) |                                    // Bit 8:       0 = No audio channel manipulation       1 = Supports audio channel manipulation
         (1u << 9u) |                                    // Bit 9:       0 = Supports HSG addressing mode        1 = Supports HSG and Red Book addressing modes
-        ((dinfo[subUnit].audioPlay ? 1u : 0u) << 10u) | // Bit 10*:     0 = Audio is not playing                1 = Audio is playing
+        ((audioPlaying ? 1u : 0u) << 10u) |             // Bit 10*:     0 = Audio is paused or not playing      1 = Audio is playing and not paused
         ((media ? 0u : 1u) << 11u);                     // Bit 11*:     0 = Disk in drive                       1 = No disk in drive
                                                         // Bit 12*:     0 = Does not support R-W subchannels    1 = Supports R-W subchannels
                                                         // Bit 13-31:   Reserved (all 0)
@@ -1029,7 +1033,7 @@ bool CMscdex::SendDriverRequest(uint16_t drive, PhysPt data) {
 uint16_t CMscdex::GetStatusWord(uint8_t subUnit,uint16_t status) {
 	if (subUnit>=numDrives) return REQUEST_STATUS_ERROR | 0x02; // error : Drive not ready
 
-	if (dinfo[subUnit].lastResult)	status |= REQUEST_STATUS_DONE;				// ok
+	if (dinfo[subUnit].lastResult)	status |= REQUEST_STATUS_DONE;
 	else							status |= REQUEST_STATUS_ERROR; 
 
 	if (dinfo[subUnit].audioPlay) {
@@ -1041,7 +1045,8 @@ uint16_t CMscdex::GetStatusWord(uint8_t subUnit,uint16_t status) {
 		} else
 			dinfo[subUnit].audioPlay = false;
 
-		status |= (dinfo[subUnit].audioPlay<<9);
+        // BUSY: Audio is playing and not paused
+        if(playing && !pause) status |= REQUEST_STATUS_BUSY;
 	} 
 	dinfo[subUnit].lastResult	= true;
 	return status;
