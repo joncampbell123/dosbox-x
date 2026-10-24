@@ -644,6 +644,11 @@ switch (inst.code.op) {
 		case 0x0e:	FPU_ESC6_Normal(inst.rm);break;
 		case 0x0f:	FPU_ESC7_Normal(inst.rm);break;
 		}
+		if (FPU_UnmaskedExceptionPending()) {
+			FPU_RecordExceptionContext(inst.code.save, inst.rm,
+			                           inst.rm < 0xc0, inst.rm_eaa);
+			if (FPU_NumericExceptionPending()) EXCEPTION(EXCEPTION_MF);
+		}
 		goto nextopcode;
 #else
 		LOG(LOG_CPU,LOG_ERROR)("Unhandled FPU ESCAPE %d",inst.code.save);

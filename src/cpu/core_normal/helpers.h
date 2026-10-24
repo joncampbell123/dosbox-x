@@ -160,20 +160,34 @@
 	uint8_t rm=Fetchb();														\
 	if (rm >= 0xc0) {															\
 		FPU_ESC ## code ## _Normal(rm);										\
+		if (FPU_UnmaskedExceptionPending()) {\
+			FPU_RecordExceptionContext(code,rm);\
+			if (FPU_NumericExceptionPending()) EXCEPTION(EXCEPTION_MF);\
+		}\
 	} else {																\
 		GetEAa;FPU_ESC ## code ## _EA(rm,eaa);								\
+		if (FPU_UnmaskedExceptionPending()) {\
+			FPU_RecordExceptionContext(code,rm,true,eaa);\
+			if (FPU_NumericExceptionPending()) EXCEPTION(EXCEPTION_MF);\
+		}\
 	}																		\
-	if (FPU_NumericExceptionPending()) EXCEPTION(EXCEPTION_MF);				\
 }
 
 #define FPU_ESC_SIZE(code, op16) {														\
 	uint8_t rm=Fetchb();														\
 	if (rm >= 0xc0) {															\
 		FPU_ESC ## code ## _Normal(rm);										\
+		if (FPU_UnmaskedExceptionPending()) {\
+			FPU_RecordExceptionContext(code,rm);\
+			if (FPU_NumericExceptionPending()) EXCEPTION(EXCEPTION_MF);\
+		}\
 	} else {																\
 		GetEAa;FPU_ESC ## code ## _EA(rm,eaa,op16);								\
+		if (FPU_UnmaskedExceptionPending()) {\
+			FPU_RecordExceptionContext(code,rm,true,eaa);\
+			if (FPU_NumericExceptionPending()) EXCEPTION(EXCEPTION_MF);\
+		}\
 	}																		\
-	if (FPU_NumericExceptionPending()) EXCEPTION(EXCEPTION_MF);				\
 }
 
 #define CASE_W(_WHICH)							\

@@ -45,7 +45,15 @@ static void dyn_fpu_check_irqrequest()
 	used_save_info_dynrec++;
 }
 
-static void dyn_fpu_post_instruction()
+static void dyn_fpu_post_instruction(uint16_t opcode)
+{
+	gen_call_function_II(FPU_NumericExceptionWithContext,
+	                     decode.op_start - decode.code_start, opcode);
+	dyn_check_exception(FC_RETOP);
+	dyn_fpu_check_irqrequest();
+}
+
+static void dyn_fpu_post_wait()
 {
 	gen_call_function_raw(FPU_NumericException);
 	dyn_check_exception(FC_RETOP);
@@ -406,7 +414,7 @@ restart_prefix:
 		case 0x9b:	// wait
 #ifdef CPU_FPU
 			dyn_fpu_pre_instruction();
-			dyn_fpu_post_instruction();
+			dyn_fpu_post_wait();
 #endif
 			break;
 
@@ -524,49 +532,57 @@ restart_prefix:
 			if (!enable_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_pre_instruction();
 			dyn_fpu_esc0();
-			dyn_fpu_post_instruction();
+			dyn_fpu_post_instruction((0 << 8) | (decode.modrm.mod << 6) |
+			                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			break;
 		case 0xd9:
 			if (!enable_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_pre_instruction();
 			dyn_fpu_esc1();
-			dyn_fpu_post_instruction();
+			dyn_fpu_post_instruction((1 << 8) | (decode.modrm.mod << 6) |
+			                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			break;
 		case 0xda:
 			if (!enable_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_pre_instruction();
 			dyn_fpu_esc2();
-			dyn_fpu_post_instruction();
+			dyn_fpu_post_instruction((2 << 8) | (decode.modrm.mod << 6) |
+			                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			break;
 		case 0xdb:
 			if (!enable_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_pre_instruction();
 			dyn_fpu_esc3();
-			dyn_fpu_post_instruction();
+			dyn_fpu_post_instruction((3 << 8) | (decode.modrm.mod << 6) |
+			                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			break;
 		case 0xdc:
 			if (!enable_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_pre_instruction();
 			dyn_fpu_esc4();
-			dyn_fpu_post_instruction();
+			dyn_fpu_post_instruction((4 << 8) | (decode.modrm.mod << 6) |
+			                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			break;
 		case 0xdd:
 			if (!enable_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_pre_instruction();
 			dyn_fpu_esc5();
-			dyn_fpu_post_instruction();
+			dyn_fpu_post_instruction((5 << 8) | (decode.modrm.mod << 6) |
+			                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			break;
 		case 0xde:
 			if (!enable_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_pre_instruction();
 			dyn_fpu_esc6();
-			dyn_fpu_post_instruction();
+			dyn_fpu_post_instruction((6 << 8) | (decode.modrm.mod << 6) |
+			                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			break;
 		case 0xdf:
 			if (!enable_fpu) goto let_normal_core_handle_it;
 			dyn_fpu_pre_instruction();
 			dyn_fpu_esc7();
-			dyn_fpu_post_instruction();
+			dyn_fpu_post_instruction((7 << 8) | (decode.modrm.mod << 6) |
+			                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			break;
 #endif
 

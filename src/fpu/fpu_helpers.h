@@ -18,6 +18,9 @@ enum class RemainderMode {
 };
 
 bool CheckException();
+bool IsRealMode();
+bool UsesPacked16BitRealEnvironment();
+bool UsesLinearRealModePointers();
 void SetStatusFromHostExceptions();
 uint16_t GetTag();
 InputClass ClassifyInput(int op);
