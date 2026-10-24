@@ -79,10 +79,10 @@ typedef std::vector< dinfo_t > ddesc_t;
 union SocketUnion { 
 	TCPsocket tcp;
 	operator TCPsocket&() { return tcp; }
-	operator int&() { return uds; }
+	SocketUnion &operator=( TCPsocket lhs ){ tcp= lhs; return *this; }
 	#ifdef LINUX
 	int uds;
-	SocketUnion &operator=( TCPsocket lhs ){ tcp= lhs; return *this; }
+	operator int&() { return uds; }
 	SocketUnion &operator=( int lhs ){ uds= lhs; return *this; }
 	#endif
 };
