@@ -1573,6 +1573,29 @@ bool share(int fd, int mode, uint32_t flags) {
 }
 #endif
 
+// Flush the buffers of the other open handles for the same file, so that they see each other's writes,
+// and return whether there are any
+static bool FlushOtherHandles(uint8_t drive, const char *name, const DOS_File *self, bool writing = false) {
+    if (dos_kernel_disabled) return false;
+    bool found = false;
+    for (uint8_t i = 0; i < DOS_FILES; i++) {
+        DOS_File *file = Files[i];
+        if (file && file != self && file->IsOpen() && file->GetDrive() == drive && file->IsName(name)) {
+            LocalFile *lfp = dynamic_cast<LocalFile*>(file);
+            if (!lfp) continue;
+            found = true;
+            lfp->other_handles = true;
+            lfp->Flush();
+            // a write makes what the other handle has read ahead stale
+            if (writing && file_access_tries<=0) {
+                fseek(lfp->fhandle,ftell(lfp->fhandle),SEEK_SET);
+                fflush(lfp->fhandle);
+            }
+        }
+    }
+    return found;
+}
+
 bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
     if (nocachedir) EmptyCache();
 
@@ -1601,20 +1624,13 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 
 	//Flush the buffer of handles for the same file. (Betrayal in Antara)
 	uint8_t i,drive=DOS_DRIVES;
-	LocalFile *lfp;
 	for (i=0;i<DOS_DRIVES;i++) {
 		if (Drives[i]==this) {
 			drive=i;
 			break;
 		}
 	}
-    if(!dos_kernel_disabled)
-        for(i = 0; i < DOS_FILES; i++) {
-            if(Files[i] && Files[i]->IsOpen() && Files[i]->GetDrive() == drive && Files[i]->IsName(name)) {
-                lfp = dynamic_cast<LocalFile*>(Files[i]);
-                if(lfp) lfp->Flush();
-            }
-        }
+    FlushOtherHandles(drive, name, nullptr);
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
@@ -2836,6 +2852,7 @@ bool LocalFile::Read(uint8_t * data,uint16_t * size) {
         return false;
     }
 #endif
+    if (other_handles) other_handles = FlushOtherHandles(GetDrive(), name, this);
 	if (last_action==WRITE) {
 		if (file_access_tries>0) {
 			off_t pos = lseek(fileno(fhandle),0,SEEK_CUR);
@@ -2889,6 +2906,7 @@ bool LocalFile::Write(const uint8_t * data,uint16_t * size) {
         return false;
     }
 #endif
+    if (other_handles) other_handles = FlushOtherHandles(GetDrive(), name, this, true);
 	if (last_action==READ) {
 		if (file_access_tries>0) {
 			off_t pos = lseek(fileno(fhandle),0,SEEK_CUR);
@@ -3043,6 +3061,7 @@ bool LocalFile::Seek(uint32_t * pos,uint32_t type) {
         return false;
     }
 #endif
+    if (other_handles) other_handles = FlushOtherHandles(GetDrive(), name, this);
 	bool fail;
 	if (file_access_tries>0) fail=lseek(fileno(fhandle),*reinterpret_cast<int32_t*>(pos),seektype)==-1;
 	else fail=fseek(fhandle,*reinterpret_cast<int32_t*>(pos),seektype)!=0;

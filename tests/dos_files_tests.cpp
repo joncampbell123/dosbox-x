@@ -21,12 +21,15 @@
 #include "dos_inc.h"
 
 #include <cstddef>
+#include <cstdlib>
 #include <iterator>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 
 #include "control.h"
+#include "cross.h"
 #include "dos_system.h"
 #include "shell.h"
 #include "../src/dos/drives.h"
@@ -441,6 +444,67 @@ TEST_F(DOS_FilesTest, DOS_DTAExtendName_Space_Pads)
 TEST_F(DOS_FilesTest, DOS_DTAExtendName_Enforces_8_3)
 {
 	assert_DTAExtendName("12345678ABCDEF.123ABCDE", "12345678", "123");
+}
+
+// Two handles on the same file of a local drive see each other's writes, as on
+// MS-DOS, where all handles share the same disk buffers
+TEST_F(DOS_FilesTest, DOS_ReadFile_Sees_Write_Through_Other_Handle)
+{
+#if defined(WIN32)
+    const char *tmp = getenv("TEMP");
+    const std::string dir = std::string(tmp ? tmp : ".") + "\\dosbox-x-test";
+    Cross::CreateDir(dir);
+#else
+    char tmpl[] = "/tmp/dosbox-x-test-XXXXXX";
+    ASSERT_NE(mkdtemp(tmpl), nullptr);
+    const std::string dir = tmpl;
+#endif
+    uint8_t drive = 2;
+    while(drive < DOS_DRIVES - 1 && Drives[drive]) drive++;
+    ASSERT_LT(drive, DOS_DRIVES - 1);
+    std::vector<std::string> options;
+    Drives[drive] = new localDrive((dir + CROSS_FILESPLIT).c_str(), 512, 32, 0, 0, 0xF8, options);
+
+    std::string name = "C:\\S.TXT";
+    name[0] = (char)('A' + drive);
+    const auto to_start = [](uint16_t handle) {
+        uint32_t pos = 0;
+        return DOS_SeekFile(handle, &pos, DOS_SEEK_SET);
+    };
+    uint16_t first, second, size = 4;
+    uint8_t buf[4];
+    ASSERT_TRUE(DOS_CreateFile(name.c_str(), DOS_ATTR_ARCHIVE, &first));
+    EXPECT_TRUE(DOS_WriteFile(first, (const uint8_t *)"AAAA", &size));
+    EXPECT_TRUE(DOS_CloseFile(first));
+    ASSERT_TRUE(DOS_OpenFile(name.c_str(), OPEN_READWRITE, &first));
+    ASSERT_TRUE(DOS_OpenFile(name.c_str(), OPEN_READWRITE, &second));
+    for(const char *data : {"BBBB", "CCCC"}) {
+        EXPECT_TRUE(to_start(first));
+        size = 4;
+        EXPECT_TRUE(DOS_WriteFile(first, (const uint8_t *)data, &size));
+        EXPECT_TRUE(to_start(second));
+        size = 4;
+        EXPECT_TRUE(DOS_ReadFile(second, buf, &size));
+        EXPECT_EQ(std::string((const char *)buf, size), data);
+    }
+    // the second handle has already read the data the first one overwrites
+    EXPECT_TRUE(to_start(first));
+    EXPECT_TRUE(to_start(second));
+    size = 4;
+    EXPECT_TRUE(DOS_ReadFile(second, buf, &size));
+    EXPECT_TRUE(to_start(second));
+    size = 4;
+    EXPECT_TRUE(DOS_WriteFile(first, (const uint8_t *)"DDDD", &size));
+    size = 4;
+    EXPECT_TRUE(DOS_ReadFile(second, buf, &size));
+    EXPECT_EQ(std::string((const char *)buf, size), "DDDD");
+    EXPECT_TRUE(DOS_CloseFile(first));
+    EXPECT_TRUE(DOS_CloseFile(second));
+
+    EXPECT_TRUE(DOS_UnlinkFile(name.c_str()));
+    DriveManager::UnmountDrive(drive);
+    Drives[drive] = nullptr;
+    rmdir(dir.c_str());
 }
 
 } // namespace
