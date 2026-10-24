@@ -23,25 +23,11 @@
 
 #if C_MONITOR
 
-<<<<<<< HEAD
 #ifdef LINUX
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
 #endif
-=======
-<<<<<<< HEAD
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/un.h>
-=======
-#ifdef LINUX
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/un.h>
-#endif
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 #include <errno.h>
 #include <unistd.h>
 
@@ -61,15 +47,7 @@
 #include "logging.h"
 
 #define INPUT_LENGTH 1024
-<<<<<<< HEAD
 #define UDS_BACKLOG 5
-=======
-<<<<<<< HEAD
-#define BUFFER_SIZE 1024
-=======
-#define UDS_BACKLOG 5
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 
 enum { DBX_SOCKET_TCP= 0,DBX_SOCKET_UDS };
 
@@ -156,21 +134,9 @@ struct socket_t{
 class Monitor { /* {{{ */
 	// Parser and programs constructs {{{
 	struct	Configurator {/* {{{ */
-<<<<<<< HEAD
 		void	run( Monitor &,const cmd_tokens_t& );
 		bool	getProperty( Monitor &,const cmd_tokens_t& );
 		bool	setProperty( Monitor &,const cmd_tokens_t& );
-=======
-<<<<<<< HEAD
-		void	run( const cmd_tokens_t& );
-		bool	getProperty( const cmd_tokens_t& );
-		bool	setProperty( const cmd_tokens_t& );
-=======
-		void	run( Monitor &,const cmd_tokens_t& );
-		bool	getProperty( Monitor &,const cmd_tokens_t& );
-		bool	setProperty( Monitor &,const cmd_tokens_t& );
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 	};/* }}} */
 
 	struct	Programs {/* {{{ */
@@ -191,31 +157,13 @@ class Monitor { /* {{{ */
 	const std::string	_prompt;
 
 	socket_t			_server,_client;
-<<<<<<< HEAD
 	SDL_Thread			*_pThread;
-=======
-<<<<<<< HEAD
-	SDL_Thread		*_pThread;
-=======
-	SDL_Thread			*_pThread;
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 	Programs			_run;
 
 	std::atomic< bool >	_isRunning;
 
-<<<<<<< HEAD
 	typedef bool ( Monitor::Programs::*p_programs_fn )( Monitor &,const cmd_tokens_t& );
 	typedef bool ( Monitor::Configurator::*p_configurator_fn )( Monitor &,const cmd_tokens_t& );
-=======
-<<<<<<< HEAD
-	typedef bool ( Monitor::Programs::*p_programs_fn )( const cmd_tokens_t& );
-	typedef bool ( Monitor::Configurator::*p_configurator_fn )( const cmd_tokens_t& );
-=======
-	typedef bool ( Monitor::Programs::*p_programs_fn )( Monitor &,const cmd_tokens_t& );
-	typedef bool ( Monitor::Configurator::*p_configurator_fn )( Monitor &,const cmd_tokens_t& );
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 	typedef int ( Monitor::*p_listener_fn )( void* );
 	typedef struct {
 		std::string		command;
@@ -248,15 +196,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 	}/* }}} */
 	
 	bool	startServer( std::string tSockPath ) {/* {{{ */
-<<<<<<< HEAD
 		#ifdef LINUX
-=======
-<<<<<<< HEAD
-#define BACKLOG 5
-=======
-		#ifdef LINUX
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 		_server.sock= socket( AF_UNIX,SOCK_STREAM,0 );
 		if( -1 ==_server.sock ) {
 			LOG_MSG( "MONITOR: issue with socket domain addressing.\n");
@@ -278,15 +218,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			LOG_MSG( "MONITOR: Could not bind server to socket." );
 			return EXIT_FAILURE;
 		}
-<<<<<<< HEAD
 		if ( listen( _server.sock,UDS_BACKLOG ) ==-1 ) {
-=======
-<<<<<<< HEAD
-		if ( listen( _server.sock,BACKLOG ) ==-1 ) {
-=======
-		if ( listen( _server.sock,UDS_BACKLOG ) ==-1 ) {
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 			LOG_MSG( "MONITOR: listen failure" );
 			return EXIT_FAILURE;
 		}
@@ -343,14 +275,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 	}/* }}} */
 
 	bool updateUDSServer() {/* {{{ */
-<<<<<<< HEAD
 		#ifdef LINUX
-=======
-<<<<<<< HEAD
-=======
-		#ifdef LINUX
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 		int bytes_received= 0;
 		while ( _isRunning ) {
 			_client= accept( _server,nullptr,nullptr );
@@ -360,68 +285,6 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 
 			prompt( _client.as_int() );
 
-<<<<<<< HEAD
-			memset( buffer,'\0',sizeof( char )*INPUT_LENGTH );
-=======
-<<<<<<< HEAD
-			memset(buffer,'\0',sizeof( char )*INPUT_LENGTH);
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
-			while ( ( bytes_received= read( _client.sock,buffer,INPUT_LENGTH ) ) >0 ) {
-				if( bytes_received && '\0' !=buffer[ bytes_received-1 ] )
-					buffer[ bytes_received-1 ] = '\0';
-
-				prompt( _client.as_int() );		
-				
-				CommandLine cli;
-				cmd_tokens_t user_input= cli.processCommandLine( buffer );
-
-				if( user_input.empty() ) continue;
-
-				auto processCommand= std::find_if( _commands->begin(),_commands->end(),
-					[ & ]( const CommandExec& item ){	
-							return item.command == user_input.at( 0 );});
-
-				if( processCommand !=_commands->end() ){
-					( _run.*( processCommand->exec ) )( *ptr_monitor,user_input );
-
-					prompt( _client.as_int() );		
-				}
-			}
-
-			if( bytes_received ==-1 ) {
-				return EXIT_FAILURE;
-			}
-
-			if( close( _client.sock ) ==-1 ) {
-				return EXIT_FAILURE;
-			}
-		}
-		onServerClose();
-		return EXIT_SUCCESS;
-		#else
-		return EXIT_FAILURE;
-		#endif
-	}/* }}} */
-
-	bool	updateTCPServer( ) {/* {{{ */
-		while( _isRunning ) {
-			if( nullptr ==_client ) {
-				/* Blocking loop while we wait for a client to connect.*/
-				while( nullptr ==_client ){
-					_client= SDLNet_TCP_Accept( _server );			
-					if( nullptr !=_client ) {
-						LOG_MSG( "MONITOR client connected.\n" );
-						break;
-					}
-					SDL_Delay( 50 );
-				}
-				messageClient( _client,std::string( "DOSBox-X " )+VERSION+" monitor - type \'help\' for a list of commands\n" );
-			}
-			prompt( _client.as_tcp() );
-
-			char buffer[ INPUT_LENGTH ];
-			memset(buffer,'\0',sizeof( char )*INPUT_LENGTH);
-=======
 			memset( buffer,'\0',sizeof( char )*INPUT_LENGTH );
 			while ( ( bytes_received= read( _client.sock,buffer,INPUT_LENGTH ) ) >0 ) {
 				if( bytes_received && '\0' !=buffer[ bytes_received-1 ] )
@@ -478,7 +341,6 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 
 			char buffer[ INPUT_LENGTH ];
 			memset(buffer,'\0',sizeof( char )*INPUT_LENGTH);
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
 
 			int bytes_received= SDLNet_TCP_Recv( _client,buffer,INPUT_LENGTH );	
 
@@ -501,15 +363,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 							return item.command == user_input.at( 0 );});
 
 				if( processCommand !=_commands->end() )
-<<<<<<< HEAD
 					( _run.*( processCommand->exec ) )( *ptr_monitor,user_input );
-=======
-<<<<<<< HEAD
-					( _run.*( processCommand->exec ) )( user_input );
-=======
-					( _run.*( processCommand->exec ) )( *ptr_monitor,user_input );
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 			}
 		}
 		onServerClose();
@@ -606,14 +460,6 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			else if( !isPort && EXIT_SUCCESS ==m.startServer( tLocation ) ) {
 				run= CB_ListenUDP;
 			}
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-			else
-				return m;
-=======
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 			#endif
 
 			m._isRunning= true;

@@ -33,40 +33,6 @@ static std::string CONFIG_USAGE_MONITOR= { // {{{
 "-get \"section property\" returns the value of the property (also to %%CONFIG%%).\n"\
 "-set (-setf for force) \"section property=value\" sets the value of the property.\n"\
 };// }}}
-<<<<<<< HEAD
-
-void Monitor::Configurator::run( Monitor &tM,const cmd_tokens_t& tUser ) { /* {{{ */
-	using Config= Monitor::Configurator;
-	Monitor& m= tM;
-	if( tUser.size() <=1 ) {
-		m.messageClient( m._client,std::string( CONFIG_USAGE_MONITOR ) );	
-		return;
-	}
-	struct command {
-		std::string			param;
-		p_configurator_fn	execute;
-	};
-	const std::array< command,2 > params= { {
-		{ "-get",	p_configurator_fn( &Config::getProperty ) },
-		{ "-set",	p_configurator_fn( &Config::setProperty ) },
-	} };
-
-	auto p= std::find_if( params.begin(),params.end(),
-		[ &tUser ]( const command& user_req ) {
-		return !user_req.param.compare( tUser.at( 1 ) ); } );
-
-	if( p ==params.end() ) {
-		m.messageClient( m._client,CONFIG_USAGE_MONITOR );	
-	}
-	else if( ( this->*( p->execute ) )( tM,tUser ) )
-		m.messageClient( m._client,"( config ) Unable to process commandline options.\n" );
-<<<<<<< HEAD
-};/* }}} */
-
-=======
-};
-=======
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
 
 void Monitor::Configurator::run( Monitor &tM,const cmd_tokens_t& tUser ) { /* {{{ */
 	using Config= Monitor::Configurator;
@@ -95,7 +61,6 @@ void Monitor::Configurator::run( Monitor &tM,const cmd_tokens_t& tUser ) { /* {{
 		m.messageClient( m._client,"( config ) Unable to process commandline options.\n" );
 };/* }}} */
 
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 bool Monitor::Configurator::getProperty( Monitor &tM,const cmd_tokens_t& tUser ) {/* {{{ */
 	Monitor& m= tM;
 	if( tUser.size() <3 ) {
@@ -152,22 +117,13 @@ bool Monitor::Configurator::setProperty( Monitor &tM,const cmd_tokens_t& tUser )
 
 // Monitor::Programs {{{
 bool Monitor::Programs::quitMainInstance( Monitor &tM,const cmd_tokens_t& ){/* {{{ */
+	tM._isRunning= false;
 	DoKillSwitch();
 	return EXIT_SUCCESS;
 }/* }}} */
 
-<<<<<<< HEAD
 bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ */
 	Monitor& m= tM;
-=======
-<<<<<<< HEAD
-bool	Monitor::Programs::displayInfo( const cmd_tokens_t& ) {/* {{{ */
-	Monitor& m= Monitor::OpenMonitor();
-=======
-bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ */
-	Monitor& m= tM;
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 	Section* sec=control->GetSection( "cpu" );
 		
 	ddesc_t info= {};
@@ -213,18 +169,8 @@ bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ *
 	return EXIT_SUCCESS;
 }	/* }}} */
 
-<<<<<<< HEAD
 bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
 		Monitor& m= tM;
-=======
-<<<<<<< HEAD
-bool	Monitor::Programs::changeRemovableMedia( const cmd_tokens_t &tUser ) {/* {{{ */
-		Monitor& m= Monitor::OpenMonitor();
-=======
-bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
-		Monitor& m= tM;
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 		bool multiple_discs= false;
 		if( tUser.size() <2 ) {
 			return EXIT_FAILURE;
@@ -261,21 +207,9 @@ bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tU
 		return EXIT_SUCCESS;
 }/* }}} */
 
-<<<<<<< HEAD
 bool	Monitor::Programs::configure( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
 	Monitor::Configurator configure;
 	configure.run( tM,tUser );
-=======
-<<<<<<< HEAD
-bool	Monitor::Programs::configure( const cmd_tokens_t &tUser ) {/* {{{ */
-	Monitor::Configurator configure;
-	configure.run( tUser );
-=======
-bool	Monitor::Programs::configure( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
-	Monitor::Configurator configure;
-	configure.run( tM,tUser );
->>>>>>> e2749c4c5 (Added Unix Domain Socket support for Linux)
->>>>>>> 685380a07 (Added Unix Domain Socket support for Linux)
 	return EXIT_SUCCESS;
 };/* }}} */
 
