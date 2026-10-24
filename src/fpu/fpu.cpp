@@ -2716,12 +2716,12 @@ void CPU_FXSAVE(PhysPt eaa) {
 	mem_writew(eaa+0x002,fpu.sw);					/* +0x002 FPU status word */
 	mem_writeb(eaa+0x004,FPU_GetAbridgedTag());			/* +0x004 FPU tag words, abridged to a bitfield of 1=not empty 0=empty, register order NOT from TOP */
 	mem_writeb(eaa+0x005,0x00);					/* +0x005 reserved */
-	mem_writew(eaa+0x006,fpu.fop);					/* +0x006 x87 FPU opcode */
-	mem_writed(eaa+0x008,fpu.fip);					/* +0x008 x87 FPU instruction pointer */
-	mem_writew(eaa+0x00C,fpu.fcs);					/* +0x00C x87 FPU instruction pointer segment */
+	mem_writew(eaa+0x006,fpu.fop);					/* +0x006 FOP: x87 opcode */
+	mem_writed(eaa+0x008,fpu.fip);					/* +0x008 FIP: x87 instruction pointer offset */
+	mem_writew(eaa+0x00C,fpu.fcs);					/* +0x00C FCS: x87 instruction pointer selector */
 	mem_writew(eaa+0x00E,0x0000);					/* +0x00E reserved */
-	mem_writed(eaa+0x010,fpu.fdp);					/* +0x010 x87 FPU instruction operand */
-	mem_writew(eaa+0x014,fpu.fds);					/* +0x014 x87 FPU instruction operand segment */
+	mem_writed(eaa+0x010,fpu.fdp);					/* +0x010 FDP: x87 data pointer offset */
+	mem_writew(eaa+0x014,fpu.fds);					/* +0x014 FDS: x87 data pointer selector */
 	mem_writew(eaa+0x016,0x0000);					/* +0x016 reserved */
 	mem_writed(eaa+0x018,fpu.mxcsr);				/* +0x018 MXCSR */
 	mem_writed(eaa+0x01C,0xFFBF);					/* +0x01C MXCSR_MASK (DAZ not supported) */
