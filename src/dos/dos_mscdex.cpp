@@ -41,9 +41,9 @@
 #define MSCDEX_MAX_DRIVES	16
 
 // Request Status
-#define REQUEST_STATUS_DONE     (1 << 8)
-#define REQUEST_STATUS_BUSY     (1 << 9)
-#define REQUEST_STATUS_ERROR    (1 << 15)
+#define REQUEST_STATUS_DONE     (1u << 8)
+#define REQUEST_STATUS_BUSY     (1u << 9)
+#define REQUEST_STATUS_ERROR    (1u << 15)
 
 // Use cdrom Interface
 int useCdromInterface	= CDROM_USE_SDL;
