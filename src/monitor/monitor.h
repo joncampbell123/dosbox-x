@@ -433,10 +433,12 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 	public:
 
 	static void	messageClient( socket_t &tClient, std::string tMessage ) {/* {{{ */
+		#ifdef LINUX
 		if( tClient.type >0 ) {
 			send( tClient,tMessage.c_str(),tMessage.size(),0 );
 			return;
 		}
+		#endif
 		SDLNet_TCP_Send( tClient,tMessage.c_str(),tMessage.size() );
 	}/* }}} */
 
