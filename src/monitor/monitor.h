@@ -196,7 +196,9 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 	}/* }}} */
 	
 	void	prompt( int tClient ){/* {{{ */
-			send( tClient,_prompt.c_str(),_prompt.length(),MSG_EOR );
+		#ifdef LINUX
+		send( tClient,_prompt.c_str(),_prompt.length(),MSG_EOR );
+		#endif
 	}/* }}} */
 	
 	bool	startServer( std::string tSockPath ) {/* {{{ */
