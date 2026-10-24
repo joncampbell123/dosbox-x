@@ -1039,7 +1039,7 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 #if !defined(OSFREE)
 bool Overlay_Drive::FindNext(DOS_DTA & dta) {
 	char * dir_ent, *ldir_ent;
-	ht_stat_t stat_block;
+	ht_stat_t stat_block, special_stat_block;
 	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
 	char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
 
@@ -1127,8 +1127,8 @@ again:
 	if (!isdir) find_attr|=DOS_ATTR_ARCHIVE;
 	if(!(stat_block.st_mode & S_IWUSR)) find_attr|=DOS_ATTR_READ_ONLY;
     std::string fname = create_filename_of_special_operation(host_name, "ATR");
-    if (ht_stat(fname.c_str(),&stat_block)==0) {
-        unsigned int len = stat_block.st_size;
+    if (ht_stat(fname.c_str(),&special_stat_block)==0) {
+        unsigned int len = special_stat_block.st_size;
         if (len & 1) {
             if (isdir)
                 find_attr|=DOS_ATTR_ARCHIVE;
@@ -1345,6 +1345,7 @@ bool Overlay_Drive::SetFileAttr(const char * name,uint16_t attr) {
 	strcpy(newname,basedir);
 	strcat(newname,name);
 	CROSS_FILENAME(newname);
+	Sync_leading_dirs(name);
 	temp_name = dirCache.GetExpandName(newname);
 	host_name = CodePageGuestToHost(temp_name);
 
@@ -1377,6 +1378,10 @@ bool Overlay_Drive::SetFileAttr(const char * name,uint16_t attr) {
 			if (host_name!=NULL) layfile=_wfopen(host_name,_HT("wb"));
 #endif
 			if (layfile==NULL) layfile=fopen_wrap(overlayname,"wb");
+			if (layfile==NULL) {
+				fclose(hand);
+				return false;
+			}
 			int numr,numw;
 			char buffer[1000];
 			while(feof(hand)==0) {
