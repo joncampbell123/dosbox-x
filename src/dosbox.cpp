@@ -1440,7 +1440,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", nullptr };
     const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", nullptr }; // Future work: Tandy(?) and USB
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",nullptr};
-    const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", "pentium_ii", "pentium_iii", "experimental", nullptr };
+    const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", "pentium_ii", "pentium_iii", "pentium_4", "experimental", nullptr };
     const char* rates[] = {  "49716", "48000", "44100", "32000","22050", "16000", "11025", "8000", nullptr };
     const char* pcrates[] = {  "65536", "49716", "48000", "44100", "32000","22050", "16000", "11025", "8000", nullptr };
 #if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
@@ -3173,6 +3173,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable cmpxchg8b",Property::Changeable::Always,true);
     Pbool->Set_help("Enable Pentium CMPXCHG8B instruction. Enable this explicitly if using software that uses this instruction.\n"
             "You must enable this option to run Windows ME because portions of the kernel rely on this instruction.");
+
+    Pbool = secprop->Add_bool("enable sse2",Property::Changeable::Always,false);
+    Pbool->Set_help("Report and allow SSE2 (CPUID.1:EDX bit 26, LFENCE, MFENCE, CLFLUSH, and the SSE2 instructions that are implemented). Experimental: SSE2 is added step by step.\n"
+            "Only meaningful when cputype=pentium_iii or experimental. CR4.OSFXSR must be set by the guest, as for SSE.");
 
     Pbool = secprop->Add_bool("enable syscall",Property::Changeable::Always,true);
     Pbool->Set_help("Allow SYSENTER/SYSEXIT instructions. This option is only meaningful when is cputype=pentium_ii or higher.\n");

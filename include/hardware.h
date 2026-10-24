@@ -45,7 +45,8 @@ bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma);
 unsigned int SB_GetPASType(void); /* 0=none 1=PAS 2=PAS Plus 3=PAS 16 */
 bool TS_Get_Address(Bitu& tsaddr, Bitu& tsirq, Bitu& tsdma);
 
-extern uint8_t adlib_commandreg;
+void GUS_AdLibWrite(Bitu port,uint8_t val);
+uint8_t GUS_AdLibRead(void);
 FILE * OpenCaptureFile(const char * type,const char * ext);
 
 void CAPTURE_AddWave(uint32_t freq, uint32_t len, int16_t * data);
