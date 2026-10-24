@@ -110,6 +110,9 @@ Next version:
   - MSCDEX: Fixed BUSY status for paused audio playback (maron2000)
   - Fixed 8087 FPU control word reset value (cimarronm)
   - Change workaround for the dynamic core (henk717)
+  - FPU: Save x87 instruction/data pointers and opcode in FSTENV/FSAVE and
+    FXSAVE state after unmasked exceptions, including 8087, 80287, and 80387
+    environment layouts. (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
