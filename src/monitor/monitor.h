@@ -102,7 +102,7 @@ union SocketAddrUnion {
 struct socket_t{
 	int type; SocketUnion sock; SocketAddrUnion address;
 
-	operator bool () { return sock >0; }
+	operator bool () { return sock !=0; }
 	operator TCPsocket &() { return sock.tcp; }
 	operator IPaddress &() { return address.ip; }
 
