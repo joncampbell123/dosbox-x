@@ -1,4 +1,16 @@
 Next version:
+  - [AI] KVM CPU core: Windows 3.0 and 3.1 run in standard and 386 enhanced
+    mode, and Windows 95 boots and runs. Fixed DOS/4GW crashing now and then
+    (a triple fault) without EMM386, and a VESA bank switch now and then
+    sending the guest into the BIOS boot failure stub. (joncampbell123)
+  - [AI] KVM CPU core: faster. Video memory writes no longer stop the guest
+    one by one, banked VESA modes and the linear framebuffer are mapped into
+    the guest directly, and calls into DOSBox-X (DOS, BIOS) take about half
+    the time. Time that KVM itself spends going into and out of the guest is
+    no longer counted as guest time, so programs that use video memory or
+    I/O ports a lot no longer crawl at low fixed cycle counts. On PC-98 the
+    fourth graphics plane is handled like the others. (joncampbell123)
+  - [AI] Video memory is allocated page-aligned. (joncampbell123)
   - [AI] Experimental KVM CPU core for Linux on x86-64 (configure with
     --enable-kvm, set [cpu] core=kvm): the guest runs with hardware
     virtualization instead of an emulated CPU. Real mode, virtual 8086 mode
