@@ -699,6 +699,10 @@ static uint32_t KVM_QueuedWrites(void) {
 /* Apply the writes KVM queued (coalesced MMIO) since the last time, in order. Called as soon as
  * KVM_RUN returns, before anything else: the guest's later accesses (reads exit) and anything
  * DOSBox-X does with the device then see them. */
+/* Port I/O exits per port, reads [0] and writes [1], for the statistics logged at exit: the
+ * ports a guest polls or writes most are where port I/O exits cost the most time */
+static uint32_t kvm_port_exits[2][0x10000];
+
 static void KVM_FlushWrites(void) {
 	struct kvm_coalesced_mmio_ring *ring = kvm.ring;
 	if (ring == NULL) return;
@@ -706,7 +710,15 @@ static void KVM_FlushWrites(void) {
 	while (ring->first != ring->last) {
 		const struct kvm_coalesced_mmio &w = ring->coalesced_mmio[ring->first];
 		const PhysPt64 a = (PhysPt64)w.phys_addr;
-		switch (w.len) {
+		if (w.pio) { /* a port write (coalesced PIO) */
+			const Bitu port = (Bitu)w.phys_addr;
+			switch (w.len) {
+				case 1: IO_WriteB_Checked(port,w.data[0]); break;
+				case 2: IO_WriteW_Checked(port,host_readw((HostPt)w.data)); break;
+				case 4: IO_WriteD_Checked(port,host_readd((HostPt)w.data)); break;
+			}
+		}
+		else switch (w.len) {
 			case 1: physdev_writeb(a,w.data[0]); break;
 			case 2: physdev_writew(a,host_readw((HostPt)w.data)); break;
 			case 4: physdev_writed(a,host_readd((HostPt)w.data)); break;
@@ -722,6 +734,8 @@ static void KVM_FlushWrites(void) {
 static void KVM_HandleIO(void) {
 	struct kvm_run *run = kvm.run;
 	uint8_t *data = (uint8_t*)run + run->io.data_offset;
+
+	kvm_port_exits[run->io.direction == KVM_EXIT_IO_OUT ? 1 : 0][run->io.port]++;
 
 	for (uint32_t n=0;n < run->io.count;n++,data += run->io.size) {
 		if (run->io.direction == KVM_EXIT_IO_OUT) {
@@ -1046,6 +1060,29 @@ void KVM_CoreShutdown(void) {
 			(unsigned long long)kvm.puts,(unsigned long long)kvm.gets,
 			(unsigned long long)kvm.exit_cost[0].avg,(unsigned long long)kvm.exit_cost[1].avg,(unsigned long long)kvm.exit_cost[2].avg,
 			(unsigned long long)kvm.exit_cost[3].avg,(unsigned long long)kvm.write_cost.avg,(unsigned long long)kvm.burst_cost.avg);
+	if (kvm.io != 0) {
+		/* the busiest ports */
+		std::string busy;
+		for (unsigned int n=0;n < 8;n++) {
+			unsigned int best_dir = 0,best_port = 0;
+			uint32_t best = 0;
+			for (unsigned int dir=0;dir < 2;dir++) {
+				for (unsigned int port=0;port < 0x10000u;port++) {
+					if (kvm_port_exits[dir][port] > best) {
+						best = kvm_port_exits[dir][port];
+						best_dir = dir;
+						best_port = port;
+					}
+				}
+			}
+			if (best == 0) break;
+			char tmp[48];
+			sprintf(tmp,"%s%s %03xh %lu",busy.empty() ? "" : ", ",best_dir ? "out" : "in",best_port,(unsigned long)best);
+			busy += tmp;
+			kvm_port_exits[best_dir][best_port] = 0;
+		}
+		LOG_MSG("KVM: port I/O exits: %s",busy.c_str());
+	}
 	if (kvm.run != NULL) {
 		munmap(kvm.run,kvm.run_size);
 		kvm.run = NULL;
@@ -1262,6 +1299,31 @@ bool KVM_CoreInit(std::string &reason) {
 				zone.addr = 0xE0000;
 				zone.size = 0x8000;
 				ioctl(kvm.vm,KVM_REGISTER_COALESCED_MMIO,&zone);
+			}
+
+			/* Writes to ports with no effect that the guest could see before its next exit are
+			 * queued too (coalesced PIO), in the same ring and so in order with the video memory
+			 * writes; reads still exit, after the queued writes are applied. The I/O delay ports
+			 * 80h and EDh; the VGA DAC (3C6h-3C9h, palette loads); the PIT command port 43h
+			 * (a counter latch takes effect at the read that follows); the DMA flip-flop resets
+			 * (0Ch, D8h) that come before reading a DMA address or count; and the VGA index
+			 * registers (3B4h, 3C4h, 3CEh, 3D4h), which only select the register that the data
+			 * port that follows reads or writes. Not the VGA data registers: they can change the
+			 * memory map (an SVGA bank, the memory window), which has to take effect before the
+			 * guest's next access to directly mapped video memory. Ports polled most, by kind
+			 * of program: PIT channel 0 reads for timing (games, Linux), the MPU-401 status
+			 * port, DMA address/count reads (sound), the PIC, the RTC (see the log at exit). */
+			if (!IS_PC98_ARCH && ioctl(kvm.dev,KVM_CHECK_EXTENSION,KVM_CAP_COALESCED_PIO) > 0) {
+				static const struct { uint16_t port,count; } ports[] = {
+					{0x80,1},{0xED,1},{0x3C6,4},{0x43,1},{0x0C,1},{0xD8,1},
+					{0x3B4,1},{0x3C4,1},{0x3CE,1},{0x3D4,1}};
+				for (const auto &pr : ports) {
+					memset(&zone,0,sizeof(zone));
+					zone.addr = pr.port;
+					zone.size = pr.count;
+					zone.pio = 1;
+					ioctl(kvm.vm,KVM_REGISTER_COALESCED_MMIO,&zone);
+				}
 			}
 		}
 	}
