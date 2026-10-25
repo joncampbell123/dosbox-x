@@ -1223,6 +1223,7 @@ void CPU_Exception(Bitu which,Bitu error ) {
 
 uint8_t lastint;
 void (*CPU_StateSyncHook)(bool full) = NULL;
+bool (*CPU_StateIFHook)(void) = NULL;
 
 void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 	CPU_SyncRegisters();

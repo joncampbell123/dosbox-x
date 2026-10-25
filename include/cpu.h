@@ -102,6 +102,15 @@ static INLINE void CPU_SyncRegisters(void) {
 	if (GCC_UNLIKELY(CPU_StateSyncHook != NULL)) CPU_StateSyncHook(false);
 }
 
+/* The interrupt flag, without bringing the state into DOSBox-X: what checking whether an
+ * interrupt can be delivered needs, so that a core that keeps the state (KVM) is not made to
+ * hand it over while the guest runs with interrupts disabled */
+extern bool (*CPU_StateIFHook)(void);
+static INLINE bool CPU_InterruptFlag(void) {
+	if (GCC_UNLIKELY(CPU_StateIFHook != NULL)) return CPU_StateIFHook();
+	return GETFLAG(IF) != 0;
+}
+
 Bits CPU_Core_Normal_Run(void);
 Bits CPU_Core_Normal_Trap_Run(void);
 Bits CPU_Core_Simple_Run(void);

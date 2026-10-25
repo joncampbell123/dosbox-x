@@ -405,6 +405,23 @@ static bool KVM_PutState(bool regs,bool rest) {
 		}
 		KVM_SegmentToKVM(st.ldt,sr.ldt);
 
+		/* Where DOSBox-X has not loaded a segment register since the state was fetched (same
+		 * selector, base and limit, same mode), keep the vCPU's own descriptor cache. DOSBox-X
+		 * does not keep the access rights and rebuilds them from the mode and the descriptor
+		 * tables, which is wrong where the cache does not match them: between setting or
+		 * clearing CR0.PE and the far jump after it (a real mode CS became a not present
+		 * segment, and the guest triple faulted), or after the guest changed a descriptor that
+		 * is loaded. Not when DOSBox-X changed the mode itself (its EMM386 entering virtual 8086
+		 * mode loads the same selectors), and not in virtual 8086 mode, where the normalised
+		 * segments above are exact. */
+		if ((old_sr.cr0 & 1u) == (st.cr0 & 1u) && (old_r.rflags & FLAG_VM) == (st.eflags & FLAG_VM) && !(st.eflags & FLAG_VM)) {
+			struct kvm_segment *n[8] = {&sr.es,&sr.cs,&sr.ss,&sr.ds,&sr.fs,&sr.gs,&sr.tr,&sr.ldt};
+			const struct kvm_segment *o[8] = {&old_sr.es,&old_sr.cs,&old_sr.ss,&old_sr.ds,&old_sr.fs,&old_sr.gs,&old_sr.tr,&old_sr.ldt};
+			for (unsigned int i=0;i < 8;i++) {
+				if (n[i]->selector == o[i]->selector && n[i]->base == o[i]->base && n[i]->limit == o[i]->limit)
+					*n[i] = *o[i];
+			}
+		}
 		sr.gdt.base = st.gdt.base; sr.gdt.limit = st.gdt.limit;
 		sr.idt.base = st.idt.base; sr.idt.limit = st.idt.limit;
 		sr.cr0 = st.cr0; sr.cr2 = st.cr2; sr.cr3 = st.cr3; sr.cr4 = st.cr4;
@@ -501,6 +518,11 @@ static bool KVM_GetState(bool regs,bool rest) {
 	}
 
 	CPU_SetFullState(st);
+
+	/* The guest may have changed its page tables while it ran (and invalidated TLB entries or
+	 * reloaded CR3 with the same value, which DOSBox-X does not see), so DOSBox-X's own TLB,
+	 * which callbacks and devices use for linear addresses, may be out of date */
+	if (regs && (st.cr0 & CR0_PAGING)) PAGING_ClearTLB();
 	return true;
 }
 
@@ -598,12 +620,18 @@ static void KVM_SyncHook(bool full) {
 
 	kvm.in_kvm = kvm.in_kvm && !regs;
 	kvm.rest_in_kvm = kvm.rest_in_kvm && !rest;
+	if (!kvm.in_kvm) CPU_StateIFHook = NULL;
 	if (!kvm.in_kvm && !kvm.rest_in_kvm) CPU_StateSyncHook = NULL;
 	kvm.gets++;
 	if (!KVM_GetState(regs,rest)) {
 		LOG_MSG("KVM: cannot read the vCPU state: %s",strerror(errno));
 		kvm.failed = true;
 	}
+}
+
+/* The guest's interrupt flag while the registers are in the vCPU (see CPU_InterruptFlag()) */
+static bool KVM_IFHook(void) {
+	return kvm.guest_if;
 }
 
 /* Make the vCPU's copy of the state the one that counts */
@@ -616,6 +644,7 @@ static bool KVM_EnterState(void) {
 	kvm.in_kvm = true;
 	kvm.rest_in_kvm = true;
 	CPU_StateSyncHook = KVM_SyncHook;
+	CPU_StateIFHook = KVM_IFHook;
 	return true;
 }
 
@@ -637,6 +666,7 @@ static Bits KVM_Fail(const std::string &why) {
 	kvm.in_kvm = false;
 	kvm.rest_in_kvm = false;
 	CPU_StateSyncHook = NULL;
+	CPU_StateIFHook = NULL;
 	cpudecoder = &CPU_Core_Normal_Run;
 	return CBRET_NONE;
 }
@@ -875,6 +905,20 @@ static Bits KVM_Run(void) {
 				for (uint32_t i=0;i < run->internal.ndata && i < 16;i++) {
 					char tmp[32];
 					sprintf(tmp," %llx",(unsigned long long)run->internal.data[i]);
+					why += tmp;
+				}
+				/* the event being delivered, if KVM reports it */
+				struct kvm_vcpu_events ev;
+				if (ioctl(kvm.vcpu,KVM_GET_VCPU_EVENTS,&ev) >= 0) {
+					char tmp[160];
+					sprintf(tmp,"; events: exception %u/%u nr %u, interrupt %u nr %u soft %u, nmi %u/%u",
+						ev.exception.injected,ev.exception.pending,ev.exception.nr,
+						ev.interrupt.injected,ev.interrupt.nr,ev.interrupt.soft,ev.nmi.injected,ev.nmi.pending);
+					why += tmp;
+				}
+				if (kvm.sync_regs) {
+					char tmp[96];
+					sprintf(tmp,"; IDT base %llx limit %x",(unsigned long long)run->s.regs.sregs.idt.base,(unsigned int)run->s.regs.sregs.idt.limit);
 					why += tmp;
 				}
 				return KVM_Fail(why);
