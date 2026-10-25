@@ -301,7 +301,8 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 static bool using_normal_core = false;
 static bool dh_fpu_mode_changed = false;
 static bool dh_fpu_exception_pending = false;
-static bool dh_fpu_update_mode(void);
+static bool dh_fpu_update_mode(uint32_t instruction_pointer_offset,
+                               uint16_t opcode);
 static bool dh_fpu_take_numeric_exception(void);
 static bool dh_fpu_mode_change_pending(void);
 #endif
@@ -337,7 +338,8 @@ static void dh_fpu_copy_from_common()
 	dyn_dh_fpu.state_used = false;
 }
 
-static bool dh_fpu_update_mode()
+static bool dh_fpu_update_mode(uint32_t instruction_pointer_offset,
+                               uint16_t opcode)
 {
 	dh_fpu_exception_pending = false;
 
@@ -346,7 +348,11 @@ static bool dh_fpu_update_mode()
 
 		if (dyn_dh_fpu.state_used) gen_dh_fpu_save();
 		dh_fpu_copy_to_common();
-		dh_fpu_exception_pending = FPU_NumericException();
+		if (FPU_UnmaskedExceptionPending()) {
+			FPU_RecordExceptionContextFromDynCPU(instruction_pointer_offset,
+			                                          opcode);
+			dh_fpu_exception_pending = FPU_NumericExceptionPending();
+		}
 		dyn_dh_fpu.dh_fpu_enabled = false;
 		using_normal_core = true;
 		dh_fpu_mode_changed = true;

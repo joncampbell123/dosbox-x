@@ -212,6 +212,8 @@ void CPU_SetFlags(Bitu word,Bitu mask);
 
 bool FPU_CoprocessorException(void);
 bool FPU_NumericException(void);
+bool FPU_NumericExceptionWithContext(uint32_t instruction_pointer_offset,
+                                     uint16_t opcode);
 bool MMX_CoprocessorException(void);
 
 #define EXCEPTION_DB            1
