@@ -638,6 +638,21 @@ static void OpenGL_SetupShaderProgram(void)
     RENDER_SetForceUpdate(sdl_opengl.ruby.frame_count != (GLint)-1);
 }
 
+/* DOSBox-X also uses the window surface on OpenGL windows (SDL_GetWindowSurface, SDL_UpdateWindowSurfaceRects),
+ * which SDL backs with a GL renderer of its own on the same window. Fetching or updating that surface makes
+ * the renderer's context current and leaves its unpack state set (GL_UNPACK_ROW_LENGTH = surface width,
+ * GL_UNPACK_ALIGNMENT = 1). After a window size change (fullscreen, zoom) our setup then went to the wrong
+ * context and our rows were read at the window's width: a sheared, garbled screen. Restore our context
+ * and the tightly packed layout our uploads assume. */
+static void OPENGL_RestoreContext(void)
+{
+    GFX_OpenGL_MakeCurrent();
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+}
+
 Bitu OUTPUT_OPENGL_SetSize()
 {
     Bitu retFlags = 0;
@@ -688,6 +703,7 @@ Bitu OUTPUT_OPENGL_SetSize()
         return 0;
     }
 
+    OPENGL_RestoreContext();
     glFinish();
     glFlush();
 
@@ -1027,6 +1043,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
 
     if (!(sdl.must_redraw_all && changedLines == NULL)) 
     {
+        OPENGL_RestoreContext();
 #if C_XBRZ
         if (sdl_xbrz.enable && sdl_xbrz.scale_on)
         {

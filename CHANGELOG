@@ -31,6 +31,13 @@ Next version:
   - [AI] Fixed RPC debugger agent to compile on Linux, added Linux support code.
     Add option to prompt or not prompt for a folder.
     (joncampbell123)
+  - macOS: Switching to full screen or zooming the window with output=opengl
+    no longer garbles the picture (the image sheared into several copies with
+    video memory junk below). The window surface DOSBox-X also uses on the
+    OpenGL window is drawn by a GL renderer of SDL's own, which left its
+    context current and GL_UNPACK_ROW_LENGTH at the window width. The OpenGL
+    output now restores its context and the unpack state before setting up
+    and uploading. (risenowrise)
   - PC-98: INT 18h AH=1Bh (set KCG access mode, AL=0 code, AL=1 dot) is now
     handled instead of being logged as an unknown call. It sets the same
     dot access mode as port 68h commands 0Ah/0Bh and bit 3 of AH=0Ah, and
@@ -113,6 +120,28 @@ Next version:
   - cmos: Fixed RTC date skipping the last day of every month and all of
     December (maron2000)
   - Fixed directory size reported by FindFirst/FindNext (maron2000)
+  - Extended Functionality of Monitor (DieSkaarj)
+  - Fixed build error on gcc due to a missing header (gojun077)
+  - Parallel port: The LPT DOS device now reports end of input for all
+    backends, fixing programs such as dBase IV that hang when printing to
+    LPT1 because they poll input status and read zero bytes forever.
+    (cimarronm)
+  - FindNext: Fix filtering of hidden and system files. (maron2000)
+  - Fixed DOS_OpenFileExtended() handle leak on existing files. (maron2000)
+  - Fixed FCB renaming using wildcards. (maron2000)
+  - INT 21h AH=41h; Fixed deleting read-only files. (maron2000)
+  - bios.cpp: Fixed DOS/V detection (AH=49h, 50h) (maron2000)
+  - Fixed FCB find first/next (AH=11h/12h) aborted when FCB delete
+    (INT 21h AH=13h) executed in between. (maron2000)
+  - CPU: dynamic_x86: MMX opcodes with a 66/F2/F3 prefix go to the normal core.
+    (unxed)
+  - CPU: SSE2 (opt-in "enable sse2"), and optionally cputype=pentium_4 (unxed)
+  - Fixed bug with detection of GUS of official 4.11 driver. (firevaran)
+  - Added MIDI port emulation for GUS. (firevaran)
+  - DOS_OpenFile: Fixed FCB open incorrectly updating PSP JFT (maron2000)
+  - MSCDEX: Fixed BUSY status for paused audio playback (maron2000)
+  - Fixed 8087 FPU control word reset value (cimarronm)
+  - Change workaround for the dynamic core (henk717)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed

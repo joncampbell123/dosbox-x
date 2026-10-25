@@ -1312,6 +1312,13 @@ AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
 AH_TEMPLATE(C_SDL2_NET,[Indicate whether SDL2_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
+AH_TEMPLATE(C_MONITOR,[Define to 1 to enable TCP Monitor support, requires SDL_net])
+
+AC_ARG_ENABLE(monitor,
+  AS_HELP_STRING([--disable-monitor], [Disable TCP Monitor support]),
+  [enable_monitor=$enableval],
+  [enable_monitor=yes]
+)
 
 if test x$disable_sdl_net = xyes ; then
   AC_MSG_WARN([SDL_net is disabled in parameters])
@@ -1323,6 +1330,11 @@ elif test "x$SDL_STRING" = "xSDL2" &&
   AC_DEFINE(C_IPX,1)
   LIBS="$LIBS -lSDL2_net $SDLNETLIB"
   AC_MSG_NOTICE([Using SDL2_net (SDL2): internal modem and IPX enabled])
+  if test x$enable_monitor = xyes; then
+    AC_DEFINE(C_MONITOR,1)
+  else
+    enable_monitor=no
+  fi
 elif test x$have_sdl_net_h = xyes &&
      test x$have_sdl_net_lib = xyes ; then
   AC_DEFINE(C_SDL_NET,1)
@@ -1330,9 +1342,28 @@ elif test x$have_sdl_net_h = xyes &&
   AC_DEFINE(C_IPX,1)
   LIBS="$LIBS -lSDL_net $SDLNETLIB"
   AC_MSG_NOTICE([Using SDL_net: internal modem and IPX enabled])
+  if test x$enable_monitor = xyes; then
+    AC_DEFINE(C_MONITOR,1)
+  else
+    enable_monitor=no
+  fi
 else
   AC_MSG_WARN([Can't find SDL_net or SDL2_net, internal modem and IPX disabled])
 fi
+
+AC_MSG_CHECKING([whether TCP Monitor is enabled])
+if test x$enable_monitor = xyes &&
+ ( test x$have_sdl_net_lib = xyes || test x$have_sdl2_net_lib = xyes ); then
+  AC_MSG_RESULT([yes])
+else
+  if test "x$enable_monitor" = xno; then
+    AC_MSG_RESULT([no (disabled by user)])
+  else
+    AC_MSG_RESULT([no (requires SDL_net)])
+  fi
+fi
+
+AM_CONDITIONAL([C_MONITOR], [test "x$c_monitor_enabled" = "xyes"])
 
 dnl FEATURE: Whether to support libz, and enable snapshots
 AH_TEMPLATE(C_LIBZ,[Define to 1 if you have libz])
@@ -1654,6 +1685,7 @@ src/libs/mt32/Makefile
 src/libs/xBRZ/Makefile
 src/libs/fluidsynth/Makefile
 src/libs/decoders/internal/Makefile
+src/monitor/Makefile
 src/output/Makefile
 src/output/direct3d/Makefile
 src/agent/Makefile
@@ -1671,3 +1703,4 @@ AC_OUTPUT
 
 # HACK: it's a script...
 chmod +x make-rpm.sh
+

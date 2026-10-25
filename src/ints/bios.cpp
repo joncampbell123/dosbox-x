@@ -7860,8 +7860,8 @@ static Bitu INT15_Handler(void) {
                 }
         }
         break;
-    case 0x50:
-        if(isDBCSCP()) {
+    case 0x50: // DOS/V - FONT SUBSYSTEM ACCESS
+        if(IS_DOSV /* && DOSV_CheckCJKVideoMode() */) {
             if(reg_al == 0x00) {
                 if(reg_bl == 0x00 && reg_bp == 0x00) {
                     enum DOSV_FONT font = DOSV_FONT_MAX;
@@ -7909,13 +7909,18 @@ static Bitu INT15_Handler(void) {
             }
             CALLBACK_SCF(true);
         }
+        else {
+            reg_ah = 0x86; // function not supported
+            CALLBACK_SCF(true);
+        }
         break;
-    case 0x49:
-        if(isDBCSCP()) {
+    case 0x49: // Far East MS-DOS - GET BIOS TYPE
+        if(IS_DOSV) {
             reg_ah = 0x00;
-            reg_bl = 0x00;
+            reg_bl = 0x00; // DOSV
             CALLBACK_SCF(false);
         } else {
+            reg_ah = 0x86; // function not supported
             CALLBACK_SCF(true);
         }
         break;

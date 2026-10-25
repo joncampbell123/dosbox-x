@@ -166,8 +166,8 @@ char* revert_escape_newlines(const char* aMessage);
 #include "display2.cpp"
 #endif
 
-#if defined (C_SDL_NET) && C_SDL_NET || defined (C_SDL2_NET) && C_SDL2_NET
-#include "monitor.h"
+#if C_MONITOR
+#include "../monitor/monitor.h"
 #endif
 
 #if (defined __i386__ || defined __x86_64__) && (!defined IS_OLDMACOS && (defined BSD || defined LINUX))
@@ -10245,12 +10245,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             section = static_cast<Section_prop *>(control->GetSection("dosbox"));
             assert(section != NULL);
 
-#if defined(C_SDL2_NET) && C_SDL2_NET || defined(C_SDL_NET) && C_SDL_NET
-				bool mon_enable = section->Get_bool("enable monitor");
-				if (mon_enable) {
-					int mon_port= section->Get_int("monitor port");
-    				Monitor::OpenMonitor( mon_port );
-               LOG(LOG_MISC,LOG_DEBUG)("Monitor available on port: %d\n",mon_port);
+#if C_MONITOR 
+				std::string mon_sock = section->Get_string("monitor socket");
+				if ( !mon_sock.empty() || mon_sock.compare( "off" ) ) {
+    				Monitor::OpenMonitor( mon_sock );
 				}
 #endif
 
@@ -10797,6 +10795,7 @@ fresh_boot:
 #if defined(C_SDL2)
         SDL_CDROMQuit();
 #endif
+
         SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
 
 #if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
