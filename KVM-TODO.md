@@ -319,6 +319,40 @@ throttles the guest by duty cycle.
     **REAL/32** (installer floppies only), **Windows NT/2000**, a Glide game and **DOS/32A,
     PMODE/W**: not tested yet. RDTSC timing: Windows 95's performance counter and Quake agree
     with the emulated cores.
+- **Step 21: mode 13h shadow.** While all of A0000-AFFFF is the plain chained 256-colour
+  handler (`vgaph.cvga`: chain 4, no raster op, bit mask or the like, not Tseng), the KVM core
+  maps a 64KB shadow there instead, in the guest's byte order, with dirty logging
+  (`KVM_MEM_LOG_DIRTY_PAGES`). Each aligned dword of the shadow is one dword of VGA memory
+  (`VGA_ChainedShadowable()`, `VGA_ChainedShadowLoad()`/`Store()` in vga_memory.cpp).
+  - The pages the guest wrote (`KVM_GET_DIRTY_LOG`) go to VGA memory whenever the core
+    returns, so drawing, callbacks, save states and the other cores always see them, and
+    before the map changes at A0000 (a mode set, a bank switch, a raster op), with the bank
+    and mask the shadow was loaded with.
+  - `VGA_MemWriteCount` counts the writes through the VGA memory handlers (BIOS text and
+    pixel output, the other cores): when it changed, the shadow is loaded again before the
+    guest runs.
+  - Switching to the normal core stores the shadow and drops it.
+  - Quake's timedemo: 45 fps -> 203-225 fps (dynamic core 173). VGABENCH 0.66 s -> 0.34 s.
+    The VGA test at `cycles=30000` 1.5 s -> 0.56 s. A test that mixes direct writes with BIOS
+    pixel writes and reads (VGA13) gives a byte-identical dump to the normal core.
+- **Step 22: the first slot build.** It took 162 ms: most of the handler table above RAM is
+  empty at first, and looking a page up asks every device (`MEM_SlowPath()`). Pages above the
+  first MB whose handler is not known yet (`MEM_PageHandlerKnown()`) are now left as MMIO and
+  marked deferred; an MMIO exit on a deferred page whose handler the access made known marks
+  it for the next build, so that a PCI LFB, for example, gets its slot at the first access.
+  Also, a page whose handler is the last one seen without memory behind it (not readable) is
+  not looked at further. The first build now takes a few ms, and every program starts about
+  0.25 s sooner (CBBENCH 1.5 s -> 1.25 s); rebuilds of the whole range (A20) take about 2 ms.
+- **Step 23: more guests.**
+  - **DOS/32A, PMODE/W and CauseWay** (Open Watcom's DOS extenders, the LFB and Voodoo
+    tests linked for each): the same results as the normal core. (Testing them found a bug in
+    the emulated cores' new segment limit checks, `LSS ESP,[ESP]`, since fixed.)
+  - **Windows 95** boots and runs its test on the step 21-22 build, from a fresh copy of the
+    image. (A copy that had been booted and cut off several times stopped before the test
+    program on every core: Windows may show a dialog about the daylight saving time change, for
+    example. Use a fresh copy for each run.)
+  - Not available here: Windows NT/2000 install media, a Glide program. Windows 98 and the
+    OS/2 installers wait on the dynamic core too (see step 20).
 - **Debugger tools for all of the above.**
   - `MEMMAP [start [end]]` lists the physical map as `MEM_ClassifyPage` sees it (coalesced
     runs with kind, host pointer relative to `MemBase`, and handler class), plus the map
@@ -390,29 +424,21 @@ throttles the guest by duty cycle.
 
 ## Open issues of the KVM core
 
-- **Mode 13h (chained VGA) is slow**: every write is an exit that KVM handles in the kernel
-  (Quake: 45 fps against 173 on the dynamic core). Chain 4 does not map linearly onto
-  `vga.mem.linear` (byte A is at `(A & ~3) * 4 + (A & 3)`), so the pages cannot simply be
-  mapped. A RAM shadow of A0000-AFFFF in chain 4 order, mapped into the guest with dirty
-  logging (`KVM_MEM_LOG_DIRTY_PAGES`), would let the guest write at full speed: copy the dirty
-  pages into `vga.mem.linear` (`KVM_GET_DIRTY_LOG`) before DOSBox-X draws or a callback
-  touches video memory, and refresh the shadow when DOSBox-X itself wrote video memory (a
-  write counter in the VGA handlers). Only while the fast chained handler is in use (no bit
-  mask, no ROP).
 - **Callback round trips** cost about 10 us (an emulated core: about 2.5 us including the
   callback), most of it KVM's exit and entry. `CALLBACK_Idle()` is a round trip per call in
   DOSBox-X's own wait loops.
 - **Port I/O exits** cost 5-7 us each in the kernel, so a guest that polls a port (a PIT or
   status port in a tight loop) runs at a fraction of the emulated cores' speed (IOBENCH).
   Port reads always exit; writes that can be queued are (step 18).
-- **Exit-heavy guests at low fixed cycle counts** still run slower than on an emulated core
-  (the VGA test at `cycles=30000`: 1.5 s against 0.3 s): exit costs vary, and the estimate
-  (`KVM_Overhead()`) errs towards charging the guest, so that it never gets free time.
+- **Exit-heavy guests at low fixed cycle counts** can still run slower than on an emulated
+  core: exit costs vary, and the estimate (`KVM_Overhead()`) errs towards charging the guest,
+  so that it never gets free time. (Mode 13h no longer exits, step 21.)
+- **Planar VGA modes** (16 colours, mode X) still exit for every video memory access:
+  writes are queued, reads exit. A shadow like mode 13h's would need the planar logic (latches,
+  write modes, map mask) applied when it is copied, which does not work for writes that depend
+  on the latches.
 - **Short slices** (exit-bound guests at `cycles=max`) still spend part of their time
   re-arming the slice timer.
-- **The first slot build** classifies every page up to 4 GB (165 ms), and an A20 change
-  reclassifies all of them (4-6 ms). Limit it to where something is mapped, or reclassify only
-  pages whose handler could change.
 - **Paging changes inside the guest are not noticed** until the state is fetched: the first MB
   layout (`firstmb`, EMS) follows the paging state DOSBox-X last saw. With
   `KVM_CAP_SYNC_REGS` the core can check CR0 after every exit.
@@ -433,10 +459,7 @@ throttles the guest by duty cycle.
 
 ## Next steps
 
-21. **Mode 13h shadow** with dirty logging (see the open issues): the biggest gain left for
-    DOS games.
-22. **The first slot build**: skip unmapped ranges, so that a start-up and an A20 change do
-    not classify all of 4 GB.
-23. **More guests**: OS/2 once the floppy controller emulation is complete, Windows NT/2000,
-    DOS/32A and PMODE/W, a Glide game, Windows 98.
-24. **The other open issues above.**
+24. **More guests**: OS/2 once the floppy controller emulation is complete, Windows NT/2000,
+    a Glide game, Windows 98 with a working configuration.
+25. **Planar VGA** (see the open issues), if 16-colour games turn out to be slow.
+26. **The other open issues above.**
