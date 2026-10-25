@@ -184,6 +184,50 @@ void MEM_FreeCallout(MEM_Callout_t c);
 MEM_CalloutObject *MEM_GetCallout(MEM_Callout_t c);
 void MEM_PutCallout(MEM_CalloutObject *obj);
 
+/* Memory map change notification, for a CPU core that maps guest memory itself (such as a
+ * hardware virtualization core). Handlers are called with:
+ *
+ *   MEM_MAPCHANGE_PHYS:    what guest physical pages [page,page+pages) decode to may have
+ *                          changed: their page handler, the host memory behind them, or the
+ *                          A20 gate alias. pages == 0 means all of memory.
+ *   MEM_MAPCHANGE_FIRSTMB: the paging-disabled remap of linear pages below LINK_START
+ *                          (paging.firstmb[], used by EMS emulation) changed for linear pages
+ *                          [page,page+pages). pages == 0 means all of them.
+ *
+ * Code that changes the memory map must call MEM_MapChanged() (or PAGING_MapPage(), which
+ * reports MEM_MAPCHANGE_FIRSTMB). Clearing the TLB is not enough. */
+enum MEM_MapChangeKind {
+	MEM_MAPCHANGE_PHYS=0,
+	MEM_MAPCHANGE_FIRSTMB
+};
+typedef void (*MEM_MapChangeHandler)(MEM_MapChangeKind kind,Bitu page,Bitu pages);
+void MEM_AddMapChangeHandler(MEM_MapChangeHandler handler);
+void MEM_RemoveMapChangeHandler(MEM_MapChangeHandler handler);
+void MEM_NotifyMapChange(MEM_MapChangeKind kind,Bitu page,Bitu pages);
+static inline void MEM_MapChanged(Bitu page,Bitu pages) {
+	MEM_NotifyMapChange(MEM_MAPCHANGE_PHYS,page,pages);
+}
+
+/* How a guest physical page decodes, after the A20 gate alias:
+ *
+ *   MEM_PAGE_RAM:      reads and writes go directly to host memory at 'host'.
+ *   MEM_PAGE_READONLY: reads come directly from host memory at 'host', writes go to the page
+ *                      handler (ROM, or a device that maps only reads).
+ *   MEM_PAGE_DEVICE:   reads and writes go to the page handler.
+ *
+ * 'host' is valid until the next MEM_MAPCHANGE_PHYS notification for the page. */
+enum MEM_PageKind {
+	MEM_PAGE_RAM=0,
+	MEM_PAGE_READONLY,
+	MEM_PAGE_DEVICE
+};
+struct MEM_PageInfo {
+	MEM_PageKind	kind;
+	HostPt		host;		/* NULL for MEM_PAGE_DEVICE */
+	PageHandler*	handler;
+};
+MEM_PageInfo MEM_ClassifyPage(Bitu phys_page);
+
 /* Some other functions */
 void PAGING_Enable(bool enabled);
 bool PAGING_Enabled(void);

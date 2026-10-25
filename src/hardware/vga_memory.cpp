@@ -2861,6 +2861,8 @@ range_done:
 #if C_DEBUG
 	if (control->opt_display2) DISP2_SetPageHandler();
 #endif
+	/* bank switching changes the host memory behind the same page handlers */
+	MEM_MapChanged(VGA_PAGE_A0,32);
 	PAGING_ClearTLB();
 }
 

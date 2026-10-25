@@ -50,6 +50,8 @@
 #include "glidedef.h"
 
 #include <string.h>
+#include <algorithm>
+#include <vector>
 
 #if C_GAMELINK
 #include "../gamelink/gamelink.h"
@@ -475,11 +477,13 @@ static PageHandler *MEM_SlowPath(Bitu page) {
 
 void MEM_RegisterHandler(Bitu phys_page,PageHandler * handler,Bitu page_range) {
     assert((phys_page+page_range) <= memory.handler_pages);
+    MEM_MapChanged(phys_page,page_range);
     while (page_range--) memory.phandlers[phys_page++]=handler;
 }
 
 void MEM_InvalidateCachedHandler(Bitu phys_page,Bitu range) {
     assert((phys_page+range) <= memory.handler_pages);
+    MEM_MapChanged(phys_page,range);
     while (range--) memory.phandlers[phys_page++]=NULL;
 }
 
@@ -873,6 +877,7 @@ PageHandler * MEM_GetPageHandler(Bitu phys_page) {
 }
 
 void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
+    MEM_MapChanged(phys_page,pages);
     for (;pages>0;pages--) {
         memory.phandlers[phys_page]=handler;
         phys_page++;
@@ -881,6 +886,7 @@ void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
 
 void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages) {
     PageHandler *ram_ptr = (PageHandler*)(&ram_page_handler);
+    MEM_MapChanged(phys_page,pages);
     for (;pages>0;pages--) {
         memory.phandlers[phys_page]=ram_ptr;
         phys_page++;
@@ -888,10 +894,52 @@ void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages) {
 }
 
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages) {
+    MEM_MapChanged(phys_page,pages);
     for (;pages>0;pages--) {
         memory.phandlers[phys_page]=&unmapped_page_handler;
         phys_page++;
     }
+}
+
+static std::vector<MEM_MapChangeHandler> mem_map_change_handlers;
+
+void MEM_AddMapChangeHandler(MEM_MapChangeHandler handler) {
+    if (std::find(mem_map_change_handlers.begin(),mem_map_change_handlers.end(),handler) == mem_map_change_handlers.end())
+        mem_map_change_handlers.push_back(handler);
+}
+
+void MEM_RemoveMapChangeHandler(MEM_MapChangeHandler handler) {
+    auto i = std::find(mem_map_change_handlers.begin(),mem_map_change_handlers.end(),handler);
+    if (i != mem_map_change_handlers.end()) mem_map_change_handlers.erase(i);
+}
+
+void MEM_NotifyMapChange(MEM_MapChangeKind kind,Bitu page,Bitu pages) {
+    for (size_t i=0;i < mem_map_change_handlers.size();i++)
+        mem_map_change_handlers[i](kind,page,pages);
+}
+
+MEM_PageInfo MEM_ClassifyPage(Bitu phys_page) {
+    MEM_PageInfo info;
+
+    /* Like PAGING_LinkPage(), look up the handler (which applies the A20 gate alias) and
+     * give it the page as addressed. RAMPageHandler applies the alias itself. */
+    info.handler = MEM_GetPageHandler(phys_page);
+    info.kind = MEM_PAGE_DEVICE;
+    info.host = NULL;
+
+    const Bitu flags = info.handler->getFlags();
+    if (flags & PFLAG_READABLE) {
+        HostPt rd = info.handler->GetHostReadPt(phys_page);
+        if (rd != NULL) {
+            info.host = rd;
+            if ((flags & PFLAG_WRITEABLE) && info.handler->GetHostWritePt(phys_page) == rd)
+                info.kind = MEM_PAGE_RAM;
+            else
+                info.kind = MEM_PAGE_READONLY;
+        }
+    }
+
+    return info;
 }
 
 Bitu mem_strlen(LinearPt pt) {
@@ -1314,6 +1362,7 @@ void MEM_A20_Enable(bool enabled) {
     if (!a20_fake_changeable && (memory.mem_alias_pagemask & 0x100ul)) {
         if (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100ul;
         else memory.mem_alias_pagemask_active &= ~0x100ul;
+        MEM_MapChanged(0,0);
         PAGING_ClearTLB();
     }
 }
@@ -1689,11 +1738,13 @@ void RemoveEMSPageFrame(void) {
     LOG(LOG_MISC,LOG_DEBUG)("Removing EMS page frame");
 
     if(IS_PC98_ARCH || IS_J3100) {
+        MEM_MapChanged(0xd0,0x10);
         for (Bitu ct=0xd0;ct<0xe0;ct++) {
             memory.phandlers[ct] = &rom_page_handler;
         }
     } else {
         /* Setup rom at 0xe0000-0xf0000 */
+        MEM_MapChanged(0xe0,0x10);
         for (Bitu ct=0xe0;ct<0xf0;ct++) {
             memory.phandlers[ct] = &rom_page_handler;
         }
@@ -1705,6 +1756,7 @@ void PreparePCJRCartRom(void) {
     LOG(LOG_MISC,LOG_DEBUG)("Preparing mapping for PCjr cartridge ROM");
 
     /* Setup rom at 0xd0000-0xe0000 */
+    MEM_MapChanged(0xd0,0x10);
     for (Bitu ct=0xd0;ct<0xe0;ct++) {
         memory.phandlers[ct] = &rom_page_handler;
     }
@@ -1727,6 +1779,7 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
     for (p=start;p <= end;p++)
         memory.phandlers[p] = &unmapped_page_handler;
 
+    MEM_MapChanged(start,end+1-start);
     PAGING_ClearTLB();
     return true;
 }
@@ -1754,6 +1807,7 @@ bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
     for (p=start;p <= end;p++)
         memory.phandlers[p] = ram_ptr;
 
+    MEM_MapChanged(start,end+1-start);
     PAGING_ClearTLB();
     return true;
 }
@@ -1780,6 +1834,7 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
     for (p=start;p <= end;p++)
         memory.phandlers[p] = &rom_page_handler;
 
+    MEM_MapChanged(start,end+1-start);
     PAGING_ClearTLB();
     return true;
 }
@@ -1805,6 +1860,7 @@ bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end) {
     for (p=start;p <= end;p++)
         memory.phandlers[p] = &rom_page_alias_handler;
 
+    MEM_MapChanged(start,end+1-start);
     PAGING_ClearTLB();
     return true;
 }
@@ -1962,6 +2018,7 @@ void Init_AddressLimitAndGateMask() {
     memory.mem_alias_pagemask_active = memory.mem_alias_pagemask;
     if (a20_fake_changeable && !memory.a20.enabled)
         memory.mem_alias_pagemask_active &= ~0x100u;
+    MEM_MapChanged(0,0);
 
     /* log */
     LOG(LOG_MISC,LOG_DEBUG)("Memory: address_bits=%u alias_pagemask=%lx",(unsigned int)memory.address_bits,(unsigned long)memory.mem_alias_pagemask);
@@ -2403,6 +2460,7 @@ void Init_RAM() {
 
     PageHandler *ram_ptr = (PageHandler*)(&ram_page_handler);
 
+    MEM_MapChanged(0,0);
     for (i=0;i < memory.reported_pages;i++)
         memory.phandlers[i] = ram_ptr;
     for (;i < memory.handler_pages;i++)
@@ -2429,6 +2487,7 @@ void MEM_cut_RAM_up_to(Bitu addr) {
     if (memory.reported_pages > pages) {
         LOG(LOG_MISC,LOG_DEBUG)("Memory: Reducing RAM to 0x%lx",(unsigned long)addr);
 
+        MEM_MapChanged(pages,memory.reported_pages-pages);
         do { memory.phandlers[--memory.reported_pages] = NULL;
         } while (memory.reported_pages > pages);
     }
@@ -2633,6 +2692,7 @@ void Init_MemoryAccessArray() {
     if (memory.phandlers == NULL)
         memory.phandlers = new PageHandler* [memory.handler_pages];
 
+    MEM_MapChanged(0,0);
     for (i=0;i < memory.handler_pages;i++) // FIXME: This will eventually init all pages to the "slow path" for device lookup
         memory.phandlers[i] = NULL;//&illegal_page_handler;
 }
@@ -2645,6 +2705,7 @@ void Init_PCJR_CartridgeROM() {
 
     /* Setup cartridge rom at 0xe0000-0xf0000.
      * Don't call this function unless emulating PCjr! */
+    MEM_MapChanged(0xe0,0x10);
     for (i=0xe0;i<0xf0;i++)
         memory.phandlers[i] = &rom_page_handler;
 }
@@ -2915,6 +2976,7 @@ private:
 		}
 		READ_POD( &pagehandler_idx, pagehandler_idx );
 
+		MEM_MapChanged(0,0);
 
 		for( unsigned int lcv=0; lcv<memory.pages; lcv++ ) {
 			if( pagehandler_idx[lcv] != 0xff )

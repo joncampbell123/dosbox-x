@@ -1017,6 +1017,8 @@ void PAGING_UnlinkPages(PageNum lin_page,PageNum pages) {
 
 void PAGING_MapPage(PageNum lin_page,PageNum phys_page) {
 	if (lin_page<LINK_START) {
+		if (paging.firstmb[lin_page] != (uint32_t)phys_page)
+			MEM_NotifyMapChange(MEM_MAPCHANGE_FIRSTMB,lin_page,1);
 		paging.firstmb[lin_page]=(uint32_t)phys_page;
 		paging.tlb.read[lin_page]=nullptr;
 		paging.tlb.write[lin_page]=nullptr;
@@ -1451,6 +1453,7 @@ void PAGING_Init() {
 	paging.wp=false;
 	PAGING_InitTLB();
 	for (i=0;i<LINK_START;i++) paging.firstmb[i]=i;
+	MEM_NotifyMapChange(MEM_MAPCHANGE_FIRSTMB,0,0);
 	pf_queue.used=0;
 }
 
@@ -1494,6 +1497,7 @@ void POD_Load_CPU_Paging( std::istream& stream )
 //	READ_POD( &paging.kr_links, paging.kr_links );
 
 	READ_POD( &paging.firstmb, paging.firstmb );
+	MEM_NotifyMapChange(MEM_MAPCHANGE_FIRSTMB,0,0);
 	READ_POD( &paging.enabled, paging.enabled );
 
 	READ_POD( &pf_queue, pf_queue );

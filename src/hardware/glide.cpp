@@ -428,6 +428,7 @@ public:
 	    FP.grFunction0 = (pfunc0)fn_pt[_grGlideShutdown0];
 	    if(FP.grFunction0) FP.grFunction0();
 	    glide.enabled = false;
+	    MEM_MapChanged(GLIDE_LFB>>12,GLIDE_PAGES);
 	}
 
 	SAFE_DELETE(glide.lfb_pagehandler);
@@ -504,6 +505,7 @@ void GLIDE_ResetScreen(bool update)
 void GLIDE_DisableScreen(void)
 {
 	glide.enabled = false;	/* if not disabled, GFX_ResetScreen() will call GLIDE_ResetScreen() */
+	MEM_MapChanged(GLIDE_LFB>>12,GLIDE_PAGES);
 	VGA_SetOverride(false);
 	GFX_ResetScreen();
 }
@@ -1308,6 +1310,7 @@ static void process_msg(Bitu value)
 	}
 
 	glide.enabled = true;
+	MEM_MapChanged(GLIDE_LFB>>12,GLIDE_PAGES);
 	glide.width = param[8];
 	glide.height = param[9];
 	GrOriginLocation = param[5];
