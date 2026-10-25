@@ -32,6 +32,9 @@ bool KVM_CoreInit(std::string &reason);
 
 /* Close the virtual machine */
 void KVM_CoreShutdown(void);
+
+/* The CPU core (cpudecoder) */
+Bits CPU_Core_KVM_Run(void);
 #endif
 
 #endif

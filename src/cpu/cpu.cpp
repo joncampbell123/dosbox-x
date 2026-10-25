@@ -4309,12 +4309,34 @@ public:
 					"(set [cpu] callback int3 prefix to auto or true and restart DOSBox-X)";
 			else if (CPU_ArchitectureType < CPU_ARCHTYPE_386)
 				reason = "it needs cputype 386 or later";
-			else if (KVM_CoreInit(reason))
-				reason = "the KVM virtual machine is ready, but the core cannot run guest code yet";
+			else if (KVM_CoreInit(reason)) {
+				cpudecoder=&CPU_Core_KVM_Run;
+				strcpy(core_mode,"kvm");
+				LOG_MSG("CPU: using the KVM core (experimental)");
 
-			LOG_MSG("CPU: core=kvm is not used: %s. Using the %s core.",reason.c_str(),
-				cpudecoder == &CPU_Core_Normal_Run ? "normal" : "emulated");
-			strcpy(core_mode,"normal");
+				/* The KVM core counts a cycle per nanosecond the guest runs (see
+				 * PIC_HostTimeAccount()), so the small fixed real mode count of cycles=auto
+				 * would starve the guest: adjust the cycles as cycles=max does */
+				if (CPU_AutoDetermineMode & CPU_AUTODETERMINE_CYCLES) {
+					CPU_AutoDetermineMode &= ~CPU_AUTODETERMINE_CYCLES;
+					CPU_CycleAutoAdjust = true;
+					CPU_CycleLimit = -1;
+					LOG_MSG("CPU: cycles=auto adjusts the cycles from the start with the KVM core");
+				}
+				/* and start adjusting at half of the host time: from a real mode count of a
+				 * few thousand, every return to DOSBox-X (callbacks) would cost emulated
+				 * milliseconds until the adjustment catches up */
+				if (CPU_CycleAutoAdjust && CPU_CycleMax < 500000) {
+					CPU_CycleMax = 500000;
+					CPU_OldCycleMax = 500000;
+				}
+			}
+
+			if (!reason.empty()) {
+				LOG_MSG("CPU: core=kvm is not used: %s. Using the %s core.",reason.c_str(),
+					cpudecoder == &CPU_Core_Normal_Run ? "normal" : "emulated");
+				strcpy(core_mode,"normal");
+			}
 		}
 #endif
 

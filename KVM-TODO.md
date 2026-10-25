@@ -94,6 +94,72 @@ throttles the guest by duty cycle.
     exit supported); each fallback reason; CPU types 486old (no CPUID), Pentium III, Pentium 4
     with SSE2; and the INT3/mouse/V86/DOS/4GW suite with `core=kvm` (prefixed callbacks and a
     live VM), EMM386 on and off.
+- **Steps 8-13: the first milestone, the KVM core runs DOS.** `CPU_Core_KVM_Run()` in
+  `src/cpu/core_kvm.cpp` is the `cpudecoder` for `core=kvm`. It boots to the DOS prompt and runs
+  real mode, V86 mode (DOSBox-X's EMM386) and DOS/4GW protected mode programs (raw and VCPI).
+  - **Memory slots (8):** built from `MEM_ClassifyPage()` before each `KVM_RUN` for what the
+    map change notifications marked dirty; slots that did not change are kept. Read-only pages
+    become `KVM_MEM_READONLY` slots. Device pages, and host memory that is not page-aligned,
+    get no slot. The first MB+64KB follows `paging.firstmb[]` while paging is off (EMS).
+  - **Run loop (9):** `PIC_HostTimeMark()`, `KVM_RUN` bounded by a per-thread `CLOCK_MONOTONIC`
+    timer whose signal (SIGRTMIN+4) sets `immediate_exit`, `PIC_HostTimeAccount()` first on
+    return. A run gets at least 2 us, so the guest always gets somewhere. Exits:
+    - port I/O: the new `IO_ReadB_Checked()` and so on, without `CPU_IO_Exception()` (the CPU
+      has checked IOPL and the TSS I/O bitmap already; a denied V86 port raises #GP in the
+      guest, which goes to DOSBox-X's V86 monitor through the guest's IDT);
+    - MMIO: `physdev_read*()`/`physdev_write*()`;
+    - HLT: the state comes back and `CPU_HLT()` makes `HLT_Decode` wait for the interrupt, which
+      then returns to this core;
+    - #BP (`KVM_GUESTDBG_USE_SW_BP`; `debug.arch.pc` is the INT3's linear address): a callback
+      (INT3 + FE 38 imm16) returns the callback number with EIP past it; otherwise a debugger
+      breakpoint (`DEBUG_Breakpoint()`/`DEBUG_IntBreakpoint(3)`), otherwise the guest's own INT3,
+      delivered with `CPU_SW_Interrupt_NoIOPLCheck(3)`;
+    - triple fault: `On_Software_CPU_Reset()`; anything unexpected (internal error, failed entry,
+      unknown exit): log the reason, CS:EIP and code bytes, and switch to the normal core.
+  - **Interrupts (10):** DOSBox-X delivers them, with `CPU_HW_Interrupt()` in `PIC_runIRQs()`,
+    to the state in DOSBox-X (real mode IVT, protected mode IDT and gates, V86). When an IRQ is
+    pending and the guest's IF is clear, `request_interrupt_window` ends the slice as soon as it
+    can take it. `KVM_INTERRUPT` is not used. NMI is not handled.
+  - **State sync (11), lazy:** the state stays in the vCPU from slice to slice. Code outside a
+    CPU core that reads or changes the CPU state calls `CPU_SyncState()` (`cpu.h`) first, which
+    fetches it into DOSBox-X; the core puts it back before the next `KVM_RUN`, also when an exit
+    handler fetched it. Called from `CPU_Interrupt()`, `PIC_runIRQs()`, `CPU_OnReset()`,
+    `On_Software_CPU_Reset()`, `CPU::Change_Config()`, `SaveState::save()`/`load()`,
+    `DEBUG_EnableDebugger()` and `DEBUG_Enable_Handler()`. **Rule for new code:** anything
+    outside a CPU core and outside callbacks that uses `reg_*`, `Segs`, `cpu.*` or the FPU must
+    call `CPU_SyncState()` first. Callbacks already have the state.
+    V86 segments are normalised on the way in (base = selector << 4, limit FFFFh, AR F3h); a
+    missing TR becomes a usable busy TSS; null TR/LDT selectors come back as unusable.
+  - **Debugger (12):** while the debugger is stopped, or `DEBUG_NeedsEmulatedCore()` says it
+    needs every instruction (heavy debugging breakpoints and logging, interrupt breakpoints), the
+    core fetches the state and runs `CPU_Core_Normal_Run()` instead. So breakpoints, BPINT, F11,
+    STEPIN and the log commands work as with the emulated cores, but the guest runs emulated
+    while there are breakpoints in a heavy debugging build. Without heavy debugging, physical
+    breakpoints are INT3s in memory and stop the KVM core through #BP (checked before running a
+    callback, as the emulated cores do). The one instruction that RUN, F5 and F10 step past a
+    breakpoint (with `inhibit_int_breakpoint` set) also runs on the normal core, since KVM cannot
+    run exactly one.
+  - **Save states (13):** `SaveState::save()`/`load()` call `CPU_SyncState()`; the loaded state is
+    put into the vCPU at the next run, and memory map changes from the load rebuild the slots.
+  - **Cycles:** with `cycles=auto` the KVM core adjusts the cycles from the start as `cycles=max`
+    does, and with auto-adjusting cycles it starts at 500000 (half of the host time) instead of a
+    few thousand.
+  - **Measured** (AMD Ryzen 9 7940HS): a `dec ecx`/`jnz` loop of 3.2 billion iterations takes
+    1.9 s (dynamic core 8.5 s). Startup to the DOS
+    prompt takes 0.5 s (dynamic core 0.16 s): the first slot build classifies 4 GB of pages
+    (165 ms), and a callback round trip (exit, fetching and putting the state, entry) costs about
+    25 us, against about 1 us on an emulated core.
+  - **DOSBox-X bugs found and fixed on the way** (they affect every core):
+    - `VGA_SetupDrawing()` left `vga.draw.resizing` set when it ran in `M_ERROR` mode, so a mode
+      set after it never started drawing (no display, no vertical retrace events). It happened
+      under KVM because the POST reached the VGA BIOS init later in emulated time.
+    - The RTC: the first update after a reset rounded the time of the last update up instead of
+      down (`fmod()` of a negative time), so status register A reported an update in progress
+      for a whole second. Any program that read the RTC status in its first emulated second
+      waited up to a second (the BIOS POST did, under KVM).
+  - Tested: the INT3/mouse/V86/DOS/4GW suite with EMM386 off and on; the debugger breakpoint
+    test with F5, RUN and RUNWATCH; STEPIN into a callback; VRT, SAVESTATE and LOADSTATE while
+    the KVM core runs a loop.
 - **Debugger tools for all of the above.**
   - `MEMMAP [start [end]]` lists the physical map as `MEM_ClassifyPage` sees it (coalesced
     runs with kind, host pointer relative to `MemBase`, and handler class), plus the map
@@ -149,56 +215,30 @@ throttles the guest by duty cycle.
 - **Pages above 4GB** (`memory file` + `Mem4GBPageHandler`) are plain RAM in the memory file;
   they need a slot of their own when PSE-36/PAE guests use them.
 
-## First milestone: boot to the DOS prompt in real mode
+## Open issues of the KVM core
 
-8. **Memory slots** built from `MEM_ClassifyPage()` over the guest physical range, rebuilt
-   from `MEM_AddMapChangeHandler` notifications:
-   - runs of `MEM_PAGE_RAM` pages with contiguous host pointers become RAM slots;
-   - `MEM_PAGE_READONLY` becomes `KVM_MEM_READONLY` slots (writes exit as MMIO, go to the
-     handler);
-   - `MEM_PAGE_DEVICE` gets no slot (MMIO exit to the handler's `readX`/`writeX`);
-   - apply `firstmb` for the first MB+64KB while paging is off (see Findings).
-
-   KVM has a limited number of slots (query `KVM_CAP_NR_MEMSLOTS`; older kernels allow 509),
-   so coalesce, and batch rebuilds (apply pending changes before the next `KVM_RUN`, not on
-   each notification).
-9. **`CPU_Core_KVM_Run`** as the `cpudecoder`. It loads state, then for each `KVM_RUN`:
-   `PIC_HostTimeMark()`, run bounded by a per-thread timer (`timer_create` with
-   `SIGEV_THREAD_ID`, or `immediate_exit`) set to `PIC_HostTimeBudget()`, and on return
-   `PIC_HostTimeAccount()` first, so device handlers see the current time (PIT, RTC). Mark
-   again just before the next `KVM_RUN`, so exit handling is not charged to the guest. Return
-   when `CPU_Cycles <= 0` or for a callback. It handles these exits:
-   - `KVM_EXIT_IO`: `IO_Read*`/`IO_Write*`, including string I/O (`count`, `data_offset`).
-   - `KVM_EXIT_MMIO`: the page handler of the physical address.
-   - `KVM_EXIT_HLT`: idle until the next PIC event, like the emulated HLT: give up the rest of
-     the slice (`CPU_Cycles = 0`); `increaseticks()` then sleeps until wall time catches up.
-   - `KVM_EXIT_SHUTDOWN`: triple fault, which resets.
-   - `KVM_EXIT_DEBUG` with #BP: if `FE 38` follows the INT3 at the guest RIP (translate
-     through the guest page tables when paging is on), advance RIP by 5, sync the state out,
-     return the callback number (so `Normal_Loop` runs the handler as usual), and sync back
-     on the next entry. Otherwise re-inject #BP with `KVM_SET_VCPU_EVENTS`.
-10. **Interrupts.** When the PIC has an IRQ pending: inject it with `KVM_INTERRUPT` if
-    `ready_for_interrupt_injection` is set; otherwise set `request_interrupt_window` and
-    inject on the next exit. NMI goes through `KVM_NMI`.
-11. **State sync.** At first, sync the full state (`CPU_GetFullState`/`CPU_SetFullState`, plus
-    the conversion to `kvm_regs`/`kvm_sregs`/`kvm_fpu`) on every exit that runs DOSBox-X code.
-    Callbacks, `CALLBACK_RunReal*` nesting, `CPU_SetSegGeneral`, and DOS/BIOS code that reads
-    guest page tables through DOSBox-X's own paging then work unchanged. Make it lazy later.
-    Normalise V86 segments on the way in (see Findings).
-12. **Debugger.** On debugger entry, sync the state and switch to the normal core for
-    stepping; switch back on RUN. This works because every core runs the INT3 callback form.
-    Heavy-debug tracing could use `KVM_GUESTDBG_SINGLESTEP` later.
-13. **Save states.** Sync out before saving and back in after loading. The callback encoding
-    check already exists.
-
-Check this milestone against the normal core with the existing headless tests: INT3 handling,
-mouse, `dir`, `mem`, memory dumps.
+- **Callback round trips are expensive** (about 25 us). Use `KVM_CAP_SYNC_REGS` (registers and
+  segment registers through `kvm_run`, no ioctls), and keep the FPU, debug registers and MSRs in
+  the vCPU until something really needs them (save states, the debugger, switching cores). Also
+  look at `CALLBACK_Idle()`: DOSBox-X's own wait loops call it, and each call is a round trip.
+- **The first slot build** classifies every page up to 4 GB (165 ms), and an A20 change
+  reclassifies all of them (4-6 ms). Limit it to where something is mapped, or reclassify only
+  pages whose handler could change.
+- **Paging changes inside the guest are not noticed** until the state is fetched: the first MB
+  layout (`firstmb`, EMS) follows the paging state DOSBox-X last saw. With
+  `KVM_CAP_SYNC_REGS` the core can check CR0 after every exit.
+- **VGA memory is not page-aligned**, so all video memory accesses are MMIO exits. Allocate it
+  page-aligned, then map direct-mapped modes (SVGA banks, LFB) as RAM slots.
+- **Interrupt delivery by DOSBox-X overwrites the vCPU state**: if KVM had an event pending of
+  its own (an exception being delivered when an exit happened), it is lost or delivered in
+  the wrong order. Consider `KVM_GET_VCPU_EVENTS` before overwriting, or `KVM_INTERRUPT`.
+- **NMI** is not passed on.
 
 ## After that
 
-14. **Protected mode, V86 and DOS extenders** (DOS/4GW with EMM386 on and off). The guest gets
-    real paging and exceptions. Exceptions that DOSBox-X code raises during a callback (for
-    example `GuestPageFaultException`) must be injected into KVM instead.
+14. **Protected mode, V86 and DOS extenders.** DOS/4GW runs, with EMM386 on and off. Test more
+    extenders and protected mode systems (DPMI hosts, Windows 3.x, Windows 9x), and exceptions
+    that DOSBox-X code raises during a callback (`GuestPageFaultException`).
 15. **Exit performance.** VGA planar/mode 13h writes, Sound Blaster and DMA port traffic, and
     PIT polling will cause most exits. Coalesced MMIO for VGA, direct VRAM mapping with dirty
     logging in linear modes (needs page-aligned VRAM), lazy register sync.
