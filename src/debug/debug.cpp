@@ -685,6 +685,7 @@ public:
 	static void				DeleteAll			(void);
 	static void				ShowList			(void);
 	static CBreakpoint*				ConsumeLastTriggered			(void);
+	static bool				HasIntBreakpoints	(void);
 
 
 private:
@@ -709,6 +710,7 @@ private:
 #if C_HEAVY_DEBUG
 	friend bool DEBUG_HeavyIsBreakpoint(void);
 #endif
+	friend bool DEBUG_NeedsEmulatedCore(void);
 };
 
 CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),
@@ -981,6 +983,13 @@ CBreakpoint* CBreakpoint::FindPhysBreakpoint(uint16_t seg, uint32_t off, bool on
 	}
 
 	return nullptr;
+}
+
+bool CBreakpoint::HasIntBreakpoints(void)
+{
+	for (auto i = BPoints.begin(); i != BPoints.end(); ++i)
+		if ((*i)->GetType() == BKPNT_INTERRUPT) return true;
+	return false;
 }
 
 CBreakpoint* CBreakpoint::FindOtherActiveBreakpoint(PhysPt adr, CBreakpoint* skip)
@@ -6935,6 +6944,25 @@ void DEBUG_HeavyWriteLogInstruction(void) {
 	DEBUG_ShowMsg("DEBUG: Done.\n");
 }
 
+#endif
+
+/* Whether something in the debugger needs every instruction to go through an emulated CPU core
+ * (heavy debugging breakpoints and logging, interrupt breakpoints). A CPU core that does not
+ * see each instruction (KVM) hands over to the normal core while this is true. */
+bool DEBUG_NeedsEmulatedCore(void) {
+#if C_HEAVY_DEBUG
+	if (!CBreakpoint::BPoints.empty() || cpuLog || logHeavy || zeroProtect) return true;
+#if defined(C_DOSBOX_AGENT)
+	if (agent_trace_active) return true;
+#endif
+	return false;
+#else
+	/* breakpoints are INT3 instructions written into memory, which the KVM core sees */
+	return CBreakpoint::HasIntBreakpoints();
+#endif
+}
+
+#if C_HEAVY_DEBUG
 bool DEBUG_HeavyIsBreakpoint(void) {
 #if defined(C_DOSBOX_AGENT)
 	const bool agent_trace_was_active = agent_trace_active;
