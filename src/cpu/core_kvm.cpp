@@ -82,7 +82,6 @@ static struct {
 	bool		in_kvm = false;
 	bool		rest_in_kvm = false;
 	bool		sync_regs = false;	/* registers through kvm_run (KVM_CAP_SYNC_REGS) */
-	bool		sync_events = false;	/* and the vCPU events (see KVM_DropEvent()) */
 
 	/* Coalesced MMIO: writes to the video memory window are queued in this ring instead of
 	 * each exiting, and applied when KVM_RUN returns (see KVM_FlushWrites()) */
@@ -94,6 +93,12 @@ static struct {
 	 * consistent. See KVM_CompletePending(). */
 	bool		pending = false;
 	bool		guest_if = false;	/* the guest's IF as of the last exit */
+
+	/* KVM may still be delivering an event (see KVM_DropEvent()): only after a KVM_RUN that a
+	 * signal ended (an exit for I/O, MMIO, a callback or HLT happens between instructions,
+	 * and an interrupt window opens only when nothing is being delivered), and after a full
+	 * state fetch, whose state DOSBox-X may replace entirely (save states, the debugger) */
+	bool		event_in_flight = true;
 
 	/* KVM host time, nanoseconds: what going into the guest and out again costs, which is not
 	 * charged to the guest (see KVM_Overhead()): for port I/O, MMIO, callback (debug) and HLT
@@ -360,8 +365,7 @@ static bool KVM_WriteRegs(const struct kvm_regs &r,const struct kvm_sregs &sr) {
  * written back here, with nothing being delivered. */
 static bool KVM_DropEvent(void) {
 	struct kvm_vcpu_events ev;
-	if (kvm.sync_events) ev = kvm.run->s.regs.events;
-	else if (ioctl(kvm.vcpu,KVM_GET_VCPU_EVENTS,&ev) < 0) return false;
+	if (ioctl(kvm.vcpu,KVM_GET_VCPU_EVENTS,&ev) < 0) return false;
 
 	ev.exception.injected = 0;
 	ev.interrupt.injected = 0;
@@ -371,11 +375,6 @@ static bool KVM_DropEvent(void) {
 		ev.flags |= KVM_VCPUEVENT_VALID_NMI_PENDING;
 	}
 
-	if (kvm.sync_events) {
-		kvm.run->s.regs.events = ev;
-		kvm.run->kvm_dirty_regs |= KVM_SYNC_X86_EVENTS;
-		return true;
-	}
 	return ioctl(kvm.vcpu,KVM_SET_VCPU_EVENTS,&ev) >= 0;
 }
 
@@ -439,7 +438,10 @@ static bool KVM_PutState(bool regs,bool rest) {
 		r.rsp = st.esp; r.rbp = st.ebp; r.rsi = st.esi; r.rdi = st.edi;
 		r.rip = st.eip;
 		r.rflags = st.eflags | 2u;
-		if ((memcmp(&r,&old_r,sizeof(r)) != 0 || memcmp(&sr,&old_sr,sizeof(sr)) != 0) && !KVM_DropEvent()) return false;
+		if (kvm.event_in_flight && (memcmp(&r,&old_r,sizeof(r)) != 0 || memcmp(&sr,&old_sr,sizeof(sr)) != 0)) {
+			if (!KVM_DropEvent()) return false;
+			kvm.event_in_flight = false;
+		}
 		if (!KVM_WriteRegs(r,sr)) return false;
 	}
 
@@ -540,10 +542,12 @@ static struct {
 	bool		created = false;
 	timer_t		timer;
 	uint64_t	deadline = 0;	/* KVM host time: when it fires, nanoseconds (PIC_HostTimeNow()), 0 = disarmed */
+	volatile sig_atomic_t fired = 0;	/* it fired, maybe outside KVM_RUN (see KVM_Run()) */
 } kvm_timer;
 
 static void KVM_TimerSignal(int sig) {
 	(void)sig;
+	kvm_timer.fired = 1;
 	if (kvm.run != NULL) kvm.run->immediate_exit = 1;
 }
 
@@ -592,6 +596,7 @@ static void KVM_TimerDisarm(void) {
 	memset(&its,0,sizeof(its));
 	timer_settime(kvm_timer.timer,0,&its,NULL);
 	kvm_timer.deadline = 0;
+	kvm_timer.fired = 0;
 	if (kvm.run != NULL) kvm.run->immediate_exit = 0;
 }
 
@@ -635,6 +640,7 @@ static void KVM_SyncHook(bool full) {
 	if (!kvm.in_kvm) CPU_StateIFHook = NULL;
 	if (!kvm.in_kvm && !kvm.rest_in_kvm) CPU_StateSyncHook = NULL;
 	kvm.gets++;
+	if (rest) kvm.event_in_flight = true;
 	if (!KVM_GetState(regs,rest)) {
 		LOG_MSG("KVM: cannot read the vCPU state: %s",strerror(errno));
 		kvm.failed = true;
@@ -854,7 +860,10 @@ static uint64_t KVM_Overhead(int r,uint64_t elapsed) {
 
 Bits CPU_Core_KVM_Run(void) {
 	const Bits r = KVM_Run();
-	KVM_TimerDisarm(); /* the slice is over */
+	/* The slice timer stays armed: the core is mostly called again within microseconds (a
+	 * callback, an interrupt), usually with about the same deadline, and arming and disarming
+	 * it are two system calls per call. If it fires in between, the next KVM_RUN returns at
+	 * once (see KVM_Run()). */
 	/* An instruction of an I/O or MMIO exit may still be unfinished: the next KVM_RUN finishes
 	 * it, and whatever needs the state before that syncs it, which finishes it first. */
 	return r;
@@ -904,12 +913,20 @@ static Bits KVM_Run(void) {
 		if (budget == 0) break;
 		if (budget < 2000) budget = 2000;
 
+		/* the timer fired outside KVM_RUN (between core calls, or while KVM_CompletePending()
+		 * used immediate_exit itself): it is no longer armed */
+		if (kvm_timer.fired) {
+			kvm_timer.fired = 0;
+			kvm_timer.deadline = 0;
+			run->immediate_exit = 0;
+		}
 		KVM_TimerArm(budget);
 		const uint64_t mark = PIC_HostTimeMark(); /* KVM host time: nanoseconds */
 		const int r = ioctl(kvm.vcpu,KVM_RUN,0);
 		const int err = errno;
 		kvm.runs++;
 		kvm.pending = false;
+		kvm.event_in_flight = r < 0 || run->exit_reason == KVM_EXIT_INTR;
 		/* KVM host time: nanoseconds since PIC_HostTimeMark(), less the cost of the exit */
 		PIC_HostTimeAccount(KVM_Overhead(r,PIC_HostTimeNow() - mark));
 		KVM_FlushWrites();
@@ -919,9 +936,10 @@ static Bits KVM_Run(void) {
 			if (err == EINTR || err == EAGAIN) {
 				/* the timer (or another signal): the timer has fired, arm it again if the
 				 * slice is not over */
-				if (run->immediate_exit) {
+				if (run->immediate_exit || kvm_timer.fired) {
 					run->immediate_exit = 0;
 					kvm_timer.deadline = 0;
+					kvm_timer.fired = 0;
 				}
 				if (CPU_Cycles <= 0) break;
 				continue;
@@ -1223,10 +1241,8 @@ bool KVM_CoreInit(std::string &reason) {
 		ioctl(kvm.vcpu,KVM_GET_REGS,&kvm.run->s.regs.regs) >= 0 && ioctl(kvm.vcpu,KVM_GET_SREGS,&kvm.run->s.regs.sregs) >= 0) {
 		kvm.run->kvm_valid_regs = KVM_SYNC_X86_REGS | KVM_SYNC_X86_SREGS;
 		kvm.sync_regs = true;
-		if ((sync & KVM_SYNC_X86_EVENTS) && ioctl(kvm.vcpu,KVM_GET_VCPU_EVENTS,&kvm.run->s.regs.events) >= 0) {
-			kvm.run->kvm_valid_regs |= KVM_SYNC_X86_EVENTS;
-			kvm.sync_events = true;
-		}
+		/* not the vCPU events (KVM_SYNC_X86_EVENTS): KVM would fetch them at every exit, and
+		 * they are needed only after a KVM_RUN that a signal ended (KVM_DropEvent()) */
 	}
 
 	/* Writes to the VGA memory window (A0000-BFFFF) are queued instead of exiting one by one.
