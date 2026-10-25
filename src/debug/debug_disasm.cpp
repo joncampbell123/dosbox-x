@@ -72,6 +72,7 @@ Any comments/updates/bug reports to:
 #include "cpu.h"
 #include "logging.h"
 #include "paging.h"
+#include "callback.h"
 
 typedef uint8_t  UINT8;
 typedef uint16_t UINT16;
@@ -1337,6 +1338,16 @@ Bitu DasmI386(char* buffer, PhysPt pc, uint32_t cur_ip, bool bit32)
 	if (bit32) opsize = addrsize = 32;
 	else opsize = addrsize = 16;
 	c = getbyte();
+	if (c == 0xCC && CALLBACK_Int3Prefix) {
+		/* INT3 prefix of a callback instruction (see callback.h): show it as the callback
+		 * instruction, the INT3 still among its bytes, when the CPU core would run it as
+		 * one (see CALLBACK_Int3PrefixFollows) */
+		uint8_t b0,b1;
+		if (!(paging.enabled && (((getbyte_mac - 1u) ^ (getbyte_mac + 1u)) & ~(PhysPt)0xFFFu) != 0) &&
+			!mem_readb_checked(getbyte_mac,&b0) && !mem_readb_checked(getbyte_mac+1u,&b1) &&
+			b0 == 0xFE && b1 == 0x38)
+			c = getbyte();
+	}
 	last_c = c;
 	wordop = c & 1;
 	must_do_size = 1;
