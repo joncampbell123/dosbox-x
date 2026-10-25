@@ -95,6 +95,14 @@ static struct {
 	bool		pending = false;
 	bool		guest_if = false;	/* the guest's IF as of the last exit */
 
+	/* KVM host time, nanoseconds: what going into the guest and out again costs, which is not
+	 * charged to the guest (see KVM_Overhead()): for port I/O, MMIO, callback (debug) and HLT
+	 * exits, and for each write queued in the coalesced MMIO ring, one instruction each or a
+	 * string instruction's (burst) */
+	struct Cost {
+		uint64_t	avg = 0,min = 0;
+	}		exit_cost[4],write_cost,burst_cost;
+	uint64_t	last_exit_cost = 0;	/* the estimate for the last exit, 0 for a signal */
 
 	/* statistics, logged when DOSBox-X exits */
 	uint64_t	runs = 0,io = 0,mmio = 0,coalesced = 0,callbacks = 0,int3 = 0,hlt = 0,windows = 0,slices = 0,puts = 0,gets = 0;
@@ -558,12 +566,16 @@ static bool KVM_TimerCreate(void) {
 	return true;
 }
 
-/* Arm the timer to fire 'ns' nanoseconds from now (KVM host time), unless it already fires by
- * then: the timer is armed once per slice, not for every KVM_RUN, and only moved earlier when
- * the slice gets shorter (an earlier PIC event) */
+/* Arm the timer to fire 'ns' nanoseconds from now (KVM host time), unless it already fires
+ * about then: the timer is armed once per slice, not for every KVM_RUN. It is moved earlier when
+ * the slice gets shorter (an earlier PIC event), and later when it would fire more than a
+ * quarter of the time early (at least 20 us): the exits during the slice are not charged to the
+ * guest (KVM_Overhead()), so the slice takes longer than its budget, and a timer firing early
+ * costs an exit of its own. */
 static void KVM_TimerArm(uint64_t ns) {
 	const uint64_t deadline = PIC_HostTimeNow() + ns; /* KVM host time: nanoseconds */
-	if (kvm_timer.deadline != 0 && kvm_timer.deadline <= deadline) return;
+	if (kvm_timer.deadline != 0 && kvm_timer.deadline <= deadline &&
+		deadline - kvm_timer.deadline <= std::max(ns / 4u,(uint64_t)20000u)) return;
 
 	/* PIC_HostTimeNow() is CLOCK_MONOTONIC (steady_clock), so the deadline is absolute */
 	struct itimerspec its;
@@ -669,6 +681,13 @@ static Bits KVM_Fail(const std::string &why) {
 	CPU_StateIFHook = NULL;
 	cpudecoder = &CPU_Core_Normal_Run;
 	return CBRET_NONE;
+}
+
+/* How many writes are queued in the coalesced MMIO ring */
+static uint32_t KVM_QueuedWrites(void) {
+	const struct kvm_coalesced_mmio_ring *ring = kvm.ring;
+	if (ring == NULL) return 0;
+	return (ring->last + kvm.ring_max - ring->first) % kvm.ring_max;
 }
 
 /* Apply the writes KVM queued (coalesced MMIO) since the last time, in order. Called as soon as
@@ -782,6 +801,57 @@ static Bits KVM_HandleBreakpoint(void) {
 
 static Bits KVM_Run(void);
 
+/* Update a cost estimate with a sample, return the estimate (KVM host time: nanoseconds): the
+ * average over about the last 64 samples, of those that took at most four times the shortest
+ * seen if 'filter' is set (so that samples with more guest execution in them hardly count),
+ * at most 20 us */
+static uint64_t KVM_Estimate(decltype(kvm.write_cost) &c,uint64_t sample,bool filter) {
+	if (c.min == 0 || sample < c.min) c.min = sample;
+	if (!filter || sample <= c.min * 4u) c.avg = (c.avg == 0) ? sample : (c.avg - c.avg / 64u + sample / 64u);
+	return std::min(c.avg,(uint64_t)20000u);
+}
+
+/* The cost of going into the guest and out again is host time the guest did not run. Charged
+ * as guest time, it would make every exit cost thousands of cycles where an emulated core
+ * counts one instruction, so an exit-heavy guest (VGA memory, port I/O) would crawl at low
+ * cycle counts. The same goes for the writes queued in the coalesced MMIO ring, which KVM
+ * handles itself within KVM_RUN: a write instruction is an exit of its own (a few us), while
+ * a string instruction's writes are queued by KVM's instruction emulator in one go (well under
+ * a microsecond each). Estimated for each kind of exit that comes back at once (port I/O,
+ * MMIO, which KVM decodes and emulates and so costs more, a callback, HLT) from the KVM_RUNs
+ * that ended with it and queued no writes, for a write from those that queued a few, and for
+ * a write of a string instruction from those that queued at least 64, where the guest did
+ * little besides writing. Returns how many of the 'elapsed' nanoseconds (KVM host time) of the
+ * KVM_RUN were not guest execution. */
+static uint64_t KVM_Overhead(int r,uint64_t elapsed) {
+	uint64_t overhead = 0; /* KVM host time: nanoseconds */
+
+	if (r >= 0) {
+		int i;
+		switch (kvm.run->exit_reason) {
+			case KVM_EXIT_IO:	i = 0; break;
+			case KVM_EXIT_MMIO:	i = 1; break;
+			case KVM_EXIT_DEBUG:	i = 2; break;
+			case KVM_EXIT_HLT:	i = 3; break;
+			default:		i = -1; break;
+		}
+		if (i >= 0) {
+			if (KVM_QueuedWrites() == 0) overhead = KVM_Estimate(kvm.exit_cost[i],elapsed,true);
+			else overhead = std::min(kvm.exit_cost[i].avg,(uint64_t)20000u);
+		}
+	}
+	kvm.last_exit_cost = overhead;
+
+	const uint32_t writes = KVM_QueuedWrites();
+	if (writes != 0) {
+		auto &c = (writes >= 64) ? kvm.burst_cost : kvm.write_cost;
+		if (elapsed > overhead) KVM_Estimate(c,(elapsed - overhead) / writes,writes < 64);
+		overhead += (uint64_t)writes * std::min(c.avg,(uint64_t)20000u);
+	}
+
+	return overhead;
+}
+
 Bits CPU_Core_KVM_Run(void) {
 	const Bits r = KVM_Run();
 	KVM_TimerDisarm(); /* the slice is over */
@@ -835,12 +905,13 @@ static Bits KVM_Run(void) {
 		if (budget < 2000) budget = 2000;
 
 		KVM_TimerArm(budget);
-		PIC_HostTimeMark();
+		const uint64_t mark = PIC_HostTimeMark(); /* KVM host time: nanoseconds */
 		const int r = ioctl(kvm.vcpu,KVM_RUN,0);
 		const int err = errno;
 		kvm.runs++;
 		kvm.pending = false;
-		PIC_HostTimeAccount();
+		/* KVM host time: nanoseconds since PIC_HostTimeMark(), less the cost of the exit */
+		PIC_HostTimeAccount(KVM_Overhead(r,PIC_HostTimeNow() - mark));
 		KVM_FlushWrites();
 		kvm.guest_if = run->if_flag != 0;
 
@@ -929,6 +1000,11 @@ static Bits KVM_Run(void) {
 
 		if (kvm.failed) return KVM_Fail("cannot read the vCPU state");
 		if (CPU_Cycles <= 0) break;
+
+		/* Less of the slice left than this exit cost: another KVM_RUN would most likely be cut
+		 * short by the slice timer, which costs an exit of its own, so end the slice here (the
+		 * cycles left over stay for the next one). KVM host time: nanoseconds. */
+		if (PIC_HostTimeBudget() < kvm.last_exit_cost) break;
 	}
 
 	kvm.slices++;
@@ -946,10 +1022,12 @@ static void KVM_CoreShutdownSection(Section *sec) {
 
 void KVM_CoreShutdown(void) {
 	if (kvm.runs != 0)
-		LOG_MSG("KVM: %llu KVM_RUN calls: %llu port I/O, %llu MMIO (and %llu queued writes), %llu callbacks, %llu guest INT3, %llu HLT, %llu interrupt windows, %llu slices ended; state put %llu times, fetched %llu times",
+		LOG_MSG("KVM: %llu KVM_RUN calls: %llu port I/O, %llu MMIO (and %llu queued writes), %llu callbacks, %llu guest INT3, %llu HLT, %llu interrupt windows, %llu slices ended; state put %llu times, fetched %llu times; exit cost %llu/%llu/%llu/%llu/%llu/%llu ns (I/O, MMIO, callback, HLT, queued write, string write)",
 			(unsigned long long)kvm.runs,(unsigned long long)kvm.io,(unsigned long long)kvm.mmio,(unsigned long long)kvm.coalesced,(unsigned long long)kvm.callbacks,
 			(unsigned long long)kvm.int3,(unsigned long long)kvm.hlt,(unsigned long long)kvm.windows,(unsigned long long)kvm.slices,
-			(unsigned long long)kvm.puts,(unsigned long long)kvm.gets);
+			(unsigned long long)kvm.puts,(unsigned long long)kvm.gets,
+			(unsigned long long)kvm.exit_cost[0].avg,(unsigned long long)kvm.exit_cost[1].avg,(unsigned long long)kvm.exit_cost[2].avg,
+			(unsigned long long)kvm.exit_cost[3].avg,(unsigned long long)kvm.write_cost.avg,(unsigned long long)kvm.burst_cost.avg);
 	if (kvm.run != NULL) {
 		munmap(kvm.run,kvm.run_size);
 		kvm.run = NULL;

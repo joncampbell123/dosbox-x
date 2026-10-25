@@ -814,14 +814,18 @@ uint64_t PIC_HostTimeNow(void) {
         std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-void PIC_HostTimeMark(void) {
+uint64_t PIC_HostTimeMark(void) {
     pic_hosttime_mark = PIC_HostTimeNow();
+    return pic_hosttime_mark;
 }
 
-cpu_cycles_count_t PIC_HostTimeAccount(void) {
+cpu_cycles_count_t PIC_HostTimeAccount(uint64_t overhead_ns) {
     const uint64_t now = PIC_HostTimeNow();
-    const uint64_t ns = now - pic_hosttime_mark; /* KVM host time: nanoseconds the guest ran */
+    const uint64_t elapsed = now - pic_hosttime_mark; /* KVM host time: nanoseconds since the mark */
     pic_hosttime_mark = now;
+
+    /* KVM host time: nanoseconds the guest ran, without the overhead of going into and out of it */
+    const uint64_t ns = elapsed - std::min(elapsed,overhead_ns);
 
     /* KVM host time, nanoseconds to cycles: one cycle per nanosecond, more per nanosecond above
      * 1000000 cycles per millisecond (1000000 = nanoseconds per millisecond) */

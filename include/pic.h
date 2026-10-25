@@ -103,8 +103,12 @@ void PIC_SetIRQMask(Bitu irq, bool masked);
  * 1000000 a cycle is less than a nanosecond, so that an emulated millisecond never takes more
  * than a host millisecond of guest execution. */
 uint64_t PIC_HostTimeNow(void);			/* KVM: monotonic host time in nanoseconds */
-void PIC_HostTimeMark(void);			/* KVM: count host time from now (before running the guest) */
-cpu_cycles_count_t PIC_HostTimeAccount(void);	/* KVM: charge the host nanoseconds since the mark to
-						   CPU_Cycles, move the mark to now, return the cycles charged */
+uint64_t PIC_HostTimeMark(void);		/* KVM: count host time from now (before running the guest),
+						   return now */
+cpu_cycles_count_t PIC_HostTimeAccount(uint64_t overhead_ns = 0);
+						/* KVM: charge the host nanoseconds since the mark, less
+						   overhead_ns that were not guest execution (going into and
+						   out of the guest), to CPU_Cycles, move the mark to now,
+						   return the cycles charged */
 uint64_t PIC_HostTimeBudget(void);		/* KVM: host nanoseconds the remaining CPU_Cycles stand for */
 #endif
