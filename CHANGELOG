@@ -1,4 +1,38 @@
 Next version:
+  - [AI] Experimental KVM CPU core for Linux on x86-64 (configure with
+    --enable-kvm, set [cpu] core=kvm): the guest runs with hardware
+    virtualization instead of an emulated CPU. Real mode, virtual 8086 mode
+    (EMM386) and DOS/4GW protected mode programs run. Emulated time follows
+    the host time the guest runs, so cycles=max leaves time for the emulated
+    hardware and a fixed cycles count throttles the guest. It falls back to
+    the emulated core, saying why in the log, when the INT3 callback prefix
+    is off, the CPU type is below 386, or KVM is not available. The debugger
+    runs the guest on the normal core while it steps or has breakpoints that
+    need every instruction. See KVM-TODO.md for the status. (joncampbell123)
+  - [AI] Fixed the display never starting when the VGA was first set up
+    before the VGA BIOS set a video mode. (joncampbell123)
+  - [AI] Fixed the RTC reporting an update in progress for the whole first
+    second after a reset, which made anything that waits for the update to
+    end wait up to a second. (joncampbell123)
+  - [AI] The console monitor now follows "monitor socket": empty or off (the
+    default) starts no monitor, on is port 4444, a number is a TCP port, and
+    on Linux a path is a Unix socket. It used to listen on TCP port 4444 on
+    all interfaces whatever the setting. Over TCP it now accepts only
+    connections from the same computer. Fixed crashes when the port was in
+    use (several instances at once), and the Unix socket monitor, which never
+    worked. (joncampbell123)
+  - [AI] Debugger: RUN, RUNWATCH and STEPIN, and the RPC agent's step, now run
+    the callback of the instruction they step past. They skipped it before,
+    so for example RUN at a breakpoint on a DOS call lost the call.
+    (joncampbell123)
+  - [AI] Debugger: the "Start DOSBox-X Debugger" menu item and the debugger
+    hotkey are a toggle again: stopped in the debugger, they leave it and
+    resume. (joncampbell123)
+  - [AI] Debugger: callback instructions with the INT3 prefix are shown as one
+    callback instruction, and breakpoints on them work. (joncampbell123)
+  - [AI] Debugger: MEMMAP shows the physical memory map (RAM, ROM, devices)
+    and its recent changes, and CPUSTATE shows the complete CPU state.
+    (joncampbell123)
   - [AI] Fixed save states: the Vga part of every save state was written with
     a bad CRC, so loading any save state failed. An empty write with a NULL
     pointer reset the CRC of the file being written in the zip. (joncampbell123)
