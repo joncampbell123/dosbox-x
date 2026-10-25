@@ -969,15 +969,27 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,uint32_t old_eip) {
 		new_gs=mem_readw(new_tss.base+offsetof(TSS_32,gs));
 		new_ldt=mem_readw(new_tss.base+offsetof(TSS_32,ldt));
 	} else {
-		E_Exit("286 task switch");
-		new_cr3=0;
-		new_eip=0;
-		new_eflags=0;
-		new_eax=0;	new_ecx=0;	new_edx=0;	new_ebx=0;
-		new_esp=0;	new_ebp=0;	new_edi=0;	new_esi=0;
+		/* 286 TSS: 16-bit registers, no CR3, FS or GS. The upper halves of
+		 * the 32-bit registers, FS, GS and CR3 are left as they are */
+		new_cr3=paging.cr3;
+		new_eip=mem_readw(new_tss.base+offsetof(TSS_16,ip));
+		new_eflags=mem_readw(new_tss.base+offsetof(TSS_16,flags));
+		new_eax=(reg_eax&0xffff0000u)|mem_readw(new_tss.base+offsetof(TSS_16,ax));
+		new_ecx=(reg_ecx&0xffff0000u)|mem_readw(new_tss.base+offsetof(TSS_16,cx));
+		new_edx=(reg_edx&0xffff0000u)|mem_readw(new_tss.base+offsetof(TSS_16,dx));
+		new_ebx=(reg_ebx&0xffff0000u)|mem_readw(new_tss.base+offsetof(TSS_16,bx));
+		new_esp=(reg_esp&0xffff0000u)|mem_readw(new_tss.base+offsetof(TSS_16,sp));
+		new_ebp=(reg_ebp&0xffff0000u)|mem_readw(new_tss.base+offsetof(TSS_16,bp));
+		new_edi=(reg_edi&0xffff0000u)|mem_readw(new_tss.base+offsetof(TSS_16,di));
+		new_esi=(reg_esi&0xffff0000u)|mem_readw(new_tss.base+offsetof(TSS_16,si));
 
-		new_es=0;	new_cs=0;	new_ss=0;	new_ds=0;	new_fs=0;	new_gs=0;
-		new_ldt=0;
+		new_es=mem_readw(new_tss.base+offsetof(TSS_16,es));
+		new_cs=mem_readw(new_tss.base+offsetof(TSS_16,cs));
+		new_ss=mem_readw(new_tss.base+offsetof(TSS_16,ss));
+		new_ds=mem_readw(new_tss.base+offsetof(TSS_16,ds));
+		new_fs=(uint16_t)SegValue(fs);
+		new_gs=(uint16_t)SegValue(gs);
+		new_ldt=mem_readw(new_tss.base+offsetof(TSS_16,ldt));
 	}
 
 	/* Check if we need to clear busy bit of old TASK */
@@ -1009,7 +1021,23 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,uint32_t old_eip) {
 		mem_writed(cpu_tss.base+offsetof(TSS_32,fs),SegValue(fs));
 		mem_writed(cpu_tss.base+offsetof(TSS_32,gs),SegValue(gs));
 	} else {
-		E_Exit("286 task switch");
+		/* 286 TSS: the low 16 bits of everything, no FS or GS */
+		mem_writew(cpu_tss.base+offsetof(TSS_16,flags),(uint16_t)old_flags);
+		mem_writew(cpu_tss.base+offsetof(TSS_16,ip),(uint16_t)old_eip);
+
+		mem_writew(cpu_tss.base+offsetof(TSS_16,ax),reg_ax);
+		mem_writew(cpu_tss.base+offsetof(TSS_16,cx),reg_cx);
+		mem_writew(cpu_tss.base+offsetof(TSS_16,dx),reg_dx);
+		mem_writew(cpu_tss.base+offsetof(TSS_16,bx),reg_bx);
+		mem_writew(cpu_tss.base+offsetof(TSS_16,sp),reg_sp);
+		mem_writew(cpu_tss.base+offsetof(TSS_16,bp),reg_bp);
+		mem_writew(cpu_tss.base+offsetof(TSS_16,si),reg_si);
+		mem_writew(cpu_tss.base+offsetof(TSS_16,di),reg_di);
+
+		mem_writew(cpu_tss.base+offsetof(TSS_16,es),SegValue(es));
+		mem_writew(cpu_tss.base+offsetof(TSS_16,cs),SegValue(cs));
+		mem_writew(cpu_tss.base+offsetof(TSS_16,ss),SegValue(ss));
+		mem_writew(cpu_tss.base+offsetof(TSS_16,ds),SegValue(ds));
 	}
 
 	/* Setup a back link to the old TSS in new TSS */
@@ -1060,7 +1088,17 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,uint32_t old_eip) {
 
 //			new_cs=mem_readw(new_tss.base+offsetof(TSS_32,cs));
 		} else {
-			E_Exit("286 task switch");
+			/* 286 TSS holds only the low 16 bits of FLAGS. A 286 task never runs in virtual 8086 mode */
+			reg_eip=new_eip;
+			CPU_SetFlags(new_eflags,(FMASK_ALL & 0xffffu) | FLAG_VM);
+			reg_eax=new_eax;
+			reg_ecx=new_ecx;
+			reg_edx=new_edx;
+			reg_ebx=new_ebx;
+			reg_esp=new_esp;
+			reg_ebp=new_ebp;
+			reg_edi=new_edi;
+			reg_esi=new_esi;
 		}
 	}
 	/* Load the new selectors */
@@ -1862,6 +1900,12 @@ CODE_jmp:
 			Segs.val[cs]=(uint16_t)((selector & 0xfffc) | cpu.cpl);
 			reg_eip=(uint32_t)offset;
 			return;
+		case DESC_286_TSS_B:
+		case DESC_386_TSS_B:
+			/* JMP to a busy TSS */
+			CPU_Exception(EXCEPTION_GP,selector & 0xfffc);
+			return;
+		case DESC_286_TSS_A:
 		case DESC_386_TSS_A:
 			CPU_CHECK_COND(desc.DPL()<cpu.cpl,
 				"JMP:TSS:dpl<cpl",
@@ -1905,6 +1949,7 @@ CODE_jmp:
 
 				Bitu n_eip		= desc.GetOffset();
 				switch (n_cs_desc.Type()) {
+				case DESC_286_TSS_A:
 				case DESC_386_TSS_A:
 					CPU_CHECK_COND(n_cs_desc.DPL()<cpu.cpl,
 						"JMP:TSS:dpl<cpl",
@@ -2062,6 +2107,7 @@ call_code:
 
 				Bitu n_eip		= call.GetOffset();
 				switch (n_cs_desc.Type()) {
+				case DESC_286_TSS_A:
 				case DESC_386_TSS_A:
 					CPU_CHECK_COND(n_cs_desc.DPL()<cpu.cpl,
 						"CALL:TSS:dpl<cpl",
@@ -2209,6 +2255,12 @@ call_code:
 				}
 			}			/* Call Gates */
 			break;
+		case DESC_286_TSS_B:
+		case DESC_386_TSS_B:
+			/* CALL to a busy TSS */
+			CPU_Exception(EXCEPTION_GP,selector & 0xfffc);
+			return;
+		case DESC_286_TSS_A:
 		case DESC_386_TSS_A:
 			CPU_CHECK_COND(call.DPL()<cpu.cpl,
 				"CALL:TSS:dpl<cpl",
