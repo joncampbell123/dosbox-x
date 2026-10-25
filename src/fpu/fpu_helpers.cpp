@@ -7,10 +7,12 @@
 
 #include "cpu.h"
 #include "cpu/lazyflags.h"
+#include "fpu.h"
 #include "fpu_float80.h"
 #include "fpu_helpers.h"
 #include "fpu_state.h"
 #include "fpu_types.h"
+#include "mem.h"
 #include "pic.h"
 #if C_FPU_X86
 #include "fpu_x86_assembly.h"
@@ -125,6 +127,24 @@ bool CheckException()
     if (!(cpu.cr0 & CR0_NUMERICERROR)) PIC_ActivateIRQ(fpu_irq);
 
     return true;
+}
+
+bool IsRealMode()
+{
+    return !cpu.pmode || (reg_flags & FLAG_VM);
+}
+
+bool UsesPacked16BitRealEnvironment()
+{
+    // The 8087 and 387-compatible real/v86 layouts pack two 20-bit linear
+    // pointers and the 11-bit FOP into the final four words. The 287 instead
+    // uses its segmented 16:16 layout in both modes.
+    return IsRealMode() && FPU_ArchitectureType != FPU_ARCHTYPE_287;
+}
+
+bool UsesLinearRealModePointers()
+{
+    return IsRealMode() && FPU_ArchitectureType != FPU_ARCHTYPE_287;
 }
 
 void SetStatusFromHostExceptions()
@@ -399,13 +419,225 @@ void CompareToCpuFlags(int op1, int op2, bool ordered)
 
 } // namespace fpu_detail
 
+
+namespace {
+
+static PhysPt FPU_FindEscape(PhysPt code)
+{
+    for (auto i = 0; i < 15; ++i, ++code) {
+        const auto byte = mem_readb(code);
+        if (byte >= 0xd8 && byte <= 0xdf)
+            return code;
+    }
+    return code;
+}
+
+static SegNames FPU_GetOperandSegment(uint32_t instruction_pointer, Bitu rm)
+{
+    auto code = SegPhys(cs) + instruction_pointer;
+    auto address_32bit = cpu.code.big;
+    auto segment = ds;
+    auto segment_override = false;
+
+    for (auto i = 0; i < 15; ++i, ++code) {
+        switch (mem_readb(code)) {
+        case 0x26: segment = es; segment_override = true; continue;
+        case 0x2e: segment = cs; segment_override = true; continue;
+        case 0x36: segment = ss; segment_override = true; continue;
+        case 0x3e: segment = ds; segment_override = true; continue;
+        case 0x64: segment = fs; segment_override = true; continue;
+        case 0x65: segment = gs; segment_override = true; continue;
+        case 0x66:
+        case 0xf0:
+        case 0xf2:
+        case 0xf3: continue;
+        case 0x67: address_32bit = !address_32bit; continue;
+        default: break;
+        }
+        break;
+    }
+
+    if (segment_override)
+        return segment;
+
+    const auto mod = (rm >> 6u) & 3u;
+    const auto base = rm & 7u;
+    auto uses_ss = false;
+    if (address_32bit) {
+        uses_ss = (base == 5 && mod != 0);
+        if (base == 4) {
+            const auto escape = FPU_FindEscape(SegPhys(cs) + instruction_pointer);
+            const auto sib_base = mem_readb(escape + 2) & 7u;
+            uses_ss = sib_base == 4 || (sib_base == 5 && mod != 0);
+        }
+    } else {
+        uses_ss = base == 2 || base == 3 || (base == 6 && mod != 0);
+    }
+    return uses_ss ? ss : ds;
+}
+
+static bool FPU_Uses32BitAddressing(uint32_t instruction_pointer)
+{
+    auto address_32bit = cpu.code.big;
+    auto code = SegPhys(cs) + instruction_pointer;
+    for (auto i = 0; i < 15; ++i, ++code) {
+        const auto byte = mem_readb(code);
+        if (byte == 0x67) {
+            address_32bit = !address_32bit;
+        } else if (byte != 0x26 && byte != 0x2e && byte != 0x36 &&
+                   byte != 0x3e && byte != 0x64 && byte != 0x65 &&
+                   byte != 0x66 && byte != 0xf0 && byte != 0xf2 &&
+                   byte != 0xf3) {
+            break;
+        }
+    }
+    return address_32bit;
+}
+
+static uint32_t FPU_GetReg32(Bitu reg)
+{
+    switch (reg) {
+    case 0: return reg_eax;
+    case 1: return reg_ecx;
+    case 2: return reg_edx;
+    case 3: return reg_ebx;
+    case 4: return reg_esp;
+    case 5: return reg_ebp;
+    case 6: return reg_esi;
+    default: return reg_edi;
+    }
+}
+
+static uint32_t FPU_GetDynOperandOffset(uint32_t instruction_pointer, Bitu rm)
+{
+    const auto escape = FPU_FindEscape(SegPhys(cs) + instruction_pointer);
+    auto code = escape + 2; // Skip the ESC and ModR/M bytes.
+    const auto mod = (rm >> 6u) & 3u;
+    const auto base = rm & 7u;
+
+    if (FPU_Uses32BitAddressing(instruction_pointer)) {
+        uint32_t offset = 0;
+        auto displacement = 0;
+        if (base == 4) {
+            const auto sib = mem_readb(code++);
+            const auto sib_base = sib & 7u;
+            const auto sib_index = (sib >> 3u) & 7u;
+            if (sib_index != 4)
+                offset = FPU_GetReg32(sib_index) << (sib >> 6u);
+            if (mod != 0 || sib_base != 5)
+                offset += FPU_GetReg32(sib_base);
+            else
+                displacement = 4;
+        } else if (mod != 0 || base != 5) {
+            offset = FPU_GetReg32(base);
+        } else {
+            displacement = 4;
+        }
+
+        if (mod == 1) {
+            offset += static_cast<int8_t>(mem_readb(code));
+        } else if (mod == 2 || displacement == 4) {
+            offset += static_cast<int32_t>(mem_readd(code));
+        }
+        return offset;
+    }
+
+    uint16_t offset = 0;
+    switch (base) {
+    case 0: offset = reg_bx + reg_si; break;
+    case 1: offset = reg_bx + reg_di; break;
+    case 2: offset = reg_bp + reg_si; break;
+    case 3: offset = reg_bp + reg_di; break;
+    case 4: offset = reg_si; break;
+    case 5: offset = reg_di; break;
+    case 6:
+        if (mod != 0) offset = reg_bp;
+        break;
+    case 7: offset = reg_bx; break;
+    }
+    if (mod == 0 && base == 6)
+        offset = mem_readw(code);
+    else if (mod == 1)
+        offset = static_cast<uint16_t>(offset + static_cast<int8_t>(mem_readb(code)));
+    else if (mod == 2)
+        offset = static_cast<uint16_t>(offset + static_cast<int16_t>(mem_readw(code)));
+    return offset;
+}
+
+} // namespace
+
+void FPU_RecordExceptionContext(Bitu escape, Bitu rm, bool has_data_pointer,
+                                PhysPt data_pointer)
+{
+    auto opcode_pointer = reg_eip;
+    // The 8087 records the ESC byte itself, whereas later x87s record the
+    // complete instruction including prefixes.
+    if (FPU_ArchitectureType <= FPU_ARCHTYPE_8087) {
+        opcode_pointer = static_cast<uint32_t>(
+                FPU_FindEscape(SegPhys(cs) + reg_eip) - SegPhys(cs));
+    }
+
+    const auto data_segment = FPU_GetOperandSegment(reg_eip, rm);
+    const auto data_offset = has_data_pointer
+                                     ? static_cast<uint32_t>(data_pointer - SegPhys(data_segment))
+                                     : 0;
+    const auto instruction_offset = FPU_ArchitectureType <= FPU_ARCHTYPE_8087
+                                            ? opcode_pointer
+                                            : reg_eip;
+    fpu.fip = fpu_detail::UsesLinearRealModePointers()
+                      ? SegPhys(cs) + instruction_offset
+                      : instruction_offset;
+    fpu.fcs = SegValue(cs);
+    fpu.fop = static_cast<uint16_t>((escape << 8u) | rm);
+    fpu.fdp = has_data_pointer && fpu_detail::UsesLinearRealModePointers()
+                      ? data_pointer
+                      : data_offset;
+    fpu.fds = has_data_pointer ? SegValue(data_segment) : 0;
+}
+
+void FPU_RecordExceptionContextFromDynCPU(uint32_t instruction_pointer_offset,
+                                          uint16_t opcode)
+{
+    const auto instruction_pointer = reg_eip + instruction_pointer_offset;
+    auto opcode_pointer = instruction_pointer;
+    if (FPU_ArchitectureType <= FPU_ARCHTYPE_8087) {
+        opcode_pointer = static_cast<uint32_t>(
+                FPU_FindEscape(SegPhys(cs) + instruction_pointer) - SegPhys(cs));
+    }
+    const auto instruction_offset = FPU_ArchitectureType <= FPU_ARCHTYPE_8087
+                                            ? opcode_pointer
+                                            : instruction_pointer;
+    fpu.fip = fpu_detail::UsesLinearRealModePointers()
+                      ? SegPhys(cs) + instruction_offset
+                      : instruction_offset;
+    fpu.fcs = SegValue(cs);
+    fpu.fop = opcode & 0x7ffu;
+    const auto rm = opcode & 0xffu;
+    if (rm < 0xc0) {
+        const auto segment = FPU_GetOperandSegment(instruction_pointer, rm);
+        const auto offset = FPU_GetDynOperandOffset(instruction_pointer, rm);
+        fpu.fdp = fpu_detail::UsesLinearRealModePointers()
+                          ? SegPhys(segment) + offset
+                          : offset;
+        fpu.fds = SegValue(segment);
+    } else {
+        fpu.fdp = 0;
+        fpu.fds = 0;
+    }
+}
+
+bool FPU_UnmaskedExceptionPending()
+{
+    const auto raised = fpu.sw.reg & FPUStatusWord::exceptionMask;
+    const auto masked = fpu.cw.reg & FPUStatusWord::exceptionMask;
+    return (raised & ~masked) != 0;
+}
+
 bool FPU_NumericExceptionPending()
 {
     if (!(cpu.cr0 & CR0_NUMERICERROR)) return false;
 
-    const auto raised = fpu.sw.reg & FPUStatusWord::exceptionMask;
-    const auto masked = fpu.cw.reg & FPUStatusWord::exceptionMask;
-    return (raised & ~masked) != 0;
+    return FPU_UnmaskedExceptionPending();
 }
 
 #endif // C_FPU

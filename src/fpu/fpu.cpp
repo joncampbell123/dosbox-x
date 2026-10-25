@@ -477,6 +477,11 @@ void FPU_FINIT()
     fpu.regvalid = {};
     fpu.regvalid[8] = true; // the 9th register is always valid, it's used for temporary storage
     fpu.ea_denormal = false;
+    fpu.fip = 0;
+    fpu.fdp = 0;
+    fpu.fcs = 0;
+    fpu.fds = 0;
+    fpu.fop = 0;
 
 }
 
@@ -624,19 +629,85 @@ void FPU_FLDCW(PhysPt addr)
 	fpu.cw = mem_readw(addr);
 }
 
-void FPU_FLDENV(PhysPt addr, bool op16)
+namespace {
+
+void fpu_store_environment(PhysPt addr, bool op16)
 {
-    uint16_t tag;
+    const auto tag = fpu_detail::GetTag();
+
     if (op16) {
-        fpu.cw = mem_readw(addr+0);
-        fpu.sw = mem_readw(addr+2);
-        tag    = mem_readw(addr+4);
+        mem_writew(addr + 0, static_cast<uint16_t>(fpu.cw));
+        mem_writew(addr + 2, static_cast<uint16_t>(fpu.sw));
+        mem_writew(addr + 4, tag);
+
+        if (fpu_detail::UsesPacked16BitRealEnvironment()) {
+            mem_writew(addr + 6, static_cast<uint16_t>(fpu.fip));
+            mem_writew(addr + 8, static_cast<uint16_t>((fpu.fop & 0x7ffu) << 5u) |
+                                   static_cast<uint16_t>((fpu.fip >> 16u) & 0x0fu));
+            mem_writew(addr + 10, static_cast<uint16_t>(fpu.fdp));
+            mem_writew(addr + 12, static_cast<uint16_t>((fpu.fdp >> 16u) & 0x0fu));
+        } else {
+            mem_writew(addr + 6, static_cast<uint16_t>(fpu.fip));
+            mem_writew(addr + 8, fpu.fcs);
+            mem_writew(addr + 10, static_cast<uint16_t>(fpu.fdp));
+            mem_writew(addr + 12, fpu.fds);
+        }
+        return;
+    }
+
+    mem_writed(addr + 0, static_cast<uint16_t>(fpu.cw));
+    mem_writed(addr + 4, static_cast<uint16_t>(fpu.sw));
+    mem_writed(addr + 8, tag);
+    mem_writed(addr + 12, fpu.fip);
+    mem_writed(addr + 16, (fpu_detail::IsRealMode() ? 0u : fpu.fcs) |
+                                (static_cast<uint32_t>(fpu.fop & 0x7ffu) << 16u));
+    mem_writed(addr + 20, fpu.fdp);
+    mem_writed(addr + 24, fpu_detail::IsRealMode() ? 0u : fpu.fds);
+}
+
+void fpu_load_environment(PhysPt addr, bool op16)
+{
+    uint16_t tag = 0;
+    if (op16) {
+        fpu.cw = mem_readw(addr + 0);
+        fpu.sw = mem_readw(addr + 2);
+        tag = mem_readw(addr + 4);
+
+        if (fpu_detail::UsesPacked16BitRealEnvironment()) {
+            const auto fip_high_and_fop = mem_readw(addr + 8);
+            fpu.fip = mem_readw(addr + 6) |
+                      ((static_cast<uint32_t>(fip_high_and_fop) & 0x0fu) << 16u);
+            fpu.fop = (fip_high_and_fop >> 5u) & 0x7ffu;
+            fpu.fdp = mem_readw(addr + 10) |
+                      ((static_cast<uint32_t>(mem_readw(addr + 12)) & 0x0fu) << 16u);
+            fpu.fcs = 0;
+            fpu.fds = 0;
+        } else {
+            fpu.fip = mem_readw(addr + 6);
+            fpu.fcs = mem_readw(addr + 8);
+            fpu.fdp = mem_readw(addr + 10);
+            fpu.fds = mem_readw(addr + 12);
+            fpu.fop = 0;
+        }
     } else {
-        fpu.cw = static_cast<uint16_t>(mem_readd(addr+0));
-        fpu.sw = static_cast<uint16_t>(mem_readd(addr+4));
-        tag    = static_cast<uint16_t>(mem_readd(addr+8));
+        fpu.cw = static_cast<uint16_t>(mem_readd(addr + 0));
+        fpu.sw = static_cast<uint16_t>(mem_readd(addr + 4));
+        tag = static_cast<uint16_t>(mem_readd(addr + 8));
+        fpu.fip = mem_readd(addr + 12);
+        const auto fcs_and_fop = mem_readd(addr + 16);
+        fpu.fcs = fpu_detail::IsRealMode() ? 0 : static_cast<uint16_t>(fcs_and_fop);
+        fpu.fop = static_cast<uint16_t>((fcs_and_fop >> 16u) & 0x7ffu);
+        fpu.fdp = mem_readd(addr + 20);
+        fpu.fds = fpu_detail::IsRealMode() ? 0 : static_cast<uint16_t>(mem_readd(addr + 24));
     }
     FPU_SetTag(tag);
+}
+
+} // namespace
+
+void FPU_FLDENV(PhysPt addr, bool op16)
+{
+    fpu_load_environment(addr, op16);
 }
 
 void FPU_FLDL2E()
@@ -1173,15 +1244,7 @@ void FPU_FST(int src, int dst)
 
 void FPU_FSTENV(PhysPt addr, bool op16)
 {
-    if (op16) {
-        mem_writew(addr, static_cast<uint16_t>(fpu.cw));
-        mem_writew(addr + 2, static_cast<uint16_t>(fpu.sw));
-        mem_writew(addr + 4, fpu_detail::GetTag());
-    } else {
-        mem_writed(addr, static_cast<uint32_t>(fpu.cw));
-        mem_writed(addr + 4, static_cast<uint32_t>(fpu.sw));
-        mem_writed(addr + 8, fpu_detail::GetTag());
-    }
+    fpu_store_environment(addr, op16);
     // FNSTENV masks all floating-point exceptions after saving the environment.
     fpu.cw = fpu.cw.allMasked();
 }
@@ -2655,12 +2718,12 @@ void CPU_FXSAVE(PhysPt eaa) {
 	mem_writew(eaa+0x002,fpu.sw);					/* +0x002 FPU status word */
 	mem_writeb(eaa+0x004,FPU_GetAbridgedTag());			/* +0x004 FPU tag words, abridged to a bitfield of 1=not empty 0=empty, register order NOT from TOP */
 	mem_writeb(eaa+0x005,0x00);					/* +0x005 reserved */
-	mem_writew(eaa+0x006,0x0000);					/* +0x006 x87 FPU opcode (??) */
-	mem_writed(eaa+0x008,reg_eip);					/* +0x008 x87 FPU instruction pointer (???) */
-	mem_writew(eaa+0x00C,Segs.val[cs]);				/* +0x00C x87 FPU instruction pointer segment (???) */
+	mem_writew(eaa+0x006,fpu.fop);					/* +0x006 FOP: x87 opcode */
+	mem_writed(eaa+0x008,fpu.fip);					/* +0x008 FIP: x87 instruction pointer offset */
+	mem_writew(eaa+0x00C,fpu.fcs);					/* +0x00C FCS: x87 instruction pointer selector */
 	mem_writew(eaa+0x00E,0x0000);					/* +0x00E reserved */
-	mem_writed(eaa+0x010,reg_eip);					/* +0x010 x87 FPU instruction operand (???) */
-	mem_writew(eaa+0x014,Segs.val[ds]);				/* +0x014 x87 FPU instruction operand segment (???) */
+	mem_writed(eaa+0x010,fpu.fdp);					/* +0x010 FDP: x87 data pointer offset */
+	mem_writew(eaa+0x014,fpu.fds);					/* +0x014 FDS: x87 data pointer selector */
 	mem_writew(eaa+0x016,0x0000);					/* +0x016 reserved */
 	mem_writed(eaa+0x018,fpu.mxcsr);				/* +0x018 MXCSR */
 	mem_writed(eaa+0x01C,0xFFBF);					/* +0x01C MXCSR_MASK (DAZ not supported) */
@@ -2688,6 +2751,11 @@ void CPU_FXRSTOR(PhysPt eaa) {
 	/* Ref: [https://www.felixcloutier.com/x86/fxsave] */
 	fpu.cw = mem_readw(eaa+0x000);					/* +0x000 FPU control word */
 	fpu.sw = mem_readw(eaa+0x002);					/* +0x002 FPU status word */
+	fpu.fop = mem_readw(eaa+0x006) & 0x7ffu;
+	fpu.fip = mem_readd(eaa+0x008);
+	fpu.fcs = mem_readw(eaa+0x00C);
+	fpu.fdp = mem_readd(eaa+0x010);
+	fpu.fds = mem_readw(eaa+0x014);
 	fpu.mxcsr = mem_readd(eaa+0x018);				/* +0x018 MXCSR */
 
 	/* NTS: Remember that st(i) TOP pointer is in FPU status word */

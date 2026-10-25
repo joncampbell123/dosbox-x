@@ -457,8 +457,9 @@ static void dyn_check_bool_normal_al(void) {
 	used_save_info++;
 }
 
-static void dyn_dh_fpu_post_instruction(void) {
-	gen_call_function((void *)&dh_fpu_update_mode, "");
+static void dyn_dh_fpu_post_instruction(uint16_t opcode = 0) {
+	gen_call_function((void *)&dh_fpu_update_mode, "%Id%Id",
+	                  decode.op_start - decode.code_start, opcode);
 	gen_call_function((void *)&dh_fpu_take_numeric_exception, "");
 	dyn_check_bool_exception_al();
 	gen_call_function((void *)&dh_fpu_mode_change_pending, "");
@@ -482,12 +483,19 @@ static void dyn_check_irqrequest(void) {
 	used_save_info++;
 }
 
-static void dyn_fpu_post_instruction(void) {
-	gen_call_function((void *)&FPU_NumericException, "");
+static void dyn_fpu_post_instruction(uint16_t opcode) {
+	gen_call_function((void *)&FPU_NumericExceptionWithContext, "%Id%Id",
+	                  decode.op_start - decode.code_start, opcode);
 	dyn_check_bool_exception_al();
 #ifdef X86_DYNFPU_DH_ENABLED
-	if (dyn_dh_fpu.dh_fpu_allowed) dyn_dh_fpu_post_instruction();
+	if (dyn_dh_fpu.dh_fpu_allowed) dyn_dh_fpu_post_instruction(opcode);
 #endif
+	dyn_check_irqrequest();
+}
+
+static void dyn_fpu_post_wait() {
+	gen_call_function((void *)&FPU_NumericException, "");
+	dyn_check_bool_exception_al();
 	dyn_check_irqrequest();
 }
 
@@ -2991,7 +2999,7 @@ restart_prefix:
 #ifdef X86_DYNFPU_DH_ENABLED
 			if (!dyn_dh_fpu.dh_fpu_enabled)
 #endif
-				dyn_fpu_post_instruction();
+				dyn_fpu_post_wait();
 #endif
 			break;
 		//XCHG ax,reg
@@ -3153,7 +3161,8 @@ restart_prefix:
 #endif
 			{
 				dyn_fpu_esc0();
-				dyn_fpu_post_instruction();
+				dyn_fpu_post_instruction((0 << 8) | (decode.modrm.mod << 6) |
+				                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			}
 			break;
 		case 0xd9:
@@ -3170,7 +3179,8 @@ restart_prefix:
 #endif
 			{
 				dyn_fpu_esc1();
-				dyn_fpu_post_instruction();
+				dyn_fpu_post_instruction((1 << 8) | (decode.modrm.mod << 6) |
+				                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			}
 			break;
 		case 0xda:
@@ -3187,7 +3197,8 @@ restart_prefix:
 #endif
 			{
 				dyn_fpu_esc2();
-				dyn_fpu_post_instruction();
+				dyn_fpu_post_instruction((2 << 8) | (decode.modrm.mod << 6) |
+				                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			}
 			break;
 		case 0xdb:
@@ -3204,7 +3215,8 @@ restart_prefix:
 #endif
 			{
 				dyn_fpu_esc3();
-				dyn_fpu_post_instruction();
+				dyn_fpu_post_instruction((3 << 8) | (decode.modrm.mod << 6) |
+				                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			}
 			break;
 		case 0xdc:
@@ -3221,7 +3233,8 @@ restart_prefix:
 #endif
 			{
 				dyn_fpu_esc4();
-				dyn_fpu_post_instruction();
+				dyn_fpu_post_instruction((4 << 8) | (decode.modrm.mod << 6) |
+				                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			}
 			break;
 		case 0xdd:
@@ -3238,7 +3251,8 @@ restart_prefix:
 #endif
 			{
 				dyn_fpu_esc5();
-				dyn_fpu_post_instruction();
+				dyn_fpu_post_instruction((5 << 8) | (decode.modrm.mod << 6) |
+				                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			}
 			break;
 		case 0xde:
@@ -3255,7 +3269,8 @@ restart_prefix:
 #endif
 			{
 				dyn_fpu_esc6();
-				dyn_fpu_post_instruction();
+				dyn_fpu_post_instruction((6 << 8) | (decode.modrm.mod << 6) |
+				                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			}
 			break;
 		case 0xdf:
@@ -3272,7 +3287,8 @@ restart_prefix:
 #endif
 			{
 				dyn_fpu_esc7();
-				dyn_fpu_post_instruction();
+				dyn_fpu_post_instruction((7 << 8) | (decode.modrm.mod << 6) |
+				                         (decode.modrm.reg << 3) | decode.modrm.rm);
 			}
 			break;
 #endif

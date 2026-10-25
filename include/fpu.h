@@ -164,6 +164,15 @@ void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub);
 // True if the x87 state has an unmasked exception that must be delivered as
 // #MF on processors configured with CR0.NE.
 bool FPU_NumericExceptionPending();
+bool FPU_UnmaskedExceptionPending();
+
+// Record x87 pointer/opcode state after an unmasked exception has been
+// detected. These functions must not be called for normal instructions.
+void FPU_RecordExceptionContext(Bitu escape, Bitu rm,
+                                bool has_data_pointer = false,
+                                PhysPt data_pointer = 0);
+void FPU_RecordExceptionContextFromDynCPU(uint32_t instruction_pointer_offset,
+                                          uint16_t opcode);
 
 /* FPU exception flags */
 enum {
