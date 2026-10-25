@@ -46,6 +46,27 @@ enum {
 
 extern uint8_t lastint;
 
+/* The callback instruction is FE 38 imm16 (GRP 4 /7, not a valid instruction on real hardware),
+ * optionally prefixed by INT3 (CC) so that a hardware virtualization CPU core can catch it as #BP.
+ * The encoding is chosen when the callback instructions are written at startup or reset, and
+ * cannot change while they exist in guest memory. Code that writes a callback instruction must
+ * use the CALLBACK_WriteInstr functions and lay out the code around it by the returned length. */
+extern bool CALLBACK_Int3Prefix;
+
+static INLINE Bitu CALLBACK_InstrLength(void) {
+	return CALLBACK_Int3Prefix ? 5u : 4u;
+}
+
+/* Write a callback instruction, return its length */
+Bitu CALLBACK_WriteInstr(PhysPt addr,Bitu callback);
+Bitu CALLBACK_WriteInstrLinear(LinearPt addr,Bitu callback);
+Bitu CALLBACK_WriteInstrToBuffer(uint8_t *buf,Bitu callback);
+
+/* The block of INT xx + callback stop instructions that follows the callback entries */
+static INLINE Bitu CALLBACK_RealIntStubSize(void) {
+	return 2u + CALLBACK_InstrLength();
+}
+
 static INLINE RealPt CALLBACK_RealPointer(Bitu callback) {
 	return RealMake(CB_SEG,(uint16_t)(CB_SOFFSET+callback*CB_SIZE));
 }

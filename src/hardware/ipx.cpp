@@ -1240,17 +1240,15 @@ public:
 		phys_writew(phyDospage+6,(uint16_t)0xA80F); // PUSH GS
  
 		// callback
-		phys_writeb(phyDospage+8,(uint8_t)0xFE);  // GRP 4
-		phys_writeb(phyDospage+9,(uint8_t)0x38);  // Extra Callback instruction
-		phys_writew(phyDospage+10,call_ipxesr1);        // Callback identifier
+		const PhysPt w = phyDospage+8+(PhysPt)CALLBACK_WriteInstr(phyDospage+8,call_ipxesr1);
  
 		// register recreation
-		phys_writew(phyDospage+12,(uint16_t)0xA90F); // POP GS
-		phys_writew(phyDospage+14,(uint16_t)0xA10F); // POP FS
-		phys_writeb(phyDospage+16,(uint8_t)0x07);    // POP ES
-		phys_writeb(phyDospage+17,(uint8_t)0x1F);    // POP DS
-		phys_writeb(phyDospage+18,(uint8_t)0x61);    // POPA
-		phys_writeb(phyDospage+19,(uint8_t)0xCF);    // IRET: restores flags, CS, IP
+		phys_writew(w+0,(uint16_t)0xA90F); // POP GS
+		phys_writew(w+2,(uint16_t)0xA10F); // POP FS
+		phys_writeb(w+4,(uint8_t)0x07);    // POP ES
+		phys_writeb(w+5,(uint8_t)0x1F);    // POP DS
+		phys_writeb(w+6,(uint8_t)0x61);    // POPA
+		phys_writeb(w+7,(uint8_t)0xCF);    // IRET: restores flags, CS, IP
  
 		// IPX version 2.12
 		//phys_writeb(phyDospage+27,(uint8_t)0x2);

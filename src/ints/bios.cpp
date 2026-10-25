@@ -2262,14 +2262,12 @@ void ISAPNP_Cfg_Reset(Section *sec) {
         phys_writeb(base+0x01,0x55);                             /* push (e)bp */
         phys_writeb(base+0x02,0x55);                             /* push (e)bp */
 
-        phys_writeb(base+0x03,(uint8_t)0xFE);                     //GRP 4
-        phys_writeb(base+0x04,(uint8_t)0x38);                     //Extra Callback instruction
-        phys_writew(base+0x05,(uint16_t)cb);                      //The immediate word
+        base += 0x03 + CALLBACK_WriteInstr(base+0x03,cb);           //Callback instruction
 
-        phys_writeb(base+0x07,0x5D);                             /* pop (e)bp */
-        phys_writeb(base+0x08,0x5D);                             /* pop (e)bp */
-        phys_writeb(base+0x09,0x9D);                             /* popf */
-        phys_writeb(base+0x0A,0xCB);                             /* retf */
+        phys_writeb(base+0x00,0x5D);                             /* pop (e)bp */
+        phys_writeb(base+0x01,0x5D);                             /* pop (e)bp */
+        phys_writeb(base+0x02,0x9D);                             /* popf */
+        phys_writeb(base+0x03,0xCB);                             /* retf */
 
         /* APM suspended mode execution loop */
         cb = CALLBACK_Allocate();
@@ -11237,7 +11235,7 @@ private:
                     adapter_scan_start = 0xC0000 + size;
 
                     // step back into the callback instruction that triggered this call
-                    reg_eip -= 4;
+                    reg_eip -= CALLBACK_InstrLength();
 
                     // FAR CALL into the VGA BIOS
                     CPU_CALL(false,0xC000,0x0003,reg_eip);
@@ -11276,7 +11274,7 @@ private:
                     LOG(LOG_MISC,LOG_DEBUG)("Running ADAPTER ROM entry point");
 
                     // step back into the callback instruction that triggered this call
-                    reg_eip -= 4;
+                    reg_eip -= CALLBACK_InstrLength();
 
                     // FAR CALL into the VGA BIOS
                     CPU_CALL(false,segm,0x0003,reg_eip);
@@ -12409,7 +12407,7 @@ public:
         BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF53));
         BIOS_DEFAULT_INT5_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/, "BIOS default INT5 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF54));
         BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFEA5));
-        BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE987));
+        BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x1c+CALLBACK_InstrLength()/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE987));
         BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF55));
         BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE880));
 
@@ -12693,28 +12691,16 @@ public:
             wo_fence = wo + 64;
 
             // POST
-            phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
-            phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(uint16_t)cb_bios_post.Get_callback());           //The immediate word
-            wo += 4;
+            wo += CALLBACK_WriteInstr(wo,cb_bios_post.Get_callback());       //Callback instruction
 
             // video bios scan
-            phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
-            phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(uint16_t)cb_bios_scan_video_bios.Get_callback());        //The immediate word
-            wo += 4;
+            wo += CALLBACK_WriteInstr(wo,cb_bios_scan_video_bios.Get_callback());       //Callback instruction
 
             // adapter ROM scan
-            phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
-            phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(uint16_t)cb_bios_adapter_rom_scan.Get_callback());       //The immediate word
-            wo += 4;
+            wo += CALLBACK_WriteInstr(wo,cb_bios_adapter_rom_scan.Get_callback());       //Callback instruction
 
             // startup screen
-            phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
-            phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(uint16_t)cb_bios_startup_screen.Get_callback());     //The immediate word
-            wo += 4;
+            wo += CALLBACK_WriteInstr(wo,cb_bios_startup_screen.Get_callback());       //Callback instruction
 
             // user boot hook
             if (bios_user_boot_hook != 0) {
@@ -12727,17 +12713,11 @@ public:
 
             // boot
             BIOS_boot_code_offset = wo;
-            phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
-            phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(uint16_t)cb_bios_boot.Get_callback());           //The immediate word
-            wo += 4;
+            wo += CALLBACK_WriteInstr(wo,cb_bios_boot.Get_callback());       //Callback instruction
 
             // boot fail
             BIOS_bootfail_code_offset = wo;
-            phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
-            phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(uint16_t)cb_bios_bootfail.Get_callback());           //The immediate word
-            wo += 4;
+            wo += CALLBACK_WriteInstr(wo,cb_bios_bootfail.Get_callback());       //Callback instruction
 
             /* fence */
             phys_writeb(wo++,0xEB);                             // JMP $-2
@@ -12749,14 +12729,12 @@ public:
                 /* Boot disks that run N88 basic, stopgap */
                 PhysPt bo = 0xE8002; // E800:0002
 
-		ROMBIOS_GetMemory(6,"N88 ROM BASIC entry point",/*align*/1,bo);
+		ROMBIOS_GetMemory(CALLBACK_InstrLength()+2,"N88 ROM BASIC entry point",/*align*/1,bo);
 
-                phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
-                phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-                phys_writew(bo+0x02,(uint16_t)cb_pc98_rombasic.Get_callback());           //The immediate word
+                bo += CALLBACK_WriteInstr(bo,cb_pc98_rombasic.Get_callback());       //Callback instruction
 
-                phys_writeb(bo+0x04,0xEB);                             // JMP $-2
-                phys_writeb(bo+0x05,0xFE);
+                phys_writeb(bo+0x00,0xEB);                             // JMP $-2
+                phys_writeb(bo+0x01,0xFE);
 
                 // On careful examination of BIOS.ROM, there's a JMP instruction at E800:0000 as well.
                 // I don't have any test cases that jump there, but add a JMP forward just in case.
@@ -12798,25 +12776,21 @@ public:
 
 			    bo = 0xF6000+0x2DB0; // F600:2DB0
 
-			    ROMBIOS_GetMemory(6,"IBM ROM BASIC entry point",/*align*/1,bo);
+			    ROMBIOS_GetMemory(CALLBACK_InstrLength()+2,"IBM ROM BASIC entry point",/*align*/1,bo);
 
-			    phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
-			    phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-			    phys_writew(bo+0x02,(uint16_t)cb_ibm_basic.Get_callback());           //The immediate word
+			    bo += CALLBACK_WriteInstr(bo,cb_ibm_basic.Get_callback());       //Callback instruction
 
-			    phys_writeb(bo+0x04,0xEB);                             // JMP $-2
-			    phys_writeb(bo+0x05,0xFE);
+			    phys_writeb(bo+0x00,0xEB);                             // JMP $-2
+			    phys_writeb(bo+0x01,0xFE);
 
 			    bo = 0xF6000+0x4C79; // F600:4C79
 
-			    ROMBIOS_GetMemory(6,"IBM ROM BASIC entry point",/*align*/1,bo);
+			    ROMBIOS_GetMemory(CALLBACK_InstrLength()+2,"IBM ROM BASIC entry point",/*align*/1,bo);
 
-			    phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
-			    phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-			    phys_writew(bo+0x02,(uint16_t)cb_ibm_basic.Get_callback());           //The immediate word
+			    bo += CALLBACK_WriteInstr(bo,cb_ibm_basic.Get_callback());       //Callback instruction
 
-			    phys_writeb(bo+0x04,0xEB);                             // JMP $-2
-			    phys_writeb(bo+0x05,0xFE);
+			    phys_writeb(bo+0x00,0xEB);                             // JMP $-2
+			    phys_writeb(bo+0x01,0xFE);
 		    }
 	    }
 

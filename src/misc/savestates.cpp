@@ -16,6 +16,7 @@
 #include "logging.h"
 #include "mixer.h"
 #include "build_timestamp.h"
+#include "callback.h"
 #ifdef WIN32
 #include "direct.h"
 #endif
@@ -155,6 +156,13 @@ namespace
 	{
 		if (log || unattended_save_state) LOG_MSG("%s",message.c_str());
 		if (!unattended_save_state) systemmessagebox("Error",message.c_str(),"ok","error", 1);
+	}
+
+	/* The encoding of the callback instructions in guest memory (see callback.h), stored as
+	 * Callback_Encoding. States saved before that entry existed use FE38. */
+	const char *CallbackEncodingName(bool int3_prefix)
+	{
+		return int3_prefix ? "INT3+FE38" : "FE38";
 	}
 
 	size_t GetGameState(void) {
@@ -540,6 +548,15 @@ bool SaveState::save(size_t slot) { //throw (Error)
 	}
 	{
 		zip_fileinfo zi; zipSetCurrentTime(zi);
+		if ((errclose=zipOutOpenFile(zf,"Callback_Encoding",zi,compresssaveparts)) != ZIP_OK) { save_err = true; goto done; }
+		zip_ostreambuf zos(zf); std::ostream callbackencoding(&zos);
+
+		callbackencoding << CallbackEncodingName(CALLBACK_Int3Prefix);
+
+		if ((errclose=zos.close()) != ZIP_OK) { save_err = true; goto done; }
+	}
+	{
+		zip_fileinfo zi; zipSetCurrentTime(zi);
 		if ((errclose=zipOutOpenFile(zf,"Time_Stamp",zi,compresssaveparts)) != ZIP_OK) { save_err = true; goto done; }
 		zip_ostreambuf zos(zf); std::ostream timestamp(&zos);
 
@@ -770,6 +787,34 @@ bool SaveState::load(size_t slot) const { //throw (Error)
 		}
 
 		if ((err=zis.close()) != ZIP_OK) { load_err=true; goto done; }
+	}
+
+	{
+		/* The callback instructions are in the saved memory, and the CPU core of this session
+		 * cannot run the other encoding, so a mismatch is refused even if loading is forced. */
+		std::string saved_encoding = CallbackEncodingName(false);
+		if (unzLocateFile(zf,"Callback_Encoding",1/*case sensitive*/) == UNZ_OK) {
+			if ((err=unzGetCurrentFileInfo64(zf,&file_info,NULL,0,NULL,0,NULL,0)) != UNZ_OK) { load_err=true; goto done; }
+			if ((err=unzOpenCurrentFile(zf)) != UNZ_OK) { load_err=true; goto done; }
+			zip_istreambuf zis(zf);
+
+			char buffer[64];
+			size_t length = (size_t)zis.xsgetn((zip_istreambuf::char_type*)buffer,sizeof(buffer)-1); buffer[length] = 0;
+			saved_encoding = buffer;
+
+			if ((err=zis.close()) != ZIP_OK) { load_err=true; goto done; }
+		}
+
+		const std::string current_encoding = CallbackEncodingName(CALLBACK_Int3Prefix);
+		if (saved_encoding != current_encoding) {
+			notifyError("This state cannot be loaded. It was saved with the DOSBox-X callback instructions in guest memory "
+				"encoded as " + saved_encoding + ", but this session encodes them as " + current_encoding + ". "
+				"The INT3+FE38 encoding is the one used with the KVM CPU core. Loading the state would leave callback "
+				"instructions that this session cannot execute, so the emulated machine would crash.\n\n"
+				"Change the callback encoding to match, reset the emulator, then load the state again.");
+			load_err=true;
+			goto done;
+		}
 	}
 
 	for (CompEntry::const_iterator i = components.begin(); i != components.end(); ++i) {

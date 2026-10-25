@@ -522,7 +522,7 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 
 #if !defined(OSFREE)
 	if (rootDriverHeaderSeg==0) {
-		uint16_t driverSize = sizeof(DOS_DeviceHeader::sDeviceHeader) + 10; // 10 = Bytes for 3 callbacks
+		uint16_t driverSize = (uint16_t)(sizeof(DOS_DeviceHeader::sDeviceHeader) + (2 * (CALLBACK_InstrLength() + 1))); // 2 callbacks + RETF
 
 		/* should have been assigned by SetName() in constructor, with copy stored by DOS_File::SetName */
 		assert(name != NULL);
@@ -553,21 +553,16 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		uint16_t off = sizeof(DOS_DeviceHeader::sDeviceHeader);
 		uint16_t call_strategy=CALLBACK_Allocate();
 		CallBack_Handlers[call_strategy]=MSCDEX_Strategy_Handler;
-		real_writeb(seg,off+0,(uint8_t)0xFE);		//GRP 4
-		real_writeb(seg,off+1,(uint8_t)0x38);		//Extra Callback instruction
-		real_writew(seg,off+2,call_strategy);	//The immediate word
-		real_writeb(seg,off+4,(uint8_t)0xCB);		//A RETF Instruction
 		devHeader.SetStrategy(off);
+		off += (uint16_t)CALLBACK_WriteInstrLinear((LinearPt)PhysMake(seg,off),call_strategy);	//Callback instruction
+		real_writeb(seg,off++,(uint8_t)0xCB);		//A RETF Instruction
 		
 		// Create Callback Interrupt
-		off += 5;
 		uint16_t call_interrupt=CALLBACK_Allocate();
 		CallBack_Handlers[call_interrupt]=MSCDEX_Interrupt_Handler;
-		real_writeb(seg,off+0,(uint8_t)0xFE);		//GRP 4
-		real_writeb(seg,off+1,(uint8_t)0x38);		//Extra Callback instruction
-		real_writew(seg,off+2,call_interrupt);	//The immediate word
-		real_writeb(seg,off+4,(uint8_t)0xCB);		//A RETF Instruction
 		devHeader.SetInterrupt(off);
+		off += (uint16_t)CALLBACK_WriteInstrLinear((LinearPt)PhysMake(seg,off),call_interrupt);	//Callback instruction
+		real_writeb(seg,off++,(uint8_t)0xCB);		//A RETF Instruction
 		
 		rootDriverHeaderSeg = seg;
 	} else if (GetNumDrives() == 0) {
@@ -575,7 +570,7 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		uint16_t off = sizeof(DOS_DeviceHeader::sDeviceHeader);
 		devHeader.SetDriveLetter(_drive+1);
 		devHeader.SetStrategy(off);
-		devHeader.SetInterrupt(off+5);
+		devHeader.SetInterrupt((uint16_t)(off+CALLBACK_InstrLength()+1));
 	}
 #endif
 

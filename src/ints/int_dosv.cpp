@@ -2184,14 +2184,13 @@ void DOSV_Setup()
 		dosv_font_handler[ct] = CALLBACK_Allocate();
 		CallBack_Handlers[dosv_font_handler[ct]] = font_handler_list[ct];
 		dosv_font_handler_offset[ct] = CALLBACK_PhysPointer(dosv_font_handler[ct]) & 0xffff;
-		phys_writeb(CALLBACK_PhysPointer(dosv_font_handler[ct]) + 0, 0xFE);
-		phys_writeb(CALLBACK_PhysPointer(dosv_font_handler[ct]) + 1, 0x38);
-		phys_writew(CALLBACK_PhysPointer(dosv_font_handler[ct]) + 2, (uint16_t)dosv_font_handler[ct]);
+		PhysPt w = CALLBACK_PhysPointer(dosv_font_handler[ct]);
+		w += (PhysPt)CALLBACK_WriteInstr(w, dosv_font_handler[ct]);
 		if(ct == DOSV_MSKANJI_API) {
-			phys_writeb(CALLBACK_PhysPointer(dosv_font_handler[ct]) + 4, 0xca);
-			phys_writew(CALLBACK_PhysPointer(dosv_font_handler[ct]) + 5, 0x0004);
+			phys_writeb(w + 0, 0xca);
+			phys_writew(w + 1, 0x0004);
 		} else {
-			phys_writeb(CALLBACK_PhysPointer(dosv_font_handler[ct]) + 4, 0xcb);
+			phys_writeb(w + 0, 0xcb);
 		}
 	}
 }

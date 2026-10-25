@@ -456,9 +456,7 @@ void Int2fhook() {
     phys_writew(w,(uint16_t)((old_int2Fh>>16)&0xFFFF)); w += 2;	//seg
 
     /* then, having returned from it, invoke our callback */
-    phys_writeb(w++,(uint8_t)0xFE);					//GRP 4
-    phys_writeb(w++,(uint8_t)0x38);					//Extra Callback instruction
-    phys_writew(w,(uint16_t)int2fdbg_hook_callback); w += 2;		//The immediate word
+    w += (PhysPt)CALLBACK_WriteInstr(w,int2fdbg_hook_callback);		//Callback instruction
 
     /* return */
     phys_writeb(w++,(uint8_t)0xCF);					//IRET

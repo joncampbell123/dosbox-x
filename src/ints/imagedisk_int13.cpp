@@ -40,7 +40,7 @@ static void imageDiskCallINT13(void) {
 	uint16_t oldcs=SegValue(cs);
 	uint32_t oldeip=reg_eip;
 	SegSet16(cs,rv>>16);
-	reg_eip=(rv&0xFFFF)+4+5;
+	reg_eip=(rv&0xFFFF)+CALLBACK_InstrLength()+5; /* INT 13h, after the STI, callback, IRET, INT 0Eh, IRET of CB_INT13 */
 	DOSBOX_RunMachine();
 	reg_eip=oldeip;
 	SegSet16(cs,oldcs);

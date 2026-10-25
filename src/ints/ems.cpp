@@ -1988,11 +1988,9 @@ public:
 
 				XMS_EnableA20(true);
 
-				mem_writeb((unsigned int)vcpi.private_area+0x2e00,(uint8_t)0xFE);       //GRP 4
-				mem_writeb((unsigned int)vcpi.private_area+0x2e01,(uint8_t)0x38);       //Extra Callback instruction
-				mem_writew((unsigned int)vcpi.private_area+0x2e02,call_v86mon.Get_callback());		//The immediate word
-				mem_writeb((unsigned int)vcpi.private_area+0x2e04,(uint8_t)0x66);
-				mem_writeb((unsigned int)vcpi.private_area+0x2e05,(uint8_t)0xCF);       //A IRETD Instruction
+				const LinearPt w = (LinearPt)vcpi.private_area+0x2e00+(LinearPt)CALLBACK_WriteInstrLinear((LinearPt)vcpi.private_area+0x2e00,call_v86mon.Get_callback());
+				mem_writeb(w+0,(uint8_t)0x66);
+				mem_writeb(w+1,(uint8_t)0xCF);       //A IRETD Instruction
 
 				XMS_EnableA20(old_a20 != 0);
 			}

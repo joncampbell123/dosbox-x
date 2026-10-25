@@ -1677,6 +1677,7 @@ void BIOS_SetupKeyboard(void) {
 
     call_irq1=CALLBACK_Allocate();
     if (machine == MCH_PCJR) { /* PCjr keyboard interrupt connected to NMI */
+        const uint32_t c = (uint32_t)CALLBACK_InstrLength();
         uint32_t a;
  
         /* NMI: Read bits from infared port to decode keyboard scan code. If valid, pass it to INT 48h.
@@ -1688,20 +1689,20 @@ void BIOS_SetupKeyboard(void) {
         RealSetVec(0x02/*NMI*/,a);
 
         a = ((a >> 16) << 4) + (a & 0xFFFF);
-        /* a+0 = callback instruction (4 bytes)
-         * a+4 = iret (1 bytes)
+        /* a+0 = callback instruction (c bytes)
+         * a+c = iret (1 bytes)
          *
          * NTS: PCjr NMI doesn't read it from port 60h! But this makes it work in this emulator! */
-        phys_writeb(a+5,0x50);		/* push ax */
-        phys_writeb(a+6,0x1e);		/* push ds */
-        phys_writew(a+7,0xC0C7);	/* mov ax,0x0040    NTS: Do not use PUSH <imm>, that opcode does not exist on the 8086 */
-        phys_writew(a+9,0x0040);	/* <---------' */
-        phys_writew(a+11,0xD88E);	/* mov ds,ax */
-        phys_writew(a+13,0x60E4);	/* in al,60h */
-        phys_writew(a+15,0x48CD);	/* int 48h */
-        phys_writeb(a+17,0x1f);		/* pop ds */
-        phys_writeb(a+18,0x58);		/* pop ax */
-        phys_writew(a+19,0x00EB + ((256-21)<<8)); /* jmp a+0 */
+        phys_writeb(a+c+1,0x50);		/* push ax */
+        phys_writeb(a+c+2,0x1e);		/* push ds */
+        phys_writew(a+c+3,0xC0C7);	/* mov ax,0x0040    NTS: Do not use PUSH <imm>, that opcode does not exist on the 8086 */
+        phys_writew(a+c+5,0x0040);	/* <---------' */
+        phys_writew(a+c+7,0xD88E);	/* mov ds,ax */
+        phys_writew(a+c+9,0x60E4);	/* in al,60h */
+        phys_writew(a+c+11,0x48CD);	/* int 48h */
+        phys_writeb(a+c+13,0x1f);		/* pop ds */
+        phys_writeb(a+c+14,0x58);		/* pop ax */
+        phys_writew(a+c+15,0x00EB + ((256-(c+17))<<8)); /* jmp a+0 */
 
         /* INT 48h. NMI handler protects AX already, no need to PUSH AX/POP AX */
         call_int48_pcjr=CALLBACK_Allocate();
@@ -1710,10 +1711,10 @@ void BIOS_SetupKeyboard(void) {
         RealSetVec(0x48/*translation*/,a);
 
         a = ((a >> 16) << 4) + (a & 0xFFFF);
-        /* a+0 = callback instruction (4 bytes)
-         * a+4 = iret (1 bytes) */
-        phys_writew(a+5,0x09CD);	/* int 9 */
-        phys_writeb(a+7,0xCF);	        /* iret */
+        /* a+0 = callback instruction (c bytes)
+         * a+c = iret (1 bytes) */
+        phys_writew(a+c+1,0x09CD);	/* int 9 */
+        phys_writeb(a+c+3,0xCF);	        /* iret */
     }
 
     if (IS_PC98_ARCH) {

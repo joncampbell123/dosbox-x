@@ -68,19 +68,26 @@ extern bool dos_kernel_disabled, force_nocachedir, wpcolon, convertimg, lockmoun
 extern bool clipboard_biospaste;
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
-static uint8_t exe_block[]={
+static const uint8_t exe_block_head[]={
 	0xbc,0x00,0x04,					//0x100 MOV SP,0x400  decrease stack size
 	0xbb,0x40,0x00,					//0x103 MOV BX,0x0040 for memory resize
 	0xb4,0x4a,					//0x106 MOV AH,0x4A   Resize memory block
 	0xcd,0x21,					//0x108 INT 0x21      ...
-	0x30,0xc0,					//0x10A XOR AL,AL     Clear AL (exit code). Program will write AL to modify exit status
-//pos 14 is callback number
-	0xFE,0x38,0x00,0x00,				//0x10C CALLBack number
-	0xb4,0x4c,					//0x110 Mov AH,0x4C   Prepare to exit, preserve AL
-	0xcd,0x21					//0x112 INT 0x21      Exit to DOS
-};							//0x114 --DONE--
+	0x30,0xc0					//0x10A XOR AL,AL     Clear AL (exit code). Program will write AL to modify exit status
+};							//0x10C callback instruction for call_program
+static const uint8_t exe_block_tail[]={
+	0xb4,0x4c,					//Mov AH,0x4C   Prepare to exit, preserve AL
+	0xcd,0x21					//INT 0x21      Exit to DOS
+};							//--DONE--, followed by the program index
 
-#define CB_POS 14
+/* Build the code of the .COM files of the built-in programs into buf, return its length */
+static Bitu PROGRAMS_MakeExeBlock(uint8_t *buf) {
+	Bitu len = 0;
+	memcpy(buf+len,exe_block_head,sizeof(exe_block_head)); len += sizeof(exe_block_head);
+	len += CALLBACK_WriteInstrToBuffer(buf+len,call_program);
+	memcpy(buf+len,exe_block_tail,sizeof(exe_block_tail)); len += sizeof(exe_block_tail);
+	return len;
+}
 
 class InternalProgramEntry {
 public:
@@ -126,17 +133,18 @@ void PROGRAMS_Shutdown(void) {
    PROGRAMS_MakeFile (COMMAND.COM, MOUNT.COM, ...). Those run as native code
    through call_program, not as guest code. */
 bool PROGRAMS_IsBuiltinProgram(uint16_t psp) {
-	for (Bitu i = 0; i < sizeof(exe_block); i++) {
-		uint8_t expected = exe_block[i];
-		if (i == CB_POS) expected = (uint8_t)(call_program & 0xff);
-		else if (i == CB_POS + 1) expected = (uint8_t)((call_program >> 8) & 0xff);
-		if (real_readb(psp, (uint16_t)(0x100 + i)) != expected) return false;
+	uint8_t exe_block[32];
+	const Bitu exe_block_len = PROGRAMS_MakeExeBlock(exe_block);
+	for (Bitu i = 0; i < exe_block_len; i++) {
+		if (real_readb(psp, (uint16_t)(0x100 + i)) != exe_block[i]) return false;
 	}
 	return true;
 }
 
 void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main,const char *dir) {
-	uint32_t size=sizeof(exe_block)+sizeof(uint8_t);
+	uint8_t exe_block[32];
+	const Bitu exe_block_len = PROGRAMS_MakeExeBlock(exe_block);
+	uint32_t size=(uint32_t)exe_block_len+sizeof(uint8_t);
 	InternalProgramEntry *ipe;
 	uint8_t *comdata;
 	uint8_t index;
@@ -146,10 +154,8 @@ void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main,const char *
 
 	index = (uint8_t)internal_progs.size();
 	comdata = (uint8_t *)malloc(32); //MEM LEAK
-	memcpy(comdata,&exe_block,sizeof(exe_block));
-	memcpy(&comdata[sizeof(exe_block)],&index,sizeof(index));
-	comdata[CB_POS]=(uint8_t)(call_program&0xff);
-	comdata[CB_POS+1]=(uint8_t)((call_program>>8)&0xff);
+	memcpy(comdata,exe_block,exe_block_len);
+	memcpy(&comdata[exe_block_len],&index,sizeof(index));
 
 	ipe = new InternalProgramEntry();
 	ipe->main = main;
@@ -167,7 +173,8 @@ static Bitu PROGRAMS_Handler(void) {
 	Bitu size=sizeof(uint8_t);
 	uint8_t index;
 	/* Read the index from program code in memory */
-	PhysPt reader=PhysMake(dos.psp(),256+sizeof(exe_block));
+	uint8_t exe_block[32];
+	PhysPt reader=PhysMake(dos.psp(),(uint16_t)(256+PROGRAMS_MakeExeBlock(exe_block)));
 	HostPt writer=(HostPt)&index;
 	for (;size>0;size--) *writer++=mem_readb(reader++);
 	Program * new_program = NULL;

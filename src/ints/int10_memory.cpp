@@ -284,10 +284,7 @@ void INT10_SetupRomMemory(void) {
 		phys_writew(rom_base+0,0xaa55);
 		phys_writeb(rom_base+2,(uint8_t)(VGA_BIOS_Size >> 9u));
 		// entry point
-		phys_writeb(rom_base+3,0xFE); // Callback instruction
-		phys_writeb(rom_base+4,0x38);
-		phys_writew(rom_base+5,(uint16_t)VGA_ROM_BIOS_ENTRY_cb);
-		phys_writeb(rom_base+7,0xCB); // RETF
+		phys_writeb(rom_base+3+CALLBACK_WriteInstr(rom_base+3,VGA_ROM_BIOS_ENTRY_cb),0xCB); // Callback instruction, RETF
 
 		// VGA BIOS copyright
 		if (IS_VGA_ARCH) {
