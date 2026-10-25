@@ -163,7 +163,10 @@ static void cmos_timerevent(Bitu val) {
         if (index >= (cmos.last.ended + 1000 - 0.001)) { // consider sometimes index is slightly before 1.0sec
             //LOG_MSG("cmos timerevent: index=%f, interval=%f", index, cmos.last.ended - index);
             if (cmos.last.ended < (index-1000)) cmos.last.ended = (index-1000);
-            cmos.last.ended -= fmod(cmos.last.ended,1000);
+            /* down to a whole second: fmod() would round a negative time (the first second
+             * after a reset) up, putting the end of the update a second in the future, which
+             * makes status register A report an update in progress for a whole second */
+            cmos.last.ended = floor(cmos.last.ended / 1000.0) * 1000.0;
             cmos.last.ended += 1000;
 
             if (!cmos.lock) {
