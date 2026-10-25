@@ -546,7 +546,8 @@ void DOS_Shell::ParseLine(char * line) {
 		}
 	}
 	bool fail=false;
-	char pipetmp[270];
+    char pipetmp[270];
+    pipetmp[0] = 0;
 	uint16_t fattr;
 	if(toc) {
 		// Initialize random number generator
@@ -590,7 +591,10 @@ void DOS_Shell::ParseLine(char * line) {
 	DOS_Device *tmpdev = NULL;
 	if (out||toc) {
 		//if (out&&toc) WriteOut(!*out?"Duplicate redirection\n":"Duplicate redirection - %s\n", out);
-		LOG_MSG("SHELL:Redirect output to %s",toc?pipetmp:out);
+        LOG_MSG("SHELL:Redirect output to %s",
+            toc ? (*pipetmp ? pipetmp : "(empty pipetmp)") :
+            (out && *out ? out : "(empty out)"));
+
 		if(normalstdout) DOS_CloseFile(1);
 		if(!normalstdin && !in) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
 		bool status = true;
@@ -608,10 +612,16 @@ void DOS_Shell::ParseLine(char * line) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			status = false;
 		} else {
-			bool device=DOS_FindDevice(pipetmp)!=DOS_DEVICES;
-			if (toc&&!device&&DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)&&!DOS_UnlinkFile(pipetmp))
-				fail=true;
-			status = device?false:DOS_OpenFileExtended(toc&&!fail?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
+            if(toc && !*pipetmp) {
+                fail = true;
+                status = false;
+            }
+            else {
+                bool device = DOS_FindDevice(pipetmp) != DOS_DEVICES;
+                if(toc && !device && DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME) && !DOS_UnlinkFile(pipetmp))
+                    fail = true;
+                status = device ? false : DOS_OpenFileExtended(toc && !fail ? pipetmp : out, OPEN_READWRITE, DOS_ATTR_ARCHIVE, 0x12, &dummy, &dummy2);
+            }
 			bool pipetmp_is_zdrive = strncasecmp(pipetmp, "Z:\\", 3) == 0;
 			if (toc&&(fail||!status)&&(!strchr(pipetmp,'\\')|| pipetmp_is_zdrive)) {
 				Overlay_Drive *da = Drives[0] ? (Overlay_Drive *)Drives[0] : NULL, *dc = Drives[2] ? (Overlay_Drive *)Drives[2] : NULL;
@@ -621,6 +631,10 @@ void DOS_Shell::ParseLine(char * line) {
 						len = 266;
 						pipetmp[len] = 0;
 					}
+                    else if(len == 0) {
+                        int pipeid = rand() % 10000;
+                        snprintf(pipetmp, sizeof(pipetmp), "pipe%d.tmp", pipeid);
+                    }
 					for(int i = len; i >= 0; i--)
 						pipetmp[i + 3] = pipetmp[i];
 					pipetmp[0] = Drives[2] ? 'c' : 'a';
@@ -628,7 +642,11 @@ void DOS_Shell::ParseLine(char * line) {
 					pipetmp[2] = '\\';
 					fail = false;
 				} else if (!tmpdev && pipetmpdev) {
-					char* filename_only = strrchr(pipetmp, '\\');
+                    if(strlen(pipetmp) == 0) {
+                        int pipeid = rand() % 10000;
+                        snprintf(pipetmp, sizeof(pipetmp), "pipe%d.tmp", pipeid);
+                    }
+                    char* filename_only = strrchr(pipetmp, '\\');
 					if(!filename_only) filename_only = pipetmp;
 					else filename_only++;
 					char tmpname[270];
@@ -652,6 +670,7 @@ void DOS_Shell::ParseLine(char * line) {
 				else
 					status = DOS_OpenFileExtended(pipetmp, OPEN_READWRITE, DOS_ATTR_ARCHIVE, 0x12, &dummy, &dummy2);
 			}
+
             bool toc_has_output_redirect = false;
             if(toc) {
                 bool quote = false;
@@ -673,15 +692,11 @@ void DOS_Shell::ParseLine(char * line) {
 
                 if(!status) {
                     status = DOS_CreateFile(out, DOS_ATTR_ARCHIVE, &dummy);
-                    LOG_MSG("SHELL: DOS_CreateFile('%s') status=%d dummy=%u",
-                        out, status ? 1 : 0, (unsigned)dummy);
                 }
 
                 if(status && dummy != 1) {
                     uint16_t new_handle = 1;
                     bool dup_status = DOS_DuplicateEntry(dummy, &new_handle);
-                    LOG_MSG("SHELL: DOS_DuplicateEntry(%u) status=%d new_handle=%u",
-                        (unsigned)dummy, dup_status ? 1 : 0, (unsigned)new_handle);
 
                     if(dup_status)
                         DOS_CloseFile(dummy);
