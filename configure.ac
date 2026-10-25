@@ -1540,6 +1540,24 @@ if test x$enable_dosbox_agent = xyes; then
     AC_MSG_NOTICE([enabled RPC debugger agent output support])
 fi
 
+dnl FEATURE: KVM CPU core (hardware virtualization through the Linux KVM interface, see KVM-TODO.md)
+AH_TEMPLATE(C_KVM,[Define to 1 to enable the KVM CPU core (Linux on x86-64 only)])
+AC_ARG_ENABLE(kvm,AC_HELP_STRING([--enable-kvm],[Enable the KVM CPU core (Linux on x86-64 only, experimental)]),enable_kvm=$enableval,enable_kvm=no)
+
+if test x$enable_kvm = xyes; then
+    case "$host_os-$host_cpu" in
+        linux*-x86_64)
+            AC_CHECK_HEADER([linux/kvm.h],[
+                AC_DEFINE([C_KVM], [1])
+                AC_MSG_NOTICE([enabled the KVM CPU core])
+            ],[AC_MSG_ERROR([the KVM CPU core needs linux/kvm.h])])
+            ;;
+        *)
+            AC_MSG_ERROR([the KVM CPU core needs Linux on x86-64])
+            ;;
+    esac
+fi
+
 dnl FEATURE: Whether to use Direct3D 9 output
 AH_TEMPLATE(HAVE_D3D9_H,[Define to 1 to use Direct3D 9 display output support])
 AC_ARG_ENABLE(d3d9,AC_HELP_STRING([--enable-d3d9],[Enable Direct3D 9 support]),enable_d3d9=$enableval,enable_d3d9=no)

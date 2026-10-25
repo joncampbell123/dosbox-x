@@ -53,6 +53,10 @@ extern uint8_t lastint;
  * use the CALLBACK_WriteInstr functions and lay out the code around it by the returned length. */
 extern bool CALLBACK_Int3Prefix;
 
+/* Set CALLBACK_Int3Prefix from the configuration. Done once, by CALLBACK_Init() or by whatever
+ * needs to know it before that (the CPU core selection does) */
+void CALLBACK_ChooseInt3Prefix(void);
+
 static INLINE Bitu CALLBACK_InstrLength(void) {
 	return CALLBACK_Int3Prefix ? 5u : 4u;
 }

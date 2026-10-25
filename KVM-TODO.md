@@ -67,6 +67,33 @@ throttles the guest by duty cycle.
   **Convention:** every nanosecond calculation made for the KVM core gets a comment saying so
   (as in `PIC_HostTimeBudget()`), so that they are not mistaken for emulated time, which is in
   cycles and milliseconds.
+- **Steps 5-7: scaffolding.**
+  - `./configure --enable-kvm` (Linux on x86-64 only, needs `linux/kvm.h`) defines `C_KVM`.
+    The core is `src/cpu/core_kvm.cpp` and `include/core_kvm.h` (in the Visual Studio project
+    too; the file compiles to nothing without `C_KVM`).
+  - `[cpu] core=kvm` is offered only in such builds. Core selection (end of
+    `CPU::Change_Config`, once the CPU type and features are known) falls back, logging
+    `CPU: core=kvm is not used: <reason>`, when the INT3 callback prefix is off, when
+    `cputype` is below 386, or when `KVM_CoreInit()` fails (no `/dev/kvm`, no permission,
+    wrong API version, a missing capability, `kvm_intel` without unrestricted guest, too few
+    memory slots, or an ioctl failing). The fallback is the core the CPU type chose (normally
+    the normal core). The automatic core switching only applies to `core=auto`, so it leaves
+    kvm alone.
+  - The CPU is set up before `CALLBACK_Init()`, so the selection calls
+    `CALLBACK_ChooseInt3Prefix()` (now public, done once) to know the prefix setting.
+  - `KVM_CoreInit()` checks the host (API 12; `KVM_CAP_USER_MEMORY`, `READONLY_MEM`,
+    `SET_GUEST_DEBUG`, `EXT_CPUID`, `SET_TSS_ADDR`; at least 32 memory slots), creates the VM,
+    sets the TSS address (needed on Intel), creates vCPU 0, maps its `kvm_run` area and sets
+    the CPUID. No `KVM_CREATE_IRQCHIP`. Everything is closed at exit.
+  - **CPUID** is DOSBox-X's own (`CPU_CPUID()`, leaves 0 to its maximum, including a custom
+    `cpuid string`), with the leaf 1 feature bits the host KVM cannot provide removed (logged).
+  - **For now the selection always falls back** ("the KVM virtual machine is ready, but the
+    core cannot run guest code yet"), since there is no run loop. Step 9 replaces that with
+    `cpudecoder = CPU_Core_KVM_Run`.
+  - Tested on an AMD Ryzen 9 7940HS host: VM and vCPU created (32764 memory slots, immediate
+    exit supported); each fallback reason; CPU types 486old (no CPUID), Pentium III, Pentium 4
+    with SSE2; and the INT3/mouse/V86/DOS/4GW suite with `core=kvm` (prefixed callbacks and a
+    live VM), EMM386 on and off.
 - **Debugger tools for all of the above.**
   - `MEMMAP [start [end]]` lists the physical map as `MEM_ClassifyPage` sees it (coalesced
     runs with kind, host pointer relative to `MemBase`, and handler class), plus the map
@@ -108,22 +135,19 @@ throttles the guest by duty cycle.
   has no side effects.
 - **`MEM_SlowPath` conflicts**: when two devices claim a page, the handler table entry is left
   empty and resolved on every access. `MEM_ClassifyPage` returns whichever handler won.
+- **Guest physical 0xfffbc000-0xfffbffff is KVM's** (identity map page and the TSS set with
+  `KVM_SET_TSS_ADDR`, see `kvm_tss_addr` in `core_kvm.cpp`). No memory slot may cover it.
+- **CPU types without CPUID** (386, 486old): under KVM the CPUID instruction still runs (it
+  returns zeros) and the EFLAGS ID bit can still be toggled, so CPUID detection finds a CPUID.
+  Likewise `fpu=false` cannot remove the FPU. These are limits of running on real hardware.
+- **Changing the CPU type at run time** calls `KVM_CoreInit()` again, which sets the CPUID
+  again. Newer kernels refuse `KVM_SET_CPUID2` with different values after the vCPU has run,
+  so once the core runs, a CPU type change needs a new vCPU (keeping the state through
+  `CPU_FullState`).
+- **Prefetch CPU types** (`*_prefetch`) stop DOSBox-X with an error unless the core is normal
+  or auto, which includes kvm.
 - **Pages above 4GB** (`memory file` + `Mem4GBPageHandler`) are plain RAM in the memory file;
   they need a slot of their own when PSE-36/PAE guests use them.
-
-## Scaffolding
-
-5. **Build option.** `--enable-kvm` in configure.ac (Linux x86-64 only, check for
-   `linux/kvm.h`), defining `C_KVM`. New file `src/cpu/core_kvm.cpp` (also add it to
-   `vs/dosbox-x.vcxproj`, excluded or empty on Windows).
-6. **`core=kvm`.** Core selection in `cpu.cpp` falls back to the normal core, with a logged
-   reason, when the INT3 prefix is off, when `/dev/kvm` is missing or not accessible, when the
-   emulated CPU type is below 386, or when the host lacks unrestricted guest support. The
-   automatic core switching (`CPU_SET_CRX(0)` and `cpu.cpp` around the dynamic core) must
-   leave kvm alone. Runtime core switching kvm <-> normal is possible through
-   `CPU_GetFullState`/`CPU_SetFullState`.
-7. **VM setup.** `KVM_CREATE_VM`, `KVM_CREATE_VCPU`, mmap `kvm_run`, `KVM_SET_CPUID2` filtered
-   to the emulated `cputype`. No `KVM_CREATE_IRQCHIP`: DOSBox-X emulates the PIC and PIT.
 
 ## First milestone: boot to the DOS prompt in real mode
 

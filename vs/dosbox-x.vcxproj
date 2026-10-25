@@ -1208,6 +1208,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\builtin\xcopy_exe.cpp" />
     <ClCompile Include="..\src\builtin\zip.cpp" />
     <ClCompile Include="..\src\cpu\callback.cpp" />
+    <ClCompile Include="..\src\cpu\core_kvm.cpp" />
     <ClCompile Include="..\src\cpu\cpu_state.cpp" />
     <ClCompile Include="..\src\cpu\core_dynrec.cpp" />
     <ClCompile Include="..\src\cpu\core_dyn_x86.cpp" />
@@ -1769,6 +1770,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\include\cp1258_uni.h" />
     <ClInclude Include="..\include\cpu.h" />
     <ClInclude Include="..\include\cpu_state.h" />
+    <ClInclude Include="..\include\core_kvm.h" />
     <ClInclude Include="..\include\cross.h" />
     <ClInclude Include="..\include\crypt.h" />
     <ClInclude Include="..\include\cs4231.h" />

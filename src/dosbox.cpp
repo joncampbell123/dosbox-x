@@ -1634,7 +1634,11 @@ void DOSBOX_SetupConfigSections(void) {
 #if (C_DYNREC)
         "dynamic_rec",
 #endif
-        "normal", "full", "simple", nullptr };
+        "normal", "full", "simple",
+#if (C_KVM)
+        "kvm",
+#endif
+        nullptr };
 
     const char* voodoo_settings[] = {
         "false",
@@ -3123,7 +3127,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(cores);
     Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and appropriate.\n"
             "For the dynamic core, both dynamic_x86 and dynamic_rec are supported (dynamic_x86 is preferred).\n"
-            "Windows 95 or other preemptive multitasking OSes will not work with the dynamic_rec core.");
+            "Windows 95 or other preemptive multitasking OSes will not work with the dynamic_rec core.\n"
+            "kvm runs guest code with hardware virtualization (Linux KVM). It is experimental and only in builds made with --enable-kvm.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("callback int3 prefix",Property::Changeable::OnlyAtStart,"auto");

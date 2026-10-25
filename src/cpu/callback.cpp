@@ -805,7 +805,7 @@ extern bool custom_bios;
 /* Choose the encoding of the callback instructions, before any are written. It is chosen once:
  * the callback instructions written at startup, in the ROM BIOS and elsewhere, remain in guest
  * memory for as long as DOSBox-X runs, and a reset does not rewrite them all. */
-static void CALLBACK_ChooseInt3Prefix(void) {
+void CALLBACK_ChooseInt3Prefix(void) {
 	static bool chosen = false;
 	if (chosen) return;
 	chosen = true;

@@ -26,6 +26,7 @@
 #include "mapper.h"
 #include "paging.h"
 #include "callback.h"
+#include "core_kvm.h"
 #include "lazyflags.h"
 #include "control.h"
 #include "logging.h"
@@ -3882,6 +3883,9 @@ public:
 		std::string core(section->Get_string("core"));
 		cpudecoder=&CPU_Core_Normal_Run;
 		safe_strncpy(core_mode,core.c_str(),15);
+#if C_KVM
+		bool want_kvm = false;
+#endif
 
 		if (enable_syscall && !enable_msr) {
 			UNBLOCKED_LOG(LOG_CPU,LOG_WARN)("syscall (SYSENTER/SYSEXIT) requires that model specific registers (RDMSR/WRMSR) are enabled");
@@ -3921,6 +3925,12 @@ public:
 #if (C_DYNREC)
 		} else if ((core == "dynamic" && GetDynamicType()==2) || core == "dynamic_rec") {
 			cpudecoder=&CPU_Core_Dynrec_Run;
+#endif
+#if C_KVM
+		} else if (core == "kvm") {
+			/* decided once the CPU type and features are known, below */
+			cpudecoder=&CPU_Core_Normal_Run;
+			want_kvm = true;
 #endif
 		} else {
 			strcpy(core_mode,"normal");
@@ -4282,6 +4292,27 @@ public:
 			 * this before every protected mode call to VCPI for some reason. */
 			lmsw_allow_clear_pe_bit = false;
 		}
+
+#if C_KVM
+		/* core=kvm: the KVM core when it can run here, otherwise the core the CPU type
+		 * selected above (normally the normal core), saying why */
+		if (want_kvm) {
+			std::string reason;
+
+			CALLBACK_ChooseInt3Prefix(); /* the CPU is set up before the callbacks */
+			if (!CALLBACK_Int3Prefix)
+				reason = "callback instructions are written without the INT3 prefix "
+					"(set [cpu] callback int3 prefix to auto or true and restart DOSBox-X)";
+			else if (CPU_ArchitectureType < CPU_ARCHTYPE_386)
+				reason = "it needs cputype 386 or later";
+			else if (KVM_CoreInit(reason))
+				reason = "the KVM virtual machine is ready, but the core cannot run guest code yet";
+
+			LOG_MSG("CPU: core=kvm is not used: %s. Using the %s core.",reason.c_str(),
+				cpudecoder == &CPU_Core_Normal_Run ? "normal" : "emulated");
+			strcpy(core_mode,"normal");
+		}
+#endif
 
 		if (CPU_CycleAutoAdjust) GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
