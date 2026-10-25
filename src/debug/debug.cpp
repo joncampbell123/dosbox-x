@@ -1167,6 +1167,7 @@ bool DEBUG_AgentResumeAfterTerminate(void)
 	mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
 	mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
 	mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+	mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 	DOSBOX_SetNormalLoop();
 	GFX_SetTitle(-1,-1,-1,is_paused);
 	return true;
@@ -2947,6 +2948,7 @@ bool ParseCommand(char* str) {
 		mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
 		mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
 		mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 
 		DOSBOX_SetNormalLoop();	
 		GFX_SetTitle(-1,-1,-1,is_paused);
@@ -2966,6 +2968,7 @@ bool ParseCommand(char* str) {
 		mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
 		mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
 		mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
+		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 		DEBUG_DrawScreen();
 		return true;
 	}
@@ -3273,6 +3276,7 @@ bool ParseCommand(char* str) {
         mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
         mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
         mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+        mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 		DOSBOX_SetNormalLoop();
 		CPU_HW_Interrupt(intNr);
 		return true;
@@ -5195,6 +5199,7 @@ uint32_t DEBUG_CheckKeys(void) {
 				mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
 				mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
 				mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+				mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 
 				skipDraw = true; // don't update screen after this instruction
 				break;
@@ -5477,12 +5482,18 @@ void DEBUG_Enable_Handler(bool pressed) {
 	if (!pressed || control->opt_display2)
 		return;
 
+    /* this command is a toggle: stopped in the debugger, it leaves the debugger and
+       resumes normal execution; otherwise, including RUN and RUNWATCH, it stops
+       execution in the debugger */
+    bool leave = false;
+
     if (hidedebugger) {
         hidedebugger=false;
 #if defined(WIN32) && !defined(_WIN32_WINDOWS)
         ShowWindow(GetConsoleWindow(), SW_SHOW);
 #endif
-    } else if (tohide && (runnormal||debug_running||debugging)) {
+    } else if (tohide && (runnormal||(debugging&&!debug_running))) {
+        leave=true;
         hidedebugger=true;
 #if defined(WIN32) && !defined(_WIN32_WINDOWS)
         ShowWindow(GetConsoleWindow(), SW_HIDE);
@@ -5495,8 +5506,7 @@ void DEBUG_Enable_Handler(bool pressed) {
         if (runnormal) return;
     }
 
-    /* this command is now a toggle! */
-    /* However this should break back into the debugger if RUNWATCH is active */
+    /* RUNWATCH: break back into the debugger */
     if (debug_running) {
         debug_running = false;
         DrawRegistersUpdateOld();
@@ -5520,7 +5530,7 @@ void DEBUG_Enable_Handler(bool pressed) {
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
         DOSBOX_SetNormalLoop();	
         GFX_SetTitle(-1,-1,-1,is_paused);
-//      if (tohide) return;
+        if (leave) return;
     }
 
 	static bool showhelp=false;
