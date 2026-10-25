@@ -25,6 +25,8 @@
 #include "bios.h"
 #include "cpu.h"
 #include "paging.h"
+#include "control.h"
+#include "setup.h"
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -800,7 +802,28 @@ void CALLBACK_HandlerObject::Set_RealVec(uint8_t vec,bool reinstall){
 
 extern bool custom_bios;
 
+/* Choose the encoding of the callback instructions, before any are written. It is chosen once:
+ * the callback instructions written at startup, in the ROM BIOS and elsewhere, remain in guest
+ * memory for as long as DOSBox-X runs, and a reset does not rewrite them all. */
+static void CALLBACK_ChooseInt3Prefix(void) {
+	static bool chosen = false;
+	if (chosen) return;
+	chosen = true;
+
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("cpu"));
+	const std::string setting = section->Get_string("callback int3 prefix");
+	if (setting == "true")
+		CALLBACK_Int3Prefix = true;
+	else if (setting == "false")
+		CALLBACK_Int3Prefix = false;
+	else /* auto: for a CPU core that uses hardware virtualization */
+		CALLBACK_Int3Prefix = (std::string(section->Get_string("core")) == "kvm");
+
+	if (CALLBACK_Int3Prefix) LOG_MSG("Callback instructions are written with an INT3 prefix (callback int3 prefix=%s)",setting.c_str());
+}
+
 void CALLBACK_Init() {
+	CALLBACK_ChooseInt3Prefix();
 	{
 		/* NTS: Layout of the callback area:
 		 *

@@ -1614,6 +1614,8 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
         nullptr };
 
+    const char* callback_int3_prefix_settings[] = { "auto", "true", "false", nullptr };
+
     const char* cores[] = { "auto",
 #if (C_DYNAMIC_X86) || (C_DYNREC)
         "dynamic",
@@ -3114,6 +3116,17 @@ void DOSBOX_SetupConfigSections(void) {
             "For the dynamic core, both dynamic_x86 and dynamic_rec are supported (dynamic_x86 is preferred).\n"
             "Windows 95 or other preemptive multitasking OSes will not work with the dynamic_rec core.");
     Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("callback int3 prefix",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(callback_int3_prefix_settings);
+    Pstring->Set_help("Whether the DOSBox-X callback instructions in guest memory (the BIOS, DOS and other emulated services) are\n"
+            "written with an INT3 in front of them, so that a CPU core using hardware virtualization (KVM) can run them.\n"
+            "The emulated CPU cores run either form. Programs that use INT3 heavily, for example for anti-debugging, may not\n"
+            "work with the INT3 prefix, and a save state can only be loaded with the same setting it was saved with.\n"
+            "  true: Always write the INT3 prefix.\n"
+            "  false: Never write it. A hardware virtualization CPU core cannot be used.\n"
+            "  auto: Write it if the CPU core is set to kvm when DOSBox-X starts.\n"
+            "This takes effect when DOSBox-X starts, not when the emulated machine is reset.");
 
     /* I would like "auto" as the default so FPU emulation is enabled for 486 or higher, disabled for 386 and lower.
      * However it is better to always emulate the FPU (default "true") like DOSBox SVN to remain compatible with

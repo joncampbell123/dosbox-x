@@ -811,7 +811,8 @@ bool SaveState::load(size_t slot) const { //throw (Error)
 				"encoded as " + saved_encoding + ", but this session encodes them as " + current_encoding + ". "
 				"The INT3+FE38 encoding is the one used with the KVM CPU core. Loading the state would leave callback "
 				"instructions that this session cannot execute, so the emulated machine would crash.\n\n"
-				"Change the callback encoding to match, reset the emulator, then load the state again.");
+				"Set \"callback int3 prefix\" in the [cpu] section to " + std::string(saved_encoding == "INT3+FE38" ? "true" : "false") + ", "
+				"restart DOSBox-X, then load the state again.");
 			load_err=true;
 			goto done;
 		}
