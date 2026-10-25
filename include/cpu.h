@@ -84,6 +84,16 @@ extern unsigned int CPU_PrefetchQueueSize;
 typedef Bits (CPU_Decoder)(void);
 extern CPU_Decoder * cpudecoder;
 
+/* A CPU core that keeps the CPU state in a place of its own between calls (the KVM core keeps it
+ * in the vCPU) sets this hook while it holds the state. Code outside a CPU core that reads or
+ * changes the CPU state (registers, segments, flags, control registers, FPU) calls
+ * CPU_SyncState() first, which brings the state into DOSBox-X and makes DOSBox-X's copy the one
+ * that counts until the core runs again. */
+extern void (*CPU_StateSyncHook)(void);
+static INLINE void CPU_SyncState(void) {
+	if (GCC_UNLIKELY(CPU_StateSyncHook != NULL)) CPU_StateSyncHook();
+}
+
 Bits CPU_Core_Normal_Run(void);
 Bits CPU_Core_Normal_Trap_Run(void);
 Bits CPU_Core_Simple_Run(void);

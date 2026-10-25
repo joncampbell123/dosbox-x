@@ -17,6 +17,7 @@
 #include "mixer.h"
 #include "build_timestamp.h"
 #include "callback.h"
+#include "cpu.h"
 #ifdef WIN32
 #include "direct.h"
 #endif
@@ -434,6 +435,7 @@ int zipOutOpenFile(zipFile zf,const char *zfname,zip_fileinfo &zi,const bool com
 
 bool SaveState::save(size_t slot) { //throw (Error)
 	if (slot >= SLOT_COUNT*MAX_PAGE)  return false;
+	CPU_SyncState();
 #ifdef C_SDL2
         SDL_PauseAudioDevice(SDL2_AudioDevice, 0);
 #else
@@ -618,6 +620,7 @@ bool loadstateconfirm(int ind) {
 
 bool SaveState::load(size_t slot) const { //throw (Error)
 	//	if (isEmpty(slot)) return;
+	CPU_SyncState(); /* the loaded state replaces DOSBox-X's copy, which then counts */
 	bool load_err=false;
 	if((MEM_TotalPages()*4096/1024/1024)>1024) {
 		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");

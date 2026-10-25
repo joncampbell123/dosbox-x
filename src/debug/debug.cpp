@@ -5613,6 +5613,8 @@ void DEBUG_Enable_Handler(bool pressed) {
 	if (!pressed || control->opt_display2)
 		return;
 
+	CPU_SyncState();
+
     /* this command is a toggle: stopped in the debugger, it leaves the debugger and
        resumes normal execution; otherwise, including RUN and RUNWATCH, it stops
        execution in the debugger */
@@ -6403,6 +6405,7 @@ void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off)
 Bitu DEBUG_EnableDebugger(void)
 {
 	exitLoop = true;
+	CPU_SyncState();
 
 	if (!debugging || (debugging && debug_running))
 		DEBUG_Enable_Handler(true);

@@ -1222,7 +1222,10 @@ void CPU_Exception(Bitu which,Bitu error ) {
 }
 
 uint8_t lastint;
+void (*CPU_StateSyncHook)(void) = NULL;
+
 void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
+	CPU_SyncState();
     if (num == EXCEPTION_DB && (type&CPU_INT_EXCEPTION) == 0) {
       CPU_DebugException(0,oldeip); // DR6 bits need updating
       return;
@@ -3754,6 +3757,7 @@ public:
 	}
 	bool Change_Config(Section* newconfig) override {
 		const Section_prop * section=static_cast<Section_prop *>(newconfig);
+		CPU_SyncState(); /* the CPU core may change */
 		CPU_AutoDetermineMode=CPU_AUTODETERMINE_NONE;
 		//CPU_CycleLeft=0;//needed ?
 		CPU_Cycles=0;
@@ -4339,6 +4343,7 @@ void CPU_ShutDown(Section* sec) {
 
 void CPU_OnReset(Section* sec) {
     (void)sec;//UNUSED
+	CPU_SyncState();
 
 	LOG(LOG_CPU,LOG_DEBUG)("CPU reset");
 

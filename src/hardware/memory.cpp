@@ -1570,6 +1570,8 @@ extern bool PC98_SHUT0,PC98_SHUT1;
 void On_Software_CPU_Reset() {
     unsigned char c;
 
+    CPU_SyncState();
+
     CPU_Exception_Level_Reset();
 
     if (custom_bios) {
