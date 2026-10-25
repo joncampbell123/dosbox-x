@@ -133,11 +133,6 @@ Bits CPU_Core286_Prefetch_Run(void);
 
 Bits CPU_Core8086_Prefetch_Run(void);
 
-#if defined(C_HAVE_LINUX_KVM_X86)
-Bits CPU_Core_KVM_Run(void);
-Bits CPU_Core_KVM_Trap_Run(void);
-#endif
-
 /* DR0-DR3 hardware breakpoints (cpu.cpp): while DR7 enables any, the main
  * loop runs CPU_Debug_Run instead of the decoder */
 extern bool cpu_dbg_active;

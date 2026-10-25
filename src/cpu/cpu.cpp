@@ -1252,7 +1252,7 @@ static bool CPU_IsTrapDecoder(void) {
 }
 
 Bits CPU_Debug_Run(void) {
-#if defined(C_HAVE_LINUX_KVM_X86)
+#if C_KVM
 	if (cpudecoder == &CPU_Core_KVM_Run)
 		return (*cpudecoder)();
 #endif
