@@ -1176,6 +1176,146 @@ void CPU_DebugException(uint32_t triggers,Bitu oldeip) {
   CPU_Interrupt(EXCEPTION_DB,CPU_INT_EXCEPTION,(uint32_t)oldeip);
 }
 
+/* DR0-DR3 hardware breakpoints.
+ *
+ * Nothing here costs anything while DR7 enables no breakpoint. When it does
+ * (only through CPU_WRITE_DRX, the MOV DRx of the emulated cores):
+ *   - the main loop calls CPU_Debug_Run instead of the decoder. It executes
+ *     one instruction at a time with the normal core, checks instruction
+ *     breakpoints before each (fault, EFLAGS.RF suppresses one check) and
+ *     raises the data breakpoint traps after it.
+ *   - the paging code routes the pages that hold a data breakpoint through a
+ *     page handler that reports reads/writes to CPU_DebugDataAccess. All other
+ *     pages keep their direct TLB pointers.
+ * Under the KVM core the breakpoints are real hardware ones and DOSBox-X's
+ * copy of the debug registers is not used here. */
+bool cpu_dbg_active = false;
+static bool cpu_dbg_in_step = false;
+static uint32_t cpu_dbg_pending = 0;
+
+static struct CPU_DebugBP {
+	bool		on;
+	uint8_t		rw;		/* 0 = execute, 1 = write, 3 = read/write (2 = I/O, not emulated) */
+	uint32_t	addr,len;
+} cpu_dbg_bp[4];
+
+void CPU_DebugRegsChanged(void) {
+	static const uint32_t lens[4] = { 1,2,8,4 };
+	uint32_t pages[4];
+	unsigned int npages = 0;
+	bool active = false;
+
+	for (unsigned int i=0;i < 4;i++) {
+		CPU_DebugBP &bp = cpu_dbg_bp[i];
+
+		bp.on = ((cpu.drx[7] >> (i * 2u)) & 3u) != 0;
+		bp.rw = (uint8_t)((cpu.drx[7] >> (16u + i * 4u)) & 3u);
+		bp.len = lens[(cpu.drx[7] >> (18u + i * 4u)) & 3u];
+		bp.addr = cpu.drx[i] & ~(bp.len - 1u);
+		if (bp.on && bp.rw == 2) bp.on = false;
+		if (bp.on) {
+			active = true;
+			if (bp.rw != 0) pages[npages++] = bp.addr >> 12u;
+		}
+	}
+
+	cpu_dbg_active = active;
+	PAGING_DebugSetPages(pages,npages);
+
+	/* end the decoder's time slice after this instruction, so that the main loop
+	 * picks CPU_Debug_Run (or the decoder again) before the next one */
+	CPU_CycleLeft += CPU_Cycles;
+	CPU_Cycles = 0;
+}
+
+/* called by the debug breakpoint page handler for a read or write of a watched page */
+void CPU_DebugDataAccess(const LinearPt addr,const uint32_t size,const bool write) {
+	if (!cpu_dbg_in_step) return;
+	for (unsigned int i=0;i < 4;i++) {
+		const CPU_DebugBP &bp = cpu_dbg_bp[i];
+
+		if (bp.on && (bp.rw == 3 || (bp.rw == 1 && write)) &&
+			addr < bp.addr + bp.len && addr + size > bp.addr)
+			cpu_dbg_pending |= 1u << i;
+	}
+}
+
+static bool CPU_IsTrapDecoder(void) {
+	return cpudecoder == &CPU_Core_Normal_Trap_Run || cpudecoder == &CPU_Core_Simple_Trap_Run
+#if C_DYNAMIC_X86
+		|| cpudecoder == &CPU_Core_Dyn_X86_Trap_Run
+#endif
+#if C_DYNREC
+		|| cpudecoder == &CPU_Core_Dynrec_Trap_Run
+#endif
+		|| cpudecoder == &CPU_Core_Prefetch_Trap_Run;
+}
+
+Bits CPU_Debug_Run(void) {
+#if defined(C_HAVE_LINUX_KVM_X86)
+	if (cpudecoder == &CPU_Core_KVM_Run)
+		return (*cpudecoder)();
+#endif
+
+	while (CPU_Cycles > 0 && cpu_dbg_active) {
+		const bool rf = (reg_flags & FLAG_RF) != 0;
+
+		/* instruction breakpoints fault before the instruction */
+		if (!rf) {
+			const LinearPt lin = (LinearPt)(SegPhys(cs) + reg_eip);
+			uint32_t hit = 0;
+
+			for (unsigned int i=0;i < 4;i++) {
+				if (cpu_dbg_bp[i].on && cpu_dbg_bp[i].rw == 0 && cpu_dbg_bp[i].addr == lin)
+					hit |= 1u << i;
+			}
+			if (hit) {
+				FillFlags();
+				CPU_DebugException(hit,reg_eip);
+				CPU_Cycles--;
+				continue;
+			}
+		}
+
+		/* one instruction. A trap flag decoder runs exactly one instruction too */
+		const bool trap = CPU_IsTrapDecoder();
+		const Bits old_cycles = CPU_Cycles;
+		Bits ret;
+
+		CPU_Cycles = 1;
+		cpu.trap_skip = true;
+		cpu_dbg_pending = 0;
+		cpu_dbg_in_step = true;
+		try {
+			ret = trap ? (*cpudecoder)() : CPU_Core_Normal_Run();
+		}
+		catch (...) {
+			cpu_dbg_in_step = false;
+			throw;
+		}
+		cpu_dbg_in_step = false;
+		CPU_Cycles = old_cycles - 1;
+
+		if (rf) reg_flags &= ~FLAG_RF;
+
+		/* data breakpoints trap after the instruction. If the trap flag decoder
+		 * already raised the single step #DB, report them in the same DR6 */
+		if (cpu_dbg_pending) {
+			if (trap && !cpu.trap_skip) {
+				cpu.drx[6] |= cpu_dbg_pending;
+			}
+			else {
+				FillFlags();
+				CPU_DebugException(cpu_dbg_pending,reg_eip);
+			}
+			cpu_dbg_pending = 0;
+		}
+
+		if (ret != CBRET_NONE) return ret;
+	}
+	return CBRET_NONE;
+}
+
 #include <stack>
 
 int CPU_Exception_Level[0x20] = {0};
@@ -1891,6 +2031,10 @@ CODE_jmp:
 				CPU_Exception(EXCEPTION_NP,selector & 0xfffc);
 				return;
 			}
+			/* the new EIP must be within the limit of the code segment */
+			CPU_CHECK_COND(do_seg_limits && (uint32_t)offset > (uint32_t)desc.GetLimit(),
+				"JMP:EIP beyond the code segment limit",
+				EXCEPTION_GP,0)
 
 			/* Normal jump to another selector:offset */
 			Segs.expanddown[cs]=desc.GetExpandDown();
@@ -2049,6 +2193,10 @@ call_code:
 				CPU_Exception(EXCEPTION_NP,selector & 0xfffc);
 				return;
 			}
+			/* the new EIP must be within the limit of the code segment */
+			CPU_CHECK_COND(do_seg_limits && (uint32_t)(use32 ? offset : (offset & 0xffff)) > (uint32_t)call.GetLimit(),
+				"CALL:EIP beyond the code segment limit",
+				EXCEPTION_GP,0)
 			// commit point
 			try {
 			if (!use32) {
@@ -2800,6 +2948,9 @@ bool CPU_WRITE_DRX(Bitu dr,Bitu value) {
 		LOG(LOG_CPU,LOG_ERROR)("Unhandled MOV DR%d,%X",dr,value);
 		break;
 	}
+	/* breakpoint addresses or enables changed. Only the emulated cores get here
+	 * (the KVM core runs MOV DRx in the guest, see CPU_Debug_Run) */
+	if (dr <= 3 || dr == 5 || dr == 7) CPU_DebugRegsChanged();
 	return false;
 }
 

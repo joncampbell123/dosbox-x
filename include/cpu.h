@@ -138,6 +138,13 @@ Bits CPU_Core_KVM_Run(void);
 Bits CPU_Core_KVM_Trap_Run(void);
 #endif
 
+/* DR0-DR3 hardware breakpoints (cpu.cpp): while DR7 enables any, the main
+ * loop runs CPU_Debug_Run instead of the decoder */
+extern bool cpu_dbg_active;
+Bits CPU_Debug_Run(void);
+void CPU_DebugRegsChanged(void);
+void CPU_DebugDataAccess(const LinearPt addr,const uint32_t size,const bool write);
+
 void CPU_Enable_SkipAutoAdjust(void);
 void CPU_Disable_SkipAutoAdjust(void);
 void CPU_Reset_AutoAdjust(void);

@@ -234,6 +234,9 @@ bool PAGING_Enabled(void);
 void PAGING_SetWP(bool wp);
 void PAGING_SwitchCPL(bool isUser);
 
+/* linear pages that hold an enabled DR0-DR3 data breakpoint (at most 4) */
+void PAGING_DebugSetPages(const uint32_t *pages,unsigned int count);
+
 Bitu PAGING_GetDirBase(void);
 void PAGING_SetDirBase(Bitu cr3);
 void PAGING_InitTLB(void);

@@ -486,7 +486,8 @@ static Bitu Normal_Loop(void) {
 
                 saved_allow = dosbox_allow_nonrecursive_page_fault;
                 dosbox_allow_nonrecursive_page_fault = true;
-                ret = (*cpudecoder)();
+                /* CPU_Debug_Run: DR0-DR3 breakpoints enabled (see cpu.cpp) */
+                ret = GCC_UNLIKELY(cpu_dbg_active) ? CPU_Debug_Run() : (*cpudecoder)();
                 dosbox_allow_nonrecursive_page_fault = saved_allow;
 
                 if (GCC_UNLIKELY(ret<0))

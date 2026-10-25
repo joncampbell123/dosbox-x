@@ -26,6 +26,10 @@
 #include "cpu.h"
 #include "logging.h"
 
+/* debug register data breakpoints: the pages that hold one, see PAGING_DebugSetPages */
+static unsigned int dbg_npages = 0;
+static void PAGING_DebugReapply(void);
+
 extern bool do_pse;
 extern bool enable_pse;
 extern uint8_t enable_pse_extbits;
@@ -379,6 +383,7 @@ private:
 			paging.tlb.write[lin_page] = nullptr;
 
 		paging.tlb.writehandler[lin_page] = handler;
+		if (GCC_UNLIKELY(dbg_npages != 0)) PAGING_DebugReapply();
 	}
 
 	void read() {
@@ -967,6 +972,145 @@ bool PAGING_MakePhysPage(PageNum &page) {
 }
 
 static NewInitPageHandler init_page_handler;
+
+/* Debug register data breakpoints (DR0-DR3, see CPU_Debug_Run in cpu.cpp).
+ * The TLB entries of a page that holds an enabled data breakpoint point to
+ * this handler instead of directly to memory. It reports the access and then
+ * does it through the handler or host pointer the page would have had. Only
+ * those pages are slowed down, and only while the breakpoint is enabled. */
+static struct DebugBPPage {
+	PageNum		page;
+	HostPt		rd,wr;
+	PageHandler	*rh,*wh;
+} dbg_pages[4];
+
+static DebugBPPage *PAGING_DebugFind(const PhysPt addr) {
+	const PageNum page = addr >> 12u;
+
+	for (unsigned int i=0;i < dbg_npages;i++) {
+		if (dbg_pages[i].page == page) return &dbg_pages[i];
+	}
+	return nullptr;
+}
+
+class DebugBPPageHandler : public PageHandler {
+public:
+	DebugBPPageHandler() {
+		flags=PFLAG_NOCODE;
+	}
+	uint8_t readb(PhysPt addr) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,1,false);
+		return d->rd ? host_readb(d->rd+addr) : d->rh->readb(addr);
+	}
+	uint16_t readw(PhysPt addr) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,2,false);
+		return d->rd ? host_readw(d->rd+addr) : d->rh->readw(addr);
+	}
+	uint32_t readd(PhysPt addr) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,4,false);
+		return d->rd ? host_readd(d->rd+addr) : d->rh->readd(addr);
+	}
+	void writeb(PhysPt addr,uint8_t val) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,1,true);
+		if (d->wr) host_writeb(d->wr+addr,val); else d->wh->writeb(addr,val);
+	}
+	void writew(PhysPt addr,uint16_t val) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,2,true);
+		if (d->wr) host_writew(d->wr+addr,val); else d->wh->writew(addr,val);
+	}
+	void writed(PhysPt addr,uint32_t val) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,4,true);
+		if (d->wr) host_writed(d->wr+addr,val); else d->wh->writed(addr,val);
+	}
+	bool readb_checked(PhysPt addr,uint8_t * val) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,1,false);
+		if (d->rd) { *val = host_readb(d->rd+addr); return false; }
+		return d->rh->readb_checked(addr,val);
+	}
+	bool readw_checked(PhysPt addr,uint16_t * val) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,2,false);
+		if (d->rd) { *val = host_readw(d->rd+addr); return false; }
+		return d->rh->readw_checked(addr,val);
+	}
+	bool readd_checked(PhysPt addr,uint32_t * val) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,4,false);
+		if (d->rd) { *val = host_readd(d->rd+addr); return false; }
+		return d->rh->readd_checked(addr,val);
+	}
+	bool writeb_checked(PhysPt addr,uint8_t val) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,1,true);
+		if (d->wr) { host_writeb(d->wr+addr,val); return false; }
+		return d->wh->writeb_checked(addr,val);
+	}
+	bool writew_checked(PhysPt addr,uint16_t val) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,2,true);
+		if (d->wr) { host_writew(d->wr+addr,val); return false; }
+		return d->wh->writew_checked(addr,val);
+	}
+	bool writed_checked(PhysPt addr,uint32_t val) override {
+		const DebugBPPage *d = Find(addr);
+		CPU_DebugDataAccess(addr,4,true);
+		if (d->wr) { host_writed(d->wr+addr,val); return false; }
+		return d->wh->writed_checked(addr,val);
+	}
+private:
+	/* a page that is no longer watched cannot reach here: PAGING_DebugSetPages unlinks it */
+	static const DebugBPPage *Find(const PhysPt addr) {
+		const DebugBPPage *d = PAGING_DebugFind(addr);
+		if (GCC_UNLIKELY(d == nullptr)) E_Exit("Debug breakpoint page handler: page %lx not watched",(unsigned long)(addr >> 12u));
+		return d;
+	}
+};
+
+static DebugBPPageHandler debugbp_handler;
+
+/* wrap the TLB entries of the watched pages that are linked, after the paging code (re)installed them */
+static void PAGING_DebugReapply(void) {
+	for (unsigned int i=0;i < dbg_npages;i++) {
+		DebugBPPage &d = dbg_pages[i];
+
+		if (paging.tlb.readhandler[d.page] != &debugbp_handler && paging.tlb.readhandler[d.page] != &init_page_handler) {
+			d.rd = paging.tlb.read[d.page];
+			d.rh = paging.tlb.readhandler[d.page];
+			paging.tlb.read[d.page] = nullptr;
+			paging.tlb.readhandler[d.page] = &debugbp_handler;
+		}
+		if (paging.tlb.writehandler[d.page] != &debugbp_handler && paging.tlb.writehandler[d.page] != &init_page_handler) {
+			d.wr = paging.tlb.write[d.page];
+			d.wh = paging.tlb.writehandler[d.page];
+			paging.tlb.write[d.page] = nullptr;
+			paging.tlb.writehandler[d.page] = &debugbp_handler;
+		}
+	}
+}
+
+void PAGING_UnlinkPages(PageNum lin_page,PageNum pages);
+
+/* set the linear pages that hold an enabled data breakpoint (CPU_DebugRegsChanged) */
+void PAGING_DebugSetPages(const uint32_t *pages,unsigned int count) {
+	/* the old pages go back to normal, the new ones get wrapped when they are linked next */
+	for (unsigned int i=0;i < dbg_npages;i++) PAGING_UnlinkPages(dbg_pages[i].page,1);
+	dbg_npages = 0;
+	for (unsigned int i=0;i < count && i < 4;i++) {
+		if (pages[i] >= TLB_SIZE || PAGING_DebugFind((PhysPt)(pages[i] << 12u)) != nullptr) continue;
+		dbg_pages[dbg_npages].page = pages[i];
+		dbg_pages[dbg_npages].rd = dbg_pages[dbg_npages].wr = nullptr;
+		dbg_pages[dbg_npages].rh = dbg_pages[dbg_npages].wh = &init_page_handler;
+		dbg_npages++;
+		PAGING_UnlinkPages(pages[i],1);
+	}
+}
 static ExceptionPageHandler exception_handler;
 static PageFoilHandler foiling_handler;
 
@@ -1109,6 +1253,7 @@ static void PAGING_LinkPageNew(PageNum lin_page, PageNum phys_page, const uint8_
 			break;
 	}
 	paging.links.entries[paging.links.used++]= (uint32_t)lin_page; // "master table"
+	if (GCC_UNLIKELY(dbg_npages != 0)) PAGING_DebugReapply();
 }
 
 void PAGING_LinkPage(PageNum lin_page,PageNum phys_page) {
@@ -1135,6 +1280,7 @@ void PAGING_LinkPage(PageNum lin_page,PageNum phys_page) {
 	paging.links.entries[paging.links.used++]= (uint32_t)lin_page;
 	paging.tlb.readhandler[lin_page]=handler;
 	paging.tlb.writehandler[lin_page]=handler;
+	if (GCC_UNLIKELY(dbg_npages != 0)) PAGING_DebugReapply();
 }
 
 // parameter is the new cpl mode
@@ -1241,6 +1387,7 @@ void PAGING_SwitchCPL(bool isUser) {
 			}
 		}
 	}
+	if (GCC_UNLIKELY(dbg_npages != 0)) PAGING_DebugReapply();
 }
 
 #define USERWRITE_PROHIBITED			((cpu.cpl&cpu.mpl)==3)
