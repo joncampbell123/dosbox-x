@@ -543,6 +543,19 @@ public:
 		return true;
 	}
 
+	/* the LDT register's descriptor cache (see cpu_state.h) */
+	LinearPt GetLDTBase(void) const {
+		return ldt_base;
+	}
+	Bitu GetLDTLimit(void) const {
+		return ldt_limit;
+	}
+	void SetLDTCache(Bitu value,LinearPt base,Bitu limit) {
+		ldt_value=value;
+		ldt_base=base;
+		ldt_limit=limit;
+	}
+
 	void SaveState( std::ostream& stream ) override;
 	void LoadState( std::istream& stream ) override;
 

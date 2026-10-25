@@ -23,10 +23,12 @@
 #include <array>
 #include <cfenv>
 #include <cmath>
+#include <cstring>
 #include <limits>
 #include <string>
 
 #include "cpu.h"
+#include "cpu_state.h"
 #include "cpu/lazyflags.h"
 #include "fpu.h"
 #include "fpu_float80.h"
@@ -2713,6 +2715,40 @@ void CPU_FXRSTOR(PhysPt eaa) {
 			xmm.u32[3] = mem_readd(eaa+0x0A0+(i*16)+0xC);
 		}
 	}
+}
+
+/* The x87 and SSE part of CPU_FullState (see cpu_state.h), laid out as FXSAVE stores it */
+void FPU_GetFullState(CPU_FullState &state) {
+	state.fcw = fpu.cw;
+	state.fsw = fpu.sw;
+	state.ftw = FPU_GetAbridgedTag();
+	for (auto i = 0; i < 8; i++) {
+		FPU_Reg_80 value = {};
+		fpu_GetRegister80((int)STV(i), value);
+		memcpy(&state.st[i][0], &value.raw.l, 8);
+		memcpy(&state.st[i][8], &value.raw.h, 2);
+	}
+	for (auto i = 0; i < 8; i++)
+		memcpy(state.xmm[i], fpu.xmmreg[i].u32, 16);
+	state.mxcsr = fpu.mxcsr;
+}
+
+void FPU_SetFullState(const CPU_FullState &state) {
+	fpu.cw = state.fcw;
+	fpu.sw = state.fsw;
+	for (auto i = 0; i < 8; i++) {
+		const int reg = (int)STV(i);
+		memcpy(&fpu.regs_80[reg].raw.l, &state.st[i][0], 8);
+		memcpy(&fpu.regs_80[reg].raw.h, &state.st[i][8], 2);
+#ifndef HAS_LONG_DOUBLE
+		fpu.regs[reg].v = float80::convertToDouble(fpu.regs_80[reg]);
+		fpu.use80[reg] = true;
+#endif
+	}
+	FPU_SetAbridgedTag(state.ftw);
+	for (auto i = 0; i < 8; i++)
+		memcpy(fpu.xmmreg[i].u32, state.xmm[i], 16);
+	fpu.mxcsr = state.mxcsr;
 }
 
 #endif

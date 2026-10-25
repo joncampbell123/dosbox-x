@@ -901,6 +901,25 @@ public:
 
 TaskStateSegment cpu_tss;
 
+/* The task register and its descriptor cache (see cpu_state.h) */
+void CPU_GetTaskRegister(Bitu &selector,Descriptor &desc,PhysPt &base,Bitu &limit,bool &is386,bool &valid) {
+	selector=cpu_tss.selector;
+	desc=cpu_tss.desc;
+	base=cpu_tss.base;
+	limit=cpu_tss.limit;
+	is386=cpu_tss.is386!=0;
+	valid=cpu_tss.valid;
+}
+
+void CPU_SetTaskRegister(Bitu selector,const Descriptor &desc,PhysPt base,Bitu limit,bool is386,bool valid) {
+	cpu_tss.selector=selector;
+	cpu_tss.desc.saved=desc.saved;
+	cpu_tss.base=base;
+	cpu_tss.limit=limit;
+	cpu_tss.is386=is386?1:0;
+	cpu_tss.valid=valid;
+}
+
 enum TSwitchType {
 	TSwitch_JMP,TSwitch_CALL_INT,TSwitch_IRET
 };

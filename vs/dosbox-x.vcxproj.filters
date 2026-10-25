@@ -252,6 +252,9 @@
     <ClCompile Include="..\src\cpu\callback.cpp">
       <Filter>Sources\cpu</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cpu\cpu_state.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cpu\core_full.cpp">
       <Filter>Sources\cpu</Filter>
     </ClCompile>
@@ -2241,6 +2244,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cpu.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cpu_state.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cross.h">
