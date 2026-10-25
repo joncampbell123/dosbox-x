@@ -46,14 +46,15 @@ extern bool ignore_opcode_63;
 #include "debug.h"
 #endif
 
-#define LoadMb(off) mem_readb_inline(off)
-#define LoadMw(off) mem_readw_inline(off)
-#define LoadMd(off) mem_readd_inline(off)
-#define LoadMq(off) (((uint64_t)mem_readd_inline(off+4)<<(uint64_t)32) | (uint64_t)mem_readd_inline(off))
-#define SaveMb(off,val)	mem_writeb_inline(off,val)
-#define SaveMw(off,val)	mem_writew_inline(off,val)
-#define SaveMd(off,val)	mem_writed_inline(off,val)
-#define SaveMq(off,val) {mem_writed_inline(off,((uint32_t)(val))&0xffffffff);mem_writed_inline(off+4,(((uint64_t)(val))>>((uint64_t)32))&0xffffffff);}
+/* memory operand access, with the segment limit check of the ModR/M operand (core_normal/seglimit.h) */
+#define LoadMb(off) (Core_EALimitCheck(off,1u),mem_readb_inline(off))
+#define LoadMw(off) (Core_EALimitCheck(off,2u),mem_readw_inline(off))
+#define LoadMd(off) (Core_EALimitCheck(off,4u),mem_readd_inline(off))
+#define LoadMq(off) (Core_EALimitCheck(off,8u),(((uint64_t)mem_readd_inline(off+4)<<(uint64_t)32) | (uint64_t)mem_readd_inline(off)))
+#define SaveMb(off,val)	{Core_EALimitCheck(off,1u);mem_writeb_inline(off,val);}
+#define SaveMw(off,val)	{Core_EALimitCheck(off,2u);mem_writew_inline(off,val);}
+#define SaveMd(off,val)	{Core_EALimitCheck(off,4u);mem_writed_inline(off,val);}
+#define SaveMq(off,val) {Core_EALimitCheck(off,8u);mem_writed_inline(off,((uint32_t)(val))&0xffffffff);mem_writed_inline(off+4,(((uint64_t)(val))>>((uint64_t)32))&0xffffffff);}
 
 #include "lock.h"
 static INLINE uint8_t LockPrefixRead(PhysPt address) {
@@ -85,6 +86,7 @@ Bitu cycle_count;
 	BaseDS=SegBase(_SEG);					\
 	BaseSS=SegBase(_SEG);					\
 	core.base_val_ds=_SEG;					\
+	core.base_val_ss=_SEG;					\
 	goto restart_opcode;
 
 #define DO_PREFIX_ADDR()								\
@@ -111,6 +113,8 @@ static struct {
 	PhysPt cseip;
 	PhysPt base_ds,base_ss;
 	SegNames base_val_ds;
+	SegNames base_val_ss;					/* segment of BaseSS (SS unless overridden) */
+	uint8_t ea_seg;						/* segment of the ModR/M operand, CORE_EA_NONE if none */
 	bool rep_zero;
 	Bitu prefixes;
 	GetEAHandler * ea_table;
@@ -125,36 +129,38 @@ static struct {
 #define BaseDS		core.base_ds
 #define BaseSS		core.base_ss
 
+#include "core_normal/seglimit.h"
+
 static INLINE void FetchDiscardb() {
 	core.cseip+=1;
 }
 
 static INLINE uint8_t FetchPeekb() {
-	uint8_t temp=LoadMb(core.cseip);
+	uint8_t temp=mem_readb_inline(core.cseip);
 	return temp;
 }
 
 static INLINE uint8_t Fetchb() {
-	uint8_t temp=LoadMb(core.cseip);
+	uint8_t temp=mem_readb_inline(core.cseip);
 	core.cseip+=1;
 	return temp;
 }
 
 static INLINE uint16_t Fetchw() {
-	uint16_t temp=LoadMw(core.cseip);
+	uint16_t temp=mem_readw_inline(core.cseip);
 	core.cseip+=2;
 	return temp;
 }
 static INLINE uint32_t Fetchd() {
-	uint32_t temp=LoadMd(core.cseip);
+	uint32_t temp=mem_readd_inline(core.cseip);
 	core.cseip+=4;
 	return temp;
 }
 
-#define Push_16 CPU_Push16
-#define Push_32 CPU_Push32
-#define Pop_16 CPU_Pop16
-#define Pop_32 CPU_Pop32
+#define Push_16 Core_Push16				/* with the stack limit check, core_normal/seglimit.h */
+#define Push_32 Core_Push32
+#define Pop_16 Core_Pop16
+#define Pop_32 Core_Pop32
 
 #include "instructions.h"
 #include "core_normal/support.h"
@@ -163,7 +169,7 @@ static INLINE uint32_t Fetchd() {
 
 #define EALookupTable (core.ea_table)
 
-Bits CPU_Core_Normal_Run(void) {
+static Bits CPU_Core_Normal_Run_Loop(void) {
 	if (CPU_Cycles <= 0)
 		return CBRET_NONE;
 
@@ -177,6 +183,8 @@ Bits CPU_Core_Normal_Run(void) {
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);
 		core.base_val_ds=ds;
+		core.base_val_ss=ss;
+		core.ea_seg=CORE_EA_NONE;
 #if C_DEBUG
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
@@ -226,6 +234,21 @@ decode_end:
 	SAVEIP;
 	FillFlags();
 	return CBRET_NONE;
+}
+
+/* segment limit violations of a ModR/M operand end the instruction here (EIP is still at its start) */
+Bits CPU_Core_Normal_Run(void) {
+	for (;;) {
+		try {
+			return CPU_Core_Normal_Run_Loop();
+		}
+		catch (const CoreSegLimitFault &f) {
+			FillFlags();
+			CPU_Exception(f.vector,0);
+			if (CPU_Cycles <= 0)
+				return CBRET_NONE;
+		}
+	}
 }
 
 Bits CPU_Core_Normal_Trap_Run(void) {

@@ -16,33 +16,40 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/* Cores that check segment limits on the ModR/M operand define these to record
+ * which segment register the operand uses (see core_normal/seglimit.h) */
+#ifndef EA_SEG_DS
+#define EA_SEG_DS
+#define EA_SEG_SS
+#endif
+
 /* The MOD/RM Decoder for EA for this decoder's addressing modes */
-static PhysPt EA_16_00_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_si); }
-static PhysPt EA_16_01_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_di); }
-static PhysPt EA_16_02_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_si); }
-static PhysPt EA_16_03_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_di); }
-static PhysPt EA_16_04_n(void) { return BaseDS+(uint16_t)(reg_si); }
-static PhysPt EA_16_05_n(void) { return BaseDS+(uint16_t)(reg_di); }
-static PhysPt EA_16_06_n(void) { return BaseDS+(uint16_t)(Fetchw());}
-static PhysPt EA_16_07_n(void) { return BaseDS+(uint16_t)(reg_bx); }
+static PhysPt EA_16_00_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_bx+reg_si); }
+static PhysPt EA_16_01_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_bx+reg_di); }
+static PhysPt EA_16_02_n(void) { EA_SEG_SS return BaseSS+(uint16_t)(reg_bp+reg_si); }
+static PhysPt EA_16_03_n(void) { EA_SEG_SS return BaseSS+(uint16_t)(reg_bp+reg_di); }
+static PhysPt EA_16_04_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_si); }
+static PhysPt EA_16_05_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_di); }
+static PhysPt EA_16_06_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(Fetchw());}
+static PhysPt EA_16_07_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_bx); }
 
-static PhysPt EA_16_40_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_si+(uint16_t)Fetchbs()); }
-static PhysPt EA_16_41_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_di+(uint16_t)Fetchbs()); }
-static PhysPt EA_16_42_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_si+(uint16_t)Fetchbs()); }
-static PhysPt EA_16_43_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_di+(uint16_t)Fetchbs()); }
-static PhysPt EA_16_44_n(void) { return BaseDS+(uint16_t)(reg_si+(uint16_t)Fetchbs()); }
-static PhysPt EA_16_45_n(void) { return BaseDS+(uint16_t)(reg_di+(uint16_t)Fetchbs()); }
-static PhysPt EA_16_46_n(void) { return BaseSS+(uint16_t)(reg_bp+(uint16_t)Fetchbs()); }
-static PhysPt EA_16_47_n(void) { return BaseDS+(uint16_t)(reg_bx+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_40_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_bx+reg_si+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_41_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_bx+reg_di+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_42_n(void) { EA_SEG_SS return BaseSS+(uint16_t)(reg_bp+reg_si+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_43_n(void) { EA_SEG_SS return BaseSS+(uint16_t)(reg_bp+reg_di+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_44_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_si+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_45_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_di+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_46_n(void) { EA_SEG_SS return BaseSS+(uint16_t)(reg_bp+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_47_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_bx+(uint16_t)Fetchbs()); }
 
-static PhysPt EA_16_80_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_si+(uint16_t)Fetchws()); }
-static PhysPt EA_16_81_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_di+(uint16_t)Fetchws()); }
-static PhysPt EA_16_82_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_si+(uint16_t)Fetchws()); }
-static PhysPt EA_16_83_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_di+(uint16_t)Fetchws()); }
-static PhysPt EA_16_84_n(void) { return BaseDS+(uint16_t)(reg_si+(uint16_t)Fetchws()); }
-static PhysPt EA_16_85_n(void) { return BaseDS+(uint16_t)(reg_di+(uint16_t)Fetchws()); }
-static PhysPt EA_16_86_n(void) { return BaseSS+(uint16_t)(reg_bp+(uint16_t)Fetchws()); }
-static PhysPt EA_16_87_n(void) { return BaseDS+(uint16_t)(reg_bx+(uint16_t)Fetchws()); }
+static PhysPt EA_16_80_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_bx+reg_si+(uint16_t)Fetchws()); }
+static PhysPt EA_16_81_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_bx+reg_di+(uint16_t)Fetchws()); }
+static PhysPt EA_16_82_n(void) { EA_SEG_SS return BaseSS+(uint16_t)(reg_bp+reg_si+(uint16_t)Fetchws()); }
+static PhysPt EA_16_83_n(void) { EA_SEG_SS return BaseSS+(uint16_t)(reg_bp+reg_di+(uint16_t)Fetchws()); }
+static PhysPt EA_16_84_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_si+(uint16_t)Fetchws()); }
+static PhysPt EA_16_85_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_di+(uint16_t)Fetchws()); }
+static PhysPt EA_16_86_n(void) { EA_SEG_SS return BaseSS+(uint16_t)(reg_bp+(uint16_t)Fetchws()); }
+static PhysPt EA_16_87_n(void) { EA_SEG_DS return BaseDS+(uint16_t)(reg_bx+(uint16_t)Fetchws()); }
 
 static uint32_t SIBZero=0;
 static uint32_t * SIBIndex[8]= { &reg_eax,&reg_ecx,&reg_edx,&reg_ebx,&SIBZero,&reg_ebp,&reg_esi,&reg_edi };
@@ -52,58 +59,58 @@ static INLINE PhysPt Sib(Bitu mode) {
 	PhysPt base;
 	switch (sib&7) {
 	case 0:	/* EAX Base */
-		base=BaseDS+reg_eax;break;
+		EA_SEG_DS base=BaseDS+reg_eax;break;
 	case 1:	/* ECX Base */
-		base=BaseDS+reg_ecx;break;
+		EA_SEG_DS base=BaseDS+reg_ecx;break;
 	case 2:	/* EDX Base */
-		base=BaseDS+reg_edx;break;
+		EA_SEG_DS base=BaseDS+reg_edx;break;
 	case 3:	/* EBX Base */
-		base=BaseDS+reg_ebx;break;
+		EA_SEG_DS base=BaseDS+reg_ebx;break;
 	case 4:	/* ESP Base */
-		base=BaseSS+reg_esp;break;
+		EA_SEG_SS base=BaseSS+reg_esp;break;
 	case 5:	/* #1 Base */
 		if (!mode) {
-			base=BaseDS+Fetchd();break;
+			EA_SEG_DS base=BaseDS+Fetchd();break;
 		} else {
-			base=BaseSS+reg_ebp;break;
+			EA_SEG_SS base=BaseSS+reg_ebp;break;
 		}
 	case 6:	/* ESI Base */
-		base=BaseDS+reg_esi;break;
+		EA_SEG_DS base=BaseDS+reg_esi;break;
 	case 7:	/* EDI Base */
-		base=BaseDS+reg_edi;break;
+		EA_SEG_DS base=BaseDS+reg_edi;break;
 	}
 	base+=*SIBIndex[(sib >> 3) &7] << (sib >> 6);
 	return base;
 }
 
-static PhysPt EA_32_00_n(void) { return BaseDS+reg_eax; }
-static PhysPt EA_32_01_n(void) { return BaseDS+reg_ecx; }
-static PhysPt EA_32_02_n(void) { return BaseDS+reg_edx; }
-static PhysPt EA_32_03_n(void) { return BaseDS+reg_ebx; }
+static PhysPt EA_32_00_n(void) { EA_SEG_DS return BaseDS+reg_eax; }
+static PhysPt EA_32_01_n(void) { EA_SEG_DS return BaseDS+reg_ecx; }
+static PhysPt EA_32_02_n(void) { EA_SEG_DS return BaseDS+reg_edx; }
+static PhysPt EA_32_03_n(void) { EA_SEG_DS return BaseDS+reg_ebx; }
 static PhysPt EA_32_04_n(void) { return Sib(0);}
-static PhysPt EA_32_05_n(void) { return BaseDS+Fetchd(); }
-static PhysPt EA_32_06_n(void) { return BaseDS+reg_esi; }
-static PhysPt EA_32_07_n(void) { return BaseDS+reg_edi; }
+static PhysPt EA_32_05_n(void) { EA_SEG_DS return BaseDS+Fetchd(); }
+static PhysPt EA_32_06_n(void) { EA_SEG_DS return BaseDS+reg_esi; }
+static PhysPt EA_32_07_n(void) { EA_SEG_DS return BaseDS+reg_edi; }
 
-static PhysPt EA_32_40_n(void) { return BaseDS+reg_eax+(PhysPt)Fetchbs(); }
-static PhysPt EA_32_41_n(void) { return BaseDS+reg_ecx+(PhysPt)Fetchbs(); }
-static PhysPt EA_32_42_n(void) { return BaseDS+reg_edx+(PhysPt)Fetchbs(); }
-static PhysPt EA_32_43_n(void) { return BaseDS+reg_ebx+(PhysPt)Fetchbs(); }
+static PhysPt EA_32_40_n(void) { EA_SEG_DS return BaseDS+reg_eax+(PhysPt)Fetchbs(); }
+static PhysPt EA_32_41_n(void) { EA_SEG_DS return BaseDS+reg_ecx+(PhysPt)Fetchbs(); }
+static PhysPt EA_32_42_n(void) { EA_SEG_DS return BaseDS+reg_edx+(PhysPt)Fetchbs(); }
+static PhysPt EA_32_43_n(void) { EA_SEG_DS return BaseDS+reg_ebx+(PhysPt)Fetchbs(); }
 static PhysPt EA_32_44_n(void) { PhysPt temp=Sib(1);return temp+(PhysPt)Fetchbs();}
 //static PhysPt EA_32_44_n(void) { return Sib(1)+Fetchbs();}
-static PhysPt EA_32_45_n(void) { return BaseSS+reg_ebp+(PhysPt)Fetchbs(); }
-static PhysPt EA_32_46_n(void) { return BaseDS+reg_esi+(PhysPt)Fetchbs(); }
-static PhysPt EA_32_47_n(void) { return BaseDS+reg_edi+(PhysPt)Fetchbs(); }
+static PhysPt EA_32_45_n(void) { EA_SEG_SS return BaseSS+reg_ebp+(PhysPt)Fetchbs(); }
+static PhysPt EA_32_46_n(void) { EA_SEG_DS return BaseDS+reg_esi+(PhysPt)Fetchbs(); }
+static PhysPt EA_32_47_n(void) { EA_SEG_DS return BaseDS+reg_edi+(PhysPt)Fetchbs(); }
 
-static PhysPt EA_32_80_n(void) { return BaseDS+reg_eax+(PhysPt)Fetchds(); }
-static PhysPt EA_32_81_n(void) { return BaseDS+reg_ecx+(PhysPt)Fetchds(); }
-static PhysPt EA_32_82_n(void) { return BaseDS+reg_edx+(PhysPt)Fetchds(); }
-static PhysPt EA_32_83_n(void) { return BaseDS+reg_ebx+(PhysPt)Fetchds(); }
+static PhysPt EA_32_80_n(void) { EA_SEG_DS return BaseDS+reg_eax+(PhysPt)Fetchds(); }
+static PhysPt EA_32_81_n(void) { EA_SEG_DS return BaseDS+reg_ecx+(PhysPt)Fetchds(); }
+static PhysPt EA_32_82_n(void) { EA_SEG_DS return BaseDS+reg_edx+(PhysPt)Fetchds(); }
+static PhysPt EA_32_83_n(void) { EA_SEG_DS return BaseDS+reg_ebx+(PhysPt)Fetchds(); }
 static PhysPt EA_32_84_n(void) { PhysPt temp=Sib(2);return temp+(PhysPt)Fetchds();}
 //static PhysPt EA_32_84_n(void) { return Sib(2)+Fetchds();}
-static PhysPt EA_32_85_n(void) { return BaseSS+reg_ebp+(PhysPt)Fetchds(); }
-static PhysPt EA_32_86_n(void) { return BaseDS+reg_esi+(PhysPt)Fetchds(); }
-static PhysPt EA_32_87_n(void) { return BaseDS+reg_edi+(PhysPt)Fetchds(); }
+static PhysPt EA_32_85_n(void) { EA_SEG_SS return BaseSS+reg_ebp+(PhysPt)Fetchds(); }
+static PhysPt EA_32_86_n(void) { EA_SEG_DS return BaseDS+reg_esi+(PhysPt)Fetchds(); }
+static PhysPt EA_32_87_n(void) { EA_SEG_DS return BaseDS+reg_edi+(PhysPt)Fetchds(); }
 
 static GetEAHandler EATable[512]={
 /* 00 */
