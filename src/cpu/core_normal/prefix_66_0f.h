@@ -322,8 +322,10 @@
 			GetRMrd;
 			if (rm >= 0xc0) goto illegal_opcode;
 			GetEAa;
-			if (CPU_SetSegGeneral(ss,LoadMw(eaa+4))) RUNEXCEPTION();
-			*rmrd=LoadMd(eaa);
+			/* read both words first: the operand may be addressed through the segment being loaded */
+			{ const uint32_t lxs_off=LoadMd(eaa); const uint16_t lxs_sel=LoadMw(eaa+4);
+			if (CPU_SetSegGeneral(ss,lxs_sel)) RUNEXCEPTION();
+			*rmrd=lxs_off; }
 			break;
 		}
 	CASE_0F_D(0xb3)												/* BTR Ed,Gd */
@@ -348,8 +350,10 @@
 			GetRMrd;
 			if (rm >= 0xc0) goto illegal_opcode;
 			GetEAa;
-			if (CPU_SetSegGeneral(fs,LoadMw(eaa+4))) RUNEXCEPTION();
-			*rmrd=LoadMd(eaa);
+			/* read both words first: the operand may be addressed through the segment being loaded */
+			{ const uint32_t lxs_off=LoadMd(eaa); const uint16_t lxs_sel=LoadMw(eaa+4);
+			if (CPU_SetSegGeneral(fs,lxs_sel)) RUNEXCEPTION();
+			*rmrd=lxs_off; }
 			break;
 		}
 	CASE_0F_D(0xb5)												/* LGS Ed */
@@ -357,8 +361,10 @@
 			GetRMrd;
 			if (rm >= 0xc0) goto illegal_opcode;
 			GetEAa;
-			if (CPU_SetSegGeneral(gs,LoadMw(eaa+4))) RUNEXCEPTION();
-			*rmrd=LoadMd(eaa);
+			/* read both words first: the operand may be addressed through the segment being loaded */
+			{ const uint32_t lxs_off=LoadMd(eaa); const uint16_t lxs_sel=LoadMw(eaa+4);
+			if (CPU_SetSegGeneral(gs,lxs_sel)) RUNEXCEPTION();
+			*rmrd=lxs_off; }
 			break;
 		}
 	CASE_0F_D(0xb6)												/* MOVZX Gd,Eb */

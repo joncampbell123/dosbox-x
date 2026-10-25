@@ -38,17 +38,21 @@ extern bool ignore_opcode_63;
 typedef PhysPt EAPoint;
 #define SegBase(c)	SegPhys(c)
 
-#define LoadMb(off) mem_readb_inline(off)
-#define LoadMw(off) mem_readw_inline(off)
-#define LoadMd(off) mem_readd_inline(off)
+/* segment limit check of the ModR/M operand (inst.rm_seg), core_normal/seglimit.h */
+#define SEGLIMIT_NO_CORE_STRUCT
+#include "core_normal/seglimit.h"
+
+#define LoadMb(off) (Core_SegLimitCheck(inst.rm_seg,off,1u),mem_readb_inline(off))
+#define LoadMw(off) (Core_SegLimitCheck(inst.rm_seg,off,2u),mem_readw_inline(off))
+#define LoadMd(off) (Core_SegLimitCheck(inst.rm_seg,off,4u),mem_readd_inline(off))
 
 #define LoadMbs(off) (int8_t)(LoadMb(off))
 #define LoadMws(off) (int16_t)(LoadMw(off))
 #define LoadMds(off) (int32_t)(LoadMd(off))
 
-#define SaveMb(off,val)	mem_writeb_inline(off,val)
-#define SaveMw(off,val)	mem_writew_inline(off,val)
-#define SaveMd(off,val)	mem_writed_inline(off,val)
+#define SaveMb(off,val)	(Core_SegLimitCheck(inst.rm_seg,off,1u),mem_writeb_inline(off,val))
+#define SaveMw(off,val)	(Core_SegLimitCheck(inst.rm_seg,off,2u),mem_writew_inline(off,val))
+#define SaveMd(off,val)	(Core_SegLimitCheck(inst.rm_seg,off,4u),mem_writed_inline(off,val))
 
 #define LoadD(reg) reg
 #define SaveD(reg,val)	reg=val
@@ -110,6 +114,7 @@ Bits CPU_Core_Full_Run(void) {
 		LoadIP();
 		inst.entry=cpu.code.big*(Bitu)0x200u;
 		inst.prefix=cpu.code.big;
+		inst.rm_seg=CORE_EA_NONE;
 restartopcode:
 		inst.entry=(inst.entry & 0xffffff00u) | Fetchb();
 		inst.code=OpCodeTable[inst.entry];
@@ -125,6 +130,13 @@ restartopcode:
 			reg_flags = old_flags; /* core_full/op.h may have modified flags */
 			reg_esp = old_esp;
 			throw;
+		}
+		catch (const CoreSegLimitFault &f) {
+			/* segment limit violation of a memory operand or the stack, EIP is still at the instruction */
+			reg_esp = old_esp;
+			FillFlags();
+			CPU_Exception(f.vector,0);
+			continue;
 		}
 nextopcode:;
 		SaveIP();

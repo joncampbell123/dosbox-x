@@ -530,8 +530,10 @@
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
 			GetEAa;
-			if (CPU_SetSegGeneral(ss,LoadMw(eaa+2))) RUNEXCEPTION();
-			*rmrw=LoadMw(eaa);
+			/* read both words first: the operand may be addressed through the segment being loaded */
+			{ const uint16_t lxs_off=LoadMw(eaa); const uint16_t lxs_sel=LoadMw(eaa+2);
+			if (CPU_SetSegGeneral(ss,lxs_sel)) RUNEXCEPTION();
+			*rmrw=lxs_off; }
 			break;
 		}
 	CASE_0F_W(0xb3)												/* BTR Ew,Gw */
@@ -558,8 +560,10 @@
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
 			GetEAa;
-			if (CPU_SetSegGeneral(fs,LoadMw(eaa+2))) RUNEXCEPTION();
-			*rmrw=LoadMw(eaa);
+			/* read both words first: the operand may be addressed through the segment being loaded */
+			{ const uint16_t lxs_off=LoadMw(eaa); const uint16_t lxs_sel=LoadMw(eaa+2);
+			if (CPU_SetSegGeneral(fs,lxs_sel)) RUNEXCEPTION();
+			*rmrw=lxs_off; }
 			break;
 		}
 	CASE_0F_W(0xb5)												/* LGS Ew */
@@ -568,8 +572,10 @@
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
 			GetEAa;
-			if (CPU_SetSegGeneral(gs,LoadMw(eaa+2))) RUNEXCEPTION();
-			*rmrw=LoadMw(eaa);
+			/* read both words first: the operand may be addressed through the segment being loaded */
+			{ const uint16_t lxs_off=LoadMw(eaa); const uint16_t lxs_sel=LoadMw(eaa+2);
+			if (CPU_SetSegGeneral(gs,lxs_sel)) RUNEXCEPTION();
+			*rmrw=lxs_off; }
 			break;
 		}
 	CASE_0F_W(0xb6)												/* MOVZX Gw,Eb */

@@ -49,6 +49,9 @@ static struct DynDecodeDynX86 {
 	PhysPt op_start;
 	bool big_op;
 	bool big_addr;
+	bool ea_check;			/* dyn_fill_ea added a segment base: memory accesses through ea_reg get a limit check */
+	uint8_t ea_seg;			/* segment register of that operand */
+	DynReg * ea_reg;
 	REP_Type rep;
 	Bitu cycles;
 	CacheBlock * block;
@@ -1011,6 +1014,72 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 }
 
 #else // X86_64
+
+/* Segment limit check of a ModR/M memory operand (see core_normal/seglimit.h).
+ * The fast path is inline: offset = addr+size-1 - segment base, compared with the
+ * segment limit, for a segment that is not expand-down. Only when it fails does
+ * dyn_seglimit_slow decide, which also handles expand-down segments, the unchecked
+ * limit FFFFFFFFh and the "segment limits" setting.
+ * A byte access with a 16-bit address in real or V86 mode cannot exceed a 64KB
+ * limit, so it gets no check at all. */
+static bool dyn_seglimit_slow(PhysPt lin,Bitu segsize) {
+	const SegNames s = (SegNames)(segsize & 0xFFu);
+	const uint32_t size = (uint32_t)(segsize >> 8u);
+	if (!do_seg_limits) return false;
+
+	const uint32_t off = (uint32_t)(lin - SegPhys(s));
+	const uint64_t last = (uint64_t)off + (uint64_t)size - 1ull;
+	const uint32_t lim = (uint32_t)SegLimit(s);
+	bool bad;
+
+	if (Segs.expanddown[s])
+		bad = (off <= lim && lim != 0) || last > 0xFFFFFFFFull;
+	else
+		bad = last > (uint64_t)lim && lim != 0xFFFFFFFFu;
+
+	if (bad) return CPU_PrepareException((s == ss) ? EXCEPTION_SS : EXCEPTION_GP,0);
+	return false;
+}
+
+static void dyn_seglimit_check(DynReg * addr,const unsigned int size) {
+	if (!decode.ea_check || addr != decode.ea_reg || !do_seg_limits) return;
+	if (size == 1 && !decode.big_addr && (!cpu.pmode || (reg_flags & FLAG_VM))) return;
+
+	const unsigned int s = decode.ea_seg;
+	DynState callstate;
+	uint8_t tmp;
+
+	gen_protectflags();
+	GenReg *gensrc = FindDynReg(addr);
+	gensrc->notusable = true;
+	x64gen.regs[reg_args[0]]->notusable=true;
+	x64gen.regs[reg_args[1]]->notusable=true;
+	tmp = GetNextReg();
+	gensrc->notusable = false;
+	x64gen.regs[reg_args[0]]->notusable=false;
+	x64gen.regs[reg_args[1]]->notusable=false;
+	dyn_savestate(&callstate);
+
+	opcode(7).setea(5,-1,0,(Bits)&Segs.expanddown[s]-(Bits)&cpu_regs).setimm(0,1).Emit8(0x80); // cmp byte [Segs.expanddown[s]],0
+	uint8_t *ed=gen_create_branch(BR_NZ);
+	opcode(tmp).setea(gensrc->index,-1,0,(Bits)size-1).Emit8(0x8D); // lea tmpd,[src+size-1]
+	opcode(tmp).setea(5,-1,0,(Bits)&Segs.phys[s]-(Bits)&cpu_regs).Emit8(0x2B); // sub tmpd,[Segs.phys[s]]
+	opcode(tmp).setea(5,-1,0,(Bits)&Segs.limit[s]-(Bits)&cpu_regs).Emit8(0x3B); // cmp tmpd,[Segs.limit[s]]
+	uint8_t *ok=gen_create_branch(BR_BE);
+	gen_fill_branch(ed);
+
+	if (gensrc->index != ARG0_REG) {
+		x64gen.regs[reg_args[0]]->Clear();
+		opcode(ARG0_REG).setrm(gensrc->index).Emit8(0x8B); // mov ARG0,src
+	}
+	x64gen.regs[reg_args[1]]->Clear();
+	gen_load_imm(ARG1_REG,(Bitu)(s | (size << 8u)));
+	gen_call_ptr((void*)&dyn_seglimit_slow);
+	dyn_check_bool_exception_al();
+
+	dyn_synchstate(&callstate);
+	gen_fill_branch(ok);
+}
 bool mem_unalignedreadw_checked_pagefault(const PhysPt address,uint16_t * const val) {
 	DYN_PAGEFAULT_CHECK({
 		return mem_unalignedreadw_checked(address, val);
@@ -1086,6 +1155,7 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword,bool release=fal
 	DynState callstate;
 	uint8_t tmp;
 
+	dyn_seglimit_check(addr,dword?4u:2u);
 	gen_protectflags();
 	GenReg *gensrc = FindDynReg(addr);
 	if (dword && release) gen_releasereg(addr);
@@ -1152,6 +1222,7 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,bool high,bool release=fals
 	DynState callstate;
 	uint8_t tmp;
 
+	dyn_seglimit_check(addr,1u);
 	gen_protectflags();
 	GenReg *gensrc = FindDynReg(addr);
 	GenReg *gendst = FindDynReg(dst);
@@ -1198,6 +1269,7 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword,bool release=fa
 	DynState callstate;
 	uint8_t tmp;
 
+	dyn_seglimit_check(addr,dword?4u:2u);
 	gen_protectflags();
 	GenReg *gendst = FindDynReg(addr);
 	GenReg *genval = FindDynReg(val);
@@ -1256,6 +1328,7 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high,bool release=fal
 	DynState callstate;
 	uint8_t tmp;
 
+	dyn_seglimit_check(addr,1u);
 	gen_protectflags();
 	GenReg *gendst = FindDynReg(addr);
 	GenReg *genval = FindDynReg(val);
@@ -1383,7 +1456,9 @@ static INLINE void dyn_get_modrm(void) {
 	decode.modrm.rm=(decode.modrm.val & 7);
 }
 
-static void dyn_fill_ea(bool addseg=true, DynReg * reg_ea=DREG(EA)) {
+static DynReg * dyn_ea_segbase;		/* default segment of the last dyn_fill_ea_inner */
+
+static void dyn_fill_ea_inner(bool addseg, DynReg * reg_ea) {
 	DynReg * segbase;
 	if (!decode.big_addr) {
 		Bits imm=0;
@@ -1396,45 +1471,45 @@ static void dyn_fill_ea(bool addseg=true, DynReg * reg_ea=DREG(EA)) {
 		switch (decode.modrm.rm) {
 		case 0:/* BX+SI */
 			gen_lea(reg_ea,DREG(EBX),DREG(ESI),0,imm);
-			segbase=DREG(DS);
+			segbase=dyn_ea_segbase=DREG(DS);
 			break;
 		case 1:/* BX+DI */
 			gen_lea(reg_ea,DREG(EBX),DREG(EDI),0,imm);
-			segbase=DREG(DS);
+			segbase=dyn_ea_segbase=DREG(DS);
 			break;
 		case 2:/* BP+SI */
 			gen_lea(reg_ea,DREG(EBP),DREG(ESI),0,imm);
-			segbase=DREG(SS);
+			segbase=dyn_ea_segbase=DREG(SS);
 			break;
 		case 3:/* BP+DI */
 			gen_lea(reg_ea,DREG(EBP),DREG(EDI),0,imm);
-			segbase=DREG(SS);
+			segbase=dyn_ea_segbase=DREG(SS);
 			break;
 		case 4:/* SI */
 			if (imm) gen_lea(reg_ea,DREG(ESI),nullptr,0,imm);
 			else extend_src=DREG(ESI);
-			segbase=DREG(DS);
+			segbase=dyn_ea_segbase=DREG(DS);
 			break;
 		case 5:/* DI */
 			if (imm) gen_lea(reg_ea,DREG(EDI),nullptr,0,imm);
 			else extend_src=DREG(EDI);
-			segbase=DREG(DS);
+			segbase=dyn_ea_segbase=DREG(DS);
 			break;
 		case 6:/* imm/BP */
 			if (!decode.modrm.mod) {
 				imm=decode_fetchw();
                 gen_dop_word_imm(DOP_MOV,true,reg_ea,imm);
-				segbase=DREG(DS);
+				segbase=dyn_ea_segbase=DREG(DS);
 				goto skip_extend_word;
 			} else {
 				gen_lea(reg_ea,DREG(EBP),nullptr,0,imm);
-				segbase=DREG(SS);
+				segbase=dyn_ea_segbase=DREG(SS);
 			}
 			break;
 		case 7: /* BX */
 			if (imm) gen_lea(reg_ea,DREG(EBX),nullptr,0,imm);
 			else extend_src=DREG(EBX);
-			segbase=DREG(DS);
+			segbase=dyn_ea_segbase=DREG(DS);
 			break;
 		}
 		gen_extend_word(false,reg_ea,extend_src);
@@ -1446,10 +1521,10 @@ skip_extend_word:
 		Bits imm=0;
 		DynReg * base=nullptr;DynReg * scaled=nullptr;Bitu scale=0;
 		switch (decode.modrm.rm) {
-		case 0:base=DREG(EAX);segbase=DREG(DS);break;
-		case 1:base=DREG(ECX);segbase=DREG(DS);break;
-		case 2:base=DREG(EDX);segbase=DREG(DS);break;
-		case 3:base=DREG(EBX);segbase=DREG(DS);break;
+		case 0:base=DREG(EAX);segbase=dyn_ea_segbase=DREG(DS);break;
+		case 1:base=DREG(ECX);segbase=dyn_ea_segbase=DREG(DS);break;
+		case 2:base=DREG(EDX);segbase=dyn_ea_segbase=DREG(DS);break;
+		case 3:base=DREG(EBX);segbase=dyn_ea_segbase=DREG(DS);break;
 		case 4:	/* SIB */
 			{
 				Bitu sib=decode_fetchb();
@@ -1460,16 +1535,16 @@ skip_extend_word:
 				scaled=scaledtable[(sib >> 3) &7];
 				scale=(sib >> 6);
 				switch (sib & 7) {
-				case 0:base=DREG(EAX);segbase=DREG(DS);break;
-				case 1:base=DREG(ECX);segbase=DREG(DS);break;
-				case 2:base=DREG(EDX);segbase=DREG(DS);break;
-				case 3:base=DREG(EBX);segbase=DREG(DS);break;
-				case 4:base=DREG(ESP);segbase=DREG(SS);break;
+				case 0:base=DREG(EAX);segbase=dyn_ea_segbase=DREG(DS);break;
+				case 1:base=DREG(ECX);segbase=dyn_ea_segbase=DREG(DS);break;
+				case 2:base=DREG(EDX);segbase=dyn_ea_segbase=DREG(DS);break;
+				case 3:base=DREG(EBX);segbase=dyn_ea_segbase=DREG(DS);break;
+				case 4:base=DREG(ESP);segbase=dyn_ea_segbase=DREG(SS);break;
 				case 5:
 					if (decode.modrm.mod) {
-						base=DREG(EBP);segbase=DREG(SS);
+						base=DREG(EBP);segbase=dyn_ea_segbase=DREG(SS);
 					} else {
-						segbase=DREG(DS);
+						segbase=dyn_ea_segbase=DREG(DS);
 						Bitu val;
 						if (decode_fetchd_imm(val)) {
 							gen_dop_word_imm_mem(DOP_MOV,true,DREG(EA),(void*)val);
@@ -1486,20 +1561,20 @@ skip_extend_word:
 						imm=(int32_t)val;
 					}
 					break;
-				case 6:base=DREG(ESI);segbase=DREG(DS);break;
-				case 7:base=DREG(EDI);segbase=DREG(DS);break;
+				case 6:base=DREG(ESI);segbase=dyn_ea_segbase=DREG(DS);break;
+				case 7:base=DREG(EDI);segbase=dyn_ea_segbase=DREG(DS);break;
 				}
 			}	
 			break;	/* SIB Break */
 		case 5:
 			if (decode.modrm.mod) {
-				base=DREG(EBP);segbase=DREG(SS);
+				base=DREG(EBP);segbase=dyn_ea_segbase=DREG(SS);
 			} else {
-				imm=(int32_t)decode_fetchd();segbase=DREG(DS);
+				imm=(int32_t)decode_fetchd();segbase=dyn_ea_segbase=DREG(DS);
 			}
 			break;
-		case 6:base=DREG(ESI);segbase=DREG(DS);break;
-		case 7:base=DREG(EDI);segbase=DREG(DS);break;
+		case 6:base=DREG(ESI);segbase=dyn_ea_segbase=DREG(DS);break;
+		case 7:base=DREG(EDI);segbase=dyn_ea_segbase=DREG(DS);break;
 		}
 		switch (decode.modrm.mod) {
 		case 1:imm=(int8_t)decode_fetchb();break;
@@ -1544,6 +1619,36 @@ skip_extend_word:
 				if (reg_ea!=DREG(EA)) gen_releasereg(DREG(EA));
 			}
 		}
+	}
+}
+
+static uint8_t dyn_segreg_index(const DynReg * r) {
+	if (r == DREG(ES)) return (uint8_t)es;
+	if (r == DREG(CS)) return (uint8_t)cs;
+	if (r == DREG(SS)) return (uint8_t)ss;
+	if (r == DREG(DS)) return (uint8_t)ds;
+	if (r == DREG(FS)) return (uint8_t)fs;
+	if (r == DREG(GS)) return (uint8_t)gs;
+	return 0xFFu;
+}
+
+/* compute the effective address of the ModR/M operand. With addseg, remember which
+ * segment it uses so the memory access functions can check the segment limit */
+/* MOV AL/AX to or from a direct address: the operand is in DREG(EA), DS unless overridden */
+static void dyn_ea_note_direct(void) {
+	decode.ea_seg=dyn_segreg_index(decode.segprefix ? decode.segprefix : DREG(DS));
+	decode.ea_reg=DREG(EA);
+	decode.ea_check=(decode.ea_seg != 0xFFu);
+}
+
+static void dyn_fill_ea(bool addseg=true, DynReg * reg_ea=DREG(EA)) {
+	dyn_ea_segbase=nullptr;
+	dyn_fill_ea_inner(addseg,reg_ea);
+	decode.ea_check=false;
+	if (addseg) {
+		decode.ea_seg=dyn_segreg_index(decode.segprefix ? decode.segprefix : dyn_ea_segbase);
+		decode.ea_reg=reg_ea;
+		decode.ea_check=(decode.ea_seg != 0xFFu);
 	}
 }
 
@@ -2577,6 +2682,7 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 		decode.big_addr=cpu.code.big;
 		decode.big_op=cpu.code.big;
 		decode.segprefix=nullptr;
+		decode.ea_check=false;
 		decode.rep=REP_NONE;
 		decode.cycles++;
 		decode.op_start=decode.code;
@@ -2922,18 +3028,21 @@ restart_prefix:
 			break;
 		/* MOV AL,direct addresses */
 		case 0xa0:
+			dyn_ea_note_direct();
 			gen_lea(DREG(EA),decode.segprefix ? decode.segprefix : DREG(DS),nullptr,0,
 				decode.big_addr ? decode_fetchd() : decode_fetchw());
 			dyn_read_byte_release(DREG(EA),DREG(EAX),false);
 			break;
 		/* MOV AX,direct addresses */
 		case 0xa1:
+			dyn_ea_note_direct();
 			gen_lea(DREG(EA),decode.segprefix ? decode.segprefix : DREG(DS),nullptr,0,
 				decode.big_addr ? decode_fetchd() : decode_fetchw());
 			dyn_read_word_release(DREG(EA),DREG(EAX),decode.big_op);
 			break;
 		/* MOV direct address,AL */
 		case 0xa2:
+			dyn_ea_note_direct();
 			if (decode.big_addr) {
 				Bitu val;
 				if (decode_fetchd_imm(val)) {
@@ -2949,6 +3058,7 @@ restart_prefix:
 			break;
 		/* MOV direct addresses,AX */
 		case 0xa3:
+			dyn_ea_note_direct();
 			gen_lea(DREG(EA),decode.segprefix ? decode.segprefix : DREG(DS),nullptr,0,
 				decode.big_addr ? decode_fetchd() : decode_fetchw());
 			dyn_write_word_release(DREG(EA),DREG(EAX),decode.big_op);

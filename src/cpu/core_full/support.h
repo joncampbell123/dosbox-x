@@ -182,6 +182,7 @@ struct FullData {
 	Bitu rm;
 	EAPoint rm_eaa;
 	uint32_t rm_off;
+	uint8_t rm_seg;				/* segment register of the ModR/M operand, CORE_EA_NONE if none */
 	Bitu rm_eai;
 	Bitu rm_index;
 	Bitu rm_mod;
@@ -206,6 +207,7 @@ struct FullData {
 	Bitu new_flags;
 	struct {
 		EAPoint base;
+		uint8_t idx;			/* segment register of the override prefix */
 	} seg;
 	Bitu cond;
 	bool repz;

@@ -35,27 +35,31 @@
  * the check off, as table_ea.h explains: a 386 with a 4GB segment does not
  * fault an access that wraps past FFFFFFFFh.
  *
+ * The full core (core_full) uses Core_SegLimitCheck with the segment it
+ * records in inst.rm_seg, and defines SEGLIMIT_NO_CORE_STRUCT.
+ *
  * Controlled by the "segment limits" setting (do_seg_limits). */
 
 #define CORE_EA_NONE		0xFFu
 
-/* same definition as in core_normal/helpers.h, which is included later */
+/* same definition as in core_normal/helpers.h, which is included later.
+ * A core that does not define CPU_CORE (the full core) defines it before this file */
+#ifndef EANoSegmentLimitMagic
 #if CPU_CORE <= CPU_ARCHTYPE_286
 #define EANoSegmentLimitMagic 0xFFFFul
 #else
 #define EANoSegmentLimitMagic 0xFFFFFFFFul
 #endif
-
-#define EA_SEG_DS		core.ea_seg=(uint8_t)core.base_val_ds;
-#define EA_SEG_SS		core.ea_seg=(uint8_t)core.base_val_ss;
+#endif
 
 struct CoreSegLimitFault {
 	unsigned int vector;
 };
 
-static INLINE void Core_EALimitCheck(const PhysPt lin,const uint32_t size) {
-	if (core.ea_seg != CORE_EA_NONE && do_seg_limits) {
-		const SegNames s = (SegNames)core.ea_seg;
+/* check an access of size bytes at linear address lin through segment register seg (CORE_EA_NONE: no check) */
+static INLINE void Core_SegLimitCheck(const uint8_t seg,const PhysPt lin,const uint32_t size) {
+	if (seg != CORE_EA_NONE && do_seg_limits) {
+		const SegNames s = (SegNames)seg;
 		const uint32_t off = (uint32_t)(lin - SegPhys(s));
 		const uint64_t last = (uint64_t)off + (uint64_t)size - 1ull;
 		const uint32_t lim = (uint32_t)SegLimit(s);
@@ -73,6 +77,16 @@ static INLINE void Core_EALimitCheck(const PhysPt lin,const uint32_t size) {
 		}
 	}
 }
+
+#ifndef SEGLIMIT_NO_CORE_STRUCT
+/* normal core variants: the EA functions record the segment in core.ea_seg */
+#define EA_SEG_DS		core.ea_seg=(uint8_t)core.base_val_ds;
+#define EA_SEG_SS		core.ea_seg=(uint8_t)core.base_val_ss;
+
+static INLINE void Core_EALimitCheck(const PhysPt lin,const uint32_t size) {
+	Core_SegLimitCheck(core.ea_seg,lin,size);
+}
+#endif
 
 /* Stack limit checks for the PUSH/POP type accesses of the instructions this
  * core executes itself (pushes done by CPU_Interrupt and the far control
