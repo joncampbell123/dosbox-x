@@ -855,6 +855,13 @@ class Mem4GBPageHandler : public PageHandler {
 
 static Mem4GBPageHandler mem4gb_handler;
 
+bool MEM_PageHandlerKnown(Bitu phys_page) {
+	phys_page &= memory.mem_alias_pagemask_active;
+	if (phys_page < memory.handler_pages && !(glide.enabled && (phys_page>=(GLIDE_LFB>>12)) && (phys_page<(GLIDE_LFB>>12)+GLIDE_PAGES)))
+		return memory.phandlers[phys_page] != NULL;
+	return true;
+}
+
 PageHandler * MEM_GetPageHandler(Bitu phys_page) {
 	phys_page &= memory.mem_alias_pagemask_active;
 

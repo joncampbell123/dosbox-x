@@ -227,6 +227,10 @@ struct MEM_PageInfo {
 	PageHandler*	handler;
 };
 MEM_PageInfo MEM_ClassifyPage(Bitu phys_page);
+/* Whether the handler of a page is known without asking the devices: the handler table starts
+ * out empty above RAM and the ROMs, and the first access to a page asks every device which one
+ * claims it (MEM_SlowPath()), which is slow for all 4GB at once */
+bool MEM_PageHandlerKnown(Bitu phys_page);
 
 /* Some other functions */
 void PAGING_Enable(bool enabled);

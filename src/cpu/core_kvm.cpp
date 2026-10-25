@@ -133,6 +133,10 @@ static struct {
 	bool			dirty = true;	/* pages [dirty_lo,dirty_hi] need reclassifying */
 	Bitu			dirty_lo = 0,dirty_hi = ~(Bitu)0;
 	bool			paging = false;	/* guest paging state the first MB layout is for */
+
+	/* pages left as MMIO because their handler was not known yet (see KVM_ApplyMapChanges()),
+	 * one bit per page of the 4GB */
+	std::vector<uint64_t>	deferred = std::vector<uint64_t>(0x100000u / 64u,0);
 } kvm_mem;
 
 /* KVM's own pages (identity map and TSS, see kvm_tss_addr) */
@@ -287,8 +291,30 @@ static bool KVM_ApplyMapChanges(void) {
 	/* the runs of host memory in [lo,hi] */
 	std::vector<KVM_Slot> runs;
 	KVM_Slot run = {0,0,0,NULL,false,false};
+	/* Above the first MB: a page whose handler is not known yet (MEM_PageHandlerKnown()) is not
+	 * looked up, which would ask every device about it and makes the first build of all 4GB
+	 * slow; it is MMIO until the guest touches it (see KVM_HandleMMIO()). Most of the rest is one
+	 * handler that has no memory behind it (nothing there, or a device that is all I/O): a page
+	 * whose handler is the last one seen that is not readable is not looked at further. */
+	PageHandler *no_memory = NULL;
 	for (Bitu page = lo;page <= hi;page++) {
+		if (page >= LINK_START) {
+			const uint64_t bit = (uint64_t)1u << (page & 63u);
+			if (!MEM_PageHandlerKnown(page)) {
+				kvm_mem.deferred[page >> 6u] |= bit;
+				if (run.pages != 0) runs.push_back(run);
+				run.pages = 0;
+				continue;
+			}
+			kvm_mem.deferred[page >> 6u] &= ~bit;
+		}
+		if (page >= LINK_START && no_memory != NULL && MEM_GetPageHandler(page) == no_memory) {
+			if (run.pages != 0) runs.push_back(run);
+			run.pages = 0;
+			continue;
+		}
 		const MEM_PageInfo info = KVM_PageAt(page);
+		if (page >= LINK_START && !(info.handler->getFlags() & PFLAG_READABLE)) no_memory = info.handler;
 		const bool mappable = info.kind != MEM_PAGE_DEVICE && info.host != NULL &&
 			((uintptr_t)info.host & 0xFFFu) == 0 && !KVM_ReservedPage(page);
 		const bool readonly = info.kind == MEM_PAGE_READONLY;
@@ -839,6 +865,11 @@ static void KVM_HandleMMIO(void) {
 	const PhysPt64 a = (PhysPt64)run->mmio.phys_addr;
 	uint8_t *data = run->mmio.data;
 
+	/* a page whose handler was not known when the slots were built: the access below finds
+	 * it, and then it may turn out to be memory that can be mapped (a PCI LFB, for example) */
+	const Bitu page = (Bitu)(a >> 12u);
+	const bool deferred = page < 0x100000u && (kvm_mem.deferred[page >> 6u] & ((uint64_t)1u << (page & 63u)));
+
 	if (run->mmio.is_write) {
 		switch (run->mmio.len) {
 			case 1: physdev_writeb(a,data[0]); break;
@@ -856,6 +887,11 @@ static void KVM_HandleMMIO(void) {
 			case 8: host_writed(data,physdev_readd(a)); host_writed(data+4,physdev_readd(a+4u)); break;
 			default: for (uint32_t i=0;i < run->mmio.len;i++) data[i] = physdev_readb(a+i); break;
 		}
+	}
+
+	if (deferred && MEM_PageHandlerKnown(page)) {
+		kvm_mem.deferred[page >> 6u] &= ~((uint64_t)1u << (page & 63u));
+		KVM_MarkDirty(page,page);
 	}
 }
 
