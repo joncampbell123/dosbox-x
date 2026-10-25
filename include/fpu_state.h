@@ -60,10 +60,11 @@ struct FPUControlWord
 
 	enum
 	{
-		mask8087     = 0x1fff,
-		maskNon8087  = 0x1f7f,
-		reservedMask = 0x40,
-		initValue    = 0x37f
+		mask8087      = 0x1fff,
+		maskNon8087   = 0x1f7f,
+		reservedMask  = 0x40,
+		initValue     = 0x37f,
+		initValue8087 = 0x3ff
 	};
 	enum RoundMode
 	{
@@ -96,7 +97,10 @@ struct FPUControlWord
 		*this = reg | val;
 		return *this;
 	}
-	void init() { reg = initValue; }
+	void init()
+	{
+		reg = FPU_ArchitectureType <= FPU_ARCHTYPE_8087 ? initValue8087 : initValue;
+	}
 	FPUControlWord allMasked() const
 	{
 		auto masked = *this;
