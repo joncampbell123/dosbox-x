@@ -1,4 +1,17 @@
 Next version:
+  - [AI] Fixed save states: the Vga part of every save state was written with
+    a bad CRC, so loading any save state failed. An empty write with a NULL
+    pointer reset the CRC of the file being written in the zip. (joncampbell123)
+  - [AI] Added [cpu] "callback int3 prefix" (auto, true, false) to write the
+    DOSBox-X callback instructions with an INT3 in front of them, as a CPU
+    core using hardware virtualization (KVM) will need. auto writes it if the
+    CPU core is set to kvm. It takes effect when DOSBox-X starts. All the
+    emulated CPU cores run either form, and other INT3 instructions still go
+    to the guest. (joncampbell123)
+  - [AI] Save states record the callback instruction encoding, and a save
+    state with the other encoding is refused with an explanation, because its
+    memory holds callback instructions the session cannot run. Save states
+    from before this are the plain encoding. (joncampbell123)
   - [AI] 3Dfx Metal hardware rendering support on macOS, with output=metal
     and voodoo_card=metal or auto. (joncampbell123)
   - [AI] Metal output (and its 3Dfx hardware rendering) now works in SDL1
