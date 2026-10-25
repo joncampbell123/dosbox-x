@@ -7399,6 +7399,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		PIC_RemoveEvents(VGA_VerticalTimer);
 		PIC_RemoveEvents(VGA_PanningLatch);
 		PIC_RemoveEvents(VGA_DisplayStartLatch);
+		/* not resizing any more, or the mode set that follows could never start drawing
+		 * (VGA_StartResize() does nothing while resizing) */
+		vga.draw.resizing=false;
 		return;
 	}
 	// user choosable special trick support
