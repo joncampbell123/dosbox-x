@@ -375,7 +375,11 @@ switch (inst.code.op) {
 		else if (DEBUG_IntBreakpoint(inst_op1_b)) 
 			return (Bits)debugCallback;
 #endif
-		CPU_SW_Interrupt(inst_op1_b,GetIP());
+		/* INT3 (CCh) and INTO (CEh) are not IOPL sensitive in virtual 8086 mode, INT n (CDh) is */
+		if ((inst.entry & 0xFF) == 0xcd)
+			CPU_SW_Interrupt(inst_op1_b,GetIP());
+		else
+			CPU_SW_Interrupt_NoIOPLCheck(inst_op1_b,GetIP());
 		continue;
 	case O_INb:
 		if (CPU_IO_Exception(inst_op1_d,1)) RunException();

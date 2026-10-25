@@ -1088,7 +1088,8 @@
 		}
 	CASE_B(0xce)												/* INTO */
 		if (get_OF()) {
-			CPU_SW_Interrupt(4,GETIP);
+			/* like INT3, INTO is not IOPL sensitive in virtual 8086 mode */
+			CPU_SW_Interrupt_NoIOPLCheck(4,GETIP);
 #if CPU_TRAP_CHECK
 			cpu.trap_skip=true;
 #endif

@@ -208,6 +208,11 @@ static GetEAHandler EATable[512]={
 					goto gp_fault;		\
 				}				\
 			}					\
+			/* upper bound of an expand-down segment: FFFFFFFFh (B=1). FFFFh (B=0) is not checked because the B bit is not kept */ \
+			if (((uint64_t)eaa+(uint64_t)(sz)-1ULL) > 0xFFFFFFFFULL) { \
+				LOG_MSG("Limit check %x+%x-1 > FFFFFFFF (E)",(unsigned int)eaa,(unsigned int)sz); \
+				goto gp_fault;			\
+			}					\
 		}						\
 		else {						\
 			if (((uint64_t)eaa+(uint64_t)(sz)-1ULL) > (uint64_t)SegLimit(core.base_val_ds)) { \

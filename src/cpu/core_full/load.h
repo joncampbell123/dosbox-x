@@ -189,14 +189,14 @@ l_M_Ed:
 			goto l_MODRMswitch;
 		case M_SHIFT_Ib:
 			inst_op2_d = Fetchb() & 0x1f;
-			if (!inst_op2_d)
-				break;
+			if (!inst_op2_d)		/* count 0: no operation, flags unchanged */
+				goto nextopcode;
 			inst.code=Groups[inst.code.op][inst.rm_index];
 			goto l_MODRMswitch;
 		case M_SHIFT_CL:
 			inst_op2_d = reg_cl & 0x1f;
-			if (!inst_op2_d)
-				break;
+			if (!inst_op2_d)		/* count 0: no operation, flags unchanged */
+				goto nextopcode;
 			inst.code=Groups[inst.code.op][inst.rm_index];
 			goto l_MODRMswitch;
 		case M_SHIFT_1:

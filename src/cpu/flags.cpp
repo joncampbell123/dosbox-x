@@ -390,9 +390,10 @@ uint32_t get_OF(void) {
 	case t_SHLb:
 		return (lf_resb ^ lf_var1b) & 0x80;
 	case t_SHLw:
-	case t_DSHRw:
-	case t_DSHLw:
+	case t_DSHRw:		/* lf_var1d = op2:op1, lf_var1w is the original destination */
 		return (lf_resw ^ lf_var1w) & 0x8000;
+	case t_DSHLw:		/* lf_var1d = op1:op2, the original destination is the high word */
+		return (lf_resw ^ (lf_var1d >> 16u)) & 0x8000;
 	case t_SHLd:
 	case t_DSHRd:
 	case t_DSHLd:
@@ -739,7 +740,7 @@ Bitu FillFlags(void) {
 		SET_FLAG(CF,(lf_var1d >> (32 - lf_var2b)) & 1);
 		DOFLAG_ZFw;
 		DOFLAG_SFw;
-		SET_FLAG(OF,(lf_resw ^ lf_var1w) & 0x8000);
+		SET_FLAG(OF,(lf_resw ^ (lf_var1d >> 16u)) & 0x8000);	/* lf_var1d = op1:op2, the original destination is the high word */
 		DOFLAG_PF;
 		break;
 	case t_DSHLd:
