@@ -270,6 +270,55 @@ throttles the guest by duty cycle.
     access is an MMIO exit.
   - **Glide**: the Glide port handler takes guest linear addresses, so it now calls
     `CPU_SyncRegisters()` first (the paging state). Not tested: no Glide program headless.
+- **Step 18: port I/O.** `KVM_CAP_COALESCED_PIO`: writes to ports with no effect the guest
+  could see before its next exit are queued in the coalesced MMIO ring, in order with the
+  video memory writes, and applied (`IO_Write*_Checked()`) as soon as `KVM_RUN` returns; reads
+  still exit, after the queue is applied. Ports: 80h and EDh (I/O delay), the VGA DAC
+  (3C6h-3C9h), the PIT command port 43h (a latch takes effect at the read that follows), the
+  DMA flip-flop resets 0Ch and D8h, and the VGA index registers 3B4h, 3C4h, 3CEh and 3D4h (a
+  word OUT to an index register also writes the data register, falls outside the one-port
+  zone, and exits). Not the VGA data registers, which can change the memory map. A palette
+  benchmark (768 single OUTs to 3C9h per frame, 200 frames, then 200000 OUTs to 80h) went
+  from 4.2 s to 1.7 s (dynamic core 0.8 s); a palette test reads the palette back through
+  3C7h/3C9h after every load and passes. The log line at exit lists the busiest ports.
+  Ports polled most:
+  - Quake (DJGPP, CWSDPMI or HDPMI32): PIT channel 0 (latch at 43h, two reads of 40h) for
+    its clock, the SB16 DMA count (C6h, after a D8h flip-flop reset), 201h (joystick), the
+    SB16 IRQ acknowledge (22Fh). 412000 exits in the timedemo, 237000 with the queued writes.
+  - Spycraft (DOS/4GW): the MPU-401 status port 331h, the RTC (70h/71h), the PIC, the DMA count.
+  - Linux (booting an install CD): PIT, the CRTC (cursor updates, 3D4h/3D5h), the PIC.
+  - These are reads, or writes whose effect is immediate (PIC EOI, RTC data); they have to
+    exit.
+- **Step 19: callback round trips.** Profiled with CBBENCH (100000 INT 21h calls): per call
+  about 5.5 us in `KVM_RUN` (VM exit and entry, KVM's FPU and vCPU switching, the same for
+  every userspace exit), about 3 us in DOSBox-X (the callback itself and the main loop, as
+  on an emulated core), and under 1 us of the KVM core's own work. Cut:
+  - the slice timer is no longer disarmed when the core returns (two system calls per call):
+    it stays armed, and if it fires outside `KVM_RUN` (its handler also sets a `fired` flag,
+    since `KVM_CompletePending()` uses `immediate_exit` too) the next `KVM_RUN` returns at once;
+  - the vCPU events are written back only when one can be in flight (after a `KVM_RUN` that a
+    signal ended, or a full state fetch), not after every callback;
+  - the vCPU events are no longer synced through `kvm_run` at every exit.
+  CBBENCH stays at about 1.4-1.5 s: the exit itself is what is left. The 0.19 s that a
+  start-up spends classifying all 4 GB six times is the "first slot build" open issue.
+- **Step 20: more guests** (first pass).
+  - **Quake 1.06** (`timedemo demo1`, 320x200): 969 frames under CWSDPMI (its own paging)
+    and under HDPMI32, the same as the emulated cores, but at 45 fps against 173-194 fps on
+    the dynamic core (27 fps on the normal core). 44 of 60 s are in `KVM_RUN`: every write
+    to mode 13h video memory is an exit that KVM handles in the kernel (100 million queued
+    writes). See the next steps.
+  - **Spycraft** (DOS/4GW, SVGA, SB16, MPU-401): runs for a minute with the same video modes
+    and BIOS calls as on the normal core.
+  - **Linux** (an install CD, `boot -el-torito`): the kernel boots, prints to the text
+    console and idles with HLT; the log is the same as on the dynamic core.
+  - **OS/2 Warp 3 and 4** installers: boot from the installation diskette and stop at the
+    same point as on the dynamic core (waiting with the next diskette prompt). The floppy
+    controller emulation is incomplete, so OS/2 cannot be tested further yet; changing disks
+    from a headless test would also need AUTOTYPE to trigger mapper handlers (`swapimg`).
+  - **Windows 98** (the image stalls on the dynamic core too with the test configuration),
+    **REAL/32** (installer floppies only), **Windows NT/2000**, a Glide game and **DOS/32A,
+    PMODE/W**: not tested yet. RDTSC timing: Windows 95's performance counter and Quake agree
+    with the emulated cores.
 - **Debugger tools for all of the above.**
   - `MEMMAP [start [end]]` lists the physical map as `MEM_ClassifyPage` sees it (coalesced
     runs with kind, host pointer relative to `MemBase`, and handler class), plus the map
@@ -341,20 +390,26 @@ throttles the guest by duty cycle.
 
 ## Open issues of the KVM core
 
-- **Callback round trips** cost about 12 us (an emulated core: about 1 us), most of it the
-  exit and entry themselves. `CALLBACK_Idle()` is a round trip per call in DOSBox-X's own wait
-  loops. Ideas: handle the hottest callbacks (INT 21h, INT 16h polling) with fewer state
-  transfers, e.g. without putting the segment registers back when they did not change (done)
-  and without fetching the state for callbacks that only read a few registers.
+- **Mode 13h (chained VGA) is slow**: every write is an exit that KVM handles in the kernel
+  (Quake: 45 fps against 173 on the dynamic core). Chain 4 does not map linearly onto
+  `vga.mem.linear` (byte A is at `(A & ~3) * 4 + (A & 3)`), so the pages cannot simply be
+  mapped. A RAM shadow of A0000-AFFFF in chain 4 order, mapped into the guest with dirty
+  logging (`KVM_MEM_LOG_DIRTY_PAGES`), would let the guest write at full speed: copy the dirty
+  pages into `vga.mem.linear` (`KVM_GET_DIRTY_LOG`) before DOSBox-X draws or a callback
+  touches video memory, and refresh the shadow when DOSBox-X itself wrote video memory (a
+  write counter in the VGA handlers). Only while the fast chained handler is in use (no bit
+  mask, no ROP).
+- **Callback round trips** cost about 10 us (an emulated core: about 2.5 us including the
+  callback), most of it KVM's exit and entry. `CALLBACK_Idle()` is a round trip per call in
+  DOSBox-X's own wait loops.
 - **Port I/O exits** cost 5-7 us each in the kernel, so a guest that polls a port (a PIT or
   status port in a tight loop) runs at a fraction of the emulated cores' speed (IOBENCH).
-  Ideas: coalesced PIO (`KVM_CAP_COALESCED_PIO`) for write-only ports whose writes have no
-  immediate effect. Port reads always exit to userspace.
+  Port reads always exit; writes that can be queued are (step 18).
 - **Exit-heavy guests at low fixed cycle counts** still run slower than on an emulated core
   (the VGA test at `cycles=30000`: 1.5 s against 0.3 s): exit costs vary, and the estimate
   (`KVM_Overhead()`) errs towards charging the guest, so that it never gets free time.
-- **Short slices** (exit-bound guests at `cycles=max`) spend a noticeable part of their time
-  arming and disarming the slice timer (two syscalls per slice).
+- **Short slices** (exit-bound guests at `cycles=max`) still spend part of their time
+  re-arming the slice timer.
 - **The first slot build** classifies every page up to 4 GB (165 ms), and an A20 change
   reclassifies all of them (4-6 ms). Limit it to where something is mapped, or reclassify only
   pages whose handler could change.
@@ -378,9 +433,10 @@ throttles the guest by duty cycle.
 
 ## Next steps
 
-18. **Port I/O**: coalesced PIO for write-only ports, and see which ports games poll.
-19. **Callbacks**: profile a round trip and cut what is not the exit itself.
-20. **More guests**: OS/2, Windows NT/2000 (needs `cputype` with the right CPUID), Linux,
-    DOS extenders with their own paging (CWSDPMI, DOS/32A, PMODE/W), a Glide game, games that
-    use RDTSC for timing.
-21. **The open issues above.**
+21. **Mode 13h shadow** with dirty logging (see the open issues): the biggest gain left for
+    DOS games.
+22. **The first slot build**: skip unmapped ranges, so that a start-up and an A20 change do
+    not classify all of 4 GB.
+23. **More guests**: OS/2 once the floppy controller emulation is complete, Windows NT/2000,
+    DOS/32A and PMODE/W, a Glide game, Windows 98.
+24. **The other open issues above.**
