@@ -2222,8 +2222,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable PCI bus emulation");
 
     Pstring = secprop->Add_string("monitor socket", Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("The console monitor can be use to configure some aspects of a running machine with a CONFIG.COM clone and a command to change an already mounted CD drive\n"
-            " Can be either a port number (e.g. 4444) or a path (e.g. /tmp/dosbox-x.sock)");
+    Pstring->Set_help("The console monitor can be used to configure some aspects of a running machine with a CONFIG.COM clone and a command to change an already mounted CD drive.\n"
+            " Empty or off: no monitor. Otherwise a port number (e.g. 4444), on (port 4444), or on Linux a socket path (e.g. /tmp/dosbox-x.sock).\n"
+            " Over TCP, only connections from this computer (127.0.0.1) are accepted.");
 
     secprop=control->AddSection_prop("render",&Null_Init,true);
     Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);

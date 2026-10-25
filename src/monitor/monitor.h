@@ -32,6 +32,7 @@
 #include <unistd.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -268,7 +269,27 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 		#if (C_DYNREC)
 		CPU_Core_Dynrec_Cache_Init( true );
 		#endif
+		/* the port may be in use, for example by another instance */
+		if( !_server ) {
+			LOG_MSG( "MONITOR: cannot listen on TCP port %d: %s\n",tPort,SDLNet_GetError() );
+			return EXIT_FAILURE;
+		}
 		return EXIT_SUCCESS;
+	}/* }}} */
+
+	/* The TCP monitor accepts only local connections. SDL_net cannot bind a server to the
+	 * loopback address (it listens on all interfaces), so check the peer of each connection. */
+	static bool	isLoopbackPeer( TCPsocket tSocket ) {/* {{{ */
+		IPaddress *peer= SDLNet_TCP_GetPeerAddress( tSocket );
+		if( nullptr ==peer ) return false;
+
+		const Uint32 host= SDLNet_Read32( &peer->host );
+		if( ( host >>24 ) ==127 ) return true;
+
+		LOG_MSG( "MONITOR: refused a connection from %u.%u.%u.%u, only local connections are accepted.\n",
+			(unsigned int)( host >>24 ),(unsigned int)( ( host >>16 ) &0xFF ),
+			(unsigned int)( ( host >>8 ) &0xFF ),(unsigned int)( host &0xFF ) );
+		return false;
 	}/* }}} */
 
 	void	closeSocket( TCPsocket& tSocket ) {/* {{{ */
@@ -284,7 +305,8 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 		#ifdef LINUX
 		int bytes_received= 0;
 		while ( _isRunning ) {
-			_client= accept( _server,nullptr,nullptr );
+			/* the descriptor itself: socket_t converts to int through operator bool */
+			_client= accept( _server.sock.uds,nullptr,nullptr );
 			char buffer[ INPUT_LENGTH ];
 
 			messageClient( _client,std::string( "DOSBox-X " )+VERSION+" monitor - type \'help\' for a list of commands\n" );
@@ -336,6 +358,10 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 				while( nullptr ==_client ){
 					_client= SDLNet_TCP_Accept( _server );			
 					if( nullptr !=_client ) {
+						if( !isLoopbackPeer( _client.as_tcp() ) ) {
+							closeSocket( _client.as_tcp() );
+							continue;
+						}
 						LOG_MSG( "MONITOR client connected.\n" );
 						break;
 					}
@@ -435,7 +461,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 	static void	messageClient( socket_t &tClient, std::string tMessage ) {/* {{{ */
 		#ifdef LINUX
 		if( tClient.type >0 ) {
-			send( tClient,tMessage.c_str(),tMessage.size(),0 );
+			send( tClient.sock.uds,tMessage.c_str(),tMessage.size(),0 );
 			return;
 		}
 		#endif
@@ -446,38 +472,45 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 		static Monitor m;
 
 		if( false ==m._isRunning ) {
-			bool isPort= true;
-			if( tLocation.compare( "on" ) ) tLocation= "4444"; /* If the monitor is not running we'll give it a default state on localhost. */
-			else {
-				for( char c:tLocation )
-					if( !std::isdigit( c ) ) {
-						isPort=false;
-						break;
-					}
-			}	
-			int ( *run )( void* );
+			/* "on" is the default port; otherwise a port number, or a socket path */
+			if( !tLocation.compare( "on" ) ) tLocation= "4444";
+			bool isPort= !tLocation.empty();
+			for( char c:tLocation )
+				if( !std::isdigit( (unsigned char)c ) ) {
+					isPort=false;
+					break;
+				}
+			int ( *run )( void* )= nullptr;
 
 			if( m._pThread ) m.onServerClose();
 
-			#ifdef WIN32
-			if( false ==isPort &&  EXIT_SUCCESS ==m.startServer( 4444  ) )
-				run=CB_ListenTCP;
-			#else
-			if( isPort && ( EXIT_SUCCESS ==m.startServer( std::stoi( tLocation ) ) ) ) {
-				run= CB_ListenTCP;
+			if( isPort ) {
+				const unsigned long port= strtoul( tLocation.c_str(),nullptr,10 );
+				if( port ==0 || port >65535 )
+					LOG_MSG( "MONITOR: invalid port number %s.\n",tLocation.c_str() );
+				else if( EXIT_SUCCESS ==m.startServer( (int)port ) )
+					run= CB_ListenTCP;
 			}
-			else if( !isPort && EXIT_SUCCESS ==m.startServer( tLocation ) ) {
+			#ifdef LINUX
+			else if( EXIT_SUCCESS ==m.startServer( tLocation ) ) {
 				run= CB_ListenUDP;
+			}
+			#else
+			else {
+				LOG_MSG( "MONITOR: a socket path is only supported on Linux, use a port number.\n" );
 			}
 			#endif
 
-			m._isRunning= true;
-			#if defined(C_SDL2) && C_SDL2
-			m._pThread= SDL_CreateThread( run,"dosbox-x monitor",&m );
-			SDL_DetachThread( m._pThread );
-			#else
-			m._pThread= SDL_CreateThread( run,(void*)&m );
-			#endif	
+			/* no listening thread without a server to listen on */
+			if( nullptr !=run ) {
+				m._isRunning= true;
+				#if defined(C_SDL2) && C_SDL2
+				m._pThread= SDL_CreateThread( run,"dosbox-x monitor",&m );
+				SDL_DetachThread( m._pThread );
+				#else
+				m._pThread= SDL_CreateThread( run,(void*)&m );
+				#endif
+			}
 		}
 
 		m.ptr_monitor= &m;
