@@ -2184,6 +2184,7 @@ void AddBPINT3(void) {
 void VGA_DumpFontRamBIN(const char *filename);
 void VGA_DumpFontRamBMP(const char *filename);
 int32_t DEBUG_Run(int32_t amount,bool quickexit);
+static void DEBUG_RunSteppedCallback(int32_t ret);
 
 static bool ParseMemoryDumpArguments(char *&found, uint16_t &seg, uint32_t &ofs, uint32_t &num) {
 	bool parsed = false;
@@ -2943,7 +2944,7 @@ bool ParseCommand(char* str) {
 		Bits DEBUG_NullCPUCore(void);
 
 		inhibit_int_breakpoint = true;
-		DEBUG_Run(1,false);
+		int32_t ret = DEBUG_Run(1,false);
 		inhibit_int_breakpoint = false;
 		mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
 		mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
@@ -2952,6 +2953,7 @@ bool ParseCommand(char* str) {
 
 		DOSBOX_SetNormalLoop();	
 		GFX_SetTitle(-1,-1,-1,is_paused);
+		DEBUG_RunSteppedCallback(ret);
 		return true;
 	}
 
@@ -2959,7 +2961,7 @@ bool ParseCommand(char* str) {
 		auto oldcore = cpudecoder;
 		runnormal = false;
 		inhibit_int_breakpoint = true;
-		DEBUG_Run(1,true);
+		int32_t ret = DEBUG_Run(1,true);
 		inhibit_int_breakpoint = false;
 		cpudecoder = oldcore;
 		debug_running = true;
@@ -2970,6 +2972,7 @@ bool ParseCommand(char* str) {
 		mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
 		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 		DEBUG_DrawScreen();
+		DEBUG_RunSteppedCallback(ret);
 		return true;
 	}
 
@@ -4825,6 +4828,36 @@ int32_t DEBUG_Run(int32_t amount,bool quickexit) {
 		DOSBOX_SetNormalLoop();
 	}
 	return ret;
+}
+
+static Bitu debugLoopReturn = 0;
+
+/* For debugger commands that step an instruction with DEBUG_Run() and then let the guest run
+   (RUN, RUNWATCH): if the instruction was a callback instruction, run the callback as the normal
+   loop would. A nonzero return (such as CBRET_STOP, which ends a CALLBACK_RunRealInt() loop) is
+   returned by the normal loop through DEBUG_TakeLoopReturn(). */
+static void DEBUG_RunSteppedCallback(int32_t ret) {
+	if (ret <= 0 || ret >= (int32_t)CB_MAX) return;
+
+	extern unsigned int last_callback;
+	unsigned int p_last_callback = last_callback;
+	bool saved_allow = dosbox_allow_nonrecursive_page_fault;
+	last_callback = (unsigned int)ret;
+	dosbox_allow_nonrecursive_page_fault = false;
+	Bitu r = (*CallBack_Handlers[ret])();
+	dosbox_allow_nonrecursive_page_fault = saved_allow;
+	last_callback = p_last_callback;
+
+	if (r) {
+		debugLoopReturn = r;
+		CPU_Cycles = CPU_CycleLeft = 0;
+	}
+}
+
+Bitu DEBUG_TakeLoopReturn(void) {
+	Bitu r = debugLoopReturn;
+	debugLoopReturn = 0;
+	return r;
 }
 
 #ifdef WIN32

@@ -29,6 +29,7 @@ void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off);
 bool DEBUG_ExitLoop(void);
 void DEBUG_RefreshPage(char scroll);
 Bitu DEBUG_EnableDebugger(void);
+Bitu DEBUG_TakeLoopReturn(void);
 
 #if C_DEBUG
 bool DEBUG_AgentStep(bool over, bool* continued);

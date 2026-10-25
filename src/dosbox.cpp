@@ -472,6 +472,14 @@ static Bitu Normal_Loop(void) {
 #if defined(C_DEBUG) && defined(C_DOSBOX_AGENT)
             dosbox_agent::AGENT_BridgePump();
 #endif
+#if C_DEBUG
+            {
+                /* nonzero return of a callback that a debugger command ran after stepping it */
+                Bitu dret = DEBUG_TakeLoopReturn();
+                if (GCC_UNLIKELY(dret != 0))
+                    return dret;
+            }
+#endif
             if (PIC_RunQueue()) {
                 /* now is the time to check for the NMI (Non-maskable interrupt) */
                 CPU_Check_NMI();
