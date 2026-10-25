@@ -29,6 +29,7 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include <typeinfo>
 using namespace std;
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -58,6 +59,7 @@ using namespace std;
 #include "callback.h"
 #include "inout.h"
 #include "paging.h"
+#include "cpu_state.h"
 #include "debug_inc.h"
 #include "../cpu/lazyflags.h"
 #include "control.h"
@@ -2203,6 +2205,82 @@ static std::string RawCommandArgument(const char *str) {
 	return arg;
 }
 
+/* Map change notifications since the last MEMMAP command (see MEM_AddMapChangeHandler) */
+static struct {
+	Bitu count,lo,hi;
+	bool all;
+} debugMapChanges[2];
+
+static void DEBUG_MapChangeCounter(MEM_MapChangeKind kind,Bitu page,Bitu pages) {
+	auto &c = debugMapChanges[kind == MEM_MAPCHANGE_FIRSTMB ? 1 : 0];
+
+	if (pages == 0) c.all = true;
+	else if (c.count == 0 || page < c.lo || (page+pages-1) > c.hi) {
+		if (c.count == 0 || page < c.lo) c.lo = page;
+		if (c.count == 0 || (page+pages-1) > c.hi) c.hi = page+pages-1;
+	}
+	c.count++;
+}
+
+Bitu MEM_PageMask(void);
+Bitu MEM_TotalPages(void);
+
+static void DEBUG_ShowMemoryMap(char* found) {
+	Bitu start = 0,end = MEM_PageMask();
+
+	if (end > 0xFFFFFu) end = 0xFFFFFu;
+	SkipSpace(found);
+	if (*found) {
+		start = GetHexValue(found,found) >> 12u;
+		SkipSpace(found);
+		if (*found) end = GetHexValue(found,found) >> 12u;
+	}
+
+	static const char *kinds[3] = {"RAM","READONLY","DEVICE"};
+	HostPt membase = GetMemBase();
+	Bitu run_start = start;
+	MEM_PageInfo run = MEM_ClassifyPage(start);
+
+	DEBUG_ShowMsg("DEBUG: Physical memory map (RAM, READONLY = host memory mapped directly):\n");
+	for (Bitu page = start+1u;page <= end+1u;page++) {
+		MEM_PageInfo next;
+		bool same = false;
+
+		if (page <= end) {
+			next = MEM_ClassifyPage(page);
+			same = next.kind == run.kind && next.handler == run.handler &&
+				(run.host == NULL || next.host == run.host + (page-run_start)*4096u);
+		}
+		if (same) continue;
+
+		char where[64] = "";
+		if (run.host != NULL) {
+			if (membase != NULL && run.host >= membase && run.host < membase + MEM_TotalPages()*4096u)
+				snprintf(where,sizeof(where),"MemBase+%lx",(unsigned long)(run.host - membase));
+			else
+				snprintf(where,sizeof(where),"host %p",(void*)run.host);
+		}
+		DEBUG_ShowMsg("%08lx-%08lx %-8s %-24s %s\n",(unsigned long)(run_start*4096u),(unsigned long)(page*4096u-1u),
+			kinds[run.kind],where,typeid(*run.handler).name());
+
+		run_start = page;
+		run = next;
+	}
+
+	static const char *changes[2] = {"physical","first MB remap"};
+	for (unsigned int i=0;i < 2;i++) {
+		auto &c = debugMapChanges[i];
+		if (c.count == 0)
+			DEBUG_ShowMsg("DEBUG: %s map changes since the last MEMMAP: none\n",changes[i]);
+		else if (c.all)
+			DEBUG_ShowMsg("DEBUG: %s map changes since the last MEMMAP: %lu, including all pages\n",changes[i],(unsigned long)c.count);
+		else
+			DEBUG_ShowMsg("DEBUG: %s map changes since the last MEMMAP: %lu, pages %lx-%lx\n",changes[i],(unsigned long)c.count,(unsigned long)c.lo,(unsigned long)c.hi);
+		c.count = c.lo = c.hi = 0;
+		c.all = false;
+	}
+}
+
 bool ParseCommand(char* str) {
     std::string copy_str = str;
     for (auto &c : copy_str) c = toupper(c);
@@ -3092,6 +3170,27 @@ bool ParseCommand(char* str) {
 			snprintf(&hex[i * 2], 3, "%02X", (unsigned)value);
 		}
 		DEBUG_ShowMsg("DEBUG: MEMREAD %04lX:%04lX LEN=%04lX HEX=%s\n", seg, ofs, len, hex);
+		return true;
+	}
+
+	if (command == "MEMMAP") { // Show the physical memory map as a CPU core that maps memory itself sees it
+		DEBUG_ShowMemoryMap(found);
+		return true;
+	}
+
+	if (command == "CPUSTATE") { // Show the full CPU state and check its conversion (see cpu_state.h)
+		CPU_FullState state;
+		std::string report;
+
+		CPU_GetFullState(state);
+		std::istringstream lines(CPU_FullStateToString(state));
+		std::string line;
+		while (std::getline(lines,line))
+			DEBUG_ShowMsg("%s\n",line.c_str());
+		if (CPU_FullStateRoundTripCheck(report))
+			DEBUG_ShowMsg("DEBUG: CPUSTATE round trip OK\n");
+		else
+			DEBUG_ShowMsg("DEBUG: CPUSTATE round trip changed: %s\n",report.c_str());
 		return true;
 	}
 
@@ -4480,6 +4579,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("SSE [=t] [reg]            - Display SSE register file (t can be B,W,D,Q,X,S,F)\n");
 		DEBUG_ShowMsg("SSE [=t] [reg] SET [val]  - Set SSE register (t can be B,W,D,Q,X,S,F), val is comma-separated\n");
 		DEBUG_ShowMsg("CPU                       - Display CPU status information.\n");
+		DEBUG_ShowMsg("CPUSTATE                  - Display the full CPU state and check its conversion.\n");
+		DEBUG_ShowMsg("MEMMAP [start [end]]      - Display the physical memory map and map changes.\n");
 		DEBUG_ShowMsg("FPU                       - Display FPU status information.\n");
 		DEBUG_ShowMsg("GDT                       - Lists descriptors of the GDT.\n");
 		DEBUG_ShowMsg("LDT                       - Lists descriptors of the LDT.\n");
@@ -6413,6 +6514,7 @@ void DEBUG_Init() {
 
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
+	MEM_AddMapChangeHandler(DEBUG_MapChangeCounter);
 	/* Setup callback */
 	debugCallback=CALLBACK_Allocate();
 	CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,"debugger");
