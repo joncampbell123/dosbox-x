@@ -52,8 +52,11 @@ extern bool isa_memory_hole_15mb;
 extern bool vbe_window_size_literal;
 extern unsigned int vbe_window_granularity;
 extern unsigned int vbe_window_size;
+uint32_t VGA_MemWriteCount = 0;
+
 static inline void vga_vram_write_trigger_update(void) {
 	vga.draw.must_complete_frame = true;
+	VGA_MemWriteCount++;
 }
 
 static inline void vga_cg_write_trigger_update(void) {
@@ -63,6 +66,7 @@ static inline void vga_cg_write_trigger_update(void) {
 static inline void vga_vram_write_trigger_update_planar_mem(const PhysPt a) {
 	if ((a-(PhysPt)vga.draw.draw_base_planar) < (PhysPt)vga.draw.draw_base_size) /* NTS: Subtract and compare must all use unsigned integers or this won't work! */
 		vga.draw.must_complete_frame = true;
+	VGA_MemWriteCount++;
 }
 
 uint32_t tandy_128kbase = 0x80000;
@@ -2864,6 +2868,36 @@ range_done:
 	/* bank switching changes the host memory behind the same page handlers */
 	MEM_MapChanged(VGA_PAGE_A0,32);
 	PAGING_ClearTLB();
+}
+
+/* Chained 256-colour memory as a shadow in the guest's byte order (see vga.h): while all of
+ * A0000-AFFFF is the plain chained handler (no raster op, bit mask or the like), guest byte A
+ * of the window is VGA memory byte chain4remap((A & mask) + bank) & memmask, so each aligned
+ * dword of the shadow is one dword of VGA memory */
+bool VGA_ChainedShadowable(VGA_ChainedShadowMap &m) {
+	if (vgapages.base != VGA_PAGE_A0) return false;
+	for (Bitu page=VGA_PAGE_A0;page < (VGA_PAGE_A0+16u);page++) {
+		if (MEM_GetPageHandler(page) != &vgaph.cvga) return false;
+	}
+	m.bank = (uint32_t)vga.svga.bank_read_full;
+	m.mask = (uint32_t)vgapages.mask;
+	m.memmask = (uint32_t)vga.mem.memmask;
+	return true;
+}
+
+static inline uint32_t VGA_ChainedShadowAddr(const VGA_ChainedShadowMap &m,uint32_t a) {
+	return VGA_ChainedVGA_Handler::chain4remap((a & m.mask) + m.bank) & m.memmask;
+}
+
+void VGA_ChainedShadowLoad(const VGA_ChainedShadowMap &m,uint8_t *shadow,unsigned int page) {
+	for (uint32_t a=0;a < 4096u;a += 4u)
+		host_writed(shadow + a,host_readd(&vga.mem.linear[VGA_ChainedShadowAddr(m,(page << 12u) + a)]));
+}
+
+void VGA_ChainedShadowStore(const VGA_ChainedShadowMap &m,const uint8_t *shadow,unsigned int page) {
+	for (uint32_t a=0;a < 4096u;a += 4u)
+		host_writed(&vga.mem.linear[VGA_ChainedShadowAddr(m,(page << 12u) + a)],host_readd((HostPt)shadow + a));
+	vga.draw.must_complete_frame = true;
 }
 
 void VGA_StartUpdateLFB(void) {

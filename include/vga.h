@@ -1017,4 +1017,17 @@ void VGA_UnsetupDAC(void);
 void VGA_UnsetupGFX(void);
 void VGA_UnsetupSEQ(void);
 
+/* For a CPU core that maps guest memory itself (KVM): chained 256-colour memory (mode 13h) as a
+ * 64KB shadow in the guest's byte order, which the core maps at A0000-AFFFF while the plain
+ * chained memory handler is in use, and copies to and from VGA memory (KVM-TODO.md, step 21).
+ * VGA_MemWriteCount counts the writes to video memory through the memory handlers, so that the
+ * core knows when to load the shadow again. */
+struct VGA_ChainedShadowMap {
+	uint32_t	bank,mask,memmask;	/* where the shadow's bytes are in VGA memory */
+};
+extern uint32_t VGA_MemWriteCount;
+bool VGA_ChainedShadowable(VGA_ChainedShadowMap &m);
+void VGA_ChainedShadowLoad(const VGA_ChainedShadowMap &m,uint8_t *shadow,unsigned int page);
+void VGA_ChainedShadowStore(const VGA_ChainedShadowMap &m,const uint8_t *shadow,unsigned int page);
+
 #endif

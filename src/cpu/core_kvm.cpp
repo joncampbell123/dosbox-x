@@ -51,6 +51,7 @@
 #include "pic.h"
 #include "regs.h"
 #include "setup.h"
+#include "vga.h"
 
 #ifndef sigev_notify_thread_id
 #define sigev_notify_thread_id _sigev_un._tid
@@ -121,6 +122,7 @@ struct KVM_Slot {
 	Bitu		page,pages;
 	HostPt		host;
 	bool		readonly;
+	bool		dirtylog;	/* KVM logs the pages the guest writes (the mode 13h shadow) */
 };
 
 static struct {
@@ -162,17 +164,79 @@ static void KVM_MapChange(MEM_MapChangeKind kind,Bitu page,Bitu pages) {
 
 /* What guest physical page 'page' is in KVM's view. Without paging, DOSBox-X remaps the first
  * MB+64KB through paging.firstmb[] (EMS), which KVM's guest physical address space must show. */
+/* Chained 256-colour memory (mode 13h) through the memory handler makes every guest write an
+ * exit that KVM handles itself, since chain 4 does not map linearly onto VGA memory. While the
+ * plain chained handler covers A0000-AFFFF (VGA_ChainedShadowable()), a 64KB shadow in the
+ * guest's byte order is mapped there instead, with dirty logging: the pages the guest wrote go
+ * to VGA memory when the core returns (and before the memory map changes), so that drawing,
+ * callbacks and everything else in DOSBox-X see them, and the shadow is loaded again before
+ * the guest runs when DOSBox-X wrote video memory through the memory handlers. */
+static struct {
+	HostPt			mem = NULL;	/* 64KB, page-aligned */
+	bool			active = false;	/* mapped at A0000-AFFFF */
+	VGA_ChainedShadowMap	map;		/* where its bytes are in VGA memory */
+	uint32_t		writes = 0;	/* VGA_MemWriteCount when it was last loaded */
+} kvm_shadow;
+
 static MEM_PageInfo KVM_PageAt(Bitu page) {
 	if (page < LINK_START && !kvm_mem.paging)
 		page = paging.firstmb[page];
+	if (kvm_shadow.active && page >= 0xA0u && page < 0xB0u) {
+		MEM_PageInfo info = MEM_ClassifyPage(page);
+		info.kind = MEM_PAGE_RAM;
+		info.host = kvm_shadow.mem + (page - 0xA0u) * 4096u;
+		return info;
+	}
 	return MEM_ClassifyPage(page);
 }
 
-static bool KVM_SetSlot(uint32_t id,Bitu page,Bitu pages,HostPt host,bool readonly) {
+/* The pages of the shadow the guest wrote since the last time, to VGA memory */
+static void KVM_ShadowStore(void) {
+	if (!kvm_shadow.active) return;
+	for (const auto &sl : kvm_mem.slots) {
+		if (!sl.dirtylog) continue;
+		uint64_t bitmap[1] = {0};	/* one bit per page, at most 16 */
+		struct kvm_dirty_log log;
+		memset(&log,0,sizeof(log));
+		log.slot = sl.id;
+		log.dirty_bitmap = bitmap;
+		if (ioctl(kvm.vm,KVM_GET_DIRTY_LOG,&log) < 0) return;
+		for (Bitu i=0;i < sl.pages && i < 64u;i++) {
+			if (bitmap[0] & ((uint64_t)1u << i))
+				VGA_ChainedShadowStore(kvm_shadow.map,kvm_shadow.mem + (sl.page + i - 0xA0u) * 4096u,(unsigned int)(sl.page + i - 0xA0u));
+		}
+	}
+}
+
+/* All of the shadow from VGA memory */
+static void KVM_ShadowLoad(void) {
+	for (unsigned int page=0;page < 16u;page++)
+		VGA_ChainedShadowLoad(kvm_shadow.map,kvm_shadow.mem + page * 4096u,page);
+	kvm_shadow.writes = VGA_MemWriteCount;
+}
+
+/* The map changed at A0000-AFFFF: store what the guest wrote with the old mapping, then
+ * decide again whether to map the shadow, and load it */
+static void KVM_ShadowUpdate(void) {
+	KVM_ShadowStore();
+	kvm_shadow.active = false;
+	VGA_ChainedShadowMap m;
+	if (!VGA_ChainedShadowable(m)) return;
+	if (kvm_shadow.mem == NULL) {
+		void *p = mmap(NULL,0x10000,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+		if (p == MAP_FAILED) return;
+		kvm_shadow.mem = (HostPt)p;
+	}
+	kvm_shadow.map = m;
+	kvm_shadow.active = true;
+	KVM_ShadowLoad();
+}
+
+static bool KVM_SetSlot(uint32_t id,Bitu page,Bitu pages,HostPt host,bool readonly,bool dirtylog) {
 	struct kvm_userspace_memory_region r;
 	memset(&r,0,sizeof(r));
 	r.slot = id;
-	r.flags = readonly ? KVM_MEM_READONLY : 0;
+	r.flags = (readonly ? KVM_MEM_READONLY : 0) | (dirtylog ? KVM_MEM_LOG_DIRTY_PAGES : 0);
 	r.guest_phys_addr = (uint64_t)page << 12u;
 	r.memory_size = (uint64_t)pages << 12u;	/* 0 deletes the slot */
 	r.userspace_addr = (uint64_t)(uintptr_t)host;
@@ -205,6 +269,13 @@ static bool KVM_ApplyMapChanges(void) {
 	if (hi >= kvm_mem.pages) hi = kvm_mem.pages - 1u;
 	if (lo > hi) return true;
 
+	/* the mode 13h shadow: all of A0000-AFFFF again */
+	if (lo <= 0xAFu && hi >= 0xA0u) {
+		if (lo > 0xA0u) lo = 0xA0u;
+		if (hi < 0xAFu) hi = 0xAFu;
+		KVM_ShadowUpdate();
+	}
+
 	/* slots that overlap the range are rebuilt whole */
 	for (const auto &sl : kvm_mem.slots) {
 		if (sl.page <= hi && (sl.page+sl.pages-1u) >= lo) {
@@ -215,14 +286,16 @@ static bool KVM_ApplyMapChanges(void) {
 
 	/* the runs of host memory in [lo,hi] */
 	std::vector<KVM_Slot> runs;
-	KVM_Slot run = {0,0,0,NULL,false};
+	KVM_Slot run = {0,0,0,NULL,false,false};
 	for (Bitu page = lo;page <= hi;page++) {
 		const MEM_PageInfo info = KVM_PageAt(page);
 		const bool mappable = info.kind != MEM_PAGE_DEVICE && info.host != NULL &&
 			((uintptr_t)info.host & 0xFFFu) == 0 && !KVM_ReservedPage(page);
 		const bool readonly = info.kind == MEM_PAGE_READONLY;
 
-		if (run.pages != 0 && mappable && readonly == run.readonly &&
+		const bool dirtylog = kvm_shadow.active && info.host >= kvm_shadow.mem && info.host < kvm_shadow.mem + 0x10000u;
+
+		if (run.pages != 0 && mappable && readonly == run.readonly && dirtylog == run.dirtylog &&
 			info.host == run.host + (page - run.page) * 4096u) {
 			run.pages++;
 			continue;
@@ -234,6 +307,7 @@ static bool KVM_ApplyMapChanges(void) {
 			run.pages = 1;
 			run.host = info.host;
 			run.readonly = readonly;
+			run.dirtylog = dirtylog;
 		}
 	}
 	if (run.pages != 0) runs.push_back(run);
@@ -245,7 +319,8 @@ static bool KVM_ApplyMapChanges(void) {
 		bool same = !in_range;
 		if (in_range) {
 			for (auto r = runs.begin();r != runs.end();++r) {
-				if (r->page == sl.page && r->pages == sl.pages && r->host == sl.host && r->readonly == sl.readonly) {
+				if (r->page == sl.page && r->pages == sl.pages && r->host == sl.host && r->readonly == sl.readonly &&
+					r->dirtylog == sl.dirtylog) {
 					runs.erase(r);
 					same = true;
 					break;
@@ -256,7 +331,7 @@ static bool KVM_ApplyMapChanges(void) {
 			kept.push_back(sl);
 		}
 		else {
-			if (!KVM_SetSlot(sl.id,sl.page,0,sl.host,sl.readonly)) return false;
+			if (!KVM_SetSlot(sl.id,sl.page,0,sl.host,sl.readonly,false)) return false;
 			kvm_mem.free_ids.push_back(sl.id);
 		}
 	}
@@ -272,7 +347,7 @@ static bool KVM_ApplyMapChanges(void) {
 			}
 			r.id = kvm_mem.next_id++;
 		}
-		if (!KVM_SetSlot(r.id,r.page,r.pages,r.host,r.readonly)) return false;
+		if (!KVM_SetSlot(r.id,r.page,r.pages,r.host,r.readonly,r.dirtylog)) return false;
 		kept.push_back(r);
 	}
 	std::sort(kept.begin(),kept.end(),[](const KVM_Slot &a,const KVM_Slot &b) { return a.page < b.page; });
@@ -680,6 +755,8 @@ static Bits KVM_Fail(const std::string &why) {
 		LOG_MSG("KVM: at %04x:%08x (linear %08x) CR0=%08x EFLAGS=%08x code %s",(unsigned int)SegValue(cs),
 			(unsigned int)reg_eip,(unsigned int)(SegPhys(cs)+reg_eip),(unsigned int)cpu.cr0,(unsigned int)reg_flags,code);
 	}
+	KVM_ShadowStore(); /* the normal core uses VGA memory through the memory handlers */
+	kvm_shadow.active = false;
 	kvm.failed = true;
 	kvm.in_kvm = false;
 	kvm.rest_in_kvm = false;
@@ -874,6 +951,7 @@ static uint64_t KVM_Overhead(int r,uint64_t elapsed) {
 
 Bits CPU_Core_KVM_Run(void) {
 	const Bits r = KVM_Run();
+	KVM_ShadowStore(); /* what the guest wrote to mode 13h memory, for DOSBox-X */
 	/* The slice timer stays armed: the core is mostly called again within microseconds (a
 	 * callback, an interrupt), usually with about the same deadline, and arming and disarming
 	 * it are two system calls per call. If it fires in between, the next KVM_RUN returns at
@@ -917,6 +995,11 @@ static Bits KVM_Run(void) {
 			return KVM_Fail(std::string("cannot set the vCPU state: ") + strerror(errno));
 		if (!KVM_ApplyMapChanges())
 			return KVM_Fail("cannot set up the guest memory");
+		/* DOSBox-X wrote to video memory through the memory handlers: load the shadow again */
+		if (kvm_shadow.active && kvm_shadow.writes != VGA_MemWriteCount) {
+			KVM_ShadowStore();
+			KVM_ShadowLoad();
+		}
 
 		/* an IRQ the guest cannot take yet: come back as soon as it can (DOSBox-X delivers it) */
 		run->request_interrupt_window = (PIC_IRQCheck && !kvm.guest_if) ? 1 : 0;
