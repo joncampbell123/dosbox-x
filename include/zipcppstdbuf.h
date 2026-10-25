@@ -22,6 +22,12 @@ public:
 	virtual std::streamsize xsputn(const Base::char_type *s, std::streamsize count) override {
 		assert(zf != NULL);
 
+		/* Nothing to write. This must not reach zipWriteInFileInZip(): an empty write can come
+		 * with a NULL pointer (WRITE_POD_SIZE of an unallocated buffer), and zlib's crc32()
+		 * returns the initial value for a NULL buffer, which reset the CRC of the file being
+		 * written and left a save state whose file failed its CRC check on load. */
+		if (count <= 0) return 0;
+
 		const int err = zipWriteInFileInZip(zf, (void*)s, count);
 		if (err != ZIP_OK) {
 			zf_err = err;
