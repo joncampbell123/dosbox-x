@@ -4914,6 +4914,18 @@ bool FPU_NumericException(void)
 	return true;
 }
 
+bool FPU_NumericExceptionWithContext(uint32_t instruction_pointer_offset,
+                                     uint16_t opcode)
+{
+	if (!FPU_UnmaskedExceptionPending()) return false;
+
+	FPU_RecordExceptionContextFromDynCPU(instruction_pointer_offset, opcode);
+	if (!FPU_NumericExceptionPending()) return false;
+	cpu.exception.which = EXCEPTION_MF;
+	cpu.exception.error = 0;
+	return true;
+}
+
 bool MMX_CoprocessorException(void) {
 	/* If EM bit set, undefined code.
 	 * Else if TS set, exception 7 */

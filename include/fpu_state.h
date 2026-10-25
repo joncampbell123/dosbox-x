@@ -198,6 +198,15 @@ struct FPU
 	uint32_t            mxcsr; // SSE control register
 	FPUControlWord      cw;
 	FPUStatusWord       sw;
+
+	// The x87 environment also contains the instruction and operand pointers.
+	// They describe the instruction that raised the saved x87 exception, not the instruction
+    // that happens to be executing when FSTENV/FSAVE is issued.
+	uint32_t            fip = 0;
+	uint32_t            fdp = 0;
+	uint16_t            fcs = 0;
+	uint16_t            fds = 0;
+	uint16_t            fop = 0;
 };
 
 extern FPU fpu;

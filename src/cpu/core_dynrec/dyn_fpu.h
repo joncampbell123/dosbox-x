@@ -97,6 +97,7 @@ static void dyn_eatree() {
 	}
 }
 
+
 static void dyn_fpu_esc0(){
 	dyn_get_modrm(); 
 	if (decode.modrm.mod == 3) { 
@@ -142,7 +143,7 @@ static void dyn_fpu_esc0(){
 
 
 static void dyn_fpu_esc1(){
-	dyn_get_modrm();  
+	dyn_get_modrm();
 	if (decode.modrm.mod == 3) {
 		switch (decode.modrm.reg){
 		case 0x00: /* FLD STi */
@@ -324,7 +325,7 @@ static void dyn_fpu_esc1(){
 }
 
 static void dyn_fpu_esc2(){
-	dyn_get_modrm();  
+	dyn_get_modrm();
 	if (decode.modrm.mod == 3) {
 		switch(decode.modrm.reg){
 		case 0x00: /* FCMOVB STi */
@@ -377,7 +378,7 @@ static void dyn_fpu_esc2(){
 }
 
 static void dyn_fpu_esc3(){
-	dyn_get_modrm();  
+	dyn_get_modrm();
 	if (decode.modrm.mod == 3) {
 		switch (decode.modrm.reg) {
 		case 0x00: /* FCMOVNB STi */
@@ -470,7 +471,7 @@ static void dyn_fpu_esc3(){
 }
 
 static void dyn_fpu_esc4(){
-	dyn_get_modrm();  
+	dyn_get_modrm();
 	if (decode.modrm.mod == 3) {
 		switch(decode.modrm.reg){
 		case 0x00:	/* FADD STi,ST*/
@@ -520,7 +521,7 @@ static void dyn_fpu_esc4(){
 }
 
 static void dyn_fpu_esc5(){
-	dyn_get_modrm();  
+	dyn_get_modrm();
 	if (decode.modrm.mod == 3) {
 		dyn_fpu_top();
 		switch(decode.modrm.reg){
@@ -591,7 +592,7 @@ static void dyn_fpu_esc5(){
 }
 
 static void dyn_fpu_esc6(){
-	dyn_get_modrm();  
+	dyn_get_modrm();
 	if (decode.modrm.mod == 3) {
 		switch(decode.modrm.reg){
 		case 0x00:	/*FADDP STi,ST*/
@@ -652,7 +653,7 @@ static void dyn_fpu_esc6(){
 }
 
 static void dyn_fpu_esc7(){
-	dyn_get_modrm();  
+	dyn_get_modrm();
 	if (decode.modrm.mod == 3) {
 		switch (decode.modrm.reg){
 		case 0x00: /* FFREEP STi */
