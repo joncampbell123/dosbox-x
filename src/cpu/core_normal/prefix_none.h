@@ -1047,6 +1047,13 @@
 		CPU_RET(false,0,GETIP);
 		continue;
 	CASE_B(0xcc)												/* INT3 */
+		if (CALLBACK_Int3Prefix && CALLBACK_Int3PrefixFollows((LinearPt)(SegBase(cs)+GETIP))) {
+			/* INT3 prefix of a callback instruction (see callback.h) */
+			Fetchb();Fetchb();								/* FE 38 */
+			Bitu cb=Fetchw();
+			FillFlags();SAVEIP;
+			return (Bits)cb;
+		}
 #if C_DEBUG	
 		FillFlags();
 		if (DEBUG_Breakpoint())

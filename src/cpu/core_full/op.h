@@ -356,6 +356,13 @@ switch (inst.code.op) {
 		CPU_JMP(true,inst_op2_d,inst_op1_d,GetIP());
 		continue;
 	case O_INT:
+		if ((inst.entry & 0xFF)==0xcc && CALLBACK_Int3Prefix && CALLBACK_Int3PrefixFollows((LinearPt)inst.cseip)) {
+			/* INT3 prefix of a callback instruction (see callback.h) */
+			Fetchb();Fetchb();								/* FE 38 */
+			inst_op1_d=Fetchw();
+			FillFlags();SaveIP();
+			return (Bits)inst_op1_d;
+		}
 #if C_DEBUG
 		FillFlags();
 		if (((inst.entry & 0xFF)==0xcc) && DEBUG_Breakpoint()) 

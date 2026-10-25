@@ -24,6 +24,7 @@
 #include "logging.h"
 #include "bios.h"
 #include "cpu.h"
+#include "paging.h"
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -71,6 +72,13 @@ Bitu CALLBACK_WriteInstrLinear(LinearPt addr,Bitu callback) {
 	const Bitu len = CALLBACK_WriteInstrToBuffer(tmp,callback);
 	for (Bitu i=0;i < len;i++) mem_writeb(addr+(LinearPt)i,tmp[i]);
 	return len;
+}
+
+bool CALLBACK_Int3PrefixFollows(LinearPt next) {
+	/* With paging, look only within the page of the INT3, which was just fetched from,
+	 * so that this never page faults where executing the INT3 would not */
+	if (paging.enabled && (((next - 1u) ^ (next + 1u)) & ~(LinearPt)0xFFFu) != 0) return false;
+	return mem_readb(next) == 0xFE && mem_readb(next+1u) == 0x38;
 }
 
 static Bitu illegal_handler(void) {
@@ -527,12 +535,17 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writeb(physAddress++,(uint8_t)0xcf);		//An IRET Instruction
 		return 0x0c+cbl;
 	case CB_MOUSE:
-		phys_writew(physAddress+0x00,(uint16_t)0x07eb);		// jmp i33hd
-		physAddress+=9;
-		// jump here to (i33hd):
-		if (use_cb) physAddress+=CALLBACK_WriteInstr(physAddress+0x00,callback);	//Callback instruction
-		phys_writeb(physAddress+0x00,(uint8_t)0xCF);		//An IRET Instruction
-		return 0x0a+cbl;
+		{
+			/* jumps over room for the mouse backdoor entry point at +2 that mouse.cpp
+			 * puts there, a CB_RETF8 callback (callback instruction and RETF 8) */
+			const Bitu backdoor = CALLBACK_InstrLength()+3;
+			phys_writew(physAddress+0x00,(uint16_t)(0x00eb|(backdoor<<8)));	// jmp i33hd
+			physAddress+=2+backdoor;
+			// jump here to (i33hd):
+			if (use_cb) physAddress+=CALLBACK_WriteInstr(physAddress+0x00,callback);	//Callback instruction
+			phys_writeb(physAddress+0x00,(uint8_t)0xCF);		//An IRET Instruction
+			return 2+backdoor+1+cbl;
+		}
 	case CB_INT16:
 		phys_writeb(physAddress+0x00,(uint8_t)0xFB);		//STI
 		if (use_cb) physAddress+=CALLBACK_WriteInstr(physAddress+0x01,callback);	//Callback instruction

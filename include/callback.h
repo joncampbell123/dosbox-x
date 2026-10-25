@@ -62,6 +62,11 @@ Bitu CALLBACK_WriteInstr(PhysPt addr,Bitu callback);
 Bitu CALLBACK_WriteInstrLinear(LinearPt addr,Bitu callback);
 Bitu CALLBACK_WriteInstrToBuffer(uint8_t *buf,Bitu callback);
 
+/* For the emulated CPU cores, on INT3 when CALLBACK_Int3Prefix is set: true if the bytes at
+ * linear address next (just past the INT3) are FE 38, so that INT3 is the prefix of a callback
+ * instruction and the core runs the callback (FE 38 imm16) instead of the interrupt */
+bool CALLBACK_Int3PrefixFollows(LinearPt next);
+
 /* The block of INT xx + callback stop instructions that follows the callback entries */
 static INLINE Bitu CALLBACK_RealIntStubSize(void) {
 	return 2u + CALLBACK_InstrLength();
