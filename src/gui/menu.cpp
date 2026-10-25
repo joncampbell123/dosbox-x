@@ -289,6 +289,9 @@ static const char *def_menu_cpu_core[] =
     "mapper_simple",
     "mapper_full",
 #endif
+#if C_KVM
+    "mapper_kvm",
+#endif
     NULL
 };
 

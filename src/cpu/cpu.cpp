@@ -504,6 +504,18 @@ void menu_update_core(void) {
         refresh_item(mainMenu);
 #endif
 
+#if C_KVM
+    /* The KVM core needs callback instructions with the INT3 prefix, which are written once at
+     * startup (see CALLBACK_ChooseInt3Prefix()), and a 386 or later without prefetch emulation */
+    CALLBACK_ChooseInt3Prefix();
+    mainMenu.get_item("mapper_kvm").
+        check(cpudecoder == &CPU_Core_KVM_Run).
+        enable(CALLBACK_Int3Prefix &&
+               CPU_ArchitectureType >= CPU_ARCHTYPE_386 &&
+               strstr(cpu_sec_type.c_str(),"_prefetch") == NULL).
+        refresh_item(mainMenu);
+#endif
+
     menu_update_dynamic();
 }
 
@@ -3663,6 +3675,17 @@ static void CPU_ToggleNormalCore(bool pressed) {
     }
 }
 
+#if C_KVM
+static void CPU_ToggleKVMCore(bool pressed) {
+    if (!pressed) return;
+    Section* sec=control->GetSection("cpu");
+    if(sec) {
+	std::string tmp="core=kvm";
+	sec->HandleInputline(tmp);
+    }
+}
+#endif
+
 #if (C_DYNAMIC_X86) || (C_DYNREC)
 static void CPU_ToggleDynamicCore(bool pressed) {
     if (!pressed) return;
@@ -3904,6 +3927,13 @@ public:
 		item->set_text("Simple core");
 		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","CPU: full core",&item);
 		item->set_text("Full core");
+#endif
+#if C_KVM
+		MAPPER_AddHandler(CPU_ToggleKVMCore,MK_nothing,0,"kvm","CPU: KVM core",&item);
+		item->set_text("KVM core (experimental)");
+		item->set_description("Run the guest with hardware virtualization (Linux KVM) instead of an emulated CPU. "
+			"Needs cputype 386 or later, and callback instructions with the INT3 prefix: [cpu] callback int3 prefix=true, "
+			"or auto with core=kvm when DOSBox-X starts.");
 #endif
 
 		/* these are not mapper shortcuts, and probably should not be mapper shortcuts */
@@ -4510,7 +4540,7 @@ public:
 			CALLBACK_ChooseInt3Prefix(); /* the CPU is set up before the callbacks */
 			if (!CALLBACK_Int3Prefix)
 				reason = "callback instructions are written without the INT3 prefix "
-					"(set [cpu] callback int3 prefix to auto or true and restart DOSBox-X)";
+					"(set [cpu] callback int3 prefix=true, or start DOSBox-X with core=kvm)";
 			else if (CPU_ArchitectureType < CPU_ARCHTYPE_386)
 				reason = "it needs cputype 386 or later";
 			else if (KVM_CoreInit(reason)) {
