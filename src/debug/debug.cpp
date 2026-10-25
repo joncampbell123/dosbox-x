@@ -715,6 +715,15 @@ oldData(0xCC),
 #endif
 segment(0),offset(0),intNr(0),ahValue(0),alValue(0),active(false),once(false) { }
 
+#if !C_HEAVY_DEBUG
+// Is the 0xCC at this address the INT3 prefix of a callback instruction (see callback.h)?
+// The CPU cores check for a breakpoint there before they run the callback, so the
+// breakpoint needs no 0xCC of its own.
+static bool IsCallbackInt3Prefix(PhysPt location) {
+	return CALLBACK_Int3Prefix && CALLBACK_Int3PrefixFollows((LinearPt)location + 1u);
+}
+#endif
+
 void CBreakpoint::Activate(bool _active)
 {
 #if !C_HEAVY_DEBUG
@@ -722,7 +731,9 @@ void CBreakpoint::Activate(bool _active)
 		if (_active) {
 			// Set 0xCC and save old value
 			uint8_t data = mem_readb(location);
-			if (data != 0xCC) {
+			if (data == 0xCC && IsCallbackInt3Prefix(location)) {
+				oldData = 0xCC;
+			} else if (data != 0xCC) {
 				oldData = data;
 				mem_writeb(location,0xCC);
 			} else if (!active) {
@@ -739,7 +750,7 @@ void CBreakpoint::Activate(bool _active)
 			};
 		} else {
 			if (mem_readb(location) == 0xCC) {
-				if (oldData == 0xCC)
+				if (oldData == 0xCC && !IsCallbackInt3Prefix(location))
 					DEBUG_ShowMsg("DEBUG: Internal error while deactivating breakpoint.\n");
 
 				// Check if we are the last active breakpoint at this location

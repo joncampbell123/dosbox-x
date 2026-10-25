@@ -358,6 +358,11 @@ switch (inst.code.op) {
 	case O_INT:
 		if ((inst.entry & 0xFF)==0xcc && CALLBACK_Int3Prefix && CALLBACK_Int3PrefixFollows((LinearPt)inst.cseip)) {
 			/* INT3 prefix of a callback instruction (see callback.h) */
+#if C_DEBUG
+			FillFlags();
+			if (DEBUG_Breakpoint())
+				return (Bits)debugCallback;
+#endif
 			Fetchb();Fetchb();								/* FE 38 */
 			inst_op1_d=Fetchw();
 			FillFlags();SaveIP();

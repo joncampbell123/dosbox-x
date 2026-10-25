@@ -1049,6 +1049,11 @@
 	CASE_B(0xcc)												/* INT3 */
 		if (CALLBACK_Int3Prefix && CALLBACK_Int3PrefixFollows((LinearPt)(SegBase(cs)+GETIP))) {
 			/* INT3 prefix of a callback instruction (see callback.h) */
+#if C_DEBUG
+			FillFlags();
+			if (DEBUG_Breakpoint())
+				return (Bits)debugCallback;
+#endif
 			Fetchb();Fetchb();								/* FE 38 */
 			Bitu cb=Fetchw();
 			FillFlags();SAVEIP;
