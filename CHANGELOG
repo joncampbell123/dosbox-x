@@ -1,4 +1,13 @@
 Next version:
+  - [AI] KVM CPU core: 256-colour VGA (mode 13h) games run at full speed:
+    the guest writes video memory directly instead of every write going
+    through DOSBox-X (Quake's timedemo went from 45 to over 200 fps).
+    Programs start about a quarter of a second sooner, palette loads and
+    the I/O delay port no longer stop the guest on every write, and calls
+    into DOSBox-X are a little cheaper. The log at exit lists the I/O ports
+    the guest used most. Tested with DOS/32A, PMODE/W, CauseWay, CWSDPMI and
+    HDPMI32 programs, Quake, Spycraft and a Linux install CD.
+    (joncampbell123)
   - [AI] KVM CPU core: Windows 3.0 and 3.1 run in standard and 386 enhanced
     mode, and Windows 95 boots and runs. Fixed DOS/4GW crashing now and then
     (a triple fault) without EMM386, and a VESA bank switch now and then
