@@ -1230,7 +1230,8 @@ bool KVM_CoreInit(std::string &reason) {
 	}
 
 	/* Writes to the VGA memory window (A0000-BFFFF) are queued instead of exiting one by one.
-	 * Reads still exit, after the queued writes are applied, so the order is kept. */
+	 * Reads still exit, after the queued writes are applied, so the order is kept. On PC-98 the
+	 * same goes for the fourth graphics plane (E0000-E7FFF). */
 	const int ring_page = ioctl(kvm.dev,KVM_CHECK_EXTENSION,KVM_CAP_COALESCED_MMIO);
 	if (ring_page > 0) {
 		struct kvm_coalesced_mmio_zone zone;
@@ -1241,6 +1242,11 @@ bool KVM_CoreInit(std::string &reason) {
 			const long page_size = sysconf(_SC_PAGESIZE);
 			kvm.ring = (struct kvm_coalesced_mmio_ring*)((uint8_t*)kvm.run + (size_t)ring_page * (size_t)page_size);
 			kvm.ring_max = (uint32_t)(((size_t)page_size - sizeof(struct kvm_coalesced_mmio_ring)) / sizeof(struct kvm_coalesced_mmio));
+			if (IS_PC98_ARCH) {
+				zone.addr = 0xE0000;
+				zone.size = 0x8000;
+				ioctl(kvm.vm,KVM_REGISTER_COALESCED_MMIO,&zone);
+			}
 		}
 	}
 

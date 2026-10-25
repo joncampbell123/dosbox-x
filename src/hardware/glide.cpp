@@ -22,6 +22,7 @@
 #include "logging.h"
 #include "mem.h"
 #include "paging.h"
+#include "cpu.h"
 #include "glide.h"
 #include "setup.h"
 #include "vga.h"
@@ -153,6 +154,10 @@ static void write_gl(Bitu port,Bitu val,Bitu iolen)
 	LOG_MSG("Glide:Activated");
 	return;
     }
+
+    // The parameters are guest linear addresses: a CPU core that keeps the CPU state to itself
+    // (KVM) has to bring the paging state up to date first
+    CPU_SyncRegisters();
 
     // Process function parameters (80 bytes)
     MEM_BlockRead32(PhysMake(glsegment,0), param, 80);
