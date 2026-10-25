@@ -4571,6 +4571,8 @@ public:
 					cpudecoder == &CPU_Core_Normal_Run ? "normal" : "emulated");
 				strcpy(core_mode,"normal");
 			}
+
+			menu_update_core(); /* the core is chosen after the menu was updated above */
 		}
 #endif
 

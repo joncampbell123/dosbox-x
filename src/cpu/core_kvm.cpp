@@ -789,6 +789,8 @@ static Bits KVM_Fail(const std::string &why) {
 	CPU_StateSyncHook = NULL;
 	CPU_StateIFHook = NULL;
 	cpudecoder = &CPU_Core_Normal_Run;
+	void menu_update_core(void);
+	menu_update_core(); /* the CPU core menu shows the normal core now */
 	return CBRET_NONE;
 }
 
