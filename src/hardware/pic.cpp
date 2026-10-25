@@ -17,6 +17,8 @@
  */
 
 #include <assert.h>
+#include <algorithm>
+#include <chrono>
 
 #include "dosbox.h"
 #include "inout.h"
@@ -800,6 +802,48 @@ bool PIC_RunQueue(void) {
         return false;
 
     return true;
+}
+
+/* Host time accounting (see pic.h), for the KVM core. Host times here are in nanoseconds. */
+static uint64_t pic_hosttime_mark = 0; /* nanoseconds (KVM host time) */
+
+uint64_t PIC_HostTimeNow(void) {
+    /* KVM host time: monotonic clock in nanoseconds */
+    return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+void PIC_HostTimeMark(void) {
+    pic_hosttime_mark = PIC_HostTimeNow();
+}
+
+cpu_cycles_count_t PIC_HostTimeAccount(void) {
+    const uint64_t now = PIC_HostTimeNow();
+    const uint64_t ns = now - pic_hosttime_mark; /* KVM host time: nanoseconds the guest ran */
+    pic_hosttime_mark = now;
+
+    /* KVM host time, nanoseconds to cycles: one cycle per nanosecond, more per nanosecond above
+     * 1000000 cycles per millisecond (1000000 = nanoseconds per millisecond) */
+    cpu_cycles_count_t cycles = (CPU_CycleMax > 1000000) ?
+        (cpu_cycles_count_t)((ns * (uint64_t)CPU_CycleMax) / 1000000u) : (cpu_cycles_count_t)ns;
+
+    /* Run past the slice by at most an emulated millisecond, so that a long stop (a debugger,
+     * the host suspending) does not leave the emulation paying the time back */
+    const cpu_cycles_count_t limit = std::max(CPU_Cycles,(cpu_cycles_count_t)0) + CPU_CycleMax;
+    if (cycles > limit) cycles = limit;
+
+    CPU_Cycles -= cycles;
+    return cycles;
+}
+
+uint64_t PIC_HostTimeBudget(void) {
+    if (CPU_Cycles <= 0) return 0;
+    /* KVM host time, cycles to nanoseconds: one nanosecond per cycle, less above 1000000
+     * cycles per millisecond (1000000 = nanoseconds per millisecond). Round up: any cycles
+     * left must give the guest some time, or no time would pass. */
+    if (CPU_CycleMax > 1000000)
+        return ((uint64_t)CPU_Cycles * 1000000u + (uint64_t)CPU_CycleMax - 1u) / (uint64_t)CPU_CycleMax;
+    return (uint64_t)CPU_Cycles;
 }
 
 /* The TIMER Part */

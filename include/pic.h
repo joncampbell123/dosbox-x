@@ -86,4 +86,25 @@ void PIC_RemoveEvents(PIC_EventHandler handler);
 void PIC_RemoveSpecificEvents(PIC_EventHandler handler, Bitu val);
 
 void PIC_SetIRQMask(Bitu irq, bool masked);
+
+/* Host time accounting, for a CPU core that runs guest code for an amount of host time
+ * instead of counting instructions (a hardware virtualization core such as KVM).
+ *
+ * Emulated time stays in cycles as usual: CPU_CycleMax per emulated millisecond, and
+ * CPU_Cycles until the next PIC event. Such a core counts one cycle per nanosecond of host
+ * time the guest runs. It runs the guest for PIC_HostTimeBudget() nanoseconds (what the
+ * remaining CPU_Cycles stand for), and on every return from the guest calls
+ * PIC_HostTimeAccount() before anything else, so that the host time used is charged to
+ * CPU_Cycles and devices see the current time.
+ *
+ * CPU_CycleMax is then the guest execution time per emulated millisecond in nanoseconds:
+ * cycles=max adjusts it to the host time that device emulation leaves over, and a fixed
+ * cycles count throttles the guest to that many nanoseconds per emulated millisecond. Above
+ * 1000000 a cycle is less than a nanosecond, so that an emulated millisecond never takes more
+ * than a host millisecond of guest execution. */
+uint64_t PIC_HostTimeNow(void);			/* KVM: monotonic host time in nanoseconds */
+void PIC_HostTimeMark(void);			/* KVM: count host time from now (before running the guest) */
+cpu_cycles_count_t PIC_HostTimeAccount(void);	/* KVM: charge the host nanoseconds since the mark to
+						   CPU_Cycles, move the mark to now, return the cycles charged */
+uint64_t PIC_HostTimeBudget(void);		/* KVM: host nanoseconds the remaining CPU_Cycles stand for */
 #endif

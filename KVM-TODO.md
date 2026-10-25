@@ -5,8 +5,10 @@ KVM interface instead of emulating the CPU. DOSBox-X keeps emulating all devices
 VGA, sound, DOS and BIOS callbacks); KVM only executes instructions.
 
 The main design constraint: DOSBox-X keeps time by counting CPU cycles, and KVM cannot count
-guest instructions. The kvm core behaves like `cycles=max`, with emulated time taken from host
-time. Fixed `cycles=` throttling cannot work, except by sleeping between time slices.
+guest instructions. The kvm core counts a cycle per nanosecond of host time the guest runs
+(step 4), so `CPU_CycleMax` becomes the guest execution time per emulated millisecond:
+`cycles=max` leaves room for device emulation automatically, and a fixed `cycles=` value
+throttles the guest by duty cycle.
 
 ## Done
 
@@ -40,6 +42,31 @@ time. Fixed `cycles=` throttling cannot work, except by sleeping between time sl
   `CPU_GetFullState()` and `CPU_SetFullState()`. The fields follow `kvm_regs`, `kvm_sregs`,
   `kvm_fpu` (FXSAVE layout), the debug registers and the SYSENTER MSRs. `CPU_SetFullState()`
   sets CR0 without `CPU_SET_CRX(0)`'s core and cycles auto-switching.
+- **Step 4: time accounting from host time.** `include/pic.h`: `PIC_HostTimeNow()`,
+  `PIC_HostTimeMark()`, `PIC_HostTimeBudget()` and `PIC_HostTimeAccount()`. Emulated time
+  stays in cycles; the core counts one cycle per nanosecond of host time the guest runs
+  (above 1000000 cycles per millisecond a cycle is shorter, so an emulated millisecond never
+  needs more than a host millisecond of guest execution). A charge can overrun the slice by
+  at most one emulated millisecond, so a long stop is not paid back.
+
+  Tested with a stand-in core in a scratch build that spins on host time like a vCPU, with a
+  simulated exit every 20 us (and every 1 ms) over 6 s of wall time:
+  - `cycles=max`: emulated time 100.02% of wall time, `CPU_CycleMax` settles near 915000
+    (about 91% of each millisecond for the guest; it starts at 200 when the system was idle
+    and ramps up, so the guest got 72% over the whole 6 s), thread CPU only ~3 points above
+    guest time even with 320000 exits.
+  - `cycles=fixed 300000`: guest 29.9% of wall time, emulated time 100.00%.
+  - `cycles=fixed 1000000` and above: the guest gets 97% and emulated time runs 2.6% slow (the
+    loop's own overhead has no room), as with an emulated core whose fixed cycles are too
+    high. Use `cycles=max` (or fixed below about 950000) with the kvm core.
+  - Emulated time seen at exits never went backwards with fixed cycles, and once per run with
+    `cycles=max`, presumably where auto-adjust changed `CPU_CycleMax` in the middle of a
+    millisecond (`PIC_TickIndex()` divides by it; existing behaviour, not verified).
+  - Worst overrun past a slice: 0.05-0.9 ms, from host scheduling and the timer granularity.
+
+  **Convention:** every nanosecond calculation made for the KVM core gets a comment saying so
+  (as in `PIC_HostTimeBudget()`), so that they are not mistaken for emulated time, which is in
+  cycles and milliseconds.
 - **Debugger tools for all of the above.**
   - `MEMMAP [start [end]]` lists the physical map as `MEM_ClassifyPage` sees it (coalesced
     runs with kind, host pointer relative to `MemBase`, and handler class), plus the map
@@ -84,13 +111,6 @@ time. Fixed `cycles=` throttling cannot work, except by sleeping between time sl
 - **Pages above 4GB** (`memory file` + `Mem4GBPageHandler`) are plain RAM in the memory file;
   they need a slot of their own when PSE-36/PAE guests use them.
 
-## Remaining preparation (no KVM code yet)
-
-4. **Time accounting from host time.** Factor out a way to advance emulated time by elapsed
-   host time, and have the PIC/timer code work out `CPU_Cycles` consumption from it, instead
-   of counting instructions. When the guest reads the PIT or RTC through an I/O exit, account
-   the elapsed time first so the value is current.
-
 ## Scaffolding
 
 5. **Build option.** `--enable-kvm` in configure.ac (Linux x86-64 only, check for
@@ -118,12 +138,16 @@ time. Fixed `cycles=` throttling cannot work, except by sleeping between time sl
    KVM has a limited number of slots (query `KVM_CAP_NR_MEMSLOTS`; older kernels allow 509),
    so coalesce, and batch rebuilds (apply pending changes before the next `KVM_RUN`, not on
    each notification).
-9. **`CPU_Core_KVM_Run`** as the `cpudecoder`. It loads state, runs `KVM_RUN` bounded by a
-   per-thread timer (`timer_create` with `SIGEV_THREAD_ID`, or `immediate_exit`) for the
-   current slice, and handles these exits:
+9. **`CPU_Core_KVM_Run`** as the `cpudecoder`. It loads state, then for each `KVM_RUN`:
+   `PIC_HostTimeMark()`, run bounded by a per-thread timer (`timer_create` with
+   `SIGEV_THREAD_ID`, or `immediate_exit`) set to `PIC_HostTimeBudget()`, and on return
+   `PIC_HostTimeAccount()` first, so device handlers see the current time (PIT, RTC). Mark
+   again just before the next `KVM_RUN`, so exit handling is not charged to the guest. Return
+   when `CPU_Cycles <= 0` or for a callback. It handles these exits:
    - `KVM_EXIT_IO`: `IO_Read*`/`IO_Write*`, including string I/O (`count`, `data_offset`).
    - `KVM_EXIT_MMIO`: the page handler of the physical address.
-   - `KVM_EXIT_HLT`: idle until the next PIC event, like the emulated HLT.
+   - `KVM_EXIT_HLT`: idle until the next PIC event, like the emulated HLT: give up the rest of
+     the slice (`CPU_Cycles = 0`); `increaseticks()` then sleeps until wall time catches up.
    - `KVM_EXIT_SHUTDOWN`: triple fault, which resets.
    - `KVM_EXIT_DEBUG` with #BP: if `FE 38` follows the INT3 at the guest RIP (translate
      through the guest page tables when paging is on), advance RIP by 5, sync the state out,
