@@ -1113,6 +1113,8 @@ static bool StepOver()
 	return false;
 }
 
+static void DEBUG_RunSteppedCallback(int32_t ret);
+
 #if defined(C_DOSBOX_AGENT)
 void DrawRegistersUpdateOld(void);
 int32_t DEBUG_Run(int32_t amount,bool quickexit);
@@ -1128,17 +1130,19 @@ bool DEBUG_AgentStep(bool over, bool* continued)
 	if (over && StepOver()) {
 		mustCompleteInstruction = true;
 		inhibit_int_breakpoint = true;
-		DEBUG_Run(1,false);
+		int32_t ret = DEBUG_Run(1,false);
 		inhibit_int_breakpoint = false;
 		mustCompleteInstruction = false;
+		DEBUG_RunSteppedCallback(ret);
 		*continued = true;
 		return true;
 	}
 
 	exitLoop = false;
 	mustCompleteInstruction = true;
-	DEBUG_Run(1,true);
+	int32_t ret = DEBUG_Run(1,true);
 	mustCompleteInstruction = false;
+	DEBUG_RunSteppedCallback(ret);
 	*continued = false;
 	return true;
 }
@@ -1148,29 +1152,12 @@ bool DEBUG_AgentResumeAfterTerminate(void)
 	if (!debugging || debug_running)
 		return true;
 
-	// ParseCommand("RUN") always executes one instruction before returning to
-	// the normal loop. TerminateTarget has already restored CS:IP to the
-	// callback stop trampoline that must be observed by the enclosing
-	// CALLBACK_RunRealInt invocation. Stepping here consumes that trampoline
-	// inside the debugger and strands the synchronous DEBUGBOX command frame.
-	DrawRegistersUpdateOld();
-	debug_running = false;
-	debugging = false;
-	DrawCode();
-	DrawInput();
-	logBuffSuppressConsole = false;
-	if (logBuffSuppressConsoleNeedUpdate) {
-		logBuffSuppressConsoleNeedUpdate = false;
-		DEBUG_RefreshPage(0);
-	}
-	CBreakpoint::ActivateBreakpoints();
-	mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
-	mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
-	mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
-	mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
-	DOSBOX_SetNormalLoop();
-	GFX_SetTitle(-1,-1,-1,is_paused);
-	return true;
+	// TerminateTarget has already restored CS:IP to the callback stop
+	// trampoline of the enclosing CALLBACK_RunRealInt invocation. RUN steps it
+	// and runs the stop callback, which ends that invocation and returns to
+	// the synchronous DEBUGBOX command frame.
+	char command[] = "RUN";
+	return ParseCommand(command);
 }
 
 bool DEBUG_AgentCanStartTarget(void)
@@ -2184,7 +2171,6 @@ void AddBPINT3(void) {
 void VGA_DumpFontRamBIN(const char *filename);
 void VGA_DumpFontRamBMP(const char *filename);
 int32_t DEBUG_Run(int32_t amount,bool quickexit);
-static void DEBUG_RunSteppedCallback(int32_t ret);
 
 static bool ParseMemoryDumpArguments(char *&found, uint16_t &seg, uint32_t &ofs, uint32_t &num) {
 	bool parsed = false;
@@ -2987,8 +2973,9 @@ bool ParseCommand(char* str) {
 		}
 		exitLoop = false;
 		mustCompleteInstruction = true;
-		DEBUG_Run(1,true);
+		int32_t ret = DEBUG_Run(1,true);
 		mustCompleteInstruction = false;
+		DEBUG_RunSteppedCallback(ret);
 		DEBUG_ShowMsg("DEBUG: STEPIN CS:IP=%04X:%04X AX=%04X BX=%04X CX=%04X DX=%04X\n",
 			SegValue(cs),reg_eip,reg_ax,reg_bx,reg_cx,reg_dx);
 		/* Keep the interactive display truthful after an external step. The
@@ -4832,10 +4819,11 @@ int32_t DEBUG_Run(int32_t amount,bool quickexit) {
 
 static Bitu debugLoopReturn = 0;
 
-/* For debugger commands that step an instruction with DEBUG_Run() and then let the guest run
-   (RUN, RUNWATCH): if the instruction was a callback instruction, run the callback as the normal
-   loop would. A nonzero return (such as CBRET_STOP, which ends a CALLBACK_RunRealInt() loop) is
-   returned by the normal loop through DEBUG_TakeLoopReturn(). */
+/* For debugger commands that step an instruction with DEBUG_Run() (RUN, RUNWATCH, STEPIN and
+   the agent's step): if the instruction was a callback instruction, run the callback as the
+   normal loop would. A nonzero return (such as CBRET_STOP, which ends a CALLBACK_RunRealInt()
+   loop) is returned by the emulation loop (Normal_Loop or DEBUG_Loop) through
+   DEBUG_TakeLoopReturn(). */
 static void DEBUG_RunSteppedCallback(int32_t ret) {
 	if (ret <= 0 || ret >= (int32_t)CB_MAX) return;
 
@@ -4850,6 +4838,7 @@ static void DEBUG_RunSteppedCallback(int32_t ret) {
 
 	if (r) {
 		debugLoopReturn = r;
+		exitLoop = true;
 		CPU_Cycles = CPU_CycleLeft = 0;
 	}
 }
@@ -5420,6 +5409,13 @@ Bitu DEBUG_Loop(void) {
 #endif
     ControlServer_Poll();
 
+    // A callback run by a debugger command that stepped it can end this emulation loop.
+    {
+        Bitu dret = DEBUG_TakeLoopReturn();
+        if (dret != 0)
+            return dret;
+    }
+
     // MCP commands such as RUN or VRT can switch back to the normal loop.
     if (DOSBOX_GetLoop() != DEBUG_Loop)
         return 0;
@@ -5498,7 +5494,8 @@ Bitu DEBUG_Loop(void) {
 
         /* headless: no keyboard, commands only arrive through the agent or MCP */
         if (debugger_headless) return 0;
-    	return DEBUG_CheckKeys();
+        Bitu ret = DEBUG_CheckKeys();
+        return ret != 0 ? ret : DEBUG_TakeLoopReturn();
     }
 }
 
