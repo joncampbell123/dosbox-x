@@ -160,6 +160,116 @@ throttles the guest by duty cycle.
   - Tested: the INT3/mouse/V86/DOS/4GW suite with EMM386 off and on; the debugger breakpoint
     test with F5, RUN and RUNWATCH; STEPIN into a callback; VRT, SAVESTATE and LOADSTATE while
     the KVM core runs a loop.
+- **Step 15: exit performance.** Measured with four small DOS programs (wall time including
+  about 0.3 s of startup; dynamic core in brackets):
+
+  | Program | What it does | Before | Now | (dynamic) |
+  |---|---|---|---|---|
+  | CBBENCH | 100000 INT 21h AH=30h (callback round trips) | 2.8 s | 1.4 s | (0.55 s) |
+  | IOBENCH | 1000000 `IN AL,61h` (port I/O exits) | 9.8 s | 11.0 s | (1.65 s) |
+  | VGABENCH | mode 13h, 20 full-screen fills | 6.6 s | 0.8 s | (0.51 s) |
+  | VESABNCH | VESA mode 101h, 20 frames of 5 banks | - | 0.6 s | (0.70 s) |
+
+  - **Registers through `kvm_run`** (`KVM_CAP_SYNC_REGS`): the general and segment registers
+    (and the vCPU events) come with every exit and go back with `kvm_dirty_regs`, without
+    ioctls; the segment registers only when they changed. The FPU, debug registers and MSRs
+    (the "rest") stay in the vCPU until something needs them: `CPU_SyncState()` fetches
+    everything, the new `CPU_SyncRegisters()` only the registers (callbacks, HLT, interrupt
+    delivery). A callback round trip went from about 25 us to about 12 us.
+  - **The slice timer** is armed once per slice at an absolute deadline
+    (`timer_settime(TIMER_ABSTIME)`), not around every `KVM_RUN`.
+  - **Coalesced MMIO** (`KVM_REGISTER_COALESCED_MMIO`) for A0000-BFFFF, and on PC-98 also for
+    the fourth graphics plane at E0000-E7FFF: writes are queued in a ring in `kvm_run` instead of
+    exiting, and `KVM_FlushWrites()` applies them through `physdev_write*()` as soon as
+    `KVM_RUN` returns, before any exit is handled, so the order against reads and port I/O is
+    kept.
+  - **VGA memory is page-aligned** (`VGA_SetupMemory()`), so the pages that the SVGA bank map
+    and the LFB give as host memory are mapped as RAM slots: banked VESA modes and the LFB run
+    without exits.
+  - **An unfinished instruction**: KVM completes an I/O or MMIO exit's instruction (with the
+    data the handler left in `kvm_run`) only at the next `KVM_RUN`, and a REP string
+    instruction exits again for each element. The vCPU state is not consistent before that, so
+    `KVM_CompletePending()` finishes it with `immediate_exit` set before the state leaves the
+    vCPU (in the sync hook). Without it, DOSBox-X delivered an interrupt into the middle of a
+    `REP SCASB` on video memory.
+  - **Events in flight**: when a timer signal ends `KVM_RUN` while KVM is in the middle of
+    delivering a software interrupt or exception (after a page fault on the stack, typically
+    right after a memory slot change), KVM keeps it and delivers it again at the next
+    `KVM_RUN`, on top of whatever state DOSBox-X put. With an IRQ delivered in between, the
+    return address pushed was wrong (seen: a VESA bank switch `INT 10h` ended up in the BIOS's
+    boot failure stub, about one run in 20). `KVM_DropEvent()` writes the events back with
+    nothing being delivered whenever DOSBox-X changed the state; the instruction, which has
+    not completed, raises the event again. `KVM_GET_VCPU_EVENTS` does not even report software
+    interrupts, so this has to be done blind.
+- **Step 14: protected mode, V86, DOS extenders and Windows.**
+  - **Windows 3.1** runs in standard mode (`win /s`) and 386 enhanced mode (`win /3`): a Win16
+    test program (`GetWinFlags()`, a 1 MB huge block written and checked, the FPU, 2 seconds
+    of `WM_TIMER`) gives the same results as the normal core, and Windows exits normally.
+    Enhanced mode first failed with "Error loading USER.EXE": WIN386 changes its page tables
+    (and reloads CR3 with the same value) inside the vCPU, so DOSBox-X's own TLB, which the DOS
+    callbacks use to reach the guest's buffers, was out of date. `KVM_GetState()` now clears
+    DOSBox-X's TLB whenever it fetches a state with paging on.
+  - **Windows 3.0** runs the same test in standard and enhanced mode. (The 1 MB allocation fails
+    in standard mode, on the normal core too.)
+  - **Windows 95** (build 950) boots from a copy of the disk image and runs a Win32 test
+    program started from `WIN.INI` (16 MB of memory written and checked, the FPU, `Sleep(2000)`
+    against `GetTickCount()` and the performance counter, two threads with interlocked
+    increments), with the same results as the dynamic core (`Sleep(2000)` measures 2003-2007 ms
+    by both clocks), and shuts down. AUTOTYPE presses Enter every 10 seconds to get past the
+    logon dialog. **Windows 98** is not tested yet: the image does not get to the desktop with
+    the test configuration on the dynamic core either (an INT 15h AX=D800 loop, then back to
+    text mode).
+  - **DOS/4GW** (raw and VCPI, EMM386 off and on), and as the extender of the LFB and Voodoo
+    tests below (DPMI 0800h physical mappings). Raw mode triple faulted now and then: a state
+    fetched while DOS/4GW switches modes (between setting or clearing CR0.PE and the far jump
+    after it) came back with real mode segments rebuilt from the protected mode descriptor
+    tables, not present. `KVM_PutState()` now keeps the vCPU's own descriptor cache for the
+    segment registers that DOSBox-X has not loaded since the fetch (same selector, base and
+    limit, same mode; not in V86 mode, whose segments are normalised anyway). Also,
+    `PIC_runIRQs()` now asks for the interrupt flag through `CPU_InterruptFlag()` first, which
+    the KVM core answers from the last exit, and fetches the state only to deliver an
+    interrupt: while the guest ran with interrupts disabled and an IRQ was pending, every slice
+    used to be a state round trip. 48 runs without EMM386 and 18 with it all passed afterwards.
+  - **Page faults raised by DOSBox-X code**: in a callback, a guest page fault goes through
+    `PAGING_PageFault()`'s recursive path, which swaps `cpudecoder` for `PageFaultCore` and runs
+    the guest's page fault handler on the full core with the state DOSBox-X already has; the
+    KVM core is not involved. While the KVM core itself runs, `dosbox_allow_nonrecursive_page_fault`
+    is set, and the only linear reads it does are those of the bytes after an INT3: the
+    `FE 38` check stays within the INT3's page, and the callback number (pc+3) can only fault
+    for a callback instruction that straddles a page boundary, which becomes a #PF in the
+    guest at the INT3, as an emulated core's instruction fetch would.
+- **Step 16: timing.** KVM's own exit costs (going into and out of the guest, a few us; KVM's
+  instruction emulation for MMIO; queued writes, which are exits that KVM handles itself) are
+  no longer charged as guest time: `KVM_Overhead()` estimates them per kind of exit (port I/O,
+  MMIO, callback, HLT, queued write by one instruction, queued writes by a string instruction)
+  from the shortest runs that ended with them, and `PIC_HostTimeAccount()` takes the estimate
+  off. The log line at exit shows the estimates.
+  - Since the exits during a slice are no longer charged, the slice takes longer than its
+    budget, and the slice timer would fire early, an exit of its own: `KVM_TimerArm()` also
+    moves the deadline later when it would fire more than a quarter early, and a slice ends at
+    an exit when less of it is left than the exit cost.
+  - A fixed `cycles=30000` VGA test (84000 MMIO exits, 84000 queued writes) went from 32.5 s to
+    1.5 s (normal core 0.3 s). IOBENCH (port I/O exits only) got slower, 9.9 s to 11.0 s:
+    `cycles=max` settles at about 21000 cycles there, so the slices are a few exits long and
+    arming the timer is a noticeable part of each.
+  - A Sound Blaster test (8-bit single-cycle DMA, 32000 bytes at 22050 Hz, three times, timed
+    with the BIOS tick count to the IRQ) measures 26 ticks per block on the normal core and on
+    KVM, at `cycles=max` and `cycles=30000`, and `DX-CAPTURE /A` records the same audio: three
+    1.44 s blocks with 40 ms gaps.
+  - Windows 95: `Sleep(2000)` measures 2003-2007 ms by `GetTickCount()` and the performance
+    counter.
+- **Step 17: machine coverage.**
+  - **PC-98**: DOS runs; a test that writes text VRAM (A000) and the graphics planes (A800,
+    B000, B800, E000) and dumps the readback gives byte-identical dumps on the normal core and
+    KVM, with no MMIO exits (writes queued, reads direct).
+  - **VESA LFB**: a DOS/4GW program sets mode 4101h, maps the LFB with DPMI 0800h, writes bytes,
+    words and dwords and reads them back: identical to the normal core, no exits (the LFB is
+    direct-mapped VGA memory).
+  - **Voodoo**: a DOS/4GW program finds the card through the PCI BIOS, maps BAR0, reads the
+    status register and writes and reads 64 KB of the LFB: identical to the normal core. Every
+    access is an MMIO exit.
+  - **Glide**: the Glide port handler takes guest linear addresses, so it now calls
+    `CPU_SyncRegisters()` first (the paging state). Not tested: no Glide program headless.
 - **Debugger tools for all of the above.**
   - `MEMMAP [start [end]]` lists the physical map as `MEM_ClassifyPage` sees it (coalesced
     runs with kind, host pointer relative to `MemBase`, and handler class), plus the map
@@ -175,9 +285,11 @@ throttles the guest by duty cycle.
 - **Segment access rights are not kept by DOSBox-X.** Only base, limit, expand-down, and the
   code/stack size are cached when a segment is loaded. `CPU_GetFullState()` rebuilds the access
   rights from those, the CPL, and (in protected mode) the descriptor tables. A guest that
-  changes a descriptor after loading the segment gets slightly different type/DPL/AVL bits.
-  The fully correct fix is to store the access rights in `Segs` at every load (about 25
-  places in `cpu.cpp` set `Segs.expanddown[]`).
+  changes a descriptor after loading the segment gets slightly different type/DPL/AVL bits,
+  and around a mode switch the result can be a not present segment. The KVM core works around
+  it by keeping the vCPU's cache for segments DOSBox-X did not load (step 14). The fully
+  correct fix is to store the access rights in `Segs` at every load (about 25 places in
+  `cpu.cpp` set `Segs.expanddown[]`).
 - **V86 segments must be normalised for KVM.** VM entry requires base = selector << 4, limit
   = FFFFh and access rights F3h for every segment in virtual 8086 mode. DOSBox-X does not
   reset the limit on real-mode or V86 segment loads (`SegSet16`), so a V86 segment can keep a
@@ -192,13 +304,25 @@ throttles the guest by duty cycle.
 - **Host pointers must be page-aligned for KVM slots.** `MemBase` is page-aligned when it
   comes from mmap (normal Linux build, memory file). It is not page-aligned from `malloc`
   (GameLink) or from `new[]` (the non-mmap fallback). VGA memory (`vga.mem.linear`) is
-  `new[]` + 16-byte alignment, so it cannot be mapped into the guest as it is. Allocate it
-  page-aligned (and its size a multiple of 4KB) before trying to map VRAM directly.
+  allocated page-aligned since step 15.
 - **Mode 13h and planar VGA go through device handlers** (`VGA_ChainedVGA_Handler`,
-  `VGA_UnchainedVGA_Handler`), so every write would be an MMIO exit. Only the SVGA bank map
-  (`VGA_Map_Handler`), LFB, Tandy/PCjr and Hercules handlers map host memory directly.
-  Performance work: coalesced MMIO, or direct mapping plus dirty logging where the handler
-  has no side effects.
+  `VGA_UnchainedVGA_Handler`), so every access is MMIO; writes are queued (coalesced MMIO),
+  reads exit. Only the SVGA bank map (`VGA_Map_Handler`), LFB, Tandy/PCjr and Hercules
+  handlers map host memory directly.
+- **A queued write still costs an exit inside the kernel**: a single write instruction is a
+  full exit that KVM handles itself (about 3-4 us on the test machine); the writes of a
+  string instruction (`REP STOSB`) are queued by KVM's instruction emulator in one go (well
+  under 1 us each). Only the userspace round trip is saved.
+- **KVM delivers software interrupts again after an interrupted delivery**, and
+  `KVM_GET_VCPU_EVENTS` does not report them (the API has no field for the instruction
+  length). Any change of the state by DOSBox-X has to write the events back (see
+  `KVM_DropEvent()`).
+- **DOSBox-X's TLB** is filled from guest page tables that the guest changes inside the vCPU
+  without DOSBox-X seeing it (INVLPG, CR3 reloads with the same value), so it is cleared at
+  every state fetch with paging on. Code that reads guest linear memory outside callbacks
+  (device handlers, events) also needs `CPU_SyncRegisters()` for the current CR3.
+- **RDTSC** reads the host's TSC (with KVM's offset), not a count derived from emulated
+  cycles. Its rate is the host CPU's.
 - **`MEM_SlowPath` conflicts**: when two devices claim a page, the handler table entry is left
   empty and resolved on every access. `MEM_ClassifyPage` returns whichever handler won.
 - **Guest physical 0xfffbc000-0xfffbffff is KVM's** (identity map page and the TSS set with
@@ -217,31 +341,46 @@ throttles the guest by duty cycle.
 
 ## Open issues of the KVM core
 
-- **Callback round trips are expensive** (about 25 us). Use `KVM_CAP_SYNC_REGS` (registers and
-  segment registers through `kvm_run`, no ioctls), and keep the FPU, debug registers and MSRs in
-  the vCPU until something really needs them (save states, the debugger, switching cores). Also
-  look at `CALLBACK_Idle()`: DOSBox-X's own wait loops call it, and each call is a round trip.
+- **Callback round trips** cost about 12 us (an emulated core: about 1 us), most of it the
+  exit and entry themselves. `CALLBACK_Idle()` is a round trip per call in DOSBox-X's own wait
+  loops. Ideas: handle the hottest callbacks (INT 21h, INT 16h polling) with fewer state
+  transfers, e.g. without putting the segment registers back when they did not change (done)
+  and without fetching the state for callbacks that only read a few registers.
+- **Port I/O exits** cost 5-7 us each in the kernel, so a guest that polls a port (a PIT or
+  status port in a tight loop) runs at a fraction of the emulated cores' speed (IOBENCH).
+  Ideas: coalesced PIO (`KVM_CAP_COALESCED_PIO`) for write-only ports whose writes have no
+  immediate effect. Port reads always exit to userspace.
+- **Exit-heavy guests at low fixed cycle counts** still run slower than on an emulated core
+  (the VGA test at `cycles=30000`: 1.5 s against 0.3 s): exit costs vary, and the estimate
+  (`KVM_Overhead()`) errs towards charging the guest, so that it never gets free time.
+- **Short slices** (exit-bound guests at `cycles=max`) spend a noticeable part of their time
+  arming and disarming the slice timer (two syscalls per slice).
 - **The first slot build** classifies every page up to 4 GB (165 ms), and an A20 change
   reclassifies all of them (4-6 ms). Limit it to where something is mapped, or reclassify only
   pages whose handler could change.
 - **Paging changes inside the guest are not noticed** until the state is fetched: the first MB
   layout (`firstmb`, EMS) follows the paging state DOSBox-X last saw. With
   `KVM_CAP_SYNC_REGS` the core can check CR0 after every exit.
-- **VGA memory is not page-aligned**, so all video memory accesses are MMIO exits. Allocate it
-  page-aligned, then map direct-mapped modes (SVGA banks, LFB) as RAM slots.
-- **Interrupt delivery by DOSBox-X overwrites the vCPU state**: if KVM had an event pending of
-  its own (an exception being delivered when an exit happened), it is lost or delivered in
-  the wrong order. Consider `KVM_GET_VCPU_EVENTS` before overwriting, or `KVM_INTERRUPT`.
+- **Voodoo register and LFB writes are not queued**: every access is an MMIO exit. The PCI
+  BAR can move, so a coalesced zone would have to follow `VOODOO_PCI_SetLFB()`.
+- **A port handler that reads guest linear memory and faults** (`GuestPageFaultException`)
+  while its I/O exit is still pending would raise the #PF after the I/O instruction instead
+  of at it. No such handler is known to fault in practice (Glide's parameters are in DOS
+  memory).
+- **A KVM internal error at Windows 95 shutdown**, seen once in four runs: "suberror 3"
+  (an exit while delivering an event) with a nested page fault at C000ABF0, in real mode at
+  0661:0602 just before Windows reloads the IDT. The IDTR still had Windows' protected mode
+  base, so delivering any event read the "IVT" from unmapped memory, which KVM cannot
+  emulate during delivery. The core switches to the normal core when it happens (the shutdown
+  then finishes). The event being delivered is not known yet; the log line now includes
+  the vCPU events and the IDT.
 - **NMI** is not passed on.
 
-## After that
+## Next steps
 
-14. **Protected mode, V86 and DOS extenders.** DOS/4GW runs, with EMM386 on and off. Test more
-    extenders and protected mode systems (DPMI hosts, Windows 3.x, Windows 9x), and exceptions
-    that DOSBox-X code raises during a callback (`GuestPageFaultException`).
-15. **Exit performance.** VGA planar/mode 13h writes, Sound Blaster and DMA port traffic, and
-    PIT polling will cause most exits. Coalesced MMIO for VGA, direct VRAM mapping with dirty
-    logging in linear modes (needs page-aligned VRAM), lazy register sync.
-16. **Timing accuracy**, especially sound.
-17. **Machine coverage**: PC-98 (different memory map; works through the handler table),
-    VESA LFB, Voodoo LFB, Glide.
+18. **Port I/O**: coalesced PIO for write-only ports, and see which ports games poll.
+19. **Callbacks**: profile a round trip and cut what is not the exit itself.
+20. **More guests**: OS/2, Windows NT/2000 (needs `cputype` with the right CPUID), Linux,
+    DOS extenders with their own paging (CWSDPMI, DOS/32A, PMODE/W), a Glide game, games that
+    use RDTSC for timing.
+21. **The open issues above.**
