@@ -89,9 +89,17 @@ extern CPU_Decoder * cpudecoder;
  * changes the CPU state (registers, segments, flags, control registers, FPU) calls
  * CPU_SyncState() first, which brings the state into DOSBox-X and makes DOSBox-X's copy the one
  * that counts until the core runs again. */
-extern void (*CPU_StateSyncHook)(void);
+extern void (*CPU_StateSyncHook)(bool full);
 static INLINE void CPU_SyncState(void) {
-	if (GCC_UNLIKELY(CPU_StateSyncHook != NULL)) CPU_StateSyncHook();
+	if (GCC_UNLIKELY(CPU_StateSyncHook != NULL)) CPU_StateSyncHook(true);
+}
+
+/* Like CPU_SyncState(), but only the general, segment and control registers and the flags,
+ * which is what delivering an interrupt or running a callback uses: not the FPU, the debug
+ * registers or the MSRs, which a core may keep (and which DOSBox-X's copy is then out of date
+ * for) */
+static INLINE void CPU_SyncRegisters(void) {
+	if (GCC_UNLIKELY(CPU_StateSyncHook != NULL)) CPU_StateSyncHook(false);
 }
 
 Bits CPU_Core_Normal_Run(void);

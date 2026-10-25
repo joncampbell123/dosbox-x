@@ -544,7 +544,7 @@ static void inline master_startIRQ(Bitu i){
 
 void PIC_runIRQs(void) {
     if (GCC_UNLIKELY(!PIC_IRQCheck)) return;
-    CPU_SyncState(); /* GETFLAG(IF) below, and the interrupt is delivered to the CPU state */
+    CPU_SyncRegisters(); /* GETFLAG(IF) below, and the interrupt is delivered to the CPU state */
     if (GCC_UNLIKELY(cpudecoder==CPU_Core_Normal_Trap_Run)) return; // FIXME: Why?
     if (GCC_UNLIKELY(CPU_NMI_active)) return;
     if (GCC_UNLIKELY(CPU_NMI_pending)) {

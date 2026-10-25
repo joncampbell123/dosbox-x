@@ -1222,10 +1222,10 @@ void CPU_Exception(Bitu which,Bitu error ) {
 }
 
 uint8_t lastint;
-void (*CPU_StateSyncHook)(void) = NULL;
+void (*CPU_StateSyncHook)(bool full) = NULL;
 
 void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
-	CPU_SyncState();
+	CPU_SyncRegisters();
     if (num == EXCEPTION_DB && (type&CPU_INT_EXCEPTION) == 0) {
       CPU_DebugException(0,oldeip); // DR6 bits need updating
       return;

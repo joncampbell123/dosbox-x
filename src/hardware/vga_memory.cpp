@@ -2966,9 +2966,11 @@ void VGA_SetupMemory() {
     if (vga.mem.linear == NULL) {
         VGA_Memory_ShutDown(NULL);
 
-        vga.mem.linear_orgptr = new uint8_t[vga.mem.memsize+32u];
-        memset(vga.mem.linear_orgptr,0,vga.mem.memsize+32u);
-        vga.mem.linear=(uint8_t*)(((uintptr_t)vga.mem.linear_orgptr + 16ull-1ull) & ~(16ull-1ull));
+        /* page-aligned, so that a CPU core that maps guest memory itself (KVM) can map video
+         * memory directly where the page handler allows it (SVGA banks, linear framebuffer) */
+        vga.mem.linear_orgptr = new uint8_t[vga.mem.memsize+4096u+32u];
+        memset(vga.mem.linear_orgptr,0,vga.mem.memsize+4096u+32u);
+        vga.mem.linear=(uint8_t*)(((uintptr_t)vga.mem.linear_orgptr + 4096ull-1ull) & ~(4096ull-1ull));
 
         /* HACK. try to avoid stale pointers */
 	    vga.draw.linear_base = vga.mem.linear;

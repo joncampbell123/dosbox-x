@@ -77,12 +77,27 @@ static struct {
 	bool		failed = false;	/* gave up, running the normal core instead */
 
 	/* The CPU state is in the vCPU (and DOSBox-X's copy is out of date) between KVM_PutState()
-	 * and CPU_SyncState(), which calls KVM_SyncHook() (see cpu.h) */
+	 * and CPU_SyncState() or CPU_SyncRegisters(), which call KVM_SyncHook() (see cpu.h):
+	 * in_kvm for the registers, rest_in_kvm for the FPU, debug registers and MSRs */
 	bool		in_kvm = false;
+	bool		rest_in_kvm = false;
+	bool		sync_regs = false;	/* registers through kvm_run (KVM_CAP_SYNC_REGS) */
+	bool		sync_events = false;	/* and the vCPU events (see KVM_DropEvent()) */
+
+	/* Coalesced MMIO: writes to the video memory window are queued in this ring instead of
+	 * each exiting, and applied when KVM_RUN returns (see KVM_FlushWrites()) */
+	struct kvm_coalesced_mmio_ring*	ring = NULL;
+	uint32_t	ring_max = 0;
+
+	/* An I/O or MMIO exit is the middle of an instruction: KVM finishes it (with the data the
+	 * handler put in kvm_run) at the next KVM_RUN, and until then the vCPU state is not
+	 * consistent. See KVM_CompletePending(). */
+	bool		pending = false;
 	bool		guest_if = false;	/* the guest's IF as of the last exit */
 
+
 	/* statistics, logged when DOSBox-X exits */
-	uint64_t	runs = 0,io = 0,mmio = 0,callbacks = 0,int3 = 0,hlt = 0,windows = 0,slices = 0,puts = 0,gets = 0;
+	uint64_t	runs = 0,io = 0,mmio = 0,coalesced = 0,callbacks = 0,int3 = 0,hlt = 0,windows = 0,slices = 0,puts = 0,gets = 0;
 } kvm;
 
 /* Guest physical memory as KVM memory slots (see KVM-TODO.md, step 8). A slot maps a run of
@@ -299,118 +314,191 @@ struct KVM_MSRs {
 	}
 };
 
-static bool KVM_PutState(void) {
+/* The general registers and segment registers. With KVM_CAP_SYNC_REGS they go through
+ * kvm_run->s.regs: KVM stores them there on every return from KVM_RUN and loads what
+ * kvm_dirty_regs marks before the next, so no ioctl is needed. */
+static bool KVM_ReadRegs(struct kvm_regs &r,struct kvm_sregs &sr) {
+	if (kvm.sync_regs) {
+		r = kvm.run->s.regs.regs;
+		sr = kvm.run->s.regs.sregs;
+		return true;
+	}
+	return ioctl(kvm.vcpu,KVM_GET_REGS,&r) >= 0 && ioctl(kvm.vcpu,KVM_GET_SREGS,&sr) >= 0;
+}
+
+static bool KVM_WriteRegs(const struct kvm_regs &r,const struct kvm_sregs &sr) {
+	if (kvm.sync_regs) {
+		kvm.run->s.regs.regs = r;
+		kvm.run->kvm_dirty_regs |= KVM_SYNC_X86_REGS;
+		/* loading the segment registers is the expensive part, and they often stay the same */
+		if (memcmp(&kvm.run->s.regs.sregs,&sr,sizeof(sr)) != 0) {
+			kvm.run->s.regs.sregs = sr;
+			kvm.run->kvm_dirty_regs |= KVM_SYNC_X86_SREGS;
+		}
+		return true;
+	}
+	return ioctl(kvm.vcpu,KVM_SET_SREGS,&sr) >= 0 && ioctl(kvm.vcpu,KVM_SET_REGS,&r) >= 0;
+}
+
+/* An event the vCPU was delivering when KVM_RUN returned: a software interrupt or an exception
+ * whose delivery was cut short (for example by a page fault on the stack, after which KVM saw the
+ * timer signal). KVM delivers it again at the next KVM_RUN, on top of whatever state is there.
+ * The instruction that raised it has not completed, RIP still points at it. When DOSBox-X has
+ * changed the state (it delivered an interrupt), the event would be delivered in the wrong place,
+ * with the wrong return address on the stack, so drop it: the guest runs the instruction again
+ * when it comes back to it, which raises the event again. An NMI is kept as pending instead.
+ * KVM_GET_VCPU_EVENTS does not report software interrupts and software exceptions (INT n,
+ * INT3, INTO) at all, but KVM_SET_VCPU_EVENTS replaces them too, so the events are always
+ * written back here, with nothing being delivered. */
+static bool KVM_DropEvent(void) {
+	struct kvm_vcpu_events ev;
+	if (kvm.sync_events) ev = kvm.run->s.regs.events;
+	else if (ioctl(kvm.vcpu,KVM_GET_VCPU_EVENTS,&ev) < 0) return false;
+
+	ev.exception.injected = 0;
+	ev.interrupt.injected = 0;
+	if (ev.nmi.injected) {
+		ev.nmi.injected = 0;
+		ev.nmi.pending = 1;
+		ev.flags |= KVM_VCPUEVENT_VALID_NMI_PENDING;
+	}
+
+	if (kvm.sync_events) {
+		kvm.run->s.regs.events = ev;
+		kvm.run->kvm_dirty_regs |= KVM_SYNC_X86_EVENTS;
+		return true;
+	}
+	return ioctl(kvm.vcpu,KVM_SET_VCPU_EVENTS,&ev) >= 0;
+}
+
+/* Put the state into the vCPU: the registers (general, segment, control, flags) and/or the rest
+ * (FPU, debug registers, MSRs), which only changes when DOSBox-X itself runs the guest or
+ * replaces the state, so it is moved only when needed */
+static bool KVM_PutState(bool regs,bool rest) {
 	CPU_FullState st;
 	CPU_GetFullState(st);
 
-	struct kvm_sregs sr;
-	if (ioctl(kvm.vcpu,KVM_GET_SREGS,&sr) < 0) return false;
-	for (unsigned int i=0;i < 6;i++) {
-		static const unsigned int order[6] = {es,cs,ss,ds,fs,gs};
-		struct kvm_segment *k[6] = {&sr.es,&sr.cs,&sr.ss,&sr.ds,&sr.fs,&sr.gs};
-		KVM_SegmentToKVM(st.seg[order[i]],*k[i]);
-		/* virtual 8086 mode: the CPU requires what loading the selector gives (VM entry checks) */
-		if (st.eflags & FLAG_VM) {
-			k[i]->base = (uint64_t)k[i]->selector << 4u;
-			k[i]->limit = 0xFFFF;
-			k[i]->type = 3; k[i]->s = 1; k[i]->dpl = 3; k[i]->present = 1;
-			k[i]->db = 0; k[i]->g = 0; k[i]->avl = 0; k[i]->unusable = 0;
+	if (regs) {
+		struct kvm_regs r;
+		struct kvm_sregs sr;
+		if (!KVM_ReadRegs(r,sr)) return false;
+		const struct kvm_regs old_r = r;
+		const struct kvm_sregs old_sr = sr;
+
+		for (unsigned int i=0;i < 6;i++) {
+			static const unsigned int order[6] = {es,cs,ss,ds,fs,gs};
+			struct kvm_segment *k[6] = {&sr.es,&sr.cs,&sr.ss,&sr.ds,&sr.fs,&sr.gs};
+			KVM_SegmentToKVM(st.seg[order[i]],*k[i]);
+			/* virtual 8086 mode: the CPU requires what loading the selector gives (VM entry checks) */
+			if (st.eflags & FLAG_VM) {
+				k[i]->base = (uint64_t)k[i]->selector << 4u;
+				k[i]->limit = 0xFFFF;
+				k[i]->type = 3; k[i]->s = 1; k[i]->dpl = 3; k[i]->present = 1;
+				k[i]->db = 0; k[i]->g = 0; k[i]->avl = 0; k[i]->unusable = 0;
+			}
 		}
+		KVM_SegmentToKVM(st.tr,sr.tr);
+		if (st.tr.unusable) {
+			/* no task register loaded: the CPU still needs a usable busy TSS there */
+			sr.tr.base = 0; sr.tr.limit = 0xFFFF; sr.tr.type = 0xB; sr.tr.present = 1;
+			sr.tr.s = 0; sr.tr.unusable = 0;
+		}
+		KVM_SegmentToKVM(st.ldt,sr.ldt);
+
+		sr.gdt.base = st.gdt.base; sr.gdt.limit = st.gdt.limit;
+		sr.idt.base = st.idt.base; sr.idt.limit = st.idt.limit;
+		sr.cr0 = st.cr0; sr.cr2 = st.cr2; sr.cr3 = st.cr3; sr.cr4 = st.cr4;
+
+		memset(&r,0,sizeof(r));
+		r.rax = st.eax; r.rcx = st.ecx; r.rdx = st.edx; r.rbx = st.ebx;
+		r.rsp = st.esp; r.rbp = st.ebp; r.rsi = st.esi; r.rdi = st.edi;
+		r.rip = st.eip;
+		r.rflags = st.eflags | 2u;
+		if ((memcmp(&r,&old_r,sizeof(r)) != 0 || memcmp(&sr,&old_sr,sizeof(sr)) != 0) && !KVM_DropEvent()) return false;
+		if (!KVM_WriteRegs(r,sr)) return false;
 	}
-	KVM_SegmentToKVM(st.tr,sr.tr);
-	if (st.tr.unusable) {
-		/* no task register loaded: the CPU still needs a usable busy TSS there */
-		sr.tr.base = 0; sr.tr.limit = 0xFFFF; sr.tr.type = 0xB; sr.tr.present = 1;
-		sr.tr.s = 0; sr.tr.unusable = 0;
+
+	if (rest) {
+		struct kvm_fpu f;
+		memset(&f,0,sizeof(f));
+		f.fcw = st.fcw; f.fsw = st.fsw; f.ftwx = st.ftw;
+		for (unsigned int i=0;i < 8;i++) {
+			memcpy(f.fpr[i],st.st[i],10);
+			memcpy(f.xmm[i],st.xmm[i],16);
+		}
+		f.mxcsr = st.mxcsr;
+		if (ioctl(kvm.vcpu,KVM_SET_FPU,&f) < 0) return false;
+
+		struct kvm_debugregs d;
+		memset(&d,0,sizeof(d));
+		for (unsigned int i=0;i < 4;i++) d.db[i] = st.dr[i];
+		d.dr6 = st.dr[6]; d.dr7 = st.dr[7];
+		if (ioctl(kvm.vcpu,KVM_SET_DEBUGREGS,&d) < 0) return false;
+
+		KVM_MSRs m;
+		m.e[0].data = st.sysenter_cs;
+		m.e[1].data = st.sysenter_esp;
+		m.e[2].data = st.sysenter_eip;
+		if (ioctl(kvm.vcpu,KVM_SET_MSRS,m.h) != 3) return false;
 	}
-	KVM_SegmentToKVM(st.ldt,sr.ldt);
-	sr.gdt.base = st.gdt.base; sr.gdt.limit = st.gdt.limit;
-	sr.idt.base = st.idt.base; sr.idt.limit = st.idt.limit;
-	sr.cr0 = st.cr0; sr.cr2 = st.cr2; sr.cr3 = st.cr3; sr.cr4 = st.cr4;
-	if (ioctl(kvm.vcpu,KVM_SET_SREGS,&sr) < 0) return false;
-
-	struct kvm_regs r;
-	memset(&r,0,sizeof(r));
-	r.rax = st.eax; r.rcx = st.ecx; r.rdx = st.edx; r.rbx = st.ebx;
-	r.rsp = st.esp; r.rbp = st.ebp; r.rsi = st.esi; r.rdi = st.edi;
-	r.rip = st.eip;
-	r.rflags = st.eflags | 2u;
-	if (ioctl(kvm.vcpu,KVM_SET_REGS,&r) < 0) return false;
-
-	struct kvm_fpu f;
-	memset(&f,0,sizeof(f));
-	f.fcw = st.fcw; f.fsw = st.fsw; f.ftwx = st.ftw;
-	for (unsigned int i=0;i < 8;i++) {
-		memcpy(f.fpr[i],st.st[i],10);
-		memcpy(f.xmm[i],st.xmm[i],16);
-	}
-	f.mxcsr = st.mxcsr;
-	if (ioctl(kvm.vcpu,KVM_SET_FPU,&f) < 0) return false;
-
-	struct kvm_debugregs d;
-	memset(&d,0,sizeof(d));
-	for (unsigned int i=0;i < 4;i++) d.db[i] = st.dr[i];
-	d.dr6 = st.dr[6]; d.dr7 = st.dr[7];
-	if (ioctl(kvm.vcpu,KVM_SET_DEBUGREGS,&d) < 0) return false;
-
-	KVM_MSRs m;
-	m.e[0].data = st.sysenter_cs;
-	m.e[1].data = st.sysenter_esp;
-	m.e[2].data = st.sysenter_eip;
-	if (ioctl(kvm.vcpu,KVM_SET_MSRS,m.h) != 3) return false;
 
 	return true;
 }
 
-static bool KVM_GetState(void) {
+/* Bring the state from the vCPU into DOSBox-X: the registers and/or the rest (see above) */
+static bool KVM_GetState(bool regs,bool rest) {
 	CPU_FullState st;
-	CPU_GetFullState(st);	/* keeps what KVM does not have (DR4/DR5) */
+	CPU_GetFullState(st);	/* keeps what is not fetched (and DR4/DR5) */
 
-	struct kvm_regs r;
-	struct kvm_sregs sr;
-	struct kvm_fpu f;
-	struct kvm_debugregs d;
-	if (ioctl(kvm.vcpu,KVM_GET_REGS,&r) < 0) return false;
-	if (ioctl(kvm.vcpu,KVM_GET_SREGS,&sr) < 0) return false;
-	if (ioctl(kvm.vcpu,KVM_GET_FPU,&f) < 0) return false;
-	if (ioctl(kvm.vcpu,KVM_GET_DEBUGREGS,&d) < 0) return false;
+	if (regs) {
+		struct kvm_regs r;
+		struct kvm_sregs sr;
+		if (!KVM_ReadRegs(r,sr)) return false;
 
-	st.eax = (uint32_t)r.rax; st.ecx = (uint32_t)r.rcx; st.edx = (uint32_t)r.rdx; st.ebx = (uint32_t)r.rbx;
-	st.esp = (uint32_t)r.rsp; st.ebp = (uint32_t)r.rbp; st.esi = (uint32_t)r.rsi; st.edi = (uint32_t)r.rdi;
-	st.eip = (uint32_t)r.rip;
-	st.eflags = (uint32_t)r.rflags;
+		st.eax = (uint32_t)r.rax; st.ecx = (uint32_t)r.rcx; st.edx = (uint32_t)r.rdx; st.ebx = (uint32_t)r.rbx;
+		st.esp = (uint32_t)r.rsp; st.ebp = (uint32_t)r.rbp; st.esi = (uint32_t)r.rsi; st.edi = (uint32_t)r.rdi;
+		st.eip = (uint32_t)r.rip;
+		st.eflags = (uint32_t)r.rflags;
 
-	static const unsigned int order[6] = {es,cs,ss,ds,fs,gs};
-	const struct kvm_segment *k[6] = {&sr.es,&sr.cs,&sr.ss,&sr.ds,&sr.fs,&sr.gs};
-	for (unsigned int i=0;i < 6;i++)
-		KVM_SegmentFromKVM(*k[i],st.seg[order[i]]);
-	KVM_SegmentFromKVM(sr.tr,st.tr);
-	KVM_SegmentFromKVM(sr.ldt,st.ldt);
-	/* a null selector is no task register or LDT for DOSBox-X */
-	if ((st.tr.selector & 0xFFFCu) == 0) st.tr.unusable = true;
-	if ((st.ldt.selector & 0xFFFCu) == 0) st.ldt.unusable = true;
-	st.gdt.base = (uint32_t)sr.gdt.base; st.gdt.limit = sr.gdt.limit;
-	st.idt.base = (uint32_t)sr.idt.base; st.idt.limit = sr.idt.limit;
-	st.cr0 = (uint32_t)sr.cr0; st.cr2 = (uint32_t)sr.cr2; st.cr3 = (uint32_t)sr.cr3; st.cr4 = (uint32_t)sr.cr4;
-	if (!(st.cr0 & 1u)) st.cpl = 0;
-	else if (st.eflags & FLAG_VM) st.cpl = 3;
-	else st.cpl = sr.ss.dpl;
-
-	st.fcw = f.fcw; st.fsw = f.fsw; st.ftw = f.ftwx;
-	for (unsigned int i=0;i < 8;i++) {
-		memcpy(st.st[i],f.fpr[i],10);
-		memcpy(st.xmm[i],f.xmm[i],16);
+		static const unsigned int order[6] = {es,cs,ss,ds,fs,gs};
+		const struct kvm_segment *k[6] = {&sr.es,&sr.cs,&sr.ss,&sr.ds,&sr.fs,&sr.gs};
+		for (unsigned int i=0;i < 6;i++)
+			KVM_SegmentFromKVM(*k[i],st.seg[order[i]]);
+		KVM_SegmentFromKVM(sr.tr,st.tr);
+		KVM_SegmentFromKVM(sr.ldt,st.ldt);
+		/* a null selector is no task register or LDT for DOSBox-X */
+		if ((st.tr.selector & 0xFFFCu) == 0) st.tr.unusable = true;
+		if ((st.ldt.selector & 0xFFFCu) == 0) st.ldt.unusable = true;
+		st.gdt.base = (uint32_t)sr.gdt.base; st.gdt.limit = sr.gdt.limit;
+		st.idt.base = (uint32_t)sr.idt.base; st.idt.limit = sr.idt.limit;
+		st.cr0 = (uint32_t)sr.cr0; st.cr2 = (uint32_t)sr.cr2; st.cr3 = (uint32_t)sr.cr3; st.cr4 = (uint32_t)sr.cr4;
+		if (!(st.cr0 & 1u)) st.cpl = 0;
+		else if (st.eflags & FLAG_VM) st.cpl = 3;
+		else st.cpl = sr.ss.dpl;
 	}
-	st.mxcsr = f.mxcsr;
 
-	for (unsigned int i=0;i < 4;i++) st.dr[i] = (uint32_t)d.db[i];
-	st.dr[6] = (uint32_t)d.dr6; st.dr[7] = (uint32_t)d.dr7;
+	if (rest) {
+		struct kvm_fpu f;
+		struct kvm_debugregs d;
+		if (ioctl(kvm.vcpu,KVM_GET_FPU,&f) < 0) return false;
+		if (ioctl(kvm.vcpu,KVM_GET_DEBUGREGS,&d) < 0) return false;
 
-	KVM_MSRs m;
-	if (ioctl(kvm.vcpu,KVM_GET_MSRS,m.h) != 3) return false;
-	st.sysenter_cs = (uint32_t)m.e[0].data;
-	st.sysenter_esp = (uint32_t)m.e[1].data;
-	st.sysenter_eip = (uint32_t)m.e[2].data;
+		st.fcw = f.fcw; st.fsw = f.fsw; st.ftw = f.ftwx;
+		for (unsigned int i=0;i < 8;i++) {
+			memcpy(st.st[i],f.fpr[i],10);
+			memcpy(st.xmm[i],f.xmm[i],16);
+		}
+		st.mxcsr = f.mxcsr;
+
+		for (unsigned int i=0;i < 4;i++) st.dr[i] = (uint32_t)d.db[i];
+		st.dr[6] = (uint32_t)d.dr6; st.dr[7] = (uint32_t)d.dr7;
+
+		KVM_MSRs m;
+		if (ioctl(kvm.vcpu,KVM_GET_MSRS,m.h) != 3) return false;
+		st.sysenter_cs = (uint32_t)m.e[0].data;
+		st.sysenter_esp = (uint32_t)m.e[1].data;
+		st.sysenter_eip = (uint32_t)m.e[2].data;
+	}
 
 	CPU_SetFullState(st);
 	return true;
@@ -419,8 +507,9 @@ static bool KVM_GetState(void) {
 /* A one-shot timer ends KVM_RUN when the time slice is up: its signal sets immediate_exit,
  * which also covers it arriving just before KVM_RUN */
 static struct {
-	bool	created = false;
-	timer_t	timer;
+	bool		created = false;
+	timer_t		timer;
+	uint64_t	deadline = 0;	/* KVM host time: when it fires, nanoseconds (PIC_HostTimeNow()), 0 = disarmed */
 } kvm_timer;
 
 static void KVM_TimerSignal(int sig) {
@@ -447,21 +536,71 @@ static bool KVM_TimerCreate(void) {
 	return true;
 }
 
-static void KVM_TimerSet(uint64_t ns) {
-	/* KVM host time: the slice length in nanoseconds (0 disarms) */
+/* Arm the timer to fire 'ns' nanoseconds from now (KVM host time), unless it already fires by
+ * then: the timer is armed once per slice, not for every KVM_RUN, and only moved earlier when
+ * the slice gets shorter (an earlier PIC event) */
+static void KVM_TimerArm(uint64_t ns) {
+	const uint64_t deadline = PIC_HostTimeNow() + ns; /* KVM host time: nanoseconds */
+	if (kvm_timer.deadline != 0 && kvm_timer.deadline <= deadline) return;
+
+	/* PIC_HostTimeNow() is CLOCK_MONOTONIC (steady_clock), so the deadline is absolute */
 	struct itimerspec its;
 	memset(&its,0,sizeof(its));
-	its.it_value.tv_sec = (time_t)(ns / 1000000000u);
-	its.it_value.tv_nsec = (long)(ns % 1000000000u);
-	timer_settime(kvm_timer.timer,0,&its,NULL);
+	its.it_value.tv_sec = (time_t)(deadline / 1000000000u);
+	its.it_value.tv_nsec = (long)(deadline % 1000000000u);
+	timer_settime(kvm_timer.timer,TIMER_ABSTIME,&its,NULL);
+	kvm_timer.deadline = deadline;
 }
 
-/* CPU_SyncState(): bring the state from the vCPU into DOSBox-X, whose copy counts from then on */
-static void KVM_SyncHook(void) {
-	CPU_StateSyncHook = NULL;
-	kvm.in_kvm = false;
+static void KVM_TimerDisarm(void) {
+	if (kvm_timer.deadline == 0) return;
+	struct itimerspec its;
+	memset(&its,0,sizeof(its));
+	timer_settime(kvm_timer.timer,0,&its,NULL);
+	kvm_timer.deadline = 0;
+	if (kvm.run != NULL) kvm.run->immediate_exit = 0;
+}
+
+static void KVM_FlushWrites(void);
+static void KVM_HandleIO(void);
+static void KVM_HandleMMIO(void);
+
+/* Finish the instruction of the last I/O or MMIO exit without running anything else: KVM_RUN
+ * with immediate_exit set (the method the KVM API documentation gives), until it returns EINTR.
+ * A string instruction with a REP prefix exits again for each further element, which is
+ * handled here too. Before the state leaves the vCPU or the core returns. */
+static void KVM_CompletePending(void) {
+	while (kvm.pending) {
+		kvm.pending = false;
+		kvm.run->immediate_exit = 1;
+		const int r = ioctl(kvm.vcpu,KVM_RUN,0);
+		kvm.run->immediate_exit = 0;
+		KVM_FlushWrites();
+		if (r == 0 && kvm.run->exit_reason == KVM_EXIT_MMIO) {
+			kvm.mmio++;
+			KVM_HandleMMIO();
+			kvm.pending = true;
+		}
+		else if (r == 0 && kvm.run->exit_reason == KVM_EXIT_IO) {
+			kvm.io++;
+			KVM_HandleIO();
+			kvm.pending = true;
+		}
+	}
+}
+
+/* CPU_SyncState() (full) and CPU_SyncRegisters(): bring the state from the vCPU into DOSBox-X,
+ * whose copy counts from then on */
+static void KVM_SyncHook(bool full) {
+	const bool regs = kvm.in_kvm,rest = full && kvm.rest_in_kvm;
+	if (!regs && !rest) return;
+	KVM_CompletePending();
+
+	kvm.in_kvm = kvm.in_kvm && !regs;
+	kvm.rest_in_kvm = kvm.rest_in_kvm && !rest;
+	if (!kvm.in_kvm && !kvm.rest_in_kvm) CPU_StateSyncHook = NULL;
 	kvm.gets++;
-	if (!KVM_GetState()) {
+	if (!KVM_GetState(regs,rest)) {
 		LOG_MSG("KVM: cannot read the vCPU state: %s",strerror(errno));
 		kvm.failed = true;
 	}
@@ -469,11 +608,13 @@ static void KVM_SyncHook(void) {
 
 /* Make the vCPU's copy of the state the one that counts */
 static bool KVM_EnterState(void) {
-	if (kvm.in_kvm) return true;
+	if (kvm.in_kvm && kvm.rest_in_kvm) return true;
+	const bool regs = !kvm.in_kvm,rest = !kvm.rest_in_kvm;
 	kvm.puts++;
-	if (!KVM_PutState()) return false;
+	if (!KVM_PutState(regs,rest)) return false;
+	if (regs) kvm.guest_if = (reg_flags & FLAG_IF) != 0;
 	kvm.in_kvm = true;
-	kvm.guest_if = (reg_flags & FLAG_IF) != 0;
+	kvm.rest_in_kvm = true;
 	CPU_StateSyncHook = KVM_SyncHook;
 	return true;
 }
@@ -494,9 +635,33 @@ static Bits KVM_Fail(const std::string &why) {
 	}
 	kvm.failed = true;
 	kvm.in_kvm = false;
+	kvm.rest_in_kvm = false;
 	CPU_StateSyncHook = NULL;
 	cpudecoder = &CPU_Core_Normal_Run;
 	return CBRET_NONE;
+}
+
+/* Apply the writes KVM queued (coalesced MMIO) since the last time, in order. Called as soon as
+ * KVM_RUN returns, before anything else: the guest's later accesses (reads exit) and anything
+ * DOSBox-X does with the device then see them. */
+static void KVM_FlushWrites(void) {
+	struct kvm_coalesced_mmio_ring *ring = kvm.ring;
+	if (ring == NULL) return;
+
+	while (ring->first != ring->last) {
+		const struct kvm_coalesced_mmio &w = ring->coalesced_mmio[ring->first];
+		const PhysPt64 a = (PhysPt64)w.phys_addr;
+		switch (w.len) {
+			case 1: physdev_writeb(a,w.data[0]); break;
+			case 2: physdev_writew(a,host_readw((HostPt)w.data)); break;
+			case 4: physdev_writed(a,host_readd((HostPt)w.data)); break;
+			case 8: physdev_writed(a,host_readd((HostPt)w.data)); physdev_writed(a+4u,host_readd((HostPt)w.data+4)); break;
+			default: for (uint32_t i=0;i < w.len && i < 8;i++) physdev_writeb(a+i,w.data[i]); break;
+		}
+		__sync_synchronize();
+		ring->first = (ring->first + 1u) % kvm.ring_max;
+		kvm.coalesced++;
+	}
 }
 
 static void KVM_HandleIO(void) {
@@ -550,7 +715,7 @@ static void KVM_HandleMMIO(void) {
 
 /* #BP: the INT3 prefix of a callback instruction, a debugger breakpoint, or the guest's own INT3 */
 static Bits KVM_HandleBreakpoint(void) {
-	CPU_SyncState();
+	CPU_SyncRegisters();
 	if (kvm.failed) return KVM_Fail("cannot read the vCPU state");
 
 	/* debug.arch.pc is the linear address of the INT3 */
@@ -585,7 +750,17 @@ static Bits KVM_HandleBreakpoint(void) {
 	return CBRET_NONE;
 }
 
+static Bits KVM_Run(void);
+
 Bits CPU_Core_KVM_Run(void) {
+	const Bits r = KVM_Run();
+	KVM_TimerDisarm(); /* the slice is over */
+	/* An instruction of an I/O or MMIO exit may still be unfinished: the next KVM_RUN finishes
+	 * it, and whatever needs the state before that syncs it, which finishes it first. */
+	return r;
+}
+
+static Bits KVM_Run(void) {
 #if C_DEBUG
 	/* Stopped in the debugger, or the debugger needs to see every instruction (heavy debugging
 	 * breakpoints, interrupt breakpoints, CPU logging): use the emulated core. This can change
@@ -629,32 +804,40 @@ Bits CPU_Core_KVM_Run(void) {
 		if (budget == 0) break;
 		if (budget < 2000) budget = 2000;
 
-		run->immediate_exit = 0;
-		KVM_TimerSet(budget);
+		KVM_TimerArm(budget);
 		PIC_HostTimeMark();
 		const int r = ioctl(kvm.vcpu,KVM_RUN,0);
 		const int err = errno;
 		kvm.runs++;
+		kvm.pending = false;
 		PIC_HostTimeAccount();
-		KVM_TimerSet(0);
-		run->immediate_exit = 0;
+		KVM_FlushWrites();
 		kvm.guest_if = run->if_flag != 0;
 
 		if (r < 0) {
 			if (err == EINTR || err == EAGAIN) {
+				/* the timer (or another signal): the timer has fired, arm it again if the
+				 * slice is not over */
+				if (run->immediate_exit) {
+					run->immediate_exit = 0;
+					kvm_timer.deadline = 0;
+				}
 				if (CPU_Cycles <= 0) break;
 				continue;
 			}
+			KVM_TimerDisarm();
 			return KVM_Fail(std::string("KVM_RUN: ") + strerror(err));
 		}
 
 		switch (run->exit_reason) {
 			case KVM_EXIT_IO:
 				kvm.io++;
+				kvm.pending = true;
 				KVM_HandleIO();
 				break;
 			case KVM_EXIT_MMIO:
 				kvm.mmio++;
+				kvm.pending = true;
 				KVM_HandleMMIO();
 				break;
 			case KVM_EXIT_INTR:
@@ -665,7 +848,7 @@ Bits CPU_Core_KVM_Run(void) {
 				return CBRET_NONE;
 			case KVM_EXIT_HLT:
 				/* the emulated HLT waits for the interrupt (see HLT_Decode) and comes back here */
-				CPU_SyncState();
+				CPU_SyncRegisters();
 				if (kvm.failed) return KVM_Fail("cannot read the vCPU state");
 				kvm.hlt++;
 				CPU_HLT(reg_eip);
@@ -719,8 +902,8 @@ static void KVM_CoreShutdownSection(Section *sec) {
 
 void KVM_CoreShutdown(void) {
 	if (kvm.runs != 0)
-		LOG_MSG("KVM: %llu KVM_RUN calls: %llu port I/O, %llu MMIO, %llu callbacks, %llu guest INT3, %llu HLT, %llu interrupt windows, %llu slices ended; state put %llu times, fetched %llu times",
-			(unsigned long long)kvm.runs,(unsigned long long)kvm.io,(unsigned long long)kvm.mmio,(unsigned long long)kvm.callbacks,
+		LOG_MSG("KVM: %llu KVM_RUN calls: %llu port I/O, %llu MMIO (and %llu queued writes), %llu callbacks, %llu guest INT3, %llu HLT, %llu interrupt windows, %llu slices ended; state put %llu times, fetched %llu times",
+			(unsigned long long)kvm.runs,(unsigned long long)kvm.io,(unsigned long long)kvm.mmio,(unsigned long long)kvm.coalesced,(unsigned long long)kvm.callbacks,
 			(unsigned long long)kvm.int3,(unsigned long long)kvm.hlt,(unsigned long long)kvm.windows,(unsigned long long)kvm.slices,
 			(unsigned long long)kvm.puts,(unsigned long long)kvm.gets);
 	if (kvm.run != NULL) {
@@ -911,6 +1094,34 @@ bool KVM_CoreInit(std::string &reason) {
 		return false;
 	}
 
+	/* the registers through kvm_run if the host can (KVM_CAP_SYNC_REGS), starting from the
+	 * vCPU's current ones */
+	const int sync = ioctl(kvm.dev,KVM_CHECK_EXTENSION,KVM_CAP_SYNC_REGS);
+	if (sync > 0 && (sync & (KVM_SYNC_X86_REGS|KVM_SYNC_X86_SREGS)) == (KVM_SYNC_X86_REGS|KVM_SYNC_X86_SREGS) &&
+		ioctl(kvm.vcpu,KVM_GET_REGS,&kvm.run->s.regs.regs) >= 0 && ioctl(kvm.vcpu,KVM_GET_SREGS,&kvm.run->s.regs.sregs) >= 0) {
+		kvm.run->kvm_valid_regs = KVM_SYNC_X86_REGS | KVM_SYNC_X86_SREGS;
+		kvm.sync_regs = true;
+		if ((sync & KVM_SYNC_X86_EVENTS) && ioctl(kvm.vcpu,KVM_GET_VCPU_EVENTS,&kvm.run->s.regs.events) >= 0) {
+			kvm.run->kvm_valid_regs |= KVM_SYNC_X86_EVENTS;
+			kvm.sync_events = true;
+		}
+	}
+
+	/* Writes to the VGA memory window (A0000-BFFFF) are queued instead of exiting one by one.
+	 * Reads still exit, after the queued writes are applied, so the order is kept. */
+	const int ring_page = ioctl(kvm.dev,KVM_CHECK_EXTENSION,KVM_CAP_COALESCED_MMIO);
+	if (ring_page > 0) {
+		struct kvm_coalesced_mmio_zone zone;
+		memset(&zone,0,sizeof(zone));
+		zone.addr = 0xA0000;
+		zone.size = 0x20000;
+		if (ioctl(kvm.vm,KVM_REGISTER_COALESCED_MMIO,&zone) >= 0) {
+			const long page_size = sysconf(_SC_PAGESIZE);
+			kvm.ring = (struct kvm_coalesced_mmio_ring*)((uint8_t*)kvm.run + (size_t)ring_page * (size_t)page_size);
+			kvm.ring_max = (uint32_t)(((size_t)page_size - sizeof(struct kvm_coalesced_mmio_ring)) / sizeof(struct kvm_coalesced_mmio));
+		}
+	}
+
 	/* INT3 exits to DOSBox-X (callback instructions, see callback.h) */
 	struct kvm_guest_debug dbg;
 	memset(&dbg,0,sizeof(dbg));
@@ -933,8 +1144,9 @@ bool KVM_CoreInit(std::string &reason) {
 		AddExitFunction(AddExitFunctionFuncPair(KVM_CoreShutdownSection));
 	}
 
-	LOG_MSG("KVM: virtual machine and vCPU created (API %d, %d memory slots, immediate exit %s)",
-		KVM_API_VERSION,kvm.memslots,ioctl(kvm.dev,KVM_CHECK_EXTENSION,KVM_CAP_IMMEDIATE_EXIT) > 0 ? "supported" : "not supported");
+	LOG_MSG("KVM: virtual machine and vCPU created (API %d, %d memory slots, immediate exit %s, registers through %s, %s video memory writes)",
+		KVM_API_VERSION,kvm.memslots,ioctl(kvm.dev,KVM_CHECK_EXTENSION,KVM_CAP_IMMEDIATE_EXIT) > 0 ? "supported" : "not supported",
+		kvm.sync_regs ? "kvm_run" : "ioctls",kvm.ring != NULL ? "queued" : "exiting");
 	return true;
 }
 
