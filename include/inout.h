@@ -59,6 +59,14 @@ uint8_t IO_ReadB(Bitu port);
 uint16_t IO_ReadW(Bitu port);
 uint32_t IO_ReadD(Bitu port);
 
+/* For a CPU core that has checked the I/O permission (IOPL, TSS I/O bitmap) itself (KVM) */
+void IO_WriteB_Checked(Bitu port,uint8_t val);
+void IO_WriteW_Checked(Bitu port,uint16_t val);
+void IO_WriteD_Checked(Bitu port,uint32_t val);
+uint8_t IO_ReadB_Checked(Bitu port);
+uint16_t IO_ReadW_Checked(Bitu port);
+uint32_t IO_ReadD_Checked(Bitu port);
+
 static const Bitu IOMASK_ISA_10BIT = 0x3FFU; /* ISA 10-bit decode */
 static const Bitu IOMASK_ISA_12BIT = 0xFFFU; /* ISA 12-bit decode */
 static const Bitu IOMASK_FULL = 0xFFFFU; /* full 16-bit decode */

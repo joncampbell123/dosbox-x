@@ -562,6 +562,48 @@ uint32_t IO_ReadD(Bitu port) {
 	return retval;
 }
 
+/* Port I/O for a CPU core that has done the protected mode and virtual 8086 mode I/O permission
+ * checks already (the KVM core: the CPU checks IOPL and the TSS I/O bitmap before the I/O
+ * exits to DOSBox-X). Like IO_ReadB() and so on, without CPU_IO_Exception(). */
+void IO_WriteB_Checked(Bitu port,uint8_t val) {
+	log_io(0, true, port, val);
+	IO_USEC_write_delay(0);
+	io_writehandlers[0][port](port,val,1);
+}
+
+void IO_WriteW_Checked(Bitu port,uint16_t val) {
+	log_io(1, true, port, val);
+	IO_USEC_write_delay(1);
+	io_writehandlers[1][port](port,val,2);
+}
+
+void IO_WriteD_Checked(Bitu port,uint32_t val) {
+	log_io(2, true, port, val);
+	IO_USEC_write_delay(2);
+	io_writehandlers[2][port](port,val,4);
+}
+
+uint8_t IO_ReadB_Checked(Bitu port) {
+	IO_USEC_read_delay(0);
+	const uint8_t retval = (uint8_t)io_readhandlers[0][port](port,1);
+	log_io(0, false, port, retval);
+	return retval;
+}
+
+uint16_t IO_ReadW_Checked(Bitu port) {
+	IO_USEC_read_delay(1);
+	const uint16_t retval = (uint16_t)io_readhandlers[1][port](port,2);
+	log_io(1, false, port, retval);
+	return retval;
+}
+
+uint32_t IO_ReadD_Checked(Bitu port) {
+	IO_USEC_read_delay(2);
+	const uint32_t retval = (uint32_t)io_readhandlers[2][port](port,4);
+	log_io(2, false, port, retval);
+	return retval;
+}
+
 void IO_Reset(Section * /*sec*/) { // Reset or power on
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
