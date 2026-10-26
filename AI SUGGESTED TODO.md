@@ -16,13 +16,13 @@ EMSTEST and so on) were small ad-hoc programs and are not in the repository.
 
 ## What this covers
 
-- `main-ai` at commit `cf2971de9`, compared with `origin/master` at `305dbb9c3`.
+- `main-ai` at commit `a0d427709`, compared with `origin/master` at `305dbb9c3`.
 - `origin/master` is merged into `main-ai` from time to time, so `main-ai` has all of master's
   changes. What `main-ai` adds is exactly the non-merge commits listed by
-  `git log --no-merges origin/master..main-ai` (106 commits at the time of writing). None of
+  `git log --no-merges origin/master..main-ai` (108 commits at the time of writing). None of
   them is in master in any form (`git cherry` finds no equivalents).
 - To bring this document up to date after more work on `main-ai`, list the commits after
-  `cf2971de9` with `git log --no-merges cf2971de9..main-ai` and describe those.
+  `a0d427709` with `git log --no-merges a0d427709..main-ai` and describe those.
 
 ## Provenance of the commits
 
@@ -88,14 +88,17 @@ Dependencies between sections:
 ## Problems found in `main-ai` while writing this
 
 Reading the commits for this document turned up some problems in `main-ai` itself. A hand
-implementation should avoid them:
-- **APM suspend loop (INT3 prefix):** the APM suspended-mode loop in `ISAPNP_Cfg_Reset()`
-  (`src/ints/bios.cpp`) writes HLT, `JMP $-5` and RET at fixed offsets after a `CB_RETF`
-  callback. With the INT3 prefix the callback instruction is one byte longer, so the HLT
-  overwrites the callback number (callbacks section, 14).
-- **DR0-DR3 after a state load:** these breakpoints stay inactive after a save state load or
-  `CPU_SetFullState()` until the guest writes a debug register again, because neither calls
-  `CPU_DebugRegsChanged()` (CPU section, 9).
+implementation should avoid them. Two have since been fixed on `main-ai`:
+- **APM suspend loop (INT3 prefix), fixed in `fe7fd992a`:** the APM suspended-mode loop in
+  `ISAPNP_Cfg_Reset()` (`src/ints/bios.cpp`) wrote HLT, `JMP $-5` and RET at fixed offsets
+  after a `CB_RETF` callback. With the INT3 prefix the callback instruction is one byte longer,
+  so the HLT overwrote the callback number and a suspended guest never woke up (callbacks
+  section, 14).
+- **DR0-DR3 after a state load, fixed in `a0d427709`:** these breakpoints stayed inactive after
+  a save state load or `CPU_SetFullState()` until the guest wrote a debug register again,
+  because neither called `CPU_DebugRegsChanged()` (CPU section, 9).
+
+Still open on `main-ai`:
 - **Vulkan:**
   - The Vulkan 3dfx back end does not apply the clip registers to triangles.
   - `src/hardware/Makefile.am` does not add `VULKAN_CFLAGS`.
@@ -387,13 +390,13 @@ CHANGELOG: "Debugger: callback instructions with the INT3 prefix are shown as on
 
 ### 14. Known gap: the APM suspended-mode loop assumes a 4-byte callback
 
-(not fixed on main-ai; found while writing this section)
+(found while writing this section; fixed on main-ai in `fe7fd992a` as suggested here)
 
 **What.** In `ISAPNP_Cfg_Reset()` (`src/ints/bios.cpp`), the APM "suspend/standby loop" callback is set up as CB_RETF at `APM_SuspendedLoopRptr`, and the code then patches fixed offsets: HLT at +4, `JMP $-5` (EB F9) at +5, and RET at +7. `APM_SuspendedLoopFunc` adds 3 to EIP to skip the HLT and JMP. With the prefix on, the callback occupies +0..+4, so the HLT overwrites the high byte of the callback number. The core then returns a callback number of F4xxh, for which `Normal_Loop` runs no handler, because it is at least `CB_MAX`. The jump goes back to +0, and the loop spins without ever calling `APM_SuspendedLoopFunc`, so it never wakes up and never halts.
 
 **How (suggested).** Write the HLT at `CALLBACK_InstrLength()` instead of 4, the JMP right after it with displacement -(length + 3) so that it lands back on +0 (including the CC), and the RET after that. The `+3` in `APM_SuspendedLoopFunc` stays correct, because it is relative to the end of the callback. With the prefix off this produces the same bytes as now. Grep for other code that patches bytes at fixed offsets inside a callback after `CALLBACK_Setup()`. This was the only one I found, but the search was by pattern, not exhaustive.
 
-**Testing.** With the prefix on, use APM suspend from a guest (for example Windows 9x "Suspend", or an APM test tool calling INT 15h AX=5307h, BX=0001h, CX=0002h), then press a key or the power button. The machine must halt while suspended (low host CPU use) and resume.
+**Testing.** With the prefix on, use APM suspend from a guest (for example Windows 9x "Suspend", or an APM test tool calling INT 15h AX=5307h, BX=0001h, CX=0002h), then press a key or the power button. The machine must halt while suspended (low host CPU use) and resume. On main-ai, a program that suspends with INT 15h AX=5307h and is woken with Space (the wake-up key, on release) now resumes with the prefix on and off, on the normal core and KVM; with the prefix on it hung before the fix.
 
 ## CPU emulation and memory infrastructure
 
@@ -581,7 +584,7 @@ This now includes CS.
   5. Segments: base, limit, expanddown (S=1 and type & Ch == 4) and `ar` as in section 2. Then `cpu.code.big`, `cpu.stack.big` and `stack.mask`/`notmask`.
   6. TR: rebuild a descriptor from the state's fields (`MakeDescriptor`), or keep DOSBox-X's descriptor when the state says unusable.
   7. The LDT cache, GDT, IDT, DRs, FPU and SYSENTER MSRs.
-- Not handled: `CPU_SetFullState` writes `cpu.drx[]` directly. Once section 9 exists, it should also call `CPU_DebugRegsChanged()`. Otherwise breakpoints a guest set while running under KVM are not active when it falls back to an emulated core. main-ai does not do this.
+- Not handled: `CPU_SetFullState` writes `cpu.drx[]` directly. Once section 9 exists, it should also call `CPU_DebugRegsChanged()` when DR0-DR3 or DR7 change (only then: the function also ends the decoder's time slice). Otherwise breakpoints a guest set while running under KVM are not active when it falls back to an emulated core. main-ai does this since `a0d427709`.
 - Round-trip check: snapshot everything `SetFullState` writes, in DOSBox-X's own representation:
   - `cpu_regs`, `Segs`, CPL, CR0/CR4, pmode;
   - the GDT/IDT/LDT caches, stack mask and big flags, code big, direction, `drx`;
@@ -840,7 +843,7 @@ The check computes the offset from the segment's base *at the time of the access
 - Pitfalls and open points:
   - Instruction breakpoints compare linear addresses only at instruction boundaries reached by `CPU_Debug_Run`. While breakpoints are active everything runs one instruction at a time on the normal core, so it is slow, by design.
   - A data access that straddles into a watched page from an unwatched one is only seen if the access goes through the watched page's handler.
-  - Neither the save-state load nor `CPU_SetFullState` calls `CPU_DebugRegsChanged()`. After loading a state with DR7 set, the breakpoints stay inactive until the next MOV DRx. The fix is to call it after the CPU state is loaded and on reset.
+  - The save-state load and `CPU_SetFullState` must call `CPU_DebugRegsChanged()` too. Without it (main-ai before `a0d427709`), after loading a state with DR7 set the breakpoints stay inactive until the next MOV DRx. main-ai calls it at the end of the CPU component's save-state load (after paging is loaded, which the watched pages need), and from `CPU_SetFullState` when DR0-DR3 or DR7 change. Tested: a DR0 write breakpoint saved in one session and loaded into a session that never set it traps all three writes (none before).
 
 **Save states.** No format change, but see the last pitfall.
 
