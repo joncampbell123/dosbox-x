@@ -296,23 +296,23 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			while ( ( bytes_received= read( _client.sock,buffer,INPUT_LENGTH ) ) >0 ) {
 				if( bytes_received && '\0' !=buffer[ bytes_received-1 ] )
 					buffer[ bytes_received-1 ] = '\0';
-
-				prompt( _client.as_int() );
 				
+
 				CommandLine cli;
 				cmd_tokens_t user_input= cli.processCommandLine( buffer );
 
-				if( user_input.empty() ) continue;
+				if( !user_input.empty() ) {
 
-				auto processCommand= std::find_if( _commands->begin(),_commands->end(),
-					[ & ]( const CommandExec& item ){	
-							return item.command == user_input.at( 0 );});
+					auto processCommand= std::find_if( _commands->begin(),_commands->end(),
+						[ & ]( const CommandExec& item ){	
+								return item.command == user_input.at( 0 );});
 
-				if( processCommand !=_commands->end() ){
-					( _run.*( processCommand->exec ) )( *ptr_monitor,user_input );
-
-					prompt( _client.as_int() );		
+					if( processCommand !=_commands->end() ){
+						( _run.*( processCommand->exec ) )( *ptr_monitor,user_input );
+					}
 				}
+
+				prompt( _client.as_int() );
 			}
 			if( bytes_received ==-1 ) {
 				return EXIT_FAILURE;
