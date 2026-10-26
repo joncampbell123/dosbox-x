@@ -77,6 +77,14 @@ bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
 bool do_seg_limits = false;
+
+/* Virtual 8086 mode: a segment register load sets the hidden part as for a real mode segment,
+ * with a 64KB limit (unless segment limits are off), and access rights F3h */
+void CPU_SetSegV86Hidden(SegNames seg) {
+	Segs.limit[seg] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL));
+	Segs.expanddown[seg] = false;
+	Segs.ar[seg] = SEG_AR_V86;
+}
 bool do_lds_wraparound = true;
 
 bool do_pse = false;
@@ -1123,7 +1131,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,uint32_t old_eip) {
 	/* Load the new selectors */
 	if (reg_flags & FLAG_VM) {
 		SegSet16(cs,new_cs);
-		Segs.ar[cs]=SEG_AR_V86;
+		CPU_SetSegV86Hidden(cs);
 		cpu.code.big=false;
 		CPU_SetCPL(3);			//We don't have segment caches so this will do
 	} else {
@@ -1793,7 +1801,7 @@ void CPU_IRET(bool use32,uint32_t oldeip) {
 
 					reg_eip=new_eip;
 					SegSet16(cs,(uint16_t)(new_cs&0xffff));
-					Segs.ar[cs]=SEG_AR_V86;
+					CPU_SetSegV86Hidden(cs);
 					/* IOPL can not be modified in v86 mode by IRET */
 					CPU_SetFlags(new_flags,FMASK_NORMAL|FLAG_NT);
 				} else {
@@ -1806,7 +1814,7 @@ void CPU_IRET(bool use32,uint32_t oldeip) {
 
 					reg_eip=(uint32_t)new_eip;
 					SegSet16(cs,new_cs);
-					Segs.ar[cs]=SEG_AR_V86;
+					CPU_SetSegV86Hidden(cs);
 					/* IOPL can not be modified in v86 mode by IRET */
 					CPU_SetFlags(new_flags,FMASK_NORMAL|FLAG_NT);
 				}
@@ -1870,7 +1878,7 @@ void CPU_IRET(bool use32,uint32_t oldeip) {
 				reg_esp=n_esp;
 				cpu.code.big=false;
 				SegSet16(cs,(uint16_t)n_cs_sel);
-				Segs.ar[cs]=SEG_AR_V86;
+				CPU_SetSegV86Hidden(cs);
 				LOG(LOG_CPU,LOG_NORMAL)("IRET:Back to V86: CS:%X IP %X SS:%X SP %X FLAGS:%X",SegValue(cs),reg_eip,SegValue(ss),reg_esp,reg_flags);	
 				return;
 				}
@@ -2034,7 +2042,7 @@ void CPU_JMP(bool use32,Bitu selector,Bitu offset,uint32_t oldeip) {
 			reg_eip=(uint32_t)offset;
 		}
 		SegSet16(cs,(uint16_t)selector);
-		if (reg_flags & FLAG_VM) Segs.ar[cs]=SEG_AR_V86;
+		if (reg_flags & FLAG_VM) CPU_SetSegV86Hidden(cs);
 		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
 	} else {
@@ -2199,7 +2207,7 @@ void CPU_CALL(bool use32,Bitu selector,Bitu offset,uint32_t oldeip) {
 		}
 		if (!cpu_allow_big16) cpu.code.big=false;
 		SegSet16(cs,(uint16_t)selector);
-		if (reg_flags & FLAG_VM) Segs.ar[cs]=SEG_AR_V86;
+		if (reg_flags & FLAG_VM) CPU_SetSegV86Hidden(cs);
 		return;
 	} else {
 		CPU_CHECK_COND((selector & 0xfffc)==0,
@@ -2506,7 +2514,7 @@ void CPU_RET(bool use32,Bitu bytes,uint32_t oldeip) {
 			 *      pointer instead of subtracting. --Jonathan C. */
 			reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+(uint32_t)bytes)&cpu.stack.mask);
 			SegSet16(cs,new_cs);
-			if (reg_flags & FLAG_VM) Segs.ar[cs]=SEG_AR_V86;
+			if (reg_flags & FLAG_VM) CPU_SetSegV86Hidden(cs);
 			reg_eip=new_ip;
 			if (!cpu_allow_big16) cpu.code.big=false;
 			return;
@@ -3266,13 +3274,10 @@ bool CPU_SetSegGeneral(SegNames seg,uint16_t value) {
 			cpu.stack.notmask=0xffff0000;
 		}
 
-		/* real mode: loads do not change the limit. "Flat real mode" would not be possible otherwise.
-		 * vm86: loads are fixed at 64KB (right?). The access rights likewise: real mode keeps
-		 * them, vm86 sets them. */
-		if (reg_flags & FLAG_VM) {
-			Segs.limit[seg] = 0xFFFF;
-			Segs.ar[seg] = SEG_AR_V86;
-		}
+		/* real mode: loads do not change the limit or the access rights. "Flat real mode" would
+		 * not be possible otherwise. vm86: loads set them, the limit to 64KB */
+		if (reg_flags & FLAG_VM)
+			CPU_SetSegV86Hidden(seg);
 
 		return false;
 	} else {

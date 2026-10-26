@@ -1475,11 +1475,15 @@ static Bitu WinVM86Ctl() {
 				CPU_TSS_ForceBusy(false);//HACK
 				if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
 				if (CPU_LTR(0x10)) LOG_MSG("VCPI:Could not load TR");
+				/* the segments are loaded again as virtual 8086 mode loads them (64KB limit,
+				 * access rights F3h), so after setting VM */
+				reg_flags |= FLAG_VM;
 				CPU_SetSegGeneral(cs,SegValue(cs));
 				CPU_SetSegGeneral(ds,SegValue(ds));
 				CPU_SetSegGeneral(es,SegValue(es));
+				CPU_SetSegGeneral(fs,SegValue(fs));
+				CPU_SetSegGeneral(gs,SegValue(gs));
 				CPU_SetSegGeneral(ss,SegValue(ss));
-				reg_flags |= FLAG_VM;
 				CPU_SetCPL(3);
 				assert(cpu.pmode);
 			}
