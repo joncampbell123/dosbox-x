@@ -83,11 +83,15 @@ static struct {
 	bool		in_kvm = false;
 	bool		rest_in_kvm = false;
 	bool		sync_regs = false;	/* registers through kvm_run (KVM_CAP_SYNC_REGS) */
+	bool		exit_on_emulation_failure = false;	/* KVM_CAP_EXIT_ON_EMULATION_FAILURE is on */
+	bool		emulate_one = false;	/* KVM could not emulate an instruction: the normal core runs it */
 
 	/* Coalesced MMIO: writes to the video memory window are queued in this ring instead of
 	 * each exiting, and applied when KVM_RUN returns (see KVM_FlushWrites()) */
 	struct kvm_coalesced_mmio_ring*	ring = NULL;
 	uint32_t	ring_max = 0;
+	bool		pio_queue = false;	/* port writes are queued too (KVM_CAP_COALESCED_PIO) */
+	bool		vga_data_queued = false;	/* also the VGA sequencer and graphics controller data ports */
 
 	/* An I/O or MMIO exit is the middle of an instruction: KVM finishes it (with the data the
 	 * handler put in kvm_run) at the next KVM_RUN, and until then the vCPU state is not
@@ -111,7 +115,7 @@ static struct {
 	uint64_t	last_exit_cost = 0;	/* the estimate for the last exit, 0 for a signal */
 
 	/* statistics, logged when DOSBox-X exits */
-	uint64_t	runs = 0,io = 0,mmio = 0,coalesced = 0,callbacks = 0,int3 = 0,hlt = 0,windows = 0,slices = 0,puts = 0,gets = 0;
+	uint64_t	runs = 0,io = 0,mmio = 0,coalesced = 0,callbacks = 0,int3 = 0,hlt = 0,windows = 0,slices = 0,puts = 0,gets = 0,emulated = 0;
 } kvm;
 
 /* Guest physical memory as KVM memory slots (see KVM-TODO.md, step 8). A slot maps a run of
@@ -253,6 +257,28 @@ static bool KVM_SetSlot(uint32_t id,Bitu page,Bitu pages,HostPt host,bool readon
 }
 
 /* Bring the memory slots up to date with the memory map. Called before each KVM_RUN. */
+/* The VGA sequencer and graphics controller data ports (3C5h, 3CFh: map mask, bit mask,
+ * set/reset, write mode, read map select, ...) are queued as well while no page of A0000-BFFFF
+ * is mapped directly (planar 16-colour modes, mode X, text modes). All video memory accesses
+ * then exit or are queued, so they are applied in order with the port writes, also when a
+ * port write changes the memory map; the slots follow at the next KVM_RUN. While pages are
+ * mapped directly (the mode 13h shadow, the SVGA bank map), a data port write has to take
+ * effect before the guest's next access, and only the index ports are queued. */
+static void KVM_QueueVGAData(bool on) {
+	if (!kvm.pio_queue || on == kvm.vga_data_queued) return;
+	for (const uint16_t port : {(uint16_t)0x3C4,(uint16_t)0x3CE}) {
+		struct kvm_coalesced_mmio_zone zone;
+		memset(&zone,0,sizeof(zone));
+		zone.addr = port;
+		zone.size = 2;
+		zone.pio = 1;
+		ioctl(kvm.vm,KVM_UNREGISTER_COALESCED_MMIO,&zone); /* the zones within: index, or index and data */
+		zone.size = on ? 2 : 1;
+		ioctl(kvm.vm,KVM_REGISTER_COALESCED_MMIO,&zone);
+	}
+	kvm.vga_data_queued = on;
+}
+
 static bool KVM_ApplyMapChanges(void) {
 	/* everything the address lines reach, up to 4GB */
 	Bitu pages = MEM_PageMask() + 1u;
@@ -378,6 +404,12 @@ static bool KVM_ApplyMapChanges(void) {
 	}
 	std::sort(kept.begin(),kept.end(),[](const KVM_Slot &a,const KVM_Slot &b) { return a.page < b.page; });
 	kvm_mem.slots.swap(kept);
+
+	bool vga_direct = false;
+	for (const auto &sl : kvm_mem.slots) {
+		if (sl.page <= 0xBFu && (sl.page+sl.pages-1u) >= 0xA0u) vga_direct = true;
+	}
+	KVM_QueueVGAData(!vga_direct);
 	return true;
 }
 
@@ -968,6 +1000,10 @@ static uint64_t KVM_Overhead(int r,uint64_t elapsed) {
 			case KVM_EXIT_MMIO:	i = 1; break;
 			case KVM_EXIT_DEBUG:	i = 2; break;
 			case KVM_EXIT_HLT:	i = 3; break;
+			/* an MMIO access that KVM failed to emulate costs about what an MMIO exit does */
+			case KVM_EXIT_INTERNAL_ERROR:
+				i = (kvm.run->internal.suberror == KVM_INTERNAL_ERROR_EMULATION) ? 1 : -1;
+				break;
 			default:		i = -1; break;
 		}
 		if (i >= 0) {
@@ -987,9 +1023,60 @@ static uint64_t KVM_Overhead(int r,uint64_t elapsed) {
 	return overhead;
 }
 
+/* Run the instruction that KVM could not emulate on the normal core, which accesses MMIO
+ * through the page handlers, then go on in KVM. Without KVM_CAP_EXIT_ON_EMULATION_FAILURE, KVM
+ * has queued a #UD for the guest, which is taken back first. (Without the capability KVM exits
+ * to DOSBox-X only at CPL 0; at CPL 3 the guest gets the #UD.) */
+static Bits KVM_EmulateOne(void) {
+	if (!kvm.exit_on_emulation_failure) {
+		struct kvm_vcpu_events ev;
+		if (ioctl(kvm.vcpu,KVM_GET_VCPU_EVENTS,&ev) < 0)
+			return KVM_Fail(std::string("KVM_GET_VCPU_EVENTS: ") + strerror(errno));
+		if (ev.exception.nr == EXCEPTION_UD && (ev.exception.injected || ev.exception.pending)) {
+			ev.exception.injected = 0;
+			ev.exception.pending = 0;
+			if (ioctl(kvm.vcpu,KVM_SET_VCPU_EVENTS,&ev) < 0)
+				return KVM_Fail(std::string("KVM_SET_VCPU_EVENTS: ") + strerror(errno));
+		}
+	}
+	CPU_SyncState();
+	if (kvm.failed) return KVM_Fail("cannot read the vCPU state");
+	kvm.emulated++;
+
+	/* one instruction, and the single step trap after it if TF is set. The normal core may
+	 * change cpudecoder (the trap decoder after a POPF that sets TF), which KVM does itself. */
+	CPU_Decoder * const old_decoder = cpudecoder;
+	const Bits old_cycles = CPU_Cycles;
+	Bits ret;
+	try {
+		if (reg_flags & FLAG_TF) {
+			ret = CPU_Core_Normal_Trap_Run();
+		}
+		else {
+			CPU_Cycles = 1;
+			ret = CPU_Core_Normal_Run();
+			CPU_Cycles = old_cycles - 1;
+		}
+	}
+	catch (...) {
+		/* a guest page fault, handled by the main loop */
+		CPU_Cycles = old_cycles - 1;
+		if (cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Normal_Trap_Run)
+			cpudecoder = old_decoder;
+		throw;
+	}
+	if (cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Normal_Trap_Run)
+		cpudecoder = old_decoder;
+	return ret;
+}
+
 Bits CPU_Core_KVM_Run(void) {
-	const Bits r = KVM_Run();
+	Bits r = KVM_Run();
 	KVM_ShadowStore(); /* what the guest wrote to mode 13h memory, for DOSBox-X */
+	if (kvm.emulate_one) {
+		kvm.emulate_one = false;
+		if (r == CBRET_NONE) r = KVM_EmulateOne();
+	}
 	/* The slice timer stays armed: the core is mostly called again within microseconds (a
 	 * callback, an interrupt), usually with about the same deadline, and arming and disarming
 	 * it are two system calls per call. If it fires in between, the next KVM_RUN returns at
@@ -1125,6 +1212,13 @@ static Bits KVM_Run(void) {
 				return KVM_Fail("the vCPU state was refused (KVM_EXIT_FAIL_ENTRY, reason 0x" +
 					std::to_string((unsigned long long)run->fail_entry.hardware_entry_failure_reason) + ")");
 			case KVM_EXIT_INTERNAL_ERROR: {
+				/* An instruction that KVM's instruction emulator cannot do on MMIO, an x87 store
+				 * for example (Glide writes floats to the Voodoo registers with FSTP): the normal
+				 * core runs it (see CPU_Core_KVM_Run()) */
+				if (run->internal.suberror == KVM_INTERNAL_ERROR_EMULATION) {
+					kvm.emulate_one = true;
+					return CBRET_NONE;
+				}
 				std::string why = "KVM internal error, suberror " + std::to_string(run->internal.suberror);
 				for (uint32_t i=0;i < run->internal.ndata && i < 16;i++) {
 					char tmp[32];
@@ -1175,10 +1269,10 @@ static void KVM_CoreShutdownSection(Section *sec) {
 
 void KVM_CoreShutdown(void) {
 	if (kvm.runs != 0)
-		LOG_MSG("KVM: %llu KVM_RUN calls: %llu port I/O, %llu MMIO (and %llu queued writes), %llu callbacks, %llu guest INT3, %llu HLT, %llu interrupt windows, %llu slices ended; state put %llu times, fetched %llu times; exit cost %llu/%llu/%llu/%llu/%llu/%llu ns (I/O, MMIO, callback, HLT, queued write, string write)",
+		LOG_MSG("KVM: %llu KVM_RUN calls: %llu port I/O, %llu MMIO (and %llu queued writes), %llu callbacks, %llu guest INT3, %llu HLT, %llu interrupt windows, %llu slices ended, %llu instructions emulated; state put %llu times, fetched %llu times; exit cost %llu/%llu/%llu/%llu/%llu/%llu ns (I/O, MMIO, callback, HLT, queued write, string write)",
 			(unsigned long long)kvm.runs,(unsigned long long)kvm.io,(unsigned long long)kvm.mmio,(unsigned long long)kvm.coalesced,(unsigned long long)kvm.callbacks,
 			(unsigned long long)kvm.int3,(unsigned long long)kvm.hlt,(unsigned long long)kvm.windows,(unsigned long long)kvm.slices,
-			(unsigned long long)kvm.puts,(unsigned long long)kvm.gets,
+			(unsigned long long)kvm.emulated,(unsigned long long)kvm.puts,(unsigned long long)kvm.gets,
 			(unsigned long long)kvm.exit_cost[0].avg,(unsigned long long)kvm.exit_cost[1].avg,(unsigned long long)kvm.exit_cost[2].avg,
 			(unsigned long long)kvm.exit_cost[3].avg,(unsigned long long)kvm.write_cost.avg,(unsigned long long)kvm.burst_cost.avg);
 	if (kvm.io != 0) {
@@ -1407,6 +1501,8 @@ bool KVM_CoreInit(std::string &reason) {
 	 * Reads still exit, after the queued writes are applied, so the order is kept. On PC-98 the
 	 * same goes for the fourth graphics plane (E0000-E7FFF). */
 	const int ring_page = ioctl(kvm.dev,KVM_CHECK_EXTENSION,KVM_CAP_COALESCED_MMIO);
+	kvm.pio_queue = false;
+	kvm.vga_data_queued = false;
 	if (ring_page > 0) {
 		struct kvm_coalesced_mmio_zone zone;
 		memset(&zone,0,sizeof(zone));
@@ -1431,13 +1527,19 @@ bool KVM_CoreInit(std::string &reason) {
 			 * registers (3B4h, 3C4h, 3CEh, 3D4h), which only select the register that the data
 			 * port that follows reads or writes. Not the VGA data registers: they can change the
 			 * memory map (an SVGA bank, the memory window), which has to take effect before the
-			 * guest's next access to directly mapped video memory. Ports polled most, by kind
+			 * guest's next access to directly mapped video memory (the sequencer and graphics
+			 * controller ones are queued while there is none). The IDE data port and the
+			 * taskfile registers after it (1F0h-1F3h, 170h-173h): writing a sector is one exit
+			 * per word otherwise, since KVM emulates REP OUTSW one element at a time (REP INSW
+			 * it does in batches); a write takes effect at the command register (1F7h, 177h),
+			 * or the guest reads the status, and both exit. Only the IRQ at the end of a sector
+			 * comes at the next exit instead, at most a time slice later. Ports polled most, by kind
 			 * of program: PIT channel 0 reads for timing (games, Linux), the MPU-401 status
 			 * port, DMA address/count reads (sound), the PIC, the RTC (see the log at exit). */
 			if (!IS_PC98_ARCH && ioctl(kvm.dev,KVM_CHECK_EXTENSION,KVM_CAP_COALESCED_PIO) > 0) {
 				static const struct { uint16_t port,count; } ports[] = {
 					{0x80,1},{0xED,1},{0x3C6,4},{0x43,1},{0x0C,1},{0xD8,1},
-					{0x3B4,1},{0x3C4,1},{0x3CE,1},{0x3D4,1}};
+					{0x3B4,1},{0x3C4,1},{0x3CE,1},{0x3D4,1},{0x1F0,4},{0x170,4}};
 				for (const auto &pr : ports) {
 					memset(&zone,0,sizeof(zone));
 					zone.addr = pr.port;
@@ -1445,9 +1547,28 @@ bool KVM_CoreInit(std::string &reason) {
 					zone.pio = 1;
 					ioctl(kvm.vm,KVM_REGISTER_COALESCED_MMIO,&zone);
 				}
+				/* and the sequencer and graphics controller data ports while no video memory
+				 * is mapped directly (see KVM_QueueVGAData()) */
+				kvm.pio_queue = true;
+				kvm.vga_data_queued = false;
 			}
 		}
 	}
+
+	/* An instruction that KVM cannot emulate (on MMIO) exits to DOSBox-X at any CPL, without a
+	 * #UD for the guest (see KVM_EmulateOne()) */
+	kvm.exit_on_emulation_failure = false;
+#ifdef KVM_CAP_EXIT_ON_EMULATION_FAILURE
+	if (ioctl(kvm.dev,KVM_CHECK_EXTENSION,KVM_CAP_EXIT_ON_EMULATION_FAILURE) > 0) {
+		struct kvm_enable_cap cap;
+		memset(&cap,0,sizeof(cap));
+		cap.cap = KVM_CAP_EXIT_ON_EMULATION_FAILURE;
+		cap.args[0] = 1;
+		kvm.exit_on_emulation_failure = ioctl(kvm.vm,KVM_ENABLE_CAP,&cap) >= 0;
+	}
+#endif
+	if (!kvm.exit_on_emulation_failure)
+		LOG_MSG("KVM: the host KVM cannot report instructions it fails to emulate at CPL 3 (KVM_CAP_EXIT_ON_EMULATION_FAILURE): a guest program that uses x87 instructions on device memory gets an invalid opcode exception");
 
 	/* INT3 exits to DOSBox-X (callback instructions, see callback.h) */
 	struct kvm_guest_debug dbg;
