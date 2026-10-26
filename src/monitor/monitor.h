@@ -128,6 +128,7 @@ struct socket_t{
 		sock.uds= lhs;
 		return *this;
 	}
+	operator int &() { return sock.uds; }
 	sa_family_t &sun_family= address.domain.sun_family;
 	char ( &sun_path )[ sizeof( address.domain.sun_path ) ]= address.domain.sun_path;
 	sockaddr_un &fd= address.domain;
@@ -282,9 +283,9 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 
 	bool updateUDSServer() {/* {{{ */
 		#ifdef LINUX
-		int bytes_received= 0;
 		while ( _isRunning ) {
 			_client= accept( _server,nullptr,nullptr );
+			int bytes_received= 0;
 			char buffer[ INPUT_LENGTH ];
 
 			messageClient( _client,std::string( "DOSBox-X " )+VERSION+" monitor - type \'help\' for a list of commands\n" );
@@ -296,7 +297,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 				if( bytes_received && '\0' !=buffer[ bytes_received-1 ] )
 					buffer[ bytes_received-1 ] = '\0';
 
-				prompt( _client.as_int() );		
+				prompt( _client.as_int() );
 				
 				CommandLine cli;
 				cmd_tokens_t user_input= cli.processCommandLine( buffer );
@@ -444,7 +445,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 
 		if( false ==m._isRunning ) {
 			bool isPort= true;
-			if( tLocation.compare( "on" ) ) tLocation= "4444"; /* If the monitor is not running we'll give it a default state on localhost. */
+			if( !tLocation.compare( "on" ) ) tLocation= "4444"; /* If the monitor is not running we'll give it a default state on localhost. */
 			else {
 				for( char c:tLocation )
 					if( !std::isdigit( c ) ) {
