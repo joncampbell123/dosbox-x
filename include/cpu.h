@@ -448,6 +448,16 @@ public:
 					(LinearPt)saved.seg.base_0_15);
 		}
 	}
+	/* The access rights of a segment register loaded from this descriptor (Segments::ar), with
+	 * the accessed bit set, as the CPU sets it when it loads a code or data segment */
+	uint32_t GetAccessRights (void) const {
+		uint32_t ar = (uint32_t)saved.seg.type | ((uint32_t)saved.seg.dpl << 5u) | ((uint32_t)saved.seg.p << 7u);
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_386)
+			ar |= ((uint32_t)saved.seg.avl << 12u) | ((uint32_t)saved.seg.r << 13u) |
+				((uint32_t)saved.seg.big << 14u) | ((uint32_t)saved.seg.g << 15u);
+		if (ar & 0x10u) ar |= 1u;
+		return ar;
+	}
     bool GetExpandDown (void) {
 #if 0
 	uint32_t limit_0_15	:16;

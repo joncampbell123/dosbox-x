@@ -1123,6 +1123,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,uint32_t old_eip) {
 	/* Load the new selectors */
 	if (reg_flags & FLAG_VM) {
 		SegSet16(cs,new_cs);
+		Segs.ar[cs]=SEG_AR_V86;
 		cpu.code.big=false;
 		CPU_SetCPL(3);			//We don't have segment caches so this will do
 	} else {
@@ -1145,6 +1146,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,uint32_t old_eip) {
 			if (cpu.cpl < cs_desc.DPL()) E_Exit("Task CS RPL < DPL");
 doconforming:
 			Segs.expanddown[cs]=cs_desc.GetExpandDown();
+			Segs.ar[cs]=cs_desc.GetAccessRights();
 			Segs.limit[cs]=do_seg_limits? (PhysPt)cs_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=cs_desc.GetBase();
 			cpu.code.big=cs_desc.Big()>0;
@@ -1640,6 +1642,7 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 
 						// commit point
 						Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
+						Segs.ar[ss]=n_ss_desc.GetAccessRights();
 						Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
 						Segs.phys[ss]=n_ss_desc.GetBase();
 						Segs.val[ss]=n_ss;
@@ -1658,10 +1661,10 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 						CPU_SetCPL(cs_dpl);
 						if (gate.Type() & 0x8) {	/* 32-bit Gate */
 							if (reg_flags & FLAG_VM) {
-								CPU_Push32(SegValue(gs));SegSet16(gs,0x0);
-								CPU_Push32(SegValue(fs));SegSet16(fs,0x0);
-								CPU_Push32(SegValue(ds));SegSet16(ds,0x0);
-								CPU_Push32(SegValue(es));SegSet16(es,0x0);
+								CPU_Push32(SegValue(gs));SegSet16(gs,0x0);Segs.ar[gs]=SEG_AR_UNUSABLE;
+								CPU_Push32(SegValue(fs));SegSet16(fs,0x0);Segs.ar[fs]=SEG_AR_UNUSABLE;
+								CPU_Push32(SegValue(ds));SegSet16(ds,0x0);Segs.ar[ds]=SEG_AR_UNUSABLE;
+								CPU_Push32(SegValue(es));SegSet16(es,0x0);Segs.ar[es]=SEG_AR_UNUSABLE;
 							}
 							CPU_Push32(o_ss);
 							CPU_Push32(o_esp);
@@ -1706,6 +1709,7 @@ do_interrupt:
 				Segs.phys[cs]=cs_desc.GetBase();
 				Segs.limit[cs]=do_seg_limits? (PhysPt)cs_desc.GetLimit():((PhysPt)(~0UL));
 				Segs.expanddown[cs]=cs_desc.GetExpandDown();
+				Segs.ar[cs]=cs_desc.GetAccessRights();
 				cpu.code.big=cs_desc.Big()>0;
 				reg_eip=(uint32_t)gate_off;
 
@@ -1789,6 +1793,7 @@ void CPU_IRET(bool use32,uint32_t oldeip) {
 
 					reg_eip=new_eip;
 					SegSet16(cs,(uint16_t)(new_cs&0xffff));
+					Segs.ar[cs]=SEG_AR_V86;
 					/* IOPL can not be modified in v86 mode by IRET */
 					CPU_SetFlags(new_flags,FMASK_NORMAL|FLAG_NT);
 				} else {
@@ -1801,6 +1806,7 @@ void CPU_IRET(bool use32,uint32_t oldeip) {
 
 					reg_eip=(uint32_t)new_eip;
 					SegSet16(cs,new_cs);
+					Segs.ar[cs]=SEG_AR_V86;
 					/* IOPL can not be modified in v86 mode by IRET */
 					CPU_SetFlags(new_flags,FMASK_NORMAL|FLAG_NT);
 				}
@@ -1864,6 +1870,7 @@ void CPU_IRET(bool use32,uint32_t oldeip) {
 				reg_esp=n_esp;
 				cpu.code.big=false;
 				SegSet16(cs,(uint16_t)n_cs_sel);
+				Segs.ar[cs]=SEG_AR_V86;
 				LOG(LOG_CPU,LOG_NORMAL)("IRET:Back to V86: CS:%X IP %X SS:%X SP %X FLAGS:%X",SegValue(cs),reg_eip,SegValue(ss),reg_esp,reg_flags);	
 				return;
 				}
@@ -1924,6 +1931,7 @@ void CPU_IRET(bool use32,uint32_t oldeip) {
 			// commit point
 			reg_esp=tempesp;
 			Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
+			Segs.ar[cs]=n_cs_desc.GetAccessRights();
 			Segs.limit[cs]=do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
@@ -1976,6 +1984,8 @@ void CPU_IRET(bool use32,uint32_t oldeip) {
 			// commit point
 
 			Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
+
+			Segs.ar[cs]=n_cs_desc.GetAccessRights();
 			Segs.limit[cs]=do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
@@ -1993,6 +2003,7 @@ void CPU_IRET(bool use32,uint32_t oldeip) {
 			Segs.phys[ss]=n_ss_desc.GetBase();
 			Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
+			Segs.ar[ss]=n_ss_desc.GetAccessRights();
 			if (n_ss_desc.Big()) {
 				cpu.stack.big=true;
 				cpu.stack.mask=0xffffffff;
@@ -2023,6 +2034,7 @@ void CPU_JMP(bool use32,Bitu selector,Bitu offset,uint32_t oldeip) {
 			reg_eip=(uint32_t)offset;
 		}
 		SegSet16(cs,(uint16_t)selector);
+		if (reg_flags & FLAG_VM) Segs.ar[cs]=SEG_AR_V86;
 		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
 	} else {
@@ -2064,6 +2076,7 @@ CODE_jmp:
 
 			/* Normal jump to another selector:offset */
 			Segs.expanddown[cs]=desc.GetExpandDown();
+			Segs.ar[cs]=desc.GetAccessRights();
 			Segs.limit[cs]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
@@ -2141,6 +2154,7 @@ CODE_jmp:
 
 					/* Switch to new CS:EIP */
 					Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
+					Segs.ar[cs]=n_cs_desc.GetAccessRights();
 					Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 					Segs.phys[cs]	= n_cs_desc.GetBase();
 					Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
@@ -2185,6 +2199,7 @@ void CPU_CALL(bool use32,Bitu selector,Bitu offset,uint32_t oldeip) {
 		}
 		if (!cpu_allow_big16) cpu.code.big=false;
 		SegSet16(cs,(uint16_t)selector);
+		if (reg_flags & FLAG_VM) Segs.ar[cs]=SEG_AR_V86;
 		return;
 	} else {
 		CPU_CHECK_COND((selector & 0xfffc)==0,
@@ -2243,6 +2258,8 @@ call_code:
 			}
 
 			Segs.expanddown[cs]=call.GetExpandDown();
+
+			Segs.ar[cs]=call.GetAccessRights();
 			Segs.limit[cs]=do_seg_limits? (PhysPt)call.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=call.GetBase();
 			cpu.code.big=call.Big()>0;
@@ -2350,6 +2367,7 @@ call_code:
 						Segs.phys[ss]=n_ss_desc.GetBase();
 						Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
 						Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
+						Segs.ar[ss]=n_ss_desc.GetAccessRights();
 						if (n_ss_desc.Big()) {
 							cpu.stack.big=true;
 							cpu.stack.mask=0xffffffff;
@@ -2366,6 +2384,7 @@ call_code:
 						uint16_t oldcs    = SegValue(cs);
 						/* Switch to new CS:EIP */
 						Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
+						Segs.ar[cs]=n_cs_desc.GetAccessRights();
 						Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 						Segs.phys[cs]	= n_cs_desc.GetBase();
 						Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
@@ -2417,6 +2436,7 @@ call_code:
 
 					/* Switch to new CS:EIP */
 					Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
+					Segs.ar[cs]=n_cs_desc.GetAccessRights();
 					Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 					Segs.phys[cs]	= n_cs_desc.GetBase();
 					Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
@@ -2486,6 +2506,7 @@ void CPU_RET(bool use32,Bitu bytes,uint32_t oldeip) {
 			 *      pointer instead of subtracting. --Jonathan C. */
 			reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+(uint32_t)bytes)&cpu.stack.mask);
 			SegSet16(cs,new_cs);
+			if (reg_flags & FLAG_VM) Segs.ar[cs]=SEG_AR_V86;
 			reg_eip=new_ip;
 			if (!cpu_allow_big16) cpu.code.big=false;
 			return;
@@ -2561,6 +2582,8 @@ RET_same_level:
 			}
 
 			Segs.expanddown[cs]=desc.GetExpandDown();
+
+			Segs.ar[cs]=desc.GetAccessRights();
 			Segs.limit[cs]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
@@ -2647,6 +2670,7 @@ RET_same_level:
 
 			CPU_SetCPL(rpl);
 			Segs.expanddown[cs]=desc.GetExpandDown();
+			Segs.ar[cs]=desc.GetAccessRights();
 			Segs.limit[cs]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
@@ -2657,6 +2681,7 @@ RET_same_level:
 			Segs.phys[ss]=n_ss_desc.GetBase();
 			Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
+			Segs.ar[ss]=n_ss_desc.GetAccessRights();
 			if (n_ss_desc.Big()) {
 				cpu.stack.big=true;
 				cpu.stack.mask=0xffffffff;
@@ -3242,9 +3267,12 @@ bool CPU_SetSegGeneral(SegNames seg,uint16_t value) {
 		}
 
 		/* real mode: loads do not change the limit. "Flat real mode" would not be possible otherwise.
-		 * vm86: loads are fixed at 64KB (right?) */
-		if (reg_flags & FLAG_VM)
+		 * vm86: loads are fixed at 64KB (right?). The access rights likewise: real mode keeps
+		 * them, vm86 sets them. */
+		if (reg_flags & FLAG_VM) {
 			Segs.limit[seg] = 0xFFFF;
+			Segs.ar[seg] = SEG_AR_V86;
+		}
 
 		return false;
 	} else {
@@ -3282,6 +3310,7 @@ bool CPU_SetSegGeneral(SegNames seg,uint16_t value) {
 			Segs.phys[seg]=desc.GetBase();
 			Segs.limit[seg]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[seg]=desc.GetExpandDown();
+			Segs.ar[seg]=desc.GetAccessRights();
 			if (desc.Big()) {
 				cpu.stack.big=true;
 				cpu.stack.mask=0xffffffff;
@@ -3295,6 +3324,7 @@ bool CPU_SetSegGeneral(SegNames seg,uint16_t value) {
 			if ((value & 0xfffc)==0) {
 				Segs.val[seg]=value;
 				Segs.phys[seg]=0;	// ??
+				Segs.ar[seg]=SEG_AR_UNUSABLE;
 				return false;
 			}
 			Descriptor desc;
@@ -3328,6 +3358,7 @@ bool CPU_SetSegGeneral(SegNames seg,uint16_t value) {
 			Segs.phys[seg]=desc.GetBase();
 			Segs.limit[seg]=do_seg_limits?(PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[seg]=desc.GetExpandDown();
+			Segs.ar[seg]=desc.GetAccessRights();
 		}
 
 		return false;
@@ -3874,12 +3905,12 @@ public:
 		do_lds_wraparound = section->Get_bool("lds wraparound");
 		do_seg_limits = section->Get_bool("segment limits");
 	
-		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[cs] = false;
-		SegSet16(ds,0); Segs.limit[ds] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ds] = false;
-		SegSet16(es,0); Segs.limit[es] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[es] = false;
-		SegSet16(fs,0); Segs.limit[fs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[fs] = false;
-		SegSet16(gs,0); Segs.limit[gs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[gs] = false;
-		SegSet16(ss,0); Segs.limit[ss] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ss] = false;
+		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[cs] = false; Segs.ar[cs] = SEG_AR_REAL_CODE;
+		SegSet16(ds,0); Segs.limit[ds] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ds] = false; Segs.ar[ds] = SEG_AR_REAL_DATA;
+		SegSet16(es,0); Segs.limit[es] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[es] = false; Segs.ar[es] = SEG_AR_REAL_DATA;
+		SegSet16(fs,0); Segs.limit[fs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[fs] = false; Segs.ar[fs] = SEG_AR_REAL_DATA;
+		SegSet16(gs,0); Segs.limit[gs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[gs] = false; Segs.ar[gs] = SEG_AR_REAL_DATA;
+		SegSet16(ss,0); Segs.limit[ss] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ss] = false; Segs.ar[ss] = SEG_AR_REAL_DATA;
 	
 		CPU_SetFlags(FLAG_IF,FMASK_ALL);		//Enable interrupts
 		fpu.mxcsr=0x1F80; // The default MXCSR value is... [https://www.felixcloutier.com/x86/ldmxcsr]
@@ -4631,6 +4662,8 @@ void CPU_OnReset(Section* sec) {
 
 	Segs.limit[cs]=0xFFFF;
 	Segs.expanddown[cs]=false;
+	Segs.ar[cs]=SEG_AR_REAL_CODE;
+	Segs.ar[ds]=Segs.ar[es]=Segs.ar[fs]=Segs.ar[gs]=Segs.ar[ss]=SEG_AR_REAL_DATA;
 	if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
 		/* 386 and later start at F000:FFF0 with CS base set to FFFF0000 (really?) */
 		SegSet16(cs,0xF000);
@@ -4942,12 +4975,14 @@ bool CPU_SYSENTER() {
 	Segs.phys[cs] = 0;
 	Segs.limit[cs] = 0xFFFFFFFF;
 	Segs.expanddown[cs] = false;
+	Segs.ar[cs] = 0xC09Bu; /* 4GB, 32-bit, present, DPL 0, execute/read, accessed */
 	cpu.code.big = true;
 
 	Segs.val[ss] = (cpu_sep_cs & 0xFFFC) + 0x8; /* Yes, really. Look it up in Intel's documentation */
 	Segs.phys[ss] = 0;
 	Segs.limit[ss] = 0xFFFFFFFF;
 	Segs.expanddown[ss] = false;
+	Segs.ar[ss] = 0xC093u; /* 4GB, 32-bit, present, DPL 0, read/write, accessed */
 	cpu.stack.big = true;
 	cpu.stack.mask = 0xffffffff;
 	cpu.stack.notmask = 0x00000000;
@@ -4979,12 +5014,14 @@ bool CPU_SYSEXIT() {
 	Segs.phys[cs] = 0;
 	Segs.limit[cs] = 0xFFFFFFFF;
 	Segs.expanddown[cs] = false;
+	Segs.ar[cs] = 0xC0FBu; /* 4GB, 32-bit, present, DPL 3, execute/read, accessed */
 	cpu.code.big = true;
 
 	Segs.val[ss] = (cpu_sep_cs & 0xFFFC) + 0x18 + 3/*RPL*/; /* Yes, really. Look it up in Intel's documentation */
 	Segs.phys[ss] = 0;
 	Segs.limit[ss] = 0xFFFFFFFF;
 	Segs.expanddown[ss] = false;
+	Segs.ar[ss] = 0xC0F3u; /* 4GB, 32-bit, present, DPL 3, read/write, accessed */
 	cpu.stack.big = true;
 	cpu.stack.mask = 0xffffffff;
 	cpu.stack.notmask = 0x00000000;

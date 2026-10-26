@@ -63,7 +63,19 @@ struct Segments {
 	PhysPt phys[8];
 	PhysPt limit[8];
 	bool expanddown[8];
+	/* The access rights in the hidden part of each segment register, as the CPU keeps them: the
+	 * descriptor's type (bits 0-3), S (4), DPL (5-6), P (7), AVL (12), L (13), D/B (14) and G (15),
+	 * as VMX and KVM give them, and SEG_AR_UNUSABLE for a null selector in protected mode. A
+	 * protected mode load takes them from the descriptor (with the accessed bit set), a virtual
+	 * 8086 mode load sets SEG_AR_V86, and a real mode load leaves them as they are, as the CPU
+	 * does. */
+	uint32_t ar[8];
 };
+
+#define SEG_AR_UNUSABLE		(1u << 16u)
+#define SEG_AR_REAL_CODE	0x9Bu	/* after a reset: present, DPL 0, execute/read, accessed */
+#define SEG_AR_REAL_DATA	0x93u	/* after a reset: present, DPL 0, read/write, accessed */
+#define SEG_AR_V86		0xF3u	/* virtual 8086 mode: present, DPL 3, read/write, accessed */
 
 union GenReg32 {
 	uint32_t dword[1];

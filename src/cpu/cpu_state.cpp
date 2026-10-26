@@ -89,23 +89,25 @@ static void GetSegment(const SegNames sr,CPU_FullSegment &seg,const bool v86) {
 		if (sr == ss) seg.db = cpu.stack.big;
 	}
 
+	/* protected mode: the access rights the segment was loaded with (Segs.ar), not the
+	 * descriptor tables, which the guest may have changed since, or which do not describe the
+	 * segment at all (between setting CR0.PE and the far jump after it, the segments are still
+	 * those of real mode). The granularity stays as the limit needs it, which with "segment
+	 * limits=false" is not the descriptor's. */
 	if (cpu.pmode && !v86) {
-		Descriptor desc;
+		const uint32_t ar = Segs.ar[sr];
 
-		if (sr != cs && sr != ss && (seg.selector & 0xFFFCu) == 0) {
+		if (ar & SEG_AR_UNUSABLE) {
 			seg.unusable = true;
 			seg.present = false;
 		}
-		else if (ReadDescriptor(seg.selector,desc)) {
-			seg.type = desc.saved.seg.type & 0xFu;
-			seg.s = (desc.saved.seg.type & 0x10u) != 0;
-			seg.dpl = (uint8_t)desc.saved.seg.dpl;
-			seg.present = desc.saved.seg.p != 0;
-			seg.avl = desc.saved.seg.avl != 0;
-			if (sr != cs && sr != ss) seg.db = desc.saved.seg.big != 0;
-		}
 		else {
-			seg.dpl = (uint8_t)(seg.selector & 3u);
+			seg.type = (uint8_t)(ar & 0xFu);
+			seg.s = (ar & 0x10u) != 0;
+			seg.dpl = (uint8_t)((ar >> 5u) & 3u);
+			seg.present = (ar & 0x80u) != 0;
+			seg.avl = (ar & 0x1000u) != 0;
+			if (sr != cs && sr != ss) seg.db = (ar & 0x4000u) != 0;
 		}
 
 		/* CS and SS run at the CPL, except for a conforming code segment */
@@ -123,6 +125,24 @@ static void SetSegment(const SegNames sr,const CPU_FullSegment &seg) {
 	Segs.phys[sr] = seg.base;
 	Segs.limit[sr] = seg.limit;
 	Segs.expanddown[sr] = seg.s && (seg.type & 0xCu) == 0x4u;
+
+	/* protected mode: the access rights (real and virtual 8086 mode give fixed ones, see
+	 * GetSegment(), and real mode keeps what the segment had) */
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		/* the state has no L bit and gives G as the limit needs it (see GetSegment()): the
+		 * access rights are kept as they are when nothing else changed */
+		const uint32_t ar = seg.unusable ? SEG_AR_UNUSABLE :
+			((uint32_t)(seg.type & 0xFu) | (seg.s ? 0x10u : 0u) | ((uint32_t)(seg.dpl & 3u) << 5u) |
+			(seg.present ? 0x80u : 0u) | (seg.avl ? 0x1000u : 0u) | (seg.db ? 0x4000u : 0u) | (seg.g ? 0x8000u : 0u));
+		CPU_FullSegment now;
+		GetSegment(sr,now,false);
+		if (now.unusable != seg.unusable || (!seg.unusable && (now.type != seg.type || now.s != seg.s ||
+			now.dpl != seg.dpl || now.present != seg.present || now.avl != seg.avl || now.db != seg.db)))
+			Segs.ar[sr] = ar;
+	}
+	else if (reg_flags & FLAG_VM) {
+		Segs.ar[sr] = SEG_AR_V86;
+	}
 }
 
 /* A descriptor that holds what a CPU_FullSegment describes */
