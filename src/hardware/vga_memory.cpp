@@ -53,6 +53,7 @@ extern bool vbe_window_size_literal;
 extern unsigned int vbe_window_granularity;
 extern unsigned int vbe_window_size;
 uint32_t VGA_MemWriteCount = 0;
+uint32_t VGA_MemReadCount = 0;
 
 static inline void vga_vram_write_trigger_update(void) {
 	vga.draw.must_complete_frame = true;
@@ -78,6 +79,7 @@ int vga_memio_delay_ns = 1000;
 bool vga_memio_lfb_delay = false;
 
 void VGAMEM_USEC_read_delay() {
+	VGA_MemReadCount++;
 	if (vga_memio_delay_ns > 0) {
 		Bits delaycyc = (CPU_CycleMax * vga_memio_delay_ns) / 1000000;
 //		if(GCC_UNLIKELY(CPU_Cycles < 3*delaycyc)) delaycyc = 0; //Else port access will set cycles to 0. which might trigger problem with games which read 16 bit values

@@ -128,8 +128,15 @@ Segments Segs;
 
 uint64_t CPU_fixed_RDTSC_rate = 0;
 
+bool (*CPU_RDTSCHook)(int64_t &tsc) = NULL;
+
 int64_t CPU_RDTSC() {
 	pic_tickindex_t rate;
+
+	if (GCC_UNLIKELY(CPU_RDTSCHook != NULL)) {
+		int64_t tsc;
+		if (CPU_RDTSCHook(tsc)) return tsc;
+	}
 
 	if (CPU_fixed_RDTSC_rate > (uint64_t)0)
 		rate = (pic_tickindex_t)CPU_fixed_RDTSC_rate;

@@ -33,12 +33,14 @@
 #include <time.h>
 #include <unistd.h>
 #include <linux/kvm.h>
+#include <x86intrin.h>
 
 #include <algorithm>
 #include <string>
 #include <vector>
 
 #include "callback.h"
+#include "control.h"
 #include "core_kvm.h"
 #include "cpu.h"
 #include "cpu_state.h"
@@ -117,6 +119,45 @@ static struct {
 	/* statistics, logged when DOSBox-X exits */
 	uint64_t	runs = 0,io = 0,mmio = 0,coalesced = 0,callbacks = 0,int3 = 0,hlt = 0,windows = 0,slices = 0,puts = 0,gets = 0,emulated = 0;
 } kvm;
+
+/* Planar and unchained VGA on an emulated core (KVM-TODO.md, step 26). In those modes every
+ * guest access to video memory is an exit (a queued write still exits inside the kernel), and
+ * a game drawing in them runs many times slower than on the dynamic core. While such exits
+ * take a large share of the guest's time, CPU_Core_KVM_Run() runs the guest on an emulated
+ * core instead, and goes back to KVM when its video memory accesses would no longer cost much
+ * under KVM. */
+static struct {
+	CPU_Decoder*	core = NULL;	/* the emulated core, NULL: always KVM ([cpu] kvm vga core) */
+	CPU_Decoder*	trap = NULL;	/* its trap flag decoder */
+	int		dyn = 0;	/* 1: dynamic_x86, 2: dynamic_rec, whose code cache is reset when going back */
+	bool		active = false;	/* the emulated core runs the guest */
+
+	/* KVM host time, nanoseconds: how long the guest ran in KVM since the last check, and the
+	 * estimate of how much of that was exits for video memory (A0000-BFFFF) */
+	uint64_t	win_ns = 0,vga_ns = 0;
+
+	/* on the emulated core: the emulated time (ms) of the last check, and the video memory
+	 * accesses through the memory handlers then */
+	pic_tickindex_t	check = 0,since = 0;
+	uint32_t	writes = 0,reads = 0;
+
+	/* with auto-adjusted cycles, KVM's (nanoseconds) and the emulated core's (instructions),
+	 * swapped when switching */
+	cpu_cycles_count_t	kvm_cyclemax = 0,emu_cyclemax = 0;
+
+	int64_t		tsc_offset = 0;	/* the guest's TSC less the host's, as KVM runs it */
+
+	uint64_t	stretches = 0;
+	pic_tickindex_t	emulated_ms = 0;	/* emulated time on the emulated core, for the statistics */
+} kvm_vga;
+
+/* KVM host time, nanoseconds: how long the guest has to run in KVM before checking, how much of
+ * that video memory exits must take to switch, and what share they would take on the emulated
+ * core (estimated from its accesses per emulated millisecond) to stay there. How long the
+ * emulated core runs between checks: emulated milliseconds. */
+static const uint64_t kvm_vga_window_ns = 20000000u;
+static const unsigned int kvm_vga_switch_percent = 40,kvm_vga_stay_percent = 25;
+static const pic_tickindex_t kvm_vga_period_ms = 50;
 
 /* Guest physical memory as KVM memory slots (see KVM-TODO.md, step 8). A slot maps a run of
  * pages that are host memory to KVM (read-only for MEM_PAGE_READONLY); other pages have no slot,
@@ -844,9 +885,11 @@ static void KVM_FlushWrites(void) {
 	struct kvm_coalesced_mmio_ring *ring = kvm.ring;
 	if (ring == NULL) return;
 
+	uint64_t vga_writes = 0;
 	while (ring->first != ring->last) {
 		const struct kvm_coalesced_mmio &w = ring->coalesced_mmio[ring->first];
 		const PhysPt64 a = (PhysPt64)w.phys_addr;
+		if (!w.pio && a >= 0xA0000u && a < 0xC0000u) vga_writes++;
 		if (w.pio) { /* a port write (coalesced PIO) */
 			const Bitu port = (Bitu)w.phys_addr;
 			switch (w.len) {
@@ -866,6 +909,10 @@ static void KVM_FlushWrites(void) {
 		ring->first = (ring->first + 1u) % kvm.ring_max;
 		kvm.coalesced++;
 	}
+
+	/* KVM host time: nanoseconds, a write of a string instruction or of one instruction each */
+	if (vga_writes != 0)
+		kvm_vga.vga_ns += vga_writes * std::max(vga_writes >= 64 ? kvm.burst_cost.avg : kvm.write_cost.avg,(uint64_t)300u);
 }
 
 static void KVM_HandleIO(void) {
@@ -903,6 +950,9 @@ static void KVM_HandleMMIO(void) {
 	 * it, and then it may turn out to be memory that can be mapped (a PCI LFB, for example) */
 	const Bitu page = (Bitu)(a >> 12u);
 	const bool deferred = page < 0x100000u && (kvm_mem.deferred[page >> 6u] & ((uint64_t)1u << (page & 63u)));
+
+	if (a >= 0xA0000u && a < 0xC0000u)
+		kvm_vga.vga_ns += std::max(kvm.exit_cost[1].avg,(uint64_t)1000u); /* KVM host time: nanoseconds */
 
 	if (run->mmio.is_write) {
 		switch (run->mmio.len) {
@@ -1070,13 +1120,195 @@ static Bits KVM_EmulateOne(void) {
 	return ret;
 }
 
+/* Planar and unchained VGA on an emulated core (see kvm_vga) */
+void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
+void CPU_Core_Dyn_X86_Cache_Reset(void);
+void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
+void CPU_Core_Dynrec_Cache_Reset(void);
+int GetDynamicType();
+extern int32_t ticksDone;
+extern uint32_t ticksScheduled;
+
+/* [cpu] kvm vga core */
+static void KVM_VGASetup(void) {
+	const Section_prop *section = static_cast<Section_prop*>(control->GetSection("cpu"));
+	const std::string which = section != NULL ? section->Get_string("kvm vga core") : "auto";
+
+	kvm_vga.core = NULL;
+	kvm_vga.trap = NULL;
+	kvm_vga.dyn = 0;
+	if (which == "off") return;
+	if (which == "auto" || which == "dynamic") {
+#if C_DYNAMIC_X86
+		if (GetDynamicType() == 1) {
+			kvm_vga.core = &CPU_Core_Dyn_X86_Run;
+			kvm_vga.trap = &CPU_Core_Dyn_X86_Trap_Run;
+			kvm_vga.dyn = 1;
+		}
+#endif
+#if C_DYNREC
+		if (kvm_vga.core == NULL && GetDynamicType() == 2) {
+			kvm_vga.core = &CPU_Core_Dynrec_Run;
+			kvm_vga.trap = &CPU_Core_Dynrec_Trap_Run;
+			kvm_vga.dyn = 2;
+		}
+#endif
+	}
+	if (kvm_vga.core == NULL) {
+		kvm_vga.core = &CPU_Core_Normal_Run;
+		kvm_vga.trap = &CPU_Core_Normal_Trap_Run;
+	}
+}
+
+/* The guest's TSC goes on at KVM's rate (the host's) on the emulated core too */
+static bool KVM_VGA_RDTSC(int64_t &tsc) {
+	if (!kvm_vga.active || cpudecoder != &CPU_Core_KVM_Run) return false;
+	tsc = (int64_t)__rdtsc() + kvm_vga.tsc_offset;
+	return true;
+}
+
+/* With auto-adjusted cycles, the cycles per millisecond are KVM host time (nanoseconds) under
+ * KVM and instructions on the emulated core: each keeps its own, and the cycles left in the
+ * current millisecond are scaled. The auto-adjustment starts over. */
+static void KVM_VGASwapCycles(cpu_cycles_count_t &save,cpu_cycles_count_t to) {
+	if (!CPU_CycleAutoAdjust) return;
+	save = CPU_CycleMax;
+	if (to <= 0) to = CPU_CycleMax;
+	if (CPU_CycleMax > 0) {
+		CPU_Cycles = (cpu_cycles_count_t)(((int64_t)CPU_Cycles * (int64_t)to) / (int64_t)CPU_CycleMax);
+		CPU_CycleLeft = (cpu_cycles_count_t)(((int64_t)CPU_CycleLeft * (int64_t)to) / (int64_t)CPU_CycleMax);
+	}
+	CPU_CycleMax = to;
+	ticksDone = 0;
+	ticksScheduled = 0;
+	CPU_IODelayRemoved = 0;
+}
+
+static void KVM_VGAStart(void) {
+	CPU_SyncState();
+	if (kvm.failed) return;
+	/* the trap flag single steps natively under KVM */
+	if (reg_flags & FLAG_TF) return;
+
+	/* the guest's TSC: KVM's, read with the host's */
+	alignas(8) uint8_t buf[sizeof(struct kvm_msrs) + sizeof(struct kvm_msr_entry)];
+	memset(buf,0,sizeof(buf));
+	struct kvm_msrs *msrs = (struct kvm_msrs*)buf;
+	struct kvm_msr_entry *tsc = (struct kvm_msr_entry*)(buf + sizeof(struct kvm_msrs));
+	msrs->nmsrs = 1;
+	tsc->index = 0x10; /* IA32_TIME_STAMP_COUNTER */
+	if (ioctl(kvm.vcpu,KVM_GET_MSRS,msrs) != 1) return;
+	kvm_vga.tsc_offset = (int64_t)tsc->data - (int64_t)__rdtsc();
+
+#if C_DYNAMIC_X86
+	if (kvm_vga.dyn == 1) CPU_Core_Dyn_X86_Cache_Init(true);
+#endif
+#if C_DYNREC
+	if (kvm_vga.dyn == 2) CPU_Core_Dynrec_Cache_Init(true);
+#endif
+	/* the emulated core starts at a guess the first time; the auto-adjustment takes it from there */
+	KVM_VGASwapCycles(kvm_vga.kvm_cyclemax,kvm_vga.emu_cyclemax > 0 ? kvm_vga.emu_cyclemax : 200000);
+	CPU_RDTSCHook = KVM_VGA_RDTSC;
+
+	kvm_vga.active = true;
+	kvm_vga.check = kvm_vga.since = PIC_FullIndex();
+	kvm_vga.writes = VGA_MemWriteCount;
+	kvm_vga.reads = VGA_MemReadCount;
+	kvm_vga.stretches++;
+}
+
+static void KVM_VGAEnd(void) {
+	if (!kvm_vga.active) return;
+	kvm_vga.active = false;
+	kvm_vga.emulated_ms += PIC_FullIndex() - kvm_vga.since;
+	CPU_RDTSCHook = NULL;
+
+	/* The guest changes code under KVM without DOSBox-X seeing it, and the dynamic core's code
+	 * pages have page handlers of their own, which would be MMIO under KVM: the code cache is
+	 * reset, which puts the page handlers back (the memory slots follow at the next KVM_RUN). */
+#if C_DYNAMIC_X86
+	if (kvm_vga.dyn == 1) CPU_Core_Dyn_X86_Cache_Reset();
+#endif
+#if C_DYNREC
+	if (kvm_vga.dyn == 2) CPU_Core_Dynrec_Cache_Reset();
+#endif
+	KVM_VGASwapCycles(kvm_vga.emu_cyclemax,kvm_vga.kvm_cyclemax);
+	kvm_vga.win_ns = 0;
+	kvm_vga.vga_ns = 0;
+}
+
+/* The emulated core may set cpudecoder to itself or to its trap decoder (a POPF or IRET that
+ * sets TF): the KVM core stays the decoder, and goes back to KVM for the trap flag. Anything
+ * else (HLT) it leaves, which comes back to the KVM core afterwards. */
+static void KVM_VGAFixDecoder(void) {
+	if (cpudecoder == kvm_vga.trap) {
+		cpudecoder = &CPU_Core_KVM_Run;
+		KVM_VGAEnd();
+	}
+	else if (cpudecoder == kvm_vga.core) {
+		cpudecoder = &CPU_Core_KVM_Run;
+	}
+}
+
+static Bits KVM_VGARun(void) {
+	Bits ret;
+	try {
+		ret = (*kvm_vga.core)();
+	}
+	catch (...) {
+		/* a guest page fault, handled by the main loop */
+		KVM_VGAFixDecoder();
+		throw;
+	}
+	KVM_VGAFixDecoder();
+	if (!kvm_vga.active) return ret;
+
+	/* mode 13h runs better under KVM, with the shadow */
+	VGA_ChainedShadowMap m;
+	if (VGA_ChainedShadowable(m)) {
+		KVM_VGAEnd();
+		return ret;
+	}
+
+	const pic_tickindex_t now = PIC_FullIndex();
+	if (now - kvm_vga.check >= kvm_vga_period_ms) {
+		/* KVM host time, nanoseconds: what this period's video memory accesses would have
+		 * cost in exits, against the emulated time it took */
+		const uint64_t writes = (uint32_t)(VGA_MemWriteCount - kvm_vga.writes);
+		const uint64_t reads = (uint32_t)(VGA_MemReadCount - kvm_vga.reads);
+		const uint64_t cost = writes * std::max(kvm.write_cost.avg,(uint64_t)300u) +
+			reads * std::max(kvm.exit_cost[1].avg,(uint64_t)1000u);
+		const uint64_t period = (uint64_t)((now - kvm_vga.check) * 1000000.0);
+		if (cost * 100u < period * kvm_vga_stay_percent) {
+			KVM_VGAEnd();
+		}
+		else {
+			kvm_vga.check = now;
+			kvm_vga.writes = VGA_MemWriteCount;
+			kvm_vga.reads = VGA_MemReadCount;
+		}
+	}
+	return ret;
+}
+
+/* After a run under KVM: switch to the emulated core when video memory exits took a large share
+ * of the guest's time */
+static void KVM_VGACheck(void) {
+	if (kvm_vga.core == NULL || kvm.failed || kvm_vga.win_ns < kvm_vga_window_ns) return;
+	if (kvm_vga.vga_ns * 100u >= kvm_vga.win_ns * kvm_vga_switch_percent) KVM_VGAStart();
+	kvm_vga.win_ns = 0;
+	kvm_vga.vga_ns = 0;
+}
+
 Bits CPU_Core_KVM_Run(void) {
+	if (kvm_vga.active) return KVM_VGARun();
 	Bits r = KVM_Run();
 	KVM_ShadowStore(); /* what the guest wrote to mode 13h memory, for DOSBox-X */
 	if (kvm.emulate_one) {
 		kvm.emulate_one = false;
 		if (r == CBRET_NONE) r = KVM_EmulateOne();
 	}
+	if (r == CBRET_NONE) KVM_VGACheck();
 	/* The slice timer stays armed: the core is mostly called again within microseconds (a
 	 * callback, an interrupt), usually with about the same deadline, and arming and disarming
 	 * it are two system calls per call. If it fires in between, the next KVM_RUN returns at
@@ -1150,7 +1382,9 @@ static Bits KVM_Run(void) {
 		kvm.pending = false;
 		kvm.event_in_flight = r < 0 || run->exit_reason == KVM_EXIT_INTR;
 		/* KVM host time: nanoseconds since PIC_HostTimeMark(), less the cost of the exit */
-		PIC_HostTimeAccount(KVM_Overhead(r,PIC_HostTimeNow() - mark));
+		const uint64_t elapsed = PIC_HostTimeNow() - mark; /* KVM host time: nanoseconds */
+		kvm_vga.win_ns += elapsed;
+		PIC_HostTimeAccount(KVM_Overhead(r,elapsed));
 		KVM_FlushWrites();
 		kvm.guest_if = run->if_flag != 0;
 
@@ -1268,11 +1502,14 @@ static void KVM_CoreShutdownSection(Section *sec) {
 }
 
 void KVM_CoreShutdown(void) {
+	if (kvm_vga.active) kvm_vga.emulated_ms += PIC_FullIndex() - kvm_vga.since;
+	kvm_vga.active = false;
+	CPU_RDTSCHook = NULL;
 	if (kvm.runs != 0)
-		LOG_MSG("KVM: %llu KVM_RUN calls: %llu port I/O, %llu MMIO (and %llu queued writes), %llu callbacks, %llu guest INT3, %llu HLT, %llu interrupt windows, %llu slices ended, %llu instructions emulated; state put %llu times, fetched %llu times; exit cost %llu/%llu/%llu/%llu/%llu/%llu ns (I/O, MMIO, callback, HLT, queued write, string write)",
+		LOG_MSG("KVM: %llu KVM_RUN calls: %llu port I/O, %llu MMIO (and %llu queued writes), %llu callbacks, %llu guest INT3, %llu HLT, %llu interrupt windows, %llu slices ended, %llu instructions emulated, %llu times on the emulated core for video memory (%.0f ms); state put %llu times, fetched %llu times; exit cost %llu/%llu/%llu/%llu/%llu/%llu ns (I/O, MMIO, callback, HLT, queued write, string write)",
 			(unsigned long long)kvm.runs,(unsigned long long)kvm.io,(unsigned long long)kvm.mmio,(unsigned long long)kvm.coalesced,(unsigned long long)kvm.callbacks,
 			(unsigned long long)kvm.int3,(unsigned long long)kvm.hlt,(unsigned long long)kvm.windows,(unsigned long long)kvm.slices,
-			(unsigned long long)kvm.emulated,(unsigned long long)kvm.puts,(unsigned long long)kvm.gets,
+			(unsigned long long)kvm.emulated,(unsigned long long)kvm_vga.stretches,(double)kvm_vga.emulated_ms,(unsigned long long)kvm.puts,(unsigned long long)kvm.gets,
 			(unsigned long long)kvm.exit_cost[0].avg,(unsigned long long)kvm.exit_cost[1].avg,(unsigned long long)kvm.exit_cost[2].avg,
 			(unsigned long long)kvm.exit_cost[3].avg,(unsigned long long)kvm.write_cost.avg,(unsigned long long)kvm.burst_cost.avg);
 	if (kvm.io != 0) {
@@ -1436,6 +1673,9 @@ static bool KVM_SetCPUID(std::string &reason) {
 }
 
 bool KVM_CoreInit(std::string &reason) {
+	KVM_VGAEnd();
+	KVM_VGASetup();
+
 	/* already created: only the CPU settings may have changed */
 	if (kvm.vcpu >= 0)
 		return KVM_SetCPUID(reason);

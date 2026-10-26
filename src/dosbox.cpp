@@ -1624,6 +1624,7 @@ void DOSBOX_SetupConfigSections(void) {
         nullptr };
 
     const char* callback_int3_prefix_settings[] = { "auto", "true", "false", nullptr };
+    const char* kvm_vga_core_settings[] = { "auto", "dynamic", "normal", "off", nullptr };
 
     const char* cores[] = { "auto",
 #if (C_DYNAMIC_X86) || (C_DYNREC)
@@ -3142,6 +3143,15 @@ void DOSBOX_SetupConfigSections(void) {
             "  false: Never write it. A hardware virtualization CPU core cannot be used.\n"
             "  auto: Write it if the CPU core is set to kvm when DOSBox-X starts.\n"
             "This takes effect when DOSBox-X starts, not when the emulated machine is reset.");
+
+    Pstring = secprop->Add_string("kvm vga core",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(kvm_vga_core_settings);
+    Pstring->Set_help("With core=kvm: the emulated CPU core that runs the guest while it uses planar or unchained VGA memory\n"
+            "(16-colour modes, mode X), every access to which costs an exit under KVM. The KVM core switches to it while\n"
+            "such exits take a large share of the time, and back to KVM when they would no longer.\n"
+            "  auto: The dynamic core, or the normal core in builds without one.\n"
+            "  dynamic, normal: That core.\n"
+            "  off: Always run the guest under KVM.");
 
     /* I would like "auto" as the default so FPU emulation is enabled for 486 or higher, disabled for 386 and lower.
      * However it is better to always emulate the FPU (default "true") like DOSBox SVN to remain compatible with

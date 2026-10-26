@@ -111,6 +111,11 @@ static INLINE bool CPU_InterruptFlag(void) {
 	return GETFLAG(IF) != 0;
 }
 
+/* The time stamp counter for RDTSC from a hook, if it sets one and returns true: the KVM core
+ * while it runs the guest on an emulated core for a while, so that the TSC the guest sees goes
+ * on at KVM's rate (the host's) instead of the emulated one */
+extern bool (*CPU_RDTSCHook)(int64_t &tsc);
+
 Bits CPU_Core_Normal_Run(void);
 Bits CPU_Core_Normal_Trap_Run(void);
 Bits CPU_Core_Simple_Run(void);
