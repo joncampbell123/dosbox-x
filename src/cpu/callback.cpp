@@ -205,7 +205,11 @@ static Bitu stop_handler(void) {
 
 Bitu FillFlags(void);
 
+/* These run guest code from DOSBox-X code. Called from outside a CPU core (closing a file
+ * while DOSBox-X shuts down, for example), the state may still be in the KVM core's vCPU:
+ * CPU_SyncState() brings it here first (it does nothing when it is here already). */
 void CALLBACK_RunRealFarInt(uint16_t seg,uint16_t off) {
+	CPU_SyncState();
 	FillFlags();
 
 	reg_sp-=6;
@@ -231,6 +235,7 @@ void CALLBACK_RunRealFarInt(uint16_t seg,uint16_t off) {
 }
 
 void CALLBACK_RunRealFar(uint16_t seg,uint16_t off) {
+	CPU_SyncState();
 	reg_sp-=4;
 	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
 		mem_writew(SegPhys(ss)+reg_sp+0,RealOff(CALLBACK_RealPointer(call_stop)));
@@ -252,6 +257,7 @@ void CALLBACK_RunRealFar(uint16_t seg,uint16_t off) {
 }
 
 void CALLBACK_RunRealInt_retcsip(uint8_t intnum,Bitu &rcs,Bitu &rip) {
+	CPU_SyncState();
 	uint32_t oldeip=reg_eip;
 	uint16_t oldcs=SegValue(cs);
 	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*CALLBACK_RealIntStubSize());
@@ -264,6 +270,7 @@ void CALLBACK_RunRealInt_retcsip(uint8_t intnum,Bitu &rcs,Bitu &rip) {
 }
 
 void CALLBACK_RunRealInt(uint8_t intnum) {
+	CPU_SyncState();
 	uint32_t oldeip=reg_eip;
 	uint16_t oldcs=SegValue(cs);
 	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*CALLBACK_RealIntStubSize());

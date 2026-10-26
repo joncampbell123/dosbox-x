@@ -50,6 +50,7 @@
 #include "cross.h"
 #include "inout.h"
 #include "callback.h"
+#include "cpu.h"
 #include "regs.h"
 #include "timer.h"
 #include "render.h"
@@ -3196,25 +3197,33 @@ bool LocalFile::UpdateLocalDateTime(void) {
     time_t timet = ::time(NULL);
     struct tm *tm = localtime(&timet);
     tm->tm_isdst = -1;
-    uint16_t oldax=reg_ax, oldcx=reg_cx, olddx=reg_dx;
 
-	reg_ah=0x2a; // get system date
-	CALLBACK_RunRealInt(0x21);
+    /* The DOS date and time, from INT 21h, which reaches DOSBox-X's DOS in real or virtual 8086
+     * mode (a DOS extender reflects the guest's INT 21h there). DOSBox-X also closes files when
+     * it shuts down, with the guest in any mode: in protected mode the INT 21h would go to the
+     * guest's own handler and might never come back, so the host's time is used then. */
+    CPU_SyncState();
+    if (!cpu.pmode || (reg_flags & FLAG_VM)) {
+        uint16_t oldax=reg_ax, oldcx=reg_cx, olddx=reg_dx;
 
-	tm->tm_year = reg_cx-1900;
-	tm->tm_mon = reg_dh-1;
-	tm->tm_mday = reg_dl;
+        reg_ah=0x2a; // get system date
+        CALLBACK_RunRealInt(0x21);
 
-	reg_ah=0x2c; // get system time
-	CALLBACK_RunRealInt(0x21);
+        tm->tm_year = reg_cx-1900;
+        tm->tm_mon = reg_dh-1;
+        tm->tm_mday = reg_dl;
 
-	tm->tm_hour = reg_ch;
-	tm->tm_min = reg_cl;
-	tm->tm_sec = reg_dh;
+        reg_ah=0x2c; // get system time
+        CALLBACK_RunRealInt(0x21);
 
-    reg_ax=oldax;
-    reg_cx=oldcx;
-    reg_dx=olddx;
+        tm->tm_hour = reg_ch;
+        tm->tm_min = reg_cl;
+        tm->tm_sec = reg_dh;
+
+        reg_ax=oldax;
+        reg_cx=oldcx;
+        reg_dx=olddx;
+    }
 
     timet = mktime(tm);
     if (timet == -1)
