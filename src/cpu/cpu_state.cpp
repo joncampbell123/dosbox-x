@@ -260,7 +260,12 @@ void CPU_SetFullState(const CPU_FullState &state) {
 	cpu.idt.SetBase(state.idt.base);
 	cpu.idt.SetLimit(state.idt.limit);
 
+	/* the DR0-DR3 breakpoints follow the debug registers (only when they change: it also ends the
+	 * decoder's time slice) */
+	const bool dr_changed = cpu.drx[0] != state.dr[0] || cpu.drx[1] != state.dr[1] || cpu.drx[2] != state.dr[2] ||
+		cpu.drx[3] != state.dr[3] || cpu.drx[7] != state.dr[7];
 	for (unsigned int i=0;i < 8;i++) cpu.drx[i] = state.dr[i];
+	if (dr_changed) CPU_DebugRegsChanged();
 
 #if C_FPU
 	FPU_SetFullState(state);

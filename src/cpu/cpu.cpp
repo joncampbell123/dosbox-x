@@ -5491,6 +5491,9 @@ void setBytes(std::istream& stream) override
 #if (C_DYNREC)
     CPU_Core_Dynrec_Cache_Reset();
 #endif
+
+    // the DR0-DR3 breakpoints of the loaded debug registers (with paging loaded, for the watched pages)
+    CPU_DebugRegsChanged();
 }
 } dummy;
 }
