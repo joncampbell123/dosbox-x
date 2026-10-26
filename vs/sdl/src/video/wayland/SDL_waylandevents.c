@@ -668,8 +668,9 @@ void Wayland_PumpEvents(_THIS)
 		return;
 	}
 
-	/* an update that was dropped because all buffers were busy */
-	if ( wl->present_pending ) {
+	/* an update that was dropped because all buffers were busy, or held
+	   back after a mode change */
+	if ( wl->present_pending && !Wayland_HoldingUpdates(this) ) {
 		Wayland_PresentShm(this, 0, NULL);
 	}
 }

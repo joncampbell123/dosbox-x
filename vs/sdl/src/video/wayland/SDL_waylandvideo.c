@@ -43,6 +43,7 @@
 #include "SDL_video.h"
 #include "SDL_mouse.h"
 #include "SDL_syswm.h"
+#include "SDL_timer.h"
 #include "../SDL_sysvideo.h"
 #include "../SDL_pixels_c.h"
 #include "../SDL_vulkan_c.h"
@@ -502,6 +503,8 @@ int Wayland_CreateWindow(_THIS, int content_mode)
 	}
 	wl->content_mode = content_mode;
 	wl->configured = 0;
+	wl->shown = 0;
+	wl->hold = 0;
 	wl->configure_w = 0;
 	wl->configure_h = 0;
 
@@ -688,8 +691,10 @@ static SDL_Surface *Wayland_SetVideoMode(_THIS, SDL_Surface *current,
 		return(NULL);
 	}
 
-	/* the old buffers are the wrong size now */
-	Wayland_DestroyBuffers(this);
+	/* The old buffers are the wrong size now. Wayland_PresentShm() replaces
+	   them, a buffer the compositor is still showing is left alone until it
+	   comes back. An update dropped at the old size is no longer wanted. */
+	wl->present_pending = 0;
 	if ( wl->framebuffer ) {
 		SDL_free(wl->framebuffer);
 		wl->framebuffer = NULL;
@@ -710,8 +715,15 @@ static SDL_Surface *Wayland_SetVideoMode(_THIS, SDL_Surface *current,
 		}
 		current->pixels = wl->framebuffer;
 		this->UpdateRects = Wayland_UpdateRects;
-		/* show the window right away */
-		Wayland_PresentShm(this, 0, NULL);
+		/* A new window is shown right away. A window that is already showing
+		   keeps its last frame until the application draws at the new size,
+		   rather than flashing black on every resize. */
+		if ( !wl->shown ) {
+			Wayland_PresentShm(this, 0, NULL);
+		} else {
+			wl->hold = 1;
+			wl->hold_ticks = SDL_GetTicks();
+		}
 		break;
 #if SDL_VIDEO_DRIVER_WAYLAND_EGL
 	case WAYLAND_MODE_OPENGL:
@@ -842,18 +854,53 @@ static int Wayland_CreateBuffer(_THIS, struct Wayland_Buffer *buf, int w, int h)
 	return 0;
 }
 
+/* After the mode changes on a window that is showing, the new surface is
+   blank until the application draws a whole frame. A partial update before
+   that (DOSBox-X draws its menu bar first) would show the window black
+   around it, so it waits for the whole frame, or for a short while in case
+   the application never draws one. */
+#define WAYLAND_HOLD_MS 250
+
+int Wayland_HoldingUpdates(_THIS)
+{
+	struct SDL_PrivateVideoData *wl = this->hidden;
+
+	if ( wl->hold && (Uint32)(SDL_GetTicks() - wl->hold_ticks) >= WAYLAND_HOLD_MS ) {
+		wl->hold = 0;
+	}
+	return wl->hold;
+}
+
 /* copy the SDL surface to a free buffer and show it */
 void Wayland_PresentShm(_THIS, int numrects, SDL_Rect *rects)
 {
 	struct SDL_PrivateVideoData *wl = this->hidden;
 	struct Wayland_Buffer *buf = NULL;
 	int w = wl->window_w, h = wl->window_h;
+	int damage_all;
 	int i;
 
 	if ( wl->surface == NULL || !wl->configured || wl->content_mode != WAYLAND_MODE_SHM ||
 	     wl->framebuffer == NULL || w <= 0 || h <= 0 ) {
 		return;
 	}
+
+	if ( wl->hold ) {
+		int whole = (numrects <= 0);
+		for ( i = 0; i < numrects && !whole; i++ ) {
+			if ( rects[i].x == 0 && rects[i].y == 0 && rects[i].w >= w && rects[i].h >= h ) {
+				whole = 1;
+			}
+		}
+		if ( whole ) {
+			wl->hold = 0;
+		} else if ( Wayland_HoldingUpdates(this) ) {
+			wl->present_pending = 1;
+			return;
+		}
+	}
+	/* an update that was dropped is in the frame too, but not in these rects */
+	damage_all = (numrects <= 0) || wl->present_pending;
 
 	for ( i = 0; i < WAYLAND_MAX_BUFFERS && buf == NULL; i++ ) {
 		if ( wl->buffers[i].buffer && !wl->buffers[i].busy &&
@@ -881,14 +928,14 @@ void Wayland_PresentShm(_THIS, int numrects, SDL_Rect *rects)
 	SDL_memcpy(buf->data, wl->framebuffer, buf->size);
 
 	wl_surface_attach(wl->surface, buf->buffer, 0, 0);
-	if ( numrects <= 0 ) {
+	if ( damage_all ) {
 		if ( wl->compositor_version >= 4 ) {
 			wl_surface_damage_buffer(wl->surface, 0, 0, w, h);
 		} else {
 			wl_surface_damage(wl->surface, 0, 0, w, h);
 		}
 	}
-	for ( i = 0; i < numrects; i++ ) {
+	for ( i = 0; i < numrects && !damage_all; i++ ) {
 		if ( wl->compositor_version >= 4 ) {
 			wl_surface_damage_buffer(wl->surface, rects[i].x, rects[i].y, rects[i].w, rects[i].h);
 		} else {
@@ -897,6 +944,7 @@ void Wayland_PresentShm(_THIS, int numrects, SDL_Rect *rects)
 	}
 	buf->busy = 1;
 	wl->present_pending = 0;
+	wl->shown = 1;
 	wl_surface_commit(wl->surface);
 	wl_display_flush(wl->display);
 }

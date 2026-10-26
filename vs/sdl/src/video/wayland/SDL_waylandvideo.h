@@ -120,6 +120,9 @@ struct SDL_PrivateVideoData {
 	struct Wayland_Buffer buffers[WAYLAND_MAX_BUFFERS];
 	void *framebuffer;	/* SDL_VideoSurface pixels */
 	int present_pending;	/* an update was dropped, all buffers were busy */
+	int shown;		/* a wl_shm buffer was committed to this surface */
+	int hold;		/* after a mode change, partial updates wait for a whole frame */
+	Uint32 hold_ticks;	/* when the hold started */
 
 	/* WAYLAND_MODE_OPENGL */
 	struct wl_egl_window *egl_window;
@@ -133,5 +136,6 @@ extern void Wayland_DestroyWindow(_THIS);
 extern int Wayland_CreateShmFile(size_t size);
 /* present the software surface */
 extern void Wayland_PresentShm(_THIS, int numrects, SDL_Rect *rects);
+extern int Wayland_HoldingUpdates(_THIS);
 
 #endif /* _SDL_waylandvideo_h */
