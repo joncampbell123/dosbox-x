@@ -353,6 +353,73 @@ throttles the guest by duty cycle.
     example. Use a fresh copy for each run.)
   - Not available here: Windows NT/2000 install media, a Glide program. Windows 98 and the
     OS/2 installers wait on the dynamic core too (see step 20).
+- **Step 24: more guests.**
+  - **Windows 98** (`~/emu/win98`, with its own `dosbox.conf`: Pentium II, 128 MB, ISA PnP
+    BIOS, APM, IDE `pio32`/`int13fakev86io`; without the NE2000 and MT-32): the image has
+    `BootGUI=0` in `MSDOS.SYS`, so it stops at the DOS prompt and Windows is started with
+    `WIN`. That was the "stall" of steps 14, 20 and 23. With `WIN` in `AUTOEXEC.BAT` of the
+    test copy, the Win32 test passes on the dynamic core and on KVM (16 MB checked, the FPU,
+    `Sleep(2000)` measures 2001-2006 ms by both clocks, two threads), and Windows powers off
+    (APM), which ends DOSBox-X: 51 s on the dynamic core, 81 s on KVM.
+  - **Windows 2000 Professional** (`~/emu/dostest/win95/win2k.iso`, retail, no product key
+    here): `WINNT` run from the DOSBox-X shell with an answer file copies the local source to
+    a copy of the 1 GB DOS disk (31 s), then the disk boots through IDE: text-mode setup (the
+    NT kernel, `atapi.sys`) copies the files, restarts, and GUI setup detects and installs the
+    devices and stops where the answer file has no product key ("Unattended Setup is unable to
+    continue because a Setup parameter ... is missing"), which is as far as it can get here.
+    Text-mode setup first took more than 30 minutes: KVM's instruction emulator does `REP
+    OUTSW` one word per exit (it batches `REP INSW`), 133 million exits to the IDE data port at
+    8.5 us. The IDE data port and taskfile writes are queued now (see step 18; 1F0h-1F3h,
+    170h-173h), and text-mode setup takes about 7 minutes.
+  - **Glide**: TRIP (Kosmic, The Party 97; DOS/4GW, Glide 2.43 with its own `glide2x.ovl`)
+    on the emulated Voodoo (`voodoo_card=software`), answers to its menu redirected from a
+    file (AUTOTYPE does not reach it). The KVM core gave up at once: "KVM internal error,
+    suberror 1" at `FSTP dword [edi+4]`. Glide writes floats to the Voodoo registers with x87
+    stores, and KVM's instruction emulator cannot do x87 instructions on MMIO. Such an
+    instruction now runs on the normal core (`KVM_EmulateOne()`), and the core goes on in
+    KVM: TRIP renders its parts on KVM, about 27000 instructions emulated per second. Without
+    `KVM_CAP_EXIT_ON_EMULATION_FAILURE` (kernel 5.17+), KVM would exit only at CPL 0 and give
+    the guest a #UD at CPL 3, so the core turns it on; checked at CPL 3 with a real mode
+    program in V86 mode (EMM386 active) that does x87 loads and stores on mode 12h memory:
+    the same results as the normal core. TRIP shows only a black screen on the emulated
+    cores unless `enable msr=true`: it reads MSRs, which KVM answers whatever DOSBox-X's
+    setting is (see the findings). It does not end by itself, so its own statistics file is
+    only written when it is left with Esc.
+  - **OS/2**: still waits for the floppy controller emulation (no change since step 20).
+  - **DOSBox-X did not quit** (SIGTERM, `-time-limit`, closing the window) while a protected
+    mode program ran on the KVM core with its output redirected to a file: closing the file,
+    `LocalFile::UpdateLocalDateTime()` asks the DOS date and time with `CALLBACK_RunRealInt()`,
+    which DOSBox-X's own INT 21h answers only in real or V86 mode; in protected mode it went
+    to DOS/4GW's handler and never came back. It now uses the host's time unless the CPU is
+    in real or V86 mode (the emulated cores could hit this too, depending on where the guest
+    was), and the `CALLBACK_RunReal*()` functions call `CPU_SyncState()` first.
+- **Step 25: planar VGA.** Measured, and the answer is yes, 16-colour and unchained games are
+  slow on KVM. FastDoom 0.9.1, `-timedemo demo1 -nosound`, AMD Ryzen 9 7940HS, `cycles=max`:
+
+  | Renderer | normal | dynamic | KVM |
+  |---|---|---|---|
+  | mode 13h (`FDOOM13H`, the step 21 shadow) | 143 fps | 217 fps | 1725 fps |
+  | EGA 16-colour planar (`FDOOMEGA`) | 54 fps | 187 fps | 19.4 fps |
+  | mode Y, unchained 256 colours (`FDOOM`) | 103 fps | 339 fps | 4.5 fps |
+
+  In planar and unchained modes all of A0000-AFFFF is MMIO: every read exits, and every write
+  is queued but still an exit inside the kernel (about 4 us each in mode Y: 264 million of
+  them in the timedemo). A planar benchmark (PLANBNCH, wall seconds including about 1.2 s of
+  start-up; normal, dynamic, KVM before and after the change below): 200000 PutPixels (bit
+  mask OUT, latch load, write) 1.43 / 1.48 / 8.81 / 5.27; 768000 plane reads 1.16 / 1.18 /
+  3.27 / 3.25; mode X fills 1.20 / 1.23 / 1.98 / 2.11.
+  - **Done:** the sequencer and graphics controller data ports (3C5h, 3CFh) are queued as
+    well while no page of A0000-BFFFF is mapped directly (`KVM_QueueVGAData()`, switched at
+    each slot rebuild): map mask, bit mask, set/reset, write mode and the like were an exit
+    each. All video memory accesses are MMIO then, so they are applied in order with the port
+    writes, also when a port write changes the memory map. PutPixel 7.6 s -> 4.0 s above
+    start-up, FastDoom EGA 17.2 -> 19.4 fps. PLANTEST (map mask, set/reset, bit mask, write
+    modes 0-3, XOR, latch copies, read mode 1, a memory map switch to B8000 written right
+    after, chain 4 off and on in mode 13h/mode X with writes right after) dumps the same
+    219600 bytes on the normal, dynamic and KVM cores.
+  - **Not done:** what is left is the exits themselves, and a shadow like mode 13h's cannot
+    take reads (they load the latches) or the four planes behind one address. See the open
+    issues for the proposal.
 - **Debugger tools for all of the above.**
   - `MEMMAP [start [end]]` lists the physical map as `MEM_ClassifyPage` sees it (coalesced
     runs with kind, host pointer relative to `MemBase`, and handler class), plus the map
@@ -413,6 +480,14 @@ throttles the guest by duty cycle.
 - **CPU types without CPUID** (386, 486old): under KVM the CPUID instruction still runs (it
   returns zeros) and the EFLAGS ID bit can still be toggled, so CPUID detection finds a CPUID.
   Likewise `fpu=false` cannot remove the FPU. These are limits of running on real hardware.
+- **MSRs**: KVM answers RDMSR and WRMSR itself, so `enable msr=false` does not take them away
+  under KVM (TRIP needs `enable msr=true` on the emulated cores and runs on KVM without it).
+- **KVM's instruction emulator** (used for MMIO) cannot do x87 instructions (Glide's FSTP to
+  the Voodoo registers): the KVM core runs such an instruction on the normal core (step 24).
+  It does `REP OUTSW`/`OUTSD` one element per exit (it batches `REP INSW`), which is why the
+  IDE data port writes are queued.
+- **Windows 98 image** (`~/emu/win98`): `BootGUI=0`, it boots to the DOS prompt. A test copy
+  needs `WIN` in `AUTOEXEC.BAT` (step 24).
 - **Changing the CPU type at run time** calls `KVM_CoreInit()` again, which sets the CPUID
   again. Newer kernels refuse `KVM_SET_CPUID2` with different values after the vCPU has run,
   so once the core runs, a CPU type change needs a new vCPU (keeping the state through
@@ -433,10 +508,19 @@ throttles the guest by duty cycle.
 - **Exit-heavy guests at low fixed cycle counts** can still run slower than on an emulated
   core: exit costs vary, and the estimate (`KVM_Overhead()`) errs towards charging the guest,
   so that it never gets free time. (Mode 13h no longer exits, step 21.)
-- **Planar VGA modes** (16 colours, mode X) still exit for every video memory access:
-  writes are queued, reads exit. A shadow like mode 13h's would need the planar logic (latches,
-  write modes, map mask) applied when it is copied, which does not work for writes that depend
-  on the latches.
+- **Planar and unchained VGA modes** (16 colours, mode X/Y) exit for every video memory
+  access: writes are queued (still an exit inside the kernel), reads exit. FastDoom runs at
+  19 fps (EGA) and 4.5 fps (mode Y) against 187 and 339 on the dynamic core (step 25). A shadow
+  like mode 13h's would need the planar logic (latches, write modes, map mask) applied when it
+  is copied, which does not work for writes that depend on the latches, nor for reads (they
+  load the latches), and one guest address is four planes in mode X/Y. **Proposal:** run such
+  stretches on an emulated core (the dynamic core, else the normal one): when the guest's video
+  memory exits take more than a set share of the slices, switch to it for some tens of
+  milliseconds, then try KVM again. What switching needs: the dynamic core's code cache
+  flushed each time (the guest changes code inside KVM without DOSBox-X seeing it), the TSC
+  kept continuous both ways (KVM's is the host's, the emulated cores count cycles; KVM can
+  set the guest's TSC), the mode 13h shadow stored first (as at every return), and the MSR
+  and CPUID differences (above) stay as they are.
 - **Short slices** (exit-bound guests at `cycles=max`) still spend part of their time
   re-arming the slice timer.
 - **Paging changes inside the guest are not noticed** until the state is fetched: the first MB
@@ -459,7 +543,8 @@ throttles the guest by duty cycle.
 
 ## Next steps
 
-24. **More guests**: OS/2 once the floppy controller emulation is complete, Windows NT/2000,
-    a Glide game, Windows 98 with a working configuration.
-25. **Planar VGA** (see the open issues), if 16-colour games turn out to be slow.
-26. **The other open issues above.**
+26. **Planar and unchained VGA on an emulated core** (the proposal in the open issues), if it
+    is wanted: FastDoom's EGA and mode Y renderers are 10 and 75 times slower on KVM than on the
+    dynamic core.
+27. **OS/2** once the floppy controller emulation is complete.
+28. **The other open issues above.**
