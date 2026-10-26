@@ -1328,18 +1328,21 @@ Bits CPU_Debug_Run(void) {
 	return CBRET_NONE;
 }
 
-#include <stack>
+// Track entry into an exception handler, not execution of the handler.
+static int cpu_exception_delivery = -1;
 
-int CPU_Exception_Level[0x20] = {0};
-std::stack<int> CPU_Exception_In_Progress;
+void CPU_Exception_Level_Reset()
+{
+    cpu_exception_delivery = -1;
+}
 
-void CPU_Exception_Level_Reset() {
-	int i;
-
-	for (i=0;i < 0x20;i++)
-		CPU_Exception_Level[i] = 0;
-	while (!CPU_Exception_In_Progress.empty())
-		CPU_Exception_In_Progress.pop();
+static bool CPU_Exception_Contributory(const int vector)
+{
+    if (vector == 0)
+        return true;
+    if (vector >= (int)EXCEPTION_TS && vector <= (int)EXCEPTION_GP)
+        return true;
+    return vector == 9 && CPU_ArchitectureType == CPU_ARCHTYPE_386;
 }
 
 bool has_printed_double_fault = false;
@@ -1349,66 +1352,82 @@ bool always_report_triple_fault = false;
 
 void On_Software_CPU_Reset();
 
-void CPU_Exception(Bitu which,Bitu error ) {
-	assert(which < 0x20);
-//	LOG_MSG("Exception %d error %x",which,error);
+void CPU_Exception(Bitu which, Bitu error)
+{
+    assert(which < 0x20);
+//  LOG_MSG("Exception %d error %x", which, error);
 
-	if(which >= 0x20)
-		E_Exit("CPU_Exception: Exception %d is out of range.", (int)which);
+    if (which >= 0x20)
+        E_Exit("CPU_Exception: Exception %d is out of range.", (int)which);
 
-	if (CPU_Exception_Level[which] != 0) {
-		if (CPU_Exception_Level[EXCEPTION_DF] != 0 && cpu_triple_fault_reset) {
-			if (always_report_triple_fault || !has_printed_triple_fault) {
-				LOG_MSG("CPU_Exception: Double fault already in progress == Triple Fault. Resetting CPU.");
-				has_printed_triple_fault = true;
-			}
+    const bool track_delivery = cpu_double_fault_enable && cpu.pmode && CPU_ArchitectureType >= CPU_ARCHTYPE_286;
+    const int first = cpu_exception_delivery;
+    const bool first_contributes = CPU_Exception_Contributory(first);
+    const bool second_contributes = CPU_Exception_Contributory((int)which);
+    bool double_fault;
 
-			// Triple fault -> special shutdown cycle -> reset signal -> reset.
-			// Sickening, I know, but that's how IBM wired things a long long time ago.
-			On_Software_CPU_Reset();
-			E_Exit("Triple fault reset call unexpectedly returned");
-		}
+    if (first == EXCEPTION_DF)
+    {
+        double_fault = true;
+    }
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_286)
+    {
+        double_fault = first_contributes;
+    }
+    else if (first == EXCEPTION_PF)
+    {
+        double_fault = second_contributes || which == EXCEPTION_PF;
+    }
+    else
+    {
+        double_fault = first_contributes && second_contributes;
+    }
 
-		if (always_report_double_fault || !has_printed_double_fault) {
-			LOG_MSG("CPU_Exception: Exception %d already in progress, triggering double fault instead",(int)which);
-			has_printed_double_fault = true;
-		}
-		which = EXCEPTION_DF;
-		error = 0;
-	}
+    if (track_delivery && double_fault)
+    {
+        if (first == EXCEPTION_DF && cpu_triple_fault_reset)
+        {
+            if (always_report_triple_fault || !has_printed_triple_fault)
+            {
+                LOG_MSG("CPU_Exception: Double fault already in progress == Triple Fault. Resetting CPU.");
+                has_printed_triple_fault = true;
+            }
 
-	if (cpu_double_fault_enable) {
-		/* NTS: Putting some thought into it, I don't think divide by zero counts as something to throw a double fault
-		 *      over. I may be wrong. The behavior of Intel processors will ultimately decide.
-		 *
-		 *      Until then, don't count Divide Overflow exceptions, so that the "EFP loader" can do its disgusting
-		 *      anti-debugger hackery when loading parts of a demo. --J.C. */
-		if (!(which == 0/*divide by zero/overflow*/)) {
-			/* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */
-			CPU_Exception_Level[which]++;
-			CPU_Exception_In_Progress.push((int)which);
-		}
-	}
+            // Triple fault -> special shutdown cycle -> reset signal -> reset.
+            // Sickening, I know, but that's how IBM wired things a long long time ago.
+            On_Software_CPU_Reset();
+            E_Exit("Triple fault reset call unexpectedly returned");
+        }
 
-	const auto has_error_code = which == EXCEPTION_DF ||
-	                            (which >= EXCEPTION_TS && which <= EXCEPTION_PF);
-	cpu.exception.error=error;
-	CPU_Interrupt(which, CPU_INT_EXCEPTION | (has_error_code ? CPU_INT_HAS_ERROR : 0), reg_eip);
+        if (always_report_double_fault || !has_printed_double_fault)
+        {
+            LOG_MSG("CPU_Exception: Exception %d during delivery of exception %d, triggering double fault",
+                    (int)which, first);
+            has_printed_double_fault = true;
+        }
+        which = EXCEPTION_DF;
+        error = 0;
+    }
 
-	/* allow recursive page faults. required for multitasking OSes like Windows 95.
-	 * we set this AFTER CPU_Interrupt so that if CPU_Interrupt faults while starting
-	 * a page fault we still trigger double fault. */
-	if (which == EXCEPTION_PF || which == EXCEPTION_GP) {
-		if (CPU_Exception_Level[which] > 0)
-			CPU_Exception_Level[which]--;
+    cpu_exception_delivery = track_delivery ? (int)which : -1;
 
-		if (!CPU_Exception_In_Progress.empty()) {
-			if ((Bitu)CPU_Exception_In_Progress.top() == which)
-				CPU_Exception_In_Progress.pop();
-			else
-				LOG_MSG("Top of fault stack not the same as what I'm handling");
-		}
-	}
+    const bool has_error_code = which == EXCEPTION_DF || (which >= EXCEPTION_TS && which <= EXCEPTION_PF);
+    cpu.exception.error = error;
+    try
+    {
+        CPU_Interrupt(which, CPU_INT_EXCEPTION | (has_error_code ? CPU_INT_HAS_ERROR : 0), reg_eip);
+    }
+    catch (const GuestPageFaultException&)
+    {
+        // The main loop will deliver #PF; retain the interrupted exception.
+        throw;
+    }
+    catch (...)
+    {
+        CPU_Exception_Level_Reset();
+        throw;
+    }
+    CPU_Exception_Level_Reset();
 }
 
 uint8_t lastint;
@@ -1731,18 +1750,6 @@ void CPU_IRET(bool use32,uint32_t oldeip) {
 	/* x86 CPUs consider IRET the completion of an NMI, no matter where it happens */
 	/* FIXME: If the IRET causes an exception, is it still considered the end of the NMI? */
 	CPU_NMI_active = false;
-
-	/* Fault emulation */
-	if (!CPU_Exception_In_Progress.empty()) {
-		int which = CPU_Exception_In_Progress.top();
-		CPU_Exception_In_Progress.pop();
-		assert(which < 0x20);
-
-		if (CPU_Exception_Level[which] > 0)
-			CPU_Exception_Level[which]--;
-
-//		LOG_MSG("Leaving CPU exception %d",which);
-	}
 
 	if (!cpu.pmode) {					/* RealMode IRET */
 		if (use32) {
@@ -4602,6 +4609,7 @@ void CPU_ShutDown(Section* sec) {
 void CPU_OnReset(Section* sec) {
     (void)sec;//UNUSED
 	CPU_SyncState();
+	CPU_Exception_Level_Reset();
 
 	LOG(LOG_CPU,LOG_DEBUG)("CPU reset");
 
