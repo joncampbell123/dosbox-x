@@ -246,6 +246,11 @@ void PAGING_SetDirBase(Bitu cr3);
 void PAGING_InitTLB(void);
 void PAGING_ClearTLB(void);
 
+/* DOSBox-X changed the guest's page tables itself (its EMM386 mapping EMS pages): the TLB is
+ * cleared, DOSBox-X's and, through the hook, that of a CPU core that keeps its own (KVM) */
+void PAGING_GuestPageTablesChanged(void);
+extern void (*PAGING_GuestPageTablesHook)(void);
+
 void PAGING_LinkPage(PageNum lin_page,PageNum phys_page);
 void PAGING_UnlinkPages(PageNum lin_page,PageNum pages);
 /* This maps the page directly, only use when paging is disabled */

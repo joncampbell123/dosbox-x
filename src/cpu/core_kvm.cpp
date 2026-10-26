@@ -87,6 +87,7 @@ static struct {
 	bool		sync_regs = false;	/* registers through kvm_run (KVM_CAP_SYNC_REGS) */
 	bool		exit_on_emulation_failure = false;	/* KVM_CAP_EXIT_ON_EMULATION_FAILURE is on */
 	bool		emulate_one = false;	/* KVM could not emulate an instruction: the normal core runs it */
+	bool		flush_tlb = false;	/* DOSBox-X changed the guest's page tables (PAGING_GuestPageTablesChanged()) */
 
 	/* Coalesced MMIO: writes to the video memory window are queued in this ring instead of
 	 * each exiting, and applied when KVM_RUN returns (see KVM_FlushWrites()) */
@@ -826,6 +827,25 @@ static bool KVM_IFHook(void) {
 	return kvm.guest_if;
 }
 
+/* DOSBox-X changed the guest's page tables itself (its EMM386 mapping EMS pages): the vCPU's
+ * TLB may still hold the old translations, and nothing the guest does flushes it. Setting the
+ * special registers with another CR3 makes KVM reset the vCPU's MMU context and flush the
+ * guest's TLB; then they are set as they are. */
+static void KVM_GuestPageTablesHook(void) {
+	kvm.flush_tlb = true;
+}
+
+static bool KVM_FlushGuestTLB(void) {
+	struct kvm_sregs sr;
+	if (kvm.sync_regs) sr = kvm.run->s.regs.sregs; /* the vCPU's, or what goes into it next */
+	else if (ioctl(kvm.vcpu,KVM_GET_SREGS,&sr) < 0) return false;
+	struct kvm_sregs other = sr;
+	other.cr3 ^= 0x1000u;
+	if (ioctl(kvm.vcpu,KVM_SET_SREGS,&other) < 0 || ioctl(kvm.vcpu,KVM_SET_SREGS,&sr) < 0) return false;
+	if (kvm.sync_regs) kvm.run->kvm_dirty_regs &= ~(uint64_t)KVM_SYNC_X86_SREGS;
+	return true;
+}
+
 /* Make the vCPU's copy of the state the one that counts */
 static bool KVM_EnterState(void) {
 	if (kvm.in_kvm && kvm.rest_in_kvm) return true;
@@ -1350,6 +1370,11 @@ static Bits KVM_Run(void) {
 		 * also from the exit handlers below, and then it is put back here */
 		if (!KVM_EnterState())
 			return KVM_Fail(std::string("cannot set the vCPU state: ") + strerror(errno));
+		if (kvm.flush_tlb) {
+			kvm.flush_tlb = false;
+			if (!KVM_FlushGuestTLB())
+				return KVM_Fail(std::string("cannot flush the guest's TLB: ") + strerror(errno));
+		}
 		if (!KVM_ApplyMapChanges())
 			return KVM_Fail("cannot set up the guest memory");
 		/* DOSBox-X wrote to video memory through the memory handlers: load the shadow again */
@@ -1809,6 +1834,8 @@ bool KVM_CoreInit(std::string &reason) {
 #endif
 	if (!kvm.exit_on_emulation_failure)
 		LOG_MSG("KVM: the host KVM cannot report instructions it fails to emulate at CPL 3 (KVM_CAP_EXIT_ON_EMULATION_FAILURE): a guest program that uses x87 instructions on device memory gets an invalid opcode exception");
+
+	PAGING_GuestPageTablesHook = KVM_GuestPageTablesHook;
 
 	/* INT3 exits to DOSBox-X (callback instructions, see callback.h) */
 	struct kvm_guest_debug dbg;

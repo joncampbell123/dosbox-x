@@ -352,7 +352,31 @@ static struct {
 	Bitu pm_interface;
 	MemHandle private_area;
 	uint8_t pic1_remapping,pic2_remapping;
+	/* EMM386's page tables for virtual 8086 mode (see EMM_SetupPaging()): the page directory,
+	 * followed by the page tables, which map all of RAM to itself, and the first MB with the
+	 * EMS pages mapped into it. 0 if there are none (paging stays off). */
+	uint32_t page_dir;
 } vcpi ;
+
+/* EMM386 runs virtual 8086 mode with paging, as EMM386.EXE does */
+static void EMM_SetPTE(Bitu lin_page,Bitu phys_page) {
+	if (vcpi.page_dir == 0 || lin_page >= 0x400) return;
+	const PhysPt pt0 = (PhysPt)(phys_readd(vcpi.page_dir) & 0xFFFFF000u);
+	phys_writed(pt0 + (PhysPt)lin_page * 4u,((uint32_t)phys_page << 12u) | 7u); /* present, writable, user */
+}
+
+/* The control register values for EMM386's virtual 8086 mode */
+static void EMM_EnterPaging(void) {
+	if (vcpi.page_dir != 0) {
+		CPU_SET_CRX(3,vcpi.page_dir);
+		CPU_SET_CRX(0,(CPU_GET_CRX(0) & ~(Bitu)0x8u) | 0x80000001u); /* PE, PG, not TS */
+	}
+	else {
+		CPU_SET_CRX(0,(CPU_GET_CRX(0) & 0x7ffffff7u) | 1u);
+		CPU_SET_CRX(3,0);
+	}
+}
+
 #endif
 
 #if !defined(OSFREE)
@@ -520,9 +544,11 @@ static uint8_t EMM_MapPage(Bitu phys_page,uint16_t handle,uint16_t log_page) {
 		/* Unmapping */
 		emm_mappings[phys_page].handle=NULL_HANDLE;
 		emm_mappings[phys_page].page=NULL_PAGE;
-		for (Bitu i=0;i<4;i++) 
+		for (Bitu i=0;i<4;i++) {
 			PAGING_MapPage(EMM_PAGEFRAME4K+phys_page*4u+i,EMM_PAGEFRAME4K+phys_page*4u+i);
-		PAGING_ClearTLB();
+			EMM_SetPTE(EMM_PAGEFRAME4K+phys_page*4u+i,EMM_PAGEFRAME4K+phys_page*4u+i);
+		}
+		PAGING_GuestPageTablesChanged();
 		return EMM_NO_ERROR;
 	}
 	/* Check for valid handle */
@@ -536,9 +562,10 @@ static uint8_t EMM_MapPage(Bitu phys_page,uint16_t handle,uint16_t log_page) {
 		MemHandle memh=MEM_NextHandleAt(emm_handles[handle].mem,log_page*4u);
 		for (Bitu i=0;i<4;i++) {
 			PAGING_MapPage(EMM_PAGEFRAME4K+(unsigned int)phys_page*4u+i,(Bitu)memh);
+			EMM_SetPTE(EMM_PAGEFRAME4K+(unsigned int)phys_page*4u+i,(Bitu)memh);
 			memh=MEM_NextHandle(memh);
 		}
-		PAGING_ClearTLB();
+		PAGING_GuestPageTablesChanged();
 		return EMM_NO_ERROR;
 	} else  {
 		/* Illegal logical page it is */
@@ -580,9 +607,11 @@ static uint8_t EMM_MapSegment(Bitu segment,uint16_t handle,uint16_t log_page) {
 				emm_segmentmappings[segment>>10].handle=NULL_HANDLE;
 				emm_segmentmappings[segment>>10].page=NULL_PAGE;
 			}
-			for (Bitu i=0;i<4;i++) 
+			for (Bitu i=0;i<4;i++) {
 				PAGING_MapPage(segment*16u/4096u+i,segment*16u/4096u+i);
-			PAGING_ClearTLB();
+				EMM_SetPTE(segment*16u/4096u+i,segment*16u/4096u+i);
+			}
+			PAGING_GuestPageTablesChanged();
 			return EMM_NO_ERROR;
 		}
 		/* Check for valid handle */
@@ -601,9 +630,10 @@ static uint8_t EMM_MapSegment(Bitu segment,uint16_t handle,uint16_t log_page) {
 			MemHandle memh=MEM_NextHandleAt(emm_handles[handle].mem,log_page*4u);
 			for (Bitu i=0;i<4;i++) {
 				PAGING_MapPage(segment*16u/4096u+i,(Bitu)memh);
+				EMM_SetPTE(segment*16u/4096u+i,(Bitu)memh);
 				memh=MEM_NextHandle(memh);
 			}
-			PAGING_ClearTLB();
+			PAGING_GuestPageTablesChanged();
 			return EMM_NO_ERROR;
 		} else  {
 			/* Illegal logical page it is */
@@ -1178,7 +1208,13 @@ static Bitu INT67_Handler(void) {
 				break;
 			case 0x01: {	/* VCPI Get Protected Mode Interface */
 				uint16_t ct;
-				/* Set up page table buffer */
+				/* Set up page table buffer: the first MB as EMM386's page tables map it */
+				if (vcpi.page_dir != 0) {
+					const PhysPt pt0 = (PhysPt)(phys_readd(vcpi.page_dir) & 0xFFFFF000u);
+					for (ct=0; ct<0x100; ct++)
+						real_writed(SegValue(es),reg_di+ct*4,(phys_readd(pt0+ct*4u) & 0xFFFFF000u) | 0x67u);
+				}
+				else {
 				for (ct=0; ct<0xff; ct++) {
 					real_writeb(SegValue(es),reg_di+ct*4+0x00,0x67);		// access bits
 					real_writew(SegValue(es),reg_di+ct*4+0x01,ct*0x10);		// mapping
@@ -1189,8 +1225,9 @@ static Bitu INT67_Handler(void) {
 					real_writew(SegValue(es),reg_di+ct*4+0x01,(ct-0xff)*0x10+0x1100);	// mapping
 					real_writeb(SegValue(es),reg_di+ct*4+0x03,0x00);
 				}
+				}
 				/* adjust paging entries for page frame (if mapped) */
-				for (ct=0; ct<4; ct++) { 
+				for (ct=0; ct<4 && vcpi.page_dir == 0; ct++) { 
 					uint16_t handle=emm_mappings[ct].handle;
 					if (handle!=NULL_HANDLE) {
 						uint16_t memh=(uint16_t)MEM_NextHandleAt(emm_handles[handle].mem,(unsigned int)emm_mappings[ct].page*4u);
@@ -1375,26 +1412,36 @@ static Bitu VCPI_PM_Handler() {
 	case 0xDE0C: {		/* VCPI Switch from Protected Mode to V86 */
 		reg_flags&=(~FLAG_IF);
 
-		/* Flags need to be filled in, VM=true, IOPL=3 */
-		mem_writed(SegPhys(ss) + (reg_esp & cpu.stack.mask)+0x10, 0x23002);
+		/* The V86 return frame (EIP, CS, EFLAGS, ESP, SS, ES, DS, FS, GS) after the return
+		 * address of the far call, read through the client's paging. Flags: VM=true, IOPL=3 */
+		uint32_t frame[9];
+		for (unsigned int i=0;i < 9;i++)
+			frame[i] = mem_readd(SegPhys(ss) + ((reg_esp + 8u + i * 4u) & cpu.stack.mask));
+		frame[2] = 0x23002;
 
-		/* Disable Paging */
-		CPU_SET_CRX(0, CPU_GET_CRX(0)&0x7ffffff7);
-		CPU_SET_CRX(3, 0);
+		/* the client's TSS descriptor, in the client's GDT, through the client's paging */
+		CPU_TSS_ForceBusy(false);//HACK
+
+		/* EMM386's paging (or none) */
+		EMM_EnterPaging();
 
 		PhysPt tbaddr=(PhysPt)vcpi.private_area+0x0000u+(0x10u&0xfff8u)+5u;
 		uint8_t tb=mem_readb(tbaddr);
 		mem_writeb(tbaddr, tb&0xfd);
 
 		/* Load descriptor table registers */
-		CPU_TSS_ForceBusy(false);//HACK
 		CPU_LGDT(0xff, (unsigned int)vcpi.private_area+0x0000u);
 		CPU_LIDT(0x7ff, (unsigned int)vcpi.private_area+0x2000u);
 		if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
 		if (CPU_LTR(0x10)) LOG_MSG("VCPI:Could not load TR");
 
+		/* the frame on EMM386's ring 0 stack (LDT selector 14h, top 2000h, as in the TSS) */
+		CPU_SetSegGeneral(ss,0x14);
+		reg_esp=0x2000u - 9u * 4u;
+		for (unsigned int i=0;i < 9;i++)
+			mem_writed(SegPhys(ss) + reg_esp + i * 4u,frame[i]);
+
 		reg_flags&=(~FLAG_NT);
-		reg_esp+=8;		// skip interrupt return information
 //		MEM_A20_Enable(false);
 
 		/* Switch to v86-task */
@@ -1460,6 +1507,7 @@ static Bitu WinVM86Ctl() {
 				CPU_LTR(0);
 				CPU_LLDT(0);
 				CPU_SET_CRX(0, 0);
+				CPU_SET_CRX(3, 0);
 				CPU_LGDT(0xffff, 0);
 				CPU_LIDT(0xffff, 0);
 				CPU_SetCPL(0);
@@ -1471,7 +1519,7 @@ static Bitu WinVM86Ctl() {
 			if (!cpu.pmode && ENABLE_V86_STARTUP && ENABLE_VCPI) {
 				CPU_LGDT(0xff, (unsigned int)vcpi.private_area+0x0000);
 				CPU_LIDT(0x7ff, (unsigned int)vcpi.private_area+0x2000);
-				CPU_SET_CRX(0, 1);
+				EMM_EnterPaging();
 				CPU_TSS_ForceBusy(false);//HACK
 				if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
 				if (CPU_LTR(0x10)) LOG_MSG("VCPI:Could not load TR");
@@ -1735,6 +1783,30 @@ static void SetupVCPI() {
 	mem_writed((unsigned int)vcpi.private_area+0x3008,0x00000014);	// ss
 
 	mem_writed((unsigned int)vcpi.private_area+0x3066,0x0068);		// io-map base (map follows, all zero)
+
+	/* Page tables for virtual 8086 mode, as EMM386.EXE has: all of RAM mapped to itself (the
+	 * CPU reaches the tables above in extended memory through them, and so does DOSBox-X's own
+	 * code that copies extended memory by linear address, such as XMS moves), and the first MB
+	 * with the EMS pages in it (EMM_SetPTE()). The page directory comes first, then one page
+	 * table per 4MB. */
+	vcpi.page_dir = 0;
+	{
+		const Bitu ram_pages = MEM_TotalPages();
+		const Bitu tables = (ram_pages + 1023u) / 1024u;
+		if (tables >= 1 && tables <= 1024) {
+			const MemHandle mem = MEM_AllocatePages(1 + tables,true);
+			if (mem > 0) {
+				vcpi.page_dir = (uint32_t)mem << 12u;
+				for (Bitu i=0;i < 1024;i++)
+					phys_writed(vcpi.page_dir + (PhysPt)i * 4u,i < tables ? (vcpi.page_dir + 0x1000u + (uint32_t)i * 0x1000u) | 7u : 0u);
+				for (Bitu page=0;page < tables * 1024u;page++)
+					phys_writed(vcpi.page_dir + 0x1000u + (PhysPt)page * 4u,page < ram_pages ? ((uint32_t)page << 12u) | 7u : 0u);
+			}
+			else {
+				LOG_MSG("EMS: no memory for EMM386's page tables, virtual 8086 mode runs without paging");
+			}
+		}
+	}
 
     XMS_EnableA20(old_a20 != 0);
 }
@@ -2022,13 +2094,10 @@ public:
 				/* Prepare V86-task */
 				CPU_LGDT(0xff, (unsigned int)vcpi.private_area+0x0000);
 				CPU_LIDT(0x7ff, (unsigned int)vcpi.private_area+0x2000);
-				CPU_SET_CRX(0, 1);
+				EMM_EnterPaging();	/* the EMS page frame comes from the page tables then */
 				if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
 				if (CPU_LTR(0x10)) LOG_MSG("VCPI:Could not load TR");
 				CPU_TSS_ForceBusy(true);//HACK
-
-				/* TODO: Page tables are usually involved as well. That is the "magic"
-				 * behind EMM386.EXE page frames. */
 
 				/* TODO: Also setup (here or in SetupVCPI) the I/O permission bitmap
 				 * so that the V86 monitor can virtualize certain I/O ports. EMM386.EXE
@@ -2199,6 +2268,7 @@ public:
         registerPOD(vcpi.ems_handle);
         registerPOD(vcpi.pm_interface);
         registerPOD(vcpi.private_area);
+        registerPOD(vcpi.page_dir);
         registerPOD(vcpi.pic1_remapping);
         registerPOD(vcpi.pic2_remapping);
     }

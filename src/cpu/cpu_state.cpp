@@ -35,36 +35,6 @@ extern uint32_t cpu_sep_esp,cpu_sep_eip;
 void CPU_GetTaskRegister(Bitu &selector,Descriptor &desc,PhysPt &base,Bitu &limit,bool &is386,bool &valid);
 void CPU_SetTaskRegister(Bitu selector,const Descriptor &desc,PhysPt base,Bitu limit,bool is386,bool valid);
 
-/* Read a descriptor from the GDT or LDT without raising an exception */
-static bool ReadDescriptor(Bitu selector,Descriptor &desc) {
-	LinearPt base;
-	Bitu limit;
-
-	if (selector & 4) {
-		if ((cpu.gdt.SLDT() & 0xfffc) == 0) return false;
-		base = cpu.gdt.GetLDTBase();
-		limit = cpu.gdt.GetLDTLimit();
-	}
-	else {
-		base = cpu.gdt.GetBase();
-		limit = cpu.gdt.GetLimit();
-	}
-
-	const Bitu ofs = selector & ~(Bitu)7u;
-	if (ofs + 7u > limit) return false;
-
-	uint32_t lo = 0,hi = 0;
-	const Bitu old_mpl = cpu.mpl;
-	cpu.mpl = 0;
-	const bool fault = mem_readd_checked((LinearPt)(base+ofs),&lo) || mem_readd_checked((LinearPt)(base+ofs+4u),&hi);
-	cpu.mpl = old_mpl;
-	if (fault) return false;
-
-	desc.saved.fill[0] = lo;
-	desc.saved.fill[1] = hi;
-	return true;
-}
-
 static void GetSegment(const SegNames sr,CPU_FullSegment &seg,const bool v86) {
 	seg.selector = (uint16_t)Segs.val[sr];
 	seg.base = (uint32_t)Segs.phys[sr];

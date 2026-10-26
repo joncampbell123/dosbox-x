@@ -1131,6 +1131,13 @@ void PAGING_InitTLB(void) {
 	paging.links.used=0;
 }
 
+void (*PAGING_GuestPageTablesHook)(void) = NULL;
+
+void PAGING_GuestPageTablesChanged(void) {
+	PAGING_ClearTLB();
+	if (PAGING_GuestPageTablesHook != NULL) PAGING_GuestPageTablesHook();
+}
+
 void PAGING_ClearTLB(void) {
 //	LOG_MSG("CLEAR                          m% 4u, kr% 4u, krw% 4u, ur% 4u",
 //		paging.links.used, paging.kro_links.used, paging.krw_links.used, paging.ure_links.used);
