@@ -164,7 +164,7 @@ jobs:
           cp "$top/contrib/linux/instructions.md" "$package/"
 
       - name: Upload Ubuntu package
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dosbox-x-ubuntu24.04-x86_64-${{ env.timestamp }}_nightly_deb
           path: ${{ github.workspace }}/ubuntu-package/
@@ -321,7 +321,7 @@ jobs:
           cp "$top/contrib/linux/instructions.md" "$package/"
 
       - name: Upload Ubuntu package
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dosbox-x-ubuntu26.04-x86_64-${{ env.timestamp }}_nightly_deb
           path: ${{ github.workspace }}/ubuntu-package/
@@ -497,7 +497,7 @@ jobs:
           cp "$top/contrib/linux/instructions.md" "$package/"
 
       - name: Upload Ubuntu package
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dosbox-x-ubuntu22.04-x86_64-${{ env.timestamp }}_nightly_deb
           path: ${{ github.workspace }}/ubuntu-package/
@@ -600,7 +600,7 @@ jobs:
           fi
 
       - name: Upload AppImage artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dosbox-x-${{ env.timestamp }}_nightly_AppImage
           path: ${{ github.workspace }}/appimage-package/
