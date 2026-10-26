@@ -2274,11 +2274,15 @@ void ISAPNP_Cfg_Reset(Section *sec) {
         APM_SuspendedLoopRptr = CALLBACK_RealPointer(cb);
         CALLBACK_Setup(cb,APM_SuspendedLoopFunc,CB_RETF,"APM BIOS suspend/standby loop");
 
+        /* after the callback instruction (4 bytes, 5 with the INT3 prefix), over its RETF:
+         * HLT, a JMP back to the callback instruction, and the RET it leaves through */
         base = Real2Phys(APM_SuspendedLoopRptr);
         LOG_MSG("Writing code to %05x\n",(unsigned int)base);
-        phys_writeb(base+0x04,0xF4);                             /* hlt */
-        phys_writew(base+0x05,0xF9EB);                           /* jmp $-5 (EB xx) */
-        phys_writeb(base+0x07,0xC3);                             /* ret */
+        const Bitu cbl = CALLBACK_InstrLength();
+        phys_writeb(base+cbl+0x00,0xF4);                         /* hlt */
+        phys_writeb(base+cbl+0x01,0xEB);                         /* jmp short to the callback instruction */
+        phys_writeb(base+cbl+0x02,(uint8_t)(0x100u - (cbl + 3u)));
+        phys_writeb(base+cbl+0x03,0xC3);                         /* ret */
     }
 }
 
