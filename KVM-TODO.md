@@ -471,9 +471,12 @@ throttles the guest by duty cycle.
   them for access checks. The KVM core still keeps the vCPU's own cache for segments DOSBox-X
   did not load (step 14), which is no longer needed for this.
 - **V86 segments must be normalised for KVM.** VM entry requires base = selector << 4, limit
-  = FFFFh and access rights F3h for every segment in virtual 8086 mode. DOSBox-X does not
-  reset the limit on real-mode or V86 segment loads (`SegSet16`), so a V86 segment can keep a
-  protected-mode limit (seen: `CS limit=FFFFFFFF` under EMM386).
+  = FFFFh and access rights F3h for every segment in virtual 8086 mode. DOSBox-X now sets all
+  of that at every virtual 8086 mode segment load (`CPU_SetSegV86Hidden()`), including CS
+  (IRET, task switch, far JMP/CALL/RET) and the reloads when DOSBox-X's EMM386 enters virtual
+  8086 mode again for Windows (`WinVM86Ctl()`, which loaded CS/DS/ES/SS before setting VM and
+  left FS/GS alone); with `segment limits=false` the limit is ~0 like everywhere else. The KVM
+  core still normalises on the way in, which covers `segment limits=false`.
 - **`segment limits=false`** stores `~0` limits (unreal everywhere). KVM always enforces
   limits, so under KVM that option has no effect. It is on by default.
 - **EMM386 V86 runs without paging** (`CR0=00000011`), so the `firstmb` remap is in effect in V86
