@@ -461,14 +461,15 @@ throttles the guest by duty cycle.
 
 ## Findings to keep in mind
 
-- **Segment access rights are not kept by DOSBox-X.** Only base, limit, expand-down, and the
-  code/stack size are cached when a segment is loaded. `CPU_GetFullState()` rebuilds the access
-  rights from those, the CPL, and (in protected mode) the descriptor tables. A guest that
-  changes a descriptor after loading the segment gets slightly different type/DPL/AVL bits,
-  and around a mode switch the result can be a not present segment. The KVM core works around
-  it by keeping the vCPU's cache for segments DOSBox-X did not load (step 14). The fully
-  correct fix is to store the access rights in `Segs` at every load (about 25 places in
-  `cpu.cpp` set `Segs.expanddown[]`).
+- **Segment access rights** are kept in `Segs.ar[]` now (VMX format, `include/regs.h`): a
+  protected mode load takes them from the descriptor (accessed bit set), a virtual 8086 mode
+  load sets F3h, a real mode load leaves them, a null selector is `SEG_AR_UNUSABLE`, and
+  SYSENTER/SYSEXIT set their fixed ones. `CPU_GetFullState()` uses them in protected mode instead
+  of reading the descriptor tables, so a descriptor changed after the load, or the real mode
+  segments still loaded right after setting CR0.PE, come out as the CPU has them. (Real and
+  virtual 8086 mode keep the fixed access rights VM entry needs.) The emulated cores do not use
+  them for access checks. The KVM core still keeps the vCPU's own cache for segments DOSBox-X
+  did not load (step 14), which is no longer needed for this.
 - **V86 segments must be normalised for KVM.** VM entry requires base = selector << 4, limit
   = FFFFh and access rights F3h for every segment in virtual 8086 mode. DOSBox-X does not
   reset the limit on real-mode or V86 segment loads (`SegSet16`), so a V86 segment can keep a
@@ -561,6 +562,13 @@ throttles the guest by duty cycle.
   then finishes). The event being delivered is not known yet; the log line now includes
   the vCPU events and the IDT.
 - **NMI** is not passed on.
+- **Windows 95 with 16 MB** (`~/emu/win95/dosbox.conf`, `memsize=16`): under KVM the desktop
+  came up but the Win32 test program started from `WIN.INI` did not run in 400 s; the dynamic
+  core ran it, and so did KVM with 32 MB, and the build from before steps 24-26 behaved the
+  same. Probably Windows waiting on something rather than the KVM core: a prompt about the
+  daylight saving time change, the NE2000 card not working (the test configuration leaves it
+  out; AUTOTYPE's Enter dismissed one such dialog), or reinstalling the IDE driver and asking
+  to restart. Not investigated yet.
 
 ## Next steps
 
