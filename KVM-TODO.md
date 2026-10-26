@@ -479,11 +479,16 @@ throttles the guest by duty cycle.
   core still normalises on the way in, which covers `segment limits=false`.
 - **`segment limits=false`** stores `~0` limits (unreal everywhere). KVM always enforces
   limits, so under KVM that option has no effect. It is on by default.
-- **EMM386 V86 runs without paging** (`CR0=00000011`), so the `firstmb` remap is in effect in V86
-  mode too. The kvm core's slot layout for the first MB+64KB must apply `firstmb` while
-  `CR0.PG=0` and must not while `CR0.PG=1`. That means a slot rebuild on every PG transition
-  (rare). Pages whose `firstmb` entry is not the identity need their own slots (the EMS
-  frame is 16KB granular: 4 pages per mapping).
+- **EMM386 V86 runs with paging now**, as EMM386.EXE does (`CR0=80000011`): DOSBox-X's
+  EMM386 builds page tables that map all of RAM to itself (the CPU reaches its GDT, IDT and TSS
+  above 1MB through them, and DOSBox-X copies extended memory by linear address) and maps the
+  EMS pages into the first MB (`EMM_SetPTE()`), at a cost of a page directory and one page
+  table per 4MB of RAM. VCPI DE01 hands clients those entries, and DE0C from protected mode
+  reads the V86 frame through the client's paging before switching to EMM386's. The
+  `firstmb` remap stays for EMS without virtual 8086 mode (`ems=true`) and is not applied
+  while paging is on. When DOSBox-X changes the guest's page tables itself,
+  `PAGING_GuestPageTablesChanged()` tells the KVM core, which flushes the vCPU's TLB (setting
+  the special registers with another CR3 and back).
 - **Host pointers must be page-aligned for KVM slots.** `MemBase` is page-aligned when it
   comes from mmap (normal Linux build, memory file). It is not page-aligned from `malloc`
   (GameLink) or from `new[]` (the non-mmap fallback). VGA memory (`vga.mem.linear`) is
@@ -565,6 +570,9 @@ throttles the guest by duty cycle.
   then finishes). The event being delivered is not known yet; the log line now includes
   the vCPU events and the IDT.
 - **NMI** is not passed on.
+- **Windows 3.1 standard mode (`win /s`) under EMM386 on the dynamic core** ends with "Ran out
+  of CacheBlocks" partway through the test, also with the build from before this session; the
+  normal core and KVM run it. A dynamic core problem, not investigated.
 - **Windows 95 with 16 MB** (`~/emu/win95/dosbox.conf`, `memsize=16`): under KVM the desktop
   came up but the Win32 test program started from `WIN.INI` did not run in 400 s; the dynamic
   core ran it, and so did KVM with 32 MB, and the build from before steps 24-26 behaved the
