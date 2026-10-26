@@ -94,11 +94,6 @@ bool Monitor::Configurator::setProperty( Monitor &tM,const cmd_tokens_t& tUser )
 		m.messageClient( m._client,std::string( MSG_Get( "PROGRAM_CONFIG_SET_SYNTAX" ) ) );
 		return EXIT_FAILURE;
 	}
-	if( EXIT_SUCCESS ==tUser.at( 2 ).compare( "sdl" ) ) {
-		/* Changes the SDL must be done on main thread.  */
-		m.messageClient( m._client,std::string( "Changes to sdl section not permitted.\n" ) );
-		return EXIT_FAILURE;
-	}
 	Section_prop *config_section= static_cast< Section_prop* >( control->GetSection( tUser.at( 2 ) ) );
 	if( nullptr ==config_section ) {
 		m.messageClient( m._client,std::string( MSG_Get( "PROGRAM_CONFIG_SET_SYNTAX" ) ) );
@@ -107,6 +102,11 @@ bool Monitor::Configurator::setProperty( Monitor &tM,const cmd_tokens_t& tUser )
 	Property *property= config_section->Get_prop( tUser.at( 3 ) );
 	if( nullptr ==property ) {
 		m.messageClient( m._client,std::string( MSG_Get( "PROGRAM_CONFIG_PROPERTY_ERROR" ) ) );
+	}
+	if( EXIT_SUCCESS ==tUser.at( 2 ).compare( "sdl" ) ) {
+		/* Changes the SDL must be done on main thread.  */
+		m.messageClient( m._client,std::string( "Changes to sdl section not permitted.\n" ) );
+		return EXIT_FAILURE;
 	}
 
 	std::string inputline= tUser.at( 3 )+"="+tUser.at( 4 );
@@ -171,10 +171,10 @@ bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ *
 
 bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
 		Monitor& m= tM;
-		bool multiple_discs= false;
-		if( tUser.size() <2 ) {
+		bool replace= false;
+		if( tUser.size() <3 ) {
 			return EXIT_FAILURE;
-		} else if ( tUser.size()>2 ) multiple_discs= true;
+		} else if ( tUser.size()>3 ) replace= true;
 
 		std::vector< int > availableDrives= {};
 		Get_IDECD_drives( availableDrives );
@@ -197,12 +197,12 @@ bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tU
 
 		std::vector< std::string > image_list= { tUser.at( 2 ) };
 
-		if( multiple_discs )
+		if( tUser.size() > 3 )
 			for( size_t i{ 3 }; i <tUser.size(); ++i ) { 
 				image_list.push_back( tUser.at( i ) );
 			}
 
-		runImgmountISO( drive_letter,image_list,multiple_discs );
+		runImgmountISO( drive_letter,image_list,replace );
 
 		return EXIT_SUCCESS;
 }/* }}} */
