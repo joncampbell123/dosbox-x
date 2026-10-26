@@ -417,9 +417,38 @@ throttles the guest by duty cycle.
     modes 0-3, XOR, latch copies, read mode 1, a memory map switch to B8000 written right
     after, chain 4 off and on in mode 13h/mode X with writes right after) dumps the same
     219600 bytes on the normal, dynamic and KVM cores.
-  - **Not done:** what is left is the exits themselves, and a shadow like mode 13h's cannot
-    take reads (they load the latches) or the four planes behind one address. See the open
-    issues for the proposal.
+  - **Not done here:** what is left is the exits themselves, and a shadow like mode 13h's
+    cannot take reads (they load the latches) or the four planes behind one address. Step 26
+    runs those stretches on an emulated core instead.
+- **Step 26: planar and unchained VGA on an emulated core.** `[cpu] kvm vga core` (auto,
+  dynamic, normal, off; auto is the dynamic core, or the normal core in builds without one).
+  - **Switching:** the KVM core estimates how much of the guest's time in KVM goes to exits
+    for A0000-BFFFF (MMIO exits and queued writes, at the measured exit costs); when that is
+    40% or more over 20 ms of guest time, it fetches the full state and runs the guest on the
+    emulated core, from `CPU_Core_KVM_Run()`, which stays the `cpudecoder`. Every 50 emulated
+    ms it prices the period's video memory accesses through the memory handlers
+    (`VGA_MemWriteCount`, the new `VGA_MemReadCount`: they do not count host memory mapped
+    directly, such as the SVGA bank map or the LFB) at KVM's exit costs, and goes back to KVM
+    when they would take less than 25% of the time, when the mode 13h shadow applies, or when
+    the guest sets the trap flag (KVM single steps natively).
+  - **Going back:** the dynamic core's code cache is reset. The guest changes code under KVM
+    without DOSBox-X seeing it, and the dynamic core's code pages have page handlers of their
+    own (`MEM_SetPageHandler()`), which would be MMIO under KVM; the reset puts the old ones
+    back and the slots follow.
+  - **TSC:** on the emulated core, `CPU_RDTSC()` gives the host's TSC plus KVM's offset for the
+    guest (`CPU_RDTSCHook`), so it goes on at the same rate and never goes back.
+  - **Cycles:** with auto-adjusted cycles, KVM's (nanoseconds) and the emulated core's
+    (instructions) are kept apart and swapped at each switch; the cycles left in the current
+    millisecond are scaled and the auto-adjustment starts over. The emulated core starts at
+    200000. Fixed cycles stay as they are.
+  - **Measured:** FastDoom EGA 19.4 -> 217 fps (dynamic core 187), mode Y 4.5 -> 330 fps
+    (dynamic 339), mode 13h unchanged (about 1650 fps, no switches). HYBTEST (8 rounds of
+    planar PutPixels and CPU-only work, which switches every round) gives the normal core's
+    checksum, RDTSC never goes back and runs at the same rate in both phases. Windows 3.1 with
+    the 16-colour VGA driver (`win /3` and `win /s`) passes its test, switching twice;
+    Windows 98 passes and boots faster (72 s; four switches at its VGA boot screens); PLANTEST,
+    VGA13, LFB, Voodoo and FSTPTEST dumps are the same as the normal core's; TRIP does not
+    switch (the Voodoo is not in A0000-BFFFF).
 - **Debugger tools for all of the above.**
   - `MEMMAP [start [end]]` lists the physical map as `MEM_ClassifyPage` sees it (coalesced
     runs with kind, host pointer relative to `MemBase`, and handler class), plus the map
@@ -509,18 +538,10 @@ throttles the guest by duty cycle.
   core: exit costs vary, and the estimate (`KVM_Overhead()`) errs towards charging the guest,
   so that it never gets free time. (Mode 13h no longer exits, step 21.)
 - **Planar and unchained VGA modes** (16 colours, mode X/Y) exit for every video memory
-  access: writes are queued (still an exit inside the kernel), reads exit. FastDoom runs at
-  19 fps (EGA) and 4.5 fps (mode Y) against 187 and 339 on the dynamic core (step 25). A shadow
-  like mode 13h's would need the planar logic (latches, write modes, map mask) applied when it
-  is copied, which does not work for writes that depend on the latches, nor for reads (they
-  load the latches), and one guest address is four planes in mode X/Y. **Proposal:** run such
-  stretches on an emulated core (the dynamic core, else the normal one): when the guest's video
-  memory exits take more than a set share of the slices, switch to it for some tens of
-  milliseconds, then try KVM again. What switching needs: the dynamic core's code cache
-  flushed each time (the guest changes code inside KVM without DOSBox-X seeing it), the TSC
-  kept continuous both ways (KVM's is the host's, the emulated cores count cycles; KVM can
-  set the guest's TSC), the mode 13h shadow stored first (as at every return), and the MSR
-  and CPUID differences (above) stay as they are.
+  access under KVM; the guest runs on an emulated core while that dominates (step 26). The
+  thresholds (40% to switch, 25% to stay, 20 ms and 50 ms) are first guesses, tuned on FastDoom
+  only. A guest whose VGA use comes in short bursts may switch often, and each switch back
+  resets the dynamic core's code cache.
 - **Short slices** (exit-bound guests at `cycles=max`) still spend part of their time
   re-arming the slice timer.
 - **Paging changes inside the guest are not noticed** until the state is fetched: the first MB
@@ -543,8 +564,5 @@ throttles the guest by duty cycle.
 
 ## Next steps
 
-26. **Planar and unchained VGA on an emulated core** (the proposal in the open issues), if it
-    is wanted: FastDoom's EGA and mode Y renderers are 10 and 75 times slower on KVM than on the
-    dynamic core.
 27. **OS/2** once the floppy controller emulation is complete.
 28. **The other open issues above.**
