@@ -10209,7 +10209,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #if C_MONITOR 
 				std::string mon_sock = section->Get_string("monitor socket");
-				if ( !mon_sock.empty() || mon_sock.compare( "off" ) ) {
+				if ( !mon_sock.empty() && mon_sock.compare( "off" ) ) {
     				Monitor::OpenMonitor( mon_sock );
 				}
 #endif
