@@ -32,6 +32,7 @@
 #include <unistd.h>
 
 #include <stdio.h>
+#include <limits.h>
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -135,6 +136,13 @@ struct socket_t{
 	#endif
 };
 // }}} 
+
+static 	bool	isInt( std::string& tSockProp ) {/* {{{ */
+		for( char c:tSockProp )
+			if( !std::isdigit( c ) )
+				return false;
+		return true;
+	}/* }}} */
 
 class Monitor { /* {{{ */
 	// Parser and programs constructs {{{
@@ -440,19 +448,27 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 		SDLNet_TCP_Send( tClient,tMessage.c_str(),tMessage.size() );
 	}/* }}} */
 
-	static	Monitor& OpenMonitor( std::string tLocation="" ) {/* {{{ */
+	static	int	StartMonitor( std::string tLocation= "" ) {/* {{{ */
+
+		if( tLocation.empty() || !tLocation.compare( "off" ) ) return EXIT_FAILURE;
+
+		bool is_port_value= isInt( tLocation );
+		if( true  ==is_port_value && std::stoi( tLocation ) >=USHRT_MAX ) return EXIT_FAILURE;
+		if( false ==is_port_value && tLocation.at( 0 ) != '/'  ) return EXIT_FAILURE;
+
+		OpenMonitor( tLocation );
+		return EXIT_SUCCESS;
+	}/* }}} */
+
+	protected:
+
+	static	Monitor&	OpenMonitor( std::string tLocation= "" ) {/* {{{ */
 		static Monitor m;
 
 		if( false ==m._isRunning ) {
-			bool isPort= true;
 			if( !tLocation.compare( "on" ) ) tLocation= "4444"; /* If the monitor is not running we'll give it a default state on localhost. */
-			else {
-				for( char c:tLocation )
-					if( !std::isdigit( c ) ) {
-						isPort=false;
-						break;
-					}
-			}	
+			bool isPort= isInt( tLocation );
+	
 			int ( *run )( void* );
 
 			if( m._pThread ) m.onServerClose();
