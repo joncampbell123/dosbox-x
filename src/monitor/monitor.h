@@ -470,7 +470,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			int ( *run )( void* )= nullptr;
 
 			#ifdef WIN32
-			if( EXIT_SUCCESS ==m.startServer( std::stoi( tLocation ) )
+			if( EXIT_SUCCESS ==m.startServer( std::stoi( tLocation ) ) )
 				run=CB_ListenTCP;
 			#else
 			if( isPort && ( EXIT_SUCCESS ==m.startServer( std::stoi( tLocation ) ) ) ) {
