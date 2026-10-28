@@ -489,7 +489,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			if( nullptr !=run )
 				m._pThread= SDL_CreateThread( run,(void*)&m );
 			else
-				return nullptr;
+				exit(1);
 			#endif	
 		}
 
