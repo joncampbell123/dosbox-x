@@ -170,10 +170,10 @@ bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ *
 
 bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
 		Monitor& m= tM;
-		bool replace= true;
+		bool is_mount= true;
 		if( tUser.size() <3 ) {
 			return EXIT_FAILURE;
-		} else if ( tUser.size()>3 ) replace= false;
+		} else if ( tUser.size()>3 ) is_mount= false;
 
 		std::vector< int > availableDrives= {};
 		Get_IDECD_drives( availableDrives );
@@ -201,7 +201,7 @@ bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tU
 				image_list.push_back( tUser.at( i ) );
 			}
 
-		runImgmountISO( drive_letter,image_list,replace );
+		runImgmountISO( drive_letter,image_list,is_mount );
 
 		return EXIT_SUCCESS;
 }/* }}} */
