@@ -39,7 +39,7 @@ body:
     attributes:
       label: What operating system(s) this bug have occurred on?
       description: Put in the release name of the OS (additionally with an extra version number and/or an architecture name) this problem have occurred on.
-      placeholder: "Ex. Windows 10 21H2 64-bit, Ubuntu 21.04 etc."
+      placeholder: "Ex. Windows 10 21H2 32-bit, Ubuntu 21.04, macOS 26.7.1 Intel etc."
     validations:
       required: true
   # This is confusing
@@ -89,7 +89,8 @@ body:
       description: Please try to search for this bug in the issues before creating this bug report.
       options:
         - label: I have searched and didn't find any similar bug report.
-          required: true
+    validations:
+      required: true
   - type: checkboxes
     id: terms
     attributes:
@@ -97,4 +98,5 @@ body:
       description: By submitting this issue, you agree to follow our [contributing guidelines](https://github.com/joncampbell123/dosbox-x/blob/master/CONTRIBUTING.md) and [code of conduct](https://github.com/joncampbell123/dosbox-x/blob/master/CODE_OF_CONDUCT.md).
       options:
         - label: I agree to follow the code of conduct and the contributing guidelines.
-          required: true
+    validations:
+      required: true
