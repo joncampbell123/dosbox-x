@@ -183,7 +183,6 @@ extern char lastmount;
 
 bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
 	Monitor& m= tM;
-	bool is_mount= true;
 	if( tUser.size() <3 ) {
 		return EXIT_FAILURE;
 	} else if ( tUser.size()>3 ) is_mount= false;
