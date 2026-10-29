@@ -111,7 +111,6 @@ bool Monitor::Configurator::setProperty( Monitor &tM,const cmd_tokens_t& tUser )
 
 	std::string inputline= tUser.at( 3 )+"="+tUser.at( 4 );
 	config_section->HandleInputline( inputline );
-
 	return EXIT_SUCCESS;
 };/* }}} */ /* }}} */
 
@@ -171,10 +170,10 @@ bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ *
 
 bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
 		Monitor& m= tM;
-		bool replace= false;
+		bool is_mount= true;
 		if( tUser.size() <3 ) {
 			return EXIT_FAILURE;
-		} else if ( tUser.size()>3 ) replace= true;
+		} else if ( tUser.size()>3 ) is_mount= false;
 
 		std::vector< int > availableDrives= {};
 		Get_IDECD_drives( availableDrives );
@@ -202,7 +201,7 @@ bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tU
 				image_list.push_back( tUser.at( i ) );
 			}
 
-		runImgmountISO( drive_letter,image_list,replace );
+		runImgmountISO( drive_letter,image_list,is_mount );
 
 		return EXIT_SUCCESS;
 }/* }}} */
@@ -222,7 +221,6 @@ bool Monitor::Programs::helpMe( Monitor &tM,const cmd_tokens_t& cmdline ){/* {{{
 
 			if( m._commands->end()==command ) m.messageClient( m._client,"Unrecognized command.\n" );
 			else m.messageClient( m._client,command->description+"\n" );
-
 		} else {
 				std::string help= "Commands: ";
 				for( auto cmd:*m._commands )

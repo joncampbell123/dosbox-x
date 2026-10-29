@@ -10209,8 +10209,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #if C_MONITOR 
 				std::string mon_sock = section->Get_string("monitor socket");
-				if ( !mon_sock.empty() || mon_sock.compare( "off" ) ) {
-    				Monitor::OpenMonitor( mon_sock );
+				if ( Monitor::StartMonitor( mon_sock ) ) {
+    				LOG_MSG( "MONITOR: Unable to open Monitor Console on... %s\n", mon_sock.c_str() );
 				}
 #endif
 
