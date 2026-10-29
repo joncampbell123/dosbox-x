@@ -183,10 +183,6 @@ extern char lastmount;
 
 bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
 	Monitor& m= tM;
-	if( tUser.size() <3 ) {
-		return EXIT_FAILURE;
-	} else if ( tUser.size()>3 ) is_mount= false;
-
 	std::vector< int > availableDrives= {};
 	Get_IDECD_drives( availableDrives );
 
