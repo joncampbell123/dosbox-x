@@ -29,6 +29,7 @@ Monitor *Monitor::ptr_monitor= nullptr;
 
 /* Media driver adapted from ../dos/dos_programs.cpp */
 #if defined(MACOSX)
+extern const char* MSG_GetUTF8(const char* msg);
 constexpr auto MSGX=MSG_GetUTF8;
 #else
 constexpr auto MSGX=MSG_Get;
