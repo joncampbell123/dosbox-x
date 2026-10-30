@@ -21,9 +21,24 @@
 
 #if C_MONITOR
 
+#include "control.h"
+#include "programs.h"
+#include "../dos/drives.h"
+
 Monitor *Monitor::ptr_monitor= nullptr;
 
-#include "control.h"
+/* Media driver adapted from ../dos/dos_programs.cpp */
+#if defined(MACOSX)
+extern const char* MSG_GetUTF8(const char* msg);
+constexpr auto MSGX=MSG_GetUTF8;
+#else
+constexpr auto MSGX=MSG_Get;
+#endif
+constexpr int MEDIA_ID=0xF8;
+
+extern bool wpcolon;
+extern void MSCDEX_SetCDInterface( int,int );
+extern char lastmount;
 
 // Monitor::Configurator {{{ 
 static std::string CONFIG_USAGE_MONITOR= { // {{{
@@ -168,42 +183,92 @@ bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ *
 	return EXIT_SUCCESS;
 }	/* }}} */
 
+int	createDrives( char tDriveLetter,std::vector< std::string > tPaths,std::vector< DOS_Drive * > &tISOs ) { /* {{{ */
+	MSCDEX_SetCDInterface( CDROM_USE_SDL, -1 );
+	std::vector<std::string> options= { "readonly" };
+	for( auto drive:tPaths ) {
+		int error= -1;
+		DOS_Drive* newDrive = new isoDrive( tDriveLetter,
+			wpcolon&&drive.length() >1&&drive.c_str()[0]==':'?
+				drive.c_str()+1 : drive.c_str(),
+				MEDIA_ID,error,options );
+		tISOs.push_back( newDrive );
+		if( error ) {
+			for( DOS_Drive *drive: tISOs ) 
+				delete drive;
+
+			return error;
+		}
+	}
+	return EXIT_SUCCESS;
+};/* }}} */
+
+std::string	handleError( int tErrorCode ) { /* {{{ */
+	switch( tErrorCode ) {
+		case 0: return  "";
+		case 1: return  MSGX("MSCDEX_ERROR_MULTIPLE_CDROMS");
+		case 2: return  MSGX("MSCDEX_ERROR_NOT_SUPPORTED");
+		case 3: return  MSGX("MSCDEX_ERROR_OPEN");
+		case 4: return  MSGX("MSCDEX_TOO_MANY_DRIVES");
+		case 5: return  MSGX("MSCDEX_LIMITED_SUPPORT");
+		case 6: return  MSGX("MSCDEX_INVALID_FILEFORMAT");
+	}
+	return MSGX("MSCDEX_UNKNOWN_ERROR");
+};/* }}} */
+
 bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
-		Monitor& m= tM;
-		bool is_mount= true;
-		if( tUser.size() <3 ) {
-			return EXIT_FAILURE;
-		} else if ( tUser.size()>3 ) is_mount= false;
+	Monitor& m= tM;
+	std::vector< int > availableDrives= {};
+	Get_IDECD_drives( availableDrives );
 
-		std::vector< int > availableDrives= {};
-		Get_IDECD_drives( availableDrives );
-
-		if( availableDrives.empty() ) {
-			Monitor::messageClient( m._client,"No available drives.\n" );
-			return EXIT_FAILURE;
-		}
+	if( availableDrives.empty() ) {
+		Monitor::messageClient( m._client,MSGX( "ERROR" ) );
+		return EXIT_FAILURE;
+	}
 					
-		char drive_letter= tUser.at( 1 ).at( 0 );
-		drive_letter= std::toupper( drive_letter );
-		bool drive_check= false;
-		for( int drive_no:availableDrives )
-			if ( char( 'A'+drive_no ) ==drive_letter ) drive_check =true;
+	char drive_letter= tUser.at( 1 ).at( 0 );
+	drive_letter= std::toupper( drive_letter );
+	bool drive_check= false;
+	for( int drive_no:availableDrives )
+		if ( char( 'A'+drive_no ) ==drive_letter ) drive_check =true;
 
-		if ( false ==drive_check ) {
-			Monitor::messageClient( m._client,"Drive letter not recognized.\n" );
+	if ( false ==drive_check ) {
+		Monitor::messageClient( m._client,MSGX( "MSCDEX_UNKNOWN_ERROR" ) );
+		return EXIT_FAILURE;
+	}
+
+	std::vector< std::string > paths= { };
+	for( size_t i{ 2 }; i <tUser.size(); ++i ) 
+		paths.emplace_back( tUser.at( i ) );
+	if( paths.empty() ) {
+		Monitor::messageClient( m._client,MSGX( "ERROR" ) );
+		return EXIT_FAILURE;
+	}
+	/* Unlike the IMGMOUNT program we can only replace existing drives. */
+	int entry= drive_letter-'A';
+	std::vector<DOS_Drive*> isoDisks= {};
+	if( int code= createDrives( drive_letter,paths,isoDisks ) ) {
+			m.messageClient( m._client,handleError( code ) );
 			return EXIT_FAILURE;
-		}
+	}
+	DriveManager::ClearDrive( entry );
 
-		std::vector< std::string > image_list= { tUser.at( 2 ) };
+	for( auto media:isoDisks )
+		DriveManager::AppendDisk( entry,media );
+	DriveManager::InitializeDrive( entry );
 
-		if( tUser.size() > 3 )
-			for( size_t i{ 3 }; i <tUser.size(); ++i ) { 
-				image_list.push_back( tUser.at( i ) );
-			}
+	if (!dos_kernel_disabled)
+		mem_writeb( Real2Phys( dos.tables.mediaid ) + entry * dos.tables.dpb_size,MEDIA_ID );
 
-		runImgmountISO( drive_letter,image_list,is_mount );
+	Drives[ entry ]->Activate();
+	if( !dos_kernel_disabled )
+		static_cast< isoDrive*>( Drives[ entry ] )->MediaChangeImmediate();
+	else
+		Drives[ entry ]->MediaChange();
 
-		return EXIT_SUCCESS;
+	lastmount = entry;
+
+	return EXIT_SUCCESS;
 }/* }}} */
 
 bool	Monitor::Programs::configure( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
@@ -235,7 +300,7 @@ bool Monitor::Programs::helpMe( Monitor &tM,const cmd_tokens_t& cmdline ){/* {{{
 }/* }}} */ // }}}
 
 // Montor::CommandLine {{{
-cmd_tokens_t Monitor::CommandLine::processCommandLine( std::string tBuffer ) { /* {{{ */
+cmd_tokens_t Monitor::UserRequest::processUserRequest( std::string tBuffer ) { /* {{{ */
 	cmd_tokens_t	command_line= {};
 	std::istringstream	buffer( tBuffer );
 	std::string	token;
