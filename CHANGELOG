@@ -110,9 +110,23 @@ Next version:
   - MSCDEX: Fixed BUSY status for paused audio playback (maron2000)
   - Fixed 8087 FPU control word reset value (cimarronm)
   - Change workaround for the dynamic core (henk717)
+  - drive_local: Fixed handles on the same file not seeing each other's writes
+    (wleeaf)
   - FPU: Save x87 instruction/data pointers and opcode in FSTENV/FSAVE and
     FXSAVE state after unmasked exceptions, including 8087, 80287, and 80387
     environment layouts. (cimarronm)
+  - Handle empty pipe temporary filenames safely (maron2000)
+  - Fixed behavior of redirection and pipe handling to match PC-DOS (maron2000)
+  - dynamic_x86: Fixed MMX shift by immediate after self-modifying code
+    (maitchison)
+  - Respect the NMI mask during PIC interrupt delivery (tbullock)
+  - Fixed double fault detection during exception delivery (tbullock)
+  - Fixed the 286 EXT bit during exception delivery (tbullock)
+  - Fixed build error due to HAS_LONG_DOUBLE macro definition (pkubaj)
+  - PC-98: Fixed 12-bit analog palette conversion to 24-bit due to converting
+    from 4 -> 6 -> 8-bit to 4 -> 8-bit directly to avoid conversion errors.
+    (SergioMartin86, maron2000)
+  - Fixed misplaced text underline in 20-line mode (SergioMartin86, maron2000)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
