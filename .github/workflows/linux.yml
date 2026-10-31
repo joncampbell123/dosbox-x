@@ -530,6 +530,8 @@ jobs:
           mkdir -p "$appdir/usr/share/icons/hicolor/256x256/apps"
           cp "$top/contrib/icons/dosbox-x.svg" \
              "$appdir/usr/share/icons/hicolor/256x256/apps/dosbox-x.svg"
+          cp "$top/contrib/icons/dosbox-x.png" \
+             "$appdir/dosbox-x.png"
           
           cat > "$appdir/dosbox-x.desktop" <<'EOF'
           [Desktop Entry]
