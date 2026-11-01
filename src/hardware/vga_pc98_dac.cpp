@@ -66,12 +66,12 @@ void pc98_update_palette(void) {
         }
     }
     else if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG)) {
-        vga_8bit_dac = false;
+        vga_8bit_dac = true;
 
         for (unsigned int i=0;i < 16;i++) {
-            vga.dac.rgb[i].green = dac_4to6(pc98_pal_analog[(3*i) + 0]&0xF); /* re-use VGA DAC */
-            vga.dac.rgb[i].red   = dac_4to6(pc98_pal_analog[(3*i) + 1]&0xF); /* re-use VGA DAC */
-            vga.dac.rgb[i].blue  = dac_4to6(pc98_pal_analog[(3*i) + 2]&0xF); /* re-use VGA DAC */
+            vga.dac.rgb[i].green = dac_4to8(pc98_pal_analog[(3*i) + 0]&0xF); /* re-use VGA DAC */
+            vga.dac.rgb[i].red   = dac_4to8(pc98_pal_analog[(3*i) + 1]&0xF); /* re-use VGA DAC */
+            vga.dac.rgb[i].blue  = dac_4to8(pc98_pal_analog[(3*i) + 2]&0xF); /* re-use VGA DAC */
             VGA_DAC_UpdateColor(i);
         }
     }

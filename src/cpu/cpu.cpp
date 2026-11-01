@@ -1331,10 +1331,20 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 			}
 		} 
 
+        Bitu ext = 0;
+        if (!(type & CPU_INT_SOFTWARE))
+        {
+            // Later processors may also need this, but need physical testing.
+            if (CPU_ArchitectureType == CPU_ARCHTYPE_286 && (type & CPU_INT_EXCEPTION))
+                ext = num == EXCEPTION_DB || num == EXCEPTION_NM || num == 9 || num == EXCEPTION_MF;
+            else
+                ext = 1;
+        }
+
 		Descriptor gate;
 		if (!cpu.idt.GetDescriptor(num<<3,gate)) {
 			// zone66
-			CPU_Exception(EXCEPTION_GP,num*8+2+((type&CPU_INT_SOFTWARE)?0:1));
+			CPU_Exception(EXCEPTION_GP,num*8+2+ext);
 			return;
 		}
 
@@ -1359,22 +1369,22 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 			{
 				CPU_CHECK_COND(!gate.saved.seg.p,
 					"INT:Gate segment not present",
-					EXCEPTION_NP,num*8+2+((type&CPU_INT_SOFTWARE)?0:1))
+					EXCEPTION_NP,num*8+2+ext)
 
 				Descriptor cs_desc;
 				Bitu gate_sel=gate.GetSelector();
 				Bitu gate_off=gate.GetOffset();
 				CPU_CHECK_COND((gate_sel & 0xfffc)==0,
 					"INT:Gate with CS zero selector",
-					EXCEPTION_GP,(type&CPU_INT_SOFTWARE)?0:1)
+					EXCEPTION_GP,ext)
 				CPU_CHECK_COND(!cpu.gdt.GetDescriptor(gate_sel,cs_desc),
 					"INT:Gate with CS beyond limit",
-					EXCEPTION_GP,(gate_sel & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
+					EXCEPTION_GP,(gate_sel & 0xfffc)+ext)
 
 				Bitu cs_dpl=cs_desc.DPL();
 				CPU_CHECK_COND(cs_dpl>cpu.cpl,
 					"Interrupt to higher privilege",
-					EXCEPTION_GP,(gate_sel & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
+					EXCEPTION_GP,(gate_sel & 0xfffc)+ext)
 				switch (cs_desc.Type()) {
 				case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:
 				case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
@@ -1382,7 +1392,7 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 						/* Prepare for gate to inner level */
 						CPU_CHECK_COND(!cs_desc.saved.seg.p,
 							"INT:Inner level:CS segment not present",
-							EXCEPTION_NP,(gate_sel & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
+							EXCEPTION_NP,(gate_sel & 0xfffc)+ext)
 						CPU_CHECK_COND((reg_flags & FLAG_VM) && (cs_dpl!=0),
 							"V86 interrupt calling codesegment with DPL>0",
 							EXCEPTION_GP,gate_sel & 0xfffc)
@@ -1396,14 +1406,14 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 						cpu_tss.Get_SSx_ESPx(cs_dpl,n_ss,n_esp);
 						CPU_CHECK_COND((n_ss & 0xfffc)==0,
 							"INT:Gate with SS zero selector",
-							EXCEPTION_TS,(type&CPU_INT_SOFTWARE)?0:1)
+							EXCEPTION_TS,ext)
 						Descriptor n_ss_desc;
 						CPU_CHECK_COND(!cpu.gdt.GetDescriptor(n_ss,n_ss_desc),
 							"INT:Gate with SS beyond limit",
-							EXCEPTION_TS,(n_ss & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
+							EXCEPTION_TS,(n_ss & 0xfffc)+ext)
 						CPU_CHECK_COND(((n_ss & 3)!=cs_dpl) || (n_ss_desc.DPL()!=cs_dpl),
 							"INT:Inner level with CS_DPL!=SS_DPL and SS_RPL",
-							EXCEPTION_TS,(n_ss & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
+							EXCEPTION_TS,(n_ss & 0xfffc)+ext)
 
 						// check if stack segment is a writable data segment
 						switch (n_ss_desc.Type()) {
@@ -1415,7 +1425,7 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 						}
 						CPU_CHECK_COND(!n_ss_desc.saved.seg.p,
 							"INT:Inner level with nonpresent SS",
-							EXCEPTION_SS,(n_ss & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
+							EXCEPTION_SS,(n_ss & 0xfffc)+ext)
 
 						// commit point
 						Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
@@ -1459,7 +1469,7 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 					/* Prepare stack for gate to same privilege */
 					CPU_CHECK_COND(!cs_desc.saved.seg.p,
 							"INT:Same level:CS segment not present",
-						EXCEPTION_NP,(gate_sel & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
+						EXCEPTION_NP,(gate_sel & 0xfffc)+ext)
 					if ((reg_flags & FLAG_VM) && (cs_dpl<cpu.cpl))
 						E_Exit("V86 interrupt doesn't change to pl0");	// or #GP(cs_sel)
 
@@ -1500,7 +1510,7 @@ do_interrupt:
 		case DESC_TASK_GATE:
 			CPU_CHECK_COND(!gate.saved.seg.p,
 				"INT:Gate segment not present",
-				EXCEPTION_NP,num*8+2+((type&CPU_INT_SOFTWARE)?0:1))
+				EXCEPTION_NP,num*8+2+ext)
 
 			CPU_SwitchTask(gate.GetSelector(),TSwitch_CALL_INT,oldeip);
 			if (type & CPU_INT_HAS_ERROR) {

@@ -3643,7 +3643,7 @@ interrupted_char_begin:
             if (!pc98_attr4_graphic && (attr & 0x10)) lineoverlay |= 1U << 7U;
 
             /* underline fills the row to underline the text */
-            if ((attr & 0x08) && line == (vga.crtc.maximum_scan_line & 0x1FU)) lineoverlay |= 0xFFU;
+            if((attr & 0x08) && fline == pc98_text_first_row_scanline_end) lineoverlay |= 0xFFU;
 
             /* lineoverlay overlays font with 4-pixel delay */
             font |= (unsigned char)(((unsigned int)lineoverlay >> 4u) & 0xFFU);
