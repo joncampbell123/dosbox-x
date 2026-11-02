@@ -127,6 +127,7 @@ Next version:
     from 4 -> 6 -> 8-bit to 4 -> 8-bit directly to avoid conversion errors.
     (SergioMartin86, maron2000)
   - Fixed misplaced text underline in 20-line mode (SergioMartin86, maron2000)
+  - Fixed turbo option remained true even after it is stopped (maron2000)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
