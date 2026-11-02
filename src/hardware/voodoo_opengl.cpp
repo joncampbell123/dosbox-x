@@ -35,7 +35,7 @@
 #include "sdlmain.h"
 
 bool Voodoo_OGL_Active() {
-	return (v != NULL && v->clock_enabled && v->output_on);
+	return (v != NULL && v->clock_enabled && v->output_on && v->ogl);
 }
 
 #if C_OPENGL
@@ -1730,9 +1730,10 @@ void voodoo_ogl_reset_videomode(void) {
 #endif
 
     bool isfs = false;
-    if (GFX_IsFullscreen() && !GFX_IsModeswitch()) {
+    if (GFX_IsFullscreen() ) {
         isfs = true;
-        GFX_SwitchFullScreen();
+		if( !GFX_IsModeswitch() )
+	        GFX_SwitchFullScreen();
     }
     GFX_PreventFullscreen(true);
 
@@ -1779,12 +1780,12 @@ void voodoo_ogl_reset_videomode(void) {
 	// broken on windows (longstanding SDL bug), may help other platforms to force hardware acceleration
 	SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
 #endif
-
+/*
     if (ogl_surface != NULL) {
 		SDL_FreeSurface(ogl_surface);
 		ogl_surface = NULL;
 	}
-
+*/
     void GFX_LosingFocus(void), GFX_ReleaseMouse(void), GFX_ForceFullscreenExit(void);
 
     if( !GFX_IsModeswitch() ){
@@ -1846,7 +1847,7 @@ void voodoo_ogl_reset_videomode(void) {
 	}
 #endif
 
-    if (isfs) {
+    if (isfs && !GFX_IsModeswitch() ) {
 #if defined(C_SDL2)
         SDL_MaximizeWindow(sdl.window);
 #elif defined(WIN32)
