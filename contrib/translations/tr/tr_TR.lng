@@ -35,6 +35,12 @@ Eşlem dosyasını kaydet
 :WARNING
 Uyarı
 .
+:ERROR
+Hata
+.
+:INFORMATION
+Bilgi
+.
 :YES
 Evet
 .
@@ -249,6 +255,9 @@ Otomatik çevrimler [otomatik]
 .
 :AUTO_CYCLE_OFF
 Otomatik çevrimler [kapalı]
+.
+:LANG_LOAD_ERROR
+%s dil ileti dosyası yüklenemedi. Varsayılan dil kullanılacak.
 .
 :PROGRAM_CONFIG_PROPERTY_ERROR
 Böyle bir bölüm veya özellik yok.
@@ -1382,6 +1391,11 @@ Birleştirme sırasında hata, iptal edildi!
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
 Üst öge "%s" içeriği hasar görmüş olabilir!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH
+Uyarı: Üst ögeye mutlak yol vermek taşınabilirliği engeller.
+Lütfen farksal kalıp dosyasına göreli bir yol tercih edin!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_WIN
@@ -2580,6 +2594,9 @@ Pentium 133 MHz (~80000 çevrim)
 :MENU:cpu586-166
 Pentium 166 MHz MMX (~97240 çevrim)
 .
+:MENU:cpu586-200
+Pentium 200 MHz MMX (~114657 çevrim)
+.
 :MENU:cpuak6-166
 AMD K6 166 MHz (~110000 çevrim)
 .
@@ -3123,6 +3140,9 @@ AVI + ZMBV
 :MENU:capture_fmt_mpegts_h264
 MPEG-TS + H.264
 .
+:MENU:capture_fmt_mpegts_h265
+MPEG-TS + H.265
+.
 :MENU:saveoptionmenu
 Kaydetme/yükleme seçenekleri
 .
@@ -3220,6 +3240,774 @@ Sürücüden önyükle
 Disk kalıbından önyükle
 .
 :MENU:drive_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive1m
+IDE 1m
+.
+:MENU:IDEDrive1m_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive1m_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive1m_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive1m_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive1m_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive1m_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive1m_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive1m_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive1m_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive1m_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive1m_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive1m_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive1m_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive1m_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive1m_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive1s
+IDE 1s
+.
+:MENU:IDEDrive1s_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive1s_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive1s_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive1s_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive1s_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive1s_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive1s_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive1s_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive1s_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive1s_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive1s_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive1s_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive1s_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive1s_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive1s_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive2m
+IDE 2m
+.
+:MENU:IDEDrive2m_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive2m_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive2m_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive2m_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive2m_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive2m_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive2m_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive2m_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive2m_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive2m_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive2m_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive2m_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive2m_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive2m_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive2m_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive2s
+IDE 2s
+.
+:MENU:IDEDrive2s_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive2s_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive2s_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive2s_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive2s_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive2s_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive2s_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive2s_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive2s_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive2s_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive2s_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive2s_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive2s_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive2s_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive2s_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive3m
+IDE 3m
+.
+:MENU:IDEDrive3m_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive3m_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive3m_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive3m_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive3m_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive3m_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive3m_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive3m_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive3m_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive3m_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive3m_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive3m_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive3m_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive3m_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive3m_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive3s
+IDE 3s
+.
+:MENU:IDEDrive3s_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive3s_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive3s_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive3s_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive3s_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive3s_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive3s_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive3s_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive3s_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive3s_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive3s_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive3s_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive3s_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive3s_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive3s_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive4m
+IDE 4m
+.
+:MENU:IDEDrive4m_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive4m_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive4m_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive4m_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive4m_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive4m_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive4m_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive4m_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive4m_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive4m_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive4m_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive4m_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive4m_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive4m_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive4m_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive4s
+IDE 4s
+.
+:MENU:IDEDrive4s_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive4s_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive4s_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive4s_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive4s_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive4s_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive4s_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive4s_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive4s_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive4s_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive4s_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive4s_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive4s_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive4s_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive4s_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive5m
+IDE 5m
+.
+:MENU:IDEDrive5m_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive5m_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive5m_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive5m_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive5m_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive5m_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive5m_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive5m_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive5m_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive5m_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive5m_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive5m_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive5m_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive5m_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive5m_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive5s
+IDE 5s
+.
+:MENU:IDEDrive5s_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive5s_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive5s_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive5s_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive5s_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive5s_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive5s_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive5s_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive5s_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive5s_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive5s_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive5s_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive5s_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive5s_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive5s_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive6m
+IDE 6m
+.
+:MENU:IDEDrive6m_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive6m_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive6m_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive6m_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive6m_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive6m_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive6m_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive6m_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive6m_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive6m_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive6m_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive6m_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive6m_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive6m_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive6m_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive6s
+IDE 6s
+.
+:MENU:IDEDrive6s_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive6s_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive6s_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive6s_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive6s_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive6s_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive6s_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive6s_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive6s_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive6s_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive6s_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive6s_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive6s_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive6s_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive6s_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive7m
+IDE 7m
+.
+:MENU:IDEDrive7m_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive7m_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive7m_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive7m_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive7m_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive7m_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive7m_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive7m_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive7m_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive7m_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive7m_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive7m_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive7m_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive7m_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive7m_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive7s
+IDE 7s
+.
+:MENU:IDEDrive7s_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive7s_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive7s_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive7s_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive7s_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive7s_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive7s_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive7s_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive7s_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive7s_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive7s_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive7s_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive7s_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive7s_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive7s_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive8m
+IDE 8m
+.
+:MENU:IDEDrive8m_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive8m_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive8m_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive8m_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive8m_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive8m_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive8m_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive8m_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive8m_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive8m_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive8m_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive8m_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive8m_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive8m_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive8m_saveimg
+Disk görüntüsüne kaydet
+.
+:MENU:IDEDrive8s
+IDE 8s
+.
+:MENU:IDEDrive8s_mounthd
+Klasörü sabit disk olarak bağla
+.
+:MENU:IDEDrive8s_mountcd
+Klasörü CD sürücüsü olarak bağla
+.
+:MENU:IDEDrive8s_mountfd
+Klasörü disket sürücüsü olarak bağla
+.
+:MENU:IDEDrive8s_mountfro
+Seçenek: Klasörü saltokunur bağla
+.
+:MENU:IDEDrive8s_mountarc
+Bir arşiv dosyası bağla (ZIP/7Z)
+.
+:MENU:IDEDrive8s_mountimg
+Bir disk veya CD kalıp dosyası bağla
+.
+:MENU:IDEDrive8s_mountimgs
+Birden çok disk/CD kalıbı bağla
+.
+:MENU:IDEDrive8s_mountiro
+Seçenek: Kalıpları saltokunur olarak bağla
+.
+:MENU:IDEDrive8s_unmount
+Sürücü bağlantısını kes
+.
+:MENU:IDEDrive8s_rescan
+Sürücüyü yeniden tara
+.
+:MENU:IDEDrive8s_swap
+Sürücüyü değiştir
+.
+:MENU:IDEDrive8s_info
+Sürücü bilgisi
+.
+:MENU:IDEDrive8s_boot
+Sürücüden önyükle
+.
+:MENU:IDEDrive8s_bootimg
+Disk kalıbından önyükle
+.
+:MENU:IDEDrive8s_saveimg
 Disk görüntüsüne kaydet
 .
 :MENU:HelpMenu
@@ -3384,6 +4172,9 @@ Kayıt ses düzeyini artır
 :MENU:mapper_recvoldown
 Kayıt ses düzeyini azalt
 .
+:MENU:mapper_muteawe
+AWE'yi sessize al
+.
 :MENU:mapper_sendkey_mapper
 Özel düğme gönder
 .
@@ -3528,11 +4319,14 @@ Menü düğmesi gönder
 :MENU:sendkey_alttab
 Alt+Tab gönder
 .
+:MENU:sendkey_altsysrq
+Alt+SysRq/PrtScr gönder
+.
 :MENU:sendkey_ctrlesc
 Ctrl+Esc gönder
 .
 :MENU:sendkey_ctrlbreak
-Ctrl+Break gönden
+Ctrl+Break gönder
 .
 :MENU:sendkey_cad
 Ctrl+Alt+Del gönder
@@ -3705,6 +4499,12 @@ Durum bilgisini görüntüle
 :MAPPER:simple
 CPU: Yalın çekirdek
 .
+:MAPPER:speedlock
+Turbo (Hızlı ileri sar): Basılı tut
+.
+:MAPPER:speedlock2
+Turbo (Hızlı ileri sar): Aç/kapat
+.
 :MAPPER:togmenu
 Menü çubuğunu aç/kapa
 .
@@ -3853,6 +4653,10 @@ var.
 :PROGRAM_ELTORITO_NOT_CDDRIVE
 Belirtilen El Torito CD-ROM sürücüsü aslında bir CD-ROM sürücüsü değil.
 .
+:PROGRAM_ELTORITO_NOT_CDDRIVE
+Belirtilen El Torito CD-ROM sürücüsü aslında bir CD-ROM sürücüsü değil
+
+.
 :PROGRAM_ELTORITO_REQUIRE_FLOPPY
 El Torito öykünmesi bu sefer -t disketi ile kullanılmalı.
 .
@@ -3891,6 +4695,14 @@ Geçersiz -spc seçeneği, 2'nin bir üssü olmalı
 .
 :PROGRAM_IMGMAKE_ROOTDIR
 Geçersiz -rootdir seçeneği
+.
+:PROGRAM_IMGMAKE_BOOTSECT
+Geçersiz önyükleme dilimi konumu
+
+.
+:PROGRAM_IMGMAKE_VOLUME_ALIGN
+Düzgünlük denetimi başarısız: Disk bölümü büyüklüğü hizalı değil
+
 .
 PROGRAM_IMGMAKE_BOOTSECT
 Geçersiz önyükleme dilimi konumu
@@ -3937,6 +4749,10 @@ Ayrılan EMS bloku (%u KB)
 .
 :PROGRAM_LOADFIX_EMS_ALLOCERROR
 EMS bloku ayrılamıyor
+.
+:PROGRAM_LOADFIX_NOEMS
+EMS etkin değil
+
 .
 PROGRAM_LOADFIX_NOEMS
 EMS etkin değil
@@ -4309,7 +5125,7 @@ COLOR komutunu aynı ön ve arka plan rengi ile yürütmeye çalışırsanız CO
 
 .
 :PROGRAM_SWITCH_LANG
-Etkin kod sayfasını %d olarak değiştirdini.
+Etkin kod sayfasını %d olarak değiştirdiniz.
 Bu kod sayfası için olan %s dil dosyasını yüklemek istiyor musunuz?
 .
 :PROGRAM_ALREADY_MOUNTED
@@ -4330,6 +5146,9 @@ kaldırılabilir
 :DRIVE_TYPE_NETWORK
 ağ
 
+:DRIVE_TYPE_HARD
+sabit
+.
 :DRIVE_TYPE_HARD
 sabit
 .
@@ -4560,6 +5379,9 @@ Telif hakkı %s-%s %s
 .
 :HELP_ABOUT_MAINTAINER
 Proje bakımcısı: %s
+.
+:HELP_ABOUT_HOMEPAGE
+DOSBox-X ana sayfası: %s
 .
 :HELP_ABOUT_HOMEPAGE
 DOSBox-X ana sayfası: %s
