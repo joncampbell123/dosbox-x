@@ -1730,7 +1730,7 @@ void voodoo_ogl_reset_videomode(void) {
 #endif
 
     bool isfs = false;
-    if (GFX_IsFullscreen()) {
+    if (GFX_IsFullscreen() && !GFX_IsModeswitch()) {
         isfs = true;
         GFX_SwitchFullScreen();
     }
@@ -1787,9 +1787,11 @@ void voodoo_ogl_reset_videomode(void) {
 
     void GFX_LosingFocus(void), GFX_ReleaseMouse(void), GFX_ForceFullscreenExit(void);
 
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    GFX_ForceFullscreenExit();
+    if( !GFX_IsModeswitch() ){
+        GFX_LosingFocus();
+        GFX_ReleaseMouse();
+        GFX_ForceFullscreenExit();
+    }
 
 #if DOSBOXMENU_TYPE != DOSBOXMENU_SDLDRAW
 	if (new_height<v->fbi.height)
@@ -1865,7 +1867,7 @@ void voodoo_ogl_reset_videomode(void) {
      *      in src/gui/sdlmain.cpp that sets up GL_FLAT shading */
     glShadeModel (GL_SMOOTH);
 
-	GFX_PreventFullscreen(true);
+	GFX_PreventFullscreen(false);
 	GFX_UpdateSDLCaptureState();
 
 	int value;

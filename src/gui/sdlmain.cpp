@@ -1915,23 +1915,20 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
     SDL_SetWindowResizable(sdl.window, SDL2_resize_enable ? SDL_TRUE : SDL_FALSE);
     SDL_WindowFlags flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
 
-#if C_SDL2
-	/*
-	 * When modeswitching _is_ enabled let's go with sane values.
-	 */
-	bool isModeswicthSet = vga.draw.modeswitch_set;
-
-#endif
-
     if (GFX_IsFullscreen()) {
         SDL_DisplayMode displayMode;
         SDL_GetWindowDisplayMode(sdl.window, &displayMode);
 
-	if(isModeswicthSet) {
+#if C_SDL2
+	/*
+	 * When modeswitching _is_ enabled let's go with sane values.
+	 */
+	if(GFX_IsModeswitch()) {
 		flags = SDL_WINDOW_FULLSCREEN;
 		width = vga.draw.width;
 		height = vga.draw.height;
 	}
+#endif
 
         displayMode.w = width;
         displayMode.h = height;
@@ -3142,8 +3139,10 @@ void GFX_SwitchFullScreen(void)
 	if (glide.enabled)
 		GLIDE_ResetScreen();
 	else
-        GFX_ResetScreen();
+	        GFX_ResetScreen();
 
+	if (Voodoo_OGL_Active())
+		voodoo_ogl_update_dimensions();
     // set vsync to host
     // NOTE why forcing ???
 #ifdef WIN32
@@ -3161,6 +3160,8 @@ void GFX_SwitchFullScreen(void)
 }
 
 static void SwitchFullScreen(bool pressed) {
+    if( GFX_IsModeswitch() )
+        	voodoo_ogl_update_dimensions();
     if (!pressed || sdl.desktop.want_type == SCREEN_GAMELINK)
         return;
 
@@ -3207,6 +3208,10 @@ void GFX_PreventFullscreen(bool lockout) {
 #endif
 #endif
     }
+}
+
+bool GFX_IsModeswitch(void) {
+	return vga.draw.modeswitch_set;
 }
 
 void GFX_RestoreMode(void) {
