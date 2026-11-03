@@ -3166,8 +3166,6 @@ void GFX_SwitchFullScreen(void)
 }
 
 static void SwitchFullScreen(bool pressed) {
-    if( GFX_IsModeswitch() )
-        	voodoo_ogl_update_dimensions();
     if (!pressed || sdl.desktop.want_type == SCREEN_GAMELINK)
         return;
 
