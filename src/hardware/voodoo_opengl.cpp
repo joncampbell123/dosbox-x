@@ -1732,7 +1732,9 @@ void voodoo_ogl_reset_videomode(void) {
     bool isfs = false;
     if (GFX_IsFullscreen() ) {
         isfs = true;
+#if defined (LINUX)
 		if( !GFX_IsModeswitch() )
+#endif
 	        GFX_SwitchFullScreen();
     }
     GFX_PreventFullscreen(true);
@@ -1868,7 +1870,11 @@ void voodoo_ogl_reset_videomode(void) {
      *      in src/gui/sdlmain.cpp that sets up GL_FLAT shading */
     glShadeModel (GL_SMOOTH);
 
+#if defined (LINUX)
 	GFX_PreventFullscreen(false);
+#else
+	GFX_PreventFullscreen(true);
+#endif
 	GFX_UpdateSDLCaptureState();
 
 	int value;
