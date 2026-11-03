@@ -182,6 +182,7 @@ bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ *
 	messageClient( m._client,"\n" );
 	return EXIT_SUCCESS;
 }	/* }}} */
+#include "programs.h" 
 
 int	createDrives( char tDriveLetter,std::vector< std::string > tPaths,std::vector< DOS_Drive * > &tISOs ) { /* {{{ */
 	MSCDEX_SetCDInterface( CDROM_USE_SDL, -1 );

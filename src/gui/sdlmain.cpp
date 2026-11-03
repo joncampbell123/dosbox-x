@@ -94,6 +94,10 @@ void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_me
 extern int tryconvertcp, Reflect_Menu(void);
 bool kana_input = false; // true if a half-width kana was typed
 
+#if defined (LINUX)
+void voodoo_ogl_update_dimensions(void);
+#endif
+
 #if __APPLE__ && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
 #define IS_OLDMACOS 1 /* FIX_ME: Tested on El Capitan (10.11). If this macro is required for Sierra (10.12), change to 101300 */
 #endif
@@ -1915,23 +1919,20 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
     SDL_SetWindowResizable(sdl.window, SDL2_resize_enable ? SDL_TRUE : SDL_FALSE);
     SDL_WindowFlags flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
 
-#if C_SDL2
-	/*
-	 * When modeswitching _is_ enabled let's go with sane values.
-	 */
-	bool isModeswicthSet = vga.draw.modeswitch_set;
-
-#endif
-
     if (GFX_IsFullscreen()) {
         SDL_DisplayMode displayMode;
         SDL_GetWindowDisplayMode(sdl.window, &displayMode);
 
-	if(isModeswicthSet) {
+#if C_SDL2
+	/*
+	 * When modeswitching _is_ enabled let's go with sane values.
+	 */
+	if(GFX_IsModeswitch()) {
 		flags = SDL_WINDOW_FULLSCREEN;
 		width = vga.draw.width;
 		height = vga.draw.height;
 	}
+#endif
 
         displayMode.w = width;
         displayMode.h = height;
@@ -3142,8 +3143,12 @@ void GFX_SwitchFullScreen(void)
 	if (glide.enabled)
 		GLIDE_ResetScreen();
 	else
-        GFX_ResetScreen();
+	        GFX_ResetScreen();
 
+#if defined (LINUX)
+	if (Voodoo_OGL_Active())
+		voodoo_ogl_update_dimensions();
+#endif
     // set vsync to host
     // NOTE why forcing ???
 #ifdef WIN32
@@ -3207,6 +3212,10 @@ void GFX_PreventFullscreen(bool lockout) {
 #endif
 #endif
     }
+}
+
+bool GFX_IsModeswitch(void) {
+	return vga.draw.modeswitch_set;
 }
 
 void GFX_RestoreMode(void) {
