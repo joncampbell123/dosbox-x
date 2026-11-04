@@ -84,10 +84,10 @@ iterated W    = 18.32 [48 bits]
 #include "voodoo_emu.h"
 #include "voodoo_hw.h"
 
-#include "voodoo_def.h"
-
 #include <vector>
 #include "SDL.h"
+
+#include "voodoo_def.h"
 
 void voodoo_sw_wait(void);
 
