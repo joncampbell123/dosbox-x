@@ -720,7 +720,8 @@ static void gen_and_imm(HostReg reg,uint32_t imm) {
 
 // shift right a register by an 8-bit constant
 static void gen_shr_imm(HostReg reg,uint8_t imm) {
-    cache_addd( LSR_IMM(reg, reg, imm) );
+	cache_checkinstr(2);
+	cache_addw( LSR_IMM(reg, reg, imm) );      // lsr reg, reg, #imm
 }
 
 
