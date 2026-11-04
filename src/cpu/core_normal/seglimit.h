@@ -56,26 +56,38 @@ struct CoreSegLimitFault {
 	unsigned int vector;
 };
 
-/* check an access of size bytes at linear address lin through segment register seg (CORE_EA_NONE: no check) */
-static INLINE void Core_SegLimitCheck(const uint8_t seg,const PhysPt lin,const uint32_t size) {
-	if (seg != CORE_EA_NONE && do_seg_limits) {
-		const SegNames s = (SegNames)seg;
-		const uint32_t off = (uint32_t)(lin - SegPhys(s));
-		const uint64_t last = (uint64_t)off + (uint64_t)size - 1ull;
-		const uint32_t lim = (uint32_t)SegLimit(s);
-		bool bad;
+#if defined(__GNUC__)
+# define CORE_NOINLINE __attribute__((noinline))
+#elif defined(_MSC_VER)
+# define CORE_NOINLINE __declspec(noinline)
+#else
+# define CORE_NOINLINE
+#endif
 
-		if (Segs.expanddown[s])
-			bad = (off <= lim && lim != 0) || last > 0xFFFFFFFFull;	/* limit 0: see the note in table_ea.h */
-		else
-			bad = last > (uint64_t)lim && lim != (uint32_t)EANoSegmentLimitMagic;
+/* check an access of size bytes at linear address lin through segment register seg (CORE_EA_NONE: no check);
+ * the comparison itself stays out of line, so it is not expanded at every operand access of the core loop */
+static CORE_NOINLINE void Core_SegLimitCheckSlow(const uint8_t seg,const PhysPt lin,const uint32_t size) {
+	const SegNames s = (SegNames)seg;
+	const uint32_t off = (uint32_t)(lin - SegPhys(s));
+	const uint64_t last = (uint64_t)off + (uint64_t)size - 1ull;
+	const uint32_t lim = (uint32_t)SegLimit(s);
+	bool bad;
 
-		if (GCC_UNLIKELY(bad)) {
-			CoreSegLimitFault f;
-			f.vector = (s == ss) ? EXCEPTION_SS : EXCEPTION_GP;
-			throw f;
-		}
+	if (Segs.expanddown[s])
+		bad = (off <= lim && lim != 0) || last > 0xFFFFFFFFull;	/* limit 0: see the note in table_ea.h */
+	else
+		bad = last > (uint64_t)lim && lim != (uint32_t)EANoSegmentLimitMagic;
+
+	if (GCC_UNLIKELY(bad)) {
+		CoreSegLimitFault f;
+		f.vector = (s == ss) ? EXCEPTION_SS : EXCEPTION_GP;
+		throw f;
 	}
+}
+
+static INLINE void Core_SegLimitCheck(const uint8_t seg,const PhysPt lin,const uint32_t size) {
+	if (seg != CORE_EA_NONE && do_seg_limits)
+		Core_SegLimitCheckSlow(seg,lin,size);
 }
 
 #ifndef SEGLIMIT_NO_CORE_STRUCT
