@@ -310,6 +310,11 @@ extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
 
 #include "sdlmain.h"
 #include "build_timestamp.h"
+#if defined(__has_include)
+# if __has_include("git_revision.h")
+#  include "git_revision.h"
+# endif
+#endif
 #include "version_string.h"
 
 #if C_OPENGL
@@ -7423,6 +7428,9 @@ bool DOSBOX_parse_argv() {
             DOSBox_ShowConsole();
 
             fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-%s The DOSBox-X Team.\n",VERSION,SDL_STRING,COPYRIGHT_END_YEAR);
+#if defined(GIT_REVISION)
+            fprintf(stderr,"Built from git revision %s\n",GIT_REVISION);
+#endif
             fprintf(stderr,"DOSBox-X project maintainer: joncampbell123 (The Great Codeholio)\n\n");
             fprintf(stderr,"DOSBox-X comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
             fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
