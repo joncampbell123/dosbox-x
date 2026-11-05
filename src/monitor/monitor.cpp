@@ -24,21 +24,32 @@
 #include "control.h"
 #include "programs.h"
 #include "../dos/drives.h"
+#include "bios_disk.h"
 
 Monitor *Monitor::ptr_monitor= nullptr;
 
-/* Media driver adapted from ../dos/dos_programs.cpp */
-#if defined(MACOSX)
-extern const char* MSG_GetUTF8(const char* msg);
-constexpr auto MSGX=MSG_GetUTF8;
-#else
-constexpr auto MSGX=MSG_Get;
-#endif
-constexpr int MEDIA_ID=0xF8;
-
+extern void runImgmount( const char * );
 extern bool wpcolon;
 extern void MSCDEX_SetCDInterface( int,int );
+extern const char* MSG_GetUTF8(const char* msg);
 extern char lastmount;
+
+std::string ImageDiskTypeToString( imageDisk::IMAGE_TYPE tType ) {
+	switch( tType ){
+		case imageDisk::IMAGE_TYPE::ID_BASE:				return "base";
+		case imageDisk::IMAGE_TYPE::ID_EL_TORITO_FLOPPY:	return "el torito";
+		case imageDisk::IMAGE_TYPE::ID_VFD:					return "vfd";
+		case imageDisk::IMAGE_TYPE::ID_MEMORY:				return "memory";
+		case imageDisk::IMAGE_TYPE::ID_VHD:					return "vhd";
+		case imageDisk::IMAGE_TYPE::ID_D88:					return "d88";
+		case imageDisk::IMAGE_TYPE::ID_NFD:					return "nfd";
+		case imageDisk::IMAGE_TYPE::ID_EMPTY_DRIVE:			return "empty";
+		case imageDisk::IMAGE_TYPE::ID_INT13:				return "int13";
+		case imageDisk::IMAGE_TYPE::ID_MSDOSBLOCKDEV:		return "ms-dos block device";
+		case imageDisk::IMAGE_TYPE::ID_TELEDISK:			return "teledisk";
+		default: return "";
+	}
+};
 
 // Monitor::Configurator {{{ 
 static std::string CONFIG_USAGE_MONITOR= { // {{{
@@ -155,28 +166,62 @@ bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ *
 	messageClient( m._client,"\nDrive(s):\n" );
 	ddesc_t drive_list= {};
 	std::string sstr_token;
+/* Lambda functions for getting Drive Info {{{*/
+	auto getDOSDriveInfo= [ & ]( int tIt ) {
+		dinfo_t drive= {};
+		drive.push_back( std::string( 1,char( 'A'+tIt ) ) );
 
-	for( int i= 0; i <26; ++i )
-		if( Drives[ i ] ) {
-			dinfo_t drive= {};
-			drive.push_back( std::string( 1,char( 'A'+i ) ) );
+		std::string drive_info( Drives[ tIt ]->GetInfo() );
+		std::size_t dir_pos= drive_info.find_first_of( "/\\" );
 
-			std::string drive_info( Drives[ i ]->GetInfo() );
-			std::size_t dir_pos= drive_info.find_first_of( "/\\" );
-				
-			if( dir_pos !=std::string::npos ) {
-				drive.push_back( drive_info.substr( 0,dir_pos ) );
-				drive.push_back( drive_info.substr( dir_pos ) );
-			}
-			drive.push_back( drive_info );					
+		if( dir_pos !=std::string::npos ) {
+			drive.push_back( drive_info.substr( 0,dir_pos ) );
+			drive.push_back( drive_info.substr( dir_pos ) );
+		}
+		drive.push_back( drive_info );
+		return drive;
+	};
+	
+	auto getImageDiskInfo= [ & ]( int tIt ) {
+		dinfo_t drive= {};
+		drive.push_back( std::string( 1,char( 'A'+tIt ) ) );
+
+		std::string drive_info( imageDiskList[ tIt ]->diskname );
+		drive.push_back( "empty"  );
+
+		if( !drive_info.empty() ) drive.push_back( drive_info );
+		return drive;
+	};
+/* }}} */
+	for( int i= 0; i <2; ++i )
+		if ( imageDiskList[ i ] && Drives[ i ] ) {
+			dinfo_t drive= getDOSDriveInfo( i );
+			drive_list.push_back( drive );
+		}
+		else if( imageDiskList[ i ] ) {
+			dinfo_t drive= getImageDiskInfo( i );
 			drive_list.push_back( drive );
 		}
 
-	std::string message= {};
+	for( int i= 2; i <26; ++i )
+		if( Drives[ i ] ) {
+			dinfo_t drive= getDOSDriveInfo( i );
+			drive_list.push_back( drive );
+		}
+
 	for( auto drv:drive_list ) {
-		messageClient( m._client, drv.at( 0 )+":\\\t" );
-		if( drv.size() >2 ) message+= drv.at( 2 )+"\t\t";
-		message+= "("+drv.at( 1 )+")\n";
+		std::string message= {};
+		message+=drv.at( 0 )+":\\\t";
+		if( drv.size() >1 ) { if( drv.at( 1 ).at( drv.at( 1 ).size()-1 ) ==  ' ' ) drv.at( 1 ).erase( ( drv.at( 1 ).size()-1 ) );
+		message+= "("+drv.at( 1 )+")"; 
+		/* 32 columns is enough for any drive type divided by the size of a tab in spaces (8.)  */
+		int tabwise= ( 32-drv.at( 1 ).size() )/8,i= 0;
+		do {
+			message+="\t";
+		} while ( ++i <tabwise ); }
+		if( drv.at( 1 ).size()<8 ) message+="\t";
+		if( drv.size() >2 ) message+= drv.at( 2 );
+		message+="\n";
 		messageClient( m._client,message );
 	}
 	messageClient( m._client,"\n" );
