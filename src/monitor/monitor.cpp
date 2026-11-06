@@ -51,6 +51,19 @@ std::string ImageDiskTypeToString( imageDisk::IMAGE_TYPE tType ) {
 	}
 };
 
+/* Media driver adapted from ../dos/dos_programs.cpp */
+#if defined(MACOSX)
+extern const char* MSG_GetUTF8(const char* msg);
+constexpr auto MSGX=MSG_GetUTF8;
+#else
+constexpr auto MSGX=MSG_Get;
+#endif
+constexpr int MEDIA_ID=0xF8;
+
+extern bool wpcolon;
+extern void MSCDEX_SetCDInterface( int,int );
+extern char lastmount;
+
 // Monitor::Configurator {{{ 
 static std::string CONFIG_USAGE_MONITOR= { // {{{
 "The DOSBox-X socket pipeline configurator\n"\
