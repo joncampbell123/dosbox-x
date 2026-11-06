@@ -128,6 +128,8 @@ Next version:
     (SergioMartin86, maron2000)
   - Fixed misplaced text underline in 20-line mode (SergioMartin86, maron2000)
   - Fixed turbo option remained true even after it is stopped (maron2000)
+  - FPU: Fixed x87 underflow reporting for inexact tiny results that round to
+    the minimum normal IEEE floating-point value. (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
