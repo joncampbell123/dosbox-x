@@ -128,6 +128,8 @@ Next version:
     (SergioMartin86, maron2000)
   - Fixed misplaced text underline in 20-line mode (SergioMartin86, maron2000)
   - Fixed turbo option remained true even after it is stopped (maron2000)
+  - FPU: Clear the C2 status flag before FPREM/FPREM1 input checks so an
+    early return does not leave a stale incomplete-remainder status. (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
