@@ -45,3 +45,12 @@ design, to stay fast.
   (DOSBox-X returns 0).
 - cputype=286, 286.EXE: "Seg wrap: movsw from [FFFF]" reads the second byte
   from offset 10000h instead of wrapping to offset 0000h.
+
+# PIIX3/PIIX4 emulation
+
+- Well, now that enough is there for bus mastering, and you have the Intel
+  datasheet documenting them, and you have old Pentium systems from the
+  mid 1990s with those chipsets on the motherboard, why not flesh this
+  emulation out to emulate the whole thing?
+- IRQ/DMA routing (which assigned to PCI, which assigned to ISA)
+
