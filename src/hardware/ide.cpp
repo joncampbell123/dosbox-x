@@ -21,6 +21,11 @@
 
 #include <math.h>
 #include <assert.h>
+#include <string.h>
+#include <map>
+#include <vector>
+#include <string>
+#include <algorithm>
 #include "dosbox.h"
 #include "inout.h"
 #include "pic.h"
@@ -36,6 +41,7 @@
 #include "bios_disk.h"
 #include "../src/dos/cdrom.h"
 #include "bios.h"
+#include "pci_bus.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -91,6 +97,7 @@ private:
 extern int bootdrive;
 extern bool bootguest, bootvm, use_quick_reboot;
 static unsigned char init_ide = 0;
+static bool init_ide_bm = false;
 extern bool int13_enable_48bitLBA;
 
 static const unsigned char IDE_default_IRQs[4] = {
@@ -150,6 +157,96 @@ enum {
     IDE_STATUS_ERROR=0x01
 };
 
+/* ATA8-ACS table B.4: is the command defined (or obsolete, which devices keep for compatibility) in the
+ * standard the device follows? Reserved, vendor specific and retired command codes are aborted. */
+static bool ata_opcode_defined(uint8_t op,int L) {
+    int from = 0,retired = 99;
+    switch (op) {
+        case 0x00: case 0x10: case 0x20: case 0x21: case 0x22: case 0x23: case 0x30: case 0x31: case 0x32:
+        case 0x33: case 0x3C: case 0x40: case 0x41: case 0x50: case 0x70: case 0x90: case 0x91: case 0xC4:
+        case 0xC5: case 0xC6: case 0xC8: case 0xC9: case 0xCA: case 0xCB: case 0xDE: case 0xDF: case 0xE0:
+        case 0xE1: case 0xE2: case 0xE3: case 0xE4: case 0xE5: case 0xE6: case 0xE8: case 0xEC: case 0xEF:
+            from = 1; break;
+        case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: case 0x18: case 0x19:
+        case 0x1A: case 0x1B: case 0x1C: case 0x1D: case 0x1E: case 0x1F:
+        case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77: case 0x78: case 0x79:
+        case 0x7A: case 0x7B: case 0x7C: case 0x7D: case 0x7E: case 0x7F:
+        case 0x94: case 0x95: case 0x96: case 0x97: case 0x98: case 0x99: case 0xDB: case 0xDC: case 0xDD:
+        case 0xE9:
+            from = 1; retired = 4; break;
+        case 0x92: case 0xED:
+            from = 2; break;
+        case 0x08: case 0xA0: case 0xA1: case 0xA2: case 0xB0: case 0xEE: case 0xF1: case 0xF2: case 0xF3:
+        case 0xF4: case 0xF5: case 0xF6:
+            from = 3; break;
+        case 0x03: case 0x38: case 0x87: case 0xC0: case 0xC7: case 0xCC: case 0xCD: case 0xDA: case 0xE7:
+        case 0xF8: case 0xF9:
+            from = 4; break;
+        case 0x24: case 0x25: case 0x26: case 0x27: case 0x29: case 0x2F: case 0x34: case 0x35: case 0x36:
+        case 0x37: case 0x39: case 0x3F: case 0x42: case 0xB1: case 0xD1: case 0xEA:
+            from = 6; break;
+        case 0x2A: case 0x2B: case 0x3A: case 0x3B: case 0x3D: case 0x3E: case 0x51: case 0xCE:
+            from = 7; break;
+        case 0x45: case 0x47: case 0x57: case 0x5C: case 0x5D: case 0x5E: case 0x5F: case 0xB6:
+            from = 8; break;
+        default:
+            return false;
+    }
+    return L >= from && L < retired;
+}
+
+/* ATA8-ACS table B.5: SET FEATURES subcommands by standard (Write-Read-Verify is new in ATA8-ACS) */
+static bool ata_setfeature_defined(uint8_t f,int L) {
+    int from = 0,retired = 99;
+    switch (f) {
+        case 0x03: case 0x44: case 0x55: case 0x66: case 0xAA: case 0xBB: case 0xCC:
+            from = 1; break;
+        case 0x01: case 0x81:
+            from = 1; retired = 4; break;
+        case 0x02: case 0x04: case 0x33: case 0x54: case 0x77: case 0x82: case 0x84: case 0x88: case 0x99:
+        case 0x9A: case 0xAB:
+            from = 3; break;
+        case 0x05: case 0x31: case 0x5D: case 0x5E: case 0x85: case 0x95: case 0xDD: case 0xDE:
+            from = 4; break;
+        case 0x06: case 0x07: case 0x0A: case 0x86: case 0x8A:
+            from = 5; break;
+        case 0x42: case 0x43: case 0xC2:
+            from = 7; break;
+        case 0x0B: case 0x8B:
+            from = 8; break;
+        default:
+            return false;
+    }
+    return L >= from && L < retired;
+}
+
+/* DMA transfer modes of each standard: multiword DMA mode 0 in ATA-1, modes 1 and 2 from ATA-2,
+ * Ultra DMA 0-2 from ATA/ATAPI-4, 3-4 from ATA/ATAPI-5, 5 from ATA/ATAPI-6 */
+static uint16_t ata_level_mdma(int L) { return L >= 2 ? 0x0007 : 0x0001; }
+static uint16_t ata_level_udma(int L) { return L >= 6 ? 0x003F : (L >= 5 ? 0x001F : (L >= 4 ? 0x0007 : 0x0000)); }
+
+/* IDENTIFY word 80/81: the standards and the published revision of the one followed */
+static uint16_t ata_level_major(int L) { return (uint16_t)((1u << (L + 1)) - 2u); }
+static uint16_t ata_level_minor(int L) {
+    static const uint16_t m[9] = { 0, 0x0002, 0x0004, 0x000A, 0x0012, 0x0016, 0x0022, 0x001D, 0x0042 };
+    return m[L < 1 ? 1 : (L > 8 ? 8 : L)];
+}
+
+/* ATA sector read/write/verify command properties (IDEATADevice::sector_cmd_flags) */
+enum {
+    ATAC_READ    = 0x0001,
+    ATAC_WRITE   = 0x0002,
+    ATAC_VERIFY  = 0x0004,
+    ATAC_EXT     = 0x0008,          /* 48-bit address and count */
+    ATAC_MULT    = 0x0010,          /* READ/WRITE MULTIPLE: blocks of the multiple sector count */
+    ATAC_DMA     = 0x0020,
+    ATAC_QUEUED  = 0x0040,          /* TCQ: the count is in the Feature register, the tag in the count */
+    ATAC_FUA     = 0x0080,          /* forced unit access: written to the media before completion */
+    ATAC_STREAM  = 0x0100,
+    ATAC_LONG    = 0x0200,          /* READ/WRITE LONG: one sector plus the ECC bytes */
+    ATAC_WVERIFY = 0x0400           /* WRITE VERIFY: each sector is read back after writing */
+};
+
 class IDEController;
 
 #if 0//unused
@@ -178,6 +275,7 @@ public:
     bool faked_command; /* if set, DOSBox is sending commands to itself */
     bool allow_writing;
     bool irq_signal;
+    bool dma_cmd = false;       /* the command in progress transfers its data by DMA (bus master) */
     bool motor_on;
     bool asleep;
     bool slave;
@@ -210,6 +308,8 @@ public:
 public:
     void raise_irq();
     void lower_irq();
+    void data_phase_ready();    /* data block ready (DRQ): PIO interrupts the host, DMA hands it to the bus master */
+    int ata_level() const;      /* ATA standard the device follows (1 = ATA-1 ... 8 = ATA8-ACS) */
 public:
     IDEDevice(IDEController *c,bool _slave);
     virtual ~IDEDevice();
@@ -311,6 +411,197 @@ public:
     enum { PWR_ACTIVE=0, PWR_IDLE, PWR_STANDBY, PWR_SLEEP } power = PWR_ACTIVE;
     double standby_timer_ms = 0;        /* 0 = disabled */
     double last_activity = 0;
+public:
+    /* ---- ATA feature sets (ATA-1 through ATA8-ACS) ---- */
+    double poweron_time = 0;            /* emulated time of power-on, for timestamps and power-on hours */
+    void hardware_reset();              /* hardware reset (VM reset): volatile settings revert */
+    uint8_t prev_cmd = 0;               /* command before the current one, and whether it succeeded */
+    uint16_t prev_feature = 0;
+    bool prev_ok = false;
+    uint8_t last_cmd = 0;
+    uint16_t last_feature = 0;
+    bool cmd_count_in_feature = false;  /* TCQ commands: the sector count is in the Feature register */
+    bool revert_defaults = false;       /* SET FEATURES CCh/66h: settings revert on a software reset */
+    bool heads_unloaded = false;        /* IDLE IMMEDIATE with UNLOAD FEATURE */
+    bool stream_se = false;             /* a stream command continued past an error (SE) */
+    void start_sector_command(unsigned int fl,double now,double overhead);
+    bool stream_timeout();
+    void smart_command(double now,double overhead);
+    void set_features(double now,double overhead);
+    bool feature_command(uint8_t cmd,double now,double overhead);
+    /* generic data transfers of commands that are not sector reads or writes (logs, identify data, passwords...) */
+    enum { XK_NONE=0, XK_IN_PENDING, XK_IN, XK_OUT, XK_FINISH } xk = XK_NONE;
+    std::vector<uint8_t> xbuf;
+    size_t xbuf_pos = 0;
+    unsigned int xbuf_block = 512;      /* DRQ data block size for PIO */
+    uint8_t fin_err = 0;                /* XK_FINISH: error register value, 0 = success */
+    void buf_data_in(double at);        /* xbuf holds the data for the host, transfer starts at this time */
+    void buf_data_out(size_t len);      /* the host sends len bytes (DRQ now), buf_out_done() when received */
+    void buf_load_block();
+    void buf_out_done();
+    void finish_at(double at,uint8_t err = 0); /* end the command at this time (with an error, if not 0) */
+    void command_ok();                  /* end the command now without error */
+    /* command classification */
+    unsigned int sector_cmd_flags(uint8_t cmd) const;
+    /* DCO: what the device is allowed to report as supported */
+    uint16_t dco_mdma = 0x0007,dco_udma = 0x003F,dco_w7 = 0x7BFF,dco_w21 = 0xF000;
+    uint64_t dco_maxlba = 0;            /* highest LBA allowed (DEVICE CONFIGURATION SET), 0 = factory */
+    bool dco_reduced = false,dco_frozen = false;
+    uint64_t factory_LBA = 0;           /* capacity of the disk image */
+    uint64_t native_LBA = 0;            /* native capacity (READ NATIVE MAX + 1), factory or reduced by DCO */
+    bool has_dma() const;               /* a bus master is attached to the controller */
+    bool f_smart() const { return (dco_w7 & 0x0001) != 0 && ata_level() >= 3; }
+    bool f_selftest() const { return (dco_w7 & 0x0002) != 0 && ata_level() >= 5; }
+    bool f_errlog() const { return (dco_w7 & 0x0004) != 0 && ata_level() >= 5; }
+    bool f_security() const { return (dco_w7 & 0x0008) != 0 && ata_level() >= 3; }
+    bool f_puis() const { return (dco_w7 & 0x0010) != 0 && ata_level() >= 5; }
+    bool f_tcq() const { return (dco_w7 & 0x0020) != 0 && has_dma() && ata_level() >= 4; }
+    bool f_aam() const { return (dco_w7 & 0x0040) != 0 && ata_level() >= 7; }
+    bool f_hpa() const { return (dco_w7 & 0x0080) != 0 && ata_level() >= 4; }
+    bool f_lba48() const { return (dco_w7 & 0x0100) != 0 && int13_enable_48bitLBA && ata_level() >= 6; }
+    bool f_stream() const { return (dco_w7 & 0x0200) != 0 && f_lba48() && ata_level() >= 7; }
+    bool f_fua() const { return (dco_w7 & 0x0800) != 0 && f_lba48() && ata_level() >= 7; }
+    bool f_selective() const { return (dco_w7 & 0x1000) != 0 && ata_level() >= 6; }
+    bool f_conveyance() const { return (dco_w7 & 0x2000) != 0 && ata_level() >= 6; }
+    bool f_wrv() const { return (dco_w7 & 0x4000) != 0 && ata_level() >= 8; }
+    bool f_nvcache() const { return (dco_w21 & 0x8000) != 0 && f_lba48() && ata_level() >= 8; }
+    bool f_nvpm() const { return (dco_w21 & 0x4000) != 0 && f_lba48() && ata_level() >= 8; }
+    bool f_wunc() const { return (dco_w21 & 0x2000) != 0 && f_lba48() && ata_level() >= 8; }
+    bool f_trusted() const { return (dco_w21 & 0x1000) != 0 && ata_level() >= 8; }
+    /* Host Protected Area, SET MAX security extensions */
+    uint64_t hpa_nv_max = 0;            /* LBA count after a hardware reset (last non-volatile SET MAX), 0 = native */
+    bool hpa_nv_set = false;            /* a non-volatile SET MAX was done since the last power-on/hardware reset */
+    bool hpa_by_ext = false;            /* the HPA was established by SET MAX ADDRESS EXT */
+    enum { SM_INACTIVE=0, SM_UNLOCKED, SM_LOCKED, SM_FROZEN } setmax_state = SM_INACTIVE;
+    uint8_t setmax_pw[32] = {};
+    int setmax_unlock_count = 5;
+    void set_max_address(bool ext);
+    void set_max(bool data_received);
+    /* Security */
+    bool sec_enabled = false,sec_locked = false,sec_frozen = false,sec_maxlevel = false,sec_erase_prepared = false;
+    uint8_t sec_user_pw[32] = {},sec_master_pw[32] = {};
+    uint16_t sec_master_id = 0xFFFE;
+    int sec_attempts = 5;
+    bool security_blocks(uint8_t cmd) const; /* the command is aborted while the device is locked */
+    bool sec_password_ok(const uint8_t *data,bool for_erase);
+    void security_data_out();
+    double erase_time_ms(bool enhanced) const;
+    /* SMART */
+    bool smart_enabled = true,smart_autosave = true;
+    uint8_t smart_offline_status = 0x80;
+    uint8_t selftest_status = 0x00;     /* self-test execution status byte */
+    uint8_t selftest_sub = 0;           /* subcommand of the running self-test */
+    bool selftest_running = false;
+    double selftest_start = 0,selftest_end = 0;
+    uint64_t selftest_fail_lba = 0;
+    bool selftest_will_fail = false;
+    double offline_end = 0;
+    uint8_t selective_log[512] = {};
+    struct SelfTestEntry { uint8_t sub,status; uint16_t hours; uint8_t checkpoint; uint64_t lba; };
+    std::vector<SelfTestEntry> selftest_log;
+    struct CmdRecord { uint8_t devctl; uint16_t feature,count; uint64_t lba; uint8_t device,command; uint32_t ms; };
+    CmdRecord cmd_hist[5] = {};
+    unsigned int cmd_hist_n = 0;
+    struct ErrorEntry { CmdRecord cmds[5]; uint8_t error,status,device,state; uint16_t count; uint64_t lba; uint16_t hours; };
+    std::vector<ErrorEntry> error_log;
+    uint32_t error_count = 0;
+    uint32_t spinup_count = 0,unload_count = 0,poweron_count = 1;
+    void record_command();
+    void log_error(uint8_t err);
+    void selftest_start_cmd(uint8_t sub,bool captive,double now);
+    void selftest_update(double now);
+    void selftest_finish(uint8_t status);
+    void smart_read_data(uint8_t *p);
+    void smart_read_thresholds(uint8_t *p);
+    uint16_t poweron_hours(double now) const;
+    uint32_t poweron_ms(double now) const;
+    bool smart_threshold_exceeded() const;
+    /* temperature (SMART attribute C2h, SCT status and temperature history) */
+    double temp_c = 25.0,temp_t = 0;
+    int temp_min = 127,temp_max = -127,temp_life_min = 127,temp_life_max = -127;
+    uint16_t temp_interval = 1;         /* minutes between history entries */
+    int8_t temp_hist[128];
+    unsigned int temp_hist_idx = 0;
+    double temp_hist_t = 0;
+    int current_temp(double now);
+    /* logs */
+    std::map<uint8_t,std::vector<uint8_t> > host_logs; /* 80h-9Fh, 16 blocks each */
+    bool make_log(uint8_t addr,bool gpl,std::vector<uint8_t> &out); /* false = log not supported */
+    unsigned int log_blocks(uint8_t addr,bool gpl);
+    void read_log(bool gpl,uint8_t addr,unsigned int offset,unsigned int count);
+    void write_log_done(bool gpl,uint8_t addr,unsigned int offset);
+    /* uncorrectable sectors: WRITE UNCORRECTABLE EXT, WRITE LONG with bad ECC */
+    std::map<uint64_t,uint8_t> unc_sectors; /* value: bit 0 = log errors */
+    unsigned int ecc_bytes = 4;         /* READ/WRITE LONG vendor specific bytes */
+    void sector_ecc(const uint8_t *data,uint8_t *ecc) const;
+    /* streaming */
+    struct StreamCfg { bool valid; uint8_t cctl; uint16_t au; } streams[8] = {};
+    struct StreamErr { uint16_t feature; uint8_t status,error; uint64_t lba; uint16_t count; };
+    std::vector<StreamErr> rd_stream_err,wr_stream_err;
+    uint16_t rd_stream_err_count = 0,wr_stream_err_count = 0;
+    double stream_deadline = 0;         /* 0 = no time limit */
+    bool stream_rc = false;
+    /* power management extensions */
+    bool apm_enabled = false,aam_enabled = false,puis_enabled = false;
+    uint8_t apm_level = 0xFE,aam_level = 0xFE;
+    double apm_standby_ms() const;      /* idle time before APM spins the disk down, 0 = never */
+    double seek_scale() const;          /* AAM: quiet seeks are slower */
+    /* transfer modes */
+    int pio_mode = 4,mwdma_sel = -1,udma_sel = -1;
+    double dma_mb_per_s() const;
+    /* TCQ (queue depth 1, the device does not release the bus) */
+    bool rel_irq_en = false,serv_irq_en = false;
+    uint8_t queue_tag = 0;
+    /* Write-Read-Verify */
+    bool wrv_enabled = false;
+    uint8_t wrv_mode = 0;
+    uint64_t wrv_sectors = 0,wrv_done = 0;
+    bool wrv_applies(unsigned int n);
+    /* buffers */
+    uint8_t rw_buffer[512] = {};
+    /* DOWNLOAD MICROCODE */
+    std::vector<uint8_t> ucode;
+    uint32_t ucode_next = 0;
+    void download_microcode_done();
+    /* NV Cache */
+    bool nvc_pm = false;
+    uint16_t nvc_min_high_s = 0;
+    uint64_t nvc_size = 65536;          /* 32MB of flash */
+    std::map<uint64_t,uint64_t> nvc_pinned; /* first LBA -> count */
+    std::vector<std::pair<uint64_t,uint16_t> > nvc_misses;
+    uint64_t nvc_pinned_count() const;
+    bool nvc_covers(uint64_t lba,unsigned int n) const;
+    void nvc_add(uint64_t lba,uint64_t n);
+    void nvc_remove(uint64_t lba,uint64_t n);
+    void nvc_data_done();
+    /* SCT Command Transport */
+    uint16_t sct_status = 0,sct_action = 0,sct_function = 0;
+    uint16_t sct_erc_read = 0,sct_erc_write = 0;
+    uint16_t sct_wc_state = 1,sct_wc_reorder = 1;
+    bool sct_segment_init = false;
+    enum { SCT_XFER_NONE=0, SCT_XFER_READ_LONG, SCT_XFER_WRITE_LONG, SCT_XFER_WRITE_SAME, SCT_XFER_TABLE } sct_xfer = SCT_XFER_NONE;
+    uint64_t sct_lba = 0,sct_count = 0;
+    uint32_t sct_pattern = 0;
+    bool sct_ws_background = false,sct_ws_block = false;
+    uint8_t sct_ws_data[512] = {};
+    void sct_command(const uint8_t *key);
+    void sct_status_page(uint8_t *p);
+    void sct_write_same_stop(double now);
+    bool sct_e1_read(std::vector<uint8_t> &out,unsigned int count);
+    bool sct_e1_write(const uint8_t *data,unsigned int count);
+    bool write_cache_on() const;
+    /* sector data written or erased: the write same "segment initialized" flag and uncorrectable status go */
+    void sectors_written(uint64_t lba,uint64_t n);
+    /* long fills (SECURITY ERASE UNIT, WRITE SAME, SCT Write Same): written in 1ms steps by a timer event
+     * at the rate of the drive, so emulation goes on while the drive works */
+    enum { FILL_NONE=0, FILL_ERASE, FILL_WRITE_SAME, FILL_SCT } fill_kind = FILL_NONE;
+    uint64_t fill_lba = 0,fill_left = 0,fill_done = 0;
+    uint8_t fill_data[512] = {};
+    double fill_rate = 1.0;             /* time per sector relative to the media rate (enhanced erase: 2) */
+    bool fill_background = false;       /* the device is ready while it fills (background SCT Write Same) */
+    void fill_start(int kind,uint64_t l,uint64_t n,const uint8_t *data,double rate,bool background);
+    void fill_step();
+    void fill_end(bool ok);
 };
 
 enum {
@@ -373,6 +664,20 @@ public:
     void read_track_information();
     void set_cd_speed();
     void start_stop_unit();
+    /* packet commands of MMC/SFF-8020i, ATA-level features of a packet device */
+    bool has_dma() const;
+    void execute_device_diagnostic() override;
+    void atapi_data_out(Bitu len);
+    void read_header();
+    void read_format_capacities();
+    void get_performance();
+    void set_streaming_done();
+    void read_buffer();
+    void write_buffer_done();
+    Bitu play_start = 0,play_len = 0;   /* audio play range of a PLAY/SCAN command */
+    bool rmsn_enabled = false,rmsn_mc = false,rmsn_mcr = false; /* Removable Media Status Notification */
+    int mwdma_sel = -1,udma_sel = -1;   /* SET FEATURES transfer mode */
+    std::vector<uint8_t> cd_buffer;     /* READ/WRITE BUFFER */
     void prevent_allow();
     void inquiry();
     void request_sense();
@@ -461,6 +766,13 @@ public:
     double cd_insertion_time;
     bool cd_instant;
     int cd_max_speed;
+    /* [ide, *] ata standard: 0 = auto (ATA8-ACS with the PCI bus, ATA-3 without), 1-8 = ATA-1 ... ATA8-ACS */
+    int ata_standard = 0;
+    int ata_level() const { return ata_standard != 0 ? ata_standard : (has_pcibus_enable() ? 8 : 3); }
+    /* PCI bus master IDE function (DMA), NULL if there is none */
+    class IDEBusMaster *bm = NULL;
+    void bm_request(IDEDevice *dev);    /* the device has DMA data ready, or wants data */
+    void bm_device_irq();               /* a device on this channel raised its interrupt */
     int cd_tray_time;
     /* defaults for hard disk emulation */
     bool hd_instant;
@@ -503,6 +815,7 @@ int IDE_MatchCDROMDrive(char drv) {
 }
 
 static void IDE_DelayedCommand(Bitu pk/*which IDE device*/);
+static void IDE_ATA_FillStep(Bitu pk);
 static IDEController* GetIDEController(Bitu idx);
 
 /* ------------------------------------------------------------------------------------------
@@ -803,6 +1116,11 @@ static void IDE_ATAPI_SpinUpComplete(Bitu pk/*which IDE device*/) {
 }
 
 void IDEATAPICDROMDevice::post_media_event(uint8_t code) {
+    /* Removable Media Status Notification: GET MEDIA STATUS reports these too */
+    if (rmsn_enabled) {
+        if (code == 0x01/*EjectRequest*/) rmsn_mcr = true;
+        if (code == 0x02/*NewMedia*/) rmsn_mc = true;
+    }
     /* a NewMedia event is more important than a removal before it */
     if (media_event == 0 || code == 0x02/*NewMedia*/ || code == 0x01/*EjectRequest*/) media_event = code;
 }
@@ -908,7 +1226,7 @@ void IDEATAPICDROMDevice::atapi_done() {
 
 /* data for the host is in sector[]: limited by the byte count the host asked for */
 void IDEATAPICDROMDevice::atapi_data_in(Bitu len) {
-    if (len > host_maximum_byte_count) len = host_maximum_byte_count & ~((Bitu)1u);
+    if (!dma_cmd && len > host_maximum_byte_count) len = host_maximum_byte_count & ~((Bitu)1u);
     if (len == 0) {
         atapi_done();
         return;
@@ -921,8 +1239,8 @@ void IDEATAPICDROMDevice::atapi_data_in(Bitu len) {
     /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
     lba[2] = sector_total >> 8;
     lba[1] = sector_total;
-    raise_irq();
     allow_writing = true;
+    data_phase_ready();
 }
 
 bool IDEATAPICDROMDevice::medium_ready_check() {
@@ -1695,8 +2013,8 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
             count = 0x00; /* data from the host */
             state = IDE_DEV_DATA_WRITE;
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-            raise_irq();
             allow_writing = true;
+            data_phase_ready();
             break;
         case 0x1A: /* MODE SENSE(6) */
         case 0x5A: /* MODE SENSE(10) */
@@ -1707,6 +2025,30 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
         case 0xBD: /* MECHANISM STATUS */
             mechanism_status();
             atapi_data_in(sector_total);
+            break;
+        case 0x01: /* REZERO UNIT */
+        case 0x2F: /* VERIFY(10) */
+        case 0xA7: /* SET READ AHEAD */
+        case 0x1D: /* SEND DIAGNOSTIC */
+            atapi_done();
+            break;
+        case 0x44: /* READ HEADER */
+            read_header();
+            break;
+        case 0x48: /* PLAY AUDIO TRACK/INDEX */
+        case 0x49: /* PLAY TRACK RELATIVE(10) */
+        case 0xA5: /* PLAY AUDIO(12) */
+        case 0xA9: /* PLAY TRACK RELATIVE(12) */
+        case 0xBA: /* SCAN */
+            {
+                CDROM_Interface *cdrom = getMSCDEXDrive();
+                if (cdrom != NULL && play_len != 0) {
+                    cdrom->PlayAudioSector((unsigned long)play_start,(unsigned long)play_len);
+                    head_lba = play_start;
+                    rb_valid = false;
+                }
+            }
+            atapi_done();
             break;
         default:
             LOG_MSG("Unknown ATAPI command after busy wait. Why?\n");
@@ -1983,6 +2325,11 @@ void IDEATAPICDROMDevice::get_configuration() {
     feature_desc(0x001E,0,false,present,cd_read,4);
     feature_desc(0x0100,0,true,true,NULL,0);
     feature_desc(0x0103,0,false,present,cd_audio,4);
+    {
+        /* Real Time Streaming: SET CD SPEED, mode page 2Ah speeds; GET PERFORMANCE and SET STREAMING */
+        const unsigned char rts[4] = { 0x0C, 0x00, 0x00, 0x00 };
+        feature_desc(0x0107,3,false,present,rts,4);
+    }
 
     const unsigned int len = (unsigned int)(w - sector);
     sector[0] = (unsigned char)((len - 4u) >> 24u);
@@ -2111,6 +2458,7 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     memset(sector, 0, sizeof(sector));
 
     if (n_cdrom) (cdrom = n_cdrom)->Addref();
+    cd_buffer.assign(65536,0);
 
     memset(sense,0,sizeof(sense));
     IDEATAPICDROMDevice::set_sense(/*SK=*/0);
@@ -2173,6 +2521,8 @@ IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
 void IDEATAPICDROMDevice::host_reset_complete() {
     IDEDevice::host_reset_complete();
     if (power_state == 4) power_state = 3; /* a reset wakes the drive from sleep */
+    rmsn_enabled = rmsn_mc = rmsn_mcr = false; /* resets disable Media Status Notification */
+    dma_cmd = false;
 }
 
 void IDEATAPICDROMDevice::set_signature() {
@@ -2227,7 +2577,7 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
                         TransferLength = sector_transfer_limit;
                     {
                         const Bitu per = (atapi_cmd[0] == 0x28 || atapi_cmd[0] == 0xA8) ? 2048u : IDE_CD_MAX_READCD_SECTOR;
-                        Bitu fit = MIN((Bitu)sizeof(sector),(Bitu)host_maximum_byte_count) / per;
+                        Bitu fit = (dma_cmd ? (Bitu)sizeof(sector) : MIN((Bitu)sizeof(sector),(Bitu)host_maximum_byte_count)) / per;
                         if (fit == 0) fit = 1;
                         if (TransferLength > fit) TransferLength = fit;
                     }
@@ -2245,6 +2595,12 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
             case 0x55: /* MODE SELECT(10) */
                 on_mode_select_io_complete();
                 break;
+            case 0x3B: /* WRITE BUFFER */
+                write_buffer_done();
+                return;
+            case 0xB6: /* SET STREAMING */
+                set_streaming_done();
+                return;
         }
     }
 
@@ -2321,7 +2677,7 @@ void IDEATADevice::mech_init() {
     }
 
     media_heads = 4;
-    media_cyls = LBA / ((uint64_t)media_spt * media_heads) + 1u;
+    media_cyls = (factory_LBA ? factory_LBA : LBA) / ((uint64_t)media_spt * media_heads) + 1u;
     spinning = true;
     spin_origin = 0;
     spin_ready_at = 0;
@@ -2344,6 +2700,8 @@ double IDEATADevice::spin_up(double t) {
         spinning = true;
         spin_ready_at = t + spinup_ms;
         spin_origin = spin_ready_at;
+        spinup_count++;
+        wrv_done = 0;           /* Write-Read-Verify counts the sectors written after spin-up */
     }
     if (power != PWR_IDLE) power = PWR_ACTIVE;
     if (t < spin_ready_at) t = spin_ready_at;
@@ -2354,7 +2712,8 @@ double IDEATADevice::spin_up(double t) {
 double IDEATADevice::seek_ms(uint64_t to_cyl) const {
     const uint64_t d = to_cyl > head_cyl ? to_cyl - head_cyl : head_cyl - to_cyl;
     if (d == 0) return 0;
-    return IDE_HD_TRACK_TO_TRACK_MS + (IDE_HD_FULL_STROKE_MS - IDE_HD_TRACK_TO_TRACK_MS) * sqrt((double)(d - 1u) / (double)media_cyls);
+    /* Automatic Acoustic Management: quiet seeks are slower */
+    return seek_scale() * (IDE_HD_TRACK_TO_TRACK_MS + (IDE_HD_FULL_STROKE_MS - IDE_HD_TRACK_TO_TRACK_MS) * sqrt((double)(d - 1u) / (double)media_cyls));
 }
 
 void IDEATADevice::spin_down(double t,bool sleep) {
@@ -2382,8 +2741,18 @@ void IDEATADevice::note_activity(double t) {
 
     if (t > last_activity) last_activity = t;
     PIC_RemoveSpecificEvents(IDE_ATA_StandbyTimer,pk);
-    if (standby_timer_ms > 0 && spinning) {
-        double d = last_activity + standby_timer_ms - PIC_FullIndex();
+
+    /* the disk spins down after the shortest of: the standby timer, the advanced power management level,
+     * the NV Cache power mode (minimum high-power time) */
+    double timeout = standby_timer_ms;
+    const double apm = apm_standby_ms();
+    if (apm > 0 && (timeout <= 0 || apm < timeout)) timeout = apm;
+    if (nvc_pm && f_nvpm()) {
+        const double nv = nvc_min_high_s > 0 ? nvc_min_high_s * 1000.0 : 1000.0;
+        if (timeout <= 0 || nv < timeout) timeout = nv;
+    }
+    if (timeout > 0 && spinning) {
+        double d = last_activity + timeout - PIC_FullIndex();
         if (d < 1) d = 1;
         PIC_AddEvent(IDE_ATA_StandbyTimer,d,pk);
     }
@@ -2393,16 +2762,37 @@ void IDEATADevice::note_activity(double t) {
  * starting at time t. Updates the head position and the read-ahead buffer. */
 double IDEATADevice::media_access(uint64_t addr,unsigned int n,bool write,double t) {
     if (instant || faked_command) {
-        /* no delays, but an access still spins the disk up */
+        /* no delays, but an access still spins the disk up (unless the NV Cache has the sectors) */
+        if (nvc_covers(addr,n)) return t;
         if (!spinning) {
             spinning = true;
             spin_ready_at = t;
+            spinup_count++;
         }
         if (power != PWR_IDLE) power = PWR_ACTIVE;
+        heads_unloaded = false;
         return t;
     }
 
+    /* NV Cache: pinned sectors are read and written in flash memory, without the disk */
+    if (nvc_covers(addr,n)) {
+        note_activity(t);
+        return t + (double)n * (write ? 0.017 : 0.010);
+    }
+    if (nvc_pm && f_nvpm() && !spinning) {
+        /* a miss in NV Cache power mode: QUERY NV CACHE MISSES reports it */
+        if (!nvc_misses.empty() && nvc_misses.back().first + nvc_misses.back().second == addr && nvc_misses.back().second + n <= 0xFFFFu)
+            nvc_misses.back().second = (uint16_t)(nvc_misses.back().second + n);
+        else if (nvc_misses.size() < 64)
+            nvc_misses.push_back(std::make_pair(addr,(uint16_t)(n > 0xFFFFu ? 0xFFFFu : n)));
+    }
+
     t = spin_up(t);
+    if (heads_unloaded) {
+        /* the heads come back off the ramp */
+        t += 20.0;
+        heads_unloaded = false;
+    }
 
     /* sectors in the read-ahead buffer, or being read into it now */
     if (!write && ra_valid && addr >= ra_first && addr + n <= ra_limit) {
@@ -2507,6 +2897,12 @@ static void IDE_ATA_StandbyTimer(Bitu pk) {
 
     IDEATADevice *ata = (IDEATADevice*)dev;
     if (ata->state != IDE_DEV_READY || !ata->spinning) return;
+    /* the drive does not change power states by itself during a self-test or off-line data collection */
+    ata->selftest_update(PIC_FullIndex());
+    if (ata->selftest_running || ata->smart_offline_status == 0x03) {
+        ata->note_activity(PIC_FullIndex());
+        return;
+    }
     LOG(LOG_MISC,LOG_DEBUG)("IDE ATA: standby timer expired");
     ata->spin_down(PIC_FullIndex(),false);
 }
@@ -2516,23 +2912,23 @@ static void IDE_ATA_StandbyTimer(Bitu pk) {
  * ------------------------------------------------------------------------------------------ */
 
 bool IDEATADevice::command_is_ext() {
-    switch (command) {
-        case 0x24: case 0x29: case 0x34: case 0x39: case 0x42:
-            return true;
-    }
-    return false;
+    return (sector_cmd_flags(command) & ATAC_EXT) != 0;
 }
 
 bool IDEATADevice::command_is_multiple() {
-    return command == 0xC4 || command == 0xC5 || command == 0x29 || command == 0x39;
+    return (sector_cmd_flags(command) & ATAC_MULT) != 0;
 }
 
 bool IDEATADevice::command_is_write() {
-    return command == 0x30 || command == 0x31 || command == 0x34 || command == 0xC5 || command == 0x39;
+    return (sector_cmd_flags(command) & ATAC_WRITE) != 0;
 }
 
 /* take the address and sector count of the command from the registers */
 bool IDEATADevice::decode_address(bool ext,bool check) {
+    /* TCQ commands have the sector count in the Feature register (the Count register holds the tag) */
+    const uint16_t cnt_lo = cmd_count_in_feature ? feature : count;
+    const uint8_t cnt_hi = cmd_count_in_feature ? hob_feature : hob_count;
+
     cmd_ext = ext;
 
     if (ext) {
@@ -2541,11 +2937,11 @@ bool IDEATADevice::decode_address(bool ext,bool check) {
         cmd_lba = true;
         cur_lba = ((uint64_t)(lba[0] & 0xFFu)) | ((uint64_t)(lba[1] & 0xFFu) << 8u) | ((uint64_t)(lba[2] & 0xFFu) << 16u) |
             ((uint64_t)hob_lba[0] << 24u) | ((uint64_t)hob_lba[1] << 32u) | ((uint64_t)hob_lba[2] << 40u);
-        cur_count = ((uint32_t)hob_count << 8u) | (count & 0xFFu);
+        cur_count = ((uint32_t)cnt_hi << 8u) | (cnt_lo & 0xFFu);
         if (cur_count == 0) cur_count = 65536;
     }
     else {
-        cur_count = count & 0xFFu;
+        cur_count = cnt_lo & 0xFFu;
         if (cur_count == 0) cur_count = 256;
 
         if (drivehead & 0x40) {
@@ -2597,10 +2993,12 @@ void IDEATADevice::update_address_registers(uint64_t addr) {
 
 /* sectors in the next DRQ data block */
 unsigned int IDEATADevice::block_count() {
+    const unsigned int fl = sector_cmd_flags(command);
     uint64_t n = 1;
 
-    if (command_is_multiple()) n = multiple_sector_count;
-    if (command == 0x40 || command == 0x41 || command == 0x42) n = sizeof(sector) / 512u; /* verify: no data transfer */
+    if (fl & ATAC_MULT) n = multiple_sector_count;
+    if (fl & (ATAC_VERIFY|ATAC_DMA)) n = sizeof(sector) / 512u;  /* no DRQ blocks: verify, DMA */
+    if (fl & ATAC_LONG) n = 1;
     if (n > cur_count) n = cur_count;
     if (n > sizeof(sector) / 512u) n = sizeof(sector) / 512u;
     if (n == 0) n = 1;
@@ -2618,11 +3016,13 @@ void IDEATADevice::sector_error(uint8_t err) {
 
 /* read cur_block sectors from cur_lba into the sector buffer */
 void IDEATADevice::read_block() {
+    const unsigned int fl = sector_cmd_flags(command);
     imageDisk *disk = getBIOSdisk();
     if (disk == NULL) {
         sector_error(0x04/*ABRT*/);
         return;
     }
+    if (stream_timeout()) return;
 
     for (unsigned int i=0;i < cur_block;i++) {
         if (cur_lba + i >= LBA) {
@@ -2634,12 +3034,35 @@ void IDEATADevice::read_block() {
         if (disk->Read_AbsoluteSector((uint32_t)(cur_lba + i),sector + (i * 512u)) != Int13Status::NoError) {
             cur_lba += i;
             cur_count -= i;
+            update_address_registers(cur_lba);
+            log_error(0x40);
             sector_error(0x40/*UNC*/);
             return;
         }
+        /* an uncorrectable sector (WRITE UNCORRECTABLE EXT, WRITE LONG with bad ECC). READ LONG does not check. */
+        if (!(fl & ATAC_LONG) && !unc_sectors.empty()) {
+            auto u = unc_sectors.find(cur_lba + i);
+            if (u != unc_sectors.end()) {
+                if ((fl & ATAC_STREAM) && stream_rc) {
+                    /* Read Continuous: the data goes to the host anyway, the error is logged */
+                    StreamErr e = { (uint16_t)((feature & 0xFFu) | ((unsigned int)hob_feature << 8u)),0x41,0x40,cur_lba + i,1 };
+                    if (rd_stream_err.size() >= 31) rd_stream_err.erase(rd_stream_err.begin());
+                    rd_stream_err.push_back(e);
+                    if (rd_stream_err_count < 0xFFFF) rd_stream_err_count++;
+                    stream_se = true;
+                    continue;
+                }
+                cur_lba += i;
+                cur_count -= i;
+                update_address_registers(cur_lba);
+                if (u->second & 1u) log_error(0x40);
+                sector_error(0x40/*UNC*/);
+                return;
+            }
+        }
     }
 
-    if (command == 0x40 || command == 0x41 || command == 0x42) {
+    if (fl & ATAC_VERIFY) {
         /* verify: no data transfer, the command is done when all sectors are verified */
         cur_lba += cur_block;
         cur_count -= cur_block;
@@ -2663,17 +3086,33 @@ void IDEATADevice::read_block() {
     /* the data block is ready for the host */
     state = IDE_DEV_DATA_READ;
     status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-    prepare_read(0,512u * cur_block);
-    raise_irq();
+    if (fl & ATAC_QUEUED) count = (uint16_t)((queue_tag << 3u) | 0x02u); /* I/O=1 C/D=0: data to the host */
+    if (fl & ATAC_LONG) {
+        /* the vendor specific bytes follow the data, one per word in bits 7:0 */
+        uint8_t ecc[64];
+        sector_ecc(sector,ecc);
+        if (unc_sectors.count(cur_lba)) ecc[0] ^= 0xFF;
+        for (unsigned int i=0;i < ecc_bytes;i++) {
+            sector[512 + i*2u] = ecc[i];
+            sector[513 + i*2u] = 0;
+        }
+        prepare_read(0,512u + 2u * ecc_bytes);
+    }
+    else {
+        prepare_read(0,512u * cur_block);
+    }
+    data_phase_ready();
 }
 
 /* the host has written cur_block sectors into the sector buffer: write them to cur_lba */
 void IDEATADevice::write_block() {
+    const unsigned int fl = sector_cmd_flags(command);
     imageDisk *disk = getBIOSdisk();
     if (disk == NULL) {
         sector_error(0x04/*ABRT*/);
         return;
     }
+    if (stream_timeout()) return;
 
     for (unsigned int i=0;i < cur_block;i++) {
         if (cur_lba + i >= LBA) {
@@ -2685,9 +3124,20 @@ void IDEATADevice::write_block() {
         if (disk->Write_AbsoluteSector((uint32_t)(cur_lba + i),sector + (i * 512u)) != Int13Status::NoError) {
             cur_lba += i;
             cur_count -= i;
+            update_address_registers(cur_lba);
+            log_error(0x10);
             sector_error(0x10/*IDNF*/);
             return;
         }
+    }
+    sectors_written(cur_lba,cur_block);
+    if (fl & ATAC_LONG) {
+        /* WRITE LONG: the device does not make the ECC, if the host's does not match the sector is bad */
+        uint8_t ecc[64];
+        bool match = true;
+        sector_ecc(sector,ecc);
+        for (unsigned int i=0;i < ecc_bytes;i++) if (sector[512 + i*2u] != ecc[i]) match = false;
+        if (!match) unc_sectors[cur_lba] = 1;
     }
 
     cur_lba += cur_block;
@@ -2698,6 +3148,7 @@ void IDEATADevice::write_block() {
         update_address_registers(cur_lba - 1u);
         count = 0;
         if (cmd_ext) hob_count = 0;
+        if (fl & ATAC_QUEUED) count = (uint16_t)((queue_tag << 3u) | 0x03u); /* I/O=1 C/D=1: command complete */
         state = IDE_DEV_READY;
         status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
         allow_writing = true;
@@ -2710,56 +3161,103 @@ void IDEATADevice::write_block() {
     state = IDE_DEV_DATA_WRITE;
     status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
     prepare_write(0,512u * cur_block);
-    raise_irq();
+    data_phase_ready();
 }
 
 void IDEATADevice::io_completion() {
     /* lower DRQ */
     status &= ~IDE_STATUS_DRQ;
 
+    /* the data of a command that is not a sector read or write */
+    if (xk == XK_IN) {
+        xbuf_pos += sector_total;
+        if (xbuf_pos < xbuf.size()) {
+            buf_load_block();
+            data_phase_ready();
+        }
+        else {
+            xk = XK_NONE;
+            state = IDE_DEV_READY;
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            allow_writing = true;
+            if (dma_cmd) raise_irq(); /* PIO data-in has no interrupt after the last block */
+        }
+        return;
+    }
+    if (xk == XK_OUT) {
+        const size_t n = std::min((size_t)sector_total,xbuf.size() - xbuf_pos);
+        memcpy(xbuf.data() + xbuf_pos,sector,n);
+        xbuf_pos += n;
+        if (xbuf_pos < xbuf.size()) {
+            buf_load_block();
+            data_phase_ready(); /* PIO: an interrupt for each further block */
+        }
+        else {
+            state = IDE_DEV_BUSY;
+            status = IDE_STATUS_BUSY;
+            buf_out_done();
+        }
+        return;
+    }
+
+    const unsigned int fl = sector_cmd_flags(command);
+    if (fl & ATAC_READ) {
+        /* the host has read the data block */
+        cur_lba += cur_block;
+        cur_count -= cur_block;
+        progress_count += cur_block;
+        if (cur_count == 0) {
+            /* end of the transfer: the registers show the last sector */
+            update_address_registers(cur_lba - 1u);
+            count = 0;
+            if (cmd_ext) hob_count = 0;
+            if (fl & ATAC_QUEUED) count = (uint16_t)((queue_tag << 3u) | 0x03u);
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            if (stream_se) status |= 0x20; /* SE: errors during Read Continuous, see the read stream error log */
+            state = IDE_DEV_READY;
+            allow_writing = true;
+            if (dma_cmd) raise_irq(); /* PIO data-in has no interrupt after the last block */
+            return;
+        }
+
+        /* the next block, as soon as it has come off the disk */
+        cur_block = block_count();
+        state = IDE_DEV_BUSY;
+        status = IDE_STATUS_BUSY;
+        schedule(media_access(cur_lba,cur_block,false,PIC_FullIndex()));
+        return;
+    }
+    if (fl & ATAC_WRITE) {
+        /* the drive has the data block, it goes to the write cache (or straight to the disk) */
+        state = IDE_DEV_BUSY;
+        status = IDE_STATUS_BUSY;
+        {
+            const double now = PIC_FullIndex();
+            const bool last = (cur_count <= cur_block);
+            /* written to the media before completion: FUA, WRITE VERIFY, Write-Read-Verify, write cache off,
+             * a stream write with Flush on its last block */
+            const bool verify = (fl & ATAC_WVERIFY) || wrv_applies(cur_block);
+            const bool through = (fl & ATAC_FUA) || verify || !write_cache_on() ||
+                ((fl & ATAC_STREAM) && (feature & 0x20u) && last);
+            double written = media_access(cur_lba,cur_block,true,now + (instant ? 0 : IDE_HD_COMMAND_MS));
+            if (verify && !instant) written += rev_ms; /* read back on the next revolution */
+            double done = written;
+
+            if (!through && !instant) {
+                /* write behind: done when the data is in the cache, unless the cache is full */
+                mech_free_at = written;
+                done = written - IDE_HD_WRITE_CACHE_SECTORS * sector_ms;
+                if (done < now + IDE_HD_COMMAND_MS) done = now + IDE_HD_COMMAND_MS;
+            }
+            else if (through) {
+                if (mech_free_at < written) mech_free_at = written;
+            }
+            schedule(done);
+        }
+        return;
+    }
+
     switch (command) {
-        case 0x20: case 0x21: case 0x24: /* READ SECTOR(S) (EXT) */
-        case 0xC4: case 0x29: /* READ MULTIPLE (EXT) */
-            /* the host has read the data block */
-            cur_lba += cur_block;
-            cur_count -= cur_block;
-            progress_count += cur_block;
-            if (cur_count == 0) {
-                /* end of the transfer: the registers show the last sector */
-                update_address_registers(cur_lba - 1u);
-                count = 0;
-                if (cmd_ext) hob_count = 0;
-                status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                state = IDE_DEV_READY;
-                allow_writing = true;
-                return;
-            }
-
-            /* the next block, as soon as it has come off the disk */
-            cur_block = block_count();
-            state = IDE_DEV_BUSY;
-            status = IDE_STATUS_BUSY;
-            schedule(media_access(cur_lba,cur_block,false,PIC_FullIndex()));
-            break;
-        case 0x30: case 0x31: case 0x34: /* WRITE SECTOR(S) (EXT) */
-        case 0xC5: case 0x39: /* WRITE MULTIPLE (EXT) */
-            /* the drive has the data block, it goes to the write cache (or straight to the disk) */
-            state = IDE_DEV_BUSY;
-            status = IDE_STATUS_BUSY;
-            {
-                const double now = PIC_FullIndex();
-                const double written = media_access(cur_lba,cur_block,true,now + (instant ? 0 : IDE_HD_COMMAND_MS));
-                double done = written;
-
-                if (write_cache && !instant) {
-                    /* write behind: done when the data is in the cache, unless the cache is full */
-                    mech_free_at = written;
-                    done = written - IDE_HD_WRITE_CACHE_SECTORS * sector_ms;
-                    if (done < now + IDE_HD_COMMAND_MS) done = now + IDE_HD_COMMAND_MS;
-                }
-                schedule(done);
-            }
-            break;
         case 0xEC: /* IDENTIFY */
             feature = 0;
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
@@ -2783,16 +3281,31 @@ void IDEATADevice::io_completion() {
 
 /* the delayed part of an ATA command (data ready, written, seek complete, ...) */
 void IDEATADevice::delayed_command() {
+    if (xk == XK_IN_PENDING) {
+        xk = XK_IN;
+        xbuf_pos = 0;
+        buf_load_block();
+        data_phase_ready();
+        return;
+    }
+    if (xk == XK_FINISH) {
+        xk = XK_NONE;
+        if (fin_err != 0) abort_with_error(fin_err);
+        else command_ok();
+        return;
+    }
+
+    const unsigned int fl = sector_cmd_flags(command);
+    if (fl & (ATAC_READ|ATAC_VERIFY)) {
+        read_block();
+        return;
+    }
+    if (fl & ATAC_WRITE) {
+        write_block();
+        return;
+    }
+
     switch (command) {
-        case 0x20: case 0x21: case 0x24: /* READ SECTOR(S) (EXT) */
-        case 0xC4: case 0x29: /* READ MULTIPLE (EXT) */
-        case 0x40: case 0x41: case 0x42: /* READ VERIFY SECTOR(S) (EXT) */
-            read_block();
-            break;
-        case 0x30: case 0x31: case 0x34: /* WRITE SECTOR(S) (EXT) */
-        case 0xC5: case 0x39: /* WRITE MULTIPLE (EXT) */
-            write_block();
-            break;
         case 0xEC:/*IDENTIFY DEVICE (CONTINUED) */
             state = IDE_DEV_DATA_READ;
             status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
@@ -2819,6 +3332,27 @@ void IDEATADevice::host_reset_complete() {
     IDEDevice::host_reset_complete();
     /* a reset wakes the device from sleep, the disk stays stopped until it is accessed */
     if (power == PWR_SLEEP) power = PWR_STANDBY;
+    /* a software reset discards microcode segments and ends a self-test (a selective self-test goes on
+     * if bit 3 of its feature flags says so) */
+    ucode.clear();
+    ucode_next = 0;
+    xk = XK_NONE;
+    dma_cmd = false;
+    if (fill_kind != FILL_NONE) {
+        /* a reset stops a fill in progress; what is written stays written */
+        PIC_RemoveSpecificEvents(IDE_ATA_FillStep,IDEEventPack(controller->interface_index,slave?1u:0u).get());
+        if (fill_kind == FILL_SCT) sct_status = 0x0008;
+        fill_kind = FILL_NONE;
+        sct_ws_background = false;
+    }
+    if (selftest_running && !((selftest_sub & 0x7Fu) == 4 && (selective_log[502] & 0x08u))) selftest_finish(0x20);
+    if (revert_defaults) {
+        write_cache = true;
+        read_lookahead = true;
+        mwdma_sel = udma_sel = -1;
+        pio_mode = -1;
+        wrv_enabled = false;
+    }
 }
 
 void IDEATADevice::set_signature() {
@@ -3108,7 +3642,252 @@ bool IDEATAPICDROMDevice::read_cd_sectors(Bitu lba,Bitu count,Bitu &bytes) {
 }
 
 /* the PACKET command has been received */
+
+/* ------------------------------------------------------------------------------------------
+ * ATAPI CD-ROM: packet commands of MMC/SFF-8020i not handled above, and the ATA-level feature sets
+ * of a packet device (Removable Media Status Notification, transfer modes, PACKET with DMA)
+ * ------------------------------------------------------------------------------------------ */
+
+bool IDEATAPICDROMDevice::has_dma() const {
+    return controller != NULL && controller->bm != NULL;
+}
+
+void IDEATAPICDROMDevice::execute_device_diagnostic() {
+    IDEDevice::execute_device_diagnostic();
+    /* Removable Media Status Notification is disabled by EXECUTE DEVICE DIAGNOSTIC and resets */
+    rmsn_enabled = rmsn_mc = rmsn_mcr = false;
+}
+
+static Bitu atapi_msf2lba(const TMSF &m) {
+    const Bitu f = ((Bitu)m.min * 60u + m.sec) * 75u + m.fr;
+    return f >= 150u ? f - 150u : 0u;
+}
+
+/* first sector of a track and the first sector after it */
+static bool atapi_track_range(CDROM_Interface *cd,int track,Bitu &start,Bitu &end) {
+    int first,last;
+    TMSF lo,ts,te;
+    unsigned char attr;
+
+    if (cd == NULL || !cd->GetAudioTracks(first,last,lo)) return false;
+    if (track < first || track > last) return false;
+    if (!cd->GetAudioTrackInfo(track,ts,attr)) return false;
+    te = lo;
+    if (track < last && !cd->GetAudioTrackInfo(track + 1,te,attr)) te = lo;
+    start = atapi_msf2lba(ts);
+    end = atapi_msf2lba(te);
+    return end > start;
+}
+
+/* data from the host for a packet command (MODE SELECT, WRITE BUFFER, SET STREAMING) */
+void IDEATAPICDROMDevice::atapi_data_out(Bitu len) {
+    if (!dma_cmd && len > host_maximum_byte_count) len = host_maximum_byte_count;
+    if (len > sizeof(sector)) len = sizeof(sector);
+    if (len == 0) {
+        atapi_done();
+        return;
+    }
+    lba[2] = (uint16_t)(len >> 8u);
+    lba[1] = (uint16_t)(len & 0xFFu);
+    prepare_write(0,(len + 1u) & ~((Bitu)1u));
+    feature = 0x00;
+    count = 0x00; /* data from the host */
+    state = IDE_DEV_DATA_WRITE;
+    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+    allow_writing = true;
+    data_phase_ready();
+}
+
+/* READ HEADER (MMC-1/2): the data mode and address of a sector */
+void IDEATAPICDROMDevice::read_header() {
+    CDROM_Interface *cd = getMSCDEXDrive();
+    const unsigned int alloc = ((unsigned int)atapi_cmd[7] << 8u) | atapi_cmd[8];
+    const Bitu l = ((Bitu)atapi_cmd[2] << 24u) | ((Bitu)atapi_cmd[3] << 16u) | ((Bitu)atapi_cmd[4] << 8u) | atapi_cmd[5];
+    const int mode = (cd != NULL) ? cd->GetSectorMode((unsigned long)l) : -1;
+
+    if (mode < 0 || l >= atapi_capacity(cd)) {
+        set_sense(0x05,0x21);           /* LBA out of range */
+        atapi_fail();
+        return;
+    }
+    if (mode == 0) {
+        set_sense(0x05,0x64);           /* illegal mode for this track: CD-DA has no header */
+        atapi_fail();
+        return;
+    }
+    memset(sector,0,8);
+    sector[0] = (unsigned char)mode;
+    if (atapi_cmd[1] & 2u) {
+        const Bitu f = l + 150u;
+        sector[5] = (unsigned char)(f / (60u * 75u));
+        sector[6] = (unsigned char)((f / 75u) % 60u);
+        sector[7] = (unsigned char)(f % 75u);
+    }
+    else {
+        sector[4] = (unsigned char)(l >> 24u); sector[5] = (unsigned char)(l >> 16u);
+        sector[6] = (unsigned char)(l >> 8u); sector[7] = (unsigned char)l;
+    }
+    atapi_data_in(MIN((Bitu)8u,(Bitu)alloc));
+}
+
+/* READ FORMAT CAPACITIES: a CD-ROM is formatted media of 2048-byte blocks */
+void IDEATAPICDROMDevice::read_format_capacities() {
+    CDROM_Interface *cd = getMSCDEXDrive();
+    const unsigned int alloc = ((unsigned int)atapi_cmd[7] << 8u) | atapi_cmd[8];
+    const bool present = !tray_open && cd != NULL && cd->class_id != CDROM_Interface::INTERFACE_TYPE::ID_FAKE;
+    const Bitu blocks = present ? atapi_capacity(cd) : 360000u;
+
+    memset(sector,0,12);
+    sector[3] = 8;
+    sector[4] = (unsigned char)(blocks >> 24u); sector[5] = (unsigned char)(blocks >> 16u);
+    sector[6] = (unsigned char)(blocks >> 8u); sector[7] = (unsigned char)blocks;
+    sector[8] = present ? 0x02 : 0x03;  /* formatted media, or no media present (maximum capacity) */
+    sector[10] = 0x08;                  /* 2048 bytes per block */
+    atapi_data_in(MIN((Bitu)12u,(Bitu)alloc));
+}
+
+/* GET PERFORMANCE (MMC-3): the read speed at the start and end of the disc */
+void IDEATAPICDROMDevice::get_performance() {
+    CDROM_Interface *cd = getMSCDEXDrive();
+    const unsigned int maxdesc = ((unsigned int)atapi_cmd[8] << 8u) | atapi_cmd[9];
+    const unsigned int type = atapi_cmd[10];
+    const bool write = (atapi_cmd[1] & 4u) != 0;
+
+    memset(sector,0,8 + 16);
+    if (type != 0x00 && type != 0x03) {
+        set_sense(0x05,0x24);
+        atapi_fail();
+        return;
+    }
+    Bitu len = 8;
+    if (type == 0x00 && !write && maxdesc != 0) {
+        const Bitu cap = atapi_capacity(cd);
+        const Bitu last = cap ? cap - 1u : 0u;
+        const uint32_t s0 = (uint32_t)(cd_speed_x(0) * 176.4 + 0.5);
+        const uint32_t s1 = (uint32_t)(cd_speed_x(last) * 176.4 + 0.5);
+        unsigned char *d = sector + 8;
+        d[4] = (unsigned char)(s0 >> 24u); d[5] = (unsigned char)(s0 >> 16u); d[6] = (unsigned char)(s0 >> 8u); d[7] = (unsigned char)s0;
+        d[8] = (unsigned char)(last >> 24u); d[9] = (unsigned char)(last >> 16u); d[10] = (unsigned char)(last >> 8u); d[11] = (unsigned char)last;
+        d[12] = (unsigned char)(s1 >> 24u); d[13] = (unsigned char)(s1 >> 16u); d[14] = (unsigned char)(s1 >> 8u); d[15] = (unsigned char)s1;
+        len += 16;
+    }
+    /* type 03h (write speed): a CD-ROM drive does not write */
+    sector[3] = (unsigned char)(len - 4u);
+    sector[4] = write ? 0x02 : 0x00;
+    atapi_data_in(len);
+}
+
+/* SET STREAMING (MMC-3): the performance descriptor has been received */
+void IDEATAPICDROMDevice::set_streaming_done() {
+    const unsigned char *d = sector;
+    if ((sector_total < 28u) || atapi_cmd[8] != 0x00) {
+        set_sense(0x05,0x26); /* invalid field in parameter list */
+        atapi_fail();
+        return;
+    }
+    if (d[0] & 0x04) {
+        /* Restore Drive Defaults */
+        cur_speed = max_speed;
+    }
+    else {
+        const uint32_t size = ((uint32_t)d[12] << 24u) | ((uint32_t)d[13] << 16u) | ((uint32_t)d[14] << 8u) | d[15];
+        const uint32_t ms = ((uint32_t)d[16] << 24u) | ((uint32_t)d[17] << 16u) | ((uint32_t)d[18] << 8u) | d[19];
+        if (ms != 0) {
+            const double kbps = (double)size * 1000.0 / (double)ms;
+            unsigned int x = (unsigned int)((kbps + 88.0) / 176.4);
+            if (x < 1) x = 1;
+            if (x > max_speed) x = max_speed;
+            cur_speed = x;
+        }
+    }
+    LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM: SET STREAMING read speed %ux",cur_speed);
+    atapi_done();
+}
+
+/* READ BUFFER (SPC): the drive's 64KB buffer, and the echo buffer */
+void IDEATAPICDROMDevice::read_buffer() {
+    const unsigned int mode = atapi_cmd[1] & 0x1Fu;
+    const Bitu off = ((Bitu)atapi_cmd[3] << 16u) | ((Bitu)atapi_cmd[4] << 8u) | atapi_cmd[5];
+    const Bitu alloc = ((Bitu)atapi_cmd[6] << 16u) | ((Bitu)atapi_cmd[7] << 8u) | atapi_cmd[8];
+    const Bitu cap = cd_buffer.size();
+
+    if (atapi_cmd[2] != 0) { set_sense(0x05,0x24); atapi_fail(); return; }
+    switch (mode) {
+        case 0x00: /* combined header and data */
+        case 0x02: /* data */
+        case 0x0A: /* echo buffer */
+            {
+                const Bitu hdr = (mode == 0x00) ? 4u : 0u;
+                const Bitu bcap = (mode == 0x0A) ? 512u : cap;
+                if (off > bcap) { set_sense(0x05,0x24); atapi_fail(); return; }
+                Bitu n = MIN(alloc,(Bitu)sizeof(sector));
+                memset(sector,0,n);
+                if (hdr && n >= 4) { sector[1] = (unsigned char)(bcap >> 16u); sector[2] = (unsigned char)(bcap >> 8u); sector[3] = (unsigned char)bcap; }
+                for (Bitu i=hdr;i < n && off + i - hdr < bcap;i++) sector[i] = cd_buffer[off + i - hdr];
+                atapi_data_in(n);
+            }
+            break;
+        case 0x03: /* descriptor */
+            memset(sector,0,4);
+            sector[1] = (unsigned char)(cap >> 16u); sector[2] = (unsigned char)(cap >> 8u); sector[3] = (unsigned char)cap;
+            atapi_data_in(MIN((Bitu)4u,alloc));
+            break;
+        case 0x0B: /* echo buffer descriptor */
+            memset(sector,0,4);
+            sector[2] = 0x02; sector[3] = 0x00; /* 512 bytes */
+            atapi_data_in(MIN((Bitu)4u,alloc));
+            break;
+        default:
+            set_sense(0x05,0x24);
+            atapi_fail();
+            break;
+    }
+}
+
+/* WRITE BUFFER: the data has been received */
+void IDEATAPICDROMDevice::write_buffer_done() {
+    const unsigned int mode = atapi_cmd[1] & 0x1Fu;
+    const Bitu off = ((Bitu)atapi_cmd[3] << 16u) | ((Bitu)atapi_cmd[4] << 8u) | atapi_cmd[5];
+    const Bitu hdr = (mode == 0x00) ? 4u : 0u;
+
+    for (Bitu i=hdr;i < sector_total && off + i - hdr < cd_buffer.size();i++) cd_buffer[off + i - hdr] = sector[i];
+    atapi_done();
+}
+
+/* GET MEDIA STATUS (DAh) with Removable Media Status Notification enabled */
+static uint8_t atapi_media_status_bits(IDEATAPICDROMDevice *d) {
+    CDROM_Interface *cd = d->getMSCDEXDrive();
+    const bool present = !d->tray_open && cd != NULL && cd->class_id != CDROM_Interface::INTERFACE_TYPE::ID_FAKE;
+    uint8_t e = 0;
+
+    if (!present) e |= 0x02;            /* NM: no media */
+    if (d->rmsn_mcr) e |= 0x08;         /* MCR: media change request (eject button) */
+    if (d->rmsn_mc && present) e |= 0x20; /* MC: media inserted since the last GET MEDIA STATUS */
+    if (present) e |= 0x40;             /* WP: a CD-ROM is write protected */
+    d->rmsn_mc = d->rmsn_mcr = false;
+    return e;
+}
+
 void IDEATAPICDROMDevice::atapi_cmd_completion() {
+    /* LOAD/UNLOAD MEDIUM of a drive with one slot is START STOP UNIT with LoEj */
+    if (atapi_cmd[0] == 0xA6) {
+        if (atapi_cmd[8] != 0) {
+            set_sense(0x05,0x24); /* invalid field in CDB: there is only slot 0 */
+            atapi_fail();
+            return;
+        }
+        if (!(atapi_cmd[4] & 0x02)) {
+            /* LoUnlo=0: abort a changer operation, there is none */
+            atapi_done();
+            return;
+        }
+        const unsigned char immed = atapi_cmd[1] & 1u,start = atapi_cmd[4] & 1u;
+        memset(atapi_cmd,0,sizeof(atapi_cmd));
+        atapi_cmd[0] = 0x1B;
+        atapi_cmd[1] = immed;
+        atapi_cmd[4] = (unsigned char)(0x02u | start);
+    }
+
     const double now = PIC_FullIndex();
     const double overhead = faked_command ? 0.000001 : (instant ? 0.01 : IDE_CD_COMMAND_MS);
     const uint8_t op = atapi_cmd[0];
@@ -3127,7 +3906,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
         TransferLengthRemaining = TransferLength;
         if (TransferLength > sector_transfer_limit)
             TransferLength = sector_transfer_limit;
-        Bitu fit = MIN((Bitu)sizeof(sector),(Bitu)host_maximum_byte_count) / per;
+        Bitu fit = (dma_cmd ? (Bitu)sizeof(sector) : MIN((Bitu)sizeof(sector),(Bitu)host_maximum_byte_count)) / per;
         if (fit == 0) fit = 1;
         if (TransferLength > fit) TransferLength = fit;
         TransferLengthRemaining -= TransferLength;
@@ -3149,6 +3928,57 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             return;
         case 0xBB: /* SET CD SPEED */
             set_cd_speed();
+            return;
+        case 0x23: /* READ FORMAT CAPACITIES */
+            read_format_capacities();
+            return;
+        case 0xAC: /* GET PERFORMANCE */
+            get_performance();
+            return;
+        case 0x3C: /* READ BUFFER */
+            read_buffer();
+            return;
+        case 0x3B: /* WRITE BUFFER */
+            {
+                const unsigned int mode = atapi_cmd[1] & 0x1Fu;
+                const Bitu off = ((Bitu)atapi_cmd[3] << 16u) | ((Bitu)atapi_cmd[4] << 8u) | atapi_cmd[5];
+                const Bitu len = ((Bitu)atapi_cmd[6] << 16u) | ((Bitu)atapi_cmd[7] << 8u) | atapi_cmd[8];
+                const Bitu cap = (mode == 0x0A) ? 512u : cd_buffer.size();
+                const Bitu hdr = (mode == 0x00) ? 4u : 0u;
+                /* microcode download (modes 04h-07h) is not supported */
+                if ((mode != 0x00 && mode != 0x02 && mode != 0x0A) || atapi_cmd[2] != 0 || off + (len > hdr ? len - hdr : 0) > cap) {
+                    set_sense(0x05,0x24);
+                    atapi_fail();
+                    return;
+                }
+                set_sense(0);
+                atapi_data_out(len);
+            }
+            return;
+        case 0xB6: /* SET STREAMING */
+            {
+                const Bitu len = ((Bitu)atapi_cmd[9] << 8u) | atapi_cmd[10];
+                set_sense(0);
+                if (len == 0) { atapi_done(); return; }
+                atapi_data_out(len);
+            }
+            return;
+        case 0x1D: /* SEND DIAGNOSTIC */
+            {
+                const Bitu plen = ((Bitu)atapi_cmd[3] << 8u) | atapi_cmd[4];
+                if (!(atapi_cmd[1] & 0x04u) && plen != 0) {
+                    set_sense(0x05,0x24); /* no diagnostic pages */
+                    atapi_fail();
+                    return;
+                }
+                set_sense(0);
+                /* the self-test checks the drive mechanics */
+                if (atapi_cmd[1] & 0x04u) at += (instant || faked_command) ? 0.0 : 500.0;
+            }
+            count = 0x02;
+            state = IDE_DEV_ATAPI_BUSY;
+            status = IDE_STATUS_BUSY;
+            schedule(at);
             return;
         case 0x03: /* REQUEST SENSE */
         case 0x12: /* INQUIRY */
@@ -3197,6 +4027,15 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
         case 0x4E: /* STOP PLAY/SCAN */
         case 0x51: /* READ DISC INFORMATION */
         case 0x52: /* READ TRACK INFORMATION */
+        case 0x01: /* REZERO UNIT (SFF-8020i) */
+        case 0x2F: /* VERIFY(10) */
+        case 0x44: /* READ HEADER */
+        case 0x48: /* PLAY AUDIO TRACK/INDEX */
+        case 0x49: /* PLAY TRACK RELATIVE(10) */
+        case 0xA5: /* PLAY AUDIO(12) */
+        case 0xA9: /* PLAY TRACK RELATIVE(12) */
+        case 0xBA: /* SCAN */
+        case 0xA7: /* SET READ AHEAD */
             /* these need a disc, and wait for it to spin up */
             if (!common_spinup_response(/*spin up*/true,/*wait*/true)) {
                 atapi_fail();
@@ -3290,6 +4129,89 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 Bitu s = ((Bitu)atapi_cmd[3] * 60u + atapi_cmd[4]) * 75u + atapi_cmd[5];
                 s = s >= 150u ? s - 150u : 0u;
                 at = cd_access(s,0,at);
+            }
+            break;
+        case 0x01: /* REZERO UNIT: the pickup goes to the start of the disc */
+            at = cd_access(0,0,at);
+            rb_valid = false;
+            break;
+        case 0x2F: /* VERIFY(10): the sectors are read */
+            {
+                const Bitu l = ((Bitu)atapi_cmd[2] << 24u) | ((Bitu)atapi_cmd[3] << 16u) | ((Bitu)atapi_cmd[4] << 8u) | atapi_cmd[5];
+                const Bitu n = ((Bitu)atapi_cmd[7] << 8u) | atapi_cmd[8];
+                const Bitu cap = atapi_capacity(cdrom);
+                if (n != 0 && (l >= cap || l + n > cap)) {
+                    set_sense(0x05,0x21);
+                    atapi_fail();
+                    return;
+                }
+                if (n != 0) at = cd_access(l,n,at);
+            }
+            break;
+        case 0x44: /* READ HEADER: the pickup reads the sector's header */
+            {
+                const Bitu l = ((Bitu)atapi_cmd[2] << 24u) | ((Bitu)atapi_cmd[3] << 16u) | ((Bitu)atapi_cmd[4] << 8u) | atapi_cmd[5];
+                if (l < atapi_capacity(cdrom)) at = cd_access(l,1,at);
+            }
+            break;
+        case 0x48: /* PLAY AUDIO TRACK/INDEX */
+        case 0x49: /* PLAY TRACK RELATIVE(10) */
+        case 0xA5: /* PLAY AUDIO(12) */
+        case 0xA9: /* PLAY TRACK RELATIVE(12) */
+        case 0xBA: /* SCAN */
+            {
+                Bitu s = 0,e = 0;
+                bool ok = true;
+                if (op == 0x48) {
+                    Bitu s2,e2;
+                    const int st = atapi_cmd[4],et = atapi_cmd[7] < atapi_cmd[4] ? atapi_cmd[4] : atapi_cmd[7];
+                    ok = atapi_track_range(cdrom,st,s,e) && atapi_track_range(cdrom,et,s2,e2);
+                    if (ok) e = e2;
+                    else if (atapi_track_range(cdrom,st,s,e)) {
+                        /* an end track past the last track plays to the end of the disc */
+                        int first,last; TMSF lo;
+                        ok = cdrom->GetAudioTracks(first,last,lo) && et > last;
+                        if (ok) e = atapi_msf2lba(lo);
+                    }
+                }
+                else if (op == 0x49 || op == 0xA9) {
+                    const int32_t rel = (int32_t)(((uint32_t)atapi_cmd[2] << 24u) | ((uint32_t)atapi_cmd[3] << 16u) |
+                        ((uint32_t)atapi_cmd[4] << 8u) | atapi_cmd[5]);
+                    const int track = (op == 0x49) ? atapi_cmd[6] : atapi_cmd[10];
+                    const Bitu n = (op == 0x49) ? (((Bitu)atapi_cmd[7] << 8u) | atapi_cmd[8]) :
+                        (((Bitu)atapi_cmd[6] << 24u) | ((Bitu)atapi_cmd[7] << 16u) | ((Bitu)atapi_cmd[8] << 8u) | atapi_cmd[9]);
+                    Bitu ts,te;
+                    ok = atapi_track_range(cdrom,track,ts,te) && (rel >= 0 || (Bitu)(-(int64_t)rel) <= ts);
+                    if (ok) { s = (Bitu)((int64_t)ts + rel); e = s + n; }
+                }
+                else if (op == 0xA5) {
+                    s = ((Bitu)atapi_cmd[2] << 24u) | ((Bitu)atapi_cmd[3] << 16u) | ((Bitu)atapi_cmd[4] << 8u) | atapi_cmd[5];
+                    e = s + (((Bitu)atapi_cmd[6] << 24u) | ((Bitu)atapi_cmd[7] << 16u) | ((Bitu)atapi_cmd[8] << 8u) | atapi_cmd[9]);
+                }
+                else {
+                    /* SCAN: from the address to the end of the disc */
+                    const unsigned int type = atapi_cmd[9] >> 6u;
+                    int first,last; TMSF lo;
+                    if (type == 0) s = ((Bitu)atapi_cmd[2] << 24u) | ((Bitu)atapi_cmd[3] << 16u) | ((Bitu)atapi_cmd[4] << 8u) | atapi_cmd[5];
+                    else if (type == 1) { TMSF m; m.min = atapi_cmd[3]; m.sec = atapi_cmd[4]; m.fr = atapi_cmd[5]; s = atapi_msf2lba(m); }
+                    else if (type == 2) { Bitu te; ok = atapi_track_range(cdrom,atapi_cmd[5],s,te); }
+                    else ok = false;
+                    if (ok) ok = cdrom->GetAudioTracks(first,last,lo);
+                    if (ok) e = atapi_msf2lba(lo);
+                }
+                if (!ok) {
+                    set_sense(0x05,0x24); /* invalid field in CDB (track) */
+                    atapi_fail();
+                    return;
+                }
+                if (e > s && cdrom->GetSectorMode((unsigned long)s) != 0) {
+                    set_sense(0x05,0x64); /* illegal mode for this track: not audio */
+                    atapi_fail();
+                    return;
+                }
+                play_start = s;
+                play_len = e > s ? e - s : 0;
+                if (play_len != 0) at = cd_access(s,0,at);
             }
             break;
         default:
@@ -3533,26 +4455,34 @@ void IDEATAPICDROMDevice::generate_identify_device() {
     for (;i < 40;i++)
         sector[(i^1)+(27*2)] = ' ';
 
+    const bool dma = has_dma();
     host_writew(sector+(49*2),
         0x0800UL|/*IORDY supported*/
-        0x0200UL|/*must be one*/
-        0);
+        0x0400UL|/*IORDY may be disabled*/
+        0x0200UL|/*LBA, must be one*/
+        (dma ? 0x0100UL : 0)); /* DMA supported (with a bus master on the controller) */
     host_writew(sector+(50*2),
         0x4000UL);
     host_writew(sector+(51*2),
-        0x00F0UL);
+        0x0200UL);
     host_writew(sector+(52*2),
-        0x00F0UL);
+        dma ? 0x0200UL : 0);
     host_writew(sector+(53*2),
-        0x0006UL);
+        0x0002UL | (dma ? 0x0004UL : 0)); /* words 64-70 (and 88) valid */
+    if (dma) {
+        host_writew(sector+(63*2),(uint16_t)(0x0007u | (mwdma_sel >= 0 ? (0x100u << mwdma_sel) : 0u)));
+        host_writew(sector+(65*2),120);
+        host_writew(sector+(66*2),120);
+        host_writew(sector+(88*2),(uint16_t)(0x003Fu | (udma_sel >= 0 ? (0x100u << udma_sel) : 0u)));
+    }
     host_writew(sector+(64*2),      /* PIO modes supported */
         0x0003UL);
     host_writew(sector+(67*2),      /* PIO cycle time */
         0x0078UL);
     host_writew(sector+(68*2),      /* PIO cycle time */
         0x0078UL);
-    host_writew(sector+(80*2),0x007E); /* major version number. Here we say we support ATA-1 through ATA-8 */
-    host_writew(sector+(81*2),0x0022); /* minor version */
+    host_writew(sector+(80*2),0x01F0); /* major version number: ATA/ATAPI-4 through ATA8-ACS */
+    host_writew(sector+(81*2),0x0042); /* minor version: ATA8-ACS revision 3f */
     /* command sets: word 82 bit 14 NOP, bit 9 DEVICE RESET, bit 4 PACKET, bit 3 power management.
      * words 83 and 84 bit 14 must be 1. words 85-87 say which are enabled. */
     host_writew(sector+(82*2),0x4218);
@@ -3561,17 +4491,35 @@ void IDEATAPICDROMDevice::generate_identify_device() {
     host_writew(sector+(85*2),0x4218);
     host_writew(sector+(86*2),0x0000);
     host_writew(sector+(87*2),0x4000);
+    host_writew(sector+(93*2),slave ? 0x6300 : 0x600B); /* hardware reset result, 80-conductor cable */
+    host_writew(sector+(127*2),0x0001); /* Removable Media Status Notification feature set supported */
+    host_writew(sector+(222*2),0x0001); /* parallel transport, ATA8-APT */
 
-    /* ATA-8 integrity checksum */
-    sector[510] = 0xA5;
-    csum = 0; for (i=0;i < 511;i++) csum += sector[i];
-    sector[511] = 0 - csum;
+    /* only what the ATA standard the device follows defines (packet devices are in the standard from ATA/ATAPI-4) */
+    {
+        const int L = ata_level();
+        auto zero = [&](unsigned int a,unsigned int b) { for (unsigned int k=a;k <= b;k++) host_writew(sector+(k*2),0); };
+        host_writew(sector+(80*2),L >= 4 ? (uint16_t)(ata_level_major(L) & ~0x000Eu) : 0);
+        host_writew(sector+(81*2),L >= 4 ? ata_level_minor(L) : 0);
+        if (dma) {
+            host_writew(sector+(63*2),(uint16_t)(host_readw(sector+(63*2)) & ((ata_level_mdma(L) << 8u) | ata_level_mdma(L))));
+            host_writew(sector+(88*2),(uint16_t)(host_readw(sector+(88*2)) & ((ata_level_udma(L) << 8u) | ata_level_udma(L))));
+        }
+        if (L < 8) zero(222,222);
+        if (L < 5) zero(93,93);
+        if (L < 4) { zero(82,88); zero(127,127); host_writew(sector+(53*2),(uint16_t)(host_readw(sector+(53*2)) & ~0x0004u)); }
+    }
+
+    /* integrity word (ATA/ATAPI-5 and later) */
+    if (ata_level() >= 5) {
+        sector[510] = 0xA5;
+        csum = 0; for (i=0;i < 511;i++) csum += sector[i];
+        sector[511] = 0 - csum;
+    }
 }
 
 void IDEATADevice::generate_identify_device() {
-//  imageDisk *disk = getBIOSdisk();
     unsigned char csum;
-    uint64_t ptotal;
     uint64_t total;
     Bitu i;
 
@@ -3581,16 +4529,17 @@ void IDEATADevice::generate_identify_device() {
 
     /* total disk capacity in sectors */
     total = sects * cyls * heads;
-    ptotal = phys_sects * phys_cyls * phys_heads;
-    uint32_t lba28 = LBA > 0x0FFFFFFF ? 0x0FFFFFFF : (uint32_t)LBA;
-    //uint32_t lba28 = (uint32_t)LBA;
+    if (total > LBA) total = LBA;
+    const uint32_t lba28 = LBA > 0x0FFFFFFF ? 0x0FFFFFFF : (uint32_t)LBA;
+    const bool dma = has_dma();
+    const bool lba48 = f_lba48();
 
-
-    host_writew(sector+(0*2),0x0040);   /* bit 6: 1=fixed disk */
-    host_writew(sector+(1*2),phys_cyls);
+    host_writew(sector+(0*2),0x0040);   /* bit 6: 1=fixed disk (obsolete) */
+    host_writew(sector+(1*2),(uint16_t)(phys_cyls > 16383 ? 16383 : phys_cyls));
+    host_writew(sector+(2*2),0xC837);   /* specific configuration: no spin-up subcommand needed, data complete */
     host_writew(sector+(3*2),phys_heads);
-    host_writew(sector+(4*2),phys_sects * 512); /* unformatted bytes per track */
-    host_writew(sector+(5*2),512);      /* unformatted bytes per sector */
+    host_writew(sector+(4*2),phys_sects * 512); /* ATA-1: unformatted bytes per track */
+    host_writew(sector+(5*2),512);      /* ATA-1: unformatted bytes per sector */
     host_writew(sector+(6*2),phys_sects);
 
     for (i=0;i < 20 && i < id_serial.length();i++)
@@ -3598,8 +4547,9 @@ void IDEATADevice::generate_identify_device() {
     for (;i < 20;i++)
         sector[(i^1)+(10*2)] = ' ';
 
-    host_writew(sector+(20*2),1);       /* ATA-1: single-ported single sector buffer */
-    host_writew(sector+(21*2),4);       /* ATA-1: ECC bytes on read/write long */
+    host_writew(sector+(20*2),3);       /* ATA-1: dual ported multi-sector buffer with read caching */
+    host_writew(sector+(21*2),0x1000);  /* ATA-1: buffer size, 512-byte units (2MB) */
+    host_writew(sector+(22*2),(uint16_t)ecc_bytes); /* ATA-1..3: vendor specific bytes on READ/WRITE LONG */
 
     for (i=0;i < 8 && i < id_firmware_rev.length();i++)
         sector[(i^1)+(23*2)] = (unsigned char)id_firmware_rev[i];
@@ -3614,56 +4564,144 @@ void IDEATADevice::generate_identify_device() {
     if (multiple_sector_max != 0)
         host_writew(sector+(47*2),0x8000|multiple_sector_max); /* <- READ/WRITE MULTIPLE MAX SECTORS (bits 15:8 = 80h) */
 
-    host_writew(sector+(48*2),0x0000);  /* :0  0=we do not support doubleword (32-bit) PIO */
-    host_writew(sector+(49*2),0x2A00);  /* :13 1=Standby timer values as specified by the standard */
-                        /* :11 1=IORDY supported */
-                        /* :10 0=IORDY not disabled */
-                        /* :9  1=LBA supported */
-                        /* :8  0=DMA not supported */
-    host_writew(sector+(50*2),0x4000);  /* FIXME: ??? */
-    host_writew(sector+(51*2),0x00F0);  /* PIO data transfer cycle timing mode */
-    host_writew(sector+(52*2),0x00F0);  /* DMA data transfer cycle timing mode */
-    host_writew(sector+(53*2),0x0007);  /* :2  1=the fields in word 88 are valid */
-                        /* :1  1=the fields in word (70:64) are valid */
-                        /* :0  1= ??? */
+    host_writew(sector+(48*2),f_trusted() ? 0x0001 : 0x0000);  /* Trusted Computing feature set */
+    host_writew(sector+(49*2),0x2000 |  /* standby timer values as specified by the standard */
+                        0x0800 |        /* IORDY supported */
+                        0x0400 |        /* IORDY may be disabled */
+                        0x0200 |        /* LBA supported */
+                        (dma ? 0x0100 : 0)); /* DMA supported (with a bus master on the controller) */
+    host_writew(sector+(50*2),0x4000);
+    host_writew(sector+(51*2),0x0200);  /* obsolete: PIO timing mode 2 */
+    host_writew(sector+(52*2),dma ? 0x0200 : 0x0000); /* obsolete: DMA timing mode 2 */
+    host_writew(sector+(53*2),0x0003 | (dma ? 0x0004 : 0)); /* words 54-58, 64-70 (and 88) valid */
     host_writew(sector+(54*2),cyls);    /* current cylinders */
     host_writew(sector+(55*2),heads);   /* current heads */
     host_writew(sector+(56*2),sects);   /* current sectors per track */
-    host_writed(sector+(57*2),total);   /* current capacity in sectors */
+    host_writed(sector+(57*2),(uint32_t)total); /* current capacity in sectors */
 
     if (multiple_sector_count != 0)
         host_writew(sector+(59*2),0x0100|multiple_sector_count); /* :8  multiple sector setting is valid */
                         /* 7:0 current setting for number of log. sectors per DRQ of READ/WRITE MULTIPLE */
 
     host_writed(sector+(60*2),lba28);  /* total user addressable sectors (LBA) */
-    host_writew(sector+(62*2),0x0000);  /* FIXME: ??? */
-    host_writew(sector+(63*2),0x0000);  /* :10 0=Multiword DMA mode 2 not selected */
-                        /* TODO: Basically, we don't do DMA. Fill out this comment */
-    host_writew(sector+(64*2),0x0003);  /* 7:0 PIO modes supported (FIXME ???) */
-    host_writew(sector+(65*2),0x0000);  /* FIXME: ??? */
-    host_writew(sector+(66*2),0x0000);  /* FIXME: ??? */
-    host_writew(sector+(67*2),0x0078);  /* FIXME: ??? */
-    host_writew(sector+(68*2),0x0078);  /* FIXME: ??? */
-    host_writew(sector+(80*2),0x007E);  /* major version number. Here we say we support ATA-1 through ATA-8 */
-    host_writew(sector+(81*2),0x0022);  /* minor version */
-    /* command sets: word 82 bit 14 NOP, bit 6 read look-ahead, bit 5 write cache, bit 3 power management.
-     * word 83 bit 14 must be 1, bit 13 FLUSH CACHE EXT, bit 12 FLUSH CACHE, bit 10 48-bit address.
-     * word 84 bit 14 must be 1. words 85-87 say which are enabled. */
-    host_writew(sector+(82*2),0x4068);
-    host_writew(sector+(83*2),0x5000 | (int13_enable_48bitLBA ? 0x2400 : 0x0000));
-    host_writew(sector+(84*2),0x4000);
-    host_writew(sector+(85*2),0x4008 | (read_lookahead ? 0x0040 : 0x0000) | (write_cache ? 0x0020 : 0x0000));
-    host_writew(sector+(86*2),0x1000 | (int13_enable_48bitLBA ? 0x2400 : 0x0000));
-    host_writew(sector+(87*2),0x4000);
-    host_writew(sector+(88*2),0x0000);  /* FIXME: ??? */
-    host_writew(sector+(93*2),0x0000);  /* FIXME: ??? */
-    host_writed(sector+(100*2), int13_enable_48bitLBA ? (uint32_t)(LBA & 0xFFFFFFFF):0); // 48bit LBA lower 32 bits
-    host_writed(sector+(102*2), int13_enable_48bitLBA ? (uint32_t)(LBA >> 32):0);        // 48bit LBA upper 32 bits 
+    if (dma) {
+        host_writew(sector+(63*2),(uint16_t)((dco_mdma & 7u) | (mwdma_sel >= 0 ? (0x100u << mwdma_sel) : 0u)));
+        host_writew(sector+(65*2),120); /* multiword DMA cycle times (ns) */
+        host_writew(sector+(66*2),120);
+    }
+    host_writew(sector+(64*2),0x0003);  /* PIO modes 3 and 4 */
+    host_writew(sector+(67*2),120);     /* PIO cycle time without flow control */
+    host_writew(sector+(68*2),120);     /* PIO cycle time with IORDY */
+    host_writew(sector+(75*2),0x0000);  /* queue depth 1 */
+    host_writew(sector+(80*2),0x01FE);  /* ATA-1 through ATA8-ACS */
+    host_writew(sector+(81*2),0x0042);  /* ATA8-ACS revision 3f */
 
-    /* ATA-8 integrity checksum */
-    sector[510] = 0xA5;
-    csum = 0; for (i=0;i < 511;i++) csum += sector[i];
-    sector[511] = 0 - csum;
+    /* command sets and features supported (82-84), enabled (85-87) */
+    host_writew(sector+(82*2),(uint16_t)(0x4000 | 0x2000 | 0x1000 |     /* NOP, READ BUFFER, WRITE BUFFER */
+        (f_hpa() ? 0x0400 : 0) | (f_tcq() ? 0x0180 : 0) |               /* HPA, SERVICE/release interrupts */
+        0x0040 | 0x0020 | 0x0008 |                                      /* look-ahead, write cache, power management */
+        (f_security() ? 0x0002 : 0) | (f_smart() ? 0x0001 : 0)));
+    host_writew(sector+(83*2),(uint16_t)(0x4000 | (lba48 ? 0x2400 : 0) | 0x1000 | 0x0800 | /* FLUSH CACHE (EXT), 48-bit, DCO */
+        (f_aam() ? 0x0200 : 0) | (f_hpa() ? 0x0100 : 0) |                /* AAM, SET MAX security extension */
+        (f_puis() ? 0x0020 : 0) | 0x0008 | (f_tcq() ? 0x0002 : 0) | 0x0001)); /* PUIS, APM, TCQ, DOWNLOAD MICROCODE */
+    const uint16_t w84 = (uint16_t)(0x4000 | 0x2000 |                    /* IDLE IMMEDIATE with UNLOAD */
+        ((f_tcq() && f_fua()) ? 0x0080 : 0) | (f_fua() ? 0x0040 : 0) | 0x0020 | /* FUA commands, GPL */
+        (f_stream() ? 0x0010 : 0) | ((f_smart() && f_selftest()) ? 0x0002 : 0) | ((f_smart() && f_errlog()) ? 0x0001 : 0));
+    host_writew(sector+(84*2),w84);
+    host_writew(sector+(85*2),(uint16_t)(0x4000 | 0x2000 | 0x1000 |
+        ((f_hpa() && LBA < native_LBA) ? 0x0400 : 0) | (serv_irq_en ? 0x0100 : 0) | (rel_irq_en ? 0x0080 : 0) |
+        (read_lookahead ? 0x0040 : 0) | (write_cache_on() ? 0x0020 : 0) | 0x0008 |
+        (sec_enabled ? 0x0002 : 0) | ((f_smart() && smart_enabled) ? 0x0001 : 0)));
+    host_writew(sector+(86*2),(uint16_t)(0x8000 | (lba48 ? 0x2400 : 0) | 0x1000 | 0x0800 |
+        (aam_enabled ? 0x0200 : 0) | (setmax_state != SM_INACTIVE ? 0x0100 : 0) |
+        (puis_enabled ? 0x0020 : 0) | (apm_enabled ? 0x0008 : 0) | (f_tcq() ? 0x0002 : 0) | 0x0001));
+    host_writew(sector+(87*2),(uint16_t)(0x4000 | (w84 & 0x20E3)));
+    if (dma) host_writew(sector+(88*2),(uint16_t)((dco_udma & 0x3Fu) | (udma_sel >= 0 ? (0x100u << udma_sel) : 0u)));
+    if (f_security()) {
+        const double m = erase_time_ms(false) / 120000.0,me = erase_time_ms(true) / 120000.0;
+        host_writew(sector+(89*2),(uint16_t)(m >= 254.0 ? 255 : m + 1.0));  /* security erase time, 2 minute units */
+        host_writew(sector+(90*2),(uint16_t)(me >= 254.0 ? 255 : me + 1.0));
+        host_writew(sector+(92*2),sec_master_id);
+    }
+    host_writew(sector+(91*2),apm_enabled ? apm_level : 0);
+    /* hardware reset result: device 0 passed diagnostics (number by jumper), device 1 likewise; 80-conductor cable */
+    host_writew(sector+(93*2),slave ? 0x6300 : 0x600B);
+    if (f_aam()) host_writew(sector+(94*2),(uint16_t)(0x8000u | (aam_enabled ? aam_level : 0u)));
+    if (f_stream()) {
+        const double ms_per_sector = sector_ms > 0 ? sector_ms : 0.01;
+        double t = ms_per_sector * 65536.0; /* granularity 1000us = 1ms */
+        host_writew(sector+(95*2),8);       /* stream minimum request size */
+        host_writew(sector+(96*2),(uint16_t)(t > 65535.0 ? 65535.0 : t));
+        t = (IDE_HD_FULL_STROKE_MS / 2.0 + rev_ms / 2.0) * 256.0;
+        host_writew(sector+(97*2),(uint16_t)(t > 65535.0 ? 65535.0 : t));
+        host_writed(sector+(98*2),1000);    /* streaming performance granularity: 1000 microseconds */
+        t = (ms_per_sector + 0.05) * 65536.0;
+        host_writew(sector+(104*2),(uint16_t)(t > 65535.0 ? 65535.0 : t));
+    }
+    if (lba48) {
+        host_writed(sector+(100*2),(uint32_t)(LBA & 0xFFFFFFFF)); // 48bit LBA lower 32 bits
+        host_writed(sector+(102*2),(uint32_t)(LBA >> 32));        // 48bit LBA upper 32 bits
+    }
+    host_writew(sector+(106*2),0x4000); /* one 512-byte logical sector per physical sector */
+    host_writew(sector+(119*2),(uint16_t)(0x4000 | 0x0010 | (dma ? 0x0008 : 0) | (f_wunc() ? 0x0004 : 0) | (f_wrv() ? 0x0002 : 0)));
+    host_writew(sector+(120*2),(uint16_t)(0x4000 | 0x0010 | (dma ? 0x0008 : 0) | (f_wunc() ? 0x0004 : 0) |
+        ((f_wrv() && wrv_enabled) ? 0x0002 : 0)));
+    if (f_security())
+        host_writew(sector+(128*2),(uint16_t)(0x0001 | (sec_enabled ? 0x0002 : 0) | (sec_locked ? 0x0004 : 0) |
+            (sec_frozen ? 0x0008 : 0) | (sec_attempts == 0 ? 0x0010 : 0) | 0x0020 | (sec_maxlevel ? 0x0100 : 0)));
+    host_writew(sector+(206*2),0x003F); /* SCT Command Transport: long sector access, write same, ERC, features, tables */
+    if (f_wrv()) {
+        host_writed(sector+(210*2),(uint32_t)wrv_sectors);
+        host_writed(sector+(212*2),8192);
+        host_writew(sector+(220*2),wrv_mode);
+    }
+    if (f_nvcache() || f_nvpm()) {
+        host_writew(sector+(214*2),(uint16_t)(0x1100 | (f_nvcache() ? 0x0010 : 0) | (f_nvpm() ? 0x0001 : 0)));
+        host_writed(sector+(215*2),(uint32_t)nvc_size);
+        host_writew(sector+(217*2),50);     /* NV cache read speed, MB/s */
+        host_writew(sector+(218*2),30);     /* NV cache write speed, MB/s */
+        host_writew(sector+(219*2),(uint16_t)((spinup_ms + 999.0) / 1000.0)); /* estimated spin-up time, seconds */
+    }
+    host_writew(sector+(222*2),0x0001); /* parallel transport, ATA8-APT */
+    host_writew(sector+(234*2),1);      /* DOWNLOAD MICROCODE mode 3: 1 to 128 blocks per command */
+    host_writew(sector+(235*2),128);
+
+    /* only what the ATA standard the device follows defines */
+    {
+        const int L = ata_level();
+        auto zero = [&](unsigned int a,unsigned int b) { for (unsigned int k=a;k <= b;k++) host_writew(sector+(k*2),0); };
+        host_writew(sector+(80*2),ata_level_major(L));
+        host_writew(sector+(81*2),ata_level_minor(L));
+        if (dma) {
+            host_writew(sector+(63*2),(uint16_t)(host_readw(sector+(63*2)) & ((ata_level_mdma(L) << 8u) | ata_level_mdma(L))));
+            host_writew(sector+(88*2),(uint16_t)(host_readw(sector+(88*2)) & ((ata_level_udma(L) << 8u) | ata_level_udma(L))));
+        }
+        if (L < 8) { zero(119,120); zero(206,213); zero(220,220); zero(222,223); zero(234,235); }
+        if (L < 7) { zero(106,106); }
+        if (L < 6) { zero(92,92); }
+        if (L < 5) { zero(2,2); zero(93,93); }
+        if (L < 4) {
+            /* ATA-3: words 82 and 83 only report SMART, security, removable media and power management */
+            zero(84,91); zero(75,75);
+            host_writew(sector+(82*2),(uint16_t)(host_readw(sector+(82*2)) & 0x000Bu));
+            host_writew(sector+(83*2),0x4000);
+            host_writew(sector+(53*2),(uint16_t)(host_readw(sector+(53*2)) & ~0x0004u));
+        }
+        if (L < 3) { zero(80,83); zero(128,128); host_writew(sector+(49*2),(uint16_t)(host_readw(sector+(49*2)) & ~0x2000u)); }
+        if (L < 2) {
+            /* ATA-1: no PIO mode or IORDY reporting (words 64-70, word 53 bit 1) */
+            zero(64,70);
+            host_writew(sector+(53*2),(uint16_t)(host_readw(sector+(53*2)) & 0x0001u));
+            host_writew(sector+(49*2),(uint16_t)(host_readw(sector+(49*2)) & 0x0300u));
+        }
+    }
+
+    /* integrity word (ATA/ATAPI-5 and later) */
+    if (ata_level() >= 5) {
+        sector[510] = 0xA5;
+        csum = 0; for (i=0;i < 511;i++) csum += sector[i];
+        sector[511] = 0 - csum;
+    }
 }
 
 IDEATADevice::IDEATADevice(IDEController *c,unsigned char disk_index,bool _slave)
@@ -3681,6 +4719,13 @@ IDEATADevice::IDEATADevice(IDEController *c,unsigned char disk_index,bool _slave
     phys_heads = 0;
     phys_sects = 0;
     phys_cyls = 0;
+
+    /* power-on: timestamps, power-on hours and the temperature history start now */
+    poweron_time = PIC_FullIndex();
+    temp_t = temp_hist_t = poweron_time;
+    for (auto &h : temp_hist) h = (int8_t)0x80;
+    temp_hist[0] = 25;
+    host_writew(selective_log,0x0001);
 }
 
 IDEATADevice::~IDEATADevice() {
@@ -3707,6 +4752,10 @@ void IDEATADevice::update_from_biosdisk() {
 	heads = dsk->heads;
 	sects = dsk->sectors;
     LBA = dsk->getLBA();
+    factory_LBA = LBA;
+    native_LBA = (dco_maxlba != 0 && dco_maxlba < factory_LBA) ? dco_maxlba + 1u : factory_LBA;
+    if (hpa_nv_max != 0 && hpa_nv_max < native_LBA) LBA = hpa_nv_max;
+    else LBA = native_LBA;
 
 	if (heads > 16) {
 		geo_translate = true;
@@ -3938,6 +4987,8 @@ bool IDE_CDROM_Eject(int index,bool slave) {
         return true;
 }
 
+static void IDE_BM_BiosSetupDrive(unsigned int ch,unsigned int drv);
+
 bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Interface*> &cds,bool opt_replace) {
 	IDEATAPICDROMDevice *dev;
 	IDEController *c;
@@ -3987,6 +5038,7 @@ bool IDE_CDROM_Attach(signed char index,bool slave,const std::vector<CDROM_Inter
 
 	c->device[slave?1:0] = (IDEDevice*)dev;
 	LOG_MSG("IMGMOUNT: CD-ROM image mounted to (IDE %s %s)", ideslot[index], master_slave[slave ? 1 : 0]);
+	if (index <= 1) IDE_BM_BiosSetupDrive((unsigned int)index,slave ? 1u : 0u);
 	DOS_EnableDriveIDEMenu((unsigned char)index,slave);
 	return true;
 }
@@ -4115,6 +5167,7 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
     cdrom->Release();
     c->device[slave?1:0] = (IDEDevice*)dev;
     LOG_MSG("IMGMOUNT: CD-ROM image mounted to drive %c (IDE %s %s)", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);
+    if (index <= 1) IDE_BM_BiosSetupDrive((unsigned int)index,slave ? 1u : 0u);
 }
 
 /* drive_index = drive letter 0...A to 25...Z */
@@ -4193,6 +5246,7 @@ void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_i
     dev->update_from_biosdisk();
     c->device[slave?1:0] = (IDEDevice*)dev;
     LOG_MSG("IMGMOUNT: HDD image mounted to drive no. %d (IDE %s %s)", bios_disk_index, ideslot[index], master_slave[slave?1:0]);
+    if (index <= 1) IDE_BM_BiosSetupDrive((unsigned int)index,slave ? 1u : 0u);
 }
 
 /* bios_disk_index = index into BIOS INT 13h disk array: imageDisk *imageDiskList[MAX_DISK_IMAGES]; */
@@ -4855,6 +5909,412 @@ void IDEDevice::raise_irq() {
         irq_signal = true;
         controller->check_device_irq();
     }
+    if (controller->bm != NULL) controller->bm_device_irq();
+}
+
+
+/* ------------------------------------------------------------------------------------------
+ * PCI bus master IDE (Intel PIIX3 82371SB / PIIX4 82371AB style)
+ *
+ * The PCI function has the primary and secondary channels at their legacy ports (programming interface
+ * 80h: bus master, both channels in compatibility mode, IRQ 14 and 15) and the bus master registers in
+ * the I/O space of BAR4: per channel a command register (start/stop, direction), a status register
+ * (active, error, interrupt, drive DMA capable bits) and the address of the Physical Region Descriptor
+ * table. A PRD entry is a physical address, a byte count (0 = 64KB) and an end-of-table bit. When a
+ * drive has a DMA data block ready (or wants one), the bus master moves it between the drive and
+ * memory through the PRD table at the transfer rate of the DMA mode.
+ * ------------------------------------------------------------------------------------------ */
+
+Bits RegisterPCIDevice(PCI_Device* device, Bits bus, Bits slot);
+bool UnregisterPCIDevice(PCI_Device* device);
+
+static void IDE_BM_TransferDone(Bitu ch);
+
+class IDEBusMaster {
+public:
+    struct Channel {
+        uint8_t cmd = 0;                /* bit 0 start/stop, bit 3 1=write to memory (read from the drive) */
+        uint8_t st = 0;                 /* bit 0 active, bit 1 error, bit 2 interrupt, bits 6:5 drive DMA capable */
+        uint32_t prd = 0;               /* PRD table address */
+        uint32_t prd_cur = 0;           /* next PRD entry */
+        uint32_t ent_addr = 0,ent_left = 0;
+        bool ent_valid = false,ent_eot = false,exhausted = false;
+        IDEDevice *pending = NULL;      /* a drive waiting for the bus master */
+        bool busy = false;              /* a block is being transferred (timed) */
+        bool used = false;              /* DMA has been used on this channel (logged once) */
+    };
+    bool piix4;
+    Channel ch[2];
+    uint16_t base = 0xFFA0;
+    bool io_enabled = true,bm_enabled = true;
+    IO_ReadHandleObject rd[16];
+    IO_WriteHandleObject wr[16];
+    PCI_Device *pci = NULL;
+
+    explicit IDEBusMaster(bool p4) : piix4(p4) { }
+    ~IDEBusMaster() { uninstall_io(); }
+
+    void install_io();
+    void uninstall_io();
+    double host_mb_per_s() const { return piix4 ? 33.3 : 16.7; }
+    void try_transfer(unsigned int c);
+    void stop(unsigned int c);
+    uint8_t read(Bitu port);
+    void write(Bitu port,uint8_t v);
+};
+
+static IDEBusMaster *ide_busmaster = NULL;
+static int ide_bm_type = 0;             /* [ide, primary] pci bus master: 0 none, 1 PIIX3, 2 PIIX4 */
+
+static Bitu ide_bm_r(Bitu port,Bitu iolen) {
+    if (ide_busmaster == NULL) return ~0ul;
+    Bitu v = 0;
+    for (Bitu i=0;i < iolen;i++) v |= (Bitu)ide_busmaster->read(port + i) << (8u * i);
+    return v;
+}
+
+static void ide_bm_w(Bitu port,Bitu val,Bitu iolen) {
+    if (ide_busmaster == NULL) return;
+    for (Bitu i=0;i < iolen;i++) ide_busmaster->write(port + i,(uint8_t)(val >> (8u * i)));
+}
+
+void IDEBusMaster::install_io() {
+    uninstall_io();
+    if (!io_enabled || base == 0) return;
+    for (unsigned int i=0;i < 16;i++) {
+        rd[i].Install(base + i,ide_bm_r,IO_MB|IO_MW|IO_MD);
+        wr[i].Install(base + i,ide_bm_w,IO_MB|IO_MW|IO_MD);
+    }
+}
+
+void IDEBusMaster::uninstall_io() {
+    for (unsigned int i=0;i < 16;i++) {
+        rd[i].Uninstall();
+        wr[i].Uninstall();
+    }
+}
+
+uint8_t IDEBusMaster::read(Bitu port) {
+    const unsigned int off = (unsigned int)(port - base) & 15u;
+    Channel &c = ch[off >> 3u];
+    switch (off & 7u) {
+        case 0: return c.cmd;
+        case 2: return c.st;
+        case 4: case 5: case 6: case 7: return (uint8_t)(c.prd >> (8u * ((off & 7u) - 4u)));
+        default: break;
+    }
+    return 0;
+}
+
+void IDEBusMaster::write(Bitu port,uint8_t v) {
+    const unsigned int off = (unsigned int)(port - base) & 15u;
+    const unsigned int n = off >> 3u;
+    Channel &c = ch[n];
+    switch (off & 7u) {
+        case 0: /* command */
+            {
+                const bool was = (c.cmd & 1u) != 0;
+                c.cmd = v & 0x09u;
+                if (!was && (c.cmd & 1u)) {
+                    /* start: the bus master begins at the first PRD entry */
+                    c.prd_cur = c.prd;
+                    c.ent_valid = false;
+                    c.exhausted = false;
+                    c.st |= 0x01;
+                    try_transfer(n);
+                }
+                else if (was && !(c.cmd & 1u)) {
+                    stop(n);
+                }
+            }
+            break;
+        case 2: /* status: interrupt and error are cleared by writing 1, the DMA capable bits are read/write */
+            c.st = (uint8_t)((c.st & 0x01u) | (c.st & 0x06u & ~v) | (v & 0x60u));
+            break;
+        case 4: case 5: case 6: case 7: /* PRD table address, dword aligned */
+            {
+                const unsigned int sh = 8u * ((off & 7u) - 4u);
+                c.prd = (c.prd & ~(0xFFu << sh)) | ((uint32_t)v << sh);
+                c.prd &= ~3u;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void IDEBusMaster::stop(unsigned int n) {
+    Channel &c = ch[n];
+    c.st &= ~0x01u;
+    c.ent_valid = false;
+    if (c.busy) {
+        PIC_RemoveSpecificEvents(IDE_BM_TransferDone,n);
+        c.busy = false;
+    }
+}
+
+/* move the drive's data block between the drive and memory, if the bus master is started and the
+ * direction matches. The drive gets its I/O completion when the block has been transferred. */
+void IDEBusMaster::try_transfer(unsigned int n) {
+    Channel &c = ch[n];
+    IDEDevice *dev = c.pending;
+
+    if (dev == NULL || c.busy || !(c.cmd & 1u) || !bm_enabled) return;
+    if (dev->state != IDE_DEV_DATA_READ && dev->state != IDE_DEV_DATA_WRITE) {
+        c.pending = NULL;
+        return;
+    }
+    const bool to_mem = dev->state == IDE_DEV_DATA_READ;
+    if (to_mem != ((c.cmd & 0x08u) != 0)) return; /* the host set up the other direction */
+
+    unsigned char *buf;
+    Bitu *pos,total;
+    if (dev->type == IDE_TYPE_HDD) {
+        IDEATADevice *d = static_cast<IDEATADevice*>(dev);
+        buf = d->sector; pos = &d->sector_i; total = d->sector_total;
+    }
+    else {
+        IDEATAPICDROMDevice *d = static_cast<IDEATAPICDROMDevice*>(dev);
+        buf = d->sector; pos = &d->sector_i; total = d->sector_total;
+    }
+
+    Bitu moved = 0;
+    while (*pos < total) {
+        if (!c.ent_valid) {
+            if (c.exhausted) break;
+            const uint32_t a = phys_readd(c.prd_cur);
+            const uint32_t w = phys_readd(c.prd_cur + 4u);
+            c.ent_addr = a & ~1u;
+            c.ent_left = w & 0xFFFEu;
+            if (c.ent_left == 0) c.ent_left = 0x10000u;
+            c.ent_eot = (w & 0x80000000u) != 0;
+            c.prd_cur += 8u;
+            c.ent_valid = true;
+        }
+        Bitu k = total - *pos;
+        if (k > c.ent_left) k = c.ent_left;
+        if (to_mem) for (Bitu i=0;i < k;i++) phys_writeb(c.ent_addr + (PhysPt)i,buf[*pos + i]);
+        else for (Bitu i=0;i < k;i++) buf[*pos + i] = phys_readb(c.ent_addr + (PhysPt)i);
+        *pos += k;
+        moved += k;
+        c.ent_addr += (uint32_t)k;
+        c.ent_left -= (uint32_t)k;
+        if (c.ent_left == 0) {
+            c.ent_valid = false;
+            if (c.ent_eot) {
+                /* the last PRD entry is done: the bus master is no longer active */
+                c.exhausted = true;
+                c.st &= ~0x01u;
+            }
+        }
+    }
+
+    if (*pos < total) {
+        /* the PRD table ended before the drive's data: the transfer stalls (the host will time out) */
+        LOG(LOG_MISC,LOG_DEBUG)("IDE bus master: PRD table too short (%lu of %lu bytes)",(unsigned long)*pos,(unsigned long)total);
+        return;
+    }
+
+    if (!c.used) {
+        c.used = true;
+        LOG_MSG("IDE: bus master DMA in use on the %s channel (%s, %lu bytes)",n ? "secondary" : "primary",to_mem ? "read" : "write",(unsigned long)moved);
+    }
+
+    /* the block has been moved; it took as long as the DMA mode allows */
+    double rate = host_mb_per_s();
+    bool instant = false;
+    if (dev->type == IDE_TYPE_HDD) {
+        IDEATADevice *d = static_cast<IDEATADevice*>(dev);
+        rate = std::min(rate,d->dma_mb_per_s());
+        instant = d->instant;
+    }
+    else {
+        IDEATAPICDROMDevice *d = static_cast<IDEATAPICDROMDevice*>(dev);
+        static const double udma[7] = { 16.7, 25.0, 33.3, 44.4, 66.7, 100.0, 133.0 };
+        static const double mwdma[3] = { 4.2, 13.3, 16.7 };
+        if (d->udma_sel >= 0) rate = std::min(rate,udma[d->udma_sel]);
+        else if (d->mwdma_sel >= 0) rate = std::min(rate,mwdma[d->mwdma_sel]);
+        instant = d->instant;
+    }
+    const double ms = (instant || dev->faked_command) ? 0.001 : (double)moved / (rate * 1000.0);
+    c.busy = true;
+    PIC_AddEvent(IDE_BM_TransferDone,ms < 0.001 ? 0.001 : ms,n);
+}
+
+static void IDE_BM_TransferDone(Bitu n) {
+    if (ide_busmaster == NULL || n > 1) return;
+    IDEBusMaster::Channel &c = ide_busmaster->ch[n];
+    IDEDevice *dev = c.pending;
+
+    c.busy = false;
+    c.pending = NULL;
+    if (dev == NULL) return;
+    if (dev->type == IDE_TYPE_HDD) static_cast<IDEATADevice*>(dev)->io_completion();
+    else static_cast<IDEATAPICDROMDevice*>(dev)->io_completion();
+}
+
+void IDEController::bm_request(IDEDevice *dev) {
+    if (bm == NULL || interface_index > 1) return;
+    IDEBusMaster::Channel &c = bm->ch[interface_index];
+    c.pending = dev;
+    bm->try_transfer(interface_index);
+}
+
+void IDEController::bm_device_irq() {
+    if (bm == NULL || interface_index > 1) return;
+    /* the drive asserted its interrupt: the bus master status shows it */
+    bm->ch[interface_index].st |= 0x04u;
+}
+
+/* the PCI configuration space of the IDE function */
+class PCI_PIIX_IDE_Device : public PCI_Device {
+public:
+    PCI_PIIX_IDE_Device(bool piix4) : PCI_Device(0x8086,piix4 ? 0x7111 : 0x7010) {
+        config[0x08] = piix4 ? 0x01 : 0x00;    /* revision */
+        config[0x09] = 0x80;                    /* bus master, both channels in compatibility mode */
+        config[0x0A] = 0x01;                    /* IDE controller */
+        config[0x0B] = 0x01;                    /* mass storage */
+        config[0x0D] = 0x00;                    /* latency timer */
+        config[0x0E] = 0x00;                    /* header type */
+        host_writew(config+0x04,0x0005);        /* I/O space and bus master enabled */
+        host_writew(config+0x06,0x0280);        /* medium DEVSEL, fast back-to-back */
+        host_writew(config_writemask+0x04,0x0005);
+        config_writemask[0x0D] = 0xF0;
+        /* BAR4: bus master registers, 16 bytes of I/O space */
+        host_writed(config+0x20,(uint32_t)ide_busmaster->base | 0x01u);
+        host_writed(config_writemask+0x20,0x0000FFF0u);
+        /* IDETIM primary/secondary (decode enable), SIDETIM, and on PIIX4 UDMACTL/UDMATIM */
+        host_writew(config+0x40,0x8000);
+        host_writew(config+0x42,0x8000);
+        for (unsigned int i=0x40;i < 0x4C;i++) config_writemask[i] = 0xFF;
+    }
+    void config_write(uint8_t regnum,Bitu iolen,uint32_t value) override {
+        PCI_Device::config_write(regnum,iolen,value);
+        if (ide_busmaster == NULL) return;
+        const uint16_t nb = (uint16_t)(host_readd(config+0x20) & 0xFFF0u);
+        const bool io = (config[0x04] & 0x01) != 0;
+        ide_busmaster->bm_enabled = (config[0x04] & 0x04) != 0;
+        if (nb != ide_busmaster->base || io != ide_busmaster->io_enabled) {
+            ide_busmaster->base = nb;
+            ide_busmaster->io_enabled = io;
+            ide_busmaster->install_io();
+        }
+    }
+};
+
+/* power-on: the PCI bus has been reset, the IDE function goes back on it */
+static void IDE_BM_Destroy();
+
+/* pci_reset: the PCI bus emulation has just been reset and deleted its devices (power-on), so the old
+ * configuration space object is gone. Otherwise (IDE reinitialized on a VM reset) it is still on the bus. */
+static void IDE_BM_Create(bool pci_reset) {
+    if (ide_busmaster != NULL && pci_reset) ide_busmaster->pci = NULL;
+    IDE_BM_Destroy();
+    if (ide_bm_type == 0) return;
+    if (!has_pcibus_enable()) {
+        LOG_MSG("IDE: pci bus master needs the PCI bus ([dosbox] enable pci bus=true)");
+        return;
+    }
+    ide_busmaster = new IDEBusMaster(ide_bm_type == 2);
+    for (unsigned int i=0;i < 2;i++) {
+        IDEController *c = idecontroller[i];
+        if (c != NULL && c->base_io == IDE_default_bases[i]) c->bm = ide_busmaster;
+    }
+    ide_busmaster->pci = new PCI_PIIX_IDE_Device(ide_busmaster->piix4);
+    /* Intel puts the PIIX at PCI device 7 */
+    if (RegisterPCIDevice(ide_busmaster->pci,0,7) < 0 && RegisterPCIDevice(ide_busmaster->pci,-1,-1) < 0) {
+        delete ide_busmaster->pci;
+        ide_busmaster->pci = NULL;
+        return;
+    }
+    for (auto &c : ide_busmaster->ch) {
+        c.cmd = 0;
+        c.st = 0x00; /* the BIOS sets the drive DMA capable bits */
+        c.pending = NULL;
+        c.busy = false;
+    }
+    ide_busmaster->io_enabled = ide_busmaster->bm_enabled = true;
+    ide_busmaster->install_io();
+    LOG_MSG("IDE: PCI bus master IDE (%s) at I/O %04Xh",ide_busmaster->piix4 ? "PIIX4" : "PIIX3",ide_busmaster->base);
+}
+
+static void IDE_BM_OnPowerOn(Section *sec) {
+    (void)sec;
+    IDE_BM_Create(true);
+}
+
+/* What a PC BIOS does at POST for a drive on a bus master IDE controller (Windows 9x relies on it):
+ * the drive goes into the fastest DMA mode the controller and the drive's ATA standard have in
+ * common, the PIIX timing registers are programmed for it, and the bus master status register says
+ * that the drive is DMA capable. */
+static void IDE_BM_BiosSetupDrive(unsigned int ch,unsigned int drv) {
+    if (ide_busmaster == NULL || ide_busmaster->pci == NULL || ch > 1 || drv > 1) return;
+    IDEController *c = idecontroller[ch];
+    if (c == NULL || c->bm != ide_busmaster) return;
+    IDEDevice *d = c->device[drv];
+    if (d == NULL) return;
+
+    const int L = d->ata_level();
+    int udma = -1,mw = -1;
+    if (ide_busmaster->piix4 && (ata_level_udma(L) & 0x04)) udma = 2;  /* PIIX4: Ultra DMA mode 2 */
+    else mw = (ata_level_mdma(L) & 0x04) ? 2 : 0;                       /* PIIX3: multiword DMA mode 2 */
+    if (d->type == IDE_TYPE_HDD) {
+        IDEATADevice *a = static_cast<IDEATADevice*>(d);
+        a->udma_sel = udma; a->mwdma_sel = mw;
+    }
+    else {
+        IDEATAPICDROMDevice *a = static_cast<IDEATAPICDROMDevice*>(d);
+        a->udma_sel = udma; a->mwdma_sel = mw;
+    }
+
+    uint8_t *cfg = ide_busmaster->pci->config;
+    uint16_t idetim = host_readw(cfg + 0x40 + ch*2u);
+    /* decode enable, IORDY sample point 3 clocks, recovery 1 clock; fast timing, IORDY, prefetch for the drive */
+    idetim |= 0xA300u | (drv ? 0x4070u : 0x0007u);
+    host_writew(cfg + 0x40 + ch*2u,idetim);
+    if (drv) cfg[0x44] |= ch ? 0xB0 : 0x0B; /* SIDETIM: slave timing */
+    if (ide_busmaster->piix4) {
+        const unsigned int bit = ch*2u + drv;
+        if (udma >= 0) {
+            cfg[0x48] |= (uint8_t)(1u << bit);
+            uint16_t ut = host_readw(cfg + 0x4A);
+            ut = (uint16_t)((ut & ~(3u << (bit*4u))) | (2u << (bit*4u)));
+            host_writew(cfg + 0x4A,ut);
+        }
+        else {
+            cfg[0x48] &= (uint8_t)~(1u << bit);
+        }
+    }
+    ide_busmaster->ch[ch].st |= (uint8_t)(0x20u << drv);
+    LOG(LOG_MISC,LOG_DEBUG)("IDE: BIOS set the %s %s drive to %s mode %d",ch ? "secondary" : "primary",drv ? "slave" : "master",
+        udma >= 0 ? "Ultra DMA" : "multiword DMA",udma >= 0 ? udma : mw);
+}
+
+void IDE_BM_BiosSetup(void) {
+    for (unsigned int ch=0;ch < 2;ch++)
+        for (unsigned int drv=0;drv < 2;drv++)
+            IDE_BM_BiosSetupDrive(ch,drv);
+}
+
+static void IDE_BM_Destroy() {
+    if (ide_busmaster == NULL) return;
+    for (unsigned int i=0;i < MAX_IDE_CONTROLLERS;i++)
+        if (idecontroller[i] != NULL && idecontroller[i]->bm == ide_busmaster) idecontroller[i]->bm = NULL;
+    if (ide_busmaster->pci != NULL && UnregisterPCIDevice(ide_busmaster->pci)) delete ide_busmaster->pci;
+    ide_busmaster->pci = NULL;
+    for (unsigned int i=0;i < 2;i++) PIC_RemoveSpecificEvents(IDE_BM_TransferDone,i);
+    delete ide_busmaster;
+    ide_busmaster = NULL;
+}
+
+int IDEDevice::ata_level() const {
+    return controller != NULL ? controller->ata_level() : 8;
+}
+
+/* a data block is ready (DRQ): a PIO transfer interrupts the host, a DMA transfer is done by the bus master */
+void IDEDevice::data_phase_ready() {
+    if (dma_cmd && controller->bm != NULL) controller->bm_request(this);
+    else raise_irq();
 }
 
 void IDEDevice::lower_irq() {
@@ -5045,8 +6505,44 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
     /* drive is ready to accept command */
     allow_writing = false;
     command = cmd;
+    dma_cmd = false;
+
+    /* ATA-level commands follow the ATA standard of the controller; the PACKET feature set (and the
+     * IDENTIFY DEVICE/READ SECTORS signature responses) are there in any case */
+    if (cmd != 0xA0 && cmd != 0xA1 && cmd != 0x08 && cmd != 0xEC && cmd != 0x20 && !ata_opcode_defined(cmd,ata_level())) {
+        LOG(LOG_MISC,LOG_DEBUG)("IDE/ATAPI command %02X is not part of ATA-%d",cmd,ata_level());
+        abort_error();
+        allow_writing = true;
+        count = 0x03;
+        feature = 0x04; /* ABRT */
+        raise_irq();
+        return;
+    }
+
     switch (cmd) {
+        case 0x00: /* NOP: always aborted */
+            abort_with_error(0x04/*ABRT*/);
+            count = 0x01; lba[0] = 0x01; lba[1] = 0x14; lba[2] = 0xEB;
+            break;
+        case 0xA2: /* SERVICE: overlapped commands are not supported, there is nothing to service */
+            abort_with_error(0x04/*ABRT*/);
+            break;
+        case 0xDA: /* GET MEDIA STATUS */
+            {
+                const uint8_t e = rmsn_enabled ? atapi_media_status_bits(this) : 0;
+                if (e != 0) {
+                    abort_with_error(e);
+                }
+                else {
+                    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+                    state = IDE_DEV_READY;
+                    allow_writing = true;
+                    raise_irq();
+                }
+            }
+            break;
         case 0x08: /* DEVICE RESET */
+            rmsn_enabled = rmsn_mc = rmsn_mcr = false;
             status = 0x00;
             drivehead &= 0x10;
             count = 0x01;
@@ -5070,15 +6566,16 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
             allow_writing = true;
             break;
         case 0xA0: /* ATAPI PACKET */
-            if (feature & 1) {
-                /* this code does not support DMA packet commands */
-                LOG_MSG("Attempted DMA transfer\n");
+            if ((feature & 1) && !has_dma()) {
+                /* DMA needs a bus master on the controller */
+                LOG(LOG_MISC,LOG_DEBUG)("ATAPI: PACKET with DMA, but there is no bus master");
                 abort_error();
                 count = 0x03; /* no more data (command/data=1, input/output=1) */
                 feature = 0x04; /* ABRT */
                 raise_irq();
             }
             else {
+                dma_cmd = (feature & 1) != 0;
                 state = IDE_DEV_BUSY;
                 status = IDE_STATUS_BUSY;
                 atapi_to_host = (feature >> 2) & 1; /* 0=to device 1=to host */
@@ -5111,19 +6608,75 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
             allow_writing = true;
             break;
         case 0xEF: /* SET FEATURES */
-            if (feature == 0x66/*Disable reverting to power on defaults*/ ||
-                feature == 0xCC/*Enable reverting to power on defaults*/ ||
-                feature == 0x03/*Set transfer mode according to sector count register (required by Linux kernel)*/) {
-                /* ignore */
-                status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                state = IDE_DEV_READY;
-            }
-            else {
-                LOG_MSG("SET FEATURES %02xh SC=%02x SN=%02x CL=%02x CH=%02x",feature,count,lba[0],lba[1],lba[2]);
-                abort_error();
+            {
+                bool ok = ata_setfeature_defined((uint8_t)(feature & 0xFFu),ata_level());
+                const uint8_t sc = (uint8_t)(count & 0xFFu);
+                switch (ok ? (feature & 0xFFu) : 0x100u) {
+                    case 0x03: /* set transfer mode */
+                        if (sc <= 0x01 || (sc & 0xF8u) == 0x08) { if ((sc & 0xF8u) == 0x08 && (sc & 7u) > 4) ok = false; }
+                        else if ((sc & 0xF8u) == 0x20 && has_dma() && (ata_level_mdma(ata_level()) & (1u << (sc & 7u)))) { mwdma_sel = sc & 7; udma_sel = -1; }
+                        else if ((sc & 0xF8u) == 0x40 && has_dma() && (sc & 7u) <= 5 && (ata_level_udma(ata_level()) & (1u << (sc & 7u)))) { udma_sel = sc & 7; mwdma_sel = -1; }
+                        else ok = false;
+                        break;
+                    case 0x95: /* enable Media Status Notification */
+                        lba[1] = 0x00;                                          /* version */
+                        lba[2] = (uint16_t)((rmsn_enabled ? 0x01 : 0x00) |      /* PENA: was enabled */
+                            0x02 |                                              /* LOCK: the tray can be locked */
+                            0x04);                                              /* PEJ: power eject */
+                        rmsn_enabled = true;
+                        rmsn_mc = rmsn_mcr = false;
+                        locked = false; /* "clears any previous media lock state" */
+                        break;
+                    case 0x31: /* disable Media Status Notification: the media is left unlocked */
+                        if (rmsn_enabled) locked = false;
+                        rmsn_enabled = rmsn_mc = rmsn_mcr = false;
+                        break;
+                    case 0x66: /* disable reverting to power on defaults */
+                    case 0xCC: /* enable reverting to power on defaults */
+                        break;
+                    default:
+                        ok = false;
+                        break;
+                }
+                if (ok) {
+                    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+                    state = IDE_DEV_READY;
+                }
+                else {
+                    LOG(LOG_MISC,LOG_DEBUG)("ATAPI SET FEATURES %02xh SC=%02x SN=%02x CL=%02x CH=%02x",feature,count,lba[0],lba[1],lba[2]);
+                    abort_error();
+                }
             }
             allow_writing = true;
             raise_irq();
+            break;
+        case 0xE2: case 0x96: /* STANDBY (sector count = standby timer) */
+        case 0xE3: case 0x97: /* IDLE (sector count = standby timer) */
+            {
+                /* the timer sets how long the disc keeps spinning when idle */
+                const uint8_t v = (uint8_t)(count & 0xFFu);
+                if (v == 0) spindown_timeout = 86400000.0; /* disabled */
+                else if (v <= 240) spindown_timeout = v * 5000.0;
+                else if (v <= 251) spindown_timeout = (v - 240) * 30.0 * 60000.0;
+                else spindown_timeout = 21.0 * 60000.0;
+                if (cmd == 0xE3 || cmd == 0x97) {
+                    power_state = 2;
+                    power_event = 0x02;
+                }
+                else {
+                    if (loading_mode == LOAD_READY || loading_mode == LOAD_DISC_READIED) {
+                        loading_mode = LOAD_IDLE;
+                        rb_valid = false;
+                        PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+                    }
+                    power_state = 3;
+                    power_event = 0x02;
+                }
+                status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+                state = IDE_DEV_READY;
+                allow_writing = true;
+                raise_irq();
+            }
             break;
         case 0xE0: case 0x94: /* STANDBY IMMEDIATE */
         case 0xE6: case 0x99: /* SLEEP */
@@ -5159,7 +6712,8 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
             raise_irq();
             break;
         default:
-            LOG_MSG("Unknown IDE/ATAPI command %02X\n",cmd);
+            /* other ATA commands do not apply to a packet device */
+            LOG(LOG_MISC,LOG_DEBUG)("IDE/ATAPI command %02X not supported by a packet device",cmd);
             abort_error();
             allow_writing = true;
             count = 0x03; /* no more data (command/data=1, input/output=1) */
@@ -5167,6 +6721,2110 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
             raise_irq();
             break;
     }
+}
+
+/* ------------------------------------------------------------------------------------------
+ * ATA hard disk: feature sets up to ATA8-ACS
+ *
+ * SMART (attributes from the drive model, off-line data collection, self-tests, error and self-test
+ * logs), General Purpose Logging, SCT Command Transport, Host Protected Area with the SET MAX
+ * security extensions, Device Configuration Overlay, Security, Streaming, Write-Read-Verify, NV Cache,
+ * Trusted Computing (protocol 00h), DOWNLOAD MICROCODE, WRITE UNCORRECTABLE, READ/WRITE LONG and
+ * the commands of the earlier ATA standards. Settings that a real drive keeps in non-volatile memory
+ * last as long as the emulator runs; a hardware reset (VM reset) does what the standard says it does.
+ * ------------------------------------------------------------------------------------------ */
+
+
+unsigned int IDEATADevice::sector_cmd_flags(uint8_t cmd) const {
+    switch (cmd) {
+        case 0x20: case 0x21: return ATAC_READ;                                     /* READ SECTOR(S) */
+        case 0x22: case 0x23: return ATAC_READ|ATAC_LONG;                           /* READ LONG (ATA-1..3) */
+        case 0x24: return ATAC_READ|ATAC_EXT;                                       /* READ SECTOR(S) EXT */
+        case 0x25: return ATAC_READ|ATAC_EXT|ATAC_DMA;                              /* READ DMA EXT */
+        case 0x26: return ATAC_READ|ATAC_EXT|ATAC_DMA|ATAC_QUEUED;                  /* READ DMA QUEUED EXT */
+        case 0x29: return ATAC_READ|ATAC_EXT|ATAC_MULT;                             /* READ MULTIPLE EXT */
+        case 0x2A: return ATAC_READ|ATAC_EXT|ATAC_DMA|ATAC_STREAM;                  /* READ STREAM DMA EXT */
+        case 0x2B: return ATAC_READ|ATAC_EXT|ATAC_STREAM;                           /* READ STREAM EXT */
+        case 0x30: case 0x31: return ATAC_WRITE;                                    /* WRITE SECTOR(S) */
+        case 0x32: case 0x33: return ATAC_WRITE|ATAC_LONG;                          /* WRITE LONG (ATA-1..3) */
+        case 0x34: return ATAC_WRITE|ATAC_EXT;                                      /* WRITE SECTOR(S) EXT */
+        case 0x35: return ATAC_WRITE|ATAC_EXT|ATAC_DMA;                             /* WRITE DMA EXT */
+        case 0x36: return ATAC_WRITE|ATAC_EXT|ATAC_DMA|ATAC_QUEUED;                 /* WRITE DMA QUEUED EXT */
+        case 0x39: return ATAC_WRITE|ATAC_EXT|ATAC_MULT;                            /* WRITE MULTIPLE EXT */
+        case 0x3A: return ATAC_WRITE|ATAC_EXT|ATAC_DMA|ATAC_STREAM;                 /* WRITE STREAM DMA EXT */
+        case 0x3B: return ATAC_WRITE|ATAC_EXT|ATAC_STREAM;                          /* WRITE STREAM EXT */
+        case 0x3C: return ATAC_WRITE|ATAC_WVERIFY;                                  /* WRITE VERIFY (ATA-1..3) */
+        case 0x3D: return ATAC_WRITE|ATAC_EXT|ATAC_DMA|ATAC_FUA;                    /* WRITE DMA FUA EXT */
+        case 0x3E: return ATAC_WRITE|ATAC_EXT|ATAC_DMA|ATAC_QUEUED|ATAC_FUA;        /* WRITE DMA QUEUED FUA EXT */
+        case 0x40: case 0x41: return ATAC_VERIFY;                                   /* READ VERIFY SECTOR(S) */
+        case 0x42: return ATAC_VERIFY|ATAC_EXT;                                     /* READ VERIFY SECTOR(S) EXT */
+        case 0xC4: return ATAC_READ|ATAC_MULT;                                      /* READ MULTIPLE */
+        case 0xC5: return ATAC_WRITE|ATAC_MULT;                                     /* WRITE MULTIPLE */
+        case 0xC7: return ATAC_READ|ATAC_DMA|ATAC_QUEUED;                           /* READ DMA QUEUED */
+        case 0xC8: case 0xC9: return ATAC_READ|ATAC_DMA;                            /* READ DMA */
+        case 0xCA: case 0xCB: return ATAC_WRITE|ATAC_DMA;                           /* WRITE DMA */
+        case 0xCC: return ATAC_WRITE|ATAC_DMA|ATAC_QUEUED;                          /* WRITE DMA QUEUED */
+        case 0xCE: return ATAC_WRITE|ATAC_EXT|ATAC_MULT|ATAC_FUA;                   /* WRITE MULTIPLE FUA EXT */
+        default: break;
+    }
+    return 0;
+}
+
+bool IDEATADevice::has_dma() const {
+    return controller != NULL && controller->bm != NULL;
+}
+
+/* ---- generic data transfers ---- */
+
+void IDEATADevice::command_ok() {
+    xk = XK_NONE;
+    state = IDE_DEV_READY;
+    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+    allow_writing = true;
+    raise_irq();
+}
+
+void IDEATADevice::finish_at(double at,uint8_t err) {
+    xk = XK_FINISH;
+    fin_err = err;
+    state = IDE_DEV_BUSY;
+    status = IDE_STATUS_BUSY;
+    schedule(at);
+}
+
+void IDEATADevice::buf_load_block() {
+    size_t n = xbuf.size() - xbuf_pos;
+    const size_t blk = dma_cmd ? sizeof(sector) : xbuf_block;
+
+    if (n > blk) n = blk;
+    if (xk == XK_IN) memcpy(sector,xbuf.data() + xbuf_pos,n);
+    state = (xk == XK_IN) ? IDE_DEV_DATA_READ : IDE_DEV_DATA_WRITE;
+    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE|IDE_STATUS_DRQ;
+    if (xk == XK_IN) prepare_read(0,n);
+    else prepare_write(0,n);
+}
+
+void IDEATADevice::buf_data_in(double at) {
+    if (xbuf.empty()) {
+        finish_at(at);
+        return;
+    }
+    xbuf_pos = 0;
+    xk = XK_IN_PENDING;
+    state = IDE_DEV_BUSY;
+    status = IDE_STATUS_BUSY;
+    schedule(at);
+}
+
+void IDEATADevice::buf_data_out(size_t len) {
+    xbuf.assign(len,0);
+    xbuf_pos = 0;
+    if (len == 0) {
+        buf_out_done();
+        return;
+    }
+    xk = XK_OUT;
+    buf_load_block();
+    /* PIO data-out: the first block is asked for without an interrupt */
+    if (dma_cmd) data_phase_ready();
+}
+
+/* the command's 512-byte data blocks have been received */
+void IDEATADevice::buf_out_done() {
+    const double now = PIC_FullIndex();
+    const double overhead = instant ? 0.00001 : IDE_HD_COMMAND_MS;
+
+    xk = XK_NONE;
+    switch (command) {
+        case 0xE8: /* WRITE BUFFER */
+            memcpy(rw_buffer,xbuf.data(),512);
+            finish_at(now + overhead);
+            break;
+        case 0x2F: case 0x3F: case 0x47: case 0x57: /* WRITE LOG (DMA) EXT */
+            write_log_done(true,(uint8_t)lba[0],(unsigned int)(lba[2] & 0xFFu) | ((unsigned int)hob_lba[0] << 8u));
+            break;
+        case 0xB0: /* SMART WRITE LOG */
+            write_log_done(false,(uint8_t)lba[0],0);
+            break;
+        case 0xB1: /* DEVICE CONFIGURATION SET */
+        case 0xF9: /* SET MAX SET PASSWORD / UNLOCK */
+            if (command == 0xB1) {
+                const uint8_t *d = xbuf.data();
+                uint8_t sum = 0;
+                for (unsigned int i=0;i < 512;i++) sum += d[i];
+                const uint16_t w0 = host_readw(d+0),w1 = host_readw(d+2),w2 = host_readw(d+4),w7 = host_readw(d+14),w21 = host_readw(d+42);
+                const uint64_t maxlba = (uint64_t)host_readw(d+6) | ((uint64_t)host_readw(d+8) << 16u) | ((uint64_t)host_readw(d+10) << 32u);
+                bool ok = (w0 == 0x0002) && (d[510] != 0xA5 || sum == 0);
+                if (ok && LBA < native_LBA) ok = false;                         /* a host protected area is set */
+                if (ok && !(w1 & 1)) ok = false;                                /* multiword DMA mode 0 can't go */
+                if (ok && mwdma_sel >= 0 && !(w1 & (1u << mwdma_sel))) ok = false; /* the selected mode can't go */
+                if (ok && udma_sel >= 0 && !(w2 & (1u << udma_sel))) ok = false;
+                if (ok && (w1 & 4) && !(w1 & 2)) ok = false;                    /* modes below a supported one stay */
+                if (ok) for (unsigned int m=1;m < 7;m++) if ((w2 & (1u << m)) && !(w2 & (1u << (m-1u)))) ok = false;
+                if (ok && sec_enabled && !(w7 & 0x0008)) ok = false;            /* security is enabled */
+                if (ok && sec_enabled && !(w21 & 0x1000)) ok = false;           /* trusted computing with security on */
+                if (ok && !(w7 & 0x0001) && (w7 & 0x0006)) ok = false;          /* SMART off but its logs on */
+                if (ok && (maxlba == 0 || maxlba >= factory_LBA)) ok = false;
+                if (ok && dco_reduced) ok = false;                              /* DCO2:DCO2: set again is aborted */
+                if (!ok) {
+                    finish_at(now + overhead,0x04/*ABRT*/);
+                    break;
+                }
+                dco_mdma = w1 & 0x0007u;
+                dco_udma = w2 & 0x003Fu;
+                dco_w7 = w7 & 0x7BFFu;
+                dco_w21 = w21 & 0x3000u; /* bits 15:14 are reserved in the SET data */
+                dco_maxlba = maxlba;
+                dco_reduced = true;
+                native_LBA = maxlba + 1u;
+                LBA = native_LBA;
+                hpa_nv_max = 0;
+                sct_segment_init = false;
+                if (!f_aam()) aam_enabled = false;
+                if (!f_puis()) puis_enabled = false;
+                if (!f_smart()) smart_enabled = false;
+                if (!f_wrv()) wrv_enabled = false;
+                if (!f_nvpm()) nvc_pm = false;
+                if (!f_stream()) for (auto &st : streams) st.valid = false;
+                finish_at(now + overhead);
+            }
+            else {
+                set_max(true);
+            }
+            break;
+        case 0xF1: case 0xF2: case 0xF4: case 0xF6: /* SECURITY ... */
+            security_data_out();
+            break;
+        case 0x92: /* DOWNLOAD MICROCODE */
+            download_microcode_done();
+            break;
+        case 0x5E: case 0x5F: /* TRUSTED SEND */
+            finish_at(now + overhead,0x04/*ABRT*/);
+            break;
+        case 0xB6: /* NV Cache: ADD / REMOVE LBA(S) */
+            nvc_data_done();
+            break;
+        case 0x50: /* FORMAT TRACK (ATA-1..3): the interleave table is vendor specific, the data stays */
+            {
+                const double t = media_access(cur_lba,media_spt,true,now + overhead) + rev_ms;
+                finish_at(t);
+            }
+            break;
+        case 0xE9: /* WRITE SAME (ATA-1): the sector is written over the range */
+            fill_start(FILL_WRITE_SAME,cur_lba,cur_count,xbuf.data(),1.0,false);
+            break;
+        default:
+            finish_at(now + overhead,0x04/*ABRT*/);
+            break;
+    }
+}
+
+/* ---- resets ---- */
+
+void IDEATADevice::hardware_reset() {
+    /* security: locked again if a user password is set, the attempt counter and freeze lock are reset */
+    sec_locked = sec_enabled;
+    sec_frozen = false;
+    sec_attempts = 5;
+    /* HPA: the last non-volatile maximum address */
+    LBA = (hpa_nv_max != 0) ? hpa_nv_max : native_LBA;
+    hpa_nv_set = false;
+    /* volatile settings */
+    for (auto &st : streams) st.valid = false;
+    rd_stream_err.clear(); wr_stream_err.clear();
+    rd_stream_err_count = wr_stream_err_count = 0;
+    wrv_enabled = false;
+    sct_wc_state = 1;
+    sct_wc_reorder = 1;
+    mwdma_sel = udma_sel = -1;
+    pio_mode = -1;
+    rel_irq_en = serv_irq_en = false;
+    ucode.clear();
+    ucode_next = 0;
+    if (selftest_running) selftest_finish(0x20/*interrupted by a reset*/);
+    if (fill_kind != FILL_NONE) {
+        /* a reset stops a fill in progress; what is written stays written */
+        PIC_RemoveSpecificEvents(IDE_ATA_FillStep,IDEEventPack(controller->interface_index,slave?1u:0u).get());
+        if (fill_kind == FILL_SCT) sct_status = 0x0008;
+        fill_kind = FILL_NONE;
+        sct_ws_background = false;
+    }
+
+    /* Power-Up In Standby: the disk does not spin up by itself */
+    if (puis_enabled) spin_down(PIC_FullIndex(),false);
+}
+
+/* ---- command history and error logging (SMART error logs) ---- */
+
+uint32_t IDEATADevice::poweron_ms(double now) const {
+    return (uint32_t)(uint64_t)(now - poweron_time);
+}
+
+uint16_t IDEATADevice::poweron_hours(double now) const {
+    const double h = (now - poweron_time) / 3600000.0;
+    return h >= 65535.0 ? 0xFFFFu : (uint16_t)h;
+}
+
+void IDEATADevice::record_command() {
+    CmdRecord r;
+    r.devctl = (uint8_t)((controller->hob ? 0x80u : 0u) | (controller->interrupt_enable ? 0u : 0x02u));
+    r.feature = (uint16_t)((feature & 0xFFu) | ((unsigned int)hob_feature << 8u));
+    r.count = (uint16_t)((count & 0xFFu) | ((unsigned int)hob_count << 8u));
+    r.lba = (uint64_t)(lba[0] & 0xFFu) | ((uint64_t)(lba[1] & 0xFFu) << 8u) | ((uint64_t)(lba[2] & 0xFFu) << 16u) |
+        ((uint64_t)hob_lba[0] << 24u) | ((uint64_t)hob_lba[1] << 32u) | ((uint64_t)hob_lba[2] << 40u);
+    r.device = drivehead;
+    r.command = command;
+    r.ms = poweron_ms(PIC_FullIndex());
+    for (unsigned int i=0;i < 4;i++) cmd_hist[i] = cmd_hist[i+1];
+    cmd_hist[4] = r;
+    if (cmd_hist_n < 5) cmd_hist_n++;
+}
+
+void IDEATADevice::log_error(uint8_t err) {
+    ErrorEntry e;
+    const double now = PIC_FullIndex();
+
+    for (unsigned int i=0;i < 5;i++) e.cmds[i] = (i >= 5u - cmd_hist_n) ? cmd_hist[i] : CmdRecord();
+    e.error = err;
+    e.status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
+    e.device = drivehead;
+    e.count = (uint16_t)((count & 0xFFu) | ((unsigned int)hob_count << 8u));
+    e.lba = (uint64_t)(lba[0] & 0xFFu) | ((uint64_t)(lba[1] & 0xFFu) << 8u) | ((uint64_t)(lba[2] & 0xFFu) << 16u) |
+        ((uint64_t)hob_lba[0] << 24u) | ((uint64_t)hob_lba[1] << 32u) | ((uint64_t)hob_lba[2] << 40u);
+    e.state = selftest_running ? 0x04 : (spinning ? 0x03 : 0x02);
+    e.hours = poweron_hours(now);
+    if (error_log.size() >= 20) error_log.erase(error_log.begin());
+    error_log.push_back(e);
+    if (error_count < 0xFFFFu) error_count++;
+}
+
+/* ---- temperature: the drive warms up while the disk spins and cools down when it is stopped ---- */
+
+int IDEATADevice::current_temp(double now) {
+    if (now > temp_t) {
+        const double target = spinning ? 40.0 : 27.0;
+        temp_c += (target - temp_c) * (1.0 - exp(-(now - temp_t) / 600000.0));
+        temp_t = now;
+    }
+
+    const int t = (int)(temp_c + 0.5);
+    if (t < temp_min) temp_min = t;
+    if (t > temp_max) temp_max = t;
+    if (t < temp_life_min) temp_life_min = t;
+    if (t > temp_life_max) temp_life_max = t;
+
+    const double iv = (double)temp_interval * 60000.0;
+    if (now - temp_hist_t > iv * 128.0) temp_hist_t = now - iv * 128.0;
+    while (now >= temp_hist_t + iv) {
+        temp_hist_t += iv;
+        temp_hist_idx = (temp_hist_idx + 1u) % 128u;
+        temp_hist[temp_hist_idx] = (int8_t)t;
+    }
+    return t;
+}
+
+/* ---- SMART ---- */
+
+static void smart_attr(uint8_t *&e,uint8_t id,uint16_t flags,uint8_t value,uint8_t worst,uint64_t raw) {
+    e[0] = id;
+    host_writew(e+1,flags);
+    e[3] = value;
+    e[4] = worst;
+    for (unsigned int i=0;i < 6;i++) e[5+i] = (uint8_t)(raw >> (8u * i));
+    e[11] = 0;
+    e += 12;
+}
+
+static unsigned int ata_logged_unc(const std::map<uint64_t,uint8_t> &m) {
+    unsigned int n = 0;
+    for (const auto &u : m) if (u.second & 1u) n++;
+    return n;
+}
+
+bool IDEATADevice::smart_threshold_exceeded() const {
+    /* Current Pending Sector: too many uncorrectable sectors (WRITE UNCORRECTABLE with logging, bad WRITE LONG) */
+    return ata_logged_unc(unc_sectors) >= 10u;
+}
+
+void IDEATADevice::smart_read_data(uint8_t *p) {
+    const double now = PIC_FullIndex();
+    const int temp = current_temp(now);
+    const unsigned int pending = ata_logged_unc(unc_sectors);
+    const uint8_t pend_val = pending >= 99u ? 1u : (uint8_t)(100u - pending);
+    uint8_t *e = p + 2;
+
+    selftest_update(now);
+    memset(p,0,512);
+    host_writew(p+0,0x0010);    /* attribute table revision */
+    smart_attr(e,0x01,0x000F,100,100,error_count);                         /* Raw Read Error Rate */
+    smart_attr(e,0x03,0x0003,100,100,(uint64_t)spinup_ms);                 /* Spin Up Time (ms) */
+    smart_attr(e,0x04,0x0032,100,100,spinup_count);                        /* Start/Stop Count */
+    smart_attr(e,0x05,0x0033,100,100,0);                                   /* Reallocated Sectors */
+    smart_attr(e,0x07,0x000F,100,100,0);                                   /* Seek Error Rate */
+    smart_attr(e,0x09,0x0032,100,100,poweron_hours(now));                  /* Power-On Hours */
+    smart_attr(e,0x0A,0x0013,100,100,0);                                   /* Spin Retry Count */
+    smart_attr(e,0x0C,0x0032,100,100,poweron_count);                       /* Power Cycle Count */
+    smart_attr(e,0xC1,0x0032,100,100,unload_count);                        /* Load/Unload Cycle Count */
+    smart_attr(e,0xC2,0x0022,(uint8_t)temp,(uint8_t)temp_max,              /* Temperature: current, min, max */
+        (uint64_t)(uint8_t)temp | ((uint64_t)(uint8_t)temp_min << 16u) | ((uint64_t)(uint8_t)temp_max << 32u));
+    smart_attr(e,0xC4,0x0032,100,100,0);                                   /* Reallocation Events */
+    smart_attr(e,0xC5,0x0012,pend_val,pend_val,pending);                   /* Current Pending Sectors */
+    smart_attr(e,0xC6,0x0010,pend_val,pend_val,pending);                   /* Off-line Uncorrectable */
+    smart_attr(e,0xC7,0x003E,200,200,0);                                   /* UDMA CRC Errors */
+
+    p[362] = smart_offline_status;
+    p[363] = selftest_status;
+    host_writew(p+364,(uint16_t)(erase_time_ms(false) / 1000.0 > 65535 ? 65535 : erase_time_ms(false) / 1000.0 + 1));
+    p[367] = (uint8_t)(0x01/*execute off-line immediate*/ | 0x08/*off-line read scanning*/ |
+        (f_selftest() ? 0x10 : 0) | (f_conveyance() ? 0x20 : 0) | (f_selective() ? 0x40 : 0));
+    host_writew(p+368,0x0003);  /* saves data before power saving modes, attribute autosave */
+    p[370] = f_errlog() ? 1 : 0;
+    p[372] = 1;                 /* short self-test: about a minute */
+    {
+        const double ext_min = (60000.0 + erase_time_ms(false)) / 60000.0 + 1.0;
+        if (ext_min >= 255.0) {
+            p[373] = 0xFF;
+            host_writew(p+375,(uint16_t)(ext_min > 65535.0 ? 65535.0 : ext_min));
+        }
+        else {
+            p[373] = (uint8_t)ext_min;
+            host_writew(p+375,(uint16_t)ext_min);
+        }
+    }
+    p[374] = 2;                 /* conveyance self-test */
+    uint8_t sum = 0;
+    for (unsigned int i=0;i < 511;i++) sum += p[i];
+    p[511] = (uint8_t)(0u - sum);
+}
+
+void IDEATADevice::smart_read_thresholds(uint8_t *p) {
+    static const uint8_t th[][2] = {
+        {0x01,16},{0x03,21},{0x04,0},{0x05,36},{0x07,30},{0x09,0},{0x0A,97},{0x0C,0},{0xC1,0},{0xC2,0},
+        {0xC4,0},{0xC5,90},{0xC6,0},{0xC7,0}
+    };
+    memset(p,0,512);
+    host_writew(p+0,0x0010);
+    for (unsigned int i=0;i < sizeof(th)/sizeof(th[0]);i++) {
+        p[2+i*12+0] = th[i][0];
+        p[2+i*12+1] = th[i][1];
+    }
+    uint8_t sum = 0;
+    for (unsigned int i=0;i < 511;i++) sum += p[i];
+    p[511] = (uint8_t)(0u - sum);
+}
+
+/* self-test routines: the short and conveyance tests take about a minute, the extended and selective
+ * tests read the whole disk. A test fails if it reads an uncorrectable sector. */
+void IDEATADevice::selftest_start_cmd(uint8_t sub,bool captive,double now) {
+    const unsigned int kind = sub & 0x7Fu;
+    uint64_t first = 0,last = LBA ? LBA - 1u : 0u;
+    double ms;
+
+    if (kind == 1 || kind == 3) ms = 60000.0;
+    else ms = 60000.0 + erase_time_ms(false);
+    if (instant) ms = 1.0;
+
+    selftest_will_fail = false;
+    selftest_fail_lba = 0;
+    if (kind == 4) {
+        /* selective: only the test spans in the selective self-test log */
+        uint64_t total = 0;
+        for (unsigned int s=0;s < 5;s++) {
+            const uint64_t a = host_readq(selective_log + 2 + s*16),b = host_readq(selective_log + 10 + s*16);
+            if (a == 0 && b == 0) continue;
+            total += (b >= a) ? (b - a + 1u) : 0u;
+            for (const auto &u : unc_sectors) {
+                if (u.first >= a && u.first <= b && !selftest_will_fail) {
+                    selftest_will_fail = true;
+                    selftest_fail_lba = u.first;
+                }
+            }
+        }
+        if (!instant) ms = 60000.0 + (double)total * sector_ms;
+    }
+    else if (kind == 2 && !unc_sectors.empty()) {
+        /* the extended test reads every sector */
+        const auto u = unc_sectors.lower_bound(first);
+        if (u != unc_sectors.end() && u->first <= last) {
+            selftest_will_fail = true;
+            selftest_fail_lba = u->first;
+        }
+    }
+    else if ((kind == 1 || kind == 3) && !unc_sectors.empty()) {
+        /* the short tests read a sample of the disk, including the first sectors */
+        const auto u = unc_sectors.begin();
+        if (u->first < 65536u) {
+            selftest_will_fail = true;
+            selftest_fail_lba = u->first;
+        }
+    }
+
+    selftest_sub = sub;
+    selftest_running = true;
+    selftest_start = now;
+    selftest_end = now + ms;
+    selftest_status = 0xF9;
+    (void)captive;
+}
+
+void IDEATADevice::selftest_update(double now) {
+    if (smart_offline_status == 0x03 && now >= offline_end) smart_offline_status = 0x82;
+    if (!selftest_running) return;
+    if (now >= selftest_end) {
+        selftest_finish(selftest_will_fail ? 0x70/*read element failed*/ : 0x00);
+        return;
+    }
+    const double left = (selftest_end - now) / (selftest_end - selftest_start);
+    unsigned int pct = (unsigned int)(left * 10.0);
+    if (pct > 9) pct = 9;
+    selftest_status = (uint8_t)(0xF0u | pct);
+}
+
+void IDEATADevice::selftest_finish(uint8_t st) {
+    SelfTestEntry e;
+    e.sub = selftest_sub;
+    e.status = st;
+    e.hours = poweron_hours(PIC_FullIndex());
+    e.checkpoint = 0;
+    e.lba = (st == 0x70) ? selftest_fail_lba : 0;
+    if (selftest_log.size() >= 21) selftest_log.erase(selftest_log.begin());
+    selftest_log.push_back(e);
+    selftest_running = false;
+    selftest_status = st;
+}
+
+/* ---- logs ---- */
+
+unsigned int IDEATADevice::log_blocks(uint8_t addr,bool gpl) {
+    switch (addr) {
+        case 0x00: return 1;
+        case 0x01: return (!gpl && f_smart() && f_errlog()) ? 1 : 0;
+        case 0x02: return (!gpl && f_smart() && f_errlog()) ? 4 : 0;
+        case 0x03: return (gpl && f_errlog()) ? 5 : 0;
+        case 0x04: return (gpl && ata_level() >= 8) ? 1 : 0;
+        case 0x06: return (!gpl && f_smart() && f_selftest()) ? 1 : 0;
+        case 0x07: return (gpl && f_selftest()) ? 1 : 0;
+        case 0x09: return (!gpl && f_smart() && f_selective()) ? 1 : 0;
+        case 0x21: case 0x22: return (gpl && f_stream()) ? 1 : 0;
+        case 0xE0: return ata_level() >= 8 ? 1 : 0;
+        case 0xE1: return ata_level() >= 8 ? 1 : 0;
+        default:
+            if (addr >= 0x80 && addr <= 0x9F) return 16;
+            break;
+    }
+    return 0;
+}
+
+static void ata_checksum(uint8_t *p) {
+    uint8_t sum = 0;
+    for (unsigned int i=0;i < 511;i++) sum += p[i];
+    p[511] = (uint8_t)(0u - sum);
+}
+
+static void ata_put48(uint8_t *p,uint64_t v) {
+    for (unsigned int i=0;i < 6;i++) p[i] = (uint8_t)(v >> (8u * i));
+}
+
+bool IDEATADevice::make_log(uint8_t addr,bool gpl,std::vector<uint8_t> &out) {
+    const unsigned int blocks = log_blocks(addr,gpl);
+    if (blocks == 0) return false;
+
+    out.assign((size_t)blocks * 512u,0);
+    uint8_t *p = out.data();
+
+    switch (addr) {
+        case 0x00: /* log directory */
+            host_writew(p+0,0x0001);
+            for (unsigned int a=1;a < 256;a++) {
+                const unsigned int n = log_blocks((uint8_t)a,gpl);
+                if (gpl) host_writew(p+a*2,(uint16_t)n);
+                else p[a*2] = (uint8_t)n;
+            }
+            break;
+        case 0x01: /* summary SMART error log: the last five errors */
+        case 0x02: /* comprehensive SMART error log: 28-bit, five per block */
+            {
+                const unsigned int cap = (addr == 0x01) ? 5u : 20u;
+                const size_t n = error_log.size();
+                const size_t first = n > cap ? n - cap : 0;
+                p[0] = 0x01;
+                for (size_t i=first;i < n;i++) {
+                    const size_t slot = (i - first) % cap;
+                    uint8_t *b = p + (slot / 5u) * 512u;
+                    uint8_t *s = b + 2 + (slot % 5u) * 90u;
+                    const ErrorEntry &e = error_log[i];
+                    for (unsigned int c=0;c < 5;c++) {
+                        uint8_t *cd = s + c*12u;
+                        const CmdRecord &r = e.cmds[c];
+                        if (r.command == 0 && r.ms == 0) continue;
+                        cd[0] = r.devctl; cd[1] = (uint8_t)r.feature; cd[2] = (uint8_t)r.count;
+                        cd[3] = (uint8_t)r.lba; cd[4] = (uint8_t)(r.lba >> 8u); cd[5] = (uint8_t)(r.lba >> 16u);
+                        cd[6] = r.device; cd[7] = r.command;
+                        host_writed(cd+8,r.ms);
+                    }
+                    uint8_t *ed = s + 60;
+                    ed[1] = e.error; ed[2] = (uint8_t)e.count;
+                    ed[3] = (uint8_t)e.lba; ed[4] = (uint8_t)(e.lba >> 8u); ed[5] = (uint8_t)(e.lba >> 16u);
+                    ed[6] = e.device; ed[7] = e.status;
+                    ed[27] = e.state;
+                    host_writew(ed+28,e.hours);
+                }
+                if (n != 0) p[1] = (uint8_t)(((n - 1u) % cap) + 1u);
+                host_writew(p+452,(uint16_t)error_count);
+                for (unsigned int b=0;b < blocks;b++) ata_checksum(p + b*512u);
+            }
+            break;
+        case 0x03: /* extended comprehensive SMART error log: 48-bit, four per block */
+            {
+                const unsigned int cap = 20u;
+                const size_t n = error_log.size();
+                const size_t first = n > cap ? n - cap : 0;
+                p[0] = 0x01;
+                for (size_t i=first;i < n;i++) {
+                    const size_t slot = (i - first) % cap;
+                    uint8_t *b = p + (slot / 4u) * 512u;
+                    uint8_t *s = b + 4 + (slot % 4u) * 124u;
+                    const ErrorEntry &e = error_log[i];
+                    for (unsigned int c=0;c < 5;c++) {
+                        uint8_t *cd = s + c*18u;
+                        const CmdRecord &r = e.cmds[c];
+                        if (r.command == 0 && r.ms == 0) continue;
+                        cd[0] = r.devctl; host_writew(cd+1,r.feature); host_writew(cd+3,r.count);
+                        ata_put48(cd+5,r.lba);
+                        cd[11] = r.device; cd[12] = r.command;
+                        host_writed(cd+14,r.ms);
+                    }
+                    uint8_t *ed = s + 90;
+                    ed[1] = e.error; host_writew(ed+2,e.count);
+                    ata_put48(ed+4,e.lba);
+                    ed[10] = e.device; ed[11] = e.status;
+                    ed[31] = e.state;
+                    host_writew(ed+32,e.hours);
+                }
+                if (n != 0) host_writew(p+2,(uint16_t)(((n - 1u) % cap) + 1u));
+                host_writew(p+500,(uint16_t)error_count);
+                for (unsigned int b=0;b < blocks;b++) ata_checksum(p + b*512u);
+            }
+            break;
+        case 0x04: /* device statistics, general statistics page */
+            host_writew(p+0,0x0001);
+            host_writeq(p+8,0x8000000000000000ull | poweron_count);
+            break;
+        case 0x06: /* SMART self-test log: 21 entries */
+            {
+                host_writew(p+0,0x0001);
+                const size_t n = selftest_log.size();
+                for (size_t i=0;i < n;i++) {
+                    uint8_t *d = p + 2 + i*24u;
+                    const SelfTestEntry &e = selftest_log[i];
+                    d[0] = e.sub; d[1] = e.status; host_writew(d+2,e.hours); d[4] = e.checkpoint;
+                    host_writed(d+5,(uint32_t)(e.lba & 0x0FFFFFFFu));
+                }
+                if (n != 0) p[508] = (uint8_t)n;
+                ata_checksum(p);
+            }
+            break;
+        case 0x07: /* extended SMART self-test log: 19 entries per block */
+            {
+                p[0] = 0x01;
+                const size_t n = selftest_log.size() > 19u ? 19u : selftest_log.size();
+                const size_t first = selftest_log.size() - n;
+                for (size_t i=0;i < n;i++) {
+                    uint8_t *d = p + 4 + i*26u;
+                    const SelfTestEntry &e = selftest_log[first + i];
+                    d[0] = e.sub; d[1] = e.status; host_writew(d+2,e.hours); d[4] = e.checkpoint;
+                    ata_put48(d+5,e.lba);
+                }
+                if (n != 0) host_writew(p+2,(uint16_t)n);
+                ata_checksum(p);
+            }
+            break;
+        case 0x09: /* selective self-test log */
+            memcpy(p,selective_log,512);
+            if (host_readw(p) == 0) host_writew(p,0x0001);
+            ata_checksum(p);
+            break;
+        case 0x21: /* write stream error log */
+        case 0x22: /* read stream error log: reading the log clears it */
+            {
+                std::vector<StreamErr> &l = (addr == 0x22) ? rd_stream_err : wr_stream_err;
+                uint16_t &cnt = (addr == 0x22) ? rd_stream_err_count : wr_stream_err_count;
+                p[0] = 0x02;
+                for (size_t i=0;i < l.size() && i < 31u;i++) {
+                    uint8_t *d = p + 16 + i*16u;
+                    host_writew(d+0,l[i].feature); d[2] = l[i].status; d[3] = l[i].error;
+                    ata_put48(d+4,l[i].lba); host_writew(d+12,l[i].count);
+                }
+                if (!l.empty()) p[1] = (uint8_t)(l.size() > 31u ? 31u : l.size());
+                host_writew(p+2,cnt);
+                l.clear();
+                cnt = 0;
+            }
+            break;
+        case 0xE0: /* SCT status */
+            sct_status_page(p);
+            break;
+        case 0xE1: /* SCT data transfer: see sct_e1_read() */
+            break;
+        default:
+            if (addr >= 0x80 && addr <= 0x9F) {
+                auto i = host_logs.find(addr);
+                if (i != host_logs.end()) memcpy(p,i->second.data(),out.size());
+            }
+            break;
+    }
+
+    return true;
+}
+
+/* READ LOG (DMA) EXT, SMART READ LOG: offset and count in 512-byte blocks */
+void IDEATADevice::read_log(bool gpl,uint8_t addr,unsigned int offset,unsigned int cnt) {
+    const double now = PIC_FullIndex();
+    const double overhead = instant ? 0.00001 : IDE_HD_COMMAND_MS;
+    std::vector<uint8_t> l;
+
+    if (cnt == 0) {
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+    if (addr == 0xE1) {
+        if (ata_level() < 8 || !sct_e1_read(xbuf,cnt)) {
+            abort_with_error(0x04/*ABRT*/);
+            return;
+        }
+        buf_data_in(now + overhead);
+        return;
+    }
+    if (!make_log(addr,gpl,l) || ((size_t)offset + cnt) * 512u > l.size()) {
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+    xbuf.assign(l.begin() + (size_t)offset * 512u,l.begin() + ((size_t)offset + cnt) * 512u);
+    buf_data_in(now + overhead);
+}
+
+void IDEATADevice::write_log_done(bool gpl,uint8_t addr,unsigned int offset) {
+    const double now = PIC_FullIndex();
+    const double overhead = instant ? 0.00001 : IDE_HD_COMMAND_MS;
+    const unsigned int cnt = (unsigned int)(xbuf.size() / 512u);
+
+    if (addr >= 0x80 && addr <= 0x9F) {
+        if ((size_t)offset + cnt > 16u) {
+            finish_at(now + overhead,0x04/*ABRT*/);
+            return;
+        }
+        auto &v = host_logs[addr];
+        if (v.size() != 16u * 512u) v.assign(16u * 512u,0);
+        memcpy(v.data() + (size_t)offset * 512u,xbuf.data(),xbuf.size());
+        finish_at(now + overhead);
+        return;
+    }
+    if (addr == 0x09 && !gpl && log_blocks(0x09,false) != 0 && cnt == 1) {
+        memcpy(selective_log,xbuf.data(),512);
+        finish_at(now + overhead);
+        return;
+    }
+    if (addr == 0xE0 && cnt == 1 && offset == 0 && ata_level() >= 8) {
+        sct_command(xbuf.data());
+        return;
+    }
+    if (addr == 0xE1 && ata_level() >= 8) {
+        if (!sct_e1_write(xbuf.data(),cnt)) finish_at(now + overhead,0x04/*ABRT*/);
+        return;
+    }
+    /* read only or unsupported log */
+    finish_at(now + overhead,0x04/*ABRT*/);
+}
+
+/* ---- SCT Command Transport ---- */
+
+bool IDEATADevice::write_cache_on() const {
+    if (sct_wc_state == 2) return true;
+    if (sct_wc_state == 3) return false;
+    return write_cache;
+}
+
+void IDEATADevice::sct_status_page(uint8_t *p) {
+    const double now = PIC_FullIndex();
+    const int temp = current_temp(now);
+
+    memset(p,0,512);
+    host_writew(p+0,0x0002);
+    host_writew(p+2,0x0001);
+    host_writew(p+4,0x0001);
+    host_writed(p+6,sct_segment_init ? 1u : 0u);
+    if (sct_ws_background) p[10] = 5;
+    else if (selftest_running) p[10] = 3;
+    else if (smart_offline_status == 0x03) p[10] = 4;
+    else if (power == PWR_SLEEP) p[10] = 2;
+    else if (!spinning) p[10] = 1;
+    host_writew(p+14,(sct_ws_background && fill_kind == FILL_SCT) ? 0xFFFFu : sct_status);
+    host_writew(p+16,sct_action);
+    host_writew(p+18,sct_function);
+    if (sct_ws_background && fill_kind == FILL_SCT) host_writeq(p+40,fill_lba);
+    p[200] = (uint8_t)(int8_t)temp;
+    p[201] = (uint8_t)(int8_t)temp_min;
+    p[202] = (uint8_t)(int8_t)temp_max;
+    p[203] = (uint8_t)(int8_t)temp_life_min;
+    p[204] = (uint8_t)(int8_t)temp_life_max;
+}
+
+/* a background Write Same ends when another command comes in: what is written stays written */
+void IDEATADevice::sct_write_same_stop(double now) {
+    (void)now;
+    if (!sct_ws_background || fill_kind != FILL_SCT) return;
+    PIC_RemoveSpecificEvents(IDE_ATA_FillStep,IDEEventPack(controller->interface_index,slave?1u:0u).get());
+    fill_kind = FILL_NONE;
+    sct_ws_background = false;
+    sct_status = 0x0008; /* aborted by an interrupting host command */
+}
+
+/* ---- long fills in 1ms steps ---- */
+
+void IDEATADevice::fill_start(int kind,uint64_t l,uint64_t n,const uint8_t *data,double rate,bool background) {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+
+    fill_kind = (decltype(fill_kind))kind;
+    fill_lba = l;
+    fill_left = n;
+    fill_done = 0;
+    memcpy(fill_data,data,512);
+    fill_rate = rate;
+    fill_background = background;
+    if (background) {
+        command_ok();
+    }
+    else {
+        xk = XK_NONE;
+        state = IDE_DEV_BUSY;
+        status = IDE_STATUS_BUSY;
+    }
+    PIC_RemoveSpecificEvents(IDE_ATA_FillStep,pk);
+    PIC_AddEvent(IDE_ATA_FillStep,(instant ? 0.01 : 1.0) + (spinning ? 0.0 : spinup_ms),pk);
+    if (!spinning && !instant) spin_up(PIC_FullIndex());
+}
+
+void IDEATADevice::fill_step() {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+    imageDisk *disk = getBIOSdisk();
+
+    /* the sectors the drive writes in 1ms */
+    uint64_t n;
+    if (instant || sector_ms <= 0) n = 8192;
+    else n = (uint64_t)(1.0 / (sector_ms * fill_rate));
+    if (n == 0) n = 1;
+    if (n > fill_left) n = fill_left;
+
+    for (uint64_t i=0;i < n;i++) {
+        if (disk == NULL || fill_lba >= LBA + (fill_kind == FILL_ERASE ? native_LBA - LBA : 0) ||
+            disk->Write_AbsoluteSector((uint32_t)fill_lba,fill_data) != Int13Status::NoError) {
+            fill_end(false);
+            return;
+        }
+        fill_lba++;
+        fill_done++;
+    }
+    fill_left -= n;
+    sectors_written(fill_lba - n,n);
+    head_cyl = (fill_lba / media_spt) / media_heads;
+    ra_valid = false;
+    last_activity = PIC_FullIndex();
+
+    if (fill_left == 0) fill_end(true);
+    else PIC_AddEvent(IDE_ATA_FillStep,instant ? 0.01 : 1.0,pk);
+}
+
+void IDEATADevice::fill_end(bool ok) {
+    const int kind = fill_kind;
+    fill_kind = FILL_NONE;
+
+    switch (kind) {
+        case FILL_ERASE:
+            LOG_MSG("IDE: SECURITY ERASE UNIT %s (%llu sectors)",ok ? "done" : "failed",(unsigned long long)fill_done);
+            if (ok) {
+                unc_sectors.clear();
+                nvc_pinned.clear();
+                sec_enabled = false;
+                sec_locked = false;
+                sec_maxlevel = false;
+                memset(sec_user_pw,0,32);
+                command_ok();
+            }
+            else {
+                abort_with_error(0x04/*ABRT*/);
+            }
+            break;
+        case FILL_WRITE_SAME:
+            cur_lba = fill_lba;
+            cur_count = (uint32_t)fill_left;
+            if (ok) {
+                update_address_registers(cur_lba - 1u);
+                count = 0;
+                command_ok();
+            }
+            else {
+                sector_error(0x10/*IDNF*/);
+            }
+            break;
+        case FILL_SCT:
+            sct_status = ok ? 0x0000 : 0x0009;
+            if (ok && sct_lba == 0 && fill_done == LBA) sct_segment_init = true;
+            if (sct_ws_background) {
+                sct_ws_background = false;
+            }
+            else {
+                /* foreground: the WRITE LOG command that started it completes now */
+                if (ok) command_ok();
+                else abort_with_error(0x04/*ABRT*/);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+static void IDE_ATA_FillStep(Bitu pk) {
+    IDEEventPack ep(pk);
+    IDEController *ctrl = GetIDEController(ep.interface());
+    if (ctrl == NULL) return;
+    IDEDevice *dev = ctrl->device[ep.device()];
+    if (dev == NULL || dev->type != IDE_TYPE_HDD) return;
+    IDEATADevice *ata = static_cast<IDEATADevice*>(dev);
+    if (ata->fill_kind != IDEATADevice::FILL_NONE) ata->fill_step();
+}
+
+void IDEATADevice::sct_command(const uint8_t *key) {
+    const double now = PIC_FullIndex();
+    const double overhead = instant ? 0.00001 : IDE_HD_COMMAND_MS;
+    const uint16_t action = host_readw(key+0),function = host_readw(key+2);
+    uint16_t ext = 0x0000;
+
+    sct_action = action;
+    sct_function = function;
+    sct_xfer = SCT_XFER_NONE;
+
+    auto fail = [&](uint16_t code,uint8_t err) {
+        sct_status = code;
+        count = code & 0xFFu;
+        lba[0] = code >> 8u;
+        finish_at(now + overhead,err);
+    };
+
+    if (sec_locked) {
+        fail(0x0012,0x04);
+        return;
+    }
+
+    switch (action) {
+        case 0x0001: /* Read/Write Long */
+            {
+                const uint64_t l = host_readq(key+4);
+                if (function != 1 && function != 2) { fail(0x000A,0x04); return; }
+                if (l >= LBA) { fail(0x0002,0x10/*IDNF*/); return; }
+                sct_lba = l;
+                sct_xfer = (function == 1) ? SCT_XFER_READ_LONG : SCT_XFER_WRITE_LONG;
+                count = ecc_bytes & 0xFFu;
+                lba[0] = (ecc_bytes >> 8u) & 0xFFu;
+                lba[1] = 0x02; lba[2] = 0x00;
+            }
+            break;
+        case 0x0002: /* Write Same */
+            {
+                uint64_t start = host_readq(key+4),cnt = host_readq(key+12);
+                if (function != 0x0001 && function != 0x0002 && function != 0x0101 && function != 0x0102) {
+                    fail(0x0001,0x04);
+                    return;
+                }
+                if (cnt == 0) {
+                    if (start >= LBA) { fail(0x0002,0x04); return; }
+                    cnt = LBA - start;
+                }
+                if (start >= LBA || start + cnt > LBA) { fail(0x0002,0x04); return; }
+                sct_lba = start;
+                sct_count = cnt;
+                sct_pattern = host_readd(key+20);
+                sct_ws_block = (function == 0x0002 || function == 0x0102);
+                lba[1] = 0x01; lba[2] = 0x00;
+                if (sct_ws_block) {
+                    /* the data block follows on log E1h */
+                    sct_xfer = SCT_XFER_WRITE_SAME;
+                    sct_ws_background = (function == 0x0002);
+                    sct_status = 0;
+                    finish_at(now + overhead);
+                    return;
+                }
+                {
+                    uint8_t blk[512];
+                    for (unsigned int i=0;i < 512;i += 4) host_writed(blk+i,sct_pattern);
+                    sct_ws_background = (function == 0x0001);
+                    sct_status = sct_ws_background ? 0xFFFF : 0x0000;
+                    fill_start(FILL_SCT,start,cnt,blk,1.0,sct_ws_background);
+                }
+            }
+            return;
+        case 0x0003: /* Error Recovery Control */
+            {
+                const uint16_t sel = host_readw(key+4),val = host_readw(key+6);
+                if (function != 1 && function != 2) { fail(0x0004,0x04); return; }
+                if (sel != 1 && sel != 2) { fail(0x0005,0x04); return; }
+                uint16_t &t = (sel == 1) ? sct_erc_read : sct_erc_write;
+                if (function == 1) t = val;
+                else { count = t & 0xFFu; lba[0] = t >> 8u; }
+            }
+            break;
+        case 0x0004: /* Feature Control */
+            {
+                const uint16_t code = host_readw(key+4),st = host_readw(key+6);
+                uint16_t *f = NULL;
+                if (code == 1) f = &sct_wc_state;
+                else if (code == 2) f = &sct_wc_reorder;
+                else if (code == 3) f = &temp_interval;
+                else { fail(0x000D,0x04); return; }
+                if (function == 1) {
+                    if ((code == 1 && (st < 1 || st > 3)) || (code == 2 && (st < 1 || st > 2)) || (code == 3 && st == 0)) {
+                        fail(0x000E,0x04);
+                        return;
+                    }
+                    *f = st;
+                    if (code == 3) {
+                        /* the history is cleared */
+                        for (auto &h : temp_hist) h = (int8_t)0x80;
+                        temp_hist_idx = 0;
+                        temp_hist[0] = (int8_t)current_temp(now);
+                        temp_hist_t = now;
+                    }
+                }
+                else if (function == 2) { count = *f & 0xFFu; lba[0] = *f >> 8u; }
+                else if (function == 3) { count = 0x01; lba[0] = 0x00; /* preserving across power cycles is supported */ }
+                else { fail(0x000C,0x04); return; }
+            }
+            break;
+        case 0x0005: /* Data Tables */
+            if (function != 1) { fail(0x0001,0x04); return; }
+            if (host_readw(key+4) != 0x0002) { fail(0x0011,0x04); return; }
+            sct_xfer = SCT_XFER_TABLE;
+            lba[1] = 0x01; lba[2] = 0x00;
+            break;
+        default:
+            fail(0x0010,0x04);
+            return;
+    }
+
+    sct_status = ext;
+    finish_at(now + overhead);
+}
+
+bool IDEATADevice::sct_e1_read(std::vector<uint8_t> &out,unsigned int cnt) {
+    if (sct_xfer == SCT_XFER_READ_LONG) {
+        if (cnt != 2) return false;
+        out.assign(1024,0);
+        imageDisk *disk = getBIOSdisk();
+        if (disk == NULL || disk->Read_AbsoluteSector((uint32_t)sct_lba,out.data()) != Int13Status::NoError) return false;
+        sector_ecc(out.data(),out.data() + 512);
+        if (unc_sectors.count(sct_lba)) out[512] ^= 0xFF; /* the stored ECC does not match */
+        return true;
+    }
+    if (sct_xfer == SCT_XFER_TABLE) {
+        if (cnt != 1) return false;
+        out.assign(512,0);
+        uint8_t *p = out.data();
+        current_temp(PIC_FullIndex());
+        host_writew(p+0,0x0002);
+        host_writew(p+2,1);             /* sampled every minute */
+        host_writew(p+4,temp_interval);
+        p[6] = 55; p[7] = 60;           /* max operating, over limit */
+        p[8] = 5; p[9] = 0;             /* min operating, under limit */
+        host_writew(p+30,128);
+        host_writew(p+32,(uint16_t)temp_hist_idx);
+        for (unsigned int i=0;i < 128;i++) p[34+i] = (uint8_t)temp_hist[i];
+        return true;
+    }
+    return false;
+}
+
+bool IDEATADevice::sct_e1_write(const uint8_t *data,unsigned int cnt) {
+    const double now = PIC_FullIndex();
+    const double overhead = instant ? 0.00001 : IDE_HD_COMMAND_MS;
+
+    if (sct_xfer == SCT_XFER_WRITE_LONG) {
+        if (cnt != 2) return false;
+        imageDisk *disk = getBIOSdisk();
+        if (disk == NULL || disk->Write_AbsoluteSector((uint32_t)sct_lba,data) != Int13Status::NoError) return false;
+        uint8_t ecc[64];
+        sector_ecc(data,ecc);
+        sectors_written(sct_lba,1);
+        if (memcmp(ecc,data+512,ecc_bytes) != 0) unc_sectors[sct_lba] = 1; /* bad ECC: the sector reads back uncorrectable */
+        sct_xfer = SCT_XFER_NONE;
+        finish_at(media_access(sct_lba,1,true,now + overhead));
+        return true;
+    }
+    if (sct_xfer == SCT_XFER_WRITE_SAME) {
+        if (cnt != 1) return false;
+        memcpy(sct_ws_data,data,512);
+        sct_xfer = SCT_XFER_NONE;
+        (void)now; (void)overhead;
+        if (sct_ws_background) sct_status = 0xFFFF;
+        fill_start(FILL_SCT,sct_lba,sct_count,sct_ws_data,1.0,sct_ws_background);
+        return true;
+    }
+    return false;
+}
+
+void IDEATADevice::sectors_written(uint64_t l,uint64_t n) {
+    if (n == 0) return;
+    sct_segment_init = false;
+    if (!unc_sectors.empty()) {
+        auto i = unc_sectors.lower_bound(l);
+        while (i != unc_sectors.end() && i->first < l + n) i = unc_sectors.erase(i);
+    }
+}
+
+/* the vendor specific bytes of READ/WRITE LONG: a CRC of the sector data */
+void IDEATADevice::sector_ecc(const uint8_t *data,uint8_t *ecc) const {
+    uint32_t crc = 0xFFFFFFFFu;
+    for (unsigned int i=0;i < 512;i++) {
+        crc ^= data[i];
+        for (unsigned int b=0;b < 8;b++) crc = (crc >> 1u) ^ (0xEDB88320u & (0u - (crc & 1u)));
+    }
+    for (unsigned int i=0;i < ecc_bytes && i < 64;i++) {
+        ecc[i] = (uint8_t)(crc >> (8u * (i & 3u)));
+        if ((i & 3u) == 3u) crc = crc * 1103515245u + 12345u;
+    }
+}
+
+/* ---- Host Protected Area ---- */
+
+/* SET MAX ADDRESS (EXT), right after READ NATIVE MAX ADDRESS (EXT) */
+void IDEATADevice::set_max_address(bool ext) {
+    uint64_t newmax;
+
+    if (setmax_state == SM_LOCKED || setmax_state == SM_FROZEN || !(drivehead & 0x40)) {
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+    if (ext) {
+        newmax = (uint64_t)(lba[0] & 0xFFu) | ((uint64_t)(lba[1] & 0xFFu) << 8u) | ((uint64_t)(lba[2] & 0xFFu) << 16u) |
+            ((uint64_t)hob_lba[0] << 24u) | ((uint64_t)hob_lba[1] << 32u) | ((uint64_t)hob_lba[2] << 40u);
+    }
+    else {
+        newmax = (uint64_t)(lba[0] & 0xFFu) | ((uint64_t)(lba[1] & 0xFFu) << 8u) | ((uint64_t)(lba[2] & 0xFFu) << 16u) |
+            ((uint64_t)(drivehead & 0x0Fu) << 24u);
+    }
+    if (newmax >= native_LBA || (LBA < native_LBA && hpa_by_ext != ext)) {
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+    const bool nonvolatile = (count & 1u) != 0; /* Volatile_Value: the address stays after a hardware reset */
+    if (nonvolatile && hpa_nv_set) {
+        abort_with_error(0x10/*IDNF: second non-volatile SET MAX since the reset*/);
+        return;
+    }
+    LBA = newmax + 1u;
+    hpa_by_ext = ext;
+    if (nonvolatile) {
+        hpa_nv_max = (LBA == native_LBA) ? 0 : LBA;
+        hpa_nv_set = true;
+    }
+    sct_segment_init = false;
+    cmd_ext = ext;
+    cmd_lba = true;
+    update_address_registers(newmax);
+    command_ok();
+}
+
+/* SET MAX security extensions (Feature 01h-04h) */
+void IDEATADevice::set_max(bool data_received) {
+    const double now = PIC_FullIndex();
+    const double overhead = instant ? 0.00001 : IDE_HD_COMMAND_MS;
+
+    if (!data_received) {
+        /* the command has just been written. The security extensions are new in ATA/ATAPI-5. */
+        if (ata_level() < 5) {
+            abort_with_error(0x04/*ABRT*/);
+            return;
+        }
+        switch (feature & 0xFFu) {
+            case 0x01: /* SET MAX SET PASSWORD */
+            case 0x03: /* SET MAX UNLOCK */
+                if (setmax_state == SM_FROZEN || ((feature & 0xFFu) == 0x01 && setmax_state == SM_LOCKED) ||
+                    ((feature & 0xFFu) == 0x03 && (setmax_state != SM_LOCKED || setmax_unlock_count == 0))) {
+                    abort_with_error(0x04/*ABRT*/);
+                    return;
+                }
+                buf_data_out(512);
+                return;
+            case 0x02: /* SET MAX LOCK */
+                if (setmax_state == SM_INACTIVE || setmax_state == SM_FROZEN) {
+                    abort_with_error(0x04/*ABRT*/);
+                    return;
+                }
+                setmax_state = SM_LOCKED;
+                setmax_unlock_count = 5;
+                command_ok();
+                return;
+            case 0x04: /* SET MAX FREEZE LOCK */
+                if (setmax_state == SM_INACTIVE || setmax_state == SM_FROZEN) {
+                    abort_with_error(0x04/*ABRT*/);
+                    return;
+                }
+                setmax_state = SM_FROZEN;
+                command_ok();
+                return;
+            default:
+                abort_with_error(0x04/*ABRT*/);
+                return;
+        }
+    }
+
+    /* the password has been received */
+    const uint8_t *pw = xbuf.data() + 2;
+    if ((feature & 0xFFu) == 0x01) {
+        memcpy(setmax_pw,pw,32);
+        setmax_state = SM_UNLOCKED;
+        finish_at(now + overhead);
+    }
+    else if (memcmp(setmax_pw,pw,32) == 0) {
+        setmax_state = SM_UNLOCKED;
+        finish_at(now + overhead);
+    }
+    else {
+        if (setmax_unlock_count > 0) setmax_unlock_count--;
+        finish_at(now + overhead,0x04/*ABRT*/);
+    }
+}
+
+/* ---- Security ---- */
+
+/* commands aborted while the device is locked (ATA8-ACS table 8) */
+bool IDEATADevice::security_blocks(uint8_t c) const {
+    switch (c) {
+        case 0x00: case 0x08: case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16:
+        case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B: case 0x1C: case 0x1D: case 0x1E: case 0x1F:
+        case 0x27: case 0x2F: case 0x47: case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75:
+        case 0x76: case 0x77: case 0x78: case 0x79: case 0x7A: case 0x7B: case 0x7C: case 0x7D: case 0x7E:
+        case 0x7F: case 0x90: case 0x91: case 0x92: case 0x94: case 0x95: case 0x96: case 0x97: case 0x98:
+        case 0x99: case 0xB0: case 0xC6: case 0xE0: case 0xE1: case 0xE2: case 0xE3: case 0xE4: case 0xE5:
+        case 0xE6: case 0xE8: case 0xEC: case 0xEF: case 0xF2: case 0xF3: case 0xF4: case 0xF8:
+            return false;
+        default:
+            break;
+    }
+    return true;
+}
+
+bool IDEATADevice::sec_password_ok(const uint8_t *d,bool for_erase) {
+    const bool master = (host_readw(d) & 1u) != 0;
+    const uint8_t *pw = d + 2;
+
+    if (!sec_enabled && !master) return false;
+    if (master) {
+        if (sec_enabled && sec_maxlevel && !for_erase) return false;
+        return memcmp(pw,sec_master_pw,32) == 0;
+    }
+    return memcmp(pw,sec_user_pw,32) == 0;
+}
+
+/* estimated time to write the whole disk */
+double IDEATADevice::erase_time_ms(bool enhanced) const {
+    const double per = sector_ms > 0 ? sector_ms : (rev_ms / 63.0);
+    return (double)native_LBA * per * (enhanced ? 2.0 : 1.0) + 1000.0;
+}
+
+void IDEATADevice::security_data_out() {
+    const double now = PIC_FullIndex();
+    const double overhead = instant ? 0.00001 : IDE_HD_COMMAND_MS;
+    const uint8_t *d = xbuf.data();
+    const uint16_t ctl = host_readw(d);
+
+    switch (command) {
+        case 0xF1: /* SECURITY SET PASSWORD */
+            if (ctl & 1u) {
+                const uint16_t id = host_readw(d + 34);
+                if (id == 0x0000 || id == 0xFFFF) {
+                    /* an invalid identifier: the old one stays */
+                    finish_at(now + overhead,0x04/*ABRT*/);
+                    return;
+                }
+                memcpy(sec_master_pw,d+2,32);
+                sec_master_id = id;
+            }
+            else {
+                memcpy(sec_user_pw,d+2,32);
+                sec_enabled = true;
+                sec_maxlevel = (ctl & 0x0100u) != 0;
+            }
+            finish_at(now + overhead);
+            return;
+        case 0xF2: /* SECURITY UNLOCK */
+            if (!sec_enabled && !(ctl & 1u)) {
+                finish_at(now + overhead,0x04/*ABRT*/);
+                return;
+            }
+            if ((ctl & 1u) && sec_enabled && sec_maxlevel) {
+                finish_at(now + overhead,0x04/*ABRT*/);
+                return;
+            }
+            if (!sec_password_ok(d,false)) {
+                if (sec_locked && sec_attempts > 0) sec_attempts--;
+                finish_at(now + overhead,0x04/*ABRT*/);
+                return;
+            }
+            sec_locked = false;
+            finish_at(now + overhead);
+            return;
+        case 0xF4: /* SECURITY ERASE UNIT */
+            {
+                const bool enhanced = (ctl & 2u) != 0;
+                if (!sec_password_ok(d,true)) {
+                    finish_at(now + overhead,0x04/*ABRT*/);
+                    return;
+                }
+                /* every user data sector (up to the native max address) is written with zeroes, at the
+                 * rate of the drive, while the command is in progress */
+                const uint8_t zero[512] = {};
+                LOG_MSG("IDE: SECURITY ERASE UNIT (%s): erasing the disk image (%llu sectors)",
+                    enhanced ? "enhanced" : "normal",(unsigned long long)native_LBA);
+                (void)now; (void)overhead;
+                fill_start(FILL_ERASE,0,native_LBA,zero,enhanced ? 2.0 : 1.0,false);
+            }
+            return;
+        case 0xF6: /* SECURITY DISABLE PASSWORD */
+            if (!sec_enabled && !(ctl & 1u)) {
+                finish_at(now + overhead,0x04/*ABRT*/);
+                return;
+            }
+            if (!sec_password_ok(d,false)) {
+                finish_at(now + overhead,0x04/*ABRT*/);
+                return;
+            }
+            memset(sec_user_pw,0,32);
+            sec_enabled = false;
+            sec_maxlevel = false;
+            finish_at(now + overhead);
+            return;
+        default:
+            finish_at(now + overhead,0x04/*ABRT*/);
+            return;
+    }
+}
+
+/* ---- DOWNLOAD MICROCODE ----
+ * The drive accepts only its own microcode: an image that starts with "DBXATAUC", then the length of
+ * the image (32-bit) and the new firmware revision (8 characters). Mode 07h takes the image in one
+ * command, mode 03h in segments with offsets. The new firmware revision shows in IDENTIFY DEVICE. */
+void IDEATADevice::download_microcode_done() {
+    const double now = PIC_FullIndex();
+    const double overhead = instant ? 0.00001 : IDE_HD_COMMAND_MS;
+    const uint8_t mode = (uint8_t)(feature & 0xFFu);
+
+    if (mode == 0x03) {
+        const uint32_t offset = (uint32_t)(lba[1] & 0xFFu) | ((uint32_t)(lba[2] & 0xFFu) << 8u);
+        if (offset == 0) {
+            ucode.clear();
+            ucode_next = 0;
+        }
+        if (offset != ucode_next) {
+            ucode.clear();
+            ucode_next = 0;
+            finish_at(now + overhead,0x04/*ABRT*/);
+            return;
+        }
+        ucode.insert(ucode.end(),xbuf.begin(),xbuf.end());
+        ucode_next += (uint32_t)(xbuf.size() / 512u);
+    }
+    else {
+        ucode = xbuf;
+    }
+
+    if (ucode.size() >= 12 && memcmp(ucode.data(),"DBXATAUC",8) != 0) {
+        ucode.clear();
+        ucode_next = 0;
+        finish_at(now + overhead,0x04/*ABRT: not microcode for this drive*/);
+        return;
+    }
+    const uint32_t total = ucode.size() >= 12 ? host_readd(ucode.data() + 8) : 0xFFFFFFFFu;
+    if (ucode.size() < 20 || ucode.size() < total) {
+        if (mode != 0x03) {
+            ucode.clear();
+            finish_at(now + overhead,0x04/*ABRT*/);
+            return;
+        }
+        count = 0x01; /* more segments expected */
+        finish_at(now + overhead);
+        return;
+    }
+
+    id_firmware_rev.assign((const char*)ucode.data() + 12,8);
+    while (!id_firmware_rev.empty() && (id_firmware_rev.back() == ' ' || id_firmware_rev.back() == 0)) id_firmware_rev.pop_back();
+    LOG_MSG("IDE: DOWNLOAD MICROCODE: new firmware revision '%s'",id_firmware_rev.c_str());
+    ucode.clear();
+    ucode_next = 0;
+    count = (mode == 0x03) ? 0x02 : 0x00; /* the new microcode is in use */
+    finish_at(now + overhead + (instant ? 0.0 : 500.0));
+}
+
+/* ---- NV Cache: a flash cache of pinned sectors that are read and written without the disk ---- */
+
+static void ata_range_add(std::map<uint64_t,uint64_t> &m,uint64_t a,uint64_t n) {
+    if (n == 0) return;
+    uint64_t b = a + n;
+    auto i = m.upper_bound(a);
+    if (i != m.begin()) {
+        auto p = std::prev(i);
+        if (p->first + p->second >= a) {
+            a = p->first;
+            if (p->first + p->second > b) b = p->first + p->second;
+            i = m.erase(p);
+        }
+    }
+    while (i != m.end() && i->first <= b) {
+        if (i->first + i->second > b) b = i->first + i->second;
+        i = m.erase(i);
+    }
+    m[a] = b - a;
+}
+
+static void ata_range_remove(std::map<uint64_t,uint64_t> &m,uint64_t a,uint64_t n) {
+    if (n == 0) return;
+    const uint64_t b = a + n;
+    auto i = m.upper_bound(a);
+    if (i != m.begin()) --i;
+    while (i != m.end() && i->first < b) {
+        const uint64_t s = i->first,e = i->first + i->second;
+        if (e <= a) { ++i; continue; }
+        i = m.erase(i);
+        if (s < a) m[s] = a - s;
+        if (e > b) { m[b] = e - b; break; }
+    }
+}
+
+uint64_t IDEATADevice::nvc_pinned_count() const {
+    uint64_t n = 0;
+    for (const auto &r : nvc_pinned) n += r.second;
+    return n;
+}
+
+bool IDEATADevice::nvc_covers(uint64_t l,unsigned int n) const {
+    if (nvc_pinned.empty() || !f_nvcache()) return false;
+    auto i = nvc_pinned.upper_bound(l);
+    if (i == nvc_pinned.begin()) return false;
+    --i;
+    return i->first <= l && i->first + i->second >= l + n;
+}
+
+void IDEATADevice::nvc_add(uint64_t l,uint64_t n) {
+    ata_range_add(nvc_pinned,l,n);
+}
+
+void IDEATADevice::nvc_remove(uint64_t l,uint64_t n) {
+    ata_range_remove(nvc_pinned,l,n);
+}
+
+/* ADD / REMOVE LBA(S): the LBA range entries have been received */
+void IDEATADevice::nvc_data_done() {
+    const double now = PIC_FullIndex();
+    const double overhead = instant ? 0.00001 : IDE_HD_COMMAND_MS;
+    const uint16_t fn = (uint16_t)((feature & 0xFFu) | ((unsigned int)hob_feature << 8u));
+    double t = now + overhead;
+
+    for (size_t o=0;o + 8 <= xbuf.size();o += 8) {
+        const uint64_t e = host_readq(xbuf.data() + o);
+        const uint64_t l = e & 0xFFFFFFFFFFFFull;
+        const uint64_t n = e >> 48u;
+        if (n == 0) continue;
+        if (fn == 0x0010) {
+            if (nvc_pinned_count() + n > nvc_size) {
+                finish_at(t,0x04/*ABRT: the cache is full*/);
+                return;
+            }
+            nvc_add(l,n);
+            /* Populate Immediately: the sectors are read into the cache before completion */
+            if (lba[0] & 1u) t = media_access(l,(unsigned int)n,false,t);
+        }
+        else {
+            nvc_remove(l,n);
+        }
+    }
+    const uint64_t left = nvc_size - nvc_pinned_count();
+    cmd_ext = true; cmd_lba = true;
+    update_address_registers(left);
+    finish_at(t);
+}
+
+/* ---- power management extensions, transfer modes ---- */
+
+double IDEATADevice::apm_standby_ms() const {
+    if (!apm_enabled || apm_level >= 0x80) return 0;
+    /* level 01h spins down after 5 seconds of idle time, 7Fh after 20 minutes */
+    return 5000.0 + (double)(apm_level - 1u) * (1200000.0 - 5000.0) / 126.0;
+}
+
+double IDEATADevice::seek_scale() const {
+    if (!aam_enabled || aam_level >= 0xFE) return 1.0;
+    const unsigned int lv = aam_level < 0x80 ? 0x80u : aam_level;
+    /* minimum acoustic emanation (80h): the heads move about 1.6 times slower */
+    return 1.6 - 0.6 * (double)(lv - 0x80u) / (double)(0xFEu - 0x80u);
+}
+
+double IDEATADevice::dma_mb_per_s() const {
+    static const double udma[7] = { 16.7, 25.0, 33.3, 44.4, 66.7, 100.0, 133.0 };
+    static const double mwdma[3] = { 4.2, 13.3, 16.7 };
+    if (udma_sel >= 0 && udma_sel < 7) return udma[udma_sel];
+    if (mwdma_sel >= 0 && mwdma_sel < 3) return mwdma[mwdma_sel];
+    return 16.7; /* the device default after reset: multiword DMA mode 2 timing */
+}
+
+bool IDEATADevice::wrv_applies(unsigned int n) {
+    if (!wrv_enabled || !f_wrv()) return false;
+    uint64_t limit = ~0ull;
+    if (wrv_mode == 1) limit = 65536;
+    else if (wrv_mode == 2) limit = 8192;
+    else if (wrv_mode == 3) limit = wrv_sectors;
+    const bool r = wrv_done < limit;
+    wrv_done += n;
+    return r;
+}
+
+/* ---- sector read/write/verify commands of all kinds: PIO single and multiple, DMA, queued, FUA, stream, long ---- */
+void IDEATADevice::start_sector_command(unsigned int fl,double now,double overhead) {
+    const bool ext = (fl & ATAC_EXT) != 0;
+
+    if (((fl & ATAC_MULT) && multiple_sector_count == 0) || (ext && !f_lba48()) ||
+        ((fl & ATAC_DMA) && !has_dma()) || ((fl & ATAC_QUEUED) && !f_tcq()) ||
+        ((fl & ATAC_FUA) && !f_fua()) || ((fl & ATAC_STREAM) && !f_stream())) {
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+    cmd_count_in_feature = (fl & ATAC_QUEUED) != 0;
+    if (!decode_address(ext,false)) {
+        cmd_count_in_feature = false;
+        abort_with_error(0x10/*IDNF*/);
+        return;
+    }
+    cmd_count_in_feature = false;
+    if (fl & ATAC_LONG) cur_count = 1;      /* READ/WRITE LONG: a single sector */
+    if (fl & ATAC_QUEUED) queue_tag = (uint8_t)((count >> 3u) & 0x1Fu);
+    if (cur_lba >= LBA) {
+        sector_error(0x10/*IDNF*/);
+        return;
+    }
+    dma_cmd = (fl & ATAC_DMA) != 0;
+    stream_se = false;
+    stream_deadline = 0;
+    if (fl & ATAC_STREAM) {
+        /* Command Completion Time Limit, in units of the streaming performance granularity (1ms) */
+        const unsigned int id = feature & 7u;
+        unsigned int cctl = hob_feature;
+        stream_rc = (feature & 0x40u) != 0;
+        if (cctl == 0 && streams[id].valid) cctl = streams[id].cctl;
+        if (cctl != 0) stream_deadline = now + (double)cctl;
+    }
+
+    progress_count = 0;
+    cur_block = block_count();
+    if (fl & (ATAC_READ|ATAC_VERIFY)) {
+        state = IDE_DEV_BUSY;
+        status = IDE_STATUS_BUSY;
+        schedule(media_access(cur_lba,cur_block,false,now + overhead));
+    }
+    else {
+        /* the drive does NOT signal an interrupt. it sets DRQ and waits for the first data
+         * block to be transferred to it before writing (a DMA command waits for the bus master) */
+        state = IDE_DEV_DATA_WRITE;
+        status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ;
+        if (fl & ATAC_QUEUED) count = (uint16_t)(queue_tag << 3u); /* I/O=0 C/D=0: data from the host */
+        prepare_write(0,(fl & ATAC_LONG) ? 512u + 2u * ecc_bytes : 512u * cur_block);
+        if (dma_cmd) data_phase_ready();
+    }
+}
+
+/* a READ/WRITE STREAM command ran out of time: Read/Write Continuous ends it with SE and logs it,
+ * otherwise it ends with ABRT */
+bool IDEATADevice::stream_timeout() {
+    if (stream_deadline == 0 || PIC_FullIndex() <= stream_deadline) return false;
+
+    std::vector<StreamErr> &l = (sector_cmd_flags(command) & ATAC_READ) ? rd_stream_err : wr_stream_err;
+    uint16_t &cnt = (sector_cmd_flags(command) & ATAC_READ) ? rd_stream_err_count : wr_stream_err_count;
+    StreamErr e;
+    e.feature = (uint16_t)((feature & 0xFFu) | ((unsigned int)hob_feature << 8u));
+    e.status = 0x61;
+    e.error = 0x00;
+    e.lba = cur_lba;
+    e.count = (uint16_t)cur_count;
+    if (l.size() >= 31) l.erase(l.begin());
+    l.push_back(e);
+    if (cnt < 0xFFFF) cnt++;
+
+    update_address_registers(cur_lba);
+    if (stream_rc) {
+        count = 0;
+        hob_count = 0;
+        state = IDE_DEV_READY;
+        status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE|0x20/*SE*/;
+        allow_writing = true;
+        raise_irq();
+    }
+    else {
+        abort_with_error(0x04/*ABRT*/);
+    }
+    return true;
+}
+
+/* ---- SMART (B0h) ---- */
+void IDEATADevice::smart_command(double now,double overhead) {
+    const uint8_t fn = (uint8_t)(feature & 0xFFu);
+    const uint8_t la = (uint8_t)(lba[0] & 0xFFu);
+
+    if (!f_smart() || (lba[1] & 0xFFu) != 0x4F || (lba[2] & 0xFFu) != 0xC2) {
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+    /* while SMART is disabled, only SMART ENABLE OPERATIONS and the SCT command transport work */
+    if (!smart_enabled && fn != 0xD8 && !((fn == 0xD5 || fn == 0xD6) && (la == 0xE0 || la == 0xE1))) {
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+
+    /* ATA-3: D0h-D3h, D8h-DAh; ATA/ATAPI-4: D4h; ATA/ATAPI-5: the logs (D5h/D6h) */
+    {
+        const int L = ata_level();
+        if ((fn == 0xD4 && L < 4) || ((fn == 0xD5 || fn == 0xD6) && L < 5)) {
+            abort_with_error(0x04/*ABRT*/);
+            return;
+        }
+    }
+
+    switch (fn) {
+        case 0xD0: /* SMART READ DATA */
+            xbuf.assign(512,0);
+            smart_read_data(xbuf.data());
+            buf_data_in(now + overhead);
+            break;
+        case 0xD1: /* SMART READ ATTRIBUTE THRESHOLDS (ATA-3..ATA-5) */
+            xbuf.assign(512,0);
+            smart_read_thresholds(xbuf.data());
+            buf_data_in(now + overhead);
+            break;
+        case 0xD2: /* SMART ENABLE/DISABLE ATTRIBUTE AUTOSAVE */
+            if ((count & 0xFFu) == 0x00) smart_autosave = false;
+            else if ((count & 0xFFu) == 0xF1) smart_autosave = true;
+            else {
+                abort_with_error(0x04/*ABRT*/);
+                break;
+            }
+            finish_at(now + overhead);
+            break;
+        case 0xD3: /* SMART SAVE ATTRIBUTE VALUES (ATA-3..ATA-5) */
+            finish_at(now + overhead + (instant ? 0.0 : rev_ms));
+            break;
+        case 0xD4: /* SMART EXECUTE OFF-LINE IMMEDIATE */
+            {
+                const uint8_t sub = la;
+                const unsigned int kind = sub & 0x7Fu;
+                if (sub == 0x00) {
+                    /* off-line data collection: a scan of the disk in the background */
+                    smart_offline_status = 0x03;
+                    offline_end = now + (instant ? 1.0 : erase_time_ms(false));
+                    finish_at(now + overhead);
+                    break;
+                }
+                if (sub == 0x7F) {
+                    /* abort the off-line self-test */
+                    if (selftest_running) selftest_finish(0x10/*aborted by the host*/);
+                    finish_at(now + overhead);
+                    break;
+                }
+                if (kind < 1 || kind > 4 || !f_selftest() ||
+                    (kind == 3 && !f_conveyance()) || (kind == 4 && !f_selective())) {
+                    abort_with_error(0x04/*ABRT*/);
+                    break;
+                }
+                if (selftest_running) selftest_finish(0x10);
+                selftest_start_cmd(sub,(sub & 0x80u) != 0,now);
+                if (sub & 0x80u) {
+                    /* captive: the command completes when the test is done */
+                    const double end = selftest_end;
+                    selftest_update(end);
+                    if (selftest_status != 0x00) {
+                        lba[1] = 0xF4; lba[2] = 0x2C;
+                        finish_at(end,0x04/*ABRT: the self-test failed*/);
+                    }
+                    else {
+                        lba[1] = 0x4F; lba[2] = 0xC2;
+                        finish_at(end);
+                    }
+                    break;
+                }
+                lba[1] = 0x00; lba[2] = 0x00;
+                finish_at(now + overhead);
+            }
+            break;
+        case 0xD5: /* SMART READ LOG */
+            read_log(false,la,0,count & 0xFFu);
+            break;
+        case 0xD6: /* SMART WRITE LOG */
+            {
+                const unsigned int n = count & 0xFFu;
+                if (n == 0 || !((la >= 0x80 && la <= 0x9F) || la == 0x09 || la == 0xE0 || la == 0xE1) || log_blocks(la,false) == 0) {
+                    abort_with_error(0x04/*ABRT*/);
+                    break;
+                }
+                buf_data_out((size_t)n * 512u);
+            }
+            break;
+        case 0xD8: /* SMART ENABLE OPERATIONS */
+            smart_enabled = true;
+            finish_at(now + overhead);
+            break;
+        case 0xD9: /* SMART DISABLE OPERATIONS */
+            smart_enabled = false;
+            finish_at(now + overhead);
+            break;
+        case 0xDA: /* SMART RETURN STATUS */
+            if (smart_threshold_exceeded()) { lba[1] = 0xF4; lba[2] = 0x2C; }
+            else { lba[1] = 0x4F; lba[2] = 0xC2; }
+            finish_at(now + overhead);
+            break;
+        case 0xDB: /* SMART ENABLE/DISABLE AUTOMATIC OFF-LINE (ATA-3) */
+            if ((count & 0xFFu) != 0x00 && (count & 0xFFu) != 0xF8) {
+                abort_with_error(0x04/*ABRT*/);
+                break;
+            }
+            finish_at(now + overhead);
+            break;
+        default:
+            abort_with_error(0x04/*ABRT*/);
+            break;
+    }
+}
+
+/* ---- SET FEATURES (EFh) ---- */
+void IDEATADevice::set_features(double now,double overhead) {
+    const uint8_t sc = (uint8_t)(count & 0xFFu);
+
+    if (!ata_setfeature_defined((uint8_t)(feature & 0xFFu),ata_level())) {
+        LOG(LOG_MISC,LOG_DEBUG)("SET FEATURES %02xh is not part of ATA-%d",feature,ata_level());
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+
+    switch (feature & 0xFFu) {
+        case 0x02: /* enable write cache (the SCT Feature Control state may override it) */
+            write_cache = true;
+            break;
+        case 0x82: /* disable write cache */
+            write_cache = false;
+            break;
+        case 0x03: /* set transfer mode */
+            if (sc <= 0x01) {                                   /* PIO default mode */
+                pio_mode = -1;
+            }
+            else if ((sc & 0xF8u) == 0x08) {                    /* PIO flow control mode 0-4 */
+                if ((sc & 7u) > 4) { abort_with_error(0x04); return; }
+                pio_mode = sc & 7;
+            }
+            else if ((sc & 0xF8u) == 0x20) {                    /* multiword DMA mode 0-2 */
+                if (!has_dma() || !(dco_mdma & ata_level_mdma(ata_level()) & (1u << (sc & 7u)))) { abort_with_error(0x04); return; }
+                mwdma_sel = sc & 7;
+                udma_sel = -1;
+            }
+            else if ((sc & 0xF8u) == 0x40) {                    /* Ultra DMA mode 0-6 */
+                if (!has_dma() || (sc & 7u) > 6 || !(dco_udma & ata_level_udma(ata_level()) & (1u << (sc & 7u)))) { abort_with_error(0x04); return; }
+                udma_sel = sc & 7;
+                mwdma_sel = -1;
+            }
+            else {
+                abort_with_error(0x04/*ABRT*/);
+                return;
+            }
+            break;
+        case 0x05: /* enable advanced power management */
+            if (sc == 0x00 || sc == 0xFF) { abort_with_error(0x04); return; }
+            apm_enabled = true;
+            apm_level = sc;
+            note_activity(now);
+            break;
+        case 0x85: /* disable advanced power management */
+            apm_enabled = false;
+            note_activity(now);
+            break;
+        case 0x06: /* enable Power-Up In Standby */
+            if (!f_puis()) { abort_with_error(0x04); return; }
+            puis_enabled = true;
+            break;
+        case 0x86: /* disable Power-Up In Standby */
+            if (!f_puis()) { abort_with_error(0x04); return; }
+            puis_enabled = false;
+            break;
+        case 0x07: /* Power-Up In Standby: spin up */
+            if (!f_puis()) { abort_with_error(0x04); return; }
+            finish_at(spin_up(now + overhead));
+            return;
+        case 0x0B: /* enable Write-Read-Verify */
+            if (!f_wrv() || (lba[0] & 0xFFu) > 3) { abort_with_error(0x04); return; }
+            wrv_enabled = true;
+            wrv_mode = (uint8_t)(lba[0] & 0xFFu);
+            wrv_sectors = (uint64_t)sc * 1024u;
+            wrv_done = 0;
+            break;
+        case 0x8B: /* disable Write-Read-Verify */
+            if (!f_wrv()) { abort_with_error(0x04); return; }
+            wrv_enabled = false;
+            break;
+        case 0x42: /* enable Automatic Acoustic Management */
+            if (!f_aam() || sc == 0xFF) { abort_with_error(0x04); return; }
+            aam_enabled = true;
+            aam_level = (sc == 0x00) ? 0x80 : sc;
+            break;
+        case 0xC2: /* disable Automatic Acoustic Management */
+            if (!f_aam()) { abort_with_error(0x04); return; }
+            aam_enabled = false;
+            break;
+        case 0x43: /* typical host interface sector times (streaming) */
+            if (!f_stream()) { abort_with_error(0x04); return; }
+            break;
+        case 0x5D: case 0xDD: /* enable/disable release interrupt (TCQ) */
+            if (!f_tcq()) { abort_with_error(0x04); return; }
+            rel_irq_en = (feature & 0xFFu) == 0x5D;
+            break;
+        case 0x5E: case 0xDE: /* enable/disable SERVICE interrupt (TCQ) */
+            if (!f_tcq()) { abort_with_error(0x04); return; }
+            serv_irq_en = (feature & 0xFFu) == 0x5E;
+            break;
+        case 0xAA: /* enable read look-ahead */
+            read_lookahead = true;
+            break;
+        case 0x55: /* disable read look-ahead */
+            read_lookahead = false;
+            ra_valid = false;
+            break;
+        case 0x66: /* disable reverting to power-on defaults */
+            revert_defaults = false;
+            break;
+        case 0xCC: /* enable reverting to power-on defaults */
+            revert_defaults = true;
+            break;
+        case 0x04: case 0x84: /* ATA-3: enable/disable all automatic defect reassignment */
+            break;
+        case 0x44: /* ATA-1..3: number of vendor specific bytes on READ/WRITE LONG */
+            if (sc < 4 || sc > 64) { abort_with_error(0x04); return; }
+            ecc_bytes = sc;
+            break;
+        case 0xBB: /* ATA-1..3: 4 bytes of vendor specific data on READ/WRITE LONG */
+            ecc_bytes = 4;
+            break;
+        case 0x33: case 0x99: /* ATA-1..3: disable/enable retries */
+        case 0x54: /* ATA-1..3: set cache segments */
+        case 0x77: case 0x88: /* ATA-1..3: disable/enable ECC */
+        case 0x9A: /* ATA-1..3: set maximum average current */
+        case 0xAB: /* ATA-1..3: set maximum prefetch */
+            break;
+        default:
+            /* 01h/81h 8-bit PIO and 0Ah/8Ah CFA power mode (CFA devices only), 31h/95h media status
+             * notification (removable media only), Serial ATA features, reserved values */
+            LOG(LOG_MISC,LOG_DEBUG)("SET FEATURES %02xh SC=%02x SN=%02x CL=%02x CH=%02x",feature,count,lba[0],lba[1],lba[2]);
+            abort_with_error(0x04/*ABRT*/);
+            return;
+    }
+    finish_at(now + overhead);
+}
+
+/* ---- commands of the feature sets that are not sector reads or writes ---- */
+bool IDEATADevice::feature_command(uint8_t cmd,double now,double overhead) {
+    switch (cmd) {
+        case 0x2F: /* READ LOG EXT */
+        case 0x47: /* READ LOG DMA EXT */
+            if (cmd == 0x47 && !has_dma()) { abort_with_error(0x04); return true; }
+            dma_cmd = (cmd == 0x47);
+            read_log(true,(uint8_t)(lba[0] & 0xFFu),(unsigned int)(lba[2] & 0xFFu) | ((unsigned int)hob_lba[0] << 8u),
+                (unsigned int)(count & 0xFFu) | ((unsigned int)hob_count << 8u));
+            return true;
+        case 0x3F: /* WRITE LOG EXT */
+        case 0x57: /* WRITE LOG DMA EXT */
+            {
+                const uint8_t la = (uint8_t)(lba[0] & 0xFFu);
+                const unsigned int n = (unsigned int)(count & 0xFFu) | ((unsigned int)hob_count << 8u);
+                if ((cmd == 0x57 && !has_dma()) || n == 0 || !((la >= 0x80 && la <= 0x9F) || la == 0xE0 || la == 0xE1)) {
+                    abort_with_error(0x04/*ABRT*/);
+                    return true;
+                }
+                dma_cmd = (cmd == 0x57);
+                buf_data_out((size_t)n * 512u);
+            }
+            return true;
+        case 0x37: /* SET MAX ADDRESS EXT */
+            if (!f_hpa() || !f_lba48() || prev_cmd != 0x27 || !prev_ok) { abort_with_error(0x04); return true; }
+            set_max_address(true);
+            return true;
+        case 0xF9: /* SET MAX ADDRESS, or SET MAX security extensions */
+            if (!f_hpa()) { abort_with_error(0x04); return true; }
+            if (prev_cmd == 0xF8 && prev_ok) set_max_address(false);
+            else set_max(false);
+            return true;
+        case 0x45: /* WRITE UNCORRECTABLE EXT */
+            {
+                const uint8_t opt = (uint8_t)(feature & 0xFFu);
+                if (!f_wunc() || !(opt == 0x55 || opt == 0x5A || opt == 0xA5 || opt == 0xAA)) {
+                    abort_with_error(0x04/*ABRT*/);
+                    return true;
+                }
+                if (!decode_address(true,false)) { abort_with_error(0x04); return true; }
+                if (cur_lba + cur_count > LBA) { sector_error(0x10/*IDNF*/); return true; }
+                const uint8_t logit = (opt == 0x55 || opt == 0xA5) ? 1 : 0;
+                for (uint64_t i=0;i < cur_count;i++) unc_sectors[cur_lba + i] = logit;
+                finish_at(now + overhead);
+            }
+            return true;
+        case 0x50: /* FORMAT TRACK (ATA-1..3) */
+            if (drivehead & 0x40) {
+                cur_lba = (uint64_t)(lba[0] & 0xFFu) | ((uint64_t)(lba[1] & 0xFFu) << 8u) | ((uint64_t)(lba[2] & 0xFFu) << 16u) |
+                    ((uint64_t)(drivehead & 0xFu) << 24u);
+            }
+            else {
+                const unsigned int c = ide_chs_cylinder(lba),h = drivehead & 0xFu;
+                if (h >= heads || c >= cyls) { abort_with_error(0x10); return true; }
+                cur_lba = ((uint64_t)c * heads + h) * sects;
+            }
+            if (cur_lba >= LBA) { abort_with_error(0x10/*IDNF*/); return true; }
+            buf_data_out(512);
+            return true;
+        case 0xE9: /* WRITE SAME (ATA-1): 22h the sectors in the registers, DDh the whole disk */
+            if ((feature & 0xFFu) == 0x22) {
+                if (!decode_address(false,true)) { abort_with_error(0x10); return true; }
+            }
+            else if ((feature & 0xFFu) == 0xDD) {
+                cmd_ext = false; cmd_lba = (drivehead & 0x40) != 0;
+                cur_lba = 0;
+                cur_count = (uint32_t)(LBA > 0xFFFFFFFFull ? 0xFFFFFFFFull : LBA);
+            }
+            else {
+                abort_with_error(0x04/*ABRT*/);
+                return true;
+            }
+            buf_data_out(512);
+            return true;
+        case 0x51: /* CONFIGURE STREAM */
+            {
+                const unsigned int id = (hob_feature >> 0u) & 7u; /* Feature (10:8) */
+                if (!f_stream()) { abort_with_error(0x04); return true; }
+                if (hob_feature & 0x80u) {
+                    streams[id].valid = true;
+                    streams[id].cctl = (uint8_t)(feature & 0xFFu);
+                    streams[id].au = (uint16_t)((count & 0xFFu) | ((unsigned int)hob_count << 8u));
+                }
+                else {
+                    if (!streams[id].valid) { abort_with_error(0x04); return true; }
+                    streams[id].valid = false;
+                }
+                finish_at(now + overhead);
+            }
+            return true;
+        case 0x5C: /* TRUSTED RECEIVE */
+        case 0x5D: /* TRUSTED RECEIVE DMA */
+            {
+                const unsigned int proto = feature & 0xFFu;
+                const unsigned int blocks = (unsigned int)(count & 0xFFu) | ((unsigned int)(lba[0] & 0xFFu) << 8u);
+                const unsigned int sp = (unsigned int)(lba[1] & 0xFFu) | ((unsigned int)(lba[2] & 0xFFu) << 8u);
+                if (!f_trusted() || (cmd == 0x5D && !has_dma()) || proto != 0x00 || sp > 0x0001) {
+                    abort_with_error(0x04/*ABRT*/);
+                    return true;
+                }
+                dma_cmd = (cmd == 0x5D);
+                xbuf.assign((size_t)blocks * 512u,0);
+                if (blocks != 0 && sp == 0x0000) {
+                    /* supported security protocols: 00h only */
+                    xbuf[7] = 1;
+                    xbuf[8] = 0x00;
+                }
+                /* SP_Specific 0001h: no certificate (length 0) */
+                buf_data_in(now + overhead);
+            }
+            return true;
+        case 0x5E: /* TRUSTED SEND */
+        case 0x5F: /* TRUSTED SEND DMA: no security protocol takes data */
+            abort_with_error(0x04/*ABRT*/);
+            return true;
+        case 0x92: /* DOWNLOAD MICROCODE */
+            {
+                const uint8_t mode = (uint8_t)(feature & 0xFFu);
+                const unsigned int blocks = (unsigned int)(count & 0xFFu) | ((unsigned int)(lba[0] & 0xFFu) << 8u);
+                if ((mode != 0x01 && mode != 0x03 && mode != 0x07) || (mode == 0x03 && ata_level() < 8)) { abort_with_error(0x04); return true; }
+                if (blocks == 0) { finish_at(now + overhead); return true; }
+                buf_data_out((size_t)blocks * 512u);
+            }
+            return true;
+        case 0xA2: /* SERVICE: the device never releases the bus, nothing to service */
+            abort_with_error(0x04/*ABRT*/);
+            return true;
+        case 0xB0: /* SMART */
+            smart_command(now,overhead);
+            return true;
+        case 0xB1: /* DEVICE CONFIGURATION OVERLAY */
+            if (dco_frozen) { abort_with_error(0x04); return true; }
+            switch (feature & 0xFFu) {
+                case 0xC0: /* DEVICE CONFIGURATION RESTORE */
+                    if (!dco_reduced || LBA < native_LBA) { abort_with_error(0x04); return true; }
+                    dco_mdma = 0x0007; dco_udma = 0x003F; dco_w7 = 0x7BFF; dco_w21 = 0xF000;
+                    dco_maxlba = 0; dco_reduced = false;
+                    native_LBA = factory_LBA;
+                    LBA = native_LBA;
+                    hpa_nv_max = 0;
+                    sct_segment_init = false;
+                    finish_at(now + overhead);
+                    return true;
+                case 0xC1: /* DEVICE CONFIGURATION FREEZE LOCK */
+                    dco_frozen = true;
+                    finish_at(now + overhead);
+                    return true;
+                case 0xC2: /* DEVICE CONFIGURATION IDENTIFY */
+                    {
+                        xbuf.assign(512,0);
+                        uint8_t *d = xbuf.data();
+                        host_writew(d+0,0x0002);
+                        host_writew(d+2,0x0007);
+                        host_writew(d+4,0x003F);
+                        host_writew(d+6,(uint16_t)(factory_LBA - 1u));
+                        host_writew(d+8,(uint16_t)((factory_LBA - 1u) >> 16u));
+                        host_writew(d+10,(uint16_t)((factory_LBA - 1u) >> 32u));
+                        host_writew(d+14,0x7BFF);
+                        host_writew(d+42,0xF000);
+                        d[510] = 0xA5;
+                        uint8_t sum = 0;
+                        for (unsigned int i=0;i < 511;i++) sum += d[i];
+                        d[511] = (uint8_t)(0u - sum);
+                        buf_data_in(now + overhead);
+                    }
+                    return true;
+                case 0xC3: /* DEVICE CONFIGURATION SET */
+                    buf_data_out(512);
+                    return true;
+                default:
+                    abort_with_error(0x04/*ABRT*/);
+                    return true;
+            }
+        case 0xB6: /* NV Cache */
+            {
+                const uint16_t fn = (uint16_t)((feature & 0xFFu) | ((unsigned int)hob_feature << 8u));
+                const unsigned int n = (unsigned int)(count & 0xFFu) | ((unsigned int)hob_count << 8u);
+                if (fn <= 0x0001) {
+                    if (!f_nvpm()) { abort_with_error(0x04); return true; }
+                    if (fn == 0x0000) { nvc_pm = true; nvc_min_high_s = (uint16_t)n; }
+                    else nvc_pm = false;
+                    note_activity(now);
+                    finish_at(now + overhead);
+                    return true;
+                }
+                if (!f_nvcache() || (fn >= 0x0010 && fn <= 0x0013 && !has_dma())) { abort_with_error(0x04); return true; }
+                switch (fn) {
+                    case 0x0010: /* ADD LBA(S) TO NV CACHE PINNED SET */
+                    case 0x0011: /* REMOVE LBA(S) FROM NV CACHE PINNED SET */
+                        if (fn == 0x0011 && (lba[0] & 1u)) {
+                            /* Unpin All */
+                            nvc_pinned.clear();
+                            cmd_ext = true; cmd_lba = true;
+                            update_address_registers(nvc_size);
+                            finish_at(now + overhead);
+                            return true;
+                        }
+                        dma_cmd = true;
+                        buf_data_out((size_t)(n ? n : 65536u) * 512u);
+                        return true;
+                    case 0x0012: /* QUERY NV CACHE PINNED SET */
+                        {
+                            const uint64_t from = (uint64_t)(lba[0] & 0xFFu) | ((uint64_t)(lba[1] & 0xFFu) << 8u) |
+                                ((uint64_t)(lba[2] & 0xFFu) << 16u) | ((uint64_t)hob_lba[0] << 24u) |
+                                ((uint64_t)hob_lba[1] << 32u) | ((uint64_t)hob_lba[2] << 40u);
+                            xbuf.assign((size_t)(n ? n : 65536u) * 512u,0);
+                            size_t o = 0;
+                            for (const auto &r : nvc_pinned) {
+                                uint64_t a = r.first,len = r.second;
+                                if (a + len <= from) continue;
+                                if (a < from) { len -= from - a; a = from; }
+                                while (len != 0 && o + 8 <= xbuf.size()) {
+                                    const uint64_t piece = len > 0xFFFFu ? 0xFFFFu : len;
+                                    host_writeq(xbuf.data() + o,a | (piece << 48u));
+                                    o += 8; a += piece; len -= piece;
+                                }
+                            }
+                            dma_cmd = true;
+                            cmd_ext = true; cmd_lba = true;
+                            update_address_registers(nvc_size - nvc_pinned_count());
+                            buf_data_in(now + overhead);
+                        }
+                        return true;
+                    case 0x0013: /* QUERY NV CACHE MISSES */
+                        xbuf.assign(512,0);
+                        for (size_t i=0;i < nvc_misses.size() && i < 64;i++)
+                            host_writeq(xbuf.data() + i*8u,nvc_misses[i].first | ((uint64_t)nvc_misses[i].second << 48u));
+                        dma_cmd = true;
+                        buf_data_in(now + overhead);
+                        return true;
+                    case 0x0014: /* FLUSH NV CACHE: there is no unpinned data to flush */
+                        cmd_ext = true; cmd_lba = true;
+                        update_address_registers(0);
+                        finish_at(now + overhead);
+                        return true;
+                    default:
+                        abort_with_error(0x04/*ABRT*/);
+                        return true;
+                }
+            }
+        case 0xE4: /* READ BUFFER */
+            xbuf.assign(rw_buffer,rw_buffer + 512);
+            buf_data_in(now + overhead);
+            return true;
+        case 0xE8: /* WRITE BUFFER */
+            buf_data_out(512);
+            return true;
+        case 0xEE: /* IDENTIFY DEVICE DMA (ATA-3) */
+            if (!has_dma()) { abort_with_error(0x04); return true; }
+            generate_identify_device();
+            xbuf.assign(sector,sector + 512);
+            dma_cmd = true;
+            buf_data_in(now + ((faked_command || instant) ? 0.000001 : ide_identify_command_delay));
+            return true;
+        case 0xF1: /* SECURITY SET PASSWORD */
+        case 0xF2: /* SECURITY UNLOCK */
+        case 0xF4: /* SECURITY ERASE UNIT */
+        case 0xF6: /* SECURITY DISABLE PASSWORD */
+            if (!f_security() || sec_frozen || (sec_locked && (cmd == 0xF1 || cmd == 0xF6)) ||
+                (sec_attempts == 0 && (cmd == 0xF2 || cmd == 0xF4)) ||
+                (cmd == 0xF4 && (prev_cmd != 0xF3 || !prev_ok))) {
+                abort_with_error(0x04/*ABRT*/);
+                return true;
+            }
+            buf_data_out(512);
+            return true;
+        case 0xF3: /* SECURITY ERASE PREPARE */
+            if (!f_security() || sec_frozen) { abort_with_error(0x04); return true; }
+            finish_at(now + overhead);
+            return true;
+        case 0xF5: /* SECURITY FREEZE LOCK */
+            if (!f_security() || sec_locked) { abort_with_error(0x04); return true; }
+            sec_frozen = true;
+            finish_at(now + overhead);
+            return true;
+        case 0x03: /* CFA REQUEST EXTENDED ERROR CODE */
+        case 0x38: /* CFA WRITE SECTORS WITHOUT ERASE */
+        case 0x87: /* CFA TRANSLATE SECTOR */
+        case 0xC0: /* CFA ERASE SECTORS */
+        case 0xCD: /* CFA WRITE MULTIPLE WITHOUT ERASE */
+        case 0xD1: /* CHECK MEDIA CARD TYPE */
+            /* this is not a CompactFlash device and has no media card pass through */
+        case 0xDA: /* GET MEDIA STATUS */
+        case 0xDB: /* ACKNOWLEDGE MEDIA CHANGE (ATA-1, ATA-2) */
+        case 0xDC: /* BOOT - POST-BOOT (ATA-1, ATA-2) */
+        case 0xDD: /* BOOT - PRE-BOOT (ATA-1, ATA-2) */
+        case 0xDE: /* DOOR LOCK / MEDIA LOCK */
+        case 0xDF: /* DOOR UNLOCK / MEDIA UNLOCK */
+        case 0xED: /* MEDIA EJECT */
+            /* a fixed disk does not implement the Removable Media (Status Notification) feature sets */
+            abort_with_error(0x04/*ABRT*/);
+            return true;
+        default:
+            break;
+    }
+    return false;
 }
 
 void IDEATADevice::writecommand(uint8_t cmd) {
@@ -5190,8 +8848,46 @@ void IDEATADevice::writecommand(uint8_t cmd) {
     /* drive is ready to accept command */
     allow_writing = false;
     command = cmd;
+
+    /* the command before this one: SET MAX ADDRESS has to follow READ NATIVE MAX ADDRESS,
+     * SECURITY ERASE UNIT has to follow SECURITY ERASE PREPARE */
+    prev_cmd = last_cmd;
+    prev_feature = last_feature;
+    prev_ok = !(status & IDE_STATUS_ERROR);
+    last_cmd = cmd;
+    last_feature = (uint16_t)((feature & 0xFFu) | ((unsigned int)hob_feature << 8u));
+    xk = XK_NONE;
+    dma_cmd = false;
+    if (!faked_command) record_command();
+    selftest_update(now);
+    /* a background SCT Write Same ends when another command comes in, except a read of the SCT status */
+    if (sct_ws_background && fill_kind == FILL_SCT) {
+        const bool status_read = (cmd == 0x2F || cmd == 0x47 || (cmd == 0xB0 && (feature & 0xFFu) == 0xD5)) && (lba[0] & 0xFFu) == 0xE0;
+        if (!status_read) sct_write_same_stop(now);
+    }
+    /* the command has to exist in the ATA standard the device follows */
+    if (!faked_command && !ata_opcode_defined(cmd,ata_level())) {
+        LOG(LOG_MISC,LOG_DEBUG)("IDE ATA: command %02x is not part of ATA-%d, aborted",cmd,ata_level());
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+    /* Security: a locked device only takes a few commands */
+    if (sec_locked && security_blocks(cmd)) {
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+
+    /* reads, writes and verifies of all kinds */
+    {
+        const unsigned int fl = sector_cmd_flags(cmd);
+        if (fl != 0) {
+            start_sector_command(fl,now,overhead);
+            return;
+        }
+    }
+
     switch (cmd) {
-        case 0x00: /* NOP */
+        case 0x00: /* NOP: always aborted (subcommand 00h would also abort a TCQ queue, which never exists) */
             abort_with_error(0x04/*ABRT*/);
             break;
         case 0x08: /* DEVICE RESET */
@@ -5223,57 +8919,6 @@ void IDEATADevice::writecommand(uint8_t cmd) {
                 ra_valid = false;
                 schedule(t);
             }
-            break;
-        case 0x20: case 0x21: /* READ SECTOR(S) (with/without retry) */
-        case 0x24: /* READ SECTOR(S) EXT */
-        case 0xC4: /* READ MULTIPLE */
-        case 0x29: /* READ MULTIPLE EXT */
-        case 0x40: case 0x41: /* READ VERIFY SECTOR(S) (with/without retry) */
-        case 0x42: /* READ VERIFY SECTOR(S) EXT */
-            if ((cmd == 0xC4 || cmd == 0x29) && multiple_sector_count == 0) {
-                abort_with_error(0x04/*ABRT*/);
-                break;
-            }
-            if (!decode_address(command_is_ext() || cmd == 0x42,false)) {
-                if ((command_is_ext() || cmd == 0x42) && !int13_enable_48bitLBA) abort_with_error(0x04/*ABRT*/);
-                else abort_with_error(0x10/*IDNF*/);
-                break;
-            }
-            if (cmd == 0x42) cmd_ext = true;
-            if (cur_lba >= LBA) {
-                sector_error(0x10/*IDNF*/);
-                break;
-            }
-            progress_count = 0;
-            cur_block = block_count();
-            state = IDE_DEV_BUSY;
-            status = IDE_STATUS_BUSY;
-            schedule(media_access(cur_lba,cur_block,false,now + overhead));
-            break;
-        case 0x30: case 0x31: /* WRITE SECTOR(S) (with/without retry) */
-        case 0x34: /* WRITE SECTOR(S) EXT */
-        case 0xC5: /* WRITE MULTIPLE */
-        case 0x39: /* WRITE MULTIPLE EXT */
-            if ((cmd == 0xC5 || cmd == 0x39) && multiple_sector_count == 0) {
-                abort_with_error(0x04/*ABRT*/);
-                break;
-            }
-            if (!decode_address(command_is_ext(),false)) {
-                if (command_is_ext() && !int13_enable_48bitLBA) abort_with_error(0x04/*ABRT*/);
-                else abort_with_error(0x10/*IDNF*/);
-                break;
-            }
-            if (cur_lba >= LBA) {
-                sector_error(0x10/*IDNF*/);
-                break;
-            }
-            /* the drive does NOT signal an interrupt. it sets DRQ and waits for the first data
-             * block to be transferred to it before writing */
-            progress_count = 0;
-            cur_block = block_count();
-            state = IDE_DEV_DATA_WRITE;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ;
-            prepare_write(0,512u * cur_block);
             break;
         case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77: /* SEEK (7xh) */
         case 0x78: case 0x79: case 0x7A: case 0x7B: case 0x7C: case 0x7D: case 0x7E: case 0x7F:
@@ -5371,6 +9016,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
         case 0xE2: case 0x96: /* STANDBY (sector count = standby timer) */
         case 0xE6: case 0x99: /* SLEEP */
             if (cmd == 0xE2 || cmd == 0x96) set_standby_timer((uint8_t)count);
+            if ((cmd == 0xE6 || cmd == 0x99) && selftest_running) selftest_finish(0x10/*aborted*/);
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
             {
@@ -5383,6 +9029,17 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             break;
         case 0xE1: case 0x95: /* IDLE IMMEDIATE */
         case 0xE3: case 0x97: /* IDLE (sector count = standby timer) */
+            if (cmd == 0xE1 && ata_level() >= 7 && (feature & 0xFFu) == 0x44 && (lba[0] & 0xFFu) == 0x4C && (lba[1] & 0xFFu) == 0x4E &&
+                (lba[2] & 0xFFu) == 0x55) {
+                /* UNLOAD FEATURE: read look-ahead and write-behind stop, the heads go onto the ramp */
+                ra_valid = false;
+                heads_unloaded = true;
+                unload_count++;
+                power = PWR_IDLE;
+                lba[0] = 0xC4;
+                finish_at((instant || faked_command) ? now + overhead : now + 500.0);
+                break;
+            }
             if (cmd == 0xE3 || cmd == 0x97) set_standby_timer((uint8_t)count);
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
@@ -5396,7 +9053,8 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             break;
         case 0xE5: case 0x98: /* CHECK POWER MODE */
             /* sector count: 00h standby (or spinning down/up), 80h idle, FFh active or idle */
-            if (!spinning || now < spin_ready_at) count = 0x00;
+            if (nvc_pm && f_nvpm()) count = (!spinning || now < spin_ready_at) ? 0x40 : 0x41;
+            else if (!spinning || now < spin_ready_at) count = 0x00;
             else if (power == PWR_IDLE) count = 0x80;
             else count = 0xFF;
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
@@ -5410,24 +9068,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             schedule(now + ((faked_command || instant) ? 0.000001 : ide_identify_command_delay));
             break;
         case 0xEF: /* SET FEATURES */
-            switch (feature & 0xFFu) {
-                case 0x02: write_cache = true; break;           /* enable write cache */
-                case 0x82: write_cache = false; break;          /* disable write cache */
-                case 0xAA: read_lookahead = true; break;        /* enable read look-ahead */
-                case 0x55: read_lookahead = false; ra_valid = false; break; /* disable read look-ahead */
-                case 0x66: /* Disable reverting to power on defaults */
-                case 0xCC: /* Enable reverting to power on defaults */
-                case 0x03: /* Set transfer mode according to sector count register (required by Linux kernel) */
-                    break;
-                default:
-                    LOG_MSG("SET FEATURES %02xh SC=%02x SN=%02x CL=%02x CH=%02x",feature,count,lba[0],lba[1],lba[2]);
-                    abort_with_error(0x04/*ABRT*/);
-                    return;
-            }
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-            state = IDE_DEV_READY;
-            allow_writing = true;
-            raise_irq();
+            set_features(now,overhead);
             break;
         case 0xF8: /* READ NATIVE MAX ADDRESS */
             if (!(drivehead & 0x40)) {
@@ -5436,27 +9077,28 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             }
             cmd_ext = false;
             cmd_lba = true;
-            update_address_registers(LBA > 0x10000000ull ? 0x0FFFFFFFull : LBA - 1u);
+            update_address_registers(native_LBA > 0x10000000ull ? 0x0FFFFFFFull : native_LBA - 1u);
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             state = IDE_DEV_READY;
             allow_writing = true;
             raise_irq();
             break;
         case 0x27: /* READ NATIVE MAX ADDRESS EXT */
-            if (!int13_enable_48bitLBA || !(drivehead & 0x40)) {
+            if (!f_lba48() || !(drivehead & 0x40)) {
                 abort_with_error(0x04/*ABRT*/);
                 break;
             }
             cmd_ext = true;
             cmd_lba = true;
-            update_address_registers(LBA - 1u);
+            update_address_registers(native_LBA - 1u);
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             state = IDE_DEV_READY;
             allow_writing = true;
             raise_irq();
             break;
         default:
-            LOG_MSG("Unknown IDE/ATA command %02X\n",cmd);
+            if (feature_command(cmd,now,overhead)) break;
+            LOG(LOG_MISC,LOG_DEBUG)("Unknown IDE/ATA command %02X",cmd);
             abort_with_error(0x04/*ABRT*/);
             break;
     }
@@ -5493,6 +9135,11 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
     cd_instant = section->Get_bool("cd-rom instant mode");
     cd_max_speed = section->Get_int("cd-rom max speed");
     cd_tray_time = section->Get_int("cd-rom tray time");
+    {
+        const std::string st = section->Get_string("ata standard");
+        if (st.size() == 4 && st.compare(0,3,"ata") == 0 && st[3] >= '1' && st[3] <= '8') ata_standard = st[3] - '0';
+        else ata_standard = 0; /* auto */
+    }
     hd_instant = section->Get_bool("hard disk instant mode");
     hd_rpm = section->Get_int("hard disk rpm");
     hd_spinup_time = section->Get_int("hard disk spinup time");
@@ -5542,6 +9189,14 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 void IDEController::register_isapnp() {
     if (IS_PC98_ARCH)
         return;
+
+    /* With a PCI bus master IDE function the channel belongs to that PCI device (in compatibility mode
+     * at its legacy ports), as on real hardware. Reporting it to the OS as an ISA PnP IDE controller
+     * as well makes Windows load two drivers for the same channel (blue screen). */
+    if (bm != NULL) {
+        if (register_pnp) LOG_MSG("IDE: %s controller is part of the PCI bus master IDE function, not listed as ISA PnP",ideslot[interface_index]);
+        return;
+    }
 
     if (register_pnp && base_io > 0 && alt_io > 0) {
         unsigned char tmp[256];
@@ -5953,8 +9608,11 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
     }
 }
 
+static void IDE_BM_Destroy();
+
 static void IDE_Destroy(Section* sec) {
     (void)sec;//UNUSED
+    IDE_BM_Destroy();
     for (unsigned int i=0;i < MAX_IDE_CONTROLLERS;i++) {
         if (idecontroller[i] != NULL) {
             delete idecontroller[i];
@@ -5963,6 +9621,19 @@ static void IDE_Destroy(Section* sec) {
     }
 
     init_ide = 0;
+}
+
+/* hardware reset of the machine: the drives see their RESET- signal */
+static void IDE_OnVMReset(Section *sec) {
+    (void)sec;
+    for (unsigned int i=0;i < MAX_IDE_CONTROLLERS;i++) {
+        IDEController *c = idecontroller[i];
+        if (c == NULL) continue;
+        for (unsigned int d=0;d < 2;d++) {
+            if (c->device[d] != NULL && c->device[d]->type == IDE_TYPE_HDD)
+                static_cast<IDEATADevice*>(c->device[d])->hardware_reset();
+        }
+    }
 }
 
 static void IDE_Init(Section* sec,unsigned char ide_interface) {
@@ -5979,6 +9650,7 @@ static void IDE_Init(Section* sec,unsigned char ide_interface) {
 
     if (!init_ide) {
         AddExitFunction(AddExitFunctionFuncPair(IDE_Destroy));
+        AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IDE_OnVMReset));
         init_ide = 1;
     }
 
@@ -5991,6 +9663,21 @@ static void IDE_Init(Section* sec,unsigned char ide_interface) {
 
     ide = idecontroller[ide_interface] = new IDEController(sec,ide_interface);
     ide->install_io_port();
+
+    /* PCI bus master IDE function: configured with the primary controller, serves primary and secondary.
+     * It goes on the PCI bus at power-on, when the PCI bus emulation is set up. */
+    if (ide_interface == 0) {
+        const std::string t = section->Get_string("pci bus master");
+        ide_bm_type = IS_PC98_ARCH ? 0 : (t == "piix4" ? 2 : (t == "piix3" ? 1 : 0));
+        if (!init_ide_bm) {
+            AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(IDE_BM_OnPowerOn));
+            init_ide_bm = true;
+        }
+        if (PCI_IsInitialized()) IDE_BM_Create(false);
+    }
+    else if (ide_interface == 1 && ide_busmaster != NULL && ide->base_io == IDE_default_bases[1]) {
+        ide->bm = ide_busmaster;
+    }
 
     PIC_SetIRQMask((unsigned int)ide->IRQ,false);
 }
@@ -6117,6 +9804,8 @@ void BIOS_Post_register_IDE() {
         if (idecontroller[i] != NULL)
             idecontroller[i]->register_isapnp();
     }
+    /* drives on the bus master IDE controller are set up for DMA */
+    IDE_BM_BiosSetup();
 }
 
 void DOS_EnableDriveIDEMenu(unsigned int idx,unsigned char ms) {

@@ -5511,6 +5511,36 @@ void DOSBOX_SetupConfigSections(void) {
                 "In this way, you can have DOSBox-X emulate one of the strange quirks of 1995-1997 era\n"
                 "laptop hardware");
 
+        {
+            const char *ata_choices[] = { "auto", "ata1", "ata2", "ata3", "ata4", "ata5", "ata6", "ata7", "ata8", 0 };
+            Pstring = secprop->Add_string("ata standard",Property::Changeable::WhenIdle,"auto");
+            Pstring->Set_values(ata_choices);
+            if (i == 0) Pstring->Set_help("The ATA standard the emulated IDE devices on this controller follow, for the ATA hard disk and\n"
+                    "the ATAPI CD-ROM alike: the commands, SET FEATURES subcommands and feature sets the standard\n"
+                    "defines (and those it lists as obsolete, which drives kept for compatibility), the IDENTIFY data\n"
+                    "and the transfer modes. Commands the standard does not have, or has retired, are aborted.\n"
+                    "  ata1: ATA-1 (1994)      ata2: ATA-2 (1996)      ata3: ATA-3 (1997, SMART, security)\n"
+                    "  ata4: ATA/ATAPI-4 (1998, Ultra DMA 33, HPA, TCQ)  ata5: ATA/ATAPI-5 (2000, Ultra DMA 66, self-tests)\n"
+                    "  ata6: ATA/ATAPI-6 (2002, 48-bit LBA, DCO, Ultra DMA 100)  ata7: ATA/ATAPI-7 (2004, streaming, FUA)\n"
+                    "  ata8: ATA8-ACS (2006, SCT, NV Cache, trusted computing)\n"
+                    "  auto: ata8 if the PCI bus is enabled, ata3 otherwise.\n"
+                    "The ATAPI packet commands are there in any case.");
+        }
+
+        {
+            const char *bm_choices[] = { "none", "piix3", "piix4", 0 };
+            Pstring = secprop->Add_string("pci bus master",Property::Changeable::OnlyAtStart,"none");
+            Pstring->Set_values(bm_choices);
+            if (i == 0) Pstring->Set_help("PCI bus master IDE function for DMA transfers (set in the [ide, primary] section, it serves\n"
+                    "the primary and secondary controllers at their standard ports). Needs the PCI bus.\n"
+                    "  none:  no DMA, as in DOSBox-X before (DMA commands are aborted, IDENTIFY reports no DMA)\n"
+                    "  piix3: Intel PIIX3 IDE (8086:7010), multiword DMA mode 2\n"
+                    "  piix4: Intel PIIX4 IDE (8086:7111), Ultra DMA mode 2 (33MB/s)\n"
+                    "Operating systems with a driver for these load it and may use DMA (Windows 98 and later,\n"
+                    "Windows NT, Linux). The \"pnp\" setting does not apply to these channels (the PCI function\n"
+                    "reports them, not ISA PnP). Not available in PC-98 mode.");
+        }
+
         Pint = secprop->Add_int("cd-rom spinup time",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
         if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms to spin up if CD is stationary.\n"
                 "Set to 0 to use controller or CD-ROM drive-specific default.");
