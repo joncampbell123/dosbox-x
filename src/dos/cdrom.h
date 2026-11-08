@@ -165,6 +165,25 @@ public:
     //! \brief Read sector data into host memory (for IDE emulation)
 	virtual bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num) = 0;
 
+    //! \brief What kind of sector this is: 0 = audio, 1 = Mode 1 data, 2 = Mode 2 data, -1 = not on the disc.
+    //!        The default goes by the table of contents (data tracks are taken to be Mode 1).
+	virtual int	GetSectorMode		(unsigned long sector) {
+		int first,last;
+		TMSF leadOut;
+		if (!GetAudioTracks(first,last,leadOut)) return -1;
+		const unsigned long end = ((unsigned long)leadOut.min * 60u + leadOut.sec) * 75u + leadOut.fr - 150u;
+		if (sector >= end) return -1;
+		int mode = -1;
+		for (int t=first;t <= last;t++) {
+			TMSF start;
+			unsigned char attr;
+			if (!GetAudioTrackInfo(t,start,attr)) continue;
+			const unsigned long s = ((unsigned long)start.min * 60u + start.sec) * 75u + start.fr;
+			if (s < 150u || sector >= s - 150u) mode = (attr & 0x40) ? 1 : 0;
+		}
+		return mode;
+	}
+
     //! \brief Load (close/spin up) or unload (eject/spin down) media
 	virtual bool	LoadUnloadMedia		(bool unload) = 0;
 
@@ -400,6 +419,7 @@ public:
 	bool	LoadUnloadMedia         (bool unload) override;
 	//! \brief Indicate whether the image has a data track
 	bool	ReadSector              (uint8_t *buffer, bool raw, unsigned long sector);
+	int	GetSectorMode           (unsigned long sector) override;
 	//! \brief Indicate whether the image has a data track
 	bool	HasDataTrack            (void) const;
 	bool	HasAudioTrack           (void) const;

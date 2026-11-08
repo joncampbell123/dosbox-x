@@ -856,6 +856,14 @@ bool CDROM_Interface_Image::ReadSector(uint8_t *buffer, bool raw, unsigned long 
 	return tracks[track].file->read(buffer, seek, length);
 }
 
+int CDROM_Interface_Image::GetSectorMode(unsigned long sector)
+{
+	const int track = GetTrack(sector)-1;
+	if (track < 0) return -1;
+	if (!(tracks[track].attr & 0x40)) return 0;
+	return tracks[track].mode2 ? 2 : 1;
+}
+
 bool CDROM_Interface_Image::PlayNextAudioTrack(void)
 {
     const int totalTracks = (int)tracks.size() - 1; 

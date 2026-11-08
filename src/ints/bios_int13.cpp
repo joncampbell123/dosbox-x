@@ -165,6 +165,20 @@ static void INT13_FloppyAccessLBA(uint8_t drivenum, uint32_t lba, unsigned int t
     FLOPPY_INT13_Access(drivenum, lba / (heads * sects), (lba / sects) % heads, (lba % sects) + 1, transferred, failed, op);
 }
 
+/* A hard disk attached to IDE emulation is accessed through the IDE drive emulation, which accounts for
+ * spin up (after the OS put the drive in standby), seek, rotation, read-ahead and write cache the same way
+ * for INT 13h as for direct IDE access. Other hard disks wait for the "hard drive data rate limit". */
+static bool INT13_IsIDEHardDisk(uint8_t drivenum) {
+    return drivenum >= 2 && drivenum < MAX_DISK_IMAGES && imageDiskList[drivenum] != NULL &&
+           IDE_BIOS_DiskAttached(drivenum);
+}
+
+static void INT13_IDEAccessCHS(uint8_t drivenum, uint32_t cylinder, uint32_t head, uint32_t sector, unsigned int count, IDEBiosDiskOp op) {
+    const imageDisk *disk = imageDiskList[drivenum];
+    const uint64_t lba = ((uint64_t)cylinder * disk->heads + head) * disk->sectors + (sector != 0 ? sector - 1u : 0u);
+    IDE_BIOS_DiskAccess(drivenum, lba, count, op);
+}
+
 static void INT13_SetTransferredSectorCount(uint16_t dap_segment,
                                              uint16_t dap_offset,
                                              uint16_t sector_count)
@@ -261,6 +275,9 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
         return CBRET_NONE;
     }
 
+    const bool ide_timed = INT13_IsIDEHardDisk(drivenum);
+    if (ide_timed) IDE_BIOS_DiskAccess(drivenum, packet.sector, packet.sector_count, IDEBiosDiskOp::Read);
+
     auto buffer_offset = packet.buffer_offset;
     for (uint32_t sector_index = 0; sector_index < packet.sector_count; ++sector_index) {
         sector_buffer.fill(0);
@@ -270,7 +287,7 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
         if (drivenum < 2) {
             if (!INT13_IsFloppyDrive(drivenum)) diskio_delay(int13_edd_sector_size, 0); // Floppy
         }
-        else diskio_delay(int13_edd_sector_size);
+        else if (!ide_timed) diskio_delay(int13_edd_sector_size);
 
         IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl, packet.sector + sector_index);
 
@@ -381,6 +398,9 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
     const auto buffer_segment = SegValue(es);
     auto buffer_offset = reg_bx;
 
+    const bool ide_timed = INT13_IsIDEHardDisk(drivenum);
+    if (ide_timed) INT13_IDEAccessCHS(drivenum, cylinder, reg_dh, first_sector, reg_al, IDEBiosDiskOp::Read);
+
     for (Bitu sector_index = 0; sector_index < reg_al; ++sector_index) {
         // A DPT sector may be smaller or larger than the mounted image sector.
         // Zeroing first ensures that larger guest transfers are padded.
@@ -393,7 +413,7 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
         );
 
         if (disk->class_id == imageDisk::ID_EL_TORITO_FLOPPY) diskio_delay(512);
-        else if (drivenum >= 2) diskio_delay(512);
+        else if (drivenum >= 2 && !ide_timed) diskio_delay(512);
 
         /* IDE emulation: simulate the state change after a real BIOS INT 13h read. */
         IDE_EmuINT13DiskReadByBIOS(
@@ -486,7 +506,11 @@ static Bitu INT13_DiskHandler(void) {
                 return CBRET_NONE;
             }
             if (machine!=MCH_PCJR && reg_dl<0x80) reg_ip++;
-            if (reg_dl >= 0x80) IDE_ResetDiskByBIOS(reg_dl);
+            if (reg_dl >= 0x80) {
+                IDE_ResetDiskByBIOS(reg_dl);
+                /* the BIOS resets the drive, sets its parameters and recalibrates it */
+                if (INT13_IsIDEHardDisk(drivenum)) IDE_BIOS_DiskAccess(drivenum, 0, 0, IDEBiosDiskOp::Recalibrate);
+            }
             else FLOPPY_INT13_Reset();
             last_status = Int13Status::NoError;
             CALLBACK_SCF(false);
@@ -540,6 +564,8 @@ static Bitu INT13_DiskHandler(void) {
                                    static_cast<unsigned int>(sizeof(sectbuf)));
             secsz = sizeof(sectbuf);
         }
+        if (INT13_IsIDEHardDisk(drivenum))
+            INT13_IDEAccessCHS(drivenum, rd_cyl, reg_dh, rd_sect, reg_al, IDEBiosDiskOp::Write);
         for(i=0;i<reg_al;i++) {
             for(t=0;t<secsz;t++) {
                 sectbuf[t] = real_readb(SegValue(es),bufptr);
@@ -549,7 +575,7 @@ static Bitu INT13_DiskHandler(void) {
             if(drivenum < 2) {
                 if (!INT13_IsFloppyDrive(drivenum)) diskio_delay(512, 0); // Floppy
             }
-            else
+            else if (!INT13_IsIDEHardDisk(drivenum))
                 diskio_delay(512);
 
             last_status = imageDiskList[drivenum]->Write_Sector((uint32_t)reg_dh, rd_cyl, rd_sect + i, &sectbuf[0]);
@@ -595,6 +621,8 @@ static Bitu INT13_DiskHandler(void) {
         }*/
         if (INT13_IsFloppyDrive(drivenum))
             FLOPPY_INT13_Access(drivenum, reg_ch, reg_dh, reg_cl, reg_al, false, FloppyInt13Op::Verify);
+        else if ((reg_dl & 0x80) && INT13_IsIDEHardDisk(drivenum))
+            INT13_IDEAccessCHS(drivenum, (uint32_t)(reg_ch | ((reg_cl & 0xc0) << 2)), reg_dh, (uint32_t)(reg_cl & 63), reg_al, IDEBiosDiskOp::Verify);
         reg_ah = 0x00;
         //Qbix: The following codes don't match my specs. al should be number of sector verified
         //reg_al = 0x10; /* CRC verify failed */
@@ -718,7 +746,23 @@ static Bitu INT13_DiskHandler(void) {
         }
         CALLBACK_SCF(false);
         break;
+    case 0x0C: /* Seek to cylinder (hard disk) */
+        if (!(reg_dl & 0x80) || driveInactive(drivenum)) {
+            if (!(reg_dl & 0x80)) {
+                reg_ah = 0x01;
+                CALLBACK_SCF(true);
+            }
+            return CBRET_NONE;
+        }
+        if (INT13_IsIDEHardDisk(drivenum))
+            INT13_IDEAccessCHS(drivenum, (uint32_t)(reg_ch | ((reg_cl & 0xc0) << 2)), reg_dh, 1, 1, IDEBiosDiskOp::Seek);
+        last_status = Int13Status::NoError;
+        reg_ah = 0x00;
+        CALLBACK_SCF(false);
+        break;
     case 0x11: /* Recalibrate drive */
+        if ((reg_dl & 0x80) && drivenum < MAX_DISK_IMAGES && INT13_IsIDEHardDisk(drivenum))
+            IDE_BIOS_DiskAccess(drivenum, 0, 0, IDEBiosDiskOp::Recalibrate);
         reg_ah = 0x00;
         CALLBACK_SCF(false);
         break;
@@ -830,6 +874,8 @@ static Bitu INT13_DiskHandler(void) {
             return CBRET_NONE;
         }
 
+        if (INT13_IsIDEHardDisk(drivenum))
+            IDE_BIOS_DiskAccess(drivenum, packet.sector, packet.sector_count, IDEBiosDiskOp::Write);
         bufptr = packet.buffer_offset;
         for(i=0;i<packet.sector_count;i++) {
             for(t=0;t<imageDiskList[drivenum]->getSectSize();t++) {
@@ -840,7 +886,7 @@ static Bitu INT13_DiskHandler(void) {
             if(drivenum < 2) {
                 if (!INT13_IsFloppyDrive(drivenum)) diskio_delay(512, 0); // Floppy
             }
-            else
+            else if (!INT13_IsIDEHardDisk(drivenum))
                 diskio_delay(512);
 
             last_status = imageDiskList[drivenum]->Write_AbsoluteSector(packet.sector+i, &sectbuf[0]);
@@ -864,10 +910,34 @@ static Bitu INT13_DiskHandler(void) {
             CALLBACK_SCF(true);
             return CBRET_NONE;
         }
-        /* Just signal success, we don't actually verify anything */
+        /* Just signal success, we don't actually verify anything, but the drive takes the time */
+        if (INT13_IsIDEHardDisk(drivenum)) {
+            DiskAddressPacket packet = {};
+            if (ReadDiskAddressPacket(SegValue(ds), reg_si, packet) && packet.sector_count != 0)
+                IDE_BIOS_DiskAccess(drivenum, packet.sector, packet.sector_count, IDEBiosDiskOp::Verify);
+        }
         reg_ah = 0x00;
         CALLBACK_SCF(false);
         break;
+    case 0x47: { /* Extended Seek */
+        if(driveInactive(drivenum)) {
+            reg_ah = 0xff;
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
+        DiskAddressPacket packet = {};
+        if (!ReadDiskAddressPacket(SegValue(ds), reg_si, packet)) {
+            reg_ah = 0x01;
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
+        if (INT13_IsIDEHardDisk(drivenum))
+            IDE_BIOS_DiskAccess(drivenum, packet.sector, 1, IDEBiosDiskOp::Seek);
+        last_status = Int13Status::NoError;
+        reg_ah = 0x00;
+        CALLBACK_SCF(false);
+        break;
+    }
     case 0x48: { /* get drive parameters */
         uint16_t bufsz;
 

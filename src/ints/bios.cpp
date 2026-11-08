@@ -36,6 +36,7 @@
 #include "callback.h"
 #include "setup.h"
 #include "bios_disk.h"
+#include "ide.h"
 #include "serialport.h"
 #include "mapper.h"
 #include "vga.h"
@@ -4877,6 +4878,18 @@ int PC98_BIOS_SCSI_POS(imageDisk *floppy,uint32_t &sector) {
     return 0;
 }
 
+/* A hard disk attached to IDE emulation takes the time the IDE drive emulation says the access takes
+ * (spin up, seek, rotation, read-ahead buffer, write cache), the same as for direct IDE access. */
+static void PC98_BIOS_HDD_IDE_Access(int idx,imageDisk *disk,uint32_t sector,uint32_t bytes,IDEBiosDiskOp op) {
+    uint32_t img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+
+    if (!IDE_BIOS_DiskAttached((unsigned int)idx)) return;
+    disk->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+    if (img_ssz == 0) return;
+
+    IDE_BIOS_DiskAccess((unsigned int)idx,sector,(unsigned int)((bytes + img_ssz - 1u) / img_ssz),op);
+}
+
 void PC98_BIOS_SCSI_CALL(void) {
     uint32_t img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
     uint32_t memaddr,size,ssize;
@@ -4928,6 +4941,8 @@ void PC98_BIOS_SCSI_CALL(void) {
                 reg_ah = 0;
                 CALLBACK_SCF(false);
 
+                PC98_BIOS_HDD_IDE_Access(idx,floppy,sector,size,IDEBiosDiskOp::Write);
+
 //                LOG_MSG("WRITE memaddr=0x%lx size=0x%x sector=0x%lx ES:BP=%04x:%04X",
 //                    (unsigned long)memaddr,(unsigned int)size,(unsigned long)sector,SegValue(es),reg_bp);
 
@@ -4967,6 +4982,8 @@ void PC98_BIOS_SCSI_CALL(void) {
                 reg_ah = 0;
                 CALLBACK_SCF(false);
 
+                PC98_BIOS_HDD_IDE_Access(idx,floppy,sector,size,IDEBiosDiskOp::Read);
+
 //                LOG_MSG("READ memaddr=0x%lx size=0x%x sector=0x%lx ES:BP=%04x:%04X",
 //                    (unsigned long)memaddr,(unsigned int)size,(unsigned long)sector,SegValue(es),reg_bp);
 
@@ -5000,9 +5017,33 @@ void PC98_BIOS_SCSI_CALL(void) {
             CALLBACK_SCF(false);
             // NTS: This is needed for an HDI image to boot that apparently contains FreeDOS98
             break;
-        case 0x07: /* unknown, always succeeds */
+        case 0x07: /* recalibrate: seek to cylinder 0 */
+            PC98_BIOS_HDD_IDE_Access(idx,floppy,0,1,IDEBiosDiskOp::Recalibrate);
             reg_ah = 0x00;
             CALLBACK_SCF(false);
+            break;
+        case 0x01: /* verify */
+            if (PC98_BIOS_SCSI_POS(floppy,/*&*/sector) == 0) {
+                size = reg_bx;
+                if (size == 0) size = 0x10000U;
+
+                PC98_BIOS_HDD_IDE_Access(idx,floppy,sector,size,IDEBiosDiskOp::Verify);
+
+                floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+                assert(img_ssz != 0);
+                const uint64_t total = (uint64_t)img_heads * img_cyl * img_sect;
+                if (total != 0 && (uint64_t)sector + (size + img_ssz - 1u) / img_ssz > total) {
+                    reg_ah = 0xD0;
+                    CALLBACK_SCF(true);
+                }
+                else {
+                    reg_ah = 0x00;
+                    CALLBACK_SCF(false);
+                }
+            }
+            else {
+                CALLBACK_SCF(true);
+            }
             break;
         case 0x0E: /* unknown, always fails */
             reg_ah = 0x40;

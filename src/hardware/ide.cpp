@@ -172,6 +172,7 @@ class IDEDevice {
 public:
     IDEController *controller;
     uint16_t feature,count,lba[3];  /* feature = BASE+1  count = BASE+2   lba[3] = BASE+3,+4,+5 */
+    uint8_t hob_feature,hob_count,hob_lba[3]; /* the previous contents of those registers (LBA48 "high order bytes") */
     uint8_t command,drivehead,status; /* command/status = BASE+7  drivehead = BASE+6 */
     enum IDEDeviceType type;
     bool faked_command; /* if set, DOSBox is sending commands to itself */
@@ -214,6 +215,9 @@ public:
     virtual ~IDEDevice();
     virtual void host_reset_begin();    /* IDE controller -> upon setting bit 2 of alt (0x3F6) */
     virtual void host_reset_complete(); /* IDE controller -> upon setting bit 2 of alt (0x3F6) */
+    virtual void set_signature();       /* device signature in the registers (after reset, diagnostics) */
+    virtual void execute_device_diagnostic(); /* EXECUTE DEVICE DIAGNOSTIC (90h), done by both devices */
+    void abort_with_error(uint8_t err); /* end the command with ERR and this error register value, and IRQ */
     virtual void select(uint8_t ndh,bool switched_to);
     virtual void deselect();
     virtual void abort_error();
@@ -244,8 +248,32 @@ public:
     virtual void prepare_read(Bitu offset,Bitu size);
     virtual void prepare_write(Bitu offset,Bitu size);
     virtual void io_completion();
-    virtual bool increment_current_address(Bitu count=1);
+    void host_reset_complete() override;
+    void set_signature() override;
+    void delayed_command();
 public:
+    /* command execution: the address and count of the command are taken from the registers when
+     * the command starts, and the registers are updated from them when it ends */
+    bool decode_address(bool ext,bool check);
+    void update_address_registers(uint64_t addr);
+    unsigned int block_count();         /* sectors in the next DRQ data block */
+    bool command_is_ext();
+    bool command_is_multiple();
+    bool command_is_write();
+    void sector_error(uint8_t err);     /* error at cur_lba: IDNF/UNC/ABRT with the registers pointing at it */
+    void read_block();
+    void write_block();
+    void schedule(double at_ms);        /* run IDE_DelayedCommand at this time (PIC_FullIndex() based) */
+    /* drive mechanics */
+    void mech_init();
+    double media_access(uint64_t addr,unsigned int n,bool write,double t);
+    double spin_up(double t);
+    double seek_ms(uint64_t to_cyl) const;
+    void spin_down(double t,bool sleep);
+    void note_activity(double t);
+    void set_standby_timer(uint8_t v);
+public:
+    double bios_access(uint64_t addr,unsigned int n,IDEBiosDiskOp op,double now);
     uint64_t multiple_sector_max,multiple_sector_count;
     uint64_t heads,sects,cyls,progress_count;
     uint64_t phys_heads,phys_sects,phys_cyls; /* CHS value of IDE  */
@@ -253,7 +281,36 @@ public:
     unsigned char sector[512 * 128] = {};
     uint64_t sector_i,sector_total;
     bool geo_translate;
-
+    /* command in progress */
+    uint64_t cur_lba = 0;               /* next sector of the command */
+    uint32_t cur_count = 0;             /* sectors left */
+    uint32_t cur_block = 0;             /* sectors in the current DRQ data block */
+    bool cmd_ext = false;               /* LBA48 command */
+    bool cmd_lba = false;               /* LBA addressing (else C/H/S) */
+    /* settings */
+    bool write_cache = true;            /* SET FEATURES 02h/82h */
+    bool read_lookahead = true;         /* SET FEATURES AAh/55h */
+    /* drive mechanics: seek, rotation, read-ahead buffer, write-behind, spindle motor */
+    bool instant = false;               /* [ide] hard disk instant mode */
+    double rpm = 5400;
+    double rev_ms = 0;                  /* one revolution */
+    double sector_ms = 0;               /* one sector passing under the head */
+    unsigned int media_spt = 63;        /* sectors per track on the platter */
+    unsigned int media_heads = 4;
+    uint64_t media_cyls = 1;
+    double spin_origin = 0;             /* the disk is at angle 0 at this time */
+    bool spinning = true;
+    double spin_ready_at = 0;           /* up to speed at this time */
+    double spinup_ms = 4000,spindown_ms = 1500;
+    uint64_t head_cyl = 0;              /* cylinder the heads are on */
+    bool ra_valid = false;              /* read-ahead buffer */
+    uint64_t ra_first = 0,ra_next = 0,ra_limit = 0;
+    double ra_time = 0;                 /* sector ra_next is read at this time */
+    double mech_free_at = 0;            /* the mechanism is busy (write-behind) until this time */
+    /* power management */
+    enum { PWR_ACTIVE=0, PWR_IDLE, PWR_STANDBY, PWR_SLEEP } power = PWR_ACTIVE;
+    double standby_timer_ms = 0;        /* 0 = disabled */
+    double last_activity = 0;
 };
 
 enum {
@@ -302,6 +359,56 @@ public:
     virtual void play_audio10();
     virtual void mode_sense();
     virtual void read_toc();
+    void host_reset_complete() override;
+    void set_signature() override;
+    /* command completion helpers */
+    void atapi_fail();                  /* CHECK CONDITION with the current sense data */
+    void atapi_done();                  /* command complete, no data */
+    void atapi_data_in(Bitu len);       /* data to the host is in sector[], len bytes (limited by the byte count limit) */
+    bool medium_ready_check();          /* sets sense and returns false if there is no disc */
+    /* commands added */
+    void get_event_status_notification();
+    void get_configuration();
+    void read_disc_information();
+    void read_track_information();
+    void set_cd_speed();
+    void start_stop_unit();
+    void prevent_allow();
+    void inquiry();
+    void request_sense();
+    void read_capacity();
+    /* READ CD: build the requested fields of each sector */
+    bool read_cd_begin();               /* parse the command, false if invalid (sense set) */
+    bool read_cd_sectors(Bitu lba,Bitu count,Bitu &bytes);
+    int  read_cd_sector(Bitu lba,unsigned char *out);   /* bytes written, -1 = error (sense set) */
+    /* media change notification */
+    void post_media_event(uint8_t code);
+    /* drive mechanics: tray, spindle, seek, read rate */
+    void mech_init();
+    double cd_access(Bitu lba,Bitu n,double t);
+    double cd_speed_x(Bitu lba);        /* read speed at this position, 1x = 75 sectors/second */
+    void schedule(double at_ms);
+public:
+    /* READ CD request */
+    uint8_t rcd_type = 0;               /* expected sector type, byte 1 bits 4-2 */
+    uint8_t rcd_flags = 0;              /* byte 9: sync, header codes, user data, EDC/ECC, error field */
+    uint8_t rcd_sub = 0;                /* byte 10: sub-channel selection */
+    /* tray, lock, events */
+    bool tray_open = false;
+    bool tray_moving = false;
+    bool locked = false;                /* PREVENT ALLOW MEDIUM REMOVAL */
+    uint8_t media_event = 0;            /* pending GET EVENT STATUS NOTIFICATION media event, 0 = none */
+    uint8_t power_event = 0;            /* pending power management event */
+    uint8_t power_state = 1;            /* 1 active, 2 idle, 3 standby, 4 sleep (as GESN reports it) */
+    /* mechanics */
+    bool instant = false;               /* [ide] cd-rom instant mode */
+    unsigned int max_speed = 8;         /* [ide] cd-rom max speed, in x (150KB/s) */
+    unsigned int cur_speed = 8;         /* SET CD SPEED */
+    double tray_time = 1500;
+    Bitu head_lba = 0;                  /* position of the optical pickup */
+    bool rb_valid = false;              /* read buffer: sectors read ahead after the last read */
+    Bitu rb_first = 0,rb_next = 0,rb_limit = 0;
+    double rb_time = 0;
 public:
     bool mscdex = false; /* if set, attached to MSCDEX subunit */
     bool atapi_to_host;         /* if set, PACKET data transfer is to be read by host */
@@ -346,11 +453,19 @@ public:
     Bitu select;   /* which is selected */
     bool interrupt_enable;      /* bit 1 of alt (0x3F6) */
     bool host_reset;        /* bit 2 of alt */
+    bool hob;               /* bit 7 of alt: read the previous (high order) register contents */
     bool irq_pending;
     /* defaults for CD-ROM emulation */
     double spinup_time;
     double spindown_timeout;
     double cd_insertion_time;
+    bool cd_instant;
+    int cd_max_speed;
+    int cd_tray_time;
+    /* defaults for hard disk emulation */
+    bool hd_instant;
+    int hd_rpm;
+    int hd_spinup_time;
 public:
     IDEController(Section* configuration,unsigned char index);
     void register_isapnp();
@@ -390,6 +505,205 @@ int IDE_MatchCDROMDrive(char drv) {
 static void IDE_DelayedCommand(Bitu pk/*which IDE device*/);
 static IDEController* GetIDEController(Bitu idx);
 
+/* ------------------------------------------------------------------------------------------
+ * ATAPI CD-ROM: drive mechanics
+ *
+ * The drive reads at "cd-rom max speed" (or the lower speed asked for with SET CD SPEED), 1x being
+ * 75 sectors per second. Drives up to 12x keep the linear velocity constant, faster drives keep the
+ * angular velocity constant and read faster towards the edge of the disc. A seek moves the optical
+ * pickup across the disc (about 20ms short, 250ms from edge to edge) and waits half a revolution on
+ * average. After a read the drive goes on reading into its buffer, so sequential reads stream at
+ * the read speed. The disc spins down when idle and takes "cd-rom spinup time" to spin up again,
+ * the tray takes "cd-rom tray time" to open or close.
+ * ------------------------------------------------------------------------------------------ */
+
+#define IDE_CD_READ_BUFFER_SECTORS      64u     /* read buffer (128KB) */
+#define IDE_CD_SEEK_MIN_MS              20.0
+#define IDE_CD_SEEK_FULL_MS             250.0
+#define IDE_CD_COMMAND_MS               1.0     /* command overhead */
+#define IDE_CD_MAX_READCD_SECTOR        (2352u + 296u + 96u)
+
+/* radius (mm) of the spiral at a sector: 25mm at the start of the program area, 58mm at 74 minutes */
+static double cd_radius(Bitu lba) {
+    return sqrt(25.0 * 25.0 + (double)lba * ((58.0 * 58.0 - 25.0 * 25.0) / 333000.0));
+}
+
+void IDEATAPICDROMDevice::mech_init() {
+    instant = controller->cd_instant;
+    max_speed = controller->cd_max_speed > 0 ? (unsigned int)controller->cd_max_speed : 8u;
+    if (max_speed > 72) max_speed = 72;
+    cur_speed = max_speed;
+    tray_time = controller->cd_tray_time > 0 ? (double)controller->cd_tray_time : 1500.0;
+    head_lba = 0;
+    rb_valid = false;
+}
+
+double IDEATAPICDROMDevice::cd_speed_x(Bitu lba) {
+    if (cur_speed <= 12) return (double)cur_speed;
+    return (double)cur_speed * cd_radius(lba) / 58.0;
+}
+
+/* time at which n sectors from lba have been read, the access starting at time t */
+double IDEATAPICDROMDevice::cd_access(Bitu lba,Bitu n,double t) {
+    if (instant || faked_command) {
+        head_lba = lba + n;
+        return t;
+    }
+
+    const double sector_ms = 1000.0 / (75.0 * cd_speed_x(lba));
+
+    /* in the read buffer, or being read into it now: no seek, the buffer keeps filling */
+    if (rb_valid && lba >= rb_first && lba <= rb_limit && lba + n <= rb_limit + n) {
+        double avail = rb_time + ((double)(lba + n) - (double)rb_next) * sector_ms;
+        if (avail < t) avail = t;
+        if (lba + n + IDE_CD_READ_BUFFER_SECTORS > rb_limit) rb_limit = lba + n + IDE_CD_READ_BUFFER_SECTORS;
+        head_lba = lba + n;
+        return avail;
+    }
+
+    const double r = cd_radius(lba),rh = cd_radius(head_lba);
+    t += IDE_CD_SEEK_MIN_MS + (IDE_CD_SEEK_FULL_MS - IDE_CD_SEEK_MIN_MS) * sqrt(fabs(r - rh) / 33.0);
+
+    /* half a revolution on average for the sector to come around (1x = 1.3m/s) */
+    const double rev_ms = 2.0 * 3.14159265358979 * (cur_speed <= 12 ? r : 58.0) / (1300.0 * cur_speed) * 1000.0;
+    t += rev_ms * 0.5;
+
+    t += n * sector_ms;
+    head_lba = lba + n;
+
+    rb_valid = true;
+    rb_first = lba;
+    rb_next = lba + n;
+    rb_time = t;
+    rb_limit = lba + n + IDE_CD_READ_BUFFER_SECTORS;
+    return t;
+}
+
+void IDEATAPICDROMDevice::schedule(double at_ms) {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+    double d = at_ms - PIC_FullIndex();
+
+    if (faked_command) d = 0.000001;
+    else if (d < 0.00001) d = 0.00001;
+
+    PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
+    PIC_AddEvent(IDE_DelayedCommand,d,pk);
+}
+
+/* ------------------------------------------------------------------------------------------
+ * CD-ROM sector encoding (ECMA-130): EDC (CRC-32) and the Reed-Solomon P and Q parity of
+ * Mode 1 and Mode 2 Form 1 sectors, the Q sub-channel CRC. Used to give READ CD the raw
+ * fields of sectors from images that only have the user data.
+ * ------------------------------------------------------------------------------------------ */
+
+static uint8_t cd_ecc_f_lut[256];
+static uint8_t cd_ecc_b_lut[256];
+static uint32_t cd_edc_lut[256];
+static bool cd_lut_init = false;
+
+static void cd_init_luts(void) {
+    if (cd_lut_init) return;
+    for (unsigned int i=0;i < 256;i++) {
+        const unsigned int j = (i << 1u) ^ ((i & 0x80u) ? 0x11Du : 0u);
+        cd_ecc_f_lut[i] = (uint8_t)j;
+        cd_ecc_b_lut[i ^ j] = (uint8_t)i;
+        uint32_t edc = i;
+        for (unsigned int k=0;k < 8;k++) edc = (edc >> 1u) ^ ((edc & 1u) ? 0xD8018001u : 0u);
+        cd_edc_lut[i] = edc;
+    }
+    cd_lut_init = true;
+}
+
+static uint32_t cd_edc(const uint8_t *src,size_t size) {
+    uint32_t edc = 0;
+    while (size--) edc = (edc >> 8u) ^ cd_edc_lut[(edc ^ (*src++)) & 0xFFu];
+    return edc;
+}
+
+static void cd_ecc_block(const uint8_t *src,unsigned int major_count,unsigned int minor_count,
+    unsigned int major_mult,unsigned int minor_inc,uint8_t *dest) {
+    const unsigned int size = major_count * minor_count;
+    for (unsigned int major=0;major < major_count;major++) {
+        unsigned int index = (major >> 1u) * major_mult + (major & 1u);
+        uint8_t ecc_a = 0,ecc_b = 0;
+        for (unsigned int minor=0;minor < minor_count;minor++) {
+            const uint8_t temp = src[index];
+            index += minor_inc;
+            if (index >= size) index -= size;
+            ecc_a ^= temp;
+            ecc_b ^= temp;
+            ecc_a = cd_ecc_f_lut[ecc_a];
+        }
+        ecc_a = cd_ecc_b_lut[cd_ecc_f_lut[ecc_a] ^ ecc_b];
+        dest[major] = ecc_a;
+        dest[major + major_count] = ecc_a ^ ecc_b;
+    }
+}
+
+/* P and Q parity, over the header (zero for Mode 2) and data */
+static void cd_ecc(uint8_t *sector,bool zero_address) {
+    uint8_t address[4];
+    if (zero_address) {
+        memcpy(address,sector + 12,4);
+        memset(sector + 12,0,4);
+    }
+    cd_ecc_block(sector + 0xC,86,24,2,86,sector + 0x81C);
+    cd_ecc_block(sector + 0xC,52,43,86,88,sector + 0x8C8);
+    if (zero_address) memcpy(sector + 12,address,4);
+}
+
+static uint8_t cd_bcd(unsigned int v) {
+    return (uint8_t)(((v / 10u) << 4u) | (v % 10u));
+}
+
+/* sync and header of a data sector */
+static void cd_sector_header(uint8_t *raw,Bitu lba,uint8_t mode) {
+    const Bitu a = lba + 150u;
+    raw[0] = 0x00;
+    memset(raw + 1,0xFF,10);
+    raw[11] = 0x00;
+    raw[12] = cd_bcd((unsigned int)(a / (75u * 60u)));
+    raw[13] = cd_bcd((unsigned int)((a / 75u) % 60u));
+    raw[14] = cd_bcd((unsigned int)(a % 75u));
+    raw[15] = mode;
+}
+
+/* a complete raw Mode 1 sector, or Mode 2 Form 1 sector (data sub-header), from the 2048 bytes of user data */
+static void cd_encode_sector(uint8_t *raw,Bitu lba,const uint8_t *data,bool mode2) {
+    cd_init_luts();
+    memset(raw,0,2352);
+    if (!mode2) {
+        cd_sector_header(raw,lba,1);
+        memcpy(raw + 16,data,2048);
+        const uint32_t edc = cd_edc(raw,0x810);
+        host_writed(raw + 0x810,edc);
+        cd_ecc(raw,false);
+    }
+    else {
+        cd_sector_header(raw,lba,2);
+        /* sub-header (twice): file 0, channel 0, submode data, coding 0 */
+        raw[18] = raw[22] = 0x08;
+        memcpy(raw + 24,data,2048);
+        const uint32_t edc = cd_edc(raw + 0x10,0x808);
+        host_writed(raw + 0x818,edc);
+        cd_ecc(raw,true);
+    }
+}
+
+/* CRC-16 of the Q sub-channel (x^16 + x^12 + x^5 + 1, inverted) */
+static uint16_t cd_q_crc(const uint8_t *q) {
+    uint16_t crc = 0;
+    for (unsigned int i=0;i < 10;i++) {
+        crc ^= (uint16_t)q[i] << 8u;
+        for (unsigned int b=0;b < 8;b++) crc = (crc & 0x8000u) ? (uint16_t)((crc << 1u) ^ 0x1021u) : (uint16_t)(crc << 1u);
+    }
+    return (uint16_t)~crc;
+}
+
+/* ------------------------------------------------------------------------------------------
+ * ATAPI CD-ROM: spin up, spin down, CD insertion
+ * ------------------------------------------------------------------------------------------ */
+
 static void IDE_ATAPI_SpinDown(Bitu pk/*which IDE device*/) {
 	IDEEventPack ep(pk);
 	const unsigned int idx = ep.interface();
@@ -407,8 +721,17 @@ static void IDE_ATAPI_SpinDown(Bitu pk/*which IDE device*/) {
 		IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
 
 		if (atapi->loading_mode == LOAD_DISC_READIED || atapi->loading_mode == LOAD_READY) {
+			/* not while playing audio */
+			CDROM_Interface *cdrom = atapi->getMSCDEXDrive();
+			bool playing = false,pause = false;
+			if (cdrom != NULL && cdrom->GetAudioStatus(playing,pause) && playing && !pause) {
+				PIC_AddEvent(IDE_ATAPI_SpinDown,atapi->spindown_timeout/*ms*/,pk);
+				return;
+			}
+
 			atapi->loading_mode = LOAD_IDLE;
-			LOG_MSG("ATAPI CD-ROM: spinning down\n");
+			atapi->rb_valid = false;
+			LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM: spinning down");
 		}
 	}
 	else {
@@ -436,10 +759,11 @@ static void IDE_ATAPI_CDInsertion(Bitu pk/*which IDE device*/) {
 
 		if (atapi->loading_mode == LOAD_INSERT_CD) {
 			atapi->loading_mode = LOAD_DISC_LOADING;
-			LOG_MSG("ATAPI CD-ROM: insert CD to loading\n");
+			atapi->tray_open = false;
+			LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM: insert CD to loading");
 			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
 			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
-			PIC_AddEvent(IDE_ATAPI_SpinUpComplete,atapi->spinup_time/*ms*/,pk);
+			PIC_AddEvent(IDE_ATAPI_SpinUpComplete,atapi->instant ? 0.01 : atapi->spinup_time/*ms*/,pk);
 		}
 	}
 	else {
@@ -465,7 +789,9 @@ static void IDE_ATAPI_SpinUpComplete(Bitu pk/*which IDE device*/) {
 
 		if (atapi->loading_mode == LOAD_DISC_LOADING) {
 			atapi->loading_mode = LOAD_DISC_READIED;
-			LOG_MSG("ATAPI CD-ROM: spinup complete\n");
+			LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM: spinup complete");
+			/* media change notification: a new disc is ready */
+			if (atapi->has_changed) atapi->post_media_event(0x02/*NewMedia*/);
 			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
 			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
 			PIC_AddEvent(IDE_ATAPI_SpinDown,atapi->spindown_timeout/*ms*/,pk);
@@ -476,18 +802,29 @@ static void IDE_ATAPI_SpinUpComplete(Bitu pk/*which IDE device*/) {
 	}
 }
 
+void IDEATAPICDROMDevice::post_media_event(uint8_t code) {
+    /* a NewMedia event is more important than a removal before it */
+    if (media_event == 0 || code == 0x02/*NewMedia*/ || code == 0x01/*EjectRequest*/) media_event = code;
+}
+
 /* returns "true" if command should proceed as normal, "false" if sense data was set and command should not proceed.
  * this function helps to enforce virtual "spin up" and "ready" delays. */
 bool IDEATAPICDROMDevice::common_spinup_response(bool trigger,bool wait) {
 	const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
 
+	/* the tray is open: no disc */
+	if (tray_open) {
+		set_sense(/*SK=*/0x02,/*ASC=*/0x3A,/*ASCQ=*/0x02); /* Medium Not Present - Tray Open */
+		return false;
+	}
+
 	if (loading_mode == LOAD_IDLE) {
 		if (trigger) {
-			LOG_MSG("ATAPI CD-ROM: triggered to spin up from idle\n");
+			LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM: triggered to spin up from idle");
 			loading_mode = LOAD_DISC_LOADING;
 			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
 			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
-			PIC_AddEvent(IDE_ATAPI_SpinUpComplete,spinup_time/*ms*/,pk);
+			PIC_AddEvent(IDE_ATAPI_SpinUpComplete,instant ? 0.01 : spinup_time/*ms*/,pk);
 		}
 	}
 	else if (loading_mode == LOAD_READY) {
@@ -500,18 +837,21 @@ bool IDEATAPICDROMDevice::common_spinup_response(bool trigger,bool wait) {
 
 	/* if the CD-ROM drive has mounted the empty drive, then ALWAYS return Medium Not Present */
 	CDROM_Interface *cdrom = getMSCDEXDrive();
-	if (cdrom) {
-		if (cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
-			set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Medium Not Present */
-//			LOG_MSG("ATAPI: Medium Not Ready");
+	if (cdrom == NULL || cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
+		/* the guest is told once that the disc went away (unit attention), then that there is none */
+		if (has_changed) {
+			has_changed = false;
+			set_sense(/*SK=*/0x06,/*ASC=*/0x28,/*ASCQ=*/0x00); /* Not Ready to Ready change, medium may have changed */
 			return false;
 		}
+		set_sense(/*SK=*/0x02,/*ASC=*/0x3A,/*ASCQ=*/0x01); /* Medium Not Present - Tray Closed */
+		return false;
 	}
 
 	switch (loading_mode) {
 		case LOAD_NO_DISC:
 		case LOAD_INSERT_CD:
-			set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Medium Not Present */
+			set_sense(/*SK=*/0x02,/*ASC=*/0x3A,/*ASCQ=*/0x01); /* Medium Not Present - Tray Closed */
 			return false;
 		case LOAD_DISC_LOADING:
 			if (has_changed && !wait/*if command will block until LOADING complete*/) {
@@ -523,7 +863,7 @@ bool IDEATAPICDROMDevice::common_spinup_response(bool trigger,bool wait) {
 			loading_mode = LOAD_READY;
 			if (has_changed) {
 				if (trigger) has_changed = false;
-				set_sense(/*SK=*/0x02,/*ASC=*/0x28,/*ASCQ=*/0x00); /* Medium is ready (has changed) */
+				set_sense(/*SK=*/0x06,/*ASC=*/0x28,/*ASCQ=*/0x00); /* UNIT ATTENTION: Not Ready to Ready change, medium may have changed */
 				return false;
 			}
 			break;
@@ -537,6 +877,76 @@ bool IDEATAPICDROMDevice::common_spinup_response(bool trigger,bool wait) {
 	return true;
 }
 
+/* ------------------------------------------------------------------------------------------
+ * ATAPI CD-ROM: command completion helpers
+ * ------------------------------------------------------------------------------------------ */
+
+/* CHECK CONDITION: the error register has the sense key (and ABRT), the host reads the details with REQUEST SENSE */
+void IDEATAPICDROMDevice::atapi_fail() {
+    count = 0x03;
+    state = IDE_DEV_READY;
+    feature = (uint16_t)(((sense[2] & 0xFu) << 4u) | 0x04u);
+    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
+    sector_total = 0;
+    TransferLength = 0;
+    TransferLengthRemaining = 0;
+    lba[1] = lba[2] = 0;
+    raise_irq();
+    allow_writing = true;
+}
+
+void IDEATAPICDROMDevice::atapi_done() {
+    count = 0x03;
+    state = IDE_DEV_READY;
+    feature = 0x00;
+    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+    sector_total = 0;
+    lba[1] = lba[2] = 0;
+    raise_irq();
+    allow_writing = true;
+}
+
+/* data for the host is in sector[]: limited by the byte count the host asked for */
+void IDEATAPICDROMDevice::atapi_data_in(Bitu len) {
+    if (len > host_maximum_byte_count) len = host_maximum_byte_count & ~((Bitu)1u);
+    if (len == 0) {
+        atapi_done();
+        return;
+    }
+    prepare_read(0,len);
+    feature = 0x00;
+    count = 0x02; /* data for computer */
+    state = IDE_DEV_DATA_READ;
+    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+    /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
+    lba[2] = sector_total >> 8;
+    lba[1] = sector_total;
+    raise_irq();
+    allow_writing = true;
+}
+
+bool IDEATAPICDROMDevice::medium_ready_check() {
+    CDROM_Interface *cdrom = getMSCDEXDrive();
+    if (tray_open) {
+        set_sense(0x02,0x3A,0x02);
+        return false;
+    }
+    if (cdrom == NULL || cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
+        set_sense(0x02,0x3A,0x01);
+        return false;
+    }
+    return true;
+}
+
+/* sectors on the disc (up to the lead-out) */
+static Bitu atapi_capacity(CDROM_Interface *cdrom) {
+    int first,last;
+    TMSF leadOut;
+    if (cdrom == NULL || !cdrom->GetAudioTracks(first,last,leadOut)) return 0;
+    const Bitu f = ((Bitu)leadOut.min * 60u + leadOut.sec) * 75u + leadOut.fr;
+    return f >= 150u ? f - 150u : 0u;
+}
+
 void IDEATAPICDROMDevice::read_subchannel() {
 //  unsigned char Format = atapi_cmd[2] & 0xF;
 //  unsigned char Track = atapi_cmd[6];
@@ -544,38 +954,23 @@ void IDEATAPICDROMDevice::read_subchannel() {
     unsigned char attr,track,index;
     bool SUBQ = !!(atapi_cmd[2] & 0x40);
     bool TIME = !!(atapi_cmd[1] & 2);
+    unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8];
     unsigned char *write;
     unsigned char astat;
     bool playing,pause;
     TMSF rel,abs;
 
+    memset(sector,0,48);
+
     CDROM_Interface *cdrom = getMSCDEXDrive();
     if (cdrom == NULL) {
-        LOG_MSG("WARNING: ATAPI READ TOC unable to get CDROM drive\n");
-        prepare_read(0,8);
+        prepare_read(0,MIN(4u,AllocationLength));
         return;
     }
 
     if (paramList == 0 || paramList > 3) {
-        LOG_MSG("ATAPI READ SUBCHANNEL unknown param list\n");
-        prepare_read(0,8);
-        return;
-    }
-    else if (paramList == 2) {
-        LOG_MSG("ATAPI READ SUBCHANNEL Media Catalog Number not supported\n");
-        prepare_read(0,8);
-        return;
-    }
-    else if (paramList == 3) {
-        LOG_MSG("ATAPI READ SUBCHANNEL ISRC not supported\n");
-        prepare_read(0,8);
-        return;
-    }
-
-    /* get current subchannel position */
-    if (!cdrom->GetAudioSub(attr,track,index,rel,abs)) {
-        LOG_MSG("ATAPI READ SUBCHANNEL unable to read current pos\n");
-        prepare_read(0,8);
+        set_sense(0x05,0x24); /* Invalid Field in CDB */
+        sector_total = 0;
         return;
     }
 
@@ -587,7 +982,6 @@ void IDEATAPICDROMDevice::read_subchannel() {
     else
         astat = 0x13;
 
-    memset(sector,0,8);
     write = sector;
     *write++ = 0x00;
     *write++ = astat;/* AUDIO STATUS */
@@ -595,34 +989,60 @@ void IDEATAPICDROMDevice::read_subchannel() {
     *write++ = 0x00;
 
     if (SUBQ) {
-        *write++ = 0x01;    /* subchannel data format code */
-        *write++ = (attr >> 4) | 0x10;  /* ADR/CONTROL */
-        *write++ = track;
-        *write++ = index;
-        if (TIME) {
+        if (paramList == 2) {
+            /* Media Catalog Number: not on these discs (MCVAL=0) */
+            *write++ = 0x02;
+            write += 3;
             *write++ = 0x00;
-            *write++ = abs.min;
-            *write++ = abs.sec;
-            *write++ = abs.fr;
+            write += 15;
+        }
+        else if (paramList == 3) {
+            /* ISRC: not on these discs (TCVAL=0) */
+            *write++ = 0x03;
             *write++ = 0x00;
-            *write++ = rel.min;
-            *write++ = rel.sec;
-            *write++ = rel.fr;
+            *write++ = atapi_cmd[6];
+            *write++ = 0x00;
+            *write++ = 0x00;
+            write += 15;
         }
         else {
-            uint32_t sec;
+            /* get current subchannel position */
+            if (!cdrom->GetAudioSub(attr,track,index,rel,abs)) {
+                attr = 0x40;
+                track = index = 1;
+                rel.min = rel.sec = rel.fr = 0;
+                abs.min = 0; abs.sec = 2; abs.fr = 0;
+            }
 
-            sec = (abs.min*60u*75u)+(abs.sec*75u)+abs.fr - 150u;
-            *write++ = (unsigned char)(sec >> 24u);
-            *write++ = (unsigned char)(sec >> 16u);
-            *write++ = (unsigned char)(sec >> 8u);
-            *write++ = (unsigned char)(sec >> 0u);
+            *write++ = 0x01;    /* subchannel data format code */
+            *write++ = (attr >> 4) | 0x10;  /* ADR/CONTROL */
+            *write++ = track;
+            *write++ = index;
+            if (TIME) {
+                *write++ = 0x00;
+                *write++ = abs.min;
+                *write++ = abs.sec;
+                *write++ = abs.fr;
+                *write++ = 0x00;
+                *write++ = rel.min;
+                *write++ = rel.sec;
+                *write++ = rel.fr;
+            }
+            else {
+                uint32_t sec;
 
-            sec = (rel.min*60u*75u)+(rel.sec*75u)+rel.fr - 150u;
-            *write++ = (unsigned char)(sec >> 24u);
-            *write++ = (unsigned char)(sec >> 16u);
-            *write++ = (unsigned char)(sec >> 8u);
-            *write++ = (unsigned char)(sec >> 0u);
+                sec = (abs.min*60u*75u)+(abs.sec*75u)+abs.fr - 150u;
+                *write++ = (unsigned char)(sec >> 24u);
+                *write++ = (unsigned char)(sec >> 16u);
+                *write++ = (unsigned char)(sec >> 8u);
+                *write++ = (unsigned char)(sec >> 0u);
+
+                sec = (rel.min*60u*75u)+(rel.sec*75u)+rel.fr;
+                *write++ = (unsigned char)(sec >> 24u);
+                *write++ = (unsigned char)(sec >> 16u);
+                *write++ = (unsigned char)(sec >> 8u);
+                *write++ = (unsigned char)(sec >> 0u);
+            }
         }
     }
 
@@ -632,16 +1052,16 @@ void IDEATAPICDROMDevice::read_subchannel() {
         sector[3] = x;
     }
 
-    prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
-#if 0
-    LOG_MSG("SUBCH ");
-    for (size_t i=0;i < sector_total;i++) LOG_MSG("%02x ",sector[i]);
-    LOG_MSG("\n");
-#endif
+    prepare_read(0,MIN(MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count),AllocationLength));
 }
 
 void IDEATAPICDROMDevice::mechanism_status() {
+    unsigned int AllocationLength = ((unsigned int)atapi_cmd[8] << 8) + atapi_cmd[9];
     unsigned char *write;
+    bool playing = false,pause = false;
+
+    CDROM_Interface *cdrom = getMSCDEXDrive();
+    if (cdrom != NULL) cdrom->GetAudioStatus(playing,pause);
 
     write = sector;
 
@@ -651,10 +1071,10 @@ void IDEATAPICDROMDevice::mechanism_status() {
 
     /* Status Header */
     *write++ = 0x00; // fault=0 changerstate=0 currentslot=0
-    *write++ = (0 << 5u)/* mechanism state=idle=0 (TODO) */ | (0x00)/*door open=0*/;
-    *write++ = 0x00; // current LBA (TODO)
-    *write++ = 0x00; // .
-    *write++ = 0x00; // .
+    *write++ = (unsigned char)(((playing && !pause) ? 1u : 0u) << 5u) /* mechanism state: idle or playing audio */ | (tray_open ? 0x10 : 0x00)/*door open*/;
+    *write++ = (unsigned char)(head_lba >> 16u); // current LBA
+    *write++ = (unsigned char)(head_lba >> 8u);
+    *write++ = (unsigned char)head_lba;
     *write++ = 0x00; // number of slots available = 0
     *write++ = 0x00; // length of slot table(s)
     *write++ = 0x00; // .
@@ -667,129 +1087,102 @@ void IDEATAPICDROMDevice::mechanism_status() {
     //       booting the guest OS. If enabled, we should report each and
     //       every ISO image like we're a CD changer. :)
 
-    prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
+    prepare_read(0,MIN(MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count),AllocationLength));
 }
 
+/* MODE SENSE (6) and (10). Page control: current, changeable (none are), default, saved (not supported) */
 void IDEATAPICDROMDevice::mode_sense() {
-    unsigned char PAGE = atapi_cmd[2] & 0x3F;
-//  unsigned char SUBPAGE = atapi_cmd[3];
+    const bool ten = (atapi_cmd[0] == 0x5A);
+    const unsigned char PC = atapi_cmd[2] >> 6;
+    const unsigned char PAGE = atapi_cmd[2] & 0x3F;
+    const unsigned int AllocationLength = ten ? (((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8]) : atapi_cmd[4];
+    const unsigned int hdr = ten ? 8u : 4u;
     unsigned char *write;
     unsigned int x;
+    bool found = false;
 
-    write = sector;
-
-    /* Mode Parameter List MMC-3 Table 340 */
-    /* - Mode parameter header */
-    /* - Page(s) */
-
-    /* Mode Parameter Header (response for 10-byte MODE SENSE) SPC-2 Table 148 */
-    *write++ = 0x00;    /* MODE DATA LENGTH                     (MSB) */
-    *write++ = 0x00;    /*                                      (LSB) */
-    *write++ = 0x00;    /* MEDIUM TYPE */
-    *write++ = 0x00;    /* DEVICE-SPECIFIC PARAMETER */
-    *write++ = 0x00;    /* Reserved */
-    *write++ = 0x00;    /* Reserved */
-    *write++ = 0x00;    /* BLOCK DESCRIPTOR LENGTH              (MSB) */
-    *write++ = 0x00;    /*                                      (LSB) */
-    /* NTS: MMC-3 Table 342 says that BLOCK DESCRIPTOR LENGTH is zero, where it would be 8 for legacy units */
-
-    /* Mode Page Format MMC-3 Table 341 */
-    *write++ = PAGE;    /* PS|reserved|Page Code */
-    *write++ = 0x00;    /* Page Length (n - 1) ... Length in bytes of the mode parameters that follow */
-    switch (PAGE) {
-        case 0x01: /* Read error recovery MMC-3 Section 6.3.4 table 344 */
-            *write++ = 0x00;    /* +2 Error recovery Parameter  AWRE|ARRE|TB|RC|Reserved|PER|DTE|DCR */
-            *write++ = 3;       /* +3 Read Retry Count */
-            *write++ = 0x00;    /* +4 Reserved */
-            *write++ = 0x00;    /* +5 Reserved */
-            *write++ = 0x00;    /* +6 Reserved */
-            *write++ = 0x00;    /* +7 Reserved */
-            *write++ = 0x00;    /* +8 Write Retry Count (this is not yet CD burner) */
-            *write++ = 0x00;    /* +9 Reserved */
-            *write++ = 0x00;    /* +10 Recovery Time Limit (should be zero)         (MSB) */
-            *write++ = 0x00;    /* +11                                              (LSB) */
-            break;
-        case 0x0E: /* CD-ROM audio control MMC-3 Section 6.3.7 table 354 */
-                   /* also MMC-1 Section 5.2.3.1 table 97 */
-            *write++ = 0x04;    /* +2 Reserved|IMMED=1|SOTC=0|Reserved */
-            *write++ = 0x00;    /* +3 Reserved */
-            *write++ = 0x00;    /* +4 Reserved */
-            *write++ = 0x00;    /* +5 Reserved */
-            *write++ = 0x00;    /* +6 Obsolete (75) */
-            *write++ = 75;      /* +7 Obsolete (75) */
-            *write++ = 0x01;    /* +8 output port 0 selection (0001b = channel 0) */
-            *write++ = 0xFF;    /* +9 output port 0 volume (0xFF = 0dB atten.) */
-            *write++ = 0x02;    /* +10 output port 1 selection (0010b = channel 1) */
-            *write++ = 0xFF;    /* +11 output port 1 volume (0xFF = 0dB atten.) */
-            *write++ = 0x00;    /* +12 output port 2 selection (none) */
-            *write++ = 0x00;    /* +13 output port 2 volume (0x00 = mute) */
-            *write++ = 0x00;    /* +14 output port 3 selection (none) */
-            *write++ = 0x00;    /* +15 output port 3 volume (0x00 = mute) */
-            break;
-        case 0x2A: /* CD-ROM mechanical status MMC-3 Section 6.3.11 table 361 */
-                                /*    MSB            |             |             |             |              |               |              |       LSB */
-            *write++ = 0x07;    /* +2 Reserved       |Reserved     |DVD-RAM read |DVD-R read   |DVD-ROM read  |   Method 2    | CD-RW read   | CD-R read */
-            *write++ = 0x00;    /* +3 Reserved       |Reserved     |DVD-RAM write|DVD-R write  |   Reserved   |  Test Write   | CD-RW write  | CD-R write */
-            *write++ = 0x71;    /* +4 Buffer Underrun|Multisession |Mode 2 form 2|Mode 2 form 1|Digital Port 2|Digital Port 1 |  Composite   | Audio play */
-            *write++ = 0xFF;    /* +5 Read code bar  |UPC          |ISRC         |C2 Pointers  |R-W deintcorr | R-W supported |CDDA accurate |CDDA support */
-            *write++ = 0x2F;    /* +6 Loading mechanism type                     |Reserved     |Eject         |Prevent Jumper |Lock state    |Lock */
-                                /*      0 (0x00) = Caddy
-                                 *      1 (0x20) = Tray
-                                 *      2 (0x40) = Popup
-                                 *      3 (0x60) = Reserved
-                                 *      4 (0x80) = Changer with individually changeable discs
-                                 *      5 (0xA0) = Changer using a magazine mechanism
-                                 *      6 (0xC0) = Reserved
-                                 *      6 (0xE0) = Reserved */
-            *write++ = 0x03;    /* +7 Reserved       |Reserved     |R-W in leadin|Side chg cap |S/W slot sel  |Changer disc pr|Sep. ch. mute |Sep. volume levels */
-
-            x = 176 * 8;        /* +8 maximum speed supported in kB: 8X  (obsolete in MMC-3) */
-            *write++ = x>>8;
-            *write++ = x;
-
-            x = 256;            /* +10 Number of volume levels supported */
-            *write++ = x>>8;
-            *write++ = x;
-
-            x = 6 * 256;        /* +12 buffer size supported by drive in kB */
-            *write++ = x>>8;
-            *write++ = x;
-
-            x = 176 * 8;        /* +14 current read speed selected in kB: 8X  (obsolete in MMC-3) */
-            *write++ = x>>8;
-            *write++ = x;
-
-            *write++ = 0;       /* +16 Reserved */
-            *write++ = 0x00;    /* +17 Reserved | Reserved | Length | Length | LSBF | RCK | BCK | Reserved */
-
-            x = 0;              /* +18 maximum write speed supported in kB: 0  (obsolete in MMC-3) */
-            *write++ = x>>8;
-            *write++ = x;
-
-            x = 0;              /* +20 current write speed in kB: 0  (obsolete in MMC-3) */
-            *write++ = x>>8;
-            *write++ = x;
-            break;
-        default:
-            memset(write,0,6); write += 6;
-            LOG_MSG("WARNING: MODE SENSE on page 0x%02x not supported\n",PAGE);
-            break;
+    if (PC == 3) {
+        set_sense(0x05,0x39); /* Saving Parameters Not Supported */
+        sector_total = 0;
+        return;
     }
 
-    /* mode param header, data length */
-    x = (unsigned int)(write-sector) - 2;
-    sector[0] = (unsigned char)(x >> 8u);
-    sector[1] = (unsigned char)x;
-    /* page length */
-    sector[8+1] = (unsigned int)(write-sector) - 2 - 8;
+    memset(sector,0,512);
+    write = sector + hdr;
 
-    prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
+    /* NTS: MMC-3 Table 342 says that BLOCK DESCRIPTOR LENGTH is zero, where it would be 8 for legacy units */
 
-#if 0
-    printf("SENSE ");
-    for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
-    printf("\n");
-#endif
+    auto page_begin = [&](unsigned char code,unsigned char len) -> unsigned char * {
+        unsigned char *p = write;
+        p[0] = code;
+        p[1] = len;
+        write += 2u + len;
+        found = true;
+        return p + 2;
+    };
+
+    if (PAGE == 0x01 || PAGE == 0x3F) { /* Read error recovery MMC-3 Section 6.3.4 table 344 */
+        unsigned char *p = page_begin(0x01,10);
+        if (PC != 1) p[1] = 3;          /* +3 Read Retry Count */
+    }
+    if (PAGE == 0x0D || PAGE == 0x3F) { /* CD device parameters */
+        unsigned char *p = page_begin(0x0D,6);
+        if (PC != 1) {
+            p[1] = 0x0D;                /* +3 inactivity timer multiplier */
+            p[3] = 60;                  /* +4 S units per M unit */
+            p[5] = 75;                  /* +6 F units per S unit */
+        }
+    }
+    if (PAGE == 0x0E || PAGE == 0x3F) { /* CD-ROM audio control MMC-3 Section 6.3.7 table 354 */
+        unsigned char *p = page_begin(0x0E,14);
+        if (PC != 1) {
+            p[0] = 0x04;                /* +2 Reserved|IMMED=1|SOTC=0|Reserved */
+            p[5] = 75;                  /* +7 Obsolete (75) */
+            p[6] = 0x01;                /* +8 output port 0 selection (0001b = channel 0) */
+            p[7] = 0xFF;                /* +9 output port 0 volume (0xFF = 0dB atten.) */
+            p[8] = 0x02;                /* +10 output port 1 selection (0010b = channel 1) */
+            p[9] = 0xFF;                /* +11 output port 1 volume (0xFF = 0dB atten.) */
+        }
+    }
+    if (PAGE == 0x2A || PAGE == 0x3F) { /* CD-ROM mechanical status MMC-3 Section 6.3.11 table 361 */
+        unsigned char *p = page_begin(0x2A,20);
+        if (PC != 1) {
+            p[0] = 0x07;    /* +2 DVD-RAM read|DVD-R read|DVD-ROM read|Method 2|CD-RW read|CD-R read */
+            p[1] = 0x00;    /* +3 (no writing) */
+            p[2] = 0x71;    /* +4 Multisession|Mode 2 form 2|Mode 2 form 1|Audio play */
+            p[3] = 0x1F;    /* +5 C2 Pointers|R-W deinterleaved|R-W supported|CDDA accurate|CDDA support */
+            p[4] = (unsigned char)(0x29 | (locked ? 0x02 : 0x00)); /* +6 Loading mechanism tray|Eject|Lock state|Lock */
+            p[5] = 0x03;    /* +7 Separate channel mute|Separate volume levels */
+
+            x = 176 * max_speed;        /* +8 maximum speed supported in kB/s (obsolete in MMC-3) */
+            p[6] = x >> 8; p[7] = x;
+            x = 256;                    /* +10 Number of volume levels supported */
+            p[8] = x >> 8; p[9] = x;
+            x = 128;                    /* +12 buffer size supported by drive in kB */
+            p[10] = x >> 8; p[11] = x;
+            x = 176 * cur_speed;        /* +14 current read speed selected in kB/s (obsolete in MMC-3) */
+            p[12] = x >> 8; p[13] = x;
+        }
+    }
+
+    if (!found) {
+        LOG(LOG_MISC,LOG_DEBUG)("ATAPI: MODE SENSE on page 0x%02x not supported",PAGE);
+        set_sense(0x05,0x24); /* Invalid Field in CDB */
+        sector_total = 0;
+        return;
+    }
+
+    /* mode parameter header: data length */
+    x = (unsigned int)(write-sector) - (ten ? 2u : 1u);
+    if (ten) {
+        sector[0] = (unsigned char)(x >> 8u);
+        sector[1] = (unsigned char)x;
+    }
+    else {
+        sector[0] = (unsigned char)x;
+    }
+
+    prepare_read(0,MIN(MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count),AllocationLength));
 }
 
 void IDEATAPICDROMDevice::pause_resume() {
@@ -797,7 +1190,6 @@ void IDEATAPICDROMDevice::pause_resume() {
 
     CDROM_Interface *cdrom = getMSCDEXDrive();
     if (cdrom == NULL) {
-        LOG_MSG("WARNING: ATAPI READ TOC unable to get CDROM drive\n");
         sector_total = 0;
         return;
     }
@@ -810,7 +1202,6 @@ void IDEATAPICDROMDevice::play_audio_msf() {
 
     CDROM_Interface *cdrom = getMSCDEXDrive();
     if (cdrom == NULL) {
-        LOG_MSG("WARNING: ATAPI READ TOC unable to get CDROM drive\n");
         sector_total = 0;
         return;
     }
@@ -823,7 +1214,7 @@ void IDEATAPICDROMDevice::play_audio_msf() {
             atapi_cmd[5];
 
         if (start_lba >= 150u) start_lba -= 150u; /* LBA sector 0 == M:S:F sector 0:2:0 */
-        else end_lba = 0;
+        else start_lba = 0;
     }
 
     if (atapi_cmd[6] == 0xFF && atapi_cmd[7] == 0xFF && atapi_cmd[8] == 0xFF)
@@ -841,15 +1232,16 @@ void IDEATAPICDROMDevice::play_audio_msf() {
         /* The play length field specifies the number of contiguous logical blocks that shall
          * be played. A play length of zero indicates that no audio operation shall occur.
          * This condition is not an error. */
-        /* TODO: How do we interpret that? Does that mean audio playback stops? Or does it
-         * mean we do nothing to the state of audio playback? */
         sector_total = 0;
         return;
     }
 
     /* LBA 0xFFFFFFFF means start playing wherever the optics of the CD sit */
-    if (start_lba != 0xFFFFFFFF)
+    if (start_lba != 0xFFFFFFFF) {
         cdrom->PlayAudioSector(start_lba,end_lba - start_lba);
+        head_lba = start_lba;
+        rb_valid = false;
+    }
     else
         cdrom->PauseAudio(true);
 
@@ -862,7 +1254,6 @@ void IDEATAPICDROMDevice::play_audio10() {
 
     CDROM_Interface *cdrom = getMSCDEXDrive();
     if (cdrom == NULL) {
-        LOG_MSG("WARNING: ATAPI READ TOC unable to get CDROM drive\n");
         sector_total = 0;
         return;
     }
@@ -879,26 +1270,21 @@ void IDEATAPICDROMDevice::play_audio10() {
         /* The play length field specifies the number of contiguous logical blocks that shall
          * be played. A play length of zero indicates that no audio operation shall occur.
          * This condition is not an error. */
-        /* TODO: How do we interpret that? Does that mean audio playback stops? Or does it
-         * mean we do nothing to the state of audio playback? */
         sector_total = 0;
         return;
     }
 
     /* LBA 0xFFFFFFFF means start playing wherever the optics of the CD sit */
-    if (start_lba != 0xFFFFFFFF)
+    if (start_lba != 0xFFFFFFFF) {
         cdrom->PlayAudioSector(start_lba,play_length);
+        head_lba = start_lba;
+        rb_valid = false;
+    }
     else
         cdrom->PauseAudio(true);
 
     sector_total = 0;
 }
-
-#if 0 /* TODO move to library */
-static unsigned char dec2bcd(unsigned char c) {
-    return ((c / 10) << 4) + (c % 10);
-}
-#endif
 
 void IDE_Eject_unmount(char drive);
 
@@ -920,16 +1306,24 @@ void IDEATAPICDROMDevice::read_toc() {
 
     CDROM_Interface *cdrom = getMSCDEXDrive();
     if (cdrom == NULL) {
-        LOG_MSG("WARNING: ATAPI READ TOC unable to get CDROM drive\n");
-        prepare_read(0,8);
+        set_sense(0x02,0x3A,0x01);
+        sector_total = 0;
         return;
     }
 
     memset(sector,0,8);
 
     if (!cdrom->GetAudioTracks(first,last,leadOut)) {
-        LOG_MSG("WARNING: ATAPI READ TOC failed to get track info\n");
-        prepare_read(0,8);
+        LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ TOC failed to get track info");
+        set_sense(0x02,0x3A,0x01);
+        sector_total = 0;
+        return;
+    }
+
+    /* the starting track must exist (or be the lead-out) */
+    if (Format == 0 && Track > last && Track != 0xAA) {
+        set_sense(0x05,0x24);
+        sector_total = 0;
         return;
     }
 
@@ -953,14 +1347,12 @@ void IDEATAPICDROMDevice::read_toc() {
         }
 
         if (!cdrom->GetAudioTrackInfo(first,start,attr)) {
-            LOG_MSG("WARNING: ATAPI READ TOC unable to read track %u information\n",first);
+            LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ TOC unable to read track %u information",first);
             attr = 0x41; /* ADR=1 CONTROL=4 */
             start.min = 0;
             start.sec = 0;
             start.fr = 0;
         }
-
-        LOG_MSG("Track %u attr=0x%02x %02u:%02u:%02u\n",first,attr,start.min,start.sec,start.fr);
 
         *write++ = 0x00;        /* entry+0 RESERVED */
         *write++ = (attr >> 4) | 0x10;  /* entry+1 ADR=1 CONTROL=4 (DATA) */
@@ -991,7 +1383,7 @@ void IDEATAPICDROMDevice::read_toc() {
             TMSF start;
 
             if (!cdrom->GetAudioTrackInfo(track,start,attr)) {
-                LOG_MSG("WARNING: ATAPI READ TOC unable to read track %u information\n",track);
+                LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ TOC unable to read track %u information",track);
                 attr = 0x41; /* ADR=1 CONTROL=4 */
                 start.min = 0;
                 start.sec = 0;
@@ -1002,8 +1394,6 @@ void IDEATAPICDROMDevice::read_toc() {
                 continue;
             if ((write+8) > (sector+AllocationLength))
                 break;
-
-            LOG_MSG("Track %u attr=0x%02x %02u:%02u:%02u\n",first,attr,start.min,start.sec,start.fr);
 
             *write++ = 0x00;        /* entry+0 RESERVED */
             *write++ = (attr >> 4) | 0x10; /* entry+1 ADR=1 CONTROL=4 (DATA) */
@@ -1109,8 +1499,9 @@ void IDEATAPICDROMDevice::read_toc() {
         }
     }
     else {
-        LOG_MSG("WARNING: ATAPI READ TOC Format=%u not supported\n",Format);
-        prepare_read(0,8);
+        LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ TOC Format=%u not supported",Format);
+        set_sense(0x05,0x24);
+        sector_total = 0;
         return;
     }
 
@@ -1131,32 +1522,37 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
     /* if the drive is spinning up, then the command waits */
     if (loading_mode == LOAD_DISC_LOADING) {
         switch (atapi_cmd[0]) {
-            case 0x00: /* TEST UNIT READY */
             case 0x03: /* REQUEST SENSE */
             case 0x12: /* INQUIRY */
-                allow_writing = true;
+            case 0x1A: /* MODE SENSE(6) */
+            case 0x5A: /* MODE SENSE(10) */
+            case 0x1B: /* START/STOP UNIT */
+            case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
+            case 0xBD: /* MECHANISM STATUS */
+            case 0x15: /* MODE SELECT(6) */
+            case 0x55: /* MODE SELECT(10) */
                 break; /* do not delay */
             default:
                 PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                PIC_AddEvent(IDE_DelayedCommand,100/*ms*/,pk);
+                PIC_AddEvent(IDE_DelayedCommand,instant ? 1 : 100/*ms*/,pk);
                 return;
         }
     }
     else if (loading_mode == LOAD_DISC_READIED) {
         switch (atapi_cmd[0]) {
-            case 0x00: /* TEST UNIT READY */
             case 0x03: /* REQUEST SENSE */
             case 0x12: /* INQUIRY */
-                allow_writing = true;
+            case 0x1A: /* MODE SENSE(6) */
+            case 0x5A: /* MODE SENSE(10) */
+            case 0x1B: /* START/STOP UNIT */
+            case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
+            case 0xBD: /* MECHANISM STATUS */
+            case 0x15: /* MODE SELECT(6) */
+            case 0x55: /* MODE SELECT(10) */
                 break; /* do not delay */
             default:
                 if (!common_spinup_response(/*spin up*/true,/*wait*/false)) {
-                    count = 0x03;
-                    state = IDE_DEV_READY;
-                    feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
-                    status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
-                    raise_irq();
-                    allow_writing = true;
+                    atapi_fail();
                     return;
                 }
                 break;
@@ -1165,121 +1561,22 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 
     switch (atapi_cmd[0]) {
         case 0x03: /* REQUEST SENSE */
-            prepare_read(0,MIN((unsigned int)sense_length,(unsigned int)host_maximum_byte_count));
-            memcpy(sector,sense,sense_length);
-
-            feature = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
+            request_sense();
+            break;
+        case 0x12: /* INQUIRY */
+            inquiry();
             break;
         case 0x1B: /* START/STOP UNIT */
-            count = 0x03;
-            feature = 0x00;
-            sector_total = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            {
-                    bool START = !!(atapi_cmd[4] & 0x01);
-                    bool LOEJ = !!(atapi_cmd[4] & 0x02);
-                    // TODO: IMMED, POWER_CONDITION, etc.
-
-                    if (LOEJ) {
-                            LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM drive is being asked to %s the media",
-                                START ? "LOAD" : "EJECT");
-                    }
-                    else {
-                            LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM drive is being asked to %s the media",
-                                START ? "START" : "STOP");
-                    }
-
-                    // Treat the EJECT command as a command to swap to an "empty" CD-ROM image
-                    if (LOEJ && !START) {
-                            LOG(LOG_MISC,LOG_DEBUG)("Interpreting EJECT as a command to unmount the drive (replace with empty image)");
-                            if (mscdex) IDE_Eject_unmount(drive_index+'A');
-                            else IDE_CDROM_Eject(controller->interface_index,slave);
-                    }
-            }
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
+            start_stop_unit();
             break;
         case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
-            count = 0x03;
-            feature = 0x00;
-            sector_total = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            {
-                uint8_t PREVENT = atapi_cmd[4] & 3;
-                bool lock = (PREVENT == 1 || PREVENT == 3);
-
-                LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM PREVENT/ALLOW MEDIA REMOVAL: prevent=%u locked=%u",PREVENT,lock);
-            }
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
+            prevent_allow();
             break;
-        case 0x25: /* READ CAPACITY */ {
-            const unsigned int secsize = 2048;
-            int first,last;
-            TMSF leadOut;
-
-            CDROM_Interface *cdrom = getMSCDEXDrive();
-
-            if (!cdrom->GetAudioTracks(first,last,leadOut))
-                LOG_MSG("WARNING: ATAPI READ TOC failed to get track info\n");
-
-            uint32_t sec = (leadOut.min*60u*75u)+(leadOut.sec*75u)+leadOut.fr - 150u;
-
-            prepare_read(0,MIN((unsigned int)8,(unsigned int)host_maximum_byte_count));
-            sector[0] = sec >> 24u;
-            sector[1] = sec >> 16u;
-            sector[2] = sec >> 8u;
-            sector[3] = sec & 0xFF;
-            sector[4] = secsize >> 24u;
-            sector[5] = secsize >> 16u;
-            sector[6] = secsize >> 8u;
-            sector[7] = secsize & 0xFF;
-//          LOG_MSG("sec=%lu secsize=%lu\n",sec,secsize);
-
-            feature = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
-            } break;
+        case 0x25: /* READ CAPACITY */
+            read_capacity();
+            break;
         case 0x2B: /* SEEK */
-            count = 0x03;
-            feature = 0x00;
-            sector_total = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* Don't care. Do nothing. */
-
-            /* Except... Windows 95's CD player expects the SEEK command to interrupt CD audio playback.
+            /* Windows 95's CD player expects the SEEK command to interrupt CD audio playback.
              * In fact it depends on it to the exclusion of commands explicitly standardized to... you know...
              * stop or pause playback. Oh Microsoft, you twits... */
             {
@@ -1291,303 +1588,132 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                         playing = true;
 
                     if (playing) {
-                        LOG_MSG("ATAPI: Interrupting CD audio playback due to SEEK\n");
+                        LOG(LOG_MISC,LOG_DEBUG)("ATAPI: Interrupting CD audio playback due to SEEK");
                         cdrom->StopAudio();
                     }
                 }
             }
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
-            break;
-        case 0x12: /* INQUIRY */
-            /* NTS: the state of atapi_to_host doesn't seem to matter. */
-            generate_mmc_inquiry();
-            prepare_read(0,MIN((unsigned int)36,(unsigned int)host_maximum_byte_count));
-
-            feature = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
+            atapi_done();
             break;
         case 0x28: /* READ(10) */
         case 0xA8: /* READ(12) */
-            if (TransferLength == 0) {
-                /* this is legal. the SCSI MMC standards say so.
-                   and apparently, MSCDEX.EXE issues READ(10) commands with transfer length == 0
-                   to test the drive, so we have to emulate this */
-                feature = 0x00;
-                count = 0x03; /* no more transfer */
-                sector_total = 0;/*nothing to transfer */
-                state = IDE_DEV_READY;
-                status = IDE_STATUS_DRIVE_READY;
-            }
-            else {
-                /* OK, try to read */
+            {
                 CDROM_Interface *cdrom = getMSCDEXDrive();
                 bool res = (cdrom != NULL ? cdrom->ReadSectorsHost(/*buffer*/sector,false,LBA,TransferLength) : false);
                 if (res) {
-                    prepare_read(0,MIN((unsigned int)(TransferLength*2048),(unsigned int)host_maximum_byte_count));
                     LBAnext = LBA + TransferLength;
-                    feature = 0x00;
-                    count = 0x02; /* data for computer */
-                    state = IDE_DEV_DATA_READ;
-                    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+                    atapi_data_in(TransferLength*2048);
                 }
                 else {
-                    if (cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
-                        set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Not Ready: Medium Not Present */
-                        LOG_MSG("ATAPI: Rejecting read %lu sectors at %lu as Medium Not Present\n",
-                            (unsigned long)TransferLength,(unsigned long)LBA);
+                    if (cdrom == NULL || cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
+                        set_sense(/*SK=*/0x02,/*ASC=*/0x3A,/*ASCQ=*/0x01); /* Not Ready: Medium Not Present */
                     }
                     else {
                         set_sense(/*SK=*/0x03,/*ASC=*/0x11); /* Medium Error: Unrecovered Read Error */
-                        LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
+                        LOG(LOG_MISC,LOG_DEBUG)("ATAPI: Failed to read %lu sectors at %lu",
                             (unsigned long)TransferLength,(unsigned long)LBA);
                     }
-                    feature = 0xF4; /* abort sense=0xF */
-                    count = 0x03; /* no more transfer */
-                    sector_total = 0;/*nothing to transfer */
-                    TransferLength = 0;
-                    TransferLengthRemaining = 0;
-                    state = IDE_DEV_READY;
-                    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
+                    atapi_fail();
                 }
             }
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
             break;
         case 0xBE: /* READ CD */
-            if (TransferLength == 0 || TransferSectorSize == 0) {
-                /* this is legal. the SCSI MMC standards say so.
-                   and apparently, MSCDEX.EXE issues READ(10) commands with transfer length == 0
-                   to test the drive, so we have to emulate this */
-                feature = 0x00;
-                count = 0x03; /* no more transfer */
-                sector_total = 0;/*nothing to transfer */
-                state = IDE_DEV_READY;
-                status = IDE_STATUS_DRIVE_READY;
-            }
-            else {
-                /* OK, try to read */
-                CDROM_Interface *cdrom = getMSCDEXDrive();
-                bool res = false;
-
-                /* TODO: Implement remaining types and better comply with the standard (i.e. validate track type, don't allow reading across data and CDDA tracks) */
-                if (TransferSectorType == 2/*Mode 1*/ || TransferSectorType == 4/*Mode 2 form 1*/) {
-                    if (TransferSectorSize == 2048) {
-                        if (cdrom && cdrom->ReadSectorsHost(/*buffer*/sector,false,(unsigned long)LBA,(unsigned long)TransferLength)) {
-                            res = true;
-                            prepare_read(0,MIN((unsigned int)(TransferLength*2048),(unsigned int)host_maximum_byte_count));
-                        }
-                    }
-                    else {
-                        LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ CD warning: Unsupported sector type %u byte9 %x size %u",
-                            (unsigned int)TransferSectorType,(unsigned int)TransferReadCD9,(unsigned int)TransferSectorSize);
-                    }
-                }
-                else if (TransferSectorType == 0/*raw*/ || TransferSectorType == 1/*CDDA*/) {
-                    if (TransferSectorSize == 2352) {
-                        if (cdrom && cdrom->ReadSectorsHost(/*buffer*/sector,true,(unsigned long)LBA,(unsigned long)TransferLength)) {
-                            res = true;
-                            prepare_read(0,MIN((unsigned int)(TransferLength*2352),(unsigned int)host_maximum_byte_count));
-                        }
-                    }
-                    else {
-                        LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ CD warning: Unsupported sector type %u byte9 %x size %u",
-                            (unsigned int)TransferSectorType,(unsigned int)TransferReadCD9,(unsigned int)TransferSectorSize);
-                    }
-                }
-                else {
-                    LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ CD warning: Unsupported sector type %u byte9 %x size %u",
-                        (unsigned int)TransferSectorType,(unsigned int)TransferReadCD9,(unsigned int)TransferSectorSize);
-                }
-
-                if (res) {
+        case 0xB9: /* READ CD MSF */
+            {
+                Bitu bytes = 0;
+                if (read_cd_sectors(LBA,TransferLength,bytes)) {
                     LBAnext = LBA + TransferLength;
-                    feature = 0x00;
-                    count = 0x02; /* data for computer */
-                    state = IDE_DEV_DATA_READ;
-                    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+                    atapi_data_in(bytes);
                 }
                 else {
-                    if (cdrom->class_id == CDROM_Interface::INTERFACE_TYPE::ID_FAKE) {
-                        set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Not Ready: Medium Not Present */
-                        LOG_MSG("ATAPI: Rejecting read %lu sectors at %lu as Medium Not Present\n",
-                            (unsigned long)TransferLength,(unsigned long)LBA);
-                    }
-                    else {
-                        set_sense(/*SK=*/0x03,/*ASC=*/0x11); /* Medium Error: Unrecovered Read Error */
-                        LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
-                            (unsigned long)TransferLength,(unsigned long)LBA);
-                    }
-                    feature = 0xF4; /* abort sense=0xF */
-                    count = 0x03; /* no more transfer */
-                    sector_total = 0;/*nothing to transfer */
-                    TransferLength = 0;
-                    TransferLengthRemaining = 0;
-                    state = IDE_DEV_READY;
-                    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
+                    atapi_fail();
                 }
             }
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
             break;
         case 0x42: /* READ SUB-CHANNEL */
             read_subchannel();
-
-            feature = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
+            if (sense[2] & 0xF) atapi_fail();
+            else atapi_data_in(sector_total);
             break;
         case 0x43: /* READ TOC */
             read_toc();
-
-            feature = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
+            if (sense[2] & 0xF) atapi_fail();
+            else atapi_data_in(sector_total);
             break;
         case 0x45: /* PLAY AUDIO(10) */
             play_audio10();
-
-            count = 0x03;
-            feature = 0x00;
-            sector_total = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
+            atapi_done();
             break;
         case 0x47: /* PLAY AUDIO MSF */
             play_audio_msf();
-
-            count = 0x03;
-            feature = 0x00;
-            sector_total = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
+            atapi_done();
             break;
         case 0x4B: /* PAUSE/RESUME */
             pause_resume();
-
-            count = 0x03;
-            feature = 0x00;
-            sector_total = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
+            atapi_done();
             break;
+        case 0x4E: /* STOP PLAY/SCAN */
+            {
+                CDROM_Interface *cdrom = getMSCDEXDrive();
+                if (cdrom) cdrom->StopAudio();
+            }
+            atapi_done();
+            break;
+        case 0x51: /* READ DISC INFORMATION */
+            read_disc_information();
+            atapi_data_in(sector_total);
+            break;
+        case 0x52: /* READ TRACK INFORMATION */
+            read_track_information();
+            if (sense[2] & 0xF) atapi_fail();
+            else atapi_data_in(sector_total);
+            break;
+        case 0x15: /* MODE SELECT(6) */
         case 0x55: /* MODE SELECT(10) */
             /* we need the data written first, will act in I/O completion routine */
             {
                 unsigned int x;
 
-                x = (unsigned int)lba[1] + ((unsigned int)lba[2] << 8u);
+                if (atapi_cmd[0] == 0x55) x = ((unsigned int)atapi_cmd[7] << 8u) + atapi_cmd[8];
+                else x = atapi_cmd[4];
 
                 /* Windows 95 likes to set 0xFFFF here for whatever reason.
                  * Negotiate it down to a maximum of 512 for sanity's sake */
                 if (x > 512) x = 512;
+                if (x > host_maximum_byte_count) x = (unsigned int)host_maximum_byte_count;
+                if (x == 0) {
+                    atapi_done();
+                    break;
+                }
                 lba[2] = x >> 8u;
                 lba[1] = x;
 
-//              LOG_MSG("MODE SELECT expecting %u bytes\n",x);
                 prepare_write(0,(x+1u)&(~1u));
             }
 
             feature = 0x00;
+            count = 0x00; /* data from the host */
             state = IDE_DEV_DATA_WRITE;
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             raise_irq();
             allow_writing = true;
             break;
+        case 0x1A: /* MODE SENSE(6) */
         case 0x5A: /* MODE SENSE(10) */
             mode_sense();
-
-            feature = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
+            if (sense[2] & 0xF) atapi_fail();
+            else atapi_data_in(sector_total);
             break;
         case 0xBD: /* MECHANISM STATUS */
-	    mechanism_status();
-
-            feature = 0x00;
-            state = IDE_DEV_DATA_READ;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-
-            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
-            lba[2] = sector_total >> 8;
-            lba[1] = sector_total;
-
-            raise_irq();
-            allow_writing = true;
-	    break;
+            mechanism_status();
+            atapi_data_in(sector_total);
+            break;
         default:
             LOG_MSG("Unknown ATAPI command after busy wait. Why?\n");
-            abort_error();
-            raise_irq();
-            allow_writing = true;
+            set_sense(0x05,0x20);
+            atapi_fail();
             break;
     }
-
 }
 
 void IDEATAPICDROMDevice::set_sense(unsigned char SK,unsigned char ASC,unsigned char ASCQ,unsigned int len) {
@@ -1597,9 +1723,377 @@ void IDEATAPICDROMDevice::set_sense(unsigned char SK,unsigned char ASC,unsigned 
 
     sense[0] = 0x70;    /* RESPONSE CODE */
     sense[2] = SK&0xF;  /* SENSE KEY */
-    sense[7] = len - 18;    /* additional sense length */
+    sense[7] = len - 8;    /* additional sense length */
     sense[12] = ASC;
     sense[13] = ASCQ;
+}
+
+/* REQUEST SENSE: the sense data (up to the allocation length), which is then cleared */
+void IDEATAPICDROMDevice::request_sense() {
+    const unsigned int AllocationLength = atapi_cmd[4];
+    const unsigned int len = MIN((unsigned int)sense_length,AllocationLength);
+
+    memcpy(sector,sense,sense_length);
+    set_sense(0);
+    atapi_data_in(len);
+}
+
+/* INQUIRY: standard data, or vital product data pages 00h (supported pages) and 80h (serial number) */
+void IDEATAPICDROMDevice::inquiry() {
+    const unsigned int AllocationLength = ((unsigned int)atapi_cmd[3] << 8u) + atapi_cmd[4];
+    unsigned int len;
+
+    if (atapi_cmd[1] & 1) {
+        memset(sector,0,64);
+        sector[0] = 0x05;
+        sector[1] = atapi_cmd[2];
+        if (atapi_cmd[2] == 0x00) {
+            sector[3] = 2;
+            sector[4] = 0x00;
+            sector[5] = 0x80;
+            len = 6;
+        }
+        else if (atapi_cmd[2] == 0x80) {
+            sector[3] = (unsigned char)id_serial.length();
+            memcpy(sector + 4,id_serial.c_str(),id_serial.length());
+            len = 4u + (unsigned int)id_serial.length();
+        }
+        else {
+            set_sense(0x05,0x24); /* Invalid Field in CDB */
+            atapi_fail();
+            return;
+        }
+    }
+    else {
+        if (atapi_cmd[2] != 0) {
+            set_sense(0x05,0x24);
+            atapi_fail();
+            return;
+        }
+        generate_mmc_inquiry();
+        len = 36;
+    }
+
+    atapi_data_in(MIN(len,AllocationLength));
+}
+
+void IDEATAPICDROMDevice::read_capacity() {
+    const unsigned int secsize = 2048;
+    CDROM_Interface *cdrom = getMSCDEXDrive();
+    const Bitu cap = atapi_capacity(cdrom);
+
+    /* the address of the last sector */
+    const uint32_t sec = cap > 0 ? (uint32_t)(cap - 1u) : 0u;
+
+    sector[0] = sec >> 24u;
+    sector[1] = sec >> 16u;
+    sector[2] = sec >> 8u;
+    sector[3] = sec & 0xFF;
+    sector[4] = secsize >> 24u;
+    sector[5] = secsize >> 16u;
+    sector[6] = secsize >> 8u;
+    sector[7] = secsize & 0xFF;
+    atapi_data_in(8);
+}
+
+/* START STOP UNIT: spin up/down, load/eject, power condition. The time it takes (tray, spin up)
+ * passed before this is called, unless IMMED was set. */
+void IDEATAPICDROMDevice::start_stop_unit() {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+    const bool START = !!(atapi_cmd[4] & 0x01);
+    const bool LOEJ = !!(atapi_cmd[4] & 0x02);
+    const unsigned char POWER = atapi_cmd[4] >> 4u;
+    CDROM_Interface *cdrom = getMSCDEXDrive();
+
+    if (POWER != 0) {
+        /* power condition: 1 active, 2 idle, 3 standby */
+        if (POWER >= 1 && POWER <= 3) {
+            power_state = POWER;
+            power_event = 0x02; /* power change successful */
+            if (POWER == 3 && (loading_mode == LOAD_READY || loading_mode == LOAD_DISC_READIED)) {
+                loading_mode = LOAD_IDLE;
+                rb_valid = false;
+            }
+        }
+        atapi_done();
+        return;
+    }
+
+    if (LOEJ) {
+        LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM drive is being asked to %s the media",START ? "LOAD" : "EJECT");
+
+        if (!START) {
+            /* the tray opens: the disc is out. Treated as unmounting the drive (an "empty" CD-ROM image) */
+            if (cdrom) cdrom->StopAudio();
+            LOG(LOG_MISC,LOG_DEBUG)("Interpreting EJECT as a command to unmount the drive (replace with empty image)");
+            if (mscdex) IDE_Eject_unmount(drive_index+'A');
+            else IDE_CDROM_Eject(controller->interface_index,slave);
+            PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+            PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+            PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+            loading_mode = LOAD_NO_DISC;
+            tray_open = true;
+            rb_valid = false;
+            post_media_event(0x03/*MediaRemoval*/);
+        }
+        else {
+            /* the tray closes, and the disc (if any) spins up */
+            tray_open = false;
+            cdrom = getMSCDEXDrive();
+            if (cdrom != NULL && cdrom->class_id != CDROM_Interface::INTERFACE_TYPE::ID_FAKE &&
+                (loading_mode == LOAD_NO_DISC || loading_mode == LOAD_IDLE)) {
+                has_changed = true;
+                loading_mode = LOAD_DISC_LOADING;
+                PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+                PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+                PIC_AddEvent(IDE_ATAPI_SpinUpComplete,instant ? 0.01 : spinup_time/*ms*/,pk);
+            }
+        }
+    }
+    else if (START) {
+        LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM drive is being asked to START the media");
+        /* the disc spins up (the time it takes passed already, unless IMMED) */
+        if (loading_mode == LOAD_IDLE) {
+            if (atapi_cmd[1] & 1) {
+                loading_mode = LOAD_DISC_LOADING;
+                PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+                PIC_AddEvent(IDE_ATAPI_SpinUpComplete,instant ? 0.01 : spinup_time/*ms*/,pk);
+            }
+            else {
+                loading_mode = LOAD_READY;
+                PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+                PIC_AddEvent(IDE_ATAPI_SpinDown,spindown_timeout/*ms*/,pk);
+            }
+        }
+        power_state = 1;
+    }
+    else {
+        LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM drive is being asked to STOP the media");
+        if (cdrom) cdrom->StopAudio();
+        if (loading_mode == LOAD_READY || loading_mode == LOAD_DISC_READIED) {
+            loading_mode = LOAD_IDLE;
+            rb_valid = false;
+            PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+        }
+    }
+
+    atapi_done();
+}
+
+/* PREVENT ALLOW MEDIUM REMOVAL: lock or unlock the tray */
+void IDEATAPICDROMDevice::prevent_allow() {
+    const uint8_t PREVENT = atapi_cmd[4] & 3;
+
+    locked = (PREVENT & 1) != 0;
+    LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM PREVENT/ALLOW MEDIA REMOVAL: prevent=%u locked=%u",PREVENT,locked);
+    atapi_done();
+}
+
+/* GET EVENT STATUS NOTIFICATION (polled): operational change, power management and media events */
+void IDEATAPICDROMDevice::get_event_status_notification() {
+    const unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8u) + atapi_cmd[8];
+    const uint8_t request = atapi_cmd[4];
+    const uint8_t supported = 0x16; /* operational change, power management, media */
+    unsigned int len = 4;
+
+    if (!(atapi_cmd[1] & 1)) {
+        /* asynchronous notification is not supported */
+        set_sense(0x05,0x24);
+        atapi_fail();
+        return;
+    }
+
+    memset(sector,0,16);
+    sector[3] = supported;
+
+    CDROM_Interface *cdrom = getMSCDEXDrive();
+    const bool present = !tray_open && cdrom != NULL && cdrom->class_id != CDROM_Interface::INTERFACE_TYPE::ID_FAKE &&
+        loading_mode != LOAD_NO_DISC && loading_mode != LOAD_INSERT_CD;
+
+    /* the class with a pending event first, otherwise "no change" of the first class asked for */
+    uint8_t cls = 0;
+    if ((request & 0x04) && power_event != 0) cls = 2;
+    else if ((request & 0x10) && media_event != 0) cls = 4;
+    else if (request & 0x02) cls = 1;
+    else if (request & 0x04) cls = 2;
+    else if (request & 0x10) cls = 4;
+
+    if (cls == 0) {
+        sector[2] = 0x80; /* NEA: no event available */
+    }
+    else {
+        sector[2] = cls;
+        len = 8;
+        if (cls == 1) {
+            /* operational change: none */
+        }
+        else if (cls == 2) {
+            sector[4] = power_event;
+            sector[5] = power_state;
+            power_event = 0;
+        }
+        else if (cls == 4) {
+            sector[4] = media_event;
+            sector[5] = (uint8_t)((present ? 0x02 : 0x00) | (tray_open ? 0x01 : 0x00));
+            media_event = 0;
+        }
+    }
+
+    sector[0] = 0;
+    sector[1] = (uint8_t)(len - 2u);
+    atapi_data_in(MIN(len,AllocationLength));
+}
+
+/* GET CONFIGURATION: a CD-ROM drive (profile 0008h) */
+void IDEATAPICDROMDevice::get_configuration() {
+    const unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8u) + atapi_cmd[8];
+    const unsigned int RT = atapi_cmd[1] & 3u;
+    const unsigned int start = ((unsigned int)atapi_cmd[2] << 8u) + atapi_cmd[3];
+    CDROM_Interface *cdrom = getMSCDEXDrive();
+    const bool present = !tray_open && cdrom != NULL && cdrom->class_id != CDROM_Interface::INTERFACE_TYPE::ID_FAKE;
+    unsigned char *w = sector + 8;
+
+    memset(sector,0,256);
+
+    auto feature_desc = [&](unsigned int code,unsigned int version,bool persistent,bool current,const unsigned char *data,unsigned int len) {
+        if (RT == 2 && code != start) return;
+        if (code < start) return;
+        if (RT == 1 && !current) return;
+        w[0] = (unsigned char)(code >> 8u);
+        w[1] = (unsigned char)code;
+        w[2] = (unsigned char)((version << 2u) | (persistent ? 2u : 0u) | (current ? 1u : 0u));
+        w[3] = (unsigned char)len;
+        memcpy(w + 4,data,len);
+        w += 4u + len;
+    };
+
+    const unsigned char profiles[4] = { 0x00, 0x08, (unsigned char)(present ? 0x01 : 0x00), 0x00 };
+    const unsigned char core[4] = { 0x00, 0x00, 0x00, 0x02 };              /* ATAPI */
+    const unsigned char morphing[4] = { 0x00, 0x00, 0x00, 0x00 };
+    const unsigned char removable[4] = { 0x29, 0x00, 0x00, 0x00 };         /* tray, eject, lock */
+    const unsigned char random_read[8] = { 0x00, 0x00, 0x08, 0x00, 0x00, 0x01, 0x00, 0x00 }; /* 2048 bytes/block */
+    const unsigned char cd_read[4] = { 0x02, 0x00, 0x00, 0x00 };           /* C2 error pointers */
+    const unsigned char cd_audio[4] = { 0x03, 0x00, 0x01, 0x00 };          /* separate volume and mute, 256 levels */
+
+    feature_desc(0x0000,0,true,true,profiles,4);
+    feature_desc(0x0001,0,true,true,core,4);
+    feature_desc(0x0002,0,true,true,morphing,4);
+    feature_desc(0x0003,0,true,true,removable,4);
+    feature_desc(0x0010,0,false,present,random_read,8);
+    feature_desc(0x001E,0,false,present,cd_read,4);
+    feature_desc(0x0100,0,true,true,NULL,0);
+    feature_desc(0x0103,0,false,present,cd_audio,4);
+
+    const unsigned int len = (unsigned int)(w - sector);
+    sector[0] = (unsigned char)((len - 4u) >> 24u);
+    sector[1] = (unsigned char)((len - 4u) >> 16u);
+    sector[2] = (unsigned char)((len - 4u) >> 8u);
+    sector[3] = (unsigned char)(len - 4u);
+    sector[6] = 0x00;
+    sector[7] = present ? 0x08 : 0x00; /* current profile */
+    atapi_data_in(MIN(len,AllocationLength));
+}
+
+/* READ DISC INFORMATION: a complete (finalized) disc */
+void IDEATAPICDROMDevice::read_disc_information() {
+    const unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8u) + atapi_cmd[8];
+    CDROM_Interface *cdrom = getMSCDEXDrive();
+    int first = 1,last = 1,sessions = 1,sfirst = 1,slast = 1;
+    TMSF leadOut,slead;
+    unsigned char dtype = 0;
+
+    memset(sector,0,34);
+    if (cdrom != NULL && cdrom->GetAudioTracks(first,last,leadOut)) {
+        sessions = cdrom->GetSessionCount();
+        if (!cdrom->GetSessionInfo(sessions,sfirst,slast,slead,dtype)) {
+            sfirst = first;
+            slast = last;
+        }
+    }
+
+    sector[1] = 32;
+    sector[2] = 0x0E;                       /* last session complete, disc complete */
+    sector[3] = (unsigned char)first;
+    sector[4] = (unsigned char)sessions;
+    sector[5] = (unsigned char)sfirst;
+    sector[6] = (unsigned char)slast;
+    sector[7] = 0x20;                       /* unrestricted use */
+    sector[8] = dtype;                      /* CD-DA/CD-ROM or CD-ROM XA */
+    memset(sector + 16,0xFF,8);             /* no next session lead-in / last possible lead-out */
+    atapi_data_in(MIN(34u,AllocationLength));
+}
+
+/* READ TRACK INFORMATION: address type 0 = LBA, 1 = track, 2 = session */
+void IDEATAPICDROMDevice::read_track_information() {
+    const unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8u) + atapi_cmd[8];
+    const unsigned int type = atapi_cmd[1] & 3u;
+    const uint32_t value = ((uint32_t)atapi_cmd[2] << 24u) | ((uint32_t)atapi_cmd[3] << 16u) | ((uint32_t)atapi_cmd[4] << 8u) | atapi_cmd[5];
+    CDROM_Interface *cdrom = getMSCDEXDrive();
+    int first,last,track = -1;
+    TMSF leadOut;
+
+    if (cdrom == NULL || !cdrom->GetAudioTracks(first,last,leadOut)) {
+        set_sense(0x02,0x3A,0x01);
+        return;
+    }
+
+    auto track_start = [&](int t) -> Bitu {
+        TMSF s;
+        unsigned char a;
+        if (t > last) return atapi_capacity(cdrom);
+        if (!cdrom->GetAudioTrackInfo(t,s,a)) return 0;
+        const Bitu f = ((Bitu)s.min * 60u + s.sec) * 75u + s.fr;
+        return f >= 150u ? f - 150u : 0u;
+    };
+
+    if (type == 0) {
+        for (int t=first;t <= last;t++) if (value >= track_start(t)) track = t;
+    }
+    else if (type == 1) {
+        if ((int)value >= first && (int)value <= last) track = (int)value;
+    }
+    else if (type == 2) {
+        int sf,sl;
+        TMSF sld;
+        unsigned char dt;
+        if (cdrom->GetSessionInfo((int)value,sf,sl,sld,dt)) track = sf;
+    }
+
+    if (track < 0) {
+        set_sense(0x05,0x24);
+        return;
+    }
+
+    TMSF s;
+    unsigned char attr = 0;
+    cdrom->GetAudioTrackInfo(track,s,attr);
+    const Bitu tstart = track_start(track);
+    const Bitu tsize = track_start(track + 1) - tstart;
+    const int mode = cdrom->GetSectorMode((unsigned long)tstart);
+
+    memset(sector,0,36);
+    sector[1] = 34;
+    sector[2] = (unsigned char)track;
+    sector[3] = 1;                                      /* session */
+    sector[5] = (unsigned char)(attr >> 4u);            /* track mode (control) */
+    sector[6] = (unsigned char)(mode == 1 ? 0x01 : (mode == 2 ? 0x02 : 0x0F)); /* data mode */
+    host_writed(sector + 8,0); sector[8] = (unsigned char)(tstart >> 24u); sector[9] = (unsigned char)(tstart >> 16u);
+    sector[10] = (unsigned char)(tstart >> 8u); sector[11] = (unsigned char)tstart;
+    sector[24] = (unsigned char)(tsize >> 24u); sector[25] = (unsigned char)(tsize >> 16u);
+    sector[26] = (unsigned char)(tsize >> 8u); sector[27] = (unsigned char)tsize;
+    prepare_read(0,MIN(36u,AllocationLength));
+}
+
+/* SET CD SPEED: read speed in kB/s (FFFFh = as fast as possible), up to the drive's maximum */
+void IDEATAPICDROMDevice::set_cd_speed() {
+    const unsigned int kbps = ((unsigned int)atapi_cmd[2] << 8u) + atapi_cmd[3];
+    unsigned int x = kbps == 0xFFFFu ? max_speed : (kbps + 88u) / 176u;
+
+    if (x < 1) x = 1;
+    if (x > max_speed) x = max_speed;
+    cur_speed = x;
+    LOG(LOG_MISC,LOG_DEBUG)("ATAPI CD-ROM: read speed set to %ux",cur_speed);
+    atapi_done();
 }
 
 IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave,CDROM_Interface *n_cdrom) : IDEDevice(c,_slave) {
@@ -1621,8 +2115,6 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     memset(sense,0,sizeof(sense));
     IDEATAPICDROMDevice::set_sense(/*SK=*/0);
 
-    /* FIXME: Spinup/down times should be dosbox-x.conf configurable, if the DOSBox gamers
-     *        care more about loading times than emulation accuracy. */
     cd_insertion_time = 4000; /* a quick user that can switch CDs in 4 seconds */
     if (c->cd_insertion_time > 0) cd_insertion_time = c->cd_insertion_time;
 
@@ -1634,6 +2126,7 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 
     loading_mode = LOAD_IDLE;
     has_changed = false;
+    mech_init();
 
     type = IDE_TYPE_CDROM;
     id_serial = "123456789";
@@ -1677,19 +2170,29 @@ IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
     }
 }
 
+void IDEATAPICDROMDevice::host_reset_complete() {
+    IDEDevice::host_reset_complete();
+    if (power_state == 4) power_state = 3; /* a reset wakes the drive from sleep */
+}
+
+void IDEATAPICDROMDevice::set_signature() {
+    count = 0x01;
+    lba[0] = 0x01;
+    lba[1] = 0x14;  /* <- magic ATAPI identification */
+    lba[2] = 0xEB;
+    drivehead &= 0x10;
+}
+
 void IDEATAPICDROMDevice::on_mode_select_io_complete() {
-    unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8];
+    const bool ten = (atapi_cmd[0] == 0x55);
+    unsigned int AllocationLength = ten ? (((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8]) : atapi_cmd[4];
     unsigned char *scan,*fence;
-    size_t i;
 
-    /* the first 8 bytes are a mode parameter header.
-     * It's supposed to provide length, density, etc. or whatever the hell
-     * it means. Windows 95 seems to send all zeros there, so ignore it.
-     *
-     * we care about the bytes following it, which contain page_0 mode
-     * pages */
+    /* the mode parameter header (8 bytes for MODE SELECT(10), 4 bytes for (6)) is followed by
+     * the block descriptors and the mode pages. Windows 95 seems to send all zeros in the
+     * header, so ignore it. Nothing in the mode pages is changeable, they are only logged. */
 
-    scan = sector + 8;
+    scan = sector + (ten ? 8 : 4);
     fence = sector + MIN((unsigned int)sector_total,(unsigned int)AllocationLength);
 
     while ((scan+2) < fence) {
@@ -1697,22 +2200,16 @@ void IDEATAPICDROMDevice::on_mode_select_io_complete() {
         unsigned int LEN = (unsigned int)(*scan++);
 
         if ((scan+LEN) > fence) {
-            LOG_MSG("ATAPI MODE SELECT warning, page_0 length extends %u bytes past buffer\n",(unsigned int)(scan+LEN-fence));
+            LOG(LOG_MISC,LOG_DEBUG)("ATAPI MODE SELECT warning, page_0 length extends %u bytes past buffer",(unsigned int)(scan+LEN-fence));
             break;
         }
 
-        LOG_MSG("ATAPI MODE SELECT, PAGE 0x%02x len=%u\n",PAGE,LEN);
-        LOG_MSG("  ");
-        for (i=0;i < LEN;i++) LOG_MSG("%02x ",scan[i]);
-        LOG_MSG("\n");
-
+        LOG(LOG_MISC,LOG_DEBUG)("ATAPI MODE SELECT, PAGE 0x%02x len=%u",PAGE,LEN);
         scan += LEN;
     }
 }
 
 void IDEATAPICDROMDevice::atapi_io_completion() {
-    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
-
     /* for most ATAPI PACKET commands, the transfer is done and we need to clear
        all indication of a possible data transfer */
 
@@ -1720,88 +2217,31 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
         switch (atapi_cmd[0]) {
             case 0x28:/*READ(10)*/
             case 0xA8:/*READ(12)*/
-                /* How much does the guest want to transfer? */
-                /* NTS: This is required to work correctly with the ide-cd driver in the Linux kernel.
-                 *      The Linux kernel appears to negotiate a 32KB or 64KB transfer size here even
-                 *      if the total transfer from a CD READ would exceed that size, and it expects
-                 *      the full result in those DRQ block transfer sizes. */
-                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
-
-                /* FIXME: We actually should NOT be capping the transfer length, but instead should
-                   be breaking the larger transfer into smaller DRQ block transfers like
-                   most IDE ATAPI drives do. Writing the test IDE code taught me that if you
-                   go to most drives and request a transfer length of 0xFFFE the drive will
-                   happily set itself up to transfer that many sectors in one IDE command! */
-                /* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
-                   MSCDEX.EXE does it when starting up, for example */
-                TransferLength = TransferLengthRemaining;
-                if (TransferLength > sector_transfer_limit)
-                    TransferLength = sector_transfer_limit;
-                if ((TransferLength*2048) > sizeof(sector))
-                    TransferLength = sizeof(sector)/2048;
-                if ((TransferLength*2048) > sector_total)
-                    TransferLength = sector_total/2048;
-
-                LBA = LBAnext;
-                assert(TransferLengthRemaining >= TransferLength);
-                TransferLengthRemaining -= TransferLength;
-
-                if (TransferLength != 0) {
-//                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x continued",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
-
-                    count = 0x02;
-                    state = IDE_DEV_ATAPI_BUSY;
-                    status = IDE_STATUS_BUSY;
-                    /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-                    PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                    PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
-		    return;
-                }
-                else {
-//                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x transfer complete",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
-                }
-                break;
             case 0xBE:/*READ CD*/
-                /* How much does the guest want to transfer? */
-                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
-
-                TransferLength = TransferLengthRemaining;
-                if (TransferSectorSize > 0) {
+            case 0xB9:/*READ CD MSF*/
+                /* more sectors to transfer: the next DRQ data block, when the sectors have been read */
+                if (TransferLengthRemaining != 0) {
+                    LBA = LBAnext;
+                    TransferLength = TransferLengthRemaining;
                     if (TransferLength > sector_transfer_limit)
                         TransferLength = sector_transfer_limit;
-                    if ((TransferLength*TransferSectorSize) > sizeof(sector))
-                        TransferLength = sizeof(sector)/TransferSectorSize;
-                    if ((TransferLength*TransferSectorSize) > sector_total)
-                        TransferLength = sector_total/TransferSectorSize;
-
-                    assert(TransferLengthRemaining >= TransferLength);
+                    {
+                        const Bitu per = (atapi_cmd[0] == 0x28 || atapi_cmd[0] == 0xA8) ? 2048u : IDE_CD_MAX_READCD_SECTOR;
+                        Bitu fit = MIN((Bitu)sizeof(sector),(Bitu)host_maximum_byte_count) / per;
+                        if (fit == 0) fit = 1;
+                        if (TransferLength > fit) TransferLength = fit;
+                    }
                     TransferLengthRemaining -= TransferLength;
-                }
-                else {
-                    TransferLengthRemaining = 0;
-                    TransferLength = 0;
-                }
-
-                LBA = LBAnext;
-                assert(TransferLengthRemaining >= TransferLength);
-                TransferLengthRemaining -= TransferLength;
-
-                if (TransferLength != 0) {
-                    LOG_MSG("ATAPI CD READ CD LBA=%x xfer=%x xferrem=%x continued",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
 
                     count = 0x02;
                     state = IDE_DEV_ATAPI_BUSY;
                     status = IDE_STATUS_BUSY;
-                    /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-                    PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                    PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
-		    return;
-                }
-                else {
-                    LOG_MSG("ATAPI CD READ CD LBA=%x xfer=%x xferrem=%x transfer complete",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
+                    schedule(cd_access(LBA,TransferLength,PIC_FullIndex()));
+                    return;
                 }
                 break;
 
+            case 0x15: /* MODE SELECT(6) */
             case 0x55: /* MODE SELECT(10) */
                 on_mode_select_io_complete();
                 break;
@@ -1839,135 +2279,486 @@ void IDEATAPICDROMDevice::io_completion() {
     }
 }
 
-bool IDEATADevice::increment_current_address(Bitu count) {
-    if (count == 0) return false;
+/* ------------------------------------------------------------------------------------------
+ * ATA hard disk: drive mechanics
+ *
+ * The disk turns at "hard disk rpm". The media data rate is the "hard drive data rate limit"
+ * setting, which decides how many sectors pass under the head per revolution. Seeks take from
+ * about 1.5ms (next cylinder) to about 18ms (full stroke), then the drive waits for the sector to
+ * come around. After a read the drive goes on reading ahead into its buffer, so that sequential
+ * reads do not have to wait a revolution. Writes go to the write cache (unless disabled with SET
+ * FEATURES) and are written behind, the next access waits for that. A disk that is spun down
+ * (STANDBY, SLEEP, or the standby timer) spins up again on the next access.
+ * ------------------------------------------------------------------------------------------ */
 
-    if (drivehead_is_lba(drivehead)) {
-        /* 28-bit LBA:
-         *    drivehead: 27:24
-         *    lba[2]:    23:16
-         *    lba[1]:    15:8
-         *    lba[0]:    7:0 */
-        do {
-            if (((++lba[0])&0xFF) == 0x00) {
-                lba[0] = 0x00;
-                if (((++lba[1])&0xFF) == 0x00) {
-                    lba[1] = 0x00;
-                    if (((++lba[2])&0xFF) == 0x00) {
-                        lba[2] = 0x00;
-                        if (((++drivehead)&0xF) == 0) {
-                            drivehead -= 0x10;
-                            return false;
-                        }
-                    }
-                }
-            }
-        } while ((--count) != 0);
+extern int disk_data_rate;
+
+#define IDE_HD_READAHEAD_SECTORS        256u    /* read-ahead buffer */
+#define IDE_HD_WRITE_CACHE_SECTORS      512u    /* write cache */
+#define IDE_HD_TRACK_TO_TRACK_MS        1.5
+#define IDE_HD_FULL_STROKE_MS           18.0
+#define IDE_HD_COMMAND_MS               0.05    /* command overhead */
+
+static void IDE_ATA_StandbyTimer(Bitu pk);
+
+void IDEATADevice::mech_init() {
+    instant = controller->hd_instant;
+    rpm = controller->hd_rpm > 0 ? (double)controller->hd_rpm : 5400.0;
+    spinup_ms = controller->hd_spinup_time > 0 ? (double)controller->hd_spinup_time : 4000.0;
+    rev_ms = 60000.0 / rpm;
+
+    if (disk_data_rate > 0) {
+        double spt = rev_ms / (512.0 * 1000.0 / (double)disk_data_rate);
+        if (spt < 17) spt = 17;
+        if (spt > 2000) spt = 2000;
+        media_spt = (unsigned int)spt;
+        sector_ms = rev_ms / media_spt;
     }
     else {
-        /* C/H/S increment with rollover */
-        do {
-            /* increment sector */
-            if (((++lba[0])&0xFF) == ((sects+1)&0xFF)) {
-                lba[0] = 1;
-                /* increment head */
-                if (((++drivehead)&0xF) == (heads&0xF)) {
-                    drivehead &= 0xF0;
-                    if (heads == 16) drivehead -= 0x10;
-                    /* increment cylinder */
-                    if (((++lba[1])&0xFF) == 0x00) {
-                        lba[1] = 0x00;
-                        if (((++lba[2])&0xFF) == 0x00) {
-                            lba[2] = 0x00;
-                            return false;
-                        }
-                    }
-                }
-
-            }
-        } while ((--count) != 0);
+        /* no data rate limit: the data comes off the disk as fast as it is asked for */
+        media_spt = sects != 0 ? (unsigned int)sects : 63u;
+        sector_ms = 0;
     }
 
+    media_heads = 4;
+    media_cyls = LBA / ((uint64_t)media_spt * media_heads) + 1u;
+    spinning = true;
+    spin_origin = 0;
+    spin_ready_at = 0;
+    power = PWR_ACTIVE;
+    ra_valid = false;
+    mech_free_at = 0;
+    head_cyl = 0;
+}
+
+/* spin up the disk if it is stopped, returns when it is up to speed */
+double IDEATADevice::spin_up(double t) {
+    if (instant) {
+        spinning = true;
+        if (power != PWR_IDLE) power = PWR_ACTIVE;
+        return t;
+    }
+
+    if (!spinning) {
+        LOG(LOG_MISC,LOG_DEBUG)("IDE ATA: spinning up");
+        spinning = true;
+        spin_ready_at = t + spinup_ms;
+        spin_origin = spin_ready_at;
+    }
+    if (power != PWR_IDLE) power = PWR_ACTIVE;
+    if (t < spin_ready_at) t = spin_ready_at;
+    return t;
+}
+
+/* time to move the heads from the cylinder they are on to another */
+double IDEATADevice::seek_ms(uint64_t to_cyl) const {
+    const uint64_t d = to_cyl > head_cyl ? to_cyl - head_cyl : head_cyl - to_cyl;
+    if (d == 0) return 0;
+    return IDE_HD_TRACK_TO_TRACK_MS + (IDE_HD_FULL_STROKE_MS - IDE_HD_TRACK_TO_TRACK_MS) * sqrt((double)(d - 1u) / (double)media_cyls);
+}
+
+void IDEATADevice::spin_down(double t,bool sleep) {
+    (void)t;
+    if (spinning) LOG(LOG_MISC,LOG_DEBUG)("IDE ATA: spinning down%s",sleep ? " (sleep)" : "");
+    spinning = false;
+    ra_valid = false;
+    power = sleep ? PWR_SLEEP : PWR_STANDBY;
+}
+
+/* standby timer: the disk spins down after this long without access */
+void IDEATADevice::set_standby_timer(uint8_t v) {
+    if (v == 0) standby_timer_ms = 0;
+    else if (v <= 240) standby_timer_ms = v * 5000.0;
+    else if (v <= 251) standby_timer_ms = (v - 240) * 30.0 * 60000.0;
+    else if (v == 252) standby_timer_ms = 21.0 * 60000.0;
+    else if (v == 253) standby_timer_ms = 8.0 * 3600000.0;
+    else if (v == 255) standby_timer_ms = 21.0 * 60000.0 + 15000.0;
+    else standby_timer_ms = 0;
+    note_activity(PIC_FullIndex());
+}
+
+void IDEATADevice::note_activity(double t) {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+
+    if (t > last_activity) last_activity = t;
+    PIC_RemoveSpecificEvents(IDE_ATA_StandbyTimer,pk);
+    if (standby_timer_ms > 0 && spinning) {
+        double d = last_activity + standby_timer_ms - PIC_FullIndex();
+        if (d < 1) d = 1;
+        PIC_AddEvent(IDE_ATA_StandbyTimer,d,pk);
+    }
+}
+
+/* time at which n sectors from addr have been read off (or written to) the disk, the access
+ * starting at time t. Updates the head position and the read-ahead buffer. */
+double IDEATADevice::media_access(uint64_t addr,unsigned int n,bool write,double t) {
+    if (instant || faked_command) {
+        /* no delays, but an access still spins the disk up */
+        if (!spinning) {
+            spinning = true;
+            spin_ready_at = t;
+        }
+        if (power != PWR_IDLE) power = PWR_ACTIVE;
+        return t;
+    }
+
+    t = spin_up(t);
+
+    /* sectors in the read-ahead buffer, or being read into it now */
+    if (!write && ra_valid && addr >= ra_first && addr + n <= ra_limit) {
+        double avail = ra_time + ((double)(addr + n) - (double)ra_next) * sector_ms;
+        if (avail < t) avail = t;
+        /* the drive keeps reading ahead as the buffer is emptied */
+        if (addr + n + IDE_HD_READAHEAD_SECTORS > ra_limit) ra_limit = addr + n + IDE_HD_READAHEAD_SECTORS;
+        note_activity(avail);
+        return avail;
+    }
+
+    /* the mechanism finishes writing what is in the write cache first */
+    if (t < mech_free_at) t = mech_free_at;
+
+    t += seek_ms((addr / media_spt) / media_heads);
+
+    /* wait for the sector to come around */
+    double a = fmod((t - spin_origin) / rev_ms,1.0);
+    if (a < 0) a += 1.0;
+    double w = (double)(addr % media_spt) / media_spt - a;
+    if (w < 0) w += 1.0;
+    t += w * rev_ms;
+
+    /* the sectors pass under the head */
+    t += n * sector_ms;
+    head_cyl = ((addr + n - 1u) / media_spt) / media_heads;
+
+    if (!write && read_lookahead) {
+        ra_valid = true;
+        ra_first = addr;
+        ra_next = addr + n;
+        ra_time = t;
+        ra_limit = addr + n + IDE_HD_READAHEAD_SECTORS;
+    }
+    else {
+        ra_valid = false;
+    }
+
+    note_activity(t);
+    return t;
+}
+
+/* A BIOS disk call (INT 13h, PC-98 INT 1Bh) carried out with ATA commands: returns the time at which
+ * the BIOS would return. Reads return when the last sector has come off the disk (or out of the read-ahead
+ * buffer), writes when the data is in the write cache (or on the disk, without it). */
+double IDEATADevice::bios_access(uint64_t addr,unsigned int n,IDEBiosDiskOp op,double now) {
+    const double t = now + (instant ? 0 : IDE_HD_COMMAND_MS);
+
+    if (n == 0) n = 1;
+    if (LBA != 0 && addr >= LBA) addr = LBA - 1u; /* the drive still seeks before it reports IDNF */
+    if (addr + n > LBA && LBA != 0) n = (unsigned int)(LBA - addr);
+
+    switch (op) {
+        case IDEBiosDiskOp::Read:
+        case IDEBiosDiskOp::Verify:
+            return media_access(addr,n,false,t);
+        case IDEBiosDiskOp::Write: {
+            const double written = media_access(addr,n,true,t);
+            if (!write_cache || instant) return written;
+
+            /* write behind: the mechanism is busy writing the cache until "written" */
+            mech_free_at = written;
+            const double done = written - IDE_HD_WRITE_CACHE_SECTORS * sector_ms;
+            return done > t ? done : t;
+        }
+        case IDEBiosDiskOp::Seek:
+        case IDEBiosDiskOp::Recalibrate: {
+            const uint64_t cyl = op == IDEBiosDiskOp::Seek ? (addr / media_spt) / media_heads : 0u;
+            double r = spin_up(t);
+            if (!instant) {
+                if (r < mech_free_at) r = mech_free_at;
+                r += seek_ms(cyl);
+            }
+            head_cyl = cyl;
+            if (op == IDEBiosDiskOp::Recalibrate) ra_valid = false;
+            note_activity(r);
+            return r;
+        }
+    }
+
+    return t;
+}
+
+void IDEATADevice::schedule(double at_ms) {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+    double d = at_ms - PIC_FullIndex();
+
+    if (faked_command) d = 0.000001;
+    else if (d < 0.00001) d = 0.00001;
+
+    PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
+    PIC_AddEvent(IDE_DelayedCommand,d,pk);
+}
+
+static void IDE_ATA_StandbyTimer(Bitu pk) {
+    IDEEventPack ep(pk);
+    IDEController *ctrl = GetIDEController(ep.interface());
+    if (ctrl == NULL) return;
+
+    IDEDevice *dev = ctrl->device[ep.device()];
+    if (dev == NULL || dev->type != IDE_TYPE_HDD) return;
+
+    IDEATADevice *ata = (IDEATADevice*)dev;
+    if (ata->state != IDE_DEV_READY || !ata->spinning) return;
+    LOG(LOG_MISC,LOG_DEBUG)("IDE ATA: standby timer expired");
+    ata->spin_down(PIC_FullIndex(),false);
+}
+
+/* ------------------------------------------------------------------------------------------
+ * ATA hard disk: command execution
+ * ------------------------------------------------------------------------------------------ */
+
+bool IDEATADevice::command_is_ext() {
+    switch (command) {
+        case 0x24: case 0x29: case 0x34: case 0x39: case 0x42:
+            return true;
+    }
+    return false;
+}
+
+bool IDEATADevice::command_is_multiple() {
+    return command == 0xC4 || command == 0xC5 || command == 0x29 || command == 0x39;
+}
+
+bool IDEATADevice::command_is_write() {
+    return command == 0x30 || command == 0x31 || command == 0x34 || command == 0xC5 || command == 0x39;
+}
+
+/* take the address and sector count of the command from the registers */
+bool IDEATADevice::decode_address(bool ext,bool check) {
+    cmd_ext = ext;
+
+    if (ext) {
+        /* LBA48: the previous register contents are the high order bytes */
+        if (!int13_enable_48bitLBA || !(drivehead & 0x40)) return false;
+        cmd_lba = true;
+        cur_lba = ((uint64_t)(lba[0] & 0xFFu)) | ((uint64_t)(lba[1] & 0xFFu) << 8u) | ((uint64_t)(lba[2] & 0xFFu) << 16u) |
+            ((uint64_t)hob_lba[0] << 24u) | ((uint64_t)hob_lba[1] << 32u) | ((uint64_t)hob_lba[2] << 40u);
+        cur_count = ((uint32_t)hob_count << 8u) | (count & 0xFFu);
+        if (cur_count == 0) cur_count = 65536;
+    }
+    else {
+        cur_count = count & 0xFFu;
+        if (cur_count == 0) cur_count = 256;
+
+        if (drivehead & 0x40) {
+            cmd_lba = true;
+            cur_lba = ((uint64_t)(drivehead & 0xFu) << 24u) | (lba[0] & 0xFFu) |
+                ((uint64_t)(lba[1] & 0xFFu) << 8u) | ((uint64_t)(lba[2] & 0xFFu) << 16u);
+        }
+        else {
+            const unsigned int s = lba[0] & 0xFFu,h = drivehead & 0xFu,c = ide_chs_cylinder(lba);
+
+            cmd_lba = false;
+            if (s == 0 || s > sects || h >= heads || c >= cyls) {
+                LOG(LOG_MISC,LOG_DEBUG)("IDE ATA: C/H/S %u/%u/%u out of bounds %u/%u/%u",
+                    c,h,s,(unsigned int)cyls,(unsigned int)heads,(unsigned int)sects);
+                return false;
+            }
+            cur_lba = ((uint64_t)c * heads + h) * sects + (s - 1u);
+        }
+    }
+
+    if (check && cur_lba >= LBA) return false;
     return true;
 }
 
-void IDEATADevice::io_completion() {
-    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+/* the address registers show this sector, in the addressing mode of the command */
+void IDEATADevice::update_address_registers(uint64_t addr) {
+    if (cmd_ext) {
+        lba[0] = addr & 0xFFu;
+        lba[1] = (addr >> 8u) & 0xFFu;
+        lba[2] = (addr >> 16u) & 0xFFu;
+        hob_lba[0] = (uint8_t)(addr >> 24u);
+        hob_lba[1] = (uint8_t)(addr >> 32u);
+        hob_lba[2] = (uint8_t)(addr >> 40u);
+    }
+    else if (cmd_lba) {
+        lba[0] = addr & 0xFFu;
+        lba[1] = (addr >> 8u) & 0xFFu;
+        lba[2] = (addr >> 16u) & 0xFFu;
+        drivehead = (uint8_t)((drivehead & 0xF0u) | ((addr >> 24u) & 0xFu));
+    }
+    else if (sects != 0 && heads != 0) {
+        const uint64_t c = addr / (sects * heads);
+        lba[0] = (uint16_t)((addr % sects) + 1u);
+        lba[1] = c & 0xFFu;
+        lba[2] = (c >> 8u) & 0xFFu;
+        drivehead = (uint8_t)((drivehead & 0xF0u) | ((addr / sects) % heads));
+    }
+}
 
+/* sectors in the next DRQ data block */
+unsigned int IDEATADevice::block_count() {
+    uint64_t n = 1;
+
+    if (command_is_multiple()) n = multiple_sector_count;
+    if (command == 0x40 || command == 0x41 || command == 0x42) n = sizeof(sector) / 512u; /* verify: no data transfer */
+    if (n > cur_count) n = cur_count;
+    if (n > sizeof(sector) / 512u) n = sizeof(sector) / 512u;
+    if (n == 0) n = 1;
+    return (unsigned int)n;
+}
+
+/* the command ends with an error at sector cur_lba: the registers show where and how many sectors are left */
+void IDEATADevice::sector_error(uint8_t err) {
+    update_address_registers(cur_lba);
+    count = cur_count & 0xFFu;
+    if (cmd_ext) hob_count = (uint8_t)(cur_count >> 8u);
+    LOG(LOG_MISC,LOG_DEBUG)("IDE ATA: command %02x error %02x at sector %llu",command,err,(unsigned long long)cur_lba);
+    abort_with_error(err);
+}
+
+/* read cur_block sectors from cur_lba into the sector buffer */
+void IDEATADevice::read_block() {
+    imageDisk *disk = getBIOSdisk();
+    if (disk == NULL) {
+        sector_error(0x04/*ABRT*/);
+        return;
+    }
+
+    for (unsigned int i=0;i < cur_block;i++) {
+        if (cur_lba + i >= LBA) {
+            cur_lba += i;
+            cur_count -= i;
+            sector_error(0x10/*IDNF*/);
+            return;
+        }
+        if (disk->Read_AbsoluteSector((uint32_t)(cur_lba + i),sector + (i * 512u)) != Int13Status::NoError) {
+            cur_lba += i;
+            cur_count -= i;
+            sector_error(0x40/*UNC*/);
+            return;
+        }
+    }
+
+    if (command == 0x40 || command == 0x41 || command == 0x42) {
+        /* verify: no data transfer, the command is done when all sectors are verified */
+        cur_lba += cur_block;
+        cur_count -= cur_block;
+        progress_count += cur_block;
+        if (cur_count == 0) {
+            update_address_registers(cur_lba - 1u);
+            count = 0;
+            if (cmd_ext) hob_count = 0;
+            state = IDE_DEV_READY;
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            allow_writing = true;
+            raise_irq();
+        }
+        else {
+            cur_block = block_count();
+            schedule(media_access(cur_lba,cur_block,false,PIC_FullIndex()));
+        }
+        return;
+    }
+
+    /* the data block is ready for the host */
+    state = IDE_DEV_DATA_READ;
+    status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+    prepare_read(0,512u * cur_block);
+    raise_irq();
+}
+
+/* the host has written cur_block sectors into the sector buffer: write them to cur_lba */
+void IDEATADevice::write_block() {
+    imageDisk *disk = getBIOSdisk();
+    if (disk == NULL) {
+        sector_error(0x04/*ABRT*/);
+        return;
+    }
+
+    for (unsigned int i=0;i < cur_block;i++) {
+        if (cur_lba + i >= LBA) {
+            cur_lba += i;
+            cur_count -= i;
+            sector_error(0x10/*IDNF*/);
+            return;
+        }
+        if (disk->Write_AbsoluteSector((uint32_t)(cur_lba + i),sector + (i * 512u)) != Int13Status::NoError) {
+            cur_lba += i;
+            cur_count -= i;
+            sector_error(0x10/*IDNF*/);
+            return;
+        }
+    }
+
+    cur_lba += cur_block;
+    cur_count -= cur_block;
+    progress_count += cur_block;
+
+    if (cur_count == 0) {
+        update_address_registers(cur_lba - 1u);
+        count = 0;
+        if (cmd_ext) hob_count = 0;
+        state = IDE_DEV_READY;
+        status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+        allow_writing = true;
+        raise_irq();
+        return;
+    }
+
+    /* ready for the next data block */
+    cur_block = block_count();
+    state = IDE_DEV_DATA_WRITE;
+    status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+    prepare_write(0,512u * cur_block);
+    raise_irq();
+}
+
+void IDEATADevice::io_completion() {
     /* lower DRQ */
     status &= ~IDE_STATUS_DRQ;
 
-    /* depending on the command, either continue it or finish up */
     switch (command) {
-        case 0x20:/* READ SECTOR */
-            /* OK, decrement count, increment address */
-            /* NTS: Remember that count == 0 means the host wanted to transfer 256 sectors */
-            progress_count++;
-            if ((count&0xFF) == 1) {
-                /* end of the transfer */
+        case 0x20: case 0x21: case 0x24: /* READ SECTOR(S) (EXT) */
+        case 0xC4: case 0x29: /* READ MULTIPLE (EXT) */
+            /* the host has read the data block */
+            cur_lba += cur_block;
+            cur_count -= cur_block;
+            progress_count += cur_block;
+            if (cur_count == 0) {
+                /* end of the transfer: the registers show the last sector */
+                update_address_registers(cur_lba - 1u);
                 count = 0;
+                if (cmd_ext) hob_count = 0;
                 status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
                 state = IDE_DEV_READY;
                 allow_writing = true;
                 return;
             }
-            else if ((count&0xFF) == 0) count = 255;
-            else count--;
 
-            if (!increment_current_address()) {
-                LOG_MSG("READ advance error\n");
-                abort_error();
-                return;
-            }
-
-            /* cause another delay, another sector read */
+            /* the next block, as soon as it has come off the disk */
+            cur_block = block_count();
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,pk);
+            schedule(media_access(cur_lba,cur_block,false,PIC_FullIndex()));
             break;
-        case 0x30:/* WRITE SECTOR */
-            /* this is where the drive has accepted the sector, lowers DRQ, and begins executing the command */
+        case 0x30: case 0x31: case 0x34: /* WRITE SECTOR(S) (EXT) */
+        case 0xC5: case 0x39: /* WRITE MULTIPLE (EXT) */
+            /* the drive has the data block, it goes to the write cache (or straight to the disk) */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,pk);
-            break;
-        case 0xC4:/* READ MULTIPLE */
-            /* OK, decrement count, increment address */
-            /* NTS: Remember that count == 0 means the host wanted to transfer 256 sectors */
-            for (unsigned int cc=0;cc < multiple_sector_count;cc++) {
-                progress_count++;
-                if ((count&0xFF) == 1) {
-                    /* end of the transfer */
-                    count = 0;
-                    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                    state = IDE_DEV_READY;
-                    allow_writing = true;
-                    return;
+            {
+                const double now = PIC_FullIndex();
+                const double written = media_access(cur_lba,cur_block,true,now + (instant ? 0 : IDE_HD_COMMAND_MS));
+                double done = written;
+
+                if (write_cache && !instant) {
+                    /* write behind: done when the data is in the cache, unless the cache is full */
+                    mech_free_at = written;
+                    done = written - IDE_HD_WRITE_CACHE_SECTORS * sector_ms;
+                    if (done < now + IDE_HD_COMMAND_MS) done = now + IDE_HD_COMMAND_MS;
                 }
-                else if ((count&0xFF) == 0) count = 255;
-                else count--;
-
-                if (!increment_current_address()) {
-                    LOG_MSG("READ advance error\n");
-                    abort_error();
-                    return;
-                }
+                schedule(done);
             }
-
-            /* cause another delay, another sector read */
-            state = IDE_DEV_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,pk);
-            break;
-        case 0xC5:/* WRITE MULTIPLE */
-            /* this is where the drive has accepted the sector, lowers DRQ, and begins executing the command */
-            state = IDE_DEV_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,pk);
             break;
         case 0xEC: /* IDENTIFY */
             feature = 0;
@@ -1988,6 +2779,50 @@ void IDEATADevice::io_completion() {
             allow_writing = true;
             break;
     }
+}
+
+/* the delayed part of an ATA command (data ready, written, seek complete, ...) */
+void IDEATADevice::delayed_command() {
+    switch (command) {
+        case 0x20: case 0x21: case 0x24: /* READ SECTOR(S) (EXT) */
+        case 0xC4: case 0x29: /* READ MULTIPLE (EXT) */
+        case 0x40: case 0x41: case 0x42: /* READ VERIFY SECTOR(S) (EXT) */
+            read_block();
+            break;
+        case 0x30: case 0x31: case 0x34: /* WRITE SECTOR(S) (EXT) */
+        case 0xC5: case 0x39: /* WRITE MULTIPLE (EXT) */
+            write_block();
+            break;
+        case 0xEC:/*IDENTIFY DEVICE (CONTINUED) */
+            state = IDE_DEV_DATA_READ;
+            status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            generate_identify_device();
+            prepare_read(0,512);
+            count = 0x01;
+            lba[0] = 0x00;
+            feature = 0x00;
+            lba[1] = 0x00;
+            lba[2] = 0x00;
+            raise_irq();
+            break;
+        default:
+            /* seek, recalibrate, flush cache, power management: complete */
+            state = IDE_DEV_READY;
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            allow_writing = true;
+            raise_irq();
+            break;
+    }
+}
+
+void IDEATADevice::host_reset_complete() {
+    IDEDevice::host_reset_complete();
+    /* a reset wakes the device from sleep, the disk stays stopped until it is accessed */
+    if (power == PWR_SLEEP) power = PWR_STANDBY;
+}
+
+void IDEATADevice::set_signature() {
+    IDEDevice::set_signature();
 }
 
 Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
@@ -2082,10 +2917,203 @@ static const uint16_t ReadCDTransferSectorSizeTable[5/*SectorType-1*/][0x20/*REA
         }
 };
 
-/* TODO: Your code should also be paying attention to the "transfer length" field
-         in many of the commands here. Right now it doesn't matter. */
+/* READ CD / READ CD MSF: parse the command */
+bool IDEATAPICDROMDevice::read_cd_begin() {
+    rcd_type = (atapi_cmd[1] >> 2) & 7u;    /* expected sector type */
+    rcd_flags = atapi_cmd[9];               /* SYNC=[7:7] HeaderCodes=[6:5] UserData=[4:4] EDCECC=[3:3] ErrorField=[2:1] */
+    rcd_sub = atapi_cmd[10] & 7u;           /* sub-channel: 0 none, 1 raw P-W, 2 formatted Q, 4 corrected R-W */
+
+    if (rcd_type > 5 || ((rcd_flags >> 1) & 3u) == 3 ||
+        (rcd_sub != 0 && rcd_sub != 1 && rcd_sub != 2 && rcd_sub != 4)) {
+        set_sense(0x05,0x24); /* Invalid Field in CDB */
+        return false;
+    }
+
+    /* a combination of fields that no sector of the expected type has */
+    if (rcd_type >= 2 && (rcd_flags >> 3) != 0 && ReadCDTransferSectorSizeTable[rcd_type-1][rcd_flags >> 3] == 0) {
+        set_sense(0x05,0x24);
+        return false;
+    }
+
+    if (atapi_cmd[0] == 0xB9) {
+        const Bitu s = ((Bitu)atapi_cmd[3] * 60u + atapi_cmd[4]) * 75u + atapi_cmd[5];
+        const Bitu e = ((Bitu)atapi_cmd[6] * 60u + atapi_cmd[7]) * 75u + atapi_cmd[8];
+        if (s < 150u || e < s) {
+            set_sense(0x05,0x24);
+            return false;
+        }
+        LBA = s - 150u;
+        TransferLength = e - s;
+    }
+    else {
+        LBA = ((Bitu)atapi_cmd[2] << 24UL) | ((Bitu)atapi_cmd[3] << 16UL) | ((Bitu)atapi_cmd[4] << 8UL) | ((Bitu)atapi_cmd[5] << 0UL);
+        TransferLength = ((Bitu)atapi_cmd[6] << 16UL) | ((Bitu)atapi_cmd[7] << 8UL) | ((Bitu)atapi_cmd[8]);
+    }
+
+    return true;
+}
+
+/* READ CD: one sector with the fields asked for, in the order MMC gives them: sync, header,
+ * sub-header, user data, EDC/ECC, C2 error information, sub-channel. Returns the number of
+ * bytes, or -1 (sense set). */
+int IDEATAPICDROMDevice::read_cd_sector(Bitu lba,unsigned char *out) {
+    CDROM_Interface *cdrom = getMSCDEXDrive();
+    unsigned char *w = out;
+    uint8_t raw[2352];
+    int kind; /* 1 CD-DA, 2 Mode 1, 3 Mode 2 formless, 4 Mode 2 Form 1, 5 Mode 2 Form 2 */
+
+    if (cdrom == NULL) {
+        set_sense(0x02,0x3A,0x01);
+        return -1;
+    }
+
+    const int mode = cdrom->GetSectorMode((unsigned long)lba);
+    if (mode < 0) {
+        set_sense(0x05,0x21); /* Logical Block Address out of range */
+        return -1;
+    }
+
+    if (cdrom->ReadSectorsHost(raw,true,(unsigned long)lba,1)) {
+        if (mode == 0) kind = 1;
+        else if (raw[15] == 2) {
+            /* CD-ROM XA (Form 1/2) sectors have the sub-header twice */
+            if (memcmp(raw + 16,raw + 20,4) == 0) kind = (raw[18] & 0x20) ? 5 : 4;
+            else kind = 3;
+        }
+        else kind = 2;
+    }
+    else {
+        /* the image has only the user data: make up the rest of the sector */
+        uint8_t data[2048];
+        if (mode == 0 || !cdrom->ReadSectorsHost(data,false,(unsigned long)lba,1)) {
+            set_sense(0x03,0x11); /* Medium Error: Unrecovered Read Error */
+            return -1;
+        }
+        cd_encode_sector(raw,lba,data,mode == 2);
+        kind = (mode == 2) ? 4 : 2;
+    }
+
+    if (rcd_type != 0 && rcd_type != kind) {
+        set_sense(0x05,0x64); /* Illegal Mode For This Track */
+        return -1;
+    }
+
+    const uint8_t f = rcd_flags;
+    if (kind == 1) {
+        /* CD-DA: any of the data fields means the 2352 bytes of audio */
+        if (f & 0xF8) {
+            memcpy(w,raw,2352);
+            w += 2352;
+        }
+    }
+    else {
+        if ((f >> 3) != 0 && ReadCDTransferSectorSizeTable[kind-1][f >> 3] == 0) {
+            set_sense(0x05,0x24);
+            return -1;
+        }
+
+        if (f & 0x80) { memcpy(w,raw,12); w += 12; }                                   /* sync */
+        if (f & 0x20) { memcpy(w,raw + 12,4); w += 4; }                                /* header */
+        if ((f & 0x40) && (kind == 4 || kind == 5)) { memcpy(w,raw + 16,8); w += 8; }  /* sub-header */
+        switch (kind) {
+            case 2: /* Mode 1 */
+                if (f & 0x10) { memcpy(w,raw + 16,2048); w += 2048; }
+                if (f & 0x08) { memcpy(w,raw + 2064,288); w += 288; }  /* EDC, zero, ECC */
+                break;
+            case 3: /* Mode 2 formless */
+                if (f & 0x10) { memcpy(w,raw + 16,2336); w += 2336; }
+                break;
+            case 4: /* Mode 2 Form 1 */
+                if (f & 0x10) { memcpy(w,raw + 24,2048); w += 2048; }
+                if (f & 0x08) { memcpy(w,raw + 2072,280); w += 280; }  /* EDC, ECC */
+                break;
+            case 5: /* Mode 2 Form 2 (the user data includes the spare/EDC bytes) */
+                if (f & 0x10) { memcpy(w,raw + 24,2328); w += 2328; }
+                break;
+        }
+    }
+
+    /* C2 error information: no errors (294 bytes), plus the block error byte and a pad byte */
+    const unsigned int ef = (f >> 1) & 3u;
+    if (ef == 1) { memset(w,0,294); w += 294; }
+    else if (ef == 2) { memset(w,0,296); w += 296; }
+
+    /* sub-channel: the Q channel tells the position, from the table of contents */
+    if (rcd_sub != 0) {
+        uint8_t q[12];
+        int first,last,track = 1;
+        unsigned char attr = (kind == 1) ? 0x00 : 0x40;
+        Bitu tstart = 0;
+        TMSF leadOut;
+
+        if (cdrom->GetAudioTracks(first,last,leadOut)) {
+            for (int t=first;t <= last;t++) {
+                TMSF s;
+                unsigned char a;
+                if (!cdrom->GetAudioTrackInfo(t,s,a)) continue;
+                const Bitu st = ((Bitu)s.min * 60u + s.sec) * 75u + s.fr - 150u;
+                if (lba >= st) {
+                    track = t;
+                    attr = a;
+                    tstart = st;
+                }
+            }
+        }
+
+        const Bitu rel = lba - tstart,abs = lba + 150u;
+        q[0] = (uint8_t)((attr & 0xF0u) | 0x01u);  /* CONTROL, ADR 1 (position) */
+        q[1] = cd_bcd((unsigned int)track);
+        q[2] = cd_bcd(1);
+        q[3] = cd_bcd((unsigned int)(rel / (75u * 60u)));
+        q[4] = cd_bcd((unsigned int)((rel / 75u) % 60u));
+        q[5] = cd_bcd((unsigned int)(rel % 75u));
+        q[6] = 0;
+        q[7] = cd_bcd((unsigned int)(abs / (75u * 60u)));
+        q[8] = cd_bcd((unsigned int)((abs / 75u) % 60u));
+        q[9] = cd_bcd((unsigned int)(abs % 75u));
+        const uint16_t crc = cd_q_crc(q);
+        q[10] = (uint8_t)(crc >> 8u);
+        q[11] = (uint8_t)crc;
+
+        if (rcd_sub == 2) {
+            /* formatted Q */
+            memcpy(w,q,12);
+            memset(w + 12,0,4);
+            w += 16;
+        }
+        else if (rcd_sub == 1) {
+            /* raw P-W: one bit of each channel per byte, P in bit 7, Q in bit 6, R-W empty */
+            for (unsigned int i=0;i < 96;i++)
+                w[i] = (uint8_t)(((q[i >> 3u] >> (7u - (i & 7u))) & 1u) << 6u);
+            w += 96;
+        }
+        else {
+            /* R-W: no CD+G or CD-TEXT data */
+            memset(w,0,96);
+            w += 96;
+        }
+    }
+
+    return (int)(w - out);
+}
+
+bool IDEATAPICDROMDevice::read_cd_sectors(Bitu lba,Bitu count,Bitu &bytes) {
+    bytes = 0;
+    for (Bitu i=0;i < count;i++) {
+        const int n = read_cd_sector(lba + i,sector + bytes);
+        if (n < 0) return false;
+        bytes += (Bitu)n;
+    }
+    return true;
+}
+
+/* the PACKET command has been received */
 void IDEATAPICDROMDevice::atapi_cmd_completion() {
-    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+    const double now = PIC_FullIndex();
+    const double overhead = faked_command ? 0.000001 : (instant ? 0.01 : IDE_CD_COMMAND_MS);
+    const uint8_t op = atapi_cmd[0];
+    CDROM_Interface *cdrom = getMSCDEXDrive();
+    double at = now + overhead;
 
 #if 0
     LOG_MSG("ATAPI command %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x to_host=%u\n",
@@ -2094,353 +3122,184 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
         atapi_to_host);
 #endif
 
-    switch (atapi_cmd[0]) {
+    /* DRQ data blocks of READ: as many sectors as fit the buffer and the byte count limit */
+    auto plan_chunk = [&](Bitu per) {
+        TransferLengthRemaining = TransferLength;
+        if (TransferLength > sector_transfer_limit)
+            TransferLength = sector_transfer_limit;
+        Bitu fit = MIN((Bitu)sizeof(sector),(Bitu)host_maximum_byte_count) / per;
+        if (fit == 0) fit = 1;
+        if (TransferLength > fit) TransferLength = fit;
+        TransferLengthRemaining -= TransferLength;
+        LBAnext = LBA;
+    };
+
+    switch (op) {
         case 0x00: /* TEST UNIT READY */
             if (common_spinup_response(/*spin up*/false,/*wait*/false))
                 set_sense(0); /* <- nothing wrong */
-
-            count = 0x03;
-            state = IDE_DEV_READY;
-            feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
-            status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
-            raise_irq();
-            allow_writing = true;
-            break;
+            if (sense[2] & 0xF) atapi_fail();
+            else atapi_done();
+            return;
+        case 0x4A: /* GET EVENT STATUS NOTIFICATION (not held up by unit attention) */
+            get_event_status_notification();
+            return;
+        case 0x46: /* GET CONFIGURATION (not held up by unit attention) */
+            get_configuration();
+            return;
+        case 0xBB: /* SET CD SPEED */
+            set_cd_speed();
+            return;
         case 0x03: /* REQUEST SENSE */
-            count = 0x02;
-            state = IDE_DEV_ATAPI_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
+        case 0x12: /* INQUIRY */
+        case 0x1A: /* MODE SENSE(6) */
+        case 0x5A: /* MODE SENSE(10) */
+        case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
+        case 0xBD: /* MECHANISM STATUS */
+        case 0x15: /* MODE SELECT(6) */
+        case 0x55: /* MODE SELECT(10) */
             break;
         case 0x1B: /* START/STOP UNIT */
-            count = 0x02;
-            state = IDE_DEV_ATAPI_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
-            break;
-        case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
-            count = 0x02;
-            state = IDE_DEV_ATAPI_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
+            {
+                const bool IMMED = !!(atapi_cmd[1] & 1);
+                const bool START = !!(atapi_cmd[4] & 0x01);
+                const bool LOEJ = !!(atapi_cmd[4] & 0x02);
+                const unsigned char POWER = atapi_cmd[4] >> 4u;
+
+                /* the tray is locked: the disc does not come out */
+                if (POWER == 0 && LOEJ && !START && locked) {
+                    set_sense(0x05,0x53,0x02); /* Medium Removal Prevented */
+                    atapi_fail();
+                    return;
+                }
+                set_sense(0);
+
+                /* the tray moves or the disc spins up before the command completes, unless IMMED */
+                if (!IMMED && !instant && !faked_command) {
+                    if (POWER == 0 && LOEJ) at += tray_time;
+                    else if ((POWER == 0 && START) || POWER == 1) {
+                        if (loading_mode == LOAD_IDLE) at += spinup_time;
+                    }
+                }
+            }
             break;
         case 0x25: /* READ CAPACITY */
-            count = 0x02;
-            state = IDE_DEV_ATAPI_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
-            break;
-        case 0x2B: /* SEEK */
-            if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
-                set_sense(0); /* <- nothing wrong */
-                count = 0x02;
-                state = IDE_DEV_ATAPI_BUSY;
-                status = IDE_STATUS_BUSY;
-                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
-            }
-            else {
-                count = 0x03;
-                state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
-                raise_irq();
-                allow_writing = true;
-            }
-            break;
-        case 0x12: /* INQUIRY */
-            count = 0x02;
-            state = IDE_DEV_ATAPI_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
-            break;
-        case 0xBE: /* READ CD */
-            if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
-                set_sense(0); /* <- nothing wrong */
-
-                /* How much does the guest want to transfer? */
-                /* NTS: This is required to work correctly with Windows NT 4.0. Windows NT will emit a READ CD
-                 *      command at startup with transfer length == 0. If an error is returned, NT ignores the
-                 *      CD-ROM drive entirely and acts like it's in a perpetual error state. */
-                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
-                LBA = ((Bitu)atapi_cmd[2] << 24UL) |
-                    ((Bitu)atapi_cmd[3] << 16UL) |
-                    ((Bitu)atapi_cmd[4] << 8UL) |
-                    ((Bitu)atapi_cmd[5] << 0UL);
-                TransferLength = ((Bitu)atapi_cmd[6] << 16UL) |
-                    ((Bitu)atapi_cmd[7] << 8UL) |
-                    ((Bitu)atapi_cmd[8]);
-
-                /* Sector size? */
-                TransferSectorType = (atapi_cmd[1] >> 2) & 7u; /* RESERVED=[7:5] ExpectedSectorType=[4:2] RESERVED=[1:1] RELOAD=[0:0] */
-                TransferReadCD9 = atapi_cmd[9]; /* SYNC=[7:7] HeaderCodes=[6:5] UserData=[4:4] EDCECC=[3:3] ErrorField=[2:1] RESERVED=[0:0] */
-
-                if (TransferSectorType <= 5) /* Treat unspecified sector type == 0 the same as CDDA with regard to sector size */
-                    TransferSectorSize = ReadCDTransferSectorSizeTable[(TransferSectorType>0)?(TransferSectorType-1):0][TransferReadCD9>>3u];
-                else
-                    TransferSectorSize = 0;
-
-                if (TransferReadCD9 & 4) /* include block and error bits */
-                    TransferSectorSize += 296;
-                else if (TransferReadCD9 & 2) /* include error bits */
-                    TransferSectorSize += 294;
-
-                /* keep track of the original transfer length */
-                TransferLengthRemaining = TransferLength;
-
-                if (TransferSectorSize > 0) {
-                    if (TransferLength > sector_transfer_limit)
-                        TransferLength = sector_transfer_limit;
-                    if ((TransferLength*TransferSectorSize) > sizeof(sector))
-                        TransferLength = sizeof(sector)/TransferSectorSize;
-                    if ((TransferLength*TransferSectorSize) > sector_total)
-                        TransferLength = sector_total/TransferSectorSize;
-
-                    assert(TransferLengthRemaining >= TransferLength);
-                    TransferLengthRemaining -= TransferLength;
-                }
-                else {
-                    TransferLengthRemaining = 0;
-                    TransferLength = 0;
-                }
-
-                count = 0x02;
-                LBAnext = LBA;
-                state = IDE_DEV_ATAPI_BUSY;
-                status = IDE_STATUS_BUSY;
-                /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
-            }
-            else {
-                count = 0x03;
-                state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
-                raise_irq();
-                allow_writing = true;
-            }
-            break;
-        case 0xA8: /* READ(12) */
-            if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
-                set_sense(0); /* <- nothing wrong */
-
-                /* How much does the guest want to transfer? */
-                /* NTS: This is required to work correctly with the ide-cd driver in the Linux kernel.
-                 *      The Linux kernel appears to negotiate a 32KB or 64KB transfer size here even
-                 *      if the total transfer from a CD READ would exceed that size, and it expects
-                 *      the full result in those DRQ block transfer sizes. */
-                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
-
-                /* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
-                   This is all well and good but our response seems to cause a temporary 2-3 second
-                   pause for each attempt. Why? */
-                LBA = ((Bitu)atapi_cmd[2] << 24UL) |
-                    ((Bitu)atapi_cmd[3] << 16UL) |
-                    ((Bitu)atapi_cmd[4] << 8UL) |
-                    ((Bitu)atapi_cmd[5] << 0UL);
-                TransferLength = ((Bitu)atapi_cmd[6] << 24UL) |
-                    ((Bitu)atapi_cmd[7] << 16UL) |
-                    ((Bitu)atapi_cmd[8] << 8UL) |
-                    ((Bitu)atapi_cmd[9]);
-
-                /* keep track of the original transfer length */
-                TransferLengthRemaining = TransferLength;
-
-                /* FIXME: We actually should NOT be capping the transfer length, but instead should
-                   be breaking the larger transfer into smaller DRQ block transfers like
-                   most IDE ATAPI drives do. Writing the test IDE code taught me that if you
-                   go to most drives and request a transfer length of 0xFFFE the drive will
-                   happily set itself up to transfer that many sectors in one IDE command! */
-                /* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
-                   MSCDEX.EXE does it when starting up, for example */
-                if (TransferLength > sector_transfer_limit)
-                    TransferLength = sector_transfer_limit;
-                if ((TransferLength*2048) > sizeof(sector))
-                    TransferLength = sizeof(sector)/2048;
-                if ((TransferLength*2048) > sector_total)
-                    TransferLength = sector_total/2048;
-
-                assert(TransferLengthRemaining >= TransferLength);
-                TransferLengthRemaining -= TransferLength;
-                LBAnext = LBA;
-
-//              LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
-
-                count = 0x02;
-                state = IDE_DEV_ATAPI_BUSY;
-                status = IDE_STATUS_BUSY;
-                /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
-            }
-            else {
-                count = 0x03;
-                state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
-                raise_irq();
-                allow_writing = true;
-            }
-            break;
         case 0x28: /* READ(10) */
-            if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
-                set_sense(0); /* <- nothing wrong */
-
-                /* How much does the guest want to transfer? */
-                /* NTS: This is required to work correctly with the ide-cd driver in the Linux kernel.
-                 *      The Linux kernel appears to negotiate a 32KB or 64KB transfer size here even
-                 *      if the total transfer from a CD READ would exceed that size, and it expects
-                 *      the full result in those DRQ block transfer sizes. */
-                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
-
-                /* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
-                   This is all well and good but our response seems to cause a temporary 2-3 second
-                   pause for each attempt. Why? */
-                LBA = ((Bitu)atapi_cmd[2] << 24UL) |
-                    ((Bitu)atapi_cmd[3] << 16UL) |
-                    ((Bitu)atapi_cmd[4] << 8UL) |
-                    ((Bitu)atapi_cmd[5] << 0UL);
-                TransferLength = ((Bitu)atapi_cmd[7] << 8) |
-                    ((Bitu)atapi_cmd[8]);
-
-                /* keep track of the original transfer length */
-                TransferLengthRemaining = TransferLength;
-
-                /* FIXME: We actually should NOT be capping the transfer length, but instead should
-                   be breaking the larger transfer into smaller DRQ block transfers like
-                   most IDE ATAPI drives do. Writing the test IDE code taught me that if you
-                   go to most drives and request a transfer length of 0xFFFE the drive will
-                   happily set itself up to transfer that many sectors in one IDE command! */
-                /* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
-                   MSCDEX.EXE does it when starting up, for example */
-                if (TransferLength > sector_transfer_limit)
-                    TransferLength = sector_transfer_limit;
-                if ((TransferLength*2048) > sizeof(sector))
-                    TransferLength = sizeof(sector)/2048;
-                if ((TransferLength*2048) > sector_total)
-                    TransferLength = sector_total/2048;
-
-                assert(TransferLengthRemaining >= TransferLength);
-                TransferLengthRemaining -= TransferLength;
-                LBAnext = LBA;
-
-//              LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
-
-                count = 0x02;
-                state = IDE_DEV_ATAPI_BUSY;
-                status = IDE_STATUS_BUSY;
-                /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
-            }
-            else {
-                count = 0x03;
-                state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
-                raise_irq();
-                allow_writing = true;
-            }
-            break;
+        case 0xA8: /* READ(12) */
+        case 0xBE: /* READ CD */
+        case 0xB9: /* READ CD MSF */
+        case 0x2B: /* SEEK */
         case 0x42: /* READ SUB-CHANNEL */
-            if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
-                set_sense(0); /* <- nothing wrong */
-
-                count = 0x02;
-                state = IDE_DEV_ATAPI_BUSY;
-                status = IDE_STATUS_BUSY;
-                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
-            }
-            else {
-                count = 0x03;
-                state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
-                raise_irq();
-                allow_writing = true;
-            }
-            break;
         case 0x43: /* READ TOC */
-            if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
-                set_sense(0); /* <- nothing wrong */
-
-                count = 0x02;
-                state = IDE_DEV_ATAPI_BUSY;
-                status = IDE_STATUS_BUSY;
-                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
-            }
-            else {
-                count = 0x03;
-                state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
-                raise_irq();
-                allow_writing = true;
-            }
-            break;
-        case 0x45: /* PLAY AUDIO (1) */
+        case 0x45: /* PLAY AUDIO(10) */
         case 0x47: /* PLAY AUDIO MSF */
         case 0x4B: /* PAUSE/RESUME */
-            if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
-                set_sense(0); /* <- nothing wrong */
-
-                count = 0x02;
-                state = IDE_DEV_ATAPI_BUSY;
-                status = IDE_STATUS_BUSY;
-                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
+        case 0x4E: /* STOP PLAY/SCAN */
+        case 0x51: /* READ DISC INFORMATION */
+        case 0x52: /* READ TRACK INFORMATION */
+            /* these need a disc, and wait for it to spin up */
+            if (!common_spinup_response(/*spin up*/true,/*wait*/true)) {
+                atapi_fail();
+                return;
             }
-            else {
-                count = 0x03;
-                state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
-                raise_irq();
-                allow_writing = true;
-            }
+            set_sense(0); /* <- nothing wrong */
+            cdrom = getMSCDEXDrive();
             break;
-        case 0x55: /* MODE SELECT(10) */
-            count = 0x00;   /* we will be accepting data */
-            state = IDE_DEV_ATAPI_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
-            break;
-        case 0x5A: /* MODE SENSE(10) */
-            count = 0x02;
-            state = IDE_DEV_ATAPI_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
-            break;
-        case 0xBD: /* MECHANISM STATUS */
-            count = 0x02;
-            state = IDE_DEV_ATAPI_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
-	    break;
         default:
             /* we don't know the command, immediately return an error */
             LOG_MSG("Unknown ATAPI command %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
                 atapi_cmd[ 0],atapi_cmd[ 1],atapi_cmd[ 2],atapi_cmd[ 3],atapi_cmd[ 4],atapi_cmd[ 5],
                 atapi_cmd[ 6],atapi_cmd[ 7],atapi_cmd[ 8],atapi_cmd[ 9],atapi_cmd[10],atapi_cmd[11]);
+            set_sense(0x05,0x20); /* Invalid Command Operation Code */
+            atapi_fail();
+            return;
+    }
 
-            abort_error();
-            count = 0x03; /* no more data (command/data=1, input/output=1) */
-            feature = 0xF4;
-            raise_irq();
-            allow_writing = true;
+    switch (op) {
+        case 0x28: /* READ(10) */
+        case 0xA8: /* READ(12) */
+            {
+                LBA = ((Bitu)atapi_cmd[2] << 24UL) | ((Bitu)atapi_cmd[3] << 16UL) | ((Bitu)atapi_cmd[4] << 8UL) | ((Bitu)atapi_cmd[5] << 0UL);
+                if (op == 0x28)
+                    TransferLength = ((Bitu)atapi_cmd[7] << 8) | ((Bitu)atapi_cmd[8]);
+                else
+                    TransferLength = ((Bitu)atapi_cmd[6] << 24UL) | ((Bitu)atapi_cmd[7] << 16UL) | ((Bitu)atapi_cmd[8] << 8UL) | ((Bitu)atapi_cmd[9]);
+
+                /* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
+                   MSCDEX.EXE does it when starting up, for example */
+                if (TransferLength == 0) {
+                    atapi_done();
+                    return;
+                }
+
+                const Bitu cap = atapi_capacity(cdrom);
+                if (LBA >= cap || LBA + TransferLength > cap) {
+                    set_sense(0x05,0x21); /* Logical Block Address out of range */
+                    atapi_fail();
+                    return;
+                }
+                if (cdrom->GetSectorMode((unsigned long)LBA) == 0) {
+                    set_sense(0x05,0x64); /* Illegal Mode For This Track (CD-DA) */
+                    atapi_fail();
+                    return;
+                }
+
+                plan_chunk(2048);
+                at = cd_access(LBA,TransferLength,at);
+            }
+            break;
+        case 0xBE: /* READ CD */
+        case 0xB9: /* READ CD MSF */
+            if (!read_cd_begin()) {
+                atapi_fail();
+                return;
+            }
+            /* NTS: This is required to work correctly with Windows NT 4.0. Windows NT will emit a READ CD
+             *      command at startup with transfer length == 0. If an error is returned, NT ignores the
+             *      CD-ROM drive entirely and acts like it's in a perpetual error state. */
+            if (TransferLength == 0) {
+                atapi_done();
+                return;
+            }
+            if (LBA >= atapi_capacity(cdrom)) {
+                set_sense(0x05,0x21);
+                atapi_fail();
+                return;
+            }
+            plan_chunk(IDE_CD_MAX_READCD_SECTOR);
+            at = cd_access(LBA,TransferLength,at);
+            break;
+        case 0x2B: /* SEEK */
+            LBA = ((Bitu)atapi_cmd[2] << 24UL) | ((Bitu)atapi_cmd[3] << 16UL) | ((Bitu)atapi_cmd[4] << 8UL) | ((Bitu)atapi_cmd[5] << 0UL);
+            if (LBA >= atapi_capacity(cdrom)) {
+                set_sense(0x05,0x21);
+                atapi_fail();
+                return;
+            }
+            at = cd_access(LBA,0,at);
+            rb_valid = false;
+            break;
+        case 0x45: /* PLAY AUDIO(10): seek to the start first */
+            {
+                const Bitu s = ((Bitu)atapi_cmd[2] << 24UL) | ((Bitu)atapi_cmd[3] << 16UL) | ((Bitu)atapi_cmd[4] << 8UL) | ((Bitu)atapi_cmd[5] << 0UL);
+                if (s != 0xFFFFFFFFul) at = cd_access(s,0,at);
+            }
+            break;
+        case 0x47: /* PLAY AUDIO MSF: seek to the start first */
+            if (!(atapi_cmd[3] == 0xFF && atapi_cmd[4] == 0xFF && atapi_cmd[5] == 0xFF)) {
+                Bitu s = ((Bitu)atapi_cmd[3] * 60u + atapi_cmd[4]) * 75u + atapi_cmd[5];
+                s = s >= 150u ? s - 150u : 0u;
+                at = cd_access(s,0,at);
+            }
+            break;
+        default:
             break;
     }
+
+    count = 0x02;
+    state = IDE_DEV_ATAPI_BUSY;
+    status = IDE_STATUS_BUSY;
+    schedule(at);
 }
 
 void IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {
@@ -2694,10 +3553,14 @@ void IDEATAPICDROMDevice::generate_identify_device() {
         0x0078UL);
     host_writew(sector+(80*2),0x007E); /* major version number. Here we say we support ATA-1 through ATA-8 */
     host_writew(sector+(81*2),0x0022); /* minor version */
-    host_writew(sector+(82*2),0x4008); /* command set: NOP, DEVICE RESET[XXXXX], POWER MANAGEMENT */
-    host_writew(sector+(83*2),0x0000); /* command set: LBA48[XXXX] */
-    host_writew(sector+(85*2),0x4208); /* commands in 82 enabled */
-    host_writew(sector+(86*2),0x0000); /* commands in 83 enabled */
+    /* command sets: word 82 bit 14 NOP, bit 9 DEVICE RESET, bit 4 PACKET, bit 3 power management.
+     * words 83 and 84 bit 14 must be 1. words 85-87 say which are enabled. */
+    host_writew(sector+(82*2),0x4218);
+    host_writew(sector+(83*2),0x4000);
+    host_writew(sector+(84*2),0x4000);
+    host_writew(sector+(85*2),0x4218);
+    host_writew(sector+(86*2),0x0000);
+    host_writew(sector+(87*2),0x4000);
 
     /* ATA-8 integrity checksum */
     sector[510] = 0xA5;
@@ -2749,10 +3612,10 @@ void IDEATADevice::generate_identify_device() {
         sector[(i^1)+(27*2)] = ' ';
 
     if (multiple_sector_max != 0)
-        host_writew(sector+(47*2),0x80|multiple_sector_max); /* <- READ/WRITE MULTIPLE MAX SECTORS */
+        host_writew(sector+(47*2),0x8000|multiple_sector_max); /* <- READ/WRITE MULTIPLE MAX SECTORS (bits 15:8 = 80h) */
 
     host_writew(sector+(48*2),0x0000);  /* :0  0=we do not support doubleword (32-bit) PIO */
-    host_writew(sector+(49*2),0x0A00);  /* :13 0=Standby timer values managed by device */
+    host_writew(sector+(49*2),0x2A00);  /* :13 1=Standby timer values as specified by the standard */
                         /* :11 1=IORDY supported */
                         /* :10 0=IORDY not disabled */
                         /* :9  1=LBA supported */
@@ -2783,12 +3646,15 @@ void IDEATADevice::generate_identify_device() {
     host_writew(sector+(68*2),0x0078);  /* FIXME: ??? */
     host_writew(sector+(80*2),0x007E);  /* major version number. Here we say we support ATA-1 through ATA-8 */
     host_writew(sector+(81*2),0x0022);  /* minor version */
-    host_writew(sector+(82*2),0x4208);  /* command set: NOP, DEVICE RESET[XXXXX], POWER MANAGEMENT */
-    host_writew(sector+(83*2),int13_enable_48bitLBA?0xC400:0x4000);  /* command set: bit15: valid, bit14: NOP, bit 10: enable 48bit LBA */
-    host_writew(sector+(84*2),0x4000);  /* FIXME: ??? */
-    host_writew(sector+(85*2),0x4208);  /* commands in 82 enabled */
-    host_writew(sector+(86*2),int13_enable_48bitLBA?0xC400:0x4000);  /* commands in 83 enabled bit15: valid, bit14: NOP, bit10: enable 48bit LBA*/
-    host_writew(sector+(87*2),0x4000);  /* FIXME: ??? */
+    /* command sets: word 82 bit 14 NOP, bit 6 read look-ahead, bit 5 write cache, bit 3 power management.
+     * word 83 bit 14 must be 1, bit 13 FLUSH CACHE EXT, bit 12 FLUSH CACHE, bit 10 48-bit address.
+     * word 84 bit 14 must be 1. words 85-87 say which are enabled. */
+    host_writew(sector+(82*2),0x4068);
+    host_writew(sector+(83*2),0x5000 | (int13_enable_48bitLBA ? 0x2400 : 0x0000));
+    host_writew(sector+(84*2),0x4000);
+    host_writew(sector+(85*2),0x4008 | (read_lookahead ? 0x0040 : 0x0000) | (write_cache ? 0x0020 : 0x0000));
+    host_writew(sector+(86*2),0x1000 | (int13_enable_48bitLBA ? 0x2400 : 0x0000));
+    host_writew(sector+(87*2),0x4000);
     host_writew(sector+(88*2),0x0000);  /* FIXME: ??? */
     host_writew(sector+(93*2),0x0000);  /* FIXME: ??? */
     host_writed(sector+(100*2), int13_enable_48bitLBA ? (uint32_t)(LBA & 0xFFFFFFFF):0); // 48bit LBA lower 32 bits
@@ -2892,6 +3758,8 @@ void IDEATADevice::update_from_biosdisk() {
 	phys_heads = heads;
 	phys_sects = sects;
 	phys_cyls = cyls;
+
+	mech_init();
 }
 
 void IDE_Auto(signed char &index,bool &slave) {
@@ -2926,6 +3794,51 @@ bool IDE_controller_occupied(signed char index, bool slave) { // Return true if 
     }
 }
 
+/* the user changed the disc (DOSBox-X swap/mount): the drive goes through removal and insertion */
+static void IDE_ATAPI_MediaChanged(IDEATAPICDROMDevice *atapi,unsigned int pk,bool immediate) {
+	bool empty = false;
+
+	if (atapi->cdrom == NULL || atapi->cdrom->class_id == CDROM_Interface::ID_FAKE) {
+		if (atapi->cdrom == NULL) empty = true;
+		else {
+			CDROM_Interface_Fake *fake = (CDROM_Interface_Fake*)(atapi->cdrom);
+			if (fake->isEmpty) empty = true;
+		}
+	}
+
+	/* a guest that locked the tray would not have let the disc out. The change is made anyway,
+	 * the guest sees it as if the user pressed the eject button and then changed the disc. */
+	if (atapi->locked) {
+		LOG_MSG("IDE ATAPI: the disc was changed while the guest had the tray locked\n");
+		atapi->post_media_event(0x01/*EjectRequest*/);
+	}
+	atapi->post_media_event(0x03/*MediaRemoval*/);
+	atapi->tray_open = false;
+	atapi->rb_valid = false;
+
+	/* the guest learns of the change through UNIT ATTENTION (and media events) */
+	atapi->has_changed = true;
+
+	PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+	PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+	PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+
+	if (empty) {
+		/* no disc: medium not present */
+		atapi->loading_mode = LOAD_READY;
+	}
+	else if (immediate) {
+		/* the new disc is ready right away */
+		atapi->loading_mode = LOAD_DISC_READIED;
+		atapi->post_media_event(0x02/*NewMedia*/);
+		PIC_AddEvent(IDE_ATAPI_SpinDown,atapi->spindown_timeout/*ms*/,pk);
+	}
+	else {
+		atapi->loading_mode = LOAD_INSERT_CD;
+		PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,pk);
+	}
+}
+
 void IDE_ATAPI_MediaChangeNotify(signed char index, bool slave, bool immediate) {
 	IDEController *c;
 	IDEDevice *dev;
@@ -2949,29 +3862,7 @@ void IDE_ATAPI_MediaChangeNotify(signed char index, bool slave, bool immediate) 
 		if (immediate) LOG_MSG("--media change is immediate");
 
 		atapi->swap_to_next_cd();
-
-		bool empty = false;
-
-		if (atapi->cdrom->class_id == CDROM_Interface::ID_FAKE) {
-			CDROM_Interface_Fake *fake = (CDROM_Interface_Fake*)(atapi->cdrom);
-			if (fake->isEmpty) empty = true;
-		}
-
-		/* if asked to change immediately, or the new image is the fake "empty" drive, change right away */
-		if (immediate || empty) {
-			atapi->loading_mode = LOAD_READY;
-			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
-			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
-			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
-		}
-		else {
-			atapi->has_changed = true;
-			atapi->loading_mode = LOAD_INSERT_CD;
-			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
-			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
-			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
-			PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,pk);
-		}
+		IDE_ATAPI_MediaChanged(atapi,pk,immediate);
 	}
 
 	DOS_EnableDriveIDEMenu((unsigned char)index,slave);
@@ -3009,28 +3900,7 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index,bool immediate) {
 						}
 					}
 
-					bool empty = false;
-
-					if (atapi->cdrom->class_id == CDROM_Interface::ID_FAKE) {
-						CDROM_Interface_Fake *fake = (CDROM_Interface_Fake*)(atapi->cdrom);
-						if (fake->isEmpty) empty = true;
-					}
-
-					/* if asked to change immediately, or the new image is the fake "empty" drive, change right away */
-					if (immediate || empty) {
-						atapi->loading_mode = LOAD_READY;
-						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
-						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
-						PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
-					}
-					else {
-						atapi->has_changed = true;
-						atapi->loading_mode = LOAD_INSERT_CD;
-						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
-						PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
-						PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
-						PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,pk);
-					}
+					IDE_ATAPI_MediaChanged(atapi,pk,immediate);
 				}
 			}
 		}
@@ -3758,6 +4628,44 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
     }
 }
 
+/* BIOS hard disk access to a disk attached to IDE emulation (see ide.h) */
+static IDEATADevice *IDE_FindBIOSDisk(unsigned int disk_index) {
+    for (unsigned int idx=0;idx < MAX_IDE_CONTROLLERS;idx++) {
+        IDEController *ide = GetIDEController(idx);
+        if (ide == NULL) continue;
+
+        for (unsigned int ms=0;ms < 2;ms++) {
+            IDEDevice *dev = ide->device[ms];
+            if (dev == NULL || dev->type != IDE_TYPE_HDD) continue;
+
+            IDEATADevice *ata = (IDEATADevice*)dev;
+            if (ata->bios_disk_index == disk_index) return ata;
+        }
+    }
+
+    return NULL;
+}
+
+bool IDE_BIOS_DiskAttached(unsigned int disk_index) {
+    return IDE_FindBIOSDisk(disk_index) != NULL;
+}
+
+bool IDE_BIOS_DiskAccess(unsigned int disk_index,uint64_t lba,unsigned int count,IDEBiosDiskOp op) {
+    IDEATADevice *ata = IDE_FindBIOSDisk(disk_index);
+    if (ata == NULL) return false;
+
+    const double done = ata->bios_access(lba,count,op,PIC_FullIndex());
+
+    /* the BIOS waits for the drive with interrupts enabled */
+    if (done > PIC_FullIndex()) {
+        CPU_STI();
+        while (PIC_FullIndex() < done)
+            CALLBACK_Idle();
+    }
+
+    return true;
+}
+
 /* this is called by src/ints/bios_disk.cpp whenever INT 13h AH=0x00 is called on a hard disk.
  * this gives us a chance to update IDE state as if the BIOS had gone through with a full disk reset as requested. */
 void IDE_ResetDiskByBIOS(unsigned char disk) {
@@ -3842,407 +4750,7 @@ static void IDE_DelayedCommand(Bitu pk/*which IDE device*/) {
     if (dev == NULL) return;
 
     if (dev->type == IDE_TYPE_HDD) {
-        IDEATADevice *ata = (IDEATADevice*)dev;
-        uint32_t sectorn = 0;/* FIXME: expand to uint64_t when adding LBA48 emulation */
-        unsigned int sectcount;
-        imageDisk *disk;
-//      int i;
-
-        switch (dev->command) {
-            case 0x30:/* WRITE SECTOR */
-                disk = ata->getBIOSdisk();
-                if (disk == NULL) {
-                    LOG_MSG("ATA READ fail, bios disk N/A\n");
-                    ata->abort_error();
-                    dev->raise_irq();
-                    return;
-                }
-
-                sectcount = ata->count & 0xFF;
-                if (sectcount == 0) sectcount = 256;
-                if (drivehead_is_lba(ata->drivehead)) {
-                    /* LBA */
-                    sectorn = ((ata->drivehead & 0xFu) << 24u) | (unsigned int)ata->lba[0] |
-                        ((unsigned int)ata->lba[1] << 8u) |
-                        ((unsigned int)ata->lba[2] << 16u);
-                }
-                else {
-                    /* C/H/S */
-                    if (ata->lba[0] == 0) {
-                        LOG_MSG("ATA sector 0 does not exist\n");
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-                    else if ((unsigned int)(ata->drivehead & 0xFu) >= (unsigned int)ata->heads ||
-                        (unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
-                        ide_chs_cylinder(ata->lba) >= (unsigned int)ata->cyls) {
-                        LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-                            ide_chs_cylinder(ata->lba),
-                            (unsigned int)(ata->drivehead&0xFu),
-                            (unsigned int)(ata->lba[0]),
-                            (unsigned int)ata->cyls,
-                            (unsigned int)ata->heads,
-                            (unsigned int)ata->sects);
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-
-                    sectorn = ((ata->drivehead & 0xF) * ata->sects) +
-                        (ide_chs_cylinder(ata->lba) * ata->sects * ata->heads) +
-                        ((unsigned int)ata->lba[0] - 1u);
-                }
-
-                if (disk->Write_AbsoluteSector(sectorn, ata->sector) != Int13Status::NoError) {
-                    LOG_MSG("Failed to write sector\n");
-                    ata->abort_error();
-                    dev->raise_irq();
-                    return;
-                }
-
-                /* NTS: the way this command works is that the drive writes ONE sector, then fires the IRQ
-                        and lets the host read it, then reads another sector, fires the IRQ, etc. One
-                    IRQ signal per sector. We emulate that here by adding another event to trigger this
-                    call unless the sector count has just dwindled to zero, then we let it stop. */
-                if ((ata->count&0xFF) == 1) {
-                    /* end of the transfer */
-                    ata->count = 0;
-                    ata->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                    dev->raise_irq();
-                    ata->state = IDE_DEV_READY;
-                    ata->allow_writing = true;
-                    return;
-                }
-                else if ((ata->count&0xFF) == 0) ata->count = 255;
-                else ata->count--;
-                ata->progress_count++;
-
-                if (!ata->increment_current_address()) {
-                    LOG_MSG("READ advance error\n");
-                    ata->abort_error();
-                    return;
-                }
-
-                /* begin another sector */
-                dev->state = IDE_DEV_DATA_WRITE;
-                dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                ata->prepare_write(0,512);
-                dev->raise_irq();
-                break;
-
-            case 0x20:/* READ SECTOR */
-                disk = ata->getBIOSdisk();
-                if (disk == NULL) {
-                    LOG_MSG("ATA READ fail, bios disk N/A\n");
-                    ata->abort_error();
-                    dev->raise_irq();
-                    return;
-                }
-
-                sectcount = ata->count & 0xFF;
-                if (sectcount == 0) sectcount = 256;
-                if (drivehead_is_lba(ata->drivehead)) {
-                    /* LBA */
-                    sectorn = (((unsigned int)ata->drivehead & 0xFu) << 24u) | (unsigned int)ata->lba[0] |
-                        ((unsigned int)ata->lba[1] << 8u) |
-                        ((unsigned int)ata->lba[2] << 16u);
-                }
-                else {
-                    /* C/H/S */
-                    if (ata->lba[0] == 0) {
-                        LOG_MSG("WARNING C/H/S access mode and sector==0\n");
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-                    else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
-                        (unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
-                        ide_chs_cylinder(ata->lba) >= (unsigned int)ata->cyls) {
-                        LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-                            ide_chs_cylinder(ata->lba),
-                            (unsigned int)(ata->drivehead&0xF),
-                            (unsigned int)ata->lba[0],
-                            (unsigned int)ata->cyls,
-                            (unsigned int)ata->heads,
-                            (unsigned int)ata->sects);
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-
-                    sectorn = ((ata->drivehead & 0xFu) * ata->sects) +
-                        (ide_chs_cylinder(ata->lba) * ata->sects * ata->heads) +
-                        ((unsigned int)ata->lba[0] - 1u);
-                }
-
-                if (disk->Read_AbsoluteSector(sectorn, ata->sector) != Int13Status::NoError) {
-                    LOG_MSG("ATA read failed\n");
-                    ata->abort_error();
-                    dev->raise_irq();
-                    return;
-                }
-
-                /* NTS: the way this command works is that the drive reads ONE sector, then fires the IRQ
-                        and lets the host read it, then reads another sector, fires the IRQ, etc. One
-                    IRQ signal per sector. We emulate that here by adding another event to trigger this
-                    call unless the sector count has just dwindled to zero, then we let it stop. */
-                /* NTS: The sector advance + count decrement is done in the I/O completion function */
-                dev->state = IDE_DEV_DATA_READ;
-                dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                ata->prepare_read(0,512);
-                dev->raise_irq();
-                break;
-
-            case 0x40:/* READ SECTOR VERIFY WITH RETRY */
-            case 0x41: /* READ SECTOR VERIFY WITHOUT RETRY */
-                disk = ata->getBIOSdisk();
-                if (disk == NULL) {
-                    LOG_MSG("ATA READ fail, bios disk N/A\n");
-                    ata->abort_error();
-                    dev->raise_irq();
-                    return;
-                }
-
-                sectcount = ata->count & 0xFF;
-                if (sectcount == 0) sectcount = 256;
-                if (drivehead_is_lba(ata->drivehead)) {
-                    /* LBA */
-                    sectorn = (((unsigned int)ata->drivehead & 0xFu) << 24u) | (unsigned int)ata->lba[0] |
-                        ((unsigned int)ata->lba[1] << 8u) |
-                        ((unsigned int)ata->lba[2] << 16u);
-                }
-                else {
-                    /* C/H/S */
-                    if (ata->lba[0] == 0) {
-                        LOG_MSG("WARNING C/H/S access mode and sector==0\n");
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-                    else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
-                        (unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
-                        ide_chs_cylinder(ata->lba) >= (unsigned int)ata->cyls) {
-                        LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-                            ide_chs_cylinder(ata->lba),
-                            (unsigned int)(ata->drivehead&0xFu),
-                            (unsigned int)ata->lba[0],
-                            (unsigned int)ata->cyls,
-                            (unsigned int)ata->heads,
-                            (unsigned int)ata->sects);
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-
-                    sectorn = (((unsigned int)ata->drivehead & 0xFu) * ata->sects) +
-                        (ide_chs_cylinder(ata->lba) * ata->sects * ata->heads) +
-                        ((unsigned int)ata->lba[0] - 1u);
-                }
-
-                if (disk->Read_AbsoluteSector(sectorn, ata->sector) != Int13Status::NoError) {
-                    LOG_MSG("ATA read failed\n");
-                    ata->abort_error();
-                    dev->raise_irq();
-                    return;
-                }
-
-                if ((ata->count&0xFF) == 1) {
-                    /* end of the transfer */
-                    ata->count = 0;
-                    ata->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                    dev->raise_irq();
-                    ata->state = IDE_DEV_READY;
-                    ata->allow_writing = true;
-                    return;
-                }
-                else if ((ata->count&0xFF) == 0) ata->count = 255;
-                else ata->count--;
-                ata->progress_count++;
-
-                if (!ata->increment_current_address()) {
-                    LOG_MSG("READ advance error\n");
-                    ata->abort_error();
-                    return;
-                }
-
-                ata->state = IDE_DEV_BUSY;
-                ata->status = IDE_STATUS_BUSY;
-                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-                PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,pk);
-                break;
-
-            case 0xC4:/* READ MULTIPLE */
-                disk = ata->getBIOSdisk();
-                if (disk == NULL) {
-                    LOG_MSG("ATA READ fail, bios disk N/A\n");
-                    ata->abort_error();
-                    dev->raise_irq();
-                    return;
-                }
-
-                sectcount = ata->count & 0xFF;
-                if (sectcount == 0) sectcount = 256;
-                if (drivehead_is_lba(ata->drivehead)) {
-                    /* LBA */
-                    sectorn = (((unsigned int)ata->drivehead & 0xFu) << 24u) | (unsigned int)ata->lba[0] |
-                        ((unsigned int)ata->lba[1] << 8u) |
-                        ((unsigned int)ata->lba[2] << 16u);
-                }
-                else {
-                    /* C/H/S */
-                    if (ata->lba[0] == 0) {
-                        LOG_MSG("WARNING C/H/S access mode and sector==0\n");
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-                    else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
-                        (unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
-                        ide_chs_cylinder(ata->lba) >= (unsigned int)ata->cyls) {
-                        LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-                            ide_chs_cylinder(ata->lba),
-                            (unsigned int)(ata->drivehead&0xF),
-                            (unsigned int)ata->lba[0],
-                            (unsigned int)ata->cyls,
-                            (unsigned int)ata->heads,
-                            (unsigned int)ata->sects);
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-
-                    sectorn = ((ata->drivehead & 0xF) * ata->sects) +
-                        (ide_chs_cylinder(ata->lba) * ata->sects * ata->heads) +
-                        ((unsigned int)ata->lba[0] - 1);
-                }
-
-                if ((512*ata->multiple_sector_count) > sizeof(ata->sector))
-                    E_Exit("SECTOR OVERFLOW");
-
-                for (unsigned int cc=0;cc < MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount);cc++) {
-                    /* it would be great if the disk object had a "read multiple sectors" member function */
-                    if (disk->Read_AbsoluteSector(sectorn+cc, ata->sector+(cc*512)) != Int13Status::NoError) {
-                        LOG_MSG("ATA read failed\n");
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-                }
-
-                /* NTS: the way this command works is that the drive reads ONE sector, then fires the IRQ
-                        and lets the host read it, then reads another sector, fires the IRQ, etc. One
-                    IRQ signal per sector. We emulate that here by adding another event to trigger this
-                    call unless the sector count has just dwindled to zero, then we let it stop. */
-                /* NTS: The sector advance + count decrement is done in the I/O completion function */
-                dev->state = IDE_DEV_DATA_READ;
-                dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                ata->prepare_read(0,512*MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount));
-                dev->raise_irq();
-                break;
-
-            case 0xC5:/* WRITE MULTIPLE */
-                disk = ata->getBIOSdisk();
-                if (disk == NULL) {
-                    LOG_MSG("ATA READ fail, bios disk N/A\n");
-                    ata->abort_error();
-                    dev->raise_irq();
-                    return;
-                }
-
-                sectcount = ata->count & 0xFF;
-                if (sectcount == 0) sectcount = 256;
-                if (drivehead_is_lba(ata->drivehead)) {
-                    /* LBA */
-                    sectorn = (((unsigned int)ata->drivehead & 0xF) << 24) | (unsigned int)ata->lba[0] |
-                        ((unsigned int)ata->lba[1] << 8) |
-                        ((unsigned int)ata->lba[2] << 16);
-                }
-                else {
-                    /* C/H/S */
-                    if (ata->lba[0] == 0) {
-                        LOG_MSG("ATA sector 0 does not exist\n");
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-                    else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
-                        (unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
-                        ide_chs_cylinder(ata->lba) >= (unsigned int)ata->cyls) {
-                        LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-                            ide_chs_cylinder(ata->lba),
-                            (unsigned int)(ata->drivehead&0xF),
-                            (unsigned int)ata->lba[0],
-                            (unsigned int)ata->cyls,
-                            (unsigned int)ata->heads,
-                            (unsigned int)ata->sects);
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-
-                    sectorn = ((unsigned int)(ata->drivehead & 0xF) * ata->sects) +
-                        (ide_chs_cylinder(ata->lba) * ata->sects * ata->heads) +
-                        ((unsigned int)ata->lba[0] - 1);
-                }
-
-                for (unsigned int cc=0;cc < MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount);cc++) {
-                    /* it would be great if the disk object had a "write multiple sectors" member function */
-                    if (disk->Write_AbsoluteSector(sectorn+cc, ata->sector+(cc*512)) != Int13Status::NoError) {
-                        LOG_MSG("Failed to write sector\n");
-                        ata->abort_error();
-                        dev->raise_irq();
-                        return;
-                    }
-                }
-
-                for (unsigned int cc=0;cc < MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount);cc++) {
-                    if ((ata->count&0xFF) == 1) {
-                        /* end of the transfer */
-                        ata->count = 0;
-                        ata->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                        dev->raise_irq();
-                        ata->state = IDE_DEV_READY;
-                        ata->allow_writing = true;
-                        return;
-                    }
-                    else if ((ata->count&0xFF) == 0) ata->count = 255;
-                    else ata->count--;
-                    ata->progress_count++;
-
-                    if (!ata->increment_current_address()) {
-                        LOG_MSG("READ advance error\n");
-                        ata->abort_error();
-                        return;
-                    }
-                }
-
-                /* begin another sector */
-                sectcount = ata->count & 0xFF;
-                if (sectcount == 0) sectcount = 256;
-                dev->state = IDE_DEV_DATA_WRITE;
-                dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                ata->prepare_write(0,512*MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount));
-                dev->raise_irq();
-                break;
-            case 0xEC:/*IDENTIFY DEVICE (CONTINUED) */
-                dev->state = IDE_DEV_DATA_READ;
-                dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                ata->generate_identify_device();
-                ata->prepare_read(0,512);
-                dev->count = 0x01;
-                dev->lba[0] = 0x00;
-                dev->feature = 0x00;
-                dev->lba[1] = 0x00;
-                dev->lba[2] = 0x00;
-                dev->raise_irq();
-                break;
-            default:
-                LOG_MSG("Unknown delayed IDE/ATA command\n");
-                dev->abort_error();
-                dev->raise_irq();
-                break;
-        }
+        ((IDEATADevice*)dev)->delayed_command();
     }
     else if (dev->type == IDE_TYPE_CDROM) {
         IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
@@ -4376,6 +4884,7 @@ IDEDevice::IDEDevice(IDEController *c,bool _slave) {
     allow_writing = true;
     state = IDE_DEV_READY;
     feature = count = lba[0] = lba[1] = lba[2] = command = drivehead = 0;
+    hob_feature = hob_count = hob_lba[0] = hob_lba[1] = hob_lba[2] = 0;
     status = IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
 
     faked_command = false;
@@ -4385,12 +4894,40 @@ IDEDevice::IDEDevice(IDEController *c,bool _slave) {
     ide_identify_command_delay = 0.01; /* 10us */
 }
 
+/* the registers identify the kind of device after a reset or diagnostics:
+ * ATA count=1 sector=1 cylinder=0000h, ATAPI cylinder=EB14h */
+void IDEDevice::set_signature() {
+    count = 0x01;
+    lba[0] = 0x01;
+    lba[1] = 0x00;
+    lba[2] = 0x00;
+    drivehead &= 0x10;
+}
+
+/* EXECUTE DEVICE DIAGNOSTIC: the device passes (error register 01h) and shows its signature */
+void IDEDevice::execute_device_diagnostic() {
+    PIC_RemoveSpecificEvents(IDE_DelayedCommand,IDEEventPack(controller->interface_index,slave?1u:0u).get());
+    state = IDE_DEV_READY;
+    allow_writing = true;
+    command = 0x90;
+    set_signature();
+    feature = 0x01;
+    status = IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
+}
+
+void IDEDevice::abort_with_error(uint8_t err) {
+    abort_error();
+    feature = err;
+    raise_irq();
+}
+
 /* IDE controller -> upon writing bit 2 of alt (0x3F6) */
 void IDEDevice::host_reset_complete() {
     status = 0x00;
     asleep = false;
     allow_writing = true;
     state = IDE_DEV_READY;
+    set_signature();
 
     /* device passed, according to ATA standard regarding result of diagnostics test. */
     /* NTS: The Linux kernel WILL NOT talk to this IDE emulation unless we signal success through
@@ -4435,6 +4972,7 @@ void IDEDevice::abort_error() {
     state = IDE_DEV_READY;
     allow_writing = true;
     command = 0x00;
+    feature = 0x04; /* ABRT */
     status = IDE_STATUS_ERROR | IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
 }
 
@@ -4494,6 +5032,13 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
     if (!command_interruption_ok(cmd))
         return;
 
+    /* a device in sleep mode only responds to a reset */
+    if (power_state == 4 && cmd != 0x08) {
+        command = cmd;
+        abort_with_error(0x04/*ABRT*/);
+        return;
+    }
+
     /* if the drive is asleep, then writing a command wakes it up */
     interface_wakeup();
 
@@ -4530,7 +5075,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
                 LOG_MSG("Attempted DMA transfer\n");
                 abort_error();
                 count = 0x03; /* no more data (command/data=1, input/output=1) */
-                feature = 0xF4;
+                feature = 0x04; /* ABRT */
                 raise_irq();
             }
             else {
@@ -4580,110 +5125,179 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
             allow_writing = true;
             raise_irq();
             break;
+        case 0xE0: case 0x94: /* STANDBY IMMEDIATE */
+        case 0xE6: case 0x99: /* SLEEP */
+            /* the disc stops */
+            if (loading_mode == LOAD_READY || loading_mode == LOAD_DISC_READIED) {
+                loading_mode = LOAD_IDLE;
+                rb_valid = false;
+                PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+            }
+            power_state = (cmd == 0xE6 || cmd == 0x99) ? 4 : 3;
+            power_event = 0x02;
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            state = IDE_DEV_READY;
+            allow_writing = true;
+            raise_irq();
+            break;
+        case 0xE1: case 0x95: /* IDLE IMMEDIATE */
+            power_state = 2;
+            power_event = 0x02;
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            state = IDE_DEV_READY;
+            allow_writing = true;
+            raise_irq();
+            break;
+        case 0xE5: case 0x98: /* CHECK POWER MODE */
+            /* sector count: 00h standby (disc stopped), 80h idle, FFh active */
+            if (loading_mode == LOAD_IDLE || loading_mode == LOAD_NO_DISC || power_state >= 3) count = 0x00;
+            else if (power_state == 2) count = 0x80;
+            else count = 0xFF;
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            state = IDE_DEV_READY;
+            allow_writing = true;
+            raise_irq();
+            break;
         default:
             LOG_MSG("Unknown IDE/ATAPI command %02X\n",cmd);
             abort_error();
             allow_writing = true;
             count = 0x03; /* no more data (command/data=1, input/output=1) */
-            feature = 0xF4;
+            feature = 0x04; /* ABRT */
             raise_irq();
             break;
     }
 }
 
 void IDEATADevice::writecommand(uint8_t cmd) {
-    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
-
     if (!command_interruption_ok(cmd))
         return;
 
-#if 0//TODO: Enable debug
-    if (!faked_command) {
-        if (drivehead_is_lba(drivehead)) {
-            uint64_t n;
-
-            n = ((unsigned int)(drivehead&0xF)<<24)+((unsigned int)lba[2]<<16)+((unsigned int)lba[1]<<8)+(unsigned int)lba[0];
-            LOG(LOG_SB,LOG_DEBUG)("IDE ATA command %02x dh=0x%02x count=0x%02x lba=%07llx/%07llx\n",cmd,
-                drivehead,count,(unsigned long long)n,
-                (unsigned long long)(phys_sects * phys_cyls * phys_heads));
-        }
-        else {
-            LOG(LOG_SB,LOG_DEBUG)("IDE ATA command %02x dh=0x%02x count=0x%02x chs=%02x/%02x/%02x\n",cmd,
-                drivehead,count,((unsigned int)lba[2]<<8)+(unsigned int)lba[1],(unsigned int)(drivehead&0xF),(unsigned int)lba[0]);
-        }
-
-        LOG(LOG_SB,LOG_NORMAL)("IDE ATA command %02x",cmd);
+    /* a device in sleep mode only responds to a reset */
+    if (power == PWR_SLEEP) {
+        LOG(LOG_MISC,LOG_DEBUG)("IDE ATA: command %02x while asleep, aborted (needs a reset)",cmd);
+        command = cmd;
+        abort_with_error(0x04/*ABRT*/);
+        return;
     }
-#endif
 
     /* if the drive is asleep, then writing a command wakes it up */
     interface_wakeup();
 
-    /* FIXME: OAKCDROM.SYS is sending the hard disk command 0xA0 (ATAPI packet) for some reason. Why? */
+    const double now = PIC_FullIndex();
+    const double overhead = (instant || faked_command) ? 0.00001 : IDE_HD_COMMAND_MS;
 
     /* drive is ready to accept command */
     allow_writing = false;
     command = cmd;
     switch (cmd) {
         case 0x00: /* NOP */
-            feature = 0x04;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
-            raise_irq();
-            allow_writing = true;
+            abort_with_error(0x04/*ABRT*/);
             break;
         case 0x08: /* DEVICE RESET */
+            /* NTS: This is a PACKET device command. Hard disks are supposed to abort it, but
+             *      testing suggests ATA hard drives fire an IRQ and report ready. In fact, Windows 95
+             *      won't detect hard drives that don't fire an IRQ in response */
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             drivehead &= 0x10;
             count = 0x01; lba[0] = 0x01; feature = 0x00;
             lba[1] = lba[2] = 0;
-            /* NTS: Testing suggests that ATA hard drives DO fire an IRQ at this stage.
-                    In fact, Windows 95 won't detect hard drives that don't fire an IRQ in desponse */
             raise_irq();
             allow_writing = true;
             break;
         case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: /* RECALIBRATE (1xh) */
         case 0x18: case 0x19: case 0x1A: case 0x1B: case 0x1C: case 0x1D: case 0x1E: case 0x1F:
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             /* "if the command is executed in CHS mode, then ... sector number register shall be 1.
              *  if executed in LAB mode, then ... sector number register shall be 0" */
-            if (drivehead_is_lba(drivehead)) lba[0] = 0x00;
+            if (drivehead & 0x40) lba[0] = 0x00;
             else lba[0] = 0x01;
             drivehead &= 0x10;
             lba[1] = lba[2] = 0;
             feature = 0x00;
-            raise_irq();
-            allow_writing = true;
-            break;
-        case 0x20: /* READ SECTOR */
-            progress_count = 0;
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,pk);
+            {
+                double t = spin_up(now + overhead);
+                if (!instant && !faked_command) t += seek_ms(0);
+                head_cyl = 0;
+                ra_valid = false;
+                schedule(t);
+            }
             break;
-        case 0x30: /* WRITE SECTOR */
-            /* the drive does NOT signal an interrupt. it sets DRQ and waits for a sector
-             * to be transferred to it before executing the command */
+        case 0x20: case 0x21: /* READ SECTOR(S) (with/without retry) */
+        case 0x24: /* READ SECTOR(S) EXT */
+        case 0xC4: /* READ MULTIPLE */
+        case 0x29: /* READ MULTIPLE EXT */
+        case 0x40: case 0x41: /* READ VERIFY SECTOR(S) (with/without retry) */
+        case 0x42: /* READ VERIFY SECTOR(S) EXT */
+            if ((cmd == 0xC4 || cmd == 0x29) && multiple_sector_count == 0) {
+                abort_with_error(0x04/*ABRT*/);
+                break;
+            }
+            if (!decode_address(command_is_ext() || cmd == 0x42,false)) {
+                if ((command_is_ext() || cmd == 0x42) && !int13_enable_48bitLBA) abort_with_error(0x04/*ABRT*/);
+                else abort_with_error(0x10/*IDNF*/);
+                break;
+            }
+            if (cmd == 0x42) cmd_ext = true;
+            if (cur_lba >= LBA) {
+                sector_error(0x10/*IDNF*/);
+                break;
+            }
             progress_count = 0;
+            cur_block = block_count();
+            state = IDE_DEV_BUSY;
+            status = IDE_STATUS_BUSY;
+            schedule(media_access(cur_lba,cur_block,false,now + overhead));
+            break;
+        case 0x30: case 0x31: /* WRITE SECTOR(S) (with/without retry) */
+        case 0x34: /* WRITE SECTOR(S) EXT */
+        case 0xC5: /* WRITE MULTIPLE */
+        case 0x39: /* WRITE MULTIPLE EXT */
+            if ((cmd == 0xC5 || cmd == 0x39) && multiple_sector_count == 0) {
+                abort_with_error(0x04/*ABRT*/);
+                break;
+            }
+            if (!decode_address(command_is_ext(),false)) {
+                if (command_is_ext() && !int13_enable_48bitLBA) abort_with_error(0x04/*ABRT*/);
+                else abort_with_error(0x10/*IDNF*/);
+                break;
+            }
+            if (cur_lba >= LBA) {
+                sector_error(0x10/*IDNF*/);
+                break;
+            }
+            /* the drive does NOT signal an interrupt. it sets DRQ and waits for the first data
+             * block to be transferred to it before writing */
+            progress_count = 0;
+            cur_block = block_count();
             state = IDE_DEV_DATA_WRITE;
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ;
-            prepare_write(0,512);
+            prepare_write(0,512u * cur_block);
             break;
-        case 0x40: /* READ SECTOR VERIFY WITH RETRY */
-        case 0x41: /* READ SECTOR VERIFY WITHOUT RETRY */
-            progress_count = 0;
+        case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77: /* SEEK (7xh) */
+        case 0x78: case 0x79: case 0x7A: case 0x7B: case 0x7C: case 0x7D: case 0x7E: case 0x7F:
+            if (!decode_address(false,true)) {
+                abort_with_error(0x10/*IDNF*/);
+                break;
+            }
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,pk);
+            {
+                double t = spin_up(now + overhead);
+                const uint64_t cyl = (cur_lba / media_spt) / media_heads;
+                if (!instant && !faked_command) t += seek_ms(cyl);
+                head_cyl = cyl;
+                note_activity(t);
+                schedule(t);
+            }
             break;
         case 0x91: /* INITIALIZE DEVICE PARAMETERS */
             if ((unsigned int)count != (unsigned int)sects || (unsigned int)((drivehead&0xF)+1) != (unsigned int)heads) {
                 if (count == 0) {
                     LOG_MSG("IDE warning: OS attempted to change geometry to invalid H/S %u/%u\n",
                         count,(drivehead&0xF)+1);
-                    abort_error();
-                    allow_writing = true;
+                    abort_with_error(0x04/*ABRT*/);
                     return;
                 }
                 else {
@@ -4709,34 +5323,19 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             allow_writing = true;
             raise_irq(); // NTS: The Linux kernel will pause for up to 30 seconds waiting for this command to issue an IRQ if we don't do this
             break;
-        case 0xC4: /* READ MULTIPLE */
-            progress_count = 0;
-            state = IDE_DEV_BUSY;
-            status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,pk);
-            break;
-        case 0xC5: /* WRITE MULTIPLE */
-            /* the drive does NOT signal an interrupt. it sets DRQ and waits for a sector
-             * to be transferred to it before executing the command */
-            progress_count = 0;
-            state = IDE_DEV_DATA_WRITE;
-            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ;
-            prepare_write(0UL,512UL*MIN((unsigned long)multiple_sector_count,(unsigned long)(count == 0 ? 256 : count)));
-            break;
         case 0xC6: /* SET MULTIPLE MODE */
             /* only sector counts 1, 2, 4, 8, 16, 32, 64, and 128 are legal by standard.
              * NTS: There's a bug in VirtualBox that makes 0 legal too! */
             if (count != 0 && count <= multiple_sector_max && is_power_of_2(count)) {
                 multiple_sector_count = count;
                 status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+                state = IDE_DEV_READY;
+                allow_writing = true;
+                raise_irq();
             }
             else {
-                feature = 0x04; /* abort error */
-                abort_error();
+                abort_with_error(0x04/*ABRT*/);
             }
-            raise_irq();
-            allow_writing = true;
             break;
         case 0xA0:/*ATAPI PACKET*/
             /* We're not an ATAPI packet device!
@@ -4747,9 +5346,9 @@ void IDEATADevice::writecommand(uint8_t cmd) {
              * Most MS-DOS drivers and Windows 95 like to issue both IDENTIFY ATA and IDENTIFY ATAPI commands.
              * I also gather from some contributors on the github comments that people think our "Unknown IDE/ATA command"
              * error message is part of some other error in the emulation. Rather than put up with that, we'll just
-             * silently abort the command with an error. */
+             * silently abort the command with an error. The registers keep the ATA signature. */
             abort_normal();
-            status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE|0x20/*write fault*/;
+            status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             drivehead &= 0x30;
             count = 0x01;
             lba[0] = 0x01;
@@ -4760,10 +5359,46 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             allow_writing = true;
             break;
         case 0xE7: /* FLUSH CACHE */
+        case 0xEA: /* FLUSH CACHE EXT */
             /* NTS: Windows 2000 and Windows XP like this command a lot. They REALLY REALLY like
-             *      to issue this command a lot, especially during the install phase. This is
-             *      here to avoid filling your log file with many repetitions of
-             *      "Unknown IDE/ATA command E7" */
+             *      to issue this command a lot, especially during the install phase. */
+            /* done when the write cache has been written to the disk */
+            state = IDE_DEV_BUSY;
+            status = IDE_STATUS_BUSY;
+            schedule(mech_free_at > now + overhead ? mech_free_at : now + overhead);
+            break;
+        case 0xE0: case 0x94: /* STANDBY IMMEDIATE */
+        case 0xE2: case 0x96: /* STANDBY (sector count = standby timer) */
+        case 0xE6: case 0x99: /* SLEEP */
+            if (cmd == 0xE2 || cmd == 0x96) set_standby_timer((uint8_t)count);
+            state = IDE_DEV_BUSY;
+            status = IDE_STATUS_BUSY;
+            {
+                /* the write cache is written first, then the disk spins down */
+                double t = mech_free_at > now + overhead ? mech_free_at : now + overhead;
+                if (spinning && !instant && !faked_command) t += spindown_ms;
+                spin_down(t,cmd == 0xE6 || cmd == 0x99);
+                schedule(t);
+            }
+            break;
+        case 0xE1: case 0x95: /* IDLE IMMEDIATE */
+        case 0xE3: case 0x97: /* IDLE (sector count = standby timer) */
+            if (cmd == 0xE3 || cmd == 0x97) set_standby_timer((uint8_t)count);
+            state = IDE_DEV_BUSY;
+            status = IDE_STATUS_BUSY;
+            {
+                /* idle: the disk spins, the interface is ready */
+                const double t = spin_up(now + overhead);
+                power = PWR_IDLE;
+                note_activity(t);
+                schedule(t);
+            }
+            break;
+        case 0xE5: case 0x98: /* CHECK POWER MODE */
+            /* sector count: 00h standby (or spinning down/up), 80h idle, FFh active or idle */
+            if (!spinning || now < spin_ready_at) count = 0x00;
+            else if (power == PWR_IDLE) count = 0x80;
+            else count = 0xFF;
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             state = IDE_DEV_READY;
             allow_writing = true;
@@ -4772,29 +5407,57 @@ void IDEATADevice::writecommand(uint8_t cmd) {
         case 0xEC: /* IDENTIFY DEVICE */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : ide_identify_command_delay),pk);
+            schedule(now + ((faked_command || instant) ? 0.000001 : ide_identify_command_delay));
             break;
         case 0xEF: /* SET FEATURES */
-            if (feature == 0x66/*Disable reverting to power on defaults*/ ||
-                feature == 0xCC/*Enable reverting to power on defaults*/ ||
-                feature == 0x03/*Set transfer mode according to sector count register (required by Linux kernel)*/) {
-                /* ignore */
-                status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-                state = IDE_DEV_READY;
+            switch (feature & 0xFFu) {
+                case 0x02: write_cache = true; break;           /* enable write cache */
+                case 0x82: write_cache = false; break;          /* disable write cache */
+                case 0xAA: read_lookahead = true; break;        /* enable read look-ahead */
+                case 0x55: read_lookahead = false; ra_valid = false; break; /* disable read look-ahead */
+                case 0x66: /* Disable reverting to power on defaults */
+                case 0xCC: /* Enable reverting to power on defaults */
+                case 0x03: /* Set transfer mode according to sector count register (required by Linux kernel) */
+                    break;
+                default:
+                    LOG_MSG("SET FEATURES %02xh SC=%02x SN=%02x CL=%02x CH=%02x",feature,count,lba[0],lba[1],lba[2]);
+                    abort_with_error(0x04/*ABRT*/);
+                    return;
             }
-            else {
-                LOG_MSG("SET FEATURES %02xh SC=%02x SN=%02x CL=%02x CH=%02x",feature,count,lba[0],lba[1],lba[2]);
-                abort_error();
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            state = IDE_DEV_READY;
+            allow_writing = true;
+            raise_irq();
+            break;
+        case 0xF8: /* READ NATIVE MAX ADDRESS */
+            if (!(drivehead & 0x40)) {
+                abort_with_error(0x04/*ABRT*/);
+                break;
             }
+            cmd_ext = false;
+            cmd_lba = true;
+            update_address_registers(LBA > 0x10000000ull ? 0x0FFFFFFFull : LBA - 1u);
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            state = IDE_DEV_READY;
+            allow_writing = true;
+            raise_irq();
+            break;
+        case 0x27: /* READ NATIVE MAX ADDRESS EXT */
+            if (!int13_enable_48bitLBA || !(drivehead & 0x40)) {
+                abort_with_error(0x04/*ABRT*/);
+                break;
+            }
+            cmd_ext = true;
+            cmd_lba = true;
+            update_address_registers(LBA - 1u);
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            state = IDE_DEV_READY;
             allow_writing = true;
             raise_irq();
             break;
         default:
             LOG_MSG("Unknown IDE/ATA command %02X\n",cmd);
-            abort_error();
-            allow_writing = true;
-            raise_irq();
+            abort_with_error(0x04/*ABRT*/);
             break;
     }
 }
@@ -4827,8 +5490,15 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
     spinup_time = section->Get_int("cd-rom spinup time");
     spindown_timeout = section->Get_int("cd-rom spindown timeout");
     cd_insertion_time = section->Get_int("cd-rom insertion delay");
+    cd_instant = section->Get_bool("cd-rom instant mode");
+    cd_max_speed = section->Get_int("cd-rom max speed");
+    cd_tray_time = section->Get_int("cd-rom tray time");
+    hd_instant = section->Get_bool("hard disk instant mode");
+    hd_rpm = section->Get_int("hard disk rpm");
+    hd_spinup_time = section->Get_int("hard disk spinup time");
 
     host_reset = false;
+    hob = false;
     irq_pending = false;
     interrupt_enable = true;
     interface_index = index;
@@ -5047,6 +5717,7 @@ static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
 
     if (port == 0) {/*3F6*/
         ide->interrupt_enable = (val&2u)?0:1;
+        ide->hob = (val&0x80u) != 0;
         if (IS_PC98_ARCH)
             PC98_IDE_UpdateIRQ();
         else
@@ -5130,20 +5801,21 @@ static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
         case 0: /* 1F0 */
             ret = (dev != NULL) ? dev->data_read(iolen) : 0xFFFFFFFFUL;
             break;
+        /* with HOB set in the device control register, the previous contents (LBA48 high order bytes) are read */
         case 1: /* 1F1 */
-            ret = (dev != NULL) ? dev->feature : 0x00;
+            ret = (dev != NULL) ? (ide->hob ? dev->hob_feature : (dev->feature & 0xFFu)) : 0x00;
             break;
         case 2: /* 1F2 */
-            ret = (dev != NULL) ? dev->count : 0x00;
+            ret = (dev != NULL) ? (ide->hob ? dev->hob_count : (dev->count & 0xFFu)) : 0x00;
             break;
         case 3: /* 1F3 */
-            ret = (dev != NULL) ? dev->lba[0] : 0x00;
+            ret = (dev != NULL) ? (ide->hob ? dev->hob_lba[0] : (dev->lba[0] & 0xFFu)) : 0x00;
             break;
         case 4: /* 1F4 */
-            ret = (dev != NULL) ? dev->lba[1] : 0x00;
+            ret = (dev != NULL) ? (ide->hob ? dev->hob_lba[1] : (dev->lba[1] & 0xFFu)) : 0x00;
             break;
         case 5: /* 1F5 */
-            ret = (dev != NULL) ? dev->lba[2] : 0x00;
+            ret = (dev != NULL) ? (ide->hob ? dev->hob_lba[2] : (dev->lba[2] & 0xFFu)) : 0x00;
             break;
         case 6: /* 1F6 */
             ret = (dev != NULL) ? dev->drivehead : 0x00;
@@ -5214,29 +5886,31 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
             (unsigned int)port,(unsigned int)val);
     }
 
+    /* writing a command block register clears HOB */
+    if (port >= 1 && port <= 6) ide->hob = false;
+
+    /* The command block registers are written to both devices, the selected one only decides which
+     * device answers reads. Each keeps the previous contents of the register for LBA48 commands. */
+    if (port >= 1 && port <= 5) {
+        for (unsigned int d=0;d < 2;d++) {
+            IDEDevice *wd = ide->device[d];
+            if (wd == NULL || !wd->allow_writing) continue;
+            if (wd->status & IDE_STATUS_BUSY) continue;
+
+            switch (port) {
+                case 1: wd->hob_feature = (uint8_t)wd->feature; wd->feature = val & 0xFFu; break;
+                case 2: wd->hob_count = (uint8_t)wd->count; wd->count = val & 0xFFu; break;
+                case 3: wd->hob_lba[0] = (uint8_t)wd->lba[0]; wd->lba[0] = val & 0xFFu; break;
+                case 4: wd->hob_lba[1] = (uint8_t)wd->lba[1]; wd->lba[1] = val & 0xFFu; break;
+                case 5: wd->hob_lba[2] = (uint8_t)wd->lba[2]; wd->lba[2] = val & 0xFFu; break;
+            }
+        }
+        return;
+    }
+
     switch (port) {
         case 0: /* 1F0 */
             if (dev) dev->data_write(val,iolen); /* <- TODO: what about 32-bit PIO modes? */
-            break;
-        case 1: /* 1F1 */
-            if (dev && dev->allow_writing) /* TODO: LBA48 16-bit wide register */
-                dev->feature = val;
-            break;
-        case 2: /* 1F2 */
-            if (dev && dev->allow_writing) /* TODO: LBA48 16-bit wide register */
-                dev->count = val;
-            break;
-        case 3: /* 1F3 */
-            if (dev && dev->allow_writing) /* TODO: LBA48 16-bit wide register */
-                dev->lba[0] = val;
-            break;
-        case 4: /* 1F4 */
-            if (dev && dev->allow_writing) /* TODO: LBA48 16-bit wide register */
-                dev->lba[1] = val;
-            break;
-        case 5: /* 1F5 */
-            if (dev && dev->allow_writing) /* TODO: LBA48 16-bit wide register */
-                dev->lba[2] = val;
             break;
         case 6: /* 1F6 */
             if (((val>>4)&1) != ide->select) {
@@ -5251,9 +5925,29 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
                 dev->select(val,0);
             }
 
+            /* the other device latches the register too */
+            {
+                IDEDevice *od = ide->device[ide->select ^ 1u];
+                if (od != NULL && od->allow_writing && !(od->status & IDE_STATUS_BUSY)) od->drivehead = (uint8_t)val;
+            }
+
             ide->check_device_irq();
             break;
         case 7: /* 1F7 */
+            /* EXECUTE DEVICE DIAGNOSTIC is carried out by both devices, whichever is selected */
+            if (val == 0x90) {
+                if (ide->device[0]) ide->device[0]->execute_device_diagnostic();
+                if (ide->device[1]) ide->device[1]->execute_device_diagnostic();
+                /* device 0 reports, including whether device 1 passed (bit 7 clear) */
+                if (ide->device[0]) {
+                    ide->device[0]->feature = 0x01;
+                    ide->device[0]->raise_irq();
+                }
+                else if (ide->device[1]) {
+                    ide->device[1]->raise_irq();
+                }
+                break;
+            }
             if (dev) dev->writecommand(val);
             break;
     }

@@ -6389,7 +6389,7 @@ class IMGMOUNT : public Program {
 		bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 			char drive=commandLine[0];
 			bool nocont=false;
-            if(!isalpha(drive) && !isdigit(drive)) return false;
+            if(!isalpha(drive) && !isdigit(drive) && drive != ':'/*device spec such as ":ide:2m"*/) return false;
 
 			while (!nocont) {
 				bool usedef=false;
@@ -6447,6 +6447,7 @@ class IMGMOUNT : public Program {
 #endif
 
 				if (!strcasecmp(commandLine.c_str(), "-u")) {
+					if (drive == ':') return false; /* device spec: unmounting is handled by the caller */
 					bool exist = toupper(drive) - 'A' == DOS_GetDefaultDrive();
 					Unmount(drive);
 					return exist && drive - 'A' != DOS_GetDefaultDrive();
