@@ -222,6 +222,13 @@ static void serial_set_break_platform(COMPORT port, bool value) {
 	port->breakstatus = value;
 }
 
+// Ask the driver to pass data and line changes on at once (no-op here).
+static bool serial_set_low_latency_platform(COMPORT port) {
+	(void)port;
+	return false;
+}
+
+
 static int serial_get_modem_status_platform(COMPORT port) {
 	DWORD retval = 0;
 	GetCommModemStatus (port->porthandle, &retval);
@@ -310,6 +317,11 @@ static bool serial_set_comm_parameters_platform(COMPORT port,
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h> // sprintf
+#include <time.h> // clock_gettime
+
+#if defined(LINUX)
+#include <linux/serial.h> // serial_struct, ASYNC_LOW_LATENCY
+#endif
 
 #ifndef CMSPAR
 // Mark or space parity bit.
@@ -328,6 +340,16 @@ struct _COMPORT {
 	bool breakstatus;
 	ReadState readstate;
 	termios backup;
+#if defined(LINUX)
+	// lowlatency: modem lines from the driver's change counters (see
+	// serial_get_modem_status_platform)
+	bool countLines;
+	bool countBase;
+	int baseStatus;
+	unsigned int countCalls;
+	unsigned int countMisses;
+	struct serial_icounter_struct baseCount;
+#endif
 };
 
 static bool serial_open_platform(const char* portname, COMPORT* port) {
@@ -338,6 +360,12 @@ static bool serial_open_platform(const char* portname, COMPORT* port) {
 
 	cp->breakstatus=false;
 	cp->readstate=_COMPORT::ReadState::Data;
+#if defined(LINUX)
+	cp->countLines=false;
+	cp->countBase=false;
+	cp->countCalls=0;
+	cp->countMisses=0;
+#endif
 
     size_t len = strlen(portname);
 	if(len > 240) {
@@ -416,7 +444,7 @@ static void serial_get_error_string_platform(char* buffer, size_t length) {
 	
 }
 
-static int serial_get_modem_status_platform(COMPORT port) {
+static int serial_tiocmget(COMPORT port) {
 	long flags = 0;
 	ioctl (port->porthandle, TIOCMGET, &flags);
 	int retval = 0;
@@ -425,6 +453,88 @@ static int serial_get_modem_status_platform(COMPORT port) {
 	if (flags & TIOCM_RI) retval |= SERIAL_RI;
 	if (flags & TIOCM_CD) retval |= SERIAL_CD;
 	return retval;
+}
+
+// Ask the driver to pass data and line changes on at once: on Linux
+// ASYNC_LOW_LATENCY (USB adapters such as FTDI then report every 1 ms
+// instead of every 16 ms). Best effort; false where unsupported.
+static bool serial_set_low_latency_platform(COMPORT port) {
+#if defined(LINUX)
+	struct serial_struct ss;
+	if (ioctl(port->porthandle, TIOCGSERIAL, &ss) == -1) return false;
+	ss.flags |= ASYNC_LOW_LATENCY;
+	if (ioctl(port->porthandle, TIOCSSERIAL, &ss) == -1) return false;
+	// only where TIOCMGET is slow (a USB adapter); a UART's RI counter
+	// counts one edge only
+	struct serial_icounter_struct ic;
+	struct timespec t0, t1;
+	clock_gettime(CLOCK_MONOTONIC, &t0);
+	serial_tiocmget(port);
+	clock_gettime(CLOCK_MONOTONIC, &t1);
+	double ms = (double)(t1.tv_sec - t0.tv_sec) * 1000.0 +
+		(double)(t1.tv_nsec - t0.tv_nsec) / 1e6;
+	port->countLines = ms > 0.5 &&
+		ioctl(port->porthandle, TIOCGICOUNT, &ic) != -1;
+	return true;
+#else
+	(void)port;
+	return false;
+#endif
+}
+
+
+// TIOCMGET on a USB adapter is a USB round trip (2 ms on an FTDI), and
+// directserial asks for the lines about every millisecond, which slows the
+// emulator to a fraction of real time. With lowlatency on Linux, take the
+// lines from the driver's change counters instead (TIOCGICOUNT, which the
+// driver updates from the adapter's status reports): each change since a
+// TIOCMGET baseline flips that line. The baseline is renewed about every
+// 1000 calls, when no line changes during the TIOCMGET.
+#if defined(LINUX)
+static int serial_counted_status(COMPORT port, const struct serial_icounter_struct& ic) {
+	int status = port->baseStatus;
+	if ((ic.cts - port->baseCount.cts) & 1) status ^= SERIAL_CTS;
+	if ((ic.dsr - port->baseCount.dsr) & 1) status ^= SERIAL_DSR;
+	if ((ic.rng - port->baseCount.rng) & 1) status ^= SERIAL_RI;
+	if ((ic.dcd - port->baseCount.dcd) & 1) status ^= SERIAL_CD;
+	return status;
+}
+#endif
+
+static int serial_get_modem_status_platform(COMPORT port) {
+#if defined(LINUX)
+	if (port->countLines) {
+		struct serial_icounter_struct ic;
+		if (!port->countBase || ++port->countCalls >= 1000) {
+			struct serial_icounter_struct ic2;
+			port->countCalls = 0;
+			if (ioctl(port->porthandle, TIOCGICOUNT, &ic) != -1) {
+				int status = serial_tiocmget(port);
+				if (ioctl(port->porthandle, TIOCGICOUNT, &ic2) != -1 &&
+					ic.cts == ic2.cts && ic.dsr == ic2.dsr &&
+					ic.rng == ic2.rng && ic.dcd == ic2.dcd) {
+					// the counters must agree with the lines (a change can be
+					// in flight for a moment: retry soon), or don't use them
+					if (port->countBase &&
+						serial_counted_status(port, ic2) != status) {
+						if (++port->countMisses >= 3) port->countLines = false;
+						port->countCalls = 990;
+						return status;
+					}
+					port->countMisses = 0;
+					port->baseCount = ic2;
+					port->baseStatus = status;
+					port->countBase = true;
+				}
+			}
+			if (!port->countBase) return serial_tiocmget(port);
+		}
+		if (ioctl(port->porthandle, TIOCGICOUNT, &ic) == -1)
+			return serial_tiocmget(port);
+		return serial_counted_status(port, ic);
+	}
+#endif
+	return serial_tiocmget(port);
 }
 
 static bool serial_send_char_platform(COMPORT port, char data) {
@@ -684,6 +794,13 @@ static int serial_get_ext_char_platform(COMPORT port) {
 }
 
 
+// Ask the driver to pass data and line changes on at once (no-op here).
+static bool serial_set_low_latency_platform(COMPORT port) {
+	(void)port;
+	return false;
+}
+
+
 static int serial_get_modem_status_platform(COMPORT port) {
 	UCHAR dptr = 0;
 	ULONG ulParmLen = sizeof(dptr);
@@ -812,6 +929,10 @@ void SERIAL_setBREAK(COMPORT port, bool value) {
 
 int SERIAL_getmodemstatus(COMPORT port) {
 	return serial_get_modem_status_platform(port);
+}
+
+bool SERIAL_setLowLatency(COMPORT port) {
+	return serial_set_low_latency_platform(port);
 }
 
 bool SERIAL_sendchar(COMPORT port, char data) {

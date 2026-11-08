@@ -43,6 +43,7 @@ void SERIAL_setBREAK(COMPORT port, bool value);
 #define SERIAL_CD 0x80
 
 int SERIAL_getmodemstatus(COMPORT port);
+bool SERIAL_setLowLatency(COMPORT port);
 bool SERIAL_setmodemcontrol(COMPORT port, int flags);
 
 bool SERIAL_sendchar(COMPORT port, char data);
