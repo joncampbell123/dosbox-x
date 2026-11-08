@@ -2994,8 +2994,9 @@ restart_prefix:
 		case 0x90:	//NOP
 			break;
 		case 0x9b:	//WAIT/FWAIT
+			gen_call_function((void *)&FPU_WaitException, "");
+			dyn_check_bool_exception_al();
 #ifdef CPU_FPU
-			dyn_fpu_pre_instruction();
 #ifdef X86_DYNFPU_DH_ENABLED
 			if (!dyn_dh_fpu.dh_fpu_enabled)
 #endif

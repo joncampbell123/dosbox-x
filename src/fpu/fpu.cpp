@@ -905,6 +905,9 @@ void FPU_FPTAN()
 
 void FPU_FPREM()
 {
+    // Set to complete, will set to incomplete later if needed
+    fpu.sw.C2 = 0;
+
     if (fpu_detail::CheckInputs(TOP, STV(1))) return;
 
     if (fpu_detail::InputIsInfinity(TOP) || fpu_detail::InputIsZero(STV(1))) {
@@ -919,7 +922,6 @@ void FPU_FPREM()
     if (fpu_detail::InputIsZero(TOP) || fpu_detail::InputIsInfinity(STV(1))) {
         fpu.sw.C0 = 0;
         fpu.sw.C1 = 0;
-        fpu.sw.C2 = 0;
         fpu.sw.C3 = 0;
         return;
     }
@@ -944,6 +946,9 @@ void FPU_FPREM()
 
 void FPU_FPREM1()
 {
+    // Set to complete, will set to incomplete later if needed
+    fpu.sw.C2 = 0;
+
     if (fpu_detail::CheckInputs(TOP, STV(1))) return;
 
     if (fpu_detail::InputIsInfinity(TOP) || fpu_detail::InputIsZero(STV(1))) {
@@ -958,7 +963,6 @@ void FPU_FPREM1()
     if (fpu_detail::InputIsZero(TOP) || fpu_detail::InputIsInfinity(STV(1))) {
         fpu.sw.C0 = 0;
         fpu.sw.C1 = 0;
-        fpu.sw.C2 = 0;
         fpu.sw.C3 = 0;
         return;
     }

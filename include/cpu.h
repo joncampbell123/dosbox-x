@@ -246,6 +246,7 @@ void CPU_Push32(uint32_t value);
 void CPU_SetFlags(Bitu word,Bitu mask);
 
 bool FPU_CoprocessorException(void);
+bool FPU_WaitException(void);
 bool FPU_NumericException(void);
 bool FPU_NumericExceptionWithContext(uint32_t instruction_pointer_offset,
                                      uint16_t opcode);

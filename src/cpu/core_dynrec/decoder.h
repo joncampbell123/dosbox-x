@@ -412,8 +412,9 @@ restart_prefix:
 		case 0x9a:dyn_call_far_imm();goto finish_block;
 
 		case 0x9b:	// wait
+			gen_call_function_raw(FPU_WaitException);
+			dyn_check_exception(FC_RETOP);
 #ifdef CPU_FPU
-			dyn_fpu_pre_instruction();
 			dyn_fpu_post_wait();
 #endif
 			break;
