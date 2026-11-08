@@ -4923,6 +4923,12 @@ bool FPU_CoprocessorException(void) {
 	return false;
 }
 
+bool FPU_WaitException(void) {
+	if ((cpu.cr0 & CR0_MONITORPROCESSOR) && (cpu.cr0 & CR0_TASKSWITCH))
+		return CPU_PrepareException(EXCEPTION_NM, 0);
+	return false;
+}
+
 bool FPU_NumericException(void)
 {
 	if (!FPU_NumericExceptionPending()) return false;

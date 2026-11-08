@@ -29,6 +29,7 @@ switch (inst.code.load) {
 		goto case_L_MODRM;
 case_L_MODRM:
 	case L_MODRM:
+		if (inst.code.op == O_FPU && FPU_CoprocessorException()) EXCEPTION(EXCEPTION_NM);
 		inst.rm=Fetchb();
 		inst.rm_index=(inst.rm >> 3) & 7;
 		inst.rm_eai=inst.rm&07;
@@ -482,6 +483,11 @@ l_M_Ed:
 		reg_ah=reg_flags&0xff;
 		goto nextopcode;
 	case D_WAIT:
+		if (FPU_WaitException()) EXCEPTION(EXCEPTION_NM);
+#if C_FPU
+		if (FPU_NumericExceptionPending()) EXCEPTION(EXCEPTION_MF);
+#endif
+		goto nextopcode;
 	case D_NOP:
 		goto nextopcode;
 	case D_LOCK:
