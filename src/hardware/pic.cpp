@@ -825,7 +825,7 @@ cpu_cycles_count_t PIC_HostTimeAccount(uint64_t overhead_ns) {
     pic_hosttime_mark = now;
 
     /* KVM host time: nanoseconds the guest ran, without the overhead of going into and out of it */
-    const uint64_t ns = elapsed - std::min(elapsed,overhead_ns);
+    const uint64_t ns = elapsed - (std::min)(elapsed,overhead_ns);
 
     /* KVM host time, nanoseconds to cycles: one cycle per nanosecond, more per nanosecond above
      * 1000000 cycles per millisecond (1000000 = nanoseconds per millisecond) */
@@ -834,7 +834,7 @@ cpu_cycles_count_t PIC_HostTimeAccount(uint64_t overhead_ns) {
 
     /* Run past the slice by at most an emulated millisecond, so that a long stop (a debugger,
      * the host suspending) does not leave the emulation paying the time back */
-    const cpu_cycles_count_t limit = std::max(CPU_Cycles,(cpu_cycles_count_t)0) + CPU_CycleMax;
+    const cpu_cycles_count_t limit = (std::max)(CPU_Cycles,(cpu_cycles_count_t)0) + CPU_CycleMax;
     if (cycles > limit) cycles = limit;
 
     CPU_Cycles -= cycles;
