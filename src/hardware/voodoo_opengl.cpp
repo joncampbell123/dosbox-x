@@ -35,7 +35,7 @@
 #include "sdlmain.h"
 
 bool Voodoo_OGL_Active() {
-	return (v != NULL && v->clock_enabled && v->output_on);
+	return (v != NULL && v->clock_enabled && v->output_on && v->ogl);
 }
 
 #if C_OPENGL
@@ -73,6 +73,7 @@ UINT32 new_height = 0;
 
 static UINT32 ogl_texture_index = 1;
 extern int transparency;
+void GFX_DisplayMainMenubar(bool);
 
 /* texture cache buffer */
 UINT32 texrgb[256*256];
@@ -1722,19 +1723,18 @@ void voodoo_ogl_set_window(voodoo_state *v) {
 	}
 }
 
+extern bool RestrictDOSBoxXMenu;
+
 void voodoo_ogl_reset_videomode(void) {
 #if defined(WIN32) && !defined(C_SDL2)
     /* always show the menu */
     void DOSBox_SetMenu(void);
     DOSBox_SetMenu();
+#else
+	DOSBox_NoMenu();
 #endif
 
-    bool isfs = false;
-    if (GFX_IsFullscreen()) {
-        isfs = true;
-        GFX_SwitchFullScreen();
-    }
-    GFX_PreventFullscreen(true);
+  GFX_DisplayMainMenubar(false);
 
 	last_clear_color=0;
 
@@ -1779,17 +1779,12 @@ void voodoo_ogl_reset_videomode(void) {
 	// broken on windows (longstanding SDL bug), may help other platforms to force hardware acceleration
 	SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
 #endif
-
+/*
     if (ogl_surface != NULL) {
 		SDL_FreeSurface(ogl_surface);
 		ogl_surface = NULL;
 	}
-
-    void GFX_LosingFocus(void), GFX_ReleaseMouse(void), GFX_ForceFullscreenExit(void);
-
-    GFX_LosingFocus();
-    GFX_ReleaseMouse();
-    GFX_ForceFullscreenExit();
+*/
 
 #if DOSBOXMENU_TYPE != DOSBOXMENU_SDLDRAW
 	if (new_height<v->fbi.height)
@@ -1799,8 +1794,6 @@ void voodoo_ogl_reset_videomode(void) {
 	if (new_width < v->fbi.width)
 #endif
 		new_width = v->fbi.width;
-
-	if (GFX_LazyFullscreenRequested()) GFX_SwitchFullscreenNoReset();
 
 #if defined(C_SDL2)
     GFX_SetResizeable(true);
@@ -1843,17 +1836,9 @@ void voodoo_ogl_reset_videomode(void) {
 		}
 	}
 #endif
+  ApplyPreventCap();
 
-    if (isfs) {
-#if defined(C_SDL2)
-        SDL_MaximizeWindow(sdl.window);
-#elif defined(WIN32)
-        ShowWindow(GetHWND(), SW_MAXIMIZE);
-#endif
-    }
-    ApplyPreventCap();
-
-    v->ogl_dimchange = true;
+  v->ogl_dimchange = true;
 
 	glViewport( 0, 0, new_width, new_height );
 	last_width = new_width;
@@ -1863,9 +1848,9 @@ void voodoo_ogl_reset_videomode(void) {
      *      This is said to be the initial state of an OpenGL context.
      *      This is in direct contradiction to the OpenGL output setup
      *      in src/gui/sdlmain.cpp that sets up GL_FLAT shading */
-    glShadeModel (GL_SMOOTH);
+  glShadeModel (GL_SMOOTH);
 
-	GFX_PreventFullscreen(true);
+  GFX_DisplayMainMenubar(false);
 	GFX_UpdateSDLCaptureState();
 
 	int value;
@@ -2018,7 +2003,7 @@ void voodoo_ogl_leave(bool leavemode) {
 		LOG_MSG("VOODOO: OpenGL: quit");
 
         ogl_surface = NULL;
-        GFX_PreventFullscreen(false);
+        GFX_DisplayMainMenubar(true);
         GFX_RestoreMode();
 #if defined(C_SDL2)
         if (Direct3D_using()) {

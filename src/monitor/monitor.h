@@ -161,8 +161,8 @@ class Monitor { /* {{{ */
 		bool	helpMe( Monitor&,const cmd_tokens_t& );
 	};/* }}} */
 
-	struct	CommandLine {/* {{{ */
-		cmd_tokens_t	processCommandLine( const std::string );
+	struct	UserRequest {/* {{{ */
+		cmd_tokens_t	processUserRequest( const std::string );
 		void				getInfo();
 	};// }}} }}} 
 
@@ -306,8 +306,8 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 				if( bytes_received && '\0' !=buffer[ bytes_received-1 ] )
 					buffer[ bytes_received-1 ] = '\0';
 				
-				CommandLine cli;
-				cmd_tokens_t user_input= cli.processCommandLine( buffer );
+				UserRequest cli;
+				cmd_tokens_t user_input= cli.processUserRequest( buffer );
 				if( !user_input.empty() ) {
 
 					auto processCommand= std::find_if( _commands->begin(),_commands->end(),
@@ -363,8 +363,8 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 				LOG_MSG( "MONITOR client disconnected unexpectedly or connection lost.\n" );
 			}
 			else {
-				CommandLine  cli;
-				cmd_tokens_t user_input= cli.processCommandLine( buffer );
+				UserRequest  cli;
+				cmd_tokens_t user_input= cli.processUserRequest( buffer );
 
 				if( user_input.empty() ){ continue; }
 

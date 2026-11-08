@@ -114,6 +114,8 @@ bool Direct3D_using(void);
 void UpdateSDLDrawDBCSTexture(Bitu code);
 unsigned char prevc = 0;
 
+extern bool RestrictDOSBoxXMenu;
+
 /* top level menu ("") */
 static const char *def_menu__toplevel[] =
 {
@@ -2206,7 +2208,7 @@ void DOSBox_NoMenu(void) {
 
 void ToggleMenu(bool pressed) {
     /* prevent removing the menu in 3Dfx mode */
-    if (GFX_GetPreventFullscreen())
+    if (GFX_GetPreventFullscreen() || RestrictDOSBoxXMenu)
         return;
 
     menu.resizeusing=true;

@@ -110,6 +110,9 @@ int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
 bool InitCodePage();
 uint8_t *GetDbcsFont(Bitu code);
+bool GFX_GetDisplayMainMenubar(void);
+
+extern bool RestrictDOSBoxXMenu;
 
 // NTS: With high DPI displays (e.g. on Windows 7+ with DPI scaling enabled)
 //      this works better with maximized window or full-screen mode and the
@@ -194,9 +197,7 @@ retry:
 #endif
     }
 
-    bool isModeswitchSet = vga.draw.modeswitch_set;
-
-    if (isModeswitchSet)
+    if (GFX_IsModeswitch())
         fixedHeight = 0;
     else if (fixedWidth == 0 || fixedHeight == 0)
     {
@@ -214,7 +215,7 @@ retry:
     /* SDL drawn menus cannot coexist with 3Dfx emulation. In fact, there is a serious
      * bug in SDL1 builds that rapidly expands the vertical size of the menu every frame. */
     
-    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen)  {
+    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && !GFX_GetDisplayMainMenubar())  {
     }
     else {
         int cw = fixedWidth, ch = fixedHeight;
@@ -237,7 +238,7 @@ retry:
 #endif
 
     sdl.clip.x = 0; sdl.clip.y = 0;
-    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen)
+    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && !GFX_GetDisplayMainMenubar())
     { 
         /* 3Dfx openGL do not allow resize */
         sdl.clip.w = windowWidth = (uint16_t)Voodoo_OGL_GetWidth();
@@ -272,7 +273,7 @@ retry:
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     if (mainMenu.isVisible() && !sdl.desktop.fullscreen) 
     {
-        if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) {
+        if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && !GFX_GetDisplayMainMenubar()) {
         }
         else {
             windowHeight += mainMenu.menuBox.h;
@@ -718,7 +719,7 @@ Bitu OUTPUT_OPENGL_SetSize()
                 }
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                 // Todo: Make SDL-drawn menu work with custom GLSL shaders
-                if (!sdl.desktop.prevent_fullscreen) {
+                if (!sdl.desktop.prevent_fullscreen || RestrictDOSBoxXMenu) {
                     menu.toggle=false;
                     mainMenu.showMenu(false);
                     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
