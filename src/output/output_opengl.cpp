@@ -206,9 +206,7 @@ retry:
 #endif
     }
 
-    bool isModeswitchSet = vga.draw.modeswitch_set;
-
-    if (isModeswitchSet)
+    if (GFX_IsModeswitch())
         fixedHeight = 0;
     else if (fixedWidth == 0 || fixedHeight == 0)
     {

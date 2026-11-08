@@ -1944,23 +1944,20 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
     SDL_SetWindowResizable(sdl.window, SDL2_resize_enable ? SDL_TRUE : SDL_FALSE);
     SDL_WindowFlags flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
 
-#if C_SDL2
-	/*
-	 * When modeswitching _is_ enabled let's go with sane values.
-	 */
-	bool isModeswicthSet = vga.draw.modeswitch_set;
-
-#endif
-
     if (GFX_IsFullscreen()) {
         SDL_DisplayMode displayMode;
         SDL_GetWindowDisplayMode(sdl.window, &displayMode);
 
-	if(isModeswicthSet) {
+#if C_SDL2
+	/*
+	 * When modeswitching _is_ enabled let's go with sane values.
+	 */
+	if(GFX_IsModeswitch()) {
 		flags = SDL_WINDOW_FULLSCREEN;
 		width = vga.draw.width;
 		height = vga.draw.height;
 	}
+#endif
 
         displayMode.w = width;
         displayMode.h = height;
@@ -3200,7 +3197,7 @@ void GFX_SwitchFullScreen(void)
 	if (glide.enabled)
 		GLIDE_ResetScreen();
 	else
-        GFX_ResetScreen();
+	    GFX_ResetScreen();
 
     // set vsync to host
     // NOTE why forcing ???
@@ -3242,6 +3239,10 @@ void GFX_SwitchFullscreenNoReset(void) {
 bool GFX_LazyFullscreenRequested(void) {
     if (sdl.desktop.lazy_fullscreen) return sdl.desktop.lazy_fullscreen_req;
     return false;
+}
+
+bool GFX_IsModeswitch(void) {
+	return vga.draw.modeswitch_set;
 }
 
 void GFX_RestoreMode(void) {
@@ -10247,8 +10248,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #if C_MONITOR 
 				std::string mon_sock = section->Get_string("monitor socket");
-				if ( !mon_sock.empty() && mon_sock != "off" ) {
-    				Monitor::OpenMonitor( mon_sock );
+				if ( !mon_sock.empty() && mon_sock != "off" && Monitor::StartMonitor( mon_sock ) != EXIT_SUCCESS ) {
+    				LOG_MSG( "MONITOR: Unable to open Monitor Console on... %s\n", mon_sock.c_str() );
 				}
 #endif
 

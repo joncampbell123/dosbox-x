@@ -58,6 +58,8 @@ double                      gdc_proc_delay = 0.001; /* time from FIFO to process
 bool                        gdc_proc_delay_set = false;
 struct PC98_GDC_state       pc98_gdc[2];
 
+extern bool                 vga_8bit_dac;
+
 void pc98_update_display_page_ptr(void) {
     if (pc98_256kb_boundary) {
         /* GDC display plane has no effect in 256KB boundary mode */
@@ -820,6 +822,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
                 if (gdc_analog) { /* 16/256-color mode */
+                    vga_8bit_dac = true;
                     if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
                         pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 0] = (uint8_t)val;
                         vga.dac.rgb[pc98_16col_analog_rgb_palette_index].green = (uint8_t)val;
@@ -827,7 +830,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                     }
                     else {
                         pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0] = val&0x0F;
-                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].green = dac_4to6(val&0xF); /* re-use VGA DAC */
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].green = dac_4to8(val&0xF); /* re-use VGA DAC */
                         VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
                     }
                 }
@@ -846,6 +849,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
                 if (gdc_analog) { /* 16/256-color mode */
+                    vga_8bit_dac = true;
                     if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
                         pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 1] = (uint8_t)val;
                         vga.dac.rgb[pc98_16col_analog_rgb_palette_index].red = (uint8_t)val;
@@ -853,7 +857,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                     }
                     else {
                         pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1] = val&0x0F;
-                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].red = dac_4to6(val&0xF); /* re-use VGA DAC */
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].red = dac_4to8(val&0xF); /* re-use VGA DAC */
                         VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
                     }
                 }
@@ -872,6 +876,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
                 if (gdc_analog) { /* 16/256-color mode */
+                    vga_8bit_dac = true;
                     if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
                         pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 2] = (uint8_t)val;
                         vga.dac.rgb[pc98_16col_analog_rgb_palette_index].blue = (uint8_t)val;
@@ -879,7 +884,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                     }
                     else {
                         pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2] = val&0x0F;
-                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].blue = dac_4to6(val&0xF); /* re-use VGA DAC */
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].blue = dac_4to8(val&0xF); /* re-use VGA DAC */
                         VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
                     }
                 }

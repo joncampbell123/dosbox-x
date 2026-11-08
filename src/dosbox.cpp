@@ -795,6 +795,7 @@ static void DOSBOX_UnlockSpeed( bool pressed ) {
         LOG_MSG("Fast Forward OFF");
         ticksLocked = false;
         turbolasttick = 0;
+        SetVal("cpu", "turbo", "false");
         if (autoadjust) {
             autoadjust = false;
             CPU_CycleAutoAdjust = true;
