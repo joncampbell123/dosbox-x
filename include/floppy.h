@@ -36,7 +36,7 @@ void FLOPPY_INT13_Access(unsigned char drive,unsigned int cylinder,unsigned int 
 void FLOPPY_INT13_Reset(void);
 
 /* The BIOS floppy motor timeout (BIOS data area 40:40h) ran out: turn the motors off */
-void FLOPPY_BIOS_MotorTimeout(void);
+void FLOPPY_BIOS_MotorTimeout(uint8_t running);
 
 /* PC-98 disk BIOS (INT 1Bh) floppy access, done the way the BIOS would do it with the uPD765:
  * on the same drive mechanics and the same tracks (sectors found by their ID fields as they turn

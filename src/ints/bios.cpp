@@ -228,6 +228,7 @@ void ACPI_PMTIMER_CHECK(void) { /* please don't call this often */
 
 Bitu BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION = ~0u;
 Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0u;       // (RealMake(0xf000,0xfea5))
+static PhysPt BIOS_DEFAULT_INT1A_ENTRY = ~0u;   // F000:FE6E, IBM PC/AT fixed entry point of INT 1Ah
 Bitu BIOS_DEFAULT_IRQ1_LOCATION = ~0u;       // (RealMake(0xf000,0xe987))
 Bitu BIOS_DEFAULT_IRQ07_DEF_LOCATION = ~0u;  // (RealMake(0xf000,0xff55))
 Bitu BIOS_DEFAULT_IRQ815_DEF_LOCATION = ~0u; // (RealMake(0xf000,0xe880))
@@ -6242,13 +6243,33 @@ bool enable_bios_timer_synchronize_keyboard_leds = true;
 
 void KEYBOARD_SetLEDs(uint8_t bits);
 
-void BIOS_KEYBOARD_SetLEDs(Bitu state) {
-    Bitu x = mem_readb(BIOS_KEYBOARD_LEDS);
+/* Linear address of the BIOS data area as BIOS code addressing it through segment 40h sees it.
+ * In real mode and virtual 8086 mode that is 400h. In protected mode the BIOS code loads selector
+ * 40h into DS as it would the segment, and protected mode systems that call BIOS code (OS/2 calls
+ * the IRQ 0 handler during startup) give that selector a base of 400h in their GDT. The linear
+ * address 400h itself need not be mapped there (OS/2 Warp 3: a page fault in the IRQ 0 handler,
+ * then a hang at startup). Without a usable selector 40h, fall back to 400h. */
+PhysPt BIOS_DataAreaLinear(void) {
+    if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+        Descriptor desc;
+        if (cpu.gdt.GetDescriptor(0x40,desc) && desc.saved.seg.p && (desc.Type() & 0x18) == 0x10/*data segment*/)
+            return (PhysPt)desc.GetBase();
+    }
+
+    return 0x400;
+}
+
+static void BIOS_KEYBOARD_SetLEDs_At(PhysPt bda,Bitu state) {
+    Bitu x = mem_readb(bda + (BIOS_KEYBOARD_LEDS - 0x400));
 
     x &= ~7u;
     x |= (state & 7u);
-    mem_writeb(BIOS_KEYBOARD_LEDS,x);
+    mem_writeb(bda + (BIOS_KEYBOARD_LEDS - 0x400),(uint8_t)x);
     KEYBOARD_SetLEDs(state);
+}
+
+void BIOS_KEYBOARD_SetLEDs(Bitu state) {
+    BIOS_KEYBOARD_SetLEDs_At(0x400,state);
 }
 
 /* PC-98 IRQ 0 system timer */
@@ -6296,11 +6317,15 @@ bool sync_time_timerrate_warning = false;
 uint32_t PIT0_GetAssignedCounter(void);
 
 static Bitu INT8_Handler(void) {
+    /* the BIOS data area through segment/selector 40h, as the BIOS code addresses it */
+    const PhysPt bda = BIOS_DataAreaLinear();
+#define BDA(x) (bda + (PhysPt)((x) - 0x400))
+
     /* Increase the bios tick counter */
-    uint32_t value = mem_readd(BIOS_TIMER) + 1;
+    uint32_t value = mem_readd(BDA(BIOS_TIMER)) + 1;
     if(value >= 0x1800B0) {
         // time wrap at midnight
-        mem_writeb(BIOS_24_HOURS_FLAG,mem_readb(BIOS_24_HOURS_FLAG)+1);
+        mem_writeb(BDA(BIOS_24_HOURS_FLAG),mem_readb(BDA(BIOS_24_HOURS_FLAG))+1);
         value=0;
     }
 
@@ -6313,11 +6338,11 @@ static Bitu INT8_Handler(void) {
        hook the keyboard and handles keyboard I/O by itself, but it still
        allows the BIOS to do the keyboard magic from IRQ 0 (INT 8h). Yech. */
     if (enable_bios_timer_synchronize_keyboard_leds) {
-        Bitu should_be = (mem_readb(BIOS_KEYBOARD_STATE) >> 4) & 7;
-        Bitu led_state = (mem_readb(BIOS_KEYBOARD_LEDS) & 7);
+        Bitu should_be = (mem_readb(BDA(BIOS_KEYBOARD_STATE)) >> 4) & 7;
+        Bitu led_state = (mem_readb(BDA(BIOS_KEYBOARD_LEDS)) & 7);
 
         if (should_be != led_state)
-            BIOS_KEYBOARD_SetLEDs(should_be);
+            BIOS_KEYBOARD_SetLEDs_At(bda,should_be);
     }
 
     if (sync_time && cmos_sync_flag) {
@@ -6378,11 +6403,16 @@ static Bitu INT8_Handler(void) {
         }
     }
 #endif
-    mem_writed(BIOS_TIMER,value);
+    mem_writed(BDA(BIOS_TIMER),value);
 
 	if(bootdrive>=0) {
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
-        SetIMPosition();
+        /* The host input method follows the text cursor of the guest. SetIMPosition() reads the BIOS
+         * data area through linear addresses, which is only safe in real mode and virtual 8086 mode.
+         * A protected mode OS calling the IRQ 0 handler (OS/2 Warp 3 at startup) need not map them
+         * and would take a page fault inside the BIOS. */
+        if (!cpu.pmode || (reg_flags & FLAG_VM))
+            SetIMPosition();
 #endif
     } else if (IS_DOSV && DOSV_CheckCJKVideoMode()) {
         INT8_DOSV();
@@ -6395,13 +6425,15 @@ static Bitu INT8_Handler(void) {
     }
 
     /* decrement FDD motor timeout counter; roll over on earlier PC, stop at zero on later PC */
-    uint8_t val = mem_readb(BIOS_DISK_MOTOR_TIMEOUT);
-    if (val || !IS_EGAVGA_ARCH) mem_writeb(BIOS_DISK_MOTOR_TIMEOUT,val-1);
+    uint8_t val = mem_readb(BDA(BIOS_DISK_MOTOR_TIMEOUT));
+    if (val || !IS_EGAVGA_ARCH) mem_writeb(BDA(BIOS_DISK_MOTOR_TIMEOUT),val-1);
     /* turn off the FDD motors and clear the motor bits when counter reaches zero */
     if (val == 1) {
-        FLOPPY_BIOS_MotorTimeout();
-        mem_writeb(BIOS_DRIVE_RUNNING,mem_readb(BIOS_DRIVE_RUNNING) & 0xF0);
+        const uint8_t running = mem_readb(BDA(BIOS_DRIVE_RUNNING));
+        FLOPPY_BIOS_MotorTimeout(running);
+        mem_writeb(BDA(BIOS_DRIVE_RUNNING),running & 0xF0);
     }
+#undef BDA
     return CBRET_NONE;
 }
 #undef DOSBOX_CLOCKSYNC
@@ -12139,6 +12171,13 @@ public:
         BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x1c+CALLBACK_InstrLength()/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE987));
         BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF55));
         BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE880));
+        /* The INT 1Ah handler of the IBM PC/AT BIOS is at F000:FE6E, and compatible BIOSes keep it there.
+         * OS/2 Warp 3 calls the PCI BIOS (AH=B1h) with PUSHF + CALL FAR F000:FE6E instead of through the
+         * interrupt vector. There was nothing there, so it ran into the IRQ 0 handler and hung at startup. */
+        if (!IS_PC98_ARCH)
+            BIOS_DEFAULT_INT1A_ENTRY = ROMBIOS_GetMemory(5/*JMP FAR*/,"BIOS INT 1Ah entry point (JMP)",/*align*/1,0xFFE6E);
+        else
+            BIOS_DEFAULT_INT1A_ENTRY = ~0u;
 
         write_FFFF_signature();
         if (IS_PC98_ARCH)
@@ -12324,6 +12363,22 @@ public:
 
         /* INT 1A TIME and some other functions */
         callback[6].Install(&INT1A_Handler,CB_IRET_STI,"Int 1a Time");
+        if (BIOS_DEFAULT_INT1A_ENTRY != (PhysPt)(~0u)) {
+            /* Jump from the fixed entry point to the INT 1Ah handler. A near JMP when the handler is in
+             * segment F000 (as the callbacks are), because protected mode callers run this code through
+             * a selector based at F0000h, where a far JMP to segment F000 would fault. */
+            const RealPt h = callback[6].Get_RealPointer();
+            const PhysPt from = BIOS_DEFAULT_INT1A_ENTRY;
+            if (RealSeg(h) == 0xF000 && from >= 0xF0000 && from < 0x100000) {
+                phys_writeb(from+0,0xE9);
+                phys_writew(from+1,(uint16_t)(RealOff(h) - ((from - 0xF0000) + 3u)));
+            }
+            else {
+                phys_writeb(from+0,0xEA);
+                phys_writew(from+1,(uint16_t)RealOff(h));
+                phys_writew(from+3,(uint16_t)RealSeg(h));
+            }
+        }
 
         /* INT 1C System Timer tick called from INT 8 */
         callback[7].Install(&INT1C_Handler,CB_IRET,"Int 1c Timer");

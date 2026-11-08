@@ -2838,8 +2838,7 @@ void FLOPPY_INT13_Reset(void) {
 		floppycontroller[0]->int13_reset();
 }
 
-void FLOPPY_BIOS_MotorTimeout(void) {
-	const uint8_t running = mem_readb(BIOS_DRIVE_RUNNING);
+void FLOPPY_BIOS_MotorTimeout(uint8_t running) {
 
 	for (unsigned char d=0;d < 2;d++) {
 		if (!(running & (1u << d))) continue;
