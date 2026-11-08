@@ -1365,7 +1365,7 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(const char *cuefile) {
 		uint64_t fileSector = 0;
 		for (size_t i = 0; i < n; i++) {
 			Track &t = tracks[i];
-			const long stored = std::min<long>((long)t.start, trackIndex0.count(t.number) ? std::max(0L, trackIndex0[t.number]) : (long)t.start);
+			const long stored = std::min<long>((long)t.start, trackIndex0.count(t.number) ? (std::max)(0L, trackIndex0[t.number]) : (long)t.start);
 			long end;
 			if (i + 1 < n && tracks[i + 1].session == t.session) {
 				const Track &nx = tracks[i + 1];
@@ -1804,7 +1804,7 @@ uint32_t CDROM_Interface_Image::SessionEnd(int session) const
 
 int CDROM_Interface_Image::GetSessionCount(void)
 {
-	return tracks.empty() ? 1 : std::max(1, tracks.back().session);
+	return tracks.empty() ? 1 : (std::max)(1, tracks.back().session);
 }
 
 bool CDROM_Interface_Image::GetSessionInfo(int session, int& firstTrack, int& lastTrack, TMSF& leadOut, unsigned char& discType)
