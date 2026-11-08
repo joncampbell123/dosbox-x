@@ -1510,14 +1510,15 @@ void On_Software_286_int15_block_move_return(unsigned char code) {
     CPU_SetSegGeneral(ss,vec_seg);
     reg_esp = vec_off;
 
-    /* WARNING! WARNING! This is based on what Windows 3.1 standard mode (cputype=286) expects.
-     * We need more comprehensive documentation on what actual 286 BIOSes do.
-     * This code, order-wise, is a guess! No documentation exists on what actually happens!
-     * But so far, this allows Windows 3.1 to run in full Standard Mode when cputype=286 without crashing.
-     * Be warned that while it works DOSBox-X will spit a shitload of messages about the triple-fault reset trick it's using. */
-    CPU_SetSegGeneral(es,CPU_Pop16());  /* FIXME: ES? or DS? */
-    CPU_SetSegGeneral(ds,CPU_Pop16());  /* FIXME: ES? or DS? */
-    /* probably the stack frame of POPA */
+    /* The stack frame the IBM PC/AT BIOS INT 15h AH=87h block move builds before it switches to protected
+     * mode: the INT 15h IRET frame, PUSHA, then PUSH ES, PUSH DS. The shutdown 09h return path pops DS
+     * first, then ES, then POPA and returns with IRET. Programs that use the reset trick themselves build
+     * the same frame (OS/2 1.0 pushes ES=0 and DS=its data segment, and restores the PIC mask through DS
+     * right after the reset; with DS and ES swapped it read the wrong byte and left the keyboard masked).
+     * Windows 3.1 standard mode (cputype=286) runs this way too. */
+    CPU_SetSegGeneral(ds,CPU_Pop16());
+    CPU_SetSegGeneral(es,CPU_Pop16());
+    /* the stack frame of POPA */
     reg_di=CPU_Pop16();reg_si=CPU_Pop16();reg_bp=CPU_Pop16();CPU_Pop16();//Don't save SP
     reg_bx=CPU_Pop16();reg_dx=CPU_Pop16();reg_cx=CPU_Pop16();reg_ax=CPU_Pop16();
     /* and then finally what looks like an IRET frame */
