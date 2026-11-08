@@ -1,4 +1,48 @@
 Next version:
+  - [AI] DOS: the Swappable Data Area is where programs written for the
+    reported DOS version expect it. While DOS reports 3.10 to 3.39 it is at
+    offset 02CEh of the List of Lists segment (current PSP at 02DEh) as in
+    MS-DOS 3.1-3.3, otherwise at the DOS 4+ location (current PSP at 0330h).
+    Fixes Windows/286 2.11 crashing at startup with memory corruption
+    ("Corrupt MCB chain") when DOS reports version 3.x, e.g. "ver set 3 30".
+    (joncampbell123)
+  - [AI] IDE: the ATA and ATAPI commands up to ATA8-ACS. The hard disk has
+    SMART (attributes, self-tests, error and self-test logs), General Purpose
+    Logging, SCT Command Transport, Host Protected Area, Device Configuration
+    Overlay, Security (SECURITY ERASE UNIT erases the disk image), Streaming,
+    NV Cache, Trusted Computing, DOWNLOAD MICROCODE, WRITE UNCORRECTABLE,
+    READ/WRITE LONG, APM, AAM and the SET FEATURES subcommands of every ATA
+    standard. Long fills such as a security erase run in the background at
+    the drive's speed. The CD-ROM has more MMC commands (PLAY AUDIO(12), PLAY
+    AUDIO TRACK/INDEX, SCAN, READ HEADER, GET PERFORMANCE, SET STREAMING,
+    VERIFY, LOAD/UNLOAD MEDIUM and others) and GET MEDIA STATUS.
+    (joncampbell123)
+  - [AI] IDE: added [ide, primary] "pci bus master" (none, piix3, piix4): a
+    PCI bus master IDE function (Intel PIIX3 or PIIX4) for DMA transfers,
+    with the ATA DMA commands and ATAPI PACKET with DMA. The BIOS sets up
+    the drives for DMA as Windows 9x expects, and the channels are not also
+    listed as ISA PnP devices. Default none (needs the PCI bus).
+    (joncampbell123)
+  - [AI] IDE: added [ide, *] "ata standard" (auto, ata1 ... ata8): the IDE
+    devices follow that ATA standard's commands, features, IDENTIFY data and
+    transfer modes. auto is ata8 with the PCI bus, ata3 without.
+    (joncampbell123)
+  - [AI] IDE: the hard disk takes the time a real drive takes to seek, wait
+    for the sectors to come around and read or write them, with read-ahead,
+    a write cache and spin up/down for the power management commands. The
+    CD-ROM has tray, spin up/down, seek and read times (CLV/CAV), Media
+    Change Notification and tray locking, and READ CD returns every sector
+    format and field. INT 13h and PC-98 INT 1Bh hard disk access go through
+    the same drive model. Added [ide, *] options "hard disk instant mode",
+    "hard disk rpm", "hard disk spinup time", "cd-rom instant mode",
+    "cd-rom max speed" and "cd-rom tray time". Fixed IMGMOUNT to an IDE
+    device spec (":ide:2m"), which never got the image file.
+    (joncampbell123)
+  - [AI] Floppy: the drive takes the time a real one takes (motor start,
+    seek, head settle, sectors turning past the head) for the FDC and INT 13h
+    alike, with [fdc, primary] "instant mode" to turn the delays off. PC-98:
+    uPD765 floppy interface with ID field level tracks (copy protection), and
+    INT 1Bh floppy access on the same drive model. (joncampbell123)
   - [AI] KVM CPU core: 256-colour VGA (mode 13h) games run at full speed:
     the guest writes video memory directly instead of every write going
     through DOSBox-X (Quake's timedemo went from 45 to over 200 fps).
