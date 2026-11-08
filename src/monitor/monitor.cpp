@@ -240,9 +240,8 @@ bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ *
 	messageClient( m._client,"\n" );
 	return EXIT_SUCCESS;
 }	/* }}} */
-#include "programs.h" 
 
-int	createDrives( char tDriveLetter,std::vector< std::string > tPaths,std::vector< DOS_Drive * > &tISOs ) { /* {{{ */
+int	createISODrives( const char tDriveLetter,const std::vector< std::string > tPaths,std::vector< DOS_Drive * > &tISOs ) { /* {{{ */
 	MSCDEX_SetCDInterface( CDROM_USE_SDL, -1 );
 	std::vector<std::string> options= { "readonly" };
 	for( auto drive:tPaths ) {
@@ -261,6 +260,49 @@ int	createDrives( char tDriveLetter,std::vector< std::string > tPaths,std::vecto
 	}
 	return EXIT_SUCCESS;
 };/* }}} */
+
+#if (defined(WIN32) || defined(LINUX)) && !defined(OSFREE)
+int	createFloppyDrives( const unsigned int tDriveLetter,const std::vector< std::string >tPaths,std::vector< fatDrive *> &tDisks ) {/* {{{ */
+	int index= 0;
+	std::vector<std::string> fd_options= { "readonly" };
+	for( auto drive:tPaths ) {
+		fatDrive *newDrive = new fatDrive( drive.c_str(),0,0,0,0,fd_options );
+
+		if( !newDrive->created_successfully ) {
+			for( fatDrive *drive: tDisks ) 
+				delete drive;
+
+			return EXIT_FAILURE;
+		}
+
+		if( dos_kernel_disabled ) {	
+			if( 0 ==index ) {
+				if( imageDiskList[ tDriveLetter ]  )
+					imageDiskList[ tDriveLetter ]->Release();
+				imageDiskList[ tDriveLetter ]= newDrive->loadedDisk;
+				imageDiskList[ tDriveLetter ]->Addref();
+				imageDiskChange[ tDriveLetter ]= true;
+			} else {
+
+				if( diskSwap[ index-1 ] ) {
+					diskSwap[ index-1 ]->Release();
+				}
+				diskSwap[ index-1 ]= newDrive->loadedDisk;
+				diskSwap[ index-1 ]->Addref();
+			}
+			index++;
+		}
+		else {
+		tDisks.push_back( newDrive );
+			DriveManager::AppendDisk( tDriveLetter,newDrive );
+		}
+	}
+
+	if( !dos_kernel_disabled )
+		DriveManager::InitializeDrive( tDriveLetter );
+	return EXIT_SUCCESS;
+};/* }}} */
+#endif
 
 std::string	handleError( int tErrorCode ) { /* {{{ */
 	switch( tErrorCode ) {
@@ -289,7 +331,7 @@ bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tU
 	drive_letter= std::toupper( drive_letter );
 	bool drive_check= false;
 	for( int drive_no:availableDrives )
-		if ( char( 'A'+drive_no ) ==drive_letter ) drive_check =true;
+		if ( char( 'A'+drive_no ) ==drive_letter ) drive_check= true;
 
 	if ( false ==drive_check ) {
 		Monitor::messageClient( m._client,MSGX( "MSCDEX_UNKNOWN_ERROR" ) );
@@ -305,8 +347,22 @@ bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tU
 	}
 	/* Unlike the IMGMOUNT program we can only replace existing drives. */
 	int entry= drive_letter-'A';
+
+	if( entry <2 ) {
+		#if (defined(WIN32) || defined(LINUX)) && !defined(OSFREE)
+		std::vector< fatDrive* > fatDisks= {};
+		if( int retval= createFloppyDrives( entry,paths,fatDisks ) ) {
+			m.messageClient( m._client,"MONITOR Drive(s) not avilable." );
+			return EXIT_FAILURE;
+		}
+		#else
+		m.messageClient( m._client,"MONITOR Drive(s) not avilable." );
+		return EXIT_FAILURE;
+		#endif
+	}
+
 	std::vector<DOS_Drive*> isoDisks= {};
-	if( int code= createDrives( drive_letter,paths,isoDisks ) ) {
+	if( int code= createISODrives( drive_letter,paths,isoDisks ) ) {
 			m.messageClient( m._client,handleError( code ) );
 			return EXIT_FAILURE;
 	}
