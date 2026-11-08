@@ -70,6 +70,8 @@ subsections with prerequisites first.
 6. **Vulkan output and Vulkan 3dfx rendering.**
 7. **Metal output and Metal 3dfx rendering.**
 8. **KVM CPU core.**
+9. **Multisession CD images** (CUE and CloneCD) and two CloneCD fixes. Independent of everything
+   above; subsections 1 and 2 are stand-alone bug fixes that can be ported first.
 
 Dependencies between sections:
 - **3dfx work:**
@@ -4368,3 +4370,117 @@ exit counter (`in 040h 12345, out 3c9h ...`). Then unmap `kvm_run` and close the
 - A run-time CPU type change needs a new vCPU on newer kernels (subsection 5).
 - Windows 95 with `memsize=16` did not run its test program in 400 s under KVM (it did with 32 MB
   and on the dynamic core); probably a Windows dialog rather than the core, not investigated.
+
+## Multisession CD images (CUE, CloneCD), CloneCD fixes, ATAPI full TOC
+
+Commit d629fe440 on `main-ai` (2026-11-07); made to read
+the images of Discweaver, a disc authoring program of the creative offline suite, which writes
+multisession CUE/BIN, CloneCD and NRG images (Enhanced CD, appended data sessions).
+
+Background, multisession CD addresses: track 1 index 1 is LBA 0 (MSF 00:02:00). After a session's
+lead-out start (point A2) come the lead-out (6750 sectors after session 1, 2250 after later
+sessions), the next session's lead-in (4500) and that session's first pregap (150), so the next
+session's first index 1 is the previous A2 + 11400 (after session 1) or + 6900. Nothing in the
+lead-out and lead-in can be read. Operating systems mount the file system of the last session
+that has a data track; its volume descriptors are at that track's start + 16 and its directories
+may point into earlier sessions.
+
+### 1. CloneCD: the lead-out is the TOC's A2
+
+`LoadCloneCDSheet()` adds the lead-out pseudo track through `AddTrack()`, which was written for
+cue sheets and places a track after the previous file's data. With a CloneCD sheet this left the
+lead-out entry at the last track's start, so the last track had no length: READ TOC and
+`GetAudioTracks()` reported the last track's start as the lead-out (the Powerslave CloneCD dump:
+lead-out 143466, the start of track 19, instead of A2 = 166199; its cue sheet gave 166199). Fix:
+after adding the lead-out entry, set its start to the A2 PLBA and its pregap to 0.
+
+Testing: an ATAPI READ TOC (see 8) on a CloneCD image whose last track is audio; the lead-out
+must equal the A2 PLBA in the .ccd and the value from the same disc's cue sheet.
+
+### 2. CloneCD: Mode 2 data tracks
+
+The CloneCD loader read neither the `[TRACK n]` sections nor `MODE=`, so `mode2` stayed false
+for CD-ROM XA tracks and cooked reads took the user data 16 bytes into the raw sector instead of
+24: an XA data track (Video CD, multisession and Enhanced CD data sessions) could not be mounted.
+Fix: parse `[TRACK n]` sections (keys `MODE` and `INDEX 0`) and, after loading, set `mode2` on
+data tracks whose `MODE` is 2.
+
+### 3. Sessions in the CD-ROM interface
+
+`CDROM_Interface` gets three virtual functions with single-session defaults, so the ioctl, ASPI
+and fake interfaces need no change: the number of sessions (1); per session the first and last
+track, the lead-out and the TOC disc type of point A0 (0x00, or 0x20 CD-ROM XA when the session
+has a Mode 2 data track) — the default answers session 1 from `GetAudioTracks()`; and the sector
+where the file system starts minus 16 (0). The image class keeps a session number per `Track`
+(default 1) and the lead-out LBA of every session but the last (the last is the lead-out
+entry's start). The file system base is the start of the first data track of the last session
+that has one, and 0 when that is session 1.
+
+### 4. Cue sheets: `REM SESSION nn`
+
+CDRWIN cue sheets mark sessions with `REM SESSION nn` (other `REM` lines stay comments); a track
+belongs to the latest session marked before it. In `AddTrack()`, when a track with a file starts
+a session later than the previous track's, it is placed by the multisession rule: the previous
+session's lead-out is the previous track's end, and the track's start moves on by the lead-out
+plus lead-in length (11250 after session 1, 6750 later). If the sheet gives no `INDEX 00` for
+that track, its 150-sector pregap is not in the file and is added like a `PREGAP` command. The
+same offset is added to the running pregap total so later tracks of the same file stay in place,
+and the session's lead-out is recorded. This follows libmirage: the BIN data of the sessions is
+contiguous (the gap is not in the file). Aaru instead expects the gap inside single-file BINs;
+one BIN per track (as Discweaver writes multisession sheets) avoids the ambiguity. `REM LEAD-OUT
+mm:ss:ff` (the lead-out start, as Aaru writes it) is not needed and is ignored.
+
+While there: a track's pregap start (its index 0) is now computed after the running pregap total
+is added, minus that track's own `PREGAP`; before, a track after one with a `PREGAP` command got
+a false 150-sector pregap taken from the previous track.
+
+### 5. CloneCD multisession layout
+
+`[Entry]` sections carry `Session`; each session has its own A2. The .img holds the sessions one
+after the other without the lead-out and lead-in, so file positions are not LBAs. After loading
+(only when there are several A2 entries): give every track its session; then walk the tracks in
+order keeping a running .img sector count. A track's data starts at its `[TRACK n] INDEX 0` when
+there is one (so the 150-sector pregap of a later session's first track is in the .img), else at
+its index 1; it ends where the next track of the same session starts, or at its session's A2.
+Set the track's file offset so that its first stored sector maps to the running count, its
+length to the end minus index 1, and its pregap start to the first stored sector. libmirage
+reads CloneCD multisession images the same way; Aaru assumes the later sessions' first pregaps
+are never stored (with `INDEX 0` lines present both agree).
+
+### 6. Track lookup
+
+`GetTrack()` treats the last track of a session as ending at that session's lead-out, so sectors
+in the lead-out/lead-in gap belong to no track and reads there fail (as on a real drive).
+
+### 7. The ISO 9660 drive and MSCDEX use the last session
+
+`isoDrive::loadImage()` scans the volume descriptors from the file system base + 16 (and up to
+base + 256). MSCDEX's Read VTOC (`ReadVTOC()`, volume descriptor `16 + volume`) and the
+volume-descriptor read in its directory entry lookup add the same base. DOS then sees the newest
+session's files, including the files it keeps from earlier sessions, as Windows and Linux do.
+
+### 8. ATAPI READ TOC
+
+- Format 1 (session information) returns the real last session number and the first track of
+  the last session with its start (it returned session 1 and track 1 before).
+- Format 2 (full TOC, always MSF) is new: per session, entries for A0 (first track, disc type),
+  A1 (last track), A2 (lead-out) and every track with ADR 1, and for every session but the last
+  an ADR 5 B0 entry (next program area start = the next session's first pregap, ZERO = number of
+  mode 5 pointers, maximum lead-out 79:59:74) and, in session 1, an ADR 5 C0 entry (97:26:66 as on
+  recorded media). The response is cut at the allocation length like format 0.
+
+Testing (done on `main-ai`): Discweaver images — a data CD with a second XA session whose tree
+keeps the first session's files (`--data` then `--append`), and an Enhanced CD (two audio tracks,
+then an XA data session) — as CUE/BIN and CloneCD. IMGMOUNT + `DIR /S` + `TYPE` see the second
+session's tree and read files of both sessions; master sees only session 1 of the first and
+cannot mount the second. A small DOS program sending ATAPI packets to the secondary IDE channel
+(READ TOC formats 0/1/2, READ CAPACITY, READ(10)) got the expected TOC entries, read `CD001` at
+the second session's start + 16, and got an error for a read inside the session gap.
+Single-session images (ISO, raw and cooked CUE, CloneCD, mixed mode, the Powerslave CloneCD and
+cue dumps) behave as before except for the corrected CloneCD lead-out.
+
+Open points: READ CAPACITY returns the lead-out LBA, not the last readable block (unchanged);
+MDS and CHD images are still read as single-session; single-file multisession BINs written with
+the gap inside (Aaru's convention) are misplaced; the real MSCDEX with a real ATAPI driver in the
+guest was not tried.
+
