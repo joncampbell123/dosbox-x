@@ -564,8 +564,11 @@ Bitu DmaChannel::Write(Bitu want, uint8_t * buffer) {
 		LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel write while channel masked");
 		return 0;
 	}
-    /* You cannot write a DMA channel configured for reading (from memory) */
-    if (transfer_mode != DMAT_WRITE) {
+    /* You cannot write a DMA channel configured for reading (from memory).
+     * A channel configured for verify goes through the transfer cycles, counting
+     * and reaching terminal count, without writing memory (Windows 95 HSFLOP.PDR
+     * reads floppy sectors that way). */
+    if (transfer_mode != DMAT_WRITE && transfer_mode != DMAT_VERIFY) {
         LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel write when DMA channel is configured by guest for reading (from memory)");
         return 0;
     }
@@ -596,12 +599,14 @@ Bitu DmaChannel::Write(Bitu want, uint8_t * buffer) {
 
         if (increment) {
             assert((curraddr & (~addrmask)) == ((curraddr + ((uint32_t)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
-            DMA_BlockWrite4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            if (transfer_mode != DMAT_VERIFY)
+                DMA_BlockWrite4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr += (uint32_t)cando;
         }
         else {
             assert((curraddr & (~addrmask)) == ((curraddr - ((uint32_t)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
-            DMA_BlockWrite4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            if (transfer_mode != DMAT_VERIFY)
+                DMA_BlockWrite4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr -= (uint32_t)cando;
         }
 

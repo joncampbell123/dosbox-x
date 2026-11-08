@@ -26,6 +26,7 @@
 #include "callback.h"
 #include "cpu.h"
 #include "dos/drives.h"
+#include "floppy.h"
 #include "ide.h"
 #include "int13.h"
 #include "mem.h"
@@ -150,6 +151,20 @@ constexpr auto int13_max_sector_size = 128u << 6u;
 constexpr auto int13_edd_sector_size = 512u;
 constexpr auto int13_cdrom_sector_size = 2048u;
 
+/* A floppy image on drive 0/1 is accessed through the floppy drive emulation, which accounts for
+ * the motor, seek and rotation time of a real drive the same way for INT 13h and the FDC. */
+static bool INT13_IsFloppyDrive(uint8_t drivenum) {
+    return drivenum < 2 && imageDiskList[drivenum] != NULL &&
+           imageDiskList[drivenum]->class_id != imageDisk::ID_EL_TORITO_FLOPPY;
+}
+
+static void INT13_FloppyAccessLBA(uint8_t drivenum, uint32_t lba, unsigned int transferred, bool failed, FloppyInt13Op op) {
+    uint32_t heads, cyls, sects, size;
+    imageDiskList[drivenum]->Get_Geometry(&heads, &cyls, &sects, &size);
+    if (heads == 0 || sects == 0) return;
+    FLOPPY_INT13_Access(drivenum, lba / (heads * sects), (lba / sects) % heads, (lba % sects) + 1, transferred, failed, op);
+}
+
 static void INT13_SetTransferredSectorCount(uint16_t dap_segment,
                                              uint16_t dap_offset,
                                              uint16_t sector_count)
@@ -252,8 +267,10 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
         last_status = disk->Read_AbsoluteSector(packet.sector + sector_index,
                                                 sector_buffer.data());
 
-        if (drivenum < 2) diskio_delay(int13_edd_sector_size, 0); // Floppy
-        else              diskio_delay(int13_edd_sector_size);
+        if (drivenum < 2) {
+            if (!INT13_IsFloppyDrive(drivenum)) diskio_delay(int13_edd_sector_size, 0); // Floppy
+        }
+        else diskio_delay(int13_edd_sector_size);
 
         IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl, packet.sector + sector_index);
 
@@ -272,6 +289,8 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
                 dap_offset,
                 static_cast<uint16_t>(sector_index + (data_transferred && !killRead))
             );
+            if (INT13_IsFloppyDrive(drivenum))
+                INT13_FloppyAccessLBA(drivenum, packet.sector, sector_index, true, FloppyInt13Op::Read);
             killRead = false;
             if (last_status == Int13Status::NoError) last_status = Int13Status::SectorNotFound;
             LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Extended read failed on drive 0x%02x at LBA %u (status 0x%02x)",
@@ -283,6 +302,9 @@ static Bitu INT13_ExtendedReadSectors(uint8_t drivenum, bool any_images)
             return CBRET_NONE;
         }
     }
+
+    if (INT13_IsFloppyDrive(drivenum))
+        INT13_FloppyAccessLBA(drivenum, packet.sector, packet.sector_count, false, FloppyInt13Op::Read);
 
     last_status = Int13Status::NoError;
     reg_ah = 0x00;
@@ -371,8 +393,7 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
         );
 
         if (disk->class_id == imageDisk::ID_EL_TORITO_FLOPPY) diskio_delay(512);
-        else if (drivenum < 2) diskio_delay(512, 0); // Floppy
-        else diskio_delay(512);
+        else if (drivenum >= 2) diskio_delay(512);
 
         /* IDE emulation: simulate the state change after a real BIOS INT 13h read. */
         IDE_EmuINT13DiskReadByBIOS(
@@ -390,6 +411,8 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
         }
 
         if (last_status != Int13Status::NoError || killRead) {
+            if (INT13_IsFloppyDrive(drivenum))
+                FLOPPY_INT13_Access(drivenum, cylinder, reg_dh, first_sector, static_cast<unsigned int>(sector_index), true, FloppyInt13Op::Read);
             killRead = false;
             if (last_status == Int13Status::NoError) last_status = Int13Status::SectorNotFound;
             LOG(LOG_BIOS,LOG_DEBUG)("INT 13h: Read failed on drive 0x%02x at C/H/S %u/%u/%u (status 0x%02x)",
@@ -403,6 +426,9 @@ static Bitu INT13_ReadSectors(uint8_t drivenum)
             return CBRET_NONE;
         }
     }
+
+    if (INT13_IsFloppyDrive(drivenum))
+        FLOPPY_INT13_Access(drivenum, cylinder, reg_dh, first_sector, reg_al, false, FloppyInt13Op::Read);
 
     last_status = Int13Status::NoError;
     reg_ah = 0x00;
@@ -461,6 +487,7 @@ static Bitu INT13_DiskHandler(void) {
             }
             if (machine!=MCH_PCJR && reg_dl<0x80) reg_ip++;
             if (reg_dl >= 0x80) IDE_ResetDiskByBIOS(reg_dl);
+            else FLOPPY_INT13_Reset();
             last_status = Int13Status::NoError;
             CALLBACK_SCF(false);
         }
@@ -519,18 +546,23 @@ static Bitu INT13_DiskHandler(void) {
                 bufptr++;
             }
 
-            if(drivenum < 2)
-                diskio_delay(512, 0); // Floppy
+            if(drivenum < 2) {
+                if (!INT13_IsFloppyDrive(drivenum)) diskio_delay(512, 0); // Floppy
+            }
             else
                 diskio_delay(512);
 
             last_status = imageDiskList[drivenum]->Write_Sector((uint32_t)reg_dh, rd_cyl, rd_sect + i, &sectbuf[0]);
             if(last_status != Int13Status::NoError) {
+                if (INT13_IsFloppyDrive(drivenum))
+                    FLOPPY_INT13_Access(drivenum, rd_cyl, reg_dh, rd_sect, static_cast<unsigned int>(i), true, FloppyInt13Op::Write);
                 reg_ah = (uint8_t)last_status;
                 CALLBACK_SCF(true);
                 return CBRET_NONE;
             }
         }
+        if (INT13_IsFloppyDrive(drivenum))
+            FLOPPY_INT13_Access(drivenum, rd_cyl, reg_dh, rd_sect, reg_al, false, FloppyInt13Op::Write);
         reg_ah = 0x00;
         CALLBACK_SCF(false);
         break;
@@ -561,6 +593,8 @@ static Bitu INT13_DiskHandler(void) {
                 bufptr++;
             }
         }*/
+        if (INT13_IsFloppyDrive(drivenum))
+            FLOPPY_INT13_Access(drivenum, reg_ch, reg_dh, reg_cl, reg_al, false, FloppyInt13Op::Verify);
         reg_ah = 0x00;
         //Qbix: The following codes don't match my specs. al should be number of sector verified
         //reg_al = 0x10; /* CRC verify failed */
@@ -576,6 +610,8 @@ static Bitu INT13_DiskHandler(void) {
             CALLBACK_SCF(true);
             return CBRET_NONE;
         }
+        if (INT13_IsFloppyDrive(drivenum))
+            FLOPPY_INT13_Access(drivenum, reg_ch, reg_dh, 1, 0, false, FloppyInt13Op::Format);
         CALLBACK_SCF(false);
         reg_ah = 0x00;
         break;
@@ -801,18 +837,23 @@ static Bitu INT13_DiskHandler(void) {
                 bufptr++;
             }
 
-            if(drivenum < 2)
-                diskio_delay(512, 0); // Floppy
+            if(drivenum < 2) {
+                if (!INT13_IsFloppyDrive(drivenum)) diskio_delay(512, 0); // Floppy
+            }
             else
                 diskio_delay(512);
 
             last_status = imageDiskList[drivenum]->Write_AbsoluteSector(packet.sector+i, &sectbuf[0]);
             if(last_status != Int13Status::NoError) {
+                if (INT13_IsFloppyDrive(drivenum))
+                    INT13_FloppyAccessLBA(drivenum, packet.sector, static_cast<unsigned int>(i), true, FloppyInt13Op::Write);
                 reg_ah = (uint8_t)last_status;
                 CALLBACK_SCF(true);
                 return CBRET_NONE;
             }
         }
+        if (INT13_IsFloppyDrive(drivenum))
+            INT13_FloppyAccessLBA(drivenum, packet.sector, packet.sector_count, false, FloppyInt13Op::Write);
         reg_ah = 0x00;
         CALLBACK_SCF(false);
         break;

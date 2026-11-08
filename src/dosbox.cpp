@@ -4885,6 +4885,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("floppy drive data rate limit", Property::Changeable::WhenIdle, -1);
     Pint->Set_help("Slow down (limit) floppy disk throughput. This setting controls the limit in bytes/second.\n"
                    "Set to 0 to disable the limit, or -1 (default) to use a reasonable limit.\n"
+                   "Floppy disk images (INT 13h) are not affected, they follow the timing of a real floppy drive\n"
+                   "unless \"instant mode\" is set in the [fdc, primary] section.\n"
                    "The disk I/O performance as in DOSBox SVN can be achieved by setting this to 0.");
     Pint->SetBasic(true);
 
@@ -5562,7 +5564,12 @@ void DOSBOX_SetupConfigSections(void) {
         "If set, all floppy operations are 'instantaneous', they are carried\n"
         "out without any delay. Real hardware of course has motor, command\n"
         "and data I/O delays and so this option is off by default for realistic\n"
-        "emulation.");
+        "emulation: the motor takes time to spin up, the head takes time to step\n"
+        "from track to track and to load, and the disk has to rotate the sectors\n"
+        "under the head (300 RPM, 360 RPM for 1.2MB disks).\n"
+        "This applies to floppy disk images accessed through INT 13h as well, which\n"
+        "keeps the floppy controller emulation in step with what the BIOS did.\n"
+        "It is read from this section even if the floppy controller is disabled.");
 
     Pbool = secprop->Add_bool("auto-attach to int 13h",Property::Changeable::WhenIdle,true);
     Pbool->Set_help(
@@ -5597,7 +5604,6 @@ void DOSBOX_SetupConfigSections(void) {
         "  xt                           PC/XT mode");
     Pstring->SetBasic(true);
 
-    /* FIXME: Not yet implemented. Future plans */
     Pstring = secprop->Add_string("chip",Property::Changeable::WhenIdle,"82077aa");
     Pstring->Set_help(
         "Floppy controller chipset\n"

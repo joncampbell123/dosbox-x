@@ -55,6 +55,7 @@ extern bool PS1AudioCard;
 #include <time.h>
 #include <sys/stat.h>
 #include "version_string.h"
+#include "floppy.h"
 
 #define DOSBOX_INCLUDE
 #include "iglib.h"
@@ -6682,8 +6683,11 @@ static Bitu INT8_Handler(void) {
     /* decrement FDD motor timeout counter; roll over on earlier PC, stop at zero on later PC */
     uint8_t val = mem_readb(BIOS_DISK_MOTOR_TIMEOUT);
     if (val || !IS_EGAVGA_ARCH) mem_writeb(BIOS_DISK_MOTOR_TIMEOUT,val-1);
-    /* clear FDD motor bits when counter reaches zero */
-    if (val == 1) mem_writeb(BIOS_DRIVE_RUNNING,mem_readb(BIOS_DRIVE_RUNNING) & 0xF0);
+    /* turn off the FDD motors and clear the motor bits when counter reaches zero */
+    if (val == 1) {
+        FLOPPY_BIOS_MotorTimeout();
+        mem_writeb(BIOS_DRIVE_RUNNING,mem_readb(BIOS_DRIVE_RUNNING) & 0xF0);
+    }
     return CBRET_NONE;
 }
 #undef DOSBOX_CLOCKSYNC
@@ -7977,6 +7981,13 @@ static Bitu IRQ14_Dummy(void) {
 
 static Bitu IRQ15_Dummy(void) {
     /* FIXME: That's it? Don't I EOI the PIC? */
+    return CBRET_NONE;
+}
+
+/* INT 0Eh: floppy controller IRQ 6. Like a real BIOS, set bit 7 of the recalibrate status
+ * byte to tell code waiting for the floppy controller that the interrupt happened. */
+static Bitu IRQ6_Floppy(void) {
+    mem_writeb(BIOS_DRIVE_ACTIVE,mem_readb(BIOS_DRIVE_ACTIVE) | 0x80);
     return CBRET_NONE;
 }
 
@@ -12630,7 +12641,7 @@ public:
         callback[12].Install(&IRQ15_Dummy,CB_IRET_EOI_PIC2,"irq 15 ide");
 
         // INT 0Eh: IDE IRQ 6
-        callback[13].Install(&IRQ15_Dummy,CB_IRET_EOI_PIC1,"irq 6 floppy");
+        callback[13].Install(&IRQ6_Floppy,CB_IRET_EOI_PIC1,"irq 6 floppy");
 
         // INT 18h: Enter BASIC
         // Non-IBM BIOS would display "NO ROM BASIC" here
