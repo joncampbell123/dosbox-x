@@ -2280,8 +2280,14 @@ bool isoDrive :: loadImage() {
 	}
 #endif
 
+	/* Multisession CDs: the newest file system, in the last session that has a data track
+	 * (as operating systems and multisession-aware CD-ROM drivers do). 0 on other discs. */
+	const unsigned int fs_base = cdrom ? cdrom->GetFileSystemBase() : 0u;
+	sector += fs_base;
+	if (fs_base) LOG(LOG_MISC,LOG_DEBUG)("ISO: multisession disc, volume descriptors at sector %u",sector);
+
 	/* scan the volume descriptors */
-	while (sector < 256) {
+	while (sector < fs_base + 256) {
 		pvd[0] = 0xFF;
 		readSector(pvd,sector);
 

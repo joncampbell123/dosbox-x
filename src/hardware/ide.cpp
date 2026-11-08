@@ -939,9 +939,18 @@ void IDEATAPICDROMDevice::read_toc() {
     if (Format == 1) { /* Read multisession info */
         unsigned char attr;
         TMSF start;
+        const int sessions = cdrom->GetSessionCount();
 
         *write++ = (unsigned char)1;        /* @+2 first complete session */
-        *write++ = (unsigned char)1;        /* @+3 last complete session */
+        *write++ = (unsigned char)sessions; /* @+3 last complete session */
+
+        /* the first track of the last session */
+        {
+            int sfirst,slast;
+            TMSF slead;
+            unsigned char dtype;
+            if (sessions > 1 && cdrom->GetSessionInfo(sessions,sfirst,slast,slead,dtype)) first = sfirst;
+        }
 
         if (!cdrom->GetAudioTrackInfo(first,start,attr)) {
             LOG_MSG("WARNING: ATAPI READ TOC unable to read track %u information\n",first);
@@ -1032,6 +1041,70 @@ void IDEATAPICDROMDevice::read_toc() {
                 *write++ = (unsigned char)(sec >> 16u);
                 *write++ = (unsigned char)(sec >> 8u);
                 *write++ = (unsigned char)(sec >> 0u);
+            }
+        }
+    }
+    else if (Format == 2) { /* Read full TOC (raw Q subchannel TOC of the lead-ins), always MSF */
+        const int sessions = cdrom->GetSessionCount();
+
+        *write++ = (unsigned char)1;        /* @+2 first complete session */
+        *write++ = (unsigned char)sessions; /* @+3 last complete session */
+
+        auto entry = [&](int session,unsigned char adr_ctl,unsigned char point,const TMSF &a,unsigned char zero,const TMSF &p) {
+            if ((write+11) > (sector+AllocationLength)) return;
+            *write++ = (unsigned char)session;
+            *write++ = adr_ctl;
+            *write++ = 0x00;                /* TNO */
+            *write++ = point;
+            *write++ = a.min;
+            *write++ = a.sec;
+            *write++ = a.fr;
+            *write++ = zero;
+            *write++ = p.min;
+            *write++ = p.sec;
+            *write++ = p.fr;
+        };
+        const TMSF none = {0,0,0};
+        for (int s=1;s <= sessions;s++) {
+            int sfirst,slast;
+            TMSF slead;
+            unsigned char dtype;
+            if (!cdrom->GetSessionInfo(s,sfirst,slast,slead,dtype)) continue;
+
+            TMSF fstart,lstart;
+            unsigned char fattr = 0,lattr = 0;
+            if (!cdrom->GetAudioTrackInfo(sfirst,fstart,fattr)) fattr = 0;
+            if (!cdrom->GetAudioTrackInfo(slast,lstart,lattr)) lattr = 0;
+            const unsigned char fctl = 0x10 | (fattr >> 4), lctl = 0x10 | (lattr >> 4);
+
+            TMSF a0 = {(unsigned char)sfirst,dtype,0};
+            TMSF a1 = {(unsigned char)slast,0,0};
+            entry(s,fctl,0xA0,none,0,a0);
+            entry(s,lctl,0xA1,none,0,a1);
+            entry(s,lctl,0xA2,none,0,slead);
+            for (int t=sfirst;t <= slast;t++) {
+                unsigned char attr;
+                TMSF start;
+                if (!cdrom->GetAudioTrackInfo(t,start,attr)) continue;
+                entry(s,0x10 | (attr >> 4),(unsigned char)t,none,0,start);
+            }
+            if (s < sessions) {
+                /* ADR 5 (multisession) pointers: B0 = start of the next program area (the next
+                 * session's first pregap) and the maximum lead-out; C0 (session 1 only) = the
+                 * start of the disc's first lead-in, as on recorded CD-R media. */
+                int nfirst,nlast;
+                TMSF nlead,nstart;
+                unsigned char ndtype,nattr;
+                if (cdrom->GetSessionInfo(s+1,nfirst,nlast,nlead,ndtype) && cdrom->GetAudioTrackInfo(nfirst,nstart,nattr)) {
+                    unsigned int f = ((unsigned int)nstart.min*60u+nstart.sec)*75u+nstart.fr - 150u;
+                    TMSF next = {(unsigned char)(f/(75u*60u)),(unsigned char)((f/75u)%60u),(unsigned char)(f%75u)};
+                    TMSF maxlead = {79,59,74};
+                    entry(s,0x50 | (fattr >> 4),0xB0,next,(unsigned char)(s == 1 ? 2 : 1),maxlead);
+                    if (s == 1) {
+                        TMSF c0p = {97,26,66};
+                        entry(s,0x50 | (fattr >> 4),0xC0,none,0,c0p);
+                    }
+                }
             }
         }
     }

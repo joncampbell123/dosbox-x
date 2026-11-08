@@ -123,6 +123,21 @@ public:
     //! \brief Retrieve start and attributes for a specific track
 	virtual bool	GetAudioTrackInfo	(int track, TMSF& start, unsigned char& attr) = 0;
 
+    //! \brief Number of sessions on the disc (multisession CDs); 1 unless the interface knows better
+	virtual int	GetSessionCount		(void) { return 1; }
+
+    //! \brief First and last track, lead-out and TOC disc type (point A0 PSEC: 0x00 CD-DA/CD-ROM, 0x10 CD-i, 0x20 CD-ROM XA) of a session (1-based)
+	virtual bool	GetSessionInfo		(int session, int& firstTrack, int& lastTrack, TMSF& leadOut, unsigned char& discType) {
+		discType = 0x00;
+		if (session != 1) return false;
+		return GetAudioTracks(firstTrack, lastTrack, leadOut);
+	}
+
+    //! \brief Sector where the file system's volume descriptors start, minus 16. On a multisession
+    //!        disc this is the first data track of the last session that has one: the newest file
+    //!        system, the one operating systems (and multisession-aware CD-ROM drivers) use.
+	virtual uint32_t	GetFileSystemBase	(void) { return 0; }
+
     //! \brief Get subchannel data of the sectors at the current position, and retrieve current position
 	virtual bool	GetAudioSub			(unsigned char& attr, unsigned char& track, unsigned char& index, TMSF& relPos, TMSF& absPos) = 0;
 
@@ -361,6 +376,7 @@ public:
         uint32_t pregap; // sector number where pregap starts
 		bool mode2;
 		TrackFile *file;
+		int session = 1; // multisession discs: the session the track is in (1-based)
 	};
     //! \brief Constructor, with parameter for subunit
 	CDROM_Interface_Image           (uint8_t subUnit);
@@ -387,6 +403,9 @@ public:
 	//! \brief Indicate whether the image has a data track
 	bool	HasDataTrack            (void) const;
 	bool	HasAudioTrack           (void) const;
+	int	GetSessionCount         (void) override;
+	bool	GetSessionInfo          (int session, int& firstTrack, int& lastTrack, TMSF& leadOut, unsigned char& discType) override;
+	uint32_t	GetFileSystemBase       (void) override;
 
 private:
 	static struct imagePlayer {
@@ -431,8 +450,10 @@ private:
 	bool  GetCueFrame(int &frames, std::istream &in) const;
 	bool  GetCueString(std::string &str, std::istream &in) const;
 	bool  AddTrack(Track &curr, int &shift, int prestart, int &totalPregap, int currPregap);
+	uint32_t SessionEnd(int session) const;
 	// member variables
-	std::vector<Track>   tracks;
+	std::vector<Track>   tracks;          // the last entry is the lead-out (of the last session)
+	std::vector<uint32_t> sessionLeadOuts; // lead-out LBA of every session but the last (multisession discs)
 	std::vector<uint8_t> readBuffer;
 	std::string          mcn;
 	static int           refCount;

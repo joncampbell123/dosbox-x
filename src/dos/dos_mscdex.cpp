@@ -736,7 +736,9 @@ bool CMscdex::ReadVTOC(uint16_t drive, uint16_t volume, PhysPt data, uint16_t& o
 		error=DOSERR_INVALID_DRIVE;
 		return false;
 	} */
-	if (!ReadSectors(subunit,false,16u+volume,1u,data)) {
+	// Multisession: the last session's volume descriptors (GetFileSystemBase() is 0 otherwise).
+	const uint32_t fs_base = (subunit < MSCDEX_MAX_DRIVES && cdrom[subunit]) ? cdrom[subunit]->GetFileSystemBase() : 0u;
+	if (!ReadSectors(subunit,false,fs_base+16u+volume,1u,data)) {
 		error=DOSERR_DRIVE_NOT_READY;
 		return false;
 	}
@@ -849,7 +851,9 @@ bool CMscdex::GetDirectoryEntry(uint16_t drive, bool copyFlag, PhysPt pathname, 
 	//LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Get DirEntry : Find : %s",searchName);
 	// read vtoc
 	PhysPt defBuffer = GetDefaultBuffer();
-	if (!ReadSectors(GetSubUnit(drive),false,16,1,defBuffer)) return false;
+	const uint8_t vtoc_unit = GetSubUnit(drive);
+	const uint32_t fs_base = (vtoc_unit < MSCDEX_MAX_DRIVES && cdrom[vtoc_unit]) ? cdrom[vtoc_unit]->GetFileSystemBase() : 0u;
+	if (!ReadSectors(vtoc_unit,false,fs_base+16,1,defBuffer)) return false;
 	MEM_StrCopy(defBuffer+1,volumeID,5); volumeID[5] = 0;
 	bool iso = (strcmp("CD001",volumeID)==0);
 	if (!iso) {

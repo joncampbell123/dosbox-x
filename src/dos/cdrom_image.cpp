@@ -28,6 +28,8 @@
 #include <limits>
 #include <sstream>
 #include <vector>
+#include <map>
+#include <algorithm>
 #include <sys/stat.h>
 
 #if !defined(WIN32)
@@ -826,7 +828,11 @@ int CDROM_Interface_Image::GetTrack(unsigned long sector)
     int end = tracks.size() - 1;
     int i = 0;
     while(i < end) {
-        if((tracks[i].pregap ? tracks[i].pregap : tracks[i].start) <= sector && sector < (tracks[i + 1].pregap ? tracks[i+1].pregap : tracks[i+1].start)) {
+        uint32_t next = tracks[i + 1].pregap ? tracks[i+1].pregap : tracks[i+1].start;
+        // Multisession: the last track of a session ends at the session's lead-out; the lead-out
+        // and the next session's lead-in in between are not readable.
+        if (tracks[i + 1].session != tracks[i].session && i + 1 < end) next = SessionEnd(tracks[i].session);
+        if((tracks[i].pregap ? tracks[i].pregap : tracks[i].start) <= sector && sector < next) {
             //LOG_MSG("CDROM: GetTrack sector=%d start %d next %d number %d", sector, tracks[i].pregap, tracks[i+1].pregap, tracks[i].number);
             return tracks[i].number;
         }
@@ -1122,6 +1128,7 @@ struct ImageCCDEntry {
 
 static void CloneCDEntryToTrack(CDROM_Interface_Image::Track &trk,ImageCCDEntry &ent) {
 	trk.number = ent.Point;
+	trk.session = 1; // (LoadCloneCDSheet places multisession tracks after loading)
 	trk.sectorSize = RAW_SECTOR_SIZE;
 	if (ent.Control & 0x04) trk.attr = 0x40;//data
 	else trk.attr = 0x00;//audio
@@ -1141,8 +1148,13 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(const char *cuefile) {
 		NONE=0,
 		CLONECD,
 		DISC,
-		ENTRY
+		ENTRY,
+		TRACKSEC
 	};
+	std::map<int,long> trackIndex0;       // [TRACK n] INDEX 0= (pregap start, stored in the .img)
+	std::map<int,long> sessionLeadOutLBA; // A2 of every session
+	std::map<int,int> trackSession;       // Point -> Session
+	std::map<int,int> trackMode;          // [TRACK n] MODE= (0 audio, 1 Mode 1, 2 Mode 2)
 
 	/* locate corresponding IMG file */
 	std::string imgfile;
@@ -1157,8 +1169,10 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(const char *cuefile) {
 
 	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
 	long leadOutLBA = -1;
+	int currentTrackSec = -1;
 	ImageCCDEntry entry;
 	tracks.clear();
+	sessionLeadOuts.clear();
 	int mode=NONE;
 	int shift = 0;
 	int currPregap = 0;
@@ -1202,9 +1216,10 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(const char *cuefile) {
 
 			if (mode == ENTRY) {
 //				LOG_MSG("Entry point %02x\n",entry.Point);
-				if (entry.Point == 0xA2) leadOutLBA = entry.PLBA;
+				if (entry.Point == 0xA2) { leadOutLBA = entry.PLBA; sessionLeadOutLBA[entry.Session > 0 ? entry.Session : 1] = entry.PLBA; }
 				else if (entry.Point > 0 && entry.Point <= TocEntries) {
 					CloneCDEntryToTrack(track,entry);
+					trackSession[entry.Point] = entry.Session > 0 ? entry.Session : 1;
 					AddTrack(track, shift, prestart, totalPregap, currPregap);
 				}
 				entry = ImageCCDEntry();
@@ -1227,6 +1242,10 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(const char *cuefile) {
 						mode = ENTRY;
 					}
 				}
+			}
+			else if (strncmp(currentSection.c_str(),"TRACK ",6) == 0) {
+				currentTrackSec = atoi(currentSection.c_str()+6);
+				mode = TRACKSEC;
 			}
 
 //			LOG_MSG("[%s]",currentSection.c_str());
@@ -1292,6 +1311,12 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(const char *cuefile) {
 					else if (name == "PLBA")
 						entry.PLBA = strtol(value.c_str(),NULL,0);
 					break;
+				case TRACKSEC:
+					if (name == "INDEX 0")
+						trackIndex0[currentTrackSec] = strtol(value.c_str(),NULL,0);
+					else if (name == "MODE")
+						trackMode[currentTrackSec] = (int)strtol(value.c_str(),NULL,0);
+					break;
 			};
 
 //			LOG_MSG("[%s] '%s'='%s' mode=%u curEnt=%d",currentSection.c_str(),name.c_str(),value.c_str(),(unsigned int)mode,currentEntry);
@@ -1299,9 +1324,10 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(const char *cuefile) {
 	}
 
 	if (mode == ENTRY) {
-		if (entry.Point == 0xA2) leadOutLBA = entry.PLBA;
+		if (entry.Point == 0xA2) { leadOutLBA = entry.PLBA; sessionLeadOutLBA[entry.Session > 0 ? entry.Session : 1] = entry.PLBA; }
 		else if (entry.Point > 0 && entry.Point <= TocEntries) {
 			CloneCDEntryToTrack(track,entry);
+			trackSession[entry.Point] = entry.Session > 0 ? entry.Session : 1;
 			AddTrack(track, shift, prestart, totalPregap, currPregap);
 			entry = ImageCCDEntry();
 		}
@@ -1315,6 +1341,47 @@ bool CDROM_Interface_Image::LoadCloneCDSheet(const char *cuefile) {
 		track.length = 0;
 		track.file = NULL;
 		AddTrack(track, shift, -1, totalPregap, 0);
+		// AddTrack (made for cue sheets) does not place the lead-out at A2: before this the TOC
+		// reported the last track's start as the lead-out (the last track had no length).
+		// The TOC's A2 is the lead-out.
+		if (!tracks.empty()) {
+			tracks.back().start = (uint32_t)leadOutLBA;
+			tracks.back().pregap = 0;
+		}
+	}
+
+	// Mode 2 (CD-ROM XA) data tracks: user data starts 24 bytes into the raw sector, not 16.
+	for (auto &t : tracks)
+		if (t.attr == 0x40 && trackMode.count(t.number) && trackMode[t.number] == 2) t.mode2 = true;
+
+	// Multisession: the .img holds the sessions one after the other without the lead-out and
+	// lead-in between them, so the file positions are not the LBAs. A track's data starts at its
+	// [TRACK n] INDEX 0 when there is one (the pregap of a later session's first track is stored
+	// then; without it, it is not), and a session's last track ends at that session's A2.
+	if (sessionLeadOutLBA.size() > 1 && tracks.size() > 1) {
+		const size_t n = tracks.size() - 1;
+		for (size_t i = 0; i < n; i++)
+			if (trackSession.count(tracks[i].number)) tracks[i].session = trackSession[tracks[i].number];
+		uint64_t fileSector = 0;
+		for (size_t i = 0; i < n; i++) {
+			Track &t = tracks[i];
+			const long stored = std::min<long>((long)t.start, trackIndex0.count(t.number) ? std::max(0L, trackIndex0[t.number]) : (long)t.start);
+			long end;
+			if (i + 1 < n && tracks[i + 1].session == t.session) {
+				const Track &nx = tracks[i + 1];
+				end = trackIndex0.count(nx.number) ? std::min<long>(trackIndex0[nx.number], (long)nx.start) : (long)nx.start;
+			} else {
+				if (!sessionLeadOutLBA.count(t.session)) return false;
+				end = sessionLeadOutLBA[t.session];
+				if (t.session < tracks[n - 1].session) sessionLeadOuts.push_back((uint32_t)end);
+			}
+			if (end < (long)t.start) return false;
+			t.skip = (uint32_t)((fileSector + (uint64_t)(t.start - stored)) * (uint64_t)t.sectorSize);
+			t.length = (uint32_t)(end - (long)t.start);
+			t.pregap = (uint32_t)stored;
+			fileSector += (uint64_t)(end - stored);
+		}
+		tracks[n].session = tracks[n - 1].session;
 	}
 
 //	LOG_MSG("Version=%d TocEntries=%d Sessions=%d\n",Version,TocEntries,Sessions);
@@ -1345,6 +1412,8 @@ bool CDROM_Interface_Image::LoadCueSheet(const char *cuefile)
 
 	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
 	tracks.clear();
+	sessionLeadOuts.clear();
+	int session = 1; // REM SESSION nn (CDRWIN multisession cue sheets)
 //	int curr_track = 0; // unused
 	int shift = 0;
 	int currPregap = 0;
@@ -1380,6 +1449,7 @@ bool CDROM_Interface_Image::LoadCueSheet(const char *cuefile)
 			prestart = -1;
 
 			line >> track.number;
+			track.session = session;
 			string type;
 			GetCueKeyword(type, line);
 
@@ -1454,9 +1524,22 @@ bool CDROM_Interface_Image::LoadCueSheet(const char *cuefile)
 		}
 		else if (command == "PREGAP") success = GetCueFrame(currPregap, line);
 		else if (command == "CATALOG") success = GetCueString(mcn, line);
+		else if (command == "REM") {
+			// "REM SESSION nn" starts a session (CDRWIN multisession cue sheets); other REMs are comments.
+			// "REM LEAD-OUT mm:ss:ff" (a session's lead-out start) is not needed: the gap between
+			// sessions follows from the multisession rules (see AddTrack).
+			string what;
+			GetCueKeyword(what, line);
+			if (what == "SESSION") {
+				int n = 0;
+				line >> n;
+				if (n > session) session = n;
+			}
+			success = true;
+		}
 		// ignored commands
 		else if (command == "CDTEXTFILE" || command == "FLAGS" || command == "ISRC"
-			|| command == "PERFORMER" || command == "POSTGAP" || command == "REM"
+			|| command == "PERFORMER" || command == "POSTGAP"
 			|| command == "SONGWRITER" || command == "TITLE" || command == "") success = true;
 		// failure
 		else {
@@ -1634,6 +1717,17 @@ bool CDROM_Interface_Image::LoadChdFile(const char* chdfile)
 
 bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int &totalPregap, int currPregap)
 {
+	// Multisession: the first track of a new session starts after the previous session's
+	// lead-out (6750 sectors after session 1, 2250 after later ones), the new session's lead-in
+	// (4500) and its 150-sector pregap. None of it is in the image file except the pregap when
+	// the cue sheet gives INDEX 00 (libmirage reads CDRWIN sheets this way; Discweaver writes
+	// them with one file per track).
+	int sessionGap = 0;
+	if (!tracks.empty() && curr.file != NULL && curr.session > tracks.back().session) {
+		sessionGap = (tracks.back().session == 1 ? 6750 : 2250) + 4500;
+		if (prestart < 0) currPregap += 150; // pregap not in the file
+	}
+
 	// frames between index 0(prestart) and 1(curr.start) must be skipped
 	int skip;
 	if (prestart >= 0) {
@@ -1662,10 +1756,12 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 		if (!prev.length) {
 			prev.length = curr.start + totalPregap - prev.start - skip;
 		}
-        curr.pregap = curr.start - skip;
         curr.skip += prev.skip + prev.length * prev.sectorSize + skip * curr.sectorSize;
-		totalPregap += currPregap;
+		if (sessionGap) sessionLeadOuts.push_back(prev.start + prev.length);
+		totalPregap += currPregap + sessionGap;
 		curr.start += totalPregap;
+		// index 0: the stored pregap (INDEX 00) and a PREGAP command's generated one
+        curr.pregap = curr.start - skip - currPregap;
         // current track uses a different file as the previous track
 	} else {
 		if (!prev.length) {
@@ -1673,11 +1769,12 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 			prev.length = (int)(tmp / prev.sectorSize);
 			if (tmp % prev.sectorSize != 0) prev.length++; // padding
 		}
-		curr.start += prev.start + prev.length + currPregap;
-        curr.pregap = curr.start - skip;
+		if (sessionGap) sessionLeadOuts.push_back(prev.start + prev.length);
+		curr.start += prev.start + prev.length + currPregap + sessionGap;
+        curr.pregap = curr.start - skip - currPregap;
         curr.skip = skip * curr.sectorSize;
 		shift += prev.start + prev.length;
-		totalPregap = currPregap;
+		totalPregap = currPregap + sessionGap;
 	}
 
 	#ifdef DEBUG
@@ -1696,6 +1793,50 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 
 	tracks.push_back(curr);
 	return true;
+}
+
+// Lead-out LBA of a session (the disc's lead-out for the last one).
+uint32_t CDROM_Interface_Image::SessionEnd(int session) const
+{
+	if (session >= 1 && (size_t)session <= sessionLeadOuts.size()) return sessionLeadOuts[(size_t)session - 1];
+	return tracks.empty() ? 0 : tracks.back().start;
+}
+
+int CDROM_Interface_Image::GetSessionCount(void)
+{
+	return tracks.empty() ? 1 : std::max(1, tracks.back().session);
+}
+
+bool CDROM_Interface_Image::GetSessionInfo(int session, int& firstTrack, int& lastTrack, TMSF& leadOut, unsigned char& discType)
+{
+	firstTrack = lastTrack = 0;
+	discType = 0x00;
+	const int n = (int)tracks.size() - 1; // (without the lead-out entry)
+	for (int i = 0; i < n; i++) {
+		if (tracks[i].session != session) continue;
+		if (!firstTrack) firstTrack = tracks[i].number;
+		lastTrack = tracks[i].number;
+		if (tracks[i].attr == 0x40 && tracks[i].mode2) discType = 0x20; // CD-ROM XA
+	}
+	if (!firstTrack) return false;
+	FRAMES_TO_MSF(SessionEnd(session) + 150, &leadOut.min, &leadOut.sec, &leadOut.fr);
+	return true;
+}
+
+uint32_t CDROM_Interface_Image::GetFileSystemBase(void)
+{
+	// The first data track of the last session that has data (single session: track 1 -> 0).
+	const int n = (int)tracks.size() - 1;
+	int session = 0;
+	uint32_t base = 0;
+	for (int i = 0; i < n; i++) {
+		if (tracks[i].attr != 0x40) continue;
+		if (tracks[i].session != session) {
+			session = tracks[i].session;
+			base = tracks[i].start;
+		}
+	}
+	return session > 1 ? base : 0;
 }
 
 bool CDROM_Interface_Image::HasDataTrack(void) const
@@ -1830,6 +1971,7 @@ void CDROM_Interface_Image::ClearTracks()
 		i++;
 	}
 	tracks.clear();
+	sessionLeadOuts.clear();
 }
 
 void CDROM_Image_ShutDown(Section* /*sec*/) {
