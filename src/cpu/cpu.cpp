@@ -1008,7 +1008,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,uint32_t old_eip) {
 		new_tss.SaveSelector();
 	}
 
-//	cpu.cr0|=CR0_TASKSWITCHED;
+	cpu.cr0 |= CR0_TASKSWITCH;
 	if (new_tss_selector == cpu_tss.selector) {
 		reg_eip = old_eip;
 		new_cs = SegValue(cs);
