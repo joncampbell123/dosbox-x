@@ -386,10 +386,14 @@ bx_ne2k_c::write_cr(uint32_t value)
 #endif
 	}
 
-	// Trigger any pending timers
+	// A DP8390 ignores TXP while a transmission is still in progress; it does
+	// not finish the previous frame early. Completing it here raised a second
+	// TX-complete IRQ the moment the driver re-enabled IMR, which re-entered
+	// the Novell NE2000 MLID's interrupt handler mid-service (Windows 3.1
+	// 386 enhanced mode hung under a sustained Packet Burst copy). The bytes
+	// above have already gone to the wire; let the pending completion stand.
 	if (BX_NE2K_THIS s.tx_timer_active) {
-	  NE2000_TX_Event(0);
-	  PIC_RemoveEvents(NE2000_TX_Event);
+	  return;
 	}
 	//LOG_MSG("send packet command");
 	//s.tx_timer_index = (64 + 96 + 4*8 + BX_NE2K_THIS s.tx_bytes*8)/10;
