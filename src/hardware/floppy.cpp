@@ -30,6 +30,7 @@
 #include "bios_disk.h"
 #include "bios.h"
 #include "floppy.h"
+#include "imagedisk_d88.h"
 
 #ifdef _MSC_VER
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -97,8 +98,17 @@ static unsigned int floppy_track_bytes(imageDisk *image) {
 	return floppy_spt(image) * (image != NULL ? image->sector_size : 512u);
 }
 
+/* D88 images say what kind of disk they are: 2D, 2DD or 2HD (-1 if not a D88 image) */
+static int floppy_d88_type(imageDisk *image) {
+	if (image == NULL || image->class_id != imageDisk::ID_D88) return -1;
+	return static_cast<imageDiskD88*>(image)->fd_type_major;
+}
+
 /* 1.2MB 5.25" disks (and PC-98 2HD disks) turn at 360 RPM, everything else at 300 RPM */
 static double floppy_rpm(imageDisk *image) {
+	const int d88 = floppy_d88_type(image);
+	if (d88 >= 0) return d88 == imageDiskD88::DISKTYPE_2HD ? 360.0 : 300.0;
+
 	if (image != NULL && floppy_track_bytes(image) >= 7680u/*15 x 512*/ && floppy_track_bytes(image) <= 8192u/*8 x 1024*/)
 		return 360.0;
 
@@ -112,6 +122,9 @@ static double floppy_rev_ms(imageDisk *image) {
 /* data rate (in the encoding of the FDC data rate select register) the media needs:
  * 0 = 500Kbps (high density), 3 = 1Mbps (extra density), 2 = 250Kbps or 1 = 300Kbps (double density) */
 static unsigned int floppy_media_rate(imageDisk *image) {
+	const int d88 = floppy_d88_type(image);
+	if (d88 >= 0) return d88 == imageDiskD88::DISKTYPE_2HD ? 0 : 2;
+
 	const unsigned int b = floppy_track_bytes(image);
 
 	if (b <= 5120u) return 2;	/* 9 x 512 or less per track: DD (250Kbps, 300Kbps in a 360 RPM drive) */
@@ -226,6 +239,44 @@ static FloppyTrackLayout floppy_layout(imageDisk *image) {
 	}
 
 	return L;
+}
+
+/* A physical track as the controller sees it: the sectors on it (from the image) and the position
+ * of each ID field, laid out like FloppyTrackLayout but with each sector's own size and density
+ * (an FM byte takes as long as two MFM bytes). */
+struct FloppyTrackMap {
+	FloppyTrackLayout			L;
+	std::vector<imageDiskTrackSector>	secs;
+	std::vector<double>			id_pos;
+};
+
+static void floppy_track_map(imageDisk *image,unsigned int cylinder,unsigned int head,FloppyTrackMap &M) {
+	M.L = floppy_layout(image);
+	M.secs.clear();
+	M.id_pos.clear();
+	if (image == NULL || !image->Get_Track(cylinder,head,M.secs) || M.secs.empty()) return;
+
+	std::vector<double> len(M.secs.size());
+	double total = 0;
+	for (size_t k=0;k < M.secs.size();k++) {
+		len[k] = (62.0 + M.secs[k].data_size) * (M.secs[k].fm ? 2.0 : 1.0);
+		total += len[k];
+	}
+
+	double first = 146.0,gap3 = (M.L.track_bytes - first - total) / M.secs.size(),scale = 1.0;
+	if (gap3 > 116.0) gap3 = 116.0;
+	if (gap3 < 0) {
+		/* more on the track than fits: squeeze it */
+		first = 0;
+		gap3 = 0;
+		scale = M.L.track_bytes / total;
+	}
+
+	double pos = first;
+	for (size_t k=0;k < M.secs.size();k++) {
+		M.id_pos.push_back(pos);
+		pos += (len[k] + gap3) * scale;
+	}
 }
 
 class FloppyController;
@@ -349,6 +400,12 @@ public:
 	bool lock;			/* LOCK, CONFIGURE settings survive a reset */
 	uint8_t perpendicular;
 	uint8_t last_eot;
+	/* PC-98 FD interface */
+	uint8_t pc98_control;		/* control register (I/O 94h): RST, FRY, DMAE, MTON, TMSK, TTRG */
+	uint8_t pc98_mode;		/* dual-use FD I/F (I/O 0BEh): EMTON, FDD EXC (1MB access), PORT EXC (1MB I/F) */
+	uint8_t pc98_mode144;		/* 3-mode FD I/F (I/O 4BEh): 1.44MB access mode */
+	/* READY of each drive as the uPD765 last polled it */
+	bool drive_ready[4];
 	/* seek/recalibrate in progress, per drive */
 	struct {
 		bool active;
@@ -370,6 +427,11 @@ public:
 	unsigned int exec_pos,exec_size;	/* bytes of it transferred, bytes in it */
 	bool exec_tc;				/* terminal count, the transfer is over after this sector */
 	bool exec_data_error;			/* the sector has a data CRC error */
+	unsigned int exec_index;		/* the sector's position in the track's list of sectors */
+	bool exec_diag_nd;			/* READ DIAGNOSTIC: an ID did not match */
+	bool exec_cm;				/* the data field has the other kind of address mark (deleted/normal) */
+	bool exec_skip;				/* the sector is skipped (SK) */
+	double exec_density;			/* 2 for FM, 1 for MFM: time per byte relative to the track layout */
 	unsigned int exec_fmt_sc;		/* format: sectors per track */
 	uint8_t exec_fmt_fill;
 	double exec_slot_ms;			/* format: time per sector */
@@ -406,6 +468,11 @@ public:
 	void on_reset_complete();
 	void reset_configure();
 	uint8_t main_status();
+	bool drive_ready_now(unsigned int drive);
+	void poll_ready();
+	void pc98_update_motors();
+	void pc98_control_write(uint8_t val);
+	uint8_t pc98_control_read();
 	uint8_t digital_input_register();
 	uint8_t status_register_a();
 	uint8_t status_register_b();
@@ -425,7 +492,9 @@ public:
 	void exec_schedule(FDCExecPhase phase,double at);
 	void exec_fail_after_index(uint8_t st1,uint8_t st2);
 	void exec_finish(uint8_t st0_ic,uint8_t st1,uint8_t st2);
+	void exec_track(FloppyTrackMap &M);
 	void exec_find_sector(double t);
+	void exec_find_from_index(double t);
 	void exec_sector_id();
 	void exec_data();
 	void exec_sector_done();
@@ -465,10 +534,8 @@ bool FDC_AssignINT13Disk(unsigned char drv) {
 	dev->set_select(fdc->drive_selected() == drv);
 	dev->set_motor(fdc->drive_motor_on(drv));
 
-	if (IS_PC98_ARCH) {
-		// HACK: Enable motor by default, until motor enable port 0xBE is implemented
-		dev->set_motor(true);
-	}
+	if (IS_PC98_ARCH) fdc->pc98_update_motors();
+	fdc->poll_ready();
 
 	LOG_MSG("FDC: Primary controller, drive %u assigned to INT 13h drive %u",drv,drv);
 	return true;
@@ -486,6 +553,7 @@ bool FDC_UnassignINT13Disk(unsigned char drv) {
 		fdc->device[drv] = NULL;
 	}
 
+	fdc->poll_ready();
 	LOG_MSG("FDC: Primary controller, drive %u unassigned from INT 13h drive %u",drv,drv);
 	return true;
 }
@@ -494,13 +562,19 @@ static void fdc_baseio98_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio98_r(Bitu port,Bitu iolen);
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
+static void fdc_pc98_mode_w(Bitu port,Bitu val,Bitu iolen);
+static Bitu fdc_pc98_mode_r(Bitu port,Bitu iolen);
+static void fdc_pc98_mode144_w(Bitu port,Bitu val,Bitu iolen);
+static Bitu fdc_pc98_mode144_r(Bitu port,Bitu iolen);
 static void FDC_SeekEvent(Bitu val/*interface * 4 + drive*/);
 static void FDC_ExecEvent(Bitu interface_index);
 static void FDC_ResetEvent(Bitu interface_index);
+static void FDC_TimerEvent(Bitu interface_index);
 
 void FDC_ClearEvents(Bitu interface_index) {
 	PIC_RemoveSpecificEvents(FDC_ExecEvent,interface_index);
 	PIC_RemoveSpecificEvents(FDC_ResetEvent,interface_index);
+	PIC_RemoveSpecificEvents(FDC_TimerEvent,interface_index);
 	for (Bitu d=0;d < 4;d++) PIC_RemoveSpecificEvents(FDC_SeekEvent,interface_index * 4u + d);
 }
 
@@ -518,6 +592,13 @@ static void FDC_ExecEvent(Bitu interface_index) {
 static void FDC_ResetEvent(Bitu interface_index) {
 	if (interface_index >= MAX_FLOPPY_CONTROLLERS || floppycontroller[interface_index] == NULL) return;
 	floppycontroller[interface_index]->on_reset_complete();
+}
+
+/* PC-98 VFO timer: interrupts on the FDC's interrupt line 100ms after TTRG, if TMSK is set */
+static void FDC_TimerEvent(Bitu interface_index) {
+	if (interface_index >= MAX_FLOPPY_CONTROLLERS || floppycontroller[interface_index] == NULL) return;
+	FloppyController *fdc = floppycontroller[interface_index];
+	if ((fdc->pc98_control & 0x04) && fdc->IRQ >= 0) PIC_ActivateIRQ((unsigned int)fdc->IRQ);
 }
 
 FloppyDevice::~FloppyDevice() {
@@ -607,10 +688,89 @@ void FloppyController::on_reset() {
  * drive "changed" from not ready to ready, which causes one interrupt, acknowledged by one
  * SENSE INTERRUPT STATUS per drive (ST0 = C0h-C3h). */
 void FloppyController::on_reset_complete() {
+	/* the uPD765 has a real READY input: after reset every drive is taken to be not ready,
+	 * and the polling finds the ones that are ready, each causing an interrupt */
+	if (chip == FDC_CHIP_UPD765) {
+		for (unsigned int d=0;d < 4;d++) drive_ready[d] = false;
+		poll_ready();
+		return;
+	}
+
 	if (!cfg_poll) {
 		reset_sense_count = 4;
 		raise_irq();
 	}
+}
+
+/* READY from the drive: a disk in it and the motor on, or forced ready (PC-98 FRY). The 82077AA ties READY true. */
+bool FloppyController::drive_ready_now(unsigned int drive) {
+	FloppyDevice *dev = device[drive&3];
+
+	if (chip != FDC_CHIP_UPD765) return true;
+	if (IS_PC98_ARCH && (pc98_control & 0x40)) return true;
+	return dev != NULL && dev->getImage() != NULL && dev->motor();
+}
+
+/* uPD765 drive polling: a drive that became ready or not ready causes an interrupt,
+ * SENSE INTERRUPT STATUS gives ST0 with IC=11 (and NR if it is now not ready) */
+void FloppyController::poll_ready() {
+	if (chip != FDC_CHIP_UPD765 || in_reset()) return;
+
+	for (unsigned int d=0;d < 4;d++) {
+		const bool r = drive_ready_now(d);
+		if (r == drive_ready[d]) continue;
+
+		drive_ready[d] = r;
+		/* a drive that is seeking reports its own interrupt when done */
+		if (seek[d].active) continue;
+		sense_st0[d] = (uint8_t)(0xC0 | (r ? 0x00 : 0x08) | d);
+		sense_pending[d] = true;
+		raise_irq();
+	}
+}
+
+/* PC-98: the motor is on if MTON is set, or always if motor control is not enabled (EMTON, I/O 0BEh bit 2) */
+void FloppyController::pc98_update_motors() {
+	const bool on = !(pc98_mode & 0x04) || (pc98_control & 0x08);
+
+	for (unsigned int i=0;i < 4;i++) {
+		if (device[i] != NULL) device[i]->set_motor(on);
+	}
+}
+
+/* I/O 94h write */
+void FloppyController::pc98_control_write(uint8_t val) {
+	const uint8_t chg = pc98_control ^ val;
+	pc98_control = val;
+
+	/* RST: the controller is held in reset while set */
+	if (chg & 0x80) {
+		if (val & 0x80) {
+			LOG_MSG("FDC: Reset\n");
+			on_reset();
+		}
+		else {
+			LOG_MSG("FDC: Reset complete\n");
+			PIC_RemoveSpecificEvents(FDC_ResetEvent,interface_index);
+			PIC_AddEvent(FDC_ResetEvent,delay(0.25),interface_index);
+		}
+	}
+
+	if (chg & 0x08) LOG(LOG_MISC,LOG_DEBUG)("FDC: PC-98 motor %s",(val & 0x08) ? "on" : "off");
+
+	/* TTRG: the VFO timer interrupts 100ms later, if TMSK lets it */
+	if (val & 0x01) {
+		PIC_RemoveSpecificEvents(FDC_TimerEvent,interface_index);
+		PIC_AddEvent(FDC_TimerEvent,instant_mode ? FDC_INSTANT_DELAY_MS : 100.0,interface_index);
+	}
+
+	pc98_update_motors();
+	poll_ready();
+}
+
+/* I/O 94h read: interface switches. Dual-use FD I/F in 1MB I/F mode: FINT0=1, DMACH=0, built-in drives are #1 and #2 */
+uint8_t FloppyController::pc98_control_read() {
+	return 0x44;
 }
 
 void FloppyController::reset_configure() {
@@ -623,8 +783,8 @@ void FloppyController::reset_configure() {
 }
 
 bool FloppyController::in_reset() {
-	/* PC-98 has no DOR, the controller is never held in reset */
-	if (IS_PC98_ARCH) return false;
+	/* PC-98: RST bit of the control register */
+	if (IS_PC98_ARCH) return (pc98_control & 0x80) != 0;
 	return !(digital_output_register & 0x04);
 }
 
@@ -638,8 +798,8 @@ int FloppyController::drive_selected() {
 }
 
 bool FloppyController::dma_enabled() {
-	/* PC-98 has no DOR and no DMA gate */
-	if (IS_PC98_ARCH) return true;
+	/* PC-98: DMAE bit of the control register */
+	if (IS_PC98_ARCH) return (pc98_control & 0x10) != 0;
 
 	return (digital_output_register & 0x08); /* bit 3 of DOR controls DMA/IRQ enable */
 }
@@ -702,15 +862,17 @@ void FDC_Primary_Init() {
 uint8_t FloppyController::make_ST3(unsigned int drive,unsigned int head) {
 	FloppyDevice *dev = device[drive&3];
 
-	/* The 82077AA ties READY true internally */
+	/* The 82077AA ties READY true internally, the uPD765 takes it from the drive */
 	uint8_t r =
-		0x20/*RDY*/ +
+		(drive_ready_now(drive) ? 0x20/*RDY*/ : 0x00) +
 		0x08/*DOUBLE-SIDED SIGNAL*/+
 		((head&1) << 2) +
 		(drive&3);/*DRIVE SELECT*/
 
 	if (dev != NULL && dev->track0())
 		r |= 0x10;/*TRACK 0 signal from device*/
+	if (dev != NULL && dev->getImage() != NULL && dev->getImage()->Is_Write_Protected())
+		r |= 0x40;/*WRITE PROTECT*/
 
 	return r;
 }
@@ -829,6 +991,11 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	exec_pos = exec_size = 0;
 	exec_tc = false;
 	exec_data_error = false;
+	exec_index = 0;
+	exec_diag_nd = false;
+	exec_cm = false;
+	exec_skip = false;
+	exec_density = 1.0;
 	lock = false;
 	last_eot = 18;
 	reset_configure();
@@ -837,6 +1004,11 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	/* state as left by the BIOS POST: out of reset, DMA/IRQ enabled, data rate and
 	 * SPECIFY timings from a 1.44MB disk base table */
 	digital_output_register = IS_PC98_ARCH ? 0x00 : 0x0C;
+	/* PC-98: DMA enabled, motor on, 1MB I/F mode with 1MB access, motor always on (as the BIOS leaves it) */
+	pc98_control = 0x18;
+	pc98_mode = 0x03;
+	pc98_mode144 = 0;
+	for (i=0;i < 4;i++) drive_ready[i] = false;
 	data_rate = 0;
 	spec_srt = 0xA;
 	spec_hut = 0xF;
@@ -918,6 +1090,12 @@ void FloppyController::install_io_port(){
 			ReadHandler[1].Install(base_io+2,fdc_baseio98_r,IO_MA);     // 0x92 / 0xCA
 			WriteHandler[2].Install(base_io+4,fdc_baseio98_w,IO_MA);    // 0x94 / 0xCC
 			ReadHandler[2].Install(base_io+4,fdc_baseio98_r,IO_MA);     // 0x94 / 0xCC
+			if (interface_index == 0) {
+				WriteHandler[3].Install(0xBE,fdc_pc98_mode_w,IO_MB);
+				ReadHandler[3].Install(0xBE,fdc_pc98_mode_r,IO_MB);
+				WriteHandler[4].Install(0x4BE,fdc_pc98_mode144_w,IO_MB);
+				ReadHandler[4].Install(0x4BE,fdc_pc98_mode144_r,IO_MB);
+			}
 		}
 		else {
 			for (unsigned int i=0;i < 8;i++) {
@@ -1039,15 +1217,7 @@ void FloppyController::invalid_command_code() {
 }
 
 uint8_t FloppyController::fdc_data_read() {
-	// FIXME: It's unclear whether or not this is correct behavior.
-	//        IBM compatible Pentium motherboards might have FDCs that
-	//        leave the busy bit set until the response has been read, from my experience.
-	//        On the other hand some PC-98 booter games seem to assume that busy will be
-	//        cleared when read finishes and will not read response until busy bit clears
-	//        (Arsys Star Cruiser).
-	//
-	//        This is a compromise until further study.
-	if (busy_status || IS_PC98_ARCH) {
+	if (busy_status) {
 		if (out_res_state) {
 			/* reading the result of a read/write/etc. clears the interrupt it raised */
 			if (irq_from_result) {
@@ -1156,16 +1326,13 @@ imageDisk *FloppyController::exec_image() {
 	return dev != NULL ? dev->getImage() : NULL;
 }
 
-/* can the controller find sector IDs on the track at all? */
+/* is there a disk the controller can read at all? What is on the track is up to the sector search */
 bool FloppyController::exec_media_ok(bool check_cylinder) {
 	FloppyDevice *dev = exec_device();
 	imageDisk *image = exec_image();
 	(void)check_cylinder;
 
 	if (dev == NULL || image == NULL) return false;
-	if (!(in_cmd[0]&0x40)/*FM, our images are all MFM*/) return false;
-	if (exec_hds >= image->heads) return false;
-	if (dev->mech().track >= image->cylinders) return false;
 	/* NTS: On real hardware a data rate that does not match the media means the data separator never
 	 *      locks on and no ID is ever found. That is not enforced, because OS/2 1.x accesses the 1.44MB
 	 *      images it is commonly distributed on at 250Kbps as if they were 720K disks. */
@@ -1227,16 +1394,11 @@ void FloppyController::exec_finish(uint8_t st0_ic,uint8_t st1,uint8_t st2) {
 	/* the head unloads the head unload time after the end of the command */
 	if (dev != NULL) dev->mech().head_unload_at = PIC_FullIndex() + floppy_hut_ms(spec_hut,data_rate);
 
-	// FIXME: It's unclear whether or not this is correct behavior.
-	//        IBM compatible Pentium motherboards might have FDCs that
-	//        leave the busy bit set until the response has been read, from my experience.
-	//        On the other hand some PC-98 booter games seem to assume that busy will be
-	//        cleared when read finishes and will not read response until busy bit clears
-	//        (Arsys Star Cruiser).
-	//
-	//        This is a compromise until further study.
-	if (IS_PC98_ARCH)
-		busy_status = 0;
+	// NTS: The busy bit (CB) stays set through the result phase until the last result byte is
+	//      read, as the uPD765A datasheet says. PC-98 code relies on it: Dragon Buster's INT42
+	//      handler reads the result if CB is set and otherwise issues SENSE INTERRUPT STATUS.
+	//      (This used to be cleared at the end of the execution phase on PC-98 for Arsys Star
+	//      Cruiser, which was not retested when this was changed.)
 
 	LOG(LOG_MISC,LOG_DEBUG)("FDC: Result %02x %02x %02x %02x %02x %02x %02x",
 		out_res[0],out_res[1],out_res[2],out_res[3],out_res[4],out_res[5],out_res[6]);
@@ -1277,6 +1439,12 @@ void FloppyController::exec_begin() {
 		last_eot = in_cmd[6];
 	}
 
+	/* uPD765: a read/write to a drive that is not ready ends right away with NR */
+	if (chip == FDC_CHIP_UPD765 && !drive_ready_now(exec_drive)) {
+		exec_finish(0x48/*AT, NR*/,0x00,0x00);
+		return;
+	}
+
 	if (dev == NULL) {
 		/* no drive: no index pulses, no ID marks */
 		exec_fail_after_index(0x01/*MA*/,0x00);
@@ -1313,23 +1481,8 @@ void FloppyController::exec_begin() {
 		return;
 	}
 
-	const FloppyTrackLayout L = floppy_layout(image);
-
-	if (cmd == 0x0A/*READ ID*/) {
-		/* the next sector ID to pass under the head */
-		double best = 1e30;
-		for (unsigned int k=1;k <= L.spt;k++) {
-			const double w = L.time_to(m,t,L.id_start(k));
-			if (w < best) {
-				best = w;
-				exec_R = (uint8_t)k;
-			}
-		}
-		exec_schedule(EXEC_READID,t + best + 22.0 * L.byte_ms);
-		return;
-	}
-
 	if (cmd == 0x0D/*FORMAT*/) {
+		const FloppyTrackLayout L = floppy_layout(image);
 		exec_fmt_sc = in_cmd[3] != 0 ? in_cmd[3] : L.spt;
 		exec_fmt_fill = in_cmd[5];
 		exec_slot_ms = L.rev_ms / exec_fmt_sc;
@@ -1339,13 +1492,16 @@ void FloppyController::exec_begin() {
 		return;
 	}
 
-	/* the ID must match the track the head is on and the side selected */
-	if (exec_C != (uint8_t)m.track || exec_H != exec_hds) {
-		exec_fail_after_index(0x04/*ND*/,exec_C != (uint8_t)m.track ? 0x10/*WC*/ : 0x00);
+	if (cmd == 0x02/*READ DIAGNOSTIC*/) {
+		/* reads the data fields one after another from the index hole, whatever their IDs */
+		const FloppyTrackLayout L = floppy_layout(image);
+		exec_diag_nd = false;
+		exec_index = 0;
+		exec_find_from_index(t + L.time_to(m,t,0));
 		return;
 	}
 
-	if (exec_N > FLOPPY_MAX_SECTOR_SIZE_SZCODE || exec_R == 0) {
+	if (cmd != 0x0A/*READ ID*/ && exec_N > FLOPPY_MAX_SECTOR_SIZE_SZCODE) {
 		exec_fail_after_index(0x04/*ND*/,0x00);
 		return;
 	}
@@ -1353,14 +1509,80 @@ void FloppyController::exec_begin() {
 	exec_find_sector(t);
 }
 
-/* look for the ID field of sector exec_R, from time t. The controller must see the ID field
- * from its beginning, if the head is already past that it takes until the next revolution. */
-void FloppyController::exec_find_sector(double t) {
+/* the sectors of the track under the head, and where their ID fields are */
+void FloppyController::exec_track(FloppyTrackMap &M) {
 	FloppyDevice *dev = exec_device();
-	const FloppyTrackLayout L = floppy_layout(exec_image());
+	floppy_track_map(exec_image(),dev != NULL ? dev->mech().track : 0,exec_hds,M);
+}
 
-	t += L.time_to(dev->mech(),t,L.id_start(exec_R));
-	exec_schedule(EXEC_ID,t + 22.0 * L.byte_ms);
+/* Look for the ID field that matches the command (or for READ ID, any ID field), starting at time t.
+ * The controller compares each ID field of the right density that passes under the head, from its
+ * beginning, and gives up at the second index pulse. */
+void FloppyController::exec_find_sector(double t) {
+	const uint8_t cmd = in_cmd[0]&0x1F;
+	const bool fm = !(in_cmd[0]&0x40);
+	FloppyDevice *dev = exec_device();
+	FloppyTrackMap M;
+
+	exec_track(M);
+
+	FloppyMechanics &m = dev->mech();
+	const double rev = M.L.rev_ms;
+	const double first_index = t + M.L.time_to(m,t,0);
+	const double give_up = first_index + rev;
+	bool any_id = false,wrong_cyl = false,bad_cyl = false;
+	double best = 1e30;
+	int found = -1;
+
+	for (size_t k=0;k < M.secs.size();k++) {
+		const imageDiskTrackSector &ts = M.secs[k];
+		if (ts.fm != fm || ts.id_crc_error) continue;
+		any_id = true;
+
+		/* this ID passes under the head at w, and again every revolution after */
+		double w = t + M.L.time_to(m,t,M.id_pos[k]);
+		if (w > give_up) continue;
+
+		if (cmd != 0x0A/*READ ID*/) {
+			if (ts.c != exec_C) {
+				if (ts.c == 0xFF) bad_cyl = true;
+				else wrong_cyl = true;
+				continue;
+			}
+			if (ts.h != exec_H || ts.r != exec_R || ts.n != exec_N) continue;
+		}
+
+		if (w < best) {
+			best = w;
+			found = (int)k;
+		}
+	}
+
+	if (found < 0) {
+		/* nothing with the right density at all: missing address mark, otherwise no data */
+		if (!any_id) exec_fail_after_index(0x01/*MA*/,0x00);
+		else exec_fail_after_index(0x04/*ND*/,(uint8_t)((wrong_cyl ? 0x10/*WC*/ : 0x00) | (bad_cyl ? 0x02/*BC*/ : 0x00)));
+		return;
+	}
+
+	exec_index = (unsigned int)found;
+	const double id_bytes = 22.0 * (fm ? 2.0 : 1.0);
+	exec_schedule(cmd == 0x0A ? EXEC_READID : EXEC_ID,best + id_bytes * M.L.byte_ms);
+}
+
+/* READ DIAGNOSTIC: the next sector in physical order (exec_index), from time t */
+void FloppyController::exec_find_from_index(double t) {
+	FloppyDevice *dev = exec_device();
+	FloppyTrackMap M;
+
+	exec_track(M);
+	if (exec_index >= M.secs.size()) {
+		exec_fail_after_index(0x01/*MA*/,0x00);
+		return;
+	}
+
+	const double id_bytes = 22.0 * (M.secs[exec_index].fm ? 2.0 : 1.0);
+	exec_schedule(EXEC_ID,t + M.L.time_to(dev->mech(),t,M.id_pos[exec_index]) + id_bytes * M.L.byte_ms);
 }
 
 /* the ID field of the sector passed under the head: the data field follows after gap 2 */
@@ -1368,37 +1590,77 @@ void FloppyController::exec_sector_id() {
 	const uint8_t cmd = in_cmd[0]&0x1F;
 	imageDisk *image = exec_image();
 	FloppyDevice *dev = exec_device();
+	FloppyTrackMap M;
 
 	if (!exec_media_ok(true) || !dev->motor()) {
 		exec_fail_after_index(0x01/*MA*/,0x00);
 		return;
 	}
 
-	const FloppyTrackLayout L = floppy_layout(image);
+	exec_track(M);
+	if (exec_index >= M.secs.size()) {
+		exec_fail_after_index(0x01/*MA*/,0x00);
+		return;
+	}
 
-	exec_size = 1u << (exec_N + 7u);
-	assert(exec_size <= FLOPPY_MAX_SECTOR_SIZE);
+	const imageDiskTrackSector &ts = M.secs[exec_index];
+	const double density = ts.fm ? 2.0 : 1.0;
+
+	if (cmd == 0x02/*READ DIAGNOSTIC*/) {
+		/* the data is read whether or not the ID matches, a mismatch is reported at the end */
+		if (ts.c != exec_C || ts.h != exec_H || ts.r != exec_R || ts.n != exec_N) exec_diag_nd = true;
+	}
+
+	if (ts.no_data) {
+		/* an ID with no data address mark after it */
+		exec_finish(0x40,0x01/*MA*/,0x01/*MD*/);
+		return;
+	}
+
+	/* a data field with the other kind of address mark (deleted/normal) than the command reads:
+	 * with SK set it is skipped, otherwise it is read and the command ends after it */
+	exec_cm = false;
+	if (cmd == 0x06 || cmd == 0x0C || cmd == 0x16) {
+		const bool want_deleted = (cmd == 0x0C);
+		if (ts.deleted != want_deleted) {
+			if (in_cmd[0]&0x20/*SK*/) {
+				exec_skip = true;
+				exec_size = 0;
+				exec_pos = 0;
+				exec_schedule(EXEC_DATA,PIC_FullIndex() + (22.0 + 16.0 + ts.data_size + 2.0) * density * M.L.byte_ms);
+				return;
+			}
+			exec_cm = true;
+		}
+	}
+	exec_skip = false;
+
+	/* N=0: the data length is DTL */
+	exec_size = exec_N != 0 ? (1u << (exec_N + 7u)) : (in_cmd[8] != 0 && in_cmd[8] < 128 ? in_cmd[8] : 128u);
+	if (exec_size > FLOPPY_MAX_SECTOR_SIZE) exec_size = FLOPPY_MAX_SECTOR_SIZE;
 	exec_pos = 0;
-	exec_data_error = false;
+	exec_data_error = ts.data_crc_error;
+	exec_density = density;
 
 	if (cmd == 0x05/*WRITE*/ || cmd == 0x09/*WRITE DELETED*/) {
+		if (image->Is_Write_Protected()) {
+			exec_finish(0x40,0x02/*NW*/,0x00);
+			return;
+		}
 		memset(exec_buf,0,sizeof(exec_buf));
 	}
 	else {
-		/* In order to support copy-protected booter games (IBM PC or PC-98) the sector number is NOT range
-		 * limited in order to support games such as Star Cruiser that look for intentionally out of range
-		 * sector numbers. The image decides whether the sector exists. */
-		Int13Status err = image->Read_Sector(exec_hds,dev->mech().track,exec_R,exec_buf,exec_size);
-		if (err != Int13Status::NoError && err != Int13Status::DataError) {
+		Int13Status err = image->Read_Track_Sector(dev->mech().track,exec_hds,exec_index,exec_buf,exec_size);
+		if (err == Int13Status::DataError) exec_data_error = true;
+		else if (err != Int13Status::NoError) {
 			exec_fail_after_index(0x04/*ND*/,0x00);
 			return;
 		}
-		exec_data_error = (err == Int13Status::DataError);
 	}
 
 	/* gap 2, the data address mark, then the first bytes of data */
 	const unsigned int first = MIN(FDC_DMA_CHUNK,exec_size);
-	exec_schedule(EXEC_DATA,PIC_FullIndex() + (22.0 + 16.0 + first) * L.byte_ms);
+	exec_schedule(EXEC_DATA,PIC_FullIndex() + (22.0 + 16.0 + first) * density * M.L.byte_ms);
 }
 
 /* the next bytes of the data field passed under the head: move them through DMA */
@@ -1406,6 +1668,13 @@ void FloppyController::exec_data() {
 	const uint8_t cmd = in_cmd[0]&0x1F;
 	const FloppyTrackLayout L = floppy_layout(exec_image());
 	const bool writing = (cmd == 0x05/*WRITE*/ || cmd == 0x09/*WRITE DELETED*/);
+
+	/* a skipped sector: nothing transferred, on to the next one */
+	if (exec_skip) {
+		exec_sector_done();
+		return;
+	}
+
 	const unsigned int n = MIN(instant_mode ? exec_size : FDC_DMA_CHUNK,exec_size - exec_pos);
 
 	if (cmd != 0x16/*VERIFY, no data transfer*/ && !exec_tc) {
@@ -1440,7 +1709,7 @@ void FloppyController::exec_data() {
 	exec_pos += n;
 	if (exec_pos < exec_size) {
 		const unsigned int next = MIN(instant_mode ? exec_size : FDC_DMA_CHUNK,exec_size - exec_pos);
-		exec_schedule(EXEC_DATA,PIC_FullIndex() + next * L.byte_ms);
+		exec_schedule(EXEC_DATA,PIC_FullIndex() + next * exec_density * L.byte_ms);
 		return;
 	}
 
@@ -1453,27 +1722,39 @@ void FloppyController::exec_sector_done() {
 	imageDisk *image = exec_image();
 	FloppyDevice *dev = exec_device();
 
-	if (cmd == 0x05/*WRITE*/ || cmd == 0x09/*WRITE DELETED*/) {
-		Int13Status err = image->Write_Sector(exec_hds,dev->mech().track,exec_R,exec_buf,exec_size);
-		if (err == Int13Status::WriteProtected) { exec_finish(0x40,0x02/*NW*/,0x00); return; }
-		if (err != Int13Status::NoError) { exec_fail_after_index(0x04/*ND*/,0x00); return; }
-	}
-	else if (exec_data_error) {
-		/* real controllers transfer the data of a sector with a CRC error, then stop */
-		exec_finish(0x40,0x20/*DE*/,0x20/*DD*/);
-		return;
+	if (!exec_skip) {
+		if (cmd == 0x05/*WRITE*/ || cmd == 0x09/*WRITE DELETED*/) {
+			Int13Status err = image->Write_Track_Sector(dev->mech().track,exec_hds,exec_index,exec_buf,exec_size);
+			if (err == Int13Status::WriteProtected) { exec_finish(0x40,0x02/*NW*/,0x00); return; }
+			if (err != Int13Status::NoError) { exec_fail_after_index(0x04/*ND*/,0x00); return; }
+		}
+		else if (exec_data_error) {
+			/* real controllers transfer the data of a sector with a CRC error, then stop */
+			exec_finish(0x40,0x20/*DE*/,0x20/*DD*/);
+			return;
+		}
+
+		/* the other kind of data address mark without SK: the command ends after this sector,
+		 * the sector address is not advanced */
+		if (exec_cm) {
+			exec_finish(0x40,0x00,0x40/*CM*/);
+			return;
+		}
+
+		exec_count++;
 	}
 
-	exec_count++;
+	FloppyTrackMap M;
+	exec_track(M);
 
-	const bool mt = (in_cmd[0]&0x80) != 0;
-	const unsigned int spt = floppy_spt(image);
+	const bool mt = (in_cmd[0]&0x80) != 0 && cmd != 0x02;
+	const unsigned int spt = (unsigned int)M.secs.size();
 	/* NTS: An end of track below the number of sectors on the track is apparently ignored. If it were not,
 	 *      OS/2 1.x would have failed to read things properly on real hardware, because reading/writing a
 	 *      1.44MB floppy (18 sectors/track) with an end track number like you're a 720K floppy (end of
 	 *      track == 9) is something IBM would do. */
-	const unsigned int eot = in_cmd[6] > spt ? in_cmd[6] : spt;
-	const bool at_eot = exec_R >= eot;
+	const unsigned int eot = cmd == 0x02 ? in_cmd[6] : (in_cmd[6] > spt ? in_cmd[6] : spt);
+	const bool at_eot = (cmd == 0x02) ? (exec_index + 1u >= eot || exec_index + 1u >= spt) : (exec_R >= eot);
 	bool tc;
 
 	if (cmd == 0x16/*VERIFY*/) {
@@ -1502,14 +1783,14 @@ void FloppyController::exec_sector_done() {
 	}
 
 	if (tc) {
-		exec_finish(0x00,0x00,0x00);
+		exec_finish(0x00,cmd == 0x02 && exec_diag_nd ? 0x04/*ND*/ : 0x00,0x00);
 		return;
 	}
 
 	/* the end of the track (both sides for multi-track) without terminal count: end of cylinder */
 	if (at_eot && (!mt || exec_hds == 0/*came back around from side 1*/)) {
 		if (mt) exec_hds ^= 1; /* report the side it ended on */
-		exec_finish(0x40,0x80/*EN*/,0x00);
+		exec_finish(0x40,(uint8_t)(0x80/*EN*/ | (cmd == 0x02 && exec_diag_nd ? 0x04/*ND*/ : 0x00)),0x00);
 		return;
 	}
 
@@ -1518,28 +1799,37 @@ void FloppyController::exec_sector_done() {
 		return;
 	}
 
-	/* on to the next sector, its ID field follows gap 3 (side 1 sector 1 follows the index hole) */
+	if (cmd == 0x02) {
+		/* READ DIAGNOSTIC goes on with the next sector in physical order */
+		exec_index++;
+		exec_find_from_index(PIC_FullIndex());
+		return;
+	}
+
+	/* on to the next sector, its ID field comes along after gap 3 (side 1 sector 1 follows the index hole) */
 	exec_find_sector(PIC_FullIndex());
 }
 
 void FloppyController::exec_read_id_done() {
-	imageDisk *image = exec_image();
+	FloppyTrackMap M;
 
 	if (!exec_media_ok(false) || !exec_device()->motor()) {
 		exec_fail_after_index(0x01/*MA*/,0x00);
 		return;
 	}
 
-	exec_C = (uint8_t)exec_device()->mech().track;
-	exec_H = exec_hds;
-	{
-		unsigned int sz = (unsigned int)image->sector_size;
-		exec_N = 0;			    /* 128 << 2 == 512 bytes/sector */
-		while (sz > 128u && exec_N < FLOPPY_MAX_SECTOR_SIZE_SZCODE) {
-			exec_N++;
-			sz >>= 1u;
-		}
+	exec_track(M);
+	if (exec_index >= M.secs.size()) {
+		exec_fail_after_index(0x01/*MA*/,0x00);
+		return;
 	}
+
+	/* the ID field as it is on the disk, whatever the physical cylinder and head */
+	const imageDiskTrackSector &ts = M.secs[exec_index];
+	exec_C = ts.c;
+	exec_H = ts.h;
+	exec_R = ts.r;
+	exec_N = ts.n;
 
 	exec_finish(0x00,0x00,0x00);
 }
@@ -1552,6 +1842,11 @@ void FloppyController::exec_format_sector() {
 
 	if (!exec_media_ok(false) || !dev->motor()) {
 		exec_fail_after_index(0x01/*MA*/,0x00);
+		return;
+	}
+
+	if (image->Is_Write_Protected()) {
+		exec_finish(0x40,0x02/*NW*/,0x00);
 		return;
 	}
 
@@ -1572,20 +1867,34 @@ void FloppyController::exec_format_sector() {
 	exec_R = id[2];
 	exec_N = id[3];
 
-	/* a raw image can only take the data of sectors that fit its layout */
-	if (exec_N <= FLOPPY_MAX_SECTOR_SIZE_SZCODE && (128u << exec_N) == image->sector_size &&
-		exec_R >= 1 && exec_R <= image->sectors) {
-		unsigned char sector[FLOPPY_MAX_SECTOR_SIZE];
-		memset(sector,exec_fmt_fill,sizeof(sector));
+	/* An image can only take the data of sectors that are already on the track with the same ID
+	 * and size, a format that changes the layout of the track is not possible. */
+	{
+		FloppyTrackMap M;
+		int found = -1;
 
-		Int13Status err = image->Write_Sector(exec_hds,dev->mech().track,exec_R,sector,image->sector_size);
-		if (err == Int13Status::WriteProtected) {
-			exec_finish(0x40,0x02/*NW*/,0x00);
-			return;
+		exec_track(M);
+		for (size_t k=0;k < M.secs.size();k++) {
+			const imageDiskTrackSector &ts = M.secs[k];
+			if (ts.c == exec_C && ts.h == exec_H && ts.r == exec_R && ts.n == exec_N) {
+				found = (int)k;
+				break;
+			}
 		}
-	}
-	else {
-		LOG(LOG_MISC,LOG_DEBUG)("FDC: Format sector ID C=%u H=%u R=%u N=%u does not fit the image, not written",exec_C,exec_H,exec_R,exec_N);
+
+		if (found >= 0 && exec_N <= FLOPPY_MAX_SECTOR_SIZE_SZCODE) {
+			unsigned char sector[FLOPPY_MAX_SECTOR_SIZE];
+			memset(sector,exec_fmt_fill,sizeof(sector));
+
+			Int13Status err = image->Write_Track_Sector(dev->mech().track,exec_hds,(unsigned int)found,sector,128u << exec_N);
+			if (err == Int13Status::WriteProtected) {
+				exec_finish(0x40,0x02/*NW*/,0x00);
+				return;
+			}
+		}
+		else {
+			LOG(LOG_MISC,LOG_DEBUG)("FDC: Format sector ID C=%u H=%u R=%u N=%u does not fit the image, not written",exec_C,exec_H,exec_R,exec_N);
+		}
 	}
 
 	if (++exec_count >= exec_fmt_sc) {
@@ -1628,6 +1937,7 @@ void FloppyController::exec_event() {
 /* commands each chip knows */
 bool FloppyController::command_supported(uint8_t cmd) {
 	switch (cmd&0x1F) {
+		case 0x02: /* READ DIAGNOSTIC */
 		case 0x03: /* SPECIFY */
 		case 0x04: /* SENSE DRIVE STATUS */
 		case 0x05: /* WRITE DATA */
@@ -1786,18 +2096,10 @@ void FloppyController::on_fdc_in_command() {
 			exec_begin();
 			return;
 		case 0x0C: /* Read deleted data (1100) */
-			/* the raw images used by DOSBox cannot represent "deleted sectors". There is never a deleted
-			 * data address mark to be found, so the controller searches until it gives up. */
-			exec_drive = (uint8_t)devidx;
-			exec_hds = (in_cmd[1]>>2)&1;
-			exec_C = in_cmd[2];
-			exec_H = in_cmd[3];
-			exec_R = in_cmd[4];
-			exec_N = in_cmd[5];
-			data_register_ready = 0;
-			data_read_expected = 0;
-			busy_status = 1;
-			exec_fail_after_index(0x01/*MA*/|0x04/*ND*/,0x01/*MD*/);
+			/* same as Read data, for data fields with a deleted data address mark */
+		case 0x02: /* Read diagnostic (read track) */
+			/* same result as Read data */
+			exec_begin();
 			return;
 		case 0x0D: /* Format track */
 			/*     |   7    6    5    4    3    2    1    0
@@ -1974,6 +2276,7 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				in_cmd_len = 9;
 				break;
 			case 0x16: /* Verify (same as Read data, byte 1 bit 7 = EC, byte 8 = SC if EC) */
+			case 0x02: /* Read diagnostic (same as Read data) */
 				in_cmd_len = 9;
 				break;
 			case 0x07: /* Calibrate drive (move head to track 0) */
@@ -2171,11 +2474,14 @@ static void fdc_baseio98_w(Bitu port,Bitu val,Bitu iolen) {
 				LOG_MSG("WARNING: FDC data write when data port not ready\n");
 			}
 			else if (fdc->data_read_expected) {
-				LOG_MSG("WARNING: FDC data write when data port ready but expecting I/O read\n");
+				LOG_MSG("WARNING: FDC data write %02xh when data port ready but expecting I/O read (MSR %02xh)\n",(unsigned int)val,fdc->main_status());
 			}
 			else {
 				fdc->fdc_data_write(val&0xFF);
 			}
+			break;
+		case 4: /* control register */
+			fdc->pc98_control_write(val&0xFF);
 			break;
 		default:
 			LOG_MSG("DEBUG: FDC write port %03xh val %02xh len=%u\n",(int)port,(int)val,(int)iolen);
@@ -2200,6 +2506,8 @@ static Bitu fdc_baseio98_r(Bitu port,Bitu iolen) {
 
 	switch (port&7) {
 		case 0: /* main status */
+			/* the uPD765 polls the drives while idle, notice a disk going in or out */
+			fdc->poll_ready();
 			return fdc->main_status();
 		case 2: /* data */
 			if (!fdc->data_register_ready) {
@@ -2214,12 +2522,53 @@ static Bitu fdc_baseio98_r(Bitu port,Bitu iolen) {
 			b = fdc->fdc_data_read();
 //			LOG_MSG("FDC: read data 0x%02x\n",b);
 			return b;
+		case 4: /* interface switches */
+			return fdc->pc98_control_read();
 		default:
 			LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",(int)port,(int)iolen);
 			break;
 	}
 
 	return ~(0UL);
+}
+
+/* PC-98 I/O 0BEh: dual-use FD I/F mode */
+static void fdc_pc98_mode_w(Bitu port,Bitu val,Bitu iolen) {
+	(void)port;(void)iolen;
+	FloppyController *fdc = floppycontroller[0];
+	if (fdc == NULL) return;
+
+	fdc->pc98_mode = (uint8_t)(val & 0x07);
+	LOG(LOG_MISC,LOG_DEBUG)("FDC: PC-98 mode %02x: %s I/F, %s access, motor control %s",(unsigned int)val,
+		(val & 1) ? "1MB" : "640KB",(val & 2) ? "1MB" : "640KB",(val & 4) ? "enabled" : "disabled (always on)");
+	fdc->pc98_update_motors();
+	fdc->poll_ready();
+}
+
+static Bitu fdc_pc98_mode_r(Bitu port,Bitu iolen) {
+	(void)port;(void)iolen;
+	FloppyController *fdc = floppycontroller[0];
+	if (fdc == NULL) return ~0ul;
+
+	/* DIP SW 3-2 off (1MB), 3-1 off (automatic), access mode, I/F mode */
+	return 0x08u | (fdc->pc98_mode & 0x03u);
+}
+
+/* PC-98 I/O 4BEh: 3-mode FD I/F (1.44MB). The drives emulated here do not do 1.44MB. */
+static void fdc_pc98_mode144_w(Bitu port,Bitu val,Bitu iolen) {
+	(void)port;(void)iolen;
+	FloppyController *fdc = floppycontroller[0];
+	if (fdc == NULL) return;
+
+	if (val & 0x10) fdc->pc98_mode144 = (uint8_t)(val & 1);
+}
+
+static Bitu fdc_pc98_mode144_r(Bitu port,Bitu iolen) {
+	(void)port;(void)iolen;
+	FloppyController *fdc = floppycontroller[0];
+	if (fdc == NULL) return ~0ul;
+
+	return 0xEEu | (fdc->pc98_mode144 & 1u);
 }
 
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
@@ -2254,7 +2603,7 @@ static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 				LOG_MSG("WARNING: FDC data write when data port not ready\n");
 			}
 			else if (fdc->data_read_expected) {
-				LOG_MSG("WARNING: FDC data write when data port ready but expecting I/O read\n");
+				LOG_MSG("WARNING: FDC data write %02xh when data port ready but expecting I/O read (MSR %02xh)\n",(unsigned int)val,fdc->main_status());
 			}
 			else {
 				fdc->fdc_data_write(val&0xFF);
@@ -2494,4 +2843,216 @@ void FLOPPY_BIOS_MotorTimeout(void) {
 			fdc->set_dor((unsigned char)(fdc->digital_output_register & ~(0x10u << d)));
 		}
 	}
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * PC-98 disk BIOS (INT 1Bh) interface
+ * --------------------------------------------------------------------------------------------- */
+
+/* Find the next ID field from time t that matches (or any ID field, for read ID), giving up at the
+ * second index pulse like the uPD765. Returns 00h and the sector's index and the time its ID field
+ * starts, or the INT 1Bh error code: Cxh no data, Exh missing address mark. */
+static uint8_t floppy_pc98_find(const FloppyMechanics &m,const FloppyTrackMap &M,double &t,bool fm,bool any,
+	uint8_t c,uint8_t h,uint8_t r,uint8_t n,unsigned int &index) {
+	const double give_up = t + M.L.time_to(m,t,0) + M.L.rev_ms;
+	double best = 1e30;
+	bool any_id = false;
+	int found = -1;
+
+	for (size_t k=0;k < M.secs.size();k++) {
+		const imageDiskTrackSector &ts = M.secs[k];
+		if (ts.fm != fm || ts.id_crc_error) continue;
+		any_id = true;
+
+		const double w = t + M.L.time_to(m,t,M.id_pos[k]);
+		if (w > give_up) continue;
+		if (!any && (ts.c != c || ts.h != h || ts.r != r || ts.n != n)) continue;
+
+		if (w < best) {
+			best = w;
+			found = (int)k;
+		}
+	}
+
+	if (found < 0) {
+		t = give_up;
+		return any_id ? 0xC0 : 0xE0;
+	}
+
+	index = (unsigned int)found;
+	t = best;
+	return 0x00;
+}
+
+uint8_t FLOPPY_PC98_BIOS_Access(FloppyPC98BiosRequest &rq) {
+	const unsigned char drive = rq.drive & 3;
+	if (drive >= 2) return 0x60;
+
+	imageDisk *image = GetINT13FloppyDrive(drive);
+	if (image == NULL) return 0x60; /* not ready: no disk */
+
+	FloppyController *fdc = floppycontroller[0];
+	FloppyMechanics &m = floppy_mech[drive];
+	const bool instant = FLOPPY_InstantMode();
+	const unsigned int rate = floppy_media_rate(image);
+	/* the BIOS programs the FDC with its own SPECIFY values, the FDC keeps them */
+	const double srt = floppy_srt_ms(fdc != NULL ? fdc->spec_srt : 0xD,rate);
+	const double hlt = floppy_hlt_ms(fdc != NULL ? fdc->spec_hlt : 0x01,rate);
+	const double hut = floppy_hut_ms(fdc != NULL ? fdc->spec_hut : 0x0F,rate);
+	const double head_settle_ms = 15.0;
+	const bool transfer = (rq.command == 0x01 || rq.command == 0x02 || rq.command == 0x05 ||
+		rq.command == 0x06 || rq.command == 0x09 || rq.command == 0x0C);
+	const bool writing = (rq.command == 0x05 || rq.command == 0x09);
+	uint8_t code = 0x00;
+	double t = PIC_FullIndex();
+
+	/* the transfer area may not cross a 64KB boundary (DMA) */
+	if (transfer && rq.bytes != 0 && ((rq.memaddr & 0xFFFFu) + rq.bytes) > 0x10000u)
+		return 0x20;
+
+	/* the motor has to be on and the disk up to speed */
+	if (!m.motor) {
+		if (fdc != NULL && IS_PC98_ARCH) {
+			fdc->pc98_control |= 0x08;
+			fdc->pc98_update_motors();
+		}
+		if (!m.motor) floppy_motor(m,true);
+	}
+	if (t < floppy_ready_at(m)) t = floppy_ready_at(m);
+
+	/* seek (recalibrate: to cylinder 0), then wait for the head to settle */
+	if (rq.seek || rq.command == 0x00 || rq.command == 0x07) {
+		const unsigned int target = rq.command == 0x07 ? 0u : MIN((unsigned int)rq.c,FLOPPY_MAX_TRACK);
+		if (m.track != target) {
+			const unsigned int steps = (unsigned int)abs((int)m.track - (int)target);
+			t += steps * srt + head_settle_ms;
+			m.track = target;
+			/* a step pulse with a disk in the drive resets the disk change line */
+			if (drive < MAX_DISK_IMAGES) imageDiskChange[drive] = false;
+		}
+	}
+
+	if (rq.command != 0x00 && rq.command != 0x07) {
+		const bool fm = !rq.mfm;
+		/* The head select of the FDC command is DH bit 0 combined with AL bit 2: AL bits 2-0 line up
+		 * with the HD and drive select bits of the uPD765 command, and adding the head bit into them
+		 * flips the side when AL bit 2 is set. Ys' disk has each logical track on the side after it,
+		 * and reads it with AL bit 2 set: ID head 0 on side 1, ID head 1 on side 0 (then the decoy
+		 * copy of the same IDs on side 1 with AL bit 2 clear). */
+		uint8_t hds = (uint8_t)((rq.h ^ (rq.side1 ? 1 : 0)) & 1);
+		FloppyTrackMap M;
+
+		floppy_track_map(image,m.track,hds,M);
+		if (t >= m.head_unload_at) t += hlt;
+
+		if (rq.command == 0x0A) {
+			/* read ID: the first good ID field that comes along */
+			unsigned int k = 0;
+			code = floppy_pc98_find(m,M,t,fm,true,0,0,0,0,k);
+			if (code == 0x00) {
+				const imageDiskTrackSector &ts = M.secs[k];
+				rq.c = ts.c;
+				rq.h = ts.h;
+				rq.r = ts.r;
+				rq.n = ts.n;
+				t += 22.0 * (fm ? 2.0 : 1.0) * M.L.byte_ms;
+			}
+		}
+		else if (rq.command == 0x0D) {
+			/* format track: from the index hole, one revolution. The data in the image stays as it is. */
+			t += M.L.time_to(m,t,0) + M.L.rev_ms;
+			LOG(LOG_MISC,LOG_DEBUG)("FDC: INT 1Bh format track is not carried out on the image (C/H %u/%u)",m.track,hds);
+		}
+		else if (transfer) {
+			const unsigned int size = rq.n <= 7 ? (128u << rq.n) : 16384u;
+			std::vector<unsigned char> buf(size);
+			uint32_t remaining = rq.bytes;
+			uint32_t memaddr = rq.memaddr;
+			uint8_t r = rq.r,h = rq.h;
+			unsigned int diag_index = 0;
+			bool first = true;
+
+			/* read diagnostic starts at the index hole, with the first sector on the track */
+			if (rq.command == 0x02) t += M.L.time_to(m,t,0);
+
+			while (remaining > 0) {
+				unsigned int k = 0;
+
+				if (rq.command == 0x02) {
+					if (diag_index >= M.secs.size()) { code = 0x30; break; }
+					k = diag_index++;
+					t += M.L.time_to(m,t,M.id_pos[k]);
+				}
+				else {
+					code = floppy_pc98_find(m,M,t,fm,false,rq.c,h,r,rq.n,k);
+					/* multi-track: the end of side 0 continues with sector 1 of side 1 */
+					if (code != 0x00 && rq.mt && hds == 0 && !first) {
+						hds = 1;
+						h ^= 1;
+						r = 1;
+						floppy_track_map(image,m.track,hds,M);
+						code = floppy_pc98_find(m,M,t,fm,false,rq.c,h,r,rq.n,k);
+					}
+					if (code != 0x00) break;
+				}
+
+				const imageDiskTrackSector &ts = M.secs[k];
+				const double density = ts.fm ? 2.0 : 1.0;
+				const uint32_t now = remaining < size ? remaining : size;
+
+				/* ID field, gap 2, data address mark */
+				t += (22.0 + 22.0 + 16.0) * density * M.L.byte_ms;
+				first = false;
+
+				if (ts.no_data) { code = 0xE0; break; }
+
+				/* deleted data address mark: verify skips the sector, read data/read deleted data
+				 * stop after it with the control mark code, read diagnostic reads on */
+				const bool cm = (rq.command == 0x0C) ? !ts.deleted : ts.deleted;
+				if (cm && rq.command == 0x01) {
+					t += (ts.data_size + 2.0) * density * M.L.byte_ms;
+					r++;
+					continue;
+				}
+
+				if (writing) {
+					if (image->Is_Write_Protected()) { code = 0x70; break; }
+					for (uint32_t i=0;i < size;i++) buf[i] = i < now ? mem_readb(memaddr+i) : 0;
+					Int13Status err = image->Write_Track_Sector(m.track,hds,k,buf.data(),size);
+					if (err == Int13Status::WriteProtected) { code = 0x70; break; }
+					if (err != Int13Status::NoError) { code = 0xC0; break; }
+				}
+				else {
+					Int13Status err = image->Read_Track_Sector(m.track,hds,k,buf.data(),size);
+					if (err != Int13Status::NoError && err != Int13Status::DataError) { code = 0xC0; break; }
+					if (rq.command != 0x01) {
+						for (uint32_t i=0;i < now;i++) mem_writeb(memaddr+i,buf[i]);
+					}
+					if (err == Int13Status::DataError && rq.command != 0x02) { code = 0xA0; break; }
+				}
+
+				t += (size + 2.0) * density * M.L.byte_ms;
+				memaddr += now;
+				remaining -= now;
+
+				if (ts.data_crc_error && rq.command != 0x02) { code = 0xA0; break; }
+				if (cm && rq.command != 0x02) { code = 0x10; break; }
+				r++;
+			}
+
+			/* the BIOS clears the DMA terminal count after a read (Arsys Star Cruiser) */
+			if (!writing && IS_PC98_ARCH) {
+				DmaChannel *dma = GetDMAChannel(2);
+				if (dma) dma->tcount = false;
+			}
+		}
+
+		m.head_unload_at = t + hut;
+	}
+
+	/* the FDC now has the state the BIOS left it in */
+	if (fdc != NULL) fdc->current_cylinder[drive] = (uint8_t)m.track;
+
+	if (!instant) floppy_wait_until(t);
+	return code;
 }

@@ -91,6 +91,17 @@ enum class Int13Status : uint8_t {
     SenseFailed         = 0xFF,
 };
 
+/* A sector as a floppy disk controller finds it on a track: its ID field and what kind of data field follows */
+struct imageDiskTrackSector {
+	uint8_t		c = 0,h = 0,r = 0,n = 0;	/* ID field */
+	bool		fm = false;			/* single density (FM), otherwise double density (MFM) */
+	bool		deleted = false;		/* deleted data address mark */
+	bool		id_crc_error = false;		/* the ID field has a CRC error */
+	bool		data_crc_error = false;		/* the data field has a CRC error */
+	bool		no_data = false;		/* no data address mark follows the ID */
+	uint32_t	data_size = 0;			/* bytes in the data field */
+};
+
 class imageDisk {
 	public:
 		enum IMAGE_TYPE {
@@ -111,6 +122,16 @@ class imageDisk {
 		virtual Int13Status Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
 		virtual Int13Status Read_AbsoluteSector(uint32_t sectnum, void * data);
 		virtual Int13Status Write_AbsoluteSector(uint32_t sectnum, const void * data);
+
+		/* Floppy controller level access to a physical track: the sectors on it in the order they pass
+		 * under the head starting at the index hole, and their data fields by position in that list.
+		 * The ID fields need not match the physical cylinder and head (copy protection). The default is a
+		 * regular format of the image geometry; formats that record the tracks (D88) override these.
+		 * Get_Track returns false if the track does not exist (unformatted). */
+		virtual bool Get_Track(uint32_t cylinder,uint32_t head,std::vector<imageDiskTrackSector> &sectors);
+		virtual Int13Status Read_Track_Sector(uint32_t cylinder,uint32_t head,unsigned int index,void *data,unsigned int size);
+		virtual Int13Status Write_Track_Sector(uint32_t cylinder,uint32_t head,unsigned int index,const void *data,unsigned int size);
+		virtual bool Is_Write_Protected(void) { return false; }
 
 		virtual void UpdateFloppyType(void);
 		virtual void Set_Reserved_Cylinders(Bitu resCyl);

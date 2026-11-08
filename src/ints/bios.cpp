@@ -4845,10 +4845,6 @@ static Bitu INT18_PC98_Handler(void) {
 
 unsigned char PC98_BIOS_FLOPPY_BUFFER[32768]; /* 128 << 8 */
 
-static unsigned int PC98_FDC_SZ_TO_BYTES(unsigned int sz) {
-    return 128U << sz;
-}
-
 int PC98_BIOS_SCSI_POS(imageDisk *floppy,uint32_t &sector) {
     if (reg_al & 0x80) {
         uint32_t img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
@@ -5048,14 +5044,6 @@ void PC98_BIOS_SCSI_CALL(void) {
     }
 }
 
-void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,unsigned int &fdc_sect,unsigned int &fdc_sz) {
-    fdc_cyl = reg_cl;
-    fdc_head = reg_dh;
-    fdc_sect = reg_dl;
-    fdc_sz = reg_ch;
-    if (fdc_sz > 8) fdc_sz = 8;
-}
-
 /* NTS: FDC calls reset IRQ 0 timer to a specific fixed interval,
  *      because the real BIOS likely does the same in the act of
  *      controlling the floppy drive.
@@ -5111,14 +5099,57 @@ void FDC_WAIT_TIMER_HACK(void) {
     } while (v >= 0x60);
 }
 
+/* INT 1Bh floppy access goes through the floppy drive emulation, which finds sectors by their
+ * ID fields as the disk turns past the head and takes the time a real drive would, the same
+ * way for the BIOS and for programs that use the FDC directly. */
+static void PC98_BIOS_FDC_ACCESS(unsigned int drive,imageDisk *floppy) {
+    if (floppy == NULL) {
+        reg_ah = 0x60; /* not ready: no disk */
+        CALLBACK_SCF(true);
+        return;
+    }
+
+    if (enable_fdc_timer_hack) {
+        // Hack for Ys II
+        FDC_WAIT_TIMER_HACK();
+    }
+
+    FloppyPC98BiosRequest rq;
+    rq.drive = (unsigned char)drive;
+    rq.command = reg_ah & 0x0F;
+    rq.mt = (reg_ah & 0x80) != 0;
+    rq.mfm = (reg_ah & 0x40) != 0;
+    rq.seek = (reg_ah & 0x10) != 0;
+    rq.c = reg_cl;
+    rq.h = reg_dh;
+    rq.r = reg_dl;
+    rq.n = reg_ch;
+    rq.side1 = (reg_al & 0x04) != 0;
+    rq.bytes = reg_bx;
+    rq.memaddr = ((uint32_t)SegValue(es) << 4u) + reg_bp;
+
+    const uint8_t code = FLOPPY_PC98_BIOS_Access(rq);
+
+    LOG(LOG_MISC,LOG_DEBUG)("INT 1Bh FD: AX=%04x C/H/R/N=%02x/%02x/%02x/%02x BX=%04x -> AH=%02x",
+        reg_ax,rq.c,rq.h,rq.r,rq.n,reg_bx,code);
+
+    if (rq.command == 0x0A && code == 0x00) {
+        reg_cl = rq.c;
+        reg_dh = rq.h;
+        reg_dl = rq.r;
+        reg_ch = rq.n;
+    }
+
+    /* 00h normal end, 1xh control mark (deleted data address mark) do not set CF */
+    reg_ah = code;
+    CALLBACK_SCF(code != 0x00 && (code & 0xF0) != 0x10);
+}
+
 void PC98_BIOS_FDC_CALL(unsigned int flags) {
-    static unsigned int fdc_cyl[2]={0,0},fdc_head[2]={0,0},fdc_sect[2]={0,0},fdc_sz[2]={0,0}; // FIXME: Rename and move out. Making "static" is a hack here.
-    uint32_t img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
     unsigned int drive;
     unsigned int status;
-    unsigned int size,accsize,unitsize;
-    unsigned long memaddr;
     imageDisk *floppy;
+    (void)flags;
 
     /* AL bits[1:0] = which floppy drive */
     if ((reg_al & 3) >= 2) {
@@ -5133,14 +5164,6 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
 
     /* what to do is in the lower 4 bits of AH */
     switch (reg_ah & 0x0F) {
-        /* TODO: 0x00 = seek to track (in CL) */
-        /* TODO: 0x01 = test read? */
-        /* TODO: 0x03 = equipment flags? */
-        /* TODO: 0x04 = format detect? */
-        /* TODO: 0x05 = write disk */
-        /* TODO: 0x07 = recalibrate (seek to track 0) */
-        /* TODO: 0x0A = Read ID */
-        /* TODO: 0x0D = Format track */
         /* TODO: 0x0E = ?? */
         case 0x03: /* equipment flags update (?) */
             // TODO: Update the disk equipment flags in BDA.
@@ -5148,201 +5171,26 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             reg_ah = 0x00;
             CALLBACK_SCF(false);
             break;
-        case 0x00: /* seek */
-            /* CL = track */
-            if (floppy == NULL) {
-                CALLBACK_SCF(true);
-                reg_ah = 0x00;
-                /* TODO? Error code? */
-                return;
-            }
-
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
-
-            fdc_cyl[drive] = reg_cl;
-
-            reg_ah = 0x00;
-            CALLBACK_SCF(false);
-            break;
-        case 0x01: /* test read */
-            /* AH bits[4:4] = If set, seek to track specified */
-            /* CL           = cylinder (track) */
-            /* CH           = sector size (0=128 1=256 2=512 3=1024 etc) */
-            /* DL           = sector number (1-based) */
-            /* DH           = head */
-            /* BX           = size (in bytes) of data to read */
-            /* ES:BP        = buffer to read data into */
-            if (floppy == NULL) {
-                CALLBACK_SCF(true);
-                reg_ah = 0x00;
-                /* TODO? Error code? */
-                return;
-            }
-            floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
-
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
-
-#if 0
-            /* Prevent reading 1.44MB floppies using 1.2MB read commands and vice versa.
-             * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
-             *        when Drive A: (the first floppy) is a 1.44MB drive or not and fails
-             *        because it only attempts it using 1.2MB format read commands. */
-            if (flags & PC98_FLOPPY_RPM_IBMPC) {
-                if (img_ssz == 1024) { /* reject 1.2MB 3-mode format */
-                    CALLBACK_SCF(true);
-                    reg_ah = 0x00;
-                    /* TODO? Error code? */
-                    return;
-                }
-            }
-            else {
-                if (img_ssz == 512) { /* reject IBM PC 1.44MB format */
-                    CALLBACK_SCF(true);
-                    reg_ah = 0x00;
-                    /* TODO? Error code? */
-                    return;
-                }
-            }
-#endif
-
-            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
-            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
-            if (0/*unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0*/) {
-                CALLBACK_SCF(true);
-                reg_ah = 0x00;
-                /* TODO? Error code? */
-                return;
-            }
-
-            size = reg_bx;
-            while (size > 0) {
-                accsize = size > unitsize ? unitsize : size;
-
-                Int13Status status = floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize);
-                if (status != Int13Status::NoError) {
-                    CALLBACK_SCF(true);
-                    reg_ah = (uint8_t)status;
-                    return;
-                }
-
-                size -= accsize;
-
-                if (size == 0) break;
-
-                if ((++fdc_sect[drive]) > img_sect && img_sect != 0) {
-                    fdc_sect[drive] = 1;
-                    if ((++fdc_head[drive]) >= img_heads && img_heads != 0) {
-                        fdc_head[drive] = 0;
-                        fdc_cyl[drive]++;
-                    }
-                }
-            }
-
-            reg_ah = 0x00;
-            CALLBACK_SCF(false);
-            break;
-        case 0x02: /* read sectors */
-        case 0x06: /* read sectors (what's the difference from 0x02?) */
-            /* AH bits[4:4] = If set, seek to track specified */
-            /* CL           = cylinder (track) */
-            /* CH           = sector size (0=128 1=256 2=512 3=1024 etc) */
-            /* DL           = sector number (1-based) */
-            /* DH           = head */
-            /* BX           = size (in bytes) of data to read */
-            /* ES:BP        = buffer to read data into */
-            if (floppy == NULL) {
-                CALLBACK_SCF(true);
-                reg_ah = 0x00;
-                /* TODO? Error code? */
-                return;
-            }
-            floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
-
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
-
-#if 0
-            /* Prevent reading 1.44MB floppies using 1.2MB read commands and vice versa.
-             * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
-             *        when Drive A: (the first floppy) is a 1.44MB drive or not and fails
-             *        because it only attempts it using 1.2MB format read commands. */
-            if (flags & PC98_FLOPPY_RPM_IBMPC) {
-                if (img_ssz == 1024) { /* reject 1.2MB 3-mode format */
-                    CALLBACK_SCF(true);
-                    reg_ah = 0x00;
-                    /* TODO? Error code? */
-                    return;
-                }
-            }
-            else {
-                if (img_ssz == 512) { /* reject IBM PC 1.44MB format */
-                    CALLBACK_SCF(true);
-                    reg_ah = 0x00;
-                    /* TODO? Error code? */
-                    return;
-                }
-            }
-#endif
-
-            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
-            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
-            if (0/*unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0*/) {
-                CALLBACK_SCF(true);
-                reg_ah = 0x00;
-                /* TODO? Error code? */
-                return;
-            }
-
-            size = reg_bx;
-            memaddr = ((unsigned int)SegValue(es) << 4U) + reg_bp;
-            while (size > 0) {
-                accsize = size > unitsize ? unitsize : size;
-
-                Int13Status status = floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize);
-                if (status != Int13Status::NoError) {
-                    CALLBACK_SCF(true);
-                    reg_ah = (uint8_t)status;
-                    return;
-                }
-
-                for (unsigned int i=0;i < accsize;i++)
-                    mem_writeb(memaddr+i,PC98_BIOS_FLOPPY_BUFFER[i]);
-
-                memaddr += accsize;
-                size -= accsize;
-
-                if (size == 0) break;
-
-                if ((++fdc_sect[drive]) > img_sect && img_sect != 0) {
-                    fdc_sect[drive] = 1;
-                    if ((++fdc_head[drive]) >= img_heads && img_heads != 0) {
-                        fdc_head[drive] = 0;
-                        fdc_cyl[drive]++;
-                    }
-                }
-            }
-
-            /* need to clear DMA terminal count after read as BIOS would, I assume (Arsys Star Cruiser) */
-            {
-                DmaChannel *dma = GetDMAChannel(2);
-                if (dma) dma->tcount = false;
-            }
-
-            reg_ah = 0x00;
-            CALLBACK_SCF(false);
+        case 0x00: /* seek (AH bit 4: to cylinder CL) */
+        case 0x01: /* verify */
+        case 0x02: /* read diagnostic */
+        case 0x05: /* write data */
+        case 0x06: /* read data */
+        case 0x07: /* recalibrate (seek to cylinder 0) */
+        case 0x09: /* write deleted data */
+        case 0x0A: /* read ID */
+        case 0x0C: /* read deleted data */
+        case 0x0D: /* format track */
+            /* NTS: PC-98 "MEGDOS" used by some games seems to rely heavily on read ID
+             *      to verify the floppy head is where it thinks it should be! */
+            PC98_BIOS_FDC_ACCESS(drive,floppy);
             break;
         case 0x04: /* drive status */
             status = 0;
 
-            /* TODO: bit 4 is set if write protected */
+            /* bit 4 is set if write protected */
+            if (floppy != NULL && floppy->Is_Write_Protected())
+                status |= 0x10;
 
             if (reg_al & 0x80) { /* high density */
                 status |= 0x01;
@@ -5362,181 +5210,6 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 status |= 0xC0;
 
             reg_ah = status;
-            CALLBACK_SCF(false);
-            break;
-        /* TODO: 0x00 = seek to track (in CL) */
-        /* TODO: 0x01 = test read? */
-        /* TODO: 0x03 = equipment flags? */
-        /* TODO: 0x04 = format detect? */
-        /* TODO: 0x05 = write disk */
-        /* TODO: 0x07 = recalibrate (seek to track 0) */
-        /* TODO: 0x0A = Read ID */
-        /* TODO: 0x0D = Format track */
-        /* TODO: 0x0E = ?? */
-        case 0x05: /* write sectors */
-            /* AH bits[4:4] = If set, seek to track specified */
-            /* CL           = cylinder (track) */
-            /* CH           = sector size (0=128 1=256 2=512 3=1024 etc) */
-            /* DL           = sector number (1-based) */
-            /* DH           = head */
-            /* BX           = size (in bytes) of data to read */
-            /* ES:BP        = buffer to write data from */
-            if (floppy == NULL) {
-                CALLBACK_SCF(true);
-                reg_ah = 0x00;
-                /* TODO? Error code? */
-                return;
-            }
-            floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
-
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
-
-            /* TODO: Error if write protected */
-
-            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
-            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
-            if (0/*unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0*/) {
-                CALLBACK_SCF(true);
-                reg_ah = 0x00;
-                /* TODO? Error code? */
-                return;
-            }
-
-            size = reg_bx;
-            memaddr = ((unsigned int)SegValue(es) << 4U) + reg_bp;
-            while (size > 0) {
-                accsize = size > unitsize ? unitsize : size;
-
-                for (unsigned int i=0;i < accsize;i++)
-                    PC98_BIOS_FLOPPY_BUFFER[i] = mem_readb(memaddr+i);
-
-                Int13Status status = floppy->Write_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize);
-                if (status != Int13Status::NoError) {
-                    CALLBACK_SCF(true);
-                    reg_ah = (uint8_t)status;
-                    return;
-                }
-
-                memaddr += accsize;
-                size -= accsize;
-
-                if (size == 0) break;
-
-                if ((++fdc_sect[drive]) > img_sect && img_sect != 0) {
-                    fdc_sect[drive] = 1;
-                    if ((++fdc_head[drive]) >= img_heads && img_heads != 0) {
-                        fdc_head[drive] = 0;
-                        fdc_cyl[drive]++;
-                    }
-                }
-            }
-
-            reg_ah = 0x00;
-            CALLBACK_SCF(false);
-            break;
-        case 0x07: /* recalibrate (seek to track 0) */
-            if (floppy == NULL) {
-                CALLBACK_SCF(true);
-                reg_ah = 0x00;
-                /* TODO? Error code? */
-                return;
-            }
-
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
-
-            fdc_cyl[drive] = 0;
-
-            reg_ah = 0x00;
-            CALLBACK_SCF(false);
-            break;
-        case 0x0D: /* format track */
-            if (floppy == NULL) {
-                CALLBACK_SCF(true);
-                reg_ah = 0x00;
-                /* TODO? Error code? */
-                return;
-            }
-
-            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
-            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
-
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
-
-            LOG_MSG("WARNING: INT 1Bh FDC format track command not implemented. Formatting is faked, for now on C/H/S/sz %u/%u/%u/%u drive %c.",
-                (unsigned int)fdc_cyl[drive],
-                (unsigned int)fdc_head[drive],
-                (unsigned int)fdc_sect[drive],
-                (unsigned int)unitsize,
-                drive + 'A');
-
-            reg_ah = 0x00;
-            CALLBACK_SCF(false);
-            break;
-        case 0x0A: /* read ID */
-            /* NTS: PC-98 "MEGDOS" used by some games seems to rely heavily on this call to
-             *      verify the floppy head is where it thinks it should be! */
-            if (floppy == NULL) {
-                CALLBACK_SCF(true);
-                reg_ah = 0x00;
-                /* TODO? Error code? */
-                return;
-            }
-
-            floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
-
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
-
-            if (reg_ah & 0x10) { // seek to track number in CL
-                if (img_cyl != 0 && reg_cl >= img_cyl) {
-                    CALLBACK_SCF(true);
-                    reg_ah = 0x00;
-                    /* TODO? Error code? */
-                    return;
-                }
-
-                fdc_cyl[drive] = reg_cl;
-            }
-
-            if (fdc_sect[drive] == 0)
-                fdc_sect[drive] = 1;
-
-            if (img_ssz >= 1024)
-                fdc_sz[drive] = 3;
-            else if (img_ssz >= 512)
-                fdc_sz[drive] = 2;
-            else if (img_ssz >= 256)
-                fdc_sz[drive] = 1;
-            else
-                fdc_sz[drive] = 0;
-
-            reg_cl = fdc_cyl[drive];
-            reg_dh = fdc_head[drive];
-            reg_dl = fdc_sect[drive];
-            /* ^ FIXME: A more realistic emulation would return a random number from 1 to N
-             *          where N=sectors/track because the floppy motor is running and tracks
-             *          are moving past the head. */
-            reg_ch = fdc_sz[drive];
-
-            /* per read ID call, increment the sector through the range on disk.
-             * This is REQUIRED or else MEGDOS will not attempt to read this disk. */
-            if (img_sect != 0) {
-                if ((++fdc_sect[drive]) > img_sect)
-                    fdc_sect[drive] = 1;
-            }
-
-            reg_ah = 0x00;
             CALLBACK_SCF(false);
             break;
         default:

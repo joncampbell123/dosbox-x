@@ -1432,6 +1432,35 @@ void swapInPrevCD(bool pressed) {
     swapInCD(pressed, true);
 }
 
+/* a regular format of the image geometry: sectors 1 to N in order, IDs matching the physical track */
+bool imageDisk::Get_Track(uint32_t cylinder,uint32_t head,std::vector<imageDiskTrackSector> &list) {
+    list.clear();
+    if (hardDrive || cylinder >= cylinders || head >= heads || sectors == 0) return false;
+
+    uint8_t n = 0;
+    while (n < 7 && (128u << n) < sector_size) n++;
+
+    for (uint32_t s=1;s <= sectors;s++) {
+        imageDiskTrackSector ts;
+        ts.c = (uint8_t)cylinder;
+        ts.h = (uint8_t)head;
+        ts.r = (uint8_t)s;
+        ts.n = n;
+        ts.data_size = sector_size;
+        list.push_back(ts);
+    }
+
+    return true;
+}
+
+Int13Status imageDisk::Read_Track_Sector(uint32_t cylinder,uint32_t head,unsigned int index,void *data,unsigned int size) {
+    return Read_Sector(head,cylinder,index + 1u,data,size);
+}
+
+Int13Status imageDisk::Write_Track_Sector(uint32_t cylinder,uint32_t head,unsigned int index,const void *data,unsigned int size) {
+    return Write_Sector(head,cylinder,index + 1u,data,size);
+}
+
 Int13Status imageDisk::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
     uint32_t sectnum;
 

@@ -114,6 +114,76 @@ imageDiskD88::vfdentry *imageDiskD88::findSector(uint8_t head,uint8_t track,uint
     return NULL;
 }
 
+/* the sectors of a physical track in the order they are recorded, which is the order they pass under the head */
+imageDiskD88::vfdentry *imageDiskD88::trackSector(uint32_t cylinder,uint32_t head,unsigned int index) {
+    const uint32_t trackindex = cylinder * 2u + head;
+
+    for (auto &ent : dents) {
+        if (ent.trackindex == trackindex) {
+            if (index == 0) return &ent;
+            index--;
+        }
+    }
+
+    return NULL;
+}
+
+bool imageDiskD88::Get_Track(uint32_t cylinder,uint32_t head,std::vector<imageDiskTrackSector> &list) {
+    const uint32_t trackindex = cylinder * 2u + head;
+
+    list.clear();
+    if (head > 1) return false;
+
+    for (const auto &ent : dents) {
+        if (ent.trackindex != trackindex) continue;
+
+        imageDiskTrackSector ts;
+        ts.c = ent.track;
+        ts.h = ent.head;
+        ts.r = ent.sector;
+        ts.n = ent.n;
+        ts.fm = ent.fm;
+        ts.deleted = ent.deleted;
+        ts.data_size = ent.data_size;
+        /* the status is the PC-98 disk BIOS result the sector gave when the image was made */
+        switch (ent.status) {
+            case 0xA0: ts.id_crc_error = true; break;    /* ID CRC error */
+            case 0xB0: ts.data_crc_error = true; break;  /* data CRC error */
+            case 0xE0: ts.id_crc_error = true; break;    /* no address mark (no usable ID) */
+            case 0xF0: ts.no_data = true; break;         /* no data address mark */
+            default: break;
+        }
+        list.push_back(ts);
+    }
+
+    return !list.empty();
+}
+
+Int13Status imageDiskD88::Read_Track_Sector(uint32_t cylinder,uint32_t head,unsigned int index,void *data,unsigned int size) {
+    const vfdentry *ent = trackSector(cylinder,head,index);
+    if (ent == NULL) return Int13Status::SectorNotFound;
+
+    /* the controller reads as many bytes as asked for, past what the image recorded there is nothing */
+    const unsigned int have = size < ent->data_size ? size : ent->data_size;
+    memset(data,0,size);
+    fseek(diskimg,(long)ent->data_offset,SEEK_SET);
+    if ((uint32_t)ftell(diskimg) != ent->data_offset) return Int13Status::SeekFailed;
+    if (have > 0 && fread(data,have,1,diskimg) != 1) return Int13Status::ControllerFailure;
+    return Int13Status::NoError;
+}
+
+Int13Status imageDiskD88::Write_Track_Sector(uint32_t cylinder,uint32_t head,unsigned int index,const void *data,unsigned int size) {
+    const vfdentry *ent = trackSector(cylinder,head,index);
+    if (ent == NULL) return Int13Status::SectorNotFound;
+    if (write_protected) return Int13Status::WriteProtected;
+
+    const unsigned int have = size < ent->data_size ? size : ent->data_size;
+    fseek(diskimg,(long)ent->data_offset,SEEK_SET);
+    if ((uint32_t)ftell(diskimg) != ent->data_offset) return Int13Status::SeekFailed;
+    if (have > 0 && fwrite(data,have,1,diskimg) != 1) return Int13Status::ControllerFailure;
+    return Int13Status::NoError;
+}
+
 Int13Status imageDiskD88::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size) {
     const vfdentry *ent;
 
@@ -193,6 +263,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, const char *imgName, uint32_t imgSizeK
 
     fd_type_major = head.fd_type >> 4U;
     fd_type_minor = head.fd_type & 0xFU;
+    write_protected = (head.protect & 0x10) != 0;
 
     // validate that none of the track offsets extend past the file
     {
@@ -236,6 +307,12 @@ imageDiskD88::imageDiskD88(FILE *imgFile, const char *imgName, uint32_t imgSizeK
                 vent.track = s.c;
                 vent.head = s.h;
                 vent.sector = s.r;
+                vent.trackindex = (uint8_t)track;
+                vent.n = s.n;
+                vent.data_size = sector_size;
+                vent.fm = (s.mfm_flg & 0x40) != 0;
+                vent.deleted = (s.del_flg & 0x10) != 0;
+                vent.status = s.stat;
 
                 LOG_MSG("D88: trackindex=%u C/H/S/sz=%u/%u/%u/%u data-at=0x%lx",
                     track,vent.track,vent.head,vent.sector,vent.sector_size,(unsigned long)vent.data_offset);
