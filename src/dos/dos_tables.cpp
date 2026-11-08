@@ -311,7 +311,7 @@ void DOS_SetupTables(void) {
 	dos_infoblock.SetLocation(DOS_INFOBLOCK_SEG); //c2woody
    
 	/* create SDA */
-	DOS_SDA(DOS_SDA_SEG,0).Init();
+	DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).Init();
 
 	/* For Tandy emulation, put the string "Tandy" somewhere in the DOS kernel.
 	 * "The Train: Escape to Normandy" apparently detects Tandy hardware by

@@ -311,6 +311,41 @@ void DOS_Block::dta(RealPt _dta) const {
 	DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDTA(_dta);
 }
 
+/* Where the Swappable Data Area is depends on the DOS version, and programs written for MS-DOS 3.x
+ * use the DOS 3.x location without asking (INT 21h AX=5D06h does not exist before DOS 4.0). Windows/286
+ * 2.11 for example reads and writes the current PSP directly at DOS data segment:02DEh on DOS 3.1-3.3.
+ *
+ *   MS-DOS 3.1-3.3:  SDA at offset 02CEh of the DOS data segment (the List of Lists segment)
+ *   MS-DOS 4.0 and later: SDA at offset 0320h, current PSP at 0330h (QuickBASIC 7.1 checks this)
+ *
+ * DOSBox-X allocates the List of Lists segment (32h paragraphs) and the SDA right after it, which is
+ * the DOS 4+ layout. While DOS reports a version from 3.10 to 3.39 the SDA is at 02CEh instead; the
+ * SDA allocation after the List of Lists segment leaves room for that. The SDA moves (with its
+ * contents) when the reported version changes, which DOS checks on each INT 21h call. */
+static uint16_t DOS_SDA_BASE_SEG = 0;   /* the SDA allocation (DOS 4+ location) */
+
+void DOS_PlaceSDA(void) {
+	if (DOS_SDA_BASE_SEG == 0 || dos_kernel_disabled) return;
+
+	uint16_t nseg = DOS_SDA_BASE_SEG,nofs = 0;
+	if (dos.version.major == 3 && dos.version.minor >= 10 && dos.version.minor < 40 &&
+		DOS_SDA_BASE_SEG == DOS_INFOBLOCK_SEG + 0x32) {
+		nseg = DOS_INFOBLOCK_SEG;
+		nofs = 0x2CE;
+	}
+	if (nseg == DOS_SDA_SEG && nofs == DOS_SDA_OFS) return;
+
+	/* move the contents (the old and new location overlap) */
+	std::vector<uint8_t> tmp(DOS_SDA_SEG_SIZE);
+	const PhysPt from = PhysMake(DOS_SDA_SEG,DOS_SDA_OFS),to = PhysMake(nseg,nofs);
+	for (size_t i=0;i < tmp.size();i++) tmp[i] = mem_readb(from + (PhysPt)i);
+	for (size_t i=0;i < tmp.size();i++) mem_writeb(to + (PhysPt)i,tmp[i]);
+	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS %u.%02u: SDA moved from %04x:%04x to %04x:%04x",
+		dos.version.major,dos.version.minor,DOS_SDA_SEG,DOS_SDA_OFS,nseg,nofs);
+	DOS_SDA_SEG = nseg;
+	DOS_SDA_OFS = nofs;
+}
+
 #define DOS_COPYBUFSIZE 0x10000
 uint8_t dos_copybuf[DOS_COPYBUFSIZE];
 #ifdef WIN32
@@ -1030,6 +1065,9 @@ void DOS_FlushSTDIN(void) {
 
 static Bitu DOS_21Handler(void) {
     bool unmask_irq0 = false;
+
+    /* the SDA is where programs for the reported DOS version expect it */
+    DOS_PlaceSDA();
 
 #if !defined(OSFREE)
     /* NTS to ognjenmi: Your INT 21h logging patch was modified to log ALL INT 21h calls (the original
@@ -4579,6 +4617,7 @@ public:
 		DOS_INFOBLOCK_SEG = DOS_GetMemory(0x32,"DOS_INFOBLOCK_SEG");		// was 0x80  0x32 = 0x20(INFOBLOCK) + 0x08(old CONDRV_SEG) + 0x0A(CONSTRING_SEG)
 		DOS_SDA_SEG = DOS_GetMemory(DOS_SDA_SEG_SIZE>>4,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
 		DOS_SDA_OFS = 0;
+		DOS_SDA_BASE_SEG = DOS_SDA_SEG;
 
 		/* 2024/06/02: Keep the CON driver away from the clusterfuck of the INFOBLOCK and SFT mess */
 		DOS_CONDRV_SEG = DOS_GetMemory(0x04,"DOS_CONDRV_SEG");		// was 0xA0
@@ -4706,6 +4745,7 @@ public:
 		DOS_SetupFiles();								/* Setup system File tables */
 		DOS_SetupDevices();							/* Setup dos devices */
 		DOS_SetupTables();
+		DOS_PlaceSDA();								/* SDA where programs for the configured DOS version expect it */
 
 		/* move the private segment elsewhere to avoid conflict with the MCB structure.
 		 * either set to 0 to cause the decision making to choose an upper memory address,
