@@ -2178,7 +2178,8 @@ CODE_jmp:
 					Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
 					cpu.code.big	= n_cs_desc.Big()>0;
 					reg_eip			= (uint32_t)n_eip;
-					if (!use32)	reg_eip&=0xffff;
+					/* the gate type sets the size of the new EIP, not the operand size of the far JMP/CALL */
+					if (desc.Type()==DESC_286_CALL_GATE) reg_eip&=0xffff;
 					break;
 				default:
 					E_Exit("JMP:GATE:CS no executable segment");
@@ -2380,6 +2381,28 @@ call_code:
 						/* this code isn't very easy to make interruptible. so temporarily revert to recursive PF handling method */
 						dosbox_allow_nonrecursive_page_fault = false;
 
+						/* Touch the new stack where the frame goes, as a supervisor access, before anything is
+						 * committed. A page fault on the new stack must abort the CALL with the old CS:EIP, SS:ESP
+						 * and CPL still in place, so that the guest handler restarts the CALL, as on real hardware.
+						 * If it is raised after the commit, the handler sees the new CS:EIP and an empty inner
+						 * stack, returns there, and the called code runs without its frame (OS/2 2.0 setup
+						 * calling a ring 2 IOPL routine through a gate, then #SS at [bp+8]). */
+						{
+							const Bitu frame_items = 4u + (call.saved.gate.paramcount&31u);
+							const Bitu item_size = (call.Type()==DESC_386_CALL_GATE) ? 4u : 2u;
+							const uint32_t n_mask = n_ss_desc.Big() ? 0xffffffffu : 0xffffu;
+							const PhysPt n_base = (PhysPt)n_ss_desc.GetBase();
+							const Bitu old_mpl = cpu.mpl;
+							cpu.mpl = 0;
+							for (Bitu i=1;i<=frame_items*item_size;i++) {
+								const PhysPt a = n_base + (PhysPt)(((uint32_t)n_esp - (uint32_t)i) & n_mask);
+								/* once per page, and for the first and last byte of the frame */
+								if (i == 1 || i == frame_items*item_size || (a & 0xfffu) == 0xfffu)
+									mem_writeb(a,mem_readb(a));
+							}
+							cpu.mpl = old_mpl;
+						}
+
 						// commit point
 						Segs.val[ss]=n_ss_sel;
 						Segs.phys[ss]=n_ss_desc.GetBase();
@@ -2408,7 +2431,8 @@ call_code:
 						Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
 						cpu.code.big	= n_cs_desc.Big()>0;
 						reg_eip			= (uint32_t)n_eip;
-						if (!use32)	reg_eip&=0xffff;
+						/* the gate type sets the size of the new EIP, not the operand size of the far JMP/CALL */
+						if (call.Type()==DESC_286_CALL_GATE) reg_eip&=0xffff;
 
 						if (call.Type()==DESC_386_CALL_GATE) {
 							CPU_Push32(o_ss);		//save old stack
@@ -2460,7 +2484,8 @@ call_code:
 					Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
 					cpu.code.big	= n_cs_desc.Big()>0;
 					reg_eip			= (uint32_t)n_eip;
-					if (!use32)	reg_eip&=0xffff;
+					/* the gate type sets the size of the new EIP, not the operand size of the far JMP/CALL */
+					if (call.Type()==DESC_286_CALL_GATE) reg_eip&=0xffff;
 					break;
 				default:
 					E_Exit("CALL:GATE:CS no executable segment");

@@ -429,6 +429,7 @@ struct partTable {
 #pragma pack(pop)
 
 void updateDPT(void);
+void BIOS_UpdateHardDiskCount(bool exact);
 void incrementFDD(void);
 void updateFloppyDPT(void);
 

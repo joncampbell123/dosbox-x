@@ -1153,6 +1153,25 @@ void FreeBIOSDiskList() {
 }
 
 //update BIOS disk parameter tables for first two hard drives
+/* Number of hard disks in the BIOS data area (40:75h). Operating systems that drive the disks
+ * themselves (OS/2 2.0 IBM1S506/IBMINT13, for example) take this as the number of fixed disks
+ * and then look for drives 80h.. up to that count, so it must match the hard disk images that are
+ * attached. It used to be fixed at 2, and OS/2 2.0 setup then found a second disk with zero
+ * sectors per track and FDISK crashed with a divide error. With no hard disk image at all, the
+ * DOS shell keeps the old value of 2 in case DOS programs look at it, while a guest OS that is
+ * booted gets the exact count, which can be zero. */
+void BIOS_UpdateHardDiskCount(bool exact) {
+    if (IS_PC98_ARCH) return;
+
+    unsigned int count = 0;
+    for (unsigned int i = 2; i < MAX_DISK_IMAGES; i++) {
+        if (imageDiskList[i] != NULL) count++;
+    }
+
+    if (count == 0 && !exact) count = 2;
+    mem_writeb(BIOS_HARDDISK_COUNT,(uint8_t)count);
+}
+
 void updateDPT(void) {
     uint32_t tmpheads, tmpcyl, tmpsect, tmpsize;
     PhysPt dpphysaddr[2] = { CALLBACK_PhysPointer(diskparm0), CALLBACK_PhysPointer(diskparm1) };
@@ -1173,6 +1192,8 @@ void updateDPT(void) {
         phys_writew(dpphysaddr[i] + 0xc, (uint16_t)tmpcyl);
         phys_writeb(dpphysaddr[i] + 0xe, (uint8_t)tmpsect);
     }
+
+    BIOS_UpdateHardDiskCount(false);
 }
 
 
@@ -2006,7 +2027,7 @@ void BIOS_SetupDisks(void) {
     RealSetVec(0x1E,RealMake(floppyparm0 >> 4u,floppyparm0 & 0xFu));
     updateFloppyDPT();
 /* Setup the Bios Area */
-    mem_writeb(BIOS_HARDDISK_COUNT,2);
+    BIOS_UpdateHardDiskCount(false);
 
     swapping_requested = false;
 }
