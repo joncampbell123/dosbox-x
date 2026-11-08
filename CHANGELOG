@@ -1,4 +1,36 @@
 Next version:
+  - [AI] CPU: a far CALL or JMP through a 386 call gate keeps the gate's
+    32-bit target offset when the instruction itself is 16-bit (only a 286
+    gate truncates it to 16 bits). A page fault on the new stack while a
+    call gate switches privilege now aborts the CALL with the old CS:EIP and
+    SS:ESP, so the guest restarts it, as on real hardware. Fixes OS/2 2.0
+    setup crashing with TRAP 000E, and then with a stack fault in a ring 2
+    routine. (joncampbell123)
+  - [AI] CPU: the CMOS shutdown 09h return (INT 15h block move, the 286
+    reset trick) pops DS before ES, as the IBM PC/AT BIOS frame has them.
+    Fixes OS/2 1.0 leaving the keyboard interrupt masked during boot, so
+    that Enter could not be pressed at the installation prompt.
+    (joncampbell123)
+  - [AI] BIOS: the number of hard disks at 40:75h follows the attached hard
+    disk images instead of always being 2 (the DOS shell keeps 2 when no
+    hard disk image is attached). Fixes OS/2 2.0 FDISK crashing with a
+    divide error on a phantom second disk. (joncampbell123)
+  - [AI] BIOS: a jump to the INT 1Ah handler at F000:FE6E, the fixed IBM
+    PC/AT entry point. The IRQ 0 handler reaches the BIOS data area through
+    segment/selector 40h, as BIOS code does, so a protected mode OS can call
+    it. Fixes OS/2 Warp 3 hanging at startup in an STI/JMP loop after
+    calling the PCI BIOS through that entry point. (joncampbell123)
+  - [AI] Floppy: the "empty" swap list entry is a drive with no disk for
+    the floppy controller too (the disk change line stays active, reads
+    fail). BOOT clears the disk change line of floppy drives with a disk in
+    them, as the BIOS POST seek does, also when booting from the hard disk.
+    Fixes OS/2 2.0 not reading the floppy drive after booting from the hard
+    disk. (joncampbell123)
+  - [AI] CD-ROM images: multisession CUE sheets (REM SESSION) and CloneCD
+    images (data discs with added sessions, Enhanced CDs). The ISO drive and
+    MSCDEX use the last session's file system, and ATAPI READ TOC returns
+    the real last session (format 1) and the full TOC (format 2). Fixed the
+    CloneCD lead-out position and Mode 2 tracks. (joncampbell123)
   - [AI] DOS: the Swappable Data Area is where programs written for the
     reported DOS version expect it. While DOS reports 3.10 to 3.39 it is at
     offset 02CEh of the List of Lists segment (current PSP at 02DEh) as in
