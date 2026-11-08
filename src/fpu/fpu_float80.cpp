@@ -225,12 +225,15 @@ IEEEConversionResult convertToIEEE(const FPU_Reg_80& val, const IEEEFormat& form
             significand,
             static_cast<unsigned int>(64 - format.exponent_bias -
                                       static_cast<int>(format.fraction_bits) - exponent));
+    // x87 detects tininess before rounding, so an inexact value in the
+    // subnormal range raises underflow even when rounding produces the
+    // minimum normal value.
+    if (conversion.exceptions & FPU_EX_PRECISION)
+        conversion.exceptions |= FPU_EX_UNDERFLOW;
     if (fraction == (1ULL << format.fraction_bits)) {
         set_result(1, 0);
     } else {
         set_result(0, fraction);
-        if (conversion.exceptions & FPU_EX_PRECISION)
-            conversion.exceptions |= FPU_EX_UNDERFLOW;
     }
     return conversion;
 }
