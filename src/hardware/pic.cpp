@@ -545,8 +545,7 @@ static void inline master_startIRQ(Bitu i){
 void PIC_runIRQs(void) {
     if (GCC_UNLIKELY(!PIC_IRQCheck)) return;
     if (GCC_UNLIKELY(cpudecoder==CPU_Core_Normal_Trap_Run)) return; // FIXME: Why?
-    if (GCC_UNLIKELY(CPU_NMI_active)) return;
-    if (GCC_UNLIKELY(CPU_NMI_pending && CPU_NMI_gate)) {
+    if (GCC_UNLIKELY(CPU_NMI_pending && CPU_NMI_gate && !CPU_NMI_active)) {
         CPU_NMI_Interrupt(); // converts pending to active
         return; /* NMI has higher priority than PIC, and CLI does not mask it */
     }
