@@ -794,14 +794,42 @@ void DOS_Shell::ParseLine(char * line) {
 		}
 		if (!fail&&DOS_OpenFile(pipetmp, OPEN_READ, &dummy))					// Test if file can be opened for reading
 		{
-			DOS_CloseFile(dummy);
+            uint16_t saved_pipe_stdin = 0xff;
+            bool pipe_stdin_saved = false;
+            bool pipe_stdin_ready = false;
 			if (normalstdin)
-				DOS_CloseFile(0);												// Close stdin
-			DOS_OpenFile(pipetmp, OPEN_READ, &dummy);							// Open new stdin
-			ParseLine(toc);
-			DOS_CloseFile(0);
-			if (normalstdin)
-				DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+                pipe_stdin_saved = DOS_DuplicateEntry(0, &saved_pipe_stdin);											// Close stdin
+            if(!normalstdin || pipe_stdin_saved) {
+                if(normalstdin)
+                    DOS_CloseFile(0);
+
+                if(dummy == 0) {
+                    pipe_stdin_ready = true;
+                }
+                else if(DOS_ForceDuplicateEntry(dummy, 0)) {
+                    pipe_stdin_ready = true;
+                    DOS_CloseFile(dummy);
+                    dummy = 0xff;
+                }
+            }
+            if(pipe_stdin_ready) {
+                ParseLine(toc);
+                DOS_CloseFile(0);
+            }
+            if(pipe_stdin_saved) {
+                if(!DOS_ForceDuplicateEntry(saved_pipe_stdin, 0)) {
+                    DOS_CloseFile(saved_pipe_stdin);
+                    DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+                }
+                else {
+                    DOS_CloseFile(saved_pipe_stdin);
+                }
+            }
+            else if(normalstdin && !pipe_stdin_ready) {
+                DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+            }
+            if(dummy != 0xff)
+                DOS_CloseFile(dummy);
 		}
 		else
 			WriteOut("\nFailed to create/open a temporary file for piping. Check the %%TEMP%% variable.\n");
