@@ -559,7 +559,8 @@ void DOS_Shell::ParseLine(char * line) {
     char pipetmp[270];
     pipetmp[0] = 0;
 	uint16_t fattr;
-	if(toc) {
+    static uint32_t pipeid_counter = 0;
+    if(toc) {
 		// Initialize random number generator
 		initRand();
 
@@ -594,8 +595,20 @@ void DOS_Shell::ParseLine(char * line) {
 		const char* tempEnv = tempPath.c_str();
 
 		// Generate unique pipe file path
-		int pipeid = rand() % 10000;
-		snprintf(pipetmp, sizeof(pipetmp), "%spipe%d.tmp", tempEnv, pipeid);
+        bool found = false;
+
+        for(uint32_t i = 0; i < 10000; i++) {
+            uint32_t pipeid = pipeid_counter++ % 10000;
+            snprintf(pipetmp, sizeof(pipetmp), "%spipe%u.tmp", tempEnv, (unsigned int)pipeid);
+
+            if(!DOS_GetFileAttr(pipetmp, &fattr)) {
+                found = true;
+                break;
+            }
+        }
+
+        if(!found) pipetmp[0] = 0;
+
 	}
 
 	DOS_Device *tmpdev = NULL;
@@ -642,8 +655,19 @@ void DOS_Shell::ParseLine(char * line) {
 						pipetmp[len] = 0;
 					}
                     else if(len == 0) {
-                        int pipeid = rand() % 10000;
-                        snprintf(pipetmp, sizeof(pipetmp), "pipe%d.tmp", pipeid);
+                        bool found = false;
+                        for(uint32_t i = 0; i < 10000; i++) {
+                            uint32_t pipeid = pipeid_counter++ % 10000;
+                            snprintf(pipetmp, sizeof(pipetmp), "pipe%u.tmp", (unsigned int)pipeid);
+
+                            if(!DOS_GetFileAttr(pipetmp, &fattr)) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if(!found)
+                            pipetmp[0] = 0;
                     }
 					for(int i = len; i >= 0; i--)
 						pipetmp[i + 3] = pipetmp[i];
@@ -653,8 +677,19 @@ void DOS_Shell::ParseLine(char * line) {
 					fail = false;
 				} else if (!tmpdev && pipetmpdev) {
                     if(strlen(pipetmp) == 0) {
-                        int pipeid = rand() % 10000;
-                        snprintf(pipetmp, sizeof(pipetmp), "pipe%d.tmp", pipeid);
+                        bool found = false;
+                        for(uint32_t i = 0; i < 10000; i++) {
+                            uint32_t pipeid = pipeid_counter++ % 10000;
+                            snprintf(pipetmp, sizeof(pipetmp), "pipe%u.tmp", (unsigned int)pipeid);
+
+                            if(!DOS_GetFileAttr(pipetmp, &fattr)) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if(!found)
+                            pipetmp[0] = 0;
                     }
                     char* filename_only = strrchr(pipetmp, '\\');
 					if(!filename_only) filename_only = pipetmp;
@@ -814,6 +849,8 @@ void DOS_Shell::ParseLine(char * line) {
             }
             if(pipe_stdin_ready) {
                 ParseLine(toc);
+                //LOG_MSG("SHELL:ParseLine ENTER: this=%p line='%s' pipetmp='%s'",
+                //    (void*)this, line, pipetmp);
                 DOS_CloseFile(0);
             }
             if(pipe_stdin_saved) {
