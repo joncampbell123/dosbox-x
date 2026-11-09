@@ -512,7 +512,7 @@ void DOS_Shell::ParseLine(char * line) {
 	char * toc = nullptr;
 
 	uint16_t dummy,dummy2;
-    uint16_t saved_stdout = 0xff; 
+    uint16_t saved_stdout = 0xff, saved_stdin = 0xff; 
 	uint32_t bigdummy = 0;
 	bool append;
 	bool normalstdin  = false;	/* whether stdin/out are open on start. */
@@ -531,6 +531,11 @@ void DOS_Shell::ParseLine(char * line) {
 	if (in || out || toc) {
 		normalstdin  = (psp->GetFileHandle(0) != 0xff);
 		normalstdout = (psp->GetFileHandle(1) != 0xff);
+        if(in && normalstdin) {
+            if(!DOS_DuplicateEntry(0, &saved_stdin))
+                saved_stdin = 0xff;
+        }
+
         if((out || toc) && normalstdout) {
             if(!DOS_DuplicateEntry(1, &saved_stdout))
                 saved_stdout = 0xff;
@@ -736,9 +741,23 @@ void DOS_Shell::ParseLine(char * line) {
 
 	/* Restore handles */
 	if(in) {
-		DOS_CloseFile(0);
-		if(normalstdin) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
-		free(in);
+        if(normalstdin && saved_stdin != 0xff) {
+            if(DOS_ForceDuplicateEntry(saved_stdin, 0)) {
+                DOS_CloseFile(saved_stdin);
+                saved_stdin = 0xff;
+            }
+            else {
+                DOS_CloseFile(saved_stdin);
+                saved_stdin = 0xff;
+                DOS_CloseFile(0);
+                DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+            }
+        }
+        else {
+            DOS_CloseFile(0);
+            if(normalstdin) DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+        }
+        free(in);
 	}
 	if(out||toc) {
 		DOS_CloseFile(1);
