@@ -23,7 +23,7 @@
 
 #if C_MONITOR
 
-#ifdef LINUX
+#if defined(LINUX) || defined(BSD)
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -38,6 +38,10 @@
 #include <string>
 #include <sstream>
 #include <atomic>
+#include <thread>
+#if !defined(HX_DOS)
+#include <mutex>
+#endif
 #include <cctype>
 #include <iomanip>
 #if defined(C_SDL2_NET) && C_SDL2_NET
@@ -51,7 +55,10 @@
 #define INPUT_LENGTH 1024
 #define UDS_BACKLOG 5
 
+extern std::atomic< void(*)() > Monitor_RunProgram;
+
 enum { DBX_SOCKET_TCP= 0,DBX_SOCKET_UDS };
+enum { EXIT_UNKNOWN= 2 };
 
 // extern {{{
 extern bool save_dynamic_rec;
@@ -82,7 +89,7 @@ union SocketUnion {
 	TCPsocket tcp;
 	operator TCPsocket&() { return tcp; }
 	SocketUnion &operator=( TCPsocket lhs ){ tcp= lhs; return *this; }
-	#ifdef LINUX
+	#if defined(LINUX) || defined(BSD)
 	int uds;
 	operator int&() { return uds; }
 	SocketUnion &operator=( int lhs ){ uds= lhs; return *this; }
@@ -92,7 +99,7 @@ union SocketAddrUnion {
 	IPaddress ip;
 	operator IPaddress &() { return ip; }
 	SocketAddrUnion &operator=( IPaddress lhs ){ ip= lhs; return *this; }
-	#ifdef LINUX
+	#if defined(LINUX) || defined(BSD)
 	sockaddr_un domain;
 	operator sockaddr_un &() {return domain; }
 	SocketAddrUnion &operator=( sockaddr_un lhs ){ domain= lhs; return *this; }
@@ -122,7 +129,7 @@ struct socket_t{
 	IPaddress &ip= address.ip;
 	TCPsocket &tcp= sock.tcp;
 
-	#ifdef LINUX
+	#if defined(LINUX) || defined(BSD)
 	int &as_int() { return sock.uds; }
 	socket_t &operator=( int lhs ) {
 		reset();
@@ -154,17 +161,12 @@ class Monitor { /* {{{ */
 	};/* }}} */
 
 	struct	Programs {/* {{{ */
-		bool	quitMainInstance( Monitor&,const cmd_tokens_t& );
+		bool	dosboxXManagement( Monitor&,const cmd_tokens_t& );
 		bool	changeRemovableMedia( Monitor&,const cmd_tokens_t& );
 		bool	configure( Monitor&,const cmd_tokens_t& );
 		bool	displayInfo( Monitor&,const cmd_tokens_t& );
 		bool	helpMe( Monitor&,const cmd_tokens_t& );
 	};/* }}} */
-
-	struct	UserRequest {/* {{{ */
-		cmd_tokens_t	processUserRequest( const std::string );
-		void				getInfo();
-	};// }}} }}} 
 
 	// Vars {{{
 	static	Monitor		*ptr_monitor;
@@ -172,13 +174,15 @@ class Monitor { /* {{{ */
 
 	socket_t			_server,_client;
 	SDL_Thread			*_pThread;
-	Programs			_run;
 
-	std::atomic< bool >	_isRunning;
+	#if !defined(HX_DOS)
+	std::mutex			_cli_lock;
+	#endif
+	std::atomic< bool >	_isRunning{false};
 
-	typedef bool ( Monitor::Programs::*p_programs_fn )( Monitor &,const cmd_tokens_t& );
-	typedef bool ( Monitor::Configurator::*p_configurator_fn )( Monitor &,const cmd_tokens_t& );
-	typedef int ( Monitor::*p_listener_fn )( void* );
+	typedef bool( Monitor::Programs::*p_programs_fn )( Monitor &,const cmd_tokens_t& );
+	typedef bool( Monitor::Configurator::*p_configurator_fn )( Monitor &,const cmd_tokens_t& );
+	typedef int(  Monitor::*p_listener_fn )( void* );
 	typedef struct {
 		std::string		command;
 		std::string		description;
@@ -187,6 +191,24 @@ class Monitor { /* {{{ */
 	typedef std::vector< CommandExec > CommandList;
 	const CommandList	*_commands;
 	// }}}
+
+	cmd_tokens_t		_cli_tokens;
+	p_programs_fn		_run;
+
+	void	setUserInput( p_programs_fn tFunc,cmd_tokens_t tUserInput ){
+		#if !defined(HX_DOS)
+		std::lock_guard< std::mutex >	lock( _cli_lock );
+		#endif
+		_run= std::move( tFunc );
+		_cli_tokens= std::move( tUserInput );
+	}
+
+	struct	UserRequest {/* {{{ */
+		UserRequest( const CommandList *&tCommands ):commands( tCommands ){}
+
+		const CommandList	*&commands;
+		int					processUserRequest( const std::string );
+	};// }}} }}} 
 
 	/* Callbacks for threading. {{{ */
 	static int CB_ListenUDP( void *tData ) { /* {{{ */
@@ -206,13 +228,13 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 	}/* }}} */
 	
 	void	prompt( int tClient ){/* {{{ */
-		#ifdef LINUX
+		#if defined(LINUX) || defined(BSD)
 		send( tClient,_prompt.c_str(),_prompt.length(),MSG_EOR );
 		#endif
 	}/* }}} */
 	
 	bool	startServer( std::string tSockPath ) {/* {{{ */
-		#ifdef LINUX
+		#if defined(LINUX) || defined(BSD)
 		_server.sock= socket( AF_UNIX,SOCK_STREAM,0 );
 		if( -1 ==_server.sock ) {
 			LOG_MSG( "MONITOR: issue with socket domain addressing.\n");
@@ -291,7 +313,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 	}/* }}} */
 
 	bool updateUDSServer() {/* {{{ */
-		#ifdef LINUX
+		#if defined(LINUX) || defined(BSD)
 		while ( _isRunning ) {
 			_client= accept( _server,nullptr,nullptr );
 			int bytes_received= 0;
@@ -306,17 +328,13 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 				if( bytes_received && '\0' !=buffer[ bytes_received-1 ] )
 					buffer[ bytes_received-1 ] = '\0';
 				
-				UserRequest cli;
-				cmd_tokens_t user_input= cli.processUserRequest( buffer );
-				if( !user_input.empty() ) {
-
-					auto processCommand= std::find_if( _commands->begin(),_commands->end(),
-						[ & ]( const CommandExec& item ){	
-								return item.command == user_input.at( 0 );});
-
-					if( processCommand !=_commands->end() ){
-						( _run.*( processCommand->exec ) )( *ptr_monitor,user_input );
-					}
+				UserRequest  cli( _commands );
+				switch( cli.processUserRequest( buffer ) ) {
+					case EXIT_SUCCESS: break;
+					case EXIT_FAILURE: continue;
+					case EXIT_UNKNOWN:
+						messageClient( _client,std::string( "Unknown command " )+"\'"+buffer+"\'\n" );
+					break;
 				}
 				prompt( _client.as_int() );
 			}
@@ -363,17 +381,14 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 				LOG_MSG( "MONITOR client disconnected unexpectedly or connection lost.\n" );
 			}
 			else {
-				UserRequest  cli;
-				cmd_tokens_t user_input= cli.processUserRequest( buffer );
-
-				if( user_input.empty() ){ continue; }
-
-				auto processCommand= std::find_if( _commands->begin(),_commands->end(),
-					[ & ]( const CommandExec& item ){	
-							return item.command == user_input.at( 0 );});
-
-				if( processCommand !=_commands->end() )
-					( _run.*( processCommand->exec ) )( *ptr_monitor,user_input );
+				UserRequest  cli( _commands );
+				switch( cli.processUserRequest( buffer ) ) {
+					case EXIT_SUCCESS: 
+					case EXIT_FAILURE: continue;
+					case EXIT_UNKNOWN:
+						messageClient( _client,std::string( "Unknown command " )+"\'"+buffer+"\'\n" );
+					break;
+				}
 			}
 		}
 		onServerClose();
@@ -384,7 +399,9 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 		using Prog= Monitor::Programs;
 
 		_commands= new CommandList{
-			{ "kill","kill DOSBox-X instance ungracefully.\n",p_programs_fn( &Prog::quitMainInstance ) },
+			{ "system_restart","Restart guest system.\n",p_programs_fn( &Prog::dosboxXManagement ) },
+			{ "system_reboot","Reboot guest system.\n",p_programs_fn( &Prog::dosboxXManagement ) },
+			{ "kill","kill DOSBox-X instance ungracefully.\n",p_programs_fn( &Prog::dosboxXManagement ) },
 			{ "info","show current system information.",p_programs_fn( &Prog::displayInfo ) },
 			{ "config",	"get and set machine values." ,p_programs_fn( &Prog::configure ) },
 			{ "change",	"change CD, format: change <drive_letter> <image_filepath>.",p_programs_fn( &Prog::changeRemovableMedia ) },
@@ -400,7 +417,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			if( _client ) SDLNet_TCP_Close( _client );
 			if( _server ) SDLNet_TCP_Close( _server ); 
 		}
-		#ifdef LINUX
+		#if defined(LINUX) || defined(BSD)
 		else if( DBX_SOCKET_UDS ==_client.type ) {
 			if( _server.sock !=-1 ) {
 				shutdown( _server.sock,SHUT_RDWR );
@@ -426,7 +443,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 	_prompt( "(dosbox-x) " ),
 	_server{ },_client{ },
 	_pThread( nullptr ),
-	_run(),_isRunning( false ) {
+	_isRunning( false ) {
 		initCommands();
 	}
 
@@ -436,8 +453,19 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 
 	public:
 
+	static void	RunProgram() {
+		Monitor_RunProgram= nullptr;
+		Monitor &m= *ptr_monitor;
+		#if !defined(HX_DOS)
+		std::lock_guard< std::mutex >	lock( m._cli_lock );
+		#endif
+		Programs prog;
+		( prog.*( m._run ) )( m,m._cli_tokens );
+	}
+
 	static void	messageClient( socket_t &tClient, std::string tMessage ) {/* {{{ */
-		#ifdef LINUX
+		if( !tClient ) return;
+		#if defined(LINUX) || defined(BSD)
 		if( tClient.type >0 ) {
 			send( tClient,tMessage.c_str(),tMessage.size(),0 );
 			return;
