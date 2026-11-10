@@ -26,20 +26,23 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils
-      - name: Install libslirp
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Export env parameters
         run: |
-          # Run this job when MinGW drops 32-bit library support (Other libraries can be built as well)
+          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "mingw32 is installed at: $MSYSTEM_PREFIX"
+      - name: setup MinGW32 build environment
+        run: |
           top=`pwd`
-          mkdir pkg
-          cd pkg
-          git clone https://github.com/msys2/MINGW-packages.git
-          pwd
-          cd MINGW-packages
-          cd mingw-w64-libslirp
-          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw32\')/" PKGBUILD
-          MINGW_ARCH=MINGW32 makepkg-mingw -sCLf --noconfirm
-          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
+          echo "${top}"
+          echo "path=$PATH"
+          cd ${MSYSTEM_PREFIX}/..
+          rm -rf mingw32
+          wget https://github.com/maron2000/MinGW32/releases/download/mingw32-2026.10.31/mingw32-toolchain.tar.xz
+          tar -xJf mingw32-toolchain.tar.xz
+          echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
+          find "${MSYSTEM_PREFIX}" -type f -iname "*.exe" -exec chmod +x {} \;
       - name: Update build info
         shell: bash
         run: |
