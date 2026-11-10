@@ -2964,8 +2964,14 @@ static Bitu DOS_21Handler(void) {
             /* Weird call to increase amount of file handles needs to allocate memory if >20 */
             {
                 DOS_PSP psp(dos.psp());
-                psp.SetNumFiles(reg_bx);
-                CALLBACK_SCF(false);
+                auto err = psp.SetNumFiles(reg_bx);
+                if (err) {
+                    reg_ax = err;
+                    CALLBACK_SCF(true);
+                }
+                else {
+                    CALLBACK_SCF(false);
+                }
                 break;
             }
         case 0x68:                  /* FFLUSH Commit file */
