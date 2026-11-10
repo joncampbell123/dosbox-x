@@ -288,7 +288,23 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Export env parameters
+        run: |
+          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "mingw32 is installed at: $MSYSTEM_PREFIX"
+      - name: setup MinGW32 build environment
+        run: |
+          top=`pwd`
+          echo "${top}"
+          echo "path=$PATH"
+          cd ${MSYSTEM_PREFIX}/..
+          rm -rf mingw32
+          wget https://github.com/maron2000/MinGW32/releases/download/mingw32-2026.10.31/mingw32-toolchain.tar.xz
+          tar -xJf mingw32-toolchain.tar.xz
+          echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
+          find "${MSYSTEM_PREFIX}" -type f -iname "*.exe" -exec chmod +x {} \;
       - name: Update build info
         shell: bash
         run: |
