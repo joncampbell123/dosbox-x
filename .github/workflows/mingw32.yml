@@ -94,6 +94,13 @@ jobs:
         run: |
           top=`pwd`
           export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
+          echo "Compiling our internal SDL 2.x"
+          (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
+          new="-I${top}/vs/sdl2/linux-host/include "
+          nld="-L${top}/vs/sdl2/linux-host/lib "
+          LDFLAGS="${nld}${LDFLAGS}"
+          CPPFLAGS="${new}${CPPFLAGS}"
+          export LDFLAGS CPPFLAGS
           ./build-mingw-sdl2
           strip -s $top/src/dosbox-x.exe
       - name: Package MinGW32 SDL2

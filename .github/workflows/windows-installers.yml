@@ -321,23 +321,9 @@ jobs:
             VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+)(-osfree)?$/\1/' || echo "unknown")
             echo "VERSION=$VERSION" >> $GITHUB_ENV
           fi         
-      - name: Install libslirp
-        run: |
-          # Run this job when MinGW drops 32-bit library support (Other libraries can be built as well)
-          top=`pwd`
-          mkdir pkg
-          cd pkg
-          git clone https://github.com/msys2/MINGW-packages.git
-          pwd
-          cd MINGW-packages
-          cd mingw-w64-libslirp
-          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw32\')/" PKGBUILD
-          MINGW_ARCH=MINGW32 makepkg-mingw -sCLf --noconfirm
-          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Build MinGW32 SDL1
         run: |
           top=`pwd`
-          ln -s $top/build-scripts/mingw/lowend-bin/make.exe /usr/bin/make.exe
           ./build-mingw
           strip -s $top/src/dosbox-x.exe
           mkdir -p $top/package/
@@ -347,6 +333,13 @@ jobs:
       - name: Build MinGW32 SDL2
         run: |
           top=`pwd`
+          echo "Compiling our internal SDL 2.x"
+          (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
+          new="-I${top}/vs/sdl2/linux-host/include "
+          nld="-L${top}/vs/sdl2/linux-host/lib "
+          LDFLAGS="${nld}${LDFLAGS}"
+          CPPFLAGS="${new}${CPPFLAGS}"
+          export LDFLAGS CPPFLAGS
           ./build-mingw-sdl2
           strip -s $top/src/dosbox-x.exe
           cp $top/src/dosbox-x.exe $top/package/dosbox-x_MinGWx86_SDL2.exe
