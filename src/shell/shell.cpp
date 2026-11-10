@@ -610,7 +610,6 @@ void DOS_Shell::ParseLine(char * line) {
         if(!found) pipetmp[0] = 0;
 
 	}
-
 	DOS_Device *tmpdev = NULL;
 	if (out||toc) {
 		//if (out&&toc) WriteOut(!*out?"Duplicate redirection\n":"Duplicate redirection - %s\n", out);
@@ -677,19 +676,14 @@ void DOS_Shell::ParseLine(char * line) {
 					fail = false;
 				} else if (!tmpdev && pipetmpdev) {
                     if(strlen(pipetmp) == 0) {
-                        bool found = false;
                         for(uint32_t i = 0; i < 10000; i++) {
                             uint32_t pipeid = pipeid_counter++ % 10000;
                             snprintf(pipetmp, sizeof(pipetmp), "pipe%u.tmp", (unsigned int)pipeid);
 
-                            if(!DOS_GetFileAttr(pipetmp, &fattr)) {
-                                found = true;
+                            if(!DOS_DeviceNameExists(pipetmp)) {
                                 break;
                             }
                         }
-
-                        if(!found)
-                            pipetmp[0] = 0;
                     }
                     char* filename_only = strrchr(pipetmp, '\\');
 					if(!filename_only) filename_only = pipetmp;

@@ -892,6 +892,14 @@ void DOS_AddDevice(DOS_Device * adddev) {
 	E_Exit("DOS_AddDevice(): Too many devices added");
 }
 
+bool DOS_DeviceNameExists(const char* name) {
+    for(uint8_t i = 0; i < DOS_DEVICES; i++) {
+        if(Devices[i] && WildFileCmp(name, Devices[i]->name))
+            return true;
+    }
+    return false;
+}
+
 static void DelDeviceUpdateFiles(const char * deviceName) {
 	for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
 		DOS_File* file = Files[handle];
