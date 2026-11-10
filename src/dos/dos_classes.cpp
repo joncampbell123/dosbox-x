@@ -431,7 +431,7 @@ uint16_t DOS_PSP::SetNumFiles(uint16_t fileNum) {
 	fileNum = std::max<uint16_t>(fileNum, 20);
 
 	const uint16_t curNum = sGet(sPSP, max_files);
-	if (fileNum == curNum) return 0;
+	if (fileNum == curNum) return DOSERR_NONE;
     else if (fileNum == 0xffff) return DOSERR_FUNCTION_NUMBER_INVALID;
 
 	const auto oldTable = sGet(sPSP,file_table);
@@ -461,7 +461,7 @@ uint16_t DOS_PSP::SetNumFiles(uint16_t fileNum) {
 	sSave(sPSP, max_files, fileNum);
 
 	if (oldTable != pspTable) DOS_FreeMemory(RealSeg(oldTable));
-	return 0;
+	return DOSERR_NONE;
 }
 
 void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
