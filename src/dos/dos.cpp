@@ -2487,7 +2487,60 @@ static Bitu DOS_21Handler(void) {
             //TODO Think hard how shit this is gonna be
             //And will any game ever use this :)
         case 0x53:                  /* Translate BIOS parameter block to drive parameter block */
-            E_Exit("Unhandled Dos 21 call %02X",reg_ah);
+            /* DS:SI = BPB (the boot sector fields from offset 0Bh), ES:BP = DPB to fill in. DOS 4.0+ takes
+             * CX=4558h DX=4A45h to mean the BPB has the 32-bit total sector count; a 16-bit count of zero
+             * means the same here. The drive and unit numbers, the device header pointer and the link to
+             * the next DPB are left alone. No error return. The DPB layout is that of AH=32h for the
+             * reported DOS version. (Windows 1.01 SETUP calls this after formatting a floppy in B:) */
+            {
+                const PhysPt bpb = SegPhys(ds) + reg_si;
+                const PhysPt dpb = SegPhys(es) + reg_bp;
+                const uint16_t bytes_per_sector = mem_readw(bpb+0x00);
+                const uint8_t sectors_per_cluster = mem_readb(bpb+0x02);
+                const uint16_t reserved = mem_readw(bpb+0x03);
+                const uint8_t fats = mem_readb(bpb+0x05);
+                const uint16_t root_entries = mem_readw(bpb+0x06);
+                uint32_t total_sectors = mem_readw(bpb+0x08);
+                const uint8_t media = mem_readb(bpb+0x0A);
+                const uint16_t sectors_per_fat = mem_readw(bpb+0x0B);
+                if (total_sectors == 0 && dos.version.major >= 4) total_sectors = mem_readd(bpb+0x15);
+
+                const uint32_t first_root_sector = (uint32_t)reserved + (uint32_t)fats * sectors_per_fat;
+                const uint32_t root_sectors = bytes_per_sector != 0 ? (((uint32_t)root_entries * 32u) + bytes_per_sector - 1u) / bytes_per_sector : 0u;
+                const uint32_t first_data_sector = first_root_sector + root_sectors;
+                uint32_t clusters = 0;
+                if (sectors_per_cluster != 0 && total_sectors > first_data_sector)
+                    clusters = (total_sectors - first_data_sector) / sectors_per_cluster;
+                uint8_t shift = 0;
+                while (shift < 7 && (1u << (shift + 1u)) <= sectors_per_cluster) shift++;
+
+                mem_writew(dpb+0x02,bytes_per_sector);                      // bytes per sector
+                mem_writeb(dpb+0x04,(uint8_t)(sectors_per_cluster - 1u));   // highest sector within a cluster
+                mem_writeb(dpb+0x05,shift);                                 // shift count, clusters to sectors
+                mem_writew(dpb+0x06,reserved);                              // reserved sectors
+                mem_writeb(dpb+0x08,fats);                                  // number of FATs
+                mem_writew(dpb+0x09,root_entries);                          // root directory entries
+                mem_writew(dpb+0x0B,(uint16_t)first_data_sector);           // first sector of user data
+                mem_writew(dpb+0x0D,(uint16_t)(clusters + 1u));             // highest cluster number
+                if (dos.version.major >= 4) {
+                    mem_writew(dpb+0x0F,sectors_per_fat);                   // sectors per FAT (word)
+                    mem_writew(dpb+0x11,(uint16_t)first_root_sector);       // first root directory sector
+                    mem_writeb(dpb+0x17,media);                             // media ID byte
+                    mem_writeb(dpb+0x18,0xFF);                              // not accessed yet
+                    mem_writew(dpb+0x1D,0x0000);                            // cluster where the free space search starts
+                    mem_writew(dpb+0x1F,0xFFFF);                            // free clusters unknown
+                }
+                else {
+                    mem_writeb(dpb+0x0F,(uint8_t)sectors_per_fat);          // sectors per FAT (byte)
+                    mem_writew(dpb+0x10,(uint16_t)first_root_sector);       // first root directory sector
+                    mem_writeb(dpb+0x16,media);                             // media ID byte
+                    mem_writeb(dpb+0x17,0xFF);                              // not accessed yet
+                    mem_writew(dpb+0x1C,0x0000);                            // cluster where the free space search starts
+                    mem_writew(dpb+0x1E,0xFFFF);                            // free clusters unknown
+                }
+                LOG(LOG_DOSMISC,LOG_NORMAL)("INT 21h AH=53h: BPB %04x:%04x to DPB %04x:%04x, %u clusters",
+                    SegValue(ds),reg_si,SegValue(es),reg_bp,(unsigned int)clusters);
+            }
             break;
         case 0x54:                  /* Get verify flag */
             reg_al=dos.verify?1:0;
@@ -4746,6 +4799,20 @@ public:
 		DOS_SetupDevices();							/* Setup dos devices */
 		DOS_SetupTables();
 		DOS_PlaceSDA();								/* SDA where programs for the configured DOS version expect it */
+
+		/* MS-DOS (IO.SYS, DOS 2.0+) copies the diskette parameter table that INT 1Eh points to into RAM
+		 * at 0000:0522 and points INT 1Eh there, so that programs can change it: FORMAT and Windows 1.01
+		 * SETUP set the sectors per track and the format gap there before formatting a track. The BIOS
+		 * table is in ROM, where such writes are lost. IBM PC compatibles only: PC-98 MS-DOS keeps the
+		 * keyboard translation table offset at 0000:0522. BOOT points INT 1Eh back at the BIOS table. */
+		if (!IS_PC98_ARCH) {
+			const RealPt dpt = RealGetVec(0x1E);
+			if (dpt != 0 && dpt != RealMake(0x0000,0x0522)) {
+				for (unsigned int i=0;i < 11;i++)
+					mem_writeb(0x522+i,real_readb(RealSeg(dpt),RealOff(dpt)+i));
+				RealSetVec(0x1E,RealMake(0x0000,0x0522));
+			}
+		}
 
 		/* move the private segment elsewhere to avoid conflict with the MCB structure.
 		 * either set to 0 to cause the decision making to choose an upper memory address,

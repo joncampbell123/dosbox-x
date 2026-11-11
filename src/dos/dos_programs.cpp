@@ -3366,6 +3366,13 @@ public:
             /* the guest OS sees exactly the hard disk images that are attached */
             BIOS_UpdateHardDiskCount(true);
 
+            /* INT 1Eh points at the BIOS diskette parameter table again, as after the POST. The DOS kernel
+             * had pointed it at its copy in RAM (0000:0522), which the guest OS may overwrite. */
+            if (!IS_PC98_ARCH) {
+                extern PhysPt floppyparm0;
+                if (floppyparm0 != 0) RealSetVec(0x1E,RealMake(floppyparm0 >> 4u,floppyparm0 & 0xFu));
+            }
+
             /* The POST of a real BIOS seeks each floppy drive (to track 1 and back) to test it, and
              * a step pulse with a disk in the drive resets the disk change line. So when the guest
              * OS starts, a drive with a disk in it does not report a disk change, also when booting

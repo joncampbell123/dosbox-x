@@ -780,7 +780,14 @@ static Bitu INT13_DiskHandler(void) {
             uint64_t largesize = tmpheads*tmpcyl*tmpsect*tmpsize;
             largesize/=512;
             uint32_t ts = static_cast<uint32_t>(largesize);
-            reg_ah = (drivenum < 2)?(int13_disk_change_detect_enable?2:1):3; //With 2 for floppy MSDOS starts calling int 13 ah 16
+            /* 01h = floppy drive without change line, 02h = with change line, 03h = hard disk. With 2 for a
+             * floppy MS-DOS starts calling INT 13h AH=16h. On the PC/AT the 40-track double density
+             * (360K) drives have no change line, the 1.2M, 720K, 1.44M and 2.88M drives do. Windows 1.01
+             * SETUP takes a drive with a change line for a 1.2M drive and formats a 360K disk as 1.2M. */
+            if (drivenum < 2)
+                reg_ah = (int13_disk_change_detect_enable && imageDiskList[drivenum]->GetBiosType() >= 2) ? 2 : 1;
+            else
+                reg_ah = 3;
             if(reg_ah == 3) {
                 reg_cx = static_cast<uint16_t>(ts >>16);
                 reg_dx = static_cast<uint16_t>(ts & 0xffff);
