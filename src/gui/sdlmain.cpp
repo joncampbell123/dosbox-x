@@ -5971,7 +5971,7 @@ void GFX_Events() {
 
 #if C_MONITOR
 	extern std::atomic< void(*)() > Monitor_RunProgram;
-	if( Monitor_RunProgram ) Monitor_RunProgram();
+	if( auto monitor_command= Monitor_RunProgram.load() ) monitor_command();
 #endif
 
 #if C_GAMELINK
