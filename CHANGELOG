@@ -1,4 +1,14 @@
 Next version:
+  - [AI] DOS: INT 21h AH=53h (translate BPB to DPB) fills in the DPB from
+    the BPB in the layout of the reported DOS version, instead of exiting.
+    On IBM PC compatibles the DOS kernel copies the diskette parameter table
+    to 0000:0522 and points INT 1Eh there, as MS-DOS does, so that programs
+    can change it; BOOT points INT 1Eh back at the BIOS table. Fixes the
+    floppy install of Windows 1.01, which needs "ver set 3 30" as its SETUP
+    reads the DOS 3.x DPB layout. (joncampbell123)
+  - [AI] BIOS: INT 13h AH=15h reports a 360K-class floppy drive as having no
+    change line, as on the PC/AT (720K, 1.2M, 1.44M and 2.88M drives have
+    one). Windows 1.01 SETUP formatted 360K disks as 1.2M. (joncampbell123)
   - [AI] CPU: a far CALL or JMP through a 386 call gate keeps the gate's
     32-bit target offset when the instruction itself is 16-bit (only a 286
     gate truncates it to 16 bits). A page fault on the new stack while a
