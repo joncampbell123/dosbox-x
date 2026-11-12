@@ -207,7 +207,7 @@ class Monitor { /* {{{ */
 		UserRequest( const CommandList *&tCommands ):commands( tCommands ){}
 
 		const CommandList	*&commands;
-		const int			handleUser( const std::string );
+		const int			handleUser( const std::string & );
 	};// }}} }}} 
 
 	/* Callbacks for threading. {{{ */
@@ -235,10 +235,11 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 
 	void	prompt() {/* {{{ */
 		if( nullptr ==_client ) return;
-		if( _client.type ) 
+		if( _client.type ) {
 		#if defined(LINUX) || defined(BSD)
 			send( _client,_prompt.c_str(),_prompt.length(),MSG_EOR );
 		#endif
+		}
 		else
 			SDLNet_TCP_Send( _client,_prompt.c_str(),_prompt.length() );
 	} /* }}} */
@@ -475,10 +476,11 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 
 	static void	messageClient( socket_t &tClient, const std::string tMessage ) {/* {{{ */
 		if( nullptr ==tClient ) return;
-		if( tClient.type )
+		if( tClient.type ) {
 			#if defined(LINUX) || defined(BSD)
 			send( tClient,tMessage.c_str(),tMessage.size(),0 );
 			#endif
+		}
 		else
 			SDLNet_TCP_Send( tClient,tMessage.c_str(),tMessage.size() );
 	}/* }}} */

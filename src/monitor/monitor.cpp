@@ -86,7 +86,7 @@ void Monitor::Configurator::run( Monitor &tM,const cmd_tokens_t& tUser ) { /* {{
 	}
 	else if( ( this->*( p->execute ) )( tM,tUser ) )
 		m.messageClient( m._client,"( config ) Unable to process commandline options.\n" );
-};/* }}} */
+}/* }}} */
 
 bool Monitor::Configurator::getProperty( Monitor &tM,const cmd_tokens_t& tUser ) {/* {{{ */
 	Monitor& m= tM;
@@ -113,7 +113,7 @@ bool Monitor::Configurator::getProperty( Monitor &tM,const cmd_tokens_t& tUser )
 	m.messageClient( m._client,property->GetValue().ToString()+"\n" );
 
 	return EXIT_SUCCESS;
-};/* }}} */
+}/* }}} */
 
 #include "control.h"
 #include "../misc/programs.cpp"
@@ -141,7 +141,7 @@ bool Monitor::Configurator::setProperty( Monitor &tM,const cmd_tokens_t& tUser )
 	ApplySetting( tUser.at( 2 ),inputline,false );
 
 	return EXIT_SUCCESS;
-};/* }}} */ /* }}} */
+}/* }}} */ /* }}} */
 
 // Monitor::Programs {{{
 bool Monitor::Programs::dosboxXManagement( Monitor &tM,const cmd_tokens_t &tCommands ){/* {{{ */
@@ -257,7 +257,7 @@ int	createISODrives( const char tDriveLetter,const std::vector< std::string > tP
 		}
 	}
 	return EXIT_SUCCESS;
-};/* }}} */
+}/* }}} */
 
 #if (defined(WIN32) || defined(LINUX) || defined(BSD)) && !defined(OSFREE)
 int	createFloppyDrives( const unsigned int tDriveLetter,const std::vector< std::string >tPaths,std::vector< fatDrive *> &tDisks ) {/* {{{ */
@@ -299,7 +299,7 @@ int	createFloppyDrives( const unsigned int tDriveLetter,const std::vector< std::
 	if( !dos_kernel_disabled )
 		DriveManager::InitializeDrive( tDriveLetter );
 	return EXIT_SUCCESS;
-};/* }}} */
+}/* }}} */
 #endif
 
 std::string	handleError( int tErrorCode ) { /* {{{ */
@@ -313,7 +313,7 @@ std::string	handleError( int tErrorCode ) { /* {{{ */
 		case 6: return  MSGX("MSCDEX_INVALID_FILEFORMAT");
 	}
 	return MSGX("MSCDEX_UNKNOWN_ERROR");
-};/* }}} */
+}/* }}} */
 
 bool	Monitor::Programs::changeRemovableMedia( Monitor &tM,const cmd_tokens_t &tUser ) {/* {{{ */
 	Monitor& m= tM;
@@ -373,7 +373,7 @@ bool	Monitor::Programs::configure( Monitor &tM,const cmd_tokens_t &tUser ) {/* {
 	Monitor::Configurator configure;
 	configure.run( tM,tUser );
 	return EXIT_SUCCESS;
-};/* }}} */
+}/* }}} */
 
 bool Monitor::Programs::helpMe( Monitor &tM,const cmd_tokens_t& cmdline ){/* {{{ */
 		Monitor& m= tM;
@@ -398,7 +398,7 @@ bool Monitor::Programs::helpMe( Monitor &tM,const cmd_tokens_t& cmdline ){/* {{{
 }/* }}} */ // }}}
 
 // Montor::CommandLine {{{
-const int Monitor::UserRequest::handleUser( std::string tBuffer ) { /* {{{ */
+const int Monitor::UserRequest::handleUser( const std::string &tBuffer ) { /* {{{ */
 	cmd_tokens_t					command_line= {};
 	std::istringstream				buffer( tBuffer );
 	std::string						token;
@@ -419,6 +419,6 @@ const int Monitor::UserRequest::handleUser( std::string tBuffer ) { /* {{{ */
 	Monitor_RunProgram= Monitor::RunProgram;
 
 	return USER_REQ_SUCCESS;
-};// }}} }}}
+}// }}} }}}
 
 #endif // C_MONITOR 
