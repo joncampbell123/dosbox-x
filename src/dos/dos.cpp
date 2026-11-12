@@ -1332,7 +1332,6 @@ static Bitu DOS_21Handler(void) {
                         uint8_t page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
                         uint8_t col = CURSOR_POS_COL(page);
                         uint8_t row = CURSOR_POS_ROW(page);
-                        BIOS_NCOLS;
                         DOS_WriteFile(STDOUT, &bell, &n);
                         if(CURSOR_POS_COL(page) > col)
                             INT10_SetCursorPos(row, col, page); // stay where we were
@@ -2964,8 +2963,14 @@ static Bitu DOS_21Handler(void) {
             /* Weird call to increase amount of file handles needs to allocate memory if >20 */
             {
                 DOS_PSP psp(dos.psp());
-                psp.SetNumFiles(reg_bx);
-                CALLBACK_SCF(false);
+                auto err = psp.SetNumFiles(reg_bx);
+                if (err) {
+                    reg_ax = err;
+                    CALLBACK_SCF(true);
+                }
+                else {
+                    CALLBACK_SCF(false);
+                }
                 break;
             }
         case 0x68:                  /* FFLUSH Commit file */
@@ -5089,7 +5094,7 @@ void DOS_EnableDriveMenu(char drv) {
 		if (dos_kernel_disabled || RunningProgram == "LOADLIN") {
 			bool found = false;
 			for (int i=0; i<MAX_DISK_IMAGES; i++)
-				if (imageDiskList[i] && imageDiskList[i]->ffdd && imageDiskList[i]->drvnum == drv-'A') {
+				if (imageDiskList[i] && imageDiskList[i]->ffdd && imageDiskList[i]->drvnum == (unsigned int)(drv-'A')) {
 					found = true;
 					break;
 				}
