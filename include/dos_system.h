@@ -377,6 +377,7 @@ void DOS_DelMultiplexHandler(MultiplexHandler * handler);
 void DOS_AddDevice(DOS_Device * adddev);
 /* DelDevice destroys the device that is pointed to. */
 void DOS_DelDevice(DOS_Device * dev);
+bool DOS_DeviceNameExists(const char* name);
 
 void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *dir = "");
 void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b,const char *dir = "");

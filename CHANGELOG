@@ -135,6 +135,12 @@ Next version:
   - DOS: INT 21h AH=67h (set handle count) now follows MS-DOS 4.0. It no longer
     uses up the private memory area on every call and it returns an error if
     memory is short or open handles would be dropped. (cimarronm)
+  - Fixed Fullscreen Switching of Internal Voodoo Emulation (DieSkaarj)
+  - NE2000: do not complete an in-flight transmit early when TXP is rewritten
+    (johnhomelan)
+  - Enabled CR0.TS during task switch (tbullock)
+  - Fixed redirection in batch file broke redirection of command.com
+    (maron2000)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
