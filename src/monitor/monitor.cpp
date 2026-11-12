@@ -236,7 +236,6 @@ bool	Monitor::Programs::displayInfo( Monitor &tM,const cmd_tokens_t& ) {/* {{{ *
 		message+="\n";
 		messageClient( m._client,message );
 	}
-	messageClient( m._client,"\n" );
 	return EXIT_SUCCESS;
 }	/* }}} */
 
@@ -399,28 +398,27 @@ bool Monitor::Programs::helpMe( Monitor &tM,const cmd_tokens_t& cmdline ){/* {{{
 }/* }}} */ // }}}
 
 // Montor::CommandLine {{{
-int Monitor::UserRequest::processUserRequest( std::string tBuffer ) { /* {{{ */
+const int Monitor::UserRequest::handleUser( std::string tBuffer ) { /* {{{ */
 	cmd_tokens_t					command_line= {};
 	std::istringstream				buffer( tBuffer );
 	std::string						token;
 
-
 	while( buffer >>std::quoted( token )) command_line.push_back( token );
 
 	if( tBuffer.empty() ){
-		return EXIT_FAILURE;
+		return USER_REQ_EMPTY;
 	}
-
 	auto processCommand= std::find_if( commands->begin(),commands->end(),
 		[ & ]( const CommandExec& item ){	
 			return item.command == command_line.at( 0 );});
 
-	if( processCommand ==commands->end() ) return EXIT_UNKNOWN;
-
+	if( processCommand ==commands->end() ) {
+		return USER_REQ_UNKNOWN;
+	}
 	ptr_monitor->setUserInput( processCommand->exec,command_line );
 	Monitor_RunProgram= Monitor::RunProgram;
 
-	return EXIT_SUCCESS;
+	return USER_REQ_SUCCESS;
 };// }}} }}}
 
 #endif // C_MONITOR 

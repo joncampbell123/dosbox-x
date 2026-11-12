@@ -57,8 +57,8 @@
 
 extern std::atomic< void(*)() > Monitor_RunProgram;
 
-enum { DBX_SOCKET_TCP= 0,DBX_SOCKET_UDS };
-enum { EXIT_UNKNOWN= 2 };
+enum { SOCKET_TCP= 0,SOCKET_UDS };
+enum { USER_REQ_SUCCESS=0,USER_REQ_EMPTY,USER_REQ_UNKNOWN };
 
 // extern {{{
 extern bool save_dynamic_rec;
@@ -207,7 +207,7 @@ class Monitor { /* {{{ */
 		UserRequest( const CommandList *&tCommands ):commands( tCommands ){}
 
 		const CommandList	*&commands;
-		int					processUserRequest( const std::string );
+		const int			handleUser( const std::string );
 	};// }}} }}} 
 
 	/* Callbacks for threading. {{{ */
@@ -227,12 +227,22 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			SDLNet_TCP_Send( tClient,_prompt.c_str(),_prompt.length() );
 	}/* }}} */
 	
-	void	prompt( int tClient ){/* {{{ */
+	void	prompt( int tClient ) {/* {{{ */
 		#if defined(LINUX) || defined(BSD)
 		send( tClient,_prompt.c_str(),_prompt.length(),MSG_EOR );
 		#endif
 	}/* }}} */
-	
+
+	void	prompt() {/* {{{ */
+		if( nullptr ==_client ) return;
+		if( _client.type ) 
+		#if defined(LINUX) || defined(BSD)
+			send( _client,_prompt.c_str(),_prompt.length(),MSG_EOR );
+		#endif
+		else
+			SDLNet_TCP_Send( _client,_prompt.c_str(),_prompt.length() );
+	} /* }}} */
+
 	bool	startServer( std::string tSockPath ) {/* {{{ */
 		#if defined(LINUX) || defined(BSD)
 		_server.sock= socket( AF_UNIX,SOCK_STREAM,0 );
@@ -320,7 +330,6 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			char buffer[ INPUT_LENGTH ];
 
 			messageClient( _client,std::string( "DOSBox-X " )+VERSION+" monitor - type \'help\' for a list of commands\n" );
-
 			prompt( _client.as_int() );
 
 			memset( buffer,'\0',sizeof( char )*INPUT_LENGTH );
@@ -329,19 +338,18 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 					buffer[ bytes_received-1 ] = '\0';
 				
 				UserRequest  cli( _commands );
-				switch( cli.processUserRequest( buffer ) ) {
-					case EXIT_SUCCESS: break;
-					case EXIT_FAILURE: continue;
-					case EXIT_UNKNOWN:
+				switch( cli.handleUser( buffer ) ) {
+					case USER_REQ_SUCCESS:continue;
+					case USER_REQ_EMPTY: break;
+					case USER_REQ_UNKNOWN:
 						messageClient( _client,std::string( "Unknown command " )+"\'"+buffer+"\'\n" );
 					break;
-				}
+				};
 				prompt( _client.as_int() );
 			}
 			if( bytes_received ==-1 ) {
 				return EXIT_FAILURE;
 			}
-
 			if( close( _client.sock ) ==-1 ) {
 				return EXIT_FAILURE;
 			}
@@ -367,28 +375,31 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 				}
 				messageClient( _client,std::string( "DOSBox-X " )+VERSION+" monitor - type \'help\' for a list of commands\n" );
 			}
-			prompt( _client.as_tcp() );
+			static int bytes_received= 0;
+
+			if( 0 ==bytes_received )
+				prompt( _client.as_tcp() );
 
 			char buffer[ INPUT_LENGTH ];
 			memset( buffer,'\0',sizeof( char )*INPUT_LENGTH );
 
-			int bytes_received= SDLNet_TCP_Recv( _client,buffer,INPUT_LENGTH );	
-			if( bytes_received && '\0' !=buffer[ bytes_received-1 ] )
+			bytes_received= SDLNet_TCP_Recv( _client,buffer,INPUT_LENGTH );	
+			if( ( bytes_received >0 && bytes_received <INPUT_LENGTH ) && '\0' !=buffer[ bytes_received -1] )
 				buffer[ bytes_received-1 ] = '\0';
-			
+
 			if( bytes_received <=0 ) {
 				if( _client ) closeSocket( _client );
 				LOG_MSG( "MONITOR client disconnected unexpectedly or connection lost.\n" );
 			}
-			else {
+			else if( bytes_received >0 ) {
 				UserRequest  cli( _commands );
-				switch( cli.processUserRequest( buffer ) ) {
-					case EXIT_SUCCESS: 
-					case EXIT_FAILURE: continue;
-					case EXIT_UNKNOWN:
+				switch( cli.handleUser( buffer ) ) {
+					case USER_REQ_SUCCESS:break;
+					case USER_REQ_EMPTY: bytes_received= 0; break;
+					case USER_REQ_UNKNOWN:
 						messageClient( _client,std::string( "Unknown command " )+"\'"+buffer+"\'\n" );
 					break;
-				}
+				};
 			}
 		}
 		onServerClose();
@@ -410,7 +421,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 	}/* }}} */
 
 	void	onServerClose() {/* {{{ */
-		if( DBX_SOCKET_TCP ==_client.type ) {
+		if( SOCKET_TCP ==_client.type ) {
 			if( _isRunning )
 				_isRunning= false;
 
@@ -418,7 +429,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 			if( _server ) SDLNet_TCP_Close( _server ); 
 		}
 		#if defined(LINUX) || defined(BSD)
-		else if( DBX_SOCKET_UDS ==_client.type ) {
+		else if( SOCKET_UDS ==_client.type ) {
 			if( _server.sock !=-1 ) {
 				shutdown( _server.sock,SHUT_RDWR );
 				close( _server.sock );
@@ -428,12 +439,10 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 		#endif
 		if( _commands ){  delete _commands; _commands=nullptr; };
 		if( _pThread ){
-			
 			#if defined(C_SDL_NET) && C_SDL_NET
 			int status;
 			SDL_WaitThread( _pThread,&status );
 			#endif
-
 			_pThread= nullptr;
 		}
 	}/* }}} */
@@ -453,7 +462,7 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 
 	public:
 
-	static void	RunProgram() {
+	static void	RunProgram() {/* {{{ */
 		Monitor_RunProgram= nullptr;
 		Monitor &m= *ptr_monitor;
 		#if !defined(HX_DOS)
@@ -461,17 +470,17 @@ static int CB_ListenTCP( void *tData ) {/* {{{ */
 		#endif
 		Programs prog;
 		( prog.*( m._run ) )( m,m._cli_tokens );
-	}
+		m.prompt( );
+	}// }}}
 
-	static void	messageClient( socket_t &tClient, std::string tMessage ) {/* {{{ */
-		if( !tClient ) return;
-		#if defined(LINUX) || defined(BSD)
-		if( tClient.type >0 ) {
+	static void	messageClient( socket_t &tClient, const std::string tMessage ) {/* {{{ */
+		if( nullptr ==tClient ) return;
+		if( tClient.type )
+			#if defined(LINUX) || defined(BSD)
 			send( tClient,tMessage.c_str(),tMessage.size(),0 );
-			return;
-		}
-		#endif
-		SDLNet_TCP_Send( tClient,tMessage.c_str(),tMessage.size() );
+			#endif
+		else
+			SDLNet_TCP_Send( tClient,tMessage.c_str(),tMessage.size() );
 	}/* }}} */
 
 	static	int	StartMonitor( std::string tLocation= "" ) {/* {{{ */
