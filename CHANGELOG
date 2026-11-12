@@ -132,6 +132,8 @@ Next version:
     early return does not leave a stale incomplete-remainder status. (cimarronm)
   - FPU: Fixed x87 underflow reporting for inexact tiny results that round to
     the minimum normal IEEE floating-point value. (cimarronm)
+  - DOS: Place the CON device header before the list of lists to prevent
+    Quarterdeck Manifest from hanging at startup. (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
