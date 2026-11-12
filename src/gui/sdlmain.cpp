@@ -5940,6 +5940,7 @@ bool gfx_in_mapper = false;
 #define DB_POLLSKIP 1
 #endif
 
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
@@ -5966,6 +5967,11 @@ void GFX_Events() {
             MAPPER_UpdateJoysticks();
         }
     }
+#endif
+
+#if C_MONITOR
+	extern std::atomic< void(*)() > Monitor_RunProgram;
+	if( auto monitor_command= Monitor_RunProgram.load() ) monitor_command();
 #endif
 
 #if C_GAMELINK

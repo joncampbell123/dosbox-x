@@ -288,7 +288,23 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Export env parameters
+        run: |
+          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "mingw32 is installed at: $MSYSTEM_PREFIX"
+      - name: setup MinGW32 build environment
+        run: |
+          top=`pwd`
+          echo "${top}"
+          echo "path=$PATH"
+          cd ${MSYSTEM_PREFIX}/..
+          rm -rf mingw32
+          wget https://github.com/maron2000/MinGW32/releases/download/mingw32-2026.10.31/mingw32-toolchain.tar.xz
+          tar -xJf mingw32-toolchain.tar.xz
+          echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
+          find "${MSYSTEM_PREFIX}" -type f -iname "*.exe" -exec chmod +x {} \;
       - name: Update build info
         shell: bash
         run: |
@@ -305,23 +321,9 @@ jobs:
             VERSION=$(echo "${GITHUB_REF##*/}" | sed -E 's/^dosbox-x-v([0-9]+\.[0-9]+\.[0-9]+)(-osfree)?$/\1/' || echo "unknown")
             echo "VERSION=$VERSION" >> $GITHUB_ENV
           fi         
-      - name: Install libslirp
-        run: |
-          # Run this job when MinGW drops 32-bit library support (Other libraries can be built as well)
-          top=`pwd`
-          mkdir pkg
-          cd pkg
-          git clone https://github.com/msys2/MINGW-packages.git
-          pwd
-          cd MINGW-packages
-          cd mingw-w64-libslirp
-          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw32\')/" PKGBUILD
-          MINGW_ARCH=MINGW32 makepkg-mingw -sCLf --noconfirm
-          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Build MinGW32 SDL1
         run: |
           top=`pwd`
-          ln -s $top/build-scripts/mingw/lowend-bin/make.exe /usr/bin/make.exe
           ./build-mingw
           strip -s $top/src/dosbox-x.exe
           mkdir -p $top/package/
@@ -331,6 +333,13 @@ jobs:
       - name: Build MinGW32 SDL2
         run: |
           top=`pwd`
+          echo "Compiling our internal SDL 2.x"
+          (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
+          new="-I${top}/vs/sdl2/linux-host/include "
+          nld="-L${top}/vs/sdl2/linux-host/lib "
+          LDFLAGS="${nld}${LDFLAGS}"
+          CPPFLAGS="${new}${CPPFLAGS}"
+          export LDFLAGS CPPFLAGS
           ./build-mingw-sdl2
           strip -s $top/src/dosbox-x.exe
           cp $top/src/dosbox-x.exe $top/package/dosbox-x_MinGWx86_SDL2.exe

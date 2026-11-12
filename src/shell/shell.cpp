@@ -512,6 +512,7 @@ void DOS_Shell::ParseLine(char * line) {
 	char * toc = nullptr;
 
 	uint16_t dummy,dummy2;
+    uint16_t saved_stdout = 0xff, saved_stdin = 0xff; 
 	uint32_t bigdummy = 0;
 	bool append;
 	bool normalstdin  = false;	/* whether stdin/out are open on start. */
@@ -530,6 +531,15 @@ void DOS_Shell::ParseLine(char * line) {
 	if (in || out || toc) {
 		normalstdin  = (psp->GetFileHandle(0) != 0xff);
 		normalstdout = (psp->GetFileHandle(1) != 0xff);
+        if(in && normalstdin) {
+            if(!DOS_DuplicateEntry(0, &saved_stdin))
+                saved_stdin = 0xff;
+        }
+
+        if((out || toc) && normalstdout) {
+            if(!DOS_DuplicateEntry(1, &saved_stdout))
+                saved_stdout = 0xff;
+        }
 	}
 	if (in) {
 		if(DOS_OpenFile(in,OPEN_READ,&dummy)) {	//Test if file exists
@@ -549,7 +559,8 @@ void DOS_Shell::ParseLine(char * line) {
     char pipetmp[270];
     pipetmp[0] = 0;
 	uint16_t fattr;
-	if(toc) {
+    static uint32_t pipeid_counter = 0;
+    if(toc) {
 		// Initialize random number generator
 		initRand();
 
@@ -584,10 +595,21 @@ void DOS_Shell::ParseLine(char * line) {
 		const char* tempEnv = tempPath.c_str();
 
 		// Generate unique pipe file path
-		int pipeid = rand() % 10000;
-		snprintf(pipetmp, sizeof(pipetmp), "%spipe%d.tmp", tempEnv, pipeid);
-	}
+        bool found = false;
 
+        for(uint32_t i = 0; i < 10000; i++) {
+            uint32_t pipeid = pipeid_counter++ % 10000;
+            snprintf(pipetmp, sizeof(pipetmp), "%spipe%u.tmp", tempEnv, (unsigned int)pipeid);
+
+            if(!DOS_GetFileAttr(pipetmp, &fattr)) {
+                found = true;
+                break;
+            }
+        }
+
+        if(!found) pipetmp[0] = 0;
+
+	}
 	DOS_Device *tmpdev = NULL;
 	if (out||toc) {
 		//if (out&&toc) WriteOut(!*out?"Duplicate redirection\n":"Duplicate redirection - %s\n", out);
@@ -632,8 +654,19 @@ void DOS_Shell::ParseLine(char * line) {
 						pipetmp[len] = 0;
 					}
                     else if(len == 0) {
-                        int pipeid = rand() % 10000;
-                        snprintf(pipetmp, sizeof(pipetmp), "pipe%d.tmp", pipeid);
+                        bool found = false;
+                        for(uint32_t i = 0; i < 10000; i++) {
+                            uint32_t pipeid = pipeid_counter++ % 10000;
+                            snprintf(pipetmp, sizeof(pipetmp), "pipe%u.tmp", (unsigned int)pipeid);
+
+                            if(!DOS_GetFileAttr(pipetmp, &fattr)) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if(!found)
+                            pipetmp[0] = 0;
                     }
 					for(int i = len; i >= 0; i--)
 						pipetmp[i + 3] = pipetmp[i];
@@ -643,8 +676,14 @@ void DOS_Shell::ParseLine(char * line) {
 					fail = false;
 				} else if (!tmpdev && pipetmpdev) {
                     if(strlen(pipetmp) == 0) {
-                        int pipeid = rand() % 10000;
-                        snprintf(pipetmp, sizeof(pipetmp), "pipe%d.tmp", pipeid);
+                        for(uint32_t i = 0; i < 10000; i++) {
+                            uint32_t pipeid = pipeid_counter++ % 10000;
+                            snprintf(pipetmp, sizeof(pipetmp), "pipe%u.tmp", (unsigned int)pipeid);
+
+                            if(!DOS_DeviceNameExists(pipetmp)) {
+                                break;
+                            }
+                        }
                     }
                     char* filename_only = strrchr(pipetmp, '\\');
 					if(!filename_only) filename_only = pipetmp;
@@ -731,14 +770,42 @@ void DOS_Shell::ParseLine(char * line) {
 
 	/* Restore handles */
 	if(in) {
-		DOS_CloseFile(0);
-		if(normalstdin) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
-		free(in);
+        if(normalstdin && saved_stdin != 0xff) {
+            if(DOS_ForceDuplicateEntry(saved_stdin, 0)) {
+                DOS_CloseFile(saved_stdin);
+                saved_stdin = 0xff;
+            }
+            else {
+                DOS_CloseFile(saved_stdin);
+                saved_stdin = 0xff;
+                DOS_CloseFile(0);
+                DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+            }
+        }
+        else {
+            DOS_CloseFile(0);
+            if(normalstdin) DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+        }
+        free(in);
 	}
 	if(out||toc) {
 		DOS_CloseFile(1);
 		if(!normalstdin) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
-		if(normalstdout) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
+        if(normalstdout) {
+            if(saved_stdout != 0xff) {
+                if(DOS_ForceDuplicateEntry(saved_stdout, 1)) {
+                    DOS_CloseFile(saved_stdout);
+                    saved_stdout = 0xff;
+                }
+                else {
+                    DOS_CloseFile(saved_stdout);
+                    saved_stdout = 0xff;
+                    DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+                }
+            }
+            else
+                DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+        }
 		if(!normalstdin) DOS_CloseFile(0);
 		if (out) free(out);
 	}
@@ -756,14 +823,44 @@ void DOS_Shell::ParseLine(char * line) {
 		}
 		if (!fail&&DOS_OpenFile(pipetmp, OPEN_READ, &dummy))					// Test if file can be opened for reading
 		{
-			DOS_CloseFile(dummy);
+            uint16_t saved_pipe_stdin = 0xff;
+            bool pipe_stdin_saved = false;
+            bool pipe_stdin_ready = false;
 			if (normalstdin)
-				DOS_CloseFile(0);												// Close stdin
-			DOS_OpenFile(pipetmp, OPEN_READ, &dummy);							// Open new stdin
-			ParseLine(toc);
-			DOS_CloseFile(0);
-			if (normalstdin)
-				DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+                pipe_stdin_saved = DOS_DuplicateEntry(0, &saved_pipe_stdin);											// Close stdin
+            if(!normalstdin || pipe_stdin_saved) {
+                if(normalstdin)
+                    DOS_CloseFile(0);
+
+                if(dummy == 0) {
+                    pipe_stdin_ready = true;
+                }
+                else if(DOS_ForceDuplicateEntry(dummy, 0)) {
+                    pipe_stdin_ready = true;
+                    DOS_CloseFile(dummy);
+                    dummy = 0xff;
+                }
+            }
+            if(pipe_stdin_ready) {
+                ParseLine(toc);
+                //LOG_MSG("SHELL:ParseLine ENTER: this=%p line='%s' pipetmp='%s'",
+                //    (void*)this, line, pipetmp);
+                DOS_CloseFile(0);
+            }
+            if(pipe_stdin_saved) {
+                if(!DOS_ForceDuplicateEntry(saved_pipe_stdin, 0)) {
+                    DOS_CloseFile(saved_pipe_stdin);
+                    DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+                }
+                else {
+                    DOS_CloseFile(saved_pipe_stdin);
+                }
+            }
+            else if(normalstdin && !pipe_stdin_ready) {
+                DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+            }
+            if(dummy != 0xff)
+                DOS_CloseFile(dummy);
 		}
 		else
 			WriteOut("\nFailed to create/open a temporary file for piping. Check the %%TEMP%% variable.\n");
