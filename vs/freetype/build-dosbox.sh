@@ -17,6 +17,6 @@ opts=
 
 ../configure "--srcdir=$srcdir" "--prefix=$instdir" --enable-static --disable-shared --with-bzip2=no --with-harfbuzz=no --with-png=no --with-brotli=no $opts || exit 1
 
-make -j || exit 1
+make -j$(nproc) || exit 1
 make install || exit 1  # will install into ./linux-host
 

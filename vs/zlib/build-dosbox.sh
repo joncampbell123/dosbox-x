@@ -13,7 +13,7 @@ instdir="`pwd`/linux-host"
 cd linux-build || exit 1
 
 ../configure || exit 1
-make -j || exit 1
+make -j$(nproc) || exit 1
 
 mkdir ../linux-host/include || exit 1
 cp -v *.h ../linux-host/include || exit 1
