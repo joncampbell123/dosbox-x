@@ -223,6 +223,10 @@ public:
 
 	bool		FindFirst			(char* path, uint16_t& id);
     bool        FindNext            (uint16_t id, char* &result, char* &lresult);
+    uint32_t    FindGeneration      (uint16_t id) const {
+        return (id < MAX_OPENDIRS && dirFindFirst[id]) ? dirFindFirstGeneration[id] : 0;
+    }
+    void        FindClose           (uint16_t id, uint32_t generation);
 
 	void		CacheOut			(const char* path, bool ignoreLastDir = false);
 	void		AddEntry			(const char* path, bool checkExists = false);
@@ -291,6 +295,7 @@ private:
 	CFileInfo*	dirSearch			[MAX_OPENDIRS] = {};
 	char		dirSearchName		[MAX_OPENDIRS] = {};
 	CFileInfo*	dirFindFirst		[MAX_OPENDIRS] = {};
+    uint32_t    dirFindFirstGeneration[MAX_OPENDIRS] = {};
 	uint16_t		nextFreeFindFirst = 0;
 
 	char		label				[CROSS_LEN] = {};
@@ -309,6 +314,10 @@ public:
 	virtual bool TestDir(const char * _dir)=0;
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false)=0;
 	virtual bool FindNext(DOS_DTA & dta)=0;
+    virtual bool GetFindCacheID(DOS_DTA & dta, uint16_t & id, uint32_t & generation) {
+        (void)dta; (void)id; (void)generation; return false;
+    }
+    virtual void FindClose(uint16_t id, uint32_t generation) { (void)id; (void)generation; }
 	virtual bool SetFileAttr(const char * name,uint16_t attr)=0;
 	virtual bool GetFileAttr(const char * name,uint16_t * attr)=0;
 	virtual bool GetFileAttrEx(char* name, struct stat *status)=0;

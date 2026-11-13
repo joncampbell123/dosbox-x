@@ -18,6 +18,7 @@
 
 
 #include <string.h>
+#include <map>
 #include <stdlib.h>
 #include <time.h>
 #include <ctype.h>
@@ -196,6 +197,95 @@ int sdrive = 0;
  * internally by LFN and image handling functions. For non-LFN calls the value is fixed to
  * be LFN_FILEFIND_NONE as defined in drives.h. */
 int lfn_filefind_handle = LFN_FILEFIND_NONE;
+
+// A search owns a snapshot in the drive cache. Track it by DOS DTA (classic
+// FindFirst) or DOS LFN search handle so abandoning an iteration releases it.
+struct ActiveFindSnapshot {
+    uint8_t drive;
+    uint16_t id;
+    uint32_t generation;
+    DOS_Drive * instance;
+    uint16_t psp;
+};
+
+static std::map<uint64_t, ActiveFindSnapshot> active_dta_finds;
+static std::map<uint8_t, ActiveFindSnapshot> active_lfn_finds;
+
+static uint64_t FindDtaKey() {
+    return (static_cast<uint64_t>(dos.psp()) << 32) |
+           static_cast<uint64_t>(dos.dta());
+}
+
+static void ReleaseFindSnapshot(const ActiveFindSnapshot & snapshot) {
+    if (snapshot.drive < DOS_DRIVES &&
+        Drives[snapshot.drive] == snapshot.instance)
+        snapshot.instance->FindClose(snapshot.id, snapshot.generation);
+}
+
+void DOS_CloseFindSnapshot(uint8_t handle) {
+    auto found = active_lfn_finds.find(handle);
+    if (found == active_lfn_finds.end())
+        return;
+    ReleaseFindSnapshot(found->second);
+    active_lfn_finds.erase(found);
+}
+
+// Release searches owned by a DOS program when it terminates.
+// TSR processes are deliberately excluded by the caller.
+void DOS_CloseFindSnapshotsForPSP(uint16_t psp) {
+    for (auto it = active_dta_finds.begin(); it != active_dta_finds.end(); ) {
+        if (it->second.psp == psp) {
+            ReleaseFindSnapshot(it->second);
+            it = active_dta_finds.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    for (auto it = active_lfn_finds.begin(); it != active_lfn_finds.end(); ) {
+        if (it->second.psp == psp) {
+            ReleaseFindSnapshot(it->second);
+            it = active_lfn_finds.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+static void ReleaseCurrentFindSnapshot() {
+    if (lfn_filefind_handle < LFN_FILEFIND_MAX) {
+        DOS_CloseFindSnapshot(static_cast<uint8_t>(lfn_filefind_handle));
+        return;
+    }
+    const auto key = FindDtaKey();
+    auto found = active_dta_finds.find(key);
+    if (found == active_dta_finds.end())
+        return;
+    ReleaseFindSnapshot(found->second);
+    active_dta_finds.erase(found);
+}
+
+static void ForgetCurrentFindSnapshot() {
+    if (lfn_filefind_handle < LFN_FILEFIND_MAX) {
+        active_lfn_finds.erase(static_cast<uint8_t>(lfn_filefind_handle));
+    } else {
+        active_dta_finds.erase(FindDtaKey());
+    }
+}
+
+static void RememberCurrentFindSnapshot(uint8_t drive, DOS_DTA & dta) {
+    if (drive >= DOS_DRIVES || !Drives[drive])
+        return;
+    uint16_t id = MAX_OPENDIRS;
+    uint32_t generation = 0;
+    if (!Drives[drive]->GetFindCacheID(dta, id, generation))
+        return;
+    const ActiveFindSnapshot snapshot = { drive, id, generation, Drives[drive], dos.psp() };
+    if (lfn_filefind_handle < LFN_FILEFIND_MAX)
+        active_lfn_finds[static_cast<uint8_t>(lfn_filefind_handle)] = snapshot;
+    else
+        active_dta_finds[FindDtaKey()] = snapshot;
+}
+
 bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 
 bool DOS_GetFileAttrEx(char const* const name, struct stat *status, uint8_t hdrive)
@@ -689,6 +779,7 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 
 bool forcelfn = false;
 bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
+	ReleaseCurrentFindSnapshot();
 	LOG(LOG_FILES,LOG_NORMAL)("file search attributes %X name %s",attr,search);
 	DOS_DTA dta(dos.dta());
 	uint8_t drive;char fullsearch[DOS_PATHLENGTH];
@@ -779,7 +870,10 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	if (net) return Network_FindFirst(dir,dta);
 #endif
 #endif
-	if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) return true;
+	if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) {
+		RememberCurrentFindSnapshot(drive, dta);
+		return true;
+	}
 	return false;
 }
 
@@ -799,8 +893,10 @@ bool DOS_FindNext(void) {
 	if (pos==65534) return Network_FindNext(dta);
  #endif
 #endif
-	if (Drives[i]->FindNext(dta)) return true;
-	return false;
+	const bool found = Drives[i]->FindNext(dta);
+	if (!found)
+		ForgetCurrentFindSnapshot();
+	return found;
 }
 
 

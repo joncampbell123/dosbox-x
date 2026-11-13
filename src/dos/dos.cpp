@@ -5407,6 +5407,8 @@ void DOS_Int21_7147(char *name1, const char *name2) {
 #endif
 
 #if !defined(OSFREE)
+extern void DOS_CloseFindSnapshot(uint8_t handle);
+
 void DOS_Int21_714e(char *name1, char *name2) {
 	DOS_LFN_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 	*name1='\"';
@@ -5450,6 +5452,7 @@ void DOS_Int21_714e(char *name1, char *name2) {
 		DOS_PSP psp(dos.psp());
 		entry = psp.FindFreeFileEntry();
 		if (entry==0xff) {
+			DOS_CloseFindSnapshot(handle);
 			reg_ax=DOSERR_TOO_MANY_OPEN_FILES;
 			CALLBACK_SCF(true);
 			return;
@@ -5664,6 +5667,7 @@ void DOS_Int21_71a1(const char *name1, const char *name2) {
 		CALLBACK_SCF(true);
 		return;
 	}
+	DOS_CloseFindSnapshot(handle);
 	DOS_PSP psp(dos.psp());
 	uint16_t entry=psp.FindEntryByHandle(handle);
 	if (entry>0&&entry!=0xff) psp.SetFileHandle(entry,0xff);

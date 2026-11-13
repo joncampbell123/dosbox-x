@@ -971,6 +971,9 @@ bool DOS_Drive_Cache::FindFirst(char* path, uint16_t& id) {
 
     }
     dirFindFirst[dirFindFirstID] = new CFileInfo();
+    // A reused slot must not be released by an older search handle.
+    if (++dirFindFirstGeneration[dirFindFirstID] == 0)
+        ++dirFindFirstGeneration[dirFindFirstID];
     dirFindFirst[dirFindFirstID]-> nextEntry    = 0;
 
     // Copy entries to use with FindNext
@@ -1004,6 +1007,14 @@ bool DOS_Drive_Cache::FindNext(uint16_t id, char* &result, char* &lresult) {
         return false;
     }
     return true;
+}
+
+void DOS_Drive_Cache::FindClose(uint16_t id, uint32_t generation) {
+    if (id >= MAX_OPENDIRS || !dirFindFirst[id] ||
+        dirFindFirstGeneration[id] != generation)
+        return;
+    DeleteFileInfo(dirFindFirst[id]);
+    dirFindFirst[id] = nullptr;
 }
 
 void DOS_Drive_Cache::ClearFileInfo(CFileInfo *dir) {
