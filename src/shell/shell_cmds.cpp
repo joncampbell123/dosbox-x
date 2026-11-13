@@ -165,6 +165,8 @@ bool OpenGL_using(void);
 void UpdateSDLDrawTexture();
 extern char char_yes, char_no;
 
+DOS_Device* DOS_GetCONDevice(void);
+
 static int32_t lastsetcp = 0;
 bool CHCP_changed = false;
 
@@ -306,7 +308,10 @@ __do_command_begin:
 	}
 	*cmd_write=0;
 	if (strlen(cmd_buffer)==0) {
-		if (strlen(line)&&line[0]=='/') WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),line);
+        if(strlen(line) && line[0] == '/') {
+            // MS-DOS writes this message to CON device regardless of redirections
+            WriteCON(formatString(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"), line).c_str(), isDBCSCP());
+        }
 		return;
 	}
 	cmd_alias_map_t::iterator iter = cmd_alias.find(cmd_buffer);
@@ -343,8 +348,11 @@ __do_command_begin:
 		LOG_MSG("errhandler %s line %s\n", errhandler.c_str(), origin_cmd_line.c_str());
 		DoCommand((char *)(errhandler+" "+origin_cmd_line).c_str());
 		noassoc=false;
-	} else
-		WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
+	}
+    else {
+        // MS-DOS writes this message to CON device regardless of redirections
+        WriteCON(formatString(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"), cmd_buffer).c_str(), isDBCSCP());
+    }
 }
 
 #define HELP(command) \
@@ -1878,7 +1886,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 	} else
 		found=false;
 	if (!found&&!optB&&!optS) {
-		shell->WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
+		shell->WriteCON(formatString(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args).c_str(),isDBCSCP());
 		if (!dirPaused(shell, w_size, optP, optW, false)) return false;
 	}
 	if (optS) {
@@ -2071,9 +2079,9 @@ void DOS_Shell::CMD_DIR(char * args) {
 		uint16_t attribute=0;
 		if(!DOS_GetSFNPath(args,sargs,false)) {
             if (strlen(args)>1&&toupper(args[0])>='A'&&toupper(args[0])<='Z'&&args[1]==':'&&!Drives[toupper(args[0])-'A'])
-                WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+                WriteCON(MSG_Get("SHELL_ILLEGAL_DRIVE"),isDBCSCP());
             else
-                WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+                WriteCON(MSG_Get("SHELL_ILLEGAL_PATH"),isDBCSCP());
 			return;
 		}
 		if(DOS_GetFileAttr(sargs,&attribute) && (attribute&DOS_ATTR_DIRECTORY) ) {
@@ -2085,9 +2093,9 @@ void DOS_Shell::CMD_DIR(char * args) {
 	}
 	if (!DOS_GetSFNPath(args,sargs,false)) {
 		if (strlen(args)>1&&toupper(args[0])>='A'&&toupper(args[0])<='Z'&&args[1]==':'&&!Drives[toupper(args[0])-'A'])
-            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            WriteCON(MSG_Get("SHELL_ILLEGAL_DRIVE"), isDBCSCP());
 		else
-            WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+            WriteCON(MSG_Get("SHELL_ILLEGAL_PATH"), isDBCSCP());
 		return;
 	}
 	if (!(uselfn&&!optZ&&strchr(sargs,'*'))&&!strrchr(sargs,'.'))
