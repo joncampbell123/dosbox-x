@@ -756,7 +756,7 @@ if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       LIBS="$LIBS -lwinmm -ldsound -limm32 -lole32 -loleaut32 -lversion -lsetupapi"
+       LIBS="$LIBS -lwinmm -ldsound -limm32 -lole32 -loleaut32 -lversion -lsetupapi -luuid"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
        dnl FEATURE: Whether to support direct parallel port pass-through
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel pass-through support (Win32, Linux and BSD).])
