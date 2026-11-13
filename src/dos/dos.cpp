@@ -4149,6 +4149,12 @@ void DOS_CreateDummyDeviceMCB(void);
 void DOS_MemStartChange(uint16_t adjto);
 void DOS_AllocMinFreePadding(uint16_t upto);
 
+static DOS_Device* device_con = nullptr;
+
+DOS_Device* DOS_GetCONDevice(void) {
+    return device_con;
+}
+
 void DOS_OpenDefaultHandles(void) {
 	/* open handles in SFT for CON, AUX, PRN */
 	uint8_t devnum_con,devnum_aux,devnum_prn;
@@ -4169,6 +4175,7 @@ void DOS_OpenDefaultHandles(void) {
 
 	/* CON is REQUIRED */
 	if (devnum_con >= DOS_DEVICES) E_Exit("Unable to locate CON device");
+    device_con = Devices[devnum_con];
 
 	/* AUX and PRN can be CON if they do not exist */
 	if (devnum_aux >= DOS_DEVICES) devnum_aux = devnum_con;
