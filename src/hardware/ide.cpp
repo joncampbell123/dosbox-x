@@ -737,7 +737,7 @@ public:
     unsigned char atapi_cmd[12];
     unsigned char atapi_cmd_i,atapi_cmd_total;
     unsigned char sector[512*128];
-    Bitu sector_i,sector_total;
+    uint64_t sector_i,sector_total;
 };
 
 class IDEController:public Module_base{
@@ -6068,7 +6068,7 @@ void IDEBusMaster::try_transfer(unsigned int n) {
     if (to_mem != ((c.cmd & 0x08u) != 0)) return; /* the host set up the other direction */
 
     unsigned char *buf;
-    Bitu *pos,total;
+    uint64_t *pos,total;
     if (dev->type == IDE_TYPE_HDD) {
         IDEATADevice *d = static_cast<IDEATADevice*>(dev);
         buf = d->sector; pos = &d->sector_i; total = d->sector_total;
