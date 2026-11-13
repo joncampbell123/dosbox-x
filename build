@@ -1,13 +1,108 @@
 #!/usr/bin/env bash
 
-# allow 32-bit on 64-bit (x86) builds
-if [ "$1" == "32" ]; then
-    CC="$(which gcc) -m32"
-    CXX="$(which g++) -m32"
-    export CC CXX
-    shift
-    opt="--host=i686-pc-linux-gnu --target=i686-pc-linux-gnu"
-fi
+# Build options are handled here rather than forwarded to configure.
+build32=no
+configure_args=()
+for arg in "$@"; do
+    case "$arg" in
+        32) build32=yes ;;
+        *) configure_args+=("$arg") ;;
+    esac
+done
+
+# Verify all Cygwin build dependencies before starting any build steps.
+check_cygwin_dependencies() {
+    local arch=$1 package
+    local -a packages missing
+
+    packages=(
+        autoconf automake gcc-core gcc-g++ libtool
+        "mingw64-${arch}-gcc-core"
+        "mingw64-${arch}-gcc-g++"
+        "mingw64-${arch}-headers"
+        "mingw64-${arch}-ncurses"
+        "mingw64-${arch}-runtime"
+        "mingw64-${arch}-win-iconv"
+        "mingw64-${arch}-zlib"
+        nasm pkg-config
+    )
+
+    if ! command -v cygcheck >/dev/null 2>&1; then
+        echo "Cannot check Cygwin dependencies: cygcheck is unavailable" >&2
+        return 1
+    fi
+
+    missing=()
+    for package in "${packages[@]}"; do
+        if ! cygcheck -c "$package" 2>/dev/null |
+            awk -v pkg="$package" '$1 == pkg && $NF == "OK" { found = 1 } END { exit !found }'; then
+            missing+=("$package")
+        fi
+    done
+
+    if ((${#missing[@]})); then
+        echo "Missing or incomplete Cygwin packages:" >&2
+        printf '  %s\n' "${missing[@]}" >&2
+        echo "Install these packages using the Cygwin setup program" >&2
+        return 1
+    fi
+
+    echo "All required Cygwin packages are installed"
+}
+
+# Set up cross-compilation before invoking any bundled build scripts.
+# The bundled scripts inherit CC, CXX, PATH, CPPFLAGS and LDFLAGS.
+cygwin_build=no
+case "$(uname -s)" in
+    CYGWIN*)
+        echo "Cygwin environment detected"
+
+        cygwin_build=yes
+
+        if [ "$build32" = yes ]; then
+            triplet=i686-w64-mingw32
+        else
+            triplet=x86_64-w64-mingw32
+        fi
+
+        echo "Checking for preflight dependencies..."
+        if [ "$build32" = yes ]; then
+            check_cygwin_dependencies i686 || exit 1
+        else
+            check_cygwin_dependencies x86_64 || exit 1
+        fi
+
+        mingw_prefix="/usr/$triplet/sys-root/mingw"
+
+        if ! command -v "$triplet-gcc" >/dev/null 2>&1 ||
+           ! command -v "$triplet-g++" >/dev/null 2>&1; then
+            echo "Missing MinGW-w64 cross-compiler for $triplet" >&2
+            exit 1
+        fi
+
+        if [ ! -d "$mingw_prefix" ]; then
+            echo "Missing MinGW-w64 sysroot: $mingw_prefix" >&2
+            exit 1
+        fi
+
+        export PATH="$mingw_prefix/bin:$PATH"
+        export CC="$triplet-gcc"
+        export CXX="$triplet-g++"
+        export MINGW_PREFIX="$mingw_prefix"
+        export CPPFLAGS="-I$mingw_prefix/include ${CPPFLAGS:-}"
+        export LDFLAGS="-L$mingw_prefix/lib ${LDFLAGS:-}"
+
+        configure_args+=("--host=$triplet")
+        ;;
+    *)
+        # Original '32' behavior for non-Cygwin systems.
+        if [ "$build32" = yes ]; then
+            export CC="$(command -v gcc) -m32"
+            export CXX="$(command -v g++) -m32"
+            configure_args+=(--host=i686-pc-linux-gnu --target=i686-pc-linux-gnu)
+        fi
+        ;;
+esac
 
 # Jonathan C dev hack: refer to LNKDOS16 in /usr/src/doslib
 doslib=""
@@ -27,6 +122,15 @@ fi
 # fix
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
+if [ "$cygwin_build" = yes ]; then
+    # Use an absolute path so all bundled build scripts inherit it.
+    png_prefix="$(pwd)/vs/libpng/linux-host"
+    export CPPFLAGS="-I$png_prefix/include ${CPPFLAGS:-}"
+    export LDFLAGS="-L$png_prefix/lib ${LDFLAGS:-}"
+    echo "Compiling our internal libpng"
+    (cd vs/libpng && ./build-dosbox.sh) || exit 1
+fi
+
 # prefer to compile against our own copy of SDL 1.x
 echo "Compiling our internal SDL 1.x"
 (cd vs/sdl && ./build-dosbox.sh) || exit 1
@@ -38,6 +142,5 @@ echo "Compiling our internal SDLnet 1.x"
 # now compile ourself
 echo "Compiling DOSBox-X"
 chmod +x configure
-./configure --enable-debug --prefix=/usr "${@}" "${opt}" || exit 1
+./configure --enable-debug --prefix=/usr "${configure_args[@]}" || exit 1
 make -j3 || exit 1
-
