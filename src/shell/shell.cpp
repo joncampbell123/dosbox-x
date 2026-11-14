@@ -58,12 +58,15 @@ bool config_shell_prompt_start = false; // at start before running device driver
 bool config_shell_prompt_end = false; // at end after running device drivers
 
 bool shown_welcome = false;
+static bool stdin_redirected;              // status of redirection (false if not redirected)
+static bool stdout_redirected;             // status of redirection (false if not redirected)
 
 extern bool shell_keyboard_flush;
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
 extern bool halfwidthkana, force_conversion, gbk, uselangcp, chinasea;
+extern bool ctrlbrk;
 extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
@@ -103,6 +106,7 @@ void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error(), CheckDBCSCP(int32_t codepage), TTF_using(void);
 void makestdcp950table(), makeseacp951table();
+DOS_Device* DOS_GetCONDevice(void);
 
 #if defined(USE_TTF)
 void ttf_switch_on(bool ss = true), ttf_switch_off(bool ss = true);
@@ -457,6 +461,45 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 	return num;
 }
 
+bool DOS_Shell::DOS_IsBatchFile(const char* command)
+{
+    if(!first_shell || !command || !*command) return false;
+
+    char name[DOS_PATHLENGTH];
+    safe_strncpy(name, command, sizeof(name));
+
+    /* Extract command name */
+    char* p = name;
+
+    if(*p == '"') {
+        p++;
+        char* end = strchr(p, '"');
+        if(!end) return false;
+        memmove(name, p, end - p);
+        name[end - p] = 0;
+    }
+    else {
+        p = strpbrk(name, " \t");
+        if(p) *p = 0;
+    }
+
+    /* Check extension */
+    char* ext = strrchr(name, '.');
+    if(ext && strcasecmp(ext, ".BAT"))
+        return false;
+
+    if(ext)
+        return first_shell->Which(name) != NULL;
+
+    /* Try .BAT  */
+    if(!ext) {
+        strcat(name, ".BAT");
+        if(first_shell->Which(name)) return true;
+    }
+
+    return first_shell->Which(name) != NULL;
+}
+
 class device_TMP : public DOS_Device {
 public:
     std::string str = "";
@@ -518,7 +561,8 @@ void DOS_Shell::ParseLine(char * line) {
 	bool normalstdin  = false;	/* whether stdin/out are open on start. */
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
 
-	GetRedirection(line, &in, &out, &toc, &append);
+    if(!DOS_IsBatchFile(line))
+        GetRedirection(line, &in, &out, &toc, &append); // Genuine MS-DOS doesn't redirect batch files
 
 	if(toc && *trim(toc) == '\0') {
 		SyntaxError(); /* No command to pass output */
@@ -546,7 +590,7 @@ void DOS_Shell::ParseLine(char * line) {
 			DOS_CloseFile(dummy);
 			LOG_MSG("SHELL:Redirect input from %s",in);
 			if(normalstdin) DOS_CloseFile(0);	//Close stdin
-			DOS_OpenFile(in,OPEN_READ,&dummy);	//Open new stdin
+            DOS_OpenFile(in, OPEN_READ, &dummy); //Open new stdin
 		} else {
 			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File open error - %s\n"), in);
 			if(in) free(in);
@@ -644,6 +688,7 @@ void DOS_Shell::ParseLine(char * line) {
                     fail = true;
                 status = device ? false : DOS_OpenFileExtended(toc && !fail ? pipetmp : out, OPEN_READWRITE, DOS_ATTR_ARCHIVE, 0x12, &dummy, &dummy2);
             }
+            if(!bf && status) stdout_redirected = true;
 			bool pipetmp_is_zdrive = strncasecmp(pipetmp, "Z:\\", 3) == 0;
 			if (toc&&(fail||!status)&&(!strchr(pipetmp,'\\')|| pipetmp_is_zdrive)) {
 				Overlay_Drive *da = Drives[0] ? (Overlay_Drive *)Drives[0] : NULL, *dc = Drives[2] ? (Overlay_Drive *)Drives[2] : NULL;
@@ -736,9 +781,9 @@ void DOS_Shell::ParseLine(char * line) {
                 if(status && dummy != 1) {
                     uint16_t new_handle = 1;
                     bool dup_status = DOS_DuplicateEntry(dummy, &new_handle);
-
-                    if(dup_status)
+                    if(dup_status) {
                         DOS_CloseFile(dummy);
+                    }
                 }
             }
 		}
@@ -827,7 +872,7 @@ void DOS_Shell::ParseLine(char * line) {
             bool pipe_stdin_saved = false;
             bool pipe_stdin_ready = false;
 			if (normalstdin)
-                pipe_stdin_saved = DOS_DuplicateEntry(0, &saved_pipe_stdin);											// Close stdin
+                pipe_stdin_saved = DOS_DuplicateEntry(0, &saved_pipe_stdin);	// Close stdin
             if(!normalstdin || pipe_stdin_saved) {
                 if(normalstdin)
                     DOS_CloseFile(0);
@@ -885,6 +930,7 @@ void DOS_Shell::RunInternal(void) {
 				}
 			}
 			ParseLine(input_line);
+            if(CheckBatchBreak()) continue;
 			if (echo) WriteOut_NoParsing("\n");
 		}
 	}
@@ -1451,10 +1497,19 @@ void DOS_Shell::Run(void) {
 
 		/* do it */
 		if(strlen(input_line)!=0) {
-			if (bf == NULL/*not running a batch file*/ && shell_keyboard_flush) DOS_FlushSTDIN();
+            if(bf == NULL/*not running a batch file*/) {
+                if(shell_keyboard_flush) DOS_FlushSTDIN();
+                stdout_redirected = false;
+                stdin_redirected = false;
+            }
 			ParseLine(input_line);
+            if(CheckBatchBreak()) continue;
 			if (echo && !bf) WriteOut_NoParsing("\n");
-			if (bf == NULL/*not running a batch file*/ && shell_keyboard_flush) DOS_FlushSTDIN();
+            if(bf == NULL/*not running a batch file*/) {
+                if(shell_keyboard_flush) DOS_FlushSTDIN();
+                stdout_redirected = false;
+                stdin_redirected = false;
+            }
 		}
 	} while (perm||!exit);
 	shellrun=false;
@@ -1462,6 +1517,45 @@ void DOS_Shell::Run(void) {
 
 void DOS_Shell::SyntaxError(void) {
 	WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
+}
+
+
+bool DOS_Shell::CheckBatchBreak(void) {
+    if(!bf || !ctrlbrk) return false;
+
+    ctrlbrk = false;
+    std::string prompt = formatString("Terminate batch job (%c/%c)?",
+        (char)toupper(char_yes), (char)toupper(char_no));
+
+    DOS_Device* con = DOS_GetCONDevice();
+    if(!con) {
+        LOG_MSG("CheckBatchBreak: CON device not found, terminating batch file");
+        return true;
+    }
+    uint8_t c, lower_c;
+    uint16_t n = 1;
+    while(!stdout_redirected) {
+        WriteOut(prompt.c_str(), isDBCSCP());
+
+        n = 1;
+        con->Read(&c, &n);
+        if(!n) continue;
+
+        std::string msg = formatString("%c", c);
+        WriteOut(msg.c_str(), isDBCSCP());
+
+        lower_c = (uint8_t)tolower(c);
+        if(lower_c == char_yes || lower_c == char_no) break;
+
+        WriteOut("\r\n", isDBCSCP());
+    }
+    WriteOut("\r\n", isDBCSCP());
+
+    if(stdout_redirected || lower_c == char_yes) {
+        while(bf) delete bf;
+        return true;
+    }
+    return false;
 }
 
 bool filename_not_8x3(const char *n), isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);

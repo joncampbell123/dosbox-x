@@ -307,53 +307,76 @@ void Program::WriteOut(const char *format, const char *arguments) {
 //	DOS_WriteFile(STDOUT,(uint8_t *)buf,&size);
 }
 
-int Program::WriteOut_NoParsing(const char * format, bool dbcs) {
-	if (dos_kernel_disabled) {
-		LOG(LOG_MISC,LOG_WARN)("Call to Program::WriteOut_NoParsing while DOS kernel is disabled string format='%s'",format);
-		return 0;
-	}
+DOS_Device* DOS_GetCONDevice(void);
+int WriteOut_NoParsing_Internal(const char* format, bool dbcs, bool direct_con);
 
-	uint16_t size = (uint16_t)strlen(format);
-	char const* buf = format;
-	char last2 = 0, last3 = 0;
-	int lastcol = 0;
-	uint8_t page=outcon?real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE):0;
-	bool lead=false;
-	dos.internal_output=true;
-	int rcount = 0;
-	for(uint16_t i = 0; i < size;i++) {
-		uint8_t out;uint16_t s=1;
-		BIOS_NCOLS;
-		if (!CURSOR_POS_COL(page)) last2=last3=0;
-		if (lead) lead = false;
-		else if ((IS_PC98_ARCH || isDBCSCP())
+int Program::WriteOut_NoParsing(const char* format, bool dbcs) {
+    return WriteOut_NoParsing_Internal(format, dbcs, false);
+}
+
+int Program::WriteCON(const char* str, bool dbcs) {
+    return WriteOut_NoParsing_Internal(str, dbcs, true);
+}
+
+int WriteOut_NoParsing_Internal(const char* format, bool dbcs, bool direct_con) {
+    if(dos_kernel_disabled) {
+        LOG(LOG_MISC, LOG_WARN)("Call to Program::WriteOut while DOS kernel is disabled string format='%s'", format);
+        return 0;
+    }
+    if(!format || (direct_con && !DOS_GetCONDevice())) return 0;
+
+    uint16_t size = (uint16_t)strlen(format);
+    char const* buf = format;
+    char last2 = 0, last3 = 0;
+    int lastcol = 0;
+    uint8_t page = outcon ? real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE) : 0;
+    bool lead = false;
+    bool old_internal_output = dos.internal_output;
+    dos.internal_output = true;
+    int rcount = 0;
+    for(uint16_t i = 0; i < size; i++) {
+        uint8_t out; uint16_t s = 1;
+        BIOS_NCOLS;
+        if(!CURSOR_POS_COL(page)) last2 = last3 = 0;
+        if(lead) lead = false;
+        else if((IS_PC98_ARCH || isDBCSCP())
 #if defined(USE_TTF)
             && dbcs_sbcs
 #endif
             && dbcs && isKanji1(buf[i])) lead = true;
-		if (buf[i] == 0xA) {
-			if (last_written_character != 0xD) {out = 0xD;DOS_WriteFile(STDOUT,&out,&s);}
-			if (outcon) rcount++;
-		} else if (outcon && lead && CURSOR_POS_COL(page)==ncols-1 && !(TTF_using()
+        if(buf[i] == 0xA) {
+            if(last_written_character != 0xD) {
+                out = 0xD;
+                if(direct_con) DOS_GetCONDevice()->Write(&out, &s);
+                else DOS_WriteFile(STDOUT, &out, &s);
+            }
+            if(outcon) rcount++;
+        }
+        else if(outcon && lead && CURSOR_POS_COL(page) == ncols - 1 && !(TTF_using()
 #if defined(USE_TTF)
             && autoboxdraw
 #endif
             && CheckBoxDrawing(last3, last2, last_written_character, buf[i]))) {
-			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
-			out = 0xA;DOS_WriteFile(STDOUT,&out,&s);
-			rcount++;
-		} else if (outcon && !CURSOR_POS_COL(page) && lastcol == ncols-1)
-			rcount++;
-		lastcol=CURSOR_POS_COL(page);
-		last3=last2;last2=last_written_character;
-		last_written_character = (char)(out = (uint8_t)buf[i]);
-		DOS_WriteFile(STDOUT,&out,&s);
-	}
-	dos.internal_output=false;
-	return rcount;
-
-//	DOS_WriteFile(STDOUT,(uint8_t *)format,&size);
+            out = 0xD;
+            if(direct_con) DOS_GetCONDevice()->Write(&out, &s);
+            else DOS_WriteFile(STDOUT, &out, &s);
+            out = 0xA;
+            if(direct_con) DOS_GetCONDevice()->Write(&out, &s);
+            else DOS_WriteFile(STDOUT, &out, &s);
+            rcount++;
+        }
+        else if(outcon && !CURSOR_POS_COL(page) && lastcol == ncols - 1)
+            rcount++;
+        lastcol = CURSOR_POS_COL(page);
+        last3 = last2; last2 = last_written_character;
+        last_written_character = (char)(out = (uint8_t)buf[i]);
+        if(direct_con) DOS_GetCONDevice()->Write(&out, &s);
+        else DOS_WriteFile(STDOUT, &out, &s);
+    }
+    dos.internal_output = old_internal_output;
+    return rcount;
 }
+
 
 static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_seg) {
 	if (env_seg == 0) {
