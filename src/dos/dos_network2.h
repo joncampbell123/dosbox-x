@@ -403,7 +403,22 @@ bool Network_SetFileAttr(char const * const filename, uint16_t attr) {
         if (name.back()=='"') name.pop_back();
     }
     bool wc = CodePageGuestToHostUTF16(namehost, name.c_str());
-	int	handle=wc?_wsopen((LPCWSTR)namehost,oflag,shflag,_S_IREAD|_S_IWRITE):_sopen(name.c_str(),oflag,shflag,_S_IREAD|_S_IWRITE);
+    int	handle;
+    while(true) {
+        handle = wc ? _wsopen((LPCWSTR)namehost, oflag, shflag, _S_IREAD | _S_IWRITE) : _sopen(name.c_str(), oflag, shflag, _S_IREAD | _S_IWRITE);
+        if(handle != -1 && GetLastError() != ERROR_PIPE_BUSY)
+            break;
+        if(wc)
+        {
+            if(!WaitNamedPipeW((LPCWSTR)namehost, 5000))
+                break;
+        }
+        else
+        {
+            if(!WaitNamedPipe(name.c_str(), 5000))
+                break;
+        }
+    }
 
 	if(handle!=-1)
 	{
@@ -416,6 +431,22 @@ bool Network_SetFileAttr(char const * const filename, uint16_t attr) {
 		return	true;
 	}
 	else	dos.errorcode=(uint16_t)_doserrno;
+
+#if DEBUG
+    DWORD errCode = GetLastError();
+    CHAR errText[256] = { 0 };
+    DWORD result = FormatMessage(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        errCode,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        errText,256, NULL
+    );
+
+    LOG(LOG_DOSMISC, LOG_DEBUG)("DOS:Network_OpenFile:Failed to open network:%s, %s", filename, errText);
+#else
+    LOG(LOG_DOSMISC, LOG_DEBUG)("DOS:Network_OpenFile:Failed to open network:%s, GetLastError:%d", filename, GetLastError());
+#endif
 
 	return false;
 }//bool	Network_OpenFile(char * filename,uint8_t flags,uint16_t * entry)
@@ -440,7 +471,7 @@ extern "C" int _nhandle;
 
 	if(close(handle)==0)
 	{
-		NetworkHandleList[entry]=0;
+		NetworkHandleList[entry]= 0xFFFF;
 
 		DOS_PSP		psp(dos.psp());
 		psp.SetFileHandle(entry,0xff);
@@ -486,6 +517,27 @@ extern "C" int _nhandle;
 
 	return	(toread>=0);
 }//bool Network_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount)
+
+ bool Network_LockFile(uint16_t entry, uint8_t mode, uint32_t pos, uint32_t size)
+ {
+     int ifd = NetworkHandleList[entry];
+     if(ifd <= 0) {
+         DOS_SetError(DOSERR_INVALID_HANDLE);
+         return false;
+     }
+
+     HANDLE h = (HANDLE)_get_osfhandle(ifd);
+     if(h == INVALID_HANDLE_VALUE) {
+         DOS_SetError(DOSERR_INVALID_HANDLE);
+         return false;
+     }
+
+     /*mode: 0=lock, 1=unlock, 2=test lock:return true*/
+     (void)mode;
+     (void)pos;
+     (void)size;
+     return true;
+ }// bool Network_LockFile(uint16_t entry, uint8_t mode, uint32_t pos, uint32_t size)
 
  bool Network_SeekFile(uint16_t entry,uint32_t * pos,uint32_t type)
 {
