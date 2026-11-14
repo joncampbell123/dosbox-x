@@ -138,6 +138,10 @@ public:
      */
 	Bitu GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool * append);
 
+    /*! \brief      Check if a command is a batch file
+     */
+    bool DOS_IsBatchFile(const char* command);
+
     /*! \brief      Build Tab completion
      */
 	bool BuildCompletions(char * line, uint16_t str_len);
@@ -160,6 +164,9 @@ public:
 
 	/*! \brief      Checks if it matches a hardware-property */
 	bool CheckConfig(char* cmd_in,char*line);
+
+    /*! \brief       Checks whether Ctrl+C was pressed during batch file execution and handles batch termination */
+    bool CheckBatchBreak(void);
 
     /*! \brief      Given a command, look up the path using default paths and the PATH variable
      */
