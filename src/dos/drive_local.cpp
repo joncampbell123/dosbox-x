@@ -1813,6 +1813,15 @@ bool localDrive::FileUnlink(const char * name) {
 	}
 }
 
+bool localDrive::GetFindCacheID(DOS_DTA & dta, uint16_t & id, uint32_t & generation) {
+    if (lfn_filefind_handle < LFN_FILEFIND_MAX)
+        id = ldid[lfn_filefind_handle];
+    else
+        id = dta.GetDirID();
+    generation = dirCache.FindGeneration(id);
+    return generation != 0;
+}
+
 bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	char tempDir[CROSS_LEN];
 	strcpy(tempDir,basedir);
