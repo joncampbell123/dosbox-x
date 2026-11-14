@@ -15825,9 +15825,41 @@ if test x$srcdir != x.; then
 fi
 case "$host" in
     *-*-cygwin*)
-        # We build SDL on cygwin without the UNIX emulation layer
-        BASE_CFLAGS="-I/usr/include/mingw -mno-cygwin"
-        BASE_LDFLAGS="-mno-cygwin"
+        # Legacy Cygwin GCC may support native Windows builds via -mno-cygwin.
+        # Modern MinGW-w64 GCC does not need or accept this option.
+        save_CFLAGS="$CFLAGS"
+        have_no_cygwin=no
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for GCC -mno-cygwin option" >&5
+printf %s "checking for GCC -mno-cygwin option... " >&6; }
+        CFLAGS="$save_CFLAGS -mno-cygwin"
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+     (eval "$ac_compile") 2>&5
+     ac_status=$?
+     echo "$as_me:$LINENO: \$? = $ac_status" >&5
+     test $ac_status -eq 0; } && test -s conftest.$ac_objext; then
+  have_no_cygwin=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $have_no_cygwin" >&5
+printf "%s\n" "$have_no_cygwin" >&6; }
+        CFLAGS="$save_CFLAGS"
+
+        if test x$have_no_cygwin = xyes; then
+            BASE_CFLAGS="-I/usr/include/mingw -mno-cygwin"
+            BASE_LDFLAGS="-mno-cygwin"
+        fi
         ;;
     *)
         BASE_CFLAGS="-D_GNU_SOURCE=1"
