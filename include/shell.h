@@ -62,6 +62,15 @@ const std::map<int, std::string> langcp_map {
 	{951, "zh_TW"},
 };
 
+enum DOS_COMMAND_TYPE {
+    DOS_COMMAND_NONE = 0,
+    DOS_COMMAND_BATCH,
+    DOS_COMMAND_COM,
+    DOS_COMMAND_EXE,
+    DOS_COMMAND_SHELL,
+    DOS_COMMAND_CALL
+};
+
 class BatchFile {
 public:
 	BatchFile(DOS_Shell * host,char const* const resolved_name,char const* const entered_name, char const * const cmd_line);
@@ -138,6 +147,14 @@ public:
      */
 	Bitu GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool * append);
 
+    /*! \brief      Determine the type of a command (.bat, .com, .exe, or shell built-in)
+     */
+    DOS_COMMAND_TYPE DOS_GetCommandType(const char* command);
+
+    /*! \brief      Check if a command is a shell command
+     */
+    DOS_COMMAND_TYPE DOS_IsShellCommand(const char* name);
+
     /*! \brief      Build Tab completion
      */
 	bool BuildCompletions(char * line, uint16_t str_len);
@@ -160,6 +177,9 @@ public:
 
 	/*! \brief      Checks if it matches a hardware-property */
 	bool CheckConfig(char* cmd_in,char*line);
+
+    /*! \brief       Checks whether Ctrl+C was pressed during batch file execution and handles batch termination */
+    bool CheckBatchBreak(void);
 
     /*! \brief      Given a command, look up the path using default paths and the PATH variable
      */

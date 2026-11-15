@@ -355,6 +355,20 @@ __do_command_begin:
     }
 }
 
+DOS_COMMAND_TYPE DOS_Shell::DOS_IsShellCommand(const char* name)
+{
+    if(!name || !*name) return DOS_COMMAND_NONE;
+
+    if(!strcasecmp(name, "CALL"))
+        return DOS_COMMAND_CALL;  // CALL is a shell command, but should be considered as executing a batch file
+
+    for(int i = 0; GetCmdName(i); i++) {
+        if(!strcasecmp(name, GetCmdName(i)))
+            return DOS_COMMAND_SHELL;
+    }
+    return DOS_COMMAND_NONE;
+}
+
 #define HELP(command) \
 	if (ScanCMDBool(args,"?")) { \
 		uint8_t attr = DOS_GetAnsiAttr(); \
