@@ -1363,6 +1363,12 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	dta.GetSearchParams(attr, pattern, false);
 
 	int dirIterator = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():sdid[lfn_filefind_handle];
+	if (dirIterator >= MAX_OPENDIRS) {
+		/* The number comes from the DTA, which the program can write: one past the table
+		 * names no search */
+		DOS_SetError(DOSERR_NO_MORE_FILES);
+		return false;
+	}
 	bool isRoot = dirIterators[dirIterator].root;
 
 	if (is_udf) {
