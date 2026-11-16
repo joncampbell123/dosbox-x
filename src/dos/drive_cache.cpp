@@ -207,7 +207,7 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
     return work;
 }
 
-void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
+bool DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
     // Get Last part...
     char expand [CROSS_LEN];
 
@@ -219,7 +219,7 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
         strcpy(file,pos+1);
         // Check if file already exists, then don't add new entry...
         if (checkExists) {
-            if (GetLongName(dir,file)>=0) return;
+            if (GetLongName(dir,file)>=0) return false;
         }
 
         char sfile[DOS_NAMELENGTH];
@@ -235,9 +235,11 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
             }
         }
         //      LOG_DEBUG("DIR: Added Entry %s",path);
+        return true;
     } else {
 //      LOG_DEBUG("DIR: Error: Failed to add %s",path);
     }
+    return false;
 }
 
 void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool checkExists) {

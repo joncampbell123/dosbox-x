@@ -1465,16 +1465,26 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		return false;
 	}
 
-	if(!existing_file) {
-		strcpy(newname,basedir);
-		strcat(newname,name);
-		CROSS_FILENAME(newname);
-		dirCache.AddEntry(newname, true);
+#if defined(WIN32)
+	/* With 8.3 names on, the file system gives a long name a short alias of its own. */
+	bool host_alias = true;
+	WIN32_FIND_DATAW created_data;
+	HANDLE created_find = FindFirstFileW(host_name, &created_data);
+	if (created_find != INVALID_HANDLE_VALUE) {
+		host_alias = created_data.cAlternateFileName[0] != 0;
+		FindClose(created_find);
 	}
-	/* The cache holds the new entry when its folder is one the cache has read. A name that needs a
-	 * short alias empties it: on Windows that alias is the file system's, which only a read learns. */
+#else
+	const bool host_alias = false;
+#endif
+
+	/* An existing file the cache did not hold was made on the host since the folder was read: only a
+	 * read gives it the host's own spelling. */
+	const bool unseen = dirCache.AddEntry(newname, true) && existing_file;
+	/* The cache holds the new entry when its folder is one the cache has read, a long name under the
+	 * next free alias. Where the file system made the alias, only a read of the folder learns it. */
 	const char *created = strrchr_dbcs((char *)name,'\\');
-	if (filename_not_8x3(created ? created+1 : name) || !dirCache.HoldsFolderOf(newname)) EmptyCache();
+	if (unseen || (host_alias && filename_not_8x3(created ? created+1 : name)) || !dirCache.HoldsFolderOf(newname)) EmptyCache();
 
 	/* Make the 16 bit device information */
 	*file=new LocalFile(name,hand);
