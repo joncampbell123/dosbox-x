@@ -27,6 +27,7 @@
 #include <vector>
 #include <iterator>
 #include <algorithm>
+#include <string>
 #include <unordered_map>
 
 #if defined (WIN32)   /* Win 32 */
@@ -77,6 +78,7 @@ struct DOS_Drive_Cache::ReadIndex {
     void Added(void) {
         const Bitu nr = dir->fileList.size()-1;
         if (namesMade) names.emplace(dir->fileList[nr]->orgname, (Bits)nr);
+        if (wineMade) AddWineName(nr);
     }
 
     // The first entry whose host name strcasecmp finds equal to name, or -1.
@@ -89,7 +91,19 @@ struct DOS_Drive_Cache::ReadIndex {
         return found==names.end() ? -1 : found->second;
     }
 
+    // The first entry whose Wine-style short name is name, or -1.
+    Bits WineName(const char* name) {
+        if (!wineMade) {
+            for (Bitu i=0; i<dir->fileList.size(); i++) AddWineName(i);
+            wineMade = true;
+        }
+        const auto found = wine.find(name);
+        return found==wine.end() ? -1 : found->second;
+    }
+
 private:
+    void AddWineName(Bitu nr);
+
     ReadIndex*& current;
 
     // strcasecmp compares the bytes through tolower, so this hash is equal for names it finds equal.
@@ -105,6 +119,8 @@ private:
     };
     std::unordered_map<const char*, Bits, FoldedHash, FoldedEqual> names; // keys point into the entries
     bool namesMade = false;
+    std::unordered_map<std::string, Bits> wine;
+    bool wineMade = false;
 };
 
 DOS_Drive_Cache::ReadIndex* DOS_Drive_Cache::ReadIndexOf(CFileInfo* dir) {
@@ -573,6 +589,12 @@ static Bits wine_hash_short_file_name( char* name, char* buffer )
 }
 #endif
 
+void DOS_Drive_Cache::ReadIndex::AddWineName(Bitu nr) {
+    char buff[CROSS_LEN];
+    buff[wine_hash_short_file_name(dir->fileList[nr]->orgname,buff)] = 0;
+    wine.emplace(buff, (Bits)nr);
+}
+
 Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
     std::vector<CFileInfo*>::size_type filelist_size = curDir->fileList.size();
     if (GCC_UNLIKELY(filelist_size<=0)) return -1;
@@ -614,6 +636,11 @@ Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
     if (strlen(shortName) < 8 || shortName[4] != '~' || shortName[5] == '.' || shortName[6] == '.' || shortName[7] == '.') return -1; // not available
     // else it's most likely a Wine style short name ABCD~###, # = not dot  (length at least 8)
     // The above test is rather strict as the following loop can be really slow if filelist_size is large.
+    if (index) {
+        res = index->WineName(shortName);
+        if (res>=0) strcpy(shortName,curDir->fileList[(size_t)res]->orgname);
+        return res;
+    }
     char buff[CROSS_LEN];
     for (Bitu i = 0; i < filelist_size; i++) {
         res = wine_hash_short_file_name(curDir->fileList[i]->orgname,buff);
