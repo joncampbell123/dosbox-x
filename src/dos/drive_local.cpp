@@ -2082,7 +2082,6 @@ bool localDrive::SetFileAttr(const char * name,uint16_t attr) {
 		DOS_SetError((uint16_t)GetLastError());
 		return false;
 	}
-	dirCache.EmptyCache();
 	return true;
 #else
 	ht_stat_t status;
