@@ -320,7 +320,61 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool che
     }
 }
 
+// FindDirInfo stops at the deepest folder it holds, which is another folder when the path names
+// one the cache has not seen (made on the host since it was read).
+bool DOS_Drive_Cache::HoldsFolderOf(const char* path) {
+    const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
+    if (!pos || (size_t)(pos-path+1)<strlen(basePath)) return false;
+    char dirpath[CROSS_LEN], expand[CROSS_LEN], name[CROSS_LEN];
+    strcpy(dirpath,path);
+    dirpath[pos-path+1] = 0;
+    CFileInfo* dir = FindDirInfo(dirpath,expand);
+    CFileInfo* walk = dirBase;
+    const char* start = dirpath+strlen(basePath);
+    while (walk && *start) {
+        const char* split = strchr_dbcs((char *)start,CROSS_FILESPLIT);
+        size_t len = split ? (size_t)(split-start) : strlen(start);
+        safe_strncpy(name,start,len+1);
+        Bits sub = GetLongName(walk,name);
+        walk = (sub>=0 && walk->fileList[(size_t)sub]->isDir) ? walk->fileList[(size_t)sub] : nullptr;
+        start += split ? len+1 : len;
+    }
+    return walk==dir;
+}
+
 void DOS_Drive_Cache::DeleteEntry(const char* path, bool ignoreLastDir) {
+    // A deleted file leaves the folder by its one entry. Dropping the folder would read it again
+    // and number the generated short names anew, so a short name a program got before the delete
+    // would open another file.
+    const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
+    if (!ignoreLastDir && HoldsFolderOf(path)) {
+        char dirpath[CROSS_LEN], expand[CROSS_LEN], file[CROSS_LEN];
+        strcpy(dirpath,path);
+        dirpath[pos-path+1] = 0;
+        // The name resolves here as it did in GetExpandName for the host's delete.
+        CFileInfo* dir = FindDirInfo(dirpath,expand);
+        strcpy(file,pos+1);
+        Bits index = GetLongName(dir,file);
+        // On a host that tells case apart, the deleted short name can still open another file
+        // of the folder, under a short name of its own: only a new read makes the two agree.
+        for (Bitu i=0; index>=0 && i<dir->fileList.size(); i++) {
+            if ((Bits)i!=index && !strcasecmp(dir->fileList[i]->orgname,dir->fileList[(size_t)index]->shortname))
+                index = -1;
+        }
+        if (index>=0 && !dir->fileList[(size_t)index]->isDir) {
+            CFileInfo* info = dir->fileList[(size_t)index];
+            dir->fileList.erase(dir->fileList.begin()+index);
+            std::vector<CFileInfo*>::iterator it = std::find(dir->longNameList.begin(),dir->longNameList.end(),info);
+            if (it!=dir->longNameList.end()) dir->longNameList.erase(it);
+            for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
+                if ((dirSearch[i]==dir) && ((Bitu)index<dirSearch[i]->nextEntry))
+                    dirSearch[i]->nextEntry--;
+            }
+            DeleteFileInfo(info);
+            return;
+        }
+    }
+
     CacheOut(path,ignoreLastDir);
     if (dirSearch[srchNr] && (dirSearch[srchNr]->nextEntry>0)) dirSearch[srchNr]->nextEntry--;
 

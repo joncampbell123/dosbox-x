@@ -232,6 +232,7 @@ public:
 	void		AddEntry			(const char* path, bool checkExists = false);
 	void        AddEntryDirOverlay	(const char* path, char *sfile, bool checkExist = false);
 	void		DeleteEntry			(const char* path, bool ignoreLastDir = false);
+	bool		HoldsFolderOf		(const char* path);
 
 	void		EmptyCache			(void);
 	void		MediaChange			(void);
