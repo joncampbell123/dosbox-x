@@ -115,7 +115,7 @@ std::string ldir[256];
 static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
 host_cnv_char_t *CodePageGuestToHost(const char *s);
-bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), CheckDBCSCP(int32_t codepage);
+bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), CheckDBCSCP(int32_t codepage), filename_not_8x3(const char *n);
 extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, uao, halfwidthkana, dbcs_sbcs, inmsg, forceswk;
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
@@ -1471,6 +1471,10 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		CROSS_FILENAME(newname);
 		dirCache.AddEntry(newname, true);
 	}
+	/* The cache holds the new entry when its folder is one the cache has read. A name that needs a
+	 * short alias empties it: on Windows that alias is the file system's, which only a read learns. */
+	const char *created = strrchr_dbcs((char *)name,'\\');
+	if (filename_not_8x3(created ? created+1 : name) || !dirCache.HoldsFolderOf(newname)) EmptyCache();
 
 	/* Make the 16 bit device information */
 	*file=new LocalFile(name,hand);

@@ -1186,7 +1186,6 @@ bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry,bool 
 			Files[handle]->drive = drive;
 		}
 		if (!fcb) psp.SetFileHandle(*entry,handle);
-		if (Files[handle]) Drives[drive]->EmptyCache();
 		return true;
 	} else {
 		if(dos.errorcode==DOSERR_ACCESS_DENIED||dos.errorcode==DOSERR_WRITE_PROTECTED) return false;

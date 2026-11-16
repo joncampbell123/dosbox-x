@@ -459,8 +459,8 @@ bool physfsDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attrib
 		strcat(newname,name);
 		CROSS_FILENAME(newname);
 		dirCache.AddEntry(newname, true);
-		dirCache.EmptyCache();
 	}
+	dirCache.EmptyCache();
 	return true;
 }
 

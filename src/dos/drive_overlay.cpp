@@ -722,6 +722,7 @@ bool Overlay_Drive::FileCreate(DOS_File * * file,const char * name,uint16_t /*at
 	dirCache.AddEntry(fakename,true); //add it.
 	add_DOSname_to_cache(name);
 	remove_deleted_file(name,true);
+	EmptyCache(); //rebuilds the overlay's own lists too (update_cache)
 	return true;
 }
 #endif
