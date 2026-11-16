@@ -2370,14 +2370,26 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 	strcpy(newold,basedir);
 	strcat(newold,oldname);
 	CROSS_FILENAME(newold);
+	char cacheold[CROSS_LEN];
+	strcpy(cacheold,newold);
     struct stat temp_stat;
-    if(stat(newold,&temp_stat)) dirCache.ExpandName(newold);
+    const bool host_named_old = !stat(newold,&temp_stat);
+    if(!host_named_old) dirCache.ExpandName(newold);
 
 	char newnew[CROSS_LEN];
 	strcpy(newnew,basedir);
 	strcat(newnew,newname);
 	CROSS_FILENAME(newnew);
+	char cachenew[CROSS_LEN];
+	strcpy(cachenew,newnew);
     dirCache.ExpandName(newnew);
+	/* A case-only rename with long names on expands to the entry's own host name: no entry changes.
+	 * Where the host renames the old name as typed, the cache's entry for it must be that file, which
+	 * on a host that tells case apart it may not be. */
+	const char *resolved = dirCache.GetExpandName(cacheold);
+	const bool same_entry = !strcmp(resolved,newnew);
+	struct stat resolved_stat;
+	const bool cache_agrees = !host_named_old || (!stat(resolved,&resolved_stat) && resolved_stat.st_dev==temp_stat.st_dev && resolved_stat.st_ino==temp_stat.st_ino);
 
     // guest to host code page translation
     ht = CodePageGuestToHost(newold);
@@ -2404,7 +2416,18 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 	int temp=rename(o_temp_name,n_temp_name);
 #endif
 
-	if (temp==0) dirCache.CacheOut(newnew);
+	if (temp==0 && !(same_entry && cache_agrees)) {
+		/* The cache moves the one entry, out of its folder and into the new one under the next
+		 * free alias, and keeps the other entries; dropping the folder would number its aliases
+		 * anew. Where the file system made the alias, or a folder is one the cache has not read,
+		 * only a read learns it. */
+		ht_stat_t moved;
+		const bool isDir = !ht_stat(n_temp_name,&moved) && (moved.st_mode & S_IFDIR);
+		const char *renamed = strrchr_dbcs((char *)newname,'\\');
+		if (!cache_agrees || (host_made_alias(n_temp_name) && filename_not_8x3(renamed ? renamed+1 : newname)) || !dirCache.HoldsFolderOf(cachenew)
+			|| !dirCache.RemoveEntry(cacheold,isDir) || !dirCache.AddEntry(cachenew,true,isDir))
+			dirCache.CacheOut(newnew);
+	}
 
     free(o_temp_name);
     free(n_temp_name);
