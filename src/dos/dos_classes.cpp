@@ -69,6 +69,9 @@ void DOS_ParamBlock::SaveData(void) {
 }
 
 extern int maxdrive;
+static RealPt sft_primary = 0;			/* the primary SFT (in the List of Lists segment) */
+static uint8_t sft_layout_major = 0xFF,sft_layout_minor = 0xFF;
+
 void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	seg = segment;
 	pt=PhysMake(seg,0);
@@ -149,23 +152,53 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 
 	if ((sftOffset+SftHeaderSize+(5*SftEntrySize)) > 0x200) E_Exit("Primary SFT is too big");
 
-	/* Windows 3.1 appears to REP SCAS for "CON" in the SFT tables and it will claim that your
-	 * version of MS-DOS is unsupported if it doesn't see it 3 times in the SFT. Why 3?
-	 * Well, think about it: CON for STDIN, CON for STDOUT, and CON for STDERR. Of course, right?
-	 *
-	 * Anyway Windows 3.1 doesn't appear to care exactly where "CON" appears, only that it appears 3 times,
-	 * so this code writes it out in a manner matching real MS-DOS and according to the Ralph Brown Interrupt List
-	 * concerning MS-DOS 4.0 to MS-DOS 6.0. Write out the other default handles for good measure. */
-	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*0)+0x20,0x204e4f43); // CON
-	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*1)+0x20,0x204e4f43); // CON
-	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*2)+0x20,0x204e4f43); // CON
-	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*3)+0x20,0x20585541); // AUX
-	real_writed(segment,sftOffset+SftHeaderSize+(SftEntrySize*4)+0x20,0x204e5250); // PRN
-
 	/* zero out the table */
 	for (unsigned int i=0;i < (SftHeaderSize+(SftEntrySize*(DOS_FILES-5)));i++) real_writeb(tbl2_seg,i,0);
 	real_writed(tbl2_seg,0x00,0xFFFFFFFFu);
 	real_writew(tbl2_seg,0x04,DOS_FILES-5);
+
+	sft_primary = RealMake(segment,sftOffset);
+	sft_layout_major = sft_layout_minor = 0xFF;
+	DOS_LayoutSFT();
+}
+
+/* The SFT entry layout of the reported DOS version (see dos_inc.h) */
+unsigned int DOS_SftEntrySize(void) {
+	if (dos.version.major < 3) return 0x28;
+	if (dos.version.major == 3) return dos.version.minor < 10 ? 0x38 : 0x35;
+	return SftEntrySize;
+}
+
+unsigned int DOS_SftNameOffset(void) {
+	if (dos.version.major < 3) return 0x04;
+	if (dos.version.major == 3 && dos.version.minor < 10) return 0x21;
+	return 0x20;
+}
+
+/* Windows 3.1 appears to REP SCAS for "CON" in the SFT tables and it will claim that your
+ * version of MS-DOS is unsupported if it doesn't see it 3 times in the SFT. Why 3?
+ * Well, think about it: CON for STDIN, CON for STDOUT, and CON for STDERR. Of course, right?
+ *
+ * Windows 1.x KERNEL goes further: it follows the stdout handle of the program through the JFT to its SFT
+ * entry, with the entry size and name offset of the DOS version, and sends INT 21h output of a windowed
+ * DOS program to the window only if that entry is named CON. So the names are written where the reported
+ * DOS version has them (the first entries of the primary table: CON, CON, CON, AUX, PRN, as MS-DOS has
+ * them according to the Ralph Brown Interrupt List), and again when the reported version changes. */
+void DOS_LayoutSFT(void) {
+	if (sft_primary == 0) return;
+	if (sft_layout_major == dos.version.major && sft_layout_minor == dos.version.minor) return;
+	sft_layout_major = dos.version.major;
+	sft_layout_minor = dos.version.minor;
+
+	static const char *names[5] = { "CON        ", "CON        ", "CON        ", "AUX        ", "PRN        " };
+	const unsigned int esize = DOS_SftEntrySize(),nofs = DOS_SftNameOffset();
+	const PhysPt base = Real2Phys(sft_primary) + SftHeaderSize;
+
+	/* clear the entries of the largest layout, then write the names in this one */
+	for (unsigned int i=0;i < 5u*SftEntrySize;i++) mem_writeb(base+i,0);
+	for (unsigned int e=0;e < 5;e++)
+		for (unsigned int c=0;c < 11;c++)
+			mem_writeb(base+e*esize+nofs+c,(uint8_t)names[e][c]);
 }
 
 uint16_t DOS_InfoBlock::GetFirstMCB(void) {

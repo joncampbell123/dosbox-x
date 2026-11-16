@@ -1066,8 +1066,9 @@ void DOS_FlushSTDIN(void) {
 static Bitu DOS_21Handler(void) {
     bool unmask_irq0 = false;
 
-    /* the SDA is where programs for the reported DOS version expect it */
+    /* the SDA is where programs for the reported DOS version expect it, and so are the SFT entries */
     DOS_PlaceSDA();
+    DOS_LayoutSFT();
 
 #if !defined(OSFREE)
     /* NTS to ognjenmi: Your INT 21h logging patch was modified to log ALL INT 21h calls (the original

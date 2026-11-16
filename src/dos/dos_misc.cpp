@@ -368,7 +368,7 @@ static bool DOS_MultiplexFunctions(void) {
 //				LOG_MSG("handle=%u rel=%u nextsft=%08x",reg_bx,rel_entry,(unsigned int)sftrealpt);
 			}
 
-			uint32_t sftofs = SftHeaderSize + rel_entry*SftEntrySize;
+			uint32_t sftofs = SftHeaderSize + rel_entry*DOS_SftEntrySize();
 
 //DEBUG
 //			LOG_MSG("handle=%u rel=%u finalsft=%08x",reg_bx,rel_entry,(unsigned int)sftrealpt);

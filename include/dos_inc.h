@@ -210,7 +210,13 @@ extern uint16_t DOS_PRIVATE_SEGMENT;// 0xc800
 extern uint16_t DOS_PRIVATE_SEGMENT_END;// 0xd000
 
 constexpr int SftHeaderSize = 6;
-constexpr int SftEntrySize = 59;
+constexpr int SftEntrySize = 59;		/* DOS 4.0+ (the largest; the tables are allocated for it) */
+/* The SFT entries as the reported DOS version lays them out: 28h bytes for DOS 2.x (name at +04h), 38h for DOS 3.0
+ * (name at +21h), 35h for DOS 3.1-3.3x and 3Bh for DOS 4.0+ (name at +20h). DOS_LayoutSFT() writes the names of the
+ * standard handles where that version has them, when the reported version changes. */
+unsigned int DOS_SftEntrySize(void);
+unsigned int DOS_SftNameOffset(void);
+void DOS_LayoutSFT(void);
 constexpr int SftNumEntries = 16;
 
 /* internal Dos Tables */
