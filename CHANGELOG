@@ -1,4 +1,10 @@
 Next version:
+  - [AI] DOS: the System File Table in memory has the entry layout of the
+    reported DOS version (DOS 2.x, 3.0, 3.1-3.3 and 4.0+ differ in entry
+    size and where the name is) and follows "ver set". Fixes DOS programs
+    run in a window under Windows 1.x with DOS 3.x reported: the window
+    stayed empty, and a DOS program in WIN.INI run= hung Windows at
+    startup. (joncampbell123)
   - [AI] DOS: INT 21h AH=53h (translate BPB to DPB) fills in the DPB from
     the BPB in the layout of the reported DOS version, instead of exiting.
     On IBM PC compatibles the DOS kernel copies the diskette parameter table
