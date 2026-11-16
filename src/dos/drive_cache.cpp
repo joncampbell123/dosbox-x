@@ -368,6 +368,7 @@ void DOS_Drive_Cache::CacheOut(const char* path, bool ignoreLastDir) {
     // clear lists
     dir->fileList.clear();
     dir->longNameList.clear();
+    dir->longNameListSorted = true;
     save_dir = nullptr;
 }
 
@@ -670,32 +671,22 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
         }
 
         // keep list sorted for CreateShortNameID to work correctly
-        if (curDir->longNameList.size()>0) {
-            if (!(strcmp(info->shortname,curDir->longNameList.back()->shortname)<0)) {
-                // append at end of list
-                curDir->longNameList.push_back(info);
-            } else {
-                // look for position where to insert this element
-                bool found=false;
-                std::vector<CFileInfo*>::iterator it;
-                for (it=curDir->longNameList.begin(); it!=curDir->longNameList.end(); ++it) {
-                    if (strcmp(info->shortname,(*it)->shortname)<0) {
-                        found = true;
-                        break;
-                    }
-                }
-                // Put it in longname list...
-                if (found) curDir->longNameList.insert(it,info);
-                else curDir->longNameList.push_back(info);
-            }
-        } else {
-            // empty file list, append
-            curDir->longNameList.push_back(info);
+        std::vector<CFileInfo*>& aliases = curDir->longNameList;
+        std::vector<CFileInfo*>::iterator it = aliases.end();
+        if (!aliases.empty() && strcmp(info->shortname,aliases.back()->shortname)<0) {
+            // the first alias greater than this one
+            if (curDir->longNameListSorted)
+                it = std::upper_bound(aliases.begin(), aliases.end(), info, SortByName);
+            else
+                for (it=aliases.begin(); !(strcmp(info->shortname,(*it)->shortname)<0); ++it) {}
         }
+        it = aliases.insert(it,info);
+        if (RemoveTrailingDot(info->shortname) && it!=aliases.begin() && strcmp((*(it-1))->shortname,info->shortname)>0)
+            curDir->longNameListSorted = false;
     } else {
         strcpy(info->shortname,tmpName);
+        RemoveTrailingDot(info->shortname);
     }
-    RemoveTrailingDot(info->shortname);
 }
 
 DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char* expandedPath) {

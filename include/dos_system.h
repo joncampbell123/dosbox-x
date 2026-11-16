@@ -260,6 +260,10 @@ public:
 		// contents
 		std::vector<CFileInfo*>	fileList;
 		std::vector<CFileInfo*>	longNameList;
+		// Whether longNameList is in strcmp order. An alias that ended in a dot loses it once
+		// placed, and can then sort before the alias ahead of it: such a list is searched one
+		// alias at a time.
+		bool		longNameListSorted = true;
 	};
 
 private:
