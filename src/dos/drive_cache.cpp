@@ -345,11 +345,11 @@ bool DOS_Drive_Cache::HoldsFolderOf(const char* path) {
 }
 
 void DOS_Drive_Cache::DeleteEntry(const char* path, bool ignoreLastDir) {
-    // A deleted file leaves the folder by its one entry. Dropping the folder would read it again
-    // and number the generated short names anew, so a short name a program got before the delete
-    // would open another file.
+    // A deleted file, or a directory removed (ignoreLastDir), leaves the folder by its one entry.
+    // Dropping the folder would read it again and number the generated short names anew, so a
+    // short name a program got before the delete would open another file.
     const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
-    if (!ignoreLastDir && HoldsFolderOf(path)) {
+    if (HoldsFolderOf(path)) {
         char dirpath[CROSS_LEN], expand[CROSS_LEN], file[CROSS_LEN];
         strcpy(dirpath,path);
         dirpath[pos-path+1] = 0;
@@ -363,7 +363,7 @@ void DOS_Drive_Cache::DeleteEntry(const char* path, bool ignoreLastDir) {
             if ((Bits)i!=index && !strcasecmp(dir->fileList[i]->orgname,dir->fileList[(size_t)index]->shortname))
                 index = -1;
         }
-        if (index>=0 && !dir->fileList[(size_t)index]->isDir) {
+        if (index>=0 && dir->fileList[(size_t)index]->isDir==ignoreLastDir) {
             CFileInfo* info = dir->fileList[(size_t)index];
             dir->fileList.erase(dir->fileList.begin()+index);
             std::vector<CFileInfo*>::iterator it = std::find(dir->longNameList.begin(),dir->longNameList.end(),info);
@@ -372,6 +372,9 @@ void DOS_Drive_Cache::DeleteEntry(const char* path, bool ignoreLastDir) {
                 if ((dirSearch[i]==dir) && ((Bitu)index<dirSearch[i]->nextEntry))
                     dirSearch[i]->nextEntry--;
             }
+            // A directory goes with its cached subtree. FindDirInfo leaves save_dir as it was for a
+            // path too long to save, so the last folder looked up may be in that subtree.
+            if (ignoreLastDir) save_dir = nullptr;
             DeleteFileInfo(info);
             return;
         }
