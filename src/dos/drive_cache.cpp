@@ -101,7 +101,45 @@ struct DOS_Drive_Cache::ReadIndex {
         return found==wine.end() ? -1 : found->second;
     }
 
+    // CreateShortName has put an alias in dir->longNameList.
+    void AliasAdded(const char* alias) {
+        if (lengthsMade) CountLength(alias);
+    }
+
+    // In CreateShortNameID's walk, the alias at nr of dir->longNameList compares equal to name.
+    // CompareShortname compares name with an alias "PREFIX~N.EXT" over PREFIX alone unless name
+    // is longer than PREFIX~N, so where every alias of the prefix has a "~N" of one length, each
+    // compares as this one does, and the walk would step through all of them: the last one is
+    // found by halves instead. Elsewhere nr stays where it is and the walk steps on.
+    size_t LastOfPrefix(const char* name, size_t nr) {
+        const std::vector<CFileInfo*>& list = dir->longNameList;
+        if (!lengthsMade) {
+            for (size_t i=0; i<list.size(); i++) CountLength(list[i]->shortname);
+            lengthsMade = true;
+        }
+        const char* alias = list[nr]->shortname;
+        const size_t prefix = strcspn(alias,"~"), number = strcspn(alias+prefix,".");
+        if (alias[prefix]!='~') return nr;
+        size_t namelen = strcspn(name,".");
+        if (namelen>8) namelen = 8;
+        if (namelen>prefix+number) return nr;
+        const auto found = lengths.find(std::string(alias,prefix+1));
+        if (found==lengths.end() || (found->second & (found->second-1))!=0) return nr;
+        size_t low = nr, high = list.size()-1;
+        while (low<high) {
+            const size_t mid = (low+high+1)/2;
+            if (!strncmp(list[mid]->shortname,alias,prefix+1)) low = mid; else high = mid-1;
+        }
+        return low;
+    }
+
 private:
+    // a bit per length of "~N" among the aliases of a "PREFIX~"
+    void CountLength(const char* alias) {
+        const size_t prefix = strcspn(alias,"~");
+        if (alias[prefix]=='~') lengths[std::string(alias,prefix+1)] |= 1u << strcspn(alias+prefix,".");
+    }
+
     void AddWineName(Bitu nr);
 
     ReadIndex*& current;
@@ -121,6 +159,8 @@ private:
     bool namesMade = false;
     std::unordered_map<std::string, Bits> wine;
     bool wineMade = false;
+    std::unordered_map<std::string, unsigned> lengths;
+    bool lengthsMade = false;
 };
 
 DOS_Drive_Cache::ReadIndex* DOS_Drive_Cache::ReadIndexOf(CFileInfo* dir) {
@@ -513,7 +553,9 @@ Bitu DOS_Drive_Cache::CreateShortNameID(CFileInfo* curDir, const char* name) {
         if (res<0)  high = mid-1;
         else {
             // any more same x chars in next entries ?
+            ReadIndex* const index = curDir->longNameListSorted ? ReadIndexOf(curDir) : nullptr;
             do {
+                if (index) mid = (Bits)index->LastOfPrefix(name,(size_t)mid);
                 foundNr = curDir->longNameList[(size_t)mid]->shortNr;
                 mid++;
             } while((Bitu)mid<curDir->longNameList.size() && (CompareShortname(name,curDir->longNameList[(size_t)mid]->shortname)==0));
@@ -765,6 +807,8 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
         it = aliases.insert(it,info);
         if (RemoveTrailingDot(info->shortname) && it!=aliases.begin() && strcmp((*(it-1))->shortname,info->shortname)>0)
             curDir->longNameListSorted = false;
+        ReadIndex* const index = ReadIndexOf(curDir);
+        if (index) index->AliasAdded(info->shortname);
     } else {
         strcpy(info->shortname,tmpName);
         RemoveTrailingDot(info->shortname);
