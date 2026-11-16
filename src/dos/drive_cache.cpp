@@ -27,6 +27,7 @@
 #include <vector>
 #include <iterator>
 #include <algorithm>
+#include <unordered_map>
 
 #if defined (WIN32)   /* Win 32 */
 #define WIN32_LEAN_AND_MEAN        // Exclude rarely-used stuff from
@@ -61,6 +62,53 @@ bool SortByDirNameRev(DOS_Drive_Cache::CFileInfo* const &a, DOS_Drive_Cache::CFi
     // Directories first...
     if (a->isDir!=b->isDir) return (a->isDir>b->isDir);
     return strcmp(a->shortname,b->shortname)>0;
+}
+
+// What a read of one directory knows of the entries it has made so far. During the read the
+// entries are in the host's order, so a question about the earlier ones was a pass over all of
+// them for each new entry; here it is one lookup. Each table is made when first asked for.
+struct DOS_Drive_Cache::ReadIndex {
+    // It is the cache's readIndex for as long as it lives.
+    ReadIndex(CFileInfo* read, ReadIndex*& slot) : dir(read), current(slot) { current = this; }
+    ~ReadIndex() { current = nullptr; }
+    CFileInfo* const dir;
+
+    // The read has appended an entry to dir->fileList.
+    void Added(void) {
+        const Bitu nr = dir->fileList.size()-1;
+        if (namesMade) names.emplace(dir->fileList[nr]->orgname, (Bits)nr);
+    }
+
+    // The first entry whose host name strcasecmp finds equal to name, or -1.
+    Bits HostName(const char* name) {
+        if (!namesMade) {
+            for (Bitu i=0; i<dir->fileList.size(); i++) names.emplace(dir->fileList[i]->orgname, (Bits)i);
+            namesMade = true;
+        }
+        const auto found = names.find(name);
+        return found==names.end() ? -1 : found->second;
+    }
+
+private:
+    ReadIndex*& current;
+
+    // strcasecmp compares the bytes through tolower, so this hash is equal for names it finds equal.
+    struct FoldedHash {
+        size_t operator()(const char* s) const {
+            size_t h = 2166136261u;
+            for (; *s; s++) h = (h ^ (size_t)tolower((unsigned char)*s)) * 16777619u;
+            return h;
+        }
+    };
+    struct FoldedEqual {
+        bool operator()(const char* a, const char* b) const { return !strcasecmp(a,b); }
+    };
+    std::unordered_map<const char*, Bits, FoldedHash, FoldedEqual> names; // keys point into the entries
+    bool namesMade = false;
+};
+
+DOS_Drive_Cache::ReadIndex* DOS_Drive_Cache::ReadIndexOf(CFileInfo* dir) {
+    return (readIndex && readIndex->dir==dir) ? readIndex : nullptr;
 }
 
 DOS_Drive_Cache::DOS_Drive_Cache(void) {
@@ -546,8 +594,15 @@ Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
 			return mid;
 		};
 	}
+	ReadIndex* const index = ReadIndexOf(curDir);
 	if (uselfn && strlen(shortName)) {
-		for (Bitu i=0; i<filelist_size; i++) {
+		if (index) {
+			res = index->HostName(shortName);
+			if (res>=0) {
+				strcpy(shortName,curDir->fileList[(size_t)res]->orgname);
+				return res;
+			}
+		} else for (Bitu i=0; i<filelist_size; i++) {
 			if (!strcasecmp(shortName,curDir->fileList[i]->orgname)) {
 				strcpy(shortName,curDir->fileList[i]->orgname);
 				return (Bits)i;
@@ -881,10 +936,15 @@ bool DOS_Drive_Cache::ReadDir(uint16_t id, char* &result, char * &lresult) {
         // Read complete directory
         char dir_name[CROSS_LEN], dir_sname[DOS_NAMELENGTH+1];
         bool is_directory;
-        if (drive->read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
-            CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory, /*skip search*/true);
-            while (drive->read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
+        {   // the entries are numbered as read only until the sort
+            ReadIndex index(dirSearch[id], readIndex);
+            if (drive->read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
                 CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory, /*skip search*/true);
+                index.Added();
+                while (drive->read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
+                    CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory, /*skip search*/true);
+                    index.Added();
+                }
             }
         }
 
