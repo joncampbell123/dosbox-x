@@ -207,7 +207,7 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
     return work;
 }
 
-bool DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
+bool DOS_Drive_Cache::AddEntry(const char* path, bool checkExists, bool isDir) {
     // Get Last part...
     char expand [CROSS_LEN];
 
@@ -224,7 +224,9 @@ bool DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
 
         char sfile[DOS_NAMELENGTH];
         sfile[0]=0;
-        CreateEntry(dir,file,sfile,false);
+        CreateEntry(dir,file,sfile,isDir);
+        // FindDirInfo remembered the new directory's own path as its folder's.
+        if (isDir) save_dir = nullptr;
 
         Bits index = GetLongName(dir,file);
         if (index>=0) {

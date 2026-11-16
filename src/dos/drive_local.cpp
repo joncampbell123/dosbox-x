@@ -1351,6 +1351,22 @@ void drivezRegister(std::string const& path, std::string const& target_dir, bool
     dos.loaded_codepage = cp;
 }
 
+#if defined(WIN32)
+/* With 8.3 names on, the file system gives a long name a short alias of its own. */
+static bool host_made_alias(const host_cnv_char_t *host_name) {
+	bool alias = true;
+	WIN32_FIND_DATAW data;
+	HANDLE find = FindFirstFileW(host_name, &data);
+	if (find != INVALID_HANDLE_VALUE) {
+		alias = data.cAlternateFileName[0] != 0;
+		FindClose(find);
+	}
+	return alias;
+}
+#else
+static bool host_made_alias(const host_cnv_char_t *) { return false; }
+#endif
+
 bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
     if (nocachedir) EmptyCache();
 
@@ -1465,18 +1481,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		return false;
 	}
 
-#if defined(WIN32)
-	/* With 8.3 names on, the file system gives a long name a short alias of its own. */
-	bool host_alias = true;
-	WIN32_FIND_DATAW created_data;
-	HANDLE created_find = FindFirstFileW(host_name, &created_data);
-	if (created_find != INVALID_HANDLE_VALUE) {
-		host_alias = created_data.cAlternateFileName[0] != 0;
-		FindClose(created_find);
-	}
-#else
-	const bool host_alias = false;
-#endif
+	const bool host_alias = host_made_alias(host_name);
 
 	/* An existing file the cache did not hold was made on the host since the folder was read: only a
 	 * read gives it the host's own spelling. */
@@ -2279,7 +2284,14 @@ bool localDrive::MakeDir(const char * dir) {
 #else
 	int temp=mkdir(host_name,0775);
 #endif
-	if (temp==0) dirCache.CacheOut(newdir,true);
+	if (temp==0) {
+		/* The cache adds the new directory under the next free alias and keeps the folder's other
+		 * entries; dropping the folder would number its aliases anew. Where the file system made
+		 * the alias, or the folder is one the cache has not read, only a read learns it. */
+		const char *made = strrchr_dbcs((char *)dir,'\\');
+		if ((host_made_alias(host_name) && filename_not_8x3(made ? made+1 : dir)) || !dirCache.HoldsFolderOf(newdir) || !dirCache.AddEntry(newdir,true,true))
+			dirCache.CacheOut(newdir,true);
+	}
 	return (temp==0);// || ((temp!=0) && (errno==EEXIST));
 }
 
