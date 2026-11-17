@@ -1101,10 +1101,13 @@ again:
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
+	/* A search for the label alone lists no file: read on to the end, which ends the search */
+	if (srch_attr == DOS_ATTR_VOLUME) goto again;
 	if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
 
 	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:(ldir[lfn_filefind_handle]!=""?ldir[lfn_filefind_handle].c_str():"\\"));
 	if (strlen(full_name)+strlen(dir_ent)>=CROSS_LEN||strlen(full_name)+strlen(ldir_ent)>=CROSS_LEN) { unfit_skipped++; goto again; } // its host path would not fit
+	if (IsRootDotEntry(dir_ent,full_name)) goto again;
 	strcpy(lfull_name,full_name);
 
 	strcat(full_name,dir_ent);
