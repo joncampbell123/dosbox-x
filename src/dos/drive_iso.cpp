@@ -1191,6 +1191,11 @@ void isoDrive::UpdateCDROMRef(void) {
 	}
 }
 
+/* MSCDEX gives a file on a CD read-only and a directory nothing else; neither has the archive bit */
+static uint8_t CDAttr(bool dir, bool hidden) {
+	return (uint8_t)((dir ? DOS_ATTR_DIRECTORY : DOS_ATTR_READ_ONLY) | (hidden ? DOS_ATTR_HIDDEN : 0));
+}
+
 bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 #if !defined(OSFREE)
 	FileStat_Block file_stat;
@@ -1213,7 +1218,7 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 			file_stat.size = (uint32_t)std::min((uint64_t)fe.InformationLength,(uint64_t)0xFFFFFFFF);
 			file_stat.date = DOS_PackDate(fe.ModificationDateAndTime.Year,fe.ModificationDateAndTime.Month,fe.ModificationDateAndTime.Day);
 			file_stat.time = DOS_PackTime(fe.ModificationDateAndTime.Hour,fe.ModificationDateAndTime.Minute,fe.ModificationDateAndTime.Second);
-			file_stat.attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
+			file_stat.attr = CDAttr(false, false);
 			isoFile *ifile = new isoFile(this, name, &file_stat, 0);
 			ifile->udffext = fex;
 			ifile->udf = true;
@@ -1228,7 +1233,7 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 			file_stat.size = DATA_LENGTH(de);
 			file_stat.date = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
 			file_stat.time = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
-			file_stat.attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
+			file_stat.attr = CDAttr(false, false);
 			*file = new isoFile(this, name, &file_stat, EXTENT_LOCATION(de) * ISO_FRAMESIZE);
 			(*file)->flags = flags;
 		}
@@ -1302,12 +1307,12 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 		dta.GetSearchParams(attr, pattern, false);
 
 		if (attr == DOS_ATTR_VOLUME) {
-			dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME);
+			dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME | DOS_ATTR_READ_ONLY);
 			return true;
 		} else if ((attr & DOS_ATTR_VOLUME) && isRoot && !fcb_findfirst) {
 			if (WildFileCmp(discLabel,pattern)) {
 				// Get Volume Label (DOS_ATTR_VOLUME) and only in basedir and if it matches the searchstring
-				dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME);
+				dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME | DOS_ATTR_READ_ONLY);
 				return true;
 			}
 		}
@@ -1336,12 +1341,12 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 		dta.GetSearchParams(attr, pattern, false);
 
 		if (attr == DOS_ATTR_VOLUME) {
-			dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME);
+			dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME | DOS_ATTR_READ_ONLY);
 			return true;
 		} else if ((attr & DOS_ATTR_VOLUME) && isRoot && !fcb_findfirst) {
 			if (WildFileCmp(discLabel,pattern)) {
 				// Get Volume Label (DOS_ATTR_VOLUME) and only in basedir and if it matches the searchstring
-				dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME);
+				dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME | DOS_ATTR_READ_ONLY);
 				return true;
 			}
 		}
@@ -1367,8 +1372,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		while (GetNextDirEntry(dirIterator, fid, fe, dirIterators[dirIterator].udfdirext, fname, dirIterators[dirIterator].index)) {
-			uint8_t findAttr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-			if (fid.FileCharacteristics & 0x02/*Directory*/) findAttr |= DOS_ATTR_DIRECTORY;
+			uint8_t findAttr = CDAttr((fid.FileCharacteristics & 0x02/*Directory*/) != 0, false);
 
 			/* skip parent directory */
 			if (fid.LengthOfFileIdentifier == 0 || (fid.FileCharacteristics & 0x08)) continue;
@@ -1394,9 +1398,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	else {
 		isoDirEntry de = {};
 		while (GetNextDirEntry(dirIterator, &de)) {
-			uint8_t findAttr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-			if (IS_DIR(FLAGS1)) findAttr |= DOS_ATTR_DIRECTORY;
-			if (IS_HIDDEN(FLAGS1)) findAttr |= DOS_ATTR_HIDDEN;
+			uint8_t findAttr = CDAttr(IS_DIR(FLAGS1), IS_HIDDEN(FLAGS1));
 			strcpy(lfindName,fullname);
 			if (!IS_ASSOC(FLAGS1) && !(isRoot && de.ident[0]=='.') && (WildFileCmp((char*)de.ident, pattern) || LWildFileCmp(lfindName, pattern))
 					&& !(~attr & findAttr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM))) {
@@ -1459,8 +1461,7 @@ bool isoDrive::GetFileAttr(const char *name, uint16_t *attr) {
 		UDFFileEntry fe;
 		bool success = lookup(fid, fe, name);
 		if (success) {
-			*attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-			if (fid.FileCharacteristics & 0x02/*Directory*/) *attr |= DOS_ATTR_DIRECTORY;
+			*attr = CDAttr((fid.FileCharacteristics & 0x02/*Directory*/) != 0, false);
 		}
 		return success;
 	}
@@ -1468,9 +1469,7 @@ bool isoDrive::GetFileAttr(const char *name, uint16_t *attr) {
 		isoDirEntry de;
 		bool success = lookup(&de, name);
 		if (success) {
-			*attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-			if (IS_HIDDEN(FLAGS1)) *attr |= DOS_ATTR_HIDDEN;
-			if (IS_DIR(FLAGS1)) *attr |= DOS_ATTR_DIRECTORY;
+			*attr = CDAttr(IS_DIR(FLAGS1), IS_HIDDEN(FLAGS1));
 		}
 		return success;
 	}
@@ -1535,8 +1534,7 @@ bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
 			stat_block->date = DOS_PackDate(fe.ModificationDateAndTime.Year,fe.ModificationDateAndTime.Month,fe.ModificationDateAndTime.Day);
 			stat_block->time = DOS_PackTime(fe.ModificationDateAndTime.Hour,fe.ModificationDateAndTime.Minute,fe.ModificationDateAndTime.Second);
 			stat_block->size = (uint32_t)std::min((uint64_t)fe.InformationLength,(uint64_t)0xFFFFFFFF);
-			stat_block->attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-			if (fid.FileCharacteristics & 0x02/*Directory*/) stat_block->attr |= DOS_ATTR_DIRECTORY;
+			stat_block->attr = CDAttr((fid.FileCharacteristics & 0x02/*Directory*/) != 0, false);
 		}
 
 		return success;
@@ -1549,8 +1547,7 @@ bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
 			stat_block->date = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
 			stat_block->time = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
 			stat_block->size = DATA_LENGTH(de);
-			stat_block->attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-			if (IS_DIR(FLAGS1)) stat_block->attr |= DOS_ATTR_DIRECTORY;
+			stat_block->attr = CDAttr(IS_DIR(FLAGS1), false);
 		}
 
 		return success;
