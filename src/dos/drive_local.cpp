@@ -1984,6 +1984,20 @@ again:
 		temp_name = renamed_name;
 	} else {
 		temp_name = dirCache.GetExpandName(full_name);
+		/* A delete, an RD or a rename gives the entry's generated short name back, and a file made
+		 * since can take it: that name then reaches the new file. The entry is the one that left,
+		 * so it is skipped, as when its short name reaches nothing. */
+		const char *found_name = strrchr_dbcs(temp_name,CROSS_FILESPLIT);
+		if (found_name && strcmp(found_name+1,ldir_entcopy)) {
+			char own_name[CROSS_LEN];
+			const size_t dir_len = (size_t)(found_name-temp_name)+1;
+			if (dir_len+strlen(ldir_entcopy)<CROSS_LEN) {
+				memcpy(own_name,temp_name,dir_len);
+				strcpy(own_name+dir_len,ldir_entcopy);
+				const host_cnv_char_t* own_host = CodePageGuestToHost(own_name);
+				if (own_host && ht_stat(own_host,&stat_block)!=0) goto again;
+			}
+		}
 	}
 
 	// guest to host code page translation
