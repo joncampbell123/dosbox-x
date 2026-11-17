@@ -1927,7 +1927,9 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		} else if ((sAttr & DOS_ATTR_VOLUME) && (*_dir == 0) && !fcb_findfirst) { 
 			//should check for a valid leading directory instead of 0
 			//exists==true if the volume label matches the searchmask and the path is valid
-			if (LabelMatches(dirCache.GetLabel(),tempDir)) {
+			/* A path that resolves to the root itself ("D:", "D:\X\..") names no entry, the label
+			 * included: an empty pattern matches any label only for a search of the label alone */
+			if (*tempDir && strcmp(tempDir,".") && LabelMatches(dirCache.GetLabel(),tempDir)) {
 				dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,LABEL_ATTR);
 				return true;
 			}
