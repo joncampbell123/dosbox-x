@@ -235,6 +235,10 @@ public:
 	bool		RemoveEntry			(const char* path, bool isDir);
 	bool		MoveEntry			(const char* from, const char* to, bool isDir);
 	bool		HoldsFolderOf		(const char* path);
+	void		SearchesRenamed		(const char* from, const char* to);
+	void		SearchesRemoved		(const char* dir, uint16_t date, uint16_t time);
+	const char*	RenamedSearchDir	(uint16_t id);
+	bool		RemovedSearchDir	(uint16_t id, uint16_t& date, uint16_t& time);
 
 	void		EmptyCache			(void);
 	void		MediaChange			(void);
@@ -300,6 +304,13 @@ private:
 	char		dirSearchName		[MAX_OPENDIRS] = {};
 	CFileInfo*	dirFindFirst		[MAX_OPENDIRS] = {};
     uint32_t    dirFindFirstGeneration[MAX_OPENDIRS] = {};
+	// Where each search's directory is on the host, for as long as the search lives.
+	struct SearchDir {
+		std::string	path;	// with its trailing separator
+		enum { FOUND, RENAMED, REMOVED } state = FOUND;
+		uint16_t	date = 0, time = 0;	// a removed directory's, for its . and ..
+	};
+	SearchDir	dirFindFirstDir		[MAX_OPENDIRS];
 	uint16_t		nextFreeFindFirst = 0;
 
 	char		label				[CROSS_LEN] = {};

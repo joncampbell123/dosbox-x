@@ -1912,6 +1912,24 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 
 char * DBCS_upcase(char * str);
 
+// The DOS date and time of a host file's last write.
+static void dos_time_of(const ht_stat_t& stat_block, uint16_t& find_date, uint16_t& find_time) {
+    const struct tm* time;
+	if((time=
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+				_localtime64
+#else
+				localtime
+#endif
+				(&stat_block.st_mtime))!=nullptr){
+		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
+		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
+	} else {
+		find_time=6;
+		find_date=4;
+	}
+}
+
 bool localDrive::FindNext(DOS_DTA & dta) {
 
 	char * dir_ent, *ldir_ent;
@@ -1948,7 +1966,25 @@ again:
 	strcpy(dir_entcopy,dir_ent);
 	strcpy(ldir_entcopy,ldir_ent);
 
-	char *temp_name = dirCache.GetExpandName(full_name);
+	/* Of a removed directory only . and .. are left, as in its freed cluster on a DOS disk, and
+	 * the host holds nothing to ask about them. */
+	uint16_t gone_date, gone_time;
+	if (dirCache.RemovedSearchDir(id,gone_date,gone_time)) {
+		if ((strcmp(dir_entcopy,".") && strcmp(dir_entcopy,"..")) || !(srch_attr & DOS_ATTR_DIRECTORY)) goto again;
+		dta.SetResult(dir_entcopy,ldir_entcopy,0,0,gone_date,gone_time,DOS_ATTR_DIRECTORY);
+		return true;
+	}
+	// The path the search was given names another directory since a rename, or none.
+	char *temp_name, renamed_name[CROSS_LEN];
+	const char *renamed_dir = dirCache.RenamedSearchDir(id);
+	if (renamed_dir) {
+		if (strlen(renamed_dir)+strlen(ldir_entcopy)>=CROSS_LEN) goto again;
+		strcpy(renamed_name,renamed_dir);
+		strcat(renamed_name,ldir_entcopy);
+		temp_name = renamed_name;
+	} else {
+		temp_name = dirCache.GetExpandName(full_name);
+	}
 
 	// guest to host code page translation
 	const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
@@ -2008,20 +2044,7 @@ again:
         find_size = (uint32_t)(stat_block.st_size % 0x100000000);
     }
 
-    const struct tm* time;
-	if((time=
-#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
-				_localtime64
-#else
-				localtime
-#endif
-				(&stat_block.st_mtime))!=nullptr){
-		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
-		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
-	} else {
-		find_time=6; 
-		find_date=4;
-	}
+	dos_time_of(stat_block,find_date,find_time);
 	dta.SetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 	return true;
 }
@@ -2318,12 +2341,20 @@ bool localDrive::RemoveDir(const char * dir) {
         return false;
     }
 
+	// The time a search open in it gives its . and .. once it is gone.
+	ht_stat_t gone;
+	uint16_t gone_date = 4, gone_time = 6;
+	if (!ht_stat(host_name,&gone)) dos_time_of(gone,gone_date,gone_time);
+
 #if defined (WIN32)						/* MS Visual C++ */
 	int temp=_wrmdir(host_name);
 #else
 	int temp=rmdir(host_name);
 #endif
-	if (temp==0) dirCache.DeleteEntry(newdir,true);
+	if (temp==0) {
+		dirCache.SearchesRemoved(temp_name,gone_date,gone_time);
+		dirCache.DeleteEntry(newdir,true);
+	}
 	return (temp==0);
 }
 
@@ -2386,7 +2417,8 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 	/* A case-only rename with long names on expands to the entry's own host name: no entry changes.
 	 * Where the host renames the old name as typed, the cache's entry for it must be that file, which
 	 * on a host that tells case apart it may not be. */
-	const char *resolved = dirCache.GetExpandName(cacheold);
+	char resolved[CROSS_LEN];
+	strcpy(resolved,dirCache.GetExpandName(cacheold));
 	const bool same_entry = !strcmp(resolved,newnew);
 	struct stat resolved_stat;
 	const bool cache_agrees = !host_named_old || (!stat(resolved,&resolved_stat) && resolved_stat.st_dev==temp_stat.st_dev && resolved_stat.st_ino==temp_stat.st_ino);
@@ -2423,6 +2455,8 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 		 * the cache has not read, only a read learns it. */
 		ht_stat_t moved;
 		const bool isDir = !ht_stat(n_temp_name,&moved) && (moved.st_mode & S_IFDIR);
+		// A search records its directory as the cache expands it, unless that is another file.
+		if (isDir) dirCache.SearchesRenamed(cache_agrees ? resolved : newold,newnew);
 		const char *renamed = strrchr_dbcs((char *)newname,'\\');
 		if (!cache_agrees || (host_made_alias(n_temp_name) && filename_not_8x3(renamed ? renamed+1 : newname)) || !dirCache.HoldsFolderOf(cachenew)
 			|| !dirCache.MoveEntry(cacheold,cachenew,isDir))
