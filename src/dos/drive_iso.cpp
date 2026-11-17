@@ -1288,8 +1288,9 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool /*fcb_findfirst*/) 
 	if (is_udf) {
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
-		if (!lookup(fid, fe, dir)) {
-			DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		/* MSCDEX answers 2, not 3, for a directory the CD does not have or a file named as one */
+		if (!lookup(fid, fe, dir) || (*dir && !(fid.FileCharacteristics & 0x02/*Directory*/))) {
+			DOS_SetError(DOSERR_FILE_NOT_FOUND);
 			return false;
 		}
 
@@ -1318,8 +1319,9 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool /*fcb_findfirst*/) 
 	}
 	else {
 		isoDirEntry de;
-		if (!lookup(&de, dir)) {
-			DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		/* MSCDEX answers 2, not 3, for a directory the CD does not have or a file named as one */
+		if (!lookup(&de, dir) || (*dir && !IS_DIR(FLAGS1))) {
+			DOS_SetError(DOSERR_FILE_NOT_FOUND);
 			return false;
 		}
 
