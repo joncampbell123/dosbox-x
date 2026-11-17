@@ -959,6 +959,7 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 #if OVERLAY_DIR
 	for (i = DOSdirs_cache.begin(); i !=DOSdirs_cache.end(); i+=2) {
 		char fakename[CROSS_LEN],sdir[CROSS_LEN],tmp[CROSS_LEN],*p;
+		if (strlen(basedir)+(*i).size()>=CROSS_LEN) continue; // its host path would not fit
 		strcpy(fakename,basedir);
 		strcat(fakename,(*i).c_str());
 		CROSS_FILENAME(fakename);
@@ -986,6 +987,7 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 
 	for (i = DOSnames_cache.begin(); i != DOSnames_cache.end(); ++i) {
 		char fakename[CROSS_LEN];
+		if (strlen(basedir)+(*i).size()>=CROSS_LEN) continue; // its host path would not fit
 		strcpy(fakename,basedir);
 		strcat(fakename,(*i).c_str());
 		CROSS_FILENAME(fakename);
@@ -1040,7 +1042,7 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 bool Overlay_Drive::FindNext(DOS_DTA & dta) {
 	char * dir_ent, *ldir_ent;
 	ht_stat_t stat_block, special_stat_block;
-	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
+	char full_name[CROSS_LEN], lfull_name[CROSS_LEN];
 	char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
 
 	uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH+1];
@@ -1061,6 +1063,7 @@ again:
 	if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
 
 	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:(ldir[lfn_filefind_handle]!=""?ldir[lfn_filefind_handle].c_str():"\\"));
+	if (strlen(full_name)+strlen(dir_ent)>=CROSS_LEN||strlen(full_name)+strlen(ldir_ent)>=CROSS_LEN) goto again; // its host path would not fit
 	strcpy(lfull_name,full_name);
 
 	strcat(full_name,dir_ent);
@@ -1083,19 +1086,22 @@ again:
 	char preldos[CROSS_LEN];
 	strcpy(preldos,prel);
 	CROSS_DOSFILENAME(preldos);
-	strcat(ovname,prel);
+	const bool ovfits = strlen(overlaydir)+strlen(prel)<CROSS_LEN;
+	if (ovfits) strcat(ovname,prel);
 	bool statok = false;
 	const host_cnv_char_t* host_name=NULL;
 	if (!is_deleted_file(preldos)) {
-		host_name = CodePageGuestToHost(ovname);
+		if (ovfits) host_name = CodePageGuestToHost(ovname);
 		if (host_name != NULL) statok = ht_stat(host_name,&stat_block)==0;
 		if (!statok) {
 			char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,prel));
 			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
 				temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
-				strcpy(ovname,GetCrossedName(overlaydir,temp_name));
-				host_name = CodePageGuestToHost(ovname);
-				if (host_name != NULL) statok = ht_stat(host_name,&stat_block)==0;
+				if (strlen(overlaydir)+strlen(temp_name)<CROSS_LEN) {
+					strcpy(ovname,GetCrossedName(overlaydir,temp_name));
+					host_name = CodePageGuestToHost(ovname);
+					if (host_name != NULL) statok = ht_stat(host_name,&stat_block)==0;
+				}
 			}
 		}
 	}
@@ -1126,7 +1132,7 @@ again:
 	bool isdir = find_attr & DOS_ATTR_DIRECTORY;
 	if (!isdir) find_attr|=DOS_ATTR_ARCHIVE;
 	if(!(stat_block.st_mode & S_IWUSR)) find_attr|=DOS_ATTR_READ_ONLY;
-    std::string fname = create_filename_of_special_operation(host_name, "ATR");
+    std::string fname = host_name==NULL?std::string():create_filename_of_special_operation(host_name, "ATR");
     if (ht_stat(fname.c_str(),&special_stat_block)==0) {
         unsigned int len = special_stat_block.st_size;
         if (len & 1) {
@@ -1149,8 +1155,8 @@ again:
 		strcpy(find_name,dir_entcopy);
 		upcase(find_name);
 	}
-	strcpy(lfind_name,ldir_entcopy);
-    lfind_name[LFN_NAMELENGTH]=0;
+	// A long name longer than a find result holds is listed by its alias alone
+	strcpy(lfind_name,strlen(ldir_entcopy)>LFN_NAMELENGTH?find_name:ldir_entcopy);
 
     if(find_attr & DOS_ATTR_DIRECTORY) {
         find_hsize = 0;

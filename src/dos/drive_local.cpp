@@ -1897,7 +1897,7 @@ bool localDrive::FindNext(DOS_DTA & dta) {
 
 	char * dir_ent, *ldir_ent;
 	ht_stat_t stat_block, special_stat_block;
-	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
+	char full_name[CROSS_LEN];
 	char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
 
 	uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH+1];
@@ -1918,10 +1918,8 @@ again:
 	if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
 
 	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:(ldir[lfn_filefind_handle]!=""?ldir[lfn_filefind_handle].c_str():"\\"));
-	strcpy(lfull_name,full_name);
-
+	if (strlen(full_name)+strlen(dir_ent)>=CROSS_LEN) goto again; // its host path would not fit
 	strcat(full_name,dir_ent);
-	strcat(lfull_name,ldir_ent);
 
 	//GetExpandName might indirectly destroy dir_ent (by caching in a new directory 
 	//and due to its design dir_ent might be lost.)
@@ -1977,8 +1975,8 @@ again:
 		else
 			upcase(find_name);
 	}
-	strcpy(lfind_name,ldir_entcopy);
-	lfind_name[LFN_NAMELENGTH]=0;
+	// A long name longer than a find result holds is listed by its alias alone
+	strcpy(lfind_name,strlen(ldir_entcopy)>LFN_NAMELENGTH?find_name:ldir_entcopy);
 
     if(find_attr & DOS_ATTR_DIRECTORY) {
         find_hsize = 0;

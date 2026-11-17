@@ -190,7 +190,8 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
         // Last Entry = File
         strcpy(dir,pos+1);
         GetLongName(dirInfo, dir);
-        strcat(work,dir);
+        const size_t len = strlen(work);
+        if (len<CROSS_LEN-1) strncat(work,dir,CROSS_LEN-1-len); // cut where the code page conversion cuts a host path
     }
 
     if (*work) {
