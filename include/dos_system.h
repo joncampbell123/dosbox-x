@@ -233,6 +233,7 @@ public:
 	void        AddEntryDirOverlay	(const char* path, char *sfile, bool checkExist = false);
 	void		DeleteEntry			(const char* path, bool ignoreLastDir = false);
 	bool		RemoveEntry			(const char* path, bool isDir);
+	bool		MoveEntry			(const char* from, const char* to, bool isDir);
 	bool		HoldsFolderOf		(const char* path);
 
 	void		EmptyCache			(void);
@@ -267,6 +268,7 @@ public:
 private:
 	void ClearFileInfo(CFileInfo *dir);
 	void DeleteFileInfo(CFileInfo *dir);
+	bool TakeEntry(const char* path, bool isDir, CFileInfo* &taken);
 
 	bool		RemoveTrailingDot	(char* shortname);
 	Bits		GetLongName		(CFileInfo* curDir, char* shortName);

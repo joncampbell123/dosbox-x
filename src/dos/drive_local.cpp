@@ -2417,15 +2417,15 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 #endif
 
 	if (temp==0 && !(same_entry && cache_agrees)) {
-		/* The cache moves the one entry, out of its folder and into the new one under the next
-		 * free alias, and keeps the other entries; dropping the folder would number its aliases
-		 * anew. Where the file system made the alias, or a folder is one the cache has not read,
-		 * only a read learns it. */
+		/* The cache moves the one entry, with what it holds under it, out of its folder and into
+		 * the new one under the next free alias, and keeps the other entries; dropping the folder
+		 * would number its aliases anew. Where the file system made the alias, or a folder is one
+		 * the cache has not read, only a read learns it. */
 		ht_stat_t moved;
 		const bool isDir = !ht_stat(n_temp_name,&moved) && (moved.st_mode & S_IFDIR);
 		const char *renamed = strrchr_dbcs((char *)newname,'\\');
 		if (!cache_agrees || (host_made_alias(n_temp_name) && filename_not_8x3(renamed ? renamed+1 : newname)) || !dirCache.HoldsFolderOf(cachenew)
-			|| !dirCache.RemoveEntry(cacheold,isDir) || !dirCache.AddEntry(cachenew,true,isDir))
+			|| !dirCache.MoveEntry(cacheold,cachenew,isDir))
 			dirCache.CacheOut(newnew);
 	}
 

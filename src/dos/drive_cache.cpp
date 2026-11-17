@@ -351,6 +351,38 @@ bool DOS_Drive_Cache::HoldsFolderOf(const char* path) {
 // name a program got before would open another file. False when only a read can say: the caller
 // drops the folder.
 bool DOS_Drive_Cache::RemoveEntry(const char* path, bool isDir) {
+    CFileInfo* info;
+    if (!TakeEntry(path,isDir,info)) return false;
+    DeleteFileInfo(info);
+    return true;
+}
+
+// A renamed entry goes with what the cache holds under it, so the entries of a renamed directory
+// keep their short names, as they keep their places on a DOS disk; a new read would number them
+// anew. False when only a read can say: the caller drops the folder.
+bool DOS_Drive_Cache::MoveEntry(const char* from, const char* to, bool isDir) {
+    CFileInfo* moved;
+    if (!TakeEntry(from,isDir,moved)) return false;
+    const bool added = AddEntry(to,true,isDir);
+    if (added && isDir) {
+        // Found through its folder: a lookup of the path itself would read the new directory.
+        const char* pos = strrchr_dbcs((char *)to,CROSS_FILESPLIT);
+        char dirpath[CROSS_LEN], expand[CROSS_LEN], name[CROSS_LEN];
+        strcpy(dirpath,to);
+        dirpath[pos-to+1] = 0;
+        strcpy(name,pos+1);
+        CFileInfo* dir = FindDirInfo(dirpath,expand);
+        Bits index = GetLongName(dir,name);
+        if (index>=0) {
+            dir->fileList[(size_t)index]->fileList.swap(moved->fileList);
+            dir->fileList[(size_t)index]->longNameList.swap(moved->longNameList);
+        }
+    }
+    DeleteFileInfo(moved);
+    return added;
+}
+
+bool DOS_Drive_Cache::TakeEntry(const char* path, bool isDir, CFileInfo* &taken) {
     if (!HoldsFolderOf(path)) return false;
     const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
     char dirpath[CROSS_LEN], expand[CROSS_LEN], file[CROSS_LEN];
@@ -378,7 +410,7 @@ bool DOS_Drive_Cache::RemoveEntry(const char* path, bool isDir) {
     // A directory goes with its cached subtree. FindDirInfo leaves save_dir as it was for a path
     // too long to save, so the last folder looked up may be in that subtree.
     if (isDir) save_dir = nullptr;
-    DeleteFileInfo(info);
+    taken = info;
     return true;
 }
 
