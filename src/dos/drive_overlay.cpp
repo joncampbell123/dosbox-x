@@ -157,7 +157,7 @@ bool Overlay_Drive::RemoveDir(const char * dir) {
 		}
 		bool empty = true;
 		do {
-			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
+			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
 			dta.GetResult(name,lname,size,hsize,date,time,attr);
 			if (logoverlay) LOG_MSG("RemoveDir found %s",name);
 			if (empty && strcmp(".",name ) && strcmp("..",name)) 

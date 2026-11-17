@@ -1088,7 +1088,7 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 			if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) break;
 			else {
 				//Found something. See if it's a directory (findfirst always finds regular files)
-                char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+                char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH+1];
                 uint16_t find_date,find_time;uint32_t find_size,find_hsize;uint8_t find_attr;
                 imgDTA->GetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 				if(!(find_attr & DOS_ATTR_DIRECTORY)) break;
@@ -1151,7 +1151,7 @@ bool fatDrive::getDirClustNum(const char *dir, uint32_t *clustNum, bool parDir) 
 				lfn_filefind_handle=fbak;
 				return false;
 			} else {
-                char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+                char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH+1];
                 uint16_t find_date,find_time;uint32_t find_size,find_hsize;uint8_t find_attr;
 				imgDTA->GetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 				lfn_filefind_handle=fbak;

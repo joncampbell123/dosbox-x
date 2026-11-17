@@ -3434,7 +3434,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		std::string arg;
 		CommandLine command(nullptr, args);
 		if (!command.GetCount()) {
-			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
 			uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
 			/* Command uses dta so set it to our internal dta */
 			RealPt save_dta = dos.dta();
@@ -4332,7 +4332,7 @@ void DOS_Shell::CMD_FOR(char *args) {
 		bool last=!!strlen(p);
 		if (last) *p=0;
 		if (strchr(fp, '?') || strchr(fp, '*')) {
-			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
+			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
 			if (!DOS_Canonicalize(fp,full)) return;
 			r=strrchr_dbcs(full, '\\');
 			if (r!=NULL) {

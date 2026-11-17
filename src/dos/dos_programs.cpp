@@ -1206,7 +1206,7 @@ public:
             WriteOut("Drive %c is not a valid drive\n", new_z);
     }
     void ListMounts(bool quiet, bool local) {
-        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
         uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
@@ -5032,7 +5032,7 @@ class IMGSWAP : public Program
 {
 public:
     void ListImgSwaps(void) {
-        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
         uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
@@ -5099,7 +5099,7 @@ public:
             swapInDrive(d,swap);
         } else
             swapInDrive(d);
-        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
         uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
@@ -5829,7 +5829,7 @@ class IMGMOUNT : public Program {
 		IMGMOUNT(const unsigned int fl=0) : Program(fl) {
 		}
 		void ListImgMounts(void) {
-			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
 			uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
 			/* Command uses dta so set it to our internal dta */
 			RealPt save_dta = dos.dta();
