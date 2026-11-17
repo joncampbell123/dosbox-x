@@ -1875,8 +1875,13 @@ void INT10_Startup(Section *sec) {
             LOG(LOG_MISC,LOG_DEBUG)("Not mapping VGA BIOS");
         }
 
-        INT10_SetVideoMode(0x3);
-        SetTrueVideoMode(0x03);
+        /* The power-on video mode: 80x25 text, mode 7 on a monochrome card (MDA, Hercules). Mode 3 there is
+         * taken for a CGA mode (the equipment word does not say monochrome yet), which leaves the CRTC
+         * unprogrammed and the screen black until something sets mode 7, e.g. with -fastlaunch, where the
+         * BIOS startup screen (which sets the mode again) is skipped. */
+        const uint16_t initial_mode = (machine == MCH_HERC || machine == MCH_MDA) ? 0x07 : 0x03;
+        INT10_SetVideoMode(initial_mode);
+        SetTrueVideoMode(initial_mode);
     }
     else {
         /* load PC-98 character ROM data, if possible */
