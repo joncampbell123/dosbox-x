@@ -1848,6 +1848,23 @@ bool localDrive::GetFindCacheID(DOS_DTA & dta, uint16_t & id, uint32_t & generat
     return generation != 0;
 }
 
+/* A host folder holds no entry for the label MOUNT gives it: it is listed with the attribute
+ * the entry DOS's own LABEL writes holds, archive with volume. */
+static const uint8_t LABEL_ATTR = DOS_ATTR_VOLUME|DOS_ATTR_ARCHIVE;
+
+/* The label as the eleven characters of a directory entry, split at a dot where the host's CD
+ * label was given one; a drive with none has no entry */
+static bool LabelMatches(const char * label,const char * pattern) {
+	if (!*label) return false;
+	char label11[11];
+	memset(label11,' ',sizeof(label11));
+	const char * dot=strchr(label,'.');
+	const size_t name=dot?(size_t)(dot-label):strlen(label), ext=dot?strlen(dot+1):0;
+	memcpy(label11,label,dot?(name<8?name:8):(name<11?name:11));
+	if (dot) memcpy(label11+8,dot+1,ext<3?ext:3);
+	return VolumeLabelCmp(label11,pattern);
+}
+
 bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	char tempDir[CROSS_LEN];
 	if (strlen(basedir)+strlen(_dir)+1>=CROSS_LEN) { // with the separator added below
@@ -1898,20 +1915,20 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		}
 	} else {
 		if (sAttr == DOS_ATTR_VOLUME) {
-			if ( strcmp(dirCache.GetLabel(), "") == 0 ) {
+			if (!LabelMatches(dirCache.GetLabel(),tempDir)) {
 //				LOG(LOG_DOSMISC,LOG_ERROR)("DRIVELABEL REQUESTED: none present, returned  NOLABEL");
 //				dta.SetResult("NO_LABEL",0,0,0,DOS_ATTR_VOLUME);
 //				return true;
 				DOS_SetError(DOSERR_NO_MORE_FILES);
 				return false;
 			}
-			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
+			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,LABEL_ATTR);
 			return true;
 		} else if ((sAttr & DOS_ATTR_VOLUME) && (*_dir == 0) && !fcb_findfirst) { 
 			//should check for a valid leading directory instead of 0
 			//exists==true if the volume label matches the searchmask and the path is valid
-			if (WildFileCmp(dirCache.GetLabel(),tempDir)) {
-				dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
+			if (LabelMatches(dirCache.GetLabel(),tempDir)) {
+				dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,LABEL_ATTR);
 				return true;
 			}
 		}
@@ -1943,10 +1960,17 @@ again:
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
+	/* A search for the label alone lists no file: read on to the end, which ends the search */
+	if (srch_attr == DOS_ATTR_VOLUME) goto again;
 	if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
 
 	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:(ldir[lfn_filefind_handle]!=""?ldir[lfn_filefind_handle].c_str():"\\"));
 	if (strlen(full_name)+strlen(dir_ent)>=CROSS_LEN) goto again; // its host path would not fit
+	/* The folder mounted as the drive's root has "." and ".."; a DOS root has neither */
+	if ((!strcmp(dir_ent,".") || !strcmp(dir_ent,"..")) && !(this->isRemote() && this->isRemovable())) {
+		const size_t baselen=strlen(basedir);
+		if (strlen(full_name)==baselen+(check_last_split_char(basedir,baselen,CROSS_FILESPLIT)?0:1)) goto again;
+	}
 	strcat(full_name,dir_ent);
 
 	//GetExpandName might indirectly destroy dir_ent (by caching in a new directory 

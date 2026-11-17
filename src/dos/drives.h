@@ -33,6 +33,7 @@ bool DOS_CommonFAT32FAT16DiskSpaceConv(
 
 bool WildFileCmp(const char * file, const char * wild);
 bool LWildFileCmp(const char * file, const char * wild);
+bool VolumeLabelCmp(const char * label11, const char * pattern);
 void Set_Label(char const * const input, char * const output, bool cdrom);
 
 class DriveManager {
