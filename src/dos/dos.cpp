@@ -625,7 +625,7 @@ extern bool date_host_forced;
 extern bool dos_a20_disable_on_exec;
 
 static Bitu DOS_21Handler(void);
-uint16_t DOS_FindFirstPathError(const char * search);
+uint16_t DOS_FindFirstPathError(const char * search,uint16_t attr);
 void XMS_DOS_LocalA20DisableIfNotEnabled(void);
 void XMS_DOS_LocalA20DisableIfNotEnabled_XMSCALL(void);
 #if !defined(OSFREE)
@@ -2453,7 +2453,7 @@ static Bitu DOS_21Handler(void) {
         case 0x4e: {                /* FINDFIRST Find first matching file */
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 			lfn_filefind_handle=LFN_FILEFIND_NONE;
-            const uint16_t path_error=uselfn?0:DOS_FindFirstPathError(name1);
+            const uint16_t path_error=uselfn?0:DOS_FindFirstPathError(name1,reg_cx);
             if (path_error) {
                 DOS_SetError(path_error);
                 reg_ax=path_error;
