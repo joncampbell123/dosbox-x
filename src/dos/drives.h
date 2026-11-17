@@ -122,6 +122,9 @@ private:
 	const std::string special_prefix_local;
 
 protected:
+	bool HostPath(char* hostname, const char* name);
+	bool JoinHostPath(char* hostname, const char* name);
+	bool ExpandHostPath(char* hostname, const char* name);
 	DOS_Drive_Cache dirCache;
 	char basedir[CROSS_LEN];
 	friend void DOS_Shell::CMD_SUBST(char* args); 	
@@ -1348,6 +1351,8 @@ private:
 	bool check_if_leading_is_deleted(const char* name);
 
 	bool is_dir_only_in_overlay(const char* name); //cached
+	bool HostPathsFit(const char* name, bool write = false);
+	unsigned unfit_skipped = 0; // entries FindNext left out because their path does not fit
 
 
 	void remove_special_file_from_disk(const char* dosname, const char* operation) override;

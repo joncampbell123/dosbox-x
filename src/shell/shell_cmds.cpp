@@ -3499,10 +3499,11 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		localDrive * const ldp = dynamic_cast<localDrive*>(Drives[drive]);
 		if (!ldp) throw 4;
 		char newname[CROSS_LEN];
+		if (strlen(ldp->basedir)+strlen(fulldir)>=CROSS_LEN) throw 3; // the host path would not fit
 		strcpy(newname, ldp->basedir);
 		strcat(newname,fulldir);
 		CROSS_FILENAME(newname);
-		ldp->dirCache.ExpandName(newname);
+		if (!ldp->dirCache.ExpandName(newname)) throw 3;
 		strcat(mountstring,"\"");
 		strcat(mountstring, newname);
 		strcat(mountstring,"\"");

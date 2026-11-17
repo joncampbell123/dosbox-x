@@ -170,14 +170,19 @@ void DOS_Drive_Cache::SetBaseDir(const char* baseDir, DOS_Drive *drive) {
 #endif
 }
 
-void DOS_Drive_Cache::ExpandName(char* path) {
-    strcpy(path,GetExpandName(path));
+bool DOS_Drive_Cache::ExpandName(char* path) {
+    const char* expanded = GetExpandName(path);
+    if (!expanded) return false;
+    strcpy(path,expanded);
+    return true;
 }
 
+// NULL when the expanded path would not fit in CROSS_LEN, or when path is NULL (GetCrossedName's answer)
 char* DOS_Drive_Cache::GetExpandName(const char* path) {
     static char work [CROSS_LEN] = { 0 };
     char dir [CROSS_LEN];
 
+    if (!path) return nullptr;
     work[0] = 0;
     strcpy (dir,path);
 
@@ -185,13 +190,14 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
 
     if (pos) dir[pos-path+1] = 0;
     CFileInfo* dirInfo = FindDirInfo(dir, work);
+    if (!dirInfo) return nullptr;
 
     if (pos) {
         // Last Entry = File
         strcpy(dir,pos+1);
         GetLongName(dirInfo, dir);
-        const size_t len = strlen(work);
-        if (len<CROSS_LEN-1) strncat(work,dir,CROSS_LEN-1-len); // cut where the code page conversion cuts a host path
+        if (strlen(work)+strlen(dir)>=CROSS_LEN) return nullptr;
+        strcat(work,dir);
     }
 
     if (*work) {
@@ -213,6 +219,7 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
     char expand [CROSS_LEN];
 
     CFileInfo* dir = FindDirInfo(path,expand);
+    if (!dir) return;
     const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
 
     if (pos) {
@@ -265,6 +272,7 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool che
       *(post + 1) = 0; //As FindDirInfo is skipping over the base directory
   }
   CFileInfo* dir = FindDirInfo(dironly,expand);
+  if (!dir) return;
   const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
 
   char sname[CROSS_LEN], *p=strrchr_dbcs(sfile, '\\');
@@ -354,6 +362,7 @@ void DOS_Drive_Cache::CacheOut(const char* path, bool ignoreLastDir) {
     } else {
         dir = FindDirInfo(path,expand);
     }
+    if (!dir) return;
 
 //  LOG_DEBUG("DIR: Caching out %s : dir %s",expand,dir->orgname);
 //  clear cache first?
@@ -381,6 +390,7 @@ bool DOS_Drive_Cache::GetShortName(const char* fullname, char* shortname) {
     // Get Dir Info
     char expand[CROSS_LEN] = {0};
     CFileInfo* curDir = FindDirInfo(fullname,expand);
+    if (!curDir) return false;
 
     const char* pos = strrchr_dbcs((char *)fullname,CROSS_FILESPLIT);
     if (pos) pos++; else return false;
@@ -699,6 +709,7 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
     RemoveTrailingDot(info->shortname);
 }
 
+// NULL when the expanded path would not fit in CROSS_LEN
 DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char* expandedPath) {
     // statics
     static char split[2] = { CROSS_FILESPLIT,0 };
@@ -744,6 +755,7 @@ DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char*
 
         // Path found
         Bits nextDir = GetLongName(curDir,dir);
+        if (strlen(expandedPath)+strlen(dir)+(pos?1:0)>=CROSS_LEN) return nullptr;
         strcat(expandedPath,dir);
 
         // Error check
@@ -788,7 +800,7 @@ DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char*
 bool DOS_Drive_Cache::OpenDir(const char* path, uint16_t& id) {
     char expand[CROSS_LEN + LFN_NAMELENGTH] = {0};
     CFileInfo* dir = FindDirInfo(path,expand);
-    if (OpenDir(dir,expand,id)) {
+    if (dir && OpenDir(dir,expand,id)) {
         dirSearch[id]->nextEntry = 0;
         return true;
     }

@@ -220,6 +220,7 @@ struct opendirinfo {
 /* helper functions for drive cache */
 bool physfsDrive::isdir(const char *name) {
 	char myname[CROSS_LEN];
+	if (strlen(name)>=CROSS_LEN) return false; // its path would not fit, nor its entry be listed
 	strcpy(myname,name);
 	normalize(myname,basedir);
     PHYSFS_Stat statbuf;
@@ -646,7 +647,7 @@ again:
 	//GetExpandName might indirectly destroy dir_ent (by caching in a new directory
 	//and due to its design dir_ent might be lost.)
 	//Copying dir_ent first
-	dirCache.ExpandName(lfull_name);
+	if (!dirCache.ExpandName(lfull_name)) goto again; // its host path would not fit
 	normalize(lfull_name,basedir);
 
     PHYSFS_Stat statbuf;
