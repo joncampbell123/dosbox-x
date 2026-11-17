@@ -2795,7 +2795,7 @@ next:
 
 localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options) : special_prefix_local(prefix_local.c_str()) {
 	strcpy(basedir,startdir);
-	sprintf(info,"local directory %s",startdir);
+	snprintf(info,sizeof(info),"local directory %s",startdir);
 	allocation.bytes_sector=_bytes_sector;
 	allocation.sectors_cluster=_sectors_cluster;
 	allocation.total_clusters=_total_clusters;
@@ -3275,8 +3275,7 @@ cdromDrive::cdromDrive(const char driveLetter, const char * startdir,uint16_t _b
 {
 	// Init mscdex
 	error = MSCDEX_AddDrive(driveLetter,startdir,subUnit);
-	strcpy(info, "CDRom ");
-	strcat(info, startdir);
+	snprintf(info,sizeof(info),"CDRom %s",startdir);
 	// Get Volume Label
 	char name[32];
 	if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);

@@ -379,7 +379,7 @@ bool physfsDrive::setOverlaydir(const char * name) {
 }
 
 const char *physfsDrive::GetInfo() {
-	sprintf(info,"PhysFS directory %s", mountarc.c_str());
+	snprintf(info,sizeof(info),"PhysFS directory %s", mountarc.c_str());
 	return info;
 }
 
@@ -894,7 +894,7 @@ physfscdromDrive::physfscdromDrive(const char driveLetter, const char * startdir
 }
 
 const char *physfscdromDrive::GetInfo() {
-	sprintf(info,"PhysFS CDRom %s", mountarc.c_str());
+	snprintf(info,sizeof(info),"PhysFS CDRom %s", mountarc.c_str());
 	return info;
 }
 

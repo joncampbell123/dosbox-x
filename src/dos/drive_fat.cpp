@@ -2040,8 +2040,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				memset(fatSectBuffer,0,1024);
 				curFatSect = 0xffffffff;
 
-				strcpy(info, "fatDrive ");
-				strcat(info, wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':'?sysFilename+1:sysFilename);
+				snprintf(info, sizeof(info), "fatDrive %s", wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':'?sysFilename+1:sysFilename);
 
 				/* NTS: Real MS-DOS behavior is that an unformatted partition is inaccessible but INT 21h AX=440Dh CX=0x0860 (Get Device Parameters)
 				 *      has a ready-made BPB for use in formatting the partition. FORMAT.COM then formats the filesystem based on the MS-DOS kernel's
@@ -2592,8 +2591,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 	memset(fatSectBuffer,0,1024);
 	curFatSect = 0xffffffff;
 
-	strcpy(info, "fatDrive ");
-	strcat(info, wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':'?sysFilename+1:sysFilename);
+	snprintf(info, sizeof(info), "fatDrive %s", wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':'?sysFilename+1:sysFilename);
 }
 
 #ifdef _MSC_VER
