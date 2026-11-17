@@ -1940,11 +1940,14 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 
 char * DBCS_upcase(char * str);
 
-/* The folder mounted as the drive's root has "." and ".."; a DOS root has neither */
+/* The folder mounted as the drive's root has "." and ".."; a DOS root has neither. The search
+ * directory is the base with every '\' made the host's separator, and a zip drive keeps its base
+ * in DOS form ("\E_DRIVE\"), so a base may end in either */
 bool localDrive::IsRootDotEntry(const char * dir_ent,const char * srch_dir) {
 	if ((strcmp(dir_ent,".") && strcmp(dir_ent,"..")) || (isRemote() && isRemovable())) return false;
 	const size_t baselen=strlen(basedir);
-	return strlen(srch_dir)==baselen+(check_last_split_char(basedir,baselen,CROSS_FILESPLIT)?0:1);
+	const bool split=check_last_split_char(basedir,baselen,CROSS_FILESPLIT) || check_last_split_char(basedir,baselen,'\\');
+	return strlen(srch_dir)==baselen+(split?0:1);
 }
 
 bool localDrive::FindNext(DOS_DTA & dta) {
