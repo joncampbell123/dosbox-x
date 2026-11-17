@@ -1283,7 +1283,7 @@ bool isoDrive::TestDir(const char *dir) {
 #endif
 }
 
-bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
+bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool /*fcb_findfirst*/) {
 #if !defined(OSFREE)
 	if (is_udf) {
 		UDFFileIdentifierDescriptor fid;
@@ -1306,15 +1306,11 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 		char pattern[CROSS_LEN];
 		dta.GetSearchParams(attr, pattern, false);
 
+		/* MSCDEX returns the label to a search for the label alone, whatever its name, and to no
+		 * other; the directory's entries follow it */
 		if (attr == DOS_ATTR_VOLUME) {
 			dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME | DOS_ATTR_READ_ONLY);
 			return true;
-		} else if ((attr & DOS_ATTR_VOLUME) && isRoot && !fcb_findfirst) {
-			if (WildFileCmp(discLabel,pattern)) {
-				// Get Volume Label (DOS_ATTR_VOLUME) and only in basedir and if it matches the searchstring
-				dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME | DOS_ATTR_READ_ONLY);
-				return true;
-			}
 		}
 
 		UDFFileEntryToExtents(dirIterators[dirIterator].udfdirext,fe);
@@ -1340,15 +1336,11 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 		char pattern[CROSS_LEN];
 		dta.GetSearchParams(attr, pattern, false);
 
+		/* MSCDEX returns the label to a search for the label alone, whatever its name, and to no
+		 * other; the directory's entries follow it */
 		if (attr == DOS_ATTR_VOLUME) {
 			dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME | DOS_ATTR_READ_ONLY);
 			return true;
-		} else if ((attr & DOS_ATTR_VOLUME) && isRoot && !fcb_findfirst) {
-			if (WildFileCmp(discLabel,pattern)) {
-				// Get Volume Label (DOS_ATTR_VOLUME) and only in basedir and if it matches the searchstring
-				dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME | DOS_ATTR_READ_ONLY);
-				return true;
-			}
 		}
 
 		return FindNext(dta);
