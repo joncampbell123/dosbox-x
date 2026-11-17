@@ -1307,6 +1307,8 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool /*fcb_findfirst*/) 
 		char pattern[CROSS_LEN];
 		dta.GetSearchParams(attr, pattern, false);
 
+		UDFFileEntryToExtents(dirIterators[dirIterator].udfdirext,fe);
+
 		/* MSCDEX returns the label to a search for the label alone, whatever its name, and to no
 		 * other; the directory's entries follow it */
 		if (attr == DOS_ATTR_VOLUME) {
@@ -1314,7 +1316,6 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool /*fcb_findfirst*/) 
 			return true;
 		}
 
-		UDFFileEntryToExtents(dirIterators[dirIterator].udfdirext,fe);
 		return FindNext(dta);
 	}
 	else {
