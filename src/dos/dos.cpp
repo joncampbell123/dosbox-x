@@ -49,6 +49,7 @@
 #include "serialport.h"
 #if !defined(OSFREE)
 #include "dos_network.h"
+extern bool Network_IsActiveResource(uint16_t entry);
 #endif
 #include "render.h"
 #include "jfont.h"
@@ -315,7 +316,19 @@ void DOS_Block::dta(RealPt _dta) const {
 #define DOS_COPYBUFSIZE 0x10000
 uint8_t dos_copybuf[DOS_COPYBUFSIZE];
 #ifdef WIN32
-uint16_t	NetworkHandleList[127];uint8_t dos_copybuf_second[DOS_COPYBUFSIZE];
+
+#define REP_10(x)  x, x, x, x, x, x, x, x, x, x
+#define REP_100(x) REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x)
+
+uint16_t NetworkHandleList[127] = {
+    REP_100(0xFFFF),  //100
+    REP_10(0xFFFF),   //10
+    REP_10(0xFFFF),   //10
+    0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF //7
+};
+
+
+uint8_t dos_copybuf_second[DOS_COPYBUFSIZE];
 #endif
 
 static uint16_t ias_handle;
@@ -692,13 +705,16 @@ bool DOS_BreakTest(bool print=true) {
 			DOS_BreakINT23InProgress = false;
 		}
 		catch (int x) {
+			// The interrupt may have been interrupted by a reboot or other emulator
+			// control signal. That signal must not leave this transient state set.
+			DOS_BreakINT23InProgress = false;
+
 			/* 2025/01/20: The throw code used to be int(0) but if that were allowed to bubble up
 			 *             to the main function it would be mistaken as an entirely different
 			 *             signal, so instead use int(9000), a number high enough not to conflict
 			 *             but just low enough to prevent Vegeta from saying his well-known
 			 *             meme-worthy phrase. */
 			if (x == 9000) {
-				DOS_BreakINT23InProgress = false;
 				terminint23 = true;
 			}
 			else {
@@ -2032,15 +2048,29 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(false);
                 break;
             }
+
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+            bool is_network = Network_IsActiveResource(reg_bx);
+#else
+            bool is_network = false;
+#endif
+#else
+            bool is_network = false;
+#endif
+
             uint8_t handle = RealHandle(reg_bx);
-            uint8_t drive = (handle != 0xff && Files[handle]) ? Files[handle]->GetDrive() : DOS_DRIVES;
+            uint8_t drive = DOS_DRIVES;
+            if(!is_network && handle != 0xff && handle < DOS_FILES && Files[handle])
+                drive = Files[handle]->GetDrive();
+
             unmask_irq0 |= disk_io_unmask_irq0;
             if (DOS_CloseFile(reg_bx, false, &reg_al)) {
 #if defined(USE_TTF)
                 if (ttf.inUse&&reg_bx == WPvga512CHMhandle)
                     WPvga512CHMhandle = -1;
 #endif
-                diskio_delay_drive(drive, 512);
+                if(!is_network) diskio_delay_drive(drive, 512);
                 /* al destroyed with pre-close refcount from sft */
                 CALLBACK_SCF(false);
             } else {
@@ -2075,11 +2105,21 @@ static Bitu DOS_21Handler(void) {
                     toread = nuread;
                 }
 
-                dos.echo=true;
-                if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen()) {
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+                bool is_network = Network_IsActiveResource(reg_bx);
+#else
+                bool is_network = false;
+#endif
+#else
+                bool is_network = false;
+#endif
+
+                dos.echo = true;
+                if(!is_network && (handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen())) {
                     DOS_SetError(DOSERR_INVALID_HANDLE);
                 }
-                else if(Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
+                else if(!is_network && (Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice)) {
                     fRead = !(((DOS_ExtDevice*)Files[handle])->CallRWIODeviceFunction(DEVFUNC_READ, 26, SegValue(ds), reg_dx, toread) & 0x8000);
                     toread = real_readw(dos.dcp, 18);
 #if defined(USE_TTF)
@@ -2091,7 +2131,7 @@ static Bitu DOS_21Handler(void) {
                 {
                     if((fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread))) {
                         MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
-                        diskio_delay_handle(reg_bx, toread);
+                        if(!is_network) diskio_delay_handle(reg_bx, toread);
                     }
                 }
 
@@ -2165,10 +2205,19 @@ static Bitu DOS_21Handler(void) {
                 {
                     uint32_t handle = RealHandle(reg_bx);
 
-                    if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen()) {
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+                    bool is_network = Network_IsActiveResource(reg_bx);
+#else
+                    bool is_network = false;
+#endif
+#else
+                    bool is_network = false;
+#endif
+                    if(!is_network && (handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen())) {
                         DOS_SetError(DOSERR_INVALID_HANDLE);
                     }
-                    else if(Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
+                    else if(!is_network && (Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice)) {
                         fWritten = !(((DOS_ExtDevice*)Files[handle])->CallRWIODeviceFunction(DEVFUNC_WRITE, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
                         towrite = real_readw(dos.dcp, 18);
                     }
@@ -4149,6 +4198,12 @@ void DOS_CreateDummyDeviceMCB(void);
 void DOS_MemStartChange(uint16_t adjto);
 void DOS_AllocMinFreePadding(uint16_t upto);
 
+static DOS_Device* device_con = nullptr;
+
+DOS_Device* DOS_GetCONDevice(void) {
+    return device_con;
+}
+
 void DOS_OpenDefaultHandles(void) {
 	/* open handles in SFT for CON, AUX, PRN */
 	uint8_t devnum_con,devnum_aux,devnum_prn;
@@ -4169,6 +4224,7 @@ void DOS_OpenDefaultHandles(void) {
 
 	/* CON is REQUIRED */
 	if (devnum_con >= DOS_DEVICES) E_Exit("Unable to locate CON device");
+    device_con = Devices[devnum_con];
 
 	/* AUX and PRN can be CON if they do not exist */
 	if (devnum_aux >= DOS_DEVICES) devnum_aux = devnum_con;

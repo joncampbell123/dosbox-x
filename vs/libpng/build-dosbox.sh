@@ -22,6 +22,6 @@ make pnglibconf.h || exit 1
 (cat pnglibconf.h | sed -e 's/\x0D//' >x) || exit 1
 mv x pnglibconf.h || exit 1
 
-make -j || exit 1
+make -j$(nproc) || exit 1
 make install || exit 1  # will install into ./linux-host
 

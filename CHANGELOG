@@ -145,6 +145,9 @@ Next version:
     (maron2000)
   - CPU: FXSAVE/FXRSTOR now raise #NM for CR0.EM/CR0.TS, and LDMXCSR/STMXCSR
     raise #UD for CR0.EM and #NM for CR0.TS. (cimarronm)
+  - DOS: Ensure Ctrl+C/INT 23h handling clears temporary state when interrupted
+    by an emulator control signal, preventing later termination errors.
+    (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed

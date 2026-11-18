@@ -805,17 +805,21 @@ bool DOS_FindNext(void) {
 
 
 bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
+
+//#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if defined(WIN32)
+#if !defined(OSFREE)
+    if(Network_IsActiveResource(entry))
+        return Network_ReadFile(entry, data, amount);
+#endif
+#endif
+
 	uint32_t handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
- #if !defined(OSFREE)
-    if(Network_IsActiveResource(entry))
-		return Network_ReadFile(entry,data,amount);
- #endif
-#endif
+
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -839,17 +843,19 @@ bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
 bool DOS_WriteFile(uint16_t entry,const uint8_t * data,uint16_t * amount,bool fcb) {
 	if (dos_kernel_disabled) E_Exit("Attempt to write to DOS file handle while guest OS is running");
 
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+    if(Network_IsActiveResource(entry))
+        return Network_WriteFile(entry, data, amount);
+#endif
+#endif
+
 	uint32_t handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
-#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
- #if !defined(OSFREE)
-    if(Network_IsActiveResource(entry))
-		return Network_WriteFile(entry,data,amount);
- #endif
-#endif
+
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -895,17 +901,23 @@ bool DOS_SeekFile(uint16_t entry,uint32_t * pos,uint32_t type,bool fcb) {
 }
 
 /* ert, 20100711: Locking extensions */
-bool DOS_LockFile(uint16_t entry,uint8_t mode,uint32_t pos,uint32_t size) {
-	uint32_t handle=RealHandle(entry);
-	if (handle>=DOS_FILES) {
-		DOS_SetError(DOSERR_INVALID_HANDLE);
-		return false;
-	}
-	if (!Files[handle] || !Files[handle]->IsOpen()) {
-		DOS_SetError(DOSERR_INVALID_HANDLE);
-		return false;
-	}
-	return Files[handle]->LockFile(mode,pos,size);
+bool DOS_LockFile(uint16_t entry, uint8_t mode, uint32_t pos, uint32_t size) {
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+# if !defined(OSFREE)
+    if(Network_IsActiveResource(entry))
+        return Network_LockFile(entry, mode, pos, size);
+# endif
+#endif
+    uint32_t handle = RealHandle(entry);
+    if(handle >= DOS_FILES) {
+        DOS_SetError(DOSERR_INVALID_HANDLE);
+        return false;
+    }
+    if(!Files[handle] || !Files[handle]->IsOpen()) {
+        DOS_SetError(DOSERR_INVALID_HANDLE);
+        return false;
+    }
+    return Files[handle]->LockFile(mode, pos, size);
 }
 
 bool DOS_CloseFile(uint16_t entry, bool fcb, uint8_t * refcnt) {
