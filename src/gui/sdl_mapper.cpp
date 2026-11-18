@@ -1313,6 +1313,10 @@ Bitu GetKeyCode(SDL_keysym keysym) {
                 if (keysym.sym) {
 				    key = (keysym.sym <= SDLK_LAST ? keysym.sym : SDLK_UNKNOWN);
 			    }
+#if defined (WIN32)
+                if(keysym.sym == SDLK_BREAK)
+                    key = SDLK_PAUSE; // map Ctrl+Break to raw PAUSE
+#endif
         }
         else {
 #if defined (WIN32)
