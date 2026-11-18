@@ -76,6 +76,8 @@ public:
 	bool TestDir(const char * dir) override;
 	bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false) override;
 	bool FindNext(DOS_DTA & dta) override;
+    bool GetFindCacheID(DOS_DTA & dta, uint16_t & id, uint32_t & generation) override;
+    void FindClose(uint16_t id, uint32_t generation) override { dirCache.FindClose(id, generation); }
 	bool SetFileAttr(const char * name,uint16_t attr) override;
 	bool GetFileAttr(const char * name,uint16_t * attr) override;
 	bool GetFileAttrEx(char* name, struct stat *status) override;

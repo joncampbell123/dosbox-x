@@ -108,6 +108,8 @@ void DOS_UpdatePSPName(void) {
 	GFX_SetTitle(-1,-1,-1,false);
 }
 
+extern void DOS_CloseFindSnapshotsForPSP(uint16_t psp);
+
 void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 
 	dos.return_code=exitcode;
@@ -119,7 +121,10 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 	DOS_UTF8_ProcessEnded(pspseg);
 	DOS_UTF8Names_ProcessEnded(pspseg);
 	/* Free Files owned by process */
-	if (!tsr) curpsp.CloseFiles();
+	if (!tsr) {
+		curpsp.CloseFiles();
+		DOS_CloseFindSnapshotsForPSP(pspseg);
+	}
 	
 	/* Get the termination address */
 	RealPt old22 = curpsp.GetInt22();
