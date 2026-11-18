@@ -50,7 +50,7 @@ mkdir -p linux-build/include || exit 1
 #Don't treat incompatible-pointer-types warnings as errors (gcc-14) 
 sed -i 's/^CFLAGS\(.*\)/CFLAGS\1 -Wno-error=incompatible-pointer-types/g' ./Makefile
 
-make -j3 || exit 1
+make -j$(nproc) || exit 1
 make install || exit 1  # will install into ./linux-host
 
 # STOP DELETING THE FILE!!!!! I need it for Windows builds!
