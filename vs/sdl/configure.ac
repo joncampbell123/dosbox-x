@@ -73,9 +73,22 @@ if test x$srcdir != x.; then
 fi
 case "$host" in
     *-*-cygwin*)
-        # We build SDL on cygwin without the UNIX emulation layer
-        BASE_CFLAGS="-I/usr/include/mingw -mno-cygwin"
-        BASE_LDFLAGS="-mno-cygwin"
+        # Legacy Cygwin GCC may support native Windows builds via -mno-cygwin.
+        # Modern MinGW-w64 GCC does not need or accept this option.
+        save_CFLAGS="$CFLAGS"
+        have_no_cygwin=no
+        AC_MSG_CHECKING(for GCC -mno-cygwin option)
+        CFLAGS="$save_CFLAGS -mno-cygwin"
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])], [have_no_cygwin=yes], [])
+        AC_MSG_RESULT($have_no_cygwin)
+        CFLAGS="$save_CFLAGS"
+
+        BASE_CFLAGS=""
+        BASE_LDFLAGS=""
+        if test x$have_no_cygwin = xyes; then
+            BASE_CFLAGS="-I/usr/include/mingw -mno-cygwin"
+            BASE_LDFLAGS="-mno-cygwin"
+        fi
         ;;
     *)
         BASE_CFLAGS="-D_GNU_SOURCE=1"
