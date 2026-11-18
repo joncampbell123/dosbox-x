@@ -692,13 +692,16 @@ bool DOS_BreakTest(bool print=true) {
 			DOS_BreakINT23InProgress = false;
 		}
 		catch (int x) {
+			// The interrupt may have been interrupted by a reboot or other emulator
+			// control signal. That signal must not leave this transient state set.
+			DOS_BreakINT23InProgress = false;
+
 			/* 2025/01/20: The throw code used to be int(0) but if that were allowed to bubble up
 			 *             to the main function it would be mistaken as an entirely different
 			 *             signal, so instead use int(9000), a number high enough not to conflict
 			 *             but just low enough to prevent Vegeta from saying his well-known
 			 *             meme-worthy phrase. */
 			if (x == 9000) {
-				DOS_BreakINT23InProgress = false;
 				terminint23 = true;
 			}
 			else {

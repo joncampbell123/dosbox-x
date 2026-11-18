@@ -143,6 +143,9 @@ Next version:
   - Enabled CR0.TS during task switch (tbullock)
   - Fixed redirection in batch file broke redirection of command.com
     (maron2000)
+  - DOS: Ensure Ctrl+C/INT 23h handling clears temporary state when interrupted
+    by an emulator control signal, preventing later termination errors.
+    (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
