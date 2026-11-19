@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #if defined (WIN32)   /* Win 32 */
 #define WIN32_LEAN_AND_MEAN        // Exclude rarely-used stuff from
@@ -67,41 +68,31 @@ bool SortByDirNameRev(DOS_Drive_Cache::CFileInfo* const &a, DOS_Drive_Cache::CFi
 
 // What a read of one directory knows of the entries it has made so far. During the read the
 // entries are in the host's order, so a question about the earlier ones was a pass over all of
-// them for each new entry; here it is one lookup. Each table is made when first asked for.
+// them for each new entry; here it is one lookup.
 struct DOS_Drive_Cache::ReadIndex {
     // It is the cache's readIndex for as long as it lives.
     ReadIndex(CFileInfo* read, ReadIndex*& slot) : dir(read), current(slot) { current = this; }
     ~ReadIndex() { current = nullptr; }
     CFileInfo* const dir;
 
-    // The read has appended an entry to dir->fileList.
-    void Added(void) {
-        const Bitu nr = dir->fileList.size()-1;
-        if (namesMade) names.emplace(dir->fileList[nr]->orgname, (Bits)nr);
-        if (wineMade) AddWineName(nr);
-    }
+    // The entries that need a generated alias, in the host's order. Their aliases are made once
+    // every name that is an entry's own is known, so that no alias takes one of those names.
+    std::vector<CFileInfo*> pending;
 
-    // The first entry whose host name strcasecmp finds equal to name, or -1.
-    Bits HostName(const char* name) {
-        if (!namesMade) {
-            for (Bitu i=0; i<dir->fileList.size(); i++) names.emplace(dir->fileList[i]->orgname, (Bits)i);
-            namesMade = true;
-        }
-        const auto found = names.find(name);
-        return found==names.end() ? -1 : found->second;
-    }
+    bool Taken(const char* shortname) const { return shortNames.count(shortname)!=0; }
+    // shortname is the entry's own, final, and stays where it is while the read lasts.
+    void Take(const char* shortname) { shortNames.insert(shortname); }
 
-    // The first entry whose Wine-style short name is name, or -1.
-    Bits WineName(const char* name) {
-        if (!wineMade) {
-            for (Bitu i=0; i<dir->fileList.size(); i++) AddWineName(i);
-            wineMade = true;
-        }
-        const auto found = wine.find(name);
-        return found==wine.end() ? -1 : found->second;
+    // The number to try next for an alias whose first try, first, was taken at nr. A family whose
+    // count CreateShortNameID has lost starts from one number again and again: the read goes on
+    // from where the last search from that name ended, every number before it being taken.
+    Bitu NextTry(const std::string& first, Bitu nr) const {
+        const auto found = resume.find(first);
+        return found==resume.end() ? nr+1 : found->second;
     }
+    void Remember(const std::string& first, Bitu next) { resume[first] = next; }
 
-    // CreateShortName has put an alias in dir->longNameList.
+    // CreateAlias has put an alias in dir->longNameList.
     void AliasAdded(const char* alias) {
         if (lengthsMade) CountLength(alias);
     }
@@ -140,25 +131,20 @@ private:
         if (alias[prefix]=='~') lengths[std::string(alias,prefix+1)] |= 1u << strcspn(alias+prefix,".");
     }
 
-    void AddWineName(Bitu nr);
-
     ReadIndex*& current;
 
-    // strcasecmp compares the bytes through tolower, so this hash is equal for names it finds equal.
-    struct FoldedHash {
+    struct NameHash {
         size_t operator()(const char* s) const {
             size_t h = 2166136261u;
-            for (; *s; s++) h = (h ^ (size_t)tolower((unsigned char)*s)) * 16777619u;
+            for (; *s; s++) h = (h ^ (unsigned char)*s) * 16777619u;
             return h;
         }
     };
-    struct FoldedEqual {
-        bool operator()(const char* a, const char* b) const { return !strcasecmp(a,b); }
+    struct NameEqual {
+        bool operator()(const char* a, const char* b) const { return !strcmp(a,b); }
     };
-    std::unordered_map<const char*, Bits, FoldedHash, FoldedEqual> names; // keys point into the entries
-    bool namesMade = false;
-    std::unordered_map<std::string, Bits> wine;
-    bool wineMade = false;
+    std::unordered_set<const char*, NameHash, NameEqual> shortNames; // keys point into the entries
+    std::unordered_map<std::string, Bitu> resume;
     std::unordered_map<std::string, unsigned> lengths;
     bool lengthsMade = false;
 };
@@ -631,12 +617,6 @@ static Bits wine_hash_short_file_name( char* name, char* buffer )
 }
 #endif
 
-void DOS_Drive_Cache::ReadIndex::AddWineName(Bitu nr) {
-    char buff[CROSS_LEN];
-    buff[wine_hash_short_file_name(dir->fileList[nr]->orgname,buff)] = 0;
-    wine.emplace(buff, (Bits)nr);
-}
-
 Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
     std::vector<CFileInfo*>::size_type filelist_size = curDir->fileList.size();
     if (GCC_UNLIKELY(filelist_size<=0)) return -1;
@@ -658,15 +638,8 @@ Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
 			return mid;
 		};
 	}
-	ReadIndex* const index = ReadIndexOf(curDir);
 	if (uselfn && strlen(shortName)) {
-		if (index) {
-			res = index->HostName(shortName);
-			if (res>=0) {
-				strcpy(shortName,curDir->fileList[(size_t)res]->orgname);
-				return res;
-			}
-		} else for (Bitu i=0; i<filelist_size; i++) {
+		for (Bitu i=0; i<filelist_size; i++) {
 			if (!strcasecmp(shortName,curDir->fileList[i]->orgname)) {
 				strcpy(shortName,curDir->fileList[i]->orgname);
 				return (Bits)i;
@@ -678,11 +651,6 @@ Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
     if (strlen(shortName) < 8 || shortName[4] != '~' || shortName[5] == '.' || shortName[6] == '.' || shortName[7] == '.') return -1; // not available
     // else it's most likely a Wine style short name ABCD~###, # = not dot  (length at least 8)
     // The above test is rather strict as the following loop can be really slow if filelist_size is large.
-    if (index) {
-        res = index->WineName(shortName);
-        if (res>=0) strcpy(shortName,curDir->fileList[(size_t)res]->orgname);
-        return res;
-    }
     char buff[CROSS_LEN];
     for (Bitu i = 0; i < filelist_size; i++) {
         res = wine_hash_short_file_name(curDir->fileList[i]->orgname,buff);
@@ -709,16 +677,16 @@ bool DOS_Drive_Cache::RemoveSpaces(char* str) {
     return (curpos!=chkpos);
 }
 
-void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
-    Bits    len         = 0;
+// The name a short name is made from, in buffer: orgname upper-cased, spaces removed, the
+// characters 8.3 does not allow replaced, leading dots dropped where they would start a long
+// extension. Sets name to where it starts and len to the length of its base; true when its form
+// alone needs a generated alias.
+bool DOS_Drive_Cache::ShortNameBase(const char* orgname, char* buffer, char*& name, Bits& len) {
     bool    createShort = false;
-
-    char tmpNameBuffer[CROSS_LEN];
-
-    char* tmpName = tmpNameBuffer;
+    char*   tmpName     = buffer;
 
     // Remove Spaces
-    strcpy(tmpName,info->orgname);
+    strcpy(tmpName,orgname);
     if (IS_PC98_ARCH || isDBCSCP())
         DBCS_upcase(tmpName);
     else
@@ -753,20 +721,58 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
         }
     }
 
-    // Should shortname version be created ?
-    createShort = createShort || (len>8);
+    name = tmpName;
+    return createShort || (len>8);
+}
+
+void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
+    char    tmpNameBuffer[CROSS_LEN];
+    char*   tmpName;
+    Bits    len;
+    bool    createShort = ShortNameBase(info->orgname, tmpNameBuffer, tmpName, len);
+
+    ReadIndex* const index = ReadIndexOf(curDir);
     if (!createShort) {
-        char buffer[CROSS_LEN];
-        strcpy(buffer,tmpName);
-        createShort = (GetLongName(curDir,buffer)>=0);
+        strcpy(info->shortname,tmpName);
+        RemoveTrailingDot(info->shortname);
+        // A read asks only the names that are their entries' own: no alias has been made yet.
+        if (index) {
+            createShort = index->Taken(info->shortname);
+            if (!createShort) index->Take(info->shortname);
+        } else {
+            char buffer[CROSS_LEN];
+            strcpy(buffer,tmpName);
+            createShort = (GetLongName(curDir,buffer)>=0);
+        }
     }
 
     if (createShort) {
-        // Create number
+        if (index) index->pending.push_back(info);
+        else CreateAlias(curDir, info, tmpName, len);
+    }
+}
+
+// Whether an entry of curDir has this short name. Outside a read fileList is in strcmp order.
+bool DOS_Drive_Cache::ShortNameTaken(CFileInfo* curDir, const char* shortname) {
+    ReadIndex* const index = ReadIndexOf(curDir);
+    if (index) return index->Taken(shortname);
+    const std::vector<CFileInfo*>& list = curDir->fileList;
+    const auto it = std::lower_bound(list.begin(), list.end(), shortname,
+        [](CFileInfo* const &a, const char* b) { return strcmp(a->shortname,b)<0; });
+    return it!=list.end() && !strcmp((*it)->shortname,shortname);
+}
+
+// Gives info the alias "NAME~N.EXT" made from tmpName: N is CreateShortNameID's number, or the
+// next one whose alias no entry of curDir has.
+void DOS_Drive_Cache::CreateAlias(CFileInfo* curDir, CFileInfo* info, const char* tmpName, Bits len) {
+    ReadIndex* const index = ReadIndexOf(curDir);
+    const char* ext = strrchr(tmpName,'.');
+    Bitu nr = CreateShortNameID(curDir,tmpName);
+    std::string first;
+    for (;;) {
+        if (GCC_UNLIKELY(nr > 9999999)) E_Exit("~9999999 same name files overflow");
         char buffer[8];
-        info->shortNr = CreateShortNameID(curDir,tmpName);
-        if (GCC_UNLIKELY(info->shortNr > 9999999)) E_Exit("~9999999 same name files overflow");
-        sprintf(buffer, "%d", static_cast<unsigned int>(info->shortNr));
+        sprintf(buffer, "%d", static_cast<unsigned int>(nr));
         // Copy first letters
         Bits tocopy = 0;
         size_t buflen = strlen(buffer);
@@ -786,32 +792,39 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
         strcat(info->shortname,"~");
         strcat(info->shortname,buffer);
         // Add (and cut) Extension, if available
-        if (pos) {
-            // Step to last extension...
-            pos = strrchr(tmpName, '.');
-            // add extension
-            strncat(info->shortname,pos,4);
+        if (ext) {
+            strncat(info->shortname,ext,4);
             info->shortname[DOS_NAMELENGTH] = 0;
         }
 
-        // keep list sorted for CreateShortNameID to work correctly
-        std::vector<CFileInfo*>& aliases = curDir->longNameList;
-        std::vector<CFileInfo*>::iterator it = aliases.end();
-        if (!aliases.empty() && strcmp(info->shortname,aliases.back()->shortname)<0) {
-            // the first alias greater than this one
-            if (curDir->longNameListSorted)
-                it = std::upper_bound(aliases.begin(), aliases.end(), info, SortByName);
-            else
-                for (it=aliases.begin(); !(strcmp(info->shortname,(*it)->shortname)<0); ++it) {}
-        }
-        it = aliases.insert(it,info);
-        if (RemoveTrailingDot(info->shortname) && it!=aliases.begin() && strcmp((*(it-1))->shortname,info->shortname)>0)
-            curDir->longNameListSorted = false;
-        ReadIndex* const index = ReadIndexOf(curDir);
-        if (index) index->AliasAdded(info->shortname);
-    } else {
-        strcpy(info->shortname,tmpName);
-        RemoveTrailingDot(info->shortname);
+        char alias[DOS_NAMELENGTH_ASCII];
+        strcpy(alias,info->shortname);
+        RemoveTrailingDot(alias);
+        if (!ShortNameTaken(curDir,alias)) break;
+        if (index && first.empty()) {
+            first = alias;
+            nr = index->NextTry(first,nr);
+        } else nr++;
+    }
+    if (!first.empty()) index->Remember(first,nr+1);
+    info->shortNr = nr;
+
+    // keep list sorted for CreateShortNameID to work correctly
+    std::vector<CFileInfo*>& aliases = curDir->longNameList;
+    std::vector<CFileInfo*>::iterator it = aliases.end();
+    if (!aliases.empty() && strcmp(info->shortname,aliases.back()->shortname)<0) {
+        // the first alias greater than this one
+        if (curDir->longNameListSorted)
+            it = std::upper_bound(aliases.begin(), aliases.end(), info, SortByName);
+        else
+            for (it=aliases.begin(); !(strcmp(info->shortname,(*it)->shortname)<0); ++it) {}
+    }
+    it = aliases.insert(it,info);
+    if (RemoveTrailingDot(info->shortname) && it!=aliases.begin() && strcmp((*(it-1))->shortname,info->shortname)>0)
+        curDir->longNameListSorted = false;
+    if (index) {
+        index->AliasAdded(info->shortname);
+        index->Take(info->shortname);
     }
 }
 
@@ -950,6 +963,7 @@ char* DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char*
 
     // Check for long filenames...
     if (sname[0]==0) CreateShortName(dir, info);
+    else if (ReadIndex* const index = ReadIndexOf(dir)) index->Take(info->shortname);
 
     // keep list sorted (so GetLongName works correctly, used by CreateShortName in this routine)
     if (dir->fileList.size()>0 && !skipSort) {
@@ -1011,11 +1025,16 @@ bool DOS_Drive_Cache::ReadDir(uint16_t id, char* &result, char * &lresult) {
             ReadIndex index(dirSearch[id], readIndex);
             if (drive->read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
                 CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory, /*skip search*/true);
-                index.Added();
                 while (drive->read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
                     CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory, /*skip search*/true);
-                    index.Added();
                 }
+            }
+            // Every name that is an entry's own is known: the aliases, in the host's order.
+            for (CFileInfo* info : index.pending) {
+                char buffer[CROSS_LEN], *name;
+                Bits len;
+                ShortNameBase(info->orgname, buffer, name, len);
+                CreateAlias(dirSearch[id], info, name, len);
             }
         }
 

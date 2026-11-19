@@ -272,7 +272,10 @@ private:
 
 	bool		RemoveTrailingDot	(char* shortname);
 	Bits		GetLongName		(CFileInfo* curDir, char* shortName);
+	bool		ShortNameBase		(const char* orgname, char* buffer, char*& name, Bits& len);
 	void		CreateShortName		(CFileInfo* curDir, CFileInfo* info);
+	bool		ShortNameTaken		(CFileInfo* curDir, const char* shortname);
+	void		CreateAlias		(CFileInfo* curDir, CFileInfo* info, const char* tmpName, Bits len);
 	Bitu		CreateShortNameID	(CFileInfo* curDir, const char* name);
 	int		CompareShortname	(const char* compareName, const char* shortName);
     bool        SetResult       (CFileInfo* dir, char * &result, char * &lresult, Bitu entryNr);
