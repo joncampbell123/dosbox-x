@@ -1191,10 +1191,12 @@ void isoDrive::UpdateCDROMRef(void) {
 	}
 }
 
+#if !defined(OSFREE)
 /* MSCDEX gives a file on a CD read-only and a directory nothing else; neither has the archive bit */
 static uint8_t CDAttr(bool dir, bool hidden) {
 	return (uint8_t)((dir ? DOS_ATTR_DIRECTORY : DOS_ATTR_READ_ONLY) | (hidden ? DOS_ATTR_HIDDEN : 0));
 }
+#endif
 
 bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 #if !defined(OSFREE)
