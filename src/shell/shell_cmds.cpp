@@ -2771,7 +2771,6 @@ void DOS_Shell::CMD_COPY(char * args) {
 	WriteOut(MSG_Get("SHELL_CMD_COPY_SUCCESS"),count);
 	dos.dta(save_dta);
 	dos.echo=echo;
-	Drives[DOS_GetDefaultDrive()]->EmptyCache();
 }
 #endif
 
