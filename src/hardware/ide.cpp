@@ -3185,7 +3185,7 @@ void IDEATADevice::io_completion() {
         return;
     }
     if (xk == XK_OUT) {
-        const size_t n = std::min((size_t)sector_total,xbuf.size() - xbuf_pos);
+        const size_t n = (std::min)((size_t)sector_total,xbuf.size() - xbuf_pos);
         memcpy(xbuf.data() + xbuf_pos,sector,n);
         xbuf_pos += n;
         if (xbuf_pos < xbuf.size()) {
@@ -6125,15 +6125,15 @@ void IDEBusMaster::try_transfer(unsigned int n) {
     bool instant = false;
     if (dev->type == IDE_TYPE_HDD) {
         IDEATADevice *d = static_cast<IDEATADevice*>(dev);
-        rate = std::min(rate,d->dma_mb_per_s());
+        rate = (std::min)(rate,d->dma_mb_per_s());
         instant = d->instant;
     }
     else {
         IDEATAPICDROMDevice *d = static_cast<IDEATAPICDROMDevice*>(dev);
         static const double udma[7] = { 16.7, 25.0, 33.3, 44.4, 66.7, 100.0, 133.0 };
         static const double mwdma[3] = { 4.2, 13.3, 16.7 };
-        if (d->udma_sel >= 0) rate = std::min(rate,udma[d->udma_sel]);
-        else if (d->mwdma_sel >= 0) rate = std::min(rate,mwdma[d->mwdma_sel]);
+        if (d->udma_sel >= 0) rate = (std::min)(rate,udma[d->udma_sel]);
+        else if (d->mwdma_sel >= 0) rate = (std::min)(rate,mwdma[d->mwdma_sel]);
         instant = d->instant;
     }
     const double ms = (instant || dev->faked_command) ? 0.001 : (double)moved / (rate * 1000.0);
