@@ -665,6 +665,11 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
+	// Target directory must exist
+	if (!PathExists(newname)) {
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
 
 #if defined (WIN32)
 	if (clip) {
