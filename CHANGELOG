@@ -1,4 +1,7 @@
 Next version:
+  - [AI] DOS: creating, deleting or renaming a file or directory on a
+    local drive edits the folder's cached listing instead of emptying it,
+    and the short names of the other files stay as they were. (Optimiza)
   - [AI] DOS: a 4Eh search whose DTA another FindFirst reuses, or whose
     child process ends, is kept (up to eight per DTA), so programs that save
     and restore the DTA, or let a child search for them, continue as on
