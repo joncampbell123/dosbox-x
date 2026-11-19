@@ -267,6 +267,10 @@ public:
 		// contents
 		std::vector<CFileInfo*>	fileList;
 		std::vector<CFileInfo*>	longNameList;
+		// Whether longNameList is in strcmp order. An alias that ended in a dot loses it once
+		// placed, and can then sort before the alias ahead of it: such a list is searched one
+		// alias at a time.
+		bool		longNameListSorted = true;
 	};
 
 private:
@@ -276,7 +280,10 @@ private:
 
 	bool		RemoveTrailingDot	(char* shortname);
 	Bits		GetLongName		(CFileInfo* curDir, char* shortName);
+	bool		ShortNameBase		(const char* orgname, char* buffer, char*& name, Bits& len);
 	void		CreateShortName		(CFileInfo* curDir, CFileInfo* info);
+	bool		ShortNameTaken		(CFileInfo* curDir, const char* shortname);
+	void		CreateAlias		(CFileInfo* curDir, CFileInfo* info, const char* tmpName, Bits len);
 	Bitu		CreateShortNameID	(CFileInfo* curDir, const char* name);
 	int		CompareShortname	(const char* compareName, const char* shortName);
     bool        SetResult       (CFileInfo* dir, char * &result, char * &lresult, Bitu entryNr);
@@ -288,6 +295,8 @@ private:
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
 	uint16_t		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
+	struct ReadIndex;
+	ReadIndex*	ReadIndexOf		(CFileInfo* dir);
 
 	CFileInfo*	dirBase = NULL;
 	char		dirPath				[CROSS_LEN] = {};
@@ -298,6 +307,7 @@ private:
 	CFileInfo*	save_dir = NULL;
 	char		save_path			[CROSS_LEN] = {};
 	char		save_expanded		[CROSS_LEN] = {};
+	ReadIndex*	readIndex = NULL;	// while ReadDir makes the entries of a directory
 
 	uint16_t		srchNr = 0;
 	CFileInfo*	dirSearch			[MAX_OPENDIRS] = {};
