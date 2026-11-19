@@ -2,6 +2,10 @@ Next version:
   - [AI] DOS: the first read of a large host folder no longer compares every
     name with every other: 169,000 files are read in under a second instead
     of minutes. (Optimiza)
+  - [AI] DOS: a 4Eh search whose DTA another FindFirst reuses, or whose
+    child process ends, is kept (up to eight per DTA), so programs that save
+    and restore the DTA, or let a child search for them, continue as on
+    MS-DOS. (Optimiza)
   - [AI] INT 10h: MDA and Hercules start in video mode 7. The screen stayed
     black with -fastlaunch on machine=mda and the hercules machine types.
     (joncampbell123)
