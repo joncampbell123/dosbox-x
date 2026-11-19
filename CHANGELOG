@@ -1,4 +1,7 @@
 Next version:
+  - [AI] DOS: on Windows, changing a file's attributes no longer empties
+    the folder's directory cache, so the next search does not read the whole
+    folder from the host again. (Optimiza)
   - [AI] DOS: a 4Eh search whose DTA another FindFirst reuses, or whose
     child process ends, is kept (up to eight per DTA), so programs that save
     and restore the DTA, or let a child search for them, continue as on
