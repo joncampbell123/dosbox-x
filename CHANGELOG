@@ -1,4 +1,9 @@
 Next version:
+  - [AI] DOS: a host or archive path longer than the 512 bytes a drive
+    builds it in, and a mount path of 240 bytes or more, no longer overrun the
+    stack. The drive answers path not found, MOUNT refuses a path it cannot
+    hold, and a 255-character long name leaves room for its terminator.
+    (Optimiza)
   - [AI] DOS: a 4Eh search whose DTA another FindFirst reuses, or whose
     child process ends, is kept (up to eight per DTA), so programs that save
     and restore the DTA, or let a child search for them, continue as on
