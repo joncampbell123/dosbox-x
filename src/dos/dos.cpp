@@ -670,7 +670,9 @@ void DOS_PrintCBreak() {
 }
 
 bool DOS_BreakTest(bool print=true) {
-	if (DOS_BreakFlag) {
+    // Consume the BIOS Ctrl+Break latch
+    ctrlbrk = false;
+    if (DOS_BreakFlag) {
 		/* NTS: DOS calls are allowed within INT 23h! */
 		bool terminate = true;
 		bool terminint23 = false;
