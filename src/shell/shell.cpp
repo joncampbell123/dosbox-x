@@ -66,7 +66,7 @@ extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
 extern bool halfwidthkana, force_conversion, gbk, uselangcp, chinasea;
-extern bool ctrlbrk;
+extern bool ctrlbrk, DOS_BreakFlag, DOS_BreakConioFlag;
 extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
@@ -953,6 +953,7 @@ void DOS_Shell::RunInternal(void) {
 				}
 			}
 			ParseLine(input_line);
+            if (CheckBatchBreak()) continue;
 			if (echo) WriteOut_NoParsing("\n");
 		}
 	}
@@ -1524,8 +1525,9 @@ void DOS_Shell::Run(void) {
                 stdout_redirected = false;
                 stdin_redirected = false;
             }
-			ParseLine(input_line);
-			if (echo && !bf) WriteOut_NoParsing("\n");
+            ParseLine(input_line);
+            if(CheckBatchBreak()) continue;
+            if (echo && !bf) WriteOut_NoParsing("\n");
             if(bf == NULL/*not running a batch file*/) {
                 if(shell_keyboard_flush) DOS_FlushSTDIN();
                 stdout_redirected = false;
@@ -1538,6 +1540,46 @@ void DOS_Shell::Run(void) {
 
 void DOS_Shell::SyntaxError(void) {
 	WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
+}
+
+bool DOS_Shell::CheckBatchBreak(void) {
+    if(!bf || !ctrlbrk) return false;
+
+    ctrlbrk = false;
+    DOS_BreakFlag = false;
+    DOS_BreakConioFlag = false;
+    std::string prompt = formatString("Terminate batch job (%c/%c)?",
+        (char)toupper(char_yes), (char)toupper(char_no));
+
+    DOS_Device* con = DOS_GetCONDevice();
+    if(!con) {
+        LOG_MSG("CheckBatchBreak: CON device not found, terminating batch file");
+        return true;
+    }
+    uint8_t c, lower_c;
+    uint16_t n = 1;
+    while(!stdout_redirected) {
+        WriteOut(prompt.c_str(), isDBCSCP());
+
+        n = 1;
+        con->Read(&c, &n);
+        if(!n) continue;
+
+        std::string msg = formatString("%c", c);
+        WriteOut(msg.c_str(), isDBCSCP());
+
+        lower_c = (uint8_t)tolower(c);
+        if(lower_c == char_yes || lower_c == char_no) break;
+
+        WriteOut("\r\n", isDBCSCP());
+    }
+    WriteOut("\r\n", isDBCSCP());
+
+    if(stdout_redirected || lower_c == char_yes) {
+        while(bf) delete bf;
+        return true;
+    }
+    return false;
 }
 
 bool filename_not_8x3(const char *n), isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
