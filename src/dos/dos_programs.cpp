@@ -377,6 +377,10 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string cons
 	temp_line = drive2;
 	if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
 	if (temp_line[temp_line.size()-1]!=CROSS_FILESPLIT) temp_line+=CROSS_FILESPLIT;
+	if (temp_line.size()>DRIVE_INFO_PATH_MAX) { // a drive's info line, which a saved state keeps, holds the path whole
+		systemmessagebox(MSG_Get("ERROR"),formatString(MSG_Get("PROGRAM_MOUNT_ERROR_TOO_LONG"),temp_line.c_str()).c_str(),"ok","error", 1);
+		return;
+	}
 	uint8_t bit8size=(uint8_t) sizes[1];
 
 	if(drive_type=="CDROM") {
@@ -1206,7 +1210,7 @@ public:
             WriteOut("Drive %c is not a valid drive\n", new_z);
     }
     void ListMounts(bool quiet, bool local) {
-        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
         uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
@@ -1641,6 +1645,10 @@ public:
             }
 
             if (temp_line[temp_line.size()-1]!=CROSS_FILESPLIT) temp_line+=CROSS_FILESPLIT;
+            if (temp_line.size()>DRIVE_INFO_PATH_MAX) { // a drive's info line, which a saved state keeps, holds the path whole
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_TOO_LONG"),temp_line.c_str());
+                return;
+            }
             uint8_t bit8size=(uint8_t) sizes[1];
             exist = drive - 'A' < DOS_DRIVES && drive - 'A' >= 0 && Drives[drive - 'A'];
             if (type=="cdrom") {
@@ -5032,7 +5040,7 @@ class IMGSWAP : public Program
 {
 public:
     void ListImgSwaps(void) {
-        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
         uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
@@ -5099,7 +5107,7 @@ public:
             swapInDrive(d,swap);
         } else
             swapInDrive(d);
-        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
         uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
@@ -5829,7 +5837,7 @@ class IMGMOUNT : public Program {
 		IMGMOUNT(const unsigned int fl=0) : Program(fl) {
 		}
 		void ListImgMounts(void) {
-			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
 			uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
 			/* Command uses dta so set it to our internal dta */
 			RealPt save_dta = dos.dta();
@@ -7043,14 +7051,12 @@ class IMGMOUNT : public Program {
 					DOS_Drive* newDrive = NULL;
 					if (vhdImage) {
 						newDrive = new fatDrive(vhdImage, options);
-						strcpy(newDrive->info, "fatDrive ");
-						strcat(newDrive->info, ro?paths[i].c_str()+1:paths[i].c_str());
+						snprintf(newDrive->info, sizeof(newDrive->info), "fatDrive %s", ro?paths[i].c_str()+1:paths[i].c_str());
 						vhdImage = NULL;
 					}
 					else if(newImage) {
 						newDrive = new fatDrive(newImage, options);
-						strcpy(newDrive->info, "fatDrive ");
-						strcat(newDrive->info, ro ? paths[i].c_str() + 1 : paths[i].c_str());
+						snprintf(newDrive->info, sizeof(newDrive->info), "fatDrive %s", ro ? paths[i].c_str() + 1 : paths[i].c_str());
 						LOG_MSG("IMGMOUNT: qcow2 image mounted (experimental)");
 						LOG_MSG("IMGMOUNT: qcow2 SS,S,H,C: %u,%u,%u,%u",
 							(uint32_t)newImage->sector_size, (uint32_t)newImage->sectors, (uint32_t)newImage->heads, (uint32_t)newImage->cylinders);
@@ -10541,6 +10547,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGSWAP_ERROR","Position must be between 1 and %d for this drive.\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s does not exist.\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_2","%s is not a directory\n");
+    MSG_Add("PROGRAM_MOUNT_ERROR_TOO_LONG","The path %s is too long to mount.\n");
     MSG_Add("PROGRAM_MOUNT_IMGMOUNT","To mount image files, use the \033[34;1mIMGMOUNT\033[0m command, not the \033[34;1mMOUNT\033[0m command.\n");
     MSG_Add("PROGRAM_MOUNT_ILL_TYPE","Illegal type %s\n");
     MSG_Add("PROGRAM_MOUNT_ALREADY_MOUNTED","Drive %c already mounted with %s\n");

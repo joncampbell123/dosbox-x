@@ -1119,16 +1119,14 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 
 	if (!error) {
 		if (loadImage()) {
-			strcpy(info, "isoDrive ");
-			strcat(info, fileName);
+			snprintf(info, sizeof(info), "isoDrive %s", fileName);
 			this->driveLetter = driveLetter;
 			this->mediaid = mediaid;
 			char buffer[32] = { 0 };
 			if (!MSCDEX_GetVolumeName(subUnit, buffer)) strcpy(buffer, "");
 			Set_Label(buffer,discLabel,true);
 		} else if (CDROM_IsAudioOnly(cdrom)) { //Audio only cdrom
-			strcpy(info, "isoDrive ");
-			strcat(info, fileName);
+			snprintf(info, sizeof(info), "isoDrive %s", fileName);
 			this->driveLetter = driveLetter;
 			this->mediaid = mediaid;
 			char buffer[32] = { 0 };
@@ -1137,8 +1135,7 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 		} else if (dos_kernel_disabled) {
 			//If we don't recognize the filesystem or disc and the guest OS is running,
 			//it's not our job to reject CDs. Maybe the guest OS might recognize it anyway.
-			strcpy(info, "isoDrive ");
-			strcat(info, fileName);
+			snprintf(info, sizeof(info), "isoDrive %s", fileName);
 			this->driveLetter = driveLetter;
 			this->mediaid = mediaid;
 			char buffer[32] = { 0 };
@@ -1167,8 +1164,7 @@ isoDrive::~isoDrive() {
 
 void isoDrive::setFileName(const char* fileName) {
 	safe_strncpy(this->fileName, fileName, CROSS_LEN);
-	strcpy(info, "isoDrive ");
-	strcat(info, fileName);
+	snprintf(info, sizeof(info), "isoDrive %s", fileName);
 }
 
 /* because of the way this ties into IDE emulation through MSCDEX emulation, this must stay */

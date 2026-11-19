@@ -2,6 +2,11 @@ Next version:
   - [AI] CPU: the x86 dynamic core keeps its code page handlers when it
     resets its code cache. Each reset leaked the handlers on the free list,
     about 6 MB for every protected-mode program started on Windows. (Optimiza)
+  - [AI] DOS: a host or archive path longer than the 512 bytes a drive
+    builds it in, and a mount path of 240 bytes or more, no longer overrun the
+    stack. The drive answers path not found, MOUNT refuses a path it cannot
+    hold, and a 255-character long name leaves room for its terminator.
+    (Optimiza)
   - [AI] DOS: the first read of a large host folder no longer compares every
     name with every other: 169,000 files are read in under a second instead
     of minutes. (Optimiza)
