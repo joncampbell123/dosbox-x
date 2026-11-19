@@ -1,4 +1,8 @@
 Next version:
+  - [AI] DOS: INT 21h function 4Eh and the label and root searches of a host
+    folder, an overlay drive and a zip drive answer as MS-DOS 6.22 and 7.10
+    do: error 3 or 18 where DOS gives them, no "." and ".." in a root, and
+    a find next after a search for the label alone lists no file. (Optimiza)
   - [AI] CPU: the x86 dynamic core keeps its code page handlers when it
     resets its code cache. Each reset leaked the handlers on the free list,
     about 6 MB for every protected-mode program started on Windows. (Optimiza)
