@@ -266,7 +266,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     }
 
     DOS_DTA dta(dos.dta());
-    char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], qlname[LFN_NAMELENGTH+2];
+    char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1], qlname[LFN_NAMELENGTH+3];
     uint32_t sz,hsz;uint16_t date;uint16_t time;uint8_t att;
 
     std::list<std::string> executable;

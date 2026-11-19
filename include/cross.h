@@ -40,6 +40,7 @@
 #endif
 
 #define CROSS_LEN 512						/* Maximum filename size */
+#define DRIVE_INFO_PATH_MAX 238				/* The longest mount path a drive's 256-byte info line (and a saved state) holds whole */
 
 
 #if defined (WIN32) || defined (OS2)				/* Win 32 & OS/2*/
