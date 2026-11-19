@@ -260,6 +260,10 @@ public:
 		// contents
 		std::vector<CFileInfo*>	fileList;
 		std::vector<CFileInfo*>	longNameList;
+		// Whether longNameList is in strcmp order. An alias that ended in a dot loses it once
+		// placed, and can then sort before the alias ahead of it: such a list is searched one
+		// alias at a time.
+		bool		longNameListSorted = true;
 	};
 
 private:
@@ -280,6 +284,8 @@ private:
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
 	uint16_t		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
+	struct ReadIndex;
+	ReadIndex*	ReadIndexOf		(CFileInfo* dir);
 
 	CFileInfo*	dirBase = NULL;
 	char		dirPath				[CROSS_LEN] = {};
@@ -290,6 +296,7 @@ private:
 	CFileInfo*	save_dir = NULL;
 	char		save_path			[CROSS_LEN] = {};
 	char		save_expanded		[CROSS_LEN] = {};
+	ReadIndex*	readIndex = NULL;	// while ReadDir makes the entries of a directory
 
 	uint16_t		srchNr = 0;
 	CFileInfo*	dirSearch			[MAX_OPENDIRS] = {};
