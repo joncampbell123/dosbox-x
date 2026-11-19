@@ -1,4 +1,8 @@
 Next version:
+  - [AI] DOS: a CD image answers a search as MSCDEX does: its files and
+    directories carry the attributes MSCDEX gives them, the label comes only
+    to a search for the label alone, a missing directory answers error 2, and
+    a path that ends in a backslash is read as a directory. (Optimiza)
   - [AI] DOS: INT 21h function 4Eh and the label and root searches of a host
     folder, an overlay drive and a zip drive answer as MS-DOS 6.22 and 7.10
     do: error 3 or 18 where DOS gives them, no "." and ".." in a root, and
