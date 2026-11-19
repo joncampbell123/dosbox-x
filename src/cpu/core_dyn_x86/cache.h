@@ -590,15 +590,7 @@ static void cache_close(void) {
 
 static void cache_reset(void) {
 	if (cache_initialized) {
-		for (;;) {
-			if (cache.used_pages) {
-				CodePageHandler * cpage=cache.used_pages;
-				CodePageHandler * npage=cache.used_pages->next;
-				cpage->ClearRelease();
-				delete cpage;
-				cache.used_pages=npage;
-			} else break;
-		}
+		while (cache.used_pages) cache.used_pages->ClearRelease();
 
 		if (cache_blocks == NULL) {
 			cache_blocks=(CacheBlock*)malloc(CACHE_BLOCKS*sizeof(CacheBlock));
@@ -631,14 +623,5 @@ static void cache_reset(void) {
 		link_blocks[1].cache.start=cache.pos;
 		link_blocks[1].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[1].cache.start);
 		gen_return(BR_Link2);
-		cache.free_pages=nullptr;
-		cache.last_page=nullptr;
-		cache.used_pages=nullptr;
-		/* Setup the code pages */
-		for (Bitu i=0;i<CACHE_PAGES;i++) {
-			CodePageHandler * newpage=new CodePageHandler();
-			newpage->next=cache.free_pages;
-			cache.free_pages=newpage;
-		}
 	}
 }

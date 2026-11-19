@@ -1,4 +1,7 @@
 Next version:
+  - [AI] CPU: the x86 dynamic core keeps its code page handlers when it
+    resets its code cache. Each reset leaked the handlers on the free list,
+    about 6 MB for every protected-mode program started on Windows. (Optimiza)
   - [AI] DOS: on Windows, changing a file's attributes no longer empties
     the folder's directory cache, so the next search does not read the whole
     folder from the host again. (Optimiza)
