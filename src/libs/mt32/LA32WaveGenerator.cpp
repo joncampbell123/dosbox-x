@@ -27,7 +27,6 @@ namespace MT32Emu {
 static const Bit32u SINE_SEGMENT_RELATIVE_LENGTH = 1 << 18;
 static const Bit32u MIDDLE_CUTOFF_VALUE = 128 << 18;
 static const Bit32u RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE = 144 << 18;
-static const Bit32u MAX_CUTOFF_VALUE = 240 << 18;
 static const LogSample SILENCE = {65535, LogSample::POSITIVE};
 
 // These two tables are accessed extremely often. Keeping the direct pointers here significantly improves performance in most cases.
@@ -62,20 +61,11 @@ static inline void addLogSamples(LogSample &logSample1, const LogSample &logSamp
 
 } // namespace LA32Utilites
 
-Bit32u LA32WaveGenerator::getSampleStep() {
-	// sampleStep = EXP2F(pitch / 4096.0f + 4.0f)
-	Bit32u sampleStep = LA32Utilites::interpolateExp(~pitch & 4095);
-	sampleStep <<= pitch >> 12;
-	sampleStep >>= 8;
-	sampleStep &= ~1;
-	return sampleStep;
-}
-
 Bit32u LA32WaveGenerator::getResonanceWaveLengthFactor(Bit32u effectiveCutoffValue) {
 	// resonanceWaveLengthFactor = (Bit32u)EXP2F(12.0f + effectiveCutoffValue / 4096.0f);
-	Bit32u resonanceWaveLengthFactor = LA32Utilites::interpolateExp(~effectiveCutoffValue & 4095);
-	resonanceWaveLengthFactor <<= effectiveCutoffValue >> 12;
-	return resonanceWaveLengthFactor;
+	Bit32u factor = LA32Utilites::interpolateExp(~effectiveCutoffValue & 4095);
+	factor <<= effectiveCutoffValue >> 12;
+	return factor;
 }
 
 Bit32u LA32WaveGenerator::getHighLinearLength(Bit32u effectiveCutoffValue) {
@@ -85,18 +75,18 @@ Bit32u LA32WaveGenerator::getHighLinearLength(Bit32u effectiveCutoffValue) {
 		effectivePulseWidthValue = (pulseWidth - 128) << 6;
 	}
 
-	Bit32u highLinearLength = 0;
 	// highLinearLength = EXP2F(19.0f - effectivePulseWidthValue / 4096.0f + effectiveCutoffValue / 4096.0f) - 2 * SINE_SEGMENT_RELATIVE_LENGTH;
 	if (effectivePulseWidthValue < effectiveCutoffValue) {
 		Bit32u expArg = effectiveCutoffValue - effectivePulseWidthValue;
-		highLinearLength = LA32Utilites::interpolateExp(~expArg & 4095);
-		highLinearLength <<= 7 + (expArg >> 12);
-		highLinearLength -= 2 * SINE_SEGMENT_RELATIVE_LENGTH;
+		Bit32u length = LA32Utilites::interpolateExp(~expArg & 4095);
+		length <<= 7 + (expArg >> 12);
+		length -= 2 * SINE_SEGMENT_RELATIVE_LENGTH;
+		return length;
 	}
-	return highLinearLength;
+	return 0;
 }
 
-void LA32WaveGenerator::computePositions(Bit32u highLinearLength, Bit32u lowLinearLength, Bit32u resonanceWaveLengthFactor) {
+void LA32WaveGenerator::computePositions() {
 	// Assuming 12-bit multiplication used here
 	squareWavePosition = resonanceSinePosition = (wavePosition >> 8) * (resonanceWaveLengthFactor >> 4);
 	if (squareWavePosition < SINE_SEGMENT_RELATIVE_LENGTH) {
@@ -129,15 +119,9 @@ void LA32WaveGenerator::computePositions(Bit32u highLinearLength, Bit32u lowLine
 }
 
 void LA32WaveGenerator::advancePosition() {
-	wavePosition += getSampleStep();
+	wavePosition += sampleStep;
 	wavePosition %= 4 * SINE_SEGMENT_RELATIVE_LENGTH;
-
-	Bit32u effectiveCutoffValue = (cutoffVal > MIDDLE_CUTOFF_VALUE) ? (cutoffVal - MIDDLE_CUTOFF_VALUE) >> 10 : 0;
-	Bit32u resonanceWaveLengthFactor = getResonanceWaveLengthFactor(effectiveCutoffValue);
-	Bit32u highLinearLength = getHighLinearLength(effectiveCutoffValue);
-	Bit32u lowLinearLength = (resonanceWaveLengthFactor << 8) - 4 * SINE_SEGMENT_RELATIVE_LENGTH - highLinearLength;
-	computePositions(highLinearLength, lowLinearLength, resonanceWaveLengthFactor);
-
+	computePositions();
 	resonancePhase = ResonancePhase(((resonanceSinePosition >> 18) + (phase > POSITIVE_FALLING_SINE_SEGMENT ? 2 : 0)) & 3);
 }
 
@@ -159,10 +143,7 @@ void LA32WaveGenerator::generateNextSquareWaveLogSample() {
 			break;
 	}
 	logSampleValue <<= 2;
-	logSampleValue += amp >> 10;
-	if (cutoffVal < MIDDLE_CUTOFF_VALUE) {
-		logSampleValue += (MIDDLE_CUTOFF_VALUE - cutoffVal) >> 9;
-	}
+	logSampleValue += amp + squareWaveAmpSubtraction;
 
 	squareLogSample.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
 	squareLogSample.sign = phase < NEGATIVE_FALLING_SINE_SEGMENT ? LogSample::POSITIVE : LogSample::NEGATIVE;
@@ -176,7 +157,7 @@ void LA32WaveGenerator::generateNextResonanceWaveLogSample() {
 		logSampleValue = logsin9[(resonanceSinePosition >> 9) & 511];
 	}
 	logSampleValue <<= 2;
-	logSampleValue += amp >> 10;
+	logSampleValue += amp;
 
 	// From the digital captures, the decaying speed of the resonance sine is found a bit different for the positive and the negative segments
 	Bit32u decayFactor = phase < NEGATIVE_FALLING_SINE_SEGMENT ? resAmpDecayFactor : resAmpDecayFactor + 1;
@@ -192,14 +173,7 @@ void LA32WaveGenerator::generateNextResonanceWaveLogSample() {
 		logSampleValue += logsin9[~(squareWavePosition >> 9) & 511] << 3;
 	}
 
-	if (cutoffVal < MIDDLE_CUTOFF_VALUE) {
-		// For the cutoff values below the cutoff middle point, it seems the amp of the resonance wave is exponentially decayed
-		logSampleValue += 31743 + ((MIDDLE_CUTOFF_VALUE - cutoffVal) >> 9);
-	} else if (cutoffVal < RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE) {
-		// For the cutoff values below this point, the amp of the resonance wave is sinusoidally decayed
-		Bit32u sineIx = (cutoffVal - MIDDLE_CUTOFF_VALUE) >> 13;
-		logSampleValue += logsin9[sineIx] << 2;
-	}
+	logSampleValue += resonanceWaveAmpSubtraction;
 
 	// After all the amp decrements are added, it should be safe now to adjust the amp of the resonance wave to what we see on captures
 	logSampleValue -= 1 << 12;
@@ -221,7 +195,7 @@ void LA32WaveGenerator::generateNextSawtoothCosineLogSample(LogSample &logSample
 
 void LA32WaveGenerator::pcmSampleToLogSample(LogSample &logSample, const Bit16s pcmSample) const {
 	Bit32u logSampleValue = (32787 - (pcmSample & 32767)) << 1;
-	logSampleValue += amp >> 10;
+	logSampleValue += amp;
 	logSample.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
 	logSample.sign = pcmSample < 0 ? LogSample::NEGATIVE : LogSample::POSITIVE;
 }
@@ -248,12 +222,6 @@ void LA32WaveGenerator::generateNextPCMWaveLogSamples() {
 	} else {
 		secondPCMLogSample = SILENCE;
 	}
-	// pcmSampleStep = (Bit32u)EXP2F(pitch / 4096.0f + 3.0f);
-	Bit32u pcmSampleStep = LA32Utilites::interpolateExp(~pitch & 4095);
-	pcmSampleStep <<= pitch >> 12;
-	// Seeing the actual lengths of the PCM wave for pitches 00..12,
-	// the pcmPosition counter can be assumed to have 8-bit fractions
-	pcmSampleStep >>= 9;
 	wavePosition += pcmSampleStep;
 	if (wavePosition >= (pcmWaveLength << 8)) {
 		if (pcmWaveLooped) {
@@ -279,6 +247,10 @@ void LA32WaveGenerator::initSynth(const bool useSawtoothWaveform, const Bit8u us
 	resonanceAmpSubtraction = (32 - resonance) << 10;
 	resAmpDecayFactor = resAmpDecayFactors[resonance >> 2] << 2;
 
+	setAmp(0);
+	setPitch(0);
+	setCutoff(0);
+
 	pcmWaveAddress = NULL;
 	active = true;
 }
@@ -289,26 +261,61 @@ void LA32WaveGenerator::initPCM(const Bit16s * const usePCMWaveAddress, const Bi
 	pcmWaveLooped = usePCMWaveLooped;
 	pcmWaveInterpolated = usePCMWaveInterpolated;
 
+	setAmp(0);
+	setPitch(0);
+
 	wavePosition = 0;
 	active = true;
 }
 
-void LA32WaveGenerator::generateNextSample(const Bit32u useAmp, const Bit16u usePitch, const Bit32u useCutoffVal) {
+void LA32WaveGenerator::setAmp(const Bit32u useAmp) {
+	amp = useAmp >> 10;
+}
+
+void LA32WaveGenerator::setPitch(const Bit16u pitch) {
+	// sampleStep = EXP2F(pitch / 4096.0f + 4.0f)
+	// pcmSampleStep = EXP2F(pitch / 4096.0f + 3.0f);
+	Bit32u newStep = LA32Utilites::interpolateExp(~pitch & 4095);
+	newStep <<= pitch >> 12;
+	if (isPCMWave()) {
+		// Seeing the actual lengths of the PCM wave for pitches 00..12,
+		// the wavePosition counter can be assumed to have 8-bit fractions
+		pcmSampleStep = newStep >> 9;
+	} else {
+		sampleStep = (newStep >> 8) & ~1;
+	}
+}
+
+void LA32WaveGenerator::setCutoff(const Bit32u cutoffVal) {
+	Bit32u effectiveCutoffValue = (cutoffVal > MIDDLE_CUTOFF_VALUE) ? (cutoffVal - MIDDLE_CUTOFF_VALUE) >> 10 : 0;
+	resonanceWaveLengthFactor = getResonanceWaveLengthFactor(effectiveCutoffValue);
+	highLinearLength = getHighLinearLength(effectiveCutoffValue);
+	lowLinearLength = (resonanceWaveLengthFactor << 8) - 4 * SINE_SEGMENT_RELATIVE_LENGTH - highLinearLength;
+
+	if (cutoffVal < MIDDLE_CUTOFF_VALUE) {
+		squareWaveAmpSubtraction = (MIDDLE_CUTOFF_VALUE - cutoffVal) >> 9;
+		// For the cutoff values below the cutoff middle point, it seems the amp of the resonance wave is exponentially decayed
+		resonanceWaveAmpSubtraction = 31743 + ((MIDDLE_CUTOFF_VALUE - cutoffVal) >> 9);
+	} else if (cutoffVal < RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE) {
+		squareWaveAmpSubtraction = 0;
+		// For the cutoff values below this point, the amp of the resonance wave is sinusoidally decayed
+		Bit32u sineIx = (cutoffVal - MIDDLE_CUTOFF_VALUE) >> 13;
+		resonanceWaveAmpSubtraction = logsin9[sineIx] << 2;
+	} else {
+		squareWaveAmpSubtraction = 0;
+		resonanceWaveAmpSubtraction = 0;
+	}
+}
+
+void LA32WaveGenerator::generateNextSample() {
 	if (!active) {
 		return;
 	}
-
-	amp = useAmp;
-	pitch = usePitch;
 
 	if (isPCMWave()) {
 		generateNextPCMWaveLogSamples();
 		return;
 	}
-
-	// The 240 cutoffVal limit was determined via sample analysis (internal Munt capture IDs: glop3, glop4).
-	// More research is needed to be sure that this is correct, however.
-	cutoffVal = (useCutoffVal > MAX_CUTOFF_VALUE) ? MAX_CUTOFF_VALUE : useCutoffVal;
 
 	generateNextSquareWaveLogSample();
 	generateNextResonanceWaveLogSample();
@@ -374,11 +381,35 @@ void LA32IntPartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWave
 	}
 }
 
-void LA32IntPartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff) {
+void LA32IntPartialPair::setAmp(const PairType useMaster, const Bit32u amp) {
 	if (useMaster == MASTER) {
-		master.generateNextSample(amp, pitch, cutoff);
+		master.setAmp(amp);
 	} else {
-		slave.generateNextSample(amp, pitch, cutoff);
+		slave.setAmp(amp);
+	}
+}
+
+void LA32IntPartialPair::setPitch(const PairType useMaster, const Bit16u pitch) {
+	if (useMaster == MASTER) {
+		master.setPitch(pitch);
+	} else {
+		slave.setPitch(pitch);
+	}
+}
+
+void LA32IntPartialPair::setCutoff(const PairType useMaster, const Bit32u cutoff) {
+	if (useMaster == MASTER) {
+		master.setCutoff(cutoff);
+	} else {
+		slave.setCutoff(cutoff);
+	}
+}
+
+void LA32IntPartialPair::generateNextSample(const PairType useMaster) {
+	if (useMaster == MASTER) {
+		master.generateNextSample();
+	} else {
+		slave.generateNextSample();
 	}
 }
 

@@ -129,9 +129,11 @@ void MidiStreamParserImpl::processShortMessage(const Bit32u message) {
 
 // We deal with SysEx messages below 512 bytes long in most cases. Nevertheless, it seems reasonable to support a possibility
 // to load bulk dumps using a single message. However, this is known to fail with a real device due to limited input buffer size.
+// Checks whether there is available space in the buffer, potentially reallocating it to the maximum capacity.
+// Returns true iff it's possible to add a new byte to the buffer.
 bool MidiStreamParserImpl::checkStreamBufferCapacity(const bool preserveContent) {
 	if (streamBufferSize < streamBufferCapacity) return true;
-	if (streamBufferCapacity < MAX_STREAM_BUFFER_SIZE) {
+	if (streamBufferSize < MAX_STREAM_BUFFER_SIZE && streamBufferCapacity < MAX_STREAM_BUFFER_SIZE) {
 		Bit8u *oldStreamBuffer = streamBuffer;
 		streamBufferCapacity = MAX_STREAM_BUFFER_SIZE;
 		streamBuffer = new Bit8u[streamBufferCapacity];
@@ -189,7 +191,7 @@ Bit32u MidiStreamParserImpl::parseShortMessageDataBytes(const Bit8u stream[], Bi
 		} else if (dataByte < 0xF8) {
 			// Discard invalid bytes and start over
 			char s[128];
-#ifdef MT32EMU_WITH_STD_SNPRINTF
+#ifdef MT32EMU_WITH_SNPRINTF
 			snprintf(
 				s, sizeof s,
 #else
@@ -244,14 +246,16 @@ Bit32u MidiStreamParserImpl::parseSysex(const Bit8u stream[], const Bit32u lengt
 		}
 	}
 
-	// Store incomplete SysEx message for further processing
+	// Store incomplete SysEx message for further processing if it fits into the allowed buffer size.
 	streamBufferSize = sysexLength;
 	if (checkStreamBufferCapacity(false)) {
-		memcpy(streamBuffer, stream, sysexLength);
+		// Better be paranoid about buffer overflows.
+		Bit32u bytesToCopy = sysexLength < streamBufferCapacity ? sysexLength : streamBufferCapacity;
+		memcpy(streamBuffer, stream, bytesToCopy);
 	} else {
-		// Not enough buffer capacity, don't care about the real buffer content, just mark the first byte
+		// Not enough buffer capacity. We don't have to care about the real buffer content as the message is going to be discarded.
+		// We just mark the buffer as containing a SysEx, and streamBufferSize already indicates a buffer overrun.
 		*streamBuffer = *stream;
-		streamBufferSize = streamBufferCapacity;
 	}
 	return sysexLength;
 }
