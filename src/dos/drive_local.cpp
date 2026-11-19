@@ -184,8 +184,10 @@ int futimens (int fd, const struct timespec times[2]) {
 }
 #endif
 
+// NULL when the two do not fit in CROSS_LEN together
 char* GetCrossedName(const char *basedir, const char *dir) {
 	static char crossname[CROSS_LEN];
+	if (strlen(basedir)+strlen(dir)>=CROSS_LEN) return nullptr;
 	strcpy(crossname, basedir);
 	strcat(crossname, dir);
 	CROSS_FILENAME(crossname);
@@ -1366,6 +1368,34 @@ static bool host_made_alias(const host_cnv_char_t *host_name) {
 #else
 static bool host_made_alias(const host_cnv_char_t *) { return false; }
 #endif
+// The host path of a DOS name on this drive, each part expanded to its host name; false when it does
+// not fit in CROSS_LEN. Sets no DOS error: TestDir and the other queries leave the error alone.
+bool localDrive::HostPath(char* hostname, const char* name) {
+	if (strlen(basedir)+strlen(name)>=CROSS_LEN) return false;
+	strcpy(hostname,basedir);
+	strcat(hostname,name);
+	CROSS_FILENAME(hostname);
+	return dirCache.ExpandName(hostname);
+}
+
+// The host path of a DOS name, not expanded; error 3 (path not found) when it does not fit
+bool localDrive::JoinHostPath(char* hostname, const char* name) {
+	if (strlen(basedir)+strlen(name)>=CROSS_LEN) {
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
+	strcpy(hostname,basedir);
+	strcat(hostname,name);
+	CROSS_FILENAME(hostname);
+	return true;
+}
+
+// HostPath with error 3 (path not found) when it does not fit
+bool localDrive::ExpandHostPath(char* hostname, const char* name) {
+	if (HostPath(hostname,name)) return true;
+	DOS_SetError(DOSERR_PATH_NOT_FOUND);
+	return false;
+}
 
 bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
     if (nocachedir) EmptyCache();
@@ -1402,10 +1432,12 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 
 //TODO Maybe care for attributes but not likely
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
+	if (!JoinHostPath(newname,name)) return false;
     const char* temp_name = dirCache.GetExpandName(newname); // Can only be used until a new drive_cache action is performed
+	if (!temp_name) {
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
 	/* Test if file exists (so we need to truncate it). don't add to dirCache then */
 	bool existing_file=false;
 #   // Windows: If the file to create already exists and is hidden OR we're being asked to create a hidden file,
@@ -1637,10 +1669,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 		return false;
 	}
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
+	if (!ExpandHostPath(newname,name)) return false;
 
 	//Flush the buffer of handles for the same file. (Betrayal in Antara)
 	uint8_t i,drive=DOS_DRIVES;
@@ -1717,10 +1746,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 FILE * localDrive::GetSystemFilePtr(char const * const name, char const * const type) {
 
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
+	if (!HostPath(newname,name)) return NULL;
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
@@ -1746,10 +1772,7 @@ FILE * localDrive::GetSystemFilePtr(char const * const name, char const * const 
 
 bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
 
-	strcpy(sysName, basedir);
-	strcat(sysName, dosName);
-	CROSS_FILENAME(sysName);
-	dirCache.ExpandName(sysName);
+	if (!HostPath(sysName,dosName)) return false;
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(sysName);
@@ -1774,10 +1797,12 @@ bool localDrive::FileUnlink(const char * name) {
     }
 
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
+	if (!JoinHostPath(newname,name)) return false;
 	char *fullname = dirCache.GetExpandName(newname);
+	if (!fullname) {
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(fullname);
@@ -1843,9 +1868,11 @@ bool localDrive::GetFindCacheID(DOS_DTA & dta, uint16_t & id, uint32_t & generat
 
 bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	char tempDir[CROSS_LEN];
-	strcpy(tempDir,basedir);
-	strcat(tempDir,_dir);
-	CROSS_FILENAME(tempDir);
+	if (strlen(basedir)+strlen(_dir)+1>=CROSS_LEN) { // with the separator added below
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
+	JoinHostPath(tempDir,_dir);
 
 	size_t len = strlen(tempDir);
 	bool lead = false;
@@ -1934,7 +1961,7 @@ bool localDrive::FindNext(DOS_DTA & dta) {
 
 	char * dir_ent, *ldir_ent;
 	ht_stat_t stat_block, special_stat_block;
-	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
+	char full_name[CROSS_LEN];
 	char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
 
 	uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH+1];
@@ -1955,10 +1982,8 @@ again:
 	if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
 
 	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:(ldir[lfn_filefind_handle]!=""?ldir[lfn_filefind_handle].c_str():"\\"));
-	strcpy(lfull_name,full_name);
-
+	if (strlen(full_name)+strlen(dir_ent)>=CROSS_LEN) goto again; // its host path would not fit
 	strcat(full_name,dir_ent);
-	strcat(lfull_name,ldir_ent);
 
 	//GetExpandName might indirectly destroy dir_ent (by caching in a new directory 
 	//and due to its design dir_ent might be lost.)
@@ -1984,6 +2009,7 @@ again:
 		temp_name = renamed_name;
 	} else {
 		temp_name = dirCache.GetExpandName(full_name);
+		if (!temp_name) goto again; // its host path would not fit
 		/* A delete, an RD or a rename gives the entry's generated short name back, and a file made
 		 * since can take it: that name then reaches the new file. The entry is the one that left,
 		 * so it is skipped, as when its short name reaches nothing. */
@@ -2046,8 +2072,8 @@ again:
 		else
 			upcase(find_name);
 	}
-	strcpy(lfind_name,ldir_entcopy);
-	lfind_name[LFN_NAMELENGTH]=0;
+	// A long name longer than a find result holds is listed by its alias alone
+	strcpy(lfind_name,strlen(ldir_entcopy)>LFN_NAMELENGTH?find_name:ldir_entcopy);
 
     if(find_attr & DOS_ATTR_DIRECTORY) {
         find_hsize = 0;
@@ -2078,7 +2104,9 @@ void localDrive::remove_special_file_from_disk(const char* dosname, const char* 
 }
 
 std::string localDrive::create_filename_of_special_operation(const char* dosname, const char* operation, bool expand) {
-	std::string res(expand?dirCache.GetExpandName(GetCrossedName(basedir, dosname)):dosname);
+	const char* source = expand?dirCache.GetExpandName(GetCrossedName(basedir, dosname)):dosname;
+	if (!source) return std::string(); // its host path would not fit
+	std::string res(source);
 	std::string::size_type s = std::string::npos; //CHECK DOS or host endings.... on update_cache
 	bool lead = false;
 	for (unsigned int i=0; i<res.size(); i++) {
@@ -2119,10 +2147,7 @@ bool localDrive::add_special_file_to_disk(const char* dosname, const char* opera
 
 bool localDrive::SetFileAttr(const char * name,uint16_t attr) {
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
+	if (!ExpandHostPath(newname,name)) return false;
 
 	// guest to host code page translation
 	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
@@ -2168,10 +2193,7 @@ bool localDrive::GetFileAttr(const char * name,uint16_t * attr) {
     if (nocachedir) EmptyCache();
 
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
+	if (!ExpandHostPath(newname,name)) return false;
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
@@ -2218,19 +2240,13 @@ bool localDrive::GetFileAttr(const char * name,uint16_t * attr) {
 
 bool localDrive::GetFileAttrEx(char* name, struct stat *status) {
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
+	if (!HostPath(newname,name)) return false;
 	return !stat(newname,status);
 }
 
 std::string localDrive::GetHostName(const char * name) {
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
+	if (!HostPath(newname,name)) return "";
 	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
 	ht_stat_t temp_stat;
 	static std::string hostname; hostname = host_name != NULL && ht_stat(host_name,&temp_stat)==0 ? newname : "";
@@ -2243,10 +2259,7 @@ unsigned long localDrive::GetCompressedSize(char* name) {
 	return 0;
 #else
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
+	if (!ExpandHostPath(newname,name)) return -1;
 	DWORD size = GetCompressedFileSize(newname, NULL);
 	if (size != INVALID_FILE_SIZE) {
 		if (size != 0 && size == GetFileSize(newname, NULL)) {
@@ -2266,10 +2279,7 @@ unsigned long localDrive::GetCompressedSize(char* name) {
 #if defined (WIN32)
 HANDLE localDrive::CreateOpenFile(const char* name) {
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
+	if (!ExpandHostPath(newname,name)) return INVALID_HANDLE_VALUE;
 	HANDLE handle=CreateFile(newname, FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 	if (handle==INVALID_HANDLE_VALUE)
 		DOS_SetError((uint16_t)GetLastError());
@@ -2302,11 +2312,13 @@ bool localDrive::MakeDir(const char * dir) {
     }
 
 	char newdir[CROSS_LEN];
-	strcpy(newdir,basedir);
-	strcat(newdir,dir);
-	CROSS_FILENAME(newdir);
+	if (!JoinHostPath(newdir,dir)) return false;
 
     const char* temp_name = dirCache.GetExpandName(newdir);
+	if (!temp_name) {
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
@@ -2341,11 +2353,13 @@ bool localDrive::RemoveDir(const char * dir) {
     }
 
 	char newdir[CROSS_LEN];
-	strcpy(newdir,basedir);
-	strcat(newdir,dir);
-	CROSS_FILENAME(newdir);
+	if (!JoinHostPath(newdir,dir)) return false;
 
     const char* temp_name = dirCache.GetExpandName(newdir);
+	if (!temp_name) {
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
@@ -2376,10 +2390,7 @@ bool localDrive::TestDir(const char * dir) {
     if (nocachedir) EmptyCache();
 
 	char newdir[CROSS_LEN];
-	strcpy(newdir,basedir);
-	strcat(newdir,dir);
-	CROSS_FILENAME(newdir);
-	dirCache.ExpandName(newdir);
+	if (!HostPath(newdir,dir)) return false;
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(newdir);
@@ -2412,27 +2423,34 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
     const host_cnv_char_t* ht;
 
 	char newold[CROSS_LEN];
-	strcpy(newold,basedir);
-	strcat(newold,oldname);
-	CROSS_FILENAME(newold);
+	if (!JoinHostPath(newold,oldname)) return false;
 	char cacheold[CROSS_LEN];
 	strcpy(cacheold,newold);
     struct stat temp_stat;
     const bool host_named_old = !stat(newold,&temp_stat);
-    if(!host_named_old) dirCache.ExpandName(newold);
+    if(!host_named_old && !dirCache.ExpandName(newold)) {
+        DOS_SetError(DOSERR_PATH_NOT_FOUND);
+        return false;
+    }
 
 	char newnew[CROSS_LEN];
-	strcpy(newnew,basedir);
-	strcat(newnew,newname);
-	CROSS_FILENAME(newnew);
+	if (!JoinHostPath(newnew,newname)) return false;
 	char cachenew[CROSS_LEN];
 	strcpy(cachenew,newnew);
-    dirCache.ExpandName(newnew);
+    if (!dirCache.ExpandName(newnew)) {
+        DOS_SetError(DOSERR_PATH_NOT_FOUND);
+        return false;
+    }
 	/* A case-only rename with long names on expands to the entry's own host name: no entry changes.
 	 * Where the host renames the old name as typed, the cache's entry for it must be that file, which
 	 * on a host that tells case apart it may not be. */
+	const char *resolved_name = dirCache.GetExpandName(cacheold);
+	if (!resolved_name) {
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
 	char resolved[CROSS_LEN];
-	strcpy(resolved,dirCache.GetExpandName(cacheold));
+	strcpy(resolved,resolved_name);
 	const bool same_entry = !strcmp(resolved,newnew);
 	struct stat resolved_stat;
 	const bool cache_agrees = !host_named_old || (!stat(resolved,&resolved_stat) && resolved_stat.st_dev==temp_stat.st_dev && resolved_stat.st_ino==temp_stat.st_ino);
@@ -2719,10 +2737,7 @@ bool localDrive::FileExists(const char* name) {
     if (nocachedir) EmptyCache();
 
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
+	if (!HostPath(newname,name)) return false;
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
@@ -2741,10 +2756,7 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
     if (nocachedir) EmptyCache();
 
 	char newname[CROSS_LEN];
-	strcpy(newname,basedir);
-	strcat(newname,name);
-	CROSS_FILENAME(newname);
-	dirCache.ExpandName(newname);
+	if (!HostPath(newname,name)) return false;
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
@@ -2894,7 +2906,7 @@ next:
 
 localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options) : special_prefix_local(prefix_local.c_str()) {
 	strcpy(basedir,startdir);
-	sprintf(info,"local directory %s",startdir);
+	snprintf(info,sizeof(info),"local directory %s",startdir);
 	allocation.bytes_sector=_bytes_sector;
 	allocation.sectors_cluster=_sectors_cluster;
 	allocation.total_clusters=_total_clusters;
@@ -3374,8 +3386,7 @@ cdromDrive::cdromDrive(const char driveLetter, const char * startdir,uint16_t _b
 {
 	// Init mscdex
 	error = MSCDEX_AddDrive(driveLetter,startdir,subUnit);
-	strcpy(info, "CDRom ");
-	strcat(info, startdir);
+	snprintf(info,sizeof(info),"CDRom %s",startdir);
 	// Get Volume Label
 	char name[32];
 	if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);

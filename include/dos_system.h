@@ -217,7 +217,7 @@ public:
 	bool		OpenDir				(const char* path, uint16_t& id);
     bool        ReadDir             (uint16_t id, char* &result, char * &lresult);
 
-	void		ExpandName			(char* path);
+	bool		ExpandName			(char* path);
 	char*		GetExpandName		(const char* path);
 	bool		GetShortName		(const char* fullname, char* shortname);
 

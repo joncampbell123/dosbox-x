@@ -220,6 +220,7 @@ struct opendirinfo {
 /* helper functions for drive cache */
 bool physfsDrive::isdir(const char *name) {
 	char myname[CROSS_LEN];
+	if (strlen(name)>=CROSS_LEN) return false; // its path would not fit, nor its entry be listed
 	strcpy(myname,name);
 	normalize(myname,basedir);
     PHYSFS_Stat statbuf;
@@ -379,7 +380,7 @@ bool physfsDrive::setOverlaydir(const char * name) {
 }
 
 const char *physfsDrive::GetInfo() {
-	sprintf(info,"PhysFS directory %s", mountarc.c_str());
+	snprintf(info,sizeof(info),"PhysFS directory %s", mountarc.c_str());
 	return info;
 }
 
@@ -617,7 +618,7 @@ unsigned long physfsDrive::GetSerial() {
 
 bool physfsDrive::FindNext(DOS_DTA & dta) {
 	char * dir_ent, *ldir_ent;
-	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
+	char full_name[CROSS_LEN], lfull_name[CROSS_LEN];
 
 	uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH+1];
 	uint8_t find_attr;
@@ -637,6 +638,7 @@ again:
     if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
 
 	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:ldir[lfn_filefind_handle].c_str());
+	if (strlen(full_name)+strlen(dir_ent)>=CROSS_LEN||strlen(full_name)+strlen(ldir_ent)>=CROSS_LEN) goto again; // its host path would not fit
 	strcpy(lfull_name,full_name);
 
 	strcat(full_name,dir_ent);
@@ -645,7 +647,7 @@ again:
 	//GetExpandName might indirectly destroy dir_ent (by caching in a new directory
 	//and due to its design dir_ent might be lost.)
 	//Copying dir_ent first
-	dirCache.ExpandName(lfull_name);
+	if (!dirCache.ExpandName(lfull_name)) goto again; // its host path would not fit
 	normalize(lfull_name,basedir);
 
     PHYSFS_Stat statbuf;
@@ -674,8 +676,8 @@ again:
 		else
 			upcase(find_name);
 	}
-	strcpy(lfind_name,ldir_ent);
-	lfind_name[LFN_NAMELENGTH]=0;
+	// A long name longer than a find result holds is listed by its alias alone
+	strcpy(lfind_name,strlen(ldir_ent)>LFN_NAMELENGTH?find_name:ldir_ent);
 
 	dta.SetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 	return true;
@@ -893,7 +895,7 @@ physfscdromDrive::physfscdromDrive(const char driveLetter, const char * startdir
 }
 
 const char *physfscdromDrive::GetInfo() {
-	sprintf(info,"PhysFS CDRom %s", mountarc.c_str());
+	snprintf(info,sizeof(info),"PhysFS CDRom %s", mountarc.c_str());
 	return info;
 }
 

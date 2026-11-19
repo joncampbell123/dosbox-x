@@ -563,7 +563,7 @@ bool checkwat=false;
 bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     char pdir[LFN_NAMELENGTH+4], *p;
     uint8_t drive;char fulldir[DOS_PATHLENGTH],LFNPath[CROSS_LEN];
-    char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
+    char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
     uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
     if (!DOS_MakeName(path,fulldir,&drive)) return false;
 #if !defined(OSFREE)
@@ -1422,7 +1422,7 @@ bool DOS_UnlinkFile(char const * const name) {
 		lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
 		bool ret=DOS_FindFirst(((pfull.length()&&pfull[0]=='"'?"":"\"")+pfull+(pfull.length()&&pfull[pfull.length()-1]=='"'?"":"\"")).c_str(),0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY);
 		if (ret) do {
-			char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+			char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH+1];
 			uint16_t find_date,find_time;uint32_t find_size,find_hsize;uint8_t find_attr;
 			dta.GetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 			if (!(find_attr & DOS_ATTR_DIRECTORY)&&strlen(find_name)&&!strchr(find_name, '*')&&!strchr(find_name, '?')) {
@@ -1985,7 +1985,7 @@ void DTAExtendName(char * const name,char * const filename,char * const ext) {
 
 static void SaveFindResult(DOS_FCB & find_fcb) {
 	DOS_DTA find_dta(dos.tables.tempdta);
-    char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+    char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
     uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;uint8_t drive;
 	char file_name[9];char ext[4];
 	find_dta.GetResult(name,lname,size,hsize,date,time,attr);
@@ -2037,7 +2037,7 @@ bool DOS_FCBOpen(uint16_t seg,uint16_t offset) {
 		}
 		DOS_DTA find_dta(dos.tables.tempdta);
 		DOS_FCB find_fcb(RealSeg(dos.tables.tempdta),RealOff(dos.tables.tempdta));
-		char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH],file_name[9],ext[4];
+		char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1],file_name[9],ext[4];
 		uint32_t size,hsize;uint16_t date,time;uint8_t attr;
 		find_dta.GetResult(name,lname,size,hsize,date,time,attr);
 		DTAExtendName(name,file_name,ext);
@@ -2339,7 +2339,7 @@ bool DOS_FCBDeleteFile(uint16_t seg,uint16_t offset){
     nextfile = DOS_FindFirst(name, attr, true);
     DOS_FCB fcb(RealSeg(new_dta), RealOff(new_dta) + 1);
     while(nextfile) {
-        char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
+        char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
         uint32_t size, hsize;
         uint16_t date, time;
         uint8_t file_attr;
@@ -2445,7 +2445,7 @@ bool DOS_FCBRenameFile(uint16_t seg, uint16_t offset) {
     }
 
     while(ret) {
-        char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
+        char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
         uint32_t size, hsize; uint16_t date; uint16_t time; uint8_t attr;
         DOS_DTA find_dta(dos.tables.tempdta);
         find_dta.GetResult(name, lname, size, hsize, date, time, attr);
