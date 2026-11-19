@@ -1,4 +1,7 @@
 Next version:
+  - [AI] DOS: on Windows, changing a file's attributes no longer empties
+    the folder's directory cache, so the next search does not read the whole
+    folder from the host again. (Optimiza)
   - [AI] DOS: a host or archive path longer than the 512 bytes a drive
     builds it in, and a mount path of 240 bytes or more, no longer overrun the
     stack. The drive answers path not found, MOUNT refuses a path it cannot
