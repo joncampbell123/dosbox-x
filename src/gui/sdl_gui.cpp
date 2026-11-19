@@ -2683,7 +2683,7 @@ protected:
 public:
     ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 400, 280, title) {
-            char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+            char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
             uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
             /* Command uses dta so set it to our internal dta */
             RealPt save_dta = dos.dta();

@@ -1088,7 +1088,7 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 			if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) break;
 			else {
 				//Found something. See if it's a directory (findfirst always finds regular files)
-                char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+                char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH+1];
                 uint16_t find_date,find_time;uint32_t find_size,find_hsize;uint8_t find_attr;
                 imgDTA->GetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 				if(!(find_attr & DOS_ATTR_DIRECTORY)) break;
@@ -1151,7 +1151,7 @@ bool fatDrive::getDirClustNum(const char *dir, uint32_t *clustNum, bool parDir) 
 				lfn_filefind_handle=fbak;
 				return false;
 			} else {
-                char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+                char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH+1];
                 uint16_t find_date,find_time;uint32_t find_size,find_hsize;uint8_t find_attr;
 				imgDTA->GetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 				lfn_filefind_handle=fbak;
@@ -2040,8 +2040,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				memset(fatSectBuffer,0,1024);
 				curFatSect = 0xffffffff;
 
-				strcpy(info, "fatDrive ");
-				strcat(info, wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':'?sysFilename+1:sysFilename);
+				snprintf(info, sizeof(info), "fatDrive %s", wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':'?sysFilename+1:sysFilename);
 
 				/* NTS: Real MS-DOS behavior is that an unformatted partition is inaccessible but INT 21h AX=440Dh CX=0x0860 (Get Device Parameters)
 				 *      has a ready-made BPB for use in formatting the partition. FORMAT.COM then formats the filesystem based on the MS-DOS kernel's
@@ -2592,8 +2591,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 	memset(fatSectBuffer,0,1024);
 	curFatSect = 0xffffffff;
 
-	strcpy(info, "fatDrive ");
-	strcat(info, wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':'?sysFilename+1:sysFilename);
+	snprintf(info, sizeof(info), "fatDrive %s", wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':'?sysFilename+1:sysFilename);
 }
 
 #ifdef _MSC_VER
