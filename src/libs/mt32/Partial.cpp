@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2026 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -33,6 +33,8 @@ namespace MT32Emu {
 
 static const Bit8u PAN_NUMERATOR_MASTER[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7};
 static const Bit8u PAN_NUMERATOR_SLAVE[]  = {0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7};
+
+static const Bit32u MAX_CUTOFF_VALUE = 240 << 18;
 
 static const Bit8u *pulseWidth100To255;
 
@@ -248,9 +250,22 @@ void Partial::startPartial(const Part *part, Poly *usePoly, const PatchCache *us
 	} else {
 		useLA32Pair->initSynth(pairType, (patchCache->waveform & 1) != 0, pulseWidthVal, patchCache->srcPartial.tvf.resonance + 1);
 	}
+	// Ensure that the first update always fires by setting the sentinels.
+	// The ramp values never exceed MAX_CURRENT. The pitch is clamped down to 59392.
+	currentPitch = Bit16u(currentAmpRampValue = currentCutoffModifier = ~0);
 	if (!hasRingModulatingSlave()) {
 		la32Pair->deactivate(LA32PartialPair::SLAVE);
 	}
+}
+
+bool Partial::updateAmp() {
+	Bit32u nextAmpRampValue = ampRamp.nextValue();
+	if (ampRamp.checkInterrupt()) {
+		tva->handleInterrupt();
+	}
+	if (currentAmpRampValue == nextAmpRampValue) return false;
+	currentAmpRampValue = nextAmpRampValue;
+	return true;
 }
 
 Bit32u Partial::getAmpValue() {
@@ -264,22 +279,37 @@ Bit32u Partial::getAmpValue() {
 	//
 	// Also still partially unconfirmed is the behaviour when ramping between levels, as well as the timing.
 	// TODO: The tests above were performed using the float model, to be refined
-	Bit32u ampRampVal = 67117056 - ampRamp.nextValue();
-	if (ampRamp.checkInterrupt()) {
-		tva->handleInterrupt();
-	}
-	return ampRampVal;
+	return 67117056 - currentAmpRampValue;
 }
 
-Bit32u Partial::getCutoffValue() {
-	if (isPCM()) {
-		return 0;
-	}
-	Bit32u cutoffModifierRampVal = cutoffModifierRamp.nextValue();
+bool Partial::updatePitch() {
+	Bit16u nextPitch = tvp->nextPitch();
+	if (currentPitch == nextPitch) return false;
+	currentPitch = nextPitch;
+	return true;
+}
+
+bool Partial::updateCutoff() {
+	if (isPCM()) return false;
+	Bit32u nextCutoffModifier = cutoffModifierRamp.nextValue();
 	if (cutoffModifierRamp.checkInterrupt()) {
 		tvf->handleInterrupt();
 	}
-	return (tvf->getBaseCutoff() << 18) + cutoffModifierRampVal;
+	if (currentCutoffModifier == nextCutoffModifier) return false;
+	currentCutoffModifier = nextCutoffModifier;
+	return true;
+}
+
+Bit32u Partial::getCutoffValue() {
+	if (isPCM()) return 0;
+	Bit32u currentCutoffValue = (tvf->getBaseCutoff() << 18) + currentCutoffModifier;
+
+	// The cutoffModifier may not be supposed to be directly added to the cutoff -
+	// it may for example need to be multiplied in some way.
+	// The 240 cutoffVal limit was determined via sample analysis (internal Munt capture IDs: glop3, glop4).
+	// More research is needed to be sure that this is correct, however.
+	if (currentCutoffValue > MAX_CUTOFF_VALUE) return MAX_CUTOFF_VALUE;
+	return currentCutoffValue;
 }
 
 bool Partial::hasRingModulatingSlave() const {
@@ -337,9 +367,15 @@ bool Partial::generateNextSample(LA32PairImpl *la32PairImpl) {
 		deactivate();
 		return false;
 	}
-	la32PairImpl->generateNextSample(LA32PartialPair::MASTER, getAmpValue(), tvp->nextPitch(), getCutoffValue());
+	if (updateAmp()) la32PairImpl->setAmp(LA32PartialPair::MASTER, getAmpValue());
+	if (updatePitch()) la32PairImpl->setPitch(LA32PartialPair::MASTER, currentPitch);
+	if (updateCutoff()) la32PairImpl->setCutoff(LA32PartialPair::MASTER, getCutoffValue());
+	la32PairImpl->generateNextSample(LA32PartialPair::MASTER);
 	if (hasRingModulatingSlave()) {
-		la32PairImpl->generateNextSample(LA32PartialPair::SLAVE, pair->getAmpValue(), pair->tvp->nextPitch(), pair->getCutoffValue());
+		if (pair->updateAmp()) la32PairImpl->setAmp(LA32PartialPair::SLAVE, pair->getAmpValue());
+		if (pair->updatePitch()) la32PairImpl->setPitch(LA32PartialPair::SLAVE, pair->currentPitch);
+		if (pair->updateCutoff()) la32PairImpl->setCutoff(LA32PartialPair::SLAVE, pair->getCutoffValue());
+		la32PairImpl->generateNextSample(LA32PartialPair::SLAVE);
 		if (!pair->tva->isPlaying() || !la32PairImpl->isActive(LA32PartialPair::SLAVE)) {
 			pair->deactivate();
 			if (mixType == 2) {

@@ -64,11 +64,10 @@
 #define MT32EMU_EXPORT_V(symbol_version_tag) MT32EMU_EXPORT
 
 /* Helpers for compile-time version checks */
-
 #define MT32EMU_VERSION_MAJOR 2
 #define MT32EMU_VERSION_MINOR 8
-#define MT32EMU_VERSION_PATCH 0
-#define MT32EMU_VERSION "2.8.0"
+#define MT32EMU_VERSION_PATCH 6
+#define MT32EMU_VERSION "2.8.6"
 
 /* Encodes the given version components to a single integer value to simplify further checks. */
 #define MT32EMU_VERSION_INT(major, minor, patch) ((major << 16) | (minor << 8) | patch)

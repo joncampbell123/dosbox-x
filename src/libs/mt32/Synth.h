@@ -239,7 +239,7 @@ private:
 
 	bool initPCMList(Bit16u mapAddress, Bit16u count);
 	bool initTimbres(Bit16u mapAddress, Bit16u offset, Bit16u timbreCount, Bit16u startTimbre, bool compressed);
-	bool initCompressedTimbre(Bit16u drumNum, const Bit8u *mem, Bit32u memLen);
+	bool initCompressedTimbre(TimbresMemoryRegion &tempRegion, Bit16u absTimbreNum, const Bit8u *src, Bit32u srcLen);
 	void initReverbModels(bool mt32CompatibleMode);
 	void initSoundGroups(char newSoundGroupNames[][9]);
 
@@ -379,12 +379,14 @@ public:
 	// Calls from multiple threads must be synchronised, although, no synchronisation is required with the rendering thread.
 	// The methods return false if the MIDI event queue is full and the message cannot be enqueued.
 
-	// Enqueues a single short MIDI message to play at specified time. The message must contain a status byte.
+	// Enqueues a single short MIDI message to play at specified time. The message must contain a status byte and one or two data
+	// bytes (as appropriate for the MIDI command).
 	MT32EMU_EXPORT bool playMsg(Bit32u msg, Bit32u timestamp);
 	// Enqueues a single well formed System Exclusive MIDI message to play at specified time.
 	MT32EMU_EXPORT bool playSysex(const Bit8u *sysex, Bit32u len, Bit32u timestamp);
 
-	// Enqueues a single short MIDI message to be processed ASAP. The message must contain a status byte.
+	// Enqueues a single short MIDI message to be processed ASAP. The message must contain a status byte and one or two data
+	// bytes (as appropriate for the MIDI command).
 	MT32EMU_EXPORT bool playMsg(Bit32u msg);
 	// Enqueues a single well formed System Exclusive MIDI message to be processed ASAP.
 	MT32EMU_EXPORT bool playSysex(const Bit8u *sysex, Bit32u len);
@@ -394,8 +396,8 @@ public:
 	// sequential MIDI events, and a sequence of NoteOn and immediately succeeding NoteOff messages is always silent.
 	// A thread that invokes these methods must be explicitly synchronised with the thread performing sample rendering or be the same.
 
-	// Sends a short MIDI message to the synth for immediate playback. The message must contain a status byte and two data bytes,
-	// otherwise it is ignored.
+	// Sends a short MIDI message to the synth for immediate playback. The message must contain a status byte and one or two data
+	// bytes (as appropriate for the MIDI command), otherwise it is ignored.
 	// See the WARNING above.
 	MT32EMU_EXPORT void playMsgNow(Bit32u msg);
 	// Sends unpacked short MIDI message to the synth for immediate playback. All the message parameters must be within the supported
@@ -630,6 +632,7 @@ public:
 	MT32EMU_EXPORT_V(2.7) bool getSoundName(char *soundName, Bit8u timbreGroup, Bit8u timbreNumber) const;
 
 	// Stores internal state of emulated synth into an array provided (as it would be acquired from hardware).
+	// Note, addr parameter is expressed in the linear space and *not* the SysEx address space.
 	MT32EMU_EXPORT void readMemory(Bit32u addr, Bit32u len, Bit8u *data);
 
 	// Retrieves the current state of the emulated MT-32 display facilities.

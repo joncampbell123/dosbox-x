@@ -115,7 +115,7 @@ std::string ldir[256];
 static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
 host_cnv_char_t *CodePageGuestToHost(const char *s);
-bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), CheckDBCSCP(int32_t codepage);
+bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), CheckDBCSCP(int32_t codepage), filename_not_8x3(const char *n);
 extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, uao, halfwidthkana, dbcs_sbcs, inmsg, forceswk;
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
@@ -1353,6 +1353,21 @@ void drivezRegister(std::string const& path, std::string const& target_dir, bool
     dos.loaded_codepage = cp;
 }
 
+#if defined(WIN32)
+/* With 8.3 names on, the file system gives a long name a short alias of its own. */
+static bool host_made_alias(const host_cnv_char_t *host_name) {
+	bool alias = true;
+	WIN32_FIND_DATAW data;
+	HANDLE find = FindFirstFileW(host_name, &data);
+	if (find != INVALID_HANDLE_VALUE) {
+		alias = data.cAlternateFileName[0] != 0;
+		FindClose(find);
+	}
+	return alias;
+}
+#else
+static bool host_made_alias(const host_cnv_char_t *) { return false; }
+#endif
 // The host path of a DOS name on this drive, each part expanded to its host name; false when it does
 // not fit in CROSS_LEN. Sets no DOS error: TestDir and the other queries leave the error alone.
 bool localDrive::HostPath(char* hostname, const char* name) {
@@ -1498,12 +1513,15 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		return false;
 	}
 
-	if(!existing_file) {
-		strcpy(newname,basedir);
-		strcat(newname,name);
-		CROSS_FILENAME(newname);
-		dirCache.AddEntry(newname, true);
-	}
+	const bool host_alias = host_made_alias(host_name);
+
+	/* An existing file the cache did not hold was made on the host since the folder was read: only a
+	 * read gives it the host's own spelling. */
+	const bool unseen = dirCache.AddEntry(newname, true) && existing_file;
+	/* The cache holds the new entry when its folder is one the cache has read, a long name under the
+	 * next free alias. Where the file system made the alias, only a read of the folder learns it. */
+	const char *created = strrchr_dbcs((char *)name,'\\');
+	if (unseen || (host_alias && filename_not_8x3(created ? created+1 : name)) || !dirCache.HoldsFolderOf(newname)) EmptyCache();
 
 	/* Make the 16 bit device information */
 	*file=new LocalFile(name,hand);
@@ -1950,6 +1968,24 @@ bool localDrive::IsRootDotEntry(const char * dir_ent,const char * srch_dir) {
 	return strlen(srch_dir)==baselen+(split?0:1);
 }
 
+// The DOS date and time of a host file's last write.
+static void dos_time_of(const ht_stat_t& stat_block, uint16_t& find_date, uint16_t& find_time) {
+    const struct tm* time;
+	if((time=
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
+				_localtime64
+#else
+				localtime
+#endif
+				(&stat_block.st_mtime))!=nullptr){
+		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
+		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
+	} else {
+		find_time=6;
+		find_date=4;
+	}
+}
+
 bool localDrive::FindNext(DOS_DTA & dta) {
 
 	char * dir_ent, *ldir_ent;
@@ -1987,8 +2023,40 @@ again:
 	strcpy(dir_entcopy,dir_ent);
 	strcpy(ldir_entcopy,ldir_ent);
 
-	char *temp_name = dirCache.GetExpandName(full_name);
-	if (!temp_name) goto again; // its host path would not fit
+	/* Of a removed directory only . and .. are left, as in its freed cluster on a DOS disk, and
+	 * the host holds nothing to ask about them. */
+	uint16_t gone_date, gone_time;
+	if (dirCache.RemovedSearchDir(id,gone_date,gone_time)) {
+		if ((strcmp(dir_entcopy,".") && strcmp(dir_entcopy,"..")) || !(srch_attr & DOS_ATTR_DIRECTORY)) goto again;
+		dta.SetResult(dir_entcopy,ldir_entcopy,0,0,gone_date,gone_time,DOS_ATTR_DIRECTORY);
+		return true;
+	}
+	// The path the search was given names another directory since a rename, or none.
+	char *temp_name, renamed_name[CROSS_LEN];
+	const char *renamed_dir = dirCache.RenamedSearchDir(id);
+	if (renamed_dir) {
+		if (strlen(renamed_dir)+strlen(ldir_entcopy)>=CROSS_LEN) goto again;
+		strcpy(renamed_name,renamed_dir);
+		strcat(renamed_name,ldir_entcopy);
+		temp_name = renamed_name;
+	} else {
+		temp_name = dirCache.GetExpandName(full_name);
+		if (!temp_name) goto again; // its host path would not fit
+		/* A delete, an RD or a rename gives the entry's generated short name back, and a file made
+		 * since can take it: that name then reaches the new file. The entry is the one that left,
+		 * so it is skipped, as when its short name reaches nothing. */
+		const char *found_name = strrchr_dbcs(temp_name,CROSS_FILESPLIT);
+		if (found_name && strcmp(found_name+1,ldir_entcopy)) {
+			char own_name[CROSS_LEN];
+			const size_t dir_len = (size_t)(found_name-temp_name)+1;
+			if (dir_len+strlen(ldir_entcopy)<CROSS_LEN) {
+				memcpy(own_name,temp_name,dir_len);
+				strcpy(own_name+dir_len,ldir_entcopy);
+				const host_cnv_char_t* own_host = CodePageGuestToHost(own_name);
+				if (own_host && ht_stat(own_host,&stat_block)!=0) goto again;
+			}
+		}
+	}
 
 	// guest to host code page translation
 	const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
@@ -2048,20 +2116,7 @@ again:
         find_size = (uint32_t)(stat_block.st_size % 0x100000000);
     }
 
-    const struct tm* time;
-	if((time=
-#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
-				_localtime64
-#else
-				localtime
-#endif
-				(&stat_block.st_mtime))!=nullptr){
-		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
-		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
-	} else {
-		find_time=6; 
-		find_date=4;
-	}
+	dos_time_of(stat_block,find_date,find_time);
 	dta.SetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 	return true;
 }
@@ -2309,7 +2364,14 @@ bool localDrive::MakeDir(const char * dir) {
 #else
 	int temp=mkdir(host_name,0775);
 #endif
-	if (temp==0) dirCache.CacheOut(newdir,true);
+	if (temp==0) {
+		/* The cache adds the new directory under the next free alias and keeps the folder's other
+		 * entries; dropping the folder would number its aliases anew. Where the file system made
+		 * the alias, or the folder is one the cache has not read, only a read learns it. */
+		const char *made = strrchr_dbcs((char *)dir,'\\');
+		if ((host_made_alias(host_name) && filename_not_8x3(made ? made+1 : dir)) || !dirCache.HoldsFolderOf(newdir) || !dirCache.AddEntry(newdir,true,true))
+			dirCache.CacheOut(newdir,true);
+	}
 	return (temp==0);// || ((temp!=0) && (errno==EEXIST));
 }
 
@@ -2338,12 +2400,20 @@ bool localDrive::RemoveDir(const char * dir) {
         return false;
     }
 
+	// The time a search open in it gives its . and .. once it is gone.
+	ht_stat_t gone;
+	uint16_t gone_date = 4, gone_time = 6;
+	if (!ht_stat(host_name,&gone)) dos_time_of(gone,gone_date,gone_time);
+
 #if defined (WIN32)						/* MS Visual C++ */
 	int temp=_wrmdir(host_name);
 #else
 	int temp=rmdir(host_name);
 #endif
-	if (temp==0) dirCache.DeleteEntry(newdir,true);
+	if (temp==0) {
+		dirCache.SearchesRemoved(temp_name,gone_date,gone_time);
+		dirCache.DeleteEntry(newdir,true);
+	}
 	return (temp==0);
 }
 
@@ -2385,14 +2455,36 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 
 	char newold[CROSS_LEN];
 	if (!JoinHostPath(newold,oldname)) return false;
+	char cacheold[CROSS_LEN];
+	strcpy(cacheold,newold);
     struct stat temp_stat;
-    if(stat(newold,&temp_stat) && !dirCache.ExpandName(newold)) {
+    const bool host_named_old = !stat(newold,&temp_stat);
+    if(!host_named_old && !dirCache.ExpandName(newold)) {
         DOS_SetError(DOSERR_PATH_NOT_FOUND);
         return false;
     }
 
 	char newnew[CROSS_LEN];
-	if (!ExpandHostPath(newnew,newname)) return false;
+	if (!JoinHostPath(newnew,newname)) return false;
+	char cachenew[CROSS_LEN];
+	strcpy(cachenew,newnew);
+    if (!dirCache.ExpandName(newnew)) {
+        DOS_SetError(DOSERR_PATH_NOT_FOUND);
+        return false;
+    }
+	/* A case-only rename with long names on expands to the entry's own host name: no entry changes.
+	 * Where the host renames the old name as typed, the cache's entry for it must be that file, which
+	 * on a host that tells case apart it may not be. */
+	const char *resolved_name = dirCache.GetExpandName(cacheold);
+	if (!resolved_name) {
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
+	char resolved[CROSS_LEN];
+	strcpy(resolved,resolved_name);
+	const bool same_entry = !strcmp(resolved,newnew);
+	struct stat resolved_stat;
+	const bool cache_agrees = !host_named_old || (!stat(resolved,&resolved_stat) && resolved_stat.st_dev==temp_stat.st_dev && resolved_stat.st_ino==temp_stat.st_ino);
 
     // guest to host code page translation
     ht = CodePageGuestToHost(newold);
@@ -2419,7 +2511,20 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 	int temp=rename(o_temp_name,n_temp_name);
 #endif
 
-	if (temp==0) dirCache.CacheOut(newnew);
+	if (temp==0 && !(same_entry && cache_agrees)) {
+		/* The cache moves the one entry, with what it holds under it, out of its folder and into
+		 * the new one under the next free alias, and keeps the other entries; dropping the folder
+		 * would number its aliases anew. Where the file system made the alias, or a folder is one
+		 * the cache has not read, only a read learns it. */
+		ht_stat_t moved;
+		const bool isDir = !ht_stat(n_temp_name,&moved) && (moved.st_mode & S_IFDIR);
+		// A search records its directory as the cache expands it, unless that is another file.
+		if (isDir) dirCache.SearchesRenamed(cache_agrees ? resolved : newold,newnew);
+		const char *renamed = strrchr_dbcs((char *)newname,'\\');
+		if (!cache_agrees || (host_made_alias(n_temp_name) && filename_not_8x3(renamed ? renamed+1 : newname)) || !dirCache.HoldsFolderOf(cachenew)
+			|| !dirCache.MoveEntry(cacheold,cachenew,isDir))
+			dirCache.CacheOut(newnew);
+	}
 
     free(o_temp_name);
     free(n_temp_name);

@@ -1791,6 +1791,7 @@
     <ClCompile Include="..\src\agent\trace\trace_store.cpp">
       <Filter>Sources\agent</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\monitor\monitor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2830,6 +2831,10 @@
     </ClInclude>
     <ClInclude Include="..\include\agent\trace_store.h">
       <Filter>Sources\agent</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\monitor\monitor.h" />
+    <ClInclude Include="..\src\libs\mt32\LA32FloatMath.h">
+      <Filter>Sources\libs\mt32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

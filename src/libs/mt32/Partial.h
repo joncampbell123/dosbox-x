@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2026 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -80,16 +80,26 @@ private:
 	const PatchCache *patchCache;
 	PatchCache cachebackup;
 
-	Bit32u getAmpValue();
-	Bit32u getCutoffValue();
+	// We keep these copies to avoid dependent computations until the values change.
+	Bit32u currentAmpRampValue;
+	Bit16u currentPitch;
+	Bit32u currentCutoffModifier;
+
+	// These methods pull new values from TVA, TVP and TVF and return whether they've changed.
+	inline bool updateAmp();
+	inline bool updatePitch();
+	inline bool updateCutoff();
+
+	inline Bit32u getAmpValue();
+	inline Bit32u getCutoffValue();
 
 	template <class Sample, class LA32PairImpl>
-	bool doProduceOutput(Sample *leftBuf, Sample *rightBuf, Bit32u length, LA32PairImpl *la32PairImpl);
-	bool canProduceOutput();
+	inline bool doProduceOutput(Sample *leftBuf, Sample *rightBuf, Bit32u length, LA32PairImpl *la32PairImpl);
+	inline bool canProduceOutput();
 	template <class LA32PairImpl>
-	bool generateNextSample(LA32PairImpl *la32PairImpl);
-	void produceAndMixSample(IntSample *&leftBuf, IntSample *&rightBuf, LA32IntPartialPair *la32IntPair);
-	void produceAndMixSample(FloatSample *&leftBuf, FloatSample *&rightBuf, LA32FloatPartialPair *la32FloatPair);
+	inline bool generateNextSample(LA32PairImpl *la32PairImpl);
+	inline void produceAndMixSample(IntSample *&leftBuf, IntSample *&rightBuf, LA32IntPartialPair *la32IntPair);
+	inline void produceAndMixSample(FloatSample *&leftBuf, FloatSample *&rightBuf, LA32FloatPartialPair *la32FloatPair);
 
 public:
 	bool alreadyOutputed;

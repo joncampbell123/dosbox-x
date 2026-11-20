@@ -169,4 +169,4 @@ echo "Compiling our internal SDLnet 1.x"
 echo "Compiling DOSBox-X"
 chmod +x configure
 ./configure --enable-debug --prefix=/usr "${configure_args[@]}" || exit 1
-make -j3 || exit 1
+make -j$(nproc) || exit 1

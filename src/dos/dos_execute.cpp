@@ -94,7 +94,6 @@ unsigned int ENV_KEEPFREE = 83;
 
 void RDTSC_rebase();
 
-extern bool force_sfn;
 extern uint8_t ZDRIVE_NUM;
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), menu_update_autocycle(void);
 void DOS_UpdatePSPName(void) {
@@ -236,7 +235,7 @@ static bool MakeEnv(const char* name, uint16_t* segment) {
 		mem_writew(envwrite,1);
 		envwrite+=2;
 		char namebuf[DOS_PATHLENGTH];
-		if (DOS_Canonicalize(name,namebuf)) {
+		if (DOS_GetSFNPath(name, namebuf, false)) {
 			MEM_BlockWrite(envwrite,namebuf,(Bitu)(strlen(namebuf)+1));
 			return true;
 		} else return false;
@@ -408,14 +407,11 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint16_t flags) {
 	if (flags!=OVERLAY) {
 		/* Create an environment block */
 		envseg=block.exec.envseg;
-		force_sfn = true;
 		if (!MakeEnv(name,&envseg)) {
 			DOS_CloseFile(fhandle);
 			delete [] loadbuf;
-			force_sfn = false;
 			return false;
 		}
-		force_sfn = false;
 		uint16_t minsize;
 		/* Get Memory */		
 		DOS_AllocateMemory(&pspseg,&maxfree);
