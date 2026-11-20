@@ -149,6 +149,8 @@ Next version:
     by an emulator control signal, preventing later termination errors.
     (cimarronm)
   - Bump mt32emu to ver.2.8.6 (maron2000)
+  - DOS: INT 21h AH=56h now returns path not found when the destination
+    directory does not exist. (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
