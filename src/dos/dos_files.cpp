@@ -842,12 +842,21 @@ static bool DOS_PathLeadByte(uint8_t c) {
 	return (IS_PC98_ARCH && shiftjis_lead_byte(c)) || (isDBCSCP() && isKanji1(c));
 }
 
+/* A CD's search goes to MSCDEX, which reads the path itself: a search for the label alone returns
+ * the label for any name in a directory that exists, then that directory's entries that match
+ * the name, and a path that ends in a backslash names a directory and no entry in it */
+static bool DOS_SearchIsOnCD(const char * search) {
+	const uint8_t drive=(search[0] && search[1]==':') ? (uint8_t)((search[0] | 0x20)-'a') : DOS_GetDefaultDrive();
+	return drive<DOS_DRIVES && dynamic_cast<isoDrive*>(Drives[drive])!=NULL;
+}
+
 /* What MS-DOS answers to the path of a program's AH=4Eh before it reads a directory, long names
  * off: a name a directory entry cannot hold, or a path that climbs above the root, is error 3;
  * a backslash that ends the path is 3 below the root and 18 at it; a path that resolves to the
  * root itself is 18, the root having no entry for itself; an extension with a space inside it
  * matches no entry. 0 lets the search go on. The emulator's own callers pass quoted paths to
- * DOS_FindFirst and are not asked this. */
+ * DOS_FindFirst and are not asked this. On a CD, a path that ends in a backslash or resolves to
+ * a directory is MSCDEX's to answer. */
 uint16_t DOS_FindFirstPathError(const char * search) {
 	if (strchr(search,'"')) return DOSERR_PATH_NOT_FOUND;
 	const char * p=search;
@@ -858,6 +867,7 @@ uint16_t DOS_FindFirstPathError(const char * search) {
 		if (!*p) return DOSERR_PATH_NOT_FOUND;
 	}
 	if (drive>=DOS_DRIVES || !Drives[drive]) return 0;
+	const bool on_cd=DOS_SearchIsOnCD(search);
 
 	int depth=0;
 	bool lead=false;
@@ -883,7 +893,7 @@ uint16_t DOS_FindFirstPathError(const char * search) {
 		if (ch && ch!='\\' && ch!='/') continue;
 		const size_t len=(size_t)(c-start);
 		if (!len) {
-			if (!ch && c>p) return depth==0 ? DOSERR_NO_MORE_FILES : DOSERR_PATH_NOT_FOUND;
+			if (!ch && c>p && !on_cd) return depth==0 ? DOSERR_NO_MORE_FILES : DOSERR_PATH_NOT_FOUND;
 		} else if (*start==' ') {
 			return DOSERR_PATH_NOT_FOUND;
 		} else {
@@ -908,7 +918,7 @@ uint16_t DOS_FindFirstPathError(const char * search) {
 		if (!ch) break;
 		start=c+1;
 	}
-	if (dots_last && depth==0) return DOSERR_NO_MORE_FILES;
+	if (dots_last && depth==0 && !on_cd) return DOSERR_NO_MORE_FILES;
 	return 0;
 }
 
@@ -920,13 +930,14 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	uint8_t drive;char fullsearch[DOS_PATHLENGTH];
 	char dir[DOS_PATHLENGTH];char pattern[DOS_PATHLENGTH];
 	size_t len = strlen(search);
-	if(len && check_last_split_char(search, len, '\\') && !( (len > 2) && (search[len - 2] == ':') && (attr == DOS_ATTR_VOLUME) )) { 
+	const bool cd_dir = len && check_last_split_char(search, len, '\\') && DOS_SearchIsOnCD(search);
+	if(len && check_last_split_char(search, len, '\\') && !( (len > 2) && (search[len - 2] == ':') && (attr == DOS_ATTR_VOLUME) ) && !cd_dir) { 
 		//Dark Forces installer, but c:\ is alright for volume labels(exclusively set)
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
 
-	if (attr == DOS_ATTR_VOLUME) {
+	if (attr == DOS_ATTR_VOLUME && !DOS_SearchIsOnCD(search)) {
 		const char* vol_pattern = search;
 
 		/* Optional drive specification */
@@ -991,7 +1002,15 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 #else
 	find_last = strrchr_dbcs(fullsearch,'\\');
 #endif
-	if (!find_last) {	/*No dir */
+	if (cd_dir) {
+		/* MSCDEX reads "X\" as directory X and no entry in it: only the label can follow */
+		if (attr != DOS_ATTR_VOLUME) {
+			DOS_SetError(Drives[drive]->TestDir(fullsearch) ? DOSERR_NO_MORE_FILES : DOSERR_FILE_NOT_FOUND);
+			return false;
+		}
+		strcpy(dir,fullsearch);
+		pattern[0]=0;
+	} else if (!find_last) {	/*No dir */
 		strcpy(pattern,fullsearch);
 		dir[0]=0;
 	} else {
