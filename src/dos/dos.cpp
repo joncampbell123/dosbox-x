@@ -761,6 +761,17 @@ void DOS_BreakAction() {
 	DOS_BreakConioFlag = false;
 }
 
+/*! \brief      Check if STDIN is a regular file */
+bool DOS_IsSTDINRegularFile(void)
+{
+    uint32_t handle = RealHandle(STDIN);
+
+    if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen())
+        return false;
+
+    return !(Files[handle]->GetInformation() & 0x8000);
+}
+
 /* unmask IRQ 0 automatically on disk I/O functions.
  * there exist old DOS games and demos that rely on very selective IRQ masking,
  * but, their code also assumes that calling into DOS or the BIOS will unmask the IRQ.
@@ -1242,12 +1253,21 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x08:      /* Direct Character Input, without echo (checks for breaks officially :)*/
             {
-                uint8_t c;uint16_t n=1;
-                DOS_ReadFile (STDIN,&c,&n);
-                if (c == 3) {
-                    DOS_BreakAction();
-                    if (!DOS_BreakTest()) return CBRET_NONE;
-                }
+                uint8_t c;
+                do {
+                    uint16_t n = 1;
+                    if(!DOS_ReadFile(STDIN, &c, &n) || n == 0) {
+                        c = 0; /* FIX_ME: Handle end of file condition */
+                        break;
+                    }
+                    if(c == 3) {
+                        DOS_BreakAction();
+                        if(!DOS_BreakTest()) return CBRET_NONE;
+                        if(DOS_IsSTDINRegularFile())
+                            continue; /* Skip the Ctrl+C character from redirected file input and read the next character. */
+                    }
+                    break;
+                } while(true);
                 reg_al=c;
                 break;
             }
