@@ -289,6 +289,45 @@ int get_expanded_files(const std::string &path, std::vector<std::string> &paths,
 	}
 }
 
+extern int lfn_filefind_handle;
+
+/* A volume label against a search pattern as MS-DOS compares them: both as eleven characters,
+ * eight of name and three of extension padded with spaces, a '?' matching any one and a '*'
+ * the rest of its field. A pattern that names nothing ("" or ".", what an internal lookup of
+ * "C:\" leaves) is any label. */
+bool VolumeLabelCmp(const char * label11, const char * pattern) {
+	if (!*pattern || !strcmp(pattern,".")) return true;
+	if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
+		/* A long-name search (AX=714Eh) matches the label as it matches a long name */
+		char name[13];
+		unsigned int n=8, e=3, len;
+		while (n>0 && label11[n-1]==' ') n--;
+		while (e>0 && label11[8+e-1]==' ') e--;
+		memcpy(name,label11,n);
+		len=n;
+		if (e) { name[len++]='.'; memcpy(name+len,label11+8,e); len+=e; }
+		name[len]=0;
+		return WildFileCmp(name,pattern) || LWildFileCmp(name,pattern);
+	}
+	char tmpl[11];
+	memset(tmpl,' ',sizeof(tmpl));
+	const char * p=pattern;
+	for (unsigned int field=0;field<2;field++) {
+		const unsigned int start=field?8:0, len=field?3:8;
+		for (unsigned int i=0;*p && *p!='.';p++) {
+			if (*p=='*') {
+				memset(tmpl+start+i,'?',len-i);
+				i=len;
+			} else if (i<len) tmpl[start+i++]=*p;
+		}
+		if (*p=='.') p++;
+	}
+	for (unsigned int i=0;i<sizeof(tmpl);i++) {
+		if (tmpl[i]!='?' && toupper((unsigned char)tmpl[i])!=toupper((unsigned char)label11[i])) return false;
+	}
+	return true;
+}
+
 void Set_Label(char const * const input, char * const output, bool cdrom) {
     uint8_t togo = 11;
     uint8_t vnamePos = 0;

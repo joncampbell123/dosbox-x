@@ -511,7 +511,8 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
 	}
     for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
 	
-	sSave(sDTA,sdrive,_sdrive);
+	/* MS-DOS counts the drive from 1 here (A: is 1) */
+	sSave(sDTA,sdrive,(uint8_t)(_sdrive+1u));
 	sSave(sDTA,sattr,_sattr);
     const char* find_ext;
     find_ext=strchr(pattern,'.');
@@ -536,7 +537,11 @@ void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,
 	strcpy(fd.sname,_name);
 	if (!strcmp(fd.lname,fd.sname)) fd.sname[0]=0;
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
-		MEM_BlockWrite(pt+offsetof(sDTA,name),(void *)_name,strlen(_name)+1);
+		/* MS-DOS lays the entry's eight name bytes down first and writes the dot, the extension
+		 * and the zero over them, so a short name leaves spaces after its zero up to byte 8 */
+		size_t len=strlen(_name)+1;
+		MEM_BlockWrite(pt+offsetof(sDTA,name),(void *)_name,len);
+		for (size_t i=len;i<8;i++) mem_writeb(pt+offsetof(sDTA,name)+i,' ');
 		sSave(sDTA,size,_size);
 		sSave(sDTA,date,_date);
 		sSave(sDTA,time,_time);
@@ -597,7 +602,7 @@ int DOS_DTA::GetFindData(int fmt, char * fdstr, int *c) {
 }
 
 uint8_t DOS_DTA::GetSearchDrive(void) {
-	return lfn_filefind_handle>=LFN_FILEFIND_MAX?(uint8_t)sGet(sDTA,sdrive):sdriv[lfn_filefind_handle];
+	return lfn_filefind_handle>=LFN_FILEFIND_MAX?(uint8_t)(sGet(sDTA,sdrive)-1u):sdriv[lfn_filefind_handle];
 }
 
 void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {

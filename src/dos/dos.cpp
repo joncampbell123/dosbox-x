@@ -638,6 +638,7 @@ extern bool date_host_forced;
 extern bool dos_a20_disable_on_exec;
 
 static Bitu DOS_21Handler(void);
+uint16_t DOS_FindFirstPathError(const char * search);
 void XMS_DOS_LocalA20DisableIfNotEnabled(void);
 void XMS_DOS_LocalA20DisableIfNotEnabled_XMSCALL(void);
 #if !defined(OSFREE)
@@ -2519,10 +2520,15 @@ static Bitu DOS_21Handler(void) {
             reg_ah=dos.return_mode;
             CALLBACK_SCF(false);
             break;
-        case 0x4e:                  /* FINDFIRST Find first matching file */
+        case 0x4e: {                /* FINDFIRST Find first matching file */
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 			lfn_filefind_handle=LFN_FILEFIND_NONE;
-            if (DOS_FindFirst(name1,reg_cx)) {
+            const uint16_t path_error=uselfn?0:DOS_FindFirstPathError(name1);
+            if (path_error) {
+                DOS_SetError(path_error);
+                reg_ax=path_error;
+                CALLBACK_SCF(true);
+            } else if (DOS_FindFirst(name1,reg_cx)) {
                 CALLBACK_SCF(false);
                 reg_ax=0;           /* Undocumented */
             } else {
@@ -2530,6 +2536,7 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(true);
             }
             break;       
+        }
         case 0x4f:                  /* FINDNEXT Find next matching file */
             if (DOS_FindNext()) {
                 CALLBACK_SCF(false);

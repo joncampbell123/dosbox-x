@@ -1,4 +1,8 @@
 Next version:
+  - [AI] DOS: INT 21h function 4Eh and the label and root searches of a host
+    folder, an overlay drive and a zip drive answer as MS-DOS 6.22 and 7.10
+    do: error 3 or 18 where DOS gives them, no "." and ".." in a root, and
+    a find next after a search for the label alone lists no file. (Optimiza)
   - [AI] DOS: creating, deleting or renaming a file or directory on a
     local drive edits the folder's cached listing instead of emptying it,
     and the short names of the other files stay as they were. (Optimiza)

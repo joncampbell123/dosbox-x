@@ -838,6 +838,80 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	return false;
 }
 
+static bool DOS_PathLeadByte(uint8_t c) {
+	return (IS_PC98_ARCH && shiftjis_lead_byte(c)) || (isDBCSCP() && isKanji1(c));
+}
+
+/* What MS-DOS answers to the path of a program's AH=4Eh before it reads a directory, long names
+ * off: a name a directory entry cannot hold, or a path that climbs above the root, is error 3;
+ * a backslash that ends the path is 3 below the root and 18 at it; a path that resolves to the
+ * root itself is 18, the root having no entry for itself; an extension with a space inside it
+ * matches no entry. 0 lets the search go on. The emulator's own callers pass quoted paths to
+ * DOS_FindFirst and are not asked this. */
+uint16_t DOS_FindFirstPathError(const char * search) {
+	if (strchr(search,'"')) return DOSERR_PATH_NOT_FOUND;
+	const char * p=search;
+	uint8_t drive=DOS_GetDefaultDrive();
+	if (p[0] && p[1]==':') {
+		drive=(p[0] | 0x20)-'a';
+		p+=2;
+		if (!*p) return DOSERR_PATH_NOT_FOUND;
+	}
+	if (drive>=DOS_DRIVES || !Drives[drive]) return 0;
+
+	int depth=0;
+	bool lead=false;
+	if (*p!='\\' && *p!='/') {
+		bool sep=true;
+		for (const char * c=Drives[drive]->curdir;*c;c++) {
+			if (lead) lead=false;
+			else if (*c=='\\') { sep=true; continue; }
+			else if (DOS_PathLeadByte((uint8_t)*c)) lead=true;
+			if (sep) depth++;
+			sep=false;
+		}
+	}
+	bool dots_last=false;
+	lead=false;
+	for (const char * c=p, * start=p;;c++) {
+		if (lead) {
+			lead=false;
+			if (*c) continue;
+		}
+		const uint8_t ch=(uint8_t)*c;
+		if (ch && DOS_PathLeadByte(ch)) { lead=true; continue; }
+		if (ch && ch!='\\' && ch!='/') continue;
+		const size_t len=(size_t)(c-start);
+		if (!len) {
+			if (!ch && c>p) return depth==0 ? DOSERR_NO_MORE_FILES : DOSERR_PATH_NOT_FOUND;
+		} else if (*start==' ') {
+			return DOSERR_PATH_NOT_FOUND;
+		} else {
+			size_t dots=0;
+			const char * dot=NULL;
+			for (const char * d=start;d<c;d++) if (*d=='.') { dots++; if (!dot) dot=d; }
+			if (dots==len) {
+				if (len>2) return DOSERR_PATH_NOT_FOUND;
+				if (len==2 && --depth<0) return DOSERR_PATH_NOT_FOUND;
+				dots_last=true;
+			} else {
+				if (dot==start || dots>1) return DOSERR_PATH_NOT_FOUND;
+				if (dot) {
+					const char * ext_end=c;
+					while (ext_end>dot+1 && ext_end[-1]==' ') ext_end--;
+					if (memchr(dot+1,' ',(size_t)(ext_end-(dot+1)))) return ch ? DOSERR_PATH_NOT_FOUND : DOSERR_NO_MORE_FILES;
+				}
+				depth++;
+				dots_last=false;
+			}
+		}
+		if (!ch) break;
+		start=c+1;
+	}
+	if (dots_last && depth==0) return DOSERR_NO_MORE_FILES;
+	return 0;
+}
+
 bool forcelfn = false;
 bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	ReplaceCurrentFindSnapshot();
@@ -868,7 +942,33 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 			return false;
 		}
 		sdrive = drive;
-		while (*vol_pattern == '\\') vol_pattern++; /* Creative Sound Blaster Pro 2.0 INSTALL uses "A:\*.*" to read volume label */
+		while (*vol_pattern == '\\' || *vol_pattern == '/') vol_pattern++; /* Creative Sound Blaster Pro 2.0 INSTALL uses "A:\*.*" to read volume label */
+		/* The label is the root's, whatever directory the path names once that directory exists:
+		 * only the last name is compared, and a last name of dots names a directory, not a label */
+		const char* vol_name = NULL;
+		bool lead = false;
+		for (const char* c = vol_pattern; *c; c++) {
+			if (lead) lead = false;
+			else if (DOS_PathLeadByte((uint8_t)*c)) lead = true;
+			else if (*c == '\\' || *c == '/') vol_name = c;
+		}
+		if (vol_name) {
+			char dir[DOS_PATHLENGTH], fulldir[DOS_PATHLENGTH];
+			uint8_t dir_drive;
+			const size_t dir_len = (size_t)(vol_name - search);
+			if (dir_len >= sizeof(dir)) { DOS_SetError(DOSERR_PATH_NOT_FOUND); return false; }
+			memcpy(dir, search, dir_len);
+			dir[dir_len] = 0;
+			if (!DOS_MakeName(dir, fulldir, &dir_drive) || !Drives[dir_drive]->TestDir(fulldir)) {
+				DOS_SetError(DOSERR_PATH_NOT_FOUND);
+				return false;
+			}
+			vol_pattern = vol_name + 1;
+		}
+		if (*vol_pattern && strspn(vol_pattern, ".") == strlen(vol_pattern)) {
+			DOS_SetError(DOSERR_NO_MORE_FILES);
+			return false;
+		}
 		dta.SetupSearch(drive, (uint8_t)attr, vol_pattern);
 
 		return Drives[drive]->FindFirst("", dta, fcb_findfirst);
