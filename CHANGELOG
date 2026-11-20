@@ -153,6 +153,9 @@ Next version:
     environment from an LFN path. (cimarronm)
   - DOS: INT 21h AH=56h now returns path not found when the destination
     directory does not exist. (cimarronm)
+  - Windows: Fix Ctrl+Break wasn't recognized (maron2000, zhro)
+  - Fixed Ctrl+C and Ctrl+Break handling for CON input (maron2000)
+  - Fixed Ctrl+C handling for redirected STDIN in AH=08h (maron2000)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed
