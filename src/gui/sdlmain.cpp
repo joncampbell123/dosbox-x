@@ -5940,6 +5940,7 @@ bool gfx_in_mapper = false;
 #define DB_POLLSKIP 1
 #endif
 
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
@@ -5966,6 +5967,11 @@ void GFX_Events() {
             MAPPER_UpdateJoysticks();
         }
     }
+#endif
+
+#if C_MONITOR
+	extern std::atomic< void(*)() > Monitor_RunProgram;
+	if( auto monitor_command= Monitor_RunProgram.load() ) monitor_command();
 #endif
 
 #if C_GAMELINK
@@ -6006,6 +6012,24 @@ void GFX_Events() {
 #if defined(WIN32) && !defined(HX_DOS)
         case SDL_SYSWMEVENT:
             switch( event.syswm.msg->msg.win.msg ) {
+                case WM_KEYDOWN:
+                    if(event.syswm.msg->msg.win.wParam == VK_CANCEL) { // Handle Ctrl+Break (VK_CANCEL) as Pause key
+                        SDL_Event key_event = {};
+                        key_event.type = SDL_KEYDOWN;
+                        key_event.key.keysym.scancode = SDL_SCANCODE_PAUSE;
+                        key_event.key.keysym.sym = SDLK_PAUSE;
+                        SDL_PushEvent(&key_event);
+                    }
+                    break;
+                case WM_KEYUP:
+                    if(event.syswm.msg->msg.win.wParam == VK_CANCEL) { // Handle Ctrl+Break (VK_CANCEL) as Pause key
+                        SDL_Event key_event = {};
+                        key_event.type = SDL_KEYUP;
+                        key_event.key.keysym.scancode = SDL_SCANCODE_PAUSE;
+                        key_event.key.keysym.sym = SDLK_PAUSE;
+                        SDL_PushEvent(&key_event);
+                    }
+                    break;
                 case WM_COMMAND:
                     MSG_WM_COMMAND_handle(/*&*/(*event.syswm.msg));
                     break;

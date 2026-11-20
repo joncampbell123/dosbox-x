@@ -355,12 +355,18 @@ MT32EMU_EXPORT void MT32EMU_C_CALL mt32emu_play_short_message(mt32emu_const_cont
  */
 MT32EMU_EXPORT void MT32EMU_C_CALL mt32emu_play_short_message_at(mt32emu_const_context context, mt32emu_bit32u message, mt32emu_bit32u timestamp);
 
-/** Enqueues a single short MIDI message to be processed ASAP. The message must contain a status byte. */
+/**
+ * Enqueues a single short MIDI message to be processed ASAP. The message must contain a status byte and one or two data
+ * bytes (as appropriate for the MIDI command).
+ */
 MT32EMU_EXPORT mt32emu_return_code MT32EMU_C_CALL mt32emu_play_msg(mt32emu_const_context context, mt32emu_bit32u msg);
 /** Enqueues a single well formed System Exclusive MIDI message to be processed ASAP. */
 MT32EMU_EXPORT mt32emu_return_code MT32EMU_C_CALL mt32emu_play_sysex(mt32emu_const_context context, const mt32emu_bit8u *sysex, mt32emu_bit32u len);
 
-/** Enqueues a single short MIDI message to play at specified time. The message must contain a status byte. */
+/**
+ * Enqueues a single short MIDI message to play at specified time. The message must contain a status byte and one or two data
+ * bytes (as appropriate for the MIDI command).
+ */
 MT32EMU_EXPORT mt32emu_return_code MT32EMU_C_CALL mt32emu_play_msg_at(mt32emu_const_context context, mt32emu_bit32u msg, mt32emu_bit32u timestamp);
 /** Enqueues a single well formed System Exclusive MIDI message to play at specified time. */
 MT32EMU_EXPORT mt32emu_return_code MT32EMU_C_CALL mt32emu_play_sysex_at(mt32emu_const_context context, const mt32emu_bit8u *sysex, mt32emu_bit32u len, mt32emu_bit32u timestamp);
@@ -372,8 +378,8 @@ MT32EMU_EXPORT mt32emu_return_code MT32EMU_C_CALL mt32emu_play_sysex_at(mt32emu_
  */
 
 /**
- * Sends a short MIDI message to the synth for immediate playback. The message must contain a status byte and two data bytes,
- * otherwise it is ignored.
+ * Sends a short MIDI message to the synth for immediate playback. The message must contain a status byte and one or two data
+ * bytes (as appropriate for the MIDI command), otherwise it is ignored.
  * See the WARNING above.
  */
 MT32EMU_EXPORT void MT32EMU_C_CALL mt32emu_play_msg_now(mt32emu_const_context context, mt32emu_bit32u msg);

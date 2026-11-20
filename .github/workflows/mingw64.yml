@@ -156,7 +156,20 @@ jobs:
         with:
           msystem: UCRT64
           update: true
-          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake mingw-w64-ucrt-x86_64-libslirp
+          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake
+      - name: Install libslirp
+        run: |
+          # Run this job when MSYS2 drops MinGW 64-bit library support (Other libraries can be built as well)
+          top=`pwd`
+          mkdir pkg
+          cd pkg
+          git clone https://github.com/msys2/MINGW-packages.git
+          pwd
+          cd MINGW-packages
+          cd mingw-w64-libslirp
+          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'ucrt64\')/" PKGBUILD
+          MINGW_ARCH=ucrt64 makepkg-mingw -sCLf --noconfirm
+          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Update build info
         shell: bash
         run: |
@@ -265,7 +278,20 @@ jobs:
         with:
           msystem: UCRT64
           update: true
-          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake mingw-w64-ucrt-x86_64-libslirp
+          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake
+      - name: Install libslirp
+        run: |
+          # Run this job when MSYS2 drops MinGW 64-bit library support (Other libraries can be built as well)
+          top=`pwd`
+          mkdir pkg
+          cd pkg
+          git clone https://github.com/msys2/MINGW-packages.git
+          pwd
+          cd MINGW-packages
+          cd mingw-w64-libslirp
+          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'ucrt64\')/" PKGBUILD
+          MINGW_ARCH=ucrt64 makepkg-mingw -sCLf --noconfirm
+          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Update build info
         shell: bash
         run: |

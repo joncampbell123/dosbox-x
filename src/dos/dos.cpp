@@ -49,6 +49,7 @@
 #include "serialport.h"
 #if !defined(OSFREE)
 #include "dos_network.h"
+extern bool Network_IsActiveResource(uint16_t entry);
 #endif
 #include "render.h"
 #include "jfont.h"
@@ -349,7 +350,19 @@ void DOS_PlaceSDA(void) {
 #define DOS_COPYBUFSIZE 0x10000
 uint8_t dos_copybuf[DOS_COPYBUFSIZE];
 #ifdef WIN32
-uint16_t	NetworkHandleList[127];uint8_t dos_copybuf_second[DOS_COPYBUFSIZE];
+
+#define REP_10(x)  x, x, x, x, x, x, x, x, x, x
+#define REP_100(x) REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x), REP_10(x)
+
+uint16_t NetworkHandleList[127] = {
+    REP_100(0xFFFF),  //100
+    REP_10(0xFFFF),   //10
+    REP_10(0xFFFF),   //10
+    0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF //7
+};
+
+
+uint8_t dos_copybuf_second[DOS_COPYBUFSIZE];
 #endif
 
 static uint16_t ias_handle;
@@ -691,7 +704,9 @@ void DOS_PrintCBreak() {
 }
 
 bool DOS_BreakTest(bool print=true) {
-	if (DOS_BreakFlag) {
+    // Consume the BIOS Ctrl+Break latch
+    ctrlbrk = false;
+    if (DOS_BreakFlag) {
 		/* NTS: DOS calls are allowed within INT 23h! */
 		bool terminate = true;
 		bool terminint23 = false;
@@ -726,13 +741,16 @@ bool DOS_BreakTest(bool print=true) {
 			DOS_BreakINT23InProgress = false;
 		}
 		catch (int x) {
+			// The interrupt may have been interrupted by a reboot or other emulator
+			// control signal. That signal must not leave this transient state set.
+			DOS_BreakINT23InProgress = false;
+
 			/* 2025/01/20: The throw code used to be int(0) but if that were allowed to bubble up
 			 *             to the main function it would be mistaken as an entirely different
 			 *             signal, so instead use int(9000), a number high enough not to conflict
 			 *             but just low enough to prevent Vegeta from saying his well-known
 			 *             meme-worthy phrase. */
 			if (x == 9000) {
-				DOS_BreakINT23InProgress = false;
 				terminint23 = true;
 			}
 			else {
@@ -775,6 +793,17 @@ bool DOS_BreakTest(bool print=true) {
 void DOS_BreakAction() {
 	DOS_BreakFlag = true;
 	DOS_BreakConioFlag = false;
+}
+
+/*! \brief      Check if STDIN is a regular file */
+bool DOS_IsSTDINRegularFile(void)
+{
+    uint32_t handle = RealHandle(STDIN);
+
+    if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen())
+        return false;
+
+    return !(Files[handle]->GetInformation() & 0x8000);
 }
 
 /* unmask IRQ 0 automatically on disk I/O functions.
@@ -1262,12 +1291,21 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x08:      /* Direct Character Input, without echo (checks for breaks officially :)*/
             {
-                uint8_t c;uint16_t n=1;
-                DOS_ReadFile (STDIN,&c,&n);
-                if (c == 3) {
-                    DOS_BreakAction();
-                    if (!DOS_BreakTest()) return CBRET_NONE;
-                }
+                uint8_t c;
+                do {
+                    uint16_t n = 1;
+                    if(!DOS_ReadFile(STDIN, &c, &n) || n == 0) {
+                        c = 0; /* FIX_ME: Handle end of file condition */
+                        break;
+                    }
+                    if(c == 3) {
+                        DOS_BreakAction();
+                        if(!DOS_BreakTest()) return CBRET_NONE;
+                        if(DOS_IsSTDINRegularFile())
+                            continue; /* Skip the Ctrl+C character from redirected file input and read the next character. */
+                    }
+                    break;
+                } while(true);
                 reg_al=c;
                 break;
             }
@@ -1370,7 +1408,6 @@ static Bitu DOS_21Handler(void) {
                         uint8_t page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
                         uint8_t col = CURSOR_POS_COL(page);
                         uint8_t row = CURSOR_POS_ROW(page);
-                        BIOS_NCOLS;
                         DOS_WriteFile(STDOUT, &bell, &n);
                         if(CURSOR_POS_COL(page) > col)
                             INT10_SetCursorPos(row, col, page); // stay where we were
@@ -2071,15 +2108,29 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(false);
                 break;
             }
+
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+            bool is_network = Network_IsActiveResource(reg_bx);
+#else
+            bool is_network = false;
+#endif
+#else
+            bool is_network = false;
+#endif
+
             uint8_t handle = RealHandle(reg_bx);
-            uint8_t drive = (handle != 0xff && Files[handle]) ? Files[handle]->GetDrive() : DOS_DRIVES;
+            uint8_t drive = DOS_DRIVES;
+            if(!is_network && handle != 0xff && handle < DOS_FILES && Files[handle])
+                drive = Files[handle]->GetDrive();
+
             unmask_irq0 |= disk_io_unmask_irq0;
             if (DOS_CloseFile(reg_bx, false, &reg_al)) {
 #if defined(USE_TTF)
                 if (ttf.inUse&&reg_bx == WPvga512CHMhandle)
                     WPvga512CHMhandle = -1;
 #endif
-                diskio_delay_drive(drive, 512);
+                if(!is_network) diskio_delay_drive(drive, 512);
                 /* al destroyed with pre-close refcount from sft */
                 CALLBACK_SCF(false);
             } else {
@@ -2114,11 +2165,21 @@ static Bitu DOS_21Handler(void) {
                     toread = nuread;
                 }
 
-                dos.echo=true;
-                if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen()) {
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+                bool is_network = Network_IsActiveResource(reg_bx);
+#else
+                bool is_network = false;
+#endif
+#else
+                bool is_network = false;
+#endif
+
+                dos.echo = true;
+                if(!is_network && (handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen())) {
                     DOS_SetError(DOSERR_INVALID_HANDLE);
                 }
-                else if(Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
+                else if(!is_network && (Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice)) {
                     fRead = !(((DOS_ExtDevice*)Files[handle])->CallRWIODeviceFunction(DEVFUNC_READ, 26, SegValue(ds), reg_dx, toread) & 0x8000);
                     toread = real_readw(dos.dcp, 18);
 #if defined(USE_TTF)
@@ -2130,7 +2191,7 @@ static Bitu DOS_21Handler(void) {
                 {
                     if((fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread))) {
                         MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
-                        diskio_delay_handle(reg_bx, toread);
+                        if(!is_network) diskio_delay_handle(reg_bx, toread);
                     }
                 }
 
@@ -2204,10 +2265,19 @@ static Bitu DOS_21Handler(void) {
                 {
                     uint32_t handle = RealHandle(reg_bx);
 
-                    if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen()) {
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(OSFREE)
+                    bool is_network = Network_IsActiveResource(reg_bx);
+#else
+                    bool is_network = false;
+#endif
+#else
+                    bool is_network = false;
+#endif
+                    if(!is_network && (handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen())) {
                         DOS_SetError(DOSERR_INVALID_HANDLE);
                     }
-                    else if(Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice) {
+                    else if(!is_network && (Files[handle]->GetInformation() & DeviceInfoFlags::ExternalDevice)) {
                         fWritten = !(((DOS_ExtDevice*)Files[handle])->CallRWIODeviceFunction(DEVFUNC_WRITE, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
                         towrite = real_readw(dos.dcp, 18);
                     }
@@ -3053,8 +3123,14 @@ static Bitu DOS_21Handler(void) {
             /* Weird call to increase amount of file handles needs to allocate memory if >20 */
             {
                 DOS_PSP psp(dos.psp());
-                psp.SetNumFiles(reg_bx);
-                CALLBACK_SCF(false);
+                auto err = psp.SetNumFiles(reg_bx);
+                if (err) {
+                    reg_ax = err;
+                    CALLBACK_SCF(true);
+                }
+                else {
+                    CALLBACK_SCF(false);
+                }
                 break;
             }
         case 0x68:                  /* FFLUSH Commit file */
@@ -4233,6 +4309,12 @@ void DOS_CreateDummyDeviceMCB(void);
 void DOS_MemStartChange(uint16_t adjto);
 void DOS_AllocMinFreePadding(uint16_t upto);
 
+static DOS_Device* device_con = nullptr;
+
+DOS_Device* DOS_GetCONDevice(void) {
+    return device_con;
+}
+
 void DOS_OpenDefaultHandles(void) {
 	/* open handles in SFT for CON, AUX, PRN */
 	uint8_t devnum_con,devnum_aux,devnum_prn;
@@ -4253,6 +4335,7 @@ void DOS_OpenDefaultHandles(void) {
 
 	/* CON is REQUIRED */
 	if (devnum_con >= DOS_DEVICES) E_Exit("Unable to locate CON device");
+    device_con = Devices[devnum_con];
 
 	/* AUX and PRN can be CON if they do not exist */
 	if (devnum_aux >= DOS_DEVICES) devnum_aux = devnum_con;
@@ -4653,6 +4736,9 @@ public:
 
 		DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
 
+		// Keep CON separate from and below the information block.
+		DOS_CONDRV_SEG = DOS_GetMemory(0x04,"DOS_CONDRV_SEG");
+
 		/* DOS_INFOBLOCK_SEG contains the entire List of Lists, though the INT 21h call returns seg:offset with offset nonzero */
 		/* NTS: DOS_GetMemory() allocation sizes are in PARAGRAPHS (16-byte units) not bytes */
 		/* NTS: DOS_INFOBLOCK_SEG must be 0x32 paragraphs. SDA_SEG must be located at INFOBLOCK_SEG+0x32, so that the current PSP
@@ -4673,8 +4759,6 @@ public:
 		DOS_SDA_OFS = 0;
 		DOS_SDA_BASE_SEG = DOS_SDA_SEG;
 
-		/* 2024/06/02: Keep the CON driver away from the clusterfuck of the INFOBLOCK and SFT mess */
-		DOS_CONDRV_SEG = DOS_GetMemory(0x04,"DOS_CONDRV_SEG");		// was 0xA0
 		DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
 
 		LOG(LOG_DOSMISC,LOG_DEBUG)("DOS kernel alloc:");
@@ -5194,7 +5278,7 @@ void DOS_EnableDriveMenu(char drv) {
 		if (dos_kernel_disabled || RunningProgram == "LOADLIN") {
 			bool found = false;
 			for (int i=0; i<MAX_DISK_IMAGES; i++)
-				if (imageDiskList[i] && imageDiskList[i]->ffdd && imageDiskList[i]->drvnum == drv-'A') {
+				if (imageDiskList[i] && imageDiskList[i]->ffdd && imageDiskList[i]->drvnum == (unsigned int)(drv-'A')) {
 					found = true;
 					break;
 				}

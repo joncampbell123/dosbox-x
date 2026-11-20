@@ -812,8 +812,8 @@ static Bitu IRQ1_Handler(void) {
         break;
 
     default: /* Normal Key */
-        if (scancode==0x2e && !(flags3 & 0x01) && (flags1&0x04))
-            ctrlbrk=true;
+        //if (scancode==0x2e && !(flags3 & 0x01) && (flags1&0x04))
+        //    ctrlbrk=true;
     normal_key:
         uint16_t asciiscan;
         /* Now Handle the releasing of keys and see if they match up for a code */

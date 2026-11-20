@@ -58,7 +58,7 @@ Part::Part(Synth *useSynth, unsigned int usePartNum) {
 		// The Rhythm part doesn't have just a single timbre associated.
 		timbreTemp = NULL;
 	} else {
-#ifdef MT32EMU_WITH_STD_SNPRINTF
+#ifdef MT32EMU_WITH_SNPRINTF
 		snprintf(
 			name, sizeof name,
 #else

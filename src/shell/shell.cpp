@@ -58,12 +58,15 @@ bool config_shell_prompt_start = false; // at start before running device driver
 bool config_shell_prompt_end = false; // at end after running device drivers
 
 bool shown_welcome = false;
+static bool stdin_redirected;              // status of redirection (false if not redirected)
+static bool stdout_redirected;             // status of redirection (false if not redirected)
 
 extern bool shell_keyboard_flush;
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
 extern bool halfwidthkana, force_conversion, gbk, uselangcp, chinasea;
+extern bool ctrlbrk, DOS_BreakFlag, DOS_BreakConioFlag;
 extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
@@ -103,6 +106,7 @@ void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error(), CheckDBCSCP(int32_t codepage), TTF_using(void);
 void makestdcp950table(), makeseacp951table();
+DOS_Device* DOS_GetCONDevice(void);
 
 #if defined(USE_TTF)
 void ttf_switch_on(bool ss = true), ttf_switch_off(bool ss = true);
@@ -457,6 +461,62 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 	return num;
 }
 
+DOS_COMMAND_TYPE DOS_Shell::DOS_GetCommandType(const char* command)
+{
+    if(!command || !*command) return DOS_COMMAND_NONE;
+
+    char name[DOS_PATHLENGTH];
+    safe_strncpy(name, command, sizeof(name));
+
+    /* Extract command name */
+    char* p = name;
+
+    if(*p == '"') {
+        p++;
+        char* end = strchr(p, '"');
+        if(!end) return DOS_COMMAND_NONE;
+        memmove(name, p, end - p);
+        name[end - p] = 0;
+    }
+    else {
+        p = strpbrk(name, " \t<>|");
+        if(p) *p = 0;
+    }
+
+    /* Check shell command */
+    DOS_COMMAND_TYPE cmd_type = DOS_IsShellCommand(name);
+    if(cmd_type == DOS_COMMAND_SHELL)
+        return cmd_type;
+    else if(cmd_type == DOS_COMMAND_CALL)
+        return DOS_COMMAND_BATCH;
+
+    /* Check extension */
+    char* ext = strrchr(name, '.');
+    if(ext) {
+        if(!strcasecmp(ext, ".BAT"))
+            return Which(name) ? DOS_COMMAND_BATCH : DOS_COMMAND_NONE;
+        if(!strcasecmp(ext, ".COM"))
+            return Which(name) ? DOS_COMMAND_COM : DOS_COMMAND_NONE;
+        if(!strcasecmp(ext, ".EXE"))
+            return Which(name) ? DOS_COMMAND_EXE : DOS_COMMAND_NONE;
+        return DOS_COMMAND_NONE;
+    }
+
+    /* Search executable extensions */
+    strcat(name, ".COM");
+    if(Which(name)) return DOS_COMMAND_COM;
+
+    name[strlen(name) - 4] = 0;
+    strcat(name, ".EXE");
+    if(Which(name)) return DOS_COMMAND_EXE;
+
+    name[strlen(name) - 4] = 0;
+    strcat(name, ".BAT");
+    if(Which(name)) return DOS_COMMAND_BATCH;
+
+    return DOS_COMMAND_NONE;
+}
+
 class device_TMP : public DOS_Device {
 public:
     std::string str = "";
@@ -512,12 +572,20 @@ void DOS_Shell::ParseLine(char * line) {
 	char * toc = nullptr;
 
 	uint16_t dummy,dummy2;
+    uint16_t saved_stdout = 0xff, saved_stdin = 0xff; 
 	uint32_t bigdummy = 0;
 	bool append;
 	bool normalstdin  = false;	/* whether stdin/out are open on start. */
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
 
-	GetRedirection(line, &in, &out, &toc, &append);
+    DOS_COMMAND_TYPE cmd_type = DOS_GetCommandType(line);
+    if(cmd_type != DOS_COMMAND_BATCH)           // Genuine MS-DOS doesn't redirect batch files
+        GetRedirection(line, &in, &out, &toc, &append);
+    if(out && cmd_type == DOS_COMMAND_NONE) {   // Don't redirect output if command doesn't exist,
+        free(out);                              // but pipes are allowed to redirect output
+        out = nullptr;
+    }
+    /* TO-DO: Handle redirecting inputs */
 
 	if(toc && *trim(toc) == '\0') {
 		SyntaxError(); /* No command to pass output */
@@ -530,13 +598,22 @@ void DOS_Shell::ParseLine(char * line) {
 	if (in || out || toc) {
 		normalstdin  = (psp->GetFileHandle(0) != 0xff);
 		normalstdout = (psp->GetFileHandle(1) != 0xff);
+        if(in && normalstdin) {
+            if(!DOS_DuplicateEntry(0, &saved_stdin))
+                saved_stdin = 0xff;
+        }
+
+        if((out || toc) && normalstdout) {
+            if(!DOS_DuplicateEntry(1, &saved_stdout))
+                saved_stdout = 0xff;
+        }
 	}
 	if (in) {
 		if(DOS_OpenFile(in,OPEN_READ,&dummy)) {	//Test if file exists
 			DOS_CloseFile(dummy);
 			LOG_MSG("SHELL:Redirect input from %s",in);
 			if(normalstdin) DOS_CloseFile(0);	//Close stdin
-			DOS_OpenFile(in,OPEN_READ,&dummy);	//Open new stdin
+            DOS_OpenFile(in, OPEN_READ, &dummy); //Open new stdin
 		} else {
 			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File open error - %s\n"), in);
 			if(in) free(in);
@@ -549,7 +626,8 @@ void DOS_Shell::ParseLine(char * line) {
     char pipetmp[270];
     pipetmp[0] = 0;
 	uint16_t fattr;
-	if(toc) {
+    static uint32_t pipeid_counter = 0;
+    if(toc) {
 		// Initialize random number generator
 		initRand();
 
@@ -584,10 +662,21 @@ void DOS_Shell::ParseLine(char * line) {
 		const char* tempEnv = tempPath.c_str();
 
 		// Generate unique pipe file path
-		int pipeid = rand() % 10000;
-		snprintf(pipetmp, sizeof(pipetmp), "%spipe%d.tmp", tempEnv, pipeid);
-	}
+        bool found = false;
 
+        for(uint32_t i = 0; i < 10000; i++) {
+            uint32_t pipeid = pipeid_counter++ % 10000;
+            snprintf(pipetmp, sizeof(pipetmp), "%spipe%u.tmp", tempEnv, (unsigned int)pipeid);
+
+            if(!DOS_GetFileAttr(pipetmp, &fattr)) {
+                found = true;
+                break;
+            }
+        }
+
+        if(!found) pipetmp[0] = 0;
+
+	}
 	DOS_Device *tmpdev = NULL;
 	if (out||toc) {
 		//if (out&&toc) WriteOut(!*out?"Duplicate redirection\n":"Duplicate redirection - %s\n", out);
@@ -622,6 +711,7 @@ void DOS_Shell::ParseLine(char * line) {
                     fail = true;
                 status = device ? false : DOS_OpenFileExtended(toc && !fail ? pipetmp : out, OPEN_READWRITE, DOS_ATTR_ARCHIVE, 0x12, &dummy, &dummy2);
             }
+            if(!bf && status) stdout_redirected = true;
 			bool pipetmp_is_zdrive = toc && strncasecmp(pipetmp, "Z:\\", 3) == 0;
 			if (toc&&(fail||!status)&&(!strchr(pipetmp,'\\')|| pipetmp_is_zdrive)) {
 				Overlay_Drive *da = Drives[0] ? (Overlay_Drive *)Drives[0] : NULL, *dc = Drives[2] ? (Overlay_Drive *)Drives[2] : NULL;
@@ -632,8 +722,19 @@ void DOS_Shell::ParseLine(char * line) {
 						pipetmp[len] = 0;
 					}
                     else if(len == 0) {
-                        int pipeid = rand() % 10000;
-                        snprintf(pipetmp, sizeof(pipetmp), "pipe%d.tmp", pipeid);
+                        bool found = false;
+                        for(uint32_t i = 0; i < 10000; i++) {
+                            uint32_t pipeid = pipeid_counter++ % 10000;
+                            snprintf(pipetmp, sizeof(pipetmp), "pipe%u.tmp", (unsigned int)pipeid);
+
+                            if(!DOS_GetFileAttr(pipetmp, &fattr)) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if(!found)
+                            pipetmp[0] = 0;
                     }
 					for(int i = len; i >= 0; i--)
 						pipetmp[i + 3] = pipetmp[i];
@@ -643,8 +744,14 @@ void DOS_Shell::ParseLine(char * line) {
 					fail = false;
 				} else if (!tmpdev && pipetmpdev) {
                     if(strlen(pipetmp) == 0) {
-                        int pipeid = rand() % 10000;
-                        snprintf(pipetmp, sizeof(pipetmp), "pipe%d.tmp", pipeid);
+                        for(uint32_t i = 0; i < 10000; i++) {
+                            uint32_t pipeid = pipeid_counter++ % 10000;
+                            snprintf(pipetmp, sizeof(pipetmp), "pipe%u.tmp", (unsigned int)pipeid);
+
+                            if(!DOS_DeviceNameExists(pipetmp)) {
+                                break;
+                            }
+                        }
                     }
                     char* filename_only = strrchr(pipetmp, '\\');
 					if(!filename_only) filename_only = pipetmp;
@@ -697,9 +804,9 @@ void DOS_Shell::ParseLine(char * line) {
                 if(status && dummy != 1) {
                     uint16_t new_handle = 1;
                     bool dup_status = DOS_DuplicateEntry(dummy, &new_handle);
-
-                    if(dup_status)
+                    if(dup_status) {
                         DOS_CloseFile(dummy);
+                    }
                 }
             }
 		}
@@ -731,14 +838,42 @@ void DOS_Shell::ParseLine(char * line) {
 
 	/* Restore handles */
 	if(in) {
-		DOS_CloseFile(0);
-		if(normalstdin) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
-		free(in);
+        if(normalstdin && saved_stdin != 0xff) {
+            if(DOS_ForceDuplicateEntry(saved_stdin, 0)) {
+                DOS_CloseFile(saved_stdin);
+                saved_stdin = 0xff;
+            }
+            else {
+                DOS_CloseFile(saved_stdin);
+                saved_stdin = 0xff;
+                DOS_CloseFile(0);
+                DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+            }
+        }
+        else {
+            DOS_CloseFile(0);
+            if(normalstdin) DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+        }
+        free(in);
 	}
 	if(out||toc) {
 		DOS_CloseFile(1);
 		if(!normalstdin) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
-		if(normalstdout) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
+        if(normalstdout) {
+            if(saved_stdout != 0xff) {
+                if(DOS_ForceDuplicateEntry(saved_stdout, 1)) {
+                    DOS_CloseFile(saved_stdout);
+                    saved_stdout = 0xff;
+                }
+                else {
+                    DOS_CloseFile(saved_stdout);
+                    saved_stdout = 0xff;
+                    DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+                }
+            }
+            else
+                DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+        }
 		if(!normalstdin) DOS_CloseFile(0);
 		if (out) free(out);
 	}
@@ -756,14 +891,44 @@ void DOS_Shell::ParseLine(char * line) {
 		}
 		if (!fail&&DOS_OpenFile(pipetmp, OPEN_READ, &dummy))					// Test if file can be opened for reading
 		{
-			DOS_CloseFile(dummy);
+            uint16_t saved_pipe_stdin = 0xff;
+            bool pipe_stdin_saved = false;
+            bool pipe_stdin_ready = false;
 			if (normalstdin)
-				DOS_CloseFile(0);												// Close stdin
-			DOS_OpenFile(pipetmp, OPEN_READ, &dummy);							// Open new stdin
-			ParseLine(toc);
-			DOS_CloseFile(0);
-			if (normalstdin)
-				DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+                pipe_stdin_saved = DOS_DuplicateEntry(0, &saved_pipe_stdin);	// Close stdin
+            if(!normalstdin || pipe_stdin_saved) {
+                if(normalstdin)
+                    DOS_CloseFile(0);
+
+                if(dummy == 0) {
+                    pipe_stdin_ready = true;
+                }
+                else if(DOS_ForceDuplicateEntry(dummy, 0)) {
+                    pipe_stdin_ready = true;
+                    DOS_CloseFile(dummy);
+                    dummy = 0xff;
+                }
+            }
+            if(pipe_stdin_ready) {
+                ParseLine(toc);
+                //LOG_MSG("SHELL:ParseLine ENTER: this=%p line='%s' pipetmp='%s'",
+                //    (void*)this, line, pipetmp);
+                DOS_CloseFile(0);
+            }
+            if(pipe_stdin_saved) {
+                if(!DOS_ForceDuplicateEntry(saved_pipe_stdin, 0)) {
+                    DOS_CloseFile(saved_pipe_stdin);
+                    DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+                }
+                else {
+                    DOS_CloseFile(saved_pipe_stdin);
+                }
+            }
+            else if(normalstdin && !pipe_stdin_ready) {
+                DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+            }
+            if(dummy != 0xff)
+                DOS_CloseFile(dummy);
 		}
 		else
 			WriteOut("\nFailed to create/open a temporary file for piping. Check the %%TEMP%% variable.\n");
@@ -788,6 +953,7 @@ void DOS_Shell::RunInternal(void) {
 				}
 			}
 			ParseLine(input_line);
+            if (CheckBatchBreak()) continue;
 			if (echo) WriteOut_NoParsing("\n");
 		}
 	}
@@ -1354,10 +1520,19 @@ void DOS_Shell::Run(void) {
 
 		/* do it */
 		if(strlen(input_line)!=0) {
-			if (bf == NULL/*not running a batch file*/ && shell_keyboard_flush) DOS_FlushSTDIN();
-			ParseLine(input_line);
-			if (echo && !bf) WriteOut_NoParsing("\n");
-			if (bf == NULL/*not running a batch file*/ && shell_keyboard_flush) DOS_FlushSTDIN();
+            if(bf == NULL/*not running a batch file*/) {
+                if(shell_keyboard_flush) DOS_FlushSTDIN();
+                stdout_redirected = false;
+                stdin_redirected = false;
+            }
+            ParseLine(input_line);
+            if(CheckBatchBreak()) continue;
+            if (echo && !bf) WriteOut_NoParsing("\n");
+            if(bf == NULL/*not running a batch file*/) {
+                if(shell_keyboard_flush) DOS_FlushSTDIN();
+                stdout_redirected = false;
+                stdin_redirected = false;
+            }
 		}
 	} while (perm||!exit);
 	shellrun=false;
@@ -1365,6 +1540,46 @@ void DOS_Shell::Run(void) {
 
 void DOS_Shell::SyntaxError(void) {
 	WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
+}
+
+bool DOS_Shell::CheckBatchBreak(void) {
+    if(!bf || !ctrlbrk) return false;
+
+    ctrlbrk = false;
+    DOS_BreakFlag = false;
+    DOS_BreakConioFlag = false;
+    std::string prompt = formatString("Terminate batch job (%c/%c)?",
+        (char)toupper(char_yes), (char)toupper(char_no));
+
+    DOS_Device* con = DOS_GetCONDevice();
+    if(!con) {
+        LOG_MSG("CheckBatchBreak: CON device not found, terminating batch file");
+        return true;
+    }
+    uint8_t c, lower_c;
+    uint16_t n = 1;
+    while(!stdout_redirected) {
+        WriteOut(prompt.c_str(), isDBCSCP());
+
+        n = 1;
+        con->Read(&c, &n);
+        if(!n) continue;
+
+        std::string msg = formatString("%c", c);
+        WriteOut(msg.c_str(), isDBCSCP());
+
+        lower_c = (uint8_t)tolower(c);
+        if(lower_c == char_yes || lower_c == char_no) break;
+
+        WriteOut("\r\n", isDBCSCP());
+    }
+    WriteOut("\r\n", isDBCSCP());
+
+    if(stdout_redirected || lower_c == char_yes) {
+        while(bf) delete bf;
+        return true;
+    }
+    return false;
 }
 
 bool filename_not_8x3(const char *n), isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);

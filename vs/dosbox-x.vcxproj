@@ -1228,10 +1228,10 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\debug\debug.cpp" />
     <ClCompile Include="..\src\agent\bridge\agent_bridge.cpp" />
     <ClCompile Include="..\src\agent\debugger\debugger_adapter.cpp" />
-	<ClCompile Include="..\src\agent\parser\debugger_output_parser.cpp" />
+    <ClCompile Include="..\src\agent\parser\debugger_output_parser.cpp" />
     <ClCompile Include="..\src\agent\protocol\agent_protocol.cpp" />
     <ClCompile Include="..\src\agent\server\agent_server.cpp" />
-	<ClCompile Include="..\src\agent\trace\trace_store.cpp" />
+    <ClCompile Include="..\src\agent\trace\trace_store.cpp" />
     <ClCompile Include="..\src\agent\transport\local_transport.cpp" />
     <ClCompile Include="..\src\debug\debug_disasm.cpp" />
     <ClCompile Include="..\src\debug\debug_gui.cpp" />
@@ -1780,8 +1780,8 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\include\agent\agent_protocol.h" />
     <ClInclude Include="..\include\agent\agent_server.h" />
     <ClInclude Include="..\include\agent\debugger_adapter.h" />
-	<ClInclude Include="..\include\agent\debugger_output_parser.h" />
-	<ClInclude Include="..\include\agent\trace_store.h" />
+    <ClInclude Include="..\include\agent\debugger_output_parser.h" />
+    <ClInclude Include="..\include\agent\trace_store.h" />
     <ClInclude Include="..\src\agent\transport\rpc_transport.h" />
     <ClInclude Include="..\include\dma.h" />
     <ClInclude Include="..\include\dosbox.h" />
@@ -2023,6 +2023,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\libs\mt32\File.h" />
     <ClInclude Include="..\src\libs\mt32\FileStream.h" />
     <ClInclude Include="..\src\libs\mt32\globals.h" />
+    <ClInclude Include="..\src\libs\mt32\LA32FloatMath.h" />
     <ClInclude Include="..\src\libs\mt32\LA32FloatWaveGenerator.h" />
     <ClInclude Include="..\src\libs\mt32\LA32Ramp.h" />
     <ClInclude Include="..\src\libs\mt32\LA32WaveGenerator.h" />

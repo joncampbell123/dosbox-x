@@ -1788,7 +1788,7 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
             KEYBOARD_AddBuffer(0xe1);
             KEYBOARD_AddBuffer(29|0x80);
             KEYBOARD_AddBuffer(69|0x80);
-        } else if (!keyb.leftctrl_pressed || !keyb.rightctrl_pressed) {
+        } else if (keyb.leftctrl_pressed ^ keyb.rightctrl_pressed) {
             /* exactly one of [leftctrl, rightctrl] is pressed -> Ctrl+BREAK */
             KEYBOARD_AddBuffer(0xe0);
             KEYBOARD_AddBuffer(70);
