@@ -1,4 +1,7 @@
 Next version:
+  - [AI] DOS: creating, deleting or renaming a file or directory on a
+    local drive edits the folder's cached listing instead of emptying it,
+    and the short names of the other files stay as they were. (Optimiza)
   - [AI] CPU: the x86 dynamic core keeps its code page handlers when it
     resets its code cache. Each reset leaked the handlers on the free list,
     about 6 MB for every protected-mode program started on Windows. (Optimiza)

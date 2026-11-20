@@ -229,9 +229,16 @@ public:
     void        FindClose           (uint16_t id, uint32_t generation);
 
 	void		CacheOut			(const char* path, bool ignoreLastDir = false);
-	void		AddEntry			(const char* path, bool checkExists = false);
+	bool		AddEntry			(const char* path, bool checkExists = false, bool isDir = false);
 	void        AddEntryDirOverlay	(const char* path, char *sfile, bool checkExist = false);
 	void		DeleteEntry			(const char* path, bool ignoreLastDir = false);
+	bool		RemoveEntry			(const char* path, bool isDir);
+	bool		MoveEntry			(const char* from, const char* to, bool isDir);
+	bool		HoldsFolderOf		(const char* path);
+	void		SearchesRenamed		(const char* from, const char* to);
+	void		SearchesRemoved		(const char* dir, uint16_t date, uint16_t time);
+	const char*	RenamedSearchDir	(uint16_t id);
+	bool		RemovedSearchDir	(uint16_t id, uint16_t& date, uint16_t& time);
 
 	void		EmptyCache			(void);
 	void		MediaChange			(void);
@@ -269,6 +276,7 @@ public:
 private:
 	void ClearFileInfo(CFileInfo *dir);
 	void DeleteFileInfo(CFileInfo *dir);
+	bool TakeEntry(const char* path, bool isDir, CFileInfo* &taken);
 
 	bool		RemoveTrailingDot	(char* shortname);
 	Bits		GetLongName		(CFileInfo* curDir, char* shortName);
@@ -306,6 +314,13 @@ private:
 	char		dirSearchName		[MAX_OPENDIRS] = {};
 	CFileInfo*	dirFindFirst		[MAX_OPENDIRS] = {};
     uint32_t    dirFindFirstGeneration[MAX_OPENDIRS] = {};
+	// Where each search's directory is on the host, for as long as the search lives.
+	struct SearchDir {
+		std::string	path;	// with its trailing separator
+		enum { FOUND, RENAMED, REMOVED } state = FOUND;
+		uint16_t	date = 0, time = 0;	// a removed directory's, for its . and ..
+	};
+	SearchDir	dirFindFirstDir		[MAX_OPENDIRS];
 	uint16_t		nextFreeFindFirst = 0;
 
 	char		label				[CROSS_LEN] = {};
