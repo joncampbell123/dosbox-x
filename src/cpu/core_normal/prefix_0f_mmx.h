@@ -2405,6 +2405,7 @@
 			switch (reg) {
 				case 0:
 					if (rm < 0xC0) {							/* 0F AE /0 FXSAVE <m> */
+						if (FPU_CoprocessorException()) RUNEXCEPTION();
 						GetEAa;
 						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
 						CPU_FXSAVE(eaa);
@@ -2415,6 +2416,7 @@
 					break;
 				case 1:
 					if (rm < 0xC0) {							/* 0F AE /1 FXRSTOR <m> */
+						if (FPU_CoprocessorException()) RUNEXCEPTION();
 						GetEAa;
 						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
 						CPU_FXRSTOR(eaa);
@@ -2425,6 +2427,7 @@
 					break;
 				case 2:
 					if (rm < 0xC0) {							/* 0F AE /2 LDMXCSR <m> */
+						if (MMX_CoprocessorException()) RUNEXCEPTION();
 						GetEAa;
 						if (!CPU_LDMXCSR(eaa)) EXCEPTION(EXCEPTION_GP);
 					}
@@ -2434,6 +2437,7 @@
 					break;
 				case 3:
 					if (rm < 0xC0) {							/* 0F AE /3 STMXCSR <m> */
+						if (MMX_CoprocessorException()) RUNEXCEPTION();
 						GetEAa;
 						if (!CPU_STMXCSR(eaa)) EXCEPTION(EXCEPTION_GP);
 					}

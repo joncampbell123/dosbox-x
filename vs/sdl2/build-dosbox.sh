@@ -66,6 +66,5 @@ cat >>include/SDL_config.h <<_EOF
 _EOF
 fi
 
-$MAKE -j3 || exit 1
+$MAKE -j$(nproc) || exit 1
 $MAKE install || exit 1  # will install into ./linux-host
-

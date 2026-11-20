@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2026 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -20,16 +20,51 @@
 #include "internals.h"
 
 #include "LA32FloatWaveGenerator.h"
+
+#include "LA32FloatMath.h"
 #include "mmath.h"
 #include "Tables.h"
 
 namespace MT32Emu {
 
-static const float MIDDLE_CUTOFF_VALUE = 128.0f;
 static const float RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE = 144.0f;
-static const float MAX_CUTOFF_VALUE = 240.0f;
 
 static const Bit8u *resAmpDecayFactors;
+
+#ifndef MT32EMU_FASTER_MATH
+#define MT32EMU_FASTER_MATH 1
+#endif
+
+#if MT32EMU_FASTER_MATH == 0
+
+typedef LA32FloatMath::VanillaMath LA32FloatMathImpl;
+
+#elif MT32EMU_FASTER_MATH == 1
+
+// In this mode we strive to minimise the number of operations on the critical path at the expense of increased memory usage,
+// hence it may well not be the fastest option under memory pressure. The LUT sizes are picked so to achieve a good accuracy with
+// the SNR about 126dB. Albeit, we don't need the exponent table that big with the linear interpolation: 10 bits would be enough.
+// We pick the table size this big to simplify fexp2i a lot, leading to a considerable speedup.
+typedef LA32FloatMath::FasterMath<LA32FloatMath::LinearInterpolator, 12, 12> LA32FloatMathImpl;
+
+#elif MT32EMU_FASTER_MATH == 2
+
+// The quadratic interpolation allows to reduce the memory needed for the LUTs significantly, but also slightly increases the code
+// complexity. The same level of accuracy is expected as with the option above.
+typedef LA32FloatMath::FasterMath<LA32FloatMath::QuadraticInterpolator, 6, 9> LA32FloatMathImpl;
+
+#else
+
+#error "Wrong MT32EMU_FASTER_MATH"
+
+#endif
+
+void LA32FloatWaveGenerator::updateWaveFormParameters() {
+	cosineLen = 0.5f * waveLen;
+	if (cutoff > MIDDLE_CUTOFF_VALUE) {
+		cosineLen *= LA32FloatMathImpl::cosineLengthFactor(cutoff);
+	}
+}
 
 float LA32FloatWaveGenerator::getPCMSample(unsigned int position) {
 	if (position >= pcmWaveLength) {
@@ -39,7 +74,7 @@ float LA32FloatWaveGenerator::getPCMSample(unsigned int position) {
 		position = position % pcmWaveLength;
 	}
 	Bit16s pcmSample = pcmWaveAddress[position];
-	float sampleValue = EXP2F(((pcmSample & 32767) - 32787.0f) / 2048.0f);
+	float sampleValue = LA32FloatMathImpl::unlogPCMSample(pcmSample & 32767);
 	return ((pcmSample & 32768) == 0) ? sampleValue : -sampleValue;
 }
 
@@ -48,8 +83,15 @@ void LA32FloatWaveGenerator::initSynth(const bool useSawtoothWaveform, const Bit
 	pulseWidth = usePulseWidth;
 	resonance = useResonance;
 
+	resAmpBase = LA32FloatMathImpl::resonanceAmpBase(resonance);
+	resAmp = resAmpBase;
+
+	pulseLenFactor = (pulseWidth > 128) ? LA32FloatMathImpl::pulseLengthFactor(pulseWidth) : 0.5f;
+
+	cutoff = 0.0f;
+	freq = 0.0f;
+	waveLen = 0.0f;
 	wavePos = 0.0f;
-	lastFreq = 0.0f;
 
 	pcmWaveAddress = NULL;
 	active = true;
@@ -65,28 +107,42 @@ void LA32FloatWaveGenerator::initPCM(const Bit16s * const usePCMWaveAddress, con
 	active = true;
 }
 
-// ampVal - Logarithmic amp of the wave generator
-// pitch - Logarithmic frequency of the resulting wave
-// cutoffRampVal - Composed of the base cutoff in range [78..178] left-shifted by 18 bits and the TVF modifier
-float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit16u pitch, const Bit32u cutoffRampVal) {
+void LA32FloatWaveGenerator::setAmp(const Bit32u amp) {
+	ampFactor = LA32FloatMathImpl::linearAmpFactor(amp);
+}
+
+void LA32FloatWaveGenerator::setPitch(const Bit16u pitch) {
+	float lastFreq = freq;
+	freq = LA32FloatMathImpl::frequency(pitch);
+
+	if (isPCMWave()) {
+		pcmPositionDelta = freq * 2048.0f / SAMPLE_RATE;
+	} else {
+		waveLen = SAMPLE_RATE / freq;
+		wavePos *= lastFreq / freq;
+		updateWaveFormParameters();
+	}
+}
+
+void LA32FloatWaveGenerator::setCutoff(const Bit32u cutoffVal) {
+	cutoff = cutoffVal / 262144.0f;
+
+	// Correct resAmp for cutoff in range 50..66
+	if ((cutoff >= MIDDLE_CUTOFF_VALUE) && (cutoff < RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE)) {
+		resAmp = resAmpBase * LA32FloatMathImpl::fsin((cutoff - MIDDLE_CUTOFF_VALUE) / 32.0f);
+	} else {
+		resAmp = resAmpBase;
+	}
+	lowCutoffAttenuationFactor = cutoff < MIDDLE_CUTOFF_VALUE ? LA32FloatMathImpl::attenuationFactorBelowMiddleCutoff(cutoff) : 1;
+	updateWaveFormParameters();
+}
+
+float LA32FloatWaveGenerator::generateNextSample() {
 	if (!active) {
 		return 0.0f;
 	}
 
 	float sample = 0.0f;
-
-	// SEMI-CONFIRMED: From sample analysis:
-	// (1) Tested with a single partial playing PCM wave 77 with pitchCoarse 36 and no keyfollow, velocity follow, etc.
-	// This gives results within +/- 2 at the output (before any DAC bitshifting)
-	// when sustaining at levels 156 - 255 with no modifiers.
-	// (2) Tested with a special square wave partial (internal capture ID tva5) at TVA envelope levels 155-255.
-	// This gives deltas between -1 and 0 compared to the real output. Note that this special partial only produces
-	// positive amps, so negative still needs to be explored, as well as lower levels.
-	//
-	// Also still partially unconfirmed is the behaviour when ramping between levels, as well as the timing.
-
-	float amp = EXP2F(ampVal / -1024.0f / 4096.0f);
-	float freq = EXP2F(pitch / 4096.0f - 16.0f) * SAMPLE_RATE;
 
 	if (isPCMWave()) {
 		// Render PCM waveform
@@ -97,7 +153,6 @@ float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit1
 			deactivate();
 			return 0.0f;
 		}
-		float positionDelta = freq * 2048.0f / SAMPLE_RATE;
 
 		// Linear interpolation
 		float firstSample = getPCMSample(intPCMPosition);
@@ -110,39 +165,13 @@ float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit1
 			sample = firstSample;
 		}
 
-		float newPCMPosition = pcmPosition + positionDelta;
+		float newPCMPosition = pcmPosition + pcmPositionDelta;
 		if (pcmWaveLooped) {
 			newPCMPosition = fmod(newPCMPosition, float(pcmWaveLength));
 		}
 		pcmPosition = newPCMPosition;
 	} else {
 		// Render synthesised waveform
-		wavePos *= lastFreq / freq;
-		lastFreq = freq;
-
-		float resAmp = EXP2F(1.0f - (32 - resonance) / 4.0f);
-		{
-			//static const float resAmpFactor = EXP2F(-7);
-			//resAmp = EXP2I(resonance << 10) * resAmpFactor;
-		}
-
-		// The cutoffModifier may not be supposed to be directly added to the cutoff -
-		// it may for example need to be multiplied in some way.
-		// The 240 cutoffVal limit was determined via sample analysis (internal Munt capture IDs: glop3, glop4).
-		// More research is needed to be sure that this is correct, however.
-		float cutoffVal = cutoffRampVal / 262144.0f;
-		if (cutoffVal > MAX_CUTOFF_VALUE) {
-			cutoffVal = MAX_CUTOFF_VALUE;
-		}
-
-		// Wave length in samples
-		float waveLen = SAMPLE_RATE / freq;
-
-		// Init cosineLen
-		float cosineLen = 0.5f * waveLen;
-		if (cutoffVal > MIDDLE_CUTOFF_VALUE) {
-			cosineLen *= EXP2F((cutoffVal - MIDDLE_CUTOFF_VALUE) / -16.0f); // found from sample analysis
-		}
 
 		// Start playing in center of first cosine segment
 		// relWavePos is shifted by a half of cosineLen
@@ -151,15 +180,7 @@ float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit1
 			relWavePos -= waveLen;
 		}
 
-		// Ratio of positive segment to wave length
-		float pulseLen = 0.5f;
-		if (pulseWidth > 128) {
-			pulseLen = EXP2F((64 - pulseWidth) / 64.0f);
-			//static const float pulseLenFactor = EXP2F(-192 / 64);
-			//pulseLen = EXP2I((256 - pulseWidthVal) << 6) * pulseLenFactor;
-		}
-		pulseLen *= waveLen;
-
+		float pulseLen = pulseLenFactor * waveLen;
 		float hLen = pulseLen - cosineLen;
 
 		// Ignore pulsewidths too high for given freq
@@ -167,37 +188,32 @@ float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit1
 			hLen = 0.0f;
 		}
 
-		// Correct resAmp for cutoff in range 50..66
-		if ((cutoffVal >= MIDDLE_CUTOFF_VALUE) && (cutoffVal < RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE)) {
-			resAmp *= sin(FLOAT_PI * (cutoffVal - MIDDLE_CUTOFF_VALUE) / 32.0f);
-		}
-
 		// Produce filtered square wave with 2 cosine waves on slopes
+		float squareWaveSample;
 
 		// 1st cosine segment
 		if (relWavePos < cosineLen) {
-			sample = -cos(FLOAT_PI * relWavePos / cosineLen);
+			squareWaveSample = -LA32FloatMathImpl::fcos(relWavePos / cosineLen);
 		} else
 
 		// high linear segment
 		if (relWavePos < (cosineLen + hLen)) {
-			sample = 1.f;
+			squareWaveSample = 1.f;
 		} else
 
 		// 2nd cosine segment
 		if (relWavePos < (2 * cosineLen + hLen)) {
-			sample = cos(FLOAT_PI * (relWavePos - (cosineLen + hLen)) / cosineLen);
+			squareWaveSample = LA32FloatMathImpl::fcos((relWavePos - (cosineLen + hLen)) / cosineLen);
 		} else {
 
 		// low linear segment
-			sample = -1.f;
+			squareWaveSample = -1.f;
 		}
 
-		if (cutoffVal < MIDDLE_CUTOFF_VALUE) {
+		sample = squareWaveSample;
 
-			// Attenuate samples below cutoff 50
-			// Found by sample analysis
-			sample *= EXP2F(-0.125f * (MIDDLE_CUTOFF_VALUE - cutoffVal));
+		if (cutoff < MIDDLE_CUTOFF_VALUE) {
+			sample *= lowCutoffAttenuationFactor;
 		} else {
 
 			// Add resonance sine. Effective for cutoff > 50 only
@@ -219,11 +235,11 @@ float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit1
 			}
 
 			// Resonance sine WG
-			resSample *= sin(FLOAT_PI * relWavePos / cosineLen);
+			resSample *= LA32FloatMathImpl::fsin(relWavePos / cosineLen);
 
 			// Resonance sine amp
 			float resAmpFadeLog2 = -0.125f * resAmpDecayFactor * (relWavePos / cosineLen); // seems to be exact
-			float resAmpFade = EXP2F(resAmpFadeLog2);
+			float resAmpFade = LA32FloatMathImpl::unlogResonanceAmpFade(resAmpFadeLog2);
 
 			// Now relWavePos set negative to the left from center of any cosine
 			relWavePos = wavePos;
@@ -240,13 +256,12 @@ float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit1
 
 			// To ensure the output wave has no breaks, two different windows are applied to the beginning and the ending of the resonance sine segment
 			if (relWavePos < 0.5f * cosineLen) {
-				float syncSine = sin(FLOAT_PI * relWavePos / cosineLen);
 				if (relWavePos < 0.0f) {
 					// The window is synchronous square sine here
-					resAmpFade *= syncSine * syncSine;
+					resAmpFade *= squareWaveSample * squareWaveSample;
 				} else {
 					// The window is synchronous sine here
-					resAmpFade *= syncSine;
+					resAmpFade *= squareWaveSample < 0 ? -squareWaveSample : squareWaveSample;
 				}
 			}
 
@@ -255,7 +270,7 @@ float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit1
 
 		// sawtooth waves
 		if (sawtoothWaveform) {
-			sample *= cos(FLOAT_2PI * wavePos / waveLen);
+			sample *= LA32FloatMathImpl::fcos(2 * wavePos / waveLen);
 		}
 
 		wavePos++;
@@ -267,7 +282,7 @@ float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit1
 	}
 
 	// Multiply sample with current TVA value
-	sample *= amp;
+	sample *= ampFactor;
 	return sample;
 }
 
@@ -285,6 +300,7 @@ bool LA32FloatWaveGenerator::isPCMWave() const {
 
 void LA32FloatPartialPair::initTables(const Tables &tables) {
 	resAmpDecayFactors = tables.resAmpDecayFactors;
+	LA32FloatMathImpl::init();
 }
 
 void LA32FloatPartialPair::init(const bool useRingModulated, const bool useMixed) {
@@ -310,11 +326,35 @@ void LA32FloatPartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWa
 	}
 }
 
-void LA32FloatPartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff) {
+void LA32FloatPartialPair::setAmp(const PairType useMaster, const Bit32u amp) {
 	if (useMaster == MASTER) {
-		masterOutputSample = master.generateNextSample(amp, pitch, cutoff);
+		master.setAmp(amp);
 	} else {
-		slaveOutputSample = slave.generateNextSample(amp, pitch, cutoff);
+		slave.setAmp(amp);
+	}
+}
+
+void LA32FloatPartialPair::setPitch(const PairType useMaster, const Bit16u pitch) {
+	if (useMaster == MASTER) {
+		master.setPitch(pitch);
+	} else {
+		slave.setPitch(pitch);
+	}
+}
+
+void LA32FloatPartialPair::setCutoff(const PairType useMaster, const Bit32u cutoff) {
+	if (useMaster == MASTER) {
+		master.setCutoff(cutoff);
+	} else {
+		slave.setCutoff(cutoff);
+	}
+}
+
+void LA32FloatPartialPair::generateNextSample(const PairType useMaster) {
+	if (useMaster == MASTER) {
+		masterOutputSample = master.generateNextSample();
+	} else {
+		slaveOutputSample = slave.generateNextSample();
 	}
 }
 

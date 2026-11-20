@@ -304,12 +304,12 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
     return work;
 }
 
-void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
+bool DOS_Drive_Cache::AddEntry(const char* path, bool checkExists, bool isDir) {
     // Get Last part...
     char expand [CROSS_LEN];
 
     CFileInfo* dir = FindDirInfo(path,expand);
-    if (!dir) return;
+    if (!dir) return false;
     const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
 
     if (pos) {
@@ -317,12 +317,14 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
         strcpy(file,pos+1);
         // Check if file already exists, then don't add new entry...
         if (checkExists) {
-            if (GetLongName(dir,file)>=0) return;
+            if (GetLongName(dir,file)>=0) return false;
         }
 
         char sfile[DOS_NAMELENGTH];
         sfile[0]=0;
-        CreateEntry(dir,file,sfile,false);
+        CreateEntry(dir,file,sfile,isDir);
+        // FindDirInfo remembered the new directory's own path as its folder's.
+        if (isDir) save_dir = nullptr;
 
         Bits index = GetLongName(dir,file);
         if (index>=0) {
@@ -333,9 +335,11 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
             }
         }
         //      LOG_DEBUG("DIR: Added Entry %s",path);
+        return true;
     } else {
 //      LOG_DEBUG("DIR: Error: Failed to add %s",path);
     }
+    return false;
 }
 
 void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool checkExists) {
@@ -419,7 +423,100 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool che
     }
 }
 
+// FindDirInfo stops at the deepest folder it holds, which is another folder when the path names
+// one the cache has not seen (made on the host since it was read).
+bool DOS_Drive_Cache::HoldsFolderOf(const char* path) {
+    const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
+    if (!pos || (size_t)(pos-path+1)<strlen(basePath)) return false;
+    char dirpath[CROSS_LEN], expand[CROSS_LEN], name[CROSS_LEN];
+    strcpy(dirpath,path);
+    dirpath[pos-path+1] = 0;
+    CFileInfo* dir = FindDirInfo(dirpath,expand);
+    CFileInfo* walk = dirBase;
+    const char* start = dirpath+strlen(basePath);
+    while (walk && *start) {
+        const char* split = strchr_dbcs((char *)start,CROSS_FILESPLIT);
+        size_t len = split ? (size_t)(split-start) : strlen(start);
+        safe_strncpy(name,start,len+1);
+        Bits sub = GetLongName(walk,name);
+        walk = (sub>=0 && walk->fileList[(size_t)sub]->isDir) ? walk->fileList[(size_t)sub] : nullptr;
+        start += split ? len+1 : len;
+    }
+    return walk==dir;
+}
+
+// A deleted file, a removed directory (isDir) or a renamed one leaves the folder by its one entry.
+// Dropping the folder would read it again and number the generated short names anew, so a short
+// name a program got before would open another file. False when only a read can say: the caller
+// drops the folder.
+bool DOS_Drive_Cache::RemoveEntry(const char* path, bool isDir) {
+    CFileInfo* info;
+    if (!TakeEntry(path,isDir,info)) return false;
+    DeleteFileInfo(info);
+    return true;
+}
+
+// A renamed entry goes with what the cache holds under it, so the entries of a renamed directory
+// keep their short names, as they keep their places on a DOS disk; a new read would number them
+// anew. False when only a read can say: the caller drops the folder.
+bool DOS_Drive_Cache::MoveEntry(const char* from, const char* to, bool isDir) {
+    CFileInfo* moved;
+    if (!TakeEntry(from,isDir,moved)) return false;
+    const bool added = AddEntry(to,true,isDir);
+    if (added && isDir) {
+        // Found through its folder: a lookup of the path itself would read the new directory.
+        const char* pos = strrchr_dbcs((char *)to,CROSS_FILESPLIT);
+        char dirpath[CROSS_LEN], expand[CROSS_LEN], name[CROSS_LEN];
+        strcpy(dirpath,to);
+        dirpath[pos-to+1] = 0;
+        strcpy(name,pos+1);
+        CFileInfo* dir = FindDirInfo(dirpath,expand);
+        Bits index = dir ? GetLongName(dir,name) : -1;
+        if (index>=0) {
+            dir->fileList[(size_t)index]->fileList.swap(moved->fileList);
+            dir->fileList[(size_t)index]->longNameList.swap(moved->longNameList);
+        }
+    }
+    DeleteFileInfo(moved);
+    return added;
+}
+
+bool DOS_Drive_Cache::TakeEntry(const char* path, bool isDir, CFileInfo* &taken) {
+    if (!HoldsFolderOf(path)) return false;
+    const char* pos = strrchr_dbcs((char *)path,CROSS_FILESPLIT);
+    char dirpath[CROSS_LEN], expand[CROSS_LEN], file[CROSS_LEN];
+    strcpy(dirpath,path);
+    dirpath[pos-path+1] = 0;
+    // The name resolves here as it did in GetExpandName for the host's call.
+    CFileInfo* dir = FindDirInfo(dirpath,expand);
+    if (!dir) return false;
+    strcpy(file,pos+1);
+    Bits index = GetLongName(dir,file);
+    // On a host that tells case apart, the removed short name can still open another file of the
+    // folder, under a short name of its own: only a new read makes the two agree.
+    for (Bitu i=0; index>=0 && i<dir->fileList.size(); i++) {
+        if ((Bits)i!=index && !strcasecmp(dir->fileList[i]->orgname,dir->fileList[(size_t)index]->shortname))
+            index = -1;
+    }
+    if (index<0 || dir->fileList[(size_t)index]->isDir!=isDir) return false;
+    CFileInfo* info = dir->fileList[(size_t)index];
+    dir->fileList.erase(dir->fileList.begin()+index);
+    std::vector<CFileInfo*>::iterator it = std::find(dir->longNameList.begin(),dir->longNameList.end(),info);
+    if (it!=dir->longNameList.end()) dir->longNameList.erase(it);
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
+        if ((dirSearch[i]==dir) && ((Bitu)index<dirSearch[i]->nextEntry))
+            dirSearch[i]->nextEntry--;
+    }
+    // A directory goes with its cached subtree. FindDirInfo leaves save_dir as it was for a path
+    // too long to save, so the last folder looked up may be in that subtree.
+    if (isDir) save_dir = nullptr;
+    taken = info;
+    return true;
+}
+
 void DOS_Drive_Cache::DeleteEntry(const char* path, bool ignoreLastDir) {
+    if (RemoveEntry(path,ignoreLastDir)) return;
+
     CacheOut(path,ignoreLastDir);
     if (dirSearch[srchNr] && (dirSearch[srchNr]->nextEntry>0)) dirSearch[srchNr]->nextEntry--;
 
@@ -1121,6 +1218,7 @@ bool DOS_Drive_Cache::FindFirst(char* path, uint16_t& id) {
             // Clear and reuse slot
             DeleteFileInfo(dirFindFirst[n]);
             dirFindFirst[n]=nullptr;
+            dirFindFirstDir[n] = SearchDir();
         }
 
     }
@@ -1129,6 +1227,9 @@ bool DOS_Drive_Cache::FindFirst(char* path, uint16_t& id) {
     if (++dirFindFirstGeneration[dirFindFirstID] == 0)
         ++dirFindFirstGeneration[dirFindFirstID];
     dirFindFirst[dirFindFirstID]-> nextEntry    = 0;
+    // OpenDir left the directory's host path in dirPath.
+    dirFindFirstDir[dirFindFirstID] = SearchDir();
+    dirFindFirstDir[dirFindFirstID].path = dirPath;
 
     // Copy entries to use with FindNext
     for (Bitu i=0; i<dirSearch[dirID]->fileList.size(); i++) {
@@ -1158,6 +1259,7 @@ bool DOS_Drive_Cache::FindNext(uint16_t id, char* &result, char* &lresult) {
     if (!SetResult(dirFindFirst[id], result, lresult, dirFindFirst[id]->nextEntry)) {
         // free slot
         DeleteFileInfo(dirFindFirst[id]); dirFindFirst[id] = nullptr;
+        dirFindFirstDir[id] = SearchDir();
         return false;
     }
     return true;
@@ -1169,6 +1271,49 @@ void DOS_Drive_Cache::FindClose(uint16_t id, uint32_t generation) {
         return;
     DeleteFileInfo(dirFindFirst[id]);
     dirFindFirst[id] = nullptr;
+}
+
+// DOS reads on in a search's directory by its place on the disk: under its new name once it is
+// renamed, and once it is removed in its freed cluster, which holds . and .. alone. So a rename
+// or a removal on the host moves the record of every search open in that directory or below it.
+static bool search_in(const std::string& searched, const char* dir, size_t len) {
+    return searched.size()>len && !searched.compare(0,len,dir) && searched[len]==CROSS_FILESPLIT;
+}
+
+void DOS_Drive_Cache::SearchesRenamed(const char* from, const char* to) {
+    const size_t len = strlen(from);
+    for (uint16_t i=0; i<MAX_OPENDIRS; i++) {
+        SearchDir& dir = dirFindFirstDir[i];
+        if (!dirFindFirst[i] || dir.state==SearchDir::REMOVED || !search_in(dir.path,from,len)) continue;
+        dir.path.replace(0,len,to);
+        dir.state = SearchDir::RENAMED;
+    }
+}
+
+// date and time are the removed directory's, which its . and .. carry from then on.
+void DOS_Drive_Cache::SearchesRemoved(const char* dir, uint16_t date, uint16_t time) {
+    const size_t len = strlen(dir);
+    for (uint16_t i=0; i<MAX_OPENDIRS; i++) {
+        SearchDir& found = dirFindFirstDir[i];
+        if (!dirFindFirst[i] || found.state==SearchDir::REMOVED || !search_in(found.path,dir,len)) continue;
+        found.state = SearchDir::REMOVED;
+        found.date = date;
+        found.time = time;
+    }
+}
+
+// The host path a search reads its directory by since a rename moved it; nullptr while the path
+// the search was given still names it, and for a removed one.
+const char* DOS_Drive_Cache::RenamedSearchDir(uint16_t id) {
+    if (id>=MAX_OPENDIRS || !dirFindFirst[id] || dirFindFirstDir[id].state!=SearchDir::RENAMED) return nullptr;
+    return dirFindFirstDir[id].path.c_str();
+}
+
+bool DOS_Drive_Cache::RemovedSearchDir(uint16_t id, uint16_t& date, uint16_t& time) {
+    if (id>=MAX_OPENDIRS || !dirFindFirst[id] || dirFindFirstDir[id].state!=SearchDir::REMOVED) return false;
+    date = dirFindFirstDir[id].date;
+    time = dirFindFirstDir[id].time;
+    return true;
 }
 
 void DOS_Drive_Cache::ClearFileInfo(CFileInfo *dir) {

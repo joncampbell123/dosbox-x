@@ -7,6 +7,9 @@ Next version:
     folder, an overlay drive and a zip drive answer as MS-DOS 6.22 and 7.10
     do: error 3 or 18 where DOS gives them, no "." and ".." in a root, and
     a find next after a search for the label alone lists no file. (Optimiza)
+  - [AI] DOS: creating, deleting or renaming a file or directory on a
+    local drive edits the folder's cached listing instead of emptying it,
+    and the short names of the other files stay as they were. (Optimiza)
   - [AI] CPU: the x86 dynamic core keeps its code page handlers when it
     resets its code cache. Each reset leaked the handlers on the free list,
     about 6 MB for every protected-mode program started on Windows. (Optimiza)
@@ -356,6 +359,27 @@ Next version:
     early return does not leave a stale incomplete-remainder status. (cimarronm)
   - FPU: Fixed x87 underflow reporting for inexact tiny results that round to
     the minimum normal IEEE floating-point value. (cimarronm)
+  - DOS: Place the CON device header before the list of lists to prevent
+    Quarterdeck Manifest from hanging at startup. (cimarronm)
+  - DOS: INT 21h AH=67h (set handle count) now follows MS-DOS 4.0. It no longer
+    uses up the private memory area on every call and it returns an error if
+    memory is short or open handles would be dropped. (cimarronm)
+  - Fixed Fullscreen Switching of Internal Voodoo Emulation (DieSkaarj)
+  - NE2000: do not complete an in-flight transmit early when TXP is rewritten
+    (johnhomelan)
+  - Enabled CR0.TS during task switch (tbullock)
+  - Fixed redirection in batch file broke redirection of command.com
+    (maron2000)
+  - CPU: FXSAVE/FXRSTOR now raise #NM for CR0.EM/CR0.TS, and LDMXCSR/STMXCSR
+    raise #UD for CR0.EM and #NM for CR0.TS. (cimarronm)
+  - DOS: Ensure Ctrl+C/INT 23h handling clears temporary state when interrupted
+    by an emulator control signal, preventing later termination errors.
+    (cimarronm)
+  - Bump mt32emu to ver.2.8.6 (maron2000)
+  - DOS: Resolve actual SFN aliases when storing a child executable path in its
+    environment from an LFN path. (cimarronm)
+  - DOS: INT 21h AH=56h now returns path not found when the destination
+    directory does not exist. (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed

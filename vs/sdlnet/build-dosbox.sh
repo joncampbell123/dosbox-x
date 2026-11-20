@@ -43,7 +43,7 @@ mkdir -p linux-build/include || exit 1
 chmod +x "$srcdir/install-sh" || exit 1
 
 # Proceed
-make -j3 || exit 1
+make -j$(nproc) || exit 1
 make install || exit 1  # will install into ./linux-host
 
 cd "$srcdir" || exit 1
