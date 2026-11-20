@@ -1,5 +1,18 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include "-DRESDIR=\"$(resdir)\""
 
+# include/git_revision.h names the checkout a binary was built from, rewritten only when it changes.
+BUILT_SOURCES = $(top_builddir)/include/git_revision.h
+CLEANFILES = $(top_builddir)/include/git_revision.h
+$(top_builddir)/include/git_revision.h: FORCE
+	@rev=unknown; \
+	if [ -e "$(top_srcdir)/.git" ]; then \
+	  rev=`git -C "$(top_srcdir)" describe --always 2>/dev/null || echo unknown`; \
+	  git -C "$(top_srcdir)" diff --quiet HEAD -- . ':!include/build_timestamp.h' 2>/dev/null || rev=$$rev-dirty; \
+	fi; \
+	printf '#define GIT_REVISION "%s"\n' "$$rev" > $@.tmp; \
+	if cmp -s $@.tmp $@; then rm -f $@.tmp; else mv -f $@.tmp $@; fi
+FORCE:
+
 if EMSCRIPTEN
 # fix https://github.com/emscripten-core/emscripten/issues/10061
 dosbox_x_LDFLAGS = -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['$$ERRNO_CODES'] 
