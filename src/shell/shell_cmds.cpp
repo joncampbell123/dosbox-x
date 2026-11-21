@@ -1459,6 +1459,10 @@ void DOS_Shell::CMD_CHDIR(char* args) {
 
     if(!*args) {
         // Display the current directory of the active drive
+        if(!Drives[drive - 'A']) {
+            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            return;
+        }
         DOS_GetCurrentDir(0, dir, true);
         WriteOut("%c:\\", drive);
         WriteOut_NoParsing(dir, true);
