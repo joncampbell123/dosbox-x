@@ -57,6 +57,8 @@ bool enable_a20_on_windows_init = false;
 #endif
 
 static Bitu call_int2f,call_int2a;
+static RealPt dos7_primary_shell_name = 0;
+static RealPt dos7_primary_shell_command_tail = 0;
 
 static std::list<MultiplexHandler*> Multiplex;
 typedef std::list<MultiplexHandler*>::iterator Multiplex_it;
@@ -294,7 +296,7 @@ static Bitu INT2A_Handler(void) {
 }
 
 extern std::string strPasteBuffer;
-extern bool i4dos, shellrun, clipboard_dosapi, swapad;
+extern bool clipboard_dosapi, swapad;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
 extern uint16_t seg_win_startup_info;
 void PasteClipboard(bool bPressed);
@@ -455,24 +457,13 @@ static bool DOS_MultiplexFunctions(void) {
         reg_ax=0;
         return true;
     case 0x1611:    /* Get shell parameters */
-		{
-			if (dos.version.major < 7) return false;
-			std::string psp_name;
-			DOS_MCB psp_mcb(dos.psp()-1);
-			psp_name = psp_mcb.GetFileName();
-			if (psp_name == "DOSSETUP" || psp_name == "KRNL386") {
-				/* Hack for Windows 98 SETUP.EXE (Wengier) */
-				return false;
-			}
-			strcpy(name,i4dos&&!shellrun?"4DOS.COM":"COMMAND.COM");
-			MEM_BlockWrite(SegPhys(ds)+reg_dx,name,(Bitu)(strlen(name)+1));
-			strcpy(name+1,"/P /D /K AUTOEXEC");
-			name[0]=(char)strlen(name+1);
-			MEM_BlockWrite(SegPhys(ds)+reg_si,name,(Bitu)(strlen(name+1)+2));
-			reg_ax=0;
-			reg_bx=0;
-			return true;
-		}
+        if (dos.version.major < 7) return false;
+        SegSet16(ds, RealSeg(dos7_primary_shell_name));
+        reg_ax = 0;
+        reg_bx = 0;
+        reg_dx = RealOff(dos7_primary_shell_name);
+        reg_si = RealOff(dos7_primary_shell_command_tail);
+        return true;
     case 0x1612:
 		if (dos.version.major < 7) return false;
         reg_ax=0;
@@ -959,6 +950,19 @@ static bool DOS_MultiplexFunctions(void) {
 }
 
 void DOS_SetupMisc(void) {
+	const auto shell_segment = DOS_GetMemory(3, "MS-DOS 7 shell parameters");
+	dos7_primary_shell_name = RealMake(shell_segment, 0);
+	dos7_primary_shell_command_tail = RealMake(shell_segment, 0x10);
+	static constexpr char primary_shell_name[] = "COMMAND.COM";
+	static constexpr char primary_shell_command_tail[] = "/P /D /K AUTOEXEC";
+	MEM_BlockWrite(Real2Phys(dos7_primary_shell_name), primary_shell_name, sizeof(primary_shell_name));
+	mem_writeb(Real2Phys(dos7_primary_shell_command_tail), sizeof(primary_shell_command_tail) - 1);
+	MEM_BlockWrite(
+        Real2Phys(dos7_primary_shell_command_tail) + 1,
+        primary_shell_command_tail,
+        sizeof(primary_shell_command_tail)
+    );
+
 	/* Setup the dos multiplex interrupt */
 	call_int2f=CALLBACK_Allocate();
 	CALLBACK_Setup(call_int2f,&INT2F_Handler,CB_IRET,"DOS Int 2f");
