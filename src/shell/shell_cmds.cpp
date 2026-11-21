@@ -1058,7 +1058,7 @@ void DOS_Shell::CMD_TREE(char * args) {
     if (strlen(args)>1&&args[1]==':') {
         char c[]=" _:";
         c[1]=toupper(args[0]);
-        if (!Drives[c[1]-'A']) {
+        if (c[1]<'A'||c[1]>'Z'||!Drives[c[1]-'A']) {
             WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
             return;
         }
@@ -1067,6 +1067,11 @@ void DOS_Shell::CMD_TREE(char * args) {
         tree=false;
         WriteOut("%c:%s\n", c[1], *args?args+2:".");
     } else {
+        if (!Drives[DOS_GetDefaultDrive()]) {
+            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            dos.dta(save_dta);
+            return;
+        }
         tree=true;
         CMD_VOL(empty_string);
         tree=false;
