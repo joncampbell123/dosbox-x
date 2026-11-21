@@ -3949,7 +3949,7 @@ void DOS_Shell::CMD_VOL(char *args){
 			if(!strcasecmp(args,":")) return;
 			int drive2; drive2= toupper(*reinterpret_cast<unsigned char*>(&args[0]));
 			char * c; c = strchr(args,':'); *c = '\0';
-			if (Drives[drive2-'A']) drive = drive2 - 'A';
+			if (drive2 >= 'A' && drive2 <= 'Z' && Drives[drive2-'A']) drive = drive2 - 'A';
 			else {
 				WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
 				return;
@@ -3959,6 +3959,10 @@ void DOS_Shell::CMD_VOL(char *args){
 			WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
 			return;
 		}
+	}
+	if (drive >= DOS_DRIVES || !Drives[drive]) {
+		WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+		return;
 	}
 	char const* bufin = Drives[drive]->GetLabel();
     if (tree)
