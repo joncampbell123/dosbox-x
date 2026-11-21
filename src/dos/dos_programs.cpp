@@ -8320,6 +8320,11 @@ class LABEL : public Program
 				}
 			}
 
+			if (drive >= DOS_DRIVES || !Drives[drive]) {
+				WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+				return;
+			}
+
 			/* then the label. MS-DOS behavior is to treat the rest of the command line, spaces and all, as the label */
 			if (*raw != 0) {
 				label = raw;
