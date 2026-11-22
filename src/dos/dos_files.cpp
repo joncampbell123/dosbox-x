@@ -208,6 +208,7 @@ struct ActiveFindSnapshot {
     DOS_Drive * instance;
     uint16_t psp;
     bool dta_wildcards;
+    uint8_t spattern[11];   // the template the FindFirst wrote into the DTA
 };
 
 static std::map<uint64_t, ActiveFindSnapshot> active_dta_finds;
@@ -331,11 +332,31 @@ static void RememberCurrentFindSnapshot(uint8_t drive, DOS_DTA & dta, bool wildc
     if (!Drives[drive]->GetFindCacheID(dta, id, generation))
         return;
     const bool lfn = lfn_filefind_handle < LFN_FILEFIND_MAX;
-    const ActiveFindSnapshot snapshot = { drive, id, generation, Drives[drive], dos.psp(), wildcards && !lfn };
+    ActiveFindSnapshot snapshot = { drive, id, generation, Drives[drive], dos.psp(), wildcards && !lfn, {} };
+    uint8_t block[DOS_DTA::SEARCH_SIZE];
+    dta.GetBlock(block, sizeof(block));
+    memcpy(snapshot.spattern, block + 1, sizeof(snapshot.spattern));
     if (lfn)
         active_lfn_finds[static_cast<uint8_t>(lfn_filefind_handle)] = snapshot;
     else
         active_dta_finds[FindDtaKey()] = snapshot;
+}
+
+// Whether the template in the DTA of a 4Eh search is another than the one its FindFirst wrote:
+// a program put it there. Only a search the cache tracks is known.
+bool DOS_FindTemplateEdited(uint8_t drive, uint16_t id, const uint8_t * spattern) {
+    const auto names = [&](const ActiveFindSnapshot & snapshot) {
+        return snapshot.drive == drive && snapshot.id == id;
+    };
+    const auto edited = [&](const ActiveFindSnapshot & snapshot) {
+        return memcmp(snapshot.spattern, spattern, sizeof(snapshot.spattern)) != 0;
+    };
+    for (const auto & active : active_dta_finds)
+        if (names(active.second)) return edited(active.second);
+    for (const auto & kept : kept_dta_finds)
+        for (const auto & snapshot : kept.second)
+            if (names(snapshot)) return edited(snapshot);
+    return false;
 }
 
 bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);

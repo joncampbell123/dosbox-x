@@ -31,6 +31,7 @@ uint8_t sdriv[260], sattr[260], fattr;
 char sname[260][LFN_NAMELENGTH+1],storect[CTBUF];
 extern int lfn_filefind_handle;
 extern bool forcelfn;
+bool DOS_FindTemplateEdited(uint8_t drive, uint16_t id, const uint8_t * spattern);
 bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 
 struct finddata {
@@ -664,7 +665,11 @@ void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {
         uint8_t temp[11];
         MEM_BlockRead(pt+offsetof(sDTA,spname),temp,11);
         for (int i=0;i<13;i++) pattern[i]=0;
-        if (uselfn && (wroteTemplate || memchr(temp,0,sizeof(temp))!=NULL)) {
+        /* A template a program wrote over the one its FindFirst left is read as MS-DOS reads
+         * it, with long names on as without them */
+        const bool edited = uselfn && !wroteTemplate &&
+            DOS_FindTemplateEdited((uint8_t)(sGet(sDTA,sdrive)-1u),GetDirID(),temp);
+        if (uselfn && !edited && (wroteTemplate || memchr(temp,0,sizeof(temp))!=NULL)) {
             /* As SetupSearch writes it with long names on: padded with zeros. A template
              * that fills both fields holds no zero and reads the same as one a program wrote
              * MS-DOS's way, so it is taken as written here only by the FindFirst that wrote it. */
@@ -675,7 +680,7 @@ void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {
         }
         /* MS-DOS's form: what SetupSearch writes without long names, and what a program
          * writes there before AH=4Fh in either mode */
-        if (!uselfn && (!DTA_TemplateCanMatch(temp,8) || !DTA_TemplateCanMatch(temp+8,3))) {
+        if ((!uselfn || edited) && (!DTA_TemplateCanMatch(temp,8) || !DTA_TemplateCanMatch(temp+8,3))) {
             /* A name no file and no label has */
             pattern[0]='/';
             return;
