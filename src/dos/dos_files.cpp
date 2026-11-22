@@ -354,9 +354,16 @@ static void RememberCurrentFindSnapshot(uint8_t drive, DOS_DTA & dta, bool wildc
 
 // Whether the template in the DTA of a 4Eh search is another than the one its FindFirst wrote:
 // a program put it there. Only a search the cache tracks is known.
-bool DOS_FindTemplateEdited(uint8_t drive, uint16_t id, const uint8_t * spattern) {
+bool DOS_FindTemplateEdited(uint8_t drive, DOS_DTA & dta, const uint8_t * spattern) {
+    uint16_t id = MAX_OPENDIRS;
+    uint32_t generation = 0;
+    if (drive >= DOS_DRIVES || !Drives[drive] || !Drives[drive]->GetFindCacheID(dta, id, generation))
+        return false;
+    // The record of a search that was abandoned can outlive its slot: the cache empties its table
+    // when it is full, and a drive mounted again numbers its searches anew.
     const auto names = [&](const ActiveFindSnapshot & snapshot) {
-        return snapshot.drive == drive && snapshot.id == id;
+        return snapshot.drive == drive && snapshot.instance == Drives[drive] &&
+               snapshot.id == id && snapshot.generation == generation;
     };
     // An FCB search comes back to the temporary DTA from the FCB, which holds a space where the
     // template has a zero (DOS_FCB::SetSearch).
