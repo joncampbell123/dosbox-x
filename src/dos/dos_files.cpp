@@ -2234,6 +2234,16 @@ bool DOS_FCBClose(uint16_t seg,uint16_t offset) {
 	return true;
 }
 
+/* An FCB search runs in the temporary DTA and waits in the program's FCB, as in MS-DOS. The
+ * temporary DTA is also where the path lookups of the long name calls, the FCB rename and the
+ * shell search, and where any other FCB search runs. */
+static void SaveFindSearch(DOS_FCB & find_fcb) {
+	DOS_DTA find_dta(dos.tables.tempdta);
+	uint8_t search[DOS_DTA::SEARCH_SIZE];
+	find_dta.GetBlock(search,sizeof(search));
+	find_fcb.SetSearch(search);
+}
+
 bool DOS_FCBFindFirst(uint16_t seg,uint16_t offset) {
 	DOS_FCB fcb(seg,offset);
 	RealPt old_dta=dos.dta();dos.dta(dos.tables.tempdta);
@@ -2242,16 +2252,30 @@ bool DOS_FCBFindFirst(uint16_t seg,uint16_t offset) {
 	fcb.GetAttr(attr); /* Gets search attributes if extended */
 	bool ret=DOS_FindFirst(name,attr,true);
 	dos.dta(old_dta);
-	if (ret) SaveFindResult(fcb);
+	if (ret) {
+		SaveFindSearch(fcb);
+		SaveFindResult(fcb);
+	}
 	return ret;
 }
 
 bool DOS_FCBFindNext(uint16_t seg,uint16_t offset) {
 	DOS_FCB fcb(seg,offset);
+	DOS_DTA find_dta(dos.tables.tempdta);
+	uint8_t search[DOS_DTA::SEARCH_SIZE];
+	/* The bytes are the program's: a drive that is not there names no search */
+	if (!fcb.GetSearch(search) || search[0]>DOS_DRIVES || !Drives[search[0]-1u]) {
+		DOS_SetError(DOSERR_NO_MORE_FILES);
+		return false;
+	}
+	find_dta.SetBlock(search,sizeof(search));
 	RealPt old_dta=dos.dta();dos.dta(dos.tables.tempdta);
 	bool ret=DOS_FindNext();
 	dos.dta(old_dta);
-	if (ret) SaveFindResult(fcb);
+	if (ret) {
+		SaveFindSearch(fcb);
+		SaveFindResult(fcb);
+	}
 	return ret;
 }
 

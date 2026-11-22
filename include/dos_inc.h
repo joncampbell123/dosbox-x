@@ -703,7 +703,7 @@ public:
     uint8_t   GetAttr(void);
 
 	/* The block as a program sees it: the bytes that identify the search, then the entry found */
-	enum { BLOCK_SIZE = 0x2B };
+	enum { SEARCH_SIZE = 0x15, BLOCK_SIZE = 0x2B };
 	void	GetBlock(uint8_t * block,Bitu len)			{ MEM_BlockRead(pt,block,len); }
 	void	SetBlock(const uint8_t * block,Bitu len)	{ MEM_BlockWrite(pt,block,len); }
 private:
@@ -730,7 +730,7 @@ private:
 	static_assert(offsetof(sDTA,dirID) == 0x0D,"oops");
 	static_assert(offsetof(sDTA,dirCluster) == 0x0F,"oops");
 	static_assert(offsetof(sDTA,fill) == 0x13,"oops");
-	static_assert(offsetof(sDTA,attr) == 0x15,"oops");
+	static_assert(offsetof(sDTA,attr) == SEARCH_SIZE,"oops");
 	static_assert(sizeof(sDTA) == BLOCK_SIZE,"oops");
 	#ifdef _MSC_VER
 	#pragma pack()
@@ -759,6 +759,8 @@ public:
 	void GetAttr(uint8_t & attr);
 	void SetAttr(uint8_t attr);
 	void SetResult(uint32_t size,uint16_t date,uint16_t time,uint8_t attr);
+	void SetSearch(const uint8_t * search);
+	bool GetSearch(uint8_t * search);
 	bool Valid(void);
 	void ClearBlockRecsize(void);
 private:

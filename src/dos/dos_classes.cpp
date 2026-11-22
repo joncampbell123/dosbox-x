@@ -829,6 +829,26 @@ void DOS_FCB::SetAttr(uint8_t attr) {
 	if(extended) mem_writeb(pt - 1,attr);
 }
 
+/* Where MS-DOS keeps the search of INT 21h AH=11h and 12h: in the program's FCB. What follows
+ * the drive in a DTA's search bytes goes behind the FCB's own drive byte, and the drive
+ * searched, counted from 1 as the DTA counts it, behind that. An FCB with no drive there holds
+ * no search. */
+void DOS_FCB::SetSearch(const uint8_t * search) {
+	uint8_t state[DOS_DTA::SEARCH_SIZE-1];
+	memcpy(state,search+1,sizeof(state));
+	/* With long names on the template is padded with zeros; an FCB's name is padded with spaces */
+	for (unsigned int i=0;i<11;i++) if (!state[i]) state[i]=' ';
+	MEM_BlockWrite(pt+1,state,sizeof(state));
+	mem_writeb(pt+DOS_DTA::SEARCH_SIZE,search[0]);
+}
+
+bool DOS_FCB::GetSearch(uint8_t * search) {
+	search[0]=mem_readb(pt+DOS_DTA::SEARCH_SIZE);
+	if (!search[0]) return false;
+	MEM_BlockRead(pt+1,search+1,DOS_DTA::SEARCH_SIZE-1);
+	return true;
+}
+
 void DOS_FCB::SetResult(uint32_t size,uint16_t date,uint16_t time,uint8_t attr) {
 	mem_writed(pt + 0x1d,size);
 	mem_writew(pt + 0x19,date);
