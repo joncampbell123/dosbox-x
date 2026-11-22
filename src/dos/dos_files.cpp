@@ -348,8 +348,14 @@ bool DOS_FindTemplateEdited(uint8_t drive, uint16_t id, const uint8_t * spattern
     const auto names = [&](const ActiveFindSnapshot & snapshot) {
         return snapshot.drive == drive && snapshot.id == id;
     };
+    // An FCB search comes back to the temporary DTA from the FCB, which holds a space where the
+    // template has a zero (DOS_FCB::SetSearch).
+    const bool from_fcb = dos.dta() == dos.tables.tempdta;
     const auto edited = [&](const ActiveFindSnapshot & snapshot) {
-        return memcmp(snapshot.spattern, spattern, sizeof(snapshot.spattern)) != 0;
+        for (size_t i = 0; i < sizeof(snapshot.spattern); i++)
+            if (snapshot.spattern[i] != spattern[i] && !(from_fcb && !snapshot.spattern[i] && spattern[i] == ' '))
+                return true;
+        return false;
     };
     for (const auto & active : active_dta_finds)
         if (names(active.second)) return edited(active.second);
