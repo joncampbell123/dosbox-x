@@ -2508,6 +2508,7 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
     }
     host_cnv_char_t *n_temp_name = ht_strdup(ht);
 
+	if (!(same_entry && cache_agrees)) dirCache.WidenSearchesIn(cache_agrees ? resolved : newold);
 #ifdef host_cnv_use_wchar
 	int temp=_wrename(o_temp_name,n_temp_name);
 #else

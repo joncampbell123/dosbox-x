@@ -236,6 +236,7 @@ public:
 	bool		MoveEntry			(const char* from, const char* to, bool isDir);
 	bool		HoldsFolderOf		(const char* path);
 	void		SearchesRenamed		(const char* from, const char* to);
+	void		WidenSearchesIn		(const char* dir);
 	void		SearchesRemoved		(const char* dir, uint16_t date, uint16_t time);
 	const char*	RenamedSearchDir	(uint16_t id);
 	bool		RemovedSearchDir	(uint16_t id, uint16_t& date, uint16_t& time);
@@ -294,7 +295,7 @@ private:
     char*       CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory, bool skipSort=false);
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
 	void		SortSearch		(CFileInfo* search);
-	void		WidenSearch		(CFileInfo* search);
+	void		WidenSearch		(uint16_t id);
 	uint16_t		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
 	struct ReadIndex;
