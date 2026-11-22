@@ -1938,6 +1938,8 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 //				LOG(LOG_DOSMISC,LOG_ERROR)("DRIVELABEL REQUESTED: none present, returned  NOLABEL");
 //				dta.SetResult("NO_LABEL",0,0,0,DOS_ATTR_VOLUME);
 //				return true;
+				// No search goes on from here: give back the slot the cache took for it.
+				dirCache.FindClose(id,dirCache.FindGeneration(id));
 				DOS_SetError(DOSERR_NO_MORE_FILES);
 				return false;
 			}
