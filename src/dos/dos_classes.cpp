@@ -515,15 +515,15 @@ static void DTA_FieldAsDOS(uint8_t * field,unsigned int len) {
 	}
 }
 
-/* MS-DOS compares the template with the directory entries byte for byte, and no entry holds
- * a zero or a small letter. */
+/* MS-DOS compares the template with the directory entries byte for byte, a '?' matching any,
+ * and no entry holds a zero, a small letter or a '*'. */
 static bool DTA_TemplateCanMatch(const uint8_t * field,unsigned int len) {
 	bool trail=false;
 	for (unsigned int i=0;i<len;i++) {
 		if (field[i]==0) return false;
 		if (trail) trail=false;
 		else if (DBCS_LeadByte(field[i])) trail=true;
-		else if (field[i]>='a' && field[i]<='z') return false;
+		else if ((field[i]>='a' && field[i]<='z') || field[i]=='*') return false;
 	}
 	return true;
 }
