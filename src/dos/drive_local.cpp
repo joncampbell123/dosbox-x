@@ -2001,7 +2001,7 @@ bool localDrive::FindNext(DOS_DTA & dta) {
 	uint16_t id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];
 
 again:
-	if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
+	if (!dirCache.FindNext(id,dir_ent,ldir_ent,srch_pattern)) {
 		if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
 			ldid[lfn_filefind_handle]=0;
 			ldir[lfn_filefind_handle]="";

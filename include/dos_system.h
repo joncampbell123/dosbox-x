@@ -222,7 +222,7 @@ public:
 	bool		GetShortName		(const char* fullname, char* shortname);
 
 	bool		FindFirst			(char* path, uint16_t& id, const char* pattern);
-    bool        FindNext            (uint16_t id, char* &result, char* &lresult);
+    bool        FindNext            (uint16_t id, char* &result, char* &lresult, const char* pattern);
     uint32_t    FindGeneration      (uint16_t id) const {
         return (id < MAX_OPENDIRS && dirFindFirst[id]) ? dirFindFirstGeneration[id] : 0;
     }
@@ -293,6 +293,8 @@ private:
 	bool		OpenDir			(CFileInfo* dir, const char* expand, uint16_t& id);
     char*       CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory, bool skipSort=false);
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
+	void		SortSearch		(CFileInfo* search);
+	void		WidenSearch		(CFileInfo* search);
 	uint16_t		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
 	struct ReadIndex;

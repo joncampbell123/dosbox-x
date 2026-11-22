@@ -1234,7 +1234,7 @@ bool DOS_Drive_Cache::FindFirst(char* path, uint16_t& id, const char* pattern) {
     // A pattern without wildcards matches one entry at most, unless two entries share a name.
     // Copy that entry alone, picked by the test the drive's FindNext applies, instead of the
     // whole directory. Two or more matches take the copy below: sorting it sets their order.
-    if (!strpbrk(pattern,"*?")) {
+    if (!strpbrk(pattern,"*?") && strlen(path)+strlen(pattern)+2<=CROSS_LEN) {
         CFileInfo* match = nullptr;
         Bitu matches = 0;
         for (Bitu i=0; i<dirSearch[dirID]->fileList.size() && matches<2; i++) {
@@ -1245,7 +1245,12 @@ bool DOS_Drive_Cache::FindFirst(char* path, uint16_t& id, const char* pattern) {
             }
         }
         if (matches<2) {
-            if (match) CopyEntry(dirFindFirst[dirFindFirstID],match);
+            CFileInfo* search = dirFindFirst[dirFindFirstID];
+            if (match) CopyEntry(search,match);
+            // The directory, then the pattern, each with its terminator: what FindNext needs
+            // to go on through the directory when it comes with another pattern.
+            strcpy(search->orgname,path);
+            strcpy(search->orgname+strlen(path)+1,pattern);
             id = dirFindFirstID;
             return true;
         }
@@ -1255,27 +1260,65 @@ bool DOS_Drive_Cache::FindFirst(char* path, uint16_t& id, const char* pattern) {
     for (Bitu i=0; i<dirSearch[dirID]->fileList.size(); i++) {
         CopyEntry(dirFindFirst[dirFindFirstID],dirSearch[dirID]->fileList[i]);
     }
-    // Now re-sort the fileList accordingly to output
-    switch (sortDirType) {
-        case ALPHABETICAL       : break;
-//      case ALPHABETICAL       : std::sort(dirFindFirst[dirFindFirstID]->fileList.begin(), dirFindFirst[dirFindFirstID]->fileList.end(), SortByName);      break;
-        case DIRALPHABETICAL    : std::sort(dirFindFirst[dirFindFirstID]->fileList.begin(), dirFindFirst[dirFindFirstID]->fileList.end(), SortByDirName);       break;
-        case ALPHABETICALREV    : std::sort(dirFindFirst[dirFindFirstID]->fileList.begin(), dirFindFirst[dirFindFirstID]->fileList.end(), SortByNameRev);       break;
-        case DIRALPHABETICALREV : std::sort(dirFindFirst[dirFindFirstID]->fileList.begin(), dirFindFirst[dirFindFirstID]->fileList.end(), SortByDirNameRev);    break;
-        case NOSORT             : break;
-    }
+    SortSearch(dirFindFirst[dirFindFirstID]);
 
 //  LOG(LOG_DOSMISC,LOG_ERROR)("DIRCACHE: FindFirst : %s (ID:%02X)",path,dirFindFirstID);
     id = dirFindFirstID;
     return true;
 }
 
-bool DOS_Drive_Cache::FindNext(uint16_t id, char* &result, char* &lresult) {
+void DOS_Drive_Cache::SortSearch(CFileInfo* search) {
+    // Now re-sort the fileList accordingly to output
+    switch (sortDirType) {
+        case ALPHABETICAL       : break;
+//      case ALPHABETICAL       : std::sort(search->fileList.begin(), search->fileList.end(), SortByName);      break;
+        case DIRALPHABETICAL    : std::sort(search->fileList.begin(), search->fileList.end(), SortByDirName);       break;
+        case ALPHABETICALREV    : std::sort(search->fileList.begin(), search->fileList.end(), SortByNameRev);       break;
+        case DIRALPHABETICALREV : std::sort(search->fileList.begin(), search->fileList.end(), SortByDirNameRev);    break;
+        case NOSORT             : break;
+    }
+}
+
+// Gives the search of an exact name the sorted copy of its directory in place of its one entry,
+// with nextEntry where a search that held that copy from its FindFirst would be: at the start
+// if the entry was not handed out yet, right behind it if it was.
+void DOS_Drive_Cache::WidenSearch(CFileInfo* search) {
+    CFileInfo* held = nullptr;
+    if (search->nextEntry>0) held = search->fileList[0];
+    else if (!search->fileList.empty()) delete search->fileList[0];
+    search->fileList.clear();
+    search->nextEntry = 0;
+
+    uint16_t dirID;
+    bool placed = false;
+    if (OpenDir(search->orgname,dirID)) {
+        for (Bitu i=0; i<dirSearch[dirID]->fileList.size(); i++) {
+            CFileInfo* entry = dirSearch[dirID]->fileList[i];
+            if (held && !placed && !strcmp(entry->shortname,held->shortname) && !strcmp(entry->orgname,held->orgname)) {
+                search->fileList.push_back(held);
+                placed = true;
+            } else {
+                CopyEntry(search,entry);
+            }
+        }
+    }
+    search->orgname[0] = 0;
+    // An entry the directory has lost since keeps its place in the order.
+    if (held && !placed) search->fileList.push_back(held);
+    SortSearch(search);
+    if (held) search->nextEntry = (Bitu)(std::find(search->fileList.begin(),search->fileList.end(),held)-search->fileList.begin())+1;
+}
+
+bool DOS_Drive_Cache::FindNext(uint16_t id, char* &result, char* &lresult, const char* pattern) {
     // out of range ?
     if ((id>=MAX_OPENDIRS) || !dirFindFirst[id]) {
         LOG(LOG_DOSMISC,LOG_ERROR)("DIRCACHE: FindFirst/Next failure : ID out of range: %04X",id);
         return false;
     }
+    // The search of an exact name holds one entry (see FindFirst) and has nothing more for that
+    // name. Any other pattern goes on through the directory.
+    CFileInfo* search = dirFindFirst[id];
+    if (search->orgname[0] && strcmp(search->orgname+strlen(search->orgname)+1,pattern)) WidenSearch(search);
     if (!SetResult(dirFindFirst[id], result, lresult, dirFindFirst[id]->nextEntry)) {
         // free slot
         DeleteFileInfo(dirFindFirst[id]); dirFindFirst[id] = nullptr;
