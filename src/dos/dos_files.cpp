@@ -257,6 +257,16 @@ static void CloseFindSnapshotsForPSP(std::map<Key, ActiveFindSnapshot> & finds, 
 void DOS_CloseFindSnapshotsForPSP(uint16_t psp) {
     CloseFindSnapshotsForPSP(active_dta_finds, psp);
     CloseFindSnapshotsForPSP(active_lfn_finds, psp);
+    for (auto kept = kept_dta_finds.begin(); kept != kept_dta_finds.end(); ) {
+        auto & searches = kept->second;
+        searches.erase(std::remove_if(searches.begin(), searches.end(), [&](const ActiveFindSnapshot & snapshot) {
+            if (snapshot.psp != psp || snapshot.dta_wildcards) return false;
+            ReleaseFindSnapshot(snapshot);
+            return true;
+        }), searches.end());
+        if (searches.empty()) kept = kept_dta_finds.erase(kept);
+        else ++kept;
+    }
 }
 
 static void ReplaceCurrentFindSnapshot() {
