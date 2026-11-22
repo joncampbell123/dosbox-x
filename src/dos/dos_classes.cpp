@@ -540,6 +540,10 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
 		}
 		while (i<=LFN_NAMELENGTH) sname[lfn_filefind_handle][i++]=0;
 	}
+	/* The search of a long name handle is whole in the arrays above. INT 21h AX=714Eh returns
+	 * its data at ES:DI and has no business in the DTA, where an AH=4Eh search may be going on. */
+	if (lfn_filefind_handle<LFN_FILEFIND_MAX) return;
+
 	/* Without long names the template is the one MS-DOS keeps: eight characters of name and
 	 * three of extension, each field padded with spaces. With long names on it is the pattern
 	 * as typed, padded with zeros: a space is then a character of the name. */
@@ -644,6 +648,10 @@ int DOS_DTA::GetFindData(int fmt, char * fdstr, int *c) {
 
 uint8_t DOS_DTA::GetSearchDrive(void) {
 	return lfn_filefind_handle>=LFN_FILEFIND_MAX?(uint8_t)(sGet(sDTA,sdrive)-1u):sdriv[lfn_filefind_handle];
+}
+
+uint8_t DOS_DTA::GetAttr(void) {
+	return lfn_filefind_handle>=LFN_FILEFIND_MAX?(uint8_t)sGet(sDTA,sattr):sattr[lfn_filefind_handle];
 }
 
 void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {
