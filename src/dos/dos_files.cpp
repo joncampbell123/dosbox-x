@@ -923,7 +923,7 @@ uint16_t DOS_FindFirstPathError(const char * search) {
 }
 
 bool forcelfn = false;
-bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
+static bool DOS_FindFirstIntoDTA(const char * search,uint16_t attr,bool fcb_findfirst) {
 	ReplaceCurrentFindSnapshot();
 	LOG(LOG_FILES,LOG_NORMAL)("file search attributes %X name %s",attr,search);
 	DOS_DTA dta(dos.dta());
@@ -1054,6 +1054,21 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		RememberCurrentFindSnapshot(drive, dta, strpbrk(pattern, "*?") != NULL);
 		return true;
 	}
+	return false;
+}
+
+/* MS-DOS searches in a buffer of its own and copies it to the DTA once it has found an entry.
+ * The search above writes the DTA as it goes, so one that found nothing puts back what the
+ * DTA held: the search a program had in progress there goes on. The temporary DTA is this
+ * DOS's own buffer and not a program's: it is left as the search left it, and the shell's
+ * DIR reads from it the drive of a search that found nothing. */
+bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
+	if (dos.dta()==dos.tables.tempdta) return DOS_FindFirstIntoDTA(search,attr,fcb_findfirst);
+	DOS_DTA dta(dos.dta());
+	uint8_t before[DOS_DTA::BLOCK_SIZE];
+	dta.GetBlock(before,sizeof(before));
+	if (DOS_FindFirstIntoDTA(search,attr,fcb_findfirst)) return true;
+	dta.SetBlock(before,sizeof(before));
 	return false;
 }
 

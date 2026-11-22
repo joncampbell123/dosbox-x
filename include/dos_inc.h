@@ -701,6 +701,11 @@ public:
 	uint16_t	GetDirID(void)				{ return (uint16_t)sGet(sDTA,dirID); };
 	uint32_t	GetDirIDCluster(void)		{ return sGet(sDTA,dirCluster); };
     uint8_t   GetAttr(void)               { return (uint8_t)sGet(sDTA,sattr); }
+
+	/* The block as a program sees it: the bytes that identify the search, then the entry found */
+	enum { BLOCK_SIZE = 0x2B };
+	void	GetBlock(uint8_t * block,Bitu len)			{ MEM_BlockRead(pt,block,len); }
+	void	SetBlock(const uint8_t * block,Bitu len)	{ MEM_BlockWrite(pt,block,len); }
 private:
 	/* SetupSearch wrote the template through this object: the FindFirst that set the search up
 	 * reads back what it wrote, and only a later call reads bytes a program may have put there */
@@ -726,6 +731,7 @@ private:
 	static_assert(offsetof(sDTA,dirCluster) == 0x0F,"oops");
 	static_assert(offsetof(sDTA,fill) == 0x13,"oops");
 	static_assert(offsetof(sDTA,attr) == 0x15,"oops");
+	static_assert(sizeof(sDTA) == BLOCK_SIZE,"oops");
 	#ifdef _MSC_VER
 	#pragma pack()
 	#endif
