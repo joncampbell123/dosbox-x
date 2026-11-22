@@ -213,8 +213,8 @@ struct ActiveFindSnapshot {
 static std::map<uint64_t, ActiveFindSnapshot> active_dta_finds;
 // DOS keeps the whole state of a 4Eh search in the DTA, so a program may save those
 // bytes, run other searches through the same DTA and put them back, as a directory
-// walk or a DOS extender relaying its DTA does. A search with wildcards that another
-// FindFirst through its DTA replaced is kept; past this many, the one read least recently goes.
+// walk or a DOS extender relaying its DTA does. A search that another FindFirst through
+// its DTA replaced is kept; past this many, the one read least recently goes.
 static const size_t KEPT_SEARCHES_PER_DTA = 8;
 static std::map<uint64_t, std::deque<ActiveFindSnapshot>> kept_dta_finds;
 static std::map<uint8_t, ActiveFindSnapshot> active_lfn_finds;
@@ -267,16 +267,12 @@ static void ReplaceCurrentFindSnapshot() {
     auto found = active_dta_finds.find(key);
     if (found == active_dta_finds.end())
         return;
-    if (found->second.dta_wildcards) {
-        auto & kept = kept_dta_finds[key];
-        if (kept.size() == KEPT_SEARCHES_PER_DTA) {
-            ReleaseFindSnapshot(kept.front());
-            kept.pop_front();
-        }
-        kept.push_back(found->second);
-    } else {
-        ReleaseFindSnapshot(found->second);
+    auto & kept = kept_dta_finds[key];
+    if (kept.size() == KEPT_SEARCHES_PER_DTA) {
+        ReleaseFindSnapshot(kept.front());
+        kept.pop_front();
     }
+    kept.push_back(found->second);
     active_dta_finds.erase(found);
 }
 
