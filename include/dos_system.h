@@ -221,7 +221,7 @@ public:
 	char*		GetExpandName		(const char* path);
 	bool		GetShortName		(const char* fullname, char* shortname);
 
-	bool		FindFirst			(char* path, uint16_t& id);
+	bool		FindFirst			(char* path, uint16_t& id, const char* pattern);
     bool        FindNext            (uint16_t id, char* &result, char* &lresult);
     uint32_t    FindGeneration      (uint16_t id) const {
         return (id < MAX_OPENDIRS && dirFindFirst[id]) ? dirFindFirstGeneration[id] : 0;

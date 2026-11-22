@@ -1909,8 +1909,12 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		strcat(tempDir,end);
 	}
 
+	uint8_t sAttr;
+	char srch_pattern[LFN_NAMELENGTH+1];
+	dta.GetSearchParams(sAttr,srch_pattern,false);
+
 	uint16_t id;
-	if (!dirCache.FindFirst(tempDir,id)) {
+	if (!dirCache.FindFirst(tempDir,id,srch_pattern)) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
 		return false;
 	}
@@ -1922,9 +1926,6 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		ldir[lfn_filefind_handle]=tempDir;
 	}
 
-	uint8_t sAttr;
-	dta.GetSearchParams(sAttr,tempDir,false);
-
 	if (this->isRemote() && this->isRemovable()) {
 		// cdroms behave a bit different than regular drives
 		if (sAttr == DOS_ATTR_VOLUME) {
@@ -1933,7 +1934,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		}
 	} else {
 		if (sAttr == DOS_ATTR_VOLUME) {
-			if (!LabelMatches(dirCache.GetLabel(),tempDir)) {
+			if (!LabelMatches(dirCache.GetLabel(),srch_pattern)) {
 //				LOG(LOG_DOSMISC,LOG_ERROR)("DRIVELABEL REQUESTED: none present, returned  NOLABEL");
 //				dta.SetResult("NO_LABEL",0,0,0,DOS_ATTR_VOLUME);
 //				return true;
@@ -1947,7 +1948,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 			//exists==true if the volume label matches the searchmask and the path is valid
 			/* A path that resolves to the root itself ("D:", "D:\X\..") names no entry, the label
 			 * included: an empty pattern matches any label only for a search of the label alone */
-			if (*tempDir && strcmp(tempDir,".") && LabelMatches(dirCache.GetLabel(),tempDir)) {
+			if (*srch_pattern && strcmp(srch_pattern,".") && LabelMatches(dirCache.GetLabel(),srch_pattern)) {
 				dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,LABEL_ATTR);
 				return true;
 			}

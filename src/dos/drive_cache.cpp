@@ -1191,7 +1191,7 @@ bool DOS_Drive_Cache::SetResult(CFileInfo* dir, char* &result, char* &lresult, B
 }
 
 // FindFirst / FindNext
-bool DOS_Drive_Cache::FindFirst(char* path, uint16_t& id) {
+bool DOS_Drive_Cache::FindFirst(char* path, uint16_t& id, const char* pattern) {
     uint16_t  dirID;
     // Cache directory in
     if (!OpenDir(path,dirID)) return false;
@@ -1230,6 +1230,26 @@ bool DOS_Drive_Cache::FindFirst(char* path, uint16_t& id) {
     // OpenDir left the directory's host path in dirPath.
     dirFindFirstDir[dirFindFirstID] = SearchDir();
     dirFindFirstDir[dirFindFirstID].path = dirPath;
+
+    // A pattern without wildcards matches one entry at most, unless two entries share a name.
+    // Copy that entry alone, picked by the test the drive's FindNext applies, instead of the
+    // whole directory. Two or more matches take the copy below: sorting it sets their order.
+    if (!strpbrk(pattern,"*?")) {
+        CFileInfo* match = nullptr;
+        Bitu matches = 0;
+        for (Bitu i=0; i<dirSearch[dirID]->fileList.size() && matches<2; i++) {
+            CFileInfo* entry = dirSearch[dirID]->fileList[i];
+            if (WildFileCmp(entry->shortname,pattern) || LWildFileCmp(entry->orgname,pattern)) {
+                match = entry;
+                matches++;
+            }
+        }
+        if (matches<2) {
+            if (match) CopyEntry(dirFindFirst[dirFindFirstID],match);
+            id = dirFindFirstID;
+            return true;
+        }
+    }
 
     // Copy entries to use with FindNext
     for (Bitu i=0; i<dirSearch[dirID]->fileList.size(); i++) {
