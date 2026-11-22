@@ -702,6 +702,9 @@ public:
 	uint32_t	GetDirIDCluster(void)		{ return sGet(sDTA,dirCluster); };
     uint8_t   GetAttr(void)               { return (uint8_t)sGet(sDTA,sattr); }
 private:
+	/* SetupSearch wrote the template through this object: the FindFirst that set the search up
+	 * reads back what it wrote, and only a later call reads bytes a program may have put there */
+	bool	wroteTemplate = false;
 	#ifdef _MSC_VER
 	#pragma pack(1)
 	#endif

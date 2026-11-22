@@ -31,6 +31,7 @@ uint8_t sdriv[260], sattr[260], fattr;
 char sname[260][LFN_NAMELENGTH+1],storect[CTBUF];
 extern int lfn_filefind_handle;
 extern bool forcelfn;
+bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 
 struct finddata {
        uint8_t attr;
@@ -497,6 +498,36 @@ uint16_t DOS_PSP::SetNumFiles(uint16_t fileNum) {
 	return DOSERR_NONE;
 }
 
+static bool DBCS_LeadByte(uint8_t c) {
+	return (IS_PC98_ARCH && shiftjis_lead_byte(c)) || (isDBCSCP() && isKanji1(c));
+}
+
+/* One field of the search template as MS-DOS writes it: in upper case, and a '*' and all that
+ * follows it turned into '?' up to the end of the field. */
+static void DTA_FieldAsDOS(uint8_t * field,unsigned int len) {
+	for (unsigned int i=0;i<len;i++) {
+		if (field[i]=='*') {
+			memset(field+i,'?',len-i);
+			return;
+		}
+		if (DBCS_LeadByte(field[i])) i++;
+		else if (field[i]>='a' && field[i]<='z') field[i]-=32;
+	}
+}
+
+/* MS-DOS compares the template with the directory entries byte for byte, and no entry holds
+ * a zero or a small letter. */
+static bool DTA_TemplateCanMatch(const uint8_t * field,unsigned int len) {
+	bool trail=false;
+	for (unsigned int i=0;i<len;i++) {
+		if (field[i]==0) return false;
+		if (trail) trail=false;
+		else if (DBCS_LeadByte(field[i])) trail=true;
+		else if (field[i]>='a' && field[i]<='z') return false;
+	}
+	return true;
+}
+
 void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
 	unsigned int i;
 
@@ -509,8 +540,12 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
 		}
 		while (i<=LFN_NAMELENGTH) sname[lfn_filefind_handle][i++]=0;
 	}
-    for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
-	
+	/* Without long names the template is the one MS-DOS keeps: eight characters of name and
+	 * three of extension, each field padded with spaces. With long names on it is the pattern
+	 * as typed, padded with zeros: a space is then a character of the name. */
+	uint8_t tmpl[11];
+	memset(tmpl,uselfn ? 0 : ' ',sizeof(tmpl));
+
 	/* MS-DOS counts the drive from 1 here (A: is 1) */
 	sSave(sDTA,sdrive,(uint8_t)(_sdrive+1u));
 	sSave(sDTA,sattr,_sattr);
@@ -519,12 +554,18 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
     if (find_ext) {
         Bitu size=(Bitu)(find_ext-pattern);
 		if (size>8) size=8;
-			MEM_BlockWrite(pt+offsetof(sDTA,spname),pattern,size);
-			find_ext++;
-			MEM_BlockWrite(pt+offsetof(sDTA,spext),find_ext,(strlen(find_ext)>3) ? 3 : (Bitu)strlen(find_ext));
+		memcpy(tmpl,pattern,size);
+		find_ext++;
+		memcpy(tmpl+8,find_ext,(strlen(find_ext)>3) ? 3 : strlen(find_ext));
 	} else {
-		MEM_BlockWrite(pt+offsetof(sDTA,spname),pattern,(strlen(pattern) > 8) ? 8 : (Bitu)strlen(pattern));
+		memcpy(tmpl,pattern,(strlen(pattern) > 8) ? 8 : strlen(pattern));
 	}
+	if (!uselfn) {
+		DTA_FieldAsDOS(tmpl,8);
+		DTA_FieldAsDOS(tmpl+8,3);
+	}
+	MEM_BlockWrite(pt+offsetof(sDTA,spname),tmpl,sizeof(tmpl));
+	wroteTemplate=true;
 }
 
 void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,uint32_t _hsize,uint16_t _date,uint16_t _time,uint8_t _attr) {
@@ -612,12 +653,35 @@ void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {
         pattern[LFN_NAMELENGTH]=0;
     } else {
 		attr=(uint8_t)sGet(sDTA,sattr);
-        char temp[11];
+        uint8_t temp[11];
         MEM_BlockRead(pt+offsetof(sDTA,spname),temp,11);
         for (int i=0;i<13;i++) pattern[i]=0;
+        if (uselfn && (wroteTemplate || memchr(temp,0,sizeof(temp))!=NULL)) {
+            /* As SetupSearch writes it with long names on: padded with zeros. A template
+             * that fills both fields holds no zero and reads the same as one a program wrote
+             * MS-DOS's way, so it is taken as written here only by the FindFirst that wrote it. */
             memcpy(pattern,temp,8);
             pattern[strlen(pattern)]='.';
             memcpy(&pattern[strlen(pattern)],&temp[8],3);
+            return;
+        }
+        /* MS-DOS's form: what SetupSearch writes without long names, and what a program
+         * writes there before AH=4Fh in either mode */
+        if (!uselfn && (!DTA_TemplateCanMatch(temp,8) || !DTA_TemplateCanMatch(temp+8,3))) {
+            /* A name no file and no label has */
+            pattern[0]='/';
+            return;
+        }
+        /* The spaces that pad a field are not part of the name. A template of spaces alone
+         * stays as it is: it matches no file, and only a label that is blank. */
+        unsigned int name=8,ext=3;
+        if (memcmp(temp,"           ",sizeof(temp))) {
+            while (name>0 && temp[name-1]==' ') name--;
+            while (ext>0 && temp[8+ext-1]==' ') ext--;
+        }
+        memcpy(pattern,temp,name);
+        pattern[name]='.';
+        memcpy(&pattern[name+1],&temp[8],ext);
     }
 }
 
