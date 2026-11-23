@@ -3609,6 +3609,7 @@ bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_
 }
 
 #if !defined(OSFREE)
+extern bool INT28_AllowOnce;
 void DOS_Shell::CMD_CHOICE(char * args){
 	HELP("CHOICE");
 	static char defchoice[3] = {MSG_Get("INT21_6523_YESNO_CHARS")[0],MSG_Get("INT21_6523_YESNO_CHARS")[1],0};
@@ -3653,22 +3654,52 @@ void DOS_Shell::CMD_CHOICE(char * args){
 		WriteOut("%c]?",rem[len-1]);
 	}
 
-	// TO-DO: Find out how real DOS handles /T option for making a choice after delay; use AUTOTYPE for now
-	std::vector<std::string> sequence;
-	bool in_char = optS ? (strchr(rem, waitchar) != nullptr) : (strchr(rem, toupper(waitchar)) || strchr(rem, tolower(waitchar)));
-	if (waitchar && *rem && in_char && waitsec > 0) {
-		sequence.emplace_back(std::string(1, optS?waitchar:tolower(waitchar)));
-		MAPPER_AutoType(sequence, waitsec * 1000, 500, true);
-	}
-	uint16_t n=1;
-	do {
-		dotype = true;
+	// TO-DO: Find out how real DOS handles /T option for making a choice after delay
+    bool in_char = waitchar && *rem &&
+        (optS ? (strchr(rem, waitchar) != nullptr) :
+            (strchr(rem, toupper(waitchar)) != nullptr ||
+                strchr(rem, tolower(waitchar)) != nullptr));
+
+    uint32_t start_ticks = GetTicks();
+    uint32_t timeout_ms = (uint32_t)waitsec * 1000u;
+    uint32_t handle = RealHandle(STDIN);
+    bool stdin_con = (handle < DOS_FILES && Files[handle] &&
+        Files[handle]->IsName("CON"));
+    bool timed_choice = stdin_con && in_char && waitsec > 0;
+
+    static const bool idle_enabled =
+        ((Section_prop*)control->GetSection("dos"))->Get_bool("dos idle api");
+
+    uint16_t n=1;
+	while(true) {
+        if(timed_choice &&
+            (uint32_t)(GetTicks() - start_ticks) >= timeout_ms) {
+            c = (uint8_t)(optS ? waitchar : toupper(waitchar));
+            ptr = strchr(rem, c); // Time out, use choice of /T option
+            break;
+        }
+
+        if(timed_choice && !DOS_GetSTDINStatus()) { // Poll standard input for available input while waiting for the timeout.
+            if(CheckBreak(this)) {
+                dos.return_code = 0;
+                return;
+            }
+
+            if(idle_enabled) {
+                INT28_AllowOnce = true;
+                CALLBACK_RunRealInt(0x28);
+            }
+            SDL_Delay(1);
+            continue;
+        }
+        n = 1;
 		DOS_ReadFile (STDIN,&c,&n);
-		dotype = false;
 		if (n==0) {dos.return_code=255;return;}
 		if (CheckBreak(this) || c==3) {dos.return_code=0;return;}
-	} while (!c || !(ptr = strchr(rem,(optS?c:toupper(c)))));
-	c = optS?c:(uint8_t)toupper(c);
+        if(!optS) c = (uint8_t)toupper(c);
+        ptr = strchr(rem, c);
+        if(ptr) break;
+	}
 	DOS_WriteFile (STDOUT,&c, &n);
 	c = '\r'; DOS_WriteFile (STDOUT,&c, &n);
 	c = '\n'; DOS_WriteFile (STDOUT,&c, &n);
