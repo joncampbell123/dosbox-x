@@ -2508,7 +2508,6 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
     }
     host_cnv_char_t *n_temp_name = ht_strdup(ht);
 
-	if (!(same_entry && cache_agrees)) dirCache.WidenSearchesIn(cache_agrees ? resolved : newold);
 #ifdef host_cnv_use_wchar
 	int temp=_wrename(o_temp_name,n_temp_name);
 #else
@@ -2528,6 +2527,9 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 		if (!cache_agrees || (host_made_alias(n_temp_name) && filename_not_8x3(renamed ? renamed+1 : newname)) || !dirCache.HoldsFolderOf(cachenew)
 			|| !dirCache.MoveEntry(cacheold,cachenew,isDir))
 			dirCache.CacheOut(newnew);
+		/* Widened once the rename went through, by the path the cache now holds the directory at:
+		 * a failed one leaves every search reading on where it was. */
+		if (isDir) dirCache.WidenSearchesIn(newnew);
 	}
 
     free(o_temp_name);

@@ -1291,10 +1291,13 @@ void DOS_Drive_Cache::WidenSearch(uint16_t id) {
     search->nextEntry = 0;
 
     // The path FindFirst was given names the search's directory only until that directory is
-    // renamed or removed: then it names none, or another one.
+    // renamed or removed: then it names none, or another one, and a rename's own path is the
+    // one the cache resolves it by since.
+    const SearchDir& where = dirFindFirstDir[id];
+    const char* dirpath = where.state==SearchDir::RENAMED ? where.path.c_str() : search->orgname;
     uint16_t dirID;
     bool placed = false;
-    if (dirFindFirstDir[id].state==SearchDir::FOUND && OpenDir(search->orgname,dirID)) {
+    if (where.state!=SearchDir::REMOVED && OpenDir(dirpath,dirID)) {
         for (Bitu i=0; i<dirSearch[dirID]->fileList.size(); i++) {
             CFileInfo* entry = dirSearch[dirID]->fileList[i];
             if (held && !placed && !strcmp(entry->shortname,held->shortname) && !strcmp(entry->orgname,held->orgname)) {
@@ -1357,11 +1360,12 @@ void DOS_Drive_Cache::SearchesRenamed(const char* from, const char* to) {
 }
 
 // A search of an exact name in dir or below it reads its directory by the path FindFirst was
-// given, which a rename of dir takes away: it is widened while that path still names it.
+// given, which a rename of dir takes away: once the rename went through, it is widened by the
+// path SearchesRenamed left it with.
 void DOS_Drive_Cache::WidenSearchesIn(const char* dir) {
     const size_t len = strlen(dir);
     for (uint16_t i=0; i<MAX_OPENDIRS; i++) {
-        if (dirFindFirst[i] && dirFindFirst[i]->orgname[0] && dirFindFirstDir[i].state==SearchDir::FOUND
+        if (dirFindFirst[i] && dirFindFirst[i]->orgname[0] && dirFindFirstDir[i].state==SearchDir::RENAMED
             && search_in(dirFindFirstDir[i].path,dir,len)) WidenSearch(i);
     }
 }
