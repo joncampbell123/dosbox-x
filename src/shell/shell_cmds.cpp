@@ -3676,7 +3676,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
     uint32_t handle = RealHandle(STDIN);
     bool stdin_con = (handle < DOS_FILES && Files[handle] &&
         Files[handle]->IsName("CON"));
-    bool timed_choice = stdin_con && in_char && waitsec > 0;
+    bool timed_choice = stdin_con && in_char;
 
     static const bool idle_enabled =
         ((Section_prop*)control->GetSection("dos"))->Get_bool("dos idle api");
