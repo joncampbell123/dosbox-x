@@ -3579,12 +3579,12 @@ void DOS_Shell::CMD_LOADHIGH(char *args){
 
 bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_sec)
 {
-	const char *last = strchr(args, 0);
+    const char *last = strchr(args, 0);
 	StripSpaces(args);
 	temp = ScanCMDRemain(args);
 	const bool optC = temp && tolower(temp[1]) == 'c';
 	const bool optT = temp && tolower(temp[1]) == 't';
-	if (temp && *temp && !optC && !optT)
+    if (temp && *temp && !optC && !optT)
 		return false;
 	if (temp) {
 		if (args == temp)
@@ -3596,11 +3596,19 @@ bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_
 	if (optC) {
 		rem = temp;
 	} else if (optT) {
-		if (temp && *temp && *(temp + 1) == ',') {
-			wait_char = *temp;
-			wait_sec = atoi(temp + 2);
-		} else
-			wait_sec = 0;
+        if(!temp || !*temp || *(temp + 1) != ',' || !temp[2])
+            return false;
+
+        char* sec = temp + 2;
+        if(!*sec)
+            return false;
+
+        for(char* p = sec; *p; p++) {
+            if(!isdigit((unsigned char)*p))
+                return false;
+        }
+        wait_char = *temp;
+		wait_sec = atoi(temp + 2);
 	}
 	if (args > last)
 		args = NULL;
@@ -3615,14 +3623,14 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	static char defchoice[3] = {MSG_Get("INT21_6523_YESNO_CHARS")[0],MSG_Get("INT21_6523_YESNO_CHARS")[1],0};
 	//char *rem1 = NULL, *rem2 = NULL; /* unused */
 	char *rem = NULL, *temp = NULL, waitchar = 0, *ptr;
-	int waitsec = 0;
+	int waitsec = -1;
 	//bool optC = false, optT = false; /* unused */
 	bool optN = ScanCMDBool(args,"N");
 	bool optS = ScanCMDBool(args,"S"); //Case-sensitive matching
 	// ignore /b and /m switches for compatibility
 	ScanCMDBool(args,"B");
 	ScanCMDBool(args,"M"); // Text
-	ScanCMDBool(args,"T"); //Default Choice after timeout
+	//ScanCMDBool(args,"T"); //Default Choice after timeout
 
 	while (args && *trim(args) == '/') {
 		if (!get_param(args, rem, temp, waitchar, waitsec)) {
@@ -3636,7 +3644,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	if(!optS) while ((c = (uint8_t)(*ptr))) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
 
     /* Validate the default choice specified by /T. */
-    if(waitsec > 0 && waitchar) {
+    if(waitsec >= 0 && waitchar) {
         char checkchar = optS ? waitchar : (char)toupper((unsigned char)waitchar);
         if(!strchr(rem, checkchar)) {
             WriteOut("CHOICE: Your default choice is not one of the valid choices.\n");
@@ -3676,7 +3684,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
     uint32_t handle = RealHandle(STDIN);
     bool stdin_con = (handle < DOS_FILES && Files[handle] &&
         Files[handle]->IsName("CON"));
-    bool timed_choice = stdin_con && in_char;
+    bool timed_choice = stdin_con && in_char && waitsec >= 0;
 
     static const bool idle_enabled =
         ((Section_prop*)control->GetSection("dos"))->Get_bool("dos idle api");
