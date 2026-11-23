@@ -3634,7 +3634,18 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	ptr = rem;
 	uint8_t c;
 	if(!optS) while ((c = (uint8_t)(*ptr))) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
-	if(args && *args ) {
+
+    /* Validate the default choice specified by /T. */
+    if(waitsec > 0 && waitchar) {
+        char checkchar = optS ? waitchar : (char)toupper((unsigned char)waitchar);
+        if(!strchr(rem, checkchar)) {
+            WriteOut("CHOICE: Your default choice is not one of the valid choices.\n");
+            dos.return_code = 255;
+            return;
+        }
+    }
+
+    if(args && *args ) {
 		StripSpaces(args);
 		size_t argslen = strlen(args);
 		if(argslen>1 && args[0] == '"' && args[argslen-1] =='"') {
