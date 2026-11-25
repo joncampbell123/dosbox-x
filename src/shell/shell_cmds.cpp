@@ -1058,7 +1058,7 @@ void DOS_Shell::CMD_TREE(char * args) {
     if (strlen(args)>1&&args[1]==':') {
         char c[]=" _:";
         c[1]=toupper(args[0]);
-        if (!Drives[c[1]-'A']) {
+        if (c[1]<'A'||c[1]>'Z'||!Drives[c[1]-'A']) {
             WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
             return;
         }
@@ -1067,6 +1067,11 @@ void DOS_Shell::CMD_TREE(char * args) {
         tree=false;
         WriteOut("%c:%s\n", c[1], *args?args+2:".");
     } else {
+        if (!Drives[DOS_GetDefaultDrive()]) {
+            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            dos.dta(save_dta);
+            return;
+        }
         tree=true;
         CMD_VOL(empty_string);
         tree=false;
@@ -1454,6 +1459,10 @@ void DOS_Shell::CMD_CHDIR(char* args) {
 
     if(!*args) {
         // Display the current directory of the active drive
+        if(!Drives[drive - 'A']) {
+            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            return;
+        }
         DOS_GetCurrentDir(0, dir, true);
         WriteOut("%c:\\", drive);
         WriteOut_NoParsing(dir, true);
@@ -3949,7 +3958,7 @@ void DOS_Shell::CMD_VOL(char *args){
 			if(!strcasecmp(args,":")) return;
 			int drive2; drive2= toupper(*reinterpret_cast<unsigned char*>(&args[0]));
 			char * c; c = strchr(args,':'); *c = '\0';
-			if (Drives[drive2-'A']) drive = drive2 - 'A';
+			if (drive2 >= 'A' && drive2 <= 'Z' && Drives[drive2-'A']) drive = drive2 - 'A';
 			else {
 				WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
 				return;
@@ -3959,6 +3968,10 @@ void DOS_Shell::CMD_VOL(char *args){
 			WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
 			return;
 		}
+	}
+	if (drive >= DOS_DRIVES || !Drives[drive]) {
+		WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+		return;
 	}
 	char const* bufin = Drives[drive]->GetLabel();
     if (tree)

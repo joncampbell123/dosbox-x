@@ -1,4 +1,6 @@
 Next version:
+  - [AI] LABEL, VOL, TREE, CD, IMGMAKE and START no longer end the emulator
+    on a drive that is not mounted. (Optimiza)
   - [AI] DOS: a CD image answers a search as MSCDEX does: its files and
     directories carry the attributes MSCDEX gives them, the label comes only
     to a search for the label alone, a missing directory answers error 2, and
