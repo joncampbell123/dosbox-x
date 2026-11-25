@@ -1909,8 +1909,12 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		strcat(tempDir,end);
 	}
 
+	uint8_t sAttr;
+	char srch_pattern[LFN_NAMELENGTH+1];
+	dta.GetSearchParams(sAttr,srch_pattern,false);
+
 	uint16_t id;
-	if (!dirCache.FindFirst(tempDir,id)) {
+	if (!dirCache.FindFirst(tempDir,id,srch_pattern)) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
 		return false;
 	}
@@ -1922,9 +1926,6 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		ldir[lfn_filefind_handle]=tempDir;
 	}
 
-	uint8_t sAttr;
-	dta.GetSearchParams(sAttr,tempDir,false);
-
 	if (this->isRemote() && this->isRemovable()) {
 		// cdroms behave a bit different than regular drives
 		if (sAttr == DOS_ATTR_VOLUME) {
@@ -1933,10 +1934,12 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		}
 	} else {
 		if (sAttr == DOS_ATTR_VOLUME) {
-			if (!LabelMatches(dirCache.GetLabel(),tempDir)) {
+			if (!LabelMatches(dirCache.GetLabel(),srch_pattern)) {
 //				LOG(LOG_DOSMISC,LOG_ERROR)("DRIVELABEL REQUESTED: none present, returned  NOLABEL");
 //				dta.SetResult("NO_LABEL",0,0,0,DOS_ATTR_VOLUME);
 //				return true;
+				// No search goes on from here: give back the slot the cache took for it.
+				dirCache.FindClose(id,dirCache.FindGeneration(id));
 				DOS_SetError(DOSERR_NO_MORE_FILES);
 				return false;
 			}
@@ -1947,7 +1950,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 			//exists==true if the volume label matches the searchmask and the path is valid
 			/* A path that resolves to the root itself ("D:", "D:\X\..") names no entry, the label
 			 * included: an empty pattern matches any label only for a search of the label alone */
-			if (*tempDir && strcmp(tempDir,".") && LabelMatches(dirCache.GetLabel(),tempDir)) {
+			if (*srch_pattern && strcmp(srch_pattern,".") && LabelMatches(dirCache.GetLabel(),srch_pattern)) {
 				dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,LABEL_ATTR);
 				return true;
 			}
@@ -2000,7 +2003,7 @@ bool localDrive::FindNext(DOS_DTA & dta) {
 	uint16_t id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];
 
 again:
-	if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
+	if (!dirCache.FindNext(id,dir_ent,ldir_ent,srch_pattern)) {
 		if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
 			ldid[lfn_filefind_handle]=0;
 			ldir[lfn_filefind_handle]="";
@@ -2524,6 +2527,9 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 		if (!cache_agrees || (host_made_alias(n_temp_name) && filename_not_8x3(renamed ? renamed+1 : newname)) || !dirCache.HoldsFolderOf(cachenew)
 			|| !dirCache.MoveEntry(cacheold,cachenew,isDir))
 			dirCache.CacheOut(newnew);
+		/* Widened once the rename went through, by the path the cache now holds the directory at:
+		 * a failed one leaves every search reading on where it was. */
+		if (isDir) dirCache.WidenSearchesIn(newnew);
 	}
 
     free(o_temp_name);

@@ -700,8 +700,16 @@ public:
 	void	SetDirIDCluster(uint32_t entry)	{ sSave(sDTA,dirCluster,entry); };
 	uint16_t	GetDirID(void)				{ return (uint16_t)sGet(sDTA,dirID); };
 	uint32_t	GetDirIDCluster(void)		{ return sGet(sDTA,dirCluster); };
-    uint8_t   GetAttr(void)               { return (uint8_t)sGet(sDTA,sattr); }
+    uint8_t   GetAttr(void);
+
+	/* The block as a program sees it: the bytes that identify the search, then the entry found */
+	enum { SEARCH_SIZE = 0x15, BLOCK_SIZE = 0x2B };
+	void	GetBlock(uint8_t * block,Bitu len)			{ MEM_BlockRead(pt,block,len); }
+	void	SetBlock(const uint8_t * block,Bitu len)	{ MEM_BlockWrite(pt,block,len); }
 private:
+	/* SetupSearch wrote the template through this object: the FindFirst that set the search up
+	 * reads back what it wrote, and only a later call reads bytes a program may have put there */
+	bool	wroteTemplate = false;
 	#ifdef _MSC_VER
 	#pragma pack(1)
 	#endif
@@ -722,7 +730,8 @@ private:
 	static_assert(offsetof(sDTA,dirID) == 0x0D,"oops");
 	static_assert(offsetof(sDTA,dirCluster) == 0x0F,"oops");
 	static_assert(offsetof(sDTA,fill) == 0x13,"oops");
-	static_assert(offsetof(sDTA,attr) == 0x15,"oops");
+	static_assert(offsetof(sDTA,attr) == SEARCH_SIZE,"oops");
+	static_assert(sizeof(sDTA) == BLOCK_SIZE,"oops");
 	#ifdef _MSC_VER
 	#pragma pack()
 	#endif
@@ -750,6 +759,8 @@ public:
 	void GetAttr(uint8_t & attr);
 	void SetAttr(uint8_t attr);
 	void SetResult(uint32_t size,uint16_t date,uint16_t time,uint8_t attr);
+	void SetSearch(const uint8_t * search);
+	bool GetSearch(uint8_t * search);
 	bool Valid(void);
 	void ClearBlockRecsize(void);
 private:

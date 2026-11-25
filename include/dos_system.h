@@ -221,8 +221,8 @@ public:
 	char*		GetExpandName		(const char* path);
 	bool		GetShortName		(const char* fullname, char* shortname);
 
-	bool		FindFirst			(char* path, uint16_t& id);
-    bool        FindNext            (uint16_t id, char* &result, char* &lresult);
+	bool		FindFirst			(char* path, uint16_t& id, const char* pattern);
+    bool        FindNext            (uint16_t id, char* &result, char* &lresult, const char* pattern);
     uint32_t    FindGeneration      (uint16_t id) const {
         return (id < MAX_OPENDIRS && dirFindFirst[id]) ? dirFindFirstGeneration[id] : 0;
     }
@@ -236,6 +236,7 @@ public:
 	bool		MoveEntry			(const char* from, const char* to, bool isDir);
 	bool		HoldsFolderOf		(const char* path);
 	void		SearchesRenamed		(const char* from, const char* to);
+	void		WidenSearchesIn		(const char* dir);
 	void		SearchesRemoved		(const char* dir, uint16_t date, uint16_t time);
 	const char*	RenamedSearchDir	(uint16_t id);
 	bool		RemovedSearchDir	(uint16_t id, uint16_t& date, uint16_t& time);
@@ -293,6 +294,8 @@ private:
 	bool		OpenDir			(CFileInfo* dir, const char* expand, uint16_t& id);
     char*       CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory, bool skipSort=false);
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
+	void		SortSearch		(CFileInfo* search);
+	void		WidenSearch		(uint16_t id);
 	uint16_t		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
 	struct ReadIndex;

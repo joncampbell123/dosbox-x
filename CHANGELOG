@@ -1,4 +1,17 @@
 Next version:
+  - [AI] DOS: a find call leaves the state of another search as MS-DOS
+    6.22 and 7.10 do: a FindFirst that finds nothing leaves the DTA as it
+    was, a long name search and an AH=0Fh open by wildcards write nothing
+    into the program's DTA, an FCB search keeps its state in the program's
+    FCB, the DTA template is padded with spaces and read byte for byte, and
+    the search number a CD image's search takes from the DTA is checked.
+    (Optimiza)
+  - [AI] DOS: a search for the volume label that finds none gives back its
+    slot of the search table, so repeating it no longer ends the other
+    searches in progress. (Optimiza)
+  - [AI] DOS: a search for one exact name no longer copies the whole
+    folder, and a search whose DTA a program saved, restored and edited
+    goes on as MS-DOS's does. (Optimiza)
   - [AI] LABEL, VOL, TREE, CD, IMGMAKE and START no longer end the emulator
     on a drive that is not mounted. (Optimiza)
   - [AI] DOS: a CD image answers a search as MSCDEX does: its files and

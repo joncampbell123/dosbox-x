@@ -208,13 +208,14 @@ struct ActiveFindSnapshot {
     DOS_Drive * instance;
     uint16_t psp;
     bool dta_wildcards;
+    uint8_t spattern[11];   // the template the FindFirst wrote into the DTA
 };
 
 static std::map<uint64_t, ActiveFindSnapshot> active_dta_finds;
 // DOS keeps the whole state of a 4Eh search in the DTA, so a program may save those
 // bytes, run other searches through the same DTA and put them back, as a directory
-// walk or a DOS extender relaying its DTA does. A search with wildcards that another
-// FindFirst through its DTA replaced is kept; past this many, the one read least recently goes.
+// walk or a DOS extender relaying its DTA does. A search that another FindFirst through
+// its DTA replaced is kept; past this many, the one read least recently goes.
 static const size_t KEPT_SEARCHES_PER_DTA = 8;
 static std::map<uint64_t, std::deque<ActiveFindSnapshot>> kept_dta_finds;
 static std::map<uint8_t, ActiveFindSnapshot> active_lfn_finds;
@@ -256,6 +257,16 @@ static void CloseFindSnapshotsForPSP(std::map<Key, ActiveFindSnapshot> & finds, 
 void DOS_CloseFindSnapshotsForPSP(uint16_t psp) {
     CloseFindSnapshotsForPSP(active_dta_finds, psp);
     CloseFindSnapshotsForPSP(active_lfn_finds, psp);
+    for (auto kept = kept_dta_finds.begin(); kept != kept_dta_finds.end(); ) {
+        auto & searches = kept->second;
+        searches.erase(std::remove_if(searches.begin(), searches.end(), [&](const ActiveFindSnapshot & snapshot) {
+            if (snapshot.psp != psp || snapshot.dta_wildcards) return false;
+            ReleaseFindSnapshot(snapshot);
+            return true;
+        }), searches.end());
+        if (searches.empty()) kept = kept_dta_finds.erase(kept);
+        else ++kept;
+    }
 }
 
 static void ReplaceCurrentFindSnapshot() {
@@ -267,16 +278,12 @@ static void ReplaceCurrentFindSnapshot() {
     auto found = active_dta_finds.find(key);
     if (found == active_dta_finds.end())
         return;
-    if (found->second.dta_wildcards) {
-        auto & kept = kept_dta_finds[key];
-        if (kept.size() == KEPT_SEARCHES_PER_DTA) {
-            ReleaseFindSnapshot(kept.front());
-            kept.pop_front();
-        }
-        kept.push_back(found->second);
-    } else {
-        ReleaseFindSnapshot(found->second);
+    auto & kept = kept_dta_finds[key];
+    if (kept.size() == KEPT_SEARCHES_PER_DTA) {
+        ReleaseFindSnapshot(kept.front());
+        kept.pop_front();
     }
+    kept.push_back(found->second);
     active_dta_finds.erase(found);
 }
 
@@ -335,11 +342,44 @@ static void RememberCurrentFindSnapshot(uint8_t drive, DOS_DTA & dta, bool wildc
     if (!Drives[drive]->GetFindCacheID(dta, id, generation))
         return;
     const bool lfn = lfn_filefind_handle < LFN_FILEFIND_MAX;
-    const ActiveFindSnapshot snapshot = { drive, id, generation, Drives[drive], dos.psp(), wildcards && !lfn };
+    ActiveFindSnapshot snapshot = { drive, id, generation, Drives[drive], dos.psp(), wildcards && !lfn, {} };
+    uint8_t block[DOS_DTA::SEARCH_SIZE];
+    dta.GetBlock(block, sizeof(block));
+    memcpy(snapshot.spattern, block + 1, sizeof(snapshot.spattern));
     if (lfn)
         active_lfn_finds[static_cast<uint8_t>(lfn_filefind_handle)] = snapshot;
     else
         active_dta_finds[FindDtaKey()] = snapshot;
+}
+
+// Whether the template in the DTA of a 4Eh search is another than the one its FindFirst wrote:
+// a program put it there. Only a search the cache tracks is known.
+bool DOS_FindTemplateEdited(uint8_t drive, DOS_DTA & dta, const uint8_t * spattern) {
+    uint16_t id = MAX_OPENDIRS;
+    uint32_t generation = 0;
+    if (drive >= DOS_DRIVES || !Drives[drive] || !Drives[drive]->GetFindCacheID(dta, id, generation))
+        return false;
+    // The record of a search that was abandoned can outlive its slot: the cache empties its table
+    // when it is full, and a drive mounted again numbers its searches anew.
+    const auto names = [&](const ActiveFindSnapshot & snapshot) {
+        return snapshot.drive == drive && snapshot.instance == Drives[drive] &&
+               snapshot.id == id && snapshot.generation == generation;
+    };
+    // An FCB search comes back to the temporary DTA from the FCB, which holds a space where the
+    // template has a zero (DOS_FCB::SetSearch).
+    const bool from_fcb = dos.dta() == dos.tables.tempdta;
+    const auto edited = [&](const ActiveFindSnapshot & snapshot) {
+        for (size_t i = 0; i < sizeof(snapshot.spattern); i++)
+            if (snapshot.spattern[i] != spattern[i] && !(from_fcb && !snapshot.spattern[i] && spattern[i] == ' '))
+                return true;
+        return false;
+    };
+    for (const auto & active : active_dta_finds)
+        if (names(active.second)) return edited(active.second);
+    for (const auto & kept : kept_dta_finds)
+        for (const auto & snapshot : kept.second)
+            if (names(snapshot)) return edited(snapshot);
+    return false;
 }
 
 bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
@@ -923,7 +963,7 @@ uint16_t DOS_FindFirstPathError(const char * search) {
 }
 
 bool forcelfn = false;
-bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
+static bool DOS_FindFirstIntoDTA(const char * search,uint16_t attr,bool fcb_findfirst) {
 	ReplaceCurrentFindSnapshot();
 	LOG(LOG_FILES,LOG_NORMAL)("file search attributes %X name %s",attr,search);
 	DOS_DTA dta(dos.dta());
@@ -1054,6 +1094,22 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		RememberCurrentFindSnapshot(drive, dta, strpbrk(pattern, "*?") != NULL);
 		return true;
 	}
+	return false;
+}
+
+/* MS-DOS searches in a buffer of its own and copies it to the DTA once it has found an entry.
+ * The search above writes the DTA as it goes, so one that found nothing puts back what the
+ * DTA held: the search a program had in progress there goes on. The temporary DTA is this
+ * DOS's own buffer and not a program's: it is left as the search left it, and the shell's
+ * DIR reads from it the drive of a search that found nothing. The search of a long name
+ * handle writes nothing in the DTA. */
+bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
+	if (lfn_filefind_handle<LFN_FILEFIND_MAX || dos.dta()==dos.tables.tempdta) return DOS_FindFirstIntoDTA(search,attr,fcb_findfirst);
+	DOS_DTA dta(dos.dta());
+	uint8_t before[DOS_DTA::BLOCK_SIZE];
+	dta.GetBlock(before,sizeof(before));
+	if (DOS_FindFirstIntoDTA(search,attr,fcb_findfirst)) return true;
+	dta.SetBlock(before,sizeof(before));
 	return false;
 }
 
@@ -2159,6 +2215,8 @@ bool DOS_FCBCreate(uint16_t seg,uint16_t offset) {
 	return true;
 }
 
+static bool FCBFindFirst(uint16_t seg,uint16_t offset,bool fcb_search);
+
 bool DOS_FCBOpen(uint16_t seg,uint16_t offset) { 
 	DOS_FCB fcb(seg,offset);
 	char shortname[DOS_FCBNAME];uint16_t handle;
@@ -2167,7 +2225,8 @@ bool DOS_FCBOpen(uint16_t seg,uint16_t offset) {
 	/* Search for file if name has wildcards */
 	if (strpbrk(shortname,"*?")) {
 		LOG(LOG_FCB,LOG_WARN)("Wildcards in filename");
-		if (!DOS_FCBFindFirst(seg,offset)) {
+		/* Not an FCB search: MS-DOS leaves the name of the FCB it opens as the program wrote it, and its DTA alone */
+		if (!FCBFindFirst(seg,offset,false)) {
 			fcb.SetSeqData(0xff,0);
 			return false;
 		}
@@ -2218,7 +2277,17 @@ bool DOS_FCBClose(uint16_t seg,uint16_t offset) {
 	return true;
 }
 
-bool DOS_FCBFindFirst(uint16_t seg,uint16_t offset) {
+/* An FCB search runs in the temporary DTA and waits in the program's FCB, as in MS-DOS. The
+ * temporary DTA is also where the path lookups of the long name calls, the FCB rename and the
+ * shell search, and where any other FCB search runs. */
+static void SaveFindSearch(DOS_FCB & find_fcb) {
+	DOS_DTA find_dta(dos.tables.tempdta);
+	uint8_t search[DOS_DTA::SEARCH_SIZE];
+	find_dta.GetBlock(search,sizeof(search));
+	find_fcb.SetSearch(search);
+}
+
+static bool FCBFindFirst(uint16_t seg,uint16_t offset,bool fcb_search) {
 	DOS_FCB fcb(seg,offset);
 	RealPt old_dta=dos.dta();dos.dta(dos.tables.tempdta);
 	char name[DOS_FCBNAME];fcb.GetName(name);
@@ -2226,16 +2295,34 @@ bool DOS_FCBFindFirst(uint16_t seg,uint16_t offset) {
 	fcb.GetAttr(attr); /* Gets search attributes if extended */
 	bool ret=DOS_FindFirst(name,attr,true);
 	dos.dta(old_dta);
-	if (ret) SaveFindResult(fcb);
+	if (ret && fcb_search) {
+		SaveFindSearch(fcb);
+		SaveFindResult(fcb);
+	}
 	return ret;
+}
+
+bool DOS_FCBFindFirst(uint16_t seg,uint16_t offset) {
+	return FCBFindFirst(seg,offset,true);
 }
 
 bool DOS_FCBFindNext(uint16_t seg,uint16_t offset) {
 	DOS_FCB fcb(seg,offset);
+	DOS_DTA find_dta(dos.tables.tempdta);
+	uint8_t search[DOS_DTA::SEARCH_SIZE];
+	/* The bytes are the program's: a drive that is not there names no search */
+	if (!fcb.GetSearch(search) || search[0]>DOS_DRIVES || !Drives[search[0]-1u]) {
+		DOS_SetError(DOSERR_NO_MORE_FILES);
+		return false;
+	}
+	find_dta.SetBlock(search,sizeof(search));
 	RealPt old_dta=dos.dta();dos.dta(dos.tables.tempdta);
 	bool ret=DOS_FindNext();
 	dos.dta(old_dta);
-	if (ret) SaveFindResult(fcb);
+	if (ret) {
+		SaveFindSearch(fcb);
+		SaveFindResult(fcb);
+	}
 	return ret;
 }
 

@@ -31,6 +31,8 @@ uint8_t sdriv[260], sattr[260], fattr;
 char sname[260][LFN_NAMELENGTH+1],storect[CTBUF];
 extern int lfn_filefind_handle;
 extern bool forcelfn;
+bool DOS_FindTemplateEdited(uint8_t drive, DOS_DTA & dta, const uint8_t * spattern);
+bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 
 struct finddata {
        uint8_t attr;
@@ -497,6 +499,36 @@ uint16_t DOS_PSP::SetNumFiles(uint16_t fileNum) {
 	return DOSERR_NONE;
 }
 
+static bool DBCS_LeadByte(uint8_t c) {
+	return (IS_PC98_ARCH && shiftjis_lead_byte(c)) || (isDBCSCP() && isKanji1(c));
+}
+
+/* One field of the search template as MS-DOS writes it: in upper case, and a '*' and all that
+ * follows it turned into '?' up to the end of the field. */
+static void DTA_FieldAsDOS(uint8_t * field,unsigned int len) {
+	for (unsigned int i=0;i<len;i++) {
+		if (field[i]=='*') {
+			memset(field+i,'?',len-i);
+			return;
+		}
+		if (DBCS_LeadByte(field[i])) i++;
+		else if (field[i]>='a' && field[i]<='z') field[i]-=32;
+	}
+}
+
+/* MS-DOS compares the template with the directory entries byte for byte, a '?' matching any,
+ * and no entry holds a zero, a small letter or a '*'. */
+static bool DTA_TemplateCanMatch(const uint8_t * field,unsigned int len) {
+	bool trail=false;
+	for (unsigned int i=0;i<len;i++) {
+		if (field[i]==0) return false;
+		if (trail) trail=false;
+		else if (DBCS_LeadByte(field[i])) trail=true;
+		else if ((field[i]>='a' && field[i]<='z') || field[i]=='*') return false;
+	}
+	return true;
+}
+
 void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
 	unsigned int i;
 
@@ -509,8 +541,16 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
 		}
 		while (i<=LFN_NAMELENGTH) sname[lfn_filefind_handle][i++]=0;
 	}
-    for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
-	
+	/* The search of a long name handle is whole in the arrays above. INT 21h AX=714Eh returns
+	 * its data at ES:DI and has no business in the DTA, where an AH=4Eh search may be going on. */
+	if (lfn_filefind_handle<LFN_FILEFIND_MAX) return;
+
+	/* Without long names the template is the one MS-DOS keeps: eight characters of name and
+	 * three of extension, each field padded with spaces. With long names on it is the pattern
+	 * as typed, padded with zeros: a space is then a character of the name. */
+	uint8_t tmpl[11];
+	memset(tmpl,uselfn ? 0 : ' ',sizeof(tmpl));
+
 	/* MS-DOS counts the drive from 1 here (A: is 1) */
 	sSave(sDTA,sdrive,(uint8_t)(_sdrive+1u));
 	sSave(sDTA,sattr,_sattr);
@@ -519,12 +559,18 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
     if (find_ext) {
         Bitu size=(Bitu)(find_ext-pattern);
 		if (size>8) size=8;
-			MEM_BlockWrite(pt+offsetof(sDTA,spname),pattern,size);
-			find_ext++;
-			MEM_BlockWrite(pt+offsetof(sDTA,spext),find_ext,(strlen(find_ext)>3) ? 3 : (Bitu)strlen(find_ext));
+		memcpy(tmpl,pattern,size);
+		find_ext++;
+		memcpy(tmpl+8,find_ext,(strlen(find_ext)>3) ? 3 : strlen(find_ext));
 	} else {
-		MEM_BlockWrite(pt+offsetof(sDTA,spname),pattern,(strlen(pattern) > 8) ? 8 : (Bitu)strlen(pattern));
+		memcpy(tmpl,pattern,(strlen(pattern) > 8) ? 8 : strlen(pattern));
 	}
+	if (!uselfn) {
+		DTA_FieldAsDOS(tmpl,8);
+		DTA_FieldAsDOS(tmpl+8,3);
+	}
+	MEM_BlockWrite(pt+offsetof(sDTA,spname),tmpl,sizeof(tmpl));
+	wroteTemplate=true;
 }
 
 void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,uint32_t _hsize,uint16_t _date,uint16_t _time,uint8_t _attr) {
@@ -605,6 +651,10 @@ uint8_t DOS_DTA::GetSearchDrive(void) {
 	return lfn_filefind_handle>=LFN_FILEFIND_MAX?(uint8_t)(sGet(sDTA,sdrive)-1u):sdriv[lfn_filefind_handle];
 }
 
+uint8_t DOS_DTA::GetAttr(void) {
+	return lfn_filefind_handle>=LFN_FILEFIND_MAX?(uint8_t)sGet(sDTA,sattr):sattr[lfn_filefind_handle];
+}
+
 void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {
     if (lfn||(uselfn&&lfn_filefind_handle<LFN_FILEFIND_NONE)) {
 		attr=sattr[lfn_filefind_handle];
@@ -612,12 +662,39 @@ void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {
         pattern[LFN_NAMELENGTH]=0;
     } else {
 		attr=(uint8_t)sGet(sDTA,sattr);
-        char temp[11];
+        uint8_t temp[11];
         MEM_BlockRead(pt+offsetof(sDTA,spname),temp,11);
         for (int i=0;i<13;i++) pattern[i]=0;
+        /* A template a program wrote over the one its FindFirst left is read as MS-DOS reads
+         * it, with long names on as without them */
+        const bool edited = uselfn && !wroteTemplate &&
+            DOS_FindTemplateEdited((uint8_t)(sGet(sDTA,sdrive)-1u),*this,temp);
+        if (uselfn && !edited && (wroteTemplate || memchr(temp,0,sizeof(temp))!=NULL)) {
+            /* As SetupSearch writes it with long names on: padded with zeros. A template
+             * that fills both fields holds no zero and reads the same as one a program wrote
+             * MS-DOS's way, so it is taken as written here only by the FindFirst that wrote it. */
             memcpy(pattern,temp,8);
             pattern[strlen(pattern)]='.';
             memcpy(&pattern[strlen(pattern)],&temp[8],3);
+            return;
+        }
+        /* MS-DOS's form: what SetupSearch writes without long names, and what a program
+         * writes there before AH=4Fh in either mode */
+        if ((!uselfn || edited) && (!DTA_TemplateCanMatch(temp,8) || !DTA_TemplateCanMatch(temp+8,3))) {
+            /* A name no file and no label has */
+            pattern[0]='/';
+            return;
+        }
+        /* The spaces that pad a field are not part of the name. A template of spaces alone
+         * stays as it is: it matches no file, and only a label that is blank. */
+        unsigned int name=8,ext=3;
+        if (memcmp(temp,"           ",sizeof(temp))) {
+            while (name>0 && temp[name-1]==' ') name--;
+            while (ext>0 && temp[8+ext-1]==' ') ext--;
+        }
+        memcpy(pattern,temp,name);
+        pattern[name]='.';
+        memcpy(&pattern[name+1],&temp[8],ext);
     }
 }
 
@@ -755,6 +832,26 @@ void DOS_FCB::GetAttr(uint8_t& attr) {
 
 void DOS_FCB::SetAttr(uint8_t attr) {
 	if(extended) mem_writeb(pt - 1,attr);
+}
+
+/* Where MS-DOS keeps the search of INT 21h AH=11h and 12h: in the program's FCB. What follows
+ * the drive in a DTA's search bytes goes behind the FCB's own drive byte, and the drive
+ * searched, counted from 1 as the DTA counts it, behind that. An FCB with no drive there holds
+ * no search. */
+void DOS_FCB::SetSearch(const uint8_t * search) {
+	uint8_t state[DOS_DTA::SEARCH_SIZE-1];
+	memcpy(state,search+1,sizeof(state));
+	/* With long names on the template is padded with zeros; an FCB's name is padded with spaces */
+	for (unsigned int i=0;i<11;i++) if (!state[i]) state[i]=' ';
+	MEM_BlockWrite(pt+1,state,sizeof(state));
+	mem_writeb(pt+DOS_DTA::SEARCH_SIZE,search[0]);
+}
+
+bool DOS_FCB::GetSearch(uint8_t * search) {
+	search[0]=mem_readb(pt+DOS_DTA::SEARCH_SIZE);
+	if (!search[0]) return false;
+	MEM_BlockRead(pt+1,search+1,DOS_DTA::SEARCH_SIZE-1);
+	return true;
 }
 
 void DOS_FCB::SetResult(uint32_t size,uint16_t date,uint16_t time,uint8_t attr) {
