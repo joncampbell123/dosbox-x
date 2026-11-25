@@ -551,7 +551,7 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
     case 0x50:  // CR50 Extended System Control 1
         return vga.s3.reg_50;
     case 0x51:  /* Extended System Control 2 */
-        return ((vga.config.display_start >> 16u) & 3u) |
+        return ((vga.config.display_start >> 18u) & 1u) |
                 ((vga.svga.bank_read & 0x30u) >> 2u) |
                 ((vga.config.scan_len & 0x300u) >> 4u) |
                 vga.s3.reg_51;

@@ -90,6 +90,11 @@ struct XGAStatus {
 		Bitu datasize;
 		Bitu buswidth;
 		bool bswap16; /* bit 12 of the CMD register (S3 86C928, Trio32/Trio64/Trio64V+): For any 16-bit word, swap hi/lo bytes (including both 16-bit words in 32-bit transfer) */
+		/* Incremental S3 WAIT-YES line draw state.  PIX_TRANS may arrive
+		 * over many separate I/O writes; unlike immediate lines these
+		 * registers must survive between writes. */
+		uint16_t line_remaining;
+		int32_t line_error, line_axial, line_diagonal;
 	} waitcmd;
 
 	/* S3 Virge state */
@@ -888,6 +893,116 @@ void XGA_DrawWaitSub(Bitu mixmode, Bitu srcval) {
 	XGA_CheckX();
 }
 
+/* An S3 enhanced-engine parameter occupies 14 bits with bit 13 signed.
+ * Mask first because an MMIO/port write can carry unrelated high bits. */
+static int32_t XGA_Signed14(const uint16_t value) {
+    const uint32_t v = value & 0x3fffu;
+    return (v & 0x2000u) ? (int32_t)(v | 0xffffc000u) : (int32_t)v;
+}
+
+/* Called once per pixel consumed from the CPU data stream.  The S3 line
+ * engine must retain both its Bresenham accumulator and its position across
+ * separate PIX_TRANS writes.  The stepping follows the 86Box S3 model. */
+static void XGA_DrawWaitLinePixel(const bool foreground, const Bitu cpu_pixel) {
+    if (!xga.waitcmd.wait || xga.waitcmd.line_remaining == 0) return;
+
+    const Bitu mixmode = foreground ? xga.foremix : xga.backmix;
+    Bitu source;
+    switch ((mixmode >> 5u) & 3u) {
+        case 0: source = xga.backcolor; break;
+        case 1: source = xga.forecolor; break;
+        case 2: source = cpu_pixel; break;
+        case 3: source = 0; break; /* bitmap source in a line is not used by ATP */
+        default: source = 0; break;
+    }
+
+    const Bitu x = xga.waitcmd.curx;
+    const Bitu y = xga.waitcmd.cury;
+    const Bitu dest = XGA_GetPoint(x, y);
+    XGA_DrawPoint(x, y, XGA_GetMixResult(mixmode, source, dest));
+
+    if (--xga.waitcmd.line_remaining == 0) {
+        /* On the last pixel the S3 leaves CUR_X/Y at that pixel, rather
+         * than advancing once more past the end of the line. */
+        xga.curx = (uint16_t)x;
+        xga.cury = (uint16_t)y;
+        xga.waitcmd.wait = false;
+        return;
+    }
+
+    const Bitu c = xga.curcommand;
+    int32_t nx = (int32_t)x;
+    int32_t ny = (int32_t)y;
+    if (c & 8u) { /* radial (vector) line */
+        static const int8_t delta_x[8] = {1,1,0,-1,-1,-1,0,1};
+        static const int8_t delta_y[8] = {0,-1,-1,-1,0,1,1,1};
+        const unsigned int direction = (unsigned int)((c >> 5u) & 7u);
+        nx += delta_x[direction];
+        ny += delta_y[direction];
+    } else { /* Bresenham / axial line */
+        const int32_t dx = (c & 0x20u) ? 1 : -1;
+        const int32_t dy = (c & 0x80u) ? 1 : -1;
+        if (c & 0x40u) ny += dy; else nx += dx;
+        if (xga.waitcmd.line_error >= (int32_t)xga.MAPcount) {
+            xga.waitcmd.line_error = (int16_t)(xga.waitcmd.line_error + xga.waitcmd.line_diagonal);
+            if (c & 0x40u) nx += dx; else ny += dy;
+        } else {
+            xga.waitcmd.line_error = (int16_t)(xga.waitcmd.line_error + xga.waitcmd.line_axial);
+        }
+    }
+    xga.waitcmd.curx = (uint16_t)(nx & 0x0fff);
+    xga.waitcmd.cury = (uint16_t)(ny & 0x0fff);
+}
+
+/* CPU source for S3 Draw Line, command bit 8 = WAIT YES.  In the 8-bpp
+ * modes used by 3DAGS the PIXEL_CNTL register distinguishes texture masks
+ * (CPU-supplied bits select fore/back mixes) from literal 8-bit pixels.
+ * The incoming 'val' was already byte-swapped by XGA_DrawWait when needed. */
+static void XGA_DrawWaitLine(const Bitu val, const Bitu len) {
+    if (XGA_COLOR_MODE != M_LIN8) {
+        static bool warned = false;
+        if (!warned) {
+            LOG_MSG("XGA: CPU-fed line: only 8bpp implemented in this compatibility patch");
+            warned = true;
+        }
+        xga.waitcmd.wait = false;
+        return;
+    }
+
+    const unsigned int bus = (unsigned int)(xga.waitcmd.buswidth & 0x60u);
+    const unsigned int bits = (unsigned int)MIN((Bitu)(len * 8u),
+                                            (Bitu)((bus == 0x40u) ? 32u :
+                                                   (bus == 0x20u) ? 16u :
+                                                   (bus == 0x60u) ? (len * 8u) : 8u));
+    const unsigned int mixselect = (xga.pix_cntl >> 6u) & 3u;
+    const bool cpu_mask = ((mixselect == 2u) || (xga.curcommand & 2u)) &&
+                          (((xga.foremix & 0x60u) != 0x40u) ||
+                           ((xga.backmix & 0x60u) != 0x40u));
+    if (cpu_mask) { /* bit-plane mask from CPU */
+        for (unsigned int n = 0; n < bits && xga.waitcmd.wait; ++n) {
+            const bool foreground = !!((val >> (bits - n - 1u)) & 1u);
+            XGA_DrawWaitLinePixel(foreground, 0u);
+        }
+    } else if (mixselect == 0u) { /* foreground mix; CPU may supply pixel color */
+        for (unsigned int n = 0; n < bits / 8u && xga.waitcmd.wait; ++n) {
+            const Bitu pixel = (val >> (8u * n)) & 0xffu;
+            XGA_DrawWaitLinePixel(true, pixel);
+        }
+    } else if (mixselect == 3u) { /* active VRAM planes choose mix */
+        for (unsigned int n = 0; n < bits / 8u && xga.waitcmd.wait; ++n) {
+            const Bitu old = XGA_GetPoint(xga.waitcmd.curx, xga.waitcmd.cury);
+            XGA_DrawWaitLinePixel((old & xga.readmask) == xga.readmask, 0u);
+        }
+    } else { /* mask source 01 is reserved on these S3 chips */
+        static bool warned = false;
+        if (!warned) {
+            LOG_MSG("XGA: CPU-fed line with unsupported PIXEL_CNTL mask source 01");
+            warned = true;
+        }
+        xga.waitcmd.wait = false;
+    }
+}
+
 void XGA_DrawWait(Bitu val, Bitu len) {
 	if (s3Card >= S3_ViRGE) {
 		if (xga.virge.imgxferport != NULL && xga.virge.imgxferportfunc != NULL)
@@ -903,6 +1018,9 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 		val = ((val & 0xFF00FF00u) >> 8u) | ((val & 0x00FF00FFu) << 8u);
 
 	switch(xga.waitcmd.cmd) {
+		case 1: /* CPU-fed line */
+			XGA_DrawWaitLine(val, len);
+			break;		
 		case 2: /* Rectangle */
 			switch(mixmode) {
 				case 0x00: /* FOREMIX always used */
@@ -1267,6 +1385,8 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 	xga.curcommand = val;
 	switch(cmd) {
 		case 1: /* Draw line */
+			/* Any new line command replaces the previous CPU-fed operation. */
+			xga.waitcmd.wait = false;		
 			if((val & 0x100) == 0) {
 				if((val & 0x8) == 0) {
 #if XGA_SHOW_COMMAND_TRACE == 1
@@ -1280,7 +1400,27 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 					XGA_DrawLineVector(val);
 				}
 			} else {
-				LOG_MSG("XGA: Wants line drawn from PIX_TRANS register!");
+				/* WAIT YES: drawing begins only as data is written to E2E8h. */
+				xga.waitcmd.wait = true;
+				xga.waitcmd.newline = false;
+				xga.waitcmd.cmd = 1;
+				xga.waitcmd.curx = xga.curx;
+				xga.waitcmd.cury = xga.cury;
+				xga.waitcmd.line_remaining = (uint16_t)(xga.MAPcount + 1u - ((val & 4u) ? 1u : 0u));
+				xga.waitcmd.line_error = XGA_Signed14(xga.ErrTerm);
+				xga.waitcmd.line_axial = XGA_Signed14(xga.desty);
+				xga.waitcmd.line_diagonal = XGA_Signed14(xga.destx);
+				/* For Trio-class cards CMD bits 10:9 select 8/16/32-bit
+				 * transfers; earlier 86C928 only supports bits 9. */
+				const Bitu busbits = (s3Card >= S3_Vision864) ? (val & 0x600u) : (val & 0x200u);
+				xga.waitcmd.buswidth = (Bitu)vga.mode | (busbits >> 4u);
+				xga.waitcmd.bswap16 = (val & 0x1000u) != 0u &&
+				    (((xga.pix_cntl & 0xc0u) == 0x80u) || (val & 2u)) &&
+				    (((xga.foremix & 0x60u) != 0x40u) ||
+				     ((xga.backmix & 0x60u) != 0x40u));
+				xga.waitcmd.data = 0;
+				xga.waitcmd.datasize = 0;
+				if (!xga.waitcmd.line_remaining) xga.waitcmd.wait = false;
 			}
 			break;
 		case 2: /* Rectangle fill */
