@@ -12,6 +12,8 @@ Next version:
   - [AI] DOS: a search for one exact name no longer copies the whole
     folder, and a search whose DTA a program saved, restored and edited
     goes on as MS-DOS's does. (Optimiza)
+  - [AI] LABEL, VOL, TREE, CD, IMGMAKE and START no longer end the emulator
+    on a drive that is not mounted. (Optimiza)
   - [AI] DOS: a CD image answers a search as MSCDEX does: its files and
     directories carry the attributes MSCDEX gives them, the label comes only
     to a search for the label alone, a missing directory answers error 2, and
