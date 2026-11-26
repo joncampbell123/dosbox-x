@@ -404,6 +404,10 @@ Next version:
   - Fixed Ctrl+C handling for redirected STDIN in AH=08h (maron2000)
   - DOS: Fixed memory corruption in INT 2Fh AX=1611h by returning shell parameter
     pointers rather than writing to caller-provided addresses. (cimarronm)
+  - DOS: Fixed Windows 3.1 MS-DOS Prompt locking when traversing the device
+    chain. The synthetic CON header remains after DOS kernel structures while
+    a lower-segment alias preserves compatibility with Quarterdeck Manifest.
+    (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed

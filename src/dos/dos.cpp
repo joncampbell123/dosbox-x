@@ -4743,9 +4743,6 @@ public:
 
 		DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
 
-		// Keep CON separate from and below the information block.
-		DOS_CONDRV_SEG = DOS_GetMemory(0x04,"DOS_CONDRV_SEG");
-
 		/* DOS_INFOBLOCK_SEG contains the entire List of Lists, though the INT 21h call returns seg:offset with offset nonzero */
 		/* NTS: DOS_GetMemory() allocation sizes are in PARAGRAPHS (16-byte units) not bytes */
 		/* NTS: DOS_INFOBLOCK_SEG must be 0x32 paragraphs. SDA_SEG must be located at INFOBLOCK_SEG+0x32, so that the current PSP
@@ -4765,6 +4762,14 @@ public:
 		DOS_SDA_SEG = DOS_GetMemory(DOS_SDA_SEG_SIZE>>4,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
 		DOS_SDA_OFS = 0;
 		DOS_SDA_BASE_SEG = DOS_SDA_SEG;
+
+        // Keep the synthetic CON header after the List of Lists structure. DOSBox-X
+        // does not implement a console I/O DOS device so a dummy device header is
+        // placed in the device chain. Windows 3.x's is sensitive to a physically low
+        // copy of the CON device presumambly thinking it is part of IO.SYS's real
+        // implementaiton. A device placed after the List of Lists is treated as a 3rd
+        // party CON device.
+        DOS_CONDRV_SEG = DOS_GetMemory(0x04,"DOS_CONDRV_SEG");
 
 		DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
 

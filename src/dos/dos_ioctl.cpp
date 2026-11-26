@@ -644,7 +644,10 @@ bool DOS_IOCTL(void) {
 			}
 		}
 	} else {
-		LOG(LOG_DOSMISC,LOG_ERROR)("DOS:IOCTL Call %2X unhandled",reg_al);
+		if (reg_al == 0x52)
+			LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:IOCTL Call %2X DR DOS probe", reg_al);
+		else
+			LOG(LOG_DOSMISC,LOG_ERROR)("DOS:IOCTL Call %2X unhandled",reg_al);
 		DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 		return false;
 	}

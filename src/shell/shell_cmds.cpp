@@ -3586,12 +3586,12 @@ void DOS_Shell::CMD_LOADHIGH(char *args){
 
 bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_sec)
 {
-	const char *last = strchr(args, 0);
+    const char *last = strchr(args, 0);
 	StripSpaces(args);
 	temp = ScanCMDRemain(args);
 	const bool optC = temp && tolower(temp[1]) == 'c';
 	const bool optT = temp && tolower(temp[1]) == 't';
-	if (temp && *temp && !optC && !optT)
+    if (temp && *temp && !optC && !optT)
 		return false;
 	if (temp) {
 		if (args == temp)
@@ -3603,11 +3603,19 @@ bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_
 	if (optC) {
 		rem = temp;
 	} else if (optT) {
-		if (temp && *temp && *(temp + 1) == ',') {
-			wait_char = *temp;
-			wait_sec = atoi(temp + 2);
-		} else
-			wait_sec = 0;
+        if(!temp || !*temp || *(temp + 1) != ',' || !temp[2])
+            return false;
+
+        char* sec = temp + 2;
+        if(!*sec)
+            return false;
+
+        for(char* p = sec; *p; p++) {
+            if(!isdigit((unsigned char)*p))
+                return false;
+        }
+        wait_char = *temp;
+		wait_sec = atoi(temp + 2);
 	}
 	if (args > last)
 		args = NULL;
@@ -3616,19 +3624,20 @@ bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_
 }
 
 #if !defined(OSFREE)
+extern bool INT28_AllowOnce;
 void DOS_Shell::CMD_CHOICE(char * args){
 	HELP("CHOICE");
 	static char defchoice[3] = {MSG_Get("INT21_6523_YESNO_CHARS")[0],MSG_Get("INT21_6523_YESNO_CHARS")[1],0};
 	//char *rem1 = NULL, *rem2 = NULL; /* unused */
 	char *rem = NULL, *temp = NULL, waitchar = 0, *ptr;
-	int waitsec = 0;
+	int waitsec = -1;
 	//bool optC = false, optT = false; /* unused */
 	bool optN = ScanCMDBool(args,"N");
 	bool optS = ScanCMDBool(args,"S"); //Case-sensitive matching
 	// ignore /b and /m switches for compatibility
 	ScanCMDBool(args,"B");
 	ScanCMDBool(args,"M"); // Text
-	ScanCMDBool(args,"T"); //Default Choice after timeout
+	//ScanCMDBool(args,"T"); //Default Choice after timeout
 
 	while (args && *trim(args) == '/') {
 		if (!get_param(args, rem, temp, waitchar, waitsec)) {
@@ -3640,7 +3649,18 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	ptr = rem;
 	uint8_t c;
 	if(!optS) while ((c = (uint8_t)(*ptr))) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
-	if(args && *args ) {
+
+    /* Validate the default choice specified by /T. */
+    if(waitsec >= 0 && waitchar) {
+        char checkchar = optS ? waitchar : (char)toupper((unsigned char)waitchar);
+        if(!strchr(rem, checkchar)) {
+            WriteOut("CHOICE: Your default choice is not one of the valid choices.\n");
+            dos.return_code = 255;
+            return;
+        }
+    }
+
+    if(args && *args ) {
 		StripSpaces(args);
 		size_t argslen = strlen(args);
 		if(argslen>1 && args[0] == '"' && args[argslen-1] =='"') {
@@ -3660,22 +3680,52 @@ void DOS_Shell::CMD_CHOICE(char * args){
 		WriteOut("%c]?",rem[len-1]);
 	}
 
-	// TO-DO: Find out how real DOS handles /T option for making a choice after delay; use AUTOTYPE for now
-	std::vector<std::string> sequence;
-	bool in_char = optS ? (strchr(rem, waitchar) != nullptr) : (strchr(rem, toupper(waitchar)) || strchr(rem, tolower(waitchar)));
-	if (waitchar && *rem && in_char && waitsec > 0) {
-		sequence.emplace_back(std::string(1, optS?waitchar:tolower(waitchar)));
-		MAPPER_AutoType(sequence, waitsec * 1000, 500, true);
-	}
-	uint16_t n=1;
-	do {
-		dotype = true;
+	// TO-DO: Find out how real DOS handles /T option for making a choice after delay
+    bool in_char = waitchar && *rem &&
+        (optS ? (strchr(rem, waitchar) != nullptr) :
+            (strchr(rem, toupper(waitchar)) != nullptr ||
+                strchr(rem, tolower(waitchar)) != nullptr));
+
+    uint32_t start_ticks = GetTicks();
+    uint32_t timeout_ms = (uint32_t)waitsec * 1000u;
+    uint32_t handle = RealHandle(STDIN);
+    bool stdin_con = (handle < DOS_FILES && Files[handle] &&
+        Files[handle]->IsName("CON"));
+    bool timed_choice = stdin_con && in_char && waitsec >= 0;
+
+    static const bool idle_enabled =
+        ((Section_prop*)control->GetSection("dos"))->Get_bool("dos idle api");
+
+    uint16_t n=1;
+	while(true) {
+        if(timed_choice &&
+            (uint32_t)(GetTicks() - start_ticks) >= timeout_ms) {
+            c = (uint8_t)(optS ? waitchar : toupper(waitchar));
+            ptr = strchr(rem, c); // Time out, use choice of /T option
+            break;
+        }
+
+        if(timed_choice && !DOS_GetSTDINStatus()) { // Poll standard input for available input while waiting for the timeout.
+            if(CheckBreak(this)) {
+                dos.return_code = 0;
+                return;
+            }
+
+            if(idle_enabled) {
+                INT28_AllowOnce = true;
+                CALLBACK_RunRealInt(0x28);
+            }
+            SDL_Delay(1);
+            continue;
+        }
+        n = 1;
 		DOS_ReadFile (STDIN,&c,&n);
-		dotype = false;
 		if (n==0) {dos.return_code=255;return;}
 		if (CheckBreak(this) || c==3) {dos.return_code=0;return;}
-	} while (!c || !(ptr = strchr(rem,(optS?c:toupper(c)))));
-	c = optS?c:(uint8_t)toupper(c);
+        if(!optS) c = (uint8_t)toupper(c);
+        ptr = strchr(rem, c);
+        if(ptr) break;
+	}
 	DOS_WriteFile (STDOUT,&c, &n);
 	c = '\r'; DOS_WriteFile (STDOUT,&c, &n);
 	c = '\n'; DOS_WriteFile (STDOUT,&c, &n);

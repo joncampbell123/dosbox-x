@@ -1241,11 +1241,9 @@ std::string replaceNewlineWithEscaped(const std::string& input) {
         }
         else if (input[i] == '\n'){
             output += "\\n";   // '\n' needs to be replaced to "\\n" 
-            i++;
         }
         //else if (input[i] == '\"'){
         //    output += "\\\"";   // '"' needs to be replaced to "\\\"" 
-        //    i++;
         //}
         else {
             output += input[i];

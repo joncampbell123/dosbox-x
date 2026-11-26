@@ -2010,6 +2010,12 @@ FILE * fopen_lock(const char * fname, const char * mode, bool &readonly) {
 #else
         retfile = fopen64(fname, fmode.c_str());
         if (retfile == NULL) {fmode.pop_back();readonly=true;goto next;} /* did you know fopen returns NULL if it cannot open the file? */
+
+        int fd = fileno(retfile);
+        int fdflags = fcntl(fd, F_GETFD);
+        if (fdflags >= 0)
+            fcntl(fd, F_SETFD, fdflags | FD_CLOEXEC); /* Prevent the file lock from being retained by child processes across exec(). */
+        
         int lock = flock(fileno(retfile), LOCK_EX | LOCK_NB); /* did you know fileno() assumes retfile != NULL and you will segfault if that is wrong? */
         if (lock < 0) {
             fclose(retfile); /* don't leak file handles on failure to flock() */

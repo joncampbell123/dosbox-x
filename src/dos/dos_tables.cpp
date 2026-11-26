@@ -370,9 +370,19 @@ void DOS_SetupTables(void) {
  	real_writed(seg,0x00,0xffffffff);	// next ptr
  	real_writew(seg,0x04,0x8013);		// attributes
   	real_writed(seg,0x06,0xffffffff);	// strategy routine
-  	real_writed(seg,0x0a,0x204e4f43);	// driver name
-  	real_writed(seg,0x0e,0x20202020);	// driver name
-	if(!IS_DOSV) dos_infoblock.SetDeviceChainStart(RealMake(seg,0));
+	real_writed(seg,0x0a,0x204e4f43);	// driver name
+	real_writed(seg,0x0e,0x20202020);	// driver name
+	if(!IS_DOSV) {
+		// Point CON at a noncanonical real-mode address for the same physical
+		// CON header: (DOS_INFOBLOCK_SEG - 1):offset resolves to seg:0000.
+		// The offset compensates for the lower segment, so this does not copy
+		// or relocate the header. It keeps the physical layout required by
+		// Windows 3.x while giving device-chain scanners, notably Quarterdeck
+		// Manifest, the low-segment CON address they expect.
+		dos_infoblock.SetDeviceChainStart(
+		    RealMake(DOS_INFOBLOCK_SEG - 1, (seg - DOS_INFOBLOCK_SEG + 1) << 4)
+        );
+	}
 
 #if defined(USE_TTF)
 	if(IS_DOSV || ttf_dosv) {
