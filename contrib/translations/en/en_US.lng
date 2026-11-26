@@ -2369,6 +2369,11 @@ is %s
 Path not found
 
 .
+
+:SHELL_ILLEGAL_PATH_NAME
+Path not found - %s
+
+.
 :SHELL_ILLEGAL_DRIVE
 Invalid drive specification
 
