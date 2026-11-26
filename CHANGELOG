@@ -1,4 +1,8 @@
 Next version:
+  - [AI] DOS: a divide error ends the program as MS-DOS ends it, with
+    "Divide overflow" on the console, instead of running the instruction
+    that divided again for ever. XCOPY to a drive that is not mounted
+    filled the emulator's log until the run was killed. (Optimiza)
   - [AI] DOS: a find call leaves the state of another search as MS-DOS
     6.22 and 7.10 do: a FindFirst that finds nothing leaves the DTA as it
     was, a long name search and an AH=0Fh open by wildcards write nothing
