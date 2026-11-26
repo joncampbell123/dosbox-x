@@ -57,6 +57,7 @@ bool enable_a20_on_windows_init = false;
 #endif
 
 static Bitu call_int2f,call_int2a;
+static Bitu call_int0 = 0;
 static RealPt dos7_primary_shell_name = 0;
 static RealPt dos7_primary_shell_command_tail = 0;
 
@@ -949,7 +950,37 @@ static bool DOS_MultiplexFunctions(void) {
 	return false;
 }
 
+/* MS-DOS's handler for a divide error writes its message on the console and ends the program.
+ * CON is written directly, the way the shell writes its own messages, so that neither a
+ * program's redirection nor its open-file table can keep the line out; MS-DOS 6.22 keeps it out
+ * of a "> file" redirection too. */
+static Bitu INT0_Handler(void) {
+	int WriteOut_NoParsing_Internal(const char * format, bool dbcs, bool direct_con);
+	extern char appname[], appargs[];
+	extern bool dos_program_running;
+
+	const uint16_t pspseg = dos.psp();
+	WriteOut_NoParsing_Internal("Divide overflow\r\n", false, true);
+	DOS_Terminate(pspseg, false, 0);
+	/* DOS_Terminate leaves a process that is its own parent, as the shell's PSP is: there is no
+	 * parent to go back to, and the IRET that follows runs the dividing instruction again. */
+	if (dos.psp() == pspseg) return CBRET_NONE;
+	dos_program_running = false;
+	*appname = 0;
+	*appargs = 0;
+	return CBRET_NONE;
+}
+
 void DOS_SetupMisc(void) {
+	/* A divide error reaches a real-mode guest as INT 00h. Left at the BIOS callback stub it
+	 * only logs and IRETs, and an IRET after a fault runs the instruction that faulted again,
+	 * so the program never ends. A DOS started again after a teardown that was skipped keeps the
+	 * slot it already owns. */
+	if (!call_int0) {
+		call_int0=CALLBACK_Allocate();
+		CALLBACK_Setup(call_int0,&INT0_Handler,CB_IRET,"DOS Int 0 divide error");
+	}
+	RealSetVec(0x00,CALLBACK_RealPointer(call_int0));
 	const auto shell_segment = DOS_GetMemory(3, "MS-DOS 7 shell parameters");
 	dos7_primary_shell_name = RealMake(shell_segment, 0);
 	dos7_primary_shell_command_tail = RealMake(shell_segment, 0x10);
@@ -979,6 +1010,14 @@ void DOS_SetupMisc(void) {
 void CALLBACK_DeAllocate(Bitu in);
 
 void DOS_UninstallMisc(void) {
+	/* vector 00h goes back to the BIOS stub even for LOADLIN, whose kernel must not be reached
+	 * through a divide error while it is disabled */
+	if (call_int0) {
+		extern Bitu call_default;
+		RealSetVec(0x00,CALLBACK_RealPointer(call_default));
+		CALLBACK_DeAllocate(call_int0);
+		call_int0=0;
+	}
     if (RunningProgram == "LOADLIN") return;
 	/* these vectors shouldn't exist when booting a guest OS */
 	if (call_int2d) {
