@@ -1,4 +1,8 @@
 Next version:
+  - Voodoo (OpenGL): Triangles and fast fills are now clipped to the clip
+    rectangle. A screen smaller than the Voodoo mode (320x240 centred in a
+    Voodoo Graphics 512x384 mode) was drawn across the whole mode.
+    (ali-mosavian)
   - macOS: Switching to full screen or zooming the window with output=opengl
     no longer garbles the picture (the image sheared into several copies with
     video memory junk below). The window surface DOSBox-X also uses on the
