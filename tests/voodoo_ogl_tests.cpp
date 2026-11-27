@@ -1,7 +1,22 @@
 /*
- *  The OpenGL Voodoo's clip: the clip registers' rectangle as the scissor box triangles and fast
- *  fills are cut to.
+ *  Copyright (C) 2026  The DOSBox-X Team
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+
+/* The OpenGL Voodoo's clip: the clip registers' rectangle as the scissor box triangles and fast fills are cut to. */
 
 #include "config.h"
 
@@ -11,12 +26,13 @@
 
 #include "../src/hardware/voodoo_clip.h"
 
-namespace {
+namespace
+{
 
 /* 320x200 centred in 512x384, at 96, 92, its rows counted down: SCALED, in a 1024x768 view. */
 const uint32_t SCREEN_X = 96u << 16 | 416u;
 const uint32_t SCREEN_Y = 92u << 16 | 292u;
-const ogl_box SCALED = {0, 0, 1024, 768};
+const ogl_box SCALED = { 0, 0, 1024, 768 };
 
 /* Its rows counted down from the top: the box's from the window's bottom. Triangles were not cut at
    all, and a fast fill's rows were taken from fbiInit3's y origin, 0 unless a program sets it: a
@@ -43,7 +59,7 @@ TEST(VoodooOglClipBox, RowsCountedUp)
 /* A viewport moved into the window, as fullscreen centres a small mode: the box moves with it. */
 TEST(VoodooOglClipBox, ViewportOffset)
 {
-    const ogl_box view = {64, 48, 512, 384};
+    const ogl_box view = { 64, 48, 512, 384 };
     const ogl_box box = voodoo_ogl_clip_box(SCREEN_X, SCREEN_Y, false, 512, 384, view);
 
     EXPECT_EQ(box.x, 64 + 96);

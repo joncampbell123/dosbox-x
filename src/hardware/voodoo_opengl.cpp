@@ -75,28 +75,44 @@ static UINT32 ogl_texture_index = 1;
 extern int transparency;
 void GFX_DisplayMainMenubar(bool);
 
-ogl_box voodoo_ogl_clip_box(uint32_t left_right, uint32_t low_high, bool y_up, int width, int height, ogl_box view) {
-	const int sx = (int)((left_right >> 16) & 0x3ff), ex = (int)(left_right & 0x3ff);
-	const int sy = (int)((low_high >> 16) & 0x3ff), ey = (int)(low_high & 0x3ff);
-	const int low = y_up ? sy : height - ey, high = y_up ? ey : height - sy;
-	const int x0 = view.x + sx * view.w / width, x1 = view.x + ex * view.w / width;
-	const int y0 = view.y + low * view.h / height, y1 = view.y + high * view.h / height;
-	const ogl_box box = {x0, y0, x1 > x0 ? x1 - x0 : 0, y1 > y0 ? y1 - y0 : 0};
-	return box;
+ogl_box voodoo_ogl_clip_box(uint32_t left_right, uint32_t low_high, bool y_up, int width, int height,
+                            ogl_box view)
+{
+    const int sx = (int)((left_right >> 16) & 0x3ff);
+    const int ex = (int)(left_right & 0x3ff);
+    const int sy = (int)((low_high >> 16) & 0x3ff);
+    const int ey = (int)(low_high & 0x3ff);
+    const int low  = y_up ? sy : height - ey;
+    const int high = y_up ? ey : height - sy;
+
+    const int x0 = view.x + sx * view.w / width;
+    const int x1 = view.x + ex * view.w / width;
+    const int y0 = view.y + low * view.h / height;
+    const int y1 = view.y + high * view.h / height;
+
+    const ogl_box box = { x0, y0, x1 > x0 ? x1 - x0 : 0, y1 > y0 ? y1 - y0 : 0 };
+    return box;
 }
 
-/* The scissor test on with the clip rectangle's box, unless it holds the whole view: whether it is on. */
-static bool ogl_scissored(void) {
-	const ogl_box view = {adjust_x, adjust_y, (int)new_width, (int)new_height};
-	const ogl_box box = voodoo_ogl_clip_box(v->reg[clipLeftRight].u, v->reg[clipLowYHighY].u,
-		FBZMODE_Y_ORIGIN(v->reg[fbzMode].u) != 0, (int)v->fbi.width, (int)v->fbi.height, view);
+/**
+ * @brief Turns the scissor test on with the clip rectangle's box, unless the box holds the whole view.
+ * @return Whether the scissor test was turned on.
+ */
+static bool ogl_scissored()
+{
+    const ogl_box view = { adjust_x, adjust_y, (int)new_width, (int)new_height };
+    const ogl_box box  = voodoo_ogl_clip_box(v->reg[clipLeftRight].u, v->reg[clipLowYHighY].u,
+                                             FBZMODE_Y_ORIGIN(v->reg[fbzMode].u) != 0,
+                                             (int)v->fbi.width, (int)v->fbi.height, view);
 
-	if (box.x <= view.x && box.y <= view.y && box.x + box.w >= view.x + view.w && box.y + box.h >= view.y + view.h)
-		return false;
+    const bool whole = box.x <= view.x && box.y <= view.y &&
+                       box.x + box.w >= view.x + view.w && box.y + box.h >= view.y + view.h;
+    if (whole)
+        return false;
 
-	glEnable(GL_SCISSOR_TEST);
-	glScissor(box.x, box.y, box.w, box.h);
-	return true;
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(box.x, box.y, box.w, box.h);
+    return true;
 }
 
 /* texture cache buffer */
@@ -1218,7 +1234,7 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 
 	UINT32 ALPHAMODE = extra->r_alphaMode;
 	UINT32 FBZMODE   = extra->r_fbzMode;
-	const bool scissored = FBZMODE_ENABLE_CLIPPING(FBZMODE) && ogl_scissored();
+    const bool scissored = FBZMODE_ENABLE_CLIPPING(FBZMODE) && ogl_scissored();
 
 
 	ogl_get_vertex_data(v->fbi.ax, v->fbi.ay, (void*)extra, &vd[0]);
@@ -1375,7 +1391,8 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 		glDisable(GL_STENCIL_TEST);
 	}
 
-	if (scissored) glDisable(GL_SCISSOR_TEST);
+    if (scissored)
+        glDisable(GL_SCISSOR_TEST);
 
 	if (!extra->info->shader_ready) {
 		glDisable (GL_TEXTURE_2D);
@@ -1583,7 +1600,7 @@ void voodoo_ogl_fastfill(void) {
 
 	VOGL_SetDepthMaskMode(true);
 
-	const bool scissored = ogl_scissored();
+    const bool scissored = ogl_scissored();
 
 	uint32_t clear_mask=0;
 	if (FBZMODE_RGB_BUFFER_MASK(v->reg[fbzMode].u)) {
@@ -1616,7 +1633,8 @@ void voodoo_ogl_fastfill(void) {
 
 	if (clear_mask) glClear(clear_mask);
 
-	if (scissored) glDisable(GL_SCISSOR_TEST);
+    if (scissored)
+        glDisable(GL_SCISSOR_TEST);
 }
 
 void voodoo_ogl_clear(void) {
