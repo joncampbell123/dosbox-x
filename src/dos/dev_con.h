@@ -1011,18 +1011,23 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
             }
 			break;
 		default:
-			for(std::vector<key_change>::iterator key = key_map.begin() ; key != key_map.end() ; ++key) {
+            if(reg_al == 3 && !binary) {
+                data[count++] = reg_al;
+                if(*size > 1 || !inshell) {
+                    dos.errorcode = 77;
+                    *size = count;
+                    reg_ax = oldax;
+                    return false;
+                }
+                break;
+            }
+
+            for(std::vector<key_change>::iterator key = key_map.begin() ; key != key_map.end() ; ++key) {
 				if(key->src == reg_al) {
 					reg_al = (uint8_t)key->dst;
 				}
 			}
 			data[count++]=reg_al;
-			if ((*size > 1 || !inshell) && reg_al == 3 && !binary) {
-				dos.errorcode=77;
-				*size=count;
-				reg_ax=oldax;
-				return false;
-			}
 			break;
 		}
 

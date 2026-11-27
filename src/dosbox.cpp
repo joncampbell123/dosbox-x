@@ -3856,7 +3856,7 @@ void DOSBOX_SetupConfigSections(void) {
             Pbool->Set_help(
                 "Prefer Bluetooth HFP (Hands-Free Profile) microphone mode.\n"
                 "This allows using the microphone of a BT headset but reduces\n"
-                "audio quality (typically 8kHz–16kHz telephone quality).\n"
+                "audio quality (typically 8kHz-16kHz telephone quality).\n"
                 "When disabled, higher-quality microphones are preferred."
             );
             Pbool->SetBasic(true);

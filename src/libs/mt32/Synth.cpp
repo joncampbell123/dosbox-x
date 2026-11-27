@@ -695,14 +695,15 @@ bool Synth::initPCMList(Bit16u mapAddress, Bit16u count) {
 	return false;
 }
 
-bool Synth::initCompressedTimbre(Bit16u timbreNum, const Bit8u *src, Bit32u srcLen) {
+bool Synth::initCompressedTimbre(TimbresMemoryRegion &tempRegion, Bit16u absTimbreNum, const Bit8u *src, Bit32u srcLen) {
 	// "Compressed" here means that muted partials aren't present in ROM (except in the case of partial 0 being muted).
 	// Instead the data from the previous unmuted partial is used.
 	if (srcLen < sizeof(TimbreParam::CommonParam)) {
 		return false;
 	}
-	TimbreParam *timbre = &mt32ram.timbres[timbreNum].timbre;
-	timbresMemoryRegion->write(timbreNum, 0, src, sizeof(TimbreParam::CommonParam), true);
+	TimbreParam *timbre = &mt32ram.timbres[absTimbreNum].timbre;
+	Bit32u timbreNum = absTimbreNum & 0x3F;
+	tempRegion.write(timbreNum, 0, src, sizeof(TimbreParam::CommonParam), true);
 	unsigned int srcPos = sizeof(TimbreParam::CommonParam);
 	unsigned int memPos = sizeof(TimbreParam::CommonParam);
 	for (int t = 0; t < 4; t++) {
@@ -712,7 +713,7 @@ bool Synth::initCompressedTimbre(Bit16u timbreNum, const Bit8u *src, Bit32u srcL
 		} else if (srcPos + sizeof(TimbreParam::PartialParam) >= srcLen) {
 			return false;
 		}
-		timbresMemoryRegion->write(timbreNum, memPos, src + srcPos, sizeof(TimbreParam::PartialParam));
+		tempRegion.write(timbreNum, memPos, src + srcPos, sizeof(TimbreParam::PartialParam));
 		srcPos += sizeof(TimbreParam::PartialParam);
 		memPos += sizeof(TimbreParam::PartialParam);
 	}
@@ -721,22 +722,26 @@ bool Synth::initCompressedTimbre(Bit16u timbreNum, const Bit8u *src, Bit32u srcL
 
 bool Synth::initTimbres(Bit16u mapAddress, Bit16u offset, Bit16u count, Bit16u startTimbre, bool compressed) {
 	const Bit8u *timbreMap = &controlROMData[mapAddress];
+	// We abuse TimbresMemoryRegion with the sole purpose of clamping the timbre parameters by the max table.
+	TimbresMemoryRegion tempRegion(reinterpret_cast<Bit8u *>(mt32ram.timbres + startTimbre), paddedTimbreMaxTable);
+	Bit16u timbreNum = 0;
 	for (Bit16u i = 0; i < count * 2; i += 2) {
+		Bit16u absTimbreNum = startTimbre + timbreNum;
 		Bit16u address = (timbreMap[i + 1] << 8) | timbreMap[i];
 		if (!compressed && (address + offset + sizeof(TimbreParam) > CONTROL_ROM_SIZE)) {
-			printDebug("Control ROM error: Timbre map entry 0x%04x for timbre %d points to invalid timbre address 0x%04x", i, startTimbre, address);
+			printDebug("Control ROM error: Timbre map entry 0x%04x for timbre %d points to invalid timbre address 0x%04x", i, absTimbreNum, address);
 			return false;
 		}
 		address += offset;
 		if (compressed) {
-			if (!initCompressedTimbre(startTimbre, &controlROMData[address], CONTROL_ROM_SIZE - address)) {
-				printDebug("Control ROM error: Timbre map entry 0x%04x for timbre %d points to invalid timbre at 0x%04x", i, startTimbre, address);
+			if (!initCompressedTimbre(tempRegion, absTimbreNum, &controlROMData[address], CONTROL_ROM_SIZE - address)) {
+				printDebug("Control ROM error: Timbre map entry 0x%04x for timbre %d points to invalid timbre at 0x%04x", i, absTimbreNum, address);
 				return false;
 			}
 		} else {
-			timbresMemoryRegion->write(startTimbre, 0, &controlROMData[address], sizeof(TimbreParam), true);
+			tempRegion.write(timbreNum, 0, &controlROMData[address], sizeof(TimbreParam), true);
 		}
-		startTimbre++;
+		timbreNum++;
 	}
 	return true;
 }
@@ -1155,13 +1160,27 @@ bool Synth::playSysex(const Bit8u *sysex, Bit32u len, Bit32u timestamp) {
 void Synth::playMsgNow(Bit32u msg) {
 	if (!opened) return;
 
+	Bit8u command = Bit8u((msg & 0x0000F0) >> 4);
+
 	// NOTE: Active sense IS implemented in real hardware. However, realtime processing is clearly out of the library scope.
 	//       It is assumed that realtime consumers of the library respond to these MIDI events as appropriate.
+	if (command == 0x0F) {
+#if MT32EMU_MONITOR_MIDI > 0
+		printDebug("Unsupported MIDI System Common / Realtime: 0x%08x", msg);
+#endif
+		return;
+	}
 
-	Bit8u command = Bit8u((msg & 0x0000F0) >> 4);
+	if (command < 8) {
+#if MT32EMU_MONITOR_MIDI > 0
+		printDebug("playMsgNow for msg=0x%08x relies on running status; unsupported", msg);
+#endif
+		return;
+	}
+
 	Bit8u chan = Bit8u(msg & 0x00000F);
 	Bit8u data1 = Bit8u((msg & 0x00FF00) >> 8);
-	Bit8u data2 = Bit8u((msg & 0xFF0000) >> 16);
+	Bit8u data2 = ((command & 0x0E) == 0x0C) ? 0 : Bit8u((msg & 0xFF0000) >> 16);
 
 	if (data1 > 127 || data2 > 127) {
 #if MT32EMU_MONITOR_MIDI > 0
@@ -1650,7 +1669,7 @@ void Synth::initMemoryRegions() {
 	rhythmTempMemoryRegion = new RhythmTempMemoryRegion(reinterpret_cast<Bit8u *>(&mt32ram.rhythmTemp[0]), &controlROMData[controlROMMap->rhythmMaxTable]);
 	timbreTempMemoryRegion = new TimbreTempMemoryRegion(reinterpret_cast<Bit8u *>(&mt32ram.timbreTemp[0]), paddedTimbreMaxTable);
 	patchesMemoryRegion = new PatchesMemoryRegion(reinterpret_cast<Bit8u *>(&mt32ram.patches[0]), &controlROMData[controlROMMap->patchMaxTable]);
-	timbresMemoryRegion = new TimbresMemoryRegion(reinterpret_cast<Bit8u *>(&mt32ram.timbres[0]), paddedTimbreMaxTable);
+	timbresMemoryRegion = new TimbresMemoryRegion(reinterpret_cast<Bit8u *>(&mt32ram.timbres[/* Bank M */ 128]), paddedTimbreMaxTable);
 	systemMemoryRegion = new SystemMemoryRegion(reinterpret_cast<Bit8u *>(&mt32ram.system), &controlROMData[controlROMMap->systemMaxTable]);
 	displayMemoryRegion = new DisplayMemoryRegion();
 	resetMemoryRegion = new ResetMemoryRegion();
@@ -1801,8 +1820,6 @@ void Synth::writeMemoryRegion(const MemoryRegion *region, Bit32u addr, Bit32u le
 		break;
 	case MR_Timbres:
 		// Timbres
-		first += 128;
-		last += 128;
 		region->write(first, off, data, len);
 		for (unsigned int i = first; i <= last; i++) {
 #if MT32EMU_MONITOR_TIMBRES >= 1
