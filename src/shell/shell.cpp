@@ -1999,6 +1999,10 @@ void SHELL_MessagesInit() {
 	MSG_Add("SHELL_CMD_VTEXT_ON","DOS/V V-text is currently enabled.\n");
 	MSG_Add("SHELL_CMD_VTEXT_OFF","DOS/V V-text is currently disabled.\n");
 	MSG_Add("SHELL_ALLFILES_CHAR", "a");
+    MSG_Add("SHELL_CMD_CHOICE_TIMEOUT_ERROR", "CHOICE: Incorrect timeout syntax. Expected form: Tc,nn or T:c,nn\n");
+    MSG_Add("SHELL_CMD_CHOICE_SWITCH_ERROR", "CHOICE: Switch syntax is invalid. Expected form: /C[:]choices\n");
+    MSG_Add("SHELL_CMD_CHOICE_DEFAULT_ERROR", "CHOICE: Your default choice is not one of the valid choices.\n");
+    MSG_Add("SHELL_CMD_CHOICE_SYNTAX_ERROR", "Switch on command line is not valid. Expected form:\n    CHOICE [/C[:]choices] [/N] [/S] [/T[:]c,nn] [text]\n");
 
 	std::string mapper_keybind = mapper_event_keybind_string("host");
 	if (mapper_keybind.empty()) mapper_keybind = "unbound";
@@ -2188,11 +2192,11 @@ void SHELL_MessagesInit() {
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH              [drive:][path]filename [parameters]\n"
 			"LOADHIGH        [drive:][path]filename [parameters]\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a user keypress to choose one of a set of choices.\n");
-	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text\n\n"
+	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C[:]choices] [/N] [/S] [/T[:]c,nn] [text]\n\n"
 			"  /C[:]choices Specifies allowable keys.  Default is: yn.\n"
 			"  /N           Do not display the choices at end of prompt.\n"
-			"  /S           Enables case-sensitive choices to be selected.\n"
-			"  /T[:]c,nn    Default choice to c after nn seconds.\n"
+			"  /S           Treats choice keys as case-sensitive.\n"
+			"  /T[:]c,nn    Default choice to c after <nn> seconds.\n"
 			"  text         The text to display as a prompt.\n\n"
 			"ERRORLEVEL is set to offset of key user presses in choices.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP","Displays or changes file attributes.\n");
