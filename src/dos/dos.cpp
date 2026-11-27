@@ -20,12 +20,13 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <ctype.h>
+#include <array>
+#include <cassert>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <sys/stat.h>
-#include <time.h>
 
 #include "control.h"
 #include "dosbox.h"
@@ -1295,6 +1296,7 @@ static Bitu DOS_21Handler(void) {
                 PhysPt data=SegPhys(ds)+reg_dx;
                 uint8_t free=mem_readb(data);
                 uint8_t read=0;uint8_t c;uint16_t n=1;
+                std::array<uint8_t, 256> tab_width = {};
                 if (!free) break;
                 free--;
                 for(;;) {
@@ -1306,6 +1308,15 @@ static Bitu DOS_21Handler(void) {
                         continue;
                     if (c == 8) {           // Backspace
                         if (read) { //Something to backspace.
+                            if (mem_readb(data + read + 1) == '\t') {
+                                for (auto width = tab_width[read - 1]; width > 0; width--) {
+                                    c = 8;   DOS_WriteFile(STDOUT,&c,&n);
+                                    c = ' '; DOS_WriteFile(STDOUT,&c,&n);
+                                    c = 8;   DOS_WriteFile(STDOUT,&c,&n);
+                                }
+                                --read;
+                                continue;
+                            }
                             Bitu flag = 0;
                             for(uint8_t pos = 0 ; pos < read ; pos++) {
                                 c = mem_readb(data + pos + 2);
@@ -1374,6 +1385,11 @@ static Bitu DOS_21Handler(void) {
                         if(CURSOR_POS_COL(page) > col)
                             INT10_SetCursorPos(row, col, page); // stay where we were
                         continue;
+                    }
+                    if (c == '\t') {
+                        uint8_t page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                        // Save the expanded width; after echoing, the cursor is at a tab stop.
+                        tab_width[read] = (uint8_t)(8 - (CURSOR_POS_COL(page) & 7));
                     }
                     DOS_WriteFile(STDOUT,&c,&n);
                     mem_writeb(data+read+2,c);
