@@ -2025,6 +2025,7 @@ next:
                 wchar_t* wmode = new wchar_t[size];
                 mbstowcs (wmode, fmode.c_str(), size);
                 retfile = _wfopen(host_name, wmode);
+                delete[] wmode;
             }
         }
 #endif
