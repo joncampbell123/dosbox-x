@@ -1464,6 +1464,34 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		return false;
 	}
 
+#if defined(WIN32)
+    // Apply the requested DOS read-only attribute while preserving the
+    // original writable creation handle
+    if (attributes & DOS_ATTR_READ_ONLY) {
+        const DWORD host_attributes = GetFileAttributesW(host_name);
+        if (host_attributes == INVALID_FILE_ATTRIBUTES ||
+            (!(host_attributes & FILE_ATTRIBUTE_READONLY) &&
+             !SetFileAttributesW(host_name,
+                 (host_attributes & ~FILE_ATTRIBUTE_NORMAL) |
+                 FILE_ATTRIBUTE_READONLY))) {
+            fclose(hand);
+            DOS_SetError(DOSERR_ACCESS_DENIED);
+            return false;
+        }
+    }
+#else
+    if (attributes & DOS_ATTR_READ_ONLY) {
+        struct stat status;
+        if (fstat(fileno(hand), &status) != 0 ||
+            fchmod(fileno(hand), status.st_mode &
+                   ~(S_IWUSR | S_IWGRP | S_IWOTH)) != 0) {
+            fclose(hand);
+            DOS_SetError(DOSERR_ACCESS_DENIED);
+            return false;
+        }
+    }
+#endif
+
 	if(!existing_file) {
 		strcpy(newname,basedir);
 		strcat(newname,name);
