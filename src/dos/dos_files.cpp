@@ -665,6 +665,11 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
+	// Target directory must exist
+	if (!PathExists(newname)) {
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
 
 #if defined (WIN32)
 	if (clip) {
@@ -808,7 +813,7 @@ bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb) {
 
 //#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 #if defined(WIN32)
-#if !defined(OSFREE)
+#if !defined(OSFREE) && !defined(HX_DOS)
     if(Network_IsActiveResource(entry))
         return Network_ReadFile(entry, data, amount);
 #endif

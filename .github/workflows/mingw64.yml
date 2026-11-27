@@ -26,7 +26,8 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git make mingw-w64-x86_64-toolchain mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake
+          install: git make autoconf automake
+          pacboy: toolchain:p libtool:p pkg-config:p nasm:p
       - name: Update build info
         shell: bash
         run: |
@@ -156,7 +157,8 @@ jobs:
         with:
           msystem: UCRT64
           update: true
-          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake mingw-w64-ucrt-x86_64-libslirp
+          install: git make autoconf automake
+          pacboy: toolchain:p libtool:p pkg-config:p nasm:p libslirp:p
       - name: Update build info
         shell: bash
         run: |
@@ -265,7 +267,8 @@ jobs:
         with:
           msystem: UCRT64
           update: true
-          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake mingw-w64-ucrt-x86_64-libslirp
+          install: git make autoconf automake
+          pacboy: toolchain:p libtool:p pkg-config:p nasm:p libslirp:p
       - name: Update build info
         shell: bash
         run: |

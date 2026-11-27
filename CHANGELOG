@@ -148,6 +148,22 @@ Next version:
   - DOS: Ensure Ctrl+C/INT 23h handling clears temporary state when interrupted
     by an emulator control signal, preventing later termination errors.
     (cimarronm)
+  - Bump mt32emu to ver.2.8.6 (maron2000)
+  - DOS: Resolve actual SFN aliases when storing a child executable path in its
+    environment from an LFN path. (cimarronm)
+  - DOS: INT 21h AH=56h now returns path not found when the destination
+    directory does not exist. (cimarronm)
+  - Windows: Fix Ctrl+Break wasn't recognized (maron2000, zhro)
+  - Fixed Ctrl+C and Ctrl+Break handling for CON input (maron2000)
+  - Fixed Ctrl+C handling for redirected STDIN in AH=08h (maron2000)
+  - DOS: Fixed memory corruption in INT 2Fh AX=1611h by returning shell parameter
+    pointers rather than writing to caller-provided addresses. (cimarronm)
+  - DOS: Fixed Windows 3.1 MS-DOS Prompt locking when traversing the device
+    chain. The synthetic CON header remains after DOS kernel structures while
+    a lower-segment alias preserves compatibility with Quarterdeck Manifest.
+    (cimarronm)
+  - DOS: Fixed buffered console input (INT 21h AH=0Ah) so Backspace erases the
+    complete visual expansion of a preceding tab (cimarronm)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed

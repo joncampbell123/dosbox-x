@@ -20,12 +20,13 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <ctype.h>
+#include <array>
+#include <cassert>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <sys/stat.h>
-#include <time.h>
 
 #include "control.h"
 #include "dosbox.h"
@@ -670,7 +671,9 @@ void DOS_PrintCBreak() {
 }
 
 bool DOS_BreakTest(bool print=true) {
-	if (DOS_BreakFlag) {
+    // Consume the BIOS Ctrl+Break latch
+    ctrlbrk = false;
+    if (DOS_BreakFlag) {
 		/* NTS: DOS calls are allowed within INT 23h! */
 		bool terminate = true;
 		bool terminint23 = false;
@@ -757,6 +760,17 @@ bool DOS_BreakTest(bool print=true) {
 void DOS_BreakAction() {
 	DOS_BreakFlag = true;
 	DOS_BreakConioFlag = false;
+}
+
+/*! \brief      Check if STDIN is a regular file */
+bool DOS_IsSTDINRegularFile(void)
+{
+    uint32_t handle = RealHandle(STDIN);
+
+    if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen())
+        return false;
+
+    return !(Files[handle]->GetInformation() & 0x8000);
 }
 
 /* unmask IRQ 0 automatically on disk I/O functions.
@@ -1240,12 +1254,21 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x08:      /* Direct Character Input, without echo (checks for breaks officially :)*/
             {
-                uint8_t c;uint16_t n=1;
-                DOS_ReadFile (STDIN,&c,&n);
-                if (c == 3) {
-                    DOS_BreakAction();
-                    if (!DOS_BreakTest()) return CBRET_NONE;
-                }
+                uint8_t c;
+                do {
+                    uint16_t n = 1;
+                    if(!DOS_ReadFile(STDIN, &c, &n) || n == 0) {
+                        c = 0; /* FIX_ME: Handle end of file condition */
+                        break;
+                    }
+                    if(c == 3) {
+                        DOS_BreakAction();
+                        if(!DOS_BreakTest()) return CBRET_NONE;
+                        if(DOS_IsSTDINRegularFile())
+                            continue; /* Skip the Ctrl+C character from redirected file input and read the next character. */
+                    }
+                    break;
+                } while(true);
                 reg_al=c;
                 break;
             }
@@ -1273,6 +1296,7 @@ static Bitu DOS_21Handler(void) {
                 PhysPt data=SegPhys(ds)+reg_dx;
                 uint8_t free=mem_readb(data);
                 uint8_t read=0;uint8_t c;uint16_t n=1;
+                std::array<uint8_t, 256> tab_width = {};
                 if (!free) break;
                 free--;
                 for(;;) {
@@ -1284,6 +1308,15 @@ static Bitu DOS_21Handler(void) {
                         continue;
                     if (c == 8) {           // Backspace
                         if (read) { //Something to backspace.
+                            if (mem_readb(data + read + 1) == '\t') {
+                                for (auto width = tab_width[read - 1]; width > 0; width--) {
+                                    c = 8;   DOS_WriteFile(STDOUT,&c,&n);
+                                    c = ' '; DOS_WriteFile(STDOUT,&c,&n);
+                                    c = 8;   DOS_WriteFile(STDOUT,&c,&n);
+                                }
+                                --read;
+                                continue;
+                            }
                             Bitu flag = 0;
                             for(uint8_t pos = 0 ; pos < read ; pos++) {
                                 c = mem_readb(data + pos + 2);
@@ -1352,6 +1385,11 @@ static Bitu DOS_21Handler(void) {
                         if(CURSOR_POS_COL(page) > col)
                             INT10_SetCursorPos(row, col, page); // stay where we were
                         continue;
+                    }
+                    if (c == '\t') {
+                        uint8_t page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+                        // Save the expanded width; after echoing, the cursor is at a tab stop.
+                        tab_width[read] = (uint8_t)(8 - (CURSOR_POS_COL(page) & 7));
                     }
                     DOS_WriteFile(STDOUT,&c,&n);
                     mem_writeb(data+read+2,c);
@@ -4625,9 +4663,6 @@ public:
 
 		DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
 
-		// Keep CON separate from and below the information block.
-		DOS_CONDRV_SEG = DOS_GetMemory(0x04,"DOS_CONDRV_SEG");
-
 		/* DOS_INFOBLOCK_SEG contains the entire List of Lists, though the INT 21h call returns seg:offset with offset nonzero */
 		/* NTS: DOS_GetMemory() allocation sizes are in PARAGRAPHS (16-byte units) not bytes */
 		/* NTS: DOS_INFOBLOCK_SEG must be 0x32 paragraphs. SDA_SEG must be located at INFOBLOCK_SEG+0x32, so that the current PSP
@@ -4646,6 +4681,14 @@ public:
 		DOS_INFOBLOCK_SEG = DOS_GetMemory(0x32,"DOS_INFOBLOCK_SEG");		// was 0x80  0x32 = 0x20(INFOBLOCK) + 0x08(old CONDRV_SEG) + 0x0A(CONSTRING_SEG)
 		DOS_SDA_SEG = DOS_GetMemory(DOS_SDA_SEG_SIZE>>4,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
 		DOS_SDA_OFS = 0;
+
+        // Keep the synthetic CON header after the List of Lists structure. DOSBox-X
+        // does not implement a console I/O DOS device so a dummy device header is
+        // placed in the device chain. Windows 3.x's is sensitive to a physically low
+        // copy of the CON device presumambly thinking it is part of IO.SYS's real
+        // implementaiton. A device placed after the List of Lists is treated as a 3rd
+        // party CON device.
+        DOS_CONDRV_SEG = DOS_GetMemory(0x04,"DOS_CONDRV_SEG");
 
 		DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
 
