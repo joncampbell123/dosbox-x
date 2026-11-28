@@ -1258,13 +1258,14 @@ static Bitu DOS_21Handler(void) {
                 uint8_t c;
                 do {
                     c = 0;
-                    uint16_t n = 1;
-                    const bool read_ok = DOS_ReadFile(STDIN, &c, &n);
-                    if(n == 0 || (!read_ok && !(dos.errorcode == 77 && c == 3))) {
+                    uint16_t bytes_read = 1;
+                    const bool read_ok = DOS_ReadFile(STDIN, &c, &bytes_read);
+                    const bool is_break = dos.errorcode == DOSERR_CTRLC && c == ASCII_ETX;
+                    if(bytes_read == 0 || (!read_ok && !is_break)) {
                         c = 0; /* FIX_ME: Handle end of file condition */
                         break;
                     }
-                    if(c == 3) {
+                    if(c == ASCII_ETX) {
                         DOS_BreakAction();
                         if(!DOS_BreakTest()) return CBRET_NONE;
                         if(DOS_IsSTDINRegularFile())
