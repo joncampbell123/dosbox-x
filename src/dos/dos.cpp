@@ -744,6 +744,7 @@ bool DOS_BreakTest(bool print=true) {
 		if (terminate) {
 			LOG_MSG("Note: DOS break terminating program\n");
 			DOS_Terminate(dos.psp(),false,0);
+			dos.return_mode = RETURN_CTRLC;
 			*appname=0;
 			*appargs=0;
 			return false;
@@ -1256,12 +1257,15 @@ static Bitu DOS_21Handler(void) {
             {
                 uint8_t c;
                 do {
-                    uint16_t n = 1;
-                    if(!DOS_ReadFile(STDIN, &c, &n) || n == 0) {
+                    c = 0;
+                    uint16_t bytes_read = 1;
+                    const bool read_ok = DOS_ReadFile(STDIN, &c, &bytes_read);
+                    const bool is_break = dos.errorcode == DOSERR_CTRLC && c == ASCII_ETX;
+                    if(bytes_read == 0 || (!read_ok && !is_break)) {
                         c = 0; /* FIX_ME: Handle end of file condition */
                         break;
                     }
-                    if(c == 3) {
+                    if(c == ASCII_ETX) {
                         DOS_BreakAction();
                         if(!DOS_BreakTest()) return CBRET_NONE;
                         if(DOS_IsSTDINRegularFile())

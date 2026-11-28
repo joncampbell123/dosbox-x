@@ -458,8 +458,11 @@ static INLINE uint16_t DOS_PackDate(uint16_t year,uint16_t mon,uint16_t day) {
 #define DOSERR_NO_MORE_FILES 18
 #define DOSERR_WRITE_PROTECTED 19
 #define DOSERR_DRIVE_NOT_READY 21
+#define DOSERR_CTRLC 77 /* Internal console break indication */
 #define DOSERR_FILE_ALREADY_EXISTS 80
 
+/* ASCII control characters */
+#define ASCII_ETX 0x03 // End of Text (Ctrl+C)
 
 /* Remains some classes used to access certain things */
 #define sOffset(s,m) offsetof(s,m)
