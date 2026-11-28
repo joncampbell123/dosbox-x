@@ -1693,6 +1693,46 @@ void ogl_shaders(const poly_extra_data *extra) {
 }
 
 
+/* the clip rectangle (clipLeftRight, clipLowYHighY) as the scissor box of the render target:
+ * -1 when it holds no pixel (nothing to draw), 1 when the scissor test was turned on, 0 when the
+ * rectangle holds the whole frame (no scissor test needed) */
+static int ogl_clip_scissor(UINT32 fbzmode) {
+	int sx = (v->reg[clipLeftRight].u >> 16) & 0x3ff;
+	int ex = (v->reg[clipLeftRight].u >> 0) & 0x3ff;
+	int sy = (v->reg[clipLowYHighY].u >> 16) & 0x3ff;
+	int ey = (v->reg[clipLowYHighY].u >> 0) & 0x3ff;
+
+	/* the clip rows are screen rows (0 at the top), counted from the bottom when the Y origin
+	 * is (yorigin - y), like the software fastfill. In OpenGL, row 0 is at the bottom. */
+	const int fw = (int)v->fbi.width, fh = (int)v->fbi.height;
+	if (FBZMODE_Y_ORIGIN(fbzmode)) {
+		const int adj = fh - 1 - (int)v->fbi.yorigin;
+		sy += adj;
+		ey += adj;
+	} else {
+		const int tmp = fh - ey;
+		ey = fh - sy;
+		sy = tmp;
+	}
+	if (sx < 0) sx = 0;
+	if (ex > fw) ex = fw;
+	if (sy < 0) sy = 0;
+	if (ey > fh) ey = fh;
+	if (ex <= sx || ey <= sy) return -1;
+
+	const bool scissors_needed = !(sx == 0 && sy == 0 && ex == fw && ey == fh);
+
+	sx = (sx* new_width) / v->fbi.width;
+	ex = (ex* new_width) / v->fbi.width;
+	sy = (sy* new_height) / v->fbi.height;
+	ey = (ey* new_height) / v->fbi.height;
+
+	if (!scissors_needed) return 0;
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(sx,sy,ex-sx,ey-sy);
+	return 1;
+}
+
 void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 	v=extra->state;
 	ogl_texture_data td[2] = {};
@@ -1707,6 +1747,12 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 	UINT32 ALPHAMODE = extra->r_alphaMode;
 	UINT32 FBZMODE   = extra->r_fbzMode;
 
+	/* triangles are cut to the clip rectangle when the fbzMode says so, as the hardware does */
+	int clip = 0;
+	if (FBZMODE_ENABLE_CLIPPING(FBZMODE)) {
+		clip = ogl_clip_scissor(FBZMODE);
+		if (clip < 0) return;
+	}
 
 	ogl_get_vertex_data(v->fbi.ax, v->fbi.ay, (void*)extra, &vd[0]);
 	ogl_get_vertex_data(v->fbi.bx, v->fbi.by, (void*)extra, &vd[1]);
@@ -1864,6 +1910,11 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 
 	if (!extra->info->shader_ready) {
 		glDisable (GL_TEXTURE_2D);
+	}
+
+	if (clip > 0) {
+		glScissor(0,0,(int)new_width,(int)new_height);
+		glDisable(GL_SCISSOR_TEST);
 	}
 }
 
@@ -2062,40 +2113,9 @@ void voodoo_ogl_fastfill(void) {
 
 	VOGL_SetDepthMaskMode(true);
 
-	int sx = (v->reg[clipLeftRight].u >> 16) & 0x3ff;
-	int ex = (v->reg[clipLeftRight].u >> 0) & 0x3ff;
-	int sy = (v->reg[clipLowYHighY].u >> 16) & 0x3ff;
-	int ey = (v->reg[clipLowYHighY].u >> 0) & 0x3ff;
-
-	/* the clip rows are screen rows (0 at the top), counted from the bottom when the Y origin
-	 * is (yorigin - y), like the software fastfill. In OpenGL, row 0 is at the bottom. */
-	const int fw = (int)v->fbi.width, fh = (int)v->fbi.height;
-	if (FBZMODE_Y_ORIGIN(v->reg[fbzMode].u)) {
-		const int adj = fh - 1 - (int)v->fbi.yorigin;
-		sy += adj;
-		ey += adj;
-	} else {
-		const int tmp = fh - ey;
-		ey = fh - sy;
-		sy = tmp;
-	}
-	if (sx < 0) sx = 0;
-	if (ex > fw) ex = fw;
-	if (sy < 0) sy = 0;
-	if (ey > fh) ey = fh;
-	if (ex <= sx || ey <= sy) return;
-
-	const bool scissors_needed = !(sx == 0 && sy == 0 && ex == fw && ey == fh);
-
-	sx = (sx* new_width) / v->fbi.width;
-	ex = (ex* new_width) / v->fbi.width;
-	sy = (sy* new_height) / v->fbi.height;
-	ey = (ey* new_height) / v->fbi.height;
-
-	if (scissors_needed) {
-		glEnable(GL_SCISSOR_TEST);
-		glScissor(sx,sy,ex-sx,ey-sy);
-	}
+	const int clip = ogl_clip_scissor(v->reg[fbzMode].u);
+	if (clip < 0) return;
+	const bool scissors_needed = clip > 0;
 
 
 	uint32_t clear_mask=0;

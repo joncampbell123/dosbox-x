@@ -42,6 +42,8 @@
 #include "ide.h"
 #include "bios_disk.h"
 #include "imagedisk_eltorito.h"
+#include "callback.h"
+#include "timer.h"
 
 #define DOS_FILESTART 4
 
@@ -57,6 +59,8 @@ extern bool log_fileio;
 extern bool enable_share_exe, enable_dbcs_tables;
 extern int dos_clipboard_device_access;
 extern const char *dos_clipboard_device_name;
+
+void DOS_AddDays(uint8_t days);
 
 #if defined(__APPLE__) && defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED < 101200
 
@@ -2378,14 +2382,24 @@ uint8_t DOS_FCBWrite(uint16_t seg,uint16_t offset,uint16_t recno) {
 	uint32_t size;uint16_t date,time;
 	fcb.GetSizeDateTime(size,date,time);
 	if (pos+towrite>size) size=pos+towrite;
-	//time doesn't keep track of endofday
-	date = DOS_PackDate(dos.date.year,dos.date.month,dos.date.day);
-	uint32_t ticks = mem_readd(BIOS_TIMER);
-	uint32_t seconds = (ticks*10u)/182u;
-	uint16_t hour = (uint16_t)(seconds/3600u);
-	uint16_t min = (uint16_t)((seconds % 3600u)/60u);
-	uint16_t sec = (uint16_t)(seconds % 60u);
-	time = DOS_PackTime(hour,min,sec);
+
+    reg_ax = 0; /* INT1Ah AX=0h Get System time */
+    CALLBACK_RunRealInt(0x1a);
+    if(reg_al) DOS_AddDays(reg_al); /* Consume midnight flag */
+
+    uint64_t ticks = ((uint64_t)reg_cx << 16) | reg_dx;
+    uint64_t biostime = (uint64_t)((100.0 / ((double)PIT_TICK_RATE / 65536.0)) * (double)ticks);
+
+    uint16_t hour, min, sec;
+    biostime /= 100;
+    sec = (uint16_t)(biostime % 60);
+    biostime /= 60;
+    min = (uint16_t)(biostime % 60);
+    biostime /= 60;
+    hour = (uint16_t)(biostime % 24);
+
+    date = DOS_PackDate(dos.date.year, dos.date.month, dos.date.day);
+    time = DOS_PackTime(hour,min,sec);
 	Files[fhandle]->time = time;
 	Files[fhandle]->date = date;
 	fcb.SetSizeDateTime(size,date,time);
@@ -2410,14 +2424,23 @@ uint8_t DOS_FCBIncreaseSize(uint16_t seg,uint16_t offset) {
 	uint32_t size;uint16_t date,time;
 	fcb.GetSizeDateTime(size,date,time);
 	if (pos+towrite>size) size=pos+towrite;
-	//time doesn't keep track of endofday
-	date = DOS_PackDate(dos.date.year,dos.date.month,dos.date.day);
-	uint32_t ticks = mem_readd(BIOS_TIMER);
-	uint32_t seconds = (ticks*10u)/182u;
-	uint16_t hour = (uint16_t)(seconds/3600u);
-	uint16_t min = (uint16_t)((seconds % 3600u)/60u);
-	uint16_t sec = (uint16_t)(seconds % 60u);
-	time = DOS_PackTime(hour,min,sec);
+
+    reg_ax = 0; /* INT1Ah AX=0h Get System time */
+    CALLBACK_RunRealInt(0x1a);
+    if(reg_al) DOS_AddDays(reg_al); /* Consume midnight flag */
+
+    uint64_t ticks = ((uint64_t)reg_cx << 16) | reg_dx;
+    uint64_t biostime = (uint64_t)((100.0 / ((double)PIT_TICK_RATE / 65536.0)) * (double)ticks);
+
+    uint16_t hour, min, sec;
+    biostime /= 100;
+    sec = (uint16_t)(biostime % 60);
+    biostime /= 60;
+    min = (uint16_t)(biostime % 60);
+    biostime /= 60;
+    hour = (uint16_t)(biostime % 24);
+
+    date = DOS_PackDate(dos.date.year, dos.date.month, dos.date.day);
 	Files[fhandle]->time = time;
 	Files[fhandle]->date = date;
 	fcb.SetSizeDateTime(size,date,time);

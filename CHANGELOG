@@ -250,6 +250,10 @@ Next version:
   - [AI] Fixed RPC debugger agent to compile on Linux, added Linux support code.
     Add option to prompt or not prompt for a folder.
     (joncampbell123)
+  - Voodoo (OpenGL): Triangles and fast fills are now clipped to the clip
+    rectangle. A screen smaller than the Voodoo mode (320x240 centred in a
+    Voodoo Graphics 512x384 mode) was drawn across the whole mode.
+    (ali-mosavian)
   - macOS: Switching to full screen or zooming the window with output=opengl
     no longer garbles the picture (the image sheared into several copies with
     video memory junk below). The window surface DOSBox-X also uses on the
@@ -413,8 +417,14 @@ Next version:
     chain. The synthetic CON header remains after DOS kernel structures while
     a lower-segment alias preserves compatibility with Quarterdeck Manifest.
     (cimarronm)
+  - macOS: Fixed first character dropped in newline of dialog (vasco9244,
+    maron2000)  
+  - Fixed CHOICE /T timeout handling and syntax validation (maron2000)
+  - Fixed image file lock inheritance during reboot (maron2000)
+  - Remove UTF-8 characters from .conf file (maron2000)
   - DOS: Fixed buffered console input (INT 21h AH=0Ah) so Backspace erases the
     complete visual expansion of a preceding tab (cimarronm)
+  - FCB: Align timestamp calculation and add INT 1Ah handling (maron2000)
 
 2026.10.01:
   - Fixed DOS FCB operations trying to read/write from device_CON when performed

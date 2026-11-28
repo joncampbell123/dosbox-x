@@ -5354,3 +5354,20 @@ Turbo (fast-forward): toggle
 :MAPPER:togmenu
 Toggle menu bar
 .
+
+:SHELL_CMD_CHOICE_TIMEOUT_ERROR
+CHOICE: Incorrect timeout syntax. Expected form: Tc,nn or T:c,nn
+.
+
+:SHELL_CMD_CHOICE_SWITCH_ERROR
+CHOICE: Switch syntax is invalid. Expected form: /C[:]choices
+.
+
+:SHELL_CMD_CHOICE_DEFAULT_ERROR
+CHOICE: Your default choice is not one of the valid choices.
+.
+
+:SHELL_CMD_CHOICE_SYNTAX_ERROR
+Switch on command line is not valid. Expected form:
+    CHOICE [/C[:]choices] [/N] [/S] [/T[:]c,nn] [text]
+.
