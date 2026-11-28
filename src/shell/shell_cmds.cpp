@@ -167,6 +167,34 @@ extern char char_yes, char_no;
 
 DOS_Device* DOS_GetCONDevice(void);
 
+static bool drive_index_mounted(int drive) {
+	return drive >= 0 && drive < DOS_DRIVES && Drives[drive] != NULL;
+}
+
+/* The path as DOS_MakeName reads it: a name may be quoted, and the quotes come before the drive. */
+static const char *unquoted(const char *path) {
+	while (path && *path == '"') path++;
+	return path;
+}
+
+/* Whether the drive a path names is mounted, the current drive when it names none. A command
+ * whose path sits on a drive nothing is mounted on says so before its own path work, as MS-DOS
+ * does, instead of reporting the path it cannot reach. */
+static bool drive_mounted(const char *path) {
+	path = unquoted(path);
+	int drive = DOS_GetDefaultDrive();
+	if (path && path[0] != 0 && path[1] == ':') drive = toupper((unsigned char)path[0]) - 'A';
+	return drive_index_mounted(drive);
+}
+
+#if !defined(OSFREE)
+/* Whether a path names a drive at all, which REN's target does only when it is one. */
+static bool names_drive(const char *path) {
+	path = unquoted(path);
+	return path && path[0] != 0 && path[1] == ':';
+}
+#endif
+
 static int32_t lastsetcp = 0;
 bool CHCP_changed = false;
 
@@ -567,6 +595,8 @@ void DOS_Shell::CMD_DELETE(char* args) {
 
     StripSpaces(args);
     args = trim(args);
+
+    if (!drive_mounted(args)) { WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE")); return; }
 
     /* Command uses dta so set it to our internal dta */
     //DOS_DTA dta(dos.dta());
@@ -1166,6 +1196,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 	char * arg2=StripArg(args);
 	StripSpaces(args);
 	if (*args) {SyntaxError();return;}
+	if (!drive_mounted(arg1) || (names_drive(arg2) && !drive_mounted(arg2))) { WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE")); return; }
 	char* slash = strrchr_dbcs(arg1,'\\');
 	uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1], tname1[LFN_NAMELENGTH+1], tname2[LFN_NAMELENGTH+1], text1[LFN_NAMELENGTH+1], text2[LFN_NAMELENGTH+1], tfull[CROSS_LEN+2];
@@ -1473,9 +1504,18 @@ void DOS_Shell::CMD_CHDIR(char* args) {
         uint8_t targetdrive = (args[0] | 0x20) - 'a' + 1;
         unsigned char targetdisplay = *reinterpret_cast<unsigned char*>(&args[0]);
 
+        /* A letter below 'a' halves to 0, and DOS_GetCurrentDir(0) means the current drive: the
+         * answer would name a drive the line does not. */
+        if (targetdrive == 0) {
+            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            return;
+        }
         if(!DOS_GetCurrentDir(targetdrive, dir, true)) {
             if(drive == 'Z') {
                 WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"), toupper(targetdisplay));
+            }
+            else if (!drive_index_mounted(targetdrive - 1)) {
+                WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
             }
             else {
                 WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
@@ -1490,6 +1530,14 @@ void DOS_Shell::CMD_CHDIR(char* args) {
             WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT"), toupper(targetdisplay));
     }
     else {
+        if (!drive_mounted(args)) {
+            if (drive == 'Z') {
+                WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_3"));
+                return;
+            }
+            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            return;
+        }
         // Try to change directory using the raw input (e.g., "sed") first
         bool cddone = DOS_ChangeDir(args);
 
@@ -1548,6 +1596,7 @@ void DOS_Shell::CMD_MKDIR(char * args) {
 		WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"));
 		return;
 	}
+	if (!drive_mounted(args)) { WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE")); return; }
 	if (!DOS_MakeDir(args)) {
 		WriteOut(MSG_Get(dos.errorcode==DOSERR_ACCESS_DENIED?"SHELL_CMD_MKDIR_EXIST":"SHELL_CMD_MKDIR_ERROR"),args);
 	}
@@ -1570,6 +1619,7 @@ void DOS_Shell::CMD_RMDIR(char * args) {
 		WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"));
 		return;
 	}
+	if (!drive_mounted(args)) { WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE")); return; }
 	if (!DOS_RemoveDir(args)) {
 		WriteOut(MSG_Get("SHELL_CMD_RMDIR_ERROR"),args);
 	}
@@ -2081,6 +2131,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 
 	char buffer[CROSS_LEN];
 	args = trim(args);
+	if (!drive_mounted(args)) { WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE")); return; }
 	size_t argLen = strlen(args);
 	if (argLen == 0) {
 		strcpy(args,"*.*"); //no arguments.
@@ -2503,7 +2554,21 @@ void DOS_Shell::CMD_COPY(char * args) {
 		sources.pop_back();
 	}
 	//If no target => default target with concat flag true to detect a+b+c
+	bool target_named = target.filename.size() != 0;
 	if(target.filename.size() == 0) target = copysource(defaulttarget,true);
+	/* A path on a drive nothing is mounted on is refused before any copying, as MS-DOS does.
+	 * A concatenation with no target writes to its first source, so the "." is never read. */
+	bool mounted = true, target_is_current_dir = target_named;
+	for (size_t i = 0; i < sources.size(); i++)
+		if (!drive_mounted(sources[i].filename.c_str())) mounted = false;
+	/* With no target, a copy whose first source opens a concatenation writes to that source
+	 * and never reads the ".", which any other copy writes through. */
+	if (!target_named && !sources[0].concat) target_is_current_dir = true;
+	if (!mounted || (target_is_current_dir && !drive_mounted(target.filename.c_str()))) {
+		WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+		dos.dta(save_dta);
+		return;
+	}
 
 	copysource oldsource;
 	copysource source;
@@ -3106,6 +3171,7 @@ void DOS_Shell::CMD_TYPE(char * args) {
 	uint8_t page=outcon?real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE):0;
 nextfile:
 	word=StripArg(args);
+	if (!drive_mounted(word)) { WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE")); return; }
 	if (!DOS_OpenFile(word,0,&handle)) {
 		WriteOut(MSG_Get(dos.errorcode==DOSERR_ACCESS_DENIED?"SHELL_CMD_FILE_ACCESS_DENIED":(dos.errorcode==DOSERR_PATH_NOT_FOUND?"SHELL_ILLEGAL_PATH":"SHELL_CMD_FILE_NOT_FOUND")),word);
 		return;
@@ -3866,6 +3932,10 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 	char buffer[CROSS_LEN];
 	args = ExpandDot(sfull,buffer, CROSS_LEN, false);
 	StripSpaces(args);
+	if (!drive_mounted(args)) {
+		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH_NAME"), args);
+		return;
+	}
 	RealPt save_dta=dos.dta();
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
@@ -4071,6 +4141,7 @@ void DOS_Shell::CMD_TRUENAME(char * args) {
 	}
 	char *name = StripArg(args), fullname[DOS_PATHLENGTH];
 	uint8_t drive;
+	if (!drive_mounted(name)) { WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE")); return; }
 	if (DOS_MakeName(name, fullname, &drive)) {
         if (optH) {
            if (!strncmp(Drives[drive]->GetInfo(),"local ",6) || !strncmp(Drives[drive]->GetInfo(),"CDRom ",6)) {

@@ -1,4 +1,9 @@
 Next version:
+  - [AI] DOS: COPY, DEL, TYPE, ATTRIB, TRUENAME, CD, MD, RD, DIR and
+    REN answer MS-DOS's message on a drive that is not mounted, "Invalid
+    drive specification", and ATTRIB its "Path not found - <the path>",
+    instead of the path they cannot reach; CD keeps the mount hint it
+    prints at the Z: prompt. (Optimiza)
   - [AI] DOS: a divide error ends the program as MS-DOS ends it, with
     "Divide overflow" on the console, instead of running the instruction
     that divided again for ever. XCOPY to a drive that is not mounted
