@@ -2441,6 +2441,7 @@ uint8_t DOS_FCBIncreaseSize(uint16_t seg,uint16_t offset) {
     hour = (uint16_t)(biostime % 24);
 
     date = DOS_PackDate(dos.date.year, dos.date.month, dos.date.day);
+    time = DOS_PackTime(hour,min,sec);
 	Files[fhandle]->time = time;
 	Files[fhandle]->date = date;
 	fcb.SetSizeDateTime(size,date,time);

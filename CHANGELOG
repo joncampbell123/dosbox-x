@@ -1,4 +1,8 @@
 Next version:
+  - [AI] DOS: an FCB random block write of no records (INT 21h AH=28h with
+    CX=0), which sets the file size, stamps the file with the time of day
+    from INT 1Ah as an FCB write does, instead of keeping its old time.
+    (joncampbell123)
   - [AI] DOS: COPY, DEL, TYPE, ATTRIB, TRUENAME, CD, MD, RD, DIR and
     REN answer MS-DOS's message on a drive that is not mounted, "Invalid
     drive specification", and ATTRIB its "Path not found - <the path>",
