@@ -476,6 +476,11 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,const char * pattern) {
 		}
 		while (i<=LFN_NAMELENGTH) sname[lfn_filefind_handle][i++]=0;
 	}
+
+	// Public LFN searches keep their state outside the caller's DTA
+	// Internal searches still use their private legacy DTA storage
+	if (lfn_filefind_handle<LFN_FILEFIND_MAX) return;
+
     for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
 	
 	sSave(sDTA,sdrive,_sdrive);
@@ -565,6 +570,10 @@ int DOS_DTA::GetFindData(int fmt, char * fdstr, int *c) {
 
 uint8_t DOS_DTA::GetSearchDrive(void) {
 	return lfn_filefind_handle>=LFN_FILEFIND_MAX?(uint8_t)sGet(sDTA,sdrive):sdriv[lfn_filefind_handle];
+}
+
+uint8_t DOS_DTA::GetAttr(void) {
+	return lfn_filefind_handle>=LFN_FILEFIND_MAX?(uint8_t)sGet(sDTA,sattr):sattr[lfn_filefind_handle];
 }
 
 void DOS_DTA::GetSearchParams(uint8_t & attr,char * pattern, bool lfn) {

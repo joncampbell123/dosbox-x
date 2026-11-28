@@ -694,7 +694,7 @@ public:
 	void	SetDirIDCluster(uint32_t entry)	{ sSave(sDTA,dirCluster,entry); };
 	uint16_t	GetDirID(void)				{ return (uint16_t)sGet(sDTA,dirID); };
 	uint32_t	GetDirIDCluster(void)		{ return sGet(sDTA,dirCluster); };
-    uint8_t   GetAttr(void)               { return (uint8_t)sGet(sDTA,sattr); }
+    uint8_t   GetAttr(void);
 private:
 	#ifdef _MSC_VER
 	#pragma pack(1)
