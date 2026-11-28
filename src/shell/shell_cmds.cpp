@@ -3577,15 +3577,19 @@ void DOS_Shell::CMD_LOADHIGH(char *args){
 }
 #endif
 
-bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_sec)
+bool get_param(char*& args, char*& rem, char*& temp, char& wait_char, int& wait_sec, bool& optC, bool& optT)
 {
-    const char *last = strchr(args, 0);
-	StripSpaces(args);
-	temp = ScanCMDRemain(args);
-	const bool optC = temp && tolower(temp[1]) == 'c';
-	const bool optT = temp && tolower(temp[1]) == 't';
-    if (temp && *temp && !optC && !optT)
-		return false;
+    const char* last = strchr(args, 0);
+    StripSpaces(args);
+    temp = ScanCMDRemain(args);
+    optC = temp && tolower(temp[1]) == 'c';
+    optT = temp && tolower(temp[1]) == 't';
+    if(temp && *temp && !optC && !optT) {
+        char opt = (char)tolower(temp[1]);
+        if(opt != 'n' && opt != 's' && opt != 'b' && opt != 'm')
+            return true; // Invalid option, return true to indicate an error
+        return false;
+    }
 	if (temp) {
 		if (args == temp)
 			args = strchr(temp, 0) + 1;
@@ -3594,26 +3598,31 @@ bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_
 			temp++;
 	}
 	if (optC) {
-		rem = temp;
+        rem = temp;
 	} else if (optT) {
-        if(!temp || !*temp || *(temp + 1) != ',' || !temp[2])
+        if(!temp || !*temp || *(temp + 1) != ',' || !temp[2]) {
+            wait_sec = -1;
             return false;
+        }
 
         char* sec = temp + 2;
-        if(!*sec)
+        if(!isdigit((unsigned char)*sec)) {
+            wait_sec = -1;
             return false;
-
-        for(char* p = sec; *p; p++) {
-            if(!isdigit((unsigned char)*p))
-                return false;
         }
+
+        wait_sec = *sec++ - '0';
+
+        if(isdigit((unsigned char)*sec))
+            wait_sec = wait_sec * 10 + (*sec++ - '0'); // Genuine MS-DOS accepts only two digits
+
         wait_char = *temp;
-		wait_sec = atoi(temp + 2);
+        args = sec;
 	}
 	if (args > last)
 		args = NULL;
 	if (args) args = trim(args);
-	return true;
+	return false;
 }
 
 #if !defined(OSFREE)
@@ -3627,19 +3636,37 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	//bool optC = false, optT = false; /* unused */
 	bool optN = ScanCMDBool(args,"N");
 	bool optS = ScanCMDBool(args,"S"); //Case-sensitive matching
-	// ignore /b and /m switches for compatibility
+    bool optC = false;
+    bool optT = false;
+    // ignore /b and /m switches for compatibility
 	ScanCMDBool(args,"B");
 	ScanCMDBool(args,"M"); // Text
 	//ScanCMDBool(args,"T"); //Default Choice after timeout
 
 	while (args && *trim(args) == '/') {
-		if (!get_param(args, rem, temp, waitchar, waitsec)) {
-			WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), temp);
-			return;
-		}
+        if(get_param(args, rem, temp, waitchar, waitsec, optC, optT)) {
+            WriteOut(MSG_Get("SHELL_CMD_CHOICE_SYNTAX_ERROR"));
+            dos.return_code = 255;
+            return;
+        }
 	}
-	if (!rem || !*rem) rem = defchoice; /* No choices specified use (national) YN */
-	ptr = rem;
+    if(optT) {
+        if(waitsec < 0) {
+            WriteOut(MSG_Get("SHELL_CMD_CHOICE_TIMEOUT_ERROR"));
+            dos.return_code = 255;
+            return;
+        }
+    }
+
+    if(!rem || !*rem) {
+        if(optC) {
+            WriteOut(MSG_Get("SHELL_CMD_CHOICE_SWITCH_ERROR"));
+            dos.return_code = 255;
+            return;
+        }
+        else rem = defchoice; /* No choices specified use (national) YN */
+    }
+    ptr = rem;
 	uint8_t c;
 	if(!optS) while ((c = (uint8_t)(*ptr))) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
 
@@ -3647,7 +3674,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
     if(waitsec >= 0 && waitchar) {
         char checkchar = optS ? waitchar : (char)toupper((unsigned char)waitchar);
         if(!strchr(rem, checkchar)) {
-            WriteOut("CHOICE: Your default choice is not one of the valid choices.\n");
+            WriteOut(MSG_Get("SHELL_CMD_CHOICE_DEFAULT_ERROR"));
             dos.return_code = 255;
             return;
         }
@@ -3664,7 +3691,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	}
 	/* Show question prompt of the form [a,b]? where a b are the choice values */
 	if (!optN) {
-		if(args && *args) WriteOut(" ");
+        //if(args && *args) WriteOut(" "); /* Genuine MS-DOS does not put a space between the question and the choices */
 		WriteOut("[");
 		size_t len = strlen(rem);
 		for(size_t t = 1; t < len; t++) {

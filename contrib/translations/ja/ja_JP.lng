@@ -2142,15 +2142,17 @@ LOADHIGH        [drive:][path]filename [parameters]
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text
+バッチ・ファイルの中から Y/N などの実行の選択を行います。
 
-  /C[:]choices 入力可能なキーを指定します (デフォルトは: yn)
-  /N           プロンプトの最後に選択肢を表示しない
-  /S           選択肢の大文字小文字を区別する
-  /T[:]c,nn    nn秒後のデフォルトの選択はc.
-  text         プロンプトに表示するテキスト
+CHOICE [/C[:]choices] [/N] [/S] [/T[:]c,nn] [text]
 
-ERRORLEVELは、ユーザーが選択肢で押すキーの位置に設定されます.
+  /C[:]choices 選択可能な文字スイッチ(半角文字)を列挙します。省略値はYN
+  /N           実行の選択時に[選択肢]?を表示しません。
+  /S           大文字と小文字の文字スイッチを区別します。
+  /T[:]c,nn    nn 秒後にタイムアウトして c が選択されたものとします。
+  text         実行の選択時に表示するプロンプト文字列を指定します。
+
+ERRORLEVELは、選択された文字スイッチの位置(0,1,2,3,..)にセットされます.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -4541,4 +4543,21 @@ Copyright %s-%s %s
 .
 :HELP_ABOUT_HOMEPAGE
 DOSBox-X ホームページ: %s
+.
+
+:SHELL_CMD_CHOICE_TIMEOUT_ERROR
+タイムアウトの指定が間違っています。正しくは、Tc,nn または T:c,nn
+.
+
+:SHELL_CMD_CHOICE_SWITCH_ERROR
+選択可能な文字スイッチの指定が間違っています。正しくは、/C[:]choices
+.
+
+:SHELL_CMD_CHOICE_DEFAULT_ERROR
+タイムアウト文字スイッチが選択可能な文字スイッチの中にありません。
+.
+
+:SHELL_CMD_CHOICE_SYNTAX_ERROR
+間違ったスイッチが指定されました。正しくは:
+    CHOICE [/C[:]choices] [/N] [/S] [/T[:]c,nn] [text]
 .
