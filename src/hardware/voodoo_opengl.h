@@ -32,6 +32,7 @@
 
 #include "voodoo_vogl.h"
 #include "voodoo_types.h"
+#include "voodoo_clip.h"
 
 extern UINT32 new_width;
 extern UINT32 new_height;
