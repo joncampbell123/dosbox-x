@@ -1257,8 +1257,10 @@ static Bitu DOS_21Handler(void) {
             {
                 uint8_t c;
                 do {
+                    c = 0;
                     uint16_t n = 1;
-                    if(!DOS_ReadFile(STDIN, &c, &n) || n == 0) {
+                    const bool read_ok = DOS_ReadFile(STDIN, &c, &n);
+                    if(n == 0 || (!read_ok && !(dos.errorcode == 77 && c == 3))) {
                         c = 0; /* FIX_ME: Handle end of file condition */
                         break;
                     }
