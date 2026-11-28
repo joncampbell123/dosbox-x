@@ -744,6 +744,7 @@ bool DOS_BreakTest(bool print=true) {
 		if (terminate) {
 			LOG_MSG("Note: DOS break terminating program\n");
 			DOS_Terminate(dos.psp(),false,0);
+			dos.return_mode = RETURN_CTRLC;
 			*appname=0;
 			*appargs=0;
 			return false;
